@@ -1,0 +1,10 @@
+#summary Adapt It and Silas work together to produce improved RTF documents .
+#labels Phase-QA
+
+= Introduction =
+
+Silas (Smart Interactive Layout Assistant for Scriptures)is an application that can take an RTF document produced by Adapt It and add page numbers, headers,and other formatting features.  Therefore, so that the output is more readable and is better organized than that directly produced by Adapt It
+
+= Details =
+
+You can find out more about Silas at [http://code.google.com/p/silas]
