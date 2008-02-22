@@ -3,7 +3,7 @@
 
 = Introduction =
 
-Silas (Smart Interactive Layout Assistant for Scriptures)is an application that can take an RTF document produced by Adapt It and add page numbers, headers,and other formatting features.  Therefore, so that the output is more readable and is better organized than that directly produced by Adapt It
+Silas (Smart Interactive Layout Assistant for Scriptures)is an application that can take an RTF document produced by Adapt It and add page numbers, headers,and other formatting features.  Therefore, the output is more readable and is better organized than that directly produced by Adapt It
 
 = Details =
 
