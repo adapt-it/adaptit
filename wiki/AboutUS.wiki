@@ -1,0 +1,15 @@
+#summary Let us introduce our self
+= Introduction =
+
+This page is to tell you who we are. 
+
+= Details =
+
+bussa5673 or bob.buss
+  My name is Bob Buss and I am a Wycliffe Associate -- US. I have been working on preparing help files for Adapt It. I am the primary owner of this site, however I will share any questions that I can't answer with Bruce or Bill.
+
+adaptit.bruce
+  His name is Bruce Waters and he is the individual who developed the original concept for Adapt It. He is from Australia and served as a translator with SIL in PNG.
+
+adaptitbill
+  His name is Bill Martin and he also served in PNG with SIL. He has now become the lead developer for Adapt It. He is an American.
