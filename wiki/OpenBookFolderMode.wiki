@@ -1,5 +1,5 @@
+#summary How to change from the default method of storing documents to Book Folder Mode.
 #labels Featured
-#How to change from the default method of storing documents to Book Folder Mode.
 
 = Introduction =
 
