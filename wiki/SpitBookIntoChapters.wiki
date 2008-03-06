@@ -1,0 +1,20 @@
+#summary How to make single-chapter adaptation documents from a book document.
+#labels Phase-QA,Featured
+
+= Introduction =
+
+Adapt It offers an easy way to create a series of single chapter adaptation documents from a book document. This procedure assumes that you are in Book Folder mode (See OpenBookFolderMode) and that you want to break _Luke_ into single chapter documents. This procedure also assumes that the source document contains properly formatted Standard Format Markers.
+
+= Procedure =
+
+  # Open the project and the document to be split into chapter sized documents.
+  # In the _Tools_ menu, select the _Split Document…_ option.
+  # Select the _Luke_ document. (It should already be identified.)
+  # Select the *Split into single chapter documents* option.
+  # Type *Luke* or another appropriate name into the text box.
+  # Click *Split Now*
+Adapt It creates 24 new documents named _Luke01.xml, Luke02.xml, … Luke24.xml_.
+  # Adapt It tells you that it has completed spitting the documents. Click *OK*.
+  # Click *Close* to close the _Split The Open Document Into Smaller Documents_ dialog.
+  # Adapt It opens the Document dialog listing all of the new documents. Select the desired chapter document and click *Finish*
+Adapt It opens the desired chapter ready for adaptation. 
