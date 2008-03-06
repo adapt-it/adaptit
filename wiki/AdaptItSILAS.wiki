@@ -1,4 +1,4 @@
-#summary Adapt It and Silas work together to produce improved RTF documents .
+#summary Adapt It and Silas work together to produce improved RTF documents.
 #labels Phase-QA
 
 = Introduction =
