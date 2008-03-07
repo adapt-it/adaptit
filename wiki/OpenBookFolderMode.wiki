@@ -9,29 +9,42 @@ When you switch to Book Folder mode, Adapt It creates 67 subfolders in the Adapt
 
 = Procedure =
 
+== Caveats on this procedure ==
+
+There are many conditions under which you could convert to Book Folders Mode. This procedure is written with a scenario where you would be opening a new project and are going to work in the book of Luke. Converting to Book Folder mode can be done at anytime; however, the process is easiest with a project that does not yet have many documents. This is because Adapt It does not automatically move documents into the book folders.
+
+A second assumption is that Adapt It is set to make automatic backups. So in this procedure the point is made about a document that includes BAK in the file extension. If you are not making automatic backups, you will not see this file and you can ignore that part of the procedure. 
+
+== Procedure steps ==
+
+{{{
 For the purposes of this procedure, assume that you wish to work with the book of Luke and you are creating a new project.
-  # Open the new project in Adapt It and proceed until you get to the Document Dialog. 
-  # Open your Luke document so that it appears in Adapt It’s Main Window.
-  # On the _Advanced_ menu, click the *Storing Documents in Book Folders* 
-  # Adapt It prompts you about saving the changes. Accept the changes.
-    Adapt It saves the Luke document into the _Adaptations_ folder for now.
-  # Adapt It Opens the Document dialog again. This time the Book Folder mode status should be *On* and the dialog tells you that documents are being stored to a particular folder. Usually this will be _Matthew_. 
-  # Click the *Change Folder …* button. 
-  # Select *New Testament books* if it is not already selected.
-  # Select *Luke* in the Drop down box on the right.
-  # Click *OK*
-Adapt It now wants you to select a document; however, you have saved Luke in the Adaptations folder. Now, you just want to move it into the _Luke_ folder. 
-  # Click *Cancel*. 
-  # Adapt It may give you several warning messages. Click *OK* to clear those messages. 
-  # Open the _Tools_ menu and select the _Move Document…_ option.
-Adapt It opens a _Move A Document_ dialog showing all of the documents in the _Adaptations_ folder. Two of them should refer to Luke. Both have a file extension of *xml* and one also has a file extension of *BAK*.
-  # Be sure that the *From the Adaptations folder to the current book folder* option is selected.
-  # Select one of the two documents and click *Move Now*.
-Adapt It tells you that the document has been successfully moved.
-  # Repeat the process for the second document.
-  # Click *Close*.
-  # Open the _File_ menu and select the _Open_ option or press *Ctrl+O*.
-Adapt It opens the Document dialog again and this time shows the two documents in the _Luke_ folder. 
-  # Select the document which _does not_ include *BAK* in the filename. (BAK stands for Backup.)
-  # Click *Finish*
-Adapt It opens the main window with the document ready for adaptation.
+  1. Open the new project in Adapt It and proceed until you get to the Document Dialog. 
+  2. Open your Luke document so that it appears in Adapt It’s Main Window.
+  3. On the Advanced menu , click the Storing Documents in Book Folders* 
+  4. Adapt It prompts you about saving the changes. Accept the changes.
+     Adapt It saves the Luke document into the Adaptations folder for now.
+  5. Adapt It Opens the Document dialog again. This time the Book Folder mode status should be *On* 
+     and the dialog tells you that documents are being stored to a particular folder. Usually this will be Matthew. 
+  6. Click the Change Folder … button. 
+  7. Select New Testament books if it is not already selected.
+  8. Select Luke in the Drop down box on the right.
+  9. Click OK.
+     Adapt It now wants you to select a document; however, you have saved Luke in the Adaptations folder. 
+     Now, you just want to move it into the Luke folder. 
+ 10. Click Cancel. 
+ 11. Adapt It may give you several warning messages. Click OK to clear those messages. 
+ 12. Open the Tools menu and select the Move Document… option.
+     Adapt It opens a Move A Document dialog showing all of the documents in the Adaptations folder. 
+     Two of them should refer to Luke. Both have a file extension of xml and one also has a file extension of BAK.
+ 13. Be sure that the *From the Adaptations folder to the current book folder* option is selected.
+ 14. Select one of the two documents and click Move Now.
+     Adapt It tells you that the document has been successfully moved.
+ 15. Repeat the process for the second document.
+ 16. Click Close.
+ 17. Open the File menu and select the Open option or press Ctrl+O.
+     Adapt It opens the Document dialog again and this time shows the two documents in the Luke folder. 
+ 18. Select the document which does not include BAK in the filename. (BAK stands for Backup.)
+ 19. Click Finish.
+     Adapt It opens the main window with the document ready for adaptation.
+}}}
