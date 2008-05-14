@@ -7,7 +7,6 @@ If your source text file has been prepared in Microsoft word, and you do not sav
 Adapt It cannot use the standard Word formats such as doc or rtf as input. 
 
 =Procedure=
-
  # Open the Word Document that you want to import.
  # From the File Menu select Save As…
  # Type the desired file name into the text box at the bottom.  
