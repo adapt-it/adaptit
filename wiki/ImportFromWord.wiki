@@ -3,7 +3,7 @@
 =Introduction=
 
 If your source text file has been prepared in Microsoft word, and you do not save the file as a text file (txt), the result in Adapt It will appear as garbage symbols. 
-http://picasaweb.google.com/bussa5673/AdaptItForum/photo#5200356953823810610
+
 Adapt It cannot use the standard Word formats such as doc or rtf as input. 
 
 =Procedure=
