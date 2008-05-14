@@ -1,4 +1,4 @@
-#summary Importing source file prepared in Word leads to corrupted source text in Adapt It document.
+#summary Importing source file prepared in Word in the wrong format leads to corrupted source text in Adapt It documents.
 
 =Introduction=
 
