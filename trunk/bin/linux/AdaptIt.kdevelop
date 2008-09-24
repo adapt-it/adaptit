@@ -17,10 +17,10 @@
   <kdevautoproject>
     <general>
       <activetarget>src/AdaptIt</activetarget>
-      <useconfiguration>UnicodeDebug</useconfiguration>
+      <useconfiguration>default</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/wmartin/AdaptItWX/bin/linux/UnicodeDebug/adapt_it</mainprogram>
+      <mainprogram>Release/adapt_it</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs></programargs>
@@ -28,7 +28,7 @@
       <autocompile>true</autocompile>
       <envvars/>
       <globaldebugarguments></globaldebugarguments>
-      <globalcwd>/home/wmartin/AdaptItWX/bin/linux/UnicodeDebug</globalcwd>
+      <globalcwd>./</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
@@ -119,7 +119,7 @@
       <runmultiplejobs>true</runmultiplejobs>
       <numberofjobs>4</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
+      <makebin></makebin>
       <prio>0</prio>
     </make>
   </kdevautoproject>
@@ -274,9 +274,9 @@
   </ctagspart>
   <kdevdocumentation>
     <projectdoc>
-      <docsystem/>
-      <docurl/>
-      <usermanualurl/>
+      <docsystem></docsystem>
+      <docurl></docurl>
+      <usermanualurl></usermanualurl>
     </projectdoc>
   </kdevdocumentation>
   <kdevcvsservice>
