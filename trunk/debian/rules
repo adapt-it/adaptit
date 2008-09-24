@@ -39,7 +39,7 @@ clean:
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
-	-$(MAKE) -C bin/linux/Unicode clean
+	-[ -e bin/linux/Unicode ] && $(MAKE) -C bin/linux/Unicode clean || true
 
 	dh_clean 
 
