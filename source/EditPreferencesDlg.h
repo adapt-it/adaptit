@@ -1,0 +1,144 @@
+/////////////////////////////////////////////////////////////////////////////
+/// \project		AdaptItWX
+/// \file			EditPreferencesDlg.h
+/// \author			Bill Martin
+/// \date_created	13 August 2004
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \description	This is the definition file for the CEditPreferencesDlg class. 
+/// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
+/// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
+/// dialog are defined in EditPreferencesDlgFunc(), which was created and is 
+/// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
+/// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
+/// "USFM", and "Filtering".
+/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
+/////////////////////////////////////////////////////////////////////////////
+
+#ifndef EditPreferencesDlg_h
+#define EditPreferencesDlg_h
+
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma interface "EditPreferencesDlg.h"
+#endif
+
+// forward references
+class CFontPagePrefs;
+class CPunctCorrespPagePrefs;
+class CCaseEquivPagePrefs;
+class CKBPage;
+class CViewPage;
+class CAutoSavingPage;
+class CUnitsPage;
+class CUSFMPagePrefs;
+class CFilterPagePrefs;
+
+/// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
+/// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 
+/// dialog are defined in EditPreferencesDlgFunc(), which was created and is 
+/// maintained by wxDesigner. The notebook contains nine tabs labeled "Fonts", 
+/// "Backups and KB", "View", "Auto-Saving", "Punctuation", "Case", "Units", 
+/// "USFM", and "Filtering".
+/// \derivation		The CEditPreferencesDlg class is derived from wxPropertySheetDialog.
+class CEditPreferencesDlg : public wxPropertySheetDialog
+{
+	DECLARE_DYNAMIC_CLASS(CEditPreferencesDlg)
+public:
+	CEditPreferencesDlg();
+	CEditPreferencesDlg(
+		wxWindow* parent, wxWindowID id, const wxString& title,
+		const wxPoint& pos, const wxSize& size,
+		long style); 
+
+	bool Create(
+		wxWindow* parent, wxWindowID id, const wxString& title,
+		const wxPoint& pos, const wxSize& size,
+		long style);
+
+	void CreateControls(); // creates the controls and sizers
+
+	virtual ~CEditPreferencesDlg(void); // whm make all destructors virtual
+
+	bool m_bDismissDialog;
+
+	// Pointer/Handles to notebook pages
+	CFontPagePrefs* fontPage;
+	CPunctCorrespPagePrefs* punctMapPage;
+	CCaseEquivPagePrefs* caseEquivPage;
+	CKBPage* kbPage;
+	CViewPage* viewPage;
+	CAutoSavingPage* autoSavePage;
+	CUnitsPage* unitsPage;
+	CUSFMPagePrefs* usfmPage;
+	CFilterPagePrefs* filterPage;
+
+	wxBookCtrlBase* pNotebook;
+
+	void InitDialog(wxInitDialogEvent& event);
+	void OnOK(wxCommandEvent& event);
+	// Wrapper handlers for fontPage
+	void OnSourceFontChangeBtn(wxCommandEvent& event);
+	void OnTargetFontChangeBtn(wxCommandEvent& event);
+	void OnNavTextFontChangeBtn(wxCommandEvent& event);
+	void OnButtonSpecTextColor(wxCommandEvent& event);
+	void OnButtonRetranTextColor(wxCommandEvent& event);
+	void OnButtonNavTextColor(wxCommandEvent& event);
+	void OnButtonSourceTextColor(wxCommandEvent& event);
+	void OnButtonTargetTextColor(wxCommandEvent& event);
+	// Wrapper handlers for kbPage
+	void OnCheckKbBackup(wxCommandEvent& event);
+	void OnCheckBakupDoc(wxCommandEvent& event);
+	// Wrapper handler for viewPage
+	void OnButtonHighlightColor(wxCommandEvent& event);
+	// Wrapper handlers for autoSavePage
+	void OnCheckNoAutoSave(wxCommandEvent& event);
+	void OnRadioByMinutes(wxCommandEvent& event);
+	void OnRadioByMoves(wxCommandEvent& event); 
+	void EnableAll(bool bEnable);
+	// Wrapper handlers for unitsPage
+	void OnRadioUseInches(wxCommandEvent& event);
+	void OnRadioUseCentimeters(wxCommandEvent& event);
+	// Wrapper handlers for punctMapPage
+#ifdef _UNICODE
+	void OnBnClickedToggleUnnnn(wxCommandEvent& event);
+#endif
+	// Wrapper handlers for caseEquivPage
+	void OnBnClickedClearSrcList(wxCommandEvent& event);
+	void OnBnClickedSrcSetEnglish(wxCommandEvent& event);
+	void OnBnClickedSrcCopyToNext(wxCommandEvent& event);
+	void OnBnClickedSrcCopyToGloss(wxCommandEvent& event);
+	void OnBnClickedClearTgtList(wxCommandEvent& event);
+	void OnBnClickedTgtSetEnglish(wxCommandEvent& event);
+	void OnBnClickedTgtCopyToNext(wxCommandEvent& event);
+	void OnBnClickedClearGlossList(wxCommandEvent& event);
+	void OnBnClickedGlossSetEnglish(wxCommandEvent& event);
+	void OnBnClickedGlossCopyToNext(wxCommandEvent& event);
+	void OnBnCheckedSrcHasCaps(wxCommandEvent& event);
+	void OnBnCheckedUseAutoCaps(wxCommandEvent& event);
+
+	// Wrapper handlers for usfmPage
+	void OnBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& event);
+	void OnBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& event);
+	void OnBnClickedRadioUseBothSetsDoc(wxCommandEvent& event);
+	void OnBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event);
+	void OnBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent& event);
+	void OnBnClickedRadioUseBothSetsProj(wxCommandEvent& event);
+	void OnBnClickedRadioUseUbsSetOnlyFactory(wxCommandEvent& event);
+	void OnBnClickedRadioUseSilpngSetOnlyFactory(wxCommandEvent& event);
+	void OnBnClickedRadioUseBothSetsFactory(wxCommandEvent& event);
+	void OnBnClickedCheckChangeFixedSpacesToRegularSpaces(wxCommandEvent& event);
+
+	// Wrapper handlers for filterPage
+	void OnLbnSelchangeListSfmsDoc(wxCommandEvent& event);
+	void OnCheckListBoxToggleDoc(wxCommandEvent& event);
+	void OnLbnSelchangeListSfmsProj(wxCommandEvent& event);
+	void OnCheckListBoxToggleProj(wxCommandEvent& event);
+	void OnLbnSelchangeListSfmsFactory(wxCommandEvent& event);
+	void OnCheckListBoxToggleFactory(wxCommandEvent& event);
+
+	DECLARE_EVENT_TABLE()
+};
+
+#endif // EditPreferencesDlg_h

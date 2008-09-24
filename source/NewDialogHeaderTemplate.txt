@@ -1,0 +1,46 @@
+// Header Template Notes: 
+// 1. Cut and paste this file into a new class header .h file
+// 2. Find and Replace ClassName with the name of the actual class (less the C prefix)
+// 3. After doing 1-2 above delete these Header Template Notes from the new .h file
+/////////////////////////////////////////////////////////////////////////////
+/// \project		AdaptItWX
+/// \file			ClassName.h
+/// \author			Bill Martin
+/// \date_created	10 November 2006
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \description	This is the header file for the CClassName class. 
+/// The CClassName class (does what)
+/// \derivation		The CClassName class is derived from AIModalDialog.
+/////////////////////////////////////////////////////////////////////////////
+
+#ifndef ClassName_h
+#define ClassName_h
+
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma interface "ClassName.h"
+#endif
+
+class CClassName : public AIModalDialog
+{
+public:
+	CClassName(wxWindow* parent); // constructor
+	virtual ~CClassName(void); // destructor
+	// other methods
+
+protected:
+	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	void OnOK(wxCommandEvent& event);
+
+private:
+	// class attributes
+	// wxString m_stringVariable;
+	// bool m_bVariable;
+	
+	// other class attributes
+
+	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
+};
+#endif /* ClassName_h */
