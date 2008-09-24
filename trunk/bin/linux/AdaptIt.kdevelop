@@ -20,7 +20,7 @@
       <useconfiguration>default</useconfiguration>
     </general>
     <run>
-      <mainprogram>Release/adapt_it</mainprogram>
+      <mainprogram>adapt_it</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs></programargs>
@@ -274,9 +274,9 @@
   </ctagspart>
   <kdevdocumentation>
     <projectdoc>
-      <docsystem></docsystem>
-      <docurl></docurl>
-      <usermanualurl></usermanualurl>
+      <docsystem/>
+      <docurl/>
+      <usermanualurl/>
     </projectdoc>
   </kdevdocumentation>
   <kdevcvsservice>
