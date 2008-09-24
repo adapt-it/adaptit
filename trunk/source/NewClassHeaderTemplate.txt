@@ -1,0 +1,54 @@
+// Header Template Notes: 
+// 1. Cut and paste this file into a new class header .h file
+// 2. Find and Replace ClassName with the name of the actual class (less the C prefix)
+//      & wxBaseClassName with the name of the actual base class from 
+//      which ClassName is derived
+// 3. Replace ClassName_h with name of actual class (less the C prefix)
+// 4. After doing 1-2 above delete these Header Template Notes from the new .h file
+/////////////////////////////////////////////////////////////////////////////
+/// \project		AdaptItWX
+/// \file			ClassName.h
+/// \author			Bill Martin
+/// \date_created	12 February 2004
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \description	This is the header file for the CClassName class. 
+/// The CClassName class (does what)
+/// \derivation		The CClassName class is derived from wxBaseClassName.
+/////////////////////////////////////////////////////////////////////////////
+
+#ifndef ClassName_h
+#define ClassName_h
+
+// the following improves GCC compilation performance
+#if defined(__GNUG__) && !defined(__APPLE__)
+    #pragma interface "ClassName.h"
+#endif
+
+class CClassName : public wxBaseClassName
+{
+public:
+	CClassName(void); // constructor
+	virtual ~CClassName(void); // destructor
+	// other methods
+
+protected:
+
+private:
+	// class attributes
+
+	//DECLARE_CLASS(CClassName);
+	// Used inside a class declaration to declare that the class should 
+	// be made known to the class hierarchy, but objects of this class 
+	// cannot be created dynamically. The same as DECLARE_ABSTRACT_CLASS.
+	
+	// or, comment out above and uncomment below to
+	DECLARE_DYNAMIC_CLASS(CClassName) 
+	// Used inside a class declaration to declare that the objects of 
+	// this class should be dynamically creatable from run-time type 
+	// information. MFC uses DECLARE_DYNCREATE(CClassName)
+	
+	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
+};
+#endif /* ClassName_h */
