@@ -1,6 +1,6 @@
 #!/bin/sh
 LIBTOOLIZE=libtoolize
-if [ "`uname`" == "Darwin" ] ; then
+if [ "`uname`" = "Darwin" ] ; then
    LIBTOOLIZE=glibtoolize
 fi
 aclocal
