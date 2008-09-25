@@ -2258,7 +2258,7 @@ fi
 
 
 # Define the identity of the package.
- PACKAGE=adapt_it
+ PACKAGE=adaptit
  VERSION=0.1
 
 

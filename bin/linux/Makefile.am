@@ -33,10 +33,12 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 #########################################################################
 # this is the program that gets installed.  it's name is used for all
 # of the other Makefile.am variables
-bin_PROGRAMS = adapt_it
+bin_PROGRAMS = adaptit
+pkgdata_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
+
 
 # the application source, library search path, and link libraries
-adapt_it_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
+adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
 	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
@@ -66,5 +68,5 @@ adapt_it_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/ViewFilteredMaterialDlg.cpp ../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
 	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
-adapt_it_LDFLAGS = $(WX_LIBS) 
+adaptit_LDFLAGS = $(WX_LIBS) 
 

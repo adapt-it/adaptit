@@ -3071,7 +3071,7 @@ wxString CAdapt_ItApp::GetPathContainingLocalizationSubDirectories()
 	localizationFilePath += appName + _T(".app/Contents/Resources");
 #endif
 #ifdef __WXGTK__
-	wxASSERT(appName == _T("adapt_it"));
+	wxASSERT(appName == _T("adaptit"));
 	// Linux uses the m_setupFolder
 	// The call to m_pHelpController->Initialize() below will fail on wxGTK unless wxUSE-LIBMSPACK is 1
 #ifndef wxUSE_LIBMSPACK
@@ -4926,7 +4926,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// "C:\\Program Files\\Adapt It Unicode" or
 	// "C:\\Program Files\\Adapt It"
 	// On Linux/GTK the m_setupFolder will be something like:
-	// "/usr/bin/adapt_it" or "/usr/local/adapt_it"
+	// "/usr/bin/adaptit" or "/usr/local/adaptit"
 	// On the Mac the m_setupFolder will be something like:
 	// "/Applications"
 
