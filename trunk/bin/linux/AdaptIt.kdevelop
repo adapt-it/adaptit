@@ -20,7 +20,7 @@
       <useconfiguration>default</useconfiguration>
     </general>
     <run>
-      <mainprogram>adapt_it</mainprogram>
+      <mainprogram>adaptit</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs></programargs>

@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
@@ -33,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = adapt_it$(EXEEXT)
+bin_PROGRAMS = adaptit$(EXEEXT)
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(noinst_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
@@ -47,10 +48,10 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgdatadir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_adapt_it_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
+am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	Adapt_ItCanvas.$(OBJEXT) Adapt_ItDoc.$(OBJEXT) \
 	Adapt_ItView.$(OBJEXT) Adapt_It_wdr.$(OBJEXT) \
 	AutoSavingPage.$(OBJEXT) BString.$(OBJEXT) CCModule.$(OBJEXT) \
@@ -87,11 +88,11 @@ am_adapt_it_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	ViewPage.$(OBJEXT) WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) \
 	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) XML.$(OBJEXT) \
 	XMLErrorDlg.$(OBJEXT) helpers.$(OBJEXT)
-adapt_it_OBJECTS = $(am_adapt_it_OBJECTS)
-adapt_it_LDADD = $(LDADD)
-adapt_it_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(adapt_it_LDFLAGS) $(LDFLAGS) -o $@
+adaptit_OBJECTS = $(am_adaptit_OBJECTS)
+adaptit_LDADD = $(LDADD)
+adaptit_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(adaptit_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -104,8 +105,16 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(adapt_it_SOURCES)
-DIST_SOURCES = $(adapt_it_SOURCES)
+SOURCES = $(adaptit_SOURCES)
+DIST_SOURCES = $(adaptit_SOURCES)
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+pkgdataDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(pkgdata_DATA)
 HEADERS = $(noinst_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -261,9 +270,10 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ViewPage.h ../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
 	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h 
 
+pkgdata_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
 
 # the application source, library search path, and link libraries
-adapt_it_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
+adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
 	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
@@ -294,7 +304,7 @@ adapt_it_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
-adapt_it_LDFLAGS = $(WX_LIBS) 
+adaptit_LDFLAGS = $(WX_LIBS) 
 all: all-am
 
 .SUFFIXES:
@@ -360,9 +370,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-adapt_it$(EXEEXT): $(adapt_it_OBJECTS) $(adapt_it_DEPENDENCIES) 
-	@rm -f adapt_it$(EXEEXT)
-	$(adapt_it_LINK) $(adapt_it_OBJECTS) $(adapt_it_LDADD) $(LIBS)
+adaptit$(EXEEXT): $(adaptit_OBJECTS) $(adaptit_DEPENDENCIES) 
+	@rm -f adaptit$(EXEEXT)
+	$(adaptit_LINK) $(adaptit_OBJECTS) $(adaptit_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -1645,6 +1655,23 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
+install-pkgdataDATA: $(pkgdata_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
+	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  $(pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	done
+
+uninstall-pkgdataDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	done
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -1826,9 +1853,9 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS) $(HEADERS)
+all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -1876,7 +1903,7 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-pkgdataDATA
 
 install-dvi: install-dvi-am
 
@@ -1914,7 +1941,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-binPROGRAMS uninstall-pkgdataDATA
 
 .MAKE: install-am install-strip
 
@@ -1928,11 +1955,12 @@ uninstall-am: uninstall-binPROGRAMS
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-binPROGRAMS
+	install-pdf-am install-pkgdataDATA install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-binPROGRAMS uninstall-pkgdataDATA
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

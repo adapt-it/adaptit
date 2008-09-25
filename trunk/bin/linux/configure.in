@@ -1,5 +1,5 @@
 AC_INIT(../../source/Adapt_It.cpp)
-AM_INIT_AUTOMAKE(adapt_it, 0.1)
+AM_INIT_AUTOMAKE(adaptit, 0.1)
 
 AC_PROG_CXX
 AC_PROG_INSTALL
