@@ -64,7 +64,7 @@ binary-arch: build install
 	dh_installchangelogs 
 	dh_installdocs
 	dh_installexamples
-	dh_install debian/adaptit.desktop
+	dh_install debian/adaptit.desktop usr/share/applications
 #	dh_install
 #	dh_installmenu
 #	dh_installdebconf	
