@@ -23,11 +23,12 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/SilConverterSelectDlg.h \
 	../../source/SourceBundle.h ../../source/SourcePhrase.h ../../source/SplitDialog.h \
 	../../source/Stack.h ../../source/StartWorkingWizard.h ../../source/Strip.h \
-	../../source/TargetUnit.h ../../source/Text.h ../../source/TransferMarkersDlg.h \
+	../../source/TargetUnit.h ../../source/Text.h \
 	../../source/TransformToGlossesDlg.h ../../source/USFMPage.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/ViewFilteredMaterialDlg.h \
 	../../source/ViewPage.h ../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
 	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h 
+
 #########################################################################
 # APPLICATION SECTION
 #########################################################################
@@ -62,7 +63,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourceBundle.cpp ../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp \
 	../../source/Stack.cpp ../../source/StartWorkingWizard.cpp ../../source/Strip.cpp \
-	../../source/TargetUnit.cpp ../../source/Text.cpp ../../source/TransferMarkersDlg.cpp \
+	../../source/TargetUnit.cpp ../../source/Text.cpp \
 	../../source/TransformToGlossesDlg.cpp ../../source/USFMPage.cpp ../../source/UnitsDlg.cpp \
 	../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/ViewFilteredMaterialDlg.cpp ../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
