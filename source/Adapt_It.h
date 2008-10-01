@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			Adapt_It.h
 /// \author			Bill Martin
 /// \date_created	05 January 2004
 /// \date_revised	14 May 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
 /// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
@@ -44,7 +44,7 @@
 // whm Notes: The MFC version uses _NONROMAN everywhere instead of _UNICODE. For MFC, the 
 // _NONROMAN symbol gets defined in the VC 7.1 Preprocessor Definitions for UDebug Dual builds
 // along with _UNICODE. The early problems Bruce had with MFC and use of the _UNICODE define 
-// have not been a problem in the wxWidgets framework. Therefore the AdaptItWX version only uses 
+// have not been a problem in the wxWidgets framework. Therefore the WX version only uses 
 // the built-in _UNICODE define.
 
 // The __WXDEBUG__ and _DEBUG symbols are defined automatically when doing a debug build

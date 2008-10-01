@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			Mover.h
-/// \author			Jonathan Field; modified by Bill Martin for AdaptItWX
+/// \author			Jonathan Field; modified by Bill Martin for the WX version
 /// \date_created	11 November 2006
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the Mover class. 
 /// The Mover class encapsulates the logic involved in moving a source document from the main Adaptions 
 /// folder to an individual book folder, or from an individual book folder back up to 

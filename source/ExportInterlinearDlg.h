@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			ExportInterlinearDlg.h
 /// \author			Bill Martin
 /// \date_created	14 June 2006
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CExportInterlinearDlg class. 
 /// The CExportInterlinearDlg class provides a dialog in which the user can specify
 /// the inclusion or exclusion of various parts of the text or a span of references

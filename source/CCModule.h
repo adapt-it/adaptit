@@ -1,13 +1,13 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			CCModule.h
 /// \author			Bill Martin
 /// \date_created	15 March 2008
 /// \date_revised	15 March 2008
 /// \copyright		See below for original copyright notice for original cc source code.
-///                 Modified and adapted 2008 by permission for inclusion in AdaptItWX 
+///                 Modified and adapted 2008 by permission for inclusion in adaptit 
 ///                 by Bruce Waters, Bill Martin, SIL International.
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CCCModule class. 
 /// The CCCModule class encapsulates the traditional SIL Consistent Changes functionality
 /// in a single C++ class. It only captures the CC functions which load a .cct table and

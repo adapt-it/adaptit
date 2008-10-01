@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			SetEncodingDlg.h
 /// \author			Bill Martin
 /// \date_created	5 February 2007
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CSetEncodingDlg class. 
 /// The CSetEncodingDlg class provides a means for examining a font's encoding 
 /// and changing that encoding to a more appropriate value if desired. See the

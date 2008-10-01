@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			Text.cpp
 /// \author			Bill Martin
 /// \date_created	26 March 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CText class. 
 /// The CText class lowest level unit in the bundle-strip-pile-cell-text
 /// hierarchy of objects forming the view displayed to the user on the

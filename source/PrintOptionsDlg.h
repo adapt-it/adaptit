@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			PrintOptionsDlg.h
 /// \author			Bill Martin
 /// \date_created	10 November 2006
 /// \date_revised	29 February 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CPrintOptionsDlg class. 
 /// The CPrintOptionsDlg class provides a dialog for the user to enter a range
 /// of pages, range of chapter/verse and specify how to handle margin elements 

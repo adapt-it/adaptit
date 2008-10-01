@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			ChooseLanguageDlg.h
 /// \author			Bill Martin
 /// \date_created	15 July 2008
 /// \date_revised	15 July 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CChooseLanguageDlg class. 
 /// The CChooseLanguageDlg class provides a dialog in which the user can change
 /// the interface language used by Adapt It. The dialog also allows the user to

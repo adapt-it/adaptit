@@ -6,13 +6,13 @@
 // 3. Replace ClassName_h with name of actual class (less the C prefix)
 // 4. After doing 1-2 above delete these Header Template Notes from the new .h file
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			ClassName.h
 /// \author			Bill Martin
 /// \date_created	12 February 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CClassName class. 
 /// The CClassName class (does what)
 /// \derivation		The CClassName class is derived from wxBaseClassName.
