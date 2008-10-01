@@ -80,7 +80,8 @@ CPlaceRetranslationInternalMarkers::CPlaceRetranslationInternalMarkers(wxWindow*
 	pTextCtrlAsStaticPlaceIntMkrs = (wxTextCtrl*)FindWindowById(IDC_TEXTCTRL_AS_STATIC_PLACE_INT_MKRS);
 	wxASSERT(pTextCtrlAsStaticPlaceIntMkrs != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticPlaceIntMkrs->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticPlaceIntMkrs->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticPlaceIntMkrs->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	// other attribute initializations
 }

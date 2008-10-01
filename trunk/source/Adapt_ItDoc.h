@@ -146,15 +146,19 @@ public:
 	wxString&		AppendItem(wxString& dest,wxString& src, const wxChar* ptr, int itemLen);
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase);
 	void			DeleteSourcePhrases();
+	void			DeleteSourcePhrases(SPList* pList);
 	bool			DoFileSave();
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoTransformedDocFileSave(wxString path);
 	//void			EnsureSpaceDelimited(wxString& s); // unused
 	void			EraseKB(CKB* pKB);
+	bool			FilenameClash(wxString& typedName); // BEW added 22July08 to 
+														// prevent 2nd creation destroying work
 	CAdapt_ItApp*	GetApp();
-	wxString		GetCurrentDirectory(); // BEW added 4Jan07 for saving & restoring the full path to the current doc's directory
-										   // across the writing of the project configuration file to the project's directory
+	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
+											// to the current doc's directory across the writing of
+											// the project configuration file to the project's directory
 	//wxString		GetFileName(const wxString fullPath); // not used in wx version
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,

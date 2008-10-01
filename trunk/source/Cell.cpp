@@ -54,6 +54,13 @@
 #include "SourcePhrase.h"
 #include "Adapt_ItView.h"
 
+// globals for support of vertical editing
+wxColor gMidGray = wxColour(128,128,128); //COLORREF gMidGray = (COLORREF)RGB(128,128,128);
+extern EditRecord gEditRecord;
+extern bool gbVerticalEditInProgress;
+extern EditStep gEditStep;
+static EditRecord* pRec = &gEditRecord;
+
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpGreenWedgePile;
 
@@ -102,7 +109,7 @@ extern CAdapt_ItApp* gpApp; // want to access it fast
 
 extern const wxChar* filterMkr;
 extern const wxChar* filteredTextPlaceHolder;
-
+extern EditRecord gEditRecord;
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -137,6 +144,7 @@ CCell::~CCell()
 
 }
 
+// BEW 2Aug08, additions to for gray colouring of context regions in vertical edit steps
 void CCell::Draw(wxDC* pDC)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -149,11 +157,63 @@ void CCell::Draw(wxDC* pDC)
 	pDC->SetBrush(*wxTRANSPARENT_BRUSH); // SetBackgroundMode() requires a valid brush on wxGTK
 
 	wxColour oldBkColor; 
+
+	// vertical edit: change text colour to gray if it is before or after the editable span; we have to
+	// do it also in the m_pText CText member too, and beware because the latter can be NULL for some CCell
+	// instances.
+	// whm: initialized the following two ints to 0 to avoid "potentially uninitialized local variable"
+	// warnings, since they would be uninitialized when gbVerticalEditInProgress if FALSE (albeit the
+	// present code, they are not used anywhere but where gbVerticalEditInProgress tests true.
+	int nStart_Span = 0;
+	int nEnd_Span = 0; 
+	if (gbVerticalEditInProgress && (gEditStep == adaptationsStep) && pRec->bAdaptationStepEntered)
+	{
+		// set up the span bounding indices
+		nStart_Span = pRec->nAdaptationStep_StartingSequNum;
+		nEnd_Span = pRec->nAdaptationStep_EndingSequNum;
+	}
+	else if (gbVerticalEditInProgress && (gEditStep == glossesStep) && pRec->bGlossStepEntered)
+	{
+		// set up the span bounding indices
+		nStart_Span = pRec->nGlossStep_StartingSequNum;
+		nEnd_Span = pRec->nGlossStep_EndingSequNum;
+	}
+	else if (gbVerticalEditInProgress && (gEditStep == freeTranslationsStep) && pRec->bFreeTranslationStepEntered)
+	{
+		// set up the span bounding indices
+		nStart_Span = pRec->nFreeTranslationStep_StartingSequNum;
+		nEnd_Span = pRec->nFreeTranslationStep_EndingSequNum;
+	}
+	// colour gray the appropriate cells' text
+	if (gbVerticalEditInProgress 
+		&& (gEditStep == adaptationsStep || gEditStep == glossesStep || gEditStep == freeTranslationsStep))
+	{
+		// the spans to be made available for work can differ in each step, so they are set above first
+		if (m_pPile->m_pSrcPhrase->m_nSequNumber < nStart_Span || m_pPile->m_pSrcPhrase->m_nSequNumber > nEnd_Span)
+		{
+			// it's either adaptations step, AND, the pile is before or after the editable span
+			if (m_pText != NULL)
+			{
+				m_pText->m_color = gMidGray; // this works because Draw() is not called on the 
+											 // CText member until this present Draw() call ends
+			}
+		}
+		else
+		{
+			// if its not one of those, just do the normal text colour as set by CreatePile() and CreateCell()
+			// in the view class
+			;
+		}
+	}
+	// In all the remainder of this Draw() function, only backgrounds are ever changed in color, and the navigation
+	// whiteboard area's icons and text are drawn.
 	if (m_pText->m_bSelected)
 	{
 		oldBkColor = pDC->GetTextBackground(); // yellow
 		pDC->SetBackgroundMode(pApp->m_backgroundMode);
 		pDC->SetTextBackground(wxColour(255,255,0));
+		//TRACE3("Sel'n Count %d  Pile %d  Strip %d\n",m_pDoc->GetApp()->GetView()->m_selection.GetCount(),
+				//m_pPile->m_nPileIndex,m_pStrip->m_nStripIndex);
 
 	}
 

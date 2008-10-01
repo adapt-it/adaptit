@@ -1094,7 +1094,10 @@ a:			CCell* pCell = 0;
 
 			// recreate the selection to be in line 1, hence ignoring boundary flags
 			CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
-			if (nCount > 0)
+            // whm 21Sep08 modified if test below: I added && pAnchorCell != NULL to avoid crash if user
+            // switches from 4-line to 2-line (using toolbar buttons) then cancels out. pAnchorCell can
+            // be null in such cases, and both MFC and wx applications can crash in such situations.
+			if (nCount > 0 && pAnchorCell != NULL)
 			{
 				gpApp->m_pAnchor = pAnchorCell;
 				CCellList* pSelection = &gpApp->m_selection;

@@ -79,7 +79,8 @@ CWhichBook::CWhichBook(wxWindow* parent)
 	wxASSERT(m_pTextAsStatic != NULL);
 	// Make the wxTextCtrl that is displaying static text have window background color
 	wxColor backgrndColor = this->GetBackgroundColour();
-	m_pTextAsStatic->SetBackgroundColour(backgrndColor);
+	//m_pTextAsStatic->SetBackgroundColour(backgrndColor);
+	m_pTextAsStatic->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	// other attribute initializations
 	m_strBookName.Empty();

@@ -87,6 +87,12 @@
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
 
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbVerticalEditInProgress;
+
+/// This global is defined in Adapt_ItView.cpp.
+extern EditRecord gEditRecord; // defined at start of Adapt_ItView.cpp
+
 /// This global is defined in Adapt_It.cpp.
 extern enum TextType gPreviousTextType; // moved to global space in the App, made extern here
 
@@ -380,6 +386,17 @@ bool CAdapt_ItDoc::OnNewDocument()
 		pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 	}
 
+	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
+	// because each document, on opening it, it must start with a truly empty EditRecord; and
+	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
+	// lists in it have content which persists only for the life of the document currently open)
+	CAdapt_ItView* pView = gpApp->GetView();
+	pView->InitializeEditRecord(gEditRecord);
+	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
+	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
+	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
+
+
 	int width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
 #ifdef _RTL_FLAGS
 	pApp->m_docSize = wxSize(width - 40,600); // a safe default width, the length doesn't matter 
@@ -506,21 +523,15 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// get the filename
 				strUserTyped = dlg.m_strFilename;
 				
-				wxFileName fn = wxFileName(strUserTyped);
-				wxString badChars = _T("\\/:*?\"<>|");
+				// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
+				// with bad characters in it.
 				// abort the operation if user gave no explicit or bad output filename
-				if (strUserTyped.IsEmpty() || FindOneOf(strUserTyped,badChars) != -1)
+				if (strUserTyped.IsEmpty())
 				{
 					// warn user to specify a non-null document name with valid chars
 					// IDS_EMPTY_OUTPUT_FILENAME
 					if (strUserTyped.IsEmpty())
 						wxMessageBox(_("Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."), _T(""), wxICON_INFORMATION);
-					else
-					{
-						wxString message;
-						message = message.Format(_("Sorry, names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),badChars.c_str());
-						wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION);
-					}
 
 
 					// reinitialize everything
@@ -1192,11 +1203,18 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
 /// Enables or disables menu and/or toolbar items associated with the wxID_SAVE identifier.
-/// The item is enabled if the KB exists, and if m_pSourcePhrases has at least one item in
-/// its list, and IsModified() returns TRUE; otherwise the item is disabled.
+/// If Vertical Editing is in progress the File Save menu item is always disabled, and this
+/// handler returns immediately. Otherwise, the item is enabled if the KB exists, and if 
+/// m_pSourcePhrases has at least one item in its list, and IsModified() returns TRUE; 
+/// otherwise the item is disabled.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
@@ -1303,6 +1321,13 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	
+	if (gbVerticalEditInProgress)
+	{
+		// don't allow doc closure until the vertical edit is finished
+		::wxBell(); 
+		return;
+	}
+
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		// free translation mode is on, so we must first turn it off
@@ -1345,11 +1370,17 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
 /// Enables or disables menu item associated with the wxID_CLOSE identifier.
-/// The item is enabled if  m_pSourcePhrases has at least one item in its list; otherwise the 
-/// item is disabled.
+/// If Vertical Editing is in progress the File Close menu item is disabled, and this handler
+/// immediately returns. Otherwise, the item is enabled if m_pSourcePhrases has at least one 
+/// item in its list; otherwise the item is disabled.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	if (pApp->m_pSourcePhrases->GetCount() > 0)
@@ -3310,6 +3341,16 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	}
 	pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0];
 
+	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
+	// because each document, on opening it, it must start with a truly empty EditRecord; and
+	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
+	// lists in it have content which persists only for the life of the document currently open)
+	pView->InitializeEditRecord(gEditRecord);
+	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
+	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
+	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
+
+
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
 	// possible to in that way to choose a file from a different project; so the app will crash
 	// unless we here set up the required directory structures and load the document's KB
@@ -3480,6 +3521,44 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
   if (!mod && view && pApp->GetMainFrame()->canvas)
     pApp->GetMainFrame()->canvas->DiscardEdits();
 }
+
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param      pList -> pointer to a SPList of source phrases
+/// \remarks
+/// Called from: the View's InitializeEditRecord(), OnEditSourceText(), 
+/// OnCustomEventAdaptationsEdit(), and OnCustomEventGlossesEdit().
+/// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
+/// list.
+// //////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
+{
+	// BEW added 21Apr08 to pass in a pointer to the list which is to be deleted (overload of
+	// the version which has no input parameters and internally assumes the list is m_pSourcePhrases)
+	// This new version is required so that in the refactored Edit Source Text functionality we can
+	// delete the deep-copied sublists using this function; making m_pSourcePhrases the default and
+	// having just the one function would be an option, but it forces me to make m_pSourcePhrases a
+	// static class function which I don't want to do, but it would work okay that way too)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pList != NULL)
+	{
+		if (!pList->IsEmpty())
+		{
+			// delete all the tokenizations of the source text
+			SPList::Node *node = pList->GetFirst();
+			while (node)
+			{
+				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
+				DeleteSingleSrcPhrase(pSrcPhrase);
+				node = node->GetNext();
+			}
+			pList->Clear(); 
+		}
+	}
+}
+
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing
@@ -7158,6 +7237,84 @@ void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, wxString
 	// We've finished building the wxArrayString
 }
 
+// Get the active document folder's document names into the app class's m_acceptedFilesList
+// and test them against the user's typed filename: return TRUE if there is a filename clash,
+// FALSE if the typed name is unique. Use in OutputFilenameDlg.cpp's OnOK()button handler.
+// Before this protection was added in 22July08, an existing document with lots of adaptation
+// and other work contents already done could be wiped out without warning merely by the user
+// creating a new document with the same name as that document file.
+bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
+{
+	gpApp->m_acceptedFilesList.Clear();
+	wxString dirPath;
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+		dirPath = gpApp->m_bibleBooksFolderPath;
+	else
+		dirPath = gpApp->m_curAdaptionsPath;
+	bool bOK;
+	bOK = ::wxSetWorkingDirectory(dirPath); // ignore failures
+	wxString docName;
+	gpApp->GetPossibleAdaptionDocuments(&gpApp->m_acceptedFilesList, dirPath);
+	int offset = -1;
+
+	// remove any .xml or .adt which the user may have added to the passed in filename
+	wxString rev = typedName;
+	rev = MakeReverse(rev);
+	wxString adtExtn = _T(".adt");
+	wxString xmlExtn = _T(".xml");
+	adtExtn = MakeReverse(adtExtn);
+	adtExtn = MakeReverse(adtExtn);
+	offset = rev.Find(adtExtn);
+	if (offset == 0)
+	{
+		// it's there, so remove it
+		rev = rev.Mid(4);
+	}
+	offset = rev.Find(xmlExtn);
+	if (offset == 0)
+	{
+		// it's there, so remove it
+		rev = rev.Mid(4);
+	}
+	rev = MakeReverse(rev);
+	int len = rev.Length();
+
+	// test for filename clash
+	int ct;
+	for (ct = 0; ct < (int)gpApp->m_acceptedFilesList.GetCount(); ct++)
+	{
+		docName = gpApp->m_acceptedFilesList.Item(ct);
+		offset = docName.Find(rev);
+		if (offset == 0)
+		{
+			// this one is a candidate for a clash, check further
+			int docNameLen = docName.Length();
+			if (docNameLen >= len + 1)
+			{
+				// there is a character at len, so see if it is the . of an extension
+				wxChar ch = docName.GetChar(len);
+				if (ch == _T('.'))
+				{
+					// the names clash
+					gpApp->m_acceptedFilesList.Clear();
+					return TRUE;
+				}
+			}
+			else
+			{
+				// same length, and the search string lacks .adt or .xml, so this
+				// is unlikely to be a clash, but we'll return TRUE and give a
+				// beep as well
+				::wxBell();
+				gpApp->m_acceptedFilesList.Clear();
+				return TRUE;
+			}
+		}
+	}
+	gpApp->m_acceptedFilesList.Clear();
+	return FALSE;
+}
+
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		a pointer to the USFMAnalysis struct associated with the marker at pChar,
 ///				or NULL if the marker was not found in the MapSfmToUSFMAnalysisStruct.
@@ -8284,6 +8441,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	if (bIsUnstructured)
 	{
 		nTheLen = nDerivedLength; // don't use rBuffer.GetLength() - as any newlines don't get counted;
+		// Bruce commented out the next line 10May08, but I've left it there because I've dealt with
+		// and checked that other code agrees with the code as it stands.
 		++nTheLen; // make sure we include space for a null
 	}
 	else
@@ -8303,6 +8462,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	// wx Note: the following line in MFC version originally was overwriting the char position past
 	// the end of pBuffer (because nTheLen was incremented in code above or in the caller. Therefore
 	// I have moved the pEndText pointer back one 
+	// See MFC version for BEW modification of 10May08 where he left it: TCHAR* pEndText = pBuffer + nTheLen - 1; 
 	wxChar* pEnd = pBufStart + rBuffer.Length(); // bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // ensure there is a null there
 
@@ -9209,13 +9369,19 @@ void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(
 // adjusting, certain flags may need setting or clearing. This ensures all the attributes in 
 // each sourcephrase instance are mutually consistent with the standard format markers resulting
 // from the user's editing of the source text and subsequent marker editing/transfer operations.
-// Note: gpFollSrcPhrase may need to be accessed; but because this function is called before 
-// unwanted sourcephrase instances are removed from the main list in the case when the new 
-// sublist is shorter than the modified selected instances sublist, then there would be one or 
-// more sourcephrase instances between the end of the new sublist and gpFollSrcPhrase If 
-// TextType propagation is required after the sublist is copied to the main list and any 
-// unwanted sourcephrase instances removed, then the last 2 parameters enable the caller to know
-// the fact and act accordingly
+// The following indented comments only apply to the pre-3.7.0 versions:
+	// Note: gpFollSrcPhrase may need to be accessed; but because this function is called before 
+	// unwanted sourcephrase instances are removed from the main list in the case when the new 
+	// sublist is shorter than the modified selected instances sublist, then there would be one or 
+	// more sourcephrase instances between the end of the new sublist and gpFollSrcPhrase.
+	// If TextType propagation is required after the sublist is copied to the main list and any 
+	// unwanted sourcephrase instances removed, then the last 2 parameters enable the caller to know
+	// the fact and act accordingly
+// For the refactored source text edit functionality of 3.7.0, the inserting of new instances is done
+// after the old user's selection span's instances have been removed, so there are no intervening 
+// unwanted CSourcePhrase instances. Propagation still may be necessary, so we still return the 2
+// parameters to the caller for it to do any such propagating. The function cannot be called, however,
+// if the passed in list is empty - it is therefore the caller's job to detect this and refrain
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -9482,9 +9648,10 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1 contextual sfms
 								// really needs to be filtered, along with its following text content, rather
 								// than left unfiltered and its content visible for adapting in the doc.
 								// If it should be filtered, we will put an entry into m_FilterStatusMap to
-								// that effect, and at the end of the function we will call the document
-								// rebuilding code to effect filtering changes - that will accomplish the
-								// required filtering.
+								// that effect, and the caller will later use the fact that that map is not
+								// empty to call RetokenizeText() with the option for filter changes turned
+								// on (ie. BOOL parameter 2 in the call is TRUE), and that will accomplish
+								// the required filtering.
 								wxString mkr(ptr,itemLen); // construct the wholeMarker
 								wxString mkrPlusSpace = mkr + _T(' '); // add the trailing space
 								int curPos = gpApp->gCurrentFilterMarkers.Find(mkrPlusSpace);
@@ -9555,6 +9722,11 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1 contextual sfms
 			// text to bring about the need for any propagation since parameters should be correct already
 			finalType = gpFollSrcPhrase->m_curTextType;
 		}
+		// BEW added 19Jun08; we need to also give a default value for gbSpecialText in this case
+		// to, because prior to this change it was set only within the loop and not here, and leaving it
+		// unset here would result in who knows what being propagated, it could have been TRUE or FALSE
+		// when this function was called
+		gbSpecialText = FALSE; // assume we want 'inspired text' colouring
 	}
 
 	// at the end of the (sub)list, we may have a different TextType than for the sourcephrase 
@@ -10187,6 +10359,15 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		pApp->m_nActiveSequNum = 0;
 	pApp->m_lastDocPath = pApp->m_curOutputPath;
 	pApp->nLastActiveSequNum = pApp->m_nActiveSequNum;
+
+	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
+	// because each document, on opening it, it must start with a truly empty EditRecord; and
+	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
+	// lists in it have content which persists only for the life of the document currently open)
+	pView->InitializeEditRecord(gEditRecord);
+	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
+	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
+	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
 
 	// send the app the current size & position data, for saving to config files on closure
 	wxRect rectFrame;
@@ -11403,11 +11584,17 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// Enables the Split Document command on the Tools menu if a document is open, unless the
-/// app is in Free Translation Mode.
+/// If Vertical Editing is in progress the Split Document menu item is disabled and this
+/// handler returns immediately. Otherwise, it enables the Split Document command on the 
+/// Tools menu if a document is open, unless the app is in Free Translation Mode.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -11428,13 +11615,18 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// Disables the Join Document command on the Tools menu and returns immediately if the
-/// application is in Free Translation Mode.
-/// This event handler enables the Join Document command if a document is open, otherwise it
+/// If Vertical Editing is in progress or if the app is in Free Translation mode, the 
+/// Join Documents menu item is disabled and this handler returns immediately. It 
+/// enables the Join Document command if a document is open, otherwise it
 /// disables the command.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -11453,13 +11645,18 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// Disables the Move Document command on the Tools menu and returns immediately if the
-/// application is in Free Translation Mode.
+/// Disables the Move Document command on the Tools menu and returns immediately if vertical editing 
+/// is in progress, or if the application is in Free Translation Mode.
 /// This event handler enables the Move Document command if a document is open, otherwise it
 /// disables the command.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -13512,12 +13709,18 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// Enables the "Pack Document..." command on the File menu if there is a KB ready (even if only a 
+/// If Vertical Editing is in progress it disables the File Pack Document menu item and returns 
+/// immediately. It enables the menu item if there is a KB ready (even if only a 
 /// stub), and the document is loaded, and documents are to be saved as XML is turned on; 
 /// and glossing mode is turned off, otherwise the command is disabled.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// enable if there is a KB ready (even if only a stub), and the document loaded, and
 	// documents are to be saved as XML is turned on; and glossing mode is turned off
 	if (gpApp->m_pBundle->m_nStripCount > 0 && gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
@@ -13537,10 +13740,16 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// Enables the "Unpack Document..." command on the File menu as long as glossing mode is turned off.
+/// If Vertical Editing is in progress it disables the Unpack Document..." command on the File 
+/// menu, otherwise it enables the item as long as glossing mode is turned off.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// enable provided glossing mode is turned off; we want it to be able to work even if there is no
 	// project folder created yet, nor even a KB and/or document; but right from the very first launch
 	//if (pView->m_pBundle->m_nStripCount > 0 && gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
@@ -14577,11 +14786,18 @@ wxString CAdapt_ItDoc::GetCurrentDirectory()
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// Enables the "Receive Synchronized Scrolling Messages" item on the Advanced menu if a project
+/// If Vertical Editing is in progress it disables "Receive Synchronized Scrolling Messages" item 
+/// on the Advanced menu and this handler returns immediately. Otherwise, it enables the 
+/// "Receive Synchronized Scrolling Messages" item on the Advanced menu as long as a project
 /// is open.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// the feature can be enabled only if we are in a project
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
 }

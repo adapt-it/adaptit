@@ -44,6 +44,9 @@
 #include "Adapt_It.h"
 #include "CollectBacktranslations.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
+
 // event handler table
 BEGIN_EVENT_TABLE(CCollectBacktranslations, AIModalDialog)
 	EVT_INIT_DIALOG(CCollectBacktranslations::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -83,7 +86,8 @@ void CCollectBacktranslations::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	wxTextCtrl* pTextCtrlAsStaticCollectBT = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_COLLECT_BT);
 	wxASSERT(pTextCtrlAsStaticCollectBT != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticCollectBT->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticCollectBT->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticCollectBT->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	// set the adaptations radio button on as the default
 	m_bUseAdaptations = TRUE;

@@ -516,6 +516,14 @@
     IDS_WRONG_THREELETTER_CODE_A "The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"
     IDS_WRONG_THREELETTER_CODE_B "\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code."
     IDS_INVALID_DATA_BOX_TITLE "Invalid Data For Current Book Folder"
+    AFX_IDS_PREVIEW_CLOSE [not used]  "Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."
+    IDS_KEEP_UNREPLACED_NOTE " "
+    IDS_TYPED_DOCNAME_CLASHES "The name you typed clashes with an existing document name. Please type a different name."
+    IDS_CLICK_IN_GRAY_ILLEGAL "Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."
+    IDS_VERT_EDIT_ADAPTATIONS_MSG "Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
+    IDS_VERT_EDIT_GLOSSES_MSG "Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
+    IDS_UNPLACEABLE_NOTES   "Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %s"
+    IDS_VERT_EDIT_FREE_TRANSLATIONS_MSG "Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."
 */
 // ///////////// String Table Resources for Translation ////////////
 

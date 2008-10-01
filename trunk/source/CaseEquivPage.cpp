@@ -618,6 +618,7 @@ void CCaseEquivPageCommon::ToggleControlsVisibility(bool visible)
 		wxButton* pButton10 = (wxButton*)FindWindowById(IDC_BUTTON_GLOSS_COPY_TO_NEXT);
 		pButton10->Show();
 	}
+	pCaseEquivSizer->Layout();
 }
 
 IMPLEMENT_DYNAMIC_CLASS( CCaseEquivPageWiz, wxWizardPage )

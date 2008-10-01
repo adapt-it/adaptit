@@ -32,23 +32,25 @@ class CEditSourceTextDlg : public AIModalDialog
 public:
 	CEditSourceTextDlg(wxWindow* parent); // constructor
 	virtual ~CEditSourceTextDlg(void); // destructor
+	//enum { IDD = IDD_EDIT_SOURCE };
 
 	// pointers for the dialog's text ctrls
 	wxTextCtrl* pSrcTextEdit;
 	wxTextCtrl* pPreContextEdit;
 	wxTextCtrl* pFollContextEdit;
-	wxTextCtrl* pTgtEdit;
-	wxCheckBox* pCheckForceMkrDlg;
+	wxTextCtrl* pOldSrcTextEdit;
+	wxTextCtrl* pTextCtrlEditAsStatic1;
+	wxTextCtrl* pTextCtrlEditAsStatic2;
 
-	// other methods
-	//enum { IDD = IDD_EDIT_SOURCE };
 	wxString	m_strNewSourceText;
 	wxString	m_preContext;
 	wxString	m_follContext;
-	bool		m_bEditMarkersWanted;
-	wxString	m_strOldTranslationText;
+	//bool		m_bEditMarkersWanted;
+	//wxString	m_strOldTranslationText;
 	wxString	m_strOldSourceText;
-	wxString	m_chapterMarker;
+	//wxString	m_chapterMarker;
+	
+	wxSizer* pEditSourceTextDlgSizer;
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

@@ -209,9 +209,14 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	// for marker names as well)
 	CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgTgtFont);
 	pApp->m_pDlgTgtFont->SetPointSize(pApp->m_dialogFontSize);
-	pMkrDescStatic->SetFont(*pApp->m_pDlgTgtFont);
-	pMarkers->SetFont(*pApp->m_pDlgTgtFont);
-	pEndMarkers->SetFont(*pApp->m_pDlgTgtFont);
+
+	// whm note: I've commented out the following as I see no point in setting a 
+	// special font/font size for displaying the sfm markers and their description
+	// in the "Marker Description" edit box (it turns out too large and long in the
+	// dialog).
+	//pMkrDescStatic->SetFont(*pApp->m_pDlgTgtFont);
+	//pMarkers->SetFont(*pApp->m_pDlgTgtFont);
+	//pEndMarkers->SetFont(*pApp->m_pDlgTgtFont);
 	pMkrTextEdit->SetFont(*pApp->m_pDlgTgtFont);
 	
 	// whm note: we start by using the nav text font's encoding for the edit box

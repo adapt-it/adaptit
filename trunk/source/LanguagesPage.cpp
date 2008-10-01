@@ -115,7 +115,8 @@ CLanguagesPage::CLanguagesPage(wxWizard* parent) // dialog constructor
 	wxColor backgrndColor = this->GetBackgroundColour();
 	pTextCtrlAsStaticSFMsAlwasStNewLine = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_NL);
 	wxASSERT(pTextCtrlAsStaticSFMsAlwasStNewLine != NULL);
-	pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticSFMsAlwasStNewLine->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	//pDefaultSystemLanguageBox = (wxTextCtrl*)FindWindowById(ID_TEXT_SYS_DEFAULT_LANGUAGE);
 	//wxASSERT(pDefaultSystemLanguageBox != NULL);

@@ -70,6 +70,8 @@ extern int	gnOldSequNum;
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
+// This global is defined in Adapt_ItView.cpp.
+extern bool gbVerticalEditInProgress;
 
 // This global is defined in Adapt_It.cpp.
 //extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
@@ -223,6 +225,14 @@ void CEarlierTranslationDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // I
 	m_nExpansionIndex = -1;
 
 	TransferDataToWindow();
+
+	// when in vertical edit mode, don't permit jumping because it may jump the user
+	// out of the editable span into the gray text area
+	if (gbVerticalEditInProgress)
+	{
+		wxButton* pBtn = (wxButton*)FindWindowById(IDC_CLOSE_AND_JUMP);
+		pBtn->Show(FALSE);
+	}
 }
 
 bool CEarlierTranslationDlg::IsMarkedForVerse(CSourcePhrase* pSrcPhrase)

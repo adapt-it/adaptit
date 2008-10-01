@@ -38,9 +38,10 @@ public:
 
 	wxRect		m_enclosingRect;	///< the rect where the text will be drawn
 	bool		m_bSelected;		///< TRUE if text is within a selection, FALSE otherwise
+	wxColour	m_color;	// color of the text (BEW 2Aug08 made it public in
+							// support of text gray colouring in vertical edit mode)
 
 protected:
-	wxColour	m_color;	///< color of the text
 	wxPoint		m_topLeft;	///< point in logical coords, where text is to be displayed
 	wxFont*		m_pFont;	///< font in which to draw
 	int			m_nCell;	///< the parent cell

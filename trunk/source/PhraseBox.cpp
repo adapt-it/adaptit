@@ -65,6 +65,15 @@ extern bool gbIgnoreScriptureReference_Send;
 
 extern wxString gOldChapVerseStr;
 
+extern bool gbVerticalEditInProgress;
+extern EditStep gEditStep;
+extern EditRecord gEditRecord;
+
+bool gbTunnellingOut = FALSE; // TRUE when control needs to tunnel out of nested procedures when
+							  // gbVerticalEditInProgress is TRUE and a step-changing custom message
+							  // has been posted in order to transition to a different edit step;
+							  // FALSE (default) in all other circumstances
+
 bool gbSavedLineFourInReviewingMode = FALSE; // TRUE if either or both of m_adaption and m_targetStr is empty
 											 // and Reviewing mode is one (we want to preserve punctuation or
 											 // lack thereof if the location is a hole)
@@ -347,6 +356,18 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			int bSuccessful = MoveToNextPile(pView,m_pActivePile);
 			if (!bSuccessful)
 			{
+				// BEW added 4Sep08 in support of transitioning steps within vertical edit mode
+				if (gbVerticalEditInProgress && gbTunnellingOut)
+				{
+					// MoveToNextPile might fail within the editable span while vertical edit is
+					// in progress, so we have to allow such a failure to not cause tunnelling out;
+					// hence we use the gbTunnellingOut global to assist - it is set TRUE only when
+					// VerticalEdit_CheckForEndRequiringTransition() in the view class returns TRUE,
+					// which means that a PostMessage(() has been done to initiate a step transition
+					gbTunnellingOut = FALSE; // caller has no need of it, so clear to default value
+					return;
+				}
+
 				// it may have failed not because we are at eof, but because there 
 				// is nothing in this present bundle at higher locations which lacks
 				// an adaptation, in which case the active pile pointer returned 
@@ -364,15 +385,45 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 					if (pSrcPhrase == NULL)
 					{
 						// we got to the end of the doc
+
+						// if in vertical edit mode, the end of the doc is always an
+						// indication that the edit span has been traversed and so
+						// we should force a step transition, otherwise, continue to n:
 						gpApp->m_curIndex = gpApp->m_endIndex = gpApp->m_maxIndex;
 						gpApp->m_nActiveSequNum = -1;
+						if (gbVerticalEditInProgress)
+						{
+							bool bCommandPosted = pView->VerticalEdit_CheckForEndRequiringTransition(-1,
+											nextStep, TRUE); // bForceTransition is TRUE 
+							if (bCommandPosted)
+							{
+								// don't proceed further because the current vertical edit step has ended
+								return;
+							}
+						}
 						goto n;
 					}
 					else
 					{
 						// we found an empty one, so remove the non-success 
 						// condition (note: gbBundleChanged will still be TRUE)
+
+						// before continuing, test if we are in vertical editing mode
+						// and check if the new active location is in the gray text area,
+						// if so, force a step transition and ask user what to do next
+						// and return to the caller; otherwise, do the Jump() call
 						bSuccessful = TRUE;
+						if (gbVerticalEditInProgress)
+						{
+							// bForceTransition is FALSE in the call
+							bool bCommandPosted 
+								= pView->VerticalEdit_CheckForEndRequiringTransition(pSrcPhrase->m_nSequNumber,nextStep); 
+							if (bCommandPosted)
+							{
+								// don't proceed further because the current vertical edit step has ended
+								return;
+							}
+						}
 						gpApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 						pView->Jump(gpApp,pSrcPhrase);
 						//int dummy = 1;
@@ -631,6 +682,27 @@ m:			gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
 		// we are in Review mode, so moves by the RETURN key can only be to 
 		// immediate next pile
 		int nOldStripIndex = gpApp->m_pActivePile->m_pStrip->m_nStripIndex;
+
+		// if vertical editing is on, don't do the move to the next pile if it lies in the gray
+		// area or is at the bundle end; so just check for the sequence number going beyond the
+		// edit span bound & transition the step if it has, asking the user what step to do next
+		if (gbVerticalEditInProgress)
+		{
+			//gbTunnellingOut = FALSE; not needed here as once we are in caller, we've tunnelled out
+			// bForceTransition is FALSE in the next call
+			int nNextSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber + 1;
+			bool bCommandPosted = pView->VerticalEdit_CheckForEndRequiringTransition(nNextSequNum,nextStep); 
+			if (bCommandPosted)
+			{
+				// don't proceed further because the current vertical edit step has ended
+
+				// NOTE: since step transitions call mode changing handlers, and because those
+				// handlers typically do a store of the phrase box contents to the kb if appropriate,
+				// we'll rely on it here and not do a store
+				//gbTunnellingOut = TRUE;
+				return;
+			}
+		}
 
 		// we have to check here if we have moved into the area where it is 
 		// necessary to move the bundle down, and if so, then do it, & update 
@@ -1368,9 +1440,9 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 
 	// don't move forward if it means moving to an empty retranslation pile, but only for
 	// when we are adapting. When glossing, the box is allowed to be within retranslations
+	CPile* pNextEmptyPile = pView->GetNextEmptyPile(pCurPile);
 	{
-		CPile* pNext = pView->GetNextEmptyPile(pCurPile);
-		if (pNext == NULL)
+		if (pNextEmptyPile == NULL)
 		{
 			// no more empty piles (in the current bundle). We can just continue at this point
 			// since we do this call again below
@@ -1378,9 +1450,9 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 		}
 		else
 		{
-			wxASSERT(pNext);
+			wxASSERT(pNextEmptyPile);
 
-			if (pNext->m_pSrcPhrase->m_nSequNumber > pCurPile->m_pSrcPhrase->m_nSequNumber + 1)
+			if (pNextEmptyPile->m_pSrcPhrase->m_nSequNumber > pCurPile->m_pSrcPhrase->m_nSequNumber + 1)
 			{
 				// The next empty pile is not contiguous to the last pile where
 				// the phrasebox was located, so don't highlight target/gloss text
@@ -1388,8 +1460,28 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 				gnEndInsertionsSequNum = -1;
 			}
 
-			if (!gbIsGlossing && pNext->m_pSrcPhrase->m_bRetranslation)
+			if (!gbIsGlossing && pNextEmptyPile->m_pSrcPhrase->m_bRetranslation)
 			{
+				// if the lookup and jump loop comes to an empty pile which is in a retranslation,
+				// we halt the loop there. If vertical editing is in progress, this halt location
+				// could be either within or beyond the edit span, in which case the former means
+				// we don't do any step transition yet, the latter means a step transition is
+				// called for. Test for these situations and act accordingly. If we transition
+				// the step, there is no point in showing the user the message below because we
+				// just want transition and where the jump-landing location might be is of no interest
+				if (gbVerticalEditInProgress)
+				{
+					// bForceTransition is FALSE in the next call
+					gbTunnellingOut = FALSE; // ensure default value set
+					int nSequNum = pNextEmptyPile->m_pSrcPhrase->m_nSequNumber;
+					bool bCommandPosted = pView->VerticalEdit_CheckForEndRequiringTransition(nSequNum,nextStep); 
+					if (bCommandPosted)
+					{
+						// don't proceed further because the current vertical edit step has ended
+						gbTunnellingOut = TRUE; // caller needs to use it
+						return FALSE; // use FALSE to help caller recognise need to tunnel out of the lookup loop
+					}
+				}
 				// IDS_NO_ACCESS_TO_RETRANS
 				wxMessageBox(_("Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."), _T(""), wxICON_INFORMATION);
 				pApp->m_pTargetBox->SetFocus();
@@ -1550,6 +1642,39 @@ c:	bOK = TRUE;
 			gSaveTargetPhrase.Empty();
 		gTemporarilySuspendAltBKSP = FALSE;
 		gbSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
+
+		// if vertical editing is in progress, the store failure may occur with the active location
+		// within the editable span, (in which case we don't want a step transition), or having 
+		// determined the jump location's pile is either NULL (a bundle boundary was reached before
+		// an empty pile could be located - in which case a step transition should be forced), or
+		// a pile located which is beyond the editable span, in the gray area, in which case transition
+		// is wanted; so handle these options using the value for pNextEmptyPile obtained above 
+		// Note: doing a transition in this circumstance means the KB does not get the phrase box
+		// contents added, but the document still has the adaptation or gloss, so the impact of the 
+		// failure to store is minimal (ie. if the box contents were unique, the adaptation or gloss
+		// will need to occur later somewhere for it to make its way into the KB)
+		if (gbVerticalEditInProgress)
+		{
+			// bForceTransition is TRUE in the next call
+			gbTunnellingOut = FALSE; // ensure default value set
+			bool bCommandPosted = FALSE;
+			if (pNextEmptyPile == NULL)
+			{
+				bCommandPosted = pView->VerticalEdit_CheckForEndRequiringTransition(-1,nextStep,TRUE); 
+			}
+			else
+			{
+				// bForceTransition is FALSE in the next call
+				int nSequNum = pNextEmptyPile->m_pSrcPhrase->m_nSequNumber;
+				bCommandPosted = pView->VerticalEdit_CheckForEndRequiringTransition(nSequNum,nextStep); 
+			}
+			if (bCommandPosted)
+			{
+				// don't proceed further because the current vertical edit step has ended
+				gbTunnellingOut = TRUE; // caller needs to use it
+				return FALSE; // use FALSE to help caller recognise need to tunnel out of the lookup loop
+			}
+		}
 		return FALSE; // can't move until a valid adaption (which could be null) is supplied
 	}
 
@@ -1583,6 +1708,21 @@ b:	pApp->m_bSaveToKB = TRUE;
 			gSaveTargetPhrase.Empty();
 		gbSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
 		gTemporarilySuspendAltBKSP = FALSE;
+
+		// we deem vertical editing current step to have ended if control gets into this
+		// block, so user has to be asked what to do next if vertical editing is currently in progress
+		if (gbVerticalEditInProgress)
+		{
+			gbTunnellingOut = FALSE; // ensure default value set
+			bool bCommandPosted = pView->VerticalEdit_CheckForEndRequiringTransition(-1,
+							nextStep, TRUE); // bForceTransition is TRUE 
+			if (bCommandPosted)
+			{
+				// don't proceed further because the current vertical edit step has ended
+				gbTunnellingOut = TRUE; // so caller can use it
+				return FALSE;
+			}
+		}
 		return FALSE; // we are at the end of the bundle (possibly end of file too), 
 					  // so can't move further in this bundle (caller should check to see if the
 					  // bundle can be advanced, and do so etc. if possible)
@@ -1598,6 +1738,22 @@ b:	pApp->m_bSaveToKB = TRUE;
 		m_pActivePile = pNewPile; // put a copy on CPhraseBox too (we use this below)
 		pApp->m_nActiveSequNum = pNewPile->m_pSrcPhrase->m_nSequNumber;
 		nCurrentSequNum = pApp->m_nActiveSequNum; // global, for use by auto-saving
+		
+		// if vertical editing is currently in progress we must check if the lookup target is within
+		// the editable span, if not then control has moved the box into the gray area beyond the editable
+		// span and that means a step transition is warranted & the user should be asked what step is next
+		if (gbVerticalEditInProgress)
+		{
+			gbTunnellingOut = FALSE; // ensure default value set
+			bool bCommandPosted 
+				= pView->VerticalEdit_CheckForEndRequiringTransition(nCurrentSequNum,nextStep); // bForceTransition is FALSE 
+			if (bCommandPosted)
+			{
+				// don't proceed further because the current vertical edit step has ended
+				gbTunnellingOut = TRUE; // so caller can use it
+				return FALSE; // try returning FALSE
+			}
+		}
 
 		// look ahead for a match at this new active location
 		// LookAhead (July 2003) has been ammended for auto-capitalization support; and since
@@ -2060,8 +2216,37 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 	// make sure m_targetPhrase doesn't have any final spaces either
 	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
-	// if we are at the start, we can't move back any further
+	// if we are at the start, we can't move back any further - but check vertical edit situation first
 	int nCurSequNum = pCurPile->m_pSrcPhrase->m_nSequNumber;
+
+	// if vertical editing is in progress, don't permit a move backwards into the preceding
+	// gray text area; just beep and return without doing anything
+	if (gbVerticalEditInProgress)
+	{
+		EditRecord* pRec = &gEditRecord;
+		if (gEditStep == adaptationsStep || gEditStep == glossesStep)
+		{
+			if (nCurSequNum <= pRec->nStartingSequNum)
+			{
+				// we are about to try to move back into the gray text area before the edit span, disallow
+				::wxBell();
+				pApp->m_pTargetBox->SetFocus();
+				return FALSE;
+			}
+		}
+		else if (gEditStep == freeTranslationsStep)
+		{
+			if (nCurSequNum <= pRec->nFreeTrans_StartingSequNum)
+			{
+				// we are about to try to move back into the gray text area before the free trans span, disallow
+				// (I don't think we can invoke this function from within free translation mode, but no
+				// harm to play safe)
+				::wxBell();
+				pApp->m_pTargetBox->SetFocus();
+				return FALSE;
+			}
+		}
+	}
 	if (nCurSequNum == 0)
 	{
 		// IDS_CANNOT_GO_BACK
@@ -2875,6 +3060,19 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	int bSuccessful = MoveToNextPile(pView,pApp->m_pActivePile);
 	if (!bSuccessful)
 	{
+		// BEW added 4Sep08 in support of transitioning steps within vertical edit mode
+		if (gbVerticalEditInProgress && gbTunnellingOut)
+		{
+			// MoveToNextPile might fail within the editable span while vertical edit is
+			// in progress, so we have to allow such a failure to not cause tunnelling out;
+			// hence we use the gbTunnellingOut global to assist - it is set TRUE only when
+			// VerticalEdit_CheckForEndRequiringTransition() in the view class returns TRUE,
+			// which means that a PostMessage(() has been done to initiate a step transition
+			gbTunnellingOut = FALSE; // caller has no need of it, so clear to default value
+			return FALSE; // caller is OnIdle(), OnePass is not used elsewhere
+		}
+
+
 		// it may have failed not because we are at eof, but because there is nothing
 		// in this present bundle at higher locations which lacks an adaptation (or gloss)
 		// in which case the active pile pointer returned will be null, and so we must
@@ -3745,6 +3943,15 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pAppView, CPile* pNewPile)
 	}
 	else // count == 1 case (ie. a unique adaptation, or a unique gloss when glossing)
 	{
+		// BEW added 08Sep08 to suppress inserting placeholder translations for ... matches when in
+		// glossing mode and within the end of a long retranslation
+		if (curKey == _T("..."))
+		{
+			// don't allow an ellipsis (ie. placeholder) to trigger an insertion, leave translation empty
+			translation.Empty();
+			return TRUE;
+		}
+
 		translation = ((CRefString*)node->GetData())->m_translation;
 	}
 
@@ -4108,6 +4315,14 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pAppView, CPile* pNewPile)
 
 	// get the source word
 	phrases[0] = pNewPile->m_pSrcPhrase->m_key;
+	// BEW added 08Sep08: to prevent spurious words being inserted at the end of a long retranslation
+	// when  mode is glossing mode
+	if (pNewPile->m_pSrcPhrase->m_key == _T("..."))
+	{
+		// don't allow an ellipsis (ie. placeholder) to trigger an insertion, leave translation empty
+		translation.Empty();
+		return TRUE;
+	}
 		
 	// check this phrase (which is actually a single word), attempting to find a match in the KB
 	// (if glossing, it might be a single word or a phrase, depending on what user did earlier

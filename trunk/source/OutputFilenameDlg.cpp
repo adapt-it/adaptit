@@ -44,7 +44,9 @@
 
 // other includes
 #include "Adapt_It.h"
+#include "Adapt_ItDoc.h"
 #include "OutputFilenameDlg.h"
+#include "helpers.h"
 #include <wx/valgen.h>
 
 // extern globals
@@ -57,6 +59,7 @@ extern fontInfo NavFInfo;
 // event table
 BEGIN_EVENT_TABLE(COutputFilenameDlg, AIModalDialog)
 	EVT_INIT_DIALOG(COutputFilenameDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_BUTTON(wxID_OK, COutputFilenameDlg::OnOK)
 END_EVENT_TABLE()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -78,10 +81,13 @@ COutputFilenameDlg::COutputFilenameDlg(wxWindow* parent)
 	m_strFilename = _T("");
 
 	// use wxValidator for simple dialog data transfer
-	wxTextCtrl* pEdit;
 	pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_FILENAME);
+	wxASSERT(pEdit != NULL);
 	pEdit->SetValidator(wxGenericValidator(&m_strFilename));
 
+	pStaticTextInvalidCharacters = (wxStaticText*)FindWindowById(ID_TEXT_INVALID_CHARACTERS);
+	wxASSERT(pStaticTextInvalidCharacters != NULL);
+	pStaticTextInvalidCharacters->SetLabel(_T(" ") + wxFileName::GetForbiddenChars()); 
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -91,8 +97,6 @@ void COutputFilenameDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	//InitDialog is not virtual
 		
-	wxTextCtrl* pEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_FILENAME);
-
 	// make the font show the user's desired point size in the dialog
 	#ifdef _RTL_FLAGS
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pEdit, NULL,
@@ -106,6 +110,99 @@ void COutputFilenameDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	pEdit->SetValue(fn.GetName());
 	pEdit->SetFocus();
 	pEdit->SetSelection(-1,-1); // -1,-1 selects all
+}
+
+// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
+// If this returns TRUE, the function either calls EndModal(wxID_OK) if the
+// dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
+// if the dialog is modeless.
+void COutputFilenameDlg::OnOK(wxCommandEvent& event) 
+{
+	//  ensure there are no illegal characters in the filename
+	TransferDataFromWindow(); //UpdateData(TRUE); // transfer data from contols to string variables
+	wxString fn = m_strFilename;
+	wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
+	wxString scanned = SpanExcluding(fn, illegals);
+	if (scanned == fn)
+	{
+		// BW added 22July08; check for a name clash
+		bool bNamesClash = gpApp->GetDocument()->FilenameClash(fn);
+		if (bNamesClash)
+		{
+			// IDS_TYPED_DOCNAME_CLASHES
+			wxMessageBox(_("The name you typed clashes with an existing document name. Please type a different name.")
+				,_T(""), wxICON_WARNING);
+			return; // leave user in the dialog, to fix the name
+		}
+		// whm: event.Sktip() at the end of OnOK takes care of this
+		//else
+		//{
+		//	CDialog::OnOK();
+		//}
+	}
+	else
+	{
+		// there is at least one illegal character, replace each such
+		// by a space, beep, and show the modified string to the user
+		//int nFound = -1;
+		// whm Note: Since different platforms have slightly differing illegal characters for file
+		// names, etc., we will not hard code the search for characters as does the MFC version.
+		// Instead, we'll scan the file name char by char and change any that are illegal to spaces.
+		int ct;
+		int foundPos;
+		for (ct = 0; ct < (int)fn.Length(); ct++)
+		{
+			foundPos = FindOneOf(fn, illegals);
+			if (foundPos != -1)
+				fn[foundPos] = _T(' ');
+		}
+/*
+		while ( (nFound = fn.Find(_T(':'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('?'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('*'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('\"'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('\\'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('/'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('|'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('<'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+		while ( (nFound = fn.Find(_T('>'))) != -1)
+		{
+			fn.SetAt(nFound,_T(' '));
+		}
+*/
+		m_strFilename = fn;
+		TransferDataFromWindow(); //UpdateData(FALSE);
+		::wxBell();
+		// if we decide to verbally tell the user what the beep means:
+		//wxString message;
+		//message = message.Format(_("Sorry, names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
+		//wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION);	}
+	}
+	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
 /////////////////////////////////////////////////////////////////////////////

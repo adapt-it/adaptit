@@ -117,7 +117,8 @@ CProjectPage::CProjectPage(wxWizard* parent)
 	wxTextCtrl* pTextCtrlAsStaticProjectPage = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_PROJECTPAGE);
 	wxASSERT(pTextCtrlAsStaticProjectPage != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticProjectPage->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticProjectPage->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticProjectPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	m_curLBSelection = 0; // default to select the first item in list
 }

@@ -36,10 +36,13 @@ public:
 // Dialog Data
 	//enum { IDD = IDD_GET_FILENAME }; // MFC IDD
 	wxString	m_strFilename;
+	wxTextCtrl* pEdit;
+	wxStaticText* pStaticTextInvalidCharacters;
 
 // Implementation
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	void OnOK(wxCommandEvent& event);
 
 	DECLARE_EVENT_TABLE()
 };

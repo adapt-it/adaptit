@@ -742,15 +742,19 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////////////
-///	\return	a wxString containing one or more consecutive endmarkers followed by their trailing
-///			whitespace characters; or an empty string if there were no endmarkers detected
+///	\return        a wxString containing one or more consecutive endmarkers followed by their trailing
+///                whitespace characters; or an empty string if there were no endmarkers detected
 ///	\param	pSrcPhrase	->	the pSourcePhrase which is first in the document part immediately following the
 ///						earlier part of the document which has just been split off from the rest
 ///	\param	currSfmSet	->	either UsfmOnly, or PngOnly, or perhaps rarely, UsfmAndPng - whatever is
 ///						the current value stored in the global gCurrentSfmSet
-///	\param	bAbortOp	->	ref to a bool which is FALSE on entry, but set TRUE if there is no initial
-///						endmarker in pSrcPhrase's m_markers member (& used in the caller to exit the
-///						caller early if nothing needs to be done)
+///	\param	bLacksAny	<->	ref to a bool which is FALSE on entry, but set TRUE if there is no initial
+///						endmarker in pSrcPhrase's m_markers member (ie. when TRUE there are no
+///						initial enddmarkers in the pSrcPhrase->m_markers member)
+///	\param	bCopyOnly	->	Default FALSE means the endmarkers are found and the copy of them returned and
+///						they are removed from the passed in pSrcPhrase's m_markers member; but TRUE 
+///						means only that the first two effects happen, they are left on the pSrcPhrase's
+///						m_markers member
 ///	\remarks
 ///	Used to detect one or more initial endmarkers in the m_markers member of the pSourcePhrase passed
 ///	in, move them to a different tempory wxString, leave the remainder in m_markers, and pass a copy
@@ -764,9 +768,10 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 ///	Created 15Aug07 by BEW, in response to an email bug report from Bill Martin on same date
 ///	Revised 22Oct07 by whm to accommodate the different logic of wxStringTokenizer
 // ///////////////////////////////////////////////////////////////////////////////////////////////////
-wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet, bool& bAbortOp)
+wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet, bool& bLacksAny,
+								 bool bCopyOnly)
 {
-	// bAbortOp is FALSE on input
+	// bLacksAny is FALSE on input
 	wxString markers, endmarkers;
 	endmarkers.Empty();
 	int lastPos = 0; //int lastPos = offset;
@@ -778,7 +783,7 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 		aToken = tkz.GetNextToken();
 		if (aToken.IsEmpty())
 		{
-			bAbortOp = TRUE;
+			bLacksAny = TRUE;
 			return endmarkers;
 		}
 	
@@ -790,7 +795,7 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 			// marker's final character is not an asterisk, nor a reversed one of the possible
 			// PngOnly sfm set's \F or \fe markers (either was historically used for ending 
 			// footnotes); hence it is not an endmarker, so return
-			bAbortOp = TRUE;
+			bLacksAny = TRUE;
 			return endmarkers;
 		}
 
@@ -818,11 +823,132 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 
 	// whm note: endmarkers part is accumulated above so we'll just assert it is same as below
 	wxASSERT(endmarkers == markers.Left(lastPos));
-	markers = markers.Mid(lastPos); // whatever is left over, belongs in the current Chapter object, or
+	
+	if (!bCopyOnly)
+	{
+		// remove the endmarkers from pSrcPhrase->m_markers only when bCopyOnly is not TRUE
+		markers = markers.Mid(lastPos); // whatever is left over, belongs in the current Chapter object, or
 									// the remainder part of the document, depending on radio button choice
-	pSrcPhrase->m_markers = markers; // update the m_markers member in the current Chapter's CSourcePhrase
+		pSrcPhrase->m_markers = markers; // update the m_markers member in the current Chapter's CSourcePhrase
+	}
 	return endmarkers;
 }
+/* From MFC version below
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     a wxString containing one or more consecutive endmarkers followed by their trailing
+///             whitespace characters; or an empty string if there were no endmarkers detected
+/// \param      pSrcPhrase	->	the pSourcePhrase which is first in the document part immediately following the
+///     						earlier part of the document which has just been split off from the rest
+/// \param      currSfmSet	->	either UsfmOnly, or PngOnly, or perhaps rarely, UsfmAndPng - whatever is
+///     						the current value stored in the global gCurrentSfmSet
+/// \param      bLacksAny	<->	ref to a bool which is FALSE on entry, but set TRUE if there is no initial
+///     						endmarker in pSrcPhrase's m_markers member (ie. when TRUE there are no
+///     						initial enddmarkers in the pSrcPhrase->m_markers member)
+/// \param      bCopyOnly	->	Default FALSE means the endmarkers are found and the copy of them returned and
+///     						they are removed from the passed in pSrcPhrase's m_markers member; but TRUE 
+///     						means only that the first two effects happen, they are left on the pSrcPhrase's
+///     						m_markers member
+/// \remarks
+/// Called from: the View's TransportWidowedEndmarkersToFollowingContext(), OnEditSourceText(), and 
+/// SplitDialog::MoveFinalEndmarkersToEndOfLastChapter().
+/// Used to detect one or more initial endmarkers in the m_markers member of the pSourcePhrase passed
+/// in, move them to a different tempory CString, leave the remainder in m_markers, and pass a copy
+/// of the tempory CString to the caller - the caller then must create a new CSourcePhrase pointer,
+/// store the one or more moved endmarkers in its m_markers member, and add it to the tail of the
+/// split off document part's CObList, thereby preserving correct document SFM or USFM structure.
+/// This function is used in the SplitDocument class's MoveFinalEndmarkersToEndOfLastChapter() member
+/// function, which is itself used in the handler for processing per-chapter splitting, and also in
+/// the helper function SplitOffStartOfList() defined here in Helpers.cpp, which is used in both
+/// splitting at the box location, and at the next chapter.
+/// History:
+/// Created 15Aug07 by BEW, in response to an email bug report from Bill Martin on same date
+/// 19May08, BEW also used this function, with added 4th parameter, bCopyOnly = FALSE, so that when
+/// refactoring the edit source text functionality the markers can be returned to the caller without
+/// altering the pSrcPhrase in the m_pSourcePhrases list on the document by passing in TRUE for that
+/// parameter.
+////////////////////////////////////////////////////////////////////////////////////////////
+wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet, bool& bLacksAny,
+								bool bCopyOnly)
+{
+	// bAbortOp is FALSE on input
+	wxString markers, endmarkers;
+	endmarkers.Empty();
+	int offset = 0;
+	int lastPos = offset;
+	wxString aToken;
+	markers = pSrcPhrase->m_markers;
+	wxStringTokenizer tkz(markers,_T(" \n\r\t"));
+	while (tkz.HasMoreTokens())
+	{
+		aToken = tkz.GetNextToken();
+		if (aToken.IsEmpty())
+		{
+			bLacksAny = TRUE;
+			return endmarkers;
+		}
+		aToken = MakeReverse(aToken);
+		if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
+			((aToken != _T("ef\\") || aToken != _T("F\\")) && 
+			(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
+		{
+			// marker's final character is not an asterisk, nor a reversed one of the possible
+			// PngOnly sfm set's \F or \fe markers (either was historically used for ending 
+			// footnotes); hence it is not an endmarker, so return
+			bLacksAny = TRUE;
+			return endmarkers;
+		}
+
+		aToken = MakeReverse(aToken);
+		endmarkers += aToken + tkz.GetLastDelimiter(); // accumulate the token and its delimiter
+		lastPos = tkz.GetPosition(); // gets the current position, i.e., one index after the last returned token
+		
+	// it is an endmarker, so break out any others at the start of markers
+	bLacksAny = FALSE;
+	while (!aToken.IsEmpty())
+	{
+		lastPos = offset;
+		aToken = markers.Tokenize(_T(" \n\r\t"),offset);
+		if (aToken.IsEmpty())
+			break;
+		else
+		{
+			aToken.MakeReverse();
+			if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
+				((aToken != _T("ef\\") || aToken != _T("F\\")) && 
+				(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
+			{
+				// same test as above, only this time just break out if it returns TRUE
+				break;
+			}
+		}
+	}
+	// the break-out token, if any, will have resulted in offset pointing past it, so we have
+	// to use lastPos to get the offset which points past the last broken out endmarker
+	// BEW added 30Aug08, to fix a crash where, if the markers CString contains just \f* then
+	// lastPos is 4 at breakout, and that triggers a breakpoint in atlsimpstr.cpp because lastPos
+	// accesses the byte past the '\0' endbyte of the string; so we here check and reduce lastPos
+	// if that is the case
+	int strLen = markers.GetLength();
+	if (lastPos > strLen)
+		lastPos = strLen;
+
+	// include any following white space after the lostPos position, in the endmarkers substring 
+	while (markers[lastPos] == _T(' ') || markers[lastPos] == _T('\n') || markers[lastPos] == _T('\r') ||
+		markers[lastPos] == _T('\t'))
+	{lastPos++;}
+	endmarkers = markers.Left(lastPos); // this stuff belongs at the end of the list in the previous
+									   // Chapter object; or if editing source text, it belongs with
+									   // the previous storage location's source text
+	if (!bCopyOnly)
+	{
+		// remove the endmarkers from pSrcPhrase->m_markers only when bCopyOnly is not TRUE
+		markers = markers.Mid(lastPos); // whatever is left over, belongs in the current Chapter object, or
+									// the remainder part of the document, depending on radio button choice
+		pSrcPhrase->m_markers = markers; // update the m_markers member in the current Chapter's CSourcePhrase
+	}
+	return endmarkers;
+}
+*/
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with 
@@ -1149,4 +1275,44 @@ short DecimalToBinary(unsigned long decimalValue, char binaryValue[32])
 		}
 	}
 	return significant_digits;
+}
+
+bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
+{
+	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear().
+	// Also it is sometimes possible that a user could remove a selection from a list box on
+	// non-Windows platforms, so we do the following to insure that any wxListBox, wxCheckListBox, or 
+	// wxComboBox is ready for action:
+	// 1. We check to see if pListBox is really there (not NULL).
+	// 2. We return FALSE if the control does not have any items in it.
+	// 3. We check to insure that at least one item is selected when the control has at least one item
+	//    in it.
+	// 4. We return TRUE if pListBox has passed the sanity checks (1, 2, 3 above).
+
+	// Sanity check #1 check to see if pListBox is really there (not NULL)
+	if (pListBox == NULL)
+	{
+		return FALSE;
+	}
+
+	// Sanity check #2 check to see if the listbox has any items in it to work with
+	if (pListBox->GetCount() == 0)
+		return FALSE;
+
+	// If we get here we know there is at least one item in the list. Insure we have a valid selection. 
+	// Sanity check #3 check that at least one item in the control is selected/highlighted
+	int nSelTemp;
+	nSelTemp = pListBox->GetSelection();
+	if (nSelTemp == -1)
+	{
+		// no selection, so select the first item in list
+		nSelTemp = 0;
+	}
+    // According to wxControlWithItems docs, ::SetSelection(int n) "...does not cause any command events
+    // to be emitted nor does it deselect any other items in the controls which support multiple
+    // selections."
+	pListBox->SetSelection(nSelTemp);
+	
+	// Sanity checking is done so tell caller that everything is sane.
+	return TRUE;
 }

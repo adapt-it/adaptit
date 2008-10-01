@@ -1,7 +1,7 @@
 @echo off
 Break ON
 echo This batch file copies the Adapt It WX Documentation files
-echo to the following AdaptItWX installation folders for input
+echo to the following adaptit installation folders for input
 echo to the Windows installation packager Setup Generator:
 echo    1. setup Regular
 echo    2. setup Regular - Minimal
@@ -32,7 +32,7 @@ echo    CC\*.*
 echo To all except Minimal and Documentation Only:
 echo    Localization_Readme.txt
 echo To all except Localization Only:
-echo    License.txt 
+echo    ..\license\*.txt 
 echo To all setup Regular except Localization Only:
 echo    Readme.txt
 echo To all setup Unicode except Localization Only:
@@ -57,13 +57,13 @@ xcopy "Tok Pisin fragment 1John.txt" "..\setup Regular\" /Y
 xcopy "KJV 1Jn 2.12-17.txt" "..\setup Regular\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Regular\" /Y
 xcopy "Localization_Readme.txt" "..\setup Regular\" /Y
-xcopy "License.txt" "..\setup Regular\" /Y
+xcopy "..\license\*.txt" "..\setup Regular\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular\" /Y
 
 @echo on
 rem 2. The following copies Documentation files to the "setup Regular - Minimal" folder
 @echo off
-xcopy "License.txt" "..\setup Regular - Minimal\" /Y
+xcopy "..\license\*.txt" "..\setup Regular - Minimal\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular - Minimal\" /Y
 
 @echo on
@@ -82,7 +82,7 @@ xcopy "Tok Pisin fragment 1John.txt" "..\setup Regular - No Html Help\" /Y
 xcopy "KJV 1Jn 2.12-17.txt" "..\setup Regular - No Html Help\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Regular - No Html Help\" /Y
 xcopy "Localization_Readme.txt" "..\setup Regular - No Html Help\" /Y
-xcopy "License.txt" "..\setup Regular - No Html Help\" /Y
+xcopy "..\license\*.txt" "..\setup Regular - No Html Help\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular - No Html Help\" /Y
 
 @echo on
@@ -98,7 +98,7 @@ xcopy "Known Issues and Limitations.txt" "..\setup Regular Documentation Only\" 
 xcopy "Tok Pisin fragment 1John.txt" "..\setup Regular Documentation Only\" /Y
 xcopy "KJV 1Jn 2.12-17.txt" "..\setup Regular Documentation Only\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Regular Documentation Only\" /Y
-xcopy "License.txt" "..\setup Regular Documentation Only\" /Y
+xcopy "..\license\*.txt" "..\setup Regular Documentation Only\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular Documentation Only\" /Y
 
 @echo on
@@ -122,13 +122,13 @@ xcopy "Tok Pisin fragment 1John.txt" "..\setup Unicode\" /Y
 xcopy "KJV 1Jn 2.12-17.txt" "..\setup Unicode\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Unicode\" /Y
 xcopy "Localization_Readme.txt" "..\setup Unicode\" /Y
-xcopy "License.txt" "..\setup Unicode\" /Y
+xcopy "..\license\*.txt" "..\setup Unicode\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode\" /Y
 
 @echo on
 rem 7. The following copies Documentation files to the "setup Unicode - Minimal" folder
 @echo off
-xcopy "License.txt" "..\setup Unicode - Minimal\" /Y
+xcopy "..\license\*.txt" "..\setup Unicode - Minimal\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode - Minimal\" /Y
 
 @echo on
@@ -147,7 +147,7 @@ xcopy "Tok Pisin fragment 1John.txt" "..\setup Unicode - No Html Help\" /Y
 xcopy "KJV 1Jn 2.12-17.txt" "..\setup Unicode - No Html Help\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Unicode - No Html Help\" /Y
 xcopy "Localization_Readme.txt" "..\setup Unicode - No Html Help\" /Y
-xcopy "License.txt" "..\setup Unicode - No Html Help\" /Y
+xcopy "..\license\*.txt" "..\setup Unicode - No Html Help\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode - No Html Help\" /Y
 
 @echo on
@@ -163,7 +163,7 @@ xcopy "Known Issues and Limitations.txt" "..\setup Unicode Documentation Only\" 
 xcopy "Tok Pisin fragment 1John.txt" "..\setup Unicode Documentation Only\" /Y
 xcopy "KJV 1Jn 2.12-17.txt" "..\setup Unicode Documentation Only\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Unicode Documentation Only\" /Y
-xcopy "License.txt" "..\setup Unicode Documentation Only\" /Y
+xcopy "..\license\*.txt" "..\setup Unicode Documentation Only\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode Documentation Only\" /Y
 
 @echo on

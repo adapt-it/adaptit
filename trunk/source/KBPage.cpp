@@ -50,6 +50,15 @@
 #include "KB.h"
 #include "helpers.h"
 
+/// This global is defined in Adapt_ItView.cpp
+extern bool gbAdaptBeforeGloss;
+
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
+									// the project config file establishes the FALSE value instead)
+
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp*	gpApp; // if we want to access it fast
 
 IMPLEMENT_DYNAMIC_CLASS( CKBPage, wxPanel )
 
@@ -58,6 +67,8 @@ BEGIN_EVENT_TABLE(CKBPage, wxPanel)
 	EVT_INIT_DIALOG(CKBPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_CHECKBOX(IDC_CHECK_KB_BACKUP, CKBPage::OnCheckKbBackup)
 	EVT_CHECKBOX(IDC_CHECK_BAKUP_DOC, CKBPage::OnCheckBakupDoc)
+	EVT_RADIOBUTTON(IDC_RADIO_ADAPT_BEFORE_GLOSS, CKBPage::OnBnClickedRadioAdaptBeforeGloss)
+	EVT_RADIOBUTTON(IDC_RADIO_GLOSS_BEFORE_ADAPT, CKBPage::OnBnClickedRadioGlossBeforeAdapt)
 END_EVENT_TABLE()
 
 
@@ -71,22 +82,40 @@ CKBPage::CKBPage(wxWindow* parent) // dialog constructor
 
 	tempDisableAutoKBBackups = FALSE;
 	tempBackupDocument = FALSE;
+	tempAdaptBeforeGloss = TRUE;
+	tempNotLegacySourceTextCopy = FALSE;
 	tempSrcName = _T("");
 	tempTgtName = _T("");
 
 	// use wxGenericValidator for simple dialog data transfer
 	m_pEditSrcName = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC_NAME);
+	wxASSERT(m_pEditSrcName != NULL);
 
 	m_pEditTgtName = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT_NAME);
+	wxASSERT(m_pEditTgtName != NULL);
 
 	m_pCheckDisableAutoBkups = (wxCheckBox*)FindWindowById(IDC_CHECK_KB_BACKUP);
+	wxASSERT(m_pCheckDisableAutoBkups != NULL);
 
 	m_pCheckBkupWhenClosing = (wxCheckBox*)FindWindowById(IDC_CHECK_BAKUP_DOC);
+	wxASSERT(m_pCheckBkupWhenClosing != NULL);
 
+	// get the button pointers
+	pRadioAdaptBeforeGloss = (wxRadioButton*)FindWindowById(IDC_RADIO_ADAPT_BEFORE_GLOSS);
+	wxASSERT(pRadioAdaptBeforeGloss != NULL);
+	pRadioGlossBeforeAdapt = (wxRadioButton*)FindWindowById(IDC_RADIO_GLOSS_BEFORE_ADAPT);
+	wxASSERT(pRadioGlossBeforeAdapt != NULL);
+
+	m_pCheckLegacySourceTextCopy = (wxCheckBox*)FindWindowById(IDC_CHECK_LEGACY_SRC_TEXT_COPY);
+	m_pCheckLegacySourceTextCopy->SetValidator(wxGenericValidator(&tempNotLegacySourceTextCopy));
+	wxASSERT(m_pCheckLegacySourceTextCopy != NULL);
+	
 	pTextCtrlAsStaticTextBackupsKB = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE);
+	wxASSERT(pTextCtrlAsStaticTextBackupsKB != NULL);
 	// Make the wxTextCtrl that is displaying static text have window background color
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticTextBackupsKB->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticTextBackupsKB->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticTextBackupsKB->SetBackgroundColour(gpApp->sysColorBtnFace);
 }
 
 CKBPage::~CKBPage() // destructor
@@ -152,13 +181,21 @@ void CKBPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	// Validation of the language page data should be done in the caller's
 	// OnOK() method before calling CKBPage::OnOK().
 
-	// User pressed OK so assume user wants to store the dialog's values.
+	// User pressed OK so assume user wants to store the dialog's temp... values.
 	// put the source & target language names in storage on the App
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	// get the auto backup flag's value, etc
 	pApp->m_bAutoBackupKB = !tempDisableAutoKBBackups;
 	pApp->m_bBackupDocument = tempBackupDocument;
+	
+	gbAdaptBeforeGloss = tempAdaptBeforeGloss; // get the flag value for
+		// vertical edit order; whether adaptations updating precedes or follows
+		// glosses updating (this setting is preserved in the project config file)
+	
+	// determine what the Copy of the source text when pile has no adaptation, or gloss,
+	// should do in gloss mode, or adaptations mode, respectively (BEW added 16July08)
+	gbLegacySourceTextCopy = !tempNotLegacySourceTextCopy;
 
 	if (strSaveSrcName != tempSrcName || strSaveTgtName != tempTgtName)
 	{
@@ -184,11 +221,25 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 	// initialize our local temp variables from those on the App
 	tempDisableAutoKBBackups = !pApp->m_bAutoBackupKB;
 	tempBackupDocument = pApp->m_bBackupDocument;
+	tempAdaptBeforeGloss = gbAdaptBeforeGloss;
+	tempNotLegacySourceTextCopy = !gbLegacySourceTextCopy;
 	tempSrcName = pApp->m_sourceName;
 	tempTgtName = pApp->m_targetName;
 
 	m_pCheckDisableAutoBkups->SetValue(tempDisableAutoKBBackups);
 	m_pCheckBkupWhenClosing->SetValue(tempBackupDocument);
+	// initialize the buttons to whatever value is in tempAdaptBeforeGloss
+	if (tempAdaptBeforeGloss)
+	{
+		pRadioAdaptBeforeGloss->SetValue(TRUE);
+		pRadioGlossBeforeAdapt->SetValue(FALSE);
+	}
+	else
+	{
+		pRadioAdaptBeforeGloss->SetValue(FALSE);
+		pRadioGlossBeforeAdapt->SetValue(TRUE);
+	}
+	m_pCheckLegacySourceTextCopy->SetValue(tempNotLegacySourceTextCopy);
 	m_pEditSrcName->SetValue(tempSrcName);
 	m_pEditTgtName->SetValue(tempTgtName);
 
@@ -227,7 +278,23 @@ void CKBPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is me
 		m_pEditTgtName->SetLayoutDirection(wxLayout_LeftToRight);
 	}
 #endif
+}
 
+
+void CKBPage::OnBnClickedRadioAdaptBeforeGloss(wxCommandEvent& WXUNUSED(event))
+{
+	// make the first radio button be checked (standard order, adaptations first, then glosses)
+	tempAdaptBeforeGloss = TRUE;
+	pRadioAdaptBeforeGloss->SetValue(TRUE);
+	pRadioGlossBeforeAdapt->SetValue(FALSE);
+}
+
+void CKBPage::OnBnClickedRadioGlossBeforeAdapt(wxCommandEvent& WXUNUSED(event))
+{
+	// make the second radio button be checked (alternate order, glosses first, then adaptations)
+	tempAdaptBeforeGloss = FALSE;
+	pRadioAdaptBeforeGloss->SetValue(FALSE);
+	pRadioGlossBeforeAdapt->SetValue(TRUE);
 }
 
 

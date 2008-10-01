@@ -84,6 +84,36 @@
 #include "XML.h"
 // includes above
 
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern bool gbVerticalEditInProgress; 
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern bool gbEditingSourceAndDocNotYetChanged; // the View sets it to TRUE but programmatically cleared to FALSE when doc is changed
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern EditRecord gEditRecord; 
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern EntryPoint gEntryPoint;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern bool gbAdaptBeforeGloss; 
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern EditStep gEditStep;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern wxString gOldEditBoxTextStr;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern int gReplacementLocation_SequNum;
+
+/// This global is defined in Adapt_ItView.cpp
+extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+
+/// This global is defined in Adapt_ItView.cpp
+extern bool gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON;
+
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -160,6 +190,66 @@ static UINT NEAR WM_SANTA_FE_FOCUS = RegisterWindowMessage(_T("SantaFeFocus"));
 
 IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 
+// These custom events are declared in MainFrm.h:
+//DECLARE_EVENT_TYPE(wxEVT_Adaptations_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Free_Translations_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Back_Translations_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_V_Collected_Back_Translations_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
+
+DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
+DEFINE_EVENT_TYPE(wxEVT_Free_Translations_Edit)
+DEFINE_EVENT_TYPE(wxEVT_Back_Translations_Edit)
+//DEFINE_EVENT_TYPE(wxEVT_V_Collected_Back_Translations_Edit)
+DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
+DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
+DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
+
+// it may also be convenient to define an event table macro for the above event types
+#define EVT_ADAPTATIONS_EDIT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Adaptations_Edit, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+#define EVT_FREE_TRANSLATIONS_EDIT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Free_Translations_Edit, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+#define EVT_BACK_TRANSLATIONS_EDIT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Back_Translations_Edit, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+#define EVT_END_VERTICAL_EDIT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_End_Vertical_Edit, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+#define EVT_CANCEL_VERTICAL_EDIT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Cancel_Vertical_Edit, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
+#define EVT_GLOSSES_EDIT(id, fn) \
+    DECLARE_EVENT_TABLE_ENTRY( \
+        wxEVT_Glosses_Edit, id, wxID_ANY, \
+        (wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent( wxCommandEventFunction, &fn ), \
+        (wxObject *) NULL \
+    ),
+
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_IDLE(CMainFrame::OnIdle) // this is now used in wxWidgets instead of a virtual function
 	// The following carry over from the MFC version
@@ -184,6 +274,9 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	// disables tooltips
 	//EVT_MENU(ID_HELP_SET_TOOLTIP_DELAY,CMainFrame::OnSetToolTipDelayTime)
 	//EVT_UPDATE_UI(ID_HELP_SET_TOOLTIP_DELAY, CMainFrame::OnUpdateSetToolTipDelayTime)
+
+	EVT_COMBOBOX(IDC_COMBO_REMOVALS, CMainFrame::OnRemovalsComboSelChange)
+
 	// The following are unique to the wxWidgets version
     EVT_MENU(wxID_ABOUT, CMainFrame::OnAppAbout) // MFC handles this in CAdapt_ItApp, wxWidgets' doc/view here
     EVT_SIZE(CMainFrame::OnSize)
@@ -200,6 +293,15 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	// The following was for MFC only:
     // ON_REGISTERED_MESSAGE(WM_SANTA_FE_FOCUS, CMainFrame::OnSantaFeFocus)
 #endif
+
+	// Our Custom Event handlers:
+	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
+	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
+	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
+	//EVT_COMMAND(ID_MY_WINDOW, wxEVT_V_Collected_Back_Translations_Edit, CMainFrame::OnMyEvent)
+	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
+	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
+	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
 
 END_EVENT_TABLE()
 
@@ -1085,12 +1187,18 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_pToolBar = (wxToolBar*) NULL;			// handle/pointer to the toolBar
 	m_pControlBar = (wxPanel*) NULL;		// handle/pointer to the controlBar
 	m_pComposeBar = (wxPanel*) NULL;		// handle/pointer to the composeBar
+	m_pRemovalsBar = (wxPanel*) NULL;		// handle/pointer to the removalsBar
+	m_pVertEditBar = (wxPanel*) NULL;		// handle/pointer to the vertEditBar
+	//m_pVertEditStepTransBar = (wxPanel*) NULL; // handle/pointer to the vertEditStepTransBar
 	m_pComposeBarEditBox = (wxTextCtrl*) NULL;	// handle/pointer to the composeBar's edit box
 
 	m_toolBarHeight = 0;		// determined in CMainFrame constructor after toolBar is created
 	m_controlBarHeight = 0;		// determined in CMainFrame constructor after controlBar is created
 	m_composeBarHeight = 0;		// determined in CMainFrame constructor after composeBar is created
 	m_statusBarHeight = 0;
+	m_removalsBarHeight = 0;
+	m_vertEditBarHeight = 0;
+	//m_vertEditStepTransBarHeight = 0;
 
 
 	canvas = (CAdapt_ItCanvas*) NULL; // added from docview sample 16Mar04
@@ -1184,22 +1292,134 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	ComposeBarFunc( composeBar, TRUE, TRUE );
 	// Note: We are creating a composeBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the composeBar's
-	// layout within the Main Frame. The controlBar is not visible by default
+	// layout within the Main Frame. The composeBar is not visible by default
 	// but can be toggled on from the view menu or when it takes on the form
 	// of the Free Translation compose bar in Free Translation mode.
 	// Here and in the OnSize() method, we calculate the canvas' client
-	// size, which also must exclude the height of the composeBar.
+	// size, which also must exclude the height of the composeBar (if shown).
 	// Get and save the native height of our composeBar.
 	wxSize composeBarSize;
 	composeBarSize = m_pComposeBar->GetSize();
 	m_composeBarHeight = composeBarSize.GetHeight();
-
 	m_pComposeBarEditBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(m_pComposeBarEditBox != NULL);
+	
+	// set the font used in the compose bar to the font & size as currently for the target text
+	m_pComposeBarEditBox->SetFont(*pApp->m_pTargetFont);
 	// The initial state of the composeBar, however is hidden. The OnViewComposeBar()
 	// method takes care of hiding and showing the composeBar and OnSize()insures the
 	// client window is adjusted accordingly and the screen redrawn as needed
 	m_pComposeBar->Hide();
+
+	// Create the removals bar using a wxPanel
+	wxPanel *removalsBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
+	wxASSERT(removalsBar != NULL);
+	m_pRemovalsBar = removalsBar;
+	RemovalsBarFunc( removalsBar, TRUE, TRUE );
+	// Note: We are creating a removalsBar which the doc/view framework knows
+	// nothing about. The mainFrameSizer below takes care of the removalsBar's
+	// layout within the Main Frame. The removalsBar is not visible by default
+	// but can be made visible during source text/vertical editing.
+	// Here and in the OnSize() method, we calculate the canvas' client
+	// size, which also must exclude the height of the removalsBar (if shown).
+	// Get and save the native height of our removalsBar.
+	wxSize removalsBarSize;
+	removalsBarSize = m_pRemovalsBar->GetSize();
+	m_removalsBarHeight = removalsBarSize.GetHeight();
+	m_pRemovalsBarComboBox = (wxComboBox*)FindWindowById(IDC_COMBO_REMOVALS);
+	wxASSERT(m_pRemovalsBarComboBox != NULL);
+
+	// MFC: BEW added 11July08 set the font & size used in the combobox in the removals bar to
+	// the font as currently for the target text
+	// whm: 
+	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);
+	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// make the dialog font show in the proper dialog font size.
+	pApp->m_pDlgTgtFont->SetPointSize(10);
+	m_pRemovalsBarComboBox->SetFont(*pApp->m_pDlgTgtFont);
+ 	// Set removals combo box RTL alignment if necessary
+	#ifdef _RTL_FLAGS
+	if (gpApp->m_bTgtRTL)
+		m_pRemovalsBarComboBox->SetLayoutDirection(wxLayout_RightToLeft);
+	else
+		m_pRemovalsBarComboBox->SetLayoutDirection(wxLayout_LeftToRight);
+	#endif
+	// whm Note: At this point the MFC code attempts to "set up the list size - make it fit whatever
+	// is the client rectangle height for the frame wnd". I don't think this is necessary in the wx 
+	// version which controls the bar and its contents with sizers.
+    // The initial state of the removalsBar, however is hidden. The m_pRemovalsBar is dynamically hidden
+    // or shown depending on the state of any source text/vertical editing process. OnSize()insures the
+    // client window is adjusted accordingly and the screen redrawn as needed
+	m_pRemovalsBar->Hide();
+	
+	// Create the vertEditBar using a wxPanel
+	wxPanel *vertEditBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
+	wxASSERT(vertEditBar != NULL);
+	m_pVertEditBar = vertEditBar;
+	VertEditBarFunc( vertEditBar, TRUE, TRUE );
+	// Note: We are creating a vertEditBar which the doc/view framework knows
+	// nothing about. The mainFrameSizer below takes care of the vertEditBar's
+	// layout within the Main Frame. The vertEditBar is not visible by default
+	// but can be made visible during source text/vertical editing.
+	// Here and in the OnSize() method, we calculate the canvas' client
+	// size, which also must exclude the height of the vertEditBar (if shown).
+	// Get and save the native height of our vertEditBar.
+	wxSize vertEditBarSize;
+	vertEditBarSize = m_pVertEditBar->GetSize();
+	m_vertEditBarHeight = vertEditBarSize.GetHeight();
+	m_pVertEditMsgBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_MSG_TEXT);
+	wxASSERT(m_pVertEditMsgBox != NULL);
+	
+	// MFC: BEW added 23July08 set the font & size used in the read-only CEdit in the vertical edit bar to
+	// the font as currently for the navigation text -- we have our own font specifically for this bar
+	// whm Note: We're not using the same font here as we did above in the removals bar; here we use
+	// the dedicated m_pVertEditFont for the m_pVertEditMsgBox.
+	CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pVertEditFont);
+	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// make the dialog font show in the proper dialog font size.
+	pApp->m_pVertEditFont->SetPointSize(10);
+	m_pVertEditMsgBox->SetFont(*pApp->m_pVertEditFont);
+ 	// Set removals combo box RTL alignment if necessary
+	#ifdef _RTL_FLAGS
+	if (gpApp->m_bNavTextRTL)
+		m_pVertEditMsgBox->SetLayoutDirection(wxLayout_RightToLeft);
+	else
+		m_pVertEditMsgBox->SetLayoutDirection(wxLayout_LeftToRight);
+	#endif
+
+	// whm Note: At this point the MFC code attempts to "set up the CEdit's width - make it fit whatever
+	// is the client rectangle height for the frame wnd". I don't think this is necessary in the wx 
+	// version which controls the bar and its contents with sizers.
+	// The initial state of the vertEditBar, however is hidden. The m_pVertEditBar is dynamically hidden
+    // or shown depending on the state of any source text/vertical editing process. OnSize()insures the
+    // client window is adjusted accordingly and the screen redrawn as needed
+	m_pVertEditBar->Hide();
+
+	// Create the vertEditStepTransBar using a wxPanel
+	//wxPanel *vertEditStepTransBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
+	//wxASSERT(vertEditStepTransBar != NULL);
+	//m_pVertEditStepTransBar = vertEditStepTransBar;
+	//VertEditStepTransitionFunc( vertEditStepTransBar, TRUE, TRUE );
+	// // Note: We are creating a vertEditStepTransBar which the doc/view framework knows
+	// // nothing about. The mainFrameSizer below takes care of the vertEditStepTransBar's
+	// // layout within the Main Frame. The vertEditStepTransBar is not visible by default
+	// // but can be made visible during source text/vertical editing.
+	// // Here and in the OnSize() method, we calculate the canvas' client
+	// // size, which also must exclude the height of the vertEditStepTransBar (if shown).
+	// // Get and save the native height of our vertEditStepTransBar.
+	//wxSize vertEditStepTransBarSize;
+	//vertEditStepTransBarSize = m_pVertEditStepTransBar->GetSize();
+	//m_vertEditStepTransBarHeight = vertEditStepTransBarSize.GetHeight();
+	//m_pVertEditStepTransMsgBox = (wxTextCtrl*)FindWindowById(IDC_STATIC_STEP_MSG);
+	//wxASSERT(m_pVertEditStepTransMsgBox != NULL);
+	//m_pVertEditStepTransMsgBox->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+ //   // The initial state of the removalsBar, however is hidden. The m_pRemovalsBar is dynamically hidden
+ //   // or shown depending on the state of any source text/vertical editing process. OnSize()insures the
+ //   // client window is adjusted accordingly and the screen redrawn as needed
+	//m_pVertEditStepTransBar->Hide();
+	
+	// All the potentially visible "bars" are now created and their data initialized.
+
 
 	// BEW added 27Mar07 for support of receiving synchronized scroll messages
 	// whm note: in the MFC version the following is located in CMainFrame::OnCreate()
@@ -1463,6 +1683,13 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 // calls view's OnFileCloseProject( ) handler, which restores the four glossing flags to
 // their default values (ie. glossing not enabled, glossing OFF, etc.)
 {
+	if (gbVerticalEditInProgress)
+	{
+		// don't allow opening any recent document file in the MRU list
+		// until the vertical edit is finished
+		::wxBell(); 
+		return;
+	}
 
 	gbTryingMRUOpen = TRUE; // TRUE only while this function's stack frame exists
 							// and used only in doc's OnOpenDocument() function
@@ -1960,41 +2187,45 @@ void CMainFrame::OnUpdateViewStatusBar(wxUpdateUIEvent& event)
 
 void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
-	// wx version notes about frame size changes:
-	// CMainFrame is Adapt It's primary application frame or window. The CMainFrame
-	// is the parent frame for everything that happens in Adapt It, including all
-	// first level dialogs. CMainFrame's toolbar and statusbar are created by
-	// wxFrame's CreateToolBar() and CreateStatusBar() methods, and so CMainFrame
-	// knows how to manage these windows, adjusting the value returned by GetClientSize
-	// to reflect the remaining size available to application windows. 
-	//
-	// Adapt It has three other windows to be managed within CMainFrame. These are
-	// the controlbar, the composebar and the actual canvas which the user knows as
-	// Adapt It's "main window." These windows are managed by a mainFrameSizer, which
-	// takes care of insuring they fill their appropriate places within the main frame
-	// and automatically resize them when the controlbar or composebar are made visible
-	// or invisible (when one or both of these are made invisible, the sizer 
-	// automatically adjusts the canvas to fill the remaining space in the main frame.
-	//
-	// wxWidgets' cross-platform library utilizes sizers which can be used to manage 
-	// the appearance of all the non-standard windows in Adapt It's CMainFrame
-	// (including the controlbar, the composebar, and the canvas window which fills
-	// all remaining space within the main frame). All three of these are created in
-	// the CMainFrame's constructor. The control bar and the compose bar simply
-	// remain hidden until made to appear by menu command. When the control bar
-	// and/or compose bar are shown/hidden, a call to Layout, adjusts the frame's
-	// layout within the mainSizer. By placing these windows in the mainSizer and
-	// calling SetAutoLayout(TRUE), and SetSizer(mainFrameSizer) within CMainFrame's
-	// constructor, we get automatic control of the windows' sizes.
+    // wx version notes about frame size changes:
+    // CMainFrame is Adapt It's primary application frame or window. The CMainFrame is the parent frame
+    // for everything that happens in Adapt It, including all first level dialogs. CMainFrame's toolbar
+    // and statusbar are created by wxFrame's CreateToolBar() and CreateStatusBar() methods, and so
+    // CMainFrame knows how to manage these windows, adjusting the value returned by GetClientSize to
+    // reflect the remaining size available to application windows.
+    //
+    // Adapt It has several other windows to be managed within CMainFrame. These are the m_pControlBar,
+    // the m_pComposeBar, m_pRemovalsBar, m_pVertEditBar, and the actual canvas
+    // which the user knows as Adapt It's "main window."
+    // 
+    // These windows are managed here in OnSize, which dynamically adjusts the size of
+    // mainFrameClientSize depending on which of these window elements are visible on the main frame at
+    // any given time. OnSize insures that they fill their appropriate places within the main frame and
+    // automatically resize them when individual elements are made visible or invisible. The canvas
+    // always fills the remaining space in the main frame.
+    //
+    // The wxWidgets' cross-platform library utilizes sizers which could be used to manage the
+    // appearance of all the non-standard windows in Adapt It's CMainFrame (including the the
+    // m_pControlBar, the m_pComposeBar, m_pRemovalsBar, m_pVertEditBar, and
+    // the canvas window which fills all remaining space within the main frame), however, because of the
+    // need to explicitly understand what is being done, and potentially different behavior on wxGTK
+    // (and possibly wxMAC - see notes below) I've done the specific calculations of these things here
+    // in CMainFrame's OnSize(). All of the frame elements are created in the CMainFrame's constructor.
+    // The m_pControlBar, the m_pComposeBar, m_pRemovalsBar, and the m_pVertEditBar
+    // simply remain hidden until made to appear by menu command or by the vertical process (may also be
+    // done custom event handlers).
 
+	// We would do the following if we were going to control the main window's layout with sizers:
 	//Layout();	// causes the layout of controlBar, composeBar (if shown) and the canvas
 				// within mainSizer to be adjusted according to the new size of the main
 				// frame.
 
 	// OnSize() is called the first time before the Main Frame constructor is finished and
-	// before the controlBar, composeBar, and canvas are created, so check if these are null
-	// and return from OnSize() if they do not exist yet.
-	if (m_pControlBar == NULL || m_pComposeBar == NULL || canvas == NULL)
+	// before the controlBar, composeBar, and canvas are created, so check if any of these 
+	// are null and return from OnSize() if they do not exist yet.
+	if (m_pControlBar == NULL || m_pComposeBar == NULL 
+		|| m_pRemovalsBar == NULL || m_pVertEditBar == NULL  // these added for vertical edit process
+		|| canvas == NULL)
 		return;
 
 	// whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine
@@ -2029,43 +2260,108 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	// main frame; but for wxGTK, the client size of the canvas is somewhat LARGER than
 	// the client size of the main frame. This caused the wx app on wxGTK to not size the
 	// canvas properly within the main frame (the canvas and its scroll bar were partially
-	// hidden below the bottom of the main frame). Although using a mainFrameSize would
-	// probably work OK to manage the controlBar, composeBat and canvas within the main
+	// hidden below the bottom of the main frame). Although using a mainFrameSizer would
+	// probably work OK to manage the extra "bar" elements, and the canvas within the main
 	// frame, especially once GetClientSize() is obtained from the main frame rather than
 	// from the canvas itself, I've opted to place those windows within the main frame
 	// manually (apart from using mainFrameSizer) so as to be able to better determine 
 	// the source of other scrolling problems.
 
-	// First, set the position of the controlBar in the main frame's client area.
+	// First, set the position of the m_pControlBar in the main frame's client area. 
+	// Note: the m_pControlBar is never hidden, but always visible on the main frame.
 	wxSize mainFrameClientSize;
 	mainFrameClientSize = GetClientSize(); // determine the size of the main frame's client window
-	// The upper left position of the main frame's client area is always 0,0 so we position
-	// the controlBar there and use the main frame's client size width and maintain the existing
-	// controlBar's height (note: SetSize sets both the position and the size).
-	m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight);
-	m_pControlBar->Refresh(); // this is needed to repaint the contorlBar after OnSize
+    // The upper left position of the main frame's client area is always 0,0 so we position the
+    // controlBar there and use the main frame's client size width and maintain the existing
+    // controlBar's height (note: SetSize sets both the position and the size). 
+	// Note: SetSize() uses upper left coordinates in pixels x and y, plus a width and height also in
+	// pixels. Its signature is SetSize(int x, int y, int width, int height).
+	m_pControlBar->SetSize(0, 0, mainFrameClientSize.x, m_controlBarHeight); // width is mainFrameClientSize.x, height is m_controlBarHeight
+	m_pControlBar->Refresh(); // this is needed to repaint the controlBar after OnSize
 
-	// Finally, adjust the composeBar's position in the main frame (if composeBar is visible), and
-	// set the canvas' position and size
+    // The VertDisplacementFromReportedMainFrameClientSize value is used to keep track of the screen
+    // coord y displacement from the original GetClientSize() call above on this main window frame. It
+    // represents the how far down inside the main frame's client area we need to go to place any of the
+	// potentially visible "bars" in the main window, and ultimately also the placement of the upper
+	// left corner of the canvas itself (which fills the remainder of the client area.
+	// Since the control bar is always visible, we start with the displacement represented by the 
+	// m_controlBarHeight assigned to VertDisplacementFromReportedMainFrameClientSize.
+	int VertDisplacementFromReportedMainFrameClientSize = m_controlBarHeight;
+	// The FinalHeightOfCanvas that we end up placing starts with the available height of the
+	// mainFrameClientSize as determined by the GetClientSize() call above, now reduced by the height
+	// of our always visible controlBar.
+	int finalHeightOfCanvas = mainFrameClientSize.y - m_controlBarHeight; 
+
+	// Next, set the size and placement for each of the visible "bars" that appear at the top of the
+	// client area (under the controlBar. We increment the value of
+	// VertDisplacementFromReportedMainFrameClientSize for each one that is visible (so we'll know
+	// where to size/place the canvas after all other elements are sized/placed.
+	
+	// Adjust the composeBar's position in the main frame (if composeBar is visible).
 	if (m_pComposeBar->IsShown())
 	{
-		// composeBar is showing, set its position (with existing size) just below the controlBar
-		m_pComposeBar->SetSize(0, m_controlBarHeight, mainFrameClientSize.x, m_composeBarHeight);
+        // The composeBar is showing, so set its position (with existing size) just below the controlBar.
+        // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
+		m_pComposeBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, mainFrameClientSize.x, m_composeBarHeight);
 		m_pComposeBar->Refresh();
-		// now fill up remaining part of main frame's client area with the canvas
-		// we set the upper left coord just below the controlBar and the height to
-		// fill the remaining vertical space within the main frame's client area
-		canvas->SetSize(0, m_controlBarHeight + m_composeBarHeight, 
-			mainFrameClientSize.x, mainFrameClientSize.y - m_controlBarHeight - m_composeBarHeight);
-	}
-	else
-	{
-		// the composeBar is not showing, so just position the canvas to fill up the remaining 
-		// part of the main frame's client area below the controlBar
-		canvas->SetSize(0, m_controlBarHeight, mainFrameClientSize.x, 
-			mainFrameClientSize.y - m_controlBarHeight); // sets the canvas just below the controlBar
+
+		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
+		VertDisplacementFromReportedMainFrameClientSize += m_composeBarHeight;
+		finalHeightOfCanvas -= m_composeBarHeight;
 	}
 
+    // Next, adjust the removalsBar's position in the main frame (if removalsBar is visible), and set the
+    // canvas' position and size to accommodate it.
+	if (m_pRemovalsBar->IsShown())
+	{
+		// The removalsBar is showing, so set its position (with existing size) just below the last
+		// placed element. 
+        // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
+		m_pRemovalsBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, mainFrameClientSize.x, m_removalsBarHeight);
+		m_pRemovalsBar->Refresh();
+
+		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
+		VertDisplacementFromReportedMainFrameClientSize += m_removalsBarHeight;
+		finalHeightOfCanvas -= m_removalsBarHeight;
+	}
+
+     // Next, adjust the verteditBar's position in the main frame (if verteditBar is visible), and set the
+    // canvas' position and size to accommodate it.
+	if (m_pVertEditBar->IsShown())
+	{
+		// The verteditBar is showing, so set its position (with existing size) just below the last
+		// placed element. 
+        // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
+		m_pVertEditBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, mainFrameClientSize.x, m_vertEditBarHeight);
+		m_pVertEditBar->Refresh();
+
+		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
+		VertDisplacementFromReportedMainFrameClientSize += m_vertEditBarHeight;
+		finalHeightOfCanvas -= m_vertEditBarHeight;
+	}
+
+     // Next, adjust the verteditsteptransBar's position in the main frame (if verteditsteptransBar is visible), and set the
+    // canvas' position and size to accommodate it.
+	//if (m_pVertEditStepTransBar->IsShown())
+	//{
+	//	// The verteditStepTransBar is showing, so set its position (with existing size) just below the last
+	//	// placed element. 
+ //       // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
+	//	m_pVertEditStepTransBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, mainFrameClientSize.x, m_vertEditStepTransBarHeight);
+	//	m_pVertEditStepTransBar->Refresh();
+
+	//	// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
+	//	VertDisplacementFromReportedMainFrameClientSize += m_vertEditStepTransBarHeight;
+	//	finalHeightOfCanvas -= m_vertEditStepTransBarHeight;
+	//}
+
+   // Finally, set the canvas size to take up the remaining space in the main window (the value of 
+	// VertDisplacementFromReportedMainFrameClientSize now represents the y coordinate displacement
+	// from the original GetClientSize() call and is where we place the canvas. The width is always
+	// mainFrameClientSize.x, and the height is our calculated finalHeightOfCanvas.
+	canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
+		mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+	
 	// whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine
 	// BEW added 05Mar06: Bill Martin reported (email 3 March) that if user is in free translation mode,
 	// and uses either the Shorten of Lengthen buttons (these set gbSuppressSetup to TRUE in the beginning
@@ -2412,6 +2708,11 @@ void CMainFrame::ComposeBarGuts()
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// the flags we want are on the view, so get the view
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2466,6 +2767,11 @@ void CMainFrame::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItDoc* pDoc = pApp->GetDocument(); // get pointer to the document associated with the view
@@ -2920,3 +3226,1954 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	//}
 	//event.Skip();
 }
+
+// The following is the handler for a wxEVT_Adaptations_Edit event message, defined in the
+// event table macro EVT_ADAPTATIONS_EDIT.
+// The wxEVT_Adaptations_Edit event is sent to the window event loop by a 
+// wxPostEvent() call in OnEditSourceText().
+void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
+{
+	// adaptations updating is required
+	// Insure that we have a valid pointer to the m_pVertEditBar member
+	// of the frame window class
+	wxASSERT(m_pVertEditBar != NULL);
+	wxASSERT(m_pRemovalsBar != NULL);
+
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CAdapt_ItView* pView = pApp->GetView();
+	wxASSERT(pView != NULL);
+
+	if (m_pVertEditBar == NULL)
+	{
+		wxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in \
+						 OnCustomEventAdaptationsEdit()"),_T(""), wxICON_EXCLAMATION);
+		return;
+	}
+
+	// determine what setup is required: control is coming from either sourceTextStep or
+	// glossesStep, when the order is adaptions before glosses (see gbAdaptBeforeGloss flag),
+	// but if the order is glosses before adaptations, then control is coming from either
+	// glossesStep or freeTranslationsStep. These variations require separate initializations
+	// blocks.
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument(); // unused
+	EditRecord* pRec = &gEditRecord;
+	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+	bool bAllsWell = TRUE;
+
+	if (gbVerticalEditInProgress)
+	{
+		if (gEntryPoint == sourceTextEntryPoint)
+		{
+			wxCommandEvent evt; // whm: a dummy event to pass to the handlers we're calling below
+			if (gbAdaptBeforeGloss)
+			{
+				// user's chosen processing order is "do adaptations before glosses"
+				if (gEditStep == sourceTextStep)
+				{
+					// the PostMessage() which we are handling is fired from the end of the
+					// source text edit step, so control is still in that step, and about to
+					// transition to the adaptations step if the editable span had some, if not,
+					// we transition from adaptations step, after minimal setup, to the
+					// glosses step
+
+
+					// the mode in effect when the Edit Source Text dialog was visible may not
+					// have been adaptations mode, it may have been glossing mode, so we need to
+					// check and, if necessary, switch to adaptations mode; moreover, if there were 
+					// glosses in the active section, it would be helpful to make them visible in 
+					// the surrounding context (more info might help the user), but if there were
+					// no glosses shown, don't unless the original mode had "See Glosses" turned ON
+					if (gbIsGlossing)
+					{
+						// glossing mode is currently ON (and adaptations are always visible
+						// in that mode too); so switch to adapting mode, but leave glosses
+						// visible; but if there were none in the edit span, we'll make them
+						// invisible
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns OFF the Glossing checkbox and clears 
+											 // gbIsGlossing to FALSE; and leaves gbEnableGlossing
+											 // with its TRUE value unchanged; populates list with
+											 // removed adapatations
+						if (!pRec->bEditSpanHasGlosses)
+						{
+							// the edit span lacked glosses, so assume they are not relevant or not
+							// present in the surrounding context
+							pView->ToggleSeeGlossesMode();
+							//OnAdvancedEnableglossing(); // toggles gbEnableGlossing to FALSE, makes
+														// the Glossing checkbox be hidden
+														// leaves gbIsGlossing FALSE
+						}
+					}
+					else
+					{
+						// the view is in adapting mode; we want to make glosses visible though
+						// if the edit span has some, but not if it has none
+						if (pRec->bEditSpanHasGlosses)
+						{
+							// make them visible if not already so
+							if (!gbEnableGlossing)
+								pView->ToggleSeeGlossesMode();
+								//OnAdvancedEnableglossing(); // toggles gbEnableGlossing to TRUE,
+														// makes the Glossing checkbox be unhidden
+														// leaves gbIsGlossing FALSE
+						}
+						else
+						{
+							// make sure glosses are not visible
+							if (gbEnableGlossing)
+							{
+								// make them invisible, as there are none in the edit span
+								pView->ToggleSeeGlossesMode();
+								//OnAdvancedEnableglossing(); // clears gbEnableGlossing to FALSE,
+															// makes the Glossing checkbox be hidden,
+															// leaves gbIsGlossing FALSE
+							}
+						}
+					}
+
+					// if the user removed all the CSourcePhrase instances of the editable span,
+					// there are no adaptations to be updated, so check for this and if so, fill
+					// in the relevant gEditRecord members and then post the event for the next
+					// step -- we don't give the user a dialog to vary the step order here, because
+					// he won't have seen any feedback up to now that he's about to be in adaptations
+					// step, so we unilaterally send him on to the next step
+					// Note: if either or both of the ...SpanCount variables are 0, it means the user
+					// deleted the material in the edit span; if they are -1, it means the span was not
+					// deleted but had no adaptations in it; in either case nothing gets done in this step
+					// except the switch to adapting mode
+					if (pRec->nNewSpanCount == 0)
+					{
+						// user deleted everything... so move on
+						pRec->nAdaptationStep_OldSpanCount = 0;
+						pRec->nAdaptationStep_NewSpanCount = 0;
+						pRec->nAdaptationStep_StartingSequNum = -1;
+						pRec->nAdaptationStep_EndingSequNum = -1;
+
+						gEditStep = adaptationsStep;
+						pRec->bAdaptationStepEntered = TRUE; // prevent reinitialization if user returns here
+
+						// post event for progressing to gloss mode (we let its handler make the
+						// same test for nNewSpanCount being 0 and likewise cause progression
+						// immediately rather than make that next progression happen from here)
+						// Note, we have not changed from adaptationsStep, hence the handler for
+						// this message will become active with gEditStep still set to 
+						// adaptationsStep - this is how we inform the next step what the previous
+						// step was, and so the handler for the next step will finish off this
+						// current step before setting up for the commencement of the glossesStep
+						//this->PostMessage(CUSTOM_EVENT_GLOSSES_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+
+					if (!pRec->bAdaptationStepEntered)
+					{
+						// put the values in the edit record, where the CCell drawing function can get them
+						bool bAllWasOK;
+						pRec->nAdaptationStep_StartingSequNum = pRec->nStartingSequNum;
+						pRec->nAdaptationStep_EndingSequNum = pRec->nStartingSequNum + pRec->nNewSpanCount - 1;
+						pRec->nAdaptationStep_OldSpanCount = pRec->nNewSpanCount;
+
+						// initialize the new count to the old one; it will be modifed as necessary by the
+						// user's subsequent editing actions
+						pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
+						pRec->nAdaptationStep_ExtrasFromUserEdits = 0; // at step end can be -ve, 0 or +ve
+
+						// deep copy the initial editable span, before user has a chance to do
+						// mergers, retranslations, placeholder insertions, etc.  This deep copy
+						// must only be done once
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nAdaptationStep_StartingSequNum, 
+							pRec->nAdaptationStep_EndingSequNum, &pRec->adaptationStep_SrcPhraseList);
+						if (!bAllWasOK)
+						{
+							// if this failed, we must bail out of this vertical edit process
+							gEditStep = adaptationsStep;
+							pRec->bAdaptationStepEntered = TRUE;
+							goto cancel;
+						}
+					}
+
+					// ensure gEditStep remains set to adaptationsStep here, before returning
+					gEditStep = adaptationsStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bAdaptationStepEntered = TRUE;
+
+					// (we need both the above 2 flags, the gEditStep is TRUE each time the user comes
+					// back to this step within the one vertical edit, but bAdaptationsStepEntered is
+					// not set until after step members are initialized in gEditRecord, and thereafter
+					// is used to prevent reinitialization (and value corruption) if the user returns
+					// to the adaptations step more than once in the one vertical edit process
+
+					if (pRec->bEditSpanHasAdaptations)
+					{
+						// populate the combobox with the required removals data for adaptationsStep
+						bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
+
+						// put the adaptations step's message in the multi-line read-only edit box
+						// IDS_VERT_EDIT_ADAPTATIONS_MSG
+						pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+
+						// setup the toolbar with the vertical edit process control buttons and user
+						// message, and make it show-able
+						// whm added: the MFC version of vertical editing had the RemovalsBar always
+						// showing. I'm keeping it hidden until it really is needed.
+						if (!m_pRemovalsBar->IsShown())
+						{
+							// update static text in removals bar to indicate that clicking on item in
+							// list copies to the phrase box
+							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+							wxASSERT(pStatic != NULL);
+							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+							m_pRemovalsBar->Refresh();
+							m_pRemovalsBar->Show(TRUE);
+						}
+						m_pVertEditBar->Show(TRUE);
+
+						// initiate a redraw of the frame and the client area (Note, this is MFC's
+						// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+						// member function of same name
+						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+						//					   // no harm if the window is not embedded
+						// whm Note: Client area is changing size so send a size event to get the layout to change
+						// since the doc/view framework won't do it for us.
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+					}  // end block for result TRUE for test (pRec->bEditSpanHasAdaptations)
+					else
+					{
+						// no adaptations formerly, so we don't do the above extra steps because the
+						// user would not get to see their effect before they get clobbered by the setup
+						// of the glossesStep transition
+						//this->PostMessage(CUSTOM_EVENT_GLOSSES_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Glosses_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+				}
+/*rollback*/	else if (gEditStep == glossesStep)
+				{
+					// the user was in glossing step, and requested a roll back to adaptations step;
+					// we allow this whether or not there were originally adaptations in the editable span
+					// because we assume a rollback is intentional to get adaptations made or altered
+
+					// we know we are coming from glossing mode being currently on, so we have to switch to
+					// adapting mode; moreover, we expect glosses were made or updated, and the user will want
+					// to see them, so we make them visible (more info might help the user)
+					pView->ToggleGlossingMode();
+					//OnCheckIsGlossing(); // turns OFF the Glossing checkbox and clears 
+										 // gbIsGlossing to FALSE; and leaves gbEnableGlossing
+										 // with its TRUE value unchanged
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no adaptations to be updated, because the span has no extent. We
+					// will try to externally catch and prevent a user rollback to adaptations mode when
+					// there is no extent, but just in case we don't, just bring the vertical edit to
+					// an end immediately -- this block should never be entered if I code correctly
+					if (pRec->nNewSpanCount == 0)
+					{
+						//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+						wxPostEvent(this, eventCustom);
+						// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
+						// the vertical edit tool bars from the main window.
+						gEditStep = adaptationsStep;
+						pRec->bAdaptationStepEntered = TRUE;
+						return;
+					}
+
+					// the span was entered earlier, and we are rolling back, so we have to set up
+					// the state as it was at the start of the of the previous adaptationsStep;
+					// and we have to restore the phrase box to the start of the editable span too
+					// (we don't bother to make any reference count decrements in the KB, so this
+					// would be a source of ref counts being larger than strictly correct, but that
+					// is a totally benign effect)
+
+					// the user may have shortened or lengthened the span, so we just
+					// use the nAdaptationStp_NewSpanCount value as that is the value on
+					// last exit from the adaptationsStep -- this is how many we must remove
+					// in order to insert the original adaptationsStep's deep copies
+					int nHowMany = pRec->nAdaptationStep_NewSpanCount;
+					wxASSERT(nHowMany != 0);
+					wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
+					bool bWasOK;
+					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						pRec->nAdaptationStep_StartingSequNum, 
+						nHowMany, // defines how many to remove to make the gap for the insertions
+						&pRec->adaptationStep_SrcPhraseList, 
+						0, // start at index 0, ie. insert whole of deep copied list
+						pRec->nAdaptationStep_OldSpanCount);
+					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+
+					// restore original counts to pre-extras values
+					pRec->nAdaptationStep_EndingSequNum -= pRec->nAdaptationStep_ExtrasFromUserEdits;
+					pRec->nAdaptationStep_ExtrasFromUserEdits = 0; // reinitialize, as the user may
+																   // now edit differently than before
+
+					// re-initialize the new spancount parameter which has become incorrect
+					pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
+
+					// delete the instances in the glossesStep's list
+					gpApp->GetDocument()->DeleteSourcePhrases(&pRec->glossStep_SrcPhraseList);
+
+					// restore the Phrase Box to the start of the editable span
+					// place the phrase box at the start of the span, and update the layout etc
+					int activeSequNum = pRec->nAdaptationStep_StartingSequNum;
+					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					
+					// populate the combobox with the required removals data for adaptationsStep
+					bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
+
+					// put the adaptations step's message in the multi-line read-only CEdit box
+					// IDS_VERT_EDIT_ADAPTATIONS_MSG
+					pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+
+					// setup the toolbar with the vertical edit process control buttons and user
+					// message, and make it show-able
+					if (!m_pRemovalsBar->IsShown())
+					{
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						m_pRemovalsBar->Refresh();
+						m_pRemovalsBar->Show(TRUE);
+					}
+					m_pVertEditBar->Show(TRUE);
+
+					// ensure gEditStep remains set to adaptationsStep here, before returning
+					gEditStep = adaptationsStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bAdaptationStepEntered = TRUE;
+
+					// initiate a redraw of the frame and the client area (Note, this is MFC's
+					// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+					// member function of same name
+					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+										   // no harm if the window is not embedded
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+				} // end block for result TRUE for test (gEditStep == glossesStep)
+				else
+				{
+					// ought not to happen because we should only be able to get to adaptationsStep
+					// by either normal progression from sourceTextStep or rollback from glossesStep,
+					// so, cancel out
+					gEditStep = adaptationsStep;
+					pRec->bAdaptationStepEntered = TRUE;
+					goto cancel;
+				}
+			} // end block for result TRUE for test (gbAdaptBeforeGloss)
+/****/		else
+			{
+				// user's chosen order of steps is "glosses before adaptations", so we are coming
+				// to this block with glossesStep still in effect & setting up for adaptationsStep
+				if (gEditStep == glossesStep)
+				{
+					// the PostMessage() which we are handling is fired from the end of the
+					// glosses step, so control is still in that step, and about to
+					// transition to the adaptations step if the editable span had some, if not,
+					// we transition from adaptations step, after minimal setup, to the
+					// free translations step
+
+					// since we were in glossingStep we know that the glossing checkbox is ON
+					// and the gbEnableGlossing global is TRUE; so all we need to do is turn
+					// the checkbox off
+					pView->ToggleGlossingMode();
+					//OnCheckIsGlossing(); // turns OFF the Glossing checkbox and clears 
+										 // gbIsGlossing to FALSE; and leaves gbEnableGlossing
+										 // with its TRUE value unchanged; populates list with
+										 // removed adapatations
+
+					// if the user removed all the CSourcePhrase instances of the editable span,
+					// there are no adaptations to be updated, so check for this and if so, fill
+					// in the relevant gEditRecord members and then post the event for the next
+					// step -- we don't give the user a dialog to vary the step order here, because
+					// he won't have seen any feedback up to now that he's about to be in adaptations
+					// step, so we unilaterally send him on to the next step
+					// Note: if either or both of the ...SpanCount variables are 0, it means the user
+					// deleted the material in the edit span, and populating the list is impossible too
+					if (pRec->nNewSpanCount == 0)
+					{
+						// user deleted everything... so move on
+						pRec->nAdaptationStep_OldSpanCount = 0;
+						pRec->nAdaptationStep_NewSpanCount = 0;
+						pRec->nAdaptationStep_StartingSequNum = -1;
+						pRec->nAdaptationStep_EndingSequNum = -1;
+
+						gEditStep = adaptationsStep; // we've been in this step, even though we did nothing
+						pRec->bAdaptationStepEntered = TRUE; // prevent reinitialization if user returns here
+
+						// post event for progressing to gloss mode (we let its handler make the
+						// same test for nNewSpanCount being 0 and likewise cause progression
+						// immediately rather than make that next progression happen from here)
+						// Note, we have not changed from adaptationsStep, hence the handler for
+						// this message will become active with gEditStep still set to 
+						// adaptationsStep - this is how we inform the next step what the previous
+						// step was, and so the handler for the next step will finish off this
+						// current step before setting up for the commencement of the glossesStep
+						//this->PostMessage(CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+
+					// if this is our first time in this step...
+					if (!pRec->bAdaptationStepEntered)
+					{
+						// put the values in the edit record, where the CCell drawing function can get them,
+						// we get them from the glossesStep parameters, since we have just come from there
+						bool bAllWasOK;
+						pRec->nAdaptationStep_StartingSequNum = pRec->nGlossStep_StartingSequNum;
+						pRec->nAdaptationStep_EndingSequNum = pRec->nGlossStep_EndingSequNum;
+						pRec->nAdaptationStep_OldSpanCount = pRec->nGlossStep_SpanCount;
+
+						// initialize the new count to the old one; it will be modifed as necessary by the
+						// user's subsequent editing actions in adaptationsStep
+						pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
+						pRec->nAdaptationStep_ExtrasFromUserEdits = 0; // at step end, it can be -ve, 0 or +ve
+
+						// deep copy the initial editable span, before user has a chance to do
+						// mergers, retranslations, placeholder insertions, etc.  This deep copy
+						// must only be done once
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nAdaptationStep_StartingSequNum, 
+							pRec->nAdaptationStep_EndingSequNum, &pRec->adaptationStep_SrcPhraseList);
+						if (!bAllWasOK)
+						{
+							// if this failed, we must bail out of this vertical edit process
+							gEditStep = adaptationsStep;
+							pRec->bAdaptationStepEntered = TRUE;
+							goto cancel;
+						}
+					}
+
+					// ensure gEditStep remains set to adaptationsStep here, before returning
+					gEditStep = adaptationsStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bAdaptationStepEntered = TRUE;
+
+					// (we need both the above 2 flags, the gEditStep is TRUE each time the user comes
+					// back to this step within the one vertical edit, but bAdaptationsStepEntered is
+					// not set until after step members are initialized in gEditRecord, and thereafter
+					// is used to prevent reinitialization (and value corruption) if the user returns
+					// to the adaptations step more than once in the one vertical edit process
+
+					if (pRec->bEditSpanHasAdaptations)
+					{
+						// populate the combobox with the required removals data for adaptationsStep
+						bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
+
+						// put the adaptations step's message in the multi-line read-only CEdit box
+						// IDS_VERT_EDIT_ADAPTATIONS_MSG
+						pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+
+						// setup the toolbar with the vertical edit process control buttons and user
+						// message, and make it show-able
+						if (!m_pRemovalsBar->IsShown())
+						{
+							// update static text in removals bar to indicate that clicking on item in
+							// list copies to the phrase box
+							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+							wxASSERT(pStatic != NULL);
+							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+							m_pRemovalsBar->Refresh();
+							m_pRemovalsBar->Show(TRUE);
+						}
+						m_pVertEditBar->Show(TRUE);
+
+						// initiate a redraw of the frame and the client area (Note, this is MFC's
+						// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+						// member function of same name
+						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+											   // no harm if the window is not embedded
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+					}  // end block for result TRUE for test (pRec->bEditSpanHasAdaptations)
+					else
+					{
+						// no adaptations formerly, so we don't do the above extra steps because the
+						// user would not get to see their effect before they get clobbered by the setup
+						// of the freeTranslationsStep transition
+						//this->PostMessage(CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+				} // end of block for test (gEditStep == glossesStep)
+/*rollback*/	else if (gEditStep == freeTranslationsStep)
+				{
+					// the user was in free translations step, and requested a roll back to adaptations step;
+					// we allow this whether or not there were originally adaptations in the editable span
+					// because we assume a rollback is intentional to get adaptations made or altered
+
+					// we know we are coming from free translations mode being currently on, so we have to switch
+					// to adapting mode; moreover, we expect glosses were made or updated, and the user will want
+					// to see them, so we make them visible (more info might help the user). We also test to
+					// ensure adaptations mode is currently on, if not, we switch to it as well - we must do this
+					// first before calling the OnAdvancedFreeTranslationsMode() handler (it's a toggle) because
+					// when closing free translation mode it tests the gbIsGlossing flag in order to know whether
+					// to restore removed glosses or removed adaptations to the Removed combobox list
+					if (gbIsGlossing)
+					{
+						// user must have manually switched to glossing mode, so turn it back off
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns OFF the Glossing checkbox and clears 
+											 // gbIsGlossing to FALSE; and leaves gbEnableGlossing
+											 // with its TRUE value unchanged; populates list with
+											 // removed adapatations
+					}
+					// toggle free translation mode off
+					pView->ToggleFreeTranslationMode();
+					//OnAdvancedFreeTranslationMode();
+
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no adaptations to be updated, because the span has no extent. We
+					// will try to externally catch and prevent a user rollback to adaptations mode when
+					// there is no extent, but just in case we don't, just bring the vertical edit to
+					// an end immediately -- this block should never be entered if I code correctly
+					if (pRec->nAdaptationStep_OldSpanCount == 0)
+					{
+						//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+						wxPostEvent(this, eventCustom);
+						// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
+						// the vertical edit tool bars from the main window.
+						return;
+					}
+
+					// the span was entered earlier, and we are rolling back, so we have to set up
+					// the state as it was at the start of the of the previous adaptationsStep;
+					// and we have to restore the phrase box to the start of the editable span too
+					// (we don't bother to make any reference count decrements in the KB, so this
+					// would be a source of ref counts being larger than strictly correct, but that
+					// is a totally benign effect)
+
+					// the user may have shortened or lengthened the span, so we just
+					// use the nAdaptationStp_NewSpanCount value as that is the value on
+					// last exit from the adaptationsStep -- this is how many we must remove
+					// in order to insert the original adaptationsStep's deep copies
+					int nHowMany = pRec->nAdaptationStep_NewSpanCount;
+					wxASSERT(nHowMany != 0);
+					wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
+					bool bWasOK;
+					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						pRec->nAdaptationStep_StartingSequNum, 
+						nHowMany, // defines how many to remove to make the gap for the insertions
+						&pRec->adaptationStep_SrcPhraseList, 
+						0, // start at index 0, ie. insert whole of deep copied list
+						pRec->nAdaptationStep_OldSpanCount);
+					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+
+					// restore original counts to pre-user-edited values
+					pRec->nAdaptationStep_EndingSequNum -= pRec->nAdaptationStep_ExtrasFromUserEdits;
+					pRec->nAdaptationStep_ExtrasFromUserEdits = 0; // reinitialize, as the user may
+																   // now edit differently than before
+
+					// re-initialize the new spancount parameter which has become incorrect
+					pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
+
+					// delete the instances in the freeTranslationsStep's list
+					pApp->GetDocument()->DeleteSourcePhrases(&pRec->freeTranslationStep_SrcPhraseList);
+
+					// restore the Phrase Box to the start of the editable span
+					// place the phrase box at the start of the span, and update the layout etc
+					int activeSequNum = pRec->nAdaptationStep_StartingSequNum;
+					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					
+					// populate the combobox with the required removals data for adaptationsStep
+					// (this has been done already, maybe twice in fact, so once more won't hurt)
+					bAllsWell = pView->PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
+
+					// put the adaptations step's message in the multi-line read-only CEdit box
+					// IDS_VERT_EDIT_ADAPTATIONS_MSG
+					pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+
+					// setup the toolbar with the vertical edit process control buttons and user
+					// message, and make it show-able
+					if (!m_pRemovalsBar->IsShown())
+					{
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						m_pRemovalsBar->Refresh();
+						m_pRemovalsBar->Show(TRUE);
+					}
+					m_pVertEditBar->Show(TRUE);
+
+					// ensure gEditStep remains set to adaptationsStep here, before returning
+					gEditStep = adaptationsStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bAdaptationStepEntered = TRUE;
+
+					// initiate a redraw of the frame and the client area (Note, this is MFC's
+					// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+					// member function of same name
+					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+										   // no harm if the window is not embedded
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+				} // end block for result TRUE for test (gEditStep == freeTranslationsStep)
+				else
+				{
+					// ought not to happen because we should only be able to get to adaptationsStep
+					// by either normal progression from glossesStep or rollback from freeTranslationsStep,
+					// so, cancel out
+					gEditStep = adaptationsStep;
+					pRec->bAdaptationStepEntered = TRUE;
+					goto cancel;
+				}
+			} // end block for result FALSE for text (gbAdaptBeforeGloss)
+
+		 } // end block for result TRUE for test (gEntryPoint == sourceTextEntryPoint)
+		else if (gEntryPoint == adaptationsEntryPoint)
+		{
+			// user has just edited an existing adaptation... we'll support this
+			// option only in the wxWidgets codebase
+			; // **** TODO in wxWidgets ****
+		}
+		else if (gEntryPoint == glossesEntryPoint)
+		{
+			// user has just edited an existing gloss... we'll support this
+			// option only in the wxWidgets codebase
+			; // **** TODO in wxWidgets ****
+		}
+		else
+		{
+			// if none of these, we've got an unexpected state which should never happen,
+			// so cancel out
+cancel:		; //this->PostMessage(CUSTOM_EVENT_CANCEL_VERTICAL_EDIT,0,0);
+
+			// whm: In the wx version we don't keep the RemovalsBar visible, so since the
+			wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+			wxPostEvent(this, eventCustom);
+			// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
+			// the vertical edit tool bars from the main window.
+			return;
+		}
+	}
+}
+
+// The following is the handler for a CUSTOM_EVENT_GLOSSES_EDIT event message, sent
+// to the window event loop by a PostMessage(CUSTOM_EVENT_GLOSSES_EDIT,0,0) call
+void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
+{
+	// glosses updating is potentially required
+	// Insure that we have a valid pointer to the m_pVertEditBar member
+	// of the frame window class
+	wxASSERT(m_pVertEditBar != NULL);
+	wxASSERT(m_pRemovalsBar != NULL);
+	
+	CAdapt_ItView* pView = gpApp->GetView();
+	wxASSERT(pView != NULL);
+	CMainFrame* pFWnd = gpApp->GetMainFrame();
+	wxASSERT(pFWnd != NULL);
+
+	if (m_pVertEditBar == NULL)
+	{
+		wxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in \
+						 OnCustomEventAdaptationsEdit()"),_T(""), wxICON_EXCLAMATION);
+		return;
+	}
+
+	// determine what setup is required: control is coming from either adaptationsStep or freeTranslationsStep,
+	// when the order is adaptations before glosses; but if the order is glosses before adaptations, then
+	// control is coming from either sourceTextStep or adaptationsStep. These variations require separate
+	// initialization blocks.
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	EditRecord* pRec = &gEditRecord;
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	bool bAllsWell = TRUE;
+
+	if (gbVerticalEditInProgress)
+	{
+		if (gEntryPoint == sourceTextEntryPoint)
+		{
+			// when entry is due to a source text edit, we can count on all the source text editing-related
+			// parameters in gEditRecord having previously been filled out...
+			if (gbAdaptBeforeGloss)
+			{
+				// user's chosen processing order is "do adaptations before glosses"
+				if (gEditStep == adaptationsStep)
+				{
+					// the PostMessage() which we are handling was fired from the end of the adaptations
+					// updating step, so we are still in that step and about to do the things needed to
+					// transition to the glosses step
+
+					// we now must get glossing mode turned on
+					if (gbEnableGlossing)
+					{
+						// glosses are visible already, so we only need turn glossing mode on
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns ON the Glossing checkbox and sets 
+												 // gbIsGlossing to TRUE; and leaves gbEnableGlossing
+												 // with its TRUE value unchanged
+					}
+					else
+					{
+						// glosses are not currently made visible, first make them visible and then
+						// turn on glossing mode
+						pView->ToggleSeeGlossesMode();
+						//OnAdvancedEnableglossing(); // sets gbEnableGlossing to TRUE, makes
+													// the Glossing checkbox be unhidden,
+													// leaves gbIsGlossing FALSE
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns ON the Glossing checkbox and sets 
+											 // gbIsGlossing to TRUE; and leaves gbEnableGlossing
+											 // with its TRUE value unchanged
+					}
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no glosses to be updated, so check for this and if so, fill
+					// in the relevant gEditRecord members and then post the event for the next
+					// step -- we don't give the user a dialog to vary the step order here, because
+					// he won't have seen any feedback up to now that he's about to be in glosses
+					// step, so we unilaterally send him on to the next step
+					if (pRec->nNewSpanCount == 0)
+					{
+						// user deleted everything... so move on
+						pRec->nGlossStep_SpanCount = 0;
+						pRec->nGlossStep_StartingSequNum = -1;
+						pRec->nGlossStep_EndingSequNum = -1;
+
+						gEditStep = glossesStep;
+						pRec->bGlossStepEntered = TRUE; // prevent reinitialization if user returns here
+
+						// post event for progressing to free translation mode.
+						// Note, we have not changed from glossesStep, hence the handler for
+						// this message will become active with gEditStep still set to 
+						// glossesStep - this is how we inform the next step what the previous
+						// step was, and so the handler for the next step will finish off this
+						// current step before showing the GUI for the next step to the user
+						//this->PostMessage(CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+
+					// Initializing must be done only once (the user can return to this step using interface
+					// buttons) -- initializing is done the first time glossesStep is entered in the vertical
+					// edit, so it is put within a test to prevent multiple initializations -- the flag in the
+					// following test is not set until the end of this current function
+					if (!pRec->bGlossStepEntered)
+					{
+						// set up the values for the glossesStep in the edit record, where the CCell drawing
+						// function can get them
+						bool bAllWasOK;
+						pRec->nGlossStep_StartingSequNum = pRec->nAdaptationStep_StartingSequNum;
+						pRec->nGlossStep_EndingSequNum = pRec->nGlossStep_StartingSequNum
+														+ pRec->nAdaptationStep_NewSpanCount - 1;
+						pRec->nGlossStep_SpanCount = pRec->nAdaptationStep_NewSpanCount;
+
+						// here we set the initial state of the glosses span
+						// which is of course the final state of the previous adaptationsStep's span after the
+						// user has done all his edits (which could include mergers, retranslations and
+						// placeholder insertions, and those functionalities have to keep the value of 
+						// pRec->nAdaptationStep_NewSpanCount up to date as the user does his work, and also
+						// pRec->nAdaptationStep_EndingSequNum - because the CCell::Draw() function which 
+						// keeps the relevant text grayed out needs to be continuously aware where the span
+						// ends even when the user does editing which changes the span length; so
+						// deep copy the initial editable span, before user has a chance to do do any editing.
+						// This deep copy must only be done once
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nGlossStep_StartingSequNum, 
+							pRec->nGlossStep_EndingSequNum, &pRec->glossStep_SrcPhraseList);
+						if (!bAllWasOK)
+						{
+							// if this failed, we must bail out of this vertical edit process
+							gEditStep = glossesStep;
+							pRec->bGlossStepEntered = TRUE;
+							goto cancel;
+						}
+					}
+
+					// ensure gEditStep remains set to glossesStep here, before returning
+					gEditStep = glossesStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bGlossStepEntered = TRUE;
+
+					if (pRec->bEditSpanHasGlosses)
+					{
+						// populate the combobox with the required removals data for glossesStep
+						bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
+
+						// put the glosses step's message in the multi-line read-only CEdit box
+						pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+
+						// setup the toolbar with the vertical edit process control buttons and user
+						// message, and make it show-able
+						// whm added: the MFC version of vertical editing had the RemovalsBar always
+						// showing. I'm keeping it hidden until it really is needed.
+						if (!m_pRemovalsBar->IsShown())
+						{
+							// update static text in removals bar to indicate that clicking on item in
+							// list copies to the phrase box
+							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+							wxASSERT(pStatic != NULL);
+							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+							m_pRemovalsBar->Refresh();
+							m_pRemovalsBar->Show(TRUE);
+						}
+						m_pVertEditBar->Show(TRUE);
+
+						// initiate a redraw of the frame and the client area (Note, this is MFC's
+						// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+						// member function of same name
+						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+											   // no harm if the window is not embedded
+						// whm Note: Client area is changing size so send a size event to get the layout to change
+						// since the doc/view framework won't do it for us.
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+						// place the phrase box at the start of the span, and update the layout etc
+						int activeSequNum = pRec->nGlossStep_StartingSequNum;
+						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					}  // end TRUE block for test (pRec->bEditSpanHasGlosses)
+					else
+					{
+						// no glosses formerly, so we don't do the above extra steps because the
+						// user would not get to see their effect before they get clobbered by the setup
+						// of the freeTranslationsStep transition
+						//this->PostMessage(CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Free_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+				} // end TRUE block for test (gbEditStep == adaptationsStep)
+/*rollback*/	else if (gEditStep == freeTranslationsStep)
+				{
+					// the user was in free translations step, and requested a return to glosses step;
+					// we allow this whether or not there were originally glosses in the editable span
+					// because we assume a rollback is intentional to get glosses made or altered
+
+					// we know we are coming from free translations mode being currently on, so we have to
+					// switch to glossing mode
+					pView->ToggleFreeTranslationMode();
+					//OnAdvancedFreeTranslationMode(); // turn off free translation mode and populate the
+													 // removals combo with either glosses or adaptations
+													 // depending on current gbIsGlossing value
+					// free translation step is usually has adapting mode set ON on entry, and we are
+					// wanting to be in glossingStep, so check gbIsGlossing and set up appropriately
+					if (gbIsGlossing)
+					{
+						// glossing mode is on, so nothing more to do
+						;
+					}
+					else
+					{
+						// adapting mode is on, but glosses may or may not be visible, so check
+						// gbEnableGlossing first and get glosses visible if not already TRUE,
+						// then turn on glossing mode
+						if (!gbEnableGlossing)
+						{
+							pView->ToggleSeeGlossesMode();
+							//OnAdvancedEnableglossing(); // sets gbEnableGlossing TRUE, leaves gbIsGlossing FALSE
+						}
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns ON the Glossing checkbox and sets 
+										 // gbIsGlossing to TRUE; and leaves gbEnableGlossing
+										 // with its TRUE value unchanged
+					}
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no glosses to be updated, because the span has no extent. We
+					// will try to externally catch and prevent a user rollback to glosses step when
+					// there is no extent, but just in case we don't, just bring the vertical edit to
+					// an end immediately -- this block should never be entered if I code correctly
+					if (pRec->nNewSpanCount == 0)
+					{
+						//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+						wxPostEvent(this, eventCustom);
+						gEditStep = glossesStep;
+						pRec->bGlossStepEntered = TRUE;
+						return;
+					}
+
+					// the span was entered earlier, and we are rolling back, so we have to set up
+					// the state as it was at the start of the of the previous glossesStep;
+					// and we have to restore the phrase box to the start of the editable span too
+					// (we don't bother to make any reference count decrements in the glossingKB, so
+					// this would be a source of ref counts being larger than strictly correct, but
+					// that is a totally benign effect)
+					int nHowMany = pRec->nGlossStep_SpanCount;
+					wxASSERT(nHowMany != 0);
+					wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
+					bool bWasOK;
+					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						pRec->nGlossStep_StartingSequNum, 
+						nHowMany, // defines how many to remove to make the gap for the insertions
+						&pRec->glossStep_SrcPhraseList, 
+						0, // start at index 0, ie. insert whole of deep copied list
+						pRec->nGlossStep_SpanCount);
+					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+
+					// delete the instances in the freeTranslationsStep's list
+					pDoc->DeleteSourcePhrases(&pRec->freeTranslationStep_SrcPhraseList);
+
+					// place the phrase box at the start of the span, and update the layout etc
+					int activeSequNum = pRec->nGlossStep_StartingSequNum;
+					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					
+					// populate the combobox with the required removals data for adaptationsStep
+					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
+
+					// put the adaptations step's message in the multi-line read-only CEdit box
+					// IDS_VERT_EDIT_GLOSSES_MSG
+					pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+
+					// setup the toolbar with the vertical edit process control buttons and user
+					// message, and make it show-able
+					if (!m_pRemovalsBar->IsShown())
+					{
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						m_pRemovalsBar->Refresh();
+						m_pRemovalsBar->Show(TRUE);
+					}
+					m_pVertEditBar->Show(TRUE);
+
+					// ensure gEditStep remains set to adaptationsStep here, before returning
+					gEditStep = glossesStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bGlossStepEntered = TRUE;
+
+					// initiate a redraw of the frame and the client area (Note, this is MFC's
+					// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+					// member function of same name
+					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+										   // no harm if the window is not embedded
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+				} // end block for result TRUE for test (gEditStep == freeTranslationsStep)
+				else
+				{
+					// ought not to happen because we should only be able to get to glossesStep
+					// by either normal progression from adaptationsStep or rollback from 
+					// freeTranslationsStep, so, cancel out
+					gEditStep = glossesStep;
+					pRec->bGlossStepEntered = TRUE;
+					goto cancel;
+				}
+			} // end block for test if (gAdaptBeforeGloss)
+/****/		else
+			{
+				// user's chosen processing order is "do glosses before adaptations"
+				if (gEditStep == sourceTextStep)
+				{
+					// the PostMessage() which we are handling is fired from the end of the
+					// source text edit step, so control is still in that step, and about to
+					// transition to the glosses step if the editable span had some, if not,
+					// we transition from glosses step, after minimal setup, to the
+					// adaptations step
+
+					// the mode in effect when the Edit Source Text dialog was visible may not
+					// have been glossing mode, it may have been adapting mode, so we need to
+					// check and, if necessary, switch to glossing mode; moreover, if there were 
+					// glosses in the editable section, we must make them visible, but if there were
+					// no glosses in the span, we'll do only minimal setup and transition to the next
+					// step
+					if (gbIsGlossing)
+					{
+						// glossing mode is currently ON (and adaptations are always visible
+						// in that mode too)
+						;
+					}
+					else
+					{
+						// adapting mode is in effect, so change the mode to glossing mode
+						if (!gbEnableGlossing)
+						{
+							// glosses are not yet visible, so make them so
+							pView->ToggleSeeGlossesMode();
+							//OnAdvancedEnableglossing(); // toggles gbEnableGlossing to TRUE, makes
+														// the Glossing checkbox be shown
+														// leaves gbIsGlossing FALSE
+						}
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns ON the Glossing checkbox and sets 
+											 // gbIsGlossing to TRUE; and leaves gbEnableGlossing
+											 // with its TRUE value unchanged; populates list with
+											 // removed glosses
+					}
+
+					// if the user removed all the CSourcePhrase instances of the editable span,
+					// there are no glosses to be updated, so check for this and if so, fill
+					// in the relevant gEditRecord members and then post the event for the next
+					// step -- we don't give the user a dialog to vary the step order here, because
+					// he won't have seen any feedback up to now that he's about to be in glosses
+					// step, so we unilaterally send him on to the next step
+					if (pRec->nNewSpanCount == 0)
+					{
+						// user deleted everything... so move on
+						pRec->nGlossStep_SpanCount = 0;
+						pRec->nGlossStep_StartingSequNum = -1;
+						pRec->nGlossStep_EndingSequNum = -1;
+
+						gEditStep = glossesStep;
+						pRec->bGlossStepEntered = TRUE; // prevent reinitialization if user returns here
+
+						// post event for progressing to adaptationStep
+						//this->PostMessage(CUSTOM_EVENT_ADAPTATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+
+					if (!pRec->bGlossStepEntered)
+					{
+						// put the values in the edit record, where the CCell drawing function can get them
+						bool bAllWasOK;
+						pRec->nGlossStep_StartingSequNum = pRec->nStartingSequNum;
+						pRec->nGlossStep_EndingSequNum = pRec->nStartingSequNum + pRec->nNewSpanCount - 1;
+						pRec->nGlossStep_SpanCount = pRec->nNewSpanCount;
+
+						// deep copy the initial editable span.  This deep copy
+						// must only be done once
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nGlossStep_StartingSequNum, 
+							pRec->nGlossStep_EndingSequNum, &pRec->glossStep_SrcPhraseList);
+						if (!bAllWasOK)
+						{
+							// if this failed, we must bail out of this vertical edit process
+							gEditStep = glossesStep;
+							pRec->bGlossStepEntered = TRUE;
+							goto cancel;
+						}
+					}
+
+					// ensure gEditStep remains set to glossStep here, before returning
+					gEditStep = glossesStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bGlossStepEntered = TRUE;
+
+					if (pRec->bEditSpanHasGlosses)
+					{
+						// populate the combobox with the required removals data for glossesStep
+						bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
+
+						// put the adaptations step's message in the multi-line read-only CEdit box
+						// IDS_VERT_EDIT_GLOSSES_MSG
+						pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+
+						// setup the toolbar with the vertical edit process control buttons and user
+						// message, and make it show-able
+						if (!m_pRemovalsBar->IsShown())
+						{
+							// update static text in removals bar to indicate that clicking on item in
+							// list copies to the phrase box
+							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+							wxASSERT(pStatic != NULL);
+							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+							m_pRemovalsBar->Refresh();
+							m_pRemovalsBar->Show(TRUE);
+						}
+						m_pVertEditBar->Show(TRUE);
+
+						// initiate a redraw of the frame and the client area (Note, this is MFC's
+						// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+						// member function of same name
+						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+											   // no harm if the window is not embedded
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+					}  // end block for result TRUE for test (pRec->bEditSpanHasGlosses)
+					else
+					{
+						// no glosses formerly, so we don't do the above extra steps because the
+						// user would not get to see their effect before they get clobbered by the setup
+						// of the adaptationsStep transition
+						//this->PostMessage(CUSTOM_EVENT_ADAPTATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Adaptations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+				}
+/*rollback*/	else if (gEditStep == adaptationsStep)
+				{
+					// the user was in adaptations step, and requested a roll back to glosses step;
+					// we allow this whether or not there were originally glosses in the editable span
+					// because we assume a rollback is intentional to get glosses made or altered
+
+					// we know we are coming from adaptations step being currently on, so we have to switch to
+					// glossing step; moreover, glosses may or may not have been visible, but we have to
+					// be sure they will be visible in glossesStep
+					if (!gbEnableGlossing)
+					{
+						// make glosses visible and have the glossing checkbox be shown on the command bar
+						pView->ToggleSeeGlossesMode();
+						//OnAdvancedEnableglossing();
+					}
+					pView->ToggleGlossingMode();
+					//OnCheckIsGlossing(); // turns ON the Glossing checkbox and sets 
+										 // gbIsGlossing to TREU; and leaves gbEnableGlossing
+										 // with its TRUE value unchanged
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no glosses to be updated, because the span has no extent. We
+					// will try to externally catch and prevent a user rollback to glosses step when
+					// there is no extent, but just in case we don't, just bring the vertical edit to
+					// an end immediately -- this block should never be entered if I code correctly
+					if (pRec->nNewSpanCount == 0)
+					{
+						//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+						wxPostEvent(this, eventCustom);
+						gEditStep = glossesStep;
+						pRec->bGlossStepEntered = TRUE;
+						return;
+					}
+
+					// the span was entered earlier, and we are rolling back, so we have to set up
+					// the state as it was at the start of the of the previous glossesStep; (while
+					// in adaptationsStep the user may have changed the length of the editable span
+					// by doing placeholder insertions, retranslations, mergers)
+					// and we have to restore the phrase box to the start of the editable span too
+					// (we don't bother to make any reference count decrements in the glossingKB, so this
+					// would be a source of ref counts being larger than strictly correct, but that
+					// is a totally benign effect)
+
+					// the user may have shortened or lengthened the span, so we just
+					// use the nAdaptationStep_NewSpanCount value as that is the value on
+					// last exit from the adaptationsStep -- this is how many we must remove
+					// in order to insert the original glossesStep's deep copies in the
+					// document's m_pSourcePhrases list at the editable span location
+					int nHowMany = pRec->nAdaptationStep_NewSpanCount;
+					wxASSERT(nHowMany != 0);
+					wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
+					bool bWasOK;
+					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						pRec->nGlossStep_StartingSequNum, 
+						nHowMany, // defines how many to remove to make the gap for the insertions
+						&pRec->glossStep_SrcPhraseList, 
+						0, // start at index 0, ie. insert whole of deep copied list
+						pRec->nGlossStep_SpanCount);
+					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+
+					// restore original adaptationsStep counts to pre-extras values
+					pRec->nAdaptationStep_EndingSequNum -= pRec->nAdaptationStep_ExtrasFromUserEdits;
+					pRec->nAdaptationStep_ExtrasFromUserEdits = 0; // reinitialize, as the user may
+																   // now edit differently than before
+
+					// re-initialize the new spancount parameter which has become incorrect
+					pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
+
+					// delete the instances in the adaptationsStep's list
+					pDoc->DeleteSourcePhrases(&pRec->adaptationStep_SrcPhraseList);
+
+					// place the phrase box at the start of the span, and update the layout etc
+					int activeSequNum = pRec->nGlossStep_StartingSequNum;
+					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					
+					// populate the combobox with the required removals data for glossesStep
+					bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
+
+					// put the glosses step's message in the multi-line read-only CEdit box
+					// IDS_VERT_EDIT_GLOSSES_MSG
+					pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+
+					// setup the toolbar with the vertical edit process control buttons and user
+					// message, and make it show-able
+					if (!m_pRemovalsBar->IsShown())
+					{
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						m_pRemovalsBar->Refresh();
+						m_pRemovalsBar->Show(TRUE);
+					}
+					m_pVertEditBar->Show(TRUE);
+
+					// ensure gEditStep remains set to adaptationsStep here, before returning
+					gEditStep = glossesStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bGlossStepEntered = TRUE;
+
+					// initiate a redraw of the frame and the client area (Note, this is MFC's
+					// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+					// member function of same name
+					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+										   // no harm if the window is not embedded
+
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+				} // end block for result TRUE for test (gEditStep == glossesStep)
+				else
+				{
+					// ought not to happen because we should only be able to get to glossesStep
+					// by either normal progression from sourceTextStep or rollback from
+					// adaptationsStep, so, cancel out
+					gEditStep = glossesStep;
+					pRec->bGlossStepEntered = TRUE;
+					goto cancel;
+				}
+			}
+		 } // end block for result TRUE for test (gEntryPoint == sourceTextEntryPoint)
+		else if (gEntryPoint == adaptationsEntryPoint)
+		{
+			// user has just edited an existing adaptation... we'll support this
+			// option only in the wxWidgets codebase
+			; // **** TODO in wxWidgets ****
+		}
+		else
+		{
+			// if none of these, we've got an unexpected state which should never happen,
+			// so cancel out
+cancel:		;
+			//this->PostMessage(CUSTOM_EVENT_CANCEL_VERTICAL_EDIT,0,0);
+			wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+			wxPostEvent(this, eventCustom);
+			return;
+		}
+	}
+}
+
+// The following is the handler for a CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT event message, sent
+// to the window event loop by a PostMessage(CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT,0,0) call
+void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(event))
+{
+	// free translations updating is potentially required
+	// Insure that we have a valid pointer to the m_pVertEditBar member
+	// of the frame window class
+	wxASSERT(m_pVertEditBar != NULL);
+	wxASSERT(m_pRemovalsBar != NULL);
+	
+	CAdapt_ItView* pView = gpApp->GetView();
+
+	if (m_pVertEditBar == NULL)
+	{
+		wxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in \
+						 OnCustomEventAdaptationsEdit()"),_T(""), wxICON_EXCLAMATION);
+		return;
+	}
+
+	// determine what setup is required: control is coming from either adaptationsStep or glossesStep,
+	// the former when the order is adaptations before glosses; but if the order is glosses before adaptations,
+	// then the latter. These variations require separate initialization blocks.
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	EditRecord* pRec = &gEditRecord;
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	bool bAllsWell = TRUE;
+
+	if (gbVerticalEditInProgress)
+	{
+		if (gEntryPoint == sourceTextEntryPoint)
+		{
+			// when entry is due to a source text edit, we can count on all the source text editing-related
+			// parameters in gEditRecord having previously been filled out...
+			if (gbAdaptBeforeGloss)
+			{
+				// user's chosen processing order is "do adaptations before glosses"
+				if (gEditStep == glossesStep)
+				{
+					// the PostMessage() which we are handling was fired from the end of the glosses
+					// updating step, so we are still in that step and about to do the things needed to
+					// transition to the free translations step
+
+					// we now must get free translations mode turned on; and we assume that the user
+					// will be using it for free translating the adaptation line, and so we also have
+					// to get glossing mode turned off - but leave glosses visible (which permits
+					// the user to still free translate the gloss line if he chooses)
+					if (gbIsGlossing)
+					{
+						// glossing mode is currently ON, so we only need turn glossing mode off
+						pView->ToggleGlossingMode();
+						//OnCheckIsGlossing(); // turns OFF the Glossing checkbox and clears 
+												 // gbIsGlossing to FALSE; and leaves gbEnableGlossing
+												 // with its TRUE value unchanged; also fills the
+												 // removals combo with removed adaptations (we will
+												 // fix the latter below)
+					}
+					else
+					{
+						// adaptation mode is in effect already, make glosses visible if they are not
+						// already so
+						if (!gbEnableGlossing)
+							pView->ToggleSeeGlossesMode();
+							//OnAdvancedEnableglossing(); // sets gbEnableGlossing to TRUE, makes
+														// the Glossing checkbox be unhidden,
+														// leaves gbIsGlossing FALSE
+					}
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no glosses or adaptations to be updated, but it is quite probable
+					// that one or more free translation sections are affected by such removal. So
+					// we must give the user the chance to retranslate, or copy the old ones from
+					// the removals combobox list and tweak them. However, if the user removed all the selection,
+					// then we must look at the free translation span - if it is coextensive with the editable
+					// span, then whole free translation section(s) were removed and there is nothing for the
+					// user to do; but if it is larger than the editable span, then the user must be shown
+					// the GUI as he has some editing of free translations to do.
+					bool bShowGUI = FALSE; // default is that there were no free translations impinging on the
+										   // editable span, so no need to show the GUI in this step
+					if (pRec->bEditSpanHasFreeTranslations)
+					{
+						// the GUI may need to be shown, check further
+						if (pRec->nNewSpanCount > 0)
+						{
+							// the user did not remove everything, so some free translating needs to be done
+							bShowGUI = TRUE;
+						}
+						else
+						{
+							// the user removed everything in the editable span; this span may be coextensive
+							// with the ends of one or more consecutive free translations - which also have
+							// been removed (to the combo box list); we assume that the user needs to see the
+							// GUI only if the one or more free translations that were present extended beyond
+							// the start or end, or both, of the editable span - in that case only would some
+							// editing of the free translations impinging on the editable span need their
+							// meanings modified. That is, if the source words and the free translations of
+							// them where together removed, what is in the context can be assumed to be correct. 
+							
+							// NOTE: The above assumption is not linguistically defensible, as typically conjunctions
+							// need to be tweaked, but we will let the user do such tweaks in a manual read-through
+							// later on, to keep things as simple as possible for the vertical edit process. 
+							// (If users ever complain about this, we can here do an extension of the free translation
+							// span to include single free translation either side of the removed text, so that any
+							// minor meaning tweaks to maintain connected readability can be done. I'm assuming
+							// that the frequency of this ever being an issue is so small as to not be worth the
+							// time coding for it.)
+							int nOverlapCount = pRec->nFreeTrans_EndingSequNum - pRec->nFreeTrans_StartingSequNum
+								+ 1 - pRec->nOldSpanCount;
+							if (nOverlapCount > 0)
+							{
+								// the user needs to see the GUI, because the end of the earlier free translation
+								// overlaps the start of the former editable span or the start of the following
+								// free translation overlaps the end of the former editable span, or both; so that
+								// strongly implies those free translations need significant editing
+								bShowGUI = TRUE;
+							}
+						}
+					}
+					if (!bShowGUI)
+					{
+						// user deleted everything... perhaps including one of more complete free translation
+						// sections, so assume no big need for editing exists and move on
+						pRec->nFreeTranslationStep_SpanCount = 0;
+						pRec->nFreeTranslationStep_StartingSequNum = -1;
+						pRec->nFreeTranslationStep_EndingSequNum = -1;
+
+						gEditStep = freeTranslationsStep;
+						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization if user returns
+											// to here,  -- though I don't think I'm going to make that possible
+											// once this block has been entered
+
+						// post event for progressing to (re-collecting) back translations step.
+						//this->PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+
+					// now switch free translations mode ON; we do it here so that we don't bother
+					// to switch it on if the user is not going to be shown the GUI for this step;
+					// but in the backTranslationsStep's handler we will then have to test the value of
+					// gpApp->m_bFreeTranslationMode to determine whether or not free translations
+					// mode was turned on at the earlier step so as to make sure we turn it off only
+					// because we know it was turned on earlier!
+					pView->ToggleFreeTranslationMode();
+					//OnAdvancedFreeTranslationMode();
+
+					// Initializing must be done only once (the user can return to this step using interface
+					// buttons) -- initializing is done the first time glossesStep is entered in the vertical
+					// edit, so it is put within a test to prevent multiple initializations -- the flag in the
+					// following test is not set until the end of this current function
+					if (!pRec->bFreeTranslationStepEntered)
+					{
+						// set up the values for the freeTranslationsStep in the edit record, where
+						// the CCell drawing function can get them
+						bool bAllWasOK;
+						pRec->nFreeTranslationStep_StartingSequNum = pRec->nFreeTrans_StartingSequNum;
+						pRec->nFreeTranslationStep_EndingSequNum = pRec->nFreeTrans_EndingSequNum;
+						// the above value is based on the editable span prior to any span-length changes 
+						// which the user made while editing in adaptationsStep (such as mergers, retranslations
+						// or placeholder insertions), so if he changed the span length - whether longer or
+						// shorter, we have to make the same adjustment to the ending sequence number now;
+						// we also must take account of any shortening or lengthening due to the source text
+						// edit itself
+						pRec->nFreeTranslationStep_EndingSequNum += pRec->nAdaptationStep_ExtrasFromUserEdits;
+						int nShorterBy = pRec->nOldSpanCount - pRec->nNewSpanCount; // can be -ve, 0 or +ve
+						pRec->nFreeTranslationStep_EndingSequNum -= nShorterBy;
+						// calculate the span count & store it
+						if (pRec->nFreeTranslationStep_EndingSequNum < pRec->nFreeTranslationStep_StartingSequNum)
+						{
+							pRec->nFreeTranslationStep_SpanCount = 0;
+						}
+						else
+						{
+							pRec->nFreeTranslationStep_SpanCount = pRec->nFreeTranslationStep_EndingSequNum -
+								pRec->nFreeTranslationStep_StartingSequNum + 1;
+						}
+
+						// here we set the initial state of the free translations span which is
+						// of course the final state of the previous glossesStep's span; so deep copy
+						// the initial state. This deep copy must only be done once.  Actually, since I doubt
+						// I'll provide a way to rollback to the start of the free translations step once control
+						// has moved on, this copy is superfluous, but I'll do it so that if I change my mind
+						// everything has nevertheless been set up right
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nFreeTranslationStep_StartingSequNum, 
+							pRec->nFreeTranslationStep_EndingSequNum, &pRec->freeTranslationStep_SrcPhraseList);
+						if (!bAllWasOK)
+						{
+							// if this failed, we must bail out of this vertical edit process
+							gEditStep = freeTranslationsStep;
+							pRec->bFreeTranslationStepEntered = TRUE;
+							goto cancel;
+						}
+					}
+
+					// ensure gEditStep remains set to freeTranslationsStep here, before returning
+					gEditStep = freeTranslationsStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bFreeTranslationStepEntered = TRUE;
+
+					if (bShowGUI)
+					{
+						// populate the combobox with the required removals data for freeTranslationsStep
+						bAllsWell = pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
+
+						// put the glosses step's message in the multi-line read-only CEdit box
+						// IDS_VERT_EDIT_FREE_TRANSLATIONS_MSG
+						pView->SetVerticalEditModeMessage(_("Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
+
+						// setup the toolbar with the vertical edit process control buttons and user
+						// message, and make it show-able
+						// whm added: the MFC version of vertical editing had the RemovalsBar always
+						// showing. I'm keeping it hidden until it really is needed.
+						if (!m_pRemovalsBar->IsShown())
+						{
+							// update static text in removals bar to indicate that clicking on item in
+							// list copies to the compose bar's text box
+							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+							wxASSERT(pStatic != NULL);
+							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."));
+							m_pRemovalsBar->Refresh();
+							m_pRemovalsBar->Show(TRUE);
+						}
+						m_pVertEditBar->Show(TRUE);
+
+						// initiate a redraw of the frame and the client area (Note, this is MFC's
+						// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+						// member function of same name
+						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+											   // no harm if the window is not embedded
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+						
+						// place the phrase box at the start of the span, and update the layout etc
+						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
+						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					}  // end TRUE block for test (bShowGUI)
+					else
+					{
+						// no free translations formerly, or no need for the user to do any free
+						// translation updating, so we don't do the above extra steps because the
+						// user would not get to see their effect before they get clobbered by the setup
+						// of the backTranslationsStep transition
+						//this->PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+				} // end TRUE block for test (gbEditStep == glossesStep)
+/*rollback*/	else if (gEditStep == backTranslationsStep)
+				{
+					// the vertical edit design currently does not provided a rollback possibility
+					// from back translations step - the latter is automatic, has no GUI, and we
+					// won't put up the dialog for user control of next step at its end, but just
+					// close the vertical edit process; so if somehow control gets here, then just end
+					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+					wxPostEvent(this, eventCustom);
+				}
+				else
+				{
+					// ought not to happen because we should only be able to get to freeTranslationsStep
+					// by either normal progression from glossesStep, so cancel out
+					gEditStep = freeTranslationsStep;
+					pRec->bFreeTranslationStepEntered = TRUE;
+					goto cancel;
+				}
+			} // end block for test if (gAdaptBeforeGloss)
+/****/		else
+			{
+				// user's chosen processing order is "do glosses before adaptations"
+				if (gEditStep == adaptationsStep)
+				{
+					// the PostMessage() which we are handling was fired from the end of the adaptations
+					// updating step, so we are still in that step and about to do the things needed to
+					// transition to the free translations step
+
+					// we now must get free translations mode turned on; and we assume that the user
+					// will be using it for free translating the adaptation line, and so we also have
+					// to get glosses visible if not already so (which permits the user to still free
+					// translate the gloss line if he chooses)
+					if (!gbEnableGlossing)
+					{
+						pView->ToggleSeeGlossesMode();
+						//OnAdvancedEnableglossing(); // sets gbEnableGlossing to TRUE, makes
+													// the Glossing checkbox be unhidden,
+													// leaves gbIsGlossing FALSE
+					}
+
+					// If the user removed all the CSourcePhrase instances of the editable span,
+					// there are no glosses or adaptations to be updated, but it is quite probable
+					// that one or more free translation sections are affected by such removal. So
+					// we must give the user the chance to retranslate, or copy the old ones from
+					// the removals combobox list and tweak them. However, if the user removed all the selection,
+					// then we must look at the free translation span - if it is coextensive with the editable
+					// span, then whole free translation section(s) were removed and there is nothing for the
+					// user to do; but if it is larger than the editable span, then the user must be shown
+					// the GUI as he has some editing of free translations to do.
+					bool bShowGUI = FALSE; // default is that there were no free translations impinging on the
+										   // editable span, so no need to show the GUI in this step
+					if (pRec->bEditSpanHasFreeTranslations)
+					{
+						// the GUI may need to be shown, check further
+						if (pRec->nNewSpanCount > 0)
+						{
+							// the user did not remove everything, so some free translating needs to be done
+							bShowGUI = TRUE;
+						}
+						else
+						{
+							// the user removed everything in the editable span; this span may be coextensive
+							// with the ends of one or more consecutive free translations - which also have
+							// been removed (to the combo box list); we assume that the user needs to see the
+							// GUI only if the one or more free translations that were present extended beyond
+							// the start or end, or both, of the editable span - in that case only would some
+							// editing of the free translations impinging on the editable span need their
+							// meanings modified. That is, if the source words and the free translations of
+							// them where together removed, what is in the context can be assumed to be correct. 
+							
+							// NOTE: The above assumption is not linguistically defensible, as typically conjunctions
+							// need to be tweaked, but we will let the user do such tweaks in a manual read-through
+							// later on, to keep things as simple as possible for the vertical edit process. 
+							// (If users ever complain about this, we can here do an extension of the free translation
+							// span to include single free translation either side of the removed text, so that any
+							// minor meaning tweaks to maintain connected readability can be done. I'm assuming
+							// that the frequency of this ever being an issue is so small as to not be worth the
+							// time coding for it.)
+							int nOverlapCount = pRec->nFreeTrans_EndingSequNum - pRec->nFreeTrans_StartingSequNum
+								+ 1 - pRec->nOldSpanCount;
+							if (nOverlapCount > 0)
+							{
+								// the user needs to see the GUI, because the end of the earlier free translation
+								// overlaps the start of the former editable span or the start of the following
+								// free translation overlaps the end of the former editable span, or both; so that
+								// strongly implies those free translations need significant editing
+								bShowGUI = TRUE;
+							}
+						}
+					}
+					if (!bShowGUI)
+					{
+						// user deleted everything... perhaps including one of more complete free translation
+						// sections, so assume no big need for editing exists and move on
+						pRec->nFreeTranslationStep_SpanCount = 0;
+						pRec->nFreeTranslationStep_StartingSequNum = -1;
+						pRec->nFreeTranslationStep_EndingSequNum = -1;
+
+						gEditStep = freeTranslationsStep;
+						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization if user returns
+											// to here,  -- though I don't think I'm going to make that possible
+											// once this block has been entered
+
+						// post event for progressing to (re-collecting) back translations step.
+						//this->PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+
+					// now switch free translations mode ON; we do it here so that we don't bother
+					// to switch it on if the user is not going to be shown the GUI for this step;
+					// but in the backTranslationsStep's handler we will then have to test the value of
+					// gpApp->m_bFreeTranslationMode to determine whether or not free translations
+					// mode was turned on at the earlier step so as to make sure we turn it off only
+					// because we know it was turned on earlier!
+					pView->ToggleFreeTranslationMode();
+					//OnAdvancedFreeTranslationMode();
+
+					// Initializing must be done only once (the user can return to this step using interface
+					// buttons) -- initializing is done the first time glossesStep is entered in the vertical
+					// edit, so it is put within a test to prevent multiple initializations -- the flag in the
+					// following test is not set until the end of this current function
+					if (!pRec->bFreeTranslationStepEntered)
+					{
+						// set up the values for the freeTranslationsStep in the edit record, where
+						// the CCell drawing function can get them
+						bool bAllWasOK;
+						pRec->nFreeTranslationStep_StartingSequNum = pRec->nFreeTrans_StartingSequNum;
+						pRec->nFreeTranslationStep_EndingSequNum = pRec->nFreeTrans_EndingSequNum;
+						// the above value is based on the editable span prior to any span-length changes 
+						// which the user made while editing in adaptationsStep (such as mergers, retranslations
+						// or placeholder insertions), so if he changed the span length - whether longer or
+						// shorter, we have to make the same adjustment to the ending sequence number now
+						pRec->nFreeTranslationStep_EndingSequNum += pRec->nAdaptationStep_ExtrasFromUserEdits;
+						pRec->nFreeTranslationStep_SpanCount = pRec->nFreeTranslationStep_EndingSequNum -
+							pRec->nFreeTranslationStep_StartingSequNum + 1;
+
+						// here we set the initial state of the free translations span which is
+						// of course the final state of the previous glossesStep's span; so deep copy
+						// the initial state. This deep copy must only be done once.  Actually, since I doubt
+						// I'll provide a way to rollback to the start of the free translations step once control
+						// has moved on, this copy is superfluous, but I'll do it so that if I change my mind
+						// everything has nevertheless been set up right
+						bAllWasOK = pView->DeepCopySourcePhraseSublist(pSrcPhrases, pRec->nFreeTranslationStep_StartingSequNum, 
+							pRec->nFreeTranslationStep_EndingSequNum, &pRec->freeTranslationStep_SrcPhraseList);
+						if (!bAllWasOK)
+						{
+							// if this failed, we must bail out of this vertical edit process
+							gEditStep = freeTranslationsStep;
+							pRec->bFreeTranslationStepEntered = TRUE;
+							goto cancel;
+						}
+					}
+
+					// ensure gEditStep remains set to freeTranslationsStep here, before returning
+					gEditStep = freeTranslationsStep;
+
+					// record the fact that this step has been entered and initial values set up
+					// (it is done once only, see above)
+					pRec->bFreeTranslationStepEntered = TRUE;
+
+					if (bShowGUI)
+					{
+						// populate the combobox with the required removals data for freeTranslationsStep
+						bAllsWell = pView->PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
+
+						// put the glosses step's message in the multi-line read-only CEdit box
+						// IDS_VERT_EDIT_FREE_TRANSLATIONS_MSG
+						pView->SetVerticalEditModeMessage(_("Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
+
+						// setup the toolbar with the vertical edit process control buttons and user
+						// message, and make it show-able
+						// whm added: the MFC version of vertical editing had the RemovalsBar always
+						// showing. I'm keeping it hidden until it really is needed.
+						if (!m_pRemovalsBar->IsShown())
+						{
+							// update static text in removals bar to indicate that clicking on item in
+							// list copies to the compose bar's text box
+							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+							wxASSERT(pStatic != NULL);
+							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."));
+							m_pRemovalsBar->Refresh();
+							m_pRemovalsBar->Show(TRUE);
+						}
+						m_pVertEditBar->Show(TRUE);
+
+						// initiate a redraw of the frame and the client area (Note, this is MFC's
+						// CFrameWnd member function called RecalcLayout(), not my CAdapt_ItView
+						// member function of same name
+						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
+											   // no harm if the window is not embedded
+						// whm Note: Client area is changing size so send a size event to get the layout to change
+						// since the doc/view framework won't do it for us.
+						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+						
+						// place the phrase box at the start of the span, and update the layout etc
+						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
+						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+					}  // end TRUE block for test (bShowGUI)
+					else
+					{
+						// no free translations formerly, or no need for the user to do any free
+						// translation updating, so we don't do the above extra steps because the
+						// user would not get to see their effect before they get clobbered by the setup
+						// of the backTranslationsStep transition
+						//this->PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0);
+						wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
+						wxPostEvent(this, eventCustom);
+						return;
+					}
+				} // end TRUE block for test (gbEditStep == glossesStep)
+/*rollback*/	else if (gEditStep == backTranslationsStep)
+				{
+					// the vertical edit design currently does not provided a rollback possibility
+					// from back translations step - the latter is automatic, has no GUI, and we
+					// won't put up the dialog for user control of next step at its end, but just
+					// close the vertical edit process; so if somehow control gets here, then just end
+					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+					wxPostEvent(this, eventCustom);
+				}
+				else
+				{
+					// ought not to happen because we should only be able to get to freeTranslationsStep
+					// by either normal progression from glossesStep, so cancel out
+					gEditStep = freeTranslationsStep;
+					pRec->bFreeTranslationStepEntered = TRUE;
+					goto cancel;
+				}
+			}
+		 } // end block for result TRUE for test (gEntryPoint == sourceTextEntryPoint)
+		else if (gEntryPoint == adaptationsEntryPoint)
+		{
+			// user has just edited an existing adaptation... we'll support this
+			// option only in the wxWidgets codebase
+			; // **** TODO in wxWidgets ****
+		}
+		else
+		{
+			// if none of these, we've got an unexpected state which should never happen,
+			// so cancel out
+cancel:		;
+			//this->PostMessage(CUSTOM_EVENT_CANCEL_VERTICAL_EDIT,0,0);
+			wxCommandEvent eventCustom(wxEVT_Cancel_Vertical_Edit);
+			wxPostEvent(this, eventCustom);
+			return;
+		}
+	}
+}
+
+// The following is the handler for a CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT event message, sent
+// to the window event loop by a PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0) call
+void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItView* pView = gpApp->GetView();
+	wxASSERT(pView != NULL);
+	if (gpApp->m_bFreeTranslationMode)
+	{
+		// free translations mode was turned on in the freeTranslationsStep
+		// (a call to StoreFreeTranslationOnLeaving() should have been done
+		// prior to entry, and if not  then the final free translation would not have
+		// been stored filtered at the anchor location)
+		pView->ToggleFreeTranslationMode();
+		//OnAdvancedFreeTranslationMode();
+	}
+
+// ***** TODO *****   the functions which will do the checking and recollecting of back translations
+
+
+	// unilaterally end the vertical edit process - don't provide a rollback chance
+	//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+	wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+	wxPostEvent(this, eventCustom);
+	return;
+}
+
+void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	EditRecord* pRec = &gEditRecord;
+	//bool bAllsWell = TRUE;
+	
+	wxASSERT(m_pVertEditBar != NULL);
+	wxASSERT(m_pRemovalsBar != NULL);
+
+	// turn receiving of synchronized scrolling messages back on, if we temporarily have
+	// turned them off
+	if (gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON)
+	{
+		// it was formerly ON, so restore it
+		 gbIgnoreScriptureReference_Receive = FALSE;
+		 wxCommandEvent evt;
+		pDoc->OnAdvancedReceiveSynchronizedScrollingMessages(evt); // toggle it back ON
+		gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE; // restore default setting
+	}
+
+	if (gbVerticalEditInProgress)
+	{
+		CAdapt_ItView* pView = gpApp->GetView();
+		CMainFrame* pFWnd = gpApp->GetMainFrame();
+		wxASSERT(pFWnd != NULL);
+		//if (pFWnd == NULL)
+		//{
+		//	AfxMessageBox(_T("Failure to obtain pointer to the frame window in OnCurstomEventEndVerticalEdit()"), 
+		//		MB_ICONEXCLAMATION);
+		//	return 1; // use 1 as an error, it's unlikely to ever happen
+		//}
+		wxPanel* pBar = pView->GetBar(Vert_Edit_Bar); // IDD_VERT_EDIT_BAR
+		wxASSERT(pBar != NULL);
+		//if (pBar == NULL)
+		//{
+		//	AfxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in OnCurstomEventEndVerticalEdit()"),
+		//		MB_ICONEXCLAMATION);
+		//	return 1;
+		//}
+
+		// if free translations mode is still ON, turn it off
+		if (gpApp->m_bFreeTranslationMode)
+		{
+			//OnAdvancedFreeTranslationMode();
+			pView->ToggleFreeTranslationMode();
+		}
+
+		// hide the toolbar with the vertical edit process control buttons and user message,
+		// and make it show-able
+		//pBar->Show(FALSE);
+		if (m_pVertEditBar->IsShown())
+		{
+			m_pVertEditBar->Show(FALSE);
+		}
+		// whm: wx version also hides the removalsBar
+		if (m_pRemovalsBar->IsShown())
+		{
+			m_pRemovalsBar->Show(FALSE);
+		}
+
+		// typically, the user will have entered text in the phrase box, and we don't want it lost
+		// at the restoration of the original mode; while we can't be sure there will be text in the
+		// box when this handler is called, in our favour is the fact that there is no copy of the
+		// source text in vertical edit mode and so the phrase box won't have anything in it unless the
+		// user typed something there. So, while we risk putting a rubbish word into the KB, in most
+		// situations we won't be and so we'll unilaterally do the store now - using whatever mode (either
+		// glossing or adapting) is currently still in effect
+		pView->DoConditionalStore(); // parameter defaults TRUE, FALSE, are in effect
+
+		// restore the original mode, 
+		pView->RestoreMode(gbEnableGlossing, gbIsGlossing, &gEditRecord);
+
+		// put the phrase box at a suitable and safe location in the document
+		pView->RestoreBoxOnFinishVerticalMode();
+
+		// populate the combobox with the required removals data for the returned-to state
+		bool bFilledListOK = FALSE;
+		if (pRec->bGlossingModeOnEntry)
+		{
+			// when the user first entered the vertical edit state, glossing mode was ON, so
+			// populate the combobox with the list of removed glosses as it currently stands
+			bFilledListOK = pView->PopulateRemovalsComboBox(glossesStep, pRec);
+		}
+		else
+		{
+			// when the user first entered the vertical edit state, glossing mode was OFF, so
+			// populate the combobox with the list of removed adaptations as it currently stands
+			bFilledListOK = pView->PopulateRemovalsComboBox(adaptationsStep, pRec);
+		}
+
+		// initiate a redraw of the frame and the client area (Note, this is MFC's CFrameWnd
+		// member function called RecalcLayout(), not my CAdapt_ItView member function of same name
+		//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so, no harm
+							   // if the window is not embedded
+		SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+		// clear by initializing (but the gEditRecord's removed data lists, which are maintained 
+		// within the gEditRecord global struct, are left intact while the Adapt It session is alive)
+		pView->InitializeEditRecord(gEditRecord); // clears gbVerticalEditInProgress as well
+		gEntryPoint = noEntryPoint;
+		gEditStep = noEditStep;
+		gbEditingSourceAndDocNotYetChanged = TRUE;
+	}
+	return;
+}
+
+void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event))
+{
+	// turn receiving of synchronized scrolling messages back on, if we temporarily have
+	// turned them off
+	if (gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON)
+	{
+		// it was formerly ON, so restore it
+		 gbIgnoreScriptureReference_Receive = FALSE;
+		 wxCommandEvent evt;
+		gpApp->GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(evt); // toggle it back ON
+		gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE; // restore default setting
+	}
+
+// **** TODO ****   roll back through the steps doing restorations and set up original situation
+
+	// whm addition:
+	// When vertical editing is canceled we should hide the m_pRemovalsBar, and m_pVertEditBar,
+	//  - any and all that are visible.
+	//if (m_pVertEditStepTransBar->IsShown())
+	//{
+	//	m_pVertEditStepTransBar->Hide();
+	//}
+	if (m_pVertEditBar->IsShown())
+	{
+		m_pVertEditBar->Hide();
+	}
+	if (m_pRemovalsBar->IsShown())
+	{
+		m_pRemovalsBar->Hide();
+	}
+	SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw;
+
+	return;
+}
+
+// OnRemovalsComboSelChange() handles a click in the dropped down list, sending the string
+// direct to the phrase box which is rebuilt, and with focus put there and cursor following
+// the last character; but it doesn't handle a click on the already visible item in the
+// combobox window - for that a separate handler is needed (whm note: Bruce tried using
+// a OnRemovalsComboSetFocus() handler, which worked, but blocked dropping down the list) so
+// apparently the user will have to drop the list down manually rather than be able to just
+// click on the text in the combo box window).
+void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItDoc* pDoc;
+	CAdapt_ItView* pView = pApp->GetView();
+	//CPhraseBox* pBox;
+	//pApp->GetBasePointers(pDoc,pView,pBox);
+
+	if (!ListBoxPassesSanityCheck(m_pRemovalsBarComboBox))
+	{
+		return;
+	}
+
+	int nIndex = m_pRemovalsBarComboBox->GetSelection(); //MFC has GetCurSel() which equates to the wxComboBox's base class wxControlWithItems::GetSelection()
+	wxString theText;
+	// whm: MFC's CComboBox::GetLBText() "Gets a string from the list box of a combo box." nIndex
+	// contains the zero-based index of the list-box string to be copied. The second parameter points
+	// to a CString that receives the string. In 
+	theText = m_pRemovalsBarComboBox->GetString(nIndex); //m_pRemovalsBarComboBox->GetLBText(nIndex,theText);
+	wxASSERT(!theText.IsEmpty());
+
+	gReplacementLocation_SequNum = pApp->m_nActiveSequNum;
+
+	// now put the text into m_targetBox in the view, and get the view redrawn,
+	// or if freeTranslationsStep is in effect, into the edit box within the
+	// ComposeBar
+	gOldEditBoxTextStr.Empty();
+	if (gEditStep == freeTranslationsStep || gpApp->m_bFreeTranslationMode)
+	{
+		wxASSERT(m_pComposeBar != NULL);
+		wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		wxASSERT(pEdit != NULL);
+		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
+		pEdit->SetValue(_T(""));
+		pEdit->SetValue(theText);
+		long len = theText.Length();
+		pEdit->SetSelection(len,len);
+		pEdit->SetFocus();
+		//RecalcLayout(); // <- the CFrameWnd one, which gets the frame and its bars redrawn; 
+						// not my view one of same name
+		SendSizeEvent();
+		return;
+	}
+	pApp->m_targetPhrase = theText;
+	long length = theText.Length();
+	pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
+	wxASSERT(pApp->m_pTargetBox != NULL); 
+	if (pApp->m_pTargetBox-IsShown())
+	{
+		pApp->m_pTargetBox->SetFocus();
+		pApp->m_pTargetBox->SetSelection(length,length);
+		pApp->m_pTargetBox->m_bAbandonable = TRUE;
+	}
+	pView->Invalidate(); // whm: Why call Invalidate here?
+}
+
