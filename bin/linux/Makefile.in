@@ -82,8 +82,8 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	SourcePhrase.$(OBJEXT) SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) Strip.$(OBJEXT) \
 	TargetUnit.$(OBJEXT) Text.$(OBJEXT) \
-	TransferMarkersDlg.$(OBJEXT) TransformToGlossesDlg.$(OBJEXT) \
-	USFMPage.$(OBJEXT) UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
+	TransformToGlossesDlg.$(OBJEXT) USFMPage.$(OBJEXT) \
+	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) ViewFilteredMaterialDlg.$(OBJEXT) \
 	ViewPage.$(OBJEXT) WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) \
 	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) XML.$(OBJEXT) \
@@ -264,7 +264,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/SilConverterSelectDlg.h \
 	../../source/SourceBundle.h ../../source/SourcePhrase.h ../../source/SplitDialog.h \
 	../../source/Stack.h ../../source/StartWorkingWizard.h ../../source/Strip.h \
-	../../source/TargetUnit.h ../../source/Text.h ../../source/TransferMarkersDlg.h \
+	../../source/TargetUnit.h ../../source/Text.h \
 	../../source/TransformToGlossesDlg.h ../../source/USFMPage.h ../../source/UnitsDlg.h \
 	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/ViewFilteredMaterialDlg.h \
 	../../source/ViewPage.h ../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
@@ -297,7 +297,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/SilConverterSelectDlg.cpp \
 	../../source/SourceBundle.cpp ../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp \
 	../../source/Stack.cpp ../../source/StartWorkingWizard.cpp ../../source/Strip.cpp \
-	../../source/TargetUnit.cpp ../../source/Text.cpp ../../source/TransferMarkersDlg.cpp \
+	../../source/TargetUnit.cpp ../../source/Text.cpp \
 	../../source/TransformToGlossesDlg.cpp ../../source/USFMPage.cpp ../../source/UnitsDlg.cpp \
 	../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
 	../../source/ViewFilteredMaterialDlg.cpp ../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
@@ -448,7 +448,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Text.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransferMarkersDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/USFMPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
@@ -1436,20 +1435,6 @@ Text.obj: ../../source/Text.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Text.cpp' object='Text.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Text.obj `if test -f '../../source/Text.cpp'; then $(CYGPATH_W) '../../source/Text.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Text.cpp'; fi`
-
-TransferMarkersDlg.o: ../../source/TransferMarkersDlg.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TransferMarkersDlg.o -MD -MP -MF $(DEPDIR)/TransferMarkersDlg.Tpo -c -o TransferMarkersDlg.o `test -f '../../source/TransferMarkersDlg.cpp' || echo '$(srcdir)/'`../../source/TransferMarkersDlg.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/TransferMarkersDlg.Tpo $(DEPDIR)/TransferMarkersDlg.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TransferMarkersDlg.cpp' object='TransferMarkersDlg.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TransferMarkersDlg.o `test -f '../../source/TransferMarkersDlg.cpp' || echo '$(srcdir)/'`../../source/TransferMarkersDlg.cpp
-
-TransferMarkersDlg.obj: ../../source/TransferMarkersDlg.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TransferMarkersDlg.obj -MD -MP -MF $(DEPDIR)/TransferMarkersDlg.Tpo -c -o TransferMarkersDlg.obj `if test -f '../../source/TransferMarkersDlg.cpp'; then $(CYGPATH_W) '../../source/TransferMarkersDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TransferMarkersDlg.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/TransferMarkersDlg.Tpo $(DEPDIR)/TransferMarkersDlg.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TransferMarkersDlg.cpp' object='TransferMarkersDlg.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TransferMarkersDlg.obj `if test -f '../../source/TransferMarkersDlg.cpp'; then $(CYGPATH_W) '../../source/TransferMarkersDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TransferMarkersDlg.cpp'; fi`
 
 TransformToGlossesDlg.o: ../../source/TransformToGlossesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TransformToGlossesDlg.o -MD -MP -MF $(DEPDIR)/TransformToGlossesDlg.Tpo -c -o TransformToGlossesDlg.o `test -f '../../source/TransformToGlossesDlg.cpp' || echo '$(srcdir)/'`../../source/TransformToGlossesDlg.cpp
