@@ -751,6 +751,343 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the whole sfm marker (with bac
                     wxStringEqual,
                     MapWholeMkrToFilterStatus ); // the name of the map class declared by this macro
 
+// The following enums and struct were added by Bruce 12Sep08 for support of Vertical Editing. They
+// were located in the global space of CAdapt_ItView.h in the MFC version.
+
+enum ListEnum
+{
+	adaptationsList,
+	glossesList,
+	freeTranslationsList,
+	notesList
+};
+enum WhichContextEnum
+{
+	precedingContext,
+	followingContext
+};
+// BEW added 16Apr08 to support refactored source text editing and modeless editing in general
+enum EntryPoint
+{
+	noEntryPoint,
+	sourceTextEntryPoint,
+	adaptationsEntryPoint,
+	glossesEntryPoint,
+	freeTranslationsEntryPoint
+};
+
+enum EditStep
+{
+	noEditStep, // the value when no vertical editing is going on currently
+	sourceTextStep,
+	adaptationsStep,
+	glossesStep,
+	freeTranslationsStep,
+	backTranslationsStep
+};
+
+// enums for the action selector for Vertical Edit transition dialog
+enum ActionSelector {
+	pleaseIgnore = 0,
+	nextStep,
+	previousStep,
+	endNow,
+	cancelAllSteps
+};
+
+// enums for the GetBar() function
+enum VertEditBarType 
+{
+	Vert_Edit_RemovalsBar,
+	Vert_Edit_Bar,				// IDD_VERT_EDIT_BAR
+	Vert_Edit_Step_Trans_Bar
+};
+
+typedef struct
+{
+	// Note: the "editable span" means the user's selection, except when it encroaches on part of a
+	// retranslation, in which case the span is programmatically increased to include the whole of the
+	// retranslation in the editable span. (And if the user's edit is accepted, the retranslation is
+	// lost automatically and if wanted, would have to be manually reconstituted.)
+
+	// Note 2: after a source text edit, the user will be given opportunity to adapt the new material - when
+	// he does this, he will be free to create mergers; hence, some of the indices and the count of the
+	// number of CSourcePhrase instances in the editable span after editing was completed, which are defined 
+	// below, will need to be programmatically decreased accordingly. Additional structs will be used for
+	// such lower level entry points to the editing process, so that the user can roll back the total vertical
+	// editing process at any stage before it ends. Once it ends, the memory of what was done is deleted and
+	// the only rollback strategy is manual editing, or to do a new source text edit at the original location.
+
+	// Note 3: our design for the spans involves 2 spans with associated CObLists containing deep copies of
+	// CSourcePhrase instances from m_pSourcePhrases list in the document class: the "cancel span" to be
+	// used in restoring the original document (see further comments below) if the user Cancels later on,
+	// and a modifications span (coextensive with the cancel span) in which modifications are made to the
+	// deep copies of the CSourcePhrase instances, readying them for the user's OK button click. There are
+	// also three additional overlapping subspans, defined by starting and ending index pairs using
+	// sequence number values, but these subspans do not have separate CObLists associated with them, rather,
+	// they are defined on both the cancel span and the modifications span, as those spans are coextensive.
+	
+	// The first (and minimal length) subspan is the editable span. This is the user's selection, but if the 
+	// selection overlaps one or more retranslations, the span is widened to include the retranslation/s in
+	// its/their entirety. 
+	// The second subspan is the "free translations span" - it is a span of CSourcePhrase instances where
+	// free translation removals need to be done.
+	// The third subspan is the "collected back translations span" - it is a span of CSourcePhrase instances
+	// where stored back translations have their scope overlapping the information in the editable span
+	// (remembering that the editable span may be exended programmatically wider than the user's selection
+	// due to the presence of one or more retranslations in the user's selection, or overlapping the user's
+	// selection.)
+	// These subspans overlap, and involve an inclusion hierarchy: the editable span is equal to or included
+	// in the free translation span which is equal to or includeld in the (collected) back translations span. 
+	//
+	// The modifications span is coextensive with the cancel span and containsdeep copies of the CSourcePhrase
+	// instances (with sequence numbering preserved). The modifications are to make ready for the CSourcePhrase
+	// instances to be inserted in the document's m_pSourcePhrases list once the user dismisses the edit source
+	// text dialog with an OK button click. These placements involve replacement of the instances in the editable
+	// subspan with CSourcePhrase instances created anew from the edited source text (there may be zero, if the
+	// user edits out the whole of the contents of the editable source text string seen in the dialog); but for
+	// any extended regions preceding and following the editable span up to the bounds of the cancel span,
+	// replacements of the CSourcePhrase instances are done in those regions after the OK button click using
+	// the modified CSourcePhrase instances from the modifications span. (The modifications involve the removal
+	// of notes, free translations and collected back translations in the appropriate subspans,so that the user
+	// does not have to look at their distracting (and possibly copious) information while editing the editable
+	// span.) (The cancel span is maintained in case the user Cancels out of the whole vertical editing process,
+	// it is not needed for cancelling from the Edit Source Text dialog because when the user presses the Cancel
+	// button there, no changes have been made to the original document up to that point.)
+	
+	// Note 4: \bt information might be found to have been stored in the editable subspan, and more than one
+	// instance could be stored there; the final one of any such could have a "span" (over which collection
+	// originally happened) which extends beyond the editable subspan, and may even extend beyond the end of
+	// the free translations subspan too - as far as it takes to get to the next location defined by 
+	// HaltCurrentCollection(). The nBackTrans_EndingSequNum member tracks the CSourcePhrase instance
+	// immediately preceding this halt location.
+
+	// Note 5: Because endmarkers are stored on the CSourcePhrase instance immediately following the span of
+	// information to which they logically belong, it is possible for the editable span's bounding CSourcePhrase
+	// instances to have (a) endmarkers at the start which below to the preceding context, and / or (b)
+	// endmarkers immediately following the end of the editable span which logically belong within it. So we
+	// maintain to CString members to store any such endmarker sequences from either or both locations, so that
+	// the user can be shown the most logically meaningful editable text string, and to enable replacement of
+	// either or both endmarker strings after the edit is done.
+
+	// Note 6: We also maintain an integer array to store the sequence numbers for the storage locations
+	// of any Adapt It Notes which lie within the editable subspan. These location values will be used
+	// (and possibly changed, depending on what the user does in his editing - he may remove all source
+	// text where they originally were located) in order to programmatically determine suitable locations
+	// for rebuilding the notes programmatically once the edit is done. Notes content is not changed - if
+	// changes are warranted, the user will have to do them manually after the total vertical edit process
+	// ends.
+	bool	bGlossingModeOnEntry; // at entry, TRUE if glossing mode is ON, FALSE if adapting mode is ON,
+				// vertical edit is not enabled in any other mode (such as free trans mode).  Default is 
+				// adaptations mode is currently ON, even when it isn't; this is safe because the flag
+				// is set or cleared at the start of vertical editing and it is used only for restoring
+				// the initial entry state after vertical editing finishes
+	bool	bSeeGlossesEnabledOnEntry; // TRUE if See Glosses is ON (ie. gbGlossingEnabled is TRUE) on entry,
+				// FALSE if it is OFF on entry (if off, gbIsGlossing is also FALSE; but if on, gbIsGlossing
+				// can be TRUE or FALSE). Used for restoring initial entry state after vert edit finishes
+	bool	bEditSpanHasAdaptations; // TRUE if adaptations are detected within the editable span
+	bool	bEditSpanHasGlosses; //  TRUE if glosses are detected within the editable span
+	bool	bEditSpanHasFreeTranslations; // TRUE if free translations are in the editable span
+				// (the process looks at CSourcePhrase instances earlier and later than the editable span
+				// in order to make sure the editable span is included within an integral number of
+				// free translation sections)
+	bool	bEditSpanHasBackTranslations; // TRUE if collected backtranslations are in the editable span.
+				// Because each back translation is stored on only one CSourcePhrase instance which is first
+				// in the span over which its collection happened, and sets no flag in CSourcePhrase, 
+				// we need only look for \bt marker content in the editable span, and in any preceding
+				// context - going back only as far as the first halt position as determined by the
+				// HaltCurrentCollection() function.
+	int		nSaveActiveSequNum; // location of the phrase box at entry (needed only for a Cancel operation)
+	wxString		oldPhraseBoxText; // contents of the phrase box when the edit was invoked
+	TextType	nStartingTextType; // value of m_curTextType at the CSourcePhrase with sequence number nStartingSequNum
+	TextType	nEndingTextType; // value of m_curTextType at the CSourcePhrase with sequence number nEndingSequNum
+				// (It is not possible to select across a TextType boundary, and the 'none' TextType never puts a
+				// value 6 into the document, instead it propagates the context's TextType through that section,
+				// and so we can be confident that the TextType won't change unless the user's edit has changed
+				// or introduced SF markers which change the TextType -- in that case we'll need to propagate the
+				// new valueforward, potentially past the end of the editable span, as far as the next m_bFirstOfType
+				// == TRUE locations, but not including that location.)
+	wxArrayString	deletedAdaptationsList; // CStringList	deletedAdaptationsList; // the last 100 deletions resulting from either source text editing or any
+				// adaptations edit operations. This list is maintained for the life of the Adapt It session. A
+				// "Deletions List" button in a bar of the GUI will show the list data in a combobox, in adapting mode.
+	wxArrayString	deletedGlossesList; // CStringList	deletedGlossesList; // the last 100 deletions resulting from either source text editing or any
+				// adaptations edit operations - provided the CSourcePhrase instances which are involved also had
+				// glosses stored on them (not necessarily on all of them). This list is maintained for the life
+				// of the Adapt It session.  A "Deletions List" button in a bar of the GUI will show the list data
+				// in a combobox, in glossing mode.
+	wxArrayString deletedFreeTranslationsList; // CStringList	deletedFreeTranslationsList; // the last 100 deletions resulting from either source text, adaptations
+				// editing, or any use of the Remove Free Translation button in the View Filtered Information dialog,
+				// or any use of the Remove button when in Free Translation mode, or editing of an existing free
+				// free translation. This list is maintained for the life of the Adapt It session. It's members
+				// will be available in the GUI in free translation mode via a combobox, as above.
+	wxArrayString storedNotesList; // CStringList	storedNotesList; // the text strings for any Adapt It notes within the span defined by the editable
+				// span when doing a source text edit are stored temporarily here, and at the end of the editing 
+				// process they are automatically put back into the document at approximately the same relative
+				// positions, the order of these notes is never scrambled, and
+				// if the new source text is very short or empty, they are stored in the immediate context wholely
+				// or partly as circumstances require.
+	int		nStartingSequNum;	// value of m_nSequenceNum for the start of the editable span, or for adaptations
+				// editing, the start of the span of CSourcePhrase instances that were involved.
+	int		nEndingSequNum;	// value of m_nSequenceNum for the last CSourcePhrase of the editable span, or for
+				// editing of adaptations, the end of the span of CSourcePhrase instances that were involved
+	int		nFreeTrans_StartingSequNum; // sequence number for the CSourcePhrase instance at the start of
+				// the span of removed free translations (it can coincide with the start of the editable span
+				// but more commonly is going to be somewhere preceding that location)
+	int		nFreeTrans_EndingSequNum; // sequence number for the last CSourcePhrase instance at the end of
+				// the span of removed free translations (it can coincide with the  end of the editable span
+				// but more commonly is going to be somewhere following that location)
+				// the span of removed free translations which follow (overlap) the editable span
+	int		nBackTrans_StartingSequNum; // sequence number for the CSourcePhrase instance from which the first
+				// (or possibly only) \bt marker and its back translation content were removed, this span
+				// (if it exists) has its start at the free translation one's start or even before that, and if
+				// no free translation span occurs then it would be at or preceding the start of the editable
+				// span
+	int		nBackTrans_EndingSequNum; // sequence number for the end of the back translation span, this span
+				// (if it exists) at the end of the editable span, or somewhere following that, depending on
+				// where the helper function, HaltCurrentCollection(), determines that collecting back
+				// translations needs to end once the editable span has been traversed.
+	int		nCancelSpan_StartingSequNum; // sequence number for the first CSourcePhrase in the span delineated
+				// for restoring the original document state if the user cancels after a source text edit
+				// has been accepted and he is cancelling out of subsequent dependent (vertical) edits.
+	int		nCancelSpan_EndingSequNum; // sequence number for the last CSourcePhrase in the span delineated
+				// for restoring the original document state if the user cancels after a source text edit
+				// has been accepted and he is cancelling out of subsequent dependent (vertical) edits.
+	SPList cancelSpan_SrcPhraseList; // sequence of deep copied unedited CSourcePhrase instances from the
+				// span for of CSourcePhrase instances which get changed in any way (not all need to be changed,
+				// the span is widened at either end to include the leftmost and rightmost modified instances.)
+	SPList	modificationsSpan_SrcPhraseList; // sequence of deep copied CSourcePhrase instances, coextensive with
+				// the cancel span (but containing fresh deep copies), which will be modified (by having notes,
+				// free translations and collected back translations removed) prior to showing the Edit Source
+				// Text dialog, reading the information for the possibility that the user will click the OK button
+				// rather than the Cancel button. Up until the OK button click, no CSourcePhrase instances in the
+				// document's original m_pSourcePhrases list are modified in any way; after the click, what is
+				// in the modificationSpan list is used to make the document comply with the user's edit result.
+	SPList editableSpan_NewSrcPhraseList; // the sequence of CSourcePhrase instances resulting from the 
+				// TokenizeTextString() call with the user's edited source text string as a parameter
+	SPList propagationSpan_SrcPhraseList; // stores a deep copy of the CSourcePhrase instance which is first
+				// in the following context (deep copied before sequence numbers are changed), and any of the
+				// CSourcePhrase instances which follow it which take part in any propagation of special text
+				// and TextType values as a consequence of changes made within the user's edited source text
+	int nPropagationSpan_StartingSequNum; // the index for the first CSourcePhrase instance of the following context
+	int nPropagationSpan_EndingSequNum; // the index for the last CSourcePhrase in the following context which was
+				// affected by the propagation process
+	wxArrayInt arrNotesSequNumbers; //CArray<int,int> arrNotesSequNumbers; // preserve old location of each removed note in the editable subspan
+	int nOldMaxIndex;  // the view class's m_maxIndex value just before the edit was initiated
+	int nOldSpanCount; // the original (after any extension) editable span's number of CSourcePhrase instances
+	int	nNewSpanCount; // the final number of CSourcePhrase instances in the editable span after the user has
+					   // completed his editing of the source text (or whatever the edit did, eg. removal of
+					   // a merger - but this additional stuff will only be possible within the wxWidgets versions)
+	wxString strInitialEndmarkers; // store here the any endmarkers stripped off the m_markers member of the 
+								  // editable subspan's first CSourcePhrase member
+	wxString strFinalEndmarkers;   // store here the any endmarkers stripped off the m_markers member of the 
+								  // first CSourcePhrase member following the editable subspan (at the point
+								  // in the code when we do this storage, the m_markers member has that substring
+								  // removed, this is done in the pSrcPhrase in the modifications list; and
+								  // the substring needs to be added to the end of the string of source text and
+								  // SFM markup which he is to see in the dialog, just prior to making the
+								  // dialog visible)
+	wxString strNewFinalEndmarkers;   // store here the any endmarkers stripped off the end of the user's
+						// edited source text string. His edit could change anything, and so it is conceivable
+						// that his new text may end with different endmarkers from those that will be
+						// restored to the end of the editable span when he first views the dialog, so
+						// we must store the new ones in case we must cancel out and restore the original
+						// document's state
+	bool bSpecialText; // stores the m_bSpecialText boolean value for the first CSourcePhrase instance 
+					   // in the editable span; TRUE if it was special text, FALSE if verse or poetry
+	SPList follNotesMoveSpanList; // one or more CSourcePhrase pointers from the context following the edit
+						// span, which may have had Notes moved at the Note restoration stage, only used if
+						// arrNotesSequNumbers has non-zero content (and the latter determines how many instances
+						// without notes on them are stored in follNotesMoveSpanList to ensure safe restoration
+						// if the user clicks Cancel)
+	SPList precNotesMoveSpanList; // one or more CSourcePhrase pointers from the context preceding the edit
+						// span, which may have had Notes moved at the Note restoration stage, only used if
+						// arrNotesSequNumbers has non-zero content (and the latter determines how many instances
+						// without notes on them are stored in precNotesMoveSpanList to ensure safe restoration
+						// if the user clicks Cancel)
+	bool bTransferredFilterStuffFromCarrierSrcPhrase; // FALSE, except it is TRUE in the special circumstance that
+						// the user's edit resulted in a single CSourcePhrase with empty key, and m_follPunct empty
+						// and m_markers containing filtered information (this can only happen when he edited a
+						// misspelled marker and the final marker form matches one designated as "to be filtered out")
+						// and the whole, or end, of the user's edit string was then filtered and placed in the
+						// m_markers member of the final carrier CSourcePhrase; typically it would be the 'whole'
+						// rather than the 'end' because the user normally cannot select across a TextType boundary
+						// in the first place)
+	bool bDocEndPreventedTransfer; // FALSE by default; TRUE if there was created an empty carrier CSourcePhrase for
+						// storing final endmarker(s), or now-filtered information, and there is no following context
+						// to which transfer of this information to the m_markers member of a CSourcePhrase there is
+						// possible. This flag is ignored, except when the user Cancels or an error causes bail out to
+						// be done; it is used as a quick way to inform the bailout function that document restoration
+						// requires the document-ending CSourcePhrase instance to be deleted (when TRUE). When there
+						// is a following context, transfer will have been possible and this flag will be FALSE, and
+						// the earier state of the CSourcePhrase which was initial in the following context will be
+						// the one at the start of the propagation span.
+	bool bExtendedForFiltering; // FALSE by default. TRUE if marker edit results in the edited marker being one which
+						// should be filtered, AND, the editable span did not include all of the marker's filterable
+						// content - so that AI had to extend the editable span by one or more words to get all that
+						// material into the new source text string (we may not need to use this BOOL value, but we
+						// store it in case it becomes important when I work on the backtracking mechanism for 
+						// stepping back through steps in the vertical edit process, and/or bailout recovery)
+
+	// next ones, for support of the adaptations update step; but when entry is at the adaptations level (ie. user
+	// has changed an established adaptation), free translations etc will need to be removed and a cancelSpan set up,
+	// so for that, the cancelSpan supporting members above will be used.
+	// The main thing to note about the adaptations update step is that (1) CSourcePhrases outside the span must not
+	// be changed (this can be done by limiting the selections possible), (2) the start of the span is fixed (because
+	// no source text changes are done), (3) the end of the span may grow or contract (the former caused by one or
+	// more long retranslations, the latter by one or more mergers, (4) extra members needed in the EditRecord are few
+	bool bAdaptationStepEntered; // default FALSE, TRUE if this step is set up on the screen, even if user then
+						// jumps to next step (TRUE is a flag which says that the step was entered, even if immediately
+						// exitted; so data members here can be expected to perhaps have content, and therefore need to
+						// be looked at by processes such as cancel or bailout)
+	SPList adaptationStep_SrcPhraseList; // the list of CSourcePhrase instances in the editable span, as it is at
+						// the start of the adaptations update step before the user has had a chance to do anything
+	//CObList adaptationStep_FinalSrcPhraseList; // like the previous member, but having deep copies of what is in
+						// the editable span after the user's edits are done - the span could be shorter or longer
+	int	nAdaptationStep_StartingSequNum; // the (fixed) sequence number value for the first CSourcePhrase in the span
+	int	nAdaptationStep_EndingSequNum; // the (fixed) sequence number value for the last CSourcePhrase in the span
+	int nAdaptationStep_OldSpanCount; // how many instances are in the span when the step is first entered
+	int nAdaptationStep_NewSpanCount; // how many are in the span as the user does his updating of adaptations - mergers
+						// and / or retranslations and / or placeholder insertions can alter the span breadth.
+	int nAdaptationStep_ExtrasFromUserEdits; // the final number of extras (can be -ve) due to the cumulative effect
+						// of the user's editing work in the adaptationsStep (other steps need this value so as to
+						// be able to adjust their spans when control enters them
+
+	// next ones, for support of the glosses update step; but when entry is at the adaptations level (ie. user
+	// has changed an established adaptation), free translations etc will need to be removed and a cancelSpan set up,
+	// so for that, the cancelSpan supporting members above will be used.
+	// The main thing to note about the glosses update step is that (1) CSourcePhrases outside the span must not
+	// be changed (this can be done by limiting the selections possible), (2) the start of the span is fixed (because
+	// no source text changes are done), (3) the end of the span is also fixed - because this mode does not permit
+	// mergers etc, (4) extra members needed are equivents for those for adaptationsStep
+	bool bGlossStepEntered; // default FALSE, TRUE if this step is set up on the screen, even if user then
+						// jumps to next step (TRUE is a flag which says that the mode was set up, but data members here
+						// may or may not be expected to have content, and therefore need to be looked at by processes
+						// such as cancel or bailout)
+	SPList glossStep_SrcPhraseList; // the list of CSourcePhrase instances in the editable span, as it is at
+						// the start of the glosses update step before the user has had a chance to do anything;
+						// so it actually preserves the state of whatever span was the last step
+	int	nGlossStep_StartingSequNum; // the (fixed) sequence number value for the first CSourcePhrase in the span
+	int	nGlossStep_EndingSequNum;   // the (fixed) sequence number value for the last CSourcePhrase in the span
+	int nGlossStep_SpanCount; // how many instances are in the span when the step is first entered (stays constant)
+
+	// next group unique to free translations update step
+	bool bFreeTranslationStepEntered; // TRUE once control has been in this step once, even if briefly
+	SPList freeTranslationStep_SrcPhraseList; // we only need the initial list, because the user is
+						// unable to return to this step once backTranslationsStep has been entered, and so
+						// and so the state of the span when freeTranslationsStep is first entered is actually the
+						// final state of the last step - that's what we are storing
+	int			nFreeTranslationStep_StartingSequNum;
+	int			nFreeTranslationStep_EndingSequNum;
+	int 		nFreeTranslationStep_SpanCount;
+
+	// span for collected back translations can be worked out from nBackTrans... starting
+	// and ending indices, together with the difference between the old and new span
+	// counts in the adaptations Step; backTranslationsStep is not reversible and once
+	// there the process is automatically completed without user intervention and the
+	// vertical edit process terminates
+} EditRecord;
+
+
 /// The AIModalDialog class is used as the base class for most of Adapt It's modal dialogs. Its
 /// primary purpose is to turn off background idle processing while the dialog is being displayed.
 /// \derivation The AIModalDialog is derived from wxDialog.
@@ -1138,6 +1475,9 @@ public:
 	// for note support
 	CNoteDlg*		m_pNoteDlg; // non-modal
 
+	//bool gbLegacySourceTextCopy;	// default is TRUE for legacy behaviour, to copy the source text (unless
+									// the project config file establishes the FALSE value instead)
+
 	// attributes in support of the travelling edit box (CPhraseBox)
 	// wxWidgets design Note: I've changed the MFC m_targetBox to m_pTargetBox and create it
 	// only in the View's OnCreate() method. Instead of destroying it and recreating the
@@ -1252,6 +1592,14 @@ public:
 	wxFont*		m_pDlgTgtFont;
 	wxFont*		m_pDlgGlossFont;
 	wxFont*		m_pComposeFont;
+	wxFont*		m_pRemovalsFont; // BEW added 11July08, so setting of the font and size can be done
+								 // for the removals bar, & the dynamic changing of the other dlg font pointers
+								 // won't then clobber this one (as would be the case if I used one of them for
+								 // the removals bar)
+	wxFont*		m_pVertEditFont; // BEW added 23July08, so setting of the font and size can be done
+								 // for the vertical edit message and controls bar, & the dynamic changing of
+								 // the other dlg font pointers won't then clobber this one (as would be the case
+								 // if I used one of them for the vertical edit controls bar)
 
 	// MFC note: source encoding as in input data, and system encoding as defined by system codepage,
 	// and the target encoding (determined by MLang2 query for safe UFT or not)
@@ -1265,6 +1613,8 @@ public:
 	wxFontEncoding m_dlgTgtFontEncoding;
 	wxFontEncoding m_dlgGlossFontEncoding;
 	wxFontEncoding m_composeFontEncoding;
+	wxFontEncoding m_removalsFontEncoding;
+	wxFontEncoding m_vertEditFontEncoding;
 	
 	wxFontEncoding	m_systemEncoding;	// In OnInit: m_systemEncoding = wxLocale::GetSystemEncoding();
 
@@ -1356,7 +1706,7 @@ public:
 	wxString		m_curGlossingKBBackupPath;
 
 	// BEW added 13Aug05, alternative names for the KB files and paths -- required because the KBs 
-	// might be binary (extensions .KB or .BAK) or XML (extensions .xml or .BAK.xml), and the
+	// might be binary (extensions .KB or .BAK) or XML (extensions .xml or BAK.xml), and the
 	// project config file's saved value for the m_bSaveAsXML flag might not be in agreement with
 	// the content of the KB files on disk (eg. the user could change the flag value in the interface
 	// but then reject saving document and kb with the new value); so we need to preserve the alternative
@@ -1591,8 +1941,10 @@ public:
 	void OnUpdateAdvancedTransformAdaptationsIntoGlosses(wxUpdateUIEvent& event);
 	void OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event);
-	//void OnFileSaveAsXml(wxCommandEvent& WXUNUSED(event)); // removed in wx version
-	//void OnUpdateFileSaveAsXml(wxUpdateUIEvent& event); // removed in wx version
+	//void OnFileSaveAsXml(wxCommandEvent& WXUNUSED(event)); // removed in wx version; Bruce removed
+	//from MFC version 3Apr08
+	//void OnUpdateFileSaveAsXml(wxUpdateUIEvent& event); // removed in wx version; Bruce removed
+	//from MFC version 3Apr08
 
 protected:
 

@@ -7,14 +7,10 @@ beginning with Version 4.0.0 are cross-platform capable, being built
 with the wxWidgets cross-platform GUI framework (hence the WX in the 
 name). Versions are also available for Linux and the Macintosh.
 
-Adapt It WX Unicode is a copyrighted program licensed under a dual 
-public license scheme: 
-   * 1. The Common Public License Version 1.0, and 
-   * 2. The wxWindows Library Licence, Version 3.1. 
+Adapt It WX Unicode is a copyrighted program. See license/LICENSE.txt
+for more information.
+ 
 This software is supplied to you without any warranty whatsoever. 
-You may distribute it to others, but not for profit, and only 
-provided you distribute all the files in this package. See the 
-License.txt file for more information.
 
 ---------------------------------------------------------------------
 Special Considerations for the Unicode Version:

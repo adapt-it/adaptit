@@ -53,6 +53,15 @@
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
 
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern bool gbVerticalEditInProgress;
+
+/// This global is defined in Adapt_ItView.cpp
+extern EditStep gEditStep;
+
+/// This global is defined in Adapt_ItView.cpp
+extern EditRecord gEditRecord;
+
 /// This global is defined in FindReplace.cpp.
 extern bool gbReplaceAllIsCurrent;
 
@@ -1101,8 +1110,54 @@ x:						CCell* pCell = 0;
 	// find which cell the click was in
 	CCell* pCell = pView->GetClickedCell(&point); // returns NULL if click was not in a cell
 
+	// BEW added 03Aug08: disallow a click in the gray text area (preceding or following context)
+	// during vertical editing mode; I'll code this block as if I was supporting adaptations or
+	// glosses or free translations as entry points too, but for MFC it will only be source text
+	// editing as the entry point, but the code will work even with the extra stuff in it
+	if (gbVerticalEditInProgress && pCell != NULL)
+	{
+		int nClickedSequNum = pCell->m_pPile->m_pSrcPhrase->m_nSequNumber;
+		if (gEditStep == adaptationsStep && gEditRecord.bAdaptationStepEntered)
+		{
+			// use the bounds for the editable span to test if the click was in the
+			// gray text before the left bound, or in the gray text following the right bound;
+			// if either is true, warn the user and disallow the click
+			if (nClickedSequNum < gEditRecord.nAdaptationStep_StartingSequNum ||
+				nClickedSequNum > gEditRecord.nAdaptationStep_EndingSequNum)
+			{
+				// IDS_CLICK_IN_GRAY_ILLEGAL
+				wxMessageBox(_("Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."), _T(""), wxICON_WARNING);
+				gpApp->m_pTargetBox->SetFocus();
+				return;
+			}
+		}
+		else if (gEditStep == glossesStep && gEditRecord.bGlossStepEntered)
+		{
+			if (nClickedSequNum < gEditRecord.nGlossStep_StartingSequNum ||
+				nClickedSequNum > gEditRecord.nGlossStep_EndingSequNum)
+			{
+				// IDS_CLICK_IN_GRAY_ILLEGAL
+				wxMessageBox(_("Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."), _T(""), wxICON_WARNING);
+				gpApp->m_pTargetBox->SetFocus();
+				return;
+			}
+		}
+		else if (gEditStep == freeTranslationsStep && gEditRecord.bFreeTranslationStepEntered)
+		{
+			if (nClickedSequNum < gEditRecord.nFreeTranslationStep_StartingSequNum ||
+				nClickedSequNum > gEditRecord.nFreeTranslationStep_EndingSequNum)
+			{
+				// IDS_CLICK_IN_GRAY_ILLEGAL
+				wxMessageBox(_("Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."), _T(""), wxICON_WARNING);
+				gpApp->m_pTargetBox->SetFocus();
+				return;
+			}
+		}
+	}
+
 	// we may be going to drag-select, so prepare for drag
 	gbHaltedAtBoundary = FALSE;
+	//	TRACE1("OnLButtonDown: gbHalted %d\n",gbHaltedAtBoundary);
 	if (pCell != NULL && (pCell->m_nCellIndex == 0 || pCell->m_nCellIndex == 1))
 	{
 		// if we have a selection and shift key is being held down, we assume user is not dragging,
@@ -1110,8 +1165,11 @@ x:						CCell* pCell = 0;
 		if (event.ShiftDown() && pApp->m_selection.GetCount() > 0)
 			goto t;
 		// remove any old selection & update window immediately
+		// TRACE1("OnLButtonDown()  about to call RemoveSelection(); m_selection's count is %d\n",
+		//																	m_selection.GetCount());
 		pView->RemoveSelection();
 		Refresh();
+		// TRACE0("View 26\n");
 
 		// prepare for drag
 		pApp->m_mouse = point;

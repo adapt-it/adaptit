@@ -49,10 +49,15 @@ public:
 	wxSizer*	pKBPageSizer;
 	wxCheckBox* m_pCheckDisableAutoBkups;
 	wxCheckBox* m_pCheckBkupWhenClosing;
+	wxCheckBox* m_pCheckLegacySourceTextCopy;
 	wxTextCtrl*	m_pEditSrcName;
 	wxTextCtrl*	m_pEditTgtName;
 	wxTextCtrl* pTextCtrlAsStaticTextBackupsKB;
+	wxRadioButton* pRadioAdaptBeforeGloss;
+	wxRadioButton* pRadioGlossBeforeAdapt;
 	bool		tempDisableAutoKBBackups;
+	bool		tempAdaptBeforeGloss; // was m_bAdaptBeforeGloss in MFC version
+	bool		tempNotLegacySourceTextCopy; // was m_bNotLegacySourceTextCopy in MFC version
 	bool		tempBackupDocument;
 	wxString	tempSrcName;
 	wxString	tempTgtName;
@@ -64,6 +69,8 @@ public:
 
 	void OnCheckKbBackup(wxCommandEvent& WXUNUSED(event));
 	void OnCheckBakupDoc(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedRadioAdaptBeforeGloss(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedRadioGlossBeforeAdapt(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes

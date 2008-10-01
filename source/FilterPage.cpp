@@ -181,7 +181,8 @@ void CFilterPageCommon::DoInit()
 	pTextCtrlAsStaticFilterPage = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_FILTERPAGE);
 	wxASSERT(pTextCtrlAsStaticFilterPage != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticFilterPage->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticFilterPage->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticFilterPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	wxString normalText1, normalText2;
 	// IDS_FILTER_INFO_1

@@ -202,7 +202,7 @@ void CEditPreferencesDlg::CreateControls()
 
 	// add pages to the notebook
     pNotebook->AddPage( fontPage, _("Fonts"),TRUE ); // TRUE = page should be selected
-    pNotebook->AddPage( kbPage, _("Backups and KB"),FALSE );
+    pNotebook->AddPage( kbPage, _("Backups and Misc"),FALSE ); // was "Backups and KB" in legacy app
     pNotebook->AddPage( viewPage, _("View"),FALSE );
     pNotebook->AddPage( autoSavePage, _("Auto-Saving"),FALSE );
     pNotebook->AddPage( punctMapPage, _("Punctuation"),FALSE );

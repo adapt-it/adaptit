@@ -79,7 +79,8 @@ wxString StripPath(wxString FullPath);
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep);
 
 wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet,
-							bool& bAbortOp); // BEW added 15Aug07 for 3.5.0
+							bool& bLacksAny, bool bCopyOnly = FALSE); // BEW added 15Aug07 for 3.5.0
+																	 // & added 4th param on 19May08	
 
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
@@ -101,5 +102,7 @@ void CopyFontBaseProperties(const wxFont* pCopyFromFont, wxFont*& pCopyToFont);
 void CopyAllFontAttributes(const wxFont* pFontCopyFrom, wxFont*& pFontCopyTo);
 
 short DecimalToBinary(unsigned long decimalValue, char binaryValue[32]);
+
+bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox);
 
 #endif

@@ -142,7 +142,8 @@ void CUSFMPageCommon::DoInit()
 	pTextCtrlStaticTextUSFMPage = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_USFMPAGE);
 	wxASSERT(pTextCtrlStaticTextUSFMPage != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlStaticTextUSFMPage->SetBackgroundColour(backgrndColor);
+	//pTextCtrlStaticTextUSFMPage->SetBackgroundColour(backgrndColor);
+	pTextCtrlStaticTextUSFMPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	// prepare some message text - normal and warning
 	wxString tempStrDoc,tempStrProj;

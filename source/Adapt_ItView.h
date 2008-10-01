@@ -156,6 +156,7 @@ public:
 										int nPagePrintWidthLU, int& nLastSequNumber, int nEndIndex);
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); 
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
+	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE, bool bRestoreBoxOnFailure = FALSE); // BEW added 1Aug08
 	void		DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc);
 	//void		DoEditPunctCorresp(); // incorporated into Edit|Preferences
 	void		DoFileSaveKB();
@@ -182,6 +183,8 @@ public:
 	int			FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pStrList, int numWords,
 									int& nStartOffset, int& nEndOffset);
 	wxString	GetAssocTextWithoutMarkers(wxString mkrStr); // whm added 18Nov05
+	wxPanel*	GetBar(enum VertEditBarType vertEditBarType); //CDialogBar* GetBar(UINT id); // BEW added 9Aug08
+	wxComboBox*	GetRemovalsComboBox(); // BEW added 18July08
 	wxString	GetChapterAndVerse(CSourcePhrase* pSrcPhrase);
 	bool		GetChapterAndVerse(SPList* pList, CSourcePhrase* pSrcPhrase, wxString& strChapVerse); // BEW added 12Mar07
 	CCell*		GetClickedCell(const wxPoint* pPoint);
@@ -197,6 +200,7 @@ public:
 	wxChar		GetOtherCaseChar(wxString& charSet, int nOffset);
 	//wxSize		GetPaperSize(short dmPaperSize);
 	CPile*		GetPile(const int nSequNum);
+	//bool		GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
 	CPile*		GetPrevPile(const CPile* pPile);
 	CSourcePhrase*  GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase);
 	CSourcePhrase*  GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Node*& posPrev);
@@ -208,6 +212,7 @@ public:
 	int			GetSelectionWordCount();
 	void		GetVisibleStrips(int& nFirstStrip,int&nLastStrip);
 	wxString	GetWholeMarkerFromString(wxString mkrStr, int nBeginPos); // whm added 18Oct05
+	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
 	void		InsertNullSrcPhraseBefore();
@@ -246,6 +251,7 @@ public:
 	void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
 																  // enable/disable code
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
+	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
 	void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle* pBundle);
 	
 	// RecalcLayout_SimulateOnly() is used only in PaginateDoc()
@@ -263,14 +269,44 @@ public:
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
 	void		RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
 	void		RemoveSelection();
+	
+	// Bruce put the following functions in helpers.h and .cpp, but it is only used in the View so I'm putting it
+	// on the View
+	void		DeepCopySublist2Sublist(SPList* pOriginalList, SPList* pCopiedSublist); // copies a list
+	bool		DeepCopySourcePhraseSublist(SPList* pList,int nStartingSequNum, int nEndingSequNum,
+						SPList* pCopiedSublist); // BEW added 16Apr08
+	bool		PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRec);  // BEW added 18Jul08
+	void		RemoveFilterWrappersButLeaveContent(wxString& str);	// removes "\~FILTER" and "\~FILTER*" from
+																	// str, but leaves the SFM, its content, and any following endmarker followed by any whitespace etc.	
+	bool		ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
+											SPList*  pReplacementsList, int nReplaceStartAt, int nReplaceCount); // BEW added 27May08
+	bool		FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
+	bool		MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN);
+	bool		ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN);
+	bool		IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN);
+	bool		ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
+	bool		CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
+	bool		BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, int nEditSpanCount,
+				wxArrayInt* pUnsqueezedArr, wxArrayInt* pSqueezedArr, int WXUNUSED(nRightBound));
+	void		GetMarkerArrayFromString(wxArrayString* pStrArr, const wxString& str); // BEW added 17June08
+	bool		IsMarkerInArray(wxArrayString* pStrArr, const wxString& marker); // BEW added 17June08
+	bool		AreMarkerSetsDifferent(const wxString& str1, const wxString& str2, bool& bUnfilteringRequired,
+							bool& bFilteringRequired);  // created 17June08 BEW
+	bool		IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpace, wxString& strFilterMarkers); // BEW added 4July08
+	void		SetVerticalEditModeMessage(wxString messageText);
+	
+	
 	void		ResizeBox(const wxPoint* pLoc,const int nWidth,const int nHeight,wxString& text,
 									int nStartChar, int nEndChar, CPile* pActivePile);
+	//void		SizeTheRemovalsComboBoxList();
 	int			RecalcPhraseBoxWidth(wxString& phrase);
 	//bool		RestoreAllPagesPrinting(CPrintInfo* pInfo);
 	//bool		RestoreAllFromSelection(CPrintInfo* pInfo);
 	void		RestoreIndices();
 	void		RestoreIndicesFromRange();
+	void		RestoreMode(bool WXUNUSED(bSeeGlossesEnabled), bool WXUNUSED(bIsGlossing), EditRecord* pRec); // BEW added 29July08
 	bool		RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList);
+	void		RestoreBoxOnFinishVerticalMode(); // BEW added 8Sept08
 	CPile*		RetreatBundle(int nSaveSequNum);
 	CPile*		RetreatBundleToStart();
 	//int			ScrollDown(int nStrips);
@@ -302,6 +338,9 @@ public:
 	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase,
 															bool bSuppressEmptyAdaptDlg = FALSE);
 	bool		StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
+	void		ToggleFreeTranslationMode(); // BEW added 20Sep08
+	void		ToggleGlossingMode(); // BEW added 19Sep08
+	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
 	void		ToggleSourceLines();
 	void		ToggleTargetLines();
 	int			TokenizeTextString(SPList* pNewList,wxString& str,int nInitialSequNum);
@@ -312,6 +351,8 @@ public:
 	void		RemoveFinalSpaces(CPhraseBox* pBox,wxString* pStr);
 	void		UnmergePhrase();
 	void		UpdateSequNumbers(int nFirstSequNum);
+	bool		VerticalEdit_CheckForEndRequiringTransition(int nSequNum, ActionSelector select,
+											bool bForceTransition = FALSE);
 	bool		GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
 
 	// The following moved to public from protected
@@ -326,7 +367,7 @@ public:
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
 	void		InvalidateRect(wxRect& rect); // our own for wxWidgets (see cpp file notes)
 	
-// helper functions
+// helper functions (protected)
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing
 protected:
 	void		AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt);
@@ -335,12 +376,17 @@ protected:
 	void		CalcIndicesForRetreat(int nSequNum);
 	CPile*		CalcPile(CPile *pPile);
 	int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
+	void		BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 30Apr08
+	void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
 	void		ClearSublistKBEntries(SPList* pSublist);
 	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr); // BEW added 26Jun05
+	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
 	bool		ContainsFreeTranslation(CPile* pPile); // BEW added 06Jul05
+	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
+					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
+	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
 	//wxString	CopySourcePhrase(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); // unused
-	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList);
 	int			CountSourceWords(wxString& rStr);
 	CCell*		CreateCell(CAdapt_ItDoc* pDoc,
 						CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
@@ -384,10 +430,22 @@ protected:
 								wxString& tgt,bool bIgnoreCase, int& nSequNum, int& nCount);
 	void		DoSrcPhraseSelCopy();
 	void		DoTargetBoxPaste(CPile* pPile);
+	bool		ExtendEditableSpanForFiltering(EditRecord* pRec, SPList* pSrcPhrases, wxString& strNewSource,
+								MapWholeMkrToFilterStatus* WXUNUSED(pMap), bool& bWasExtended); // BEW added 5July08
+	bool		ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSequNum,
+								int& nEndingSequNum, bool& bWasSuccessful); // BEW added 12Apr08
 	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
 	wxString	GetConvertedPunct(const wxString& rStr);
+	bool		GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
+							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum), int& WXUNUSED(nEndingFreeTransSequNum),
+							int& nStartingBackTransSequNum, int& nEndingBackTransSequNum, 
+							bool& bHasBackTranslations); // BEW added 25Apr08
+	bool		GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
+							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
+							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
+	bool		GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context); // BEW added 14Jun08
 	CCell*		GetNextCell(const CCell* pCell,  const int cellIndex);
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
 													CPile*& pFirstPile,SPList* pList);
@@ -403,7 +461,12 @@ protected:
 					const int nCount,bool bRestoreTargetBox = TRUE,bool bForRetranslation = FALSE,
 					bool bInsertBefore = TRUE);
 	void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
+	//void		InsertSourcePhrases(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,CPile* pInsertLocPile,
+	//												const int nCount,TextType myTextType);
+	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
 	void		InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum);
+	bool		IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
+												 bool* pbHasAdaptations); // BEW added 15July08
 	bool		IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
 	//bool		IsBoundaryCell(CCell* pCell); // moved to public
 	bool		IsConstantType(SPList* pList);
@@ -414,6 +477,8 @@ protected:
 	bool		IsFreeTranslationInSelection(SPList* pList); // BEW added 21Nov05, (for edit source text support)
 	bool		IsFilteredInfoInSelection(SPList* pList); // whm added 14Aug06
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile); // BEW added 24Jun05
+	bool		IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
+					bool* pbHasGlosses);  // BEW added 29Apr08
 	bool		IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 	int			IsMatchedToEnd(wxString& strSearch, wxString& strTarget);
 	bool		IsNullSrcPhraseInSelection(SPList* pList);
@@ -431,12 +496,17 @@ protected:
 					bool& bDelayRemovals);
 	void		PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
 							SPList* pSrcPhrases,int nEndSequNum,int nNewLength,int nCount);
-	bool		ReconcileLists(SPList* pList,SPList* pNewSrcPhrasesList,int WXUNUSED(nSaveSequNum),
-								   int WXUNUSED(nCount),int WXUNUSED(nNewCount),bool WXUNUSED(bDelayRemovals),
-								   bool bSetNoteFlagLaterOn); // last param added by BEW 
+	//bool		ReconcileLists(SPList* pList,SPList* pNewSrcPhrasesList,int WXUNUSED(nSaveSequNum),
+	//							   int WXUNUSED(nCount),int WXUNUSED(nNewCount),bool WXUNUSED(bDelayRemovals),
+	//							   bool bSetNoteFlagLaterOn); // last param added by BEW 
 	//void		RemoveEarlierSelForShortening(wxClientDC* pDC, CCell* pEndCell); // moved to public
 	//void		RemoveFollowingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public
 	//void		RemoveLaterSelForShortening(wxClientDC* pDC, CCell* pEndCell); // moved to public
+	void		RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
+	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec, 
+					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
+					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,
+					bool remFT, bool remBT); // BEW added 27Apr08
 	void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
 	void		RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,int& endIndex,
 					int& upperIndex,int& maxIndex,int& nCount,int& nEndSequNum,
@@ -446,14 +516,21 @@ protected:
 	void		RemoveUnwantedSrcPhrasesInDocList(int nSaveSequNum,int nNewCount,int nCount);
 	void		ReplaceMatchedSubstring(wxString strSearch, wxString& strReplace, wxString& strAdapt);
 	//void		RemovePrecedingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public
+	void		RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 27May08
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
 	void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase);
 	void		RestoreSelection();
 	void		RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& str);
+	bool		RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 26May08
+	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
+							wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
+							wxArrayString* pNoteList); //BEW added 30Apr08
+	bool		ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, EditRecord* pRec,
+					int nStartingSN, int nEndingSN, wxString& strSource); //BEW added 5May08
 	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
 					int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
 	wxString	SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent,float fScale,int& offset,
-									int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
+							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
 	//void		SelectDragRange(CCell* pAnchor,CCell* pCurrent); // moved to public
 	//void		SelectAnchorOnly();								// moved to public
 	void		SetNotInKBFlag(SPList* pList,bool bValue = TRUE);
@@ -462,11 +539,17 @@ protected:
 	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);
 	void		SetupPhraseBoxParameters(CPile* pActivePile);
 	//void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile); //moved to public
+	void		StoreFreeTranslationOnLeaving(); // BEW added 11Sep08
 	void		TransferCompletedSrcPhrases(SPList* pNewSrcPhrasesList,int nSaveSequNum);
+	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
+							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
+	bool		TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrcPhrases, CSourcePhrase* pFollSrcPhrase,
+							EditRecord* pRec); //BEW added 7May08
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
-	void		UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,int& nCount,int& nEndSequNum,
-					bool bActiveLocAfterSelection,int& nSaveActiveSequNum,
-					bool bWantRetranslationFlagSet = TRUE,bool bAlsoUpdateSublist = FALSE);
+	void		UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,int& WXUNUSED(endIndex),
+							int& WXUNUSED(upperIndex),int& WXUNUSED(maxIndex),int& nCount,int& nEndSequNum,
+							bool bActiveLocAfterSelection,int& nSaveActiveSequNum,
+							bool bWantRetranslationFlagSet = TRUE,bool bAlsoUpdateSublist = FALSE);
 	wxString WhichMarker(wxString& markers, int nAtPos); // BEW added 17Sep05, for backtranslation support
 
 protected:
@@ -499,7 +582,6 @@ protected:
 	void OnCheckSingleStep(wxCommandEvent& WXUNUSED(event));
 	void OnCheckKBSave(wxCommandEvent& WXUNUSED(event));
 	void OnCheckForceAsk(wxCommandEvent& WXUNUSED(event));
-	void OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event));
 	void OnCopySource(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateCopySource(wxUpdateUIEvent& event);
 	void OnClearContentsButton(wxCommandEvent& WXUNUSED(event));
@@ -596,7 +678,7 @@ protected:
 	void OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event);
 	void OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditSourceText(wxUpdateUIEvent& event);
-	void OnEditSourceText(wxCommandEvent& event);
+	void OnEditSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnButtonNoAdapt(wxCommandEvent& event);
 	void OnUpdateFileExportSource(wxUpdateUIEvent& event);
 	void OnFileExportSource(wxCommandEvent& WXUNUSED(event));
@@ -608,6 +690,16 @@ protected:
 	void OnUpdateButtonNextNote(wxUpdateUIEvent& event);
 	void OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event);
+	void OnUpdateButtonEndNow(wxUpdateUIEvent& event);
+	void OnButtonEndNow(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonCancelAllSteps(wxUpdateUIEvent& event);
+	void OnButtonCancelAllSteps(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonNextStep(wxUpdateUIEvent& event);
+	void OnButtonNextStep(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonPrevStep(wxUpdateUIEvent& event);
+	void OnButtonPrevStep(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateButtonUndoLastCopy(wxUpdateUIEvent& event);
+	void OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateChangeInterfaceLanguage(wxUpdateUIEvent& event);
 	void OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event));
 
@@ -621,6 +713,8 @@ protected:
 
 
 public:
+	void OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event));
+	
 	void OnButtonNextNote(wxCommandEvent& WXUNUSED(event));
 	void OnButtonPrevNote(wxCommandEvent& WXUNUSED(event));
 

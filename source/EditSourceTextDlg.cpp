@@ -53,10 +53,15 @@
 
 // the following globals make it easy to access the sublists and their counts; for use in 
 // CEditSourceTextDlg and in the subsequent CTransferMarkersDlg especialy
-extern SPList* gpOldSrcPhraseList;
-extern SPList* gpNewSrcPhraseList;
+//extern SPList* gpOldSrcPhraseList;
+//extern SPList* gpNewSrcPhraseList;
 extern int gnCount;    // count of old srcphrases (user selected these) after unmerges, etc
 extern int gnNewCount; // count of new srcphrases (after user finished editing the source text)
+
+// BEW additions 07May08, for the refactored code
+extern EditRecord gEditRecord; // store info pertinent to generalized editing in this global structure
+// end BEW additions 07 May08
+
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -72,8 +77,8 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	m_strNewSourceText = _T("");
-	m_bEditMarkersWanted = FALSE;
-	m_strOldTranslationText = _T("");
+	m_strOldSourceText = _T("");
+	//m_bEditMarkersWanted = FALSE;
 	
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
@@ -82,23 +87,36 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	EditSourceTextDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	pSrcTextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_SOURCE_NEW);
-	pSrcTextEdit->SetValidator(wxGenericValidator(&m_strNewSourceText));
+	// TODO: Get pointerf for the following:
+	// ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1 
+	// ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2
+	// IDC_EDIT_OLD_SOURCE_TEXT
+	// IDC_EDIT_NEW_SOURCE // used in TransferMarkersDlg (which can be removed from project)
+	// IDC_EDIT_FOLLCONTEXT // used in RetranslationDlg but both are modal dialogs so shouldn't
+	// interfere with each other.
+	// 
+	pSrcTextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_SOURCE);
+	pSrcTextEdit->SetValidator(wxGenericValidator(&m_strNewSourceText)); // needed; OnEditSourceText() initializes this
 
 	pPreContextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_PRECONTEXT); // read only edit control
-	pPreContextEdit->SetValidator(wxGenericValidator(&m_preContext));
+	pPreContextEdit->SetValidator(wxGenericValidator(&m_preContext)); // needed; OnEditSourceText() initializes this
 	pPreContextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
 	pFollContextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_FOLLCONTEXT); // read only edit control
-	pFollContextEdit->SetValidator(wxGenericValidator(&m_follContext));
+	pFollContextEdit->SetValidator(wxGenericValidator(&m_follContext)); // needed; OnEditSourceText() initializes this
 	pFollContextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
-	pTgtEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_OLD_TRANS_TEXT); // read only edit control
-	pTgtEdit->SetValidator(wxGenericValidator(&m_strOldTranslationText));
-	pTgtEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+	pOldSrcTextEdit = (wxTextCtrl*)FindWindowById(IDC_EDIT_OLD_SOURCE_TEXT); // read only edit control
+	pOldSrcTextEdit->SetValidator(wxGenericValidator(&m_strOldSourceText)); // needed; OnEditSourceText() initializes this
+	pOldSrcTextEdit->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
-	pCheckForceMkrDlg = (wxCheckBox*)FindWindowById(IDC_CHECK_FORCE_MKR_DLG);
-	pCheckForceMkrDlg->SetValidator(wxGenericValidator(&m_bEditMarkersWanted));
+	// The following two are for static text within read-only multi-line wxEditCtrls on the dialog
+	
+	pTextCtrlEditAsStatic1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1); // read only edit control
+	pTextCtrlEditAsStatic1->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
+	
+	pTextCtrlEditAsStatic2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2); // read only edit control
+	pTextCtrlEditAsStatic2->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 }
 
 CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
@@ -122,20 +140,20 @@ void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	#endif
 
 	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pFollContextEdit, NULL,
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pFollContextEdit, pOldSrcTextEdit,
 								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
 	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pFollContextEdit, NULL, 
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pFollContextEdit, pOldSrcTextEdit, 
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
 
-	#ifdef _RTL_FLAGS
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pTgtEdit, NULL,
-								NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
-	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pTgtEdit, NULL, 
-								NULL, NULL, gpApp->m_pDlgTgtFont);
-	#endif
+	//#ifdef _RTL_FLAGS
+	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pTgtEdit, NULL,
+	//							NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
+	//#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	//gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pTgtEdit, NULL, 
+	//							NULL, NULL, gpApp->m_pDlgTgtFont);
+	//#endif
 	TransferDataToWindow();
 
 	// make sure the end of the text is scolled into view
@@ -146,6 +164,7 @@ void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	pSrcTextEdit->SetFocus();
 	pSrcTextEdit->SetSelection(-1,-1); // -1,-1 selects all
 
+	//pEditSourceTextDlgSizer->Layout();
 }
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.

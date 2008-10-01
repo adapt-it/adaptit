@@ -47,6 +47,9 @@
 
 #include "Adapt_It.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp*	gpApp; // if we want to access it fast
+
 IMPLEMENT_DYNAMIC_CLASS( CAutoSavingPage, wxPanel )
 
 // event handler table
@@ -94,7 +97,8 @@ CAutoSavingPage::CAutoSavingPage(wxWindow* parent) // dialog constructor
 	m_pTextCtrlAsStatic = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_AUTOSAVE);
 	wxASSERT(m_pTextCtrlAsStatic != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	m_pTextCtrlAsStatic->SetBackgroundColour(backgrndColor);
+	//m_pTextCtrlAsStatic->SetBackgroundColour(backgrndColor);
+	m_pTextCtrlAsStatic->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 }
 

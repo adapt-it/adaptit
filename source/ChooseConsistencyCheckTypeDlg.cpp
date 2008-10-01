@@ -44,6 +44,9 @@
 #include "Adapt_It.h"
 #include "ChooseConsistencyCheckTypeDlg.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
+
 // event handler table
 BEGIN_EVENT_TABLE(CChooseConsistencyCheckTypeDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CChooseConsistencyCheckTypeDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -98,7 +101,8 @@ void CChooseConsistencyCheckTypeDlg::InitDialog(wxInitDialogEvent& WXUNUSED(even
 	wxTextCtrl* pTextCtrlAsStaticChooseConsChkType = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_CHOOSE_CONSISTENCY_CHECK_TYPE);
 	wxASSERT(pTextCtrlAsStaticChooseConsChkType != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticChooseConsChkType->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	m_bCheckOpenDocOnly = TRUE;
 	pRadio->SetValue(TRUE);

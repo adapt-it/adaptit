@@ -138,7 +138,8 @@ void CFontPageCommon::DoSetDataAndPointers()
 	pTextCtrlAsStaticFontpage = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_FONTPAGE);
 	wxASSERT(pTextCtrlAsStaticFontpage != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticFontpage->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticFontpage->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticFontpage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	// hide the RTL Reading checkboxes, if this is an ANSI build
 	if (!gpApp->m_bShowRTL_GUI)

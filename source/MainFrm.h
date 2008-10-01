@@ -32,6 +32,30 @@ class wxHelpControllerBase;
 // global functions (FormatScriptureReference() is overloaded)
 class CSourcePhrase;
 
+// Custom Event Declarations:
+// MFC version: BEW added 15July08; definitions for custom events used in the vertical edit process, which typically
+// starts with a source text edit, but in the wxWidgets based apps it could also be an adaptation edit,
+// gloss edit, or free translation edit that starts it off; these events are UINT
+//UINT CUSTOM_EVENT_ADAPTATIONS_EDIT = RegisterWindowMessage(_T("CustomEventAdaptationsEdit"));
+//UINT CUSTOM_EVENT_FREE_TRANSLATIONS_EDIT = RegisterWindowMessage(_T("CustomEventFreeTranslationsEdit"));
+//UINT CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT = RegisterWindowMessage(_T("CustomEventBackTranslationsEdit"));
+//UINT CUSTOM_EVENT_COLLECTED_BACK_TRANSLATIONS_EDIT 
+//							= RegisterWindowMessage(_T("CustomEventVCollectedBackTranslationsEdit")); // unused
+//UINT CUSTOM_EVENT_END_VERTICAL_EDIT = RegisterWindowMessage(_T("CustomEventEndVerticalEdit"));
+//UINT CUSTOM_EVENT_CANCEL_VERTICAL_EDIT = RegisterWindowMessage(_T("CustomEventCancelVerticalEdit"));
+//UINT CUSTOM_EVENT_GLOSSES_EDIT = RegisterWindowMessage(_T("CustomEventGlossesEdit"));
+// wxWidgets uses the following macros to set up the custom events:
+BEGIN_DECLARE_EVENT_TYPES()
+DECLARE_EVENT_TYPE(wxEVT_Adaptations_Edit, -1)
+DECLARE_EVENT_TYPE(wxEVT_Free_Translations_Edit, -1)
+DECLARE_EVENT_TYPE(wxEVT_Back_Translations_Edit, -1)
+//DECLARE_EVENT_TYPE(wxEVT_V_Collected_Back_Translations_Edit, -1)
+DECLARE_EVENT_TYPE(wxEVT_End_Vertical_Edit, -1)
+DECLARE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit, -1)
+DECLARE_EVENT_TYPE(wxEVT_Glosses_Edit, -1)
+END_DECLARE_EVENT_TYPES()
+
+
 //void SyncScrollSend(const CString& strThreeLetterBook, int nChap, int nVerse); // Bob's original function
 void SyncScrollSend(const wxString& strThreeLetterBook, const wxString& strChapVerse); // my preferred signature
 // whm changed SyncScrollReceive below to return a bool of TRUE if successful otherwise FALSE
@@ -92,12 +116,21 @@ class CMainFrame : public wxDocParentFrame
 	wxToolBar* m_pToolBar;		// handle/pointer to the toolBar
 	wxPanel* m_pControlBar;		// handle/pointer to the controlBar
 	wxPanel* m_pComposeBar;		// handle/pointer to the composeBar
+	wxPanel* m_pRemovalsBar;	// whm added for 12Sep08 refactored source text editing
+	wxPanel* m_pVertEditBar;	// whm added for 12Sep08 refactored source text editing
+	//wxPanel* m_pVertEditStepTransBar; // whm added for 12Sep08 refactored source text editing
 	wxTextCtrl* m_pComposeBarEditBox;
+	wxComboBox* m_pRemovalsBarComboBox;
+	wxTextCtrl* m_pVertEditMsgBox;
+	//wxTextCtrl* m_pVertEditStepTransMsgBox;
 
 	int m_toolBarHeight;		// determined in CMainFrame constructor after toolBar is created
 	int m_controlBarHeight;		// determined in CMainFrame constructor after controlBar is created
 	int m_composeBarHeight;		// determined in CMainFrame constructor after composeBar is created
 	int m_statusBarHeight;
+	int m_removalsBarHeight;
+	int m_vertEditBarHeight;
+	//int m_vertEditStepTransBarHeight;
 
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
 	// OnIdle moved here from the App. When it was in the App it was causing
@@ -122,6 +155,7 @@ class CMainFrame : public wxDocParentFrame
 	void OnUpdateViewComposeBar(wxUpdateUIEvent& event);
 	void OnActivate(wxActivateEvent& event); 
 	void OnSize(wxSizeEvent& WXUNUSED(event));
+	void OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event));
 	
 	//void OnHelp(wxHelpEvent& WXUNUSED(event));
 	void OnAdvancedHtmlHelp(wxCommandEvent& event);
@@ -143,6 +177,15 @@ class CMainFrame : public wxDocParentFrame
 	bool DoSantaFeFocus(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam));
 	WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam); // we use this one in wx
 #endif
+
+	// Declare custom events for vertical edit process
+	void OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
+	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
+
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
     void RecreateToolBar();

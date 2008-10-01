@@ -90,7 +90,11 @@ class CSourcePhrase : public wxObject
 {
 public:
 	CSourcePhrase(void); // constructor
-	// copy constructor
+	
+	// copy constructor (not a deep copy, the m_pSavedWords CObList member has only the pointers copied;
+	// a deep copy would have been better in hindsight, but 8 years later it is too late, so in 2008
+	// I have added a DeepCopy() member function to obtain a deep copy when it is wanted - eg. as when
+	// I refactored the Edit Source Text functionality)
 	CSourcePhrase(const CSourcePhrase& sp);
 
 	// destructor
@@ -185,6 +189,15 @@ public:
 	void			CopySameTypeParams(const CSourcePhrase& sp);
 	CBString		MakeXML(int nTabLevel); // nTabLevel specifies how many tabs are to start each line,
 												// nTabLevel == 1 inserts one, 2 inserts two, etc
+	void			DeepCopy(void); // BEW added 16Apr08, to obtain copies of any saved original
+									// CSourcePhrases from a merger, and have pointers to the copies
+									// replace the pointers in the m_pSavedWords member of a new instance
+									// of CSourcePhrase produced with the copy constructor or operator=
+									// Usage: for example: 
+									// CSourcePhrase oldSP; ....more application code defining oldSP contents....
+									// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); // uses operator=
+									//			pNewSP.DeepCopy(); // *pNewSP is now a deep copy of oldSP
+
 // Getters/Setters/Shorthands
 
 	bool GetStartsNewChapter() {return this->m_bChapter != 0;}

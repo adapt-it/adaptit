@@ -189,7 +189,8 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 	wxTextCtrl* pTextCtrlAsStaticDocPage = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_DOCPAGE);
 	wxASSERT(pTextCtrlAsStaticDocPage != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticDocPage->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticDocPage->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticDocPage->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	wxCheckBox* pCheckB;
 	pCheckB = (wxCheckBox*)FindWindowById(IDC_CHECK_FORCE_UTF8);

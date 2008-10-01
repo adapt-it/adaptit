@@ -605,6 +605,7 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
         {
 			// add the item
 			m_pMedialPuncts->Add(sp.m_pMedialPuncts->Item(n));
+						 //(makes duplicates of the strings, does not copy pointers)
 		}
 	}
 
@@ -617,6 +618,7 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
         {
 			// add the item
 			m_pMedialMarkers->Add(sp.m_pMedialMarkers->Item(n));
+						 //(makes duplicates of the strings, does not copy pointers)
 		}
 	}
 }
@@ -710,6 +712,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
         {
 			// add the item
 			m_pMedialPuncts->Add(sp.m_pMedialPuncts->Item(n));
+						// (makes duplicates of the strings, does not copy pointers)
 		}
 	}
 
@@ -721,7 +724,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	}
 	if (sp.m_pMedialMarkers->GetCount() > 0)
 	{
-		// there is a list to be copied
+		// there is a list to be copied (makes duplicates of the strings, does not copy pointers)
 		size_t count = sp.m_pMedialMarkers->GetCount();
         for ( size_t n = 0; n < count; n++ )
         {
@@ -730,6 +733,58 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 		}
 	}
 	return *this;
+}
+
+// BEW added 16Apr08, to obtain copies of any saved original
+// CSourcePhrases from a merger, and have pointers to the copies
+// replace the pointers in the m_pSavedWords member of a new instance
+// of CSourcePhrase produced with the copy constructor or operator=
+// Usage: for example: 
+// CSourcePhrase oldSP; ....more application code defining oldSP contents....
+// CSourcePhrase* pNewSP = new CSourcePhrase(oldSP); // uses operator=
+//			pNewSP.DeepCopy(); // *pNewSP is now a deep copy of oldSP
+// What DeepCopy() does is take the list of pointers to CSourcePhrase which
+// are in the m_pSavedWords SPList, for each of them it defines a new
+// CSourcePhrase instance using operator= which duplicates everything (including
+// the wxStrings in the string lists) except that it copies pointers only for
+// m_pSavedWords, but since original CSourcePhrase instances from m_pSavedWords
+// can never contain any CSourcePhrase instances in their m_pSavedWords member,
+// there is no recursion and the result of the DeepCopy() call is then a
+// CSourcePhrase instance which is, in every respect, a duplicate of the
+// oldSP one - that is, any saved original CSourcePhrase instances are also
+// duplicates of those pointed at by the m_pSavedWords list in oldSP
+// If the m_pSavedWords list is empty, the DeepCopy() operation does nothing
+// & the owning CSourcePhrase instance is already a deep copy
+void CSourcePhrase::DeepCopy(void)
+{
+	SPList::Node* pos = m_pSavedWords->GetFirst(); //POSITION pos = m_pSavedWords->GetHeadPosition();
+	CSourcePhrase* pSrcPhrase = NULL;
+	if (pos == NULL)
+		return; // there are no saved CSourcePhrase instances to be copied
+	while (pos != NULL)
+	{
+		// save the POSITION
+		SPList::Node* savePos = pos; //POSITION savePos = pos;
+		// get a pointer to the next of the original CSourcePhrases of a merger
+		// (these never have any content in their m_pSavedWords member)
+		pSrcPhrase = pos->GetData();
+		pos = pos->GetNext();
+		// clone it using operator= (its m_pSavedWords SPList* is created but 
+		// the list is left empty)
+		CSourcePhrase* pSrcPhraseDuplicate = new CSourcePhrase(*pSrcPhrase);
+		// replace the list's pointer at savePos with this new pointer
+		// //m_pSavedWords->SetAt(savePos,pSrcPhraseDuplicate);
+		// wx Note: wxList doesn't have a SetAt method, but we can use DeleteNode and Insert to achieve
+		// the same effect.
+		if (m_pSavedWords->DeleteNode(savePos))
+			m_pSavedWords->Insert(savePos,pSrcPhraseDuplicate);
+		else
+		{
+			// 
+			wxASSERT(FALSE);
+			::wxBell();
+		}
+	}
 }
 
 void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)

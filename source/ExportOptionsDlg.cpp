@@ -140,7 +140,8 @@ CExportOptionsDlg::CExportOptionsDlg(wxWindow* parent) // dialog constructor
 	pTextCtrlAsStaticExportOptions = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_EXPORT_OPTIONS);
 	wxASSERT(pTextCtrlAsStaticExportOptions != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticExportOptions->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticExportOptions->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticExportOptions->SetBackgroundColour(gpApp->sysColorBtnFace);
 
 	// TODO: should the following be moved to global space?
 	// whm added 27Nov07 the \id marker to the list that should not be

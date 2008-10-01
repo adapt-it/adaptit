@@ -87,7 +87,8 @@ CPlaceInternalPunct::CPlaceInternalPunct(wxWindow* parent) // dialog constructor
 	pTextCtrlAsStaticPlaceIntPunct = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_PLACE_INT_PUNCT);
 	wxASSERT(pTextCtrlAsStaticPlaceIntPunct != NULL);
 	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticPlaceIntPunct->SetBackgroundColour(backgrndColor);
+	//pTextCtrlAsStaticPlaceIntPunct->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticPlaceIntPunct->SetBackgroundColour(gpApp->sysColorBtnFace);
 }
 
 CPlaceInternalPunct::~CPlaceInternalPunct() // destructor

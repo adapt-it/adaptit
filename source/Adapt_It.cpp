@@ -199,6 +199,12 @@ WX_DEFINE_LIST(KPlusCList);
 
 // globals
 
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp (for vertical edit functionality)
+
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbAdaptBeforeGloss; // defined in Adapt_ItView.cpp (for vertical edit functionality)
+
 /// BEW added 01Oct06, so that calling WriteProjectSettingsConfiguration()
 /// which is called at the end, now, of OnNewDocument() and OnOpenDocument(), does not get called in
 /// OnNewDocument() when gbPassedMFCinitialization is FALSE, since the latter function call is called by
@@ -469,6 +475,9 @@ extern long gnStart; // int in MFC
 
 /// This global is defined in PhraseBox.cpp.
 extern long gnEnd; // int in MFC
+
+/// This global is defined in Adapt_ItView.cpp.
+extern	bool gbLegacySourceTextCopy; // defined in Adapt_ItView.cpp, to govern default phrase box text
 
 /// Pointer to the Start Working Wizard instance.
 CStartWorkingWizard* pStartWorkingWizard = (CStartWorkingWizard*)NULL; // pointer to the sheet
@@ -2129,8 +2138,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnUpdateFileRestoreKb)
 	EVT_MENU(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnFileChangeFolder)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
-	//EVT_MENU(ID_FILE_SAVE_AS_XML, CAdapt_ItApp::OnFileSaveAsXml) // removed for wx version
-	//EVT_UPDATE_UI(ID_FILE_SAVE_AS_XML, CAdapt_ItApp::OnUpdateFileSaveAsXml) // removed for wx version
+	//EVT_MENU(ID_FILE_SAVE_AS_XML, CAdapt_ItApp::OnFileSaveAsXml)    // removed for wx version - Bruce
+																	  //removed from MFC 3Apr08
+	//EVT_UPDATE_UI(ID_FILE_SAVE_AS_XML, CAdapt_ItApp::OnUpdateFileSaveAsXml)    // removed for wx version
+																				 //removed from MFC 3Apr08
 	// OnFileExportKb is in the View
 	// OnUpdateFileExportKb is in the View
 	// OnImportToKb is in the View
@@ -2550,6 +2561,11 @@ wxString szPhraseBoxExpansionMultiplier = _T("PhraseBoxExpansionMultiplier"); //
 /// file. Adapt It stores this path in the App's gnNearEndFactor global variable.
 wxString szTooNearEndMultiplier = _T("TooNearEndMultiplier"); // stored in the App's gnNearEndFactor
 
+/// The label that identifies the following string encoded number as the application's
+/// "LegacyCopyForPhraseBox". This value is written in the "ProjectSettings" part of the project
+/// configuration file. Adapt It stores this path in the App's gbLegacySourceTextCopy global variable.
+wxString szLegacyCopyForPhraseBox = _T("LegacyCopyForPhraseBox");
+
 // Next two were for old punct, for when source & target are not differentiated
 
 /// A label now unused, that was used in old versions for punctuation. It is only retained
@@ -2949,15 +2965,25 @@ wxString szSaveAsXML = _T("SaveAsXML");
 /// file. Adapt It stores this value in the App's m_strSilEncConverterName global  variable.
 wxString szSilConverterName = _T("SilConverterName");                     // string
 
-/// The label that identifies the following string encoded value as the application's 
-/// "SilConverterDirectionForward". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bSilConverterDirForward global  variable.
+/// The label that identifies the following string encoded value as the application's
+/// "SilConverterDirectionForward". This value is written in the "Settings" part of the basic
+/// configuration file. Adapt It stores this value in the App's m_bSilConverterDirForward global
+/// variable.
 wxString szSilConverterDirForward = _T("SilConverterDirectionForward");   // bool
 
-/// The label that identifies the following string encoded value as the application's 
-/// "SilConverterNormalizeOutput". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_eSilConverterNormalizeOutput global  variable.
+/// The label that identifies the following string encoded value as the application's
+/// "SilConverterNormalizeOutput". This value is written in the "Settings" part of the basic
+/// configuration file. Adapt It stores this value in the App's m_eSilConverterNormalizeOutput global
+/// variable.
 wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");     // enum NormalizeFlags
+
+
+/// The label that identifies the following string encoded value as the application's
+/// "DoAdaptingBeforeGlossing_InVerticalEdit". This value is written in the "ProjectSettings" part of
+/// the basic configuration file. Adapt It stores this value in the App's gbAdaptBeforeGloss global
+/// variable.
+wxString szDoAdaptingBeforeGlossing_InVerticalEdit = _T("DoAdaptingBeforeGlossing_InVerticalEdit");   // bool // vertical edit settings
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CAdapt_ItApp construction
@@ -3071,7 +3097,7 @@ wxString CAdapt_ItApp::GetPathContainingLocalizationSubDirectories()
 	localizationFilePath += appName + _T(".app/Contents/Resources");
 #endif
 #ifdef __WXGTK__
-	wxASSERT(appName == _T("adaptit"));
+	//wxASSERT(appName == _T("adapt_it"));
 	// Linux uses the m_setupFolder
 	// The call to m_pHelpController->Initialize() below will fail on wxGTK unless wxUSE-LIBMSPACK is 1
 #ifndef wxUSE_LIBMSPACK
@@ -4458,6 +4484,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pDlgTgtFont = (wxFont*)NULL;
 	m_pDlgGlossFont = (wxFont*)NULL;
 	m_pComposeFont = (wxFont*)NULL;
+	m_pRemovalsFont = (wxFont*)NULL;
+	m_pVertEditFont = (wxFont*)NULL;
 	
 	m_pSrcFontData = (wxFontData*)NULL;
 	m_pTgtFontData = (wxFontData*)NULL;
@@ -4545,6 +4573,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_eSilConverterNormalizeOutput = NormalizeFlags_None;
 #endif
 	m_bTransliterationMode = FALSE;
+
+	// BEW added 2Sep08
+	gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating before doing glosses updating
 	// //////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Above initializations are from MFC's CAdapt_ItApp's constructor
 
@@ -4661,6 +4692,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	
 	gbIgnoreScriptureReference_Receive = TRUE;
 	gbIgnoreScriptureReference_Send = TRUE;
+	gbLegacySourceTextCopy = TRUE; // default is legacy behaviour, to copy the source text (unless
+								   // the project config file establishes the FALSE value instead)
 	// Variable initializations above moved here from the View
 	// /////////////////////////////////////////////////////////////////////
 	/*
@@ -4926,7 +4959,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// "C:\\Program Files\\Adapt It Unicode" or
 	// "C:\\Program Files\\Adapt It"
 	// On Linux/GTK the m_setupFolder will be something like:
-	// "/usr/bin/adaptit" or "/usr/local/adaptit"
+	// "/usr/bin/adapt_it" or "/usr/local/adapt_it"
 	// On the Mac the m_setupFolder will be something like:
 	// "/Applications"
 
@@ -5502,7 +5535,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_GLOSSING_USES_NAV_FONT, FALSE);
     //m_pMainFrame->GetMenuBar()->Check(ID_ADVANCED_REMOVE_PUNCT_WHEN_STORING_GLOSSES, FALSE); //removed in v. 3
 
-	// The following code setting the composebar font and RTL was moved here 
+	// The following code for setting the composebar font and RTL was moved here 
 	// to the App from the CMainFraim constructor where it was in the MFC version
 	wxPanel* pComposeBar;
 	pComposeBar = m_pMainFrame->m_pComposeBar;
@@ -5633,6 +5666,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString viewTitle = _("Untitled - Adapt It");
 	GetDocument()->SetTitle(viewTitle);
 	GetDocument()->SetFilename(viewTitle,TRUE); // here TRUE means "notify the views" whereas
+
+
+	wxStandardPaths stdPaths;
+	wxString globalDataPath;
+	globalDataPath = stdPaths.GetDataDir();
+	wxLogDebug(_T("GetDataDir() path for AI_USFM.xml and books.xml is: %s"),globalDataPath.c_str());
 
 	// Display message in status bar that we are loading the books.xml and AI_USFM.xml files (brief)
 	wxString message = _("Loading books.xml and AI_USFM.xml ...");
@@ -6356,6 +6395,10 @@ int CAdapt_ItApp::OnExit(void)
 	m_pComposeFont = (wxFont*)NULL;
 	delete m_pDlgGlossFont;
 	m_pDlgGlossFont = (wxFont*)NULL;
+	delete m_pRemovalsFont;
+	m_pRemovalsFont = (wxFont*)NULL;
+	delete m_pVertEditFont;
+	m_pVertEditFont = (wxFont*)NULL;
 	
 	delete m_pSrcFontData;
 	m_pSrcFontData = (wxFontData*)NULL;
@@ -6489,9 +6532,10 @@ int CAdapt_ItApp::OnExit(void)
 /// shift key down during startup, or if there is no existing configuration files.
 /// InitializeFonts() handles the initial creation of all the fonts used in the application,
 /// including m_pSourceFont, m_pTargetFont, m_pNavTextFont, m_pDlgSrcFont, m_pDlgTgtFont,
-/// m_pDlgGlossFont, and m_pComposeFont. It then sets a suitable default encoding if the
-/// ANSI build is running. It then creates corresponding wxFontData objects on the heap for
-/// the created fonts, and sets default point sizes, weights, and colors for the created fonts.
+/// m_pDlgGlossFont, m_pComposeFont, m_pRemovalsFont, and m_pVertEditFont. It then sets a 
+/// suitable default encoding if the ANSI build is running. It then creates corresponding 
+/// wxFontData objects on the heap for the created fonts, and sets default point sizes, 
+/// weights, and colors for the created fonts.
 /// It then updates the fontInfo structs which function as an MFC compatibility structure for
 /// saving the font data in the configuration files.
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -6774,6 +6818,12 @@ void CAdapt_ItApp::InitializeFonts()
 	if (m_pComposeFont == NULL)
 		m_pComposeFont = new wxFont(*wxNORMAL_FONT); // m_pComposeFont = new wxFont(wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT));
 	wxASSERT(m_pComposeFont != NULL);
+	if (m_pRemovalsFont == NULL)
+		m_pRemovalsFont = new wxFont(*wxNORMAL_FONT);
+	wxASSERT(m_pRemovalsFont != NULL);
+	if (m_pVertEditFont == NULL)
+		m_pVertEditFont = new wxFont(*wxNORMAL_FONT);
+	wxASSERT(m_pVertEditFont != NULL);
 
 	// Set a suitable default font encoding. 
 	// Note: To accommodate Word's "smart quotes," we'll set the default font encoding as
@@ -6802,6 +6852,8 @@ void CAdapt_ItApp::InitializeFonts()
 	m_dlgTgtFontEncoding = wxFONTENCODING_CP1252;
 	m_dlgGlossFontEncoding = wxFONTENCODING_CP1252;
 	m_composeFontEncoding = wxFONTENCODING_CP1252;
+	m_removalsFontEncoding = wxFONTENCODING_CP1252;
+	m_vertEditFontEncoding = wxFONTENCODING_CP1252;
 #else
 	// For Unicode use a default system encoding
 	m_srcEncoding = wxFONTENCODING_DEFAULT;
@@ -6812,6 +6864,8 @@ void CAdapt_ItApp::InitializeFonts()
 	m_dlgTgtFontEncoding = wxFONTENCODING_DEFAULT;
 	m_dlgGlossFontEncoding = wxFONTENCODING_DEFAULT;
 	m_composeFontEncoding = wxFONTENCODING_DEFAULT;
+	m_removalsFontEncoding = wxFONTENCODING_DEFAULT;
+	m_vertEditFontEncoding = wxFONTENCODING_DEFAULT;
 #endif
 
 	// set the initial encoding of the major language fonts
@@ -6823,6 +6877,8 @@ void CAdapt_ItApp::InitializeFonts()
 	m_pDlgTgtFont->SetEncoding(m_dlgTgtFontEncoding);
 	m_pDlgGlossFont->SetEncoding(m_dlgGlossFontEncoding);
 	m_pComposeFont->SetEncoding(m_composeFontEncoding);
+	m_pRemovalsFont->SetEncoding(m_removalsFontEncoding);
+	m_pVertEditFont->SetEncoding(m_vertEditFontEncoding);
 	
 
 	// create the corresponding wxFontData ojbects on the heap; delete them in OnExit()
@@ -7488,12 +7544,12 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 		CAdapt_ItView* pView = gpApp->GetView();
 
 		// if the source punctuation was empty and remains so, then don't retokenize
-		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && gpApp->m_punctuation[0].IsEmpty()))
+		if (!(punctPgCommon->m_punctuationBeforeEdit[0].IsEmpty() && m_punctuation[0].IsEmpty()))
 		{
-			if (punctPgCommon->m_punctuationBeforeEdit[0] != gpApp->m_punctuation[0])
+			if (punctPgCommon->m_punctuationBeforeEdit[0] != m_punctuation[0])
 			{
 				// the source punctuation list has changed, so do the retokenization
-				int nOldCount = gpApp->m_pSourcePhrases->GetCount();
+				int nOldCount = m_pSourcePhrases->GetCount();
 				int difference = 0;
 
 				// make sure we don't lose the active sourcephrase's contents from the KB
@@ -7503,9 +7559,9 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				// that the active location's KB entry has already been removed (or its count
 				// decremented) and so a re-store is appropriate now -- because the box location may
 				// end up elsewhere depending on the results of the rebuild process.)
-				pView->StoreBeforeProceeding(gpApp->m_pActivePile->m_pSrcPhrase);// ignore returned BOOL
+				pView->StoreBeforeProceeding(m_pActivePile->m_pSrcPhrase);// ignore returned BOOL
 
-				wxString strSavePhraseBox = gpApp->m_targetPhrase;
+				wxString strSavePhraseBox = m_targetPhrase;
 				// now do the reparse - the functions which effect the reconstitution of the doc when 
 				// punctuation was changed, or when filtering settings were changed, or both, will 
 				// progressively update the view's m_nActiveSequNum value as necessary so that the stored
@@ -7513,18 +7569,18 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
 															FALSE,	// bFilterChange FALSE = no filter changes here
 															FALSE);	// bSfmSetChange FALSE = no sfm set change here
-				gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update
+				m_maxIndex = nNewSrcPhraseCount - 1; // update
 
 				// set up some safe indices, since the counts could be quite different than before
 				difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
 				// try expand sufficiently to encompass the active location within the lengthened
 				// bundle, assuming it actually is lengthened (it won't be if difference is zero)
-				gpApp->m_endIndex = wxMin(gpApp->m_maxIndex,gpApp->m_endIndex + difference);
+				m_endIndex = wxMin(gpApp->m_maxIndex,m_endIndex + difference);
 				// if difference was huge, we may need to further reduce the value
-				gpApp->m_endIndex = wxMin(gpApp->m_endIndex,gpApp->m_beginIndex + gpApp->m_nMaxToDisplay);
-				gpApp->m_upperIndex -= gpApp->m_nFollowingContext;
-				if (gpApp->m_upperIndex < 0)
-					gpApp->m_upperIndex = gpApp->m_endIndex;
+				m_endIndex = wxMin(m_endIndex,m_beginIndex + m_nMaxToDisplay);
+				m_upperIndex -= m_nFollowingContext;
+				if (m_upperIndex < 0)
+					m_upperIndex = m_endIndex;
 
 				// Unfortunately, we can't ensure the viability of the saved phrase box contents - there are
 				// several scenarios that force us to abandon its contents - some are for filtering changes
@@ -7540,23 +7596,23 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				CSourcePhrase* pSrcPhrase = NULL;
 				// remember, the layout is invalid and not yet recalculated, so we can't use pile pointers
 				// in the adjustments being made below
-				if (gpApp->m_nActiveSequNum > gpApp->m_endIndex)
+				if (m_nActiveSequNum > m_endIndex)
 				{
 					// We must calculate a new save box location - try put it near the end of the bundle.
 					// Clear the box if it currently exists.
-					if (gpApp->m_pTargetBox->GetHandle() != NULL)
+					if (m_pTargetBox->GetHandle() != NULL)
 					{
-						gpApp->m_pTargetBox->m_bAbandonable = TRUE;
-						gpApp->m_pTargetBox->SetValue(_T(""));
+						m_pTargetBox->m_bAbandonable = TRUE;
+						m_pTargetBox->SetValue(_T(""));
 					}
 					// Empty the view's m_targetPhrase member of any text currently in it
-					gpApp->m_targetPhrase.Empty();
+					m_targetPhrase.Empty();
 
 					// Set an arbitrary active location -- there is no way to be smart about doing this
 					// (just allow a little context to appear to its right)
-					gpApp->m_nActiveSequNum = gpApp->m_endIndex - gpApp->m_nFollowingContext - 1;
-					if (gpApp->m_nActiveSequNum < 0) 
-						gpApp->m_nActiveSequNum = 0;
+					m_nActiveSequNum = m_endIndex - m_nFollowingContext - 1;
+					if (m_nActiveSequNum < 0) 
+						m_nActiveSequNum = 0;
 
 					// GetSavePhraseBoxLocationUsingList calculates a safe location, sets the view's
 					// m_nActiveSequNumber member to that value, and calculates and sets m_targetPhrase
@@ -7569,8 +7625,8 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				{
 					// the updated active location is still within the adjusted bundle, so just use
 					// that value
-					gpApp->m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
-					pSrcPhrase = pView->GetSrcPhrase(gpApp->m_nActiveSequNum);
+					m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
+					pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
 				}
 				wxASSERT(pSrcPhrase);
 
@@ -9155,10 +9211,16 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 ///                         to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-/// the menu is displayed.
+/// the menu is displayed. If the app is in Vertical Edit Mode the Start Working Wizard is disabled
+/// and this handler returns immediately.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileStartupWizard(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	event.Enable(TRUE); // we want it always available, with several entry points
 }
 
@@ -10124,15 +10186,20 @@ void CAdapt_ItApp::OnUpdateFileCheckKb(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// If the application is in Free Translation Mode, or there is no valid document pointer (it is NULL), the
-/// "Restore Knowledge Base..." item on the File menu is always disabled and this event handler returns
-/// immediately.
+/// If the application is in Vertical Edit Mode, Free Translation Mode, or there is no valid document 
+/// pointer (it is NULL), the "Restore Knowledge Base..." item on the File menu is always disabled 
+/// and this event handler returns immediately.
 /// As long as the active KB (glossing or regular) is in a ready state and there is at least one source 
 /// phrase listed in m_pSourcePhrases, the "Restore Knowledge Base..." item on the File menu is enabled, 
 /// otherwise it is disabled. 
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
@@ -12882,7 +12949,7 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szMaxToDisplay)
 		{
 			num = wxAtoi(strValue);
-			if (num <= 80 || num > 1000)
+			if (num <= 80 || num > 4000)
 				num = 300;
 			m_nMaxToDisplay = num;
 		}
@@ -13693,6 +13760,22 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szSilConverterNormalize << tab << number;
 	pf->AddLine(data);
+	
+	if (gbLegacySourceTextCopy)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szLegacyCopyForPhraseBox << tab << number;
+	pf->AddLine(data);
+
+	if (gbAdaptBeforeGloss)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szDoAdaptingBeforeGlossing_InVerticalEdit << tab << number;
+	pf->AddLine(data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -14304,6 +14387,26 @@ t:				m_pCurrBookNamePair = NULL;
 			m_eSilConverterNormalizeOutput = (NormalizeFlags)num;
 #endif
 		}
+		else if (name == szLegacyCopyForPhraseBox)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 0)
+				gbLegacySourceTextCopy = FALSE;
+			else
+				gbLegacySourceTextCopy = TRUE;
+		}
+		else if (name == szDoAdaptingBeforeGlossing_InVerticalEdit)
+		{
+			num = wxAtoi(strValue);
+			if (!(num == 0 || num == 1))
+				num = 1;
+			if (num == 0)
+				gbAdaptBeforeGloss = FALSE;
+			else
+				gbAdaptBeforeGloss = TRUE;
+		}
 		else
 		{
 			if (!data.IsEmpty())
@@ -14371,6 +14474,8 @@ t:				m_pCurrBookNamePair = NULL;
 		gbNoGlossCaseEquivalents = TRUE; // restore this flag if user cleared source lists
 
 	// make the command on the File menu echo the same setting
+	// whm Note: in 12Sep08 refactoring bruce commented out the MFC version's code here
+	// but I'm leaving it to force the value to TRUE since the wx app only uses a TRUE value
 	m_bSaveAsXML = TRUE; // whm changed for wx version //m_bSaveAsXML == TRUE ? FALSE : TRUE; // toggle it
 }
 
@@ -14955,12 +15060,31 @@ void CAdapt_ItApp::PunctPairsToTwoStrings(PUNCTPAIR pp[MAXPUNCTPAIRS],
 	// in the rSrcStr, and target ones in rTgtStr - separating them like this allows us to 
 	// convert each with the encoding appropriate for each when we output the config files
 	// to disk
+	// BEW changed 15May08 to remove the test for chSrc and chTgt both being null bytes, because
+	// that happens when the user clears out a punctuation character from both src and tgt lists
+	// in the GUI, and the result was that the wrong test here was causing premature list
+	// termination. Our new algorithm should (1) use space as a placeholder for any null, and
+	// process the whole set of cells, including empty pairs; (2) on loop termination, remove
+	// any matched space pairs at the list ends, as there is no point in keeping them; (3) support
+	// "closing of the gaps" when the user removes pairs of punctuation charcters in the GUI, so
+	// that the gaps he thereby creates will, after an app exit and relaunch, be closed up (if he
+	// wanted to put the removed punctuation characters back in the list, he'd then just add them
+	// at the empty cells at the end; (4) implement the same general protocols as 1 -3 for the
+	// two character pairs too, in the TwoPunctPairsToTwoStrings() function. 
+	// The best way to support gap closure is to do it BEFORE the final strings are written out
+	// in the configuration file, as that makes reading the punctuation from the config file on
+	// app launch and project entry easy, as there would be no gaps to worry about. That means 
+	// we must implement the "close the gaps" code in this present function, and in the 
+	// TwoPunctPairsToTwoStrings() function.
 	for (int i = 0; i < MAXPUNCTPAIRS; i++)
 	{
 		wxChar chSrc = pp[i].charSrc;
 		wxChar chTgt = pp[i].charTgt;
 		if (chSrc == _T('\0') && chTgt == _T('\0'))
-			return; // return if both source and target are null, this indicates end of list
+		{
+			continue; // eliminate this "gap", whether list-medial, or at list end.
+			//return; BEW removed 15May08 // return if both source and target are null, this indicates end of list
+		}
 		if (chSrc == _T('\0'))
 		{
 			rSrcStr += _T(" ");
@@ -15005,10 +15129,33 @@ void CAdapt_ItApp::TwoPunctPairsToTwoStrings(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], 
 	// populate the strings with the current contents of the array of twopunct pairs, 
 	// one string for source text punctuation, the other for target text punctuation; 
 	// so we can support separate encodings
+	// BEW changed 15May08 to remove the test for twocharSrc[0] & [1] both being null bytes, as
+	// the old code did not adequately support the user when he cleared out a cell or cell pair
+	// medially within the GUI lists; the result was that the test here would cause premature list
+	// termination. Our new algorithm should (1) use spaces as a placeholders for null character,
+	// and process the whole set of cells, including empty double-pairs; (2) on loop termination,
+	//  remove any matched space double-pairs at the list ends, as there is no point in keeping 
+	// them; (3) support "closing of the gaps" when the user removes pairs of punctuation charcters in the GUI, so
+	// that the gaps he thereby creates will, after an app exit and relaunch, be closed up (if he
+	// wanted to put the removed punctuation characters back in the list, he'd then just add them
+	// at the empty cells at the end; (4) implement the same general protocols as 1 -3 for the
+	// one character pairs too, in the PunctPairsToTwoStrings() function. 
+	// The best way to support gap closure is to do it BEFORE the final strings are written out
+	// in the configuration file, as that makes reading the punctuation from the config file on
+	// app launch and project entry easy, as there would be no gaps to worry about. That means 
+	// we must implement the "close the gaps" code in this present function, and in the 
+	// PunctPairsToTwoStrings() function. Only "gaps" where all four characters of paired double
+	// characters are absent need be eliminated, these will be four null characters which we need
+	// to test for; all other combinations must be retrained, using space as placeholder for each
+	// null character.
 	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
 	{
-		if (pp[i].twocharSrc[0] == _T('\0') && pp[i].twocharSrc[1] == _T('\0'))
-			return; // do no more once both source ones are empty
+		if (pp[i].twocharSrc[0] == _T('\0') && pp[i].twocharSrc[1] == _T('\0' &&)
+			pp[i].twocharTgt[0] == _T('\0') && pp[i].twocharTgt[1] == _T('\0'))
+		{
+			continue; // remove this gap, whether list-medial or at the end of the list
+			//return; // BEW removed 15May05 // do no more once both source ones are empty
+		}
 		wxChar chSrc0 = pp[i].twocharSrc[0];
 		wxChar chSrc1 = pp[i].twocharSrc[1];
 		wxChar chTgt0 = pp[i].twocharTgt[0];
@@ -15100,9 +15247,7 @@ void CAdapt_ItApp::TwoStringsToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString&
 		}
 		if (nCount >= lenTgt)
 		{
-			// end of the target string has been reached, so bale out, but first
-			// the source punct char at this location must be cleared
-			pp[i].charSrc = _T('\0');
+			// end of the target string has been reached, so bale out
 			return;
 		}
 		ch = rTgtStr.GetChar(i); // get its paired target punct char
@@ -15133,9 +15278,13 @@ void CAdapt_ItApp::TwoStringsToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString&
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxString& rSrcStr, wxString& rTgtStr)
 {
-	// if a single character, it can be in either first or second position of a pair,
-	// for source or target pairs, otherwise two chars per pair; a space in leftmost position 
-	// is taken to be an indication that there is no more - the rest would be ignored
+	// if a single character, it can be only in the first position of a pair because in the
+	// GUI there is no way to type a single character and make it occupy the second place
+	// in the underlying 2-character array; and to get the pairs counting right, when single
+	// character pairs are in these lists, the second null byte has to be preserved as a following
+	// space. The only removals will have been all four characters null, for a given pair of
+	// two-character punctuations; and those removals were done to "close the gaps" left by
+	// the user removing the contents of a cell pair.
 	// clear the array
 	for (int j = 0; j < MAXTWOPUNCTPAIRS; j++)
 	{
@@ -15156,8 +15305,64 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], 
 	// can no longer assume pairs; but we can assert the strings must be equal length
 	//wxASSERT(lenSrc % 2 == 0); // must be even
 	//wxASSERT(lenTgt % 2 == 0); // must be even
-	wxASSERT(lenSrc == lenTgt);
+	// BEW changed 15May08 to reinstate the earlier protocol, because we eliminated gaps
+	// (which eliminated 4 characters at a time, two per string in matching locations,) and
+	// so the modulo 2 test must be TRUE for each string
+	wxASSERT(lenSrc % 2 == 0); // must be even
+	wxASSERT(lenTgt % 2 == 0); // must be even
+	wxASSERT(lenSrc == lenTgt); // must be same length
 	
+	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
+	{
+		nCount++;
+		int k[2] = {2*i,2*i+1};
+		if (rSrcStr.IsEmpty())
+		{
+			return; // no correspondences at all
+		}
+		if (nCount >= lenSrc/2) // divide  by 2, since we deal with pairs of chars
+		{
+			return;
+		}
+		wxChar ch = rSrcStr.GetChar(k[0]);
+		wxChar ch1 = rSrcStr.GetChar(k[1]);
+
+		pp[i].twocharSrc[0] = ch; // left one of pair always has a character in it
+		if (ch1 == _T(' '))
+			{
+				// if second was a space, user put a single character in the cell
+				// so make this second character a null
+				pp[i].twocharSrc[1] = _T('\0');
+			}
+			else
+			{
+				// second character of the pair exists, so put it in the array
+				pp[i].twocharSrc[1] = ch1;
+			}
+		
+		if (nCount >= lenTgt/2) // divide by 2, since dealing with pairs
+		{
+			return;
+		}
+
+		// now the target side...
+		ch = rTgtStr.GetChar(k[0]); // get its paired target punct chars
+		ch1 = rTgtStr.GetChar(k[1]); // assume there are at least two chars left, perhaps spaces
+
+		pp[i].twocharTgt[0] = ch; // first of pair is never empty
+		if (ch1 == _T(' '))
+		{
+			// if second was a space, second user put a single character in the cell, so
+			// make this second character a null in the character array
+			pp[i].twocharTgt[1] = _T('\0');
+		}
+		else
+		{
+			// second character of the pair exists, so put it in the array
+			pp[i].twocharTgt[1] = ch1;
+		}
+	}
+	/* old code - deprecated, 15May08 (we don't care to support very early config files)
 	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
 	{
 		nCount++;
@@ -15220,6 +15425,7 @@ void CAdapt_ItApp::TwoStringsToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], 
 				pp[i].twocharTgt[1] = ch1;
 		}
 	}
+	*/
 }
 #endif
 
@@ -15286,18 +15492,23 @@ void CAdapt_ItApp::TwoPunctPairsToString(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxSt
 	// than return, if both a source cell in the punctuation map dialog had been edited
 	// so it contained nothing. If that was the case, we want other cell entries to be utilized; the
 	// old algorithm would return and anything subsequent to the empty source cell used to be ignored.
+	// BEW modified 16May08, to work like the Unicode-supporting function does (ie. TwoPunctPairsToTwoStrings())
 	// clear rStr
 	rStr.Empty();
 
 	// populate rStr with the current contents of the array of twopunct pairs
 	for (int i = 0; i < MAXTWOPUNCTPAIRS; i++)
 	{
-		if (pp[i].twocharSrc[0] == _T('\0') && pp[i].twocharSrc[1] == _T('\0'))
-			continue; // do no more once both source ones are empty
+		if (pp[i].twocharSrc[0] == _T('\0') && pp[i].twocharSrc[1] == _T('\0') &&
+			pp[i].twocharTgt[0] == _T('\0') && pp[i].twocharTgt[1] == _T('\0'))
+			continue; // skip when matched cell pairs are empty
 		wxChar chSrc0 = pp[i].twocharSrc[0];
 		wxChar chSrc1 = pp[i].twocharSrc[1];
 		wxChar chTgt0 = pp[i].twocharTgt[0];
 		wxChar chTgt1 = pp[i].twocharTgt[1];
+		// in the following, the GUI character, if there is only one, will always be at the [0]
+		// location; the code assumes this could be at [0] or [1], but that generality doesn't
+		// have any effect as the actual things which can happen are all catered for anyway
 		if (chSrc0 == _T('\0'))
 		{
 			// if first is null, put a placeholder space in the string, then check second
@@ -15603,11 +15814,17 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// If the application has a valid View pointer, the "Page Setup..." item on the File menu is 
-/// enabled, otherwise it is disabled. 
+/// If Vertical Editing is in progress the Page Setup menu item is always disabled and this 
+/// handler returns immediately. Otherwise, if the application has a valid View pointer, the 
+/// "Page Setup..." item on the File menu is enabled, otherwise it is disabled. 
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFilePageSetup(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// Shouldn't enable the File|Page Setup... interface unless there is a valid view
 	CAdapt_ItView* pView = GetView();
 	if (pView != NULL)
@@ -17149,11 +17366,18 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// If the appropriate KB is in a ready state and Book Mode is enabled, the "Change Folder..." menu 
-/// item on the File menu is enabled, otherwise it is disabled. 
+/// If Vertical Editing is in progress the Change Folder menu item is always disabled and this
+/// handler returns immediately. Otherwise, if the appropriate KB is in a ready state and 
+/// Book Mode is enabled, the "Change Folder..." menu item on the File menu is enabled, 
+/// otherwise it is disabled. 
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileChangeFolder(wxUpdateUIEvent& event)
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// enable if a project is active and book mode is ON
 	if ((m_bKBReady || m_bGlossingKBReady) && m_bBookMode && !m_bDisableBookMode)
 	{
@@ -17271,12 +17495,18 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// If the appropriate KB is in a ready state and Book Mode is enabled, the "Storing Documents in 
-/// Book Folders" menu item on the Advanced menu is enabled, otherwise it is disabled. This handler
-/// also insures that the toggle state is ticked if On and unticked if Off.
+/// If Vertical Editing is in progress the Book Mode menu item is disabled and this handler returns
+/// immediately. Otherwise, if the appropriate KB is in a ready state and Book Mode is enabled, the 
+/// "Storing Documents in Book Folders" menu item on the Advanced menu is enabled, otherwise it is 
+/// disabled. This handler also insures that the toggle state is ticked if On and unticked if Off.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event) 
 {
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	// BEW changed 27Nov05 to get the tick shown or not when the menu is opened
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -17362,7 +17592,7 @@ void CAdapt_ItApp::SetupMarkerStrings()
 	// member. Assumes the m_filterFlagsUnkMkrs is current reflecting the current filter
 	// status of the unknown markers in the m_unknownMarkers CStringArray. This would normally
 	// be the case when SetupMarkerStrings is called from within ResetUSFMFilterStructs.
-	// When SetupMarkerStrings is called from elsewhere, it is up to the caller to insure
+	// When SetupMarkerStrings is called from elsewhere, it is up to the caller to ensure
 	// that m_filterFlagsUnkMkrs is up to date.
 
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -17767,6 +17997,9 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArr
 	}
 }
 
+// MFC: BEW removed 3Apr08 
+// The MFC version moves the function to a checkbox in CAutoSavingPage of Preferences dialog.
+// The wx version never used the function at all.
 //void CAdapt_ItApp::OnFileSaveAsXml(wxCommandEvent& WXUNUSED(event))
 //{
 //	// wx version: In the wxWidgets version we only handle documents and kbs in xml form
@@ -20123,8 +20356,8 @@ int CAdapt_ItApp::FindArrayString(const wxString& findStr, wxArrayString* strArr
 /// and LoadDataForPage().
 /// Finds the index of an item in pListBox that matches the searchStr and the case and and/or
 /// substring type. Returns the index of the item if found, or -1 if not found. This function
-/// add more search options and search criteria than what is available in the standard wxListBox
-/// which can case sensitive or insensitive searches but cannot do substring searches with its 
+/// adds more search options and search criteria than what is available in the standard wxListBox
+/// which can do case sensitive or insensitive searches but cannot do substring searches with its 
 /// FindString() method.
 ////////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr, 

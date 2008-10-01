@@ -81,8 +81,7 @@ CWelcome::CWelcome(wxWindow* parent) // dialog constructor
 
 	wxTextCtrl* pTextCtrlAsStaticWelcome = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_WELCOME);
 	wxASSERT(pTextCtrlAsStaticWelcome != NULL);
-	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticWelcome->SetBackgroundColour(backgrndColor);
+	pTextCtrlAsStaticWelcome->SetBackgroundColour(pApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
 
 	// Set focus to the OK button
 	wxButton* pOKBtn = (wxButton*)FindWindow(wxID_OK); // use FinWindow here to find child window only
