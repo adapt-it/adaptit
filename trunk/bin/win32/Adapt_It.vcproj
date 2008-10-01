@@ -1112,10 +1112,6 @@
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
-			<File
-				RelativePath="..\..\source\License.txt"
-				>
-			</File>
 		</Filter>
 		<File
 			RelativePath="..\..\source\NewClassHeaderTemplate.txt"
