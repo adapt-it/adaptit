@@ -3414,7 +3414,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 						// put the adaptations step's message in the multi-line read-only edit box
 						// IDS_VERT_EDIT_ADAPTATIONS_MSG
-						pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+						pView->SetVerticalEditModeMessage(_("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
@@ -3528,7 +3528,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 					// put the adaptations step's message in the multi-line read-only CEdit box
 					// IDS_VERT_EDIT_ADAPTATIONS_MSG
-					pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+					pView->SetVerticalEditModeMessage(_("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
@@ -3672,7 +3672,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 						// put the adaptations step's message in the multi-line read-only CEdit box
 						// IDS_VERT_EDIT_ADAPTATIONS_MSG
-						pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+						pView->SetVerticalEditModeMessage(_("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
@@ -3793,7 +3793,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 					// put the adaptations step's message in the multi-line read-only CEdit box
 					// IDS_VERT_EDIT_ADAPTATIONS_MSG
-					pView->SetVerticalEditModeMessage(_("Vertical Editing – adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
+					pView->SetVerticalEditModeMessage(_("Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."));
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
@@ -4009,7 +4009,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 						bAllsWell = pView->PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 
 						// put the glosses step's message in the multi-line read-only CEdit box
-						pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+						pView->SetVerticalEditModeMessage(_("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
@@ -4131,7 +4131,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 					// put the adaptations step's message in the multi-line read-only CEdit box
 					// IDS_VERT_EDIT_GLOSSES_MSG
-					pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+					pView->SetVerticalEditModeMessage(_("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
@@ -4271,7 +4271,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 						// put the adaptations step's message in the multi-line read-only CEdit box
 						// IDS_VERT_EDIT_GLOSSES_MSG
-						pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+						pView->SetVerticalEditModeMessage(_("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
@@ -4386,7 +4386,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 					// put the glosses step's message in the multi-line read-only CEdit box
 					// IDS_VERT_EDIT_GLOSSES_MSG
-					pView->SetVerticalEditModeMessage(_("Vertical Editing – glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
+					pView->SetVerticalEditModeMessage(_("Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."));
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
@@ -4655,7 +4655,7 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 
 						// put the glosses step's message in the multi-line read-only CEdit box
 						// IDS_VERT_EDIT_FREE_TRANSLATIONS_MSG
-						pView->SetVerticalEditModeMessage(_("Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
+						pView->SetVerticalEditModeMessage(_("Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
@@ -4865,7 +4865,7 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 
 						// put the glosses step's message in the multi-line read-only CEdit box
 						// IDS_VERT_EDIT_FREE_TRANSLATIONS_MSG
-						pView->SetVerticalEditModeMessage(_("Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
+						pView->SetVerticalEditModeMessage(_("Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."));
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
