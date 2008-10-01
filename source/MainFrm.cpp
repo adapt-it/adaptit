@@ -5129,7 +5129,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	//CPhraseBox* pBox;
 	//pApp->GetBasePointers(pDoc,pView,pBox);
 
-	if (!ListBoxPassesSanityCheck(m_pRemovalsBarComboBox))
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pRemovalsBarComboBox))
 	{
 		return;
 	}
