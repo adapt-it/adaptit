@@ -71,3 +71,9 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 adaptit_LDFLAGS = $(WX_LIBS) 
 
+
+SUBDIRS = po
+
+ACLOCAL_AMFLAGS = -I m4
+
+EXTRA_DIST = config.rpath
