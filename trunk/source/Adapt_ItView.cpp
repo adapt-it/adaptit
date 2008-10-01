@@ -33935,7 +33935,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	pRec->bSeeGlossesEnabledOnEntry = gbEnableGlossing; // ditto
 
 	gbEditingSourceAndDocNotYetChanged = TRUE;
-	BOOL bUserCancelled = FALSE;
+	bool bUserCancelled = FALSE;
 
 	CAdapt_ItDoc* pDoc = GetDocument();
 	//CAdapt_ItApp* pApp = pDoc->GetApp();
