@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			ProgressDlg.h
 /// \author			Bill Martin
 /// \date_created	28 April 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CProgressDlg class. 
 /// The CProgressDlg class puts up a progress bar/gauge which tracks the
 /// working processes that typically take a while to complete.

@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			XMLErrorDlg.cpp
 /// \author			Bruce Waters, revised for wxWidgets by Bill Martin
 /// \date_created	6 January 2005
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CXMLErrorDlg class. 
 /// The CXMLErrorDlg class provides a dialog to notify the user that an XML read 
 /// error has occurred, giving a segment of the offending text and a character

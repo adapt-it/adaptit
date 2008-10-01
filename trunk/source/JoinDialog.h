@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			JoinDialog.h
-/// \author			Jonathan Field; modified by Bill Martin for AdaptItWX
+/// \author			Jonathan Field; modified by Bill Martin for the WX version
 /// \date_created	10 November 2006
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CJoinDialog class. 
 /// The CJoinDialog class provides a dialog interface for the user to be able
 /// to combine Adapt It documents into larger documents.

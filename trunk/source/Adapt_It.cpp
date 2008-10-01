@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			Adapt_It.cpp
 /// \author			Bill Martin
 /// \date_created	05 January 2004
 /// \date_revised	14 May 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CAdapt_ItApp class. 
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. 
 /// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support for the document/view framework. 

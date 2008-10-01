@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			stack.cpp
-/// \author			Bruce Waters; modified by Bill Martin for AdaptItWX
+/// \author			Bruce Waters; modified by Bill Martin for the WX version
 /// \date_created	October 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CStack class.
 /// Note: my CStack class, the XML parser, and my string class CBString
 /// will all be single-byte characters. When used with the Uncode supporting

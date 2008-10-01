@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			Equivalents_for_reference.h
 /// \author			Bill Martin
 /// \date_created	17 August 2004
 /// \date_revised	29 December 2007
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing MFC to wxWidgets equivalents. 
 /// This file has no actual compilable code in it. It is added to the wxWidgets project
 /// simply to make "Find in Files" act as a lookup for quickly seeing the wxWidgets

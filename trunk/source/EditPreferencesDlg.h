@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			EditPreferencesDlg.h
 /// \author			Bill Martin
 /// \date_created	13 August 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the definition file for the CEditPreferencesDlg class. 
 /// The CEditPreferencesDlg class acts as a dialog wrapper for the tab pages of
 /// an "Edit Preferences" wxNotebook. The interface resources for the wxNotebook 

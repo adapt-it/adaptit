@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			AIPrintout.cpp
 /// \author			Bill Martin
 /// \date_created	28 February 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the AIPrintout class. 
 /// The AIPrintout class manages the functions for printing and print previewing from
 /// within Adapt It using the File | Print and File | Print Preview menu selections.
@@ -102,7 +102,7 @@ extern int gnFooterTextHeight;
 // The AIPrintout class below ///////////////////////////////////////////////////////////// 
 IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 
-// AdaptItWX Documentation Note: The following comments utilize a nifty Visual Studio Addin called
+// WX Documentation Note: The following comments utilize a nifty Visual Studio Addin called
 // HyperAddin which is freely available from http://www.codeplex.com/hyperAddin/. HyperAddin also has
 // built-in automatic comment wrapping support and other features that enhance the commenting process
 // within Visual Studio 2005 or 2008 (it does not work with Visual Studio 2003). To jump to the

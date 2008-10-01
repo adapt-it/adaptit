@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			AIPrintout.h
 /// \author			Bill Martin
 /// \date_created	12 February 2004
 /// \date_revised	23 February 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the AIPrintout class. 
 /// The AIPrintout class manages the functions for printing and print previewing from
 /// within Adapt It using the File | Print and File | Print Preview menu selections.

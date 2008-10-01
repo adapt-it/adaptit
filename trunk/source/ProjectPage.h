@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			ProjectPage.h
 /// \author			Bill Martin
 /// \date_created	3 May 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CProjectPage class. 
 /// The CProjectPage class creates a panel that is used in the Edit Preferenced property sheet. 
 /// The CProjectPage class allows the user to choose an existing project to work on or 

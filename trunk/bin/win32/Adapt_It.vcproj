@@ -703,10 +703,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\TransferMarkersDlg.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.cpp"
 				>
 			</File>
@@ -1053,10 +1049,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Text.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\TransferMarkersDlg.h"
 				>
 			</File>
 			<File

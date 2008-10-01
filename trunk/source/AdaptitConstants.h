@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			AdaptitConstants.h
 /// \author			Bruce Waters, revised for wxWidgets by Bill Martin
 /// \date_created	6 January 2005
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is a header file containing some constants used by Adapt It. 
 /////////////////////////////////////////////////////////////////////////////
 

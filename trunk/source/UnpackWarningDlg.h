@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			UnpackWarningDlg.h
 /// \author			Bill Martin
 /// \date_created	20 July 2006
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CUnpackWarningDlg class. 
 /// The CUnpackWarningDlg class provides a dialog that issues a warning to the user
 /// that the document was packed by the Unicode version of the program and now the

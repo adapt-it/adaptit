@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			SetDelay.h
 /// \author			Bill Martin
 /// \date_created	14 June 2006
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CSetDelay class. 
 /// The CSetDelay class provides a dialog that allows the user to set a time delay
 /// to slow down the automatic insertions of adaptations. This can be helpful to some

@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			ConsistentChanger.cpp
 /// \author			Bill Martin
 /// \date_created	12 February 2004

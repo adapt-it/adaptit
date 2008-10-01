@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			CCTabbedDialog.cpp
 /// \author			Bill Martin
 /// \date_created	19 June 2007
 /// \date_revised	14 April 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CCCTabbedDialog class. 
 /// The CCCTabbedDialog class provides a dialog with tabbed pages in which the user can load up to four
 /// consistent changes tables for use in Adapt It. Each tabbed page has controls that enable the user to 

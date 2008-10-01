@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			PlaceInternalMarkers.cpp
 /// \author			Bill Martin
 /// \date_created	29 May 2006
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CPlaceInternalMarkers class. 
 /// The CPlaceInternalMarkers class provides a dialog which is presented to the user
 /// during export of the target text in the event that RebuildTargetText() needs user

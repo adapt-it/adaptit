@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
-/// \project		AdaptItWX
+/// \project		adaptit
 /// \file			FindReplace.h
 /// \author			Bill Martin
 /// \date_created	24 July 2006
 /// \date_revised	8 June 2007
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public LIcense v. 1.0 AND The wxWindows Library Licence (see License.txt)
+/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for two classes: CFindDlg and CReplaceDlg.
 /// These classes provide a find and/or find and replace dialog in which the user can find 
 /// the location(s) of specified source and/or target text. The dialog has an "Ignore case" 
