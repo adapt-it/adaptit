@@ -32546,9 +32546,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 				// if we have an error while restoring the original document, then we can't get back
 				// the document as it was, so it is best to abort the app and lose recent changes than
 				// to continue and risk a malformed document or with content lacking somewhere within
-				error = _("Restoration following context potential moved notes span failed, ");
-				error += _(" so rather than save a bad document, we abort the ");
-				error += _("application now, losing the work done since the last save.");
+				error = _T("Restoration following context potential moved notes span failed, ");
+				error += _T(" so rather than save a bad document, we abort the ");
+				error += _T("application now, losing the work done since the last save.");
 				wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 				wxExit();
 			}
@@ -32569,9 +32569,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 				// if we have an error while restoring the original document, then we can't get back
 				// the document as it was, so it is best to abort the app and lose recent changes than
 				// to continue and risk a malformed document or with content lacking somewhere within
-				error = _("Restoration preceding context potential moved notes span failed, ");
-				error += _(" so rather than save a bad document, we abort the ");
-				error += _("application now, losing the work done since the last save.");
+				error = _T("Restoration preceding context potential moved notes span failed, ");
+				error += _T(" so rather than save a bad document, we abort the ");
+				error += _T("application now, losing the work done since the last save.");
 				wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 				wxExit();
 			}
@@ -32594,9 +32594,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 			// if we have an error while restoring the original document, then we can't get back
 			// the document as it was, so it is best to abort the app and lose recent changes than
 			// to continue and risk a malformed document or with content lacking somewhere within
-			error = _("Restoration of the document failed in the initial replacements from the ");
-			error += _("cancel span, so rather than save a bad document, we abort the ");
-			error += _("application now, losing the work done since the last save.");
+			error = _T("Restoration of the document failed in the initial replacements from the ");
+			error += _T("cancel span, so rather than save a bad document, we abort the ");
+			error += _T("application now, losing the work done since the last save.");
 			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 			wxExit();
 		}
@@ -32618,9 +32618,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 		// if we have an error while restoring the original document, then we can't get back
 		// the document as it was, so it is best to abort the app and lose recent changes than
 		// to continue and risk a malformed document or with content lacking somewhere within
-		error = _("Restoration of the document failed in the replacements from the ");
-		error += _("editable span within the cancel span, so rather than save a bad document, ");
-		error += _("we abort the application now, losing the work done since the last save.");
+		error = _T("Restoration of the document failed in the replacements from the ");
+		error += _T("editable span within the cancel span, so rather than save a bad document, ");
+		error += _T("we abort the application now, losing the work done since the last save.");
 		wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 		wxExit();
 	}
@@ -32662,9 +32662,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 			// if we have an error while restoring the original document, then we can't get back
 			// the document as it was, so it is best to abort the app and lose recent changes than
 			// to continue and risk a malformed document or with content lacking somewhere within
-			error = _("Restoration of the document failed in the final replacements from the ");
-			error += _("cancel span, so rather than save a bad document, we abort the ");
-			error += _("application now, losing the work done since the last save.");
+			error = _T("Restoration of the document failed in the final replacements from the ");
+			error += _T("cancel span, so rather than save a bad document, we abort the ");
+			error += _T("application now, losing the work done since the last save.");
 			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 			wxExit();
 		}
@@ -32693,9 +32693,9 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 			// if we have an error while restoring the original document, then we can't get back
 			// the document as it was, so it is best to abort the app and lose recent changes than
 			// to continue and risk a malformed document or with content lacking somewhere within
-			error = _("Restoration of the document failed in the replacements from the ");
-			error += _("propagation span, so rather than save a bad document, we abort the ");
-			error += _("application now, losing the work done since the last save.");
+			error = _T("Restoration of the document failed in the replacements from the ");
+			error += _T("propagation span, so rather than save a bad document, we abort the ");
+			error += _T("application now, losing the work done since the last save.");
 			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
 			wxExit();
 		}
@@ -33110,7 +33110,7 @@ bool CAdapt_ItView::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRec
 								// IDS_KEEP_UNREPLACED_NOTE
 								// TODO: Surely IDS_KEEP_UNREPLACED_NOTE is not supposed to be a single
 								// space - not much of a message for the user!
-								wxMessageBox(_(" "), _T(""), wxICON_INFORMATION);
+								//wxMessageBox(_(" "), _T(""), wxICON_INFORMATION);
 								break; // break out of the loop and let the rest of the function do the 
 									   // replacements of those that were successfully relocated and stored
 									   // in arrSqueezedLocations
@@ -33186,7 +33186,7 @@ bool CAdapt_ItView::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRec
 					// IDS_KEEP_UNREPLACED_NOTE
 					// TODO: Surely IDS_KEEP_UNREPLACED_NOTE is not supposed to be a single
 					// space - not much of a message for the user!
-					wxMessageBox(_(" "), _T(""), wxICON_INFORMATION);
+					//wxMessageBox(_(" "), _T(""), wxICON_INFORMATION);
 				}
 			}
 		}

@@ -4959,7 +4959,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// "C:\\Program Files\\Adapt It Unicode" or
 	// "C:\\Program Files\\Adapt It"
 	// On Linux/GTK the m_setupFolder will be something like:
-	// "/usr/bin/adapt_it" or "/usr/local/adapt_it"
+	// "/usr/bin/" or "/usr/local/bin/"
 	// On the Mac the m_setupFolder will be something like:
 	// "/Applications"
 
@@ -5672,6 +5672,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString globalDataPath;
 	globalDataPath = stdPaths.GetDataDir();
 	wxLogDebug(_T("GetDataDir() path for AI_USFM.xml and books.xml is: %s"),globalDataPath.c_str());
+	//wxString msg = msg.Format(_T("GetDataDir() path for AI_USFM.xml and books.xml is: %s"),globalDataPath.c_str());
+	//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 
 	// Display message in status bar that we are loading the books.xml and AI_USFM.xml files (brief)
 	wxString message = _("Loading books.xml and AI_USFM.xml ...");

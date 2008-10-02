@@ -42,6 +42,7 @@
 
 #include <wx/valgen.h>
 #include "Adapt_It.h"
+#include "helpers.h"
 #include "Adapt_ItDoc.h"
 #include "OpenExistingProjectDlg.h"
  
@@ -168,14 +169,21 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 {
 	wxListBox* pListBox;
 	pListBox = (wxListBox*)FindWindowById(IDC_LISTBOX_ADAPTIONS);
-	int nSel;
-	nSel = pListBox->GetSelection();
-	if (nSel == -1) // MFC LB_ERR is #define -1
+	wxASSERT(pListBox != NULL);
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
 		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
 		wxASSERT(FALSE);
-		//wxExit();//AfxAbort();
+		return;
 	}
+	int nSel;
+	nSel = pListBox->GetSelection();
+	//if (nSel == -1) // MFC LB_ERR is #define -1
+	//{
+	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+	//	wxASSERT(FALSE);
+	//	//wxExit();//AfxAbort();
+	//}
 	m_projectName = pListBox->GetString(nSel);
 
 	// set m_curProjectPath so we can load the Project configuration file, we need to
@@ -191,19 +199,27 @@ void COpenExistingProjectDlg::OnSelchangeListboxAdaptions(wxCommandEvent& WXUNUS
 {
 	wxListBox* pListBox;
 	pListBox = (wxListBox*)FindWindowById(IDC_LISTBOX_ADAPTIONS);
+	wxASSERT(pListBox != NULL);
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
 	if (pListBox->GetCount() == 0)
 		return;
-
-	int nSel;
-	nSel = pListBox->GetSelection();
-	if (nSel == -1) //LB_ERR
+	
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
 		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
 		wxASSERT(FALSE);
-		//wxExit();
+		return;
 	}
+
+	int nSel;
+	nSel = pListBox->GetSelection();
+	//if (nSel == -1) //LB_ERR
+	//{
+	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+	//	wxASSERT(FALSE);
+	//	//wxExit();
+	//}
 	m_projectName = pListBox->GetString(nSel);
 }
 
@@ -211,14 +227,21 @@ void COpenExistingProjectDlg::OnDblclkListboxAdaptions(wxCommandEvent& WXUNUSED(
 {
 	wxListBox* pListBox;
 	pListBox = (wxListBox*)FindWindowById(IDC_LISTBOX_ADAPTIONS);
-	int nSel;
-	nSel = pListBox->GetSelection();
-	if (nSel == -1) //LB_ERR
+	wxASSERT(pListBox != NULL);
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
 		wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
 		wxASSERT(FALSE);
-		wxExit();
+		return;
 	}
+	int nSel;
+	nSel = pListBox->GetSelection();
+	//if (nSel == -1) //LB_ERR
+	//{
+	//	wxMessageBox(_T("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
+	//	wxASSERT(FALSE);
+	//	wxExit();
+	//}
 	m_projectName = pListBox->GetString(nSel);
 
 	// set m_curProjectPath so we can load the Project configuration file, we need to
