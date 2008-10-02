@@ -1277,6 +1277,15 @@ short DecimalToBinary(unsigned long decimalValue, char binaryValue[32])
 	return significant_digits;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if sanity check passes; FALSE otherwise
+/// \param      pListBox  -> pointer to a wxListBox, wxComboBox, or wxCheckListBox
+/// \remarks
+/// Called from: all dialog classes which have a wxListBox, wxComboBox or wxCheckListBox.
+/// Insures that the list/combo box is valid, has at least one item and that at least one item in
+/// the list is selected. Returns FALSE if the list/combo box is NULL, or if the box doesn't have
+/// any items in it, or if 
+////////////////////////////////////////////////////////////////////////////////////////////
 bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear().
@@ -1286,7 +1295,8 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 	// 1. We check to see if pListBox is really there (not NULL).
 	// 2. We return FALSE if the control does not have any items in it.
 	// 3. We check to insure that at least one item is selected when the control has at least one item
-	//    in it.
+	//    in it. Item 0 (first item) is selected if no items were selected on entry. In this case, if
+	//    item 0 cannot be selected we return FALSE.
 	// 4. We return TRUE if pListBox has passed the sanity checks (1, 2, 3 above).
 
 	// Sanity check #1 check to see if pListBox is really there (not NULL)
@@ -1312,6 +1322,12 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
     // to be emitted nor does it deselect any other items in the controls which support multiple
     // selections."
 	pListBox->SetSelection(nSelTemp);
+	nSelTemp = pListBox->GetSelection();
+	if (nSelTemp == -1)
+	{
+		// cannot get first item selected, so report FALSE to caller
+		return FALSE;
+	}
 	
 	// Sanity checking is done so tell caller that everything is sane.
 	return TRUE;
