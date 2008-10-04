@@ -22,12 +22,12 @@
 #endif
 
 //#include <wx/help.h> //(wxWidgets chooses the appropriate help controller class)
-//#include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
+#include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 
 // forward declarations
 class CAdapt_ItCanvas;
 class wxHelpControllerBase;
-//class wxHtmlHelpController;
+class wxHtmlHelpController;
 
 // global functions (FormatScriptureReference() is overloaded)
 class CSourcePhrase;
@@ -131,6 +131,8 @@ class CMainFrame : public wxDocParentFrame
 	int m_removalsBarHeight;
 	int m_vertEditBarHeight;
 	//int m_vertEditStepTransBarHeight;
+      
+	//wxHtmlHelpController m_help;
 
     void OnAppAbout(wxCommandEvent& WXUNUSED(event));
 	// OnIdle moved here from the App. When it was in the App it was causing

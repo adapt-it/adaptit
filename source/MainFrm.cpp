@@ -44,12 +44,12 @@
 //// the next three are for wxHtmlHelpController
 //#include <wx/filesys.h>
 //#include <wx/fs_zip.h>
-#include <wx/help.h> //(wxWidgets chooses the appropriate help controller class)
+//#include <wx/help.h> //(wxWidgets chooses the appropriate help controller class)
 //#include <wx/helpbase.h> //(wxHelpControllerBase class)
 //#include <wx/helpwin.h> //(Windows Help controller)
 //#include <wx/msw/helpchm.h> //(MS HTML Help controller)
 //#include <wx/generic/helpext.h> //(external HTML browser controller)
-//#include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
+#include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 
 #include <wx/docview.h>
 #include <wx/filename.h>
@@ -59,6 +59,10 @@
 #ifdef __WXMSW__
 #include <wx/msw/registry.h> // for wxRegKey - used in SantaFeFocus sync scrolling mechanism
 #endif
+
+#if !wxUSE_WXHTML_HELP
+    #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
+#endif // wxUSE_WXHTML_HELP
 
 // wx docs say: "By default, the DDE implementation is used under Windows. DDE works within one computer only. 
 // If you want to use IPC between different workstations you should define wxUSE_DDE_FOR_IPC as 0 before 
@@ -179,10 +183,11 @@ extern  int		nCurrentSequNum;
 /// This global is defined in Adapt_It.cpp.
 extern  int		nSequNumForLastAutoSave;
 
-//extern wxHtmlHelpController* m_pHelpController;
-
 /// This global is defined in Adapt_It.cpp.
-extern wxHelpController* m_pHelpController;
+extern wxHtmlHelpController* m_pHelpController;
+
+// This global is defined in Adapt_It.cpp.
+//extern wxHelpController* m_pHelpController;
 
 #ifdef __WXMSW__
 static UINT NEAR WM_SANTA_FE_FOCUS = RegisterWindowMessage(_T("SantaFeFocus"));
@@ -1095,6 +1100,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
                      const wxString& title, const wxPoint& pos,
                      const wxSize& size, const long type) :
     wxDocParentFrame(manager, frame, id, title, pos, size, type, _T("myFrame"))
+    //, m_help(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES)
 {
 
 
@@ -1502,6 +1508,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// set the font used in the compose bar to the font & size for the target font
 	// Unlike the MFC version, the fonts haven't been created yet at this point,
 	// so I've moved the code that sets the composebar font and RTL to the App's OnInit().
+
+	//bool bOK;
+	//bOK = m_help.AddBook(wxFileName(gpApp->m_htbHelpFileName));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1523,12 +1532,13 @@ AboutDlg::AboutDlg(wxWindow *parent)
 {
 	wxSizer* pAboutDlgSizer;
 	pAboutDlgSizer = AboutDlgFunc( this, TRUE, TRUE );
-	// To Change version number, date, etc., use wxDesigner to modify them in AboutDlgFunc().
 	// First parameter is the parent which is usually 'this'.
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	// The declaration is: AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer ).
 	CAdapt_ItApp* pApp = &wxGetApp();
+	
+	// To Change version number, date, etc., use wxDesigner to modify them in AboutDlgFunc().
 	wxString appCreateDate,appModDate;
 	if (wxFileExists(pApp->m_executingAppPathName))
 	{
@@ -1777,11 +1787,12 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	eID = event.GetId();
 	//ShowHelp(event.GetId(), *m_pHelpController);
 	bool bOK;
+	bOK = m_pHelpController->AddBook(wxFileName(gpApp->m_htbHelpFileName));
 	bOK = m_pHelpController->DisplayContents();
 	if (!bOK)
 	{
 		wxString strMsg;
-		strMsg = strMsg.Format(_T("Adapt It could not find its help file.\nThe name and location of help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),gpApp->m_helpPathName.c_str());
+		strMsg = strMsg.Format(_T("Adapt It could not find its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),gpApp->m_helpInstallPath.c_str());
 		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
 	}
 }
