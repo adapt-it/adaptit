@@ -1701,38 +1701,38 @@ public:
 	
     /// m_appInstallPathOnly stores the path (only the path, not path and name) where the executable
     /// application file is installed on the given platform.
-    /// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-    /// On wxGTK: /usr/bin/
-    /// On wxMac: /Programs/
+    /// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
+    /// On wxGTK: "/usr/bin/"
+    /// On wxMac: "/Programs/"
 	wxString m_appInstallPathOnly;		
 	
 	/// m_appInstallPathName stores the path and name where the executable application file is
 	/// installed on the given platform.
-	/// On wxMSW: C:\Program Files\Adapt It WX\Adapt_It.exe or C:\Program Files\Adapt It WX Unicode\Adapt_It_Unicode.exe
-	/// On wxGTK: /usr/bin/adaptit      [adaptit is the name of the executable, not a directory]
-	/// On wxMac: /Programs/AdaptIt.app
+	/// On wxMSW: "C:\Program Files\Adapt It WX\Adapt_It.exe or C:\Program Files\Adapt It WX Unicode\Adapt_It_Unicode.exe"
+	/// On wxGTK: "/usr/bin/adaptit"      [adaptit is the name of the executable, not a directory]
+	/// On wxMac: "/Programs/AdaptIt.app"
 	wxString m_appInstallPathAndName;		
 	
 	/// m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are installed on the
 	/// given platform.
-	/// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-	/// On wxGTK: /usr/share/adaptit/     [adaptit here is the name of a directory]
-	/// On wxMac: AdaptIt.app/Contents/Resources   [bundle subdirectory] ??? TODO: check this location
+	/// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
+	/// On wxGTK: "/usr/share/adaptit/"     [adaptit here is the name of a directory]
+	/// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ??? TODO: check this location
 	wxString m_xmlInstallPath; // whm added for path where the AI_USFM.xml and books.xml files are installed
 	
 	/// m_localizationInstallPath stores the path where the <lang> localization files are installed on
 	/// the given platform.
-	/// On wxMSW: C:\Program Files\Adapt It WX\Languages\ or C:\Program Files\Adapt It WX Unicode\Languages\
-	/// On wxGTK: /usr/share/locale/    which then contains multiple <lang>/LC_MESSAGES/adaptit.mo
-	/// On wxMac: AdaptIt.app/Contents/Resources/locale   [bundle subdirectory] // this is where Poedit
+	/// On wxMSW: "C:\Program Files\Adapt It WX\Languages\ or C:\Program Files\Adapt It WX Unicode\Languages\"
+	/// On wxGTK: "/usr/share/locale/"    which then contains multiple <lang>/LC_MESSAGES/adaptit.mo
+	/// On wxMac: "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this is where Poedit
 	/// puts its localization files.
 	wxString m_localizationInstallPath;	// whm added for path where top level <lang> localization directory is installed
 	
 	/// m_helpInstallPath stores the path where the help files are installed on the given platform.
-	/// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-	/// On wxGTK: /usr/share/adaptit/help/  containing: common/.gif and .css
+	/// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
+	/// On wxGTK: "/usr/share/adaptit/help/"  containing: common/.gif and .css
 	///                                     containing: <lang>/  .html .hhp .hhc etc
-	/// On wxMac: AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ??? TODO: check this location
+	/// On wxMac: "AdaptIt.app/Contents/SharedSupport"   [bundle subdirectory]  ??? TODO: check this location
 	wxString m_helpInstallPath;
 
 	/// m_htbHelpFileName stores the actual name of the help file for the given platform.
@@ -1744,22 +1744,22 @@ public:
 	
 	/// m_licenseInstallPath stores the path where the license files are installed on the given
 	/// platform.
-	/// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-	/// On wxGTK: /usr/share/doc/adaptit/license/
-	/// On wxMac: ~/Documents
+	/// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
+	/// On wxGTK: "/usr/share/doc/adaptit/license/"
+	/// On wxMac: "~/Documents"
 	wxString m_licenseInstallPath; // whm added for path where license files are installed
 	
 	/// m_documentsInstallPath stores the path where the Adapt It documents are installed on the given
 	/// platform.
-	/// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-	/// On wxGTK: /usr/share/doc/adaptit/docs/
-	/// On wxMac: ~/Documents
+	/// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
+	/// On wxGTK: "/usr/share/doc/adaptit/docs/"
+	/// On wxMac: "~/Documents"
 	wxString m_documentsInstallPath; // whm added for path where documents, reference docs, etc are installed
 	
 	/// m_desktopInstallPath stores the path where the Adapt It desktop menu configuration
 	/// (adaptit.desktop) file is installed on the given platform.
 	/// On wxMSW: n/a
-	/// On wxGTK: /usr/share/applications/
+	/// On wxGTK: "/usr/share/applications/"
 	/// On wxMac: ???
 	wxString m_desktopInstallPath; // whm added for path where adaptit.desktop file is installed
 

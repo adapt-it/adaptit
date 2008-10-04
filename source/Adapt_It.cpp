@@ -3054,12 +3054,12 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// - On Windows, there appears to be no well established location for localization files. 
 	// For example I looked at two wxWidgets based applications Poedit and Audacity.
 	// The Poedit program places its localization files in: 
-	// C:\Program Files\Poedit\share\locale\<lang>\LC_MESSAGES\
+	// "C:\Program Files\Poedit\share\locale\<lang>\LC_MESSAGES\"
 	// The Audacity program uses a simpler method, putting its localization files in:
 	// C:\Program Files\Audacity\Languages\<lang>.
 	// For Windows at least, I like the simplified way that Audacity does it. So, we add a 
 	// "Languages" subdirectory so that the localization subdirectories and files will be installed
-	// at:  C:\Program Files\Adapt It WX\Languages\ or C:\Program Files\Adapt It WX Unicode\Languages\ 
+	// at:  "C:\Program Files\Adapt It WX\Languages\" or "C:\Program Files\Adapt It WX Unicode\Languages\"
 	// and Adapt It on the Windows port will look there.
 	// - On Unix, the localization files are installed in "<prefix>/share/locale" so Adapt It 
 	// looks for localization <lang> subfolders and files in the /usr/share/locale/ subdirectory. The 
@@ -3174,7 +3174,7 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 	// at the following locations, depending on the OS:
 	// - On Windows, there appears to be no well established location for XML control files. 
 	// For Windows these XML files will be installed together with the executable program at:  
-	// C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\ 
+	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
 	// and Adapt It on the Windows port will look there.
 	// - On Unix, the XML control files are installed in "/usr/share/adaptit" so Adapt It 
 	// on Linux looks for them there.
@@ -3222,7 +3222,7 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	// Adapt It looks for its HTML Help files at the following locations, depending on the OS:
 	// - On Windows, there appears to be no well established location for HTML Help files. 
 	// For Windows the Html Help files will be installed together with the executable program at:  
-	// C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\ 
+	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
 	// and Adapt It on the Windows port will look there.
 	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" which in turn 
 	// may contain a "common/" subdirectory with .gif and .css files (pointed to by the help files).
@@ -5097,7 +5097,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// !!! testing only below
 
 #if wxCHECK_VERSION(2, 7, 0)
-	wxString resourcesDir,localizedResourcesDir;
+	wxString resourcesDir; //,localizedResourcesDir;
 	wxString dataDir, localDataDir, documentsDir;
 	wxString userConfigDir, userDataDir, userLocalDataDir;
 	wxString executablePath;
@@ -5107,8 +5107,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxStandardPaths stdPaths;
 	resourcesDir = stdPaths.GetResourcesDir(); // GetResourcesDir() is new with wxWidgets 2.7.0
 	wxLogDebug(_T("The wxStandardPaths::GetResourcesDir()  = %s"),resourcesDir.c_str());
-	localizedResourcesDir = stdPaths.GetLocalizedResourcesDir(_T("es")); // GetLocalizedResourcesDir() is new with wxWidgets 2.7.0
-	wxLogDebug(_T("The wxStandardPaths::GetLocalizedResourcesDir(_T(\"es\")) = %s"),localizedResourcesDir.c_str());
+	//localizedResourcesDir = stdPaths.GetLocalizedResourcesDir(_T("es")); // GetLocalizedResourcesDir() is new with wxWidgets 2.7.0
+	//wxLogDebug(_T("The wxStandardPaths::GetLocalizedResourcesDir(_T(\"es\")) = %s"),localizedResourcesDir.c_str());
 	dataDir = stdPaths.GetDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetDataDir() = %s"),dataDir.c_str());
 	localDataDir = stdPaths.GetLocalDataDir();
@@ -5132,7 +5132,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_setupFolder = FindAppPath(argv[0], wxGetCwd(), _T(""));
 	m_appInstallPathOnly = FindAppPath(argv[0], wxGetCwd(), _T(""));
 	// On Windows the m_appInstallPathOnly will be something like (if installed to default location):
-	// "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode"
+	// "C:\Program Files\Adapt It WX" or "C:\Program Files\Adapt It WX Unicode\"
 	// On Linux/GTK the m_setupFolder will be something like:
 	// "/usr/bin/" or "/usr/local/bin/"
 	// On the Mac the m_setupFolder will be something like:
@@ -5140,22 +5140,22 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// The m_xmlInstallPath stores the path where the AI_USFM.xml and books.xml files are installed on the
 	// given platform.
-	// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-	// On wxGTK: /usr/share/adaptit/     [adaptit here is the name of a directory]
-	// On wxMac: AdaptIt.app/Contents/Resources   [bundle subdirectory] ??? TODO: check this location
+	// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
+	// On wxGTK: "/usr/share/adaptit/"     [adaptit here is the name of a directory]
+	// On wxMac: "AdaptIt.app/Contents/Resources"   [bundle subdirectory] ??? TODO: check this location
 	m_xmlInstallPath = GetDefaultPathForXMLControlFiles();
 
 	// The m_localizationInstallPath stores the path where the <lang> localization files are installed on
 	// the given platform.
-	// On wxMSW: C:\Program Files\Adapt It WX\Languages\ or C:\Program Files\Adapt It WX Unicode\Languages\
-	// On wxGTK: /usr/share/locale/    which then contains multiple <lang>/LC_MESSAGES/adaptit.mo
-	// On wxMac: AdaptIt.app/Contents/Resources/locale   [bundle subdirectory] // this is where Poedit
+	// On wxMSW: "C:\Program Files\Adapt It WX\Languages\ or C:\Program Files\Adapt It WX Unicode\Languages\"
+	// On wxGTK: "/usr/share/locale/"    which then contains multiple "<lang>/LC_MESSAGES/adaptit.mo"
+	// On wxMac: "AdaptIt.app/Contents/Resources/locale"   [bundle subdirectory] // this is where Poedit
 	// puts its localization files.
 	m_localizationInstallPath = GetDefaultPathForLocalizationSubDirectories();
 
 	// The m_helpInstallPath stores the path where the help files are installed on the given platform.
-	// On wxMSW: C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\
-	// On wxGTK: /usr/share/adaptit/help/  containing: common/.gif and .css
+	// On wxMSW: "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\"
+	// On wxGTK: "/usr/share/adaptit/help/"  containing: common/.gif and .css
 	//                                     containing: <lang>/  .html .hhp .hhc etc
 	// On wxMac: AdaptIt.app/Contents/SharedSupport   [bundle subdirectory]  ??? TODO: check this location
 	m_helpInstallPath = GetDefaultPathForHelpFiles();
@@ -5380,7 +5380,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Help window settings are saved in the registry/.Settings folder that stays the default and is
 	// called "Recent_File_List". There are 10 settings in that folder plus UseConfig() creates a 
 	// subfolder within "Recent_File_List" called "wxHtmlWindow" which contains another 10 help font settings.
-	m_pHelpController->UseConfig(m_pConfig); //wxConfig::Get());
+	m_pHelpController->UseConfig(m_pConfig);
 
 	// Required for images in the online documentation
     wxInitAllImageHandlers(); // the help sample program does this, although it is not documented anywhere in wxWidgets!
