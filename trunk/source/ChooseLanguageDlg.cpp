@@ -117,7 +117,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	{
 		// Get the default path that should contain the localization subdirectories for this platform.
 		//wxString pathToLocalizationFolders;
-		pathToLocalizationFolders = gpApp->GetPathContainingLocalizationSubDirectories();
+		pathToLocalizationFolders = gpApp->GetDefaultPathForLocalizationSubDirectories();
 	}
 	// put localization path in its edit box
 	pEditLocalizationPath->SetValue(pathToLocalizationFolders);
@@ -502,7 +502,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 		gpApp->currLocalizationInfo.curr_UI_Language = wxLANGUAGE_DEFAULT;
 		gpApp->currLocalizationInfo.curr_shortName = _T("default");
 		gpApp->currLocalizationInfo.curr_fullName = _T("system default language");
-		gpApp->currLocalizationInfo.curr_localizationPath = gpApp->GetPathContainingLocalizationSubDirectories();
+		gpApp->currLocalizationInfo.curr_localizationPath = gpApp->GetDefaultPathForLocalizationSubDirectories();
 		return; // go back to the dialog in case the user wants to select a different language
 	}
 	m_strCurrentLanguage = pListBox->GetString(nSel);

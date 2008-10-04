@@ -74,7 +74,7 @@
 #include "StartWorkingWizard.h"
 
 #if !wxUSE_CHECKLISTBOX
-    #error "This program can't be built without wxUSE_CHECKLISTBOX"
+    #error "This program can't be built without wxUSE_CHECKLISTBOX set to 1"
 #endif // wxUSE_CHECKLISTBOX
 
 /// This global is defined in Adapt_It.cpp.
