@@ -213,13 +213,11 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 				if (wxLocale::IsAvailable(lang)) // IsAvailable is new since wxWidgets version 2.7.1
 				{
 #endif
-					// Save the dirStr as listbox client data along with the list item.
-					// We can use the wxListBox::Insert() method to insert items into our non-sorted
-					// list and associate client data with the item at the same time.
-					// Here we use 1 as the position "before which to insert the item" since above
-					// before this for loop we inserted "default" as the first item in the list and 
-					// we want it to remain as the first item.
-					pListBox->Insert(fullLangName,ct,&subDirList.Item(ct));
+					// Save the dirStr from subDirList as listbox client data along with the list item.
+					// We append the scanned subdir data into the list box. Then at the end (see below)
+					// we will insert the default (English) as the first item in the list using the
+					// wxListBox::Insert() method. 
+					pListBox->Append(fullLangName,&subDirList.Item(ct)); //pListBox->Insert(fullLangName,ct,&subDirList.Item(ct));
 #if 0 //#if wxCHECK_VERSION(2, 7, 1)
 				}
 				else
@@ -305,17 +303,14 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 				{
 					fullLangName = subDirList.Item(ct) + _T(" [Contains Unknown or New Localization]");
 				}
-				pListBox->Insert(fullLangName,ct,&subDirList.Item(ct));
+				// append the fullLangName and associated subDir data to the list
+				pListBox->Append(fullLangName,&subDirList.Item(ct));
 			}
 		}
 
 	}
-	// We can use the wxListBox::Insert() method to insert items into our non-sorted
-	// list and associate client data with the item at the same time.
-	// Here we use 0 as the position "before which to insert the item" since we want
-	// to insert current system's CanonicalName as the first item in the list. 
-	// The Insert() method used in the for loop below uses 1 as the position to 
-	// insert which leaves "default" as the first item in the list.
+	// Here we insert the default (English) as the first item in the list (position 0) using the
+	// wxListBox::Insert() method. 
 	defaultDirStr = gpApp->m_languageInfo->CanonicalName;
 	pListBox->Insert(tempStr,0,&defaultDirStr); // the default language (1st item in list) saves its Canonical name as client data
 

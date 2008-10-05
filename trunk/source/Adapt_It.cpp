@@ -5096,6 +5096,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// !!! testing only below
 
+
 #if wxCHECK_VERSION(2, 7, 0)
 	wxString resourcesDir; //,localizedResourcesDir;
 	wxString dataDir, localDataDir, documentsDir;
