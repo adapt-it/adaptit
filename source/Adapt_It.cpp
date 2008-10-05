@@ -3264,7 +3264,7 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 /// \param      initialPath  -> the path where subdirectories are expected/gathered into arrayStr
 /// \param      arrayStr     <- wxArrayString to receive the list of subdirectories
 /// \remarks
-/// Called from: the App's ChooseInterfaceLanguage().
+/// Called from: the App's PathHas_mo_LocalizationFile() and CChooseLanguageDlg::InitDialog().
 /// Gets a list in the form of a wxStringArray of the subdirectories that exist in the 
 /// initialPath directory. GetListOfSubDirectories does not empty arrayStr before
 /// adding directories to the array, so it is up to the caller to empty the array if needed.
@@ -3279,6 +3279,7 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
 	::wxSetWorkingDirectory(initialPath);
 	wxDir dir(initialPath);
 
+	wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
 	wxASSERT(dir.IsOpened());
 	bool bGotOne = dir.Open(initialPath) && dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories
 	//wxLogDebug(_T("List of subDirs:"));
@@ -3290,6 +3291,7 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
 	}
 	// restore the previous cwd
 	::wxSetWorkingDirectory(saveDir);
+	// end of scope for wxLogNull
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -3408,6 +3410,8 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 	wxArrayString subDirList;
 	subDirList.Clear();
 	GetListOfSubDirectories(dirPath,subDirList);
+	
+	wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
 
 	int ct;
 	for (ct = 0; ct < (int)subDirList.GetCount(); ct++)
@@ -3436,6 +3440,7 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 		}
 	}
 	// if we make it here none were found
+	// end of scope for wxLogNull
 	return FALSE;
 }
 

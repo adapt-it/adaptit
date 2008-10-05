@@ -164,6 +164,8 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	wxString tempStr = langsKnownToWX[0].fullName;
 	tempStr = tempStr.Format(tempStr, gpApp->m_languageInfo->Description.c_str());
 
+	wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
+
 	// Ignore subdirectories in subDirList that do not contain .mo file(s) within the
 	// subdirectory. Add the localization subdirectories that do have <appName>.mo file(s) 
 	// for those localizations which the host OS and/or C run time environment say are 
@@ -383,6 +385,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		pEditAsStaticLongName->SetValue(_T(""));
 	}
 	m_fullNameOnEntry = gpApp->currLocalizationInfo.curr_fullName;
+	// end of scope for wxLogNull
 }
 
 // event handling functions
