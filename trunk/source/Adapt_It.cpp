@@ -5930,12 +5930,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		bBooksFileExists = ::wxFileExists(filecopyPath) && !::wxDirExists(filecopyPath);
 		if (bBooksFileExists)
 		{
+			wxLogDebug(_T("Copying existing books.xml from m_xmlInstallPath to user's work folder."));
 			// copy the file to the work folder
 			bool success;
 			// Use the simple wxCopyFile() method
 			success = wxCopyFile(filecopyPath, booksfilePath, TRUE); // TRUE = overwrite
 			if (!success)
+			{
 				bBooksFileExists = FALSE;
+				wxLogDebug(_T("Could NOT copy existing books.xml from m_xmlInstallPath to user's work folder."));
+			}
 		}
 	}
 
@@ -5985,6 +5989,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// no "books.xml" file in the work folder, so use default setup; m_pBibleBooks pointer is already created
 		// but as yet has no content
 		SetupDefaultBooksArray(m_pBibleBooks); // hard coded for 67 folders
+		
+		wxLogDebug(_T("No books.xml file found in work folder, so setting defaults via SetupDefaultBooksArray()."));
 		
 		// assume not in book mode, project config file will override this, so no point to set a default here
 		m_nBookIndex = -1; 
@@ -6053,10 +6059,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 				//	fnInWorkFolderPath.SetTimes(&dtSetupFolderFileAccessTime,&dtSetupFolderFileModTime,&dtSetupFolderFileCreateTime);
 				//}
 				bWorkStyleFileExists = TRUE;
+				wxLogDebug(_T("Copying existing AI_USFM.xml from m_xmlInstallPath to user's work folder."));
 			}
 			else
 			{
 				bWorkStyleFileExists = FALSE;
+				wxLogDebug(_T("Could NOT copy existing AI_USFM.xml from m_xmlInstallPath to user's work folder."));
 			}
 		}
 	}
@@ -6117,10 +6125,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 					//	fnInWorkFolderPath.SetTimes(&dtSetupFolderFileAccessTime,&dtSetupFolderFileModTime,&dtSetupFolderFileCreateTime);
 					//}
 					bWorkStyleFileExists = TRUE;
+					wxLogDebug(_T("Copying newer version of AI_USFM.xml to user's work folder."));
 				}
 				else
 				{
 					bWorkStyleFileExists = FALSE;
+					wxLogDebug(_T("Could not copy newer version of AI_USFM.xml to user's work folder."));
 				}
 			}
 		}
@@ -6151,6 +6161,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// no "AI_USFM.xml" file in the work folder, so use default setup; 
 		// m_pUsfmStylesMap, m_pPngStylesMap, and m_pUsfmAndPngStylesMap 
 		// pointers are already created but as yet have no content
+		wxLogDebug(_T("AI_USFM.xml not found in work folder - using internal styles via SetupDefaultStylesMap."));
 		SetupDefaultStylesMap(); // hard coded for 267 default usfm styles
 	}
 
