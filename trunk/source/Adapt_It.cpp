@@ -5920,13 +5920,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	bool bBooksFileExists = ::wxFileExists(booksfilePath) && !::wxDirExists(booksfilePath);
 
-	// if the file does not exist in the work folder, look for it in the setup folder and if there then copy
+	// if the file does not exist in the work folder, look for it in the m_xmlInstallPath folder and if there then copy
 	// it to the work folder before opening it from the latter location
 	if (!bBooksFileExists)
 	{
 
 		wxString filecopyPath;
-		filecopyPath = m_setupFolder + PathSeparator + _("books.xml");
+		filecopyPath = m_xmlInstallPath + PathSeparator + _("books.xml");
 		bBooksFileExists = ::wxFileExists(filecopyPath) && !::wxDirExists(filecopyPath);
 		if (bBooksFileExists)
 		{
@@ -6016,7 +6016,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// if user installed Adapt It to a non-default user defined folder, The call to 
 	// FindAppPath() above determines the path to the currently running executable, 
 	// which is safer than hard coding the path to a predetermined setup location.
-	wxString filecopyPath = m_setupFolder + PathSeparator + _T("AI_USFM.xml");
+	wxString filecopyPath = m_xmlInstallPath + PathSeparator + _T("AI_USFM.xml");
 
 	bool bSetupStyleFileExists = wxFileExists(filecopyPath);
 
