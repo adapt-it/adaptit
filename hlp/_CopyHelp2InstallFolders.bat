@@ -18,10 +18,10 @@ pause
 @echo on
 rem The following copies the HTML Help file to the Setup Generator folders
 @echo off
-xcopy Adapt_It_Help.chm "..\setup Regular\" /Y
-xcopy Adapt_It_Help.chm "..\setup Regular Documentation Only\" /Y
-xcopy Adapt_It_Help.chm "..\setup Unicode\" /Y
-xcopy Adapt_It_Help.chm "..\setup Unicode Documentation Only\" /Y
+xcopy Adapt_It.htb "..\setup Regular\" /Y
+xcopy Adapt_It.htb "..\setup Regular Documentation Only\" /Y
+xcopy Adapt_It.htb "..\setup Unicode\" /Y
+xcopy Adapt_It.htb "..\setup Unicode Documentation Only\" /Y
 echo ===================================================
 echo Copy process completed.
 pause
