@@ -177,6 +177,8 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	for (ct = 0; ct < (int)subDirList.GetCount(); ct++)
 	{
 		dirPath = pathToLocalizationFolders + gpApp->PathSeparator + subDirList.Item(ct);
+		if (wxDir::Exists(dirPath + gpApp->PathSeparator + _T("LC_MESSAGES")))
+			dirPath = dirPath + gpApp->PathSeparator + _T("LC_MESSAGES");
 		wxDir dPath(dirPath);
 		wxLogDebug(_T("dirPath = %s appName = %s.mo"),dirPath.c_str(),appName.c_str());
 		if (dPath.Open(dirPath) && dPath.HasFiles(_T("*.mo")) && dPath.HasFiles(appName + _T(".mo")))

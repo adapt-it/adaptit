@@ -3051,6 +3051,7 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// According to the wx docs:
 	// Adapt It looks for its possible interface translations (localizations)
 	// at the following locations, depending on the OS:
+	// 
 	// - On Windows, there appears to be no well established location for localization files. 
 	// For example I looked at two wxWidgets based applications Poedit and Audacity.
 	// The Poedit program places its localization files in: 
@@ -3061,9 +3062,11 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// "Languages" subdirectory so that the localization subdirectories and files will be installed
 	// at:  "C:\Program Files\Adapt It WX\Languages\" or "C:\Program Files\Adapt It WX Unicode\Languages\"
 	// and Adapt It on the Windows port will look there.
+	// 
 	// - On Unix, the localization files are installed in "<prefix>/share/locale" so Adapt It 
 	// looks for localization <lang> subfolders and files in the /usr/share/locale/ subdirectory. The 
 	// <lang> subfolders have an additional LC_MESSAGES subfolder which contains the adaptit.mo files.
+	// 
 	// - On Mac OS X, localization files are installed in the "<appname>.app/Contents/Resources/locale" 
 	// bundle subdirectory, so Adapt It looks for localization <lang> subfolders and files in the 
 	// AdaptIt.app/Contents/Resources/locale bundle subdirectory. The <lang> subfolders also have an
@@ -3432,6 +3435,10 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 		}
 
 		dirPath = dirPath + PathSeparator + subDirList.Item(ct);
+		// check for existence of "LC_MESSAGES" subfolder within dirPath, and if it exists, search
+		// within it
+		if (wxDir::Exists(dirPath + PathSeparator + _T("LC_MESSAGES")))
+			dirPath = dirPath + PathSeparator + _T("LC_MESSAGES");
 		wxDir dPath(dirPath);
 		// whm Note: with wxDir we must call .Open() before enumerating files or calling IsOpen()! Otherwise it asserts on wxGTK!
 		if (dPath.Open(dirPath) && bNamesMatch && dPath.HasFiles(_T("*.mo")) && dPath.HasFiles(appName + _T(".mo")))
