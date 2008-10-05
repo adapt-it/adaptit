@@ -1177,7 +1177,7 @@ class CAdapt_ItApp : public wxApp
 	/// directories can be specified using the AUDACITY_PATH environment
 	/// variable.  On Windows or Mac OS, this will include the directory
 	/// which contains the Audacity program.  
-	wxArrayString adaptitPathList;
+	wxArrayString adaptitPathList; // TODO: Implement this!
 
 private:
     

@@ -177,7 +177,7 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		dirPath = pathToLocalizationFolders + gpApp->PathSeparator + subDirList.Item(ct);
 		wxDir dPath(dirPath);
 		wxLogDebug(_T("dirPath = %s appName = %s.mo"),dirPath.c_str(),appName.c_str());
-		if (dPath.HasFiles(_T("*.mo")) && dPath.HasFiles(appName + _T(".mo")))
+		if (dPath.Open(dirPath) && dPath.HasFiles(_T("*.mo")) && dPath.HasFiles(appName + _T(".mo")))
 		{
 			wxLogDebug(_T("   HasFiles TRUE"));
 			// The subdir has an <appName>.mo file, so see if we recognize the
@@ -402,6 +402,7 @@ void CChooseLanguageDlg::OnBrowseForPath(wxCommandEvent& WXUNUSED(event))
 		if (gpApp->PathHas_mo_LocalizationFile(selectedPath,_T(""))) // _T("") for param 2 means that any named subfolder is OK
 		{
 			gpApp->currLocalizationInfo.curr_localizationPath = selectedPath;
+			gpApp->m_localizationInstallPath = selectedPath; // save it here too
 			gpApp->m_pLocale->AddCatalogLookupPathPrefix(selectedPath);
 			// call InitDialog() to find and display the localizations at the new path selected
 			wxInitDialogEvent ievent;
@@ -498,6 +499,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 		gpApp->currLocalizationInfo.curr_shortName = _T("default");
 		gpApp->currLocalizationInfo.curr_fullName = _T("system default language");
 		gpApp->currLocalizationInfo.curr_localizationPath = gpApp->GetDefaultPathForLocalizationSubDirectories();
+		gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
 		return; // go back to the dialog in case the user wants to select a different language
 	}
 	m_strCurrentLanguage = pListBox->GetString(nSel);
@@ -557,6 +559,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 														pEditLocalizationPath->GetValue());
 		}
 		gpApp->currLocalizationInfo.curr_localizationPath = pEditLocalizationPath->GetValue();
+		gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
 	}
 	else
 	{
@@ -616,6 +619,7 @@ void CChooseLanguageDlg::OnOK(wxCommandEvent& event)
 				gpApp->currLocalizationInfo.curr_shortName = currLocInfo.curr_shortName;		// the dirStr of the subfolder where the .mo file was located
 				gpApp->currLocalizationInfo.curr_fullName = currLocInfo.curr_fullName;			// the name supplied by the user for this language localization
 				gpApp->currLocalizationInfo.curr_localizationPath = currLocInfo.curr_localizationPath; // the path shown in the path edit box
+				gpApp->m_localizationInstallPath = gpApp->currLocalizationInfo.curr_localizationPath; // save it here too
 				
 				// Update list to show user entered language name (curr_fullName). This name
 				// should also be loaded subsequently when tpi (curr_shortName) is found as a directory name.

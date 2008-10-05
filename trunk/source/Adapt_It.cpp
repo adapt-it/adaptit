@@ -3280,7 +3280,7 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
 	wxDir dir(initialPath);
 
 	wxASSERT(dir.IsOpened());
-	bool bGotOne = dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories
+	bool bGotOne = dir.Open(initialPath) && dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories
 	//wxLogDebug(_T("List of subDirs:"));
 	while (bGotOne)
 	{
@@ -3426,7 +3426,8 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 
 		dirPath = dirPath + PathSeparator + subDirList.Item(ct);
 		wxDir dPath(dirPath);
-		if (bNamesMatch && dPath.HasFiles(_T("*.mo")) && dPath.HasFiles(appName + _T(".mo")))
+		// whm Note: with wxDir we must call .Open() before enumerating files or calling IsOpen()! Otherwise it asserts on wxGTK!
+		if (dPath.Open(dirPath) && bNamesMatch && dPath.HasFiles(_T("*.mo")) && dPath.HasFiles(appName + _T(".mo")))
 		{
 			return TRUE;
 		}
@@ -4222,6 +4223,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 			currLocalizationInfo.curr_shortName = currLocInfo.curr_shortName;
 			currLocalizationInfo.curr_fullName = currLocInfo.curr_fullName;
 			currLocalizationInfo.curr_localizationPath = currLocInfo.curr_localizationPath;
+			m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 		}
 	}
 	else
@@ -4236,6 +4238,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 		currLocalizationInfo.curr_shortName = info->CanonicalName;
 		currLocalizationInfo.curr_fullName = info->Description;
 		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
+		m_localizationInstallPath = currLocalizationInfo.curr_localizationPath; // save it here too
 	}
 	// the CurrLocalizationInfo struct's members are now filled appropriately, so save the data
 	// in the m_pConfig configuration.
@@ -8714,7 +8717,7 @@ void CAdapt_ItApp::GetPossibleAdaptionDocuments(wxArrayString *pList, wxString d
 	// since it does not have a graceful way to return if dirPath is bad. See CDocPage.
 	wxDir finder;//CFileFind finder;
 
-	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath));
+	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
 		// think again!
@@ -8821,7 +8824,7 @@ bool CAdapt_ItApp::AreBookFoldersCreated(wxString dirPath)
 // to the passed in dirPath.
 {
 	wxDir finder;
-	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath));
+	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
 		wxMessageBox(_T(
@@ -8917,7 +8920,7 @@ void CAdapt_ItApp::GetPossibleAdaptionProjects(wxArrayString *pList)
 	wxString dirPath = m_workFolderPath;
 	wxDir finder;
 
-	bool bOK = ::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath);
+	bool bOK = ::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath); // wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
 		// oops, this is a fatal error, we can't go on
@@ -11104,7 +11107,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 		// NOTE: the code below is smart enough to ignore any user-created folders which are sisters
 		// of the Bible book folders for which the Adaptations folder is the common parent folder
 		wxDir finder; //CFileFind finder;
-		bool bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
+		bool bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath)); // wxDir must call .Open() before enumerating files!
 		if (!bOK)
 		{
 			wxString s1, s2, s3;
@@ -16786,7 +16789,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// NOTE: the code below is smart enough to ignore any user-created folders which are sisters
 			// of the Bible book folders for which the Adaptations folder is the common parent folder
 			wxDir finder;
-			bool bOK = (::wxSetWorkingDirectory(strOtherAdaptationsPath) && finder.Open(strOtherAdaptationsPath));
+			bool bOK = (::wxSetWorkingDirectory(strOtherAdaptationsPath) && finder.Open(strOtherAdaptationsPath)); // wxDir must call .Open() before enumerating files!
 			if (!bOK)
 			{
 				wxString s1, s2, s3;
