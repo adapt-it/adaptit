@@ -26451,7 +26451,7 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 			// of the Bible book folders for which the Adaptations folder is the common parent folder
 			int nCount;
 			wxDir finder;
-			bool bOK = (::wxSetWorkingDirectory(gpApp->m_curAdaptionsPath) && finder.Open(gpApp->m_curAdaptionsPath));
+			bool bOK = (::wxSetWorkingDirectory(gpApp->m_curAdaptionsPath) && finder.Open(gpApp->m_curAdaptionsPath)); // wxDir must call .Open() before enumerating files!
 			if (!bOK)
 			{
 				// highly unlikely, so English will do

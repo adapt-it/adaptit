@@ -686,7 +686,7 @@ void CCCTabbedDialog::GetPossibleCCTables(wxArrayString* pList)
 	wxString dirPath = m_folderPath[m_nCurPage];
 	wxDir finder;
 
-	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // whm added && finder.Open(dirPath)
+	bool bOK = (::wxSetWorkingDirectory(dirPath) && finder.Open(dirPath)); // wxDir must call .Open() before enumerating files!
 	if (!bOK)
 	{
 		// we might be working on a different machine, so the path on the current machine cannot
