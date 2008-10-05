@@ -3379,23 +3379,26 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the dirPath represents a subdirectory containing a "Languages" folder 
-///             which in turn contains localization folder(s) which contain an <appName>.mo 
-///             file
-/// \param      dirPath         -> the path to look for the "Languages" localization folder
+/// \return     TRUE if the dirPath represents a subdirectory containing a child or grandchild
+///             localization directory(s) which contain an <appName>.mo file
+/// \param      dirPath         -> the path to look for the <lang> localization subfolder
 /// \param      subFolderName = -> the name of a specific subfolder to contain <appName>.mo
 /// \remarks
 /// Called from: the App's LocalizationFilesExist() and CChooseLanguageDlg::OnBrowseForPath(). 
-/// Determines if dirPath has one or more subfolders which contain an <appName>.mo file. 
-/// The incoming dirPath would normally be the a path pointing to the "Languages" directory
-/// which in turn would contain at least one localization subfolder containing an <appName.mo 
-/// file. If subFolderName is not a null string, this function will only return TRUE if a
-/// subfolder exists at dirPath with the subFolderName. If subFolderName is a null string the
-/// function does not check the names of the localization subfolders, but only checks to 
-/// see if an <appName>.mo file can be found in at least one such subfolder.
+/// Determines if dirPath has one or more child or grandchild subfolders which contain an 
+/// <appName>.mo file. 
+/// The incoming dirPath would normally be the a path pointing to the "Languages" directory (on 
+/// Windows); or the /usr/share/locale/ directory on Linux; or /<appName.app/Contents/Resources
+/// directory on the Mac. These directory locations should contain at least one localization 
+/// <lang> subfolder containing an <appName.mo file. If subFolderName is not a null string, 
+/// this function will only return TRUE if a subfolder exists at dirPath with the subFolderName. 
+/// If subFolderName is a null string the function does not check the names of the localization 
+/// subfolders, but only checks to see if an <appName>.mo file can be found in at least one 
+/// such subfolder.
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFolderName)
 {
+	// TODO: Check of LC_MESSAGES as a child folder for each <lang> on dirPath under non-Windows ports.
 	if (dirPath.IsEmpty())
 		return FALSE;
 
