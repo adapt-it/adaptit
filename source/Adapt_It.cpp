@@ -3282,7 +3282,7 @@ void CAdapt_ItApp::GetListOfSubDirectories(const wxString initialPath, wxArraySt
 	::wxSetWorkingDirectory(initialPath);
 	wxDir dir(initialPath);
 
-	wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
+	//wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
 	wxASSERT(dir.IsOpened());
 	bool bGotOne = dir.Open(initialPath) && dir.GetFirst(&filename, _T(""), wxDIR_DIRS); // wxDIR_DIRS gets only directories
 	//wxLogDebug(_T("List of subDirs:"));
