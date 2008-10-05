@@ -1508,9 +1508,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// set the font used in the compose bar to the font & size for the target font
 	// Unlike the MFC version, the fonts haven't been created yet at this point,
 	// so I've moved the code that sets the composebar font and RTL to the App's OnInit().
-
-	//bool bOK;
-	//bOK = m_help.AddBook(wxFileName(gpApp->m_htbHelpFileName));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1786,13 +1783,20 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	int eID;
 	eID = event.GetId();
 	//ShowHelp(event.GetId(), *m_pHelpController);
+	wxString pathName = gpApp->m_helpInstallPath + gpApp->PathSeparator + gpApp->m_htbHelpFileName;
 	bool bOK;
-	bOK = m_pHelpController->AddBook(wxFileName(gpApp->m_htbHelpFileName));
+	bOK = m_pHelpController->AddBook(wxFileName(pathName));
+	if (!bOK)
+	{
+		wxString strMsg;
+		strMsg = strMsg.Format(_T("Adapt It could not add book contents to its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
+		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+	}
 	bOK = m_pHelpController->DisplayContents();
 	if (!bOK)
 	{
 		wxString strMsg;
-		strMsg = strMsg.Format(_T("Adapt It could not find its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),gpApp->m_helpInstallPath.c_str());
+		strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
 		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
 	}
 }

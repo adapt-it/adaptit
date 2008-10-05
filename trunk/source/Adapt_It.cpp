@@ -3223,14 +3223,17 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 {
 	// Adapt It looks for its HTML Help files at the following locations, depending on the OS:
+	// 
 	// - On Windows, there appears to be no well established location for HTML Help files. 
 	// For Windows the Html Help files will be installed together with the executable program at:  
 	// "C:\Program Files\Adapt It WX\ or C:\Program Files\Adapt It WX Unicode\" 
 	// and Adapt It on the Windows port will look there.
+	// 
 	// - On Unix, the Html Help files are installed in "/usr/share/adaptit/help/" which in turn 
 	// may contain a "common/" subdirectory with .gif and .css files (pointed to by the help files).
 	// The .../help/ subdirectory may also contain one or more <lang>/ folders which contain the
 	// .html .hhp .hhc help files for Adapt It.
+	// 
 	// - On Mac OS X, Html Help files are installed in the "AdaptIt.app/Contents/SharedSupport/"
 	// folder of the bundle subdirectory.
 	//
@@ -5390,8 +5393,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// wanted them to be managed by the doc/view framework.
 
 	// The following are for HTML Help
-    m_pHelpController = new wxHtmlHelpController(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES); //,(wxWindow*)GetMainFrame());
-    //m_pHelpController = new  wxHelpController; //(wxHF_DEFAULT_STYLE|wxHF_OPEN_FILES);
+    m_pHelpController = new wxHtmlHelpController(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES);
 	wxHelpControllerHelpProvider* provider = new wxHelpControllerHelpProvider;
 	wxHelpProvider::Set(provider);
     
@@ -5403,12 +5405,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Required for images in the online documentation
     wxInitAllImageHandlers(); // the help sample program does this, although it is not documented anywhere in wxWidgets!
-	//wxImage::AddHandler(new wxGIFHandler);
-	// Required for advanced HTML help
-	//wxFileSystem::AddHandler(new wxZipFSHandler);
+	// Note: There are also individual handlers, i.e., wxImage::AddHandler(new wxGIFHandler), 
+	// wxFileSystem::AddHandler(new wxZipFSHandler), etc., but ones used here are what the help sample uses.
+	
+    // Note: The docs for wxHelpController say, "Note that if you use .zip or .htb formats for your
+    // books, you must add this line to your application initialization: wxFileSystem::AddHandler(new
+    // wxArchiveFSHandler); or nothing will be shown in your help window."
 	wxFileSystem::AddHandler(new wxArchiveFSHandler); // docs say to use this one
-	// See the wxWidgets help sample which shows how to store the help window size, etc in a wxConfig
-	// manner using the ::UseConfig(wxConfig::Get()) method of 
 
 
     m_pMainFrame = new CMainFrame(m_pDocManager, (wxFrame*) NULL, -1, m_FrameAndDocProgramTitle,
