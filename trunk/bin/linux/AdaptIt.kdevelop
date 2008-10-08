@@ -17,7 +17,7 @@
   <kdevautoproject>
     <general>
       <activetarget>src/AdaptIt</activetarget>
-      <useconfiguration>default</useconfiguration>
+      <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
       <mainprogram>adaptit</mainprogram>
