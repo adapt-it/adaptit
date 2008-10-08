@@ -1,0 +1,23 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Filtering of information</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../Help.css">
+</head>
+<body>
+<h2>Filtering of information</h2>
+<p class="BodyText">The term <span class="Emphasis">filtering,</span> in Adapt It, refers to hiding of certain types of information so that it is not visible in the <span class="DefinedWord">adaptation</span> process. Filtered material is not normally necessary to the adaptation process, but provides additional information about the source text. Filtered information may be retrieved when needed. When Adapt It inputs a <a href="../../Adapt_It_Structure/File_Structure/File_Management/Standard_Format_Text_File.htm">standard format text file</a>, it applies certain filtering rules to the information in the file. Thus, some information is visible and some is hidden.</p>
+<p class="BodyText">Adapt It <span class="Emphasis">always</span> filters some text associated with certain standard format markers because this text never appropriate for adaptation. These markers include the <span class="Strong">\bt</span> markers associated with <span class="DefinedWord">back translation</span>, the <span class="Strong">\free</span> markers associated with <span class="DefinedWord">free translation</span>, and the <span class="Strong">\note</span> markers associated with <span class="DefinedWord">Adapt It Notes</span>, consultant or advisor notes, etc.</p>
+<p class="BodyText">Other markers are <span class="Emphasis">never</span> filtered. Most of these markers directly control or explain the text. They include <span class="Strong">\c</span> and <span class="Strong">\v</span> which are associated with chapter numbers and verse numbers. Other markers direct the formatting of the text such as <span class="Strong">\p</span> and <span class="Strong">\q</span> associated with marking paragraphs and quotations.</p>
+<p class="BodyText">Still other markers can be filtered according to the preference of the user. These include markers such as the <span class="Strong">\f</span> and <span class="Strong">\f*</span> footnote bracketing markers, the <span class="Strong">\s</span> section heading markers and many others. You have to decide if you want to see this material as part of the adaptation process. It is likely that you may want to filter these markers when you are just beginning the adaptation process. Footnotes, for example might confuse the translator if made visible too early. Later on, when beginning to prepare for publication, you may want to make the footnotes visible and then adapt them.</p>
+<p class="BodyText">You can set the filtering status of many standard format markers at any time using the <span class="UserInterface">Filtering</span> tab of the <span class="UserInterface">Preferences</span> dialog which is accessed from the <span class="UserInterface">Edit</span> menu. See <a href="../../User_Interface/Preferences/Filtering_tab.htm">Filtering tab</a> for more information.</p>
+<p class="BodyText">Adapt It always knows about where filtered material occurs in the text even if it is not visible. This is because filtered material is not actually removed, but merely hidden. Thus, Adapt It can always retrieve filtered material when needed.</p>
+<p class="BodyText">By default, Adapt It propagates or passes along filtered material when exporting documents as standard format text files. (See <a href="Propagation_of_filtered_information.htm">Propagation of filtered information</a> for more information.) The only exception is when you intentionally remove filtered material from the export using Adapt It&#39;s <a href="../Exporting/Export_filter_options.htm">Export Filter/Options</a> button.</p>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="../../Adapt_It_Concepts/Adapt_It_Advanced_Topics_Overview.htm">Adapt It advanced topics overview</a></p>
+<p class="BodyText"><a href="View_Filtered_Material.htm">Viewing and editing filtered material</a></p>
+<p class="BodyText"><a href="Preparing_to_use_filters.htm">Preparing to use filters</a></p>
+</body>
+</html>

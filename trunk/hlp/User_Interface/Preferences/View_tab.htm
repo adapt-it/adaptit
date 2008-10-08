@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>View tab</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../Help.css">
+</head>
+<body>
+<h2>View tab</h2>
+<p class="BodyText">The <span class="UserInterface">View</span> tab controls the appearance and the working conditions of the <span class="UserInterface">Main window</span>. In general you should not make any adjustments to these values unless you have a specific need.</p>
+<p class="BodyText">.<img src="../../Images/Preferences_View.png"></p>
+<h3>Maximum source words (or phrases) displayed at one time (60 to 4000)</h3>
+<p class="BodyText">This text box controls how many words or phrases are contained in a bundle. The larger the bundle the more scrolling you will have to do and the more computer memory used. Smaller bundles may not fill up the window and Adapt It will change bundles more often than with a larger bundle. You may have more trouble keeping track of your work. The default number of words and phrases is 300. With newer and faster computers, you can increase the bundle size without slowing down the process. You may find that your work is a little easier with a larger bundle size. Many computers can accommodate sizes up to 1000 words and phrases.</p>
+<h3>Minimum source words (or phrases) displayed in the preceding context (min 20, max 80)</h3>
+<p class="BodyText">Adapt It attempts to maintain a number of <a href="../AI_Main_Window/Components/Pile.htm">piles</a> around the current location of the <span class="UserInterface">Phrase box</span> in the <span class="UserInterface">Main window</span>. This is to maintain the context of the words for reading comprehension. This option maintains the minimum number of words preceding the <span class="UserInterface">Phrase box</span> shown in the <span class="UserInterface">Main window</span>. The default value is 50.</p>
+<h3>Minimum source words (or phrases) displayed in the following context (min 20, max 60)</h3>
+<p class="BodyText">Adapt It attempts to maintain a number of <a href="../AI_Main_Window/Components/Pile.htm">piles</a> around the current location of the <span class="UserInterface">Phrase box</span> in the <span class="UserInterface">Main window</span>. This is to maintain the context of the words for reading comprehension. This option maintains the minimum number of words following the <span class="UserInterface">Phrase box</span> shown in the <span class="UserInterface">Main window</span>. The default value is 30.</p>
+<h3>Vertical gap between multi-line text strips (in pixels, min 14, max 80)</h3>
+<p class="BodyText">This item controls the <span class="Emphasis">white space</span> between the <a href="../AI_Main_Window/Components/Strip.htm">strips</a> in the <span class="UserInterface">Main window</span>. The default value is 32 <span class="DefinedWord">pixels</span>. The larger the number the more vertical white space that is shown. Navigation text such as chapter and verse numbers and other standard format marker information is shown in this area. If you feel that the navigation text is too close to the strip above, increase the size of this setting.</p>
+<h3>Width of the inter-pile gap (in pixels, min 6 max 40)</h3>
+<p class="BodyText">This item controls the <span class="DefinedWord">white space</span> between the <span class="DefinedWord">piles</span> in a <span class="DefinedWord">strip</span>. The default value is 16 <span class="DefinedWord">pixels</span>. The larger the number the more horizontal white space that is shown.</p>
+<h3>Left margin (in pixels, min 6, max 40)</h3>
+<p class="BodyText">This item specifies the size of the left margin in the <span class="UserInterface">Main window</span>. In Adapt It Unicode, this item can be used to specify the size of the right margin, when the language reads right-to-left. The default value is 6.</p>
+<h3>Phrase Box white space slop and expansion multiplier (min 5, max 30)</h3>
+<p class="BodyText">This item controls the size of the <span class="UserInterface">Phrase box</span> and how much white space is available to enter more text into the <span class="UserInterface">Phrase box</span>. The default value is 8.</p>
+<h3>Font size for dialogs (min 10, max 24)</h3>
+<p class="BodyText">This item controls the size of the text in dialog boxes that Adapt It displays to do various tasks. Larger numbers make the size of the characters bigger. The default value is 12.</p>
+<h3>Suppress first source line</h3>
+<p class="BodyText">This checkbox acts in the same way as the <span class="UserInterface">Toggle number of source lines</span> icon <img src="../../Images/Toggle_number_of_Source_lines.gif"> in the <span class="UserInterface">Tool</span> bar. If the box is selected only one line of <span class="DefinedWord">source text</span> appears in each strip of the <span class="UserInterface">Main window</span>. If there is no check mark, both lines appear.</p>
+<h3>Suppress last target line</h3>
+<p class="BodyText">This checkbox acts in the same way as the <span class="UserInterface">Toggle number of target lines</span> icon <img src="../../Images/Toggle_number_of_Target_lines.gif"> in the <span class="UserInterface">Tool</span> bar. If the box is selected only one line of <span class="DefinedWord">target text</span> appears in each strip of the <span class="UserInterface">Main window</span>. If there is no check mark, both lines appear.</p>
+<h3>Make the Welcome window visible on startup.</h3>
+<p class="BodyText">This item controls whether or not the <span class="UserInterface">Adapt It Welcome</span> window appears when you start Adapt It. This item works with the <span class="UserInterface">Do not show this window in future</span> checkbox in the Welcome window. If the checkbox is selected, the window appears when you start Adapt It. If the checkbox is not selected, Adapt It goes directly to the <span class="UserInterface">Project</span> dialog.</p>
+<h3>Highlight automatically inserted translations.</h3>
+<p class="BodyText">This item controls whether or not the translations automatically inserted by Adapt It appear in a background color other than the default white. When selected, your automatically inserted translations have a light purple background. This colored background helps you to know which words were inserted since the last stationary position of the <span class="UserInterface">Phrase box</span>.</p>
+<h3>Choose Highlight Color</h3>
+<p class="BodyText">This command button works with the previous checkbox to determine the color of the highlighting of inserted translations. It opens the <span class="Strong">Color</span> dialog box. You can modify the color of inserted translations only at this point. See <a href="Managing_font_color.htm">Managing font color</a> for more information about the <span class="UserInterface">Color</span> dialog box.</p>
+<h4><img src="../../Note_Icon.gif">&nbsp;Note</h4>
+<ul>
+<li>
+<p class="BodyText">The settings for this dialog are saved in the <a href="../../Adapt_It_Structure/File_Structure/Config_files/General_Configuration_file.htm">general configuration file</a>, except for <span class="UserInterface">Font size for dialogs</span> which is saved in the <a href="../../Adapt_It_Structure/File_Structure/Config_files/Project_Configuration_file.htm">project configuration file</a>. This means that your settings are used every time you launch Adapt It, until you change the settings again using this dialog.</p>
+</li>
+</ul>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="Managing_Preferences.htm">Managing Preferences</a></p>
+</body>
+</html>

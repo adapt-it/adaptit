@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Set USFM Preferences</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../Help.css">
+</head>
+<body>
+<h2>Set USFM Preferences</h2>
+<p class="BodyText">To set or change the Standard Format Marker set used by Adapt It do the following steps:</p>
+<ol>
+<li>
+<p class="BodyText">Select <span class="UserInterface">Preferences</span>… from the <span class="UserInterface">Edit</span> menu. (You must have a document open).</p>
+<p class="BodyText">The <span class="UserInterface">Preferences</span> dialog appears (see an illustration of the <a href="../../User_Interface/Preferences/Preferences_dialog.htm">Preferences dialog</a>).</p>
+</li>
+<li>
+<p class="BodyText">Select the <span class="UserInterface">USFM</span> tab.</p>
+<p class="BodyText">The <span class="UserInterface">USFM</span> page appears (see an illustration of the <a href="../../User_Interface/Preferences/USFM_tab.htm">USFM tab</a>).</p>
+<p class="BodyText">The <span class="UserInterface">USFM</span> page displays three groups of settings:</p>
+<ul>
+<li>
+<p class="BodyText">Settings for the current document on the left</p>
+</li>
+<li>
+<p class="BodyText">Default settings for the current project in the middle</p>
+</li>
+<li>
+<p class="BodyText">Default factory settings on the right</p>
+</li>
+</ul>
+<p class="BodyText">You can change the current document&#39;s settings and the current project defaults, but you cannot change the factory defaults.</p>
+<p class="BodyText">The remaining steps assume you want to change the SFM set for the current document (the left set of buttons), but the steps apply equally well to the project defaults (middle set of buttons).</p>
+</li>
+<li>
+<p class="BodyText">Do one of the following:</p>
+<ul>
+<li>
+<p class="BodyText">Click on <span class="UserInterface">UBS USFM 2.0 Set Only</span> to use the USFM set of markers exclusively.</p>
+</li>
+<li>
+<p class="BodyText">Click on <span class="UserInterface">SILPNG 1998 Set Only</span> to use the older SIL Papua New Guinea set of markers exclusively.</p>
+</li>
+<li>
+<p class="BodyText">Click on <span class="UserInterface">Both UBS and SILPNG</span> to use both the USFM set and the older SIL PNG set of markers. (not recommended)</p>
+</li>
+</ul>
+</li>
+<li>
+<p class="BodyText">Click <span class="UserInterface">OK</span> to make any SFM set change effective, or <span class="UserInterface">Cancel</span> to quit without making any changes.</p>
+<p class="BodyText">If you change the SFM set, Adapt It automatically rebuilds the document so that the new set of markers is recognized and laid out appropriately for adaptation.</p>
+</li>
+</ol>
+<h4><img src="../../Warning_Icon.gif">&nbsp;Warning</h4>
+<ul>
+<li>
+<p class="BodyText">An arbitrary change in SFM set may result in a number of standard format markers in the document being unrecognized or unknown to the newly selected SFM set. Unknown markers will appear between question marks (?\xx?) in the navigation text line, the text associated with unknown markers will appear in a red colored font in the source text, and all unknown markers appear in the document&#39;s filter settings list with <span class="Strong">[UNKNOWN MARKER]</span> as their description.</p>
+</li>
+<li>
+<p class="BodyText">If by accident or while testing, you switch the SFM set to a selection that causes many markers to be unrecognized, simply return to the <span class="UserInterface">Preferences</span> <span class="UserInterface">USFM</span> tab again and select the more appropriate SFM set of markers.</p>
+</li>
+</ul>
+<h4><img src="../../Note_Icon.gif">&nbsp;Tip</h4>
+<ul>
+<li>
+<p class="BodyText">You may use the <span class="UserInterface">Both UBS and SILPNG</span> setting as a temporary measure if you want Adapt It to recognize markers from both sets. This might be helpful if an input text was only partly converted during a changeover from the SILPNG set to the UBS USFM set. Be aware, however, that there are a half dozen or so markers which conflict with each other, notably the <span class="Strong">\fe</span> marker which means &quot;begin endnote&quot; in the UBS USFM 2.0 set, but means &quot;end of footnote&quot; in the SILPNG set. Adapt It resolves conflicts in favor of the UBS USFM 2.0 marker set, but the result may not be what you expected. For this reason it is advisable to create documents that use one set of markers throughout, and avoid using the <span class="UserInterface">Both UBS and SILPNG</span> setting.</p>
+</li>
+<li>
+<p class="BodyText">If the text has footnotes or endnotes, you should ensure that all instances of footnotes and endnotes are marked correctly according to the USFM standard before using the data to create an Adapt It document.</p>
+</li>
+<li>
+<p class="BodyText">If you&#39;ve been using the SILPNG set of markers but choose to switch to USFM 2.0 with new documents you create, you can change the SFM set at any time to <span class="UserInterface">UBS USFM 2.0 Set Only</span> to recognize and fully utilize those markers.</p>
+</li>
+</ul>
+<h4><img src="../../Note_Icon.gif">&nbsp;Note</h4>
+<ul>
+<li>
+<p class="BodyText">Version 3 of Adapt It uses the newer USFM set by default for new projects and new documents. See <a href="../Standard_Format_Markings/USFM_overview.htm">USFM Overview</a> for more information.</p>
+</li>
+<li>
+<p class="BodyText">If you have upgraded Adapt It from version 2 to version 3, the first time you open the old version 2 files (files with an .adt extension) using version 3, Adapt It assumes your documents were created with version 2 which only supported the PNG SFM set. You can continue using the PNG SFM set with version 3.</p>
+</li>
+<li>
+<p class="BodyText">Changes involving the Standard Format Marker (SFM) set should be made here in the USFM page <span class="Strong">before</span> making any Filtering changes in the Filtering page.</p>
+</li>
+<li>
+<p class="BodyText">Normally the SFM set will be the same for all documents in your project, so <span class="UserInterface">This Document&#39;s Settings</span> (the left set of buttons) will normally have the same button selected for its SFM set as the selection in the <span class="UserInterface">Project Defaults</span> (the middle set of buttons). You may make the current document&#39;s SFM set different if you wish, but you should eventually insure that all documents in a project use the same SFM set that the overall project uses.</p>
+</li>
+</ul>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="USFM_overview.htm">USFM overview</a></p>
+<p class="BodyText"><a href="../Filtering/Set_filtering_preferences.htm">Set filtering preferences</a></p>
+</body>
+</html>

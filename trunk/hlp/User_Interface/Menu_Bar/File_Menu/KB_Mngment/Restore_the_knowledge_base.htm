@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Restore the knowledge base</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../../../Help.css">
+</head>
+<body>
+<h2>Restore the knowledge base</h2>
+<p class="BodyText">In the case that an Adapt It <span class="DefinedWord">knowledge base</span> has been corrupted or contains many obsolete adaptations, Adapt It provides a method to recreate a knowledge base from the <span class="DefinedWord">documents</span>. Since Adapt It documents contain adaptations that have already been made, all information stored in a project knowledge base is also contained in the project documents.</p>
+<p class="BodyText">To use the Adapt It restore tool to recreate a knowledge base from documents do the following:</p>
+<ol>
+<li>
+<p class="BodyText">Start Adapt It normally, until you reach the <span class="UserInterface">Document</span> dialog box.</p>
+<p class="BodyText"><img src="../../../../Images/Document_Dialog_Book_Off.PNG"></p>
+</li>
+<li>
+<p class="BodyText">Click <span class="UserInterface">Cancel</span>.</p>
+<p class="BodyText">Adapt It opens the project without opening any documents.</p>
+</li>
+<li>
+<p class="BodyText">If you wish to restore the adaptation knowledge base and not the glossing knowledge base skip to step 6.</p>
+</li>
+<li>
+<p class="BodyText">To restore the glossing knowledge base, select <span class="UserInterface">Allow Glossing</span> from the <span class="UserInterface">Advanced</span> menu.</p>
+</li>
+<li>
+<p class="BodyText">Click the <span class="UserInterface">Glossing</span> check box.</p>
+</li>
+<li>
+<p class="BodyText">In the File menu, select <span class="UserInterface">Restore</span> <span class="UserInterface">Knowledge Base</span>. (This option is not available if a document is open. Close the document if necessary.)</p>
+<p class="BodyText">A warning message box appears.</p>
+<p class="BodyText"><img src="../../../../Images/REBUILD_KNOWLEGE_BASE_MESSAGE.PNG"></p>
+</li>
+<li>
+<p class="BodyText">Click <span class="UserInterface">Yes</span> to proceed (or <span class="UserInterface">No</span> to quit the process).</p>
+<p class="BodyText">Adapt It displays the <span class="UserInterface">Remove Unwanted Files from the List</span> dialog box. This dialog box allows you to choose the files from which to build the new knowledge base. Remove only the files which might give invalid adaptations. The more files involved; the more complete the knowledge base. For instruction in using the dialog box see <a href="../../../Dialog_Boxes/Remove_Unwanted_Files_from_The_List.htm">Remove Unwanted Files from the List</a>.</p>
+<p class="BodyText">After completion, Adapt It presents another warning message box.</p>
+<p class="BodyText"><img src="../../../../Images/RESCUE_FORCE_CHOICE_MESSAGE.PNG"></p>
+</li>
+<li>
+<p class="BodyText">Click <span class="UserInterface">Yes</span> to proceed. (Click <span class="UserInterface">No</span> if the <span class="UserInterface">Yes</span> option causes the application to crash.)</p>
+<p class="BodyText">Adapt It displays a window showing the progress of the restoration process. (If your knowledge base is small you may not see this window.)</p>
+<p class="BodyText">The application then displays a completion dialog box that displays statistics on the restored knowledge base.</p>
+<p class="BodyText"><img src="../../../../Images/KNOWLEDGE_BASE_REBUILT_MESSAGE.PNG"></p>
+</li>
+<li>
+<p class="BodyText">Click <span class="UserInterface">OK</span> to complete the process.</p>
+<p class="BodyText">You may now use the <span class="UserInterface">File</span> menu to open a document.</p>
+</li>
+</ol>
+<h4><img src="../../../../Note_Icon.gif">&nbsp;Note</h4>
+<ul>
+<li>
+<p class="BodyText">If your current knowledge base contains obsolete entries that that are not in the documents, restoring the knowledge base rebuilds it with only adaptations or glosses that reside in the documents so obsolete adaptations or glosses are removed.</p>
+</li>
+<li>
+<p class="BodyText">If you have <a href="Importing_knowledge_base_entries.htm">imported knowledge base entries</a> that have not been used yet in any document, you will have to import them again.</p>
+</li>
+<li>
+<p class="BodyText">Another method to restore a knowledge base is to <a href="../../../../Knowledge_Base/Maintaining_a_KB/Rename_the_current_backup_file_to_become_a_knowledge_base_file.htm">rename the current backup file to become the knowledge base file</a></p>
+</li>
+<li>
+<p class="BodyText">If <a href="../../Tools_Menu/Automatic_capitalization_overview.htm">Automatic Capitalization</a> is <span class="Emphasis">on</span>, Adapt It restores the knowledge base with only lower case entries. All adaptations for both upper case and lower cases forms of a word are contained in the lower case entry.</p>
+</li>
+<li>
+<p class="BodyText">If <a href="../../Tools_Menu/Automatic_capitalization_overview.htm">Automatic Capitalization</a> is <span class="Emphasis">off</span>, Adapt It builds a separate entry for the upper case and lower case versions of the word. Thus, the upper case entry of the word contains only the adaptations found with the upper case word and the lower case entry contains only adaptations found with the lower case word.</p>
+</li>
+</ul>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="Knowledge_Base_management.htm">Knowledge base management</a></p>
+</body>
+</html>
