@@ -70,7 +70,7 @@ extern int	gnOldSequNum;
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
-// This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
 
 // This global is defined in Adapt_It.cpp.

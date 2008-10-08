@@ -55,10 +55,21 @@
 #include "Adapt_ItView.h"
 
 // globals for support of vertical editing
+
+/// A gray color used to mark the non-editable surrounding context when vertical editing of source text
+/// is in progress
 wxColor gMidGray = wxColour(128,128,128); //COLORREF gMidGray = (COLORREF)RGB(128,128,128);
+
+/// This global is defined in Adapt_It.cpp.
 extern EditRecord gEditRecord;
+
+/// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
+
+/// This global is defined in Adapt_ItView.cpp.
 extern EditStep gEditStep;
+
+/// A local pointer to the global gEditRecord defined in Adapt_It.cpp
 static EditRecord* pRec = &gEditRecord;
 
 /// This global is defined in Adapt_It.cpp.
