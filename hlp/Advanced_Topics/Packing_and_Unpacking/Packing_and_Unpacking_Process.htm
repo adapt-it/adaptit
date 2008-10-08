@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Packing and Unpacking Process</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../Help.css">
+</head>
+<body>
+<h2>Packing and Unpacking Process</h2>
+<p class="BodyText">The packing and unpacking process allows you to share work with other translators and translation projects. Packing of the document compresses it and all related data into a file so that it can be transferred. You can copy the file onto another computer and then unpack (decompress) it there. Adapt It handles the packing and unpacking process without work on your part. You have to handle transferring the file from one computer to another.</p>
+<p class="BodyText">When Adapt It packs a document, it creates a file with the name of the document and a filename extension of <span class="FileName">aip</span>. This file includes:</p>
+<ul>
+<li>
+<p class="BodyText">The <span class="FileName">XML</span> form of the document</p>
+</li>
+<li>
+<p class="BodyText">The project&#39;s configuration file</p>
+</li>
+<li>
+<p class="BodyText">Additional information needed to set up the document on the destination computer.</p>
+</li>
+</ul>
+<p class="BodyText">You can pack or unpack only one file time at a time. However, you can send many individual files to the destination computer. Each of the files can then be unpacked one by one. Once you have transferred all of the documents, you can use <a href="../../User_Interface/Menu_Bar/File_Menu/KB_Mngment/Restore_the_knowledge_base.htm">Restore the knowledge base</a> in the <span class="UserInterface">File</span> menu to build a new knowledge base.</p>
+<p class="BodyText">You can pack and send documents from different projects. When each document is unpacked on the destination machine, Adapt It determines whether or not the project is already on the destination machine. If the project exists, Adapt It puts it there. If not, Adapt It creates a new project folder to receive it.</p>
+<p class="BodyText">The <span class="UserInterface">Pack Document …</span> and <span class="UserInterface">Unpack Document …</span> options on the <span class="UserInterface">File</span> menu control the process.</p>
+<p class="BodyText">The process consists of three steps:</p>
+<ol>
+<li>
+<p class="BodyText"><a href="../../User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Pack_Document.htm">Pack the current document</a> into an <span class="FileName">.aip</span> file.</p>
+</li>
+<li>
+<p class="BodyText">Move the <span class="FileName">.aip</span> file to the destination computer by some form of removable media or network.</p>
+</li>
+<li>
+<p class="BodyText"><a href="../../User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Unpack_Document.htm">Unpack the .aip file</a> into Adapt It on the destination computer</p>
+</li>
+</ol>
+<h4>Notes</h4>
+<ul>
+<li>
+<p class="BodyText">To pack a document, it must be open in the main window of Adapt It.</p>
+</li>
+<li>
+<p class="BodyText"><span class="Emphasis">Adapt It does not pack the knowledge base</span>. To do so, would override any knowledge base on the destination computer.</p>
+<p class="BodyText">When you unpack a document Adapt It uses the knowledge base on the destination computer. If the destination computer does not contain a knowledge base for that project, Adapt It creates an empty one. An empty knowledge base does not affect your ability to see and work on an adapatation document.</p>
+</li>
+<li>
+<p class="BodyText"><span class="Emphasis">Documents packed by one Adapt It application cannot by unpacked by the other.</span> <span class="Strong">Adapt It</span> <span class="Strong">Regular</span> and <span class="Strong">Adapt It Unicode</span> check the packed file to see if the file was packed using the same Adapt It <span class="Emphasis">application</span>. If you attempt to use the wrong application to unpack the file, Adapt It gives a warning and does not allow you to continue.</p>
+<p class="BodyText">The <span class="DefinedWord">configuration files</span> used by the two applications are not compatible. The application would fail if it attempted to use the wrong type of configuration file.</p>
+</li>
+</ul>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="Packing_and_Unpacking_documents.htm">Packing and unpacking documents</a></p>
+<p class="BodyText"><a href="../../Knowledge_Base/Share_knowledge_bases_across_machines.htm">Share knowledge bases across machines</a></p>
+</body>
+</html>

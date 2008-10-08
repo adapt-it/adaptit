@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Using PGN SFM vs. USFM</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../Help.css">
+</head>
+<body>
+<h2>Using PGN SFM vs. USFM</h2>
+<p class="BodyText">You should determine which version of SFM to use in your project. Generally it is best to make this decision before attempting to use filters. For example, if you are well into a project and are simply upgrading to version 3 of Adapt It, you may wish to continue using PGN SFM which is the older and more limited set of SFM markers. However, if your are beginning a new project you may want Adapt It to use the newer and more complete set -- USFM. See <a href="../Standard_Format_Markings/USFM_overview.htm">USFM overview</a> for more information. Use the following guidelines in your decision:</p>
+<ul>
+<li>
+<p class="BodyText">Version 3 of Adapt It uses the newer USFM set by default for new projects and new documents.</p>
+</li>
+<li>
+<p class="BodyText">If you have upgraded Adapt It from version 2 to version 3, the first time you open the old version 2 files (files with an .adt extension) using version 3, Adapt It assumes your documents were created with version 2 which only supported the PNG SFM set. You can continue using the PNG SFM set with version 3. See <a href="../Standard_Format_Markings/USFM_overview.htm">USFM Overview</a> for more information.</p>
+</li>
+<li>
+<p class="BodyText">Changes involving the Standard Format Marker (SFM) set should be made in the <span class="UserInterface">USFM</span> tab of the <span class="UserInterface">Preferences</span> dialog <span class="Emphasis">before</span> making any Filtering changes in the Filtering page. See <a href="../../User_Interface/Preferences/USFM_tab.htm">USFM tab</a>.</p>
+</li>
+</ul>
+<h4><img src="../../Note_Icon.gif">&nbsp;Note</h4>
+<ul>
+<li>
+<p class="BodyText">Except in one circumstance (see the next item) Adapt It is quite forgiving about which set of filter markers you decide to use.</p>
+<ul>
+<li>
+<p class="BodyText">You can, for instance, change the set used in a document on the fly and Adapt It will lay out the document again using the alternate set; but doing so may produce undesirable results and the navigation text area may indicate that the markers are unknown. If you don’t like the results, just change back again.</p>
+</li>
+<li>
+<p class="BodyText">Changing the marker set does not change any of the markers actually in the source adaptation document itself; it only affects how Adapt It interprets each marker when it creates the adaptation document. Fortunately most of the commonly used markers in the PNG SFM set are unchanged in the USFM set.</p>
+</li>
+</ul>
+</li>
+<li>
+<p class="BodyText">One marker which is not compatible between the two marker sets is the \fe marker. In the PNG SFM set, this marker is interpreted as “end of footnote”; whereas in the USFM set, \fe is interpreted as the start of an endnote. In USFM the footnote end is indicated by \f*. Unfortunately, this difference of interpretation for \fe can cause Adapt It to create a malformed document after a marker set switch. If there is no \fe marker in the original source text file you can safely switch the marker set and no document corruption will result. But if you know the marker does occur in the source file, you need to determine how it should be interpreted and then select the appropriate marker set. Then do not switch the marker set after the document has been formed.</p>
+</li>
+<li>
+<p class="BodyText">If you switch marker sets and find that the resulting file has been corrupted, you need to begin again.</p>
+<ul>
+<li>
+<p class="BodyText">Exit from Adapt It.</p>
+</li>
+<li>
+<p class="BodyText">Use Windows Explorer to delete the file from the projects Adaptations folder.</p>
+</li>
+<li>
+<p class="BodyText">Open Adapt It and recreate the document from the original source text using the correct marker set.</p>
+</li>
+<li>
+<p class="BodyText">Readapt the document. (The knowledge base still contains adaptations you already created; all your work has not been lost.)</p>
+</li>
+</ul>
+</li>
+<li>
+<p class="BodyText">Adapt It permits you to choose both USFM and PNG SFM marker sets to apply in the one document. This is a potentially dangerous setting. Use it only when you know that the source text has been partially but not fully converted from the PNG SFM set to the USFM set. Under this condition, this setting may gave you a cleaner looking document to work with This setting interprets the \fe marker as “beginning of an endnote”).</p>
+</li>
+</ul>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="Preparing_to_use_filters.htm">Preparing to use filters</a></p>
+</body>
+</html>

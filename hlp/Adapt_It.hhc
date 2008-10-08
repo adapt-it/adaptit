@@ -1,0 +1,1591 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD>
+<BODY>
+   <OBJECT type="text/site properties">
+     <param name="Window Styles" value="0x800025">
+     <param name="comment" value="title:">
+     <param name="comment" value="base:">
+   </OBJECT>
+   <UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Glossary of Terms">
+            <param name="Local" value="glossary_of_terms.htm">
+          </OBJECT>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Using Adapt It">
+            <param name="Local" value="Using_Adapt_It.htm">
+          </OBJECT>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Adapt_It_Concepts">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="About Adapt It">
+               <param name="Local" value="Adapt_It_Concepts/About_Adapt_It.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adaptation versus Retranslation">
+               <param name="Local" value="Adapt_It_Concepts/Adaptation_versus_retranslation.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt It Advanced Topics Overview">
+               <param name="Local" value="Adapt_It_Concepts/Adapt_It_Advanced_Topics_Overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt It basic procedures">
+               <param name="Local" value="Adapt_It_Concepts/Adapt_It_basic_procedures.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt It Concepts Overview">
+               <param name="Local" value="Adapt_It_Concepts/Adapt_It_Concepts_Overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt It Process table">
+               <param name="Local" value="Adapt_It_Concepts/Adapt_It_Process_table.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Contact the authors">
+               <param name="Local" value="Adapt_It_Concepts/Contact_the_authors.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Exporting overview">
+               <param name="Local" value="Adapt_It_Concepts/Exporting_overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="How adaptation is done">
+               <param name="Local" value="Adapt_It_Concepts/How_adaptation_is_done.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="How Adapt It does adaptation">
+               <param name="Local" value="Adapt_It_Concepts/How_Adapt_It_does_adaptation.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Importing overview">
+               <param name="Local" value="Adapt_It_Concepts/Importing_overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Knowledge base overview">
+               <param name="Local" value="Adapt_It_Concepts/Knowledge_base_overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Phrase">
+               <param name="Local" value="Adapt_It_Concepts/Phrase.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Project overview">
+               <param name="Local" value="Adapt_It_Concepts/Projects_overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Punctuation overview">
+               <param name="Local" value="Adapt_It_Concepts/Punctuation_overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Retranslation">
+               <param name="Local" value="Adapt_It_Concepts/Retranslation.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Source, target, gloss, and navigation text">
+               <param name="Local" value="Adapt_It_Concepts/Source_target_gloss_and_navigation_text.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="What tasks can Adapt It do">
+               <param name="Local" value="Adapt_It_Concepts/What_tasks_can_Adapt_It_do.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Basic_work_procs">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Advance the Phrase Box">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Advance_the_phrase_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Advance to the end of the document">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Advance_to_the_end_of_the_document.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Advance to the end of the document">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Copy of Advance_to_the_end_of_the_document.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Leaving source words untranslated">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Leaving_source_words_untranslated.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Move back to previous phrase box location">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Move_back_to_previous_phrase_box_location.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Move back to the start of the document">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Move_back_to_the_start_of_the_document.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Selecting source text">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Selecting_source_text.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Special Keys Used For Controlling Adapt It">
+                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Special_Keys_Used_For_Controlling_Adapt_It.htm">
+                </OBJECT>
+         </UL>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Adapt_It_Structure">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt It Structure Overview">
+               <param name="Local" value="Adapt_It_Structure/Adapt_It_Structure_Overview.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="File_Structure">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Adapt It document files">
+                  <param name="Local" value="Adapt_It_Structure/File_Structure/Adapt_It_document_files.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Adapt It file overview">
+                  <param name="Local" value="Adapt_It_Structure/File_Structure/Adapt_It_file_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Config_files">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Configuration files">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/Config_files/Configuration_files.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="General Configuration file">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/Config_files/General_Configuration_file.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Project Configuration file">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/Config_files/Project_Configuration_file.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="File_Management">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Adapt It document format (ADT)">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/Adapt_It_document_format.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="ANSI data vs. Unicode data">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/ansi_data_versus_unicode_data.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Data formats acceptable to Adapt It">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/Data_formats_acceptable_to_Adapt_It.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Plain text format (TXT)">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/Plain_text_format.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Rich text format (RTF)">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/Rich_text_format.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Standard Format Text File">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/Standard_Format_Text_File.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="XML Documents and KBs">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/XML_Documents_and_KBs.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="XML in Adapt It">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/File_Management/XML_in_Adapt_It.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Folders">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="The Adapt It Folder Organization">
+                     <param name="Local" value="Adapt_It_Structure/File_Structure/Folders/The_Adapt_It_Folder_Organization.htm">
+                   </OBJECT>
+            </UL>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Proj_and_Docs">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Book folders mode">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Book_folders_mode.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Book folders overview">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Book_folders_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Book Identifier Codes">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Book_Identifier_Codes.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Book Identifier Code Table">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Book_Identifier_Code_Table.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Changing the book folder structure">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Changing_the_book_folder_structure.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create a document using Start Working...">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/create_a_document_using_start_working.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Creating a new document">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/creating_a_new_document.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="UI_Structure">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="The Adapt It user interface">
+                  <param name="Local" value="Adapt_It_Structure/UI_Structure/Adapt_It_user_interface.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="The Adapt It user interface control bars">
+                  <param name="Local" value="Adapt_It_Structure/UI_Structure/Adapt_It_user_interface_control_bars.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Navigation text">
+                  <param name="Local" value="Adapt_It_Structure/UI_Structure/Navigation_text.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Punctuation Correspondence table">
+                  <param name="Local" value="Adapt_It_Structure/UI_Structure/Punctuation_Correspondence_table.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Strips, piles, and cells">
+                  <param name="Local" value="Adapt_It_Structure/UI_Structure/Strips_piles_and_cells.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Toolbars">
+                  <param name="Local" value="Adapt_It_Structure/UI_Structure/Toolbars.htm">
+                </OBJECT>
+         </UL>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Advanced_Topics">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt_It_and_Keyman">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using Adapt It and Keyman">
+                  <param name="Local" value="Advanced_Topics/Adapt_It_and_Keyman/Using_Adapt_It_and_Keyman.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Back_Translation">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Back translation overview">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Back_translation_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Collecting filtered back translations">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Collecting_filtered_back_translations.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Collect back translations">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Collect_back_translations.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create a gloss line literal back translation">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Create_a_gloss_line_literal_back_translation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create a separate back translation project">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Create_a_separate_back_translation_project.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Creating back translations">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Creating_back_translations.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Viewing and editing filtered back translations">
+                  <param name="Local" value="Advanced_Topics/Back_Translation/Viewing_and_editing_filtered_back_translations.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Consistent_Changes">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Accept changes without stopping">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Accept_changes_without_stopping.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Consistent Changes overview">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Consistent_changes_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create Consistent Changes Tables">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Create_consistent_changes_tables.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit Consistent Changes Tables">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Edit_Consistent_Changes_Tables.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Load Consistent Changes…">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Load_consistent_changes.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Load multiple changes tables">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Load_multiple_changes_tables.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Unload Consistent Changes">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Unload_Consistent_Changes.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Use Consistent Changes">
+                  <param name="Local" value="Advanced_Topics/Consistent_Changes/Use_consistent_changes.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Exporting">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Change Export Filter/Options for interlinear (RTF) texts">
+                  <param name="Local" value="Advanced_Topics/Exporting/Change_export_filter_options_for_interlinear_texts.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Change Export Filter/Options for source or target texts (RTF)">
+                  <param name="Local" value="Advanced_Topics/Exporting/Change_export_filter_options_for_src_or_tgt_rtf_texts.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Change Export Filter/Options for source or target texts in standard format (SFM)">
+                  <param name="Local" value="Advanced_Topics/Exporting/Change_export_filter_options_for_src_or_tgt_sfm_texts.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Example of exported interlinear text with filtered material">
+                  <param name="Local" value="Advanced_Topics/Exporting/exported_interlinear_text_with_filtered_material.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Example of exported source or target text including filtered material">
+                  <param name="Local" value="Advanced_Topics/Exporting/Exported_text_including_filtered_material.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Example of exported source or target text including filtered material (RTF)">
+                  <param name="Local" value="Advanced_Topics/Exporting/Exported_text_including_filtered_material_RTF.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Export Filter Options">
+                  <param name="Local" value="Advanced_Topics/Exporting/Export_filter_options.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Placement of filtered material in source or target RTF exports">
+                  <param name="Local" value="Advanced_Topics/Exporting/filtered_material_in_interlinear_RTF_exports.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Placement of filtered material in source or target RTF exports">
+                  <param name="Local" value="Advanced_Topics/Exporting/filtered_material_in_source-target_RTF_exports.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Interlinear Text Sample">
+                  <param name="Local" value="Advanced_Topics/Exporting/Interlinear_text_samples.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Interlinear text sample (with free and back translation)">
+                  <param name="Local" value="Advanced_Topics/Exporting/Interlinear_text_with_free_and_back_translation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Interlinear Text Sample (with Free Translation)">
+                  <param name="Local" value="Advanced_Topics/Exporting/Interlinear_text_with_free_translation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using exported texts and documents overview">
+                  <param name="Local" value="Advanced_Topics/Exporting/Using_exported_texts_and_documents_overview.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Filtering">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Choosing what will be filtered">
+                  <param name="Local" value="Advanced_Topics/Filtering/Choosing_what_will_be_filtered.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Filtering of information">
+                  <param name="Local" value="Advanced_Topics/Filtering/Filtering_of_information.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Preparing to use filters">
+                  <param name="Local" value="Advanced_Topics/Filtering/Preparing_to_use_filters.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Propagation of filtered information">
+                  <param name="Local" value="Advanced_Topics/Filtering/Propagation_of_filtered_information.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Set filtering preferences">
+                  <param name="Local" value="Advanced_Topics/Filtering/Set_filtering_preferences.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using PGN SFM vs. USFM">
+                  <param name="Local" value="Advanced_Topics/Filtering/Using_PGN_SFM_vs_USFM.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Viewing and editing filtered material">
+                  <param name="Local" value="Advanced_Topics/Filtering/Viewing_and_editing_filtered_material.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Free_Translation">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create a free translation">
+                  <param name="Local" value="Advanced_Topics/Free_Translation/Create_a_free_translation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Free translation compose bar and navigation buttons">
+                  <param name="Local" value="Advanced_Topics/Free_Translation/Free_translation_compose_bar_and_navigation_buttons.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Free translation mode">
+                  <param name="Local" value="Advanced_Topics/Free_Translation/Free_translation_mode.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Free translation overview">
+                  <param name="Local" value="Advanced_Topics/Free_Translation/Free_translation_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Propagation of filtered free translations">
+                  <param name="Local" value="Advanced_Topics/Free_Translation/Propagation_of_filtered_free_translations.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Free translation compose bar buttons">
+                  <param name="Local" value="Advanced_Topics/Free_Translation/Using_the_Free_translation_compose_bar_buttons.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Glossing">
+               <param name="Local" value="Advanced_Topics/Glossing/Glossing.htm">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create a glossed text">
+                  <param name="Local" value="Advanced_Topics/Glossing/Create_a_gloss_text.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Glossing mode">
+                  <param name="Local" value="Advanced_Topics/Glossing/Glossing_mode.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Glossing overview">
+                  <param name="Local" value="Advanced_Topics/Glossing/Glossing_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Sample linguistic glosses">
+                  <param name="Local" value="Advanced_Topics/Glossing/Sample_linguistic_glosses.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Transform Adaptations Into Glosses">
+                  <param name="Local" value="Advanced_Topics/Glossing/Transform_adaptations_into_glosses.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Notes">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Adapt It Notes overview">
+                  <param name="Local" value="Advanced_Topics/Notes/Adapt_It_Notes_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="An illustration of the Note dialog">
+                  <param name="Local" value="Advanced_Topics/Notes/An_illustration_of_the_Note_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Delete a note">
+                  <param name="Local" value="Advanced_Topics/Notes/Delete_a_Note.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit a note">
+                  <param name="Local" value="Advanced_Topics/Notes/Edit_a_Note.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Navigate through the notes in a document">
+                  <param name="Local" value="Advanced_Topics/Notes/Navigate_through_the_notes_in_a_document.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="View a note">
+                  <param name="Local" value="Advanced_Topics/Notes/View_a_note.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Packing_and_Unpacking">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Packing and Unpacking documents">
+                  <param name="Local" value="Advanced_Topics/Packing_and_Unpacking/Packing_and_Unpacking_documents.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Packing and Unpacking Process">
+                  <param name="Local" value="Advanced_Topics/Packing_and_Unpacking/Packing_and_Unpacking_Process.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Right_to_Left_Language_Layout">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using right to left language layout">
+                  <param name="Local" value="Advanced_Topics/Right_to_Left_Language_Layout/Using_right_to_left_language_layout.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Standard_Format_Markings">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Set USFM Preferences">
+                  <param name="Local" value="Advanced_Topics/Standard_Format_Markings/Set_USFM_Preferences.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Standard Format Markers (SFM)">
+                  <param name="Local" value="Advanced_Topics/Standard_Format_Markings/Standard_Format_Markers.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="USFM Overview">
+                  <param name="Local" value="Advanced_Topics/Standard_Format_Markings/USFM_overview.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Unicode">
+               <param name="Local" value="Advanced_Topics/Unicode/Unicode.htm">
+             </OBJECT>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Getting_Started">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adapt It (Regular) versus Adapt It Unicode">
+               <param name="Local" value="Getting_Started/Adapt_It_Regular_versus_Adapt_It_Unicode.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Installing Adapt It">
+               <param name="Local" value="Getting_Started/Installing_Adapt_It.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Launching Adapt It the first time">
+               <param name="Local" value="Getting_Started/Launching_Adapt_It_the_first_time.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Open a Previously Created Project">
+               <param name="Local" value="Getting_Started/Opening_a_Previously_Created_Project.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="The Startup Wizard">
+               <param name="Local" value="Getting_Started/The_Startup_Wizard.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="The Start Working... wizard">
+               <param name="Local" value="Getting_Started/The_Start_Working_Wizard.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Launching_Adapt_It">
+               <param name="Local" value="Getting_Started/Launching_Adapt_It/Launching_Adapt_It.htm">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Case dialog">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/Case_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Create a project">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/Create_a_project.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Filtering dialog">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/Filtering_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Fonts dialog">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/Fonts_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Non-Unicode Fonts dialog">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/Non_Unicode_Fonts_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Punctuation dialog">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/Punctuation_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="USFM dialog">
+                  <param name="Local" value="Getting_Started/Launching_Adapt_It/USFM_dialog.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Project_Preparation">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Setting up a project">
+                  <param name="Local" value="Getting_Started/Project_Preparation/Setting_up_a_project.htm">
+                </OBJECT>
+         </UL>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Images">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Viewing and editing filtered back translations">
+               <param name="Local" value="Images/Viewing_and_editing_filtered_back_translations.htm">
+             </OBJECT>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Knowledge_Base">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adaptation knowledge base">
+               <param name="Local" value="Knowledge_Base/Adaptation_knowledge_base.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Glossing knowledge base">
+               <param name="Local" value="Knowledge_Base/Glossing_knowledge_base.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Share knowledge bases across machines">
+               <param name="Local" value="Knowledge_Base/Share_knowledge_bases_across_machines.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Editing_a_KB">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Editing a knowledge base">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Editing_a_knowledge_base.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit, add, or rearrange translations">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Edit_Add_or_Rearrange_Translations.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit and arrange command buttons">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Edit_and_arrange_command_buttons.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Force making a translation choice">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Force_Making_a_Translation_Choice.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Preparing knowledge base entries in a word processor">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Preparing_knowledge_base_entries_in_a_word_processor.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Removing knowledge base entries">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Removing_knowledge_base_entries.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Retrieving words and phrases from the knowledge base">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Retrieving_words_and_phrases_from_the_knowledge_base.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Select a knowledge base translation">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Select_a_KB_Translation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Select phrase by number of words">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Select_phrase_by_number_of_words.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Select a specific knowledge base phrase">
+                  <param name="Local" value="Knowledge_Base/Editing_a_KB/Select_Specific_KB_Phrase.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Maintaining_a_KB">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Backup the knowledge base">
+                  <param name="Local" value="Knowledge_Base/Maintaining_a_KB/Backup_the_knowledge_base.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Rename the current backup file to become a knowledge base file">
+                  <param name="Local" value="Knowledge_Base/Maintaining_a_KB/Rename_the_current_backup_file_to_become_a_knowledge_base_file.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Restore a knowledge base">
+                  <param name="Local" value="Knowledge_Base/Maintaining_a_KB/Restore_a_knowledge_base.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Saving knowledge bases">
+                  <param name="Local" value="Knowledge_Base/Maintaining_a_KB/Saving_Knowledge_Bases.htm">
+                </OBJECT>
+         </UL>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="User_Interface">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="AI_Main_Window">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Direct adaptation">
+                  <param name="Local" value="User_Interface/AI_Main_Window/Direct_adaptation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Main window">
+                  <param name="Local" value="User_Interface/AI_Main_Window/Main_window.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Modifying adaptations for syntactical purposes">
+                  <param name="Local" value="User_Interface/AI_Main_Window/Modifying_adaptations_for_syntactical_purposes.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Retranslating passages">
+                  <param name="Local" value="User_Interface/AI_Main_Window/Retranslating_passages.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Splitting the window">
+                  <param name="Local" value="User_Interface/AI_Main_Window/Splitting_the_window.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Components">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Active location">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Active_location.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Bundles">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Bundles.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Cell">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Cell.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Changing the Bundle Size">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Changing_the_bundle_size.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Hole">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Hole.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Moving to a new bundle">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Moving_to_a_new_bundle.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Pile">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Pile.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Placeholder">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Placeholder.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Strip">
+                     <param name="Local" value="User_Interface/AI_Main_Window/Components/Strip.htm">
+                   </OBJECT>
+            </UL>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Compose_bar">
+               <param name="Local" value="User_Interface/Compose_bar/Compose_bar.htm">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Opening the Compose bar">
+                  <param name="Local" value="User_Interface/Compose_bar/Opening_the_Compose_bar.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Compose bar">
+                  <param name="Local" value="User_Interface/Compose_bar/Using_the_Compose_bar.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Dialog_Boxes">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Choose a Book folder dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Choose_a_Book_folder_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Document dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Document_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit or examine the knowledge base dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Edit_or_Examine_the_Knowledge_Base dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Move a document dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Move_a_document_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Number of Copies">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Number_of_Copies.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Printer">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Print_dialog_box_Printer.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Print range">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Print_dialog_box_Print_range.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Print Setup Dialog Box">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Print_Setup_Dialog Box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Remove Unwanted Files from The List">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Remove_Unwanted_Files_from_The_List.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Choose Translation dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Choose_Translation_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Export RTF Interlinear Document dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Export_RTF_Interlinear_Document_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Inconsistency Found Dialog Box">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Inconsistency_Found_Dialog_Box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Note dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Note_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Page Setup dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Page_Setup_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Print dialog box">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Print_dialog_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Print Setup dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_Print_Setup_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the View Translations or Glosses Elsewhere dialog">
+                  <param name="Local" value="User_Interface/Dialog_Boxes/Using_the_View_Translations_or_Glosses_Elsewhere_dialog.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Menu_Bar">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Menus">
+                  <param name="Local" value="User_Interface/Menu_Bar/Menu_ Bar.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Advanced_Menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Advanced_Menu.htm">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Back translation management">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Back_translation_management.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Free translation management">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Free_translation_management.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Glossing management">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Glossing_Management.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Miscellaneous advanced options">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Miscellaneous_advanced_options.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Remove filtered back translations">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Remove_filtered_back_translations.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Remove filtered free translations">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Remove_filtered_free_translations.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Set a Delay for Automatic Insertions">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Set_a_delay_for_automatic_insertions.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Use Synchronized scrolling">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Use_Synchronized_scrolling.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Use Transliteration Mode">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Use_Transliteration_Mode.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Using a default free translation">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Using_a_default_free_translation.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Using Book folders">
+                     <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Using_Book_folders.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit_Menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Edit_Menu.htm">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Consistency checking">
+                     <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Consistency_checking.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Edit Source text">
+                     <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Edit_Source_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Go to">
+                     <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Go_to.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Moving notes">
+                     <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Moving_notes.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Undo">
+                     <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Undo.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="File_Menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/File_Menu/File_Menu.htm">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Doc_Mngment">
+                   </OBJECT>
+               <UL>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Close">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Close.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Document management">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Document_management.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Export Interlinear Text">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Export_Interlinear_Text.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Export Source Text">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Export_Source_Text.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Export Target Text">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Export_Target_Text.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="New">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/New.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Open">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Open.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Pack Document">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Pack_Document.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Save">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Save.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Save Documents and KB As XML">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Save_Documents_and_KB_As_XML.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Unpack Document">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Doc_Mngment/Unpack_Document.htm">
+                      </OBJECT>
+               </UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Exit">
+                     <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Exit/Exit.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="KB_Mngment">
+                   </OBJECT>
+               <UL>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Check knowledge base integrity">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/KB_Mngment/Check_knowledge_base_integrity.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Exporting knowledge base entries">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/KB_Mngment/Exporting_knowledge_base_entries.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Importing knowledge base entries">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/KB_Mngment/Importing_knowledge_base_entries.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Knowledge Base management">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/KB_Mngment/Knowledge_Base_management.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Restore the knowledge base">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/KB_Mngment/Restore_the_knowledge_base.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Save knowledge base manually">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/KB_Mngment/Save_knowledge_ base_manually.htm">
+                      </OBJECT>
+               </UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Print_Mngment">
+                   </OBJECT>
+               <UL>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Page Setup">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Print_Mngment/Page_Setup.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Print">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Print_Mngment/Print.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Print management">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Print_Mngment/Print_management.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Print Preview">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Print_Mngment/Print_Preview.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Print Setup">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Print_Mngment/Print_Setup.htm">
+                      </OBJECT>
+               </UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Proj_Mngment">
+                   </OBJECT>
+               <UL>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Close a project">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Proj_Mngment/Close_a_project.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Project management">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Proj_Mngment/Project_management.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Using Start Working">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Proj_Mngment/Using_Start_Working.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Using Start Working for Documents">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Proj_Mngment/Using_Start_Working_for_Documents.htm">
+                      </OBJECT>
+                  <LI><OBJECT type="text/sitemap">
+                        <param name="Name" value="Using Start Working for Projects">
+                        <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Proj_Mngment/Using_Start_Working_for_Projects.htm">
+                      </OBJECT>
+               </UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Recent_Documents">
+                     <param name="Local" value="User_Interface/Menu_Bar/File_Menu/Recent_Documents/Recent_Documents.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Help_menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/Help_menu/Help_menu.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Layout_Menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/Layout_Menu/Layout_Menu.htm">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Change the text direction">
+                     <param name="Local" value="User_Interface/Menu_Bar/Layout_Menu/Change_the_text_direction.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Tools_Menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Tools_Menu.htm">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Automatic Capitalization overview">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Automatic_capitalization_overview.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Automatic Capitalization warning messages">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Automatic_Capitalization_warning_messages.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Consistent changes section">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Consistent_changes_section.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find and Replace dialog">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_and_Replace_dialog.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find in source and translated text">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_and_replace_in_source_and_translated_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find and replace in translated text">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_and_replace_in_translated_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find and Replace section">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_and_Replace_section.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find dialog">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_dialog.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find in source and translated text">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_in_source_and_translated_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find in source text">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_in_source_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Find in translated text">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_in_translated_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Join documents">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Join_documents.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Retranslation report">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Retranslation_report.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="SIL Converters overview">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/SIL_converters_overview.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="SIL_Converters_section">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/SIL_converters_section.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Special search dialog">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Special_search_dialog.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Split a document">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Split_a_document.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Split, Join, or Move document section">
+                     <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Split_join_move_document_section.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="View_Menu">
+                  <param name="Local" value="User_Interface/Menu_Bar/View_Menu/View_Menu.htm">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Prevent source text from being copied to the phrase box">
+                     <param name="Local" value="User_Interface/Menu_Bar/View_Menu/Prevent_source_text_ from_being_copied_to_the_phrase_box.htm">
+                   </OBJECT>
+            </UL>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Mode_Bar">
+               <param name="Local" value="User_Interface/Mode_Bar/Mode_Bar.htm">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Automatic_Checkbox">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Automatic Mode">
+                     <param name="Local" value="User_Interface/Mode_Bar/Automatic_Checkbox/Automatic_mode.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Automatic mode process">
+                     <param name="Local" value="User_Interface/Mode_Bar/Automatic_Checkbox/Automatic_mode_process.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Single step mode">
+                     <param name="Local" value="User_Interface/Mode_Bar/Automatic_Checkbox/Single_step_mode.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Single Step mode process">
+                     <param name="Local" value="User_Interface/Mode_Bar/Automatic_Checkbox/Single_step_mode_process.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Drafting_Option_box">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Drafting mode">
+                     <param name="Local" value="User_Interface/Mode_Bar/Drafting_Option_box/drafting_mode.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Force_Choice_Checkbox">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Using the Force Choice For This Item checkbox">
+                     <param name="Local" value="User_Interface/Mode_Bar/Force_Choice_Checkbox/Using_the_Force_Choice_For_This_Item_Checkbox.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="No_Adaptation_Command">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="The &lt;no adaptation&gt; button.">
+                     <param name="Local" value="User_Interface/Mode_Bar/No_Adaptation_Command/the_ no_adaptation_button.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Reviewing_Option_box">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Reviewing mode">
+                     <param name="Local" value="User_Interface/Mode_Bar/Reviewing_Option_box/Reviewing_mode.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Save_to_Knowledge_Base_Checkbox">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Clear the Save To Knowledge Base checkbox.">
+                     <param name="Local" value="User_Interface/Mode_Bar/Save_to_Knowledge_Base_Checkbox/Clear_the_Save_To_Knowledge_Base_checkbox.htm">
+                   </OBJECT>
+            </UL>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Phrase_Box">
+               <param name="Local" value="User_Interface/Phrase_Box/Phrase_Box.htm">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Accepting Adapt It’s adaptation">
+                  <param name="Local" value="User_Interface/Phrase_Box/Accepting_Adapt_ Its_adaptation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Delete the target text">
+                  <param name="Local" value="User_Interface/Phrase_Box/Delete_the_target_ text.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Edit within the Phrase Box">
+                  <param name="Local" value="User_Interface/Phrase_Box/Edit_within_the_phrase_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Insert a placeholder">
+                  <param name="Local" value="User_Interface/Phrase_Box/Insert_a_placeholder.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Make a phrase">
+                  <param name="Local" value="User_Interface/Phrase_Box/Make_a_phrase.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Manual movement of phrase box">
+                  <param name="Local" value="User_Interface/Phrase_Box/Manual_movement_of_phrase_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Moving the phrase box">
+                  <param name="Local" value="User_Interface/Phrase_Box/Moving_the_phrase_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Placeholder">
+                  <param name="Local" value="User_Interface/Phrase_Box/Placeholder.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Placement of Phrase-medial punctuation">
+                  <param name="Local" value="User_Interface/Phrase_Box/Placement_Of_Phrase-Medial_Punctuation.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Type into the phrase box">
+                  <param name="Local" value="User_Interface/Phrase_Box/Type_into_the_ phrase_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Unmake a phrase">
+                  <param name="Local" value="User_Interface/Phrase_Box/Unmake_a_phrase.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Using the Phrase Box">
+                  <param name="Local" value="User_Interface/Phrase_Box/Using_the_Phrase_Box.htm">
+                </OBJECT>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Preferences">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Auto-saving tab">
+                  <param name="Local" value="User_Interface/Preferences/Auto_saving_tab.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Backups and KB tab">
+                  <param name="Local" value="User_Interface/Preferences/Backups_and_KB_tab.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Filtering tab">
+                  <param name="Local" value="User_Interface/Preferences/Filtering_tab.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Fonts tab">
+                  <param name="Local" value="User_Interface/Preferences/Fonts_tab.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Lower to Upper Case Equivalences">
+                  <param name="Local" value="User_Interface/Preferences/Lower_to_Upper_Case_Equivalences.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Managing fonts">
+                  <param name="Local" value="User_Interface/Preferences/managing_fonts.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Managing font color">
+                  <param name="Local" value="User_Interface/Preferences/Managing_font_color.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Managing font type and size">
+                  <param name="Local" value="User_Interface/Preferences/Managing_font_type_and_size.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Preferences">
+                  <param name="Local" value="User_Interface/Preferences/Managing_Preferences.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Preferences dialog">
+                  <param name="Local" value="User_Interface/Preferences/Preferences_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Unicode Preferences dialog">
+                  <param name="Local" value="User_Interface/Preferences/Unicode_preferences_dialog.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="USFM tab">
+                  <param name="Local" value="User_Interface/Preferences/USFM_tab.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="View tab">
+                  <param name="Local" value="User_Interface/Preferences/View_tab.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Punctuation">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Edit Punctuation Correspondences">
+                     <param name="Local" value="User_Interface/Preferences/Punctuation/Edit_Punctuation_Correspondences.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Managing punctuation">
+                     <param name="Local" value="User_Interface/Preferences/Punctuation/Managing_Punctuation.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Punctuation management rules">
+                     <param name="Local" value="User_Interface/Preferences/Punctuation/Punctuation_management_rules.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Procedure Topic">
+                     <param name="Local" value="User_Interface/Preferences/Punctuation/Punctuation_tab.htm">
+                   </OBJECT>
+            </UL>
+         </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Tool_Bar">
+               <param name="Local" value="User_Interface/Tool_Bar/Tool_Bar.htm">
+             </OBJECT>
+         <UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Doc_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Toggle Number of source text lines">
+                     <param name="Local" value="User_Interface/Tool_Bar/Doc_icons/Toggle_Number_of_source_text_lines.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Toggle number of target text lines">
+                     <param name="Local" value="User_Interface/Tool_Bar/Doc_icons/Toggle_number_of_target_text_lines.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Misc_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Show Earlier Translation">
+                     <param name="Local" value="User_Interface/Tool_Bar/Misc_icons/Show_Earlier_Translation.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Show the Choose Translation dialog">
+                     <param name="Local" value="User_Interface/Tool_Bar/Misc_icons/Show_the_Choose_Translation_dialog.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Notes_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Add a note">
+                     <param name="Local" value="User_Interface/Tool_Bar/Notes_icons/Add_a_note.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Delete all notes">
+                     <param name="Local" value="User_Interface/Tool_Bar/Notes_icons/Delete_all_notes.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Jump to previous note">
+                     <param name="Local" value="User_Interface/Tool_Bar/Notes_icons/Jump_to_previous_note.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Jump to the next note">
+                     <param name="Local" value="User_Interface/Tool_Bar/Notes_icons/Jump_to_the_next_note.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Phrase_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Make a phrase using the make phrase icon">
+                     <param name="Local" value="User_Interface/Tool_Bar/Phrase_icons/Make_a_phrase_using_the_make_phrase_icon.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Unmake a phrase">
+                     <param name="Local" value="User_Interface/Tool_Bar/Phrase_icons/Unmake_a_phrase.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Placeholder_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Insert a placeholder">
+                     <param name="Local" value="User_Interface/Tool_Bar/Placeholder_icons/Insert_a_placeholder.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Remove a placeholder">
+                     <param name="Local" value="User_Interface/Tool_Bar/Placeholder_icons/Remove_a_placeholder.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Punctuation_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Controlling punctuation boundaries">
+                     <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Controlling_ punctuation_ boundaries.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Enable punctuation copy">
+                     <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Enable_punctuation_copy.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="No punctuation copy">
+                     <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/No_punctuation_copy.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Show or hide punctuation">
+                     <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Show_or_hide_punctuation.htm">
+                   </OBJECT>
+            </UL>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Retranslation_icons">
+                </OBJECT>
+            <UL>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Edit a retranslation">
+                     <param name="Local" value="User_Interface/Tool_Bar/Retranslation_icons/Edit_a_retranslation.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Remove a retranslation">
+                     <param name="Local" value="User_Interface/Tool_Bar/Retranslation_icons/Remove_a_retranslation.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Retranslate selected source text">
+                     <param name="Local" value="User_Interface/Tool_Bar/Retranslation_icons/Retranslate_selected_ source_text.htm">
+                   </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                     <param name="Name" value="Using the Type Retranslation Text dialog">
+                     <param name="Local" value="User_Interface/Tool_Bar/Retranslation_icons/Using_the_Type_Retranslation_Text_dialog.htm">
+                   </OBJECT>
+            </UL>
+         </UL>
+      </UL>
+      <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Windows_Concepts">
+          </OBJECT>
+      <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Clipboard">
+               <param name="Local" value="Windows_Concepts/Clipboard.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Copying text to another location">
+               <param name="Local" value="Windows_Concepts/Copying_text_to_another_location.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Make Filename Extensions Visible">
+               <param name="Local" value="Windows_Concepts/Make_Filename_Extensions_Visible.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Saving files vs. backup">
+               <param name="Local" value="Windows_Concepts/saving_files_vs_backup.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Standard Editing Functions">
+               <param name="Local" value="Windows_Concepts/Standard_Editing_Functions.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Using Windows Explorer with Adapt It">
+               <param name="Local" value="Windows_Concepts/Using_Windows_Explorer_with_Adapt_It.htm">
+             </OBJECT>
+      </UL>
+   </UL>
+</BODY>
+</HTML>

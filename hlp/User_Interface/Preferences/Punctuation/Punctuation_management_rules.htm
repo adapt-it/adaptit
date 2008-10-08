@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Punctuation management rules</title>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta name="copyright" content="© 2006 SIL International">
+<link rel="stylesheet" type="text/css" href="../../../Help.css">
+</head>
+<body>
+<h2>Punctuation management rules</h2>
+<p class="BodyText">When defining punctuation in the Punctuation Correspondence table, you should take care to understand and use the following rules:</p>
+<ul>
+<li>
+<p class="BodyText">Adapt It requires that all punctuation characters be defined in this table. Any symbols not in the table are considered to be word building symbols. For example, the table does not include a single quote mark ( &#39; ) since in some languages this sign is used as an apostrophe or glottal stop. You can add it if desired.</p>
+</li>
+<li>
+<p class="BodyText">Every <span class="DefinedWord">source text</span> punctuation character you need should be somewhere in a Source column cell. If the predefined characters do not contain a needed character, add it to an empty cell at the end of the list. If you use up all of the cells, you can remove unwanted default characters from some of the cells and type the ones you need in their place.</p>
+</li>
+<li>
+<p class="BodyText">Every <span class="DefinedWord">target text</span> punctuation character you need should be somewhere in a Target column cell. If the predefined characters do not contain a needed character, add it to an empty cell at the end of the list. If you use up all of the cells, you can remove unwanted default characters from some of the cells and type the ones you need in their place.</p>
+</li>
+<li>
+<p class="BodyText">Each row of the column pair defines a punctuation correspondence. Adapt It changes the source punctuation mark to the corresponding target punctuation when adapting the text.</p>
+</li>
+<li>
+<p class="BodyText">If the source language uses a punctuation mark, but the target language has no corresponding symbol, leave the target cell empty. Adapt It recognizes the symbol as punctuation but will not adapt it into the target text.</p>
+</li>
+<li>
+<p class="BodyText">If the target language sometimes uses a symbol for a source punctuation symbol, but sometimes does not, Adapt It does not have a way of determining whether or not the target symbol should be used. In such cases, define the symbols in the Punctuation Correspondence table. When the adaptation process encounters a situation where the punctuation should not be copied use the <a href="../../Tool_Bar/Punctuation_icons/No_punctuation_copy.htm">No Punctuation Copy</a> icon<img src="../../../Images/no_punctuation_copy.GIF"> on the Tools bar to suppress the copy. You can also edit the target text in <a href="../../Mode_Bar/Reviewing_Option_box/Reviewing_mode.htm">Reviewing mode</a> and delete any unnecessary symbols.</p>
+<p class="BodyText">Alternatively, you can choose to define the source punctuation symbol and leave the target language cell empty. This approach means that you need to manually enter any needed target language punctuation. Be sure to enter the target language punctuation into the punctuation correspondence table, leaving the source language cell empty as described in the next rule. (See the first rule above.)</p>
+</li>
+<li>
+<p class="BodyText">If the target language uses a punctuation mark, but the source language has no corresponding symbol, leave the source cell empty. Adapt It recognizes the symbol as punctuation; however you will have to type it in when necessary.</p>
+</li>
+<li>
+<p class="BodyText">There is a second table at the end of the first. This table allows pairs of punctuation characters in source text, target text or both. For example, &lt;&lt; in the source language might correspond to &quot; in the target text. Any punctuation characters unique to this list (that is, they are not listed in single column pairs), are added to the list of punctuation characters maintained by Adapt It.</p>
+</li>
+<li>
+<p class="BodyText">If a source character is in the table twice, Adapt It follows the correspondence specified by the first pair.</p>
+</li>
+<li>
+<p class="BodyText">The punctuation correspondences you set up here are stored permanently in Adapt It&#39;s configuration files. Adapt It uses those files to restore your punctuation settings when you next launch it.</p>
+</li>
+</ul>
+<h4>Related Topics</h4>
+<p class="BodyText"><a href="Managing_Punctuation.htm">Managing punctuation</a></p>
+</body>
+</html>
