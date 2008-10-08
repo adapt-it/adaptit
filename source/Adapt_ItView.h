@@ -146,6 +146,7 @@ public:
 	wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
 	void		CalcIndicesForAdvance(int nSequNum);
 	void		CalcInitialIndices();
+	bool		CheckForVerticalEditBoundsError(CPile* pPile); // whm moved to public for wx version
 	void		ChooseTranslation();
 	void		ClearPagesList();
 	void		ClobberDocument();
@@ -445,6 +446,8 @@ protected:
 	bool		GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
 							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
+	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum, 
+							int nEndingFreeTransSequNum, bool bFreeTransPresent); // BEW added 01Oct08
 	bool		GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context); // BEW added 14Jun08
 	CCell*		GetNextCell(const CCell* pCell,  const int cellIndex);
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,

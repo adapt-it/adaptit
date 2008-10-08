@@ -899,7 +899,7 @@ typedef struct
 				// context - going back only as far as the first halt position as determined by the
 				// HaltCurrentCollection() function.
 	int		nSaveActiveSequNum; // location of the phrase box at entry (needed only for a Cancel operation)
-	wxString		oldPhraseBoxText; // contents of the phrase box when the edit was invoked
+	wxString	oldPhraseBoxText; // contents of the phrase box when the edit was invoked
 	TextType	nStartingTextType; // value of m_curTextType at the CSourcePhrase with sequence number nStartingSequNum
 	TextType	nEndingTextType; // value of m_curTextType at the CSourcePhrase with sequence number nEndingSequNum
 				// (It is not possible to select across a TextType boundary, and the 'none' TextType never puts a
@@ -1073,6 +1073,8 @@ typedef struct
 
 	// next group unique to free translations update step
 	bool bFreeTranslationStepEntered; // TRUE once control has been in this step once, even if briefly
+	bool bVerseBasedSection; // default FALSE, TRUE if it looks like the section was created with the
+						// radio button "Verse" turned on
 	SPList freeTranslationStep_SrcPhraseList; // we only need the initial list, because the user is
 						// unable to return to this step once backTranslationsStep has been entered, and so
 						// and so the state of the span when freeTranslationsStep is first entered is actually the

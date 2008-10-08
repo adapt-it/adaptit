@@ -18246,7 +18246,7 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArr
 	}
 }
 
-// MFC: BEW removed 3Apr08 
+// MFC: BEW removed 3Apr08 (moved to a checkbox in CAutoSavingPage of Preferences dialog)
 // The MFC version moves the function to a checkbox in CAutoSavingPage of Preferences dialog.
 // The wx version never used the function at all.
 //void CAdapt_ItApp::OnFileSaveAsXml(wxCommandEvent& WXUNUSED(event))

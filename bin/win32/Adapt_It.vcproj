@@ -180,7 +180,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;"
-				IgnoreDefaultLibraryNames="libc.lib,libci.lib,msvcrtd.lib"
+				IgnoreDefaultLibraryNames=""
 				ProgramDatabaseFile=".\Release/Adapt_It.pdb"
 				SubSystem="2"
 			/>

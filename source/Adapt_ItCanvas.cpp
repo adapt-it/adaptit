@@ -2114,7 +2114,21 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 	{
 		// find which cell the cursor was over when the mouse was released (not a well-named 
 		// function but it does what we want)
+		CPile* pCurPile = NULL;
 		CCell* pCell = pView->GetClickedCell(&point); // returns NULL if point was not in a cell
+
+		// BEW added 03Oct08 for support of vertical editing, to prevent dragging
+		// a selection into the gray text area either side of the editable span
+		if (pCell != NULL)
+		{
+			pCurPile = pCell->m_pPile;
+			bool bIsOK = pView->CheckForVerticalEditBoundsError(pCurPile);
+			if (!bIsOK)
+			{
+				// if FALSE was returned, RemoveSelection() has already been called
+				return;
+			}
+		}
 
 		if (pCell == NULL || pApp->m_selectionLine != pCell->m_nCellIndex)
 		{

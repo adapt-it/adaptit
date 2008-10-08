@@ -51,12 +51,12 @@ public:
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()
 
 protected:
+	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
+					int nSelector);
 	bool MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile);
 	bool MoveToPrevPile(CAdapt_ItView* pView, CPile* pCurPile);
 	bool MoveToImmedNextPile(CAdapt_ItView* pView, CPile* pCurPile);
 	bool IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile);
-	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
-					int nSelector);
 	void JumpForward(CAdapt_ItView* pView);
 
 public:
