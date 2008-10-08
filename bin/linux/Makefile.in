@@ -53,7 +53,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgdatadir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" \
+	"$(DESTDIR)$(pkgdatadir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
@@ -125,8 +126,9 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
+htmlhelpDATA_INSTALL = $(INSTALL_DATA)
 pkgdataDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(pkgdata_DATA)
+DATA = $(htmlhelp_DATA) $(pkgdata_DATA)
 HEADERS = $(noinst_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
@@ -302,7 +304,18 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ViewPage.h ../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
 	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h 
 
+
+# Localization data
+SUBDIRS = po
+ACLOCAL_AMFLAGS = -I m4
+EXTRA_DIST = config.rpath
+
+# Resource files and help data
 pkgdata_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
+
+# HTML help data
+htmlhelpdir = $(pkgdatadir)/help
+htmlhelp_DATA = adaptit.htb
 
 # the application source, library search path, and link libraries
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
@@ -337,9 +350,6 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
 adaptit_LDFLAGS = $(WX_LIBS) 
-SUBDIRS = po
-ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = config.rpath
 all: all-recursive
 
 .SUFFIXES:
@@ -1675,6 +1685,23 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
+install-htmlhelpDATA: $(htmlhelp_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(htmlhelpdir)" || $(MKDIR_P) "$(DESTDIR)$(htmlhelpdir)"
+	@list='$(htmlhelp_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f=$(am__strip_dir) \
+	  echo " $(htmlhelpDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(htmlhelpdir)/$$f'"; \
+	  $(htmlhelpDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(htmlhelpdir)/$$f"; \
+	done
+
+uninstall-htmlhelpDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(htmlhelp_DATA)'; for p in $$list; do \
+	  f=$(am__strip_dir) \
+	  echo " rm -f '$(DESTDIR)$(htmlhelpdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(htmlhelpdir)/$$f"; \
+	done
 install-pkgdataDATA: $(pkgdata_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
@@ -1976,7 +2003,7 @@ check: check-recursive
 all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgdatadir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -2024,7 +2051,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-pkgdataDATA
+install-data-am: install-htmlhelpDATA install-pkgdataDATA
 
 install-dvi: install-dvi-recursive
 
@@ -2062,7 +2089,8 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-pkgdataDATA
+uninstall-am: uninstall-binPROGRAMS uninstall-htmlhelpDATA \
+	uninstall-pkgdataDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
 	install-strip
@@ -2077,15 +2105,20 @@ uninstall-am: uninstall-binPROGRAMS uninstall-pkgdataDATA
 	html-am info info-am install install-am install-binPROGRAMS \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-pkgdataDATA install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-binPROGRAMS \
+	install-htmlhelpDATA install-info install-info-am install-man \
+	install-pdf install-pdf-am install-pkgdataDATA install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am \
+	uninstall-binPROGRAMS uninstall-htmlhelpDATA \
 	uninstall-pkgdataDATA
 
+
+# Rule to build adaptit.htb
+adaptit.htb: ../../hlp
+	 (cd $<; zip -qr - . -x \*.svn\* ) > $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

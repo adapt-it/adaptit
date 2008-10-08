@@ -32,11 +32,26 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 #########################################################################
 # APPLICATION SECTION
 #########################################################################
+
 # this is the program that gets installed.  it's name is used for all
 # of the other Makefile.am variables
 bin_PROGRAMS = adaptit
+
+# Localization data
+SUBDIRS = po
+ACLOCAL_AMFLAGS = -I m4
+EXTRA_DIST = config.rpath
+
+# Resource files and help data
 pkgdata_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
 
+# HTML help data
+htmlhelpdir = $(pkgdatadir)/help
+htmlhelp_DATA = adaptit.htb
+
+# Rule to build adaptit.htb
+adaptit.htb: ../../hlp
+	 (cd $<; zip -qr - . -x \*.svn\* ) > $@
 
 # the application source, library search path, and link libraries
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
@@ -72,8 +87,3 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 adaptit_LDFLAGS = $(WX_LIBS) 
 
 
-SUBDIRS = po
-
-ACLOCAL_AMFLAGS = -I m4
-
-EXTRA_DIST = config.rpath
