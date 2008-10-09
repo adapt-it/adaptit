@@ -32,6 +32,10 @@
                <param name="Local" value="Adapt_It_Concepts/Adaptation_versus_retranslation.htm">
              </OBJECT>
          <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Adaptation versus Translation">
+               <param name="Local" value="Adapt_It_Concepts/Adaptation_versus_Translation.htm">
+             </OBJECT>
+         <LI><OBJECT type="text/sitemap">
                <param name="Name" value="Adapt It Advanced Topics Overview">
                <param name="Local" value="Adapt_It_Concepts/Adapt_It_Advanced_Topics_Overview.htm">
              </OBJECT>
@@ -106,10 +110,6 @@
             <LI><OBJECT type="text/sitemap">
                   <param name="Name" value="Advance to the end of the document">
                   <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Advance_to_the_end_of_the_document.htm">
-                </OBJECT>
-            <LI><OBJECT type="text/sitemap">
-                  <param name="Name" value="Advance to the end of the document">
-                  <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Copy of Advance_to_the_end_of_the_document.htm">
                 </OBJECT>
             <LI><OBJECT type="text/sitemap">
                   <param name="Name" value="Leaving source words untranslated">
@@ -248,6 +248,14 @@
             <LI><OBJECT type="text/sitemap">
                   <param name="Name" value="Creating a new document">
                   <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/creating_a_new_document.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Adapt It projects, books, and documents overview">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Projects_books_and_documents_overview.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Project structure">
+                  <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Project_structure.htm">
                 </OBJECT>
          </UL>
          <LI><OBJECT type="text/sitemap">
@@ -452,6 +460,10 @@
                   <param name="Name" value="Viewing and editing filtered material">
                   <param name="Local" value="Advanced_Topics/Filtering/Viewing_and_editing_filtered_material.htm">
                 </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="View filtered material">
+                  <param name="Local" value="Advanced_Topics/Filtering/View_Filtered_Material.htm">
+                </OBJECT>
          </UL>
          <LI><OBJECT type="text/sitemap">
                <param name="Name" value="Free_Translation">
@@ -652,11 +664,19 @@
                   <param name="Local" value="Getting_Started/Project_Preparation/Setting_up_a_project.htm">
                 </OBJECT>
          </UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Source_text_preparation">
+               <param name="Local" value="Getting_Started/Source_text_preparation/Source_text_preparation.htm">
+             </OBJECT>
       </UL>
       <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Images">
           </OBJECT>
       <UL>
+         <LI><OBJECT type="text/sitemap">
+               <param name="Name" value="Under Construction">
+               <param name="Local" value="Images/Under_Construction.htm">
+             </OBJECT>
          <LI><OBJECT type="text/sitemap">
                <param name="Name" value="Viewing and editing filtered back translations">
                <param name="Local" value="Images/Viewing_and_editing_filtered_back_translations.htm">
@@ -1519,7 +1539,7 @@
             <UL>
                <LI><OBJECT type="text/sitemap">
                      <param name="Name" value="Controlling punctuation boundaries">
-                     <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Controlling_ punctuation_ boundaries.htm">
+                     <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Controlling_punctuation_boundaries.htm">
                    </OBJECT>
                <LI><OBJECT type="text/sitemap">
                      <param name="Name" value="Enable punctuation copy">
