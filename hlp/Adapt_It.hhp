@@ -26,8 +26,10 @@ Note_Icon.gif
 tip_icon.gif
 Using_Adapt_It.htm
 warning_icon.gif
+_errorlog.txt
 Adapt_It_Concepts\About_Adapt_It.htm
 Adapt_It_Concepts\Adaptation_versus_retranslation.htm
+Adapt_It_Concepts\Adaptation_versus_Translation.htm
 Adapt_It_Concepts\Adapt_It_Advanced_Topics_Overview.htm
 Adapt_It_Concepts\Adapt_It_basic_procedures.htm
 Adapt_It_Concepts\Adapt_It_Concepts_Overview.htm
@@ -46,7 +48,6 @@ Adapt_It_Concepts\Source_target_gloss_and_navigation_text.htm
 Adapt_It_Concepts\What_tasks_can_Adapt_It_do.htm
 Adapt_It_Concepts\Basic_work_procs\Advance_the_phrase_box.htm
 Adapt_It_Concepts\Basic_work_procs\Advance_to_the_end_of_the_document.htm
-Adapt_It_Concepts\Basic_work_procs\Copy of Advance_to_the_end_of_the_document.htm
 Adapt_It_Concepts\Basic_work_procs\Leaving_source_words_untranslated.htm
 Adapt_It_Concepts\Basic_work_procs\Move_back_to_previous_phrase_box_location.htm
 Adapt_It_Concepts\Basic_work_procs\Move_back_to_the_start_of_the_document.htm
@@ -74,6 +75,8 @@ Adapt_It_Structure\Proj_and_Docs\Book_Identifier_Code_Table.htm
 Adapt_It_Structure\Proj_and_Docs\Changing_the_book_folder_structure.htm
 Adapt_It_Structure\Proj_and_Docs\create_a_document_using_start_working.htm
 Adapt_It_Structure\Proj_and_Docs\creating_a_new_document.htm
+Adapt_It_Structure\Proj_and_Docs\Projects_books_and_documents_overview.htm
+Adapt_It_Structure\Proj_and_Docs\Project_structure.htm
 Adapt_It_Structure\UI_Structure\Adapt_It_user_interface.htm
 Adapt_It_Structure\UI_Structure\Adapt_It_user_interface_control_bars.htm
 Adapt_It_Structure\UI_Structure\Navigation_text.htm
@@ -116,6 +119,7 @@ Advanced_Topics\Filtering\Propagation_of_filtered_information.htm
 Advanced_Topics\Filtering\Set_filtering_preferences.htm
 Advanced_Topics\Filtering\Using_PGN_SFM_vs_USFM.htm
 Advanced_Topics\Filtering\Viewing_and_editing_filtered_material.htm
+Advanced_Topics\Filtering\View_Filtered_Material.htm
 Advanced_Topics\Free_Translation\Create_a_free_translation.htm
 Advanced_Topics\Free_Translation\Free_translation_compose_bar_and_navigation_buttons.htm
 Advanced_Topics\Free_Translation\Free_translation_mode.htm
@@ -156,6 +160,7 @@ Getting_Started\Launching_Adapt_It\Non_Unicode_Fonts_dialog.htm
 Getting_Started\Launching_Adapt_It\Punctuation_dialog.htm
 Getting_Started\Launching_Adapt_It\USFM_dialog.htm
 Getting_Started\Project_Preparation\Setting_up_a_project.htm
+Getting_Started\Source_text_preparation\source_text_preparation.htm
 Images\About_Adapt_It_dialog.PNG
 Images\Adapt_It_Edit_Menu.PNG
 Images\Adapt_It_welcome.PNG
@@ -440,6 +445,7 @@ Images\Transform_adaptations_to_glosses_dialog_2.PNG
 Images\Transform_adaptations_to_glosses_dialog_3.PNG
 Images\Transform_adaptations_to_glosses_dialog_4.PNG
 Images\Type_Retranslation_Text_dialog.PNG
+Images\Under_Construction.htm
 Images\Unmake_phrase.gif
 Images\USFM_dialog.PNG
 Images\ViewFilteredMaterialDialog.gif
@@ -627,7 +633,7 @@ User_Interface\Tool_Bar\Phrase_icons\Make_a_phrase_using_the_make_phrase_icon.ht
 User_Interface\Tool_Bar\Phrase_icons\Unmake_a_phrase.htm
 User_Interface\Tool_Bar\Placeholder_icons\Insert_a_placeholder.htm
 User_Interface\Tool_Bar\Placeholder_icons\Remove_a_placeholder.htm
-User_Interface\Tool_Bar\Punctuation_icons\Controlling_ punctuation_ boundaries.htm
+User_Interface\Tool_Bar\Punctuation_icons\Controlling_punctuation_boundaries.htm
 User_Interface\Tool_Bar\Punctuation_icons\Enable_punctuation_copy.htm
 User_Interface\Tool_Bar\Punctuation_icons\No_punctuation_copy.htm
 User_Interface\Tool_Bar\Punctuation_icons\Show_or_hide_punctuation.htm

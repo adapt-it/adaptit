@@ -74,6 +74,11 @@
             <param name="Local" value="Adapt_It_Concepts/Adapt_It_Process_table.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Adapt It projects, books, and documents overview">
+            <param name="Name" value="Adapt It projects, books, and documents overview">
+            <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Projects_books_and_documents_overview.htm">
+         </OBJECT>
+    <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Adapt It Structure Overview">
             <param name="Name" value="Adapt It Structure Overview">
             <param name="Local" value="Adapt_It_Structure/Adapt_It_Structure_Overview.htm">
@@ -89,6 +94,11 @@
             <param name="Local" value="Adapt_It_Concepts/Adaptation_versus_retranslation.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Adaptation versus Translation">
+            <param name="Name" value="Adaptation versus Translation">
+            <param name="Local" value="Adapt_It_Concepts/Adaptation_versus_Translation.htm">
+         </OBJECT>
+    <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Add a note">
             <param name="Name" value="Add a note">
             <param name="Local" value="User_Interface/Tool_Bar/Notes_icons/Add_a_note.htm">
@@ -97,11 +107,6 @@
             <param name="Name" value="Advance the Phrase Box">
             <param name="Name" value="Advance the Phrase Box">
             <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Advance_the_phrase_box.htm">
-         </OBJECT>
-    <LI><OBJECT type="text/sitemap">
-            <param name="Name" value="Advance to the end of the document">
-            <param name="Name" value="Advance to the end of the document">
-            <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Copy of Advance_to_the_end_of_the_document.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Advance to the end of the document">
@@ -311,7 +316,7 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Controlling punctuation boundaries">
             <param name="Name" value="Controlling punctuation boundaries">
-            <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Controlling_ punctuation_ boundaries.htm">
+            <param name="Local" value="User_Interface/Tool_Bar/Punctuation_icons/Controlling_punctuation_boundaries.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Copying text to another location">
@@ -556,12 +561,12 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Find in source and translated text">
             <param name="Name" value="Find in source and translated text">
-            <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_and_replace_in_source_and_translated_text.htm">
+            <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_in_source_and_translated_text.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Find in source and translated text">
             <param name="Name" value="Find in source and translated text">
-            <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_in_source_and_translated_text.htm">
+            <param name="Local" value="User_Interface/Menu_Bar/Tools_Menu/Find_and_replace_in_source_and_translated_text.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Find in source text">
@@ -681,12 +686,12 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Insert a placeholder">
             <param name="Name" value="Insert a placeholder">
-            <param name="Local" value="User_Interface/Phrase_Box/Insert_a_placeholder.htm">
+            <param name="Local" value="User_Interface/Tool_Bar/Placeholder_icons/Insert_a_placeholder.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Insert a placeholder">
             <param name="Name" value="Insert a placeholder">
-            <param name="Local" value="User_Interface/Tool_Bar/Placeholder_icons/Insert_a_placeholder.htm">
+            <param name="Local" value="User_Interface/Phrase_Box/Insert_a_placeholder.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Installing Adapt It">
@@ -956,12 +961,12 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Placement of filtered material in source or target RTF exports">
             <param name="Name" value="Placement of filtered material in source or target RTF exports">
-            <param name="Local" value="Advanced_Topics/Exporting/filtered_material_in_source-target_RTF_exports.htm">
+            <param name="Local" value="Advanced_Topics/Exporting/filtered_material_in_interlinear_RTF_exports.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Placement of filtered material in source or target RTF exports">
             <param name="Name" value="Placement of filtered material in source or target RTF exports">
-            <param name="Local" value="Advanced_Topics/Exporting/filtered_material_in_interlinear_RTF_exports.htm">
+            <param name="Local" value="Advanced_Topics/Exporting/filtered_material_in_source-target_RTF_exports.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Placement of Phrase-medial punctuation">
@@ -1052,6 +1057,11 @@
             <param name="Name" value="Project overview">
             <param name="Name" value="Project overview">
             <param name="Local" value="Adapt_It_Concepts/Projects_overview.htm">
+         </OBJECT>
+    <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Project structure">
+            <param name="Name" value="Project structure">
+            <param name="Local" value="Adapt_It_Structure/Proj_and_Docs/Project_structure.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Propagation of filtered free translations">
@@ -1284,6 +1294,11 @@
             <param name="Local" value="Adapt_It_Concepts/Source_target_gloss_and_navigation_text.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Source_text_preparation">
+            <param name="Name" value="Source_text_preparation">
+            <param name="Local" value="Getting_Started/Source_text_preparation/Source_text_preparation.htm">
+         </OBJECT>
+    <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Special Keys Used For Controlling Adapt It">
             <param name="Name" value="Special Keys Used For Controlling Adapt It">
             <param name="Local" value="Adapt_It_Concepts/Basic_work_procs/Special_Keys_Used_For_Controlling_Adapt_It.htm">
@@ -1399,6 +1414,11 @@
             <param name="Local" value="User_Interface/Phrase_Box/Type_into_the_ phrase_box.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="Under Construction">
+            <param name="Name" value="Under Construction">
+            <param name="Local" value="Images/Under_Construction.htm">
+         </OBJECT>
+    <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Undo">
             <param name="Name" value="Undo">
             <param name="Local" value="User_Interface/Menu_Bar/Edit_Menu/Undo.htm">
@@ -1421,12 +1441,12 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Unmake a phrase">
             <param name="Name" value="Unmake a phrase">
-            <param name="Local" value="User_Interface/Phrase_Box/Unmake_a_phrase.htm">
+            <param name="Local" value="User_Interface/Tool_Bar/Phrase_icons/Unmake_a_phrase.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Unmake a phrase">
             <param name="Name" value="Unmake a phrase">
-            <param name="Local" value="User_Interface/Tool_Bar/Phrase_icons/Unmake_a_phrase.htm">
+            <param name="Local" value="User_Interface/Phrase_Box/Unmake_a_phrase.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Unpack Document">
@@ -1589,6 +1609,11 @@
             <param name="Local" value="Advanced_Topics/Notes/View_a_note.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
+            <param name="Name" value="View filtered material">
+            <param name="Name" value="View filtered material">
+            <param name="Local" value="Advanced_Topics/Filtering/View_Filtered_Material.htm">
+         </OBJECT>
+    <LI><OBJECT type="text/sitemap">
             <param name="Name" value="View tab">
             <param name="Name" value="View tab">
             <param name="Local" value="User_Interface/Preferences/View_tab.htm">
@@ -1601,12 +1626,12 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Viewing and editing filtered back translations">
             <param name="Name" value="Viewing and editing filtered back translations">
-            <param name="Local" value="Advanced_Topics/Back_Translation/Viewing_and_editing_filtered_back_translations.htm">
+            <param name="Local" value="Images/Viewing_and_editing_filtered_back_translations.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Viewing and editing filtered back translations">
             <param name="Name" value="Viewing and editing filtered back translations">
-            <param name="Local" value="Images/Viewing_and_editing_filtered_back_translations.htm">
+            <param name="Local" value="Advanced_Topics/Back_Translation/Viewing_and_editing_filtered_back_translations.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Viewing and editing filtered material">
