@@ -123,6 +123,9 @@ class CMainFrame : public wxDocParentFrame
 	wxComboBox* m_pRemovalsBarComboBox;
 	wxTextCtrl* m_pVertEditMsgBox;
 	//wxTextCtrl* m_pVertEditStepTransMsgBox;
+	//
+	wxSizer* pRemovalsBarSizer;
+	wxSizer* pVertEditBarSizer;
 
 	int m_toolBarHeight;		// determined in CMainFrame constructor after toolBar is created
 	int m_controlBarHeight;		// determined in CMainFrame constructor after controlBar is created
@@ -168,7 +171,7 @@ class CMainFrame : public wxDocParentFrame
 	void OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event);
 	//void OnShowContextHelp(wxCommandEvent& event);
 
-    void ShowHelp(int commandId, wxHelpControllerBase& helpController);
+    //void ShowHelp(int commandId, wxHelpControllerBase& helpController);
 	
 	void OnClose(wxCloseEvent& event);
 	// UI handlers for the checkboxes in the controlBar

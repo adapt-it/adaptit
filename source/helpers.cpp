@@ -1284,14 +1284,17 @@ short DecimalToBinary(unsigned long decimalValue, char binaryValue[32])
 /// Called from: all dialog classes which have a wxListBox, wxComboBox or wxCheckListBox.
 /// Insures that the list/combo box is valid, has at least one item and that at least one item in
 /// the list is selected. Returns FALSE if the list/combo box is NULL, or if the box doesn't have
-/// any items in it, or if 
+/// any items in it, or if it can't select an item for some reason.
+/// Note: When using ListBoxPassesSanityCheck() the pListBox parameter passed in needs to be
+/// cast to the name of the actual derived class being used, i.e., (wxListBox*), (wxCheckListBox*)
+/// or (wxComboBox*).
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear().
 	// Also it is sometimes possible that a user could remove a selection from a list box on
-	// non-Windows platforms, so we do the following to insure that any wxListBox, wxCheckListBox, or 
-	// wxComboBox is ready for action:
+	// non-Windows platforms, so ListBoxPassesSanityCheck() does the following to insure that any 
+	// wxListBox, wxCheckListBox, or wxComboBox is ready for action:
 	// 1. We check to see if pListBox is really there (not NULL).
 	// 2. We return FALSE if the control does not have any items in it.
 	// 3. We check to insure that at least one item is selected when the control has at least one item
@@ -1328,7 +1331,6 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 		// cannot get first item selected, so report FALSE to caller
 		return FALSE;
 	}
-	
 	// Sanity checking is done so tell caller that everything is sane.
 	return TRUE;
 }

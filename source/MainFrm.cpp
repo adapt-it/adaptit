@@ -1324,7 +1324,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxPanel *removalsBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
 	wxASSERT(removalsBar != NULL);
 	m_pRemovalsBar = removalsBar;
-	RemovalsBarFunc( removalsBar, TRUE, TRUE );
+	pRemovalsBarSizer = RemovalsBarFunc( removalsBar, TRUE, TRUE );
 	// Note: We are creating a removalsBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the removalsBar's
 	// layout within the Main Frame. The removalsBar is not visible by default
@@ -1365,7 +1365,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxPanel *vertEditBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
 	wxASSERT(vertEditBar != NULL);
 	m_pVertEditBar = vertEditBar;
-	VertEditBarFunc( vertEditBar, TRUE, TRUE );
+	pVertEditBarSizer = VertEditBarFunc( vertEditBar, TRUE, TRUE );
 	// Note: We are creating a vertEditBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the vertEditBar's
 	// layout within the Main Frame. The vertEditBar is not visible by default
@@ -1971,6 +1971,7 @@ void CMainFrame::OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event)
    this extension, or the contents will be messed up.
  */
 
+/*
 void CMainFrame::ShowHelp(int commandId, wxHelpControllerBase& helpController)
 {
 	int dummy;
@@ -2040,7 +2041,7 @@ void CMainFrame::ShowHelp(int commandId, wxHelpControllerBase& helpController)
    //       break;
    //}
 }
-
+*/
 
 
 void CMainFrame::OnClose(wxCloseEvent& event)
@@ -2336,7 +2337,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		// placed element. 
         // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
 		m_pRemovalsBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, mainFrameClientSize.x, m_removalsBarHeight);
-		m_pRemovalsBar->Refresh();
+		pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 
 		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
 		VertDisplacementFromReportedMainFrameClientSize += m_removalsBarHeight;
@@ -2351,7 +2352,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 		// placed element. 
         // The upper left y coord now is represented by VertDisplacementFromReportedMainFrameClientSize.
 		m_pVertEditBar->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, mainFrameClientSize.x, m_vertEditBarHeight);
-		m_pVertEditBar->Refresh();
+		pVertEditBarSizer->Layout(); //m_pVertEditBar->Refresh();
 
 		// Increment VertDisplacementFromReportedMainFrameClientSize for the next placement
 		VertDisplacementFromReportedMainFrameClientSize += m_vertEditBarHeight;
@@ -3029,7 +3030,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		}
 		//return TRUE;
 		event.RequestMore(); // added
-
 	//case 4: // autosaving
 
 		// wx version whm added & pApp->m_pKB != NULL to if clause below because DoAutoSaveKB()
@@ -3441,14 +3441,14 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						// message, and make it show-able
 						// whm added: the MFC version of vertical editing had the RemovalsBar always
 						// showing. I'm keeping it hidden until it really is needed.
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 						if (!m_pRemovalsBar->IsShown())
 						{
-							// update static text in removals bar to indicate that clicking on item in
-							// list copies to the phrase box
-							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-							wxASSERT(pStatic != NULL);
-							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-							m_pRemovalsBar->Refresh();
 							m_pRemovalsBar->Show(TRUE);
 						}
 						m_pVertEditBar->Show(TRUE);
@@ -3550,14 +3550,14 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
+					// update static text in removals bar to indicate that clicking on item in
+					// list copies to the phrase box
+					wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+					wxASSERT(pStatic != NULL);
+					pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+					pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 					if (!m_pRemovalsBar->IsShown())
 					{
-						// update static text in removals bar to indicate that clicking on item in
-						// list copies to the phrase box
-						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-						wxASSERT(pStatic != NULL);
-						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-						m_pRemovalsBar->Refresh();
 						m_pRemovalsBar->Show(TRUE);
 					}
 					m_pVertEditBar->Show(TRUE);
@@ -3694,14 +3694,14 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 						if (!m_pRemovalsBar->IsShown())
 						{
-							// update static text in removals bar to indicate that clicking on item in
-							// list copies to the phrase box
-							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-							wxASSERT(pStatic != NULL);
-							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-							m_pRemovalsBar->Refresh();
 							m_pRemovalsBar->Show(TRUE);
 						}
 						m_pVertEditBar->Show(TRUE);
@@ -3865,14 +3865,14 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
+					// update static text in removals bar to indicate that clicking on item in
+					// list copies to the phrase box
+					wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+					wxASSERT(pStatic != NULL);
+					pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+					pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 					if (!m_pRemovalsBar->IsShown())
 					{
-						// update static text in removals bar to indicate that clicking on item in
-						// list copies to the phrase box
-						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-						wxASSERT(pStatic != NULL);
-						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-						m_pRemovalsBar->Refresh();
 						m_pRemovalsBar->Show(TRUE);
 					}
 					m_pVertEditBar->Show(TRUE);
@@ -4083,14 +4083,14 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 						// message, and make it show-able
 						// whm added: the MFC version of vertical editing had the RemovalsBar always
 						// showing. I'm keeping it hidden until it really is needed.
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 						if (!m_pRemovalsBar->IsShown())
 						{
-							// update static text in removals bar to indicate that clicking on item in
-							// list copies to the phrase box
-							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-							wxASSERT(pStatic != NULL);
-							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-							m_pRemovalsBar->Refresh();
 							m_pRemovalsBar->Show(TRUE);
 						}
 						m_pVertEditBar->Show(TRUE);
@@ -4254,14 +4254,14 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
+					// update static text in removals bar to indicate that clicking on item in
+					// list copies to the phrase box
+					wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+					wxASSERT(pStatic != NULL);
+					pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+					pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 					if (!m_pRemovalsBar->IsShown())
 					{
-						// update static text in removals bar to indicate that clicking on item in
-						// list copies to the phrase box
-						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-						wxASSERT(pStatic != NULL);
-						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-						m_pRemovalsBar->Refresh();
 						m_pRemovalsBar->Show(TRUE);
 					}
 					m_pVertEditBar->Show(TRUE);
@@ -4394,14 +4394,14 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 						// setup the toolbar with the vertical edit process control buttons and user
 						// message, and make it show-able
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the phrase box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+						pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 						if (!m_pRemovalsBar->IsShown())
 						{
-							// update static text in removals bar to indicate that clicking on item in
-							// list copies to the phrase box
-							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-							wxASSERT(pStatic != NULL);
-							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-							m_pRemovalsBar->Refresh();
 							m_pRemovalsBar->Show(TRUE);
 						}
 						m_pVertEditBar->Show(TRUE);
@@ -4509,14 +4509,14 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 
 					// setup the toolbar with the vertical edit process control buttons and user
 					// message, and make it show-able
+					// update static text in removals bar to indicate that clicking on item in
+					// list copies to the phrase box
+					wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+					wxASSERT(pStatic != NULL);
+					pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
+					pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 					if (!m_pRemovalsBar->IsShown())
 					{
-						// update static text in removals bar to indicate that clicking on item in
-						// list copies to the phrase box
-						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-						wxASSERT(pStatic != NULL);
-						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."));
-						m_pRemovalsBar->Refresh();
 						m_pRemovalsBar->Show(TRUE);
 					}
 					m_pVertEditBar->Show(TRUE);
@@ -4783,14 +4783,14 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 						// message, and make it show-able
 						// whm added: the MFC version of vertical editing had the RemovalsBar always
 						// showing. I'm keeping it hidden until it really is needed.
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the compose bar's text box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."));
+						pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 						if (!m_pRemovalsBar->IsShown())
 						{
-							// update static text in removals bar to indicate that clicking on item in
-							// list copies to the compose bar's text box
-							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-							wxASSERT(pStatic != NULL);
-							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."));
-							m_pRemovalsBar->Refresh();
 							m_pRemovalsBar->Show(TRUE);
 						}
 						m_pVertEditBar->Show(TRUE);
@@ -5007,14 +5007,14 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 						// message, and make it show-able
 						// whm added: the MFC version of vertical editing had the RemovalsBar always
 						// showing. I'm keeping it hidden until it really is needed.
+						// update static text in removals bar to indicate that clicking on item in
+						// list copies to the compose bar's text box
+						wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
+						wxASSERT(pStatic != NULL);
+						pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."));
+						pRemovalsBarSizer->Layout(); //m_pRemovalsBar->Refresh();
 						if (!m_pRemovalsBar->IsShown())
 						{
-							// update static text in removals bar to indicate that clicking on item in
-							// list copies to the compose bar's text box
-							wxStaticText* pStatic = (wxStaticText*)m_pRemovalsBar->FindWindowById(ID_STATIC_TEXT_REMOVALS);
-							wxASSERT(pStatic != NULL);
-							pStatic->SetLabel(_("Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."));
-							m_pRemovalsBar->Refresh();
 							m_pRemovalsBar->Show(TRUE);
 						}
 						m_pVertEditBar->Show(TRUE);
@@ -5161,12 +5161,12 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		//pBar->Show(FALSE);
 		if (m_pVertEditBar->IsShown())
 		{
-			m_pVertEditBar->Show(FALSE);
+			m_pVertEditBar->Hide();
 		}
 		// whm: wx version also hides the removalsBar
 		if (m_pRemovalsBar->IsShown())
 		{
-			m_pRemovalsBar->Show(FALSE);
+			m_pRemovalsBar->Hide();
 		}
 
 		// typically, the user will have entered text in the phrase box, and we don't want it lost
@@ -5227,7 +5227,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		gpApp->GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(evt); // toggle it back ON
 		gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE; // restore default setting
 	}
-
+/*	//9Oct08 Bruce advised commenting out the contents of this OnCustomEventCancelVerticalEdit() handler
+	// until further work can be done on it.
 // **** TODO ****   roll back through the steps doing restorations and set up original situation
 
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -5598,6 +5599,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		// the vertical edit tool bars from the main window.
 
 	} // end of TRUE block for test (gbVerticalEditInProgress)
+*/
 	// whm addition:
 	// When vertical editing is canceled we should hide the m_pRemovalsBar, and m_pVertEditBar,
 	//  - any and all that are visible.

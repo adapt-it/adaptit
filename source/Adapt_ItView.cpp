@@ -6697,9 +6697,10 @@ ins:	;
 		SPList::Node* posDebug = pMasterList->GetFirst();
 		for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		{
-			CSourcePhrase* pSrcPh = posDebug->GetData();
+			CSourcePhrase* pSrcPh;
+			pSrcPh = posDebug->GetData();
 			posDebug = posDebug->GetNext();
-			wxLogDebug(_T("pMasterList BEFORE Insert: pSrcPh->m_srcPhrase = %s"),pSrcPh->m_srcPhrase.c_str());
+			//wxLogDebug(_T("pMasterList BEFORE Insert: pSrcPh->m_srcPhrase = %s"),pSrcPh->m_srcPhrase.c_str());
 		}
 #endif
 
@@ -6721,9 +6722,10 @@ ins:	;
 		posDebug = pMasterList->GetFirst();
 		for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		{
-			CSourcePhrase* pSrcPh = posDebug->GetData();
+			CSourcePhrase* pSrcPh;
+			pSrcPh = posDebug->GetData();
 			posDebug = posDebug->GetNext();
-			wxLogDebug(_T("pMasterList AFTER Insert: pSrcPh->m_srcPhrase = %s"),pSrcPh->m_srcPhrase.c_str());
+			//wxLogDebug(_T("pMasterList AFTER Insert: pSrcPh->m_srcPhrase = %s"),pSrcPh->m_srcPhrase.c_str());
 		}
 #endif
 		return TRUE;
