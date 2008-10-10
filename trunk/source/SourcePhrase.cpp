@@ -775,16 +775,31 @@ void CSourcePhrase::DeepCopy(void)
 		// replace the list's pointer at savePos with this new pointer
 		// //m_pSavedWords->SetAt(savePos,pSrcPhraseDuplicate);
 		// wx Note: wxList doesn't have a SetAt method, but we can use DeleteNode and Insert to achieve
-		// the same effect.
-		if (m_pSavedWords->DeleteNode(savePos))
-			m_pSavedWords->Insert(savePos,pSrcPhraseDuplicate);
-		else
-		{
-			// 
-			wxASSERT(FALSE);
-			::wxBell();
-		}
-	}
+		// the same effect. 
+		// The following order won't work (wxList asserts):
+		//  m_pSavedWords->DeleteNode(savePos))
+		//	m_pSavedWords->Insert(savePos,pSrcPhraseDuplicate);
+		// We need to first do the Insert (which inserts "before"), then get the
+		// next position and call DeleteNode on that next position.
+		// 
+		// whm additional Note: It appears that the MFC in simply using SetAt() creates a 
+		// memory leak because the previous pointer being replaced is not deleted. In fact, 
+		// in the docs for CObList::SetAt() the example there shows that it should be 
+		// invoked as follows (customized for our code situation) to avoid memory leaks:
+		//    pSP = m_pSavedWords->GetAt( pos ); // Save the old pointer for deletion.
+		//    m_pSavedWords->SetAt( pos, pSrcPhraseDuplicate );  // Replace the element.
+		//    delete pSP;  // Deletion avoids memory leak.
+		SPList::Node* nextPos;
+		SPList::Node* insertedPos;
+		CSourcePhrase* pSPtoDelete;
+		pSPtoDelete = savePos->GetData();
+		insertedPos = m_pSavedWords->Insert(savePos,pSrcPhraseDuplicate); // pSrcPhraseDuplicate is now at savePos
+		nextPos = insertedPos->GetNext();
+		bool deletedOK;
+		deletedOK = m_pSavedWords->DeleteNode(nextPos);
+		delete pSPtoDelete;
+		wxASSERT(deletedOK != FALSE);
+ 	}
 }
 
 void CSourcePhrase::CopySameTypeParams(const CSourcePhrase &sp)
