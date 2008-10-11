@@ -1322,11 +1322,10 @@
          </UL>
          <LI><OBJECT type="text/sitemap">
                <param name="Name" value="Phrase_Box">
-               <param name="Local" value="User_Interface/Phrase_Box/Phrase_Box.htm">
              </OBJECT>
          <UL>
             <LI><OBJECT type="text/sitemap">
-                  <param name="Name" value="Accepting Adapt It’s adaptation">
+                  <param name="Name" value="Accepting Adapt It's adaptation">
                   <param name="Local" value="User_Interface/Phrase_Box/Accepting_Adapt_ Its_adaptation.htm">
                 </OBJECT>
             <LI><OBJECT type="text/sitemap">
@@ -1352,6 +1351,10 @@
             <LI><OBJECT type="text/sitemap">
                   <param name="Name" value="Moving the phrase box">
                   <param name="Local" value="User_Interface/Phrase_Box/Moving_the_phrase_box.htm">
+                </OBJECT>
+            <LI><OBJECT type="text/sitemap">
+                  <param name="Name" value="Phrase box">
+                  <param name="Local" value="User_Interface/Phrase_Box/Phrase_Box_overview.htm">
                 </OBJECT>
             <LI><OBJECT type="text/sitemap">
                   <param name="Name" value="Placeholder">
