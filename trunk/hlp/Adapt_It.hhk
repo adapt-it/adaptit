@@ -19,8 +19,8 @@
             <param name="Local" value="Advanced_Topics/Consistent_Changes/Accept_changes_without_stopping.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
-            <param name="Name" value="Accepting Adapt It’s adaptation">
-            <param name="Name" value="Accepting Adapt It’s adaptation">
+            <param name="Name" value="Accepting Adapt It's adaptation">
+            <param name="Name" value="Accepting Adapt It's adaptation">
             <param name="Local" value="User_Interface/Phrase_Box/Accepting_Adapt_ Its_adaptation.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
@@ -939,9 +939,9 @@
             <param name="Local" value="Adapt_It_Concepts/Phrase.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
-            <param name="Name" value="Phrase_Box">
-            <param name="Name" value="Phrase_Box">
-            <param name="Local" value="User_Interface/Phrase_Box/Phrase_Box.htm">
+            <param name="Name" value="Phrase box">
+            <param name="Name" value="Phrase box">
+            <param name="Local" value="User_Interface/Phrase_Box/Phrase_Box_overview.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Pile">
@@ -951,12 +951,12 @@
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Placeholder">
             <param name="Name" value="Placeholder">
-            <param name="Local" value="User_Interface/AI_Main_Window/Components/Placeholder.htm">
+            <param name="Local" value="User_Interface/Phrase_Box/Placeholder.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Placeholder">
             <param name="Name" value="Placeholder">
-            <param name="Local" value="User_Interface/Phrase_Box/Placeholder.htm">
+            <param name="Local" value="User_Interface/AI_Main_Window/Components/Placeholder.htm">
          </OBJECT>
     <LI><OBJECT type="text/sitemap">
             <param name="Name" value="Placement of filtered material in source or target RTF exports">

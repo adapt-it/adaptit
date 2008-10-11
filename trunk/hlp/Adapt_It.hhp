@@ -18,6 +18,7 @@ Default window=main
 main=,"Adapt_It.hhc","Adapt_It.hhk","glossary_of_terms.htm","glossary_of_terms.htm",,,,,0x23520,222,0x1046,[10,10,780,560],0xB0000,,,,,,0
 
 [FILES]
+Exclude.txt
 glossary_of_terms.htm
 Help.css
 Important_Icon.gif
@@ -557,7 +558,7 @@ User_Interface\Menu_Bar\File_Menu\Proj_Mngment\Using_Start_Working_for_Projects.
 User_Interface\Menu_Bar\File_Menu\Recent_Documents\Recent_Documents.htm
 User_Interface\Menu_Bar\Help_menu\Help_menu.htm
 User_Interface\Menu_Bar\Layout_Menu\Change_the_text_direction.htm
-User_Interface\Menu_Bar\Layout_Menu\Layout_menu.htm
+User_Interface\Menu_Bar\Layout_Menu\Layout_Menu.htm
 User_Interface\Menu_Bar\Tools_Menu\Automatic_capitalization_overview.htm
 User_Interface\Menu_Bar\Tools_Menu\Automatic_Capitalization_warning_messages.htm
 User_Interface\Menu_Bar\Tools_Menu\Consistent_changes_section.htm
@@ -596,7 +597,7 @@ User_Interface\Phrase_Box\Insert_a_placeholder.htm
 User_Interface\Phrase_Box\Make_a_phrase.htm
 User_Interface\Phrase_Box\Manual_movement_of_phrase_box.htm
 User_Interface\Phrase_Box\Moving_the_phrase_box.htm
-User_Interface\Phrase_Box\Phrase_box.htm
+User_Interface\Phrase_Box\Phrase_Box_overview.htm
 User_Interface\Phrase_Box\Placeholder.htm
 User_Interface\Phrase_Box\Placement_Of_Phrase-Medial_Punctuation.htm
 User_Interface\Phrase_Box\Type_into_the_ phrase_box.htm
