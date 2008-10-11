@@ -924,12 +924,9 @@
          </UL>
          <LI><OBJECT type="text/sitemap">
                <param name="Name" value="Menu_Bar">
+               <param name="Local" value="User_Interface/Menu_Bar/Menu_Bar.htm">
              </OBJECT>
          <UL>
-            <LI><OBJECT type="text/sitemap">
-                  <param name="Name" value="Menus">
-                  <param name="Local" value="User_Interface/Menu_Bar/Menu_ Bar.htm">
-                </OBJECT>
             <LI><OBJECT type="text/sitemap">
                   <param name="Name" value="Advanced_Menu">
                   <param name="Local" value="User_Interface/Menu_Bar/Advanced_Menu/Advanced_Menu.htm">
