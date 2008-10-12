@@ -160,7 +160,7 @@ Getting_Started\Launching_Adapt_It\Non_Unicode_Fonts_dialog.htm
 Getting_Started\Launching_Adapt_It\Punctuation_dialog.htm
 Getting_Started\Launching_Adapt_It\USFM_dialog.htm
 Getting_Started\Project_Preparation\Setting_up_a_project.htm
-Getting_Started\Source_text_preparation\source_text_preparation.htm
+Getting_Started\Source_text_preparation\Source_text_preparation.htm
 Images\About_Adapt_It_dialog.PNG
 Images\Adapt_It_Edit_Menu.PNG
 Images\Adapt_It_welcome.PNG
@@ -320,7 +320,7 @@ Images\Move_a_doc_to_adaptions.PNG
 Images\Move_bundle_down.gif
 Images\Move_bundle_up.gif
 Images\Move_note.PNG
-Images\Move_to end.gif
+Images\Move_to_end.gif
 Images\Move_to_next_Note.GIF
 Images\Move_to_Previous_Note.GIF
 Images\Move_to_start.gif
@@ -492,7 +492,7 @@ User_Interface\Compose_bar\Opening_the_Compose_bar.htm
 User_Interface\Compose_bar\Using_the_Compose_bar.htm
 User_Interface\Dialog_Boxes\Choose_a_Book_folder_dialog.htm
 User_Interface\Dialog_Boxes\Document_dialog.htm
-User_Interface\Dialog_Boxes\Edit_or_Examine_the_Knowledge_Base dialog.htm
+User_Interface\Dialog_Boxes\Edit_or_Examine_the_Knowledge_Base_dialog.htm
 User_Interface\Dialog_Boxes\Move_a_document_dialog.htm
 User_Interface\Dialog_Boxes\Number_of_Copies.htm
 User_Interface\Dialog_Boxes\Print_dialog_box_Printer.htm
@@ -507,8 +507,9 @@ User_Interface\Dialog_Boxes\Using_the_Page_Setup_dialog.htm
 User_Interface\Dialog_Boxes\Using_the_Print_dialog_box.htm
 User_Interface\Dialog_Boxes\Using_the_Print_Setup_dialog.htm
 User_Interface\Dialog_Boxes\Using_the_View_Translations_or_Glosses_Elsewhere_dialog.htm
+User_Interface\Help_Menu\Help_Menu.htm
 User_Interface\Menu_Bar\Menu_Bar.htm
-User_Interface\Menu_Bar\Advanced_Menu\Advanced_menu.htm
+User_Interface\Menu_Bar\Advanced_Menu\Advanced_Menu.htm
 User_Interface\Menu_Bar\Advanced_Menu\Back_translation_management.htm
 User_Interface\Menu_Bar\Advanced_Menu\Free_translation_management.htm
 User_Interface\Menu_Bar\Advanced_Menu\Glossing_Management.htm
@@ -521,12 +522,12 @@ User_Interface\Menu_Bar\Advanced_Menu\Use_Transliteration_Mode.htm
 User_Interface\Menu_Bar\Advanced_Menu\Using_a_default_free_translation.htm
 User_Interface\Menu_Bar\Advanced_Menu\Using_Book_folders.htm
 User_Interface\Menu_Bar\Edit_Menu\Consistency_checking.htm
-User_Interface\Menu_Bar\Edit_Menu\Edit_menu.htm
+User_Interface\Menu_Bar\Edit_Menu\Edit_Menu.htm
 User_Interface\Menu_Bar\Edit_Menu\Edit_Source_text.htm
 User_Interface\Menu_Bar\Edit_Menu\Go_to.htm
 User_Interface\Menu_Bar\Edit_Menu\Moving_notes.htm
 User_Interface\Menu_Bar\Edit_Menu\Undo.htm
-User_Interface\Menu_Bar\File_Menu\File_menu.htm
+User_Interface\Menu_Bar\File_Menu\File_Menu.htm
 User_Interface\Menu_Bar\File_Menu\Doc_Mngment\Close.htm
 User_Interface\Menu_Bar\File_Menu\Doc_Mngment\Document_management.htm
 User_Interface\Menu_Bar\File_Menu\Doc_Mngment\Export_Interlinear_Text.htm
@@ -544,7 +545,7 @@ User_Interface\Menu_Bar\File_Menu\KB_Mngment\Exporting_knowledge_base_entries.ht
 User_Interface\Menu_Bar\File_Menu\KB_Mngment\Importing_knowledge_base_entries.htm
 User_Interface\Menu_Bar\File_Menu\KB_Mngment\Knowledge_Base_management.htm
 User_Interface\Menu_Bar\File_Menu\KB_Mngment\Restore_the_knowledge_base.htm
-User_Interface\Menu_Bar\File_Menu\KB_Mngment\Save_knowledge_ base_manually.htm
+User_Interface\Menu_Bar\File_Menu\KB_Mngment\Save_knowledge_base_manually.htm
 User_Interface\Menu_Bar\File_Menu\Print_Mngment\Page_Setup.htm
 User_Interface\Menu_Bar\File_Menu\Print_Mngment\Print.htm
 User_Interface\Menu_Bar\File_Menu\Print_Mngment\Print_management.htm
@@ -556,7 +557,7 @@ User_Interface\Menu_Bar\File_Menu\Proj_Mngment\Using_Start_Working.htm
 User_Interface\Menu_Bar\File_Menu\Proj_Mngment\Using_Start_Working_for_Documents.htm
 User_Interface\Menu_Bar\File_Menu\Proj_Mngment\Using_Start_Working_for_Projects.htm
 User_Interface\Menu_Bar\File_Menu\Recent_Documents\Recent_Documents.htm
-User_Interface\Menu_Bar\Help_menu\Help_menu.htm
+User_Interface\Menu_Bar\Help_Menu\Help_Menu.htm
 User_Interface\Menu_Bar\Layout_Menu\Change_the_text_direction.htm
 User_Interface\Menu_Bar\Layout_Menu\Layout_Menu.htm
 User_Interface\Menu_Bar\Tools_Menu\Automatic_capitalization_overview.htm
@@ -577,9 +578,9 @@ User_Interface\Menu_Bar\Tools_Menu\SIL_converters_section.htm
 User_Interface\Menu_Bar\Tools_Menu\Special_search_dialog.htm
 User_Interface\Menu_Bar\Tools_Menu\Split_a_document.htm
 User_Interface\Menu_Bar\Tools_Menu\Split_join_move_document_section.htm
-User_Interface\Menu_Bar\Tools_Menu\Tools_menu.htm
-User_Interface\Menu_Bar\View_Menu\Prevent_source_text_ from_being_copied_to_the_phrase_box.htm
-User_Interface\Menu_Bar\View_Menu\View_menu.htm
+User_Interface\Menu_Bar\Tools_Menu\Tools_Menu.htm
+User_Interface\Menu_Bar\View_Menu\Prevent_source_text_from_being_copied_to_the_phrase_box.htm
+User_Interface\Menu_Bar\View_Menu\View_Menu.htm
 User_Interface\Mode_Bar\Mode_Bar.htm
 User_Interface\Mode_Bar\Automatic_Checkbox\Automatic_mode.htm
 User_Interface\Mode_Bar\Automatic_Checkbox\Automatic_mode_process.htm
@@ -587,20 +588,20 @@ User_Interface\Mode_Bar\Automatic_Checkbox\Single_step_mode.htm
 User_Interface\Mode_Bar\Automatic_Checkbox\Single_step_mode_process.htm
 User_Interface\Mode_Bar\Drafting_Option_box\drafting_mode.htm
 User_Interface\Mode_Bar\Force_Choice_Checkbox\Using_the_Force_Choice_For_This_Item_Checkbox.htm
-User_Interface\Mode_Bar\No_Adaptation_Command\the_ no_adaptation_button.htm
+User_Interface\Mode_Bar\No_Adaptation_Command\the_no_adaptation_button.htm
 User_Interface\Mode_Bar\Reviewing_Option_box\Reviewing_mode.htm
-User_Interface\Mode_Bar\Save_to_Knowledge_Base_Checkbox\Clear_the_Save_To_Knowledge_Base_checkbox.htm
-User_Interface\Phrase_Box\Accepting_Adapt_ Its_adaptation.htm
-User_Interface\Phrase_Box\Delete_the_target_ text.htm
+User_Interface\Mode_Bar\Save_to_Knowledge_Base_Checkbox\Clear_the_Save_To_Knowledge_Base_Checkbox.htm
+User_Interface\Phrase_Box\Accepting_Adapt_Its_adaptation.htm
+User_Interface\Phrase_Box\Delete_the_target_text.htm
 User_Interface\Phrase_Box\Edit_within_the_phrase_box.htm
 User_Interface\Phrase_Box\Insert_a_placeholder.htm
 User_Interface\Phrase_Box\Make_a_phrase.htm
 User_Interface\Phrase_Box\Manual_movement_of_phrase_box.htm
 User_Interface\Phrase_Box\Moving_the_phrase_box.htm
-User_Interface\Phrase_Box\Phrase_Box_overview.htm
+User_Interface\Phrase_Box\Phrase_Box.htm
 User_Interface\Phrase_Box\Placeholder.htm
 User_Interface\Phrase_Box\Placement_Of_Phrase-Medial_Punctuation.htm
-User_Interface\Phrase_Box\Type_into_the_ phrase_box.htm
+User_Interface\Phrase_Box\Type_into_the_phrase_box.htm
 User_Interface\Phrase_Box\Unmake_a_phrase.htm
 User_Interface\Phrase_Box\Using_the_Phrase_Box.htm
 User_Interface\Preferences\Auto_saving_tab.htm
@@ -639,7 +640,7 @@ User_Interface\Tool_Bar\Punctuation_icons\No_punctuation_copy.htm
 User_Interface\Tool_Bar\Punctuation_icons\Show_or_hide_punctuation.htm
 User_Interface\Tool_Bar\Retranslation_icons\Edit_a_retranslation.htm
 User_Interface\Tool_Bar\Retranslation_icons\Remove_a_retranslation.htm
-User_Interface\Tool_Bar\Retranslation_icons\Retranslate_selected_ source_text.htm
+User_Interface\Tool_Bar\Retranslation_icons\Retranslate_selected_source_text.htm
 User_Interface\Tool_Bar\Retranslation_icons\Using_the_Type_Retranslation_Text_dialog.htm
 Windows_Concepts\Clipboard.htm
 Windows_Concepts\Copying_text_to_another_location.htm

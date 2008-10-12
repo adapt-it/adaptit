@@ -3540,8 +3540,8 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
 	// delete the deep-copied sublists using this function; making m_pSourcePhrases the default and
 	// having just the one function would be an option, but it forces me to make m_pSourcePhrases a
 	// static class function which I don't want to do, but it would work okay that way too)
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//wxASSERT(pApp != NULL);
 	if (pList != NULL)
 	{
 		if (!pList->IsEmpty())

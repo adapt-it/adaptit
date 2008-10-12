@@ -66,7 +66,7 @@
 
 // the next are for wxHtmlHelpController
 #include <wx/filesys.h>
-#include <wx/fs_zip.h>
+#include <wx/fs_arc.h> //#include <wx/fs_zip.h>
 //#include <wx/help.h> //(wxWidgets chooses the appropriate help controller class)
 //#include <wx/helpbase.h> //(wxHelpControllerBase class)
 //#include <wx/helpwin.h> //(Windows Help controller)
