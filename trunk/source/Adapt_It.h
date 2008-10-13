@@ -58,6 +58,10 @@
 // The following define outputs scrolling information via wxLogDebug() when defined.
 //#define _LOG_DEBUG_SCROLLING
 
+// The following define is for testing the wxSplitterWindow on the wx version.
+// To add the splitter window uncomment the line below and rebuild.
+//#define _USE_SPLITTER_WINDOW
+
 // Note: The wxWidgets version does not have OutText(), but always uses DrawText(), 
 // so I've removed all the _USE_DRAWTEXT conditional defines and any #else blocks where
 // OutText() is used. 

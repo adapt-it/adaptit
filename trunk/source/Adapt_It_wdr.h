@@ -20,7 +20,11 @@
 #include <wx/statline.h>
 #include <wx/spinbutt.h>
 #include <wx/spinctrl.h>
+
+#ifdef _USE_SPLITTER_WINDOW
 #include <wx/splitter.h>
+#endif
+
 #include <wx/listctrl.h>
 #include <wx/treectrl.h>
 #include <wx/notebook.h>
