@@ -1103,7 +1103,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
                      const wxString& title, const wxPoint& pos,
                      const wxSize& size, const long type) :
     wxDocParentFrame(manager, frame, id, title, pos, size, type, _T("myFrame"))
-    //, m_help(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES)
 {
 
 
@@ -1404,32 +1403,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     // client window is adjusted accordingly and the screen redrawn as needed
 	m_pVertEditBar->Hide();
 
-	// Create the vertEditStepTransBar using a wxPanel
-	//wxPanel *vertEditStepTransBar = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize, 0);
-	//wxASSERT(vertEditStepTransBar != NULL);
-	//m_pVertEditStepTransBar = vertEditStepTransBar;
-	//VertEditStepTransitionFunc( vertEditStepTransBar, TRUE, TRUE );
-	// // Note: We are creating a vertEditStepTransBar which the doc/view framework knows
-	// // nothing about. The mainFrameSizer below takes care of the vertEditStepTransBar's
-	// // layout within the Main Frame. The vertEditStepTransBar is not visible by default
-	// // but can be made visible during source text/vertical editing.
-	// // Here and in the OnSize() method, we calculate the canvas' client
-	// // size, which also must exclude the height of the vertEditStepTransBar (if shown).
-	// // Get and save the native height of our vertEditStepTransBar.
-	//wxSize vertEditStepTransBarSize;
-	//vertEditStepTransBarSize = m_pVertEditStepTransBar->GetSize();
-	//m_vertEditStepTransBarHeight = vertEditStepTransBarSize.GetHeight();
-	//m_pVertEditStepTransMsgBox = (wxTextCtrl*)FindWindowById(IDC_STATIC_STEP_MSG);
-	//wxASSERT(m_pVertEditStepTransMsgBox != NULL);
-	//m_pVertEditStepTransMsgBox->SetBackgroundColour(gpApp->sysColorBtnFace); //(wxSYS_COLOUR_WINDOW);
- //   // The initial state of the removalsBar, however is hidden. The m_pRemovalsBar is dynamically hidden
- //   // or shown depending on the state of any source text/vertical editing process. OnSize()insures the
- //   // client window is adjusted accordingly and the screen redrawn as needed
-	//m_pVertEditStepTransBar->Hide();
-	
-	// All the potentially visible "bars" are now created and their data initialized.
-
-
 	// BEW added 27Mar07 for support of receiving synchronized scroll messages
 	// whm note: in the MFC version the following is located in CMainFrame::OnCreate()
 	if (gpDocList == NULL)
@@ -1437,10 +1410,27 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 		// create the SPList, so it can be used if the user turns on message receiving
 		gpDocList = new SPList;
 	}
-	
- 	this->canvas = CreateCanvas(this);
+
+#ifdef _USE_SPLITTER_WINDOW
+	// whm: See font.cpp sample which has a good example of creating a wxSplitterWindow
+    splitter = new wxSplitterWindow(this);
+#endif
+
+	// All the potentially visible "bars" are now created and their data initialized.
+
+#ifdef _USE_SPLITTER_WINDOW
+	// the wxSplitterWindow is the parent of the canvas
+ 	this->canvas = CreateCanvas(splitter); 
+#else
+	this->canvas = CreateCanvas(this);
+#endif
 	// now that canvas is created, set canvas' pointer to this main frame
 	canvas->pFrame = this;
+
+#ifdef _USE_SPLITTER_WINDOW
+    splitter->SplitHorizontally(canvas,canvas,200); //splitter->Initialize(canvas);
+	splitter->Show(TRUE);
+#endif
 
 	// Now create a mainFrameSizer and add our two non-standard "bars" and our canvas to it
 	// Notes: canvas has its own canvasSizer and its own SetAutoLayout() and SetSizer()
@@ -2059,8 +2049,12 @@ void CMainFrame::OnClose(wxCloseEvent& event)
 					// to effect the closedown process
 }
 
-// Creat a canvas for the main frame.
+#ifdef _USE_SPLITTER_WINDOW
+// Creat a canvas for the splitter window held on the main frame.
+CAdapt_ItCanvas *CMainFrame::CreateCanvas(wxSplitterWindow *parent)
+#else
 CAdapt_ItCanvas *CMainFrame::CreateCanvas(CMainFrame *parent)
+#endif
 {
 	int width, height;
 	parent->GetClientSize(&width, &height);
@@ -2378,8 +2372,36 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	// VertDisplacementFromReportedMainFrameClientSize now represents the y coordinate displacement
 	// from the original GetClientSize() call and is where we place the canvas. The width is always
 	// mainFrameClientSize.x, and the height is our calculated finalHeightOfCanvas.
-	canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-		mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+	//canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
+	//	mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+	
+#ifdef _USE_SPLITTER_WINDOW
+	// whm Note: If the splitter window IsSplit, we have two versions of the canvas, one in the top
+	// splitter window and one in the bottom splitter window. To size things properly in this case, we
+	// check to see if splitter->IsSplit() returns TRUE or FALSE. If FALSE we set the size of the
+	// single window to be the size of the remaining client size in the frame. If TRUE, we set Window1
+	// and Window2 separately depending on their split sizes.
+	wxWindow* pWindow1;
+	wxWindow* pWindow2;
+	wxSize win1Size;
+	wxSize win2Size;
+	//if (splitter->IsSplit())
+	//{
+	//	pWindow1 = splitter->GetWindow1();
+	//	pWindow2 = splitter->GetWindow2();
+	//	win1Size = pWindow1->GetSize();
+	//	win2Size = pWindow2->GetSize();
+
+	//}
+	//else
+	//{
+		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
+			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+	//}
+#else
+		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
+			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+#endif
 	
 	// whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine
 	// BEW added 05Mar06: Bill Martin reported (email 3 March) that if user is in free translation mode,

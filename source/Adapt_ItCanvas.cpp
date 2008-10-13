@@ -40,6 +40,10 @@
 #include <wx/docview.h>	// lost a lot of time trying to track down obscure compillation
 						// errors after forgetting to include this! It is needed even
 						// for the class to be able to recognize wxView and wxDocument.
+#ifdef _USE_SPLITTER_WINDOW
+#include <wx/splitter.h> // for wxSplitterWindow
+#endif
+
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
 #include "EarlierTranslationDlg.h"
@@ -169,9 +173,15 @@ CAdapt_ItCanvas::CAdapt_ItCanvas()
 {
 }
 
+#ifdef _USE_SPLITTER_WINDOW
+CAdapt_ItCanvas::CAdapt_ItCanvas(wxSplitterWindow *splitter, 
+	const wxPoint& pos, const wxSize& size, const long style)
+	: wxScrolledWindow(splitter, wxID_ANY, pos, size, style)
+#else
 CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame, 
 	const wxPoint& pos, const wxSize& size, const long style)
 	: wxScrolledWindow(frame, wxID_ANY, pos, size, style)
+#endif
 {
 	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' view pointer point to incoming view pointer
 	pFrame = NULL; // pFrame is set in CMainFrame's 

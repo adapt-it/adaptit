@@ -5479,30 +5479,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Only allow one document at a time to be open
 	m_pDocManager->SetMaxDocsOpen(1);
 
-	// added from docview sample 16Mar04 
-	// Create the canvas for the Main Frame (A Doc and View are created below)
-	// m_pMainFrame is the parent of the canvas, initially the canvas' view pointer
-	// is NULL. 
-	// Note: If we want to have a wxSplitterWindow, we would create it with:
-	//wxSplitterWindow *m_pSplitter = new wxSplitterWindow(m_pMainFrame); // testing
-	// where the main frame is the parent of the splitter window. Then, when creating
-	// our canvas, the splitter window would be the parent of the canvas with:
-	//m_pMainFrame->canvas = m_pMainFrame->CreateCanvas ((wxView*) NULL, m_pSplitter); // testing
-	// Then initiate the splitter horizontally with:
-	//m_pSplitter->SplitHorizontally(m_pMainFrame->canvas, m_pMainFrame->canvas, 10); // testing
-	// Other changes would need to be made in CAdapt_ItCanvas.
-	// In the meantime, until we institute a splitter window, we will make the 
-	// m_pMainFrame be the parent of the canvas.
-
-	// following moved to CMainFrame's constructor
-	//m_pMainFrame->canvas = m_pMainFrame->CreateCanvas ((wxView*) NULL, m_pMainFrame); // original
-
-	// The AIMenuBarFunc() function has the code that creates the Main Menu (created by wxDesigner).
-	// AIMenuBarFunc() is defined in the Adapt_It_Resources.h and Adapt_It_Resources.cpp 
-	// files. The SetMenuBar method places the Adapt It Menu Bar on the main frame.
-	// following moved to CMainFrame's constructor
-    //m_pMainFrame->SetMenuBar(AIMenuBarFunc());
-
 	// testing !!!
 	//m_pMainFrame->Connect(wxID_ANY, wxEVT_KEY_DOWN, (wxObjectEventFunction) &CAdapt_ItApp::OnShiftDown);
 	// testing !!!

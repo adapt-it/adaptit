@@ -25,6 +25,10 @@
 class CMainFrame;
 class CAdapt_ItView;
 
+#ifdef _USE_SPLITTER_WINDOW
+class wxSplitterWindow;
+#endif
+
 /// The CAdapt_ItCanvas class implements the main Adapt It window based on
 /// wxScrolledWindow. This is required because wxWidgets' doc/view framework
 /// does not have an equivalent for the CScrolledView in MFC.
@@ -35,8 +39,12 @@ class CAdapt_ItCanvas : public wxScrolledWindow
 public:
 
 	CAdapt_ItCanvas();
-	CAdapt_ItCanvas(CMainFrame* frame, const wxPoint& pos, const wxSize& size, const long style);
-    //void OnDraw(wxDC& dc); //virtual void OnDraw(wxDC& dc); 
+#ifdef _USE_SPLITTER_WINDOW
+	CAdapt_ItCanvas(wxSplitterWindow* splitter, const wxPoint& pos, const wxSize& size, const long style);
+#else
+ 	CAdapt_ItCanvas(CMainFrame* frame, const wxPoint& pos, const wxSize& size, const long style);
+#endif
+   //void OnDraw(wxDC& dc); //virtual void OnDraw(wxDC& dc); 
 	// since OnDraw in wxScrolledWindow is virtual, 'virtual' keyword is not needed here
     void OnPaint(wxPaintEvent &WXUNUSED(event));
 	void DoPrepareDC(wxDC& dc); // this is called OnPrepareDC() in MFC

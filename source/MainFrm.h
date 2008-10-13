@@ -88,8 +88,11 @@ class CMainFrame : public wxDocParentFrame
 	// implement it in the wxWidgets version at this point
 	////protected:
 	//wxSplitterWindow* m_wndSplitter; 
-
 	public:
+
+#ifdef _USE_SPLITTER_WINDOW
+	wxSplitterWindow *splitter;
+#endif
 
 	CMainFrame(wxDocManager* manager, wxFrame* frame, wxWindowID id,
 			const wxString& title,
@@ -148,7 +151,13 @@ class CMainFrame : public wxDocParentFrame
 	
 	CAdapt_ItCanvas *canvas;	// The MainFrame holds the main pointer to our canvas
 								// Note: The View also holds its own pointer to this canvas
+	
+	// whm: See font.cpp sample for example of creating a wxSplitterWindow
+#ifdef _USE_SPLITTER_WINDOW
+	CAdapt_ItCanvas *CreateCanvas(wxSplitterWindow *parent); 
+#else
 	CAdapt_ItCanvas *CreateCanvas(CMainFrame *parent);
+#endif
 	wxSize GetCanvasClientSize(); // whm added 24Feb07
 
     void OnViewToolBar(wxCommandEvent& WXUNUSED(event));
