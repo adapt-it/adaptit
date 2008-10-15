@@ -56,8 +56,13 @@ XGETTEXT_ = @XGETTEXT@
 XGETTEXT_no = @XGETTEXT@
 XGETTEXT_yes = @XGETTEXT_015@
 XGETTEXT = $(XGETTEXT_$(USE_MSGCTXT))
-MSGMERGE = msgmerge
-MSGMERGE_UPDATE = @MSGMERGE@ --update
+
+# Turn off message merging. PO files should not be regenerated on this end. (Joel)
+#MSGMERGE = msgmerge
+#MSGMERGE_UPDATE = @MSGMERGE@ --update
+MSGMERGE = false
+MSGMERGE_UPDATE = true
+
 MSGINIT = msginit
 MSGCONV = msgconv
 MSGFILTER = msgfilter
