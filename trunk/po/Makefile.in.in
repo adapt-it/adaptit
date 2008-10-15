@@ -226,12 +226,19 @@ install-data-yes: all
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  case $$cat in \
+	    wxstd-*) \
+	      lang=`echo $$cat | sed -e 's/wxstd-//' -e 's/\.gmo$$//'`; \
+	      domain=wxstd ; ;; \
+	    *) \
+	      lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	      domain=$(DOMAIN); ;; \
+	  esac; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(mkdir_p) $(DESTDIR)$$dir; \
 	  if test -r $$cat; then realcat=$$cat; else realcat=$(srcdir)/$$cat; fi; \
-	  $(INSTALL_DATA) $$realcat $(DESTDIR)$$dir/$(DOMAIN).mo; \
-	  echo "installing $$realcat as $(DESTDIR)$$dir/$(DOMAIN).mo"; \
+	  $(INSTALL_DATA) $$realcat $(DESTDIR)$$dir/$$domain.mo; \
+	  echo "installing $$realcat as $(DESTDIR)$$dir/$$domain.mo"; \
 	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
 	    if test -n "$$lc"; then \
 	      if (cd $(DESTDIR)$(localedir)/$$lang && LC_ALL=C ls -l -d $$lc 2>/dev/null) | grep ' -> ' >/dev/null; then \
@@ -253,11 +260,11 @@ install-data-yes: all
 	          mkdir $(DESTDIR)$(localedir)/$$lang/$$lc; \
 	        fi; \
 	      fi; \
-	      rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
-	      ln -s ../LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null || \
-	      ln $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo 2>/dev/null || \
-	      cp -p $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$(DOMAIN).mo $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
-	      echo "installing $$realcat link as $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo"; \
+	      rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$$domain.mo; \
+	      ln -s ../LC_MESSAGES/$$domain.mo $(DESTDIR)$(localedir)/$$lang/$$lc/$$domain.mo 2>/dev/null || \
+	      ln $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$$domain.mo $(DESTDIR)$(localedir)/$$lang/$$lc/$$domain.mo 2>/dev/null || \
+	      cp -p $(DESTDIR)$(localedir)/$$lang/LC_MESSAGES/$$domain.mo $(DESTDIR)$(localedir)/$$lang/$$lc/$$domain.mo; \
+	      echo "installing $$realcat link as $(DESTDIR)$(localedir)/$$lang/$$lc/$$domain.mo"; \
 	    fi; \
 	  done; \
 	done
@@ -278,7 +285,12 @@ installdirs-data-yes:
 	@catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  case $$cat in \
+	    wxstd-*) \
+	      lang=`echo $$cat | sed -e 's/wxstd-//' -e 's/\.gmo$$//'`; \
+	    *) \
+	      lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  esac; \
 	  dir=$(localedir)/$$lang/LC_MESSAGES; \
 	  $(mkdir_p) $(DESTDIR)$$dir; \
 	  for lc in '' $(EXTRA_LOCALE_CATEGORIES); do \
@@ -324,9 +336,16 @@ uninstall-data-yes:
 	catalogs='$(CATALOGS)'; \
 	for cat in $$catalogs; do \
 	  cat=`basename $$cat`; \
-	  lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	  case $$cat in \
+	    wxstd-*) \
+	      lang=`echo $$cat | sed -e 's/wxstd-//' -e 's/\.gmo$$//'`; \
+	      domain=wxstd ; ;; \
+	    *) \
+	      lang=`echo $$cat | sed -e 's/\.gmo$$//'`; \
+	      domain=$(DOMAIN); ;; \
+	  esac; \
 	  for lc in LC_MESSAGES $(EXTRA_LOCALE_CATEGORIES); do \
-	    rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$(DOMAIN).mo; \
+	    rm -f $(DESTDIR)$(localedir)/$$lang/$$lc/$$domain.mo; \
 	  done; \
 	done
 
