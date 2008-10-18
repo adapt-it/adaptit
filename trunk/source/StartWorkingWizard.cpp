@@ -102,7 +102,6 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 {
 	// The Start Working Wizard is not generated in wxDesigner.
 	
-	pWizardPageSizer = GetPageAreaSizer();
 	// Create the wizard pages
     
 	pStartWorkingWizard = this;
@@ -129,8 +128,16 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	pDocPage = new CDocPage(this);
 	wxASSERT(pDocPage != NULL);
 
-	//pUSFMPageInWizard = pUsfmPageWiz;
-	//pFilterPageInWizard = pFilterPageWiz;
+	pWizardPageSizer = GetPageAreaSizer();
+	pWizardPageSizer->Add(pProjectPage);
+	pWizardPageSizer->Add(pLanguagesPage);
+	pWizardPageSizer->Add(pFontPageWiz);
+	pWizardPageSizer->Add(pPunctCorrespPageWiz);
+	pWizardPageSizer->Add(pCaseEquivPageWiz);
+	pWizardPageSizer->Add(pUsfmPageWiz);
+	pWizardPageSizer->Add(pFilterPageWiz);
+	pWizardPageSizer->Add(pDocPage);
+	
 	// Note: Each of the wizard page's 
 	//InitDialog() handlers is NOT automatically 
 	// called when the pages are created or shown in the Start Working Wizard. 
@@ -165,14 +172,17 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	// Get the largest minimum page size needed for all pages of the wizard to display fully
 	// (we don't really need to concern ourselves with the x components)
 	wxSize neededSize;
-	neededSize.IncTo(pProjectPage->GetSize());
-	neededSize.IncTo(pLanguagesPage->GetSize());
-	neededSize.IncTo(pFontPageWiz->GetSize());
-	neededSize.IncTo(pPunctCorrespPageWiz->GetSize());
-	neededSize.IncTo(pCaseEquivPageWiz->GetSize());
-	neededSize.IncTo(pUsfmPageWiz->GetSize());
-	neededSize.IncTo(pFilterPageWiz->GetSize());
-	neededSize.IncTo(pDocPage->GetSize());
+	//neededSize.IncTo(pProjectPage->GetSize());
+	//neededSize.IncTo(pLanguagesPage->GetSize());
+	//neededSize.IncTo(pFontPageWiz->GetSize());
+	//neededSize.IncTo(pPunctCorrespPageWiz->GetSize());
+	//neededSize.IncTo(pCaseEquivPageWiz->GetSize());
+	//neededSize.IncTo(pUsfmPageWiz->GetSize());
+	//neededSize.IncTo(pFilterPageWiz->GetSize());
+	//neededSize.IncTo(pDocPage->GetSize());
+	// Note: Calling GetMinSize() on the pWizardPageSizer get the same value as the 8 lines of calling
+	// IncTo above.
+	neededSize = pWizardPageSizer->GetMinSize(); // GetMinSize is supposed to return the wizard's minimal client size
 	// Check the display size to see if we need to make size adjustments in
 	// the Wizard.
 	wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
@@ -189,16 +199,8 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 		maxSz.SetHeight(displaySize.GetHeight() - 50);
 		this->SetMaxSize(maxSz);
     }
-	//else
-	//{
-	//	// We have room on the display so we can fit the wizard to the largest
-	//	// page it contains.
-	//	SetSizeHints(-1, -1, neededSize.GetX(), neededSize.GetY()); //
-	FitToPage(pCaseEquivPageWiz);
-	//}
+
 	pWizardPageSizer->Layout();
-	//neededSize.IncBy(wizFrameWidth,wizFrameHeight);
-	//SetSize(neededSize);
 
 	// Note: Since all the above wizard pages have wizard as parent window
 	// they will be destroyed automatically when wizard is destroyed below.

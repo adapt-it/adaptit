@@ -114,6 +114,10 @@ public:
 	/// an instance of the CPunctCorrespPageCommon class for use in CPunctCorrespPageWiz
 	CPunctCorrespPageCommon punctPgCommon;
 
+#ifdef _UNICODE
+	void OnBnClickedToggleUnnnn(wxCommandEvent& WXUNUSED(event));
+#endif
+
 public:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event)); // needs to be public because it's called from the App
 
@@ -152,6 +156,10 @@ public:
 
 	/// an instance of the CPunctCorrespPageCommon class for use in CPunctCorrespPagePrefs
 	CPunctCorrespPageCommon punctPgCommon;
+
+#ifdef _UNICODE
+	void OnBnClickedToggleUnnnn(wxCommandEvent& WXUNUSED(event));
+#endif
 
 public:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event)); // needs to be public because it's called from the App

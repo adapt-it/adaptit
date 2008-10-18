@@ -246,6 +246,7 @@ void CFilterPageCommon::DoInit()
 	{
 		// In the wizard there is no doc open so load only a message into the pListBoxSFMsDoc
 		// saying that "(NO DOCUMENTS CREATED YET IN THIS PROJECT)"
+		pListBoxSFMsDoc->Clear();
 		pListBoxSFMsDoc->Append(_("(NO DOCUMENT AVAILABLE IN THIS PROJECT - NO FILTER SETTINGS TO DISPLAY)"));
 	}
 	
