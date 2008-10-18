@@ -132,7 +132,11 @@ bool CProjectPage::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-	GetSizer()->Fit(this);
+	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
+	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
+	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
+	// scroll if necessary so the user can still access the whole wxWizardPage. 
+	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 
@@ -142,6 +146,27 @@ void CProjectPage::CreateControls()
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
+    
+	// Testing below !!!
+ //   pProjectPageSizer = new wxBoxSizer(wxVERTICAL);
+ //   this->SetSizer(pProjectPageSizer); // pProjectPageSizer is the top level sizer
+
+	//wxBoxSizer* itemBoxSizer2 = new wxBoxSizer(wxVERTICAL);
+	//// add a vertical sizer to the top level sizer
+	//pProjectPageSizer->Add(itemBoxSizer2,1,wxGROW|wxALL,5);
+
+	//wxBoxSizer* itemBoxSizer3 = new wxBoxSizer(wxVERTICAL);
+	//// add another vertical sizer to the one just added
+ //   itemBoxSizer2->Add(itemBoxSizer3, 1, wxGROW|wxALL, 5);
+
+	//// create our scrolled window whose parent is the overall page  
+	//m_scrolledWindow = new wxScrolledWindow( this, -1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxHSCROLL|wxVSCROLL );
+	//// now create the rest of the dialog controls using the wxDesigner function with our scrolled
+	//// window as their parent window
+	//wxSizer* itemBoxSizer4 = ProjectPageFunc(m_scrolledWindow, TRUE, TRUE);
+	//// finally add the sizer representing those controls to the last vertical sizer we created above
+	//itemBoxSizer3->Add(itemBoxSizer4, 1, wxGROW|wxALL, 5);
+	// Testing above !!!
 	pProjectPageSizer = ProjectPageFunc(this, TRUE, TRUE);
 }
 

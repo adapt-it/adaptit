@@ -76,6 +76,8 @@
 #include <wx/html/helpctrl.h> //(wxHTML based help controller: wxHtmlHelpController)
 #include <wx/cshelp.h> // for wxHelpControllerHelpProvider
 
+#include <wx/display.h> // for wxDisplay
+
 // Other includes
 #include "Adapt_It.h"
 #include "MainFrm.h"
@@ -2091,7 +2093,6 @@ int AIModalDialog::ShowModal()
 }
 // end of AIModalDialog class !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
 IMPLEMENT_APP(CAdapt_ItApp)
 // This is used in the application class implementation file to make the 
 // application class known to wxWidgets for dynamic construction. 
@@ -3034,6 +3035,87 @@ CMainFrame* CAdapt_ItApp::GetMainFrame()
 	wxASSERT(m_pMainFrame != NULL);
     return m_pMainFrame;
 }
+
+
+// The idea for this function was inspired by a blog by Julian Smart, wxWidgets developer at:
+// http://wxwidgets.blogspot.com/2007/12/programming-for-eee-pc-with-wxwidgets.html This is a function
+// to fit the dialog it is called on around the dialog's contents, but then it checks that the dialog
+// will fit in a certain maxSize. If not, the size of the dialog is adjusted smaller to fit within the
+// maxSize and, if a scrolled window is passed in scrolledWindow, scrolling is enabled in the
+// scrolledWindow in the required orientation(s). The maxSize would normally be the display size of the
+// computer the program is running on, but, it could be a wizard, property sheet, or other dialog which
+// contains sub-windows/pages which we want to fit within that wizard, property sheet, or other dialog,
+// and make these sub-windows/pages be scrollable if they would otherwise exceed the maxSize. The main
+// purpose of this function is to prevent dialogs, wizards, property sheets, etc, from ending up with
+// controls off the screen on computers that have a small resolution (i.e., 800 x 600 or smaller which
+// is typical of the new generation of mini-notebook computers such as the Asus Eee PC, or the Aspire
+// One, Dell Mini 9, etc).
+bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize)
+{
+    wxSizer* sizer = dialog->GetSizer();
+    if (!sizer)
+        return false;
+        
+    sizer->SetSizeHints(dialog);
+        
+    wxSize windowSize = dialog->GetSize();
+
+    // Allow for caption size on wxWidgets < 2.9
+#if defined(__WXGTK__) && !wxCHECK_VERSION(2,9,0)
+    int allowExtraHeight = 30;
+#else
+    int allowExtraHeight = 0;
+#endif
+    int scrollBarSize = 20;
+
+	// whm Note: The wxDisplay class can be used to determine the sizes and locations of displays
+	// connected to the system.
+	// The GetFromWindow() method "Returns the index of the display on which the given window lies. If 
+	// the window is on more than one display it gets the display that overlaps the window the most. 
+	// Returns wxNOT_FOUND if the window is not on any connected display."
+	// The GetClientArea() method "Returns [as a wxRect] the client area of the display. The client 
+	// area is the part of the display available for the normal (non full screen) windows, usually 
+	// it is the same as GetGeometry but it could be less if there is a taskbar (or equivalent) on 
+	// this display." 
+	// The GetSize() is a method of wxRect that returns a size for the display (from the rect returned
+	// by GetClientArea()).
+
+    //wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(dialog)).GetClientArea().GetSize();
+    wxSize displaySize = maxSize;
+
+    bool resizeVertically = (windowSize.y >= (displaySize.y - allowExtraHeight));
+    bool resizeHorizontally = (windowSize.x >= displaySize.x);
+    
+    if (resizeVertically || resizeHorizontally)
+    {
+        int scrollBarExtraX = 0, scrollBarExtraY = 0;
+    
+        if (scrolledWindow)
+        {
+            // Allow extra for a scrollbar, assuming we resizing in one direction only.
+            if ((resizeVertically && !resizeHorizontally) && (windowSize.x < (displaySize.x - scrollBarSize)))
+                scrollBarExtraX = scrollBarSize;
+            if ((resizeHorizontally && !resizeVertically) && (windowSize.y < (displaySize.y - scrollBarSize)))
+                scrollBarExtraY = scrollBarSize;
+
+            scrolledWindow->SetScrollRate(resizeHorizontally ? 10 : 0, resizeVertically ? 10 : 0);
+        }
+            
+        wxSize limitTo = windowSize + wxSize(scrollBarExtraX, scrollBarExtraY);
+        if (resizeVertically)
+            limitTo.y = displaySize.y - allowExtraHeight;
+        if (resizeHorizontally)
+            limitTo.x = displaySize.x;
+            
+        dialog->SetMinSize(limitTo);
+        dialog->SetSize(limitTo);
+        
+        dialog->SetSizeHints( limitTo.x, limitTo.y, dialog->GetMaxWidth(), dialog->GetMaxHeight() );
+    }
+
+    return true;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the path to the directory which contains all of the

@@ -187,6 +187,8 @@ public:
     /// Creates the controls and sizers
     void CreateControls();
 
+	wxScrolledWindow* m_scrolledWindow;
+	
 	/// an instance of the CFilterPageCommon class for use in CFilterPageWiz
 	CFilterPageCommon filterPgCommon;
 	

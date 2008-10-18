@@ -40,6 +40,8 @@ public:
     /// Creates the controls and sizers
     void CreateControls();
 
+	wxScrolledWindow* m_scrolledWindow;
+	
 	wxSizer* pDocPageSizer;
 	bool m_bForceUTF8;
 	bool m_bSaveUsingXML;

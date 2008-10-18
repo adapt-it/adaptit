@@ -577,7 +577,11 @@ bool CFontPageWiz::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent ); // CFontPageWiz is based on wxWizardPage
 	CreateControls();
-	GetSizer()->Fit(this);
+	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
+	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
+	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
+	// scroll if necessary so the user can still access the whole wxWizardPage. 
+	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 
@@ -590,6 +594,8 @@ void CFontPageWiz::CreateControls()
 	// size dialog.
 	fontPgCommon.pFontPageSizer = FontsPageFunc(this, TRUE, TRUE);
 	// The declaration is: FontsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	//m_scrolledWindow = new wxScrolledWindow( this, -1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxHSCROLL|wxVSCROLL );
+	//m_scrolledWindow->SetSizer(fontPgCommon.pFontPageSizer);
 }
 
 // implement wxWizardPage functions

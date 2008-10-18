@@ -41,6 +41,8 @@ public:
 	/// Creation
     bool Create( wxWizard* parent );
 
+	wxScrolledWindow* m_scrolledWindow;
+	
     /// Creates the controls and sizers
     void CreateControls();
 

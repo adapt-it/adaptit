@@ -157,6 +157,8 @@ public:
     /// Creates the controls and sizers
     void CreateControls();
 
+	wxScrolledWindow* m_scrolledWindow;
+	
 	/// an instance of the CFontPageCommon class for use in CFontPageWiz
 	CFontPageCommon fontPgCommon;
 

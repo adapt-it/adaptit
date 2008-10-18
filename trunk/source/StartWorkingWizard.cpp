@@ -39,6 +39,7 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/wizard.h> // for wxWizard
+#include <wx/display.h> // for wxDisplay
 #include "Adapt_It.h"
 #include "StartWorkingWizard.h"
 
@@ -158,9 +159,46 @@ CStartWorkingWizard::CStartWorkingWizard(wxWindow* parent) // dialog constructor
 	//pUsfmPageWiz->InitDialog(ievent);
 	//pFilterPageWiz->InitDialog(ievent);
 
-	FitToPage(pPunctCorrespPageWiz); // punctMapPage is largest page
-
+	// Check if the Wizard is going to be too big. 
+	// TODO: If necessary, make the taller pages such as the pPunctCorrespPageWiz 
+	// and the pCaseEquivPageWiz scrollable if we are on a small screen.
+	// Get the largest minimum page size needed for all pages of the wizard to display fully
+	// (we don't really need to concern ourselves with the x components)
+	wxSize neededSize;
+	neededSize.IncTo(pProjectPage->GetSize());
+	neededSize.IncTo(pLanguagesPage->GetSize());
+	neededSize.IncTo(pFontPageWiz->GetSize());
+	neededSize.IncTo(pPunctCorrespPageWiz->GetSize());
+	neededSize.IncTo(pCaseEquivPageWiz->GetSize());
+	neededSize.IncTo(pUsfmPageWiz->GetSize());
+	neededSize.IncTo(pFilterPageWiz->GetSize());
+	neededSize.IncTo(pDocPage->GetSize());
+	// Check the display size to see if we need to make size adjustments in
+	// the Wizard.
+	wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
+	wxSize wizardSize = this->GetSize();
+	wxSize wizardClientSize = this->GetClientSize();
+	int wizFrameHeight = abs(wizardSize.GetY() - wizardClientSize.GetY());
+	//int wizFrameWidth = abs(wizardSize.GetX() - wizardClientSize.GetX());
+    if (neededSize.GetHeight() + wizFrameHeight > displaySize.GetHeight())
+    {
+		// We fit the prefs to the neededSize but it will be too big to fit in the display
+		// window, so we will have to limit the size of the prefs dialog and possibly make the 
+		// taller pages such as the pPunctCorrespPageWiz a scrolling pane.
+		wxSize maxSz;
+		maxSz.SetHeight(displaySize.GetHeight() - 50);
+		this->SetMaxSize(maxSz);
+    }
+	//else
+	//{
+	//	// We have room on the display so we can fit the wizard to the largest
+	//	// page it contains.
+	//	SetSizeHints(-1, -1, neededSize.GetX(), neededSize.GetY()); //
+	FitToPage(pCaseEquivPageWiz);
+	//}
 	pWizardPageSizer->Layout();
+	//neededSize.IncBy(wizFrameWidth,wizFrameHeight);
+	//SetSize(neededSize);
 
 	// Note: Since all the above wizard pages have wizard as parent window
 	// they will be destroyed automatically when wizard is destroyed below.

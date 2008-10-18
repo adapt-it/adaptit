@@ -109,6 +109,8 @@ public:
     /// Creates the controls and sizers
     void CreateControls();
 	
+	wxScrolledWindow* m_scrolledWindow;
+	
 	/// an instance of the CPunctCorrespPageCommon class for use in CPunctCorrespPageWiz
 	CPunctCorrespPageCommon punctPgCommon;
 

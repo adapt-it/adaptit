@@ -50,6 +50,7 @@
 #include <wx/colordlg.h>
 #include <wx/wizard.h>
 #include <wx/propdlg.h>
+#include <wx/display.h> // for wxDisplay
 
 #include "Adapt_It.h" // for access to extern fontInfo structs below
 #include "EditPreferencesDlg.h"
@@ -210,6 +211,57 @@ void CEditPreferencesDlg::CreateControls()
     pNotebook->AddPage( unitsPage, _("Units"),FALSE );
     pNotebook->AddPage( usfmPage, _("USFM"),FALSE );
     pNotebook->AddPage( filterPage, _("Filtering"),FALSE );
+	
+	// Check if the Preferences property sheet is going to be too big. 
+	// Make the pPunctCorrespPageWiz and the pCaseEquivPageWiz
+	// scrollable if we are on a small screen
+	// Check the display size to see if we need to make size adjustments in
+	// the Wizard.
+	// Get the largest minimum page size needed for all pages of the prefs to display fully
+	wxSize neededSize;
+	wxSize fontPageSize = fontPage->GetSize();
+	if (fontPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(fontPageSize.GetX());
+	if (fontPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(fontPageSize.GetY());
+	wxSize kbPageSize = kbPage->GetSize();
+	if (kbPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(kbPageSize.GetX());
+	if (kbPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(kbPageSize.GetY());
+	wxSize viewPageSize = viewPage->GetSize();
+	if (viewPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(viewPageSize.GetX());
+	if (viewPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(viewPageSize.GetY());
+	wxSize autoSavePageSize = autoSavePage->GetSize();
+	if (autoSavePageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(autoSavePageSize.GetX());
+	if (autoSavePageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(autoSavePageSize.GetY());
+	wxSize punctMapPageSize = punctMapPage->GetSize();
+	if (punctMapPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(punctMapPageSize.GetX());
+	if (punctMapPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(punctMapPageSize.GetY());
+	wxSize caseEquivPageSize = caseEquivPage->GetSize();
+	if (caseEquivPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(caseEquivPageSize.GetX());
+	if (caseEquivPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(caseEquivPageSize.GetY());
+	wxSize unitsPageSize = unitsPage->GetSize();
+	if (unitsPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(unitsPageSize.GetX());
+	if (unitsPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(unitsPageSize.GetY());
+	wxSize usfmPageSize = usfmPage->GetSize();
+	if (usfmPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(usfmPageSize.GetX());
+	if (usfmPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(usfmPageSize.GetY());
+	wxSize filterPageSize = filterPage->GetSize();
+	if (filterPageSize.GetX() > neededSize.GetX()) neededSize.SetWidth(filterPageSize.GetX());
+	if (filterPageSize.GetY() > neededSize.GetY()) neededSize.SetWidth(filterPageSize.GetY());
+
+	wxSize displaySize = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea().GetSize();
+	wxSize prefsSize = this->GetSize();
+	wxSize prefsClientSize = this->GetClientSize();
+	int prefsFrameHeight = abs(prefsSize.GetY() - prefsClientSize.GetY());
+    if (neededSize.GetHeight() + prefsFrameHeight > displaySize.GetHeight())
+    {
+		// We fit the prefs to the neededSize but it will be too big to fit in the display
+		// window, so we will have to limit the size of the prefs dialog and possibly make the 
+		// taller pages such as the punctMapPage a scrolling pane.
+		wxSize maxSz;
+		maxSz.SetHeight(displaySize.GetHeight() - 50);
+		this->SetMaxSize(maxSz);
+    }
+	// The wxNotebook will automatically adjust to the largest page if the conditional block above
+	// doesn't execute.
 }
 
 

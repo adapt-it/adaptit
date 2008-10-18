@@ -107,6 +107,8 @@ public:
     /// Creates the controls and sizers
     void CreateControls();
 
+	wxScrolledWindow* m_scrolledWindow;
+
 	/// an instance of the CCaseEquivPageCommon class for use in CCaseEquivPageWiz
 	CCaseEquivPageCommon casePgCommon;
 
