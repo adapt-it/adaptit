@@ -1094,7 +1094,6 @@ typedef struct
 	// vertical edit process terminates
 } EditRecord;
 
-
 /// The AIModalDialog class is used as the base class for most of Adapt It's modal dialogs. Its
 /// primary purpose is to turn off background idle processing while the dialog is being displayed.
 /// \derivation The AIModalDialog is derived from wxDialog.
@@ -1108,6 +1107,7 @@ public:
 	~AIModalDialog(); // destructor calls wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL) before calling wxDialog::~wxDialog()
 	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before calling wxDialog::ShowModal()
 };
+
 
 #ifdef USE_SIL_CONVERTERS
 
@@ -2053,6 +2053,8 @@ public:
 	bool	LocalizationFilesExist(); 
 	// Functions that let the user select/change Adapt It's interface language
 	bool	ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface);
+
+	bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
 	wxString GetDefaultPathForLocalizationSubDirectories();
 	wxString GetDefaultPathForXMLControlFiles();
 	wxString GetDefaultPathForHelpFiles();

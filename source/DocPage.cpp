@@ -210,7 +210,11 @@ bool CDocPage::Create( wxWizard* parent)
 {
 	wxWizardPage::Create( parent );
 	CreateControls();
-	GetSizer()->Fit(this);
+	// whm: If we are operating on a small screen resolution, the parent wxWizard will be
+	// restricted in height so that it will fit within the screen. If our wxWizardPage is too large to
+	// also fit within the restricted parent wizard, we want it to fit within that limit as well, and 
+	// scroll if necessary so the user can still access the whole wxWizardPage. 
+	//gpApp->FitWithScrolling((wxDialog*)this, m_scrolledWindow, parent->GetClientSize()); //GetSizer()->Fit(this);
 	return TRUE;
 }
 
@@ -221,6 +225,8 @@ void CDocPage::CreateControls()
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 	pDocPageSizer = DocPageFunc(this, TRUE, TRUE);
+	//m_scrolledWindow = new wxScrolledWindow( this, -1, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxHSCROLL|wxVSCROLL );
+	//m_scrolledWindow->SetSizer(pDocPageSizer);
 }
 
 // implement wxWizardPage functions

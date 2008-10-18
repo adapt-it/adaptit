@@ -118,6 +118,8 @@ public:
     /// Creates the controls and sizers
     void CreateControls();
 
+	wxScrolledWindow* m_scrolledWindow;
+	
 	/// an instance of the CUSFMPageCommon class for use in CUSFMPageWiz
 	CUSFMPageCommon usfmPgCommon;
 
