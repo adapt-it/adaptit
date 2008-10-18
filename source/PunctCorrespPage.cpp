@@ -1016,6 +1016,9 @@ IMPLEMENT_DYNAMIC_CLASS( CPunctCorrespPageWiz, wxWizardPage )
 BEGIN_EVENT_TABLE(CPunctCorrespPageWiz, wxWizardPage)
 	EVT_INIT_DIALOG(CPunctCorrespPageWiz::InitDialog)// not strictly necessary for dialogs based on wxDialog
     EVT_WIZARD_PAGE_CHANGING(-1, CPunctCorrespPageWiz::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
+#ifdef _UNICODE
+	EVT_BUTTON(IDC_TOGGLE_UNNNN_BTN, CPunctCorrespPageWiz::OnBnClickedToggleUnnnn)
+#endif
     EVT_WIZARD_CANCEL(-1, CPunctCorrespPageWiz::OnWizardCancel)
 END_EVENT_TABLE()
 
@@ -1145,6 +1148,12 @@ void CPunctCorrespPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	}
 }
 
+#ifdef _UNICODE
+void CPunctCorrespPageWiz::OnBnClickedToggleUnnnn(wxCommandEvent& event)
+{
+	punctPgCommon.OnBnClickedToggleUnnnn(event);
+}
+#endif
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CPunctCorrespPagePrefs !!!!!!!!!!!!!!!!!!!!!!!!!!!
 IMPLEMENT_DYNAMIC_CLASS( CPunctCorrespPagePrefs, wxPanel )
@@ -1222,3 +1231,10 @@ void CPunctCorrespPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 #endif
 	gpApp->DoPunctuationChanges(&punctPgCommon,DoReparse);
 }
+
+#ifdef _UNICODE
+void CPunctCorrespPagePrefs::OnBnClickedToggleUnnnn(wxCommandEvent& event)
+{
+	punctPgCommon.OnBnClickedToggleUnnnn(event);
+}
+#endif
