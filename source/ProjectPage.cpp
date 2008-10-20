@@ -57,7 +57,7 @@
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 #include "Adapt_It.h"
-
+#include "helpers.h"
 #include "KB.h" 
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
@@ -189,6 +189,10 @@ wxWizardPage* CProjectPage::GetNext() const
 
 void CProjectPage::OnLBSelectItem(wxCommandEvent& WXUNUSED(event))
 {
+	// whm: We could use our ListBoxPassesSanityCheck() here, but the logic below
+	// should be sufficient for this handler. We use it in the OnWizardPageChanging()
+	// handler below.
+
 	int nSel;
 	nSel = m_pListBox->GetSelection();
 	if (m_curLBSelection == nSel)
@@ -375,33 +379,43 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 	
 	bool bMovingForward = event.GetDirection(); 
 	wxASSERT(bMovingForward == TRUE); // we can only move forward from the projectPage
+	
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
+	{
+		wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+		event.Veto();
+		return;
+	}
 
 	nSel = m_pListBox->GetSelection();
-	if (nSel == -1) //LB_ERR
-	{
-		// under wxGTK the user can deselect all items in the list so we'll check for that
-		// possibility; if there are more items in the list (other than <New Project>), we'll
-		// veto the page change until the user selects something; if there is only one item
-		// in the list, we know it must be <New Project> and will assume that item is what the
-		// user intended and select it automatically if it is not selected.
-		if (m_pListBox->GetCount() > 1)
-		{
-			wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
-			event.Veto();
-			return;
-		}
-		else
-		{
-			wxASSERT(m_pListBox->GetCount() == 1);
-			// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it 
-			// is the only item listed (GetCount should have returned 1), we assume the user wants to 
-			// start a <New Project>, so we'll select it for him automatically and allow the page to 
-			// change with <New Project> selected.
-			m_pListBox->SetSelection(0);
-			nSel = m_pListBox->GetSelection();
-			wxASSERT(nSel == 0);
-		}
-	}
+
+	// whm: With the use of ListBoxPassesSanityCheck() above the following code block is no longer
+	// necessary. 
+	//if (nSel == -1) //LB_ERR
+	//{
+	//	// under wxGTK the user can deselect all items in the list so we'll check for that
+	//	// possibility; if there are more items in the list (other than <New Project>), we'll
+	//	// veto the page change until the user selects something; if there is only one item
+	//	// in the list, we know it must be <New Project> and will assume that item is what the
+	//	// user intended and select it automatically if it is not selected.
+	//	if (m_pListBox->GetCount() > 1)
+	//	{
+	//		wxMessageBox(_("You must Select a project (or <New Project>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+	//		event.Veto();
+	//		return;
+	//	}
+	//	else
+	//	{
+	//		wxASSERT(m_pListBox->GetCount() == 1);
+	//		// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it 
+	//		// is the only item listed (GetCount should have returned 1), we assume the user wants to 
+	//		// start a <New Project>, so we'll select it for him automatically and allow the page to 
+	//		// change with <New Project> selected.
+	//		m_pListBox->SetSelection(0);
+	//		nSel = m_pListBox->GetSelection();
+	//		wxASSERT(nSel == 0);
+	//	}
+	//}
 	m_projectName = m_pListBox->GetStringSelection();
 
 	// there might be a KB open currently (eg. just returned via the <Back button) so ensure 

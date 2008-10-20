@@ -170,9 +170,9 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_curKey = _T("");
 	m_nWords = 1;
 	m_nCurPage = 0; // default to first page (1 Word)
-#ifdef __WXGTK__
-	m_bListBoxBeingCleared = FALSE;
-#endif
+//#ifdef __WXGTK__
+//	m_bListBoxBeingCleared = FALSE;
+//#endif
 
 	KBEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
@@ -240,16 +240,21 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	// OnSelchangeListSrcKeys is called before the internal listbox data is cleared so GetCount() still 
 	// returns the count of items in the list. As a work around, I've added a CKBEditor member called
 	// m_bListBoxBeingCleared boolean which is set to TRUE just before calling Clear() on the listbox
-#ifdef __WXGTK__
-	if (m_pListBoxKeys->GetCount() == 0 || m_bListBoxBeingCleared)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxKeys))
 	{
-		m_bListBoxBeingCleared = FALSE;
 		return;
 	}
-#else
-	if (m_pListBoxKeys->GetCount() == 0)
-		return;
-#endif
+
+//#ifdef __WXGTK__
+//	if (m_pListBoxKeys->GetCount() == 0 || m_bListBoxBeingCleared)
+//	{
+//		m_bListBoxBeingCleared = FALSE;
+//		return;
+//	}
+//#else
+//	if (m_pListBoxKeys->GetCount() == 0)
+//		return;
+//#endif
 
 	wxString s;
 	// IDS_NO_ADAPTATION
@@ -346,26 +351,30 @@ void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(eve
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	int nCount;
-	nCount = m_pListBoxExistingTranslations->GetCount();
-	if (nCount == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
+	{
 		return;
+	}
+	//int nCount;
+	//nCount = m_pListBoxExistingTranslations->GetCount();
+	//if (nCount == 0)
+	//	return;
 
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	if (nSel == -1) // LB_ERR
-	{
-		// In wxGTK, when m_pListBoxKeys->Clear() is called it triggers this OnSelchangeListExistingTranslations
-		// handler. The following message is of little help to the user even if it were called for a genuine
-		// problem, so I've commented it out, so the present handler can exit gracefully
-		//wxMessageBox(_T("Translations list box error when getting the current selection"), 
-		//	_T(""), wxICON_EXCLAMATION);
-		//wxASSERT(FALSE);
-		return; //AfxAbort();
-	}
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	// In wxGTK, when m_pListBoxExistingTranslations->Clear() is called it triggers this OnSelchangeListExistingTranslations
+	//	// handler. The following message is of little help to the user even if it were called for a genuine
+	//	// problem, so I've commented it out, so the present handler can exit gracefully
+	//	//wxMessageBox(_T("Translations list box error when getting the current selection"), 
+	//	//	_T(""), wxICON_EXCLAMATION);
+	//	//wxASSERT(FALSE);
+	//	return; //AfxAbort();
+	//}
 	wxString str;
 	str = m_pListBoxExistingTranslations->GetStringSelection();
 	int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
@@ -461,13 +470,19 @@ void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event)) 
 {
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
-	if(nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
 		::wxBell();
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//if(nSel == -1) // LB_ERR
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 	wxString s;
@@ -543,14 +558,20 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 {
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
-		// error, there must be *something* in the list of translations
 		::wxBell();
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	// error, there must be *something* in the list of translations
+	//	::wxBell();
+	//	return;
+	//}
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 
@@ -596,13 +617,19 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 
 void CKBEditor::OnButtonAdd(wxCommandEvent& event) 
 {
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
 		::wxBell();
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 
@@ -664,6 +691,13 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// of that translation in this and previous document files which will then not agree with
 	// the state of the knowledge base, and the user is then to be urged to do a Verify operation
 	// on each of the existing document files to get the KB and those files in synch with each other.
+	
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
+	{
+		::wxBell();
+		return;
+	}
+	
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
 	wxString message;
@@ -673,11 +707,11 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// stored in pCurTgtUnit)
 	int nTransSel = 0;
 	nTransSel = m_pListBoxExistingTranslations->GetSelection();
-	if (nTransSel == -1) // LB_ERR
-	{
-		::wxBell();
-		return;
-	}
+	//if (nTransSel == -1) // LB_ERR
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 
 	// get the selected string
 	wxString str;
@@ -858,14 +892,21 @@ a:	nPreviousReferences = pRefString->m_refCount;
 
 void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event)) 
 {
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
 		wxMessageBox(_("Translations list box error when getting the current selection"),
 																		_T(""), wxICON_EXCLAMATION);
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	wxMessageBox(_("Translations list box error when getting the current selection"),
+	//																	_T(""), wxICON_EXCLAMATION);
+	//	return;
+	//}
 	int nOldSel = nSel; // save old selection index
 
 	// change the order of the string in the list box
@@ -927,14 +968,21 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 
 void CKBEditor::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event)) 
 {
-	int nSel;
-	nSel = m_pListBoxExistingTranslations->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxExistingTranslations))
 	{
 		wxMessageBox(_("Translations list box error when getting the current selection"), 
 																			_T(""), wxICON_EXCLAMATION);
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxExistingTranslations->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	wxMessageBox(_("Translations list box error when getting the current selection"), 
+	//																		_T(""), wxICON_EXCLAMATION);
+	//	return;
+	//}
 	int nOldSel = nSel; // save old selection index
 
 	// change the order of the string in the list box
@@ -1205,13 +1253,13 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 									m_pListBoxExistingTranslations, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
-#ifdef __WXGTK__
-	m_bListBoxBeingCleared = TRUE;	// a work around so OnSelchangedListSrcKeys will know that we
-									// are calling Clear() below (on wxGTK OnSechangedListSrcKeys is
-									// triggered by the call to Clear(), but in OnSelchangedListSrcKeys
-									// m_pListBoxKeys->GetCount() still returns the count before clearing
-									// the listbox
-#endif
+//#ifdef __WXGTK__
+//	m_bListBoxBeingCleared = TRUE;	// a work around so OnSelchangedListSrcKeys will know that we
+//									// are calling Clear() below (on wxGTK OnSechangedListSrcKeys is
+//									// triggered by the call to Clear(), but in OnSelchangedListSrcKeys
+//									// m_pListBoxKeys->GetCount() still returns the count before clearing
+//									// the listbox
+//#endif
 
 	// start with an empty src keys listbox
 	m_pListBoxKeys->Clear(); // whm added

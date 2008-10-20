@@ -20,7 +20,7 @@
 /////////////////////////////////////////////////////////////////////////////
 //#pragma warning( disable : 4189 )
 
-#if defined(__GNUG__) && !defined(__APPLE__)
+#if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this. Testing it is equivalent to testing (__GNUC__ && __cplusplus). 
     #pragma implementation "Adapt_It.h"
 #endif
 

@@ -383,6 +383,8 @@ void CSetEncodingDlg::OnListEncodingsChanged(wxCommandEvent& WXUNUSED(event))
 	// This handler is activated when the encodings list selection is changed
 	int nSelCount;
 	nSelCount = pPossibleEncodings->GetCount();
+	// whm: Handlers in CSetEncodingDlg already have code to deal with invalid selections so we'll not
+	// add the ListBoxPassesSanityCheck to handlers in this class.
 	if (nSelCount < 1)
 	{
 		::wxBell();
@@ -437,10 +439,13 @@ void CSetEncodingDlg::OnListEncodingsChanged(wxCommandEvent& WXUNUSED(event))
 
 void CSetEncodingDlg::OnListFacenamesChanged(wxCommandEvent& WXUNUSED(event))
 {
+
 	// Note: This handler is activated when the face names list is changed and also
 	// it is called when the encodings list is changed.
 	int nSel,nSelCount;
 	nSelCount = pPossibleFacenames->GetCount();
+	// whm: Handlers in CSetEncodingDlg already have code to deal with invalid selections so we'll not
+	// add the ListBoxPassesSanityCheck to handlers in this class.
 	if (nSelCount < 1)
 	{
 		::wxBell();

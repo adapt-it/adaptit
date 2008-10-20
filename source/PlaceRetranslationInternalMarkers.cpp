@@ -179,12 +179,17 @@ void CPlaceRetranslationInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(
 
 void CPlaceRetranslationInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 {
-	int nSel;
-	nSel = pListBox->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 	{
 		wxMessageBox(_("List box error when getting the current selection, place manually instead"), _T(""), wxICON_EXCLAMATION);
+		return; // whm added
 	}
+	int nSel;
+	nSel = pListBox->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	wxMessageBox(_("List box error when getting the current selection, place manually instead"), _T(""), wxICON_EXCLAMATION);
+	//}
 	m_markers = pListBox->GetString(nSel);
 
 

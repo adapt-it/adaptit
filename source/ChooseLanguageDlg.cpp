@@ -48,6 +48,7 @@
 #include "Adapt_It.h"
 #include "ChooseLanguageDlg.h"
 #include "BString.h"
+#include "helpers.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -427,21 +428,22 @@ void CChooseLanguageDlg::OnSelchangeListboxLanguages(wxCommandEvent& WXUNUSED(ev
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (pListBox->GetCount() == 0)
+	//if (pListBox->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
 		return;
 
 	int nSel;
 	nSel = pListBox->GetSelection();
-	if (nSel == -1)
-	{
-		// In wxGTK, when m_pListBoxKeys->Clear() is called it triggers this OnSelchangeListExistingTranslations
-		// handler. The following message is of little help to the user even if it were called for a genuine
-		// problem, so I've commented it out, so the present handler can exit gracefully
-		//wxMessageBox(_("List box error when getting the current selection"), 
-		//	_T(""), wxICON_ERROR);
-		//wxASSERT(FALSE);
-		return;
-	}
+	//if (nSel == -1)
+	//{
+	//	// In wxGTK, when pListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
+	//	// handler. The following message is of little help to the user even if it were called for a genuine
+	//	// problem, so I've commented it out, so the present handler can exit gracefully
+	//	//wxMessageBox(_("List box error when getting the current selection"), 
+	//	//	_T(""), wxICON_ERROR);
+	//	//wxASSERT(FALSE);
+	//	return;
+	//}
 	wxLanguage lang;
 	wxString commonName;
 	if (nSel == 0)

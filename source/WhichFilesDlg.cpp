@@ -45,6 +45,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h"
 #include "WhichFilesDlg.h"
+#include "helpers.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -89,16 +90,20 @@ void CWhichFilesDlg::OnSelchangeListRejected(wxCommandEvent& WXUNUSED(event))
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (m_pListBoxRejected->GetCount() == 0)
-		return;
-
-	int nSel;
-	nSel = m_pListBoxRejected->GetSelection();
-	if (nSel == -1)
+	//if (m_pListBoxRejected->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxRejected))
 	{
 		::wxBell();
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxRejected->GetSelection();
+	//if (nSel == -1)
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 	wxString file;
 	file = m_pListBoxRejected->GetString(nSel);
 	wxASSERT(!file.IsEmpty());
@@ -108,16 +113,20 @@ void CWhichFilesDlg::OnSelchangeListAccepted(wxCommandEvent& WXUNUSED(event))
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (m_pListBoxAccepted->GetCount() == 0)
-		return;
-
-	int nSel;
-	nSel = m_pListBoxAccepted->GetSelection();
-	if (nSel == -1)
+	//if (m_pListBoxAccepted->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxAccepted))
 	{
 		::wxBell();
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxAccepted->GetSelection();
+	//if (nSel == -1)
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 	wxString file;
 	file = m_pListBoxAccepted->GetString(nSel);
 	wxASSERT(!file.IsEmpty());
@@ -125,13 +134,18 @@ void CWhichFilesDlg::OnSelchangeListAccepted(wxCommandEvent& WXUNUSED(event))
 
 void CWhichFilesDlg::OnButtonReject(wxCommandEvent& WXUNUSED(event)) 
 {
-	int nSel;
-	nSel = m_pListBoxAccepted->GetSelection();
-	if (nSel == -1)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxAccepted))
 	{
 		::wxBell();
 		return;
 	}
+	int nSel;
+	nSel = m_pListBoxAccepted->GetSelection();
+	//if (nSel == -1)
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 	wxString file;
 	file = m_pListBoxAccepted->GetString(nSel);
 	wxASSERT(!file.IsEmpty());
@@ -165,13 +179,19 @@ void CWhichFilesDlg::OnButtonReject(wxCommandEvent& WXUNUSED(event))
 
 void CWhichFilesDlg::OnButtonAccept(wxCommandEvent& WXUNUSED(event)) 
 {
-	int nSel;
-	nSel = m_pListBoxRejected->GetSelection();
-	if (nSel == -1)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxRejected))
 	{
 		::wxBell();
 		return;
 	}
+
+	int nSel;
+	nSel = m_pListBoxRejected->GetSelection();
+	//if (nSel == -1)
+	//{
+	//	::wxBell();
+	//	return;
+	//}
 	wxString file;
 	file = m_pListBoxRejected->GetString(nSel);
 	wxASSERT(!file.IsEmpty());

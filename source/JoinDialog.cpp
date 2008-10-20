@@ -508,14 +508,20 @@ void CJoinDialog::OnLbnSelchangeListRejected(wxCommandEvent& WXUNUSED(event))
 
 void CJoinDialog::OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 {
-	int nSel;
-	nSel = pAcceptedFiles->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pAcceptedFiles))
 	{
 		wxMessageBox(_("Error when getting the current selection, Move Down button has been ignored"), 
 						_T(""),wxICON_EXCLAMATION);
 		return;
 	}
+	int nSel;
+	nSel = pAcceptedFiles->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	wxMessageBox(_("Error when getting the current selection, Move Down button has been ignored"), 
+	//					_T(""),wxICON_EXCLAMATION);
+	//	return;
+	//}
 	int nOldSel = nSel; // save old selection index
 
 	// change the order of the string in the list box
@@ -539,14 +545,20 @@ void CJoinDialog::OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 
 void CJoinDialog::OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 {
-	int nSel;
-	nSel = pAcceptedFiles->GetSelection();
-	if (nSel == -1) // LB_ERR
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pAcceptedFiles))
 	{
 		wxMessageBox(_("Error when getting the current selection, Move Up button has been ignored"),
 						_T(""), wxICON_EXCLAMATION);
 		return;
 	}
+	int nSel;
+	nSel = pAcceptedFiles->GetSelection();
+	//if (nSel == -1) // LB_ERR
+	//{
+	//	wxMessageBox(_("Error when getting the current selection, Move Up button has been ignored"),
+	//					_T(""), wxICON_EXCLAMATION);
+	//	return;
+	//}
 	int nOldSel = nSel; // save old selection index
 
 	// change the order of the string in the list box

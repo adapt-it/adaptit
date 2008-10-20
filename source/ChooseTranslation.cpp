@@ -208,9 +208,12 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	//
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
+	// whm Note: The next check for lack of a good selection here is OK. We need not use our
+	// ListBoxPassesSanitCheck() here since a Move Up action should do nothing if the user
+	// hasn't selected anything to move up.
 	if (nSel == -1) // LB_ERR
 	{
-		// In wxGTK, when m_pListBoxKeys->Clear() is called it triggers this OnSelchangeListExistingTranslations
+		// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
 		// handler. The following message is of little help to the user even if it were called for a genuine
 		// problem, so I've commented it out, so the present handler can exit gracefully
 		//wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
@@ -297,9 +300,12 @@ void CChooseTranslation::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 {
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
+	// whm Note: The next check for lack of a good selection here is OK. We need not use our
+	// ListBoxPassesSanitCheck() here since a Move Down action should do nothing if the user
+	// hasn't selected anything to move down.
 	if (nSel == -1)// LB_ERR
 	{
-		// In wxGTK, when m_pListBoxKeys->Clear() is called it triggers this OnSelchangeListExistingTranslations
+		// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
 		// handler. The following message is of little help to the user even if it were called for a genuine
 		// problem, so I've commented it out, so the present handler can exit gracefully
 		//wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_EXCLAMATION);
@@ -383,7 +389,8 @@ void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (m_pMyListBox->GetCount() == 0)
+	//if (m_pMyListBox->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
 		return;
 
 	wxString s;
@@ -391,16 +398,16 @@ void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED
 	s = s.Format(_("<no adaptation>")); // get ready "<no adaptation>" in case needed
 	int nSel;
 	nSel = m_pMyListBox->GetSelection();
-	if (nSel == -1)//LB_ERR
-	{
-		// In wxGTK, when m_pListBoxKeys->Clear() is called it triggers this OnSelchangeListExistingTranslations
-		// handler. The following message is of little help to the user even if it were called for a genuine
-		// problem, so I've commented it out, so the present handler can exit gracefully
-		//wxMessageBox(_("List box error when getting the current selection"), 
-		//	_T(""), wxICON_ERROR);
-		//wxASSERT(FALSE);
-		return; //wxExit();
-	}
+	//if (nSel == -1)//LB_ERR
+	//{
+	//	// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
+	//	// handler. The following message is of little help to the user even if it were called for a genuine
+	//	// problem, so I've commented it out, so the present handler can exit gracefully
+	//	//wxMessageBox(_("List box error when getting the current selection"), 
+	//	//	_T(""), wxICON_ERROR);
+	//	//wxASSERT(FALSE);
+	//	return; //wxExit();
+	//}
 	wxString str;
 	str = m_pMyListBox->GetString(nSel);
 	int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
@@ -419,18 +426,29 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	wxString s;
 	// IDS_NO_ADAPTATION
 	s = s.Format(_("<no adaptation>")); // ready "<no adaptation>" in case it's needed
-	int nSel;
-	nSel = m_pMyListBox->GetSelection();
-	if (nSel == -1)// LB_ERR
+	
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
 	{
-		// In wxGTK, when m_pListBoxKeys->Clear() is called it triggers this OnSelchangeListExistingTranslations
+		// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
 		// handler. The following message is of little help to the user even if it were called for a genuine
 		// problem, so I've commented it out, so the present handler can exit gracefully
 		wxMessageBox(_("List box error when getting the current selection"),
 			_T(""), wxICON_EXCLAMATION);
-		wxASSERT(FALSE);
-		//wxExit();
+		return; //wxASSERT(FALSE);
 	}
+
+	int nSel;
+	nSel = m_pMyListBox->GetSelection();
+	//if (nSel == -1)// LB_ERR
+	//{
+	//	// In wxGTK, when m_pMyListBox->Clear() is called it triggers this OnSelchangeListExistingTranslations
+	//	// handler. The following message is of little help to the user even if it were called for a genuine
+	//	// problem, so I've commented it out, so the present handler can exit gracefully
+	//	wxMessageBox(_("List box error when getting the current selection"),
+	//		_T(""), wxICON_EXCLAMATION);
+	//	wxASSERT(FALSE);
+	//	//wxExit();
+	//}
 	wxString str;
 	str = m_pMyListBox->GetString(nSel);
 	int nNewSel = gpApp->FindListBoxItem(m_pMyListBox,str,caseSensitive,exactString);
@@ -469,18 +487,25 @@ void CChooseTranslation::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// the state of the knowledge base, and the user is then to be urged to do a Verify operation
 	// on each of the existing document files to get the KB and those files in synch with each other.
 
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pMyListBox))
+	{
+		// message can be in English, it's never likely to occur
+		wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_ERROR);
+		return; //wxASSERT(FALSE);
+	}
+
 	// get the index of the selected translation string (this will be same index for the CRefString
 	// stored in pCurTargetUnit)
 	int nSel;
 	wxString str;
 	nSel = m_pMyListBox->GetSelection();
-	if (nSel == -1)// LB_ERR
-	{
-		// message can be in English, it's never likely to occur
-		wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_ERROR);
-		wxASSERT(FALSE);
-		//wxExit();
-	}
+	//if (nSel == -1)// LB_ERR
+	//{
+	//	// message can be in English, it's never likely to occur
+	//	wxMessageBox(_("List box error when getting the current selection"), _T(""), wxICON_ERROR);
+	//	wxASSERT(FALSE);
+	//	//wxExit();
+	//}
 
 	// get the selected string into str; it could be upper or lower case, even when auto caps
 	// is ON, because the user could have made KB entries with auto caps OFF previously. But
@@ -785,6 +810,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	{
 		int nSel;
 		nSel = m_pMyListBox->GetSelection();
+		// whm Note: The following check for no valid selection is OK.
 		if (nSel == -1)// LB_ERR
 		{
 			// assume its an empty listBox and just force an empty string

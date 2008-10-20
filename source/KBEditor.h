@@ -75,9 +75,9 @@ public:
 	CTargetUnit*	pCurTgtUnit;
 	CRefString*		pCurRefString;
 	MapKeyStringToTgtUnit* pMap;
-#ifdef __WXGTK__
-	bool			m_bListBoxBeingCleared;
-#endif
+//#ifdef __WXGTK__
+//	bool			m_bListBoxBeingCleared;
+//#endif
 
 	void LoadDataForPage(int pageNumSel,int nStartingSelection);
 	bool IsInListBox(wxListBox* listBox, wxString str);
