@@ -281,32 +281,42 @@ void CDocPage::OnWizardPageChanging(wxWizardEvent& event)
 	bool bMovingForward = event.GetDirection();
 	if (bMovingForward)
 	{
-		int nSel = m_pListBox->GetSelection(); //nSel = m_listBox.GetCurSel();
+		if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
+		{
+			wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+			event.Veto();
+			return;
+		}
+
+		int nSel;
+		nSel = m_pListBox->GetSelection(); //nSel = m_listBox.GetCurSel();
 		// wx note: All items in the Linux/GTK listbox can be deselected by the user
 		// by a single click on the already selected item. So we do the same here as
 		// we did in the projectPage's OnWizardPageChanging handler - we check to see
 		// if there is more than one item in the list; if so and nSel is -1 we veto
 		// the page change and tell the user a selection must be made
-		if (nSel == -1)
-		{
-			if (m_pListBox->GetCount() > 1)
-			{
-				wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
-				event.Veto();
-				return;
-			}
-			else
-			{
-				wxASSERT(m_pListBox->GetCount() == 1);
-				// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it 
-				// is the only item listed (GetCount should have returned 1), we assume the user wants to 
-				// start a <New Project>, so we'll select it for him automatically and allow the page to 
-				// change with <New Project> selected.
-				m_pListBox->SetSelection(0);
-				nSel = m_pListBox->GetSelection();
-				wxASSERT(nSel == 0);
-			}
-		}
+		// whm: With the addition of ListBoxPassesSanityCheck() above the code block
+		// below should no longer be necessary.
+		//if (nSel == -1)
+		//{
+		//	if (m_pListBox->GetCount() > 1)
+		//	{
+		//		wxMessageBox(_("You must Select a document (or <New Document>) from the list before continuing."), _T(""), wxICON_EXCLAMATION);
+		//		event.Veto();
+		//		return;
+		//	}
+		//	else
+		//	{
+		//		wxASSERT(m_pListBox->GetCount() == 1);
+		//		// User deselected <New Project> (possibly by clicking on it once in wxGTK), but since it 
+		//		// is the only item listed (GetCount should have returned 1), we assume the user wants to 
+		//		// start a <New Project>, so we'll select it for him automatically and allow the page to 
+		//		// change with <New Project> selected.
+		//		m_pListBox->SetSelection(0);
+		//		nSel = m_pListBox->GetSelection();
+		//		wxASSERT(nSel == 0);
+		//	}
+		//}
 		// Finish wizard button was selected
 		// Since I cannot get OnWizardFinish handler to work, I'll call its function here
 		OnWizardFinish(event); //event.Skip(); // do nothing

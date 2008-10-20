@@ -72,6 +72,7 @@
 #include "USFMPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
+#include "helpers.h"
 
 #if !wxUSE_CHECKLISTBOX
     #error "This program can't be built without wxUSE_CHECKLISTBOX set to 1"
@@ -934,18 +935,19 @@ void CFilterPageCommon::DoLbnSelchangeListSfmsDoc()
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (pListBoxSFMsDoc->GetCount() == 0)
+	//if (pListBoxSFMsDoc->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBoxSFMsDoc))
 		return;
 
-	// With the removal of the buttons, all that is needed is to insure we have a valid selection
+	// With the removal of the legacy buttons, all that is needed is to insure we have a valid selection
 	// If we get here we know there is at least one item in the list. 
 	int nSel;
 	nSel = pListBoxSFMsDoc->GetSelection();
-	if (nSel == -1)
-	{
-		// no selection, so select the first item in list
-		nSel = 0;
-	}
+	//if (nSel == -1)
+	//{
+	//	// no selection, so select the first item in list
+	//	nSel = 0;
+	//}
 	pListBoxSFMsDoc->SetSelection(nSel);
 }
 
@@ -1184,18 +1186,19 @@ void CFilterPageCommon::DoLbnSelchangeListSfmsProj()
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (pListBoxSFMsProj->GetCount() == 0)
+	//if (pListBoxSFMsProj->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBoxSFMsProj))
 		return;
 
 	// With the removal of the buttons, all that is needed is to insure we have a valid selection
 	// If we get here we know there is at least one item in the list. 
 	int nSel;
 	nSel = pListBoxSFMsProj->GetSelection();
-	if (nSel == -1)
-	{
-		// no selection, so select the first item in list
-		nSel = 0;
-	}
+	//if (nSel == -1)
+	//{
+	//	// no selection, so select the first item in list
+	//	nSel = 0;
+	//}
 	pListBoxSFMsProj->SetSelection(nSel);
 }
 

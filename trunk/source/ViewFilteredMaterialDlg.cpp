@@ -539,7 +539,8 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (pMarkers->GetCount() == 0)
+	//if (pMarkers->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pMarkers))
 		return;
 
 
@@ -612,7 +613,8 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd(wxCommandEvent& event
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (pEndMarkers->GetCount() == 0)
+	//if (pEndMarkers->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pEndMarkers))
 		return;
 
 	// if user selects a marker (or empty line) in the end markers list box

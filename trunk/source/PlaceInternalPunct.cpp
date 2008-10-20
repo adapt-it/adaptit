@@ -176,15 +176,23 @@ void CPlaceInternalPunct::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 	}
 
 	{
-		int nSel;
-		nSel = m_pListPunctsBox->GetSelection();
-		if (nSel == -1) //LB_ERR 
+		if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListPunctsBox))
 		{
 			// message can be in English, it's never likely to occur
 			wxMessageBox(_T("List box error when getting the current selection, Adaptit will do nothing."),
 				_T(""), wxICON_EXCLAMATION);
 			return;
 		}
+
+		int nSel;
+		nSel = m_pListPunctsBox->GetSelection();
+		//if (nSel == -1) //LB_ERR 
+		//{
+		//	// message can be in English, it's never likely to occur
+		//	wxMessageBox(_T("List box error when getting the current selection, Adaptit will do nothing."),
+		//		_T(""), wxICON_EXCLAMATION);
+		//	return;
+		//}
 
 		// get the selected string
 		wxString str;

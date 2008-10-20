@@ -313,13 +313,20 @@ void CConsistencyCheckDlg::OnRadioListSelect(wxCommandEvent& WXUNUSED(event))
 {
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION that is, "<no adaptation>" 
-	int nSel;
-	nSel = m_pListBox->GetSelection();
-	if (nSel == -1) //LB_ERR
+	
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 	{
 		wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
 			_T(""), wxICON_EXCLAMATION);
 	}
+	
+	int nSel;
+	nSel = m_pListBox->GetSelection();
+	//if (nSel == -1) //LB_ERR
+	//{
+	//	wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
+	//		_T(""), wxICON_EXCLAMATION);
+	//}
 	wxString str = _T("");
 	if (nSel != -1) //LB_ERR
 		str = m_pListBox->GetStringSelection(); //m_listBox.GetText(nSel,str);
@@ -343,18 +350,19 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
-	if (m_pListBox->GetCount() == 0)
+	//if (m_pListBox->GetCount() == 0)
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBox))
 		return;
 
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION that is, "<no adaptation>" 
 	int nSel;
 	nSel = m_pListBox->GetSelection();
-	if (nSel == -1) //LB_ERR
-	{
-		wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
-			_T(""), wxICON_EXCLAMATION);
-	}
+	//if (nSel == -1) //LB_ERR
+	//{
+	//	wxMessageBox(_("List box error: probably nothing is selected yet. If so, then select the translation you want to use."), 
+	//		_T(""), wxICON_EXCLAMATION);
+	//}
 	wxString str = _T("");
 	if (nSel != -1) // LB_ERR
 		str = m_pListBox->GetStringSelection();

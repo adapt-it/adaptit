@@ -411,6 +411,8 @@ void CCCTabbedDialog::OnSelchangeListCctables(wxCommandEvent& WXUNUSED(event))
 
 	int nSel;
 	nSel = m_pListBox->GetSelection();
+	// whm: CCCTabbedDialog already deals with invalid selections so I won't use the
+	// ListBoxPassesSanityCheck routine here.
 	if (nSel != -1) //== m_nPrevSelection)
 	{
 		wxString listBoxStr = m_pListBox->GetString(nSel);
