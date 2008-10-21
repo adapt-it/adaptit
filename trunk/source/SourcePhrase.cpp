@@ -789,15 +789,17 @@ void CSourcePhrase::DeepCopy(void)
 		//    pSP = m_pSavedWords->GetAt( pos ); // Save the old pointer for deletion.
 		//    m_pSavedWords->SetAt( pos, pSrcPhraseDuplicate );  // Replace the element.
 		//    delete pSP;  // Deletion avoids memory leak.
+		// whm update: No, we musn't delete the other object pointer that is being replaced
+		// in this case.
 		SPList::Node* nextPos;
 		SPList::Node* insertedPos;
-		CSourcePhrase* pSPtoDelete;
-		pSPtoDelete = savePos->GetData();
+		//CSourcePhrase* pSPtoDelete;
+		//pSPtoDelete = savePos->GetData();
 		insertedPos = m_pSavedWords->Insert(savePos,pSrcPhraseDuplicate); // pSrcPhraseDuplicate is now at savePos
 		nextPos = insertedPos->GetNext();
 		bool deletedOK;
 		deletedOK = m_pSavedWords->DeleteNode(nextPos);
-		delete pSPtoDelete;
+		//delete pSPtoDelete;
 		wxASSERT(deletedOK != FALSE);
  	}
 }

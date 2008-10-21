@@ -3551,8 +3551,11 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
 			while (node)
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
-				DeleteSingleSrcPhrase(pSrcPhrase);
 				node = node->GetNext();
+#ifdef _DEBUG
+				wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
+#endif
+				DeleteSingleSrcPhrase(pSrcPhrase);
 			}
 			pList->Clear(); 
 		}
@@ -3580,8 +3583,8 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			while (node)
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
-				DeleteSingleSrcPhrase(pSrcPhrase);
 				node = node->GetNext();
+				DeleteSingleSrcPhrase(pSrcPhrase);
 			}
 			pApp->m_pSourcePhrases->Clear(); 
 		}
