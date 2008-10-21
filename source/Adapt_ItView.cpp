@@ -6742,11 +6742,14 @@ ins:	;
 		else
 		{
 			// delete the non-empty range of originals from pMasterList
-			for (posMaster, index = 0; (posSaved = posMaster) != NULL, index < nHowMany; index++)
+			//for (posMaster, index = 0; (posSaved = posMaster) != NULL, index < nHowMany; index++)
+			for (index = 0; index < nHowMany; index++)
 			{
+				posSaved = posMaster;
 				wxASSERT(posSaved);
 				pSrcPhrase = posMaster->GetData(); // assume success
 				posMaster = posMaster->GetNext();
+				// TODO: 20Oct08 Fix program CRASH on call to DeleteNote (see Tok Pisin Fragment 1John.xml)
 				gpApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase); // delete pSrcPhrase and its elements from memory locations
 				pMasterList->DeleteNode(posSaved);						 // delete 
 				// break out of the loop if we have come to the end of the pMasterList
@@ -19737,7 +19740,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList,int nStartingSequN
 		savePos = pos;
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
-		// whm TODO: Check that the CSourcePhrase(*pSrcPhrase) call below actually does use operator=
+		// whm Checked that the CSourcePhrase(*pSrcPhrase) call below actually does use operator=
 		// shallow copy in wx version. Probably wouldn't make any difference in this case since DeepCopy()
 		// is called on pNewSP immediately after creation of pNewSP.
 		CSourcePhrase* pNewSP = new CSourcePhrase(*pSrcPhrase); // uses operator=, does shallow copy
@@ -32815,6 +32818,24 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList
 			posInsert = pDestinationList->Append(pNewOne);
 		}
 	}
+#ifdef _DEBUG
+		SPList::Node* testpos = pOriginalList->GetFirst();
+		int ct = 0;
+		while (testpos)
+		{
+			CSourcePhrase* pSrcP = testpos->GetData();
+			testpos = testpos->GetNext();
+			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pOriginalList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+		}
+		testpos = pDestinationList->GetFirst();
+		ct = 0;
+		while (testpos)
+		{
+			CSourcePhrase* pSrcP = testpos->GetData();
+			testpos = testpos->GetNext();
+			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pDestinationList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+		}
+#endif
 	return TRUE;
 }
 
@@ -34580,6 +34601,27 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		// this would be to just do a deep copy of the cancel list using CopyCSourcePhrasesToExtendSpan())
 		bAllWasOK = CopyCSourcePhrasesToExtendSpan(pTempList, &pRec->modificationsSpan_SrcPhraseList, 
 										pRec->nStartingSequNum, pRec->nEndingSequNum);
+		
+#ifdef _DEBUG
+		SPList::Node* testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
+		int ct = 0;
+		while (testpos)
+		{
+			CSourcePhrase* pSrcP = testpos->GetData();
+			testpos = testpos->GetNext();
+			wxLogDebug(_T("pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+		}
+#endif
+#ifdef _DEBUG
+		testpos = pTempList->GetFirst();
+		ct = 0;
+		while (testpos)
+		{
+			CSourcePhrase* pSrcP = testpos->GetData();
+			testpos = testpos->GetNext();
+			wxLogDebug(_T("pTempList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+		}
+#endif
 		if (!bAllWasOK)
 		{
 			// something went wrong, bail out (m_pSourcePhrases list contents have not yet been modified)
@@ -34594,6 +34636,16 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 
 		// clear out the contents of the temporary list
 		pDoc->DeleteSourcePhrases(pTempList);
+#ifdef _DEBUG
+		testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
+		ct = 0;
+		while (testpos)
+		{
+			CSourcePhrase* pSrcP = testpos->GetData();
+			testpos = testpos->GetNext();
+			wxLogDebug(_T("After DeleteSourcePhrases pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+		}
+#endif
 	} // end block for test (bFreeTransPresent == TRUE)
 	else
 	{

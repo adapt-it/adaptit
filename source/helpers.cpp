@@ -778,52 +778,60 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 	wxString aToken;
 	markers = pSrcPhrase->m_markers;
 	wxStringTokenizer tkz(markers,_T(" \n\r\t"));
-	while (tkz.HasMoreTokens())
+	aToken = tkz.GetNextToken();
+	if (aToken.IsEmpty())
 	{
+		bLacksAny = TRUE;
+		return endmarkers;
+	}
+	aToken = MakeReverse(aToken);
+	if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
+		((aToken != _T("ef\\") || aToken != _T("F\\")) && 
+		(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
+	{
+		// marker's final character is not an asterisk, nor a reversed one of the possible
+		// PngOnly sfm set's \F or \fe markers (either was historically used for ending 
+		// footnotes); hence it is not an endmarker, so return
+		bLacksAny = TRUE;
+		return endmarkers;
+	}
+	// it is an endmarker, so break out any others at the start of markers
+	bLacksAny = FALSE;
+	while (!aToken.IsEmpty())
+	{
+		lastPos = tkz.GetPosition();
 		aToken = tkz.GetNextToken();
 		if (aToken.IsEmpty())
-		{
-			bLacksAny = TRUE;
-			return endmarkers;
-		}
-	
-		aToken = MakeReverse(aToken);
-		if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
-			((aToken != _T("ef\\") || aToken != _T("F\\")) && 
-			(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
-		{
-			// marker's final character is not an asterisk, nor a reversed one of the possible
-			// PngOnly sfm set's \F or \fe markers (either was historically used for ending 
-			// footnotes); hence it is not an endmarker, so return
-			bLacksAny = TRUE;
-			return endmarkers;
-		}
-
-		aToken = MakeReverse(aToken);
-		endmarkers += aToken + tkz.GetLastDelimiter(); // accumulate the token and its delimiter
-		lastPos = tkz.GetPosition(); // gets the current position, i.e., one index after the last returned token
-		
-		// it is an endmarker, so break out any others at the start of markers
-		if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
-			((aToken != _T("ef\\") || aToken != _T("F\\")) && 
-			(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
-		{
-			// same test as above, only this time just break out if it returns TRUE
 			break;
+		else
+		{
+			aToken = MakeReverse(aToken);
+			if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
+				((aToken != _T("ef\\") || aToken != _T("F\\")) && 
+				(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
+			{
+				// same test as above, only this time just break out if it returns TRUE
+				break;
+			}
 		}
 	}
 	// the break-out token, if any, will have resulted in offset pointing past it, so we have
 	// to use lastPos to get the offset which points past the last broken out endmarker
+	// BEW added 30Aug08, to fix a crash where, if the markers CString contains just \f* then
+	// lastPos is 4 at breakout, and that triggers a breakpoint in atlsimpstr.cpp because lastPos
+	// accesses the byte past the '\0' endbyte of the string; so we here check and reduce lastPos
+	// if that is the case
+	int strLen = markers.Length();
+	if (lastPos > strLen)
+		lastPos = strLen;
 
-	// whm note: lastPos is always updated by GetPosition() above
 	// include any following white space after the lostPos position, in the endmarkers substring 
-	//while (markers[lastPos] == _T(' ') || markers[lastPos] == _T('\n') || markers[lastPos] == _T('\r') ||
-	//	markers[lastPos] == _T('\t'))
-	//{lastPos++;}
-
-	// whm note: endmarkers part is accumulated above so we'll just assert it is same as below
-	wxASSERT(endmarkers == markers.Left(lastPos));
-	
+	while (markers[lastPos] == _T(' ') || markers[lastPos] == _T('\n') || markers[lastPos] == _T('\r') ||
+		markers[lastPos] == _T('\t'))
+	{lastPos++;}
+	endmarkers = markers.Left(lastPos); // this stuff belongs at the end of the list in the previous
+									   // Chapter object; or if editing source text, it belongs with
+									   // the previous storage location's source text
 	if (!bCopyOnly)
 	{
 		// remove the endmarkers from pSrcPhrase->m_markers only when bCopyOnly is not TRUE
