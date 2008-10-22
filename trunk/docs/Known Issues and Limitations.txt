@@ -1,6 +1,6 @@
 Limitations and known issues in the initial release (version 4.0.0) of Adapt It WX and Adapt It WX Unicode:
 
-1. The Edit Source Text feature on the Edit menu is experimental and may not prove to be stable. You should use it with caution as it may cause program crashes under certain circumstances. We're still working on making it more robust.
+1. The Edit Source Text feature on the Edit menu is experimental and not fully implemented. You should use it with caution.
 
 2. The SIL Converters feature is not yet implemented. We plan to implement this feature in the Windows port, but it may not be available at all in the Linux or Macintosh ports (because SIL Converters relies heavily on Microsoft specific technologies).
 
@@ -12,5 +12,5 @@ Limitations and known issues in the initial release (version 4.0.0) of Adapt It 
 
 6. Adapt It WX only uses the xml file format for its documents and KB files. It will not recognize nor can it convert any files that still use the legacy .adt (binary) format. If you have any old .adt files produced by earlier legacy versions of Adapt It that you want to access, you will need to open those files using a recent legacy version (3.x) of Adapt It and save them with the "Save Documents and KB as XML" menu item selected on the File menu. After they have been saved as XML, Adapt It WX will be able to open and process them normally.
 
-7. Adapt It WX does not have a splitter window with ability to split the main window horizontally into two separately scrolled windows into the view. This would take a fair bit of work to implement on the cross platform version, but could probably be done if there is sufficient demand for it. An alternative that allows the user to see translation work in another part of the document is to use the "View Translations or Glosses Elsewhere in the Document" toolbar button near the right end of the toolbar. The advantage of using this button is that you can view the context of a passage anywhere in the currently loaded document, whereas with the split window method in the legacy application, you can only view another place within the same bundle of the document.
+7. Adapt It WX does not have a splitter window with ability to split the main window horizontally into two separately scrolled windows into the view. This would take a fair bit of work to implement on the cross platform version, but could probably be done if there is sufficient demand for it. An alternative that allows the user to see translation work in another part of the document is to use the "View Translations or Glosses Elsewhere in the Document" toolbar button near the right end of the toolbar. The advantage of using this button is that it shows a separate dialog in which you can view the context of a passage anywhere in the currently loaded document, whereas with the split window method in the legacy application, you can only view another place within the same bundle of the document.
 

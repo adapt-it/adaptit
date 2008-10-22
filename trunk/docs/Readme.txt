@@ -1,11 +1,11 @@
 =====================================================================
 Adapt It WX
 =====================================================================
-Version 4.0.0
-Platform: This version is for Microsoft Windows. Versions of Adapt It 
-beginning with Version 4.0.0 are cross-platform capable, being built 
-with the wxWidgets cross-platform GUI framework (hence the WX in the 
-name). Versions are also available for Linux and the Macintosh.
+Version 4.0.1
+Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
+capable, being built with the wxWidgets cross-platform GUI framework 
+(hence the WX in the name). Packages are also available for Linux, 
+and expected for the Macintosh in 2009.
 
 Adapt It WX is a copyrighted program. See license/LICENSE.txt for
 more information.
@@ -101,7 +101,9 @@ What Data Format(s) does Adapt It WX produce and/or export?
 Adapt It WX stores its adaptation documents in a special XML format 
 that only Adapt It knows how to interpret. These XML format 
 adaptation documents are stored in the project's "Adaptations" 
-folder. You should not try to edit them directly in an editor.
+folder. The data contained in these XML documents can be read with 
+an editor, but you should not try to edit Adapt It's XML documents
+directly in an external editor or other word processor. 
 
 Adapt It WX stores its knowledge bases also in a special XML format. 
 Like its XML adaptation documents, these knowledge base files 
@@ -193,14 +195,14 @@ full potential.
 Online Help System:
 ---------------------------------------------------------------------
 Online Help is available both from within the Adapt It WX program 
-(access online Help through the Help Menu), and from the Adapt It 
-WX Start Menu group. 
+(access Help Topics through the Help Menu), and from the Adapt It 
+WX Start Menu group (in Windows installations). 
 
 ---------------------------------------------------------------------
 Documentation:
 ---------------------------------------------------------------------
 The following documentation files are installed (with links to them 
-in the Adapt It Start Menu group):
+in the Adapt It Start Menu group on Windows installations):
    1. Adapt It Quick Start.htm has basic startup information in an 
       html file; this file also includes "how to" instructions for 
       about a score of common Adapt It procedures.
@@ -219,36 +221,18 @@ in the Adapt It Start Menu group):
       alternate format because it is approximately the same size as
       the Word document from which it is made (about 1 MB). The RTF 
       file is huge (52MB unzipped).
-   4. Version 3 of Adapt It.htm is an html file that describes the 
-      new features that were added to Adapt It in version 3. They 
-      include:
-      a. XML Input and Output of Documents and Knowledge Bases
-      b. External Control Files
-      c. Two Standard Format Marker Sets Supported
-      d. Filtering (Hiding) of Standard Format Marked Information
-      e. Viewing and Editing Filtered Information
-      f. Back Translation Support and Propagating Information
-      g. Book Folders Mode
-      h. Split, Join and Move
-      i. Pack Document... and Unpack Document... commands
-      j. Export Improvements
-      k. SIL Converters support (not available in version 4.0.0)
-      l. Transliteration Mode (not available in version 4.0.0)
-      m. Other Changes
-      n. Appendix: Glossary of the XML document's attributes and 
-         flags
-   5. Localization_Readme.txt describes how the localization system 
+   4. Localization_Readme.txt describes how the localization system 
       works in Adapt It WX and Adapt It WX Unicode. It also tells 
       how anyone can modify an existing interface translation, or 
       prepare a new language interface for Adapt It using the Poedit 
       program which is freely available from the Internet. 
-   6. Adapt It changes.txt describes the changes from previous 
-      versions of Adapt It.
+   5. Adapt It changes.txt describes the changes from previous 
+      versions of Adapt It (starting with version 4.0.0).
 
 ---------------------------------------------------------------------
 Localization:
 ---------------------------------------------------------------------
-Version 4 of Adapt It (Adapt It WX) introduced a flexible interface 
+Version 4 of Adapt It (Adapt It WX) introduces a flexible interface 
 and localization mechanism making it possible for the user to select 
 any interface language of choice from a list. Choosing an interface 
 language other than English can be done when Adapt It is first run, 
@@ -287,6 +271,10 @@ experience using Adapt It, an Adapt It User Forum will provide an
 increasing share of help for Adapt It users. Be sure to examine the 
 help documents and help system provided with Adapt It, as they can 
 be invaluable sources of information.
+
+The current user forum is located at:
+http://groups.google.com/group/AdaptIt-Talk
+
 
 We hope you enjoy using Adapt It!
 
