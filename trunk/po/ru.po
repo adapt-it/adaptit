@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-10-13 19:23-0600\n"
-"PO-Revision-Date: 2008-10-13 19:23-0600\n"
+"POT-Creation-Date: 2008-10-21 22:38-0600\n"
+"PO-Revision-Date: 2008-10-21 22:38-0600\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,569 +15,569 @@ msgstr ""
 "X-Poedit-Basepath: ../\n"
 "X-Poedit-SearchPath-0: source\n"
 
-#: source/Adapt_It.cpp:551
+#: source/Adapt_It.cpp:553
 msgid "Genesis"
 msgstr ""
 
-#: source/Adapt_It.cpp:553
+#: source/Adapt_It.cpp:555
 msgid "Exodus"
 msgstr ""
 
-#: source/Adapt_It.cpp:555
+#: source/Adapt_It.cpp:557
 msgid "Leviticus"
 msgstr ""
 
-#: source/Adapt_It.cpp:557
+#: source/Adapt_It.cpp:559
 msgid "Numbers"
 msgstr ""
 
-#: source/Adapt_It.cpp:559
+#: source/Adapt_It.cpp:561
 msgid "Deuteronomy"
 msgstr ""
 
-#: source/Adapt_It.cpp:561
+#: source/Adapt_It.cpp:563
 msgid "Joshua"
 msgstr ""
 
-#: source/Adapt_It.cpp:563
+#: source/Adapt_It.cpp:565
 msgid "Judges"
 msgstr ""
 
-#: source/Adapt_It.cpp:565
+#: source/Adapt_It.cpp:567
 msgid "Ruth"
 msgstr ""
 
-#: source/Adapt_It.cpp:567
+#: source/Adapt_It.cpp:569
 msgid "1 Samuel"
 msgstr ""
 
-#: source/Adapt_It.cpp:569
+#: source/Adapt_It.cpp:571
 msgid "2 Samuel"
 msgstr ""
 
-#: source/Adapt_It.cpp:571
+#: source/Adapt_It.cpp:573
 msgid "1 Kings"
 msgstr ""
 
-#: source/Adapt_It.cpp:573
+#: source/Adapt_It.cpp:575
 msgid "2 Kings"
 msgstr ""
 
-#: source/Adapt_It.cpp:575
+#: source/Adapt_It.cpp:577
 msgid "1 Chronicles"
 msgstr ""
 
-#: source/Adapt_It.cpp:577
+#: source/Adapt_It.cpp:579
 msgid "2 Chronicles"
 msgstr ""
 
-#: source/Adapt_It.cpp:579
+#: source/Adapt_It.cpp:581
 msgid "Ezra"
 msgstr ""
 
-#: source/Adapt_It.cpp:581
+#: source/Adapt_It.cpp:583
 msgid "Nehemiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:583
+#: source/Adapt_It.cpp:585
 msgid "Esther"
 msgstr ""
 
-#: source/Adapt_It.cpp:585
+#: source/Adapt_It.cpp:587
 msgid "Job"
 msgstr ""
 
-#: source/Adapt_It.cpp:587
+#: source/Adapt_It.cpp:589
 msgid "Psalms"
 msgstr ""
 
-#: source/Adapt_It.cpp:589
+#: source/Adapt_It.cpp:591
 msgid "Proverbs"
 msgstr ""
 
-#: source/Adapt_It.cpp:591
+#: source/Adapt_It.cpp:593
 msgid "Ecclesiastes"
 msgstr ""
 
-#: source/Adapt_It.cpp:593
+#: source/Adapt_It.cpp:595
 msgid "Song of Songs"
 msgstr ""
 
-#: source/Adapt_It.cpp:595
+#: source/Adapt_It.cpp:597
 msgid "Isaiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:597
+#: source/Adapt_It.cpp:599
 msgid "Jeremiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:599
+#: source/Adapt_It.cpp:601
 msgid "Lamentations"
 msgstr ""
 
-#: source/Adapt_It.cpp:601
+#: source/Adapt_It.cpp:603
 msgid "Ezekiel"
 msgstr ""
 
-#: source/Adapt_It.cpp:603
+#: source/Adapt_It.cpp:605
 msgid "Daniel"
 msgstr ""
 
-#: source/Adapt_It.cpp:605
+#: source/Adapt_It.cpp:607
 msgid "Hosea"
 msgstr ""
 
-#: source/Adapt_It.cpp:607
+#: source/Adapt_It.cpp:609
 msgid "Joel"
 msgstr ""
 
-#: source/Adapt_It.cpp:609
+#: source/Adapt_It.cpp:611
 msgid "Amos"
 msgstr ""
 
-#: source/Adapt_It.cpp:611
+#: source/Adapt_It.cpp:613
 msgid "Obadiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:613
+#: source/Adapt_It.cpp:615
 msgid "Jonah"
 msgstr ""
 
-#: source/Adapt_It.cpp:615
+#: source/Adapt_It.cpp:617
 msgid "Micah"
 msgstr ""
 
-#: source/Adapt_It.cpp:617
+#: source/Adapt_It.cpp:619
 msgid "Nahum"
 msgstr ""
 
-#: source/Adapt_It.cpp:619
+#: source/Adapt_It.cpp:621
 msgid "Habakkuk"
 msgstr ""
 
-#: source/Adapt_It.cpp:621
+#: source/Adapt_It.cpp:623
 msgid "Zephaniah"
 msgstr ""
 
-#: source/Adapt_It.cpp:623
+#: source/Adapt_It.cpp:625
 msgid "Haggai"
 msgstr ""
 
-#: source/Adapt_It.cpp:625
+#: source/Adapt_It.cpp:627
 msgid "Zechariah"
 msgstr ""
 
-#: source/Adapt_It.cpp:627
+#: source/Adapt_It.cpp:629
 msgid "Malachi"
 msgstr ""
 
-#: source/Adapt_It.cpp:629
+#: source/Adapt_It.cpp:631
 msgid "Matthew"
 msgstr ""
 
-#: source/Adapt_It.cpp:631
+#: source/Adapt_It.cpp:633
 msgid "Mark"
 msgstr ""
 
-#: source/Adapt_It.cpp:633
+#: source/Adapt_It.cpp:635
 msgid "Luke"
 msgstr ""
 
-#: source/Adapt_It.cpp:635
+#: source/Adapt_It.cpp:637
 msgid "John"
 msgstr ""
 
-#: source/Adapt_It.cpp:637
+#: source/Adapt_It.cpp:639
 msgid "Acts"
 msgstr ""
 
-#: source/Adapt_It.cpp:639
+#: source/Adapt_It.cpp:641
 msgid "Romans"
 msgstr ""
 
-#: source/Adapt_It.cpp:641
+#: source/Adapt_It.cpp:643
 msgid "1 Corinthians"
 msgstr ""
 
-#: source/Adapt_It.cpp:643
+#: source/Adapt_It.cpp:645
 msgid "2 Corinthians"
 msgstr ""
 
-#: source/Adapt_It.cpp:645
+#: source/Adapt_It.cpp:647
 msgid "Galatians"
 msgstr ""
 
-#: source/Adapt_It.cpp:647
+#: source/Adapt_It.cpp:649
 msgid "Ephesians"
 msgstr ""
 
-#: source/Adapt_It.cpp:649
+#: source/Adapt_It.cpp:651
 msgid "Philippians"
 msgstr ""
 
-#: source/Adapt_It.cpp:651
+#: source/Adapt_It.cpp:653
 msgid "Colossians"
 msgstr ""
 
-#: source/Adapt_It.cpp:653
+#: source/Adapt_It.cpp:655
 msgid "1 Thessalonians"
 msgstr ""
 
-#: source/Adapt_It.cpp:655
+#: source/Adapt_It.cpp:657
 msgid "2 Thessalonians"
 msgstr ""
 
-#: source/Adapt_It.cpp:657
+#: source/Adapt_It.cpp:659
 msgid "1 Timothy"
 msgstr ""
 
-#: source/Adapt_It.cpp:659
+#: source/Adapt_It.cpp:661
 msgid "2 Timothy"
 msgstr ""
 
-#: source/Adapt_It.cpp:661
+#: source/Adapt_It.cpp:663
 msgid "Titus"
 msgstr ""
 
-#: source/Adapt_It.cpp:663
+#: source/Adapt_It.cpp:665
 msgid "Philemon"
 msgstr ""
 
-#: source/Adapt_It.cpp:665
+#: source/Adapt_It.cpp:667
 msgid "Hebrews"
 msgstr ""
 
-#: source/Adapt_It.cpp:667
+#: source/Adapt_It.cpp:669
 msgid "James"
 msgstr ""
 
-#: source/Adapt_It.cpp:669
+#: source/Adapt_It.cpp:671
 msgid "1 Peter"
 msgstr ""
 
-#: source/Adapt_It.cpp:671
+#: source/Adapt_It.cpp:673
 msgid "2 Peter"
 msgstr ""
 
-#: source/Adapt_It.cpp:673
+#: source/Adapt_It.cpp:675
 msgid "1 John"
 msgstr ""
 
-#: source/Adapt_It.cpp:675
+#: source/Adapt_It.cpp:677
 msgid "2 John"
 msgstr ""
 
-#: source/Adapt_It.cpp:677
+#: source/Adapt_It.cpp:679
 msgid "3 John"
 msgstr ""
 
-#: source/Adapt_It.cpp:679
+#: source/Adapt_It.cpp:681
 msgid "Jude"
 msgstr ""
 
-#: source/Adapt_It.cpp:681
+#: source/Adapt_It.cpp:683
 msgid "Revelation"
 msgstr ""
 
-#: source/Adapt_It.cpp:683
-#: source/Adapt_It.cpp:4680
+#: source/Adapt_It.cpp:685
+#: source/Adapt_It.cpp:4762
 msgid "Other Texts"
 msgstr ""
 
-#: source/Adapt_It.cpp:688
+#: source/Adapt_It.cpp:690
 msgid "GEN"
 msgstr ""
 
-#: source/Adapt_It.cpp:690
+#: source/Adapt_It.cpp:692
 msgid "EXO"
 msgstr ""
 
-#: source/Adapt_It.cpp:692
+#: source/Adapt_It.cpp:694
 msgid "LEV"
 msgstr ""
 
-#: source/Adapt_It.cpp:694
+#: source/Adapt_It.cpp:696
 msgid "NUM"
 msgstr ""
 
-#: source/Adapt_It.cpp:696
+#: source/Adapt_It.cpp:698
 msgid "DEU"
 msgstr ""
 
-#: source/Adapt_It.cpp:698
+#: source/Adapt_It.cpp:700
 msgid "JOS"
 msgstr ""
 
-#: source/Adapt_It.cpp:700
+#: source/Adapt_It.cpp:702
 msgid "JDG"
 msgstr ""
 
-#: source/Adapt_It.cpp:702
+#: source/Adapt_It.cpp:704
 msgid "RUT"
 msgstr ""
 
-#: source/Adapt_It.cpp:704
+#: source/Adapt_It.cpp:706
 msgid "1SA"
 msgstr ""
 
-#: source/Adapt_It.cpp:706
+#: source/Adapt_It.cpp:708
 msgid "2SA"
 msgstr ""
 
-#: source/Adapt_It.cpp:708
+#: source/Adapt_It.cpp:710
 msgid "1KI"
 msgstr ""
 
-#: source/Adapt_It.cpp:710
+#: source/Adapt_It.cpp:712
 msgid "2KI"
 msgstr ""
 
-#: source/Adapt_It.cpp:712
+#: source/Adapt_It.cpp:714
 msgid "1CH"
 msgstr ""
 
-#: source/Adapt_It.cpp:714
+#: source/Adapt_It.cpp:716
 msgid "2CH"
 msgstr ""
 
-#: source/Adapt_It.cpp:716
+#: source/Adapt_It.cpp:718
 msgid "EZR"
 msgstr ""
 
-#: source/Adapt_It.cpp:718
+#: source/Adapt_It.cpp:720
 msgid "NEH"
 msgstr ""
 
-#: source/Adapt_It.cpp:720
+#: source/Adapt_It.cpp:722
 msgid "EST"
 msgstr ""
 
-#: source/Adapt_It.cpp:722
+#: source/Adapt_It.cpp:724
 msgid "JOB"
 msgstr ""
 
-#: source/Adapt_It.cpp:724
+#: source/Adapt_It.cpp:726
 msgid "PSA"
 msgstr ""
 
-#: source/Adapt_It.cpp:726
+#: source/Adapt_It.cpp:728
 msgid "PRO"
 msgstr ""
 
-#: source/Adapt_It.cpp:728
+#: source/Adapt_It.cpp:730
 msgid "ECC"
 msgstr ""
 
-#: source/Adapt_It.cpp:730
+#: source/Adapt_It.cpp:732
 msgid "SNG"
 msgstr ""
 
-#: source/Adapt_It.cpp:732
+#: source/Adapt_It.cpp:734
 msgid "ISA"
 msgstr ""
 
-#: source/Adapt_It.cpp:734
+#: source/Adapt_It.cpp:736
 msgid "JER"
 msgstr ""
 
-#: source/Adapt_It.cpp:736
+#: source/Adapt_It.cpp:738
 msgid "LAM"
 msgstr ""
 
-#: source/Adapt_It.cpp:738
+#: source/Adapt_It.cpp:740
 msgid "EZK"
 msgstr ""
 
-#: source/Adapt_It.cpp:740
+#: source/Adapt_It.cpp:742
 msgid "DAN"
 msgstr ""
 
-#: source/Adapt_It.cpp:742
+#: source/Adapt_It.cpp:744
 msgid "HOS"
 msgstr ""
 
-#: source/Adapt_It.cpp:744
+#: source/Adapt_It.cpp:746
 msgid "JOL"
 msgstr ""
 
-#: source/Adapt_It.cpp:746
+#: source/Adapt_It.cpp:748
 msgid "AMO"
 msgstr ""
 
-#: source/Adapt_It.cpp:748
+#: source/Adapt_It.cpp:750
 msgid "OBA"
 msgstr ""
 
-#: source/Adapt_It.cpp:750
+#: source/Adapt_It.cpp:752
 msgid "JON"
 msgstr ""
 
-#: source/Adapt_It.cpp:752
+#: source/Adapt_It.cpp:754
 msgid "MIC"
 msgstr ""
 
-#: source/Adapt_It.cpp:754
+#: source/Adapt_It.cpp:756
 msgid "NAH"
 msgstr ""
 
-#: source/Adapt_It.cpp:756
+#: source/Adapt_It.cpp:758
 msgid "HAB"
 msgstr ""
 
-#: source/Adapt_It.cpp:758
+#: source/Adapt_It.cpp:760
 msgid "ZEP"
 msgstr ""
 
-#: source/Adapt_It.cpp:760
+#: source/Adapt_It.cpp:762
 msgid "HAG"
 msgstr ""
 
-#: source/Adapt_It.cpp:762
+#: source/Adapt_It.cpp:764
 msgid "ZEC"
 msgstr ""
 
-#: source/Adapt_It.cpp:764
+#: source/Adapt_It.cpp:766
 msgid "MAL"
 msgstr ""
 
-#: source/Adapt_It.cpp:766
+#: source/Adapt_It.cpp:768
 msgid "MAT"
 msgstr ""
 
-#: source/Adapt_It.cpp:768
+#: source/Adapt_It.cpp:770
 msgid "MRK"
 msgstr ""
 
-#: source/Adapt_It.cpp:770
+#: source/Adapt_It.cpp:772
 msgid "LUK"
 msgstr ""
 
-#: source/Adapt_It.cpp:772
+#: source/Adapt_It.cpp:774
 msgid "JHN"
 msgstr ""
 
-#: source/Adapt_It.cpp:774
+#: source/Adapt_It.cpp:776
 msgid "ACT"
 msgstr ""
 
-#: source/Adapt_It.cpp:776
+#: source/Adapt_It.cpp:778
 msgid "ROM"
 msgstr ""
 
-#: source/Adapt_It.cpp:778
+#: source/Adapt_It.cpp:780
 msgid "1CO"
 msgstr ""
 
-#: source/Adapt_It.cpp:780
+#: source/Adapt_It.cpp:782
 msgid "2CO"
 msgstr ""
 
-#: source/Adapt_It.cpp:782
+#: source/Adapt_It.cpp:784
 msgid "GAL"
 msgstr ""
 
-#: source/Adapt_It.cpp:784
+#: source/Adapt_It.cpp:786
 msgid "EPH"
 msgstr ""
 
-#: source/Adapt_It.cpp:786
+#: source/Adapt_It.cpp:788
 msgid "PHP"
 msgstr ""
 
-#: source/Adapt_It.cpp:788
+#: source/Adapt_It.cpp:790
 msgid "COL"
 msgstr ""
 
-#: source/Adapt_It.cpp:790
+#: source/Adapt_It.cpp:792
 msgid "1TH"
 msgstr ""
 
-#: source/Adapt_It.cpp:792
+#: source/Adapt_It.cpp:794
 msgid "2TH"
 msgstr ""
 
-#: source/Adapt_It.cpp:794
+#: source/Adapt_It.cpp:796
 msgid "1TI"
 msgstr ""
 
-#: source/Adapt_It.cpp:796
+#: source/Adapt_It.cpp:798
 msgid "2TI"
 msgstr ""
 
-#: source/Adapt_It.cpp:798
+#: source/Adapt_It.cpp:800
 msgid "TIT"
 msgstr ""
 
-#: source/Adapt_It.cpp:800
+#: source/Adapt_It.cpp:802
 msgid "PHM"
 msgstr ""
 
-#: source/Adapt_It.cpp:802
+#: source/Adapt_It.cpp:804
 msgid "HEB"
 msgstr ""
 
-#: source/Adapt_It.cpp:804
+#: source/Adapt_It.cpp:806
 msgid "JAS"
 msgstr ""
 
-#: source/Adapt_It.cpp:806
+#: source/Adapt_It.cpp:808
 msgid "1PE"
 msgstr ""
 
-#: source/Adapt_It.cpp:808
+#: source/Adapt_It.cpp:810
 msgid "2PE"
 msgstr ""
 
-#: source/Adapt_It.cpp:810
+#: source/Adapt_It.cpp:812
 msgid "1JN"
 msgstr ""
 
-#: source/Adapt_It.cpp:812
+#: source/Adapt_It.cpp:814
 msgid "2JN"
 msgstr ""
 
-#: source/Adapt_It.cpp:814
+#: source/Adapt_It.cpp:816
 msgid "3JN"
 msgstr ""
 
-#: source/Adapt_It.cpp:816
+#: source/Adapt_It.cpp:818
 msgid "JUD"
 msgstr ""
 
-#: source/Adapt_It.cpp:818
+#: source/Adapt_It.cpp:820
 msgid "REV"
 msgstr ""
 
-#: source/Adapt_It.cpp:820
+#: source/Adapt_It.cpp:822
 msgid "OTX"
 msgstr ""
 
-#: source/Adapt_It.cpp:822
+#: source/Adapt_It.cpp:824
 msgid "&Finish"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:823
+#: source/Adapt_It.cpp:825
 #, fuzzy
 msgid "< &Back"
 msgstr "Переход назад"
 
-#: source/Adapt_It.cpp:1804
+#: source/Adapt_It.cpp:1806
 #, c-format
 msgid "(Use system default language) [%s]"
 msgstr ""
 
-#: source/Adapt_It.cpp:4329
+#: source/Adapt_It.cpp:4411
 msgid "The user interface language change may not fully take effect until you restart Adapt It."
 msgstr ""
 
 # Do not translate.
-#: source/Adapt_It.cpp:4528
+#: source/Adapt_It.cpp:4610
 msgid "Adapt It Unicode"
 msgstr ""
 
 # Do not translate.
-#: source/Adapt_It.cpp:4529
+#: source/Adapt_It.cpp:4611
 msgid "Unicode "
 msgstr ""
 
@@ -586,62 +586,62 @@ msgstr ""
 # 2. In the Welcome splash screen.
 # 3. In the Help About Information.
 # It is probably best not to translate.
-#: source/Adapt_It.cpp:4531
+#: source/Adapt_It.cpp:4613
 #: source/Adapt_It_wdr.cpp:76
 #: source/Adapt_It_wdr.cpp:1282
 msgid "Adapt It"
 msgstr ""
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: source/Adapt_It.cpp:4545
-#: source/Adapt_It.cpp:19303
-#: source/Adapt_It.cpp:19365
+#: source/Adapt_It.cpp:4627
+#: source/Adapt_It.cpp:19385
+#: source/Adapt_It.cpp:19447
 msgid "Adaptations"
 msgstr "Адаптации"
 
 # Priority 1
-#: source/Adapt_It.cpp:4676
+#: source/Adapt_It.cpp:4758
 msgid "History books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:4677
+#: source/Adapt_It.cpp:4759
 msgid "Wisdom books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:4678
+#: source/Adapt_It.cpp:4760
 msgid "Prophecy books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:4679
+#: source/Adapt_It.cpp:4761
 msgid "New Testament books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:5865
-#: source/Adapt_ItView.cpp:27064
-#: source/Adapt_ItView.cpp:27120
-#: source/Adapt_It_wdr.cpp:6555
+#: source/Adapt_It.cpp:5947
+#: source/Adapt_ItView.cpp:27067
+#: source/Adapt_ItView.cpp:27123
+#: source/Adapt_It_wdr.cpp:6760
 msgid "Layout Window Right To Left\tCtrl-1"
 msgstr "Планировка окна справа налево\tCtrl-1"
 
-#: source/Adapt_It.cpp:5876
+#: source/Adapt_It.cpp:5958
 #: source/Adapt_ItDoc.cpp:1357
 msgid "Untitled - Adapt It"
 msgstr ""
 
-#: source/Adapt_It.cpp:5889
+#: source/Adapt_It.cpp:5971
 msgid "Loading books.xml and AI_USFM.xml ..."
 msgstr ""
 
-#: source/Adapt_It.cpp:5898
-#: source/Adapt_It.cpp:5908
+#: source/Adapt_It.cpp:5980
+#: source/Adapt_It.cpp:5990
 msgid "books.xml"
 msgstr ""
 
-#: source/Adapt_It.cpp:5952
+#: source/Adapt_It.cpp:6034
 msgid ""
 "Warning: book folder mode will be disabled until a books.xml file is stored \n"
 "in the work folder and it is read in and parsed correctly.\n"
@@ -649,28 +649,28 @@ msgid ""
 "before trying to do more work."
 msgstr "Предупреждение: режим книг в папке будет отключен, пока файл books.xml не будет сохранен в рабочей папке, правильно прочитан и синтаксически анализирован. Для продолжения работы следует закрыть приложение и исправить файл books.xml."
 
-#: source/Adapt_It.cpp:6079
+#: source/Adapt_It.cpp:6161
 msgid "Could not remove the AI_USFM.xml file from the work folder."
 msgstr ""
 
-#: source/Adapt_It.cpp:6129
+#: source/Adapt_It.cpp:6211
 msgid "Warning: using default USFM styles until a AI_USFM.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_USFM.xml file if you have previously told Adapt It to hide certain standard format markers."
 msgstr "Предупреждение: используются стили USFM по умолчанию, пока в рабочей папке хранится файл AI_USFM.xml и он правильно читается и синтаксически анализируется. Если вы ранее включили функцию скрывания некоторых маркеров стандартного формата, то вам следует закрыть приложение и исправить файл AI_USFM.xml."
 
 # Do not translate the 'Adapt It %sWork' part of the sentence.
-#: source/Adapt_It.cpp:7432
+#: source/Adapt_It.cpp:7514
 #, c-format
 msgid "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."
 msgstr "Стоп: файл под именем 'Adapt It %sWork' уже существует. Удалите или переименуйте этот файл, т.к. что Adapt It должен использовать это имя для папки."
 
-#: source/Adapt_It.cpp:7447
+#: source/Adapt_It.cpp:7529
 #, fuzzy, c-format
 msgid ""
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\n"
 "Adapt It %s is not set up correctly and so must close down."
 msgstr "Стоп: при создании папки \"\"Adapt It %sWork\"\" в вашей папке Мои Документы возникла ошибка. Adapt It %s установлен неправильно и должен быть закрыт."
 
-#: source/Adapt_It.cpp:7498
+#: source/Adapt_It.cpp:7580
 #, c-format
 msgid "Warning: a project with the name \"%s\" already exists. Adapt It will therefore use the existing project."
 msgstr "Предупреждение: проект под именем \"\"%s\"\" уже существует. Поэтому Adapt It будет использовать существующий проект."
@@ -678,256 +678,256 @@ msgstr "Предупреждение: проект под именем \"\"%s\"\
 # Do not translate  \"%s to %s adaptations\"
 # Also do not translate  Adapt It %sWork
 # Note that the %s place holders are filled with text in the same order as the original English text. Therefore it is important to translate the first sentence if possible so that the \"%s to %s adaptations\"  and the Adapt It %sWork parts remain in the same order, i.e., Adapt It %sWork should not precede \"%s to %s adaptations\" in the sentence.
-#: source/Adapt_It.cpp:7513
+#: source/Adapt_It.cpp:7595
 #, fuzzy, c-format
 msgid "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."
 msgstr "Стоп: в вашей папке Adapt It %sWork уже есть файл под именем адаптации \"\" с %s на %s\"\". Вам следует переименовать или удалить этот файл, т.к. Adapt It должен использовать это имя для создания папки."
 
 # Do not translate the \"s% to %s adaptions\" part.
-#: source/Adapt_It.cpp:7528
+#: source/Adapt_It.cpp:7610
 #, fuzzy, c-format
 msgid "Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."
 msgstr "Стоп: при создании папки \"\"адаптации с %s на %s\"\" в вашей рабочей папке Adapt It %s возникла ошибка. Adapt It установлен неправильно и должен быть закрыт."
 
-#: source/Adapt_It.cpp:7557
+#: source/Adapt_It.cpp:7639
 #, c-format
 msgid "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."
 msgstr "Стоп: файл под названием \"\"Адаптации\"\" уже есть в вашей папке \"\"%s\"\". Пожалуйста, удалите или переименуйте его, потому что программа Adapt It должна использовать это имя для директории."
 
 # Do not translate the \"Adaptations\" part of the sentence.
-#: source/Adapt_It.cpp:7571
+#: source/Adapt_It.cpp:7653
 msgid "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."
 msgstr ""
 
-#: source/Adapt_It.cpp:7641
-#: source/Adapt_It.cpp:10635
+#: source/Adapt_It.cpp:7723
+#: source/Adapt_It.cpp:10717
 #: source/Adapt_ItView.cpp:1709
 msgid "Error: loading the glossing knowledge base failed. The application will now close."
 msgstr "Ошибка: не удалось загрузить базу знаний для глосс. Программа будет закрыта."
 
-#: source/Adapt_It.cpp:7649
-#: source/Adapt_It.cpp:10664
+#: source/Adapt_It.cpp:7731
+#: source/Adapt_It.cpp:10746
 #: source/Adapt_ItView.cpp:1717
 msgid "Error: loading a knowledge base failed. The application will now close."
 msgstr "Ошибка: загрузить базу знаний не удалось. Программа будет закрыта."
 
-#: source/Adapt_It.cpp:7685
+#: source/Adapt_It.cpp:7767
 #: source/Adapt_ItView.cpp:1753
 msgid "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."
 msgstr "Ошибка: не удалось сохранить базу знаний на диск в первый раз. Программа будет закрыта."
 
-#: source/Adapt_It.cpp:7693
-#: source/Adapt_It.cpp:10567
-#: source/Adapt_It.cpp:10610
+#: source/Adapt_It.cpp:7775
+#: source/Adapt_It.cpp:10649
+#: source/Adapt_It.cpp:10692
 #: source/Adapt_ItView.cpp:1761
 msgid "Error: saving the knowledge base failed. The application will now close."
 msgstr "Ошибка: сохранить базу знаний не удалось. Программа будет закрыта."
 
-#: source/Adapt_It.cpp:8518
+#: source/Adapt_It.cpp:8600
 msgid "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."
 msgstr "Предупреждение: не удалось найти базу знаний для сохранения глосс. Вместо этого создана пустая база знаний для вашего пользования."
 
-#: source/Adapt_It.cpp:8625
+#: source/Adapt_It.cpp:8707
 msgid "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "
 msgstr "Предупреждение: не найдена база знаний для сохранения адаптаций. Взамен создана пустая база знаний для вашего пользования."
 
-#: source/Adapt_It.cpp:8730
+#: source/Adapt_It.cpp:8812
 msgid "Failed to set the current directory when getting existing adaptation documents"
 msgstr ""
 
-#: source/Adapt_It.cpp:8802
+#: source/Adapt_It.cpp:8884
 #, c-format
 msgid "Creating folder: \"%s\" failed. This folder will be skipped, processing will continue."
 msgstr ""
 
-#: source/Adapt_It.cpp:8989
-#: source/Adapt_It.cpp:9087
+#: source/Adapt_It.cpp:9071
+#: source/Adapt_It.cpp:9169
 msgid "Error opening glossing KB file for writing with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:8990
-#: source/Adapt_It.cpp:9088
+#: source/Adapt_It.cpp:9072
+#: source/Adapt_It.cpp:9170
 msgid ""
 "\n"
 "The glossing knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
 
-#: source/Adapt_It.cpp:9065
-#: source/Adapt_It.cpp:9422
+#: source/Adapt_It.cpp:9147
+#: source/Adapt_It.cpp:9504
 msgid "Removing backup glossing kb file failed."
 msgstr ""
 
-#: source/Adapt_It.cpp:9077
+#: source/Adapt_It.cpp:9159
 msgid "Error renaming backup glossing KB file with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:9078
+#: source/Adapt_It.cpp:9160
 msgid ""
 "\n"
 "Backup copy of glossing knowledge base was not created."
 msgstr ""
 
-#: source/Adapt_It.cpp:9109
+#: source/Adapt_It.cpp:9191
 msgid "Could not remove the *.BAK backup glossing knowledge base alternate file"
 msgstr ""
 
-#: source/Adapt_It.cpp:9183
-#: source/Adapt_It.cpp:9280
+#: source/Adapt_It.cpp:9265
+#: source/Adapt_It.cpp:9362
 msgid "Error opening KB file for writing with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:9184
-#: source/Adapt_It.cpp:9281
+#: source/Adapt_It.cpp:9266
+#: source/Adapt_It.cpp:9363
 msgid ""
 "\n"
 "The knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
 
-#: source/Adapt_It.cpp:9205
+#: source/Adapt_It.cpp:9287
 msgid "Could not remove the *.KB knowledge base alternate file"
 msgstr ""
 
-#: source/Adapt_It.cpp:9259
-#: source/Adapt_It.cpp:9380
+#: source/Adapt_It.cpp:9341
+#: source/Adapt_It.cpp:9462
 msgid "Removing backup kb file failed."
 msgstr ""
 
-#: source/Adapt_It.cpp:9270
+#: source/Adapt_It.cpp:9352
 msgid "Error renaming backup KB file with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:9271
+#: source/Adapt_It.cpp:9353
 msgid ""
 "\n"
 "Backup copy of knowledge base was not created."
 msgstr ""
 
-#: source/Adapt_It.cpp:9301
+#: source/Adapt_It.cpp:9383
 msgid "Could not remove the *.BAK backup knowledge base alternate file"
 msgstr ""
 
-#: source/Adapt_It.cpp:9583
+#: source/Adapt_It.cpp:9665
 #, c-format
 msgid "Failed to find the %s folder."
 msgstr ""
 
-#: source/Adapt_It.cpp:9584
+#: source/Adapt_It.cpp:9666
 msgid ""
 "\n"
 "If you want to continue, you must choose a different project or create a new project.\n"
 "Do you want to continue? "
 msgstr ""
 
-#: source/Adapt_It.cpp:9585
+#: source/Adapt_It.cpp:9667
 msgid "Bad path in config file"
 msgstr ""
 
-#: source/Adapt_It.cpp:9826
+#: source/Adapt_It.cpp:9908
 msgid "Adapt It cannot create its work folder: "
 msgstr ""
 
-#: source/Adapt_It.cpp:9827
+#: source/Adapt_It.cpp:9909
 msgid ""
 "\n"
 "Adapt It cannot continue and will now abort."
 msgstr ""
 
-#: source/Adapt_It.cpp:9828
+#: source/Adapt_It.cpp:9910
 msgid "Critical Error"
 msgstr ""
 
-#: source/Adapt_It.cpp:9861
-#: source/Adapt_It.cpp:9900
-#: source/Adapt_It.cpp:9931
-#: source/Adapt_It.cpp:9962
+#: source/Adapt_It.cpp:9943
+#: source/Adapt_It.cpp:9982
+#: source/Adapt_It.cpp:10013
+#: source/Adapt_It.cpp:10044
 msgid "Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"
 msgstr "Хотите заменить базу знаний с ошибками на резервную копию базы знаний? (Записи, сделанные со времени последнего резервирования, не будут представлены.)"
 
-#: source/Adapt_It.cpp:10001
+#: source/Adapt_It.cpp:10083
 msgid "Sorry, integrity checking of the knowledge base revealed there were some errors. See the KBErrorLog.txt file in your project folder. Delete the bad knowledge base and build a new one."
 msgstr "Стоп: Проверка базы знаний на целостность показала, что в ней есть ошибки. Обратитесь к файлу KBErrorLog.txt в вашей проектной папке. Удалите старую базу знаний и начните новую. "
 
-#: source/Adapt_It.cpp:10027
+#: source/Adapt_It.cpp:10109
 msgid "File error"
 msgstr ""
 
-#: source/Adapt_It.cpp:10033
+#: source/Adapt_It.cpp:10115
 #, c-format
 msgid ""
 "Error creating glossing KBErrorLog.txt file for writing with path:\n"
 "%s."
 msgstr ""
 
-#: source/Adapt_It.cpp:10039
+#: source/Adapt_It.cpp:10121
 #, c-format
 msgid ""
 "Error creating KBErrorLog.txt file for writing with path:\n"
 "%s."
 msgstr ""
 
-#: source/Adapt_It.cpp:10058
+#: source/Adapt_It.cpp:10140
 msgid "Could not complete writing to the KBErrorLog.txt file.\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10059
+#: source/Adapt_It.cpp:10141
 msgid "The KBErrorLog.txt file should be correct for those entries listed within it."
 msgstr ""
 
-#: source/Adapt_It.cpp:10077
+#: source/Adapt_It.cpp:10159
 msgid "No errors were detected in the glossing knowledge base."
 msgstr "В базе знаний для глосс ошибки не обнаружены."
 
-#: source/Adapt_It.cpp:10080
+#: source/Adapt_It.cpp:10162
 msgid "No errors were detected in the knowledge base."
 msgstr "В базе знаний ошибок обнаружено не было."
 
-#: source/Adapt_It.cpp:10129
+#: source/Adapt_It.cpp:10211
 #, c-format
 msgid "The index to the storage containing the longest phrases is too low ( %d )."
 msgstr ""
 
-#: source/Adapt_It.cpp:10283
+#: source/Adapt_It.cpp:10365
 #, c-format
 msgid "Length of a source phrase has become bad.  (Length %d. In phrase \"%s\".  In list %d)"
 msgstr ""
 
-#: source/Adapt_It.cpp:10295
+#: source/Adapt_It.cpp:10377
 #, c-format
 msgid "Bad association. The adaptation for the source phrase (\"%s\") was not found. (In list %d)"
 msgstr ""
 
-#: source/Adapt_It.cpp:10519
-#: source/Adapt_It.cpp:10526
+#: source/Adapt_It.cpp:10601
+#: source/Adapt_It.cpp:10608
 #, c-format
 msgid "Warning: Did not remove bad knowledge base file %s."
 msgstr ""
 
-#: source/Adapt_It.cpp:10544
+#: source/Adapt_It.cpp:10626
 #, c-format
 msgid "Error renaming glossing KB Backup file, path %s, to be the new glossing KB file."
 msgstr ""
 
-#: source/Adapt_It.cpp:10583
+#: source/Adapt_It.cpp:10665
 #, c-format
 msgid "Error renaming KB Backup file with path %s to become the new KB file."
 msgstr ""
 
-#: source/Adapt_It.cpp:10644
+#: source/Adapt_It.cpp:10726
 msgid "Glossing KB file not found immediately after it was renamed!\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10672
+#: source/Adapt_It.cpp:10754
 msgid "KB file not found immediately after it was renamed!\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10825
+#: source/Adapt_It.cpp:10907
 #, c-format
 msgid "Warning: the consistent changes table number %d, and any further tables, were not loaded."
 msgstr "Предупреждение: не загрузилась таблица последовательных изменений номер %d, а также все последующие таблицы."
 
-#: source/Adapt_It.cpp:11017
+#: source/Adapt_It.cpp:11099
 msgid ""
 "Use this command if the knowledge base has become corrupted.\n"
 "(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\n"
@@ -936,7 +936,7 @@ msgid ""
 "Do you wish to go ahead?"
 msgstr "Используйте эту команду при наличии ошибки в базе знаний. (Для восстановления базы знаний глоссирования выберите ВКЛЮЧИТЬ глоссирование, а затем выберите эту команду еще раз.) Она сотрет текущую базу знаний, затем, используя ваши сохраненные документные файлы, составит новую. Хотели ли бы вы сделать это?"
 
-#: source/Adapt_It.cpp:11040
+#: source/Adapt_It.cpp:11122
 msgid ""
 "Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\n"
 "but it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n"
@@ -944,47 +944,47 @@ msgid ""
 "Do you wish to try this extra rescue?"
 msgstr "Adapt It  также может попытаться восстановить ваши установки для кнопки-флажка \"\"Навязать выбор для этой позиции\"\", но это может окончиться безобидным сбоем в программе. (В таком случае перезапустите Adapt It и выберите \"\"Нет\"\".) Хотите попробовать это дополнительное восстановление данных?"
 
-#: source/Adapt_It.cpp:11101
-#: source/Adapt_It.cpp:16774
-#: source/Adapt_ItView.cpp:18659
-#: source/Adapt_ItView.cpp:18712
-#: source/Adapt_ItView.cpp:26557
+#: source/Adapt_It.cpp:11183
+#: source/Adapt_It.cpp:16856
+#: source/Adapt_ItView.cpp:18662
+#: source/Adapt_ItView.cpp:18715
+#: source/Adapt_ItView.cpp:26560
 msgid "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."
 msgstr "Стоп: в этом проекте еще нет сохраненных документов. Для завершения выбранной вами операции нужен хотя бы один файл документа. Команда не будет выполнена."
 
-#: source/Adapt_It.cpp:11229
+#: source/Adapt_It.cpp:11311
 #, c-format
 msgid "Your rebuilt knowledge base is now in operation. It contains %d source words and phrases taken from %d  documents."
 msgstr "Ваша заново сформированная база знаний вступила в действие. В ней содержится %d исходных слов и фраз, взятых из %d документов. "
 
-#: source/Adapt_It.cpp:11503
-#: source/Adapt_It.cpp:17024
+#: source/Adapt_It.cpp:11585
+#: source/Adapt_It.cpp:17106
 #: source/Adapt_ItDoc.cpp:2459
-#: source/Adapt_ItView.cpp:18811
-#: source/Adapt_ItView.cpp:26828
+#: source/Adapt_ItView.cpp:18814
+#: source/Adapt_ItView.cpp:26831
 #, c-format
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "Файл:   %s  Всего слов и фраз:  %d  из  %d"
 
-#: source/Adapt_It.cpp:11505
+#: source/Adapt_It.cpp:11587
 msgid "Restoring the Knowledge Base"
 msgstr ""
 
-#: source/Adapt_It.cpp:11573
+#: source/Adapt_It.cpp:11655
 msgid "Warning: something went wrong doing a save of the KB"
 msgstr ""
 
-#: source/Adapt_It.cpp:12783
+#: source/Adapt_It.cpp:12865
 msgid "Unrecognized font attribute field; unmatched name is: "
 msgstr ""
 
-#: source/Adapt_It.cpp:12784
+#: source/Adapt_It.cpp:12866
 msgid "Error parsing font information"
 msgstr ""
 
-#: source/Adapt_It.cpp:13042
-#: source/Adapt_It.cpp:14237
-#: source/Adapt_ItDoc.cpp:8344
+#: source/Adapt_It.cpp:13124
+#: source/Adapt_It.cpp:14319
+#: source/Adapt_ItDoc.cpp:8347
 msgid ""
 "\n"
 "You should not use this non-Unicode version of Adapt It.\n"
@@ -992,107 +992,107 @@ msgid ""
 "and then you should use the Unicode version of Adapt It."
 msgstr ""
 
-#: source/Adapt_It.cpp:13043
+#: source/Adapt_It.cpp:13125
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Basic Configuration File's punctuation string (see below):"
 msgstr ""
 
-#: source/Adapt_It.cpp:13045
-#: source/Adapt_It.cpp:14240
-#: source/Adapt_ItDoc.cpp:8347
+#: source/Adapt_It.cpp:13127
+#: source/Adapt_It.cpp:14322
+#: source/Adapt_ItDoc.cpp:8350
 msgid "Warning: Invalid Characters Detected"
 msgstr ""
 
-#: source/Adapt_It.cpp:13616
+#: source/Adapt_It.cpp:13698
 #, c-format
 msgid "Warning: Unrecognized Basic settings field; unmatched name is: %s\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:14238
+#: source/Adapt_It.cpp:14320
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Project Configuration File's punctuation string (see below):"
 msgstr ""
 
 # Note: leave a space after the colon.
-#: source/Adapt_It.cpp:14640
+#: source/Adapt_It.cpp:14722
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
 msgstr ""
 
-#: source/Adapt_It.cpp:14828
+#: source/Adapt_It.cpp:14910
 msgid "Sorry, Adapt It will not permit the < character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "Стоп: Adapt It не позволяет использовать знак < в качестве знака для построения слова. Этот знак должен быть включен в число знаков пунктуации, и он сейчас будет помещен там."
 
-#: source/Adapt_It.cpp:14840
+#: source/Adapt_It.cpp:14922
 msgid "Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "Стоп: Adapt It не позволяет использовать знак > в качестве знака для построения слова. Этот знак должен быть включен в число знаков пунктуации, и он сейчас будет помещен там."
 
-#: source/Adapt_It.cpp:15161
-#: source/Adapt_It.cpp:15210
+#: source/Adapt_It.cpp:15243
+#: source/Adapt_It.cpp:15292
 msgid "basic"
 msgstr ""
 
-#: source/Adapt_It.cpp:15163
-#: source/Adapt_It.cpp:15212
+#: source/Adapt_It.cpp:15245
+#: source/Adapt_It.cpp:15294
 msgid "project"
 msgstr ""
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:15164
+#: source/Adapt_It.cpp:15246
 #, fuzzy, c-format
 msgid "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"
 msgstr "Не удалось открыть для чтения конфигурационный файл. %s  Взамен будут использованы значения по умолчанию. (Пропустите это сообщение, если Adapt It  запустился с первого раза, т.к. конфигурационный  файл еще не существует)."
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:15213
+#: source/Adapt_It.cpp:15295
 #, c-format
 msgid "Unable to read %s font data from the %s configuration file. Default values will be used instead."
 msgstr ""
 
-#: source/Adapt_It.cpp:15219
+#: source/Adapt_It.cpp:15301
 msgid "source"
 msgstr "Источник"
 
-#: source/Adapt_It.cpp:15229
+#: source/Adapt_It.cpp:15311
 msgid "target"
 msgstr "Цель"
 
-#: source/Adapt_It.cpp:15239
+#: source/Adapt_It.cpp:15321
 msgid "navigation"
 msgstr "Навигация"
 
-#: source/Adapt_It.cpp:16558
+#: source/Adapt_It.cpp:16640
 #, c-format
 msgid "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries. Likewise for the glossing knowledge base, which contains %d entries. Are you willing for this to happen?"
 msgstr "Предупреждение: команда «Превратить адаптации в глоссы» сотрёт содержимое базы знаний текущего проекта, содержащей %d записей. То же произойдет с базой знаний глосс, содержащей %d записей. Вы этого хотите? "
 
-#: source/Adapt_It.cpp:16624
+#: source/Adapt_It.cpp:16706
 msgid "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."
 msgstr "Ошибка: Программа не смогла найти базу знаний другого проекта, или нашла, но не смогла открыть и загрузить её. Поэтому команда не будет выполнена."
 
-#: source/Adapt_It.cpp:17026
+#: source/Adapt_It.cpp:17108
 msgid "Transformations To Glosses"
 msgstr ""
 
-#: source/Adapt_It.cpp:17098
+#: source/Adapt_It.cpp:17180
 #, c-format
 msgid "The document with pathname: %s, was not opened and therefore not processed."
 msgstr ""
 
-#: source/Adapt_It.cpp:17119
+#: source/Adapt_It.cpp:17201
 #, c-format
 msgid "The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents."
 msgstr "Документы, которые вы выбрали из другого проекта были трансформированы и перенесены в текущий проект. Всего было трансформировано %d слов и фраз и они встречаются в %d документах."
 
-#: source/Adapt_It.cpp:17219
+#: source/Adapt_It.cpp:17301
 msgid "Automatic capitalization support will work only provided the source language distinguishes between upper case and lower case letters. A \"No\" response will prohibit auto-capitalization from being turned on. Does your source language have both upper and lower case letters?"
 msgstr "Автоматическая замена строчных букв прописными  будет производиться только в том случае, если в исходном языке есть оба варианта букв. Нажатие на \"\"Нет\"\" приведет к выключению автоматической замены.  Имеет ли ваш исходный язык оба варианта букв? "
 
-#: source/Adapt_It.cpp:17248
-#: source/Adapt_It.cpp:17266
+#: source/Adapt_It.cpp:17330
+#: source/Adapt_It.cpp:17348
 msgid ""
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\n"
 "You can set them up in the Edit Preferences menu selection on the \"Case\" tab."
@@ -1100,57 +1100,57 @@ msgstr ""
 "Еще не установлены соответствия между прописными и строчными буквами. До тех пор функция автоматической замены строчных букв на прописные не может быть включена.\n"
 "Вы можете установить их через меню Предпочтения Редактирования, вкладка \"\"Регистр\"\""
 
-#: source/Adapt_It.cpp:17538
+#: source/Adapt_It.cpp:17620
 msgid "Unable to write updated config file, so just did nothing"
 msgstr ""
 
-#: source/Adapt_It.cpp:17581
-#: source/Adapt_It.cpp:17711
+#: source/Adapt_It.cpp:17663
+#: source/Adapt_It.cpp:17793
 msgid "The Startup Wizard failed to open. Use the File menu's Open command to open a document."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:19243
+#: source/Adapt_It.cpp:19325
 #, c-format
 msgid "Current Project: %s"
 msgstr "Текущий проект: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:19273
-#: source/Adapt_ItView.cpp:28532
+#: source/Adapt_It.cpp:19355
+#: source/Adapt_ItView.cpp:28535
 #: source/Adapt_It_wdr.cpp:287
 msgid "Glossing"
 msgstr "Глоссирование"
 
 # Priority 1
-#: source/Adapt_It.cpp:19278
+#: source/Adapt_It.cpp:19360
 msgid "Adapting"
 msgstr "Адаптирование"
 
 # Priority 1
 # Leave two spaces at the beginning of the sentence.
-#: source/Adapt_It.cpp:19287
-#: source/Adapt_It.cpp:19296
-#: source/Adapt_It.cpp:19303
+#: source/Adapt_It.cpp:19369
+#: source/Adapt_It.cpp:19378
+#: source/Adapt_It.cpp:19385
 #: source/Adapt_ItView.cpp:4092
 #, c-format
 msgid "  Current Folder: %s"
 msgstr "  Текущая папка: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:19294
+#: source/Adapt_It.cpp:19376
 #: source/Adapt_ItView.cpp:4090
 msgid " Undefined"
 msgstr "Не определено"
 
-#: source/Adapt_It.cpp:19310
+#: source/Adapt_It.cpp:19392
 msgid "!! TRANSLITERATING !!"
 msgstr "!! ВЫПОЛНЯЕТСЯ ТРАНСЛИТЕРАЦИЯ !!"
 
 #: source/Adapt_ItCanvas.cpp:1139
 #: source/Adapt_ItCanvas.cpp:1150
 #: source/Adapt_ItCanvas.cpp:1161
-#: source/Adapt_ItView.cpp:39829
+#: source/Adapt_ItView.cpp:39881
 msgid "Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."
 msgstr ""
 
@@ -1171,14 +1171,14 @@ msgstr "Стоп: для редактирования или удаления п
 
 # Priority 1
 #: source/Adapt_ItCanvas.cpp:2155
-#: source/Adapt_ItView.cpp:28795
-#: source/Adapt_ItView.cpp:28828
+#: source/Adapt_ItView.cpp:28798
+#: source/Adapt_ItView.cpp:28831
 msgid "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."
 msgstr "Стоп: Вы хотите выбрать тексты разного типа, например, заголовок и текст стиха, или какое-либо другое недопустимое сочетание текстов. Допустимо сочетание текста стиха с поэзией, другие сочетания недопустимы. "
 
 # Priority 1
 #: source/Adapt_ItDoc.cpp:437
-#: source/Adapt_ItDoc.cpp:5699
+#: source/Adapt_ItDoc.cpp:5702
 msgid "Input Text File For Adaptation"
 msgstr "Ввести текстовый файл для адаптации"
 
@@ -1307,92 +1307,92 @@ msgstr "Стоп: в этом файле нет данных. Этот доку�
 msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
 msgstr "Стоп: Пока режим создания книг в папке выключен, нельзя открыть документ из меню «Недавно открывавшиеся файлы», сохраненный в режиме книг в папке."
 
-#: source/Adapt_ItDoc.cpp:4045
+#: source/Adapt_ItDoc.cpp:4048
 #, c-format
 msgid "Pass 1 - File: %s  - %d of %d Total words and phrases"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:4047
+#: source/Adapt_ItDoc.cpp:4050
 msgid "Processing Filtering Change(s)"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:4751
+#: source/Adapt_ItDoc.cpp:4754
 #, c-format
 msgid "Pass 2 - File: %s  - %d of %d Total words and phrases"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:5725
+#: source/Adapt_ItDoc.cpp:5728
 #, c-format
 msgid "Error opening file %s."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:5770
+#: source/Adapt_ItDoc.cpp:5773
 msgid "File read error: no data was read in"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:8345
+#: source/Adapt_ItDoc.cpp:8348
 msgid ""
 "Extended 8-bit ASCII characters were detected in your\n"
 "input document:"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:10665
+#: source/Adapt_ItDoc.cpp:10668
 msgid "There were places where automatic rebuilding did not fully succeed and so either adaptations were abandoned, or filtered material not made visible, or visible material not filtered. Please visually check the document and perhaps edit where necessary."
 msgstr "В некоторых местах автоматическое восстановление оставило пропуски, поэтому либо адаптации были отвергнуты, либо отфильтрованный материал остался невидим, либо видимый материал не был отфильтрован. Пожалуйста, просмотрите документ и определите места, где необходимо редактирование. "
 
-#: source/Adapt_ItDoc.cpp:10673
+#: source/Adapt_ItDoc.cpp:10676
 msgid "Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: "
 msgstr "Пожалуйста, найдите следующие главы и стихи и вручную отредактируйте места, где первоначальные адаптации были отвергнуты, либо отфильтрованный материал остался невидим, либо видимый материал не был отфильтрован во время повторного формирования документа:"
 
-#: source/Adapt_ItDoc.cpp:10903
+#: source/Adapt_ItDoc.cpp:10906
 msgid " ... for additional later locations needing manual editing please check the document visually. The full list has been saved in your project folder in the file \"Rebuild Log.txt\""
 msgstr "... визуально проверьте документ для выявления дополнительных более поздних мест, требующих ручного редактирования. Полный список сохранен в вашей проектной папке, в файле \"\"Rebuild Log.txt\"\""
 
-#: source/Adapt_ItDoc.cpp:10910
+#: source/Adapt_ItDoc.cpp:10913
 msgid "    This list has been saved in your project folder in the file \"Rebuild Log.txt\""
 msgstr "  Этот список сохранен в вашей проектной папке в виде файла \"\"Rebuild Log.txt\"\""
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
-#: source/Adapt_ItDoc.cpp:14024
-#: source/Adapt_ItDoc.cpp:14107
+#: source/Adapt_ItDoc.cpp:14027
+#: source/Adapt_ItDoc.cpp:14110
 msgid "Packed Documents (*.aip)|*.aip||"
 msgstr "Упакованные документы (*.aip)|*.aip||"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14028
+#: source/Adapt_ItDoc.cpp:14031
 msgid "Filename For Packed Document"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14079
+#: source/Adapt_ItDoc.cpp:14082
 #, c-format
 msgid "Could not write to the packed/zipped file: %s"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14103
+#: source/Adapt_ItDoc.cpp:14106
 msgid "Load And Unpack The Compressed Document"
 msgstr "Загрузить и распаковать сжатый документ"
 
-#: source/Adapt_ItDoc.cpp:14171
+#: source/Adapt_ItDoc.cpp:14174
 #, c-format
 msgid ""
 "Error uncompressing; cannot open the file: %s\n"
 " Make sure the file is not being used by another application and try again."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14185
+#: source/Adapt_ItDoc.cpp:14188
 #, c-format
 msgid "Error removing %s after unpack document command."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14484
+#: source/Adapt_ItDoc.cpp:14487
 msgid "There is a document of the same name in an Adapt It project of the same name on this computer."
 msgstr "В этом компьютере уже существует документ с таким же именем в проекте с таким же именем."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14485
+#: source/Adapt_ItDoc.cpp:14488
 #, c-format
 msgid ""
 "\n"
@@ -1400,7 +1400,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14486
+#: source/Adapt_ItDoc.cpp:14489
 #, c-format
 msgid ""
 "\n"
@@ -1408,7 +1408,7 @@ msgid ""
 msgstr ""
 
 # Do not translate the %s%s%s part
-#: source/Adapt_ItDoc.cpp:14487
+#: source/Adapt_ItDoc.cpp:14490
 #, c-format
 msgid ""
 "%s%s%s\n"
@@ -1417,60 +1417,60 @@ msgstr ""
 "%s%s%s\n"
 "Хотите ли вы перезаписать существующий файл и заменить его распаковываемым документом?"
 
-#: source/Adapt_ItDoc.cpp:14502
+#: source/Adapt_ItDoc.cpp:14505
 #, c-format
 msgid "Failed removing %s before overwrite."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14587
+#: source/Adapt_ItDoc.cpp:14590
 #, c-format
 msgid "Error renaming earlier configuration file with path %s."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14589
+#: source/Adapt_ItDoc.cpp:14592
 msgid "  Aborting the command."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14608
+#: source/Adapt_ItDoc.cpp:14611
 #, c-format
 msgid ""
 "Unable to open the file for writing out the UTF-8 project configuration file, with path:\n"
 "%s"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14622
+#: source/Adapt_ItDoc.cpp:14625
 #, c-format
 msgid "Error restoring name of earlier configuration file with path %s."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14624
+#: source/Adapt_ItDoc.cpp:14627
 msgid "  Exit Adapt It and manually change .BAK to .aic for the project configuration file."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14639
+#: source/Adapt_ItDoc.cpp:14642
 msgid "Writing out the project configuration file's content failed."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14641
+#: source/Adapt_ItDoc.cpp:14644
 msgid " Exit Adapt It, and in Windows Explorer manually restore the .BAK extension on the renamed project configuration file to .aic before launching again. Beware, that configuration file may now be corrupted."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14656
+#: source/Adapt_ItDoc.cpp:14659
 msgid "Removing the renamed earlier project configuration file failed. Do it manually later in Windows Explorer - it has a .BAK extension."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14696
+#: source/Adapt_ItDoc.cpp:14699
 #, c-format
 msgid ""
 "Unable to open the xml text file for writing to doc folder, with path:\n"
 "%s"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14714
+#: source/Adapt_ItDoc.cpp:14717
 msgid "Writing out the xml document file's content failed."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14738
+#: source/Adapt_ItDoc.cpp:14741
 msgid "Opening the xml document file for Unpack Document... failed. (It was stored successfully on disk. Try opening it with the Open command on the File menu.)"
 msgstr ""
 
@@ -1531,227 +1531,227 @@ msgstr ""
 msgid "No project is currently active"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:8236
+#: source/Adapt_ItView.cpp:8239
 msgid "Cannot open the Clipboard"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:8271
+#: source/Adapt_ItView.cpp:8274
 msgid "Do you wish consistent changes to be applied to the text to be pasted?"
 msgstr "Вы хотите проделать последовательные изменения в тексте, который собираетесь вставить из буфера обмена?"
 
-#: source/Adapt_ItView.cpp:8279
+#: source/Adapt_ItView.cpp:8282
 msgid "Do you wish the configured SILConverter to be applied to the text to be pasted?"
 msgstr "Вы хотите, чтобы настроенный конвертер SIL (SILConverter) провел изменения во вставляемом тексте?"
 
-#: source/Adapt_ItView.cpp:8406
+#: source/Adapt_ItView.cpp:8409
 msgid "Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."
 msgstr "Стоп: операция вставки привела к появлению текта, превысившего максимальную ширину полосы, поэтому операция была прекращена. "
 
-#: source/Adapt_ItView.cpp:10622
+#: source/Adapt_ItView.cpp:10625
 msgid "Sorry, Adapt It cannot step down because it cannot find a legal place to put the phrase box. Open the View tab of the Preferences dialog, set a larger value for the \"Maximum source words displayed\" parameter, and then try to step down again."
 msgstr "Стоп: Adapt It  не может продвинуться вперед, т.к. не находит соответствующего места для фразового окна. Щелкните на вкладке «Вид» диалогового окна «Предпочтения», установите большее значение для параметра \"\"Максимальное количество показываемых слов исходного языка \"\" и затем попробуйте еще раз продвинуться вперед. "
 
-#: source/Adapt_ItView.cpp:11149
-#: source/Adapt_ItView.cpp:12217
-#: source/Adapt_ItView.cpp:15087
-#: source/Adapt_ItView.cpp:16184
-#: source/Adapt_ItView.cpp:20529
-#: source/Adapt_ItView.cpp:21242
-#: source/Adapt_ItView.cpp:21958
-#: source/Adapt_ItView.cpp:26380
+#: source/Adapt_ItView.cpp:11152
+#: source/Adapt_ItView.cpp:12220
+#: source/Adapt_ItView.cpp:15090
+#: source/Adapt_ItView.cpp:16187
+#: source/Adapt_ItView.cpp:20532
+#: source/Adapt_ItView.cpp:21245
+#: source/Adapt_ItView.cpp:21961
+#: source/Adapt_ItView.cpp:26383
 msgid "This particular operation is not available when you are glossing."
 msgstr "Эта операция не выполняется при глоссировании."
 
-#: source/Adapt_ItView.cpp:11412
-#: source/Adapt_ItView.cpp:20616
+#: source/Adapt_ItView.cpp:11415
+#: source/Adapt_ItView.cpp:20619
 msgid "Sorry, but this operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."
 msgstr "Стоп: эта операция недопустима, когда выборка содержит какую-либо часть повторного перевода. Удалите повторный перевод и попробуйте еще раз. "
 
-#: source/Adapt_ItView.cpp:11435
+#: source/Adapt_ItView.cpp:11438
 msgid "Sorry, but merging a selection which contains a placeholder (represented by ... dots) is not permitted."
 msgstr "Стоп: недопустимо слияние выборки, содержащей заполнитель (представленный ...точками)!"
 
-#: source/Adapt_ItView.cpp:11461
+#: source/Adapt_ItView.cpp:11464
 msgid "Merging words across filtered material is not allowed."
 msgstr "Слияние слов в фильтрованном материале не допускается."
 
-#: source/Adapt_ItView.cpp:11483
+#: source/Adapt_ItView.cpp:11486
 msgid "Merging across the end of a free translation is not permitted. (You can merge up to the end of the free translation, but not beyond that point in the same merger.)"
 msgstr "Не допускается слияние через конец свободного перевода. (Во время одного слияния можно объединятьне далее, чем до конца свободного перевода)."
 
-#: source/Adapt_ItView.cpp:12528
-#: source/Adapt_ItView.cpp:12727
+#: source/Adapt_ItView.cpp:12531
+#: source/Adapt_ItView.cpp:12730
 msgid "Error while trying to deselect a cell. Try selecting using the mouse instead.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:12579
-#: source/Adapt_ItView.cpp:12635
+#: source/Adapt_ItView.cpp:12582
+#: source/Adapt_ItView.cpp:12638
 msgid "Could not get a pointer to the next cell. Try selecting with the mouse instead.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:12773
-#: source/Adapt_ItView.cpp:12841
+#: source/Adapt_ItView.cpp:12776
+#: source/Adapt_ItView.cpp:12844
 msgid "Could not get a pointer to the previous cell. Try selecting with the mouse instead.\n"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:13204
-#: source/Adapt_ItView.cpp:13732
-#: source/Adapt_ItView.cpp:16943
+#: source/Adapt_ItView.cpp:13207
+#: source/Adapt_ItView.cpp:13735
+#: source/Adapt_ItView.cpp:16946
 msgid "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."
 msgstr "Предупреждение: в этой фразе имеется слишком много слов исходного языка, чтобы эту адаптацию можно было сохранить в базе знаний."
 
-#: source/Adapt_ItView.cpp:14869
-#: source/Adapt_ItView.cpp:14958
-#: source/Adapt_ItView.cpp:15171
-#: source/Adapt_ItView.cpp:15334
+#: source/Adapt_ItView.cpp:14872
+#: source/Adapt_ItView.cpp:14961
+#: source/Adapt_ItView.cpp:15174
+#: source/Adapt_ItView.cpp:15337
 msgid "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."
 msgstr "Стоп: нельзя поместить заполнитель внутри повторного перевода. Команда будет проигнорирована."
 
 # Priority 1
-#: source/Adapt_ItView.cpp:15726
+#: source/Adapt_ItView.cpp:15729
 msgid "Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows. Is it the start of what follows?"
 msgstr "Adapt It не знает, является ли вставленный заполнитель концом предыдущего текста, или началом следующего. Является ли он началом следующего?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:15923
-#: source/Adapt_ItView.cpp:15996
-#: source/Adapt_ItView.cpp:16096
+#: source/Adapt_ItView.cpp:15926
+#: source/Adapt_ItView.cpp:15999
+#: source/Adapt_ItView.cpp:16099
 msgid "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?"
 msgstr "Хотите ли вы, чтобы вставленный заполнитель считался принадлежащим разделу свободного перевода, который начинается сразу после него?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:16041
+#: source/Adapt_ItView.cpp:16044
 msgid "Do you want the inserted placeholder to be considered as belonging to the free translation section which immediately precedes it?"
 msgstr "Хотите ли вы, чтобы вставленный заполнитель считался принадлежащим разделу свободного перевода, который находится сразу перед ним?"
 
-#: source/Adapt_ItView.cpp:17235
-#: source/Adapt_ItView.cpp:17329
+#: source/Adapt_ItView.cpp:17238
+#: source/Adapt_ItView.cpp:17332
 #, c-format
 msgid " Processing a CC table failed. Got error code %d with table having index %d."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:17457
+#: source/Adapt_ItView.cpp:17460
 msgid "Sorry, the knowledge base does not yet have an entry matching this source text, so the Choose Translation dialog cannot be shown."
 msgstr "Стоп: В базе знаний еще нет записи, соответствующей этому исходному тексту, поэтому диалоговое окно «Выбрать перевод» не будет показано."
 
-#: source/Adapt_ItView.cpp:18607
-#: source/Adapt_ItView.cpp:18641
+#: source/Adapt_ItView.cpp:18610
+#: source/Adapt_ItView.cpp:18644
 msgid "Could not save the current document. Consistency Check Command aborted."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:18813
+#: source/Adapt_ItView.cpp:18816
 msgid "Consistency Checking"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:19405
+#: source/Adapt_ItView.cpp:19408
 msgid "Warning: failure on document save operation."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:19434
+#: source/Adapt_ItView.cpp:19437
 #, c-format
 msgid "The consistency check was successful. There were %d source words and phrases  in %d  files."
 msgstr "Проверка последовательности прошла успешно. Обнаружено %d слов и фраз исходного языка в %d файлах."
 
-#: source/Adapt_ItView.cpp:20566
+#: source/Adapt_ItView.cpp:20569
 msgid "Sorry, for a retranslation your selection must not include all the document contents - otherwise there would be no possible place for the phrase box afterwards. Shorten the selection then try again."
 msgstr "Стоп: для повторного перевода ваша выборка не должна включать все содержание документа, иначе потом не останется места для фразового окна. Сократите выборку и попробуйте еще раз."
 
 # Priority 1
-#: source/Adapt_ItView.cpp:20599
+#: source/Adapt_ItView.cpp:20602
 msgid "Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."
 msgstr "Стоп: выборка содержит тексты более одного вида. Каждый раз работайте только с текстом одного вида. Операция не будет выполнена."
 
-#: source/Adapt_ItView.cpp:20878
-#: source/Adapt_ItView.cpp:21613
+#: source/Adapt_ItView.cpp:20881
+#: source/Adapt_ItView.cpp:21616
 msgid "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."
 msgstr "Предупреждение: ваш документ весь заполнен  повторными переводами. Поэтому невозможно поместить фразовое окно нигде в пределах документа."
 
-#: source/Adapt_ItView.cpp:21273
-#: source/Adapt_ItView.cpp:21987
+#: source/Adapt_ItView.cpp:21276
+#: source/Adapt_ItView.cpp:21990
 msgid "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."
 msgstr "Стоп: вся выборка находится вне текста повторного перевода! Операция не будет выполнена."
 
 # Priority 1
-#: source/Adapt_ItView.cpp:22408
+#: source/Adapt_ItView.cpp:22411
 msgid "All Gloss Words Or Phrases"
 msgstr "Все глоссировочные слова или фразы"
 
 # Priority 1
 # Put a space before translation of "Word"
-#: source/Adapt_ItView.cpp:22417
+#: source/Adapt_ItView.cpp:22420
 msgid " Word"
 msgstr "Слово"
 
-#: source/Adapt_ItView.cpp:22418
+#: source/Adapt_ItView.cpp:22421
 msgid "1"
 msgstr ""
 
 # Priority 1
 # Put a space before translation of "Words"
-#: source/Adapt_ItView.cpp:22419
-#: source/Adapt_ItView.cpp:22421
-#: source/Adapt_ItView.cpp:22423
-#: source/Adapt_ItView.cpp:22425
-#: source/Adapt_ItView.cpp:22427
-#: source/Adapt_ItView.cpp:22429
-#: source/Adapt_ItView.cpp:22431
-#: source/Adapt_ItView.cpp:22433
-#: source/Adapt_ItView.cpp:22435
+#: source/Adapt_ItView.cpp:22422
+#: source/Adapt_ItView.cpp:22424
+#: source/Adapt_ItView.cpp:22426
+#: source/Adapt_ItView.cpp:22428
+#: source/Adapt_ItView.cpp:22430
+#: source/Adapt_ItView.cpp:22432
+#: source/Adapt_ItView.cpp:22434
+#: source/Adapt_ItView.cpp:22436
+#: source/Adapt_ItView.cpp:22438
 msgid " Words"
 msgstr " Слова"
 
-#: source/Adapt_ItView.cpp:22420
+#: source/Adapt_ItView.cpp:22423
 msgid "2"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22422
+#: source/Adapt_ItView.cpp:22425
 msgid "3"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22424
+#: source/Adapt_ItView.cpp:22427
 msgid "4"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22426
+#: source/Adapt_ItView.cpp:22429
 msgid "5"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22428
+#: source/Adapt_ItView.cpp:22431
 msgid "6"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22430
+#: source/Adapt_ItView.cpp:22433
 msgid "7"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22432
+#: source/Adapt_ItView.cpp:22435
 msgid "8"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22434
+#: source/Adapt_ItView.cpp:22437
 msgid "9"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22436
+#: source/Adapt_ItView.cpp:22439
 msgid "10"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:22710
-#: source/Adapt_ItView.cpp:22759
-#: source/Adapt_ItView.cpp:22810
-#: source/Adapt_ItView.cpp:22882
+#: source/Adapt_ItView.cpp:22713
+#: source/Adapt_ItView.cpp:22762
+#: source/Adapt_ItView.cpp:22813
+#: source/Adapt_ItView.cpp:22885
 msgid "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"
 msgstr "Стоп: команда «Переход» не выполнена. Не нашлось подходящего места для фразового окна ни до, ни после выбранных главы и стиха. (Все ли ваши   адаптации сделаны в форме повторных переводов?)"
 
-#: source/Adapt_ItView.cpp:22911
+#: source/Adapt_ItView.cpp:22914
 #, c-format
 msgid "Sorry, but the chapter and verse combination  %s  does not exist in this document. The command will be ignored."
 msgstr "Стоп: сочетание главы и стиха %s не существует в этом документе. Команда не будет выполнена."
 
-#: source/Adapt_ItView.cpp:26399
+#: source/Adapt_ItView.cpp:26402
 msgid ""
 "The retranslation report will be based on this open document only.\n"
 "To get a report based on many or all documents,\n"
@@ -1760,223 +1760,223 @@ msgid ""
 msgstr "Отчет о повторном переводе будет основан только на этом открытом документе. Для составления отчета основанного на нескольких или всех документах, закройте документ и выберите эту команду еще раз. Хотите ли вы отчет только по этому документу?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26424
+#: source/Adapt_ItView.cpp:26427
 msgid " report.txt"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26430
+#: source/Adapt_ItView.cpp:26433
 msgid "retranslation report.txt"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26446
+#: source/Adapt_ItView.cpp:26449
 msgid "Adapt It Reports (*.txt)|*txt||"
 msgstr "Отчеты Adapt It (*.txt)|*txt||"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26449
+#: source/Adapt_ItView.cpp:26452
 msgid "Filename For Retranslation Report"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:26485
+#: source/Adapt_ItView.cpp:26488
 msgid "Unable to open report file.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:26486
+#: source/Adapt_ItView.cpp:26489
 msgid "Unable to open report file."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26501
-#: source/Adapt_ItView.cpp:26830
+#: source/Adapt_ItView.cpp:26504
+#: source/Adapt_ItView.cpp:26833
 msgid "Retranslation Report"
 msgstr "Отчет о повторном переводе"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26502
+#: source/Adapt_ItView.cpp:26505
 #, c-format
 msgid "File Path: %s"
 msgstr "Адрес файла: %s"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26977
+#: source/Adapt_ItView.cpp:26980
 #, c-format
 msgid "***  There were no retranslations in the %s document. ***"
 msgstr "***  В документе %s не найдено никаких повторных переводов. ***"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27074
-#: source/Adapt_ItView.cpp:27108
+#: source/Adapt_ItView.cpp:27077
+#: source/Adapt_ItView.cpp:27111
 msgid "Layout Window Left To Right\tCtrl-1"
 msgstr "Планировка окна слева направо\tCtrl-1"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27440
+#: source/Adapt_ItView.cpp:27443
 msgid "Stop Selection At Boundaries"
 msgstr "Учитывать границы"
 
-#: source/Adapt_ItView.cpp:27441
+#: source/Adapt_ItView.cpp:27444
 msgid "Respect boundaries when selecting"
 msgstr "Учитывать границы при выборе текста"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27503
+#: source/Adapt_ItView.cpp:27506
 #, fuzzy
 msgid "Ignore Boundaries"
 msgstr "Не учитывать границы"
 
-#: source/Adapt_ItView.cpp:27504
-#: source/Adapt_It_wdr.cpp:6595
+#: source/Adapt_ItView.cpp:27507
+#: source/Adapt_It_wdr.cpp:6800
 msgid "Ignore boundaries when making selections"
 msgstr "Не учитывать границы при выборе текста"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27612
+#: source/Adapt_ItView.cpp:27615
 msgid "Show Punctuation"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:27613
+#: source/Adapt_ItView.cpp:27616
 msgid "Show text with punctuation"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27730
-#: source/Adapt_It_wdr.cpp:6626
+#: source/Adapt_ItView.cpp:27733
+#: source/Adapt_It_wdr.cpp:6831
 msgid "No Punctuation Copy"
 msgstr "Временно прекратить копирование пунктуации"
 
-#: source/Adapt_ItView.cpp:27731
-#: source/Adapt_It_wdr.cpp:6626
+#: source/Adapt_ItView.cpp:27734
+#: source/Adapt_It_wdr.cpp:6831
 msgid "Suppress the copying of source text punctuation temporarily"
 msgstr "Временно прекратить копирование исходной пунктуации"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27823
+#: source/Adapt_ItView.cpp:27826
 msgid "Enable Punctuation Copy"
 msgstr "Включить копирование пунктуации"
 
-#: source/Adapt_ItView.cpp:27824
+#: source/Adapt_ItView.cpp:27827
 msgid "Re-enable automatic copying of source text punctuation"
 msgstr "Возобновить автоматическое копирование пунктуации исходного текста"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27928
-#: source/Adapt_It_wdr.cpp:6596
+#: source/Adapt_ItView.cpp:27931
+#: source/Adapt_It_wdr.cpp:6801
 msgid "Hide Punctuation"
 msgstr "Скрыть пунктуацию"
 
-#: source/Adapt_ItView.cpp:27929
-#: source/Adapt_It_wdr.cpp:6596
+#: source/Adapt_ItView.cpp:27932
+#: source/Adapt_It_wdr.cpp:6801
 msgid "Don't show punctuation with the text"
 msgstr "Не показывать пунктуацию вместе с текстом"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28054
+#: source/Adapt_ItView.cpp:28057
 msgid "Show normal view"
 msgstr "Показать нормальный вид"
 
-#: source/Adapt_ItView.cpp:28055
+#: source/Adapt_ItView.cpp:28058
 msgid "Show Source And Target Text"
 msgstr "Показать исходный и целевой текст"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28162
-#: source/Adapt_It_wdr.cpp:6624
+#: source/Adapt_ItView.cpp:28165
+#: source/Adapt_It_wdr.cpp:6829
 msgid "Show Target Text Only"
 msgstr "Показывать только целевой текст"
 
-#: source/Adapt_ItView.cpp:28163
-#: source/Adapt_It_wdr.cpp:6624
+#: source/Adapt_ItView.cpp:28166
+#: source/Adapt_It_wdr.cpp:6829
 msgid "Show target text only"
 msgstr "Показывать только целевой текст"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28538
+#: source/Adapt_ItView.cpp:28541
 msgid "dictionary records.txt"
 msgstr "словарные статьи.txt"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28553
+#: source/Adapt_ItView.cpp:28556
 msgid "Adapt It knowledge base export (*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "Экспортирование базы знаний Adapt It (*.txt)|*.txt|Все файлы (*.*)|*.*||"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28556
+#: source/Adapt_ItView.cpp:28559
 msgid "Filename For KB Export"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:28582
+#: source/Adapt_ItView.cpp:28585
 msgid "Unable to open knowledge base export file.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:28583
+#: source/Adapt_ItView.cpp:28586
 msgid "Unable to open knowledge base export file."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28997
+#: source/Adapt_ItView.cpp:29000
 msgid "Extend the knowledge base by importing dictionary records"
 msgstr "Расширить базу знаний через добавление словарных статей"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:28999
+#: source/Adapt_ItView.cpp:29002
 msgid "Adapt It knowledge base import (*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "Импортирование базы знаний Adapt It (*.txt)|*.txt|Все файлы (*.*)|*.*||"
 
-#: source/Adapt_ItView.cpp:29068
+#: source/Adapt_ItView.cpp:29071
 msgid "Unable to open import file for reading."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:33320
+#: source/Adapt_ItView.cpp:33341
 #, c-format
 msgid "Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %d"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:42633
+#: source/Adapt_ItView.cpp:42685
 msgid "The document does not contain any free translations."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:42638
+#: source/Adapt_ItView.cpp:42690
 msgid "You are about to delete all the free translations in the document. Is this what you want to do?"
 msgstr "Вы собираетесь стереть все свободные переводы в документе. Вы хотите сделать именно это?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:43048
+#: source/Adapt_ItView.cpp:43100
 msgid "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"
 msgstr "Вы собираетесь бесповоротно стереть все примечания в этом документе. Вы уверены, что именно это хотите сделать?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:45152
+#: source/Adapt_ItView.cpp:45204
 msgid "The document does not contain any back translations."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:45157
+#: source/Adapt_ItView.cpp:45209
 msgid "You are about to delete all the back translations in the document. Is this what you want to do?"
 msgstr "Вы собираетесь стереть все обратные переводы в документе. Вы хотите сделать именно это?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:45438
+#: source/Adapt_ItView.cpp:45490
 msgid "[UNKNOWN MARKER]"
 msgstr "[НЕИЗВЕСТНЫЙ МАРКЕР]"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:45446
+#: source/Adapt_ItView.cpp:45498
 msgid "[FILTERED]"
 msgstr "[ОТФИЛЬТРОВАНО]"
 
-#: source/Adapt_ItView.cpp:45614
+#: source/Adapt_ItView.cpp:45666
 msgid "Sorry - the SIL Converters feature is not available in the wxWidgets version at this time."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:45715
+#: source/Adapt_ItView.cpp:45767
 msgid "No SILConverter configured! Click 'Tools', 'SIL Converters...' to re-configure a new converter"
 msgstr "Нет настроенного конвертера SIL! Щелкните «Инструменты», «Конвертеры SIL» для настройки нового конвертера."
 
-#: source/Adapt_ItView.cpp:45800
+#: source/Adapt_ItView.cpp:45852
 #, c-format
 msgid ""
 "The SILConverter named \n"
@@ -1991,7 +1991,7 @@ msgstr ""
 "\n"
 "больше нет в системном хранилище данных! Щелкните «Инструменты», «Конвертеры SIL» для настройки нового конвертера"
 
-#: source/Adapt_ItView.cpp:45808
+#: source/Adapt_ItView.cpp:45860
 msgid "Unable to launch the SIL Converters Selection Dialog! Are you using SIL Converters version v 2.2 or greater? Otherwise, you need to re-install or reboot"
 msgstr "Невозможно запустить диалог выбора конвертеров SIL! Вы пользуетесь версией 2.2 конвертера SIL или более поздней? В противном случае  переустановите программу или перезапустите компьютер."
 
@@ -2058,10 +2058,10 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:4063
 #: source/Adapt_It_wdr.cpp:4136
 #: source/Adapt_It_wdr.cpp:4437
-#: source/Adapt_It_wdr.cpp:5499
-#: source/Adapt_It_wdr.cpp:5987
-#: source/Adapt_It_wdr.cpp:6240
-#: source/Adapt_It_wdr.cpp:6327
+#: source/Adapt_It_wdr.cpp:4886
+#: source/Adapt_It_wdr.cpp:5374
+#: source/Adapt_It_wdr.cpp:5627
+#: source/Adapt_It_wdr.cpp:5714
 msgid "OK"
 msgstr "ОК"
 
@@ -2278,7 +2278,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:463
-#: source/Adapt_It_wdr.cpp:6579
+#: source/Adapt_It_wdr.cpp:6784
 msgid "Open"
 msgstr "Открыть"
 
@@ -2306,13 +2306,13 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:4068
 #: source/Adapt_It_wdr.cpp:4142
 #: source/Adapt_It_wdr.cpp:4440
-#: source/Adapt_It_wdr.cpp:5504
-#: source/Adapt_It_wdr.cpp:5782
-#: source/Adapt_It_wdr.cpp:5957
-#: source/Adapt_It_wdr.cpp:5993
-#: source/Adapt_It_wdr.cpp:6176
-#: source/Adapt_It_wdr.cpp:6243
-#: source/Adapt_It_wdr.cpp:6331
+#: source/Adapt_It_wdr.cpp:4891
+#: source/Adapt_It_wdr.cpp:5169
+#: source/Adapt_It_wdr.cpp:5344
+#: source/Adapt_It_wdr.cpp:5380
+#: source/Adapt_It_wdr.cpp:5563
+#: source/Adapt_It_wdr.cpp:5630
+#: source/Adapt_It_wdr.cpp:5718
 msgid "Cancel"
 msgstr "&Отмена"
 
@@ -2343,7 +2343,7 @@ msgid "These characters are not allowed in the name"
 msgstr ""
 
 #: source/Adapt_It_wdr.cpp:539
-#: source/Adapt_It_wdr.cpp:5988
+#: source/Adapt_It_wdr.cpp:5375
 msgid "Click OK when you are finished"
 msgstr ""
 
@@ -2368,9 +2368,10 @@ msgstr "Это будет имя вашего проекта. "
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:608
-#: source/Adapt_It_wdr.cpp:5371
-#: source/CaseEquivPage.cpp:820
-#: source/CaseEquivPage.cpp:1049
+#: source/Adapt_It_wdr.cpp:6459
+#: source/Adapt_It_wdr.cpp:6479
+#: source/CaseEquivPage.cpp:826
+#: source/CaseEquivPage.cpp:1055
 msgid "Source"
 msgstr "Источник"
 
@@ -2381,9 +2382,10 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:629
-#: source/Adapt_It_wdr.cpp:5377
-#: source/CaseEquivPage.cpp:841
-#: source/CaseEquivPage.cpp:1071
+#: source/Adapt_It_wdr.cpp:6465
+#: source/Adapt_It_wdr.cpp:6485
+#: source/CaseEquivPage.cpp:847
+#: source/CaseEquivPage.cpp:1077
 msgid "Target"
 msgstr "Цель"
 
@@ -2634,7 +2636,7 @@ msgstr ""
 
 #: source/Adapt_It_wdr.cpp:1059
 #: source/Adapt_It_wdr.cpp:4596
-#: source/Adapt_It_wdr.cpp:5994
+#: source/Adapt_It_wdr.cpp:5381
 msgid "Click Cancel to stop the process and return to what you were doing"
 msgstr ""
 
@@ -2876,7 +2878,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1401
-#: source/Adapt_It_wdr.cpp:6467
+#: source/Adapt_It_wdr.cpp:6672
 msgid "Change Folder..."
 msgstr "Измен&ить папку"
 
@@ -2920,8 +2922,8 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:1483
 #: source/Adapt_It_wdr.cpp:1614
 #: source/Adapt_It_wdr.cpp:2957
-#: source/Adapt_It_wdr.cpp:5656
-#: source/Adapt_It_wdr.cpp:5857
+#: source/Adapt_It_wdr.cpp:5043
+#: source/Adapt_It_wdr.cpp:5244
 msgid "Source Text:"
 msgstr "Исходный текст"
 
@@ -3883,8 +3885,8 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3049
-#: source/Adapt_It_wdr.cpp:5769
-#: source/Adapt_It_wdr.cpp:5938
+#: source/Adapt_It_wdr.cpp:5156
+#: source/Adapt_It_wdr.cpp:5325
 msgid "Find Next"
 msgstr "Найти &следующий"
 
@@ -4281,7 +4283,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3538
-#: source/Adapt_It_wdr.cpp:6082
+#: source/Adapt_It_wdr.cpp:5469
 msgid "Chapter/Verse Range"
 msgstr "&Диапазон глав/стихов"
 
@@ -4291,7 +4293,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3554
-#: source/Adapt_It_wdr.cpp:6092
+#: source/Adapt_It_wdr.cpp:5479
 msgid "from: chapter"
 msgstr "От: Глава"
 
@@ -4302,8 +4304,8 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3562
 #: source/Adapt_It_wdr.cpp:3578
-#: source/Adapt_It_wdr.cpp:6101
-#: source/Adapt_It_wdr.cpp:6117
+#: source/Adapt_It_wdr.cpp:5488
+#: source/Adapt_It_wdr.cpp:5504
 msgid "verse"
 msgstr "Стих"
 
@@ -4313,7 +4315,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3570
-#: source/Adapt_It_wdr.cpp:6108
+#: source/Adapt_It_wdr.cpp:5495
 msgid "to: chapter"
 msgstr "До: Глава"
 
@@ -5031,1443 +5033,1455 @@ msgstr ""
 msgid "Click Cancel to close the dialog without changing the encoding or face name"
 msgstr ""
 
-# Priority 1
-#: source/Adapt_It_wdr.cpp:4879
-#, fuzzy
-msgid "Define Source and Target Punctuation Correspondences"
-msgstr "Редактировать соответствия между пунктуацией исходного текста и пунктуацией целевого текста"
-
-# Priority 1
-#: source/Adapt_It_wdr.cpp:4883
-msgid "Enter single punctuation character correspondences in the list at left."
-msgstr ""
-
-# Priority 1
-#: source/Adapt_It_wdr.cpp:4886
-msgid "Enter any double character correspondences in the list at right."
-msgstr ""
-
-# Priority 1
-#: source/Adapt_It_wdr.cpp:4897
-msgid "SINGLE Punctuation Chars (up to 26 pairs):"
-msgstr ""
-
-# Priority 1
-# Abbreviate if necessary to keep the word short.
-#: source/Adapt_It_wdr.cpp:4921
-#: source/Adapt_It_wdr.cpp:4941
-msgid "Source  "
-msgstr "Источник"
-
-# Priority 1
-# Leave two spaces before the beginning of the word. Abbreviate if necessary to keep the word short.
-#: source/Adapt_It_wdr.cpp:4927
-#: source/Adapt_It_wdr.cpp:4947
-msgid "  Target"
-msgstr "  Цель"
-
-# Priority 1
-#: source/Adapt_It_wdr.cpp:5339
-msgid "Where there is no corresponding punctuation character, leave that cell empty - whether it is a source or a target cell."
-msgstr "Если нет соответствующего знака пунктуации, оставьте ячейку пустой, будь то исходная или целевая ячейка. "
-
-# Priority 1
-# Do not translate the U+nnnn
-#: source/Adapt_It_wdr.cpp:5342
-msgid "Show U+nnnn"
-msgstr "&Показать U+nnnn"
-
-#: source/Adapt_It_wdr.cpp:5343
-msgid "Toggle between showing the Unicode nnnn hex value codes and the actual Unicode characters"
-msgstr ""
-
-# Priority 1
-#: source/Adapt_It_wdr.cpp:5352
-msgid "DOUBLE Punctuation Chars (up to 10 pairs):"
-msgstr ""
-
-#: source/Adapt_It_wdr.cpp:5530
+#: source/Adapt_It_wdr.cpp:4917
 msgid "&Select a Consistent Changes (CC) Table:"
 msgstr "Выбрать таблицу последовательных изменений (ПИ)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5533
+#: source/Adapt_It_wdr.cpp:4920
 msgid "The CC Table you have chosen is:"
 msgstr "Выбранная вами таблица ПИ:"
 
-#: source/Adapt_It_wdr.cpp:5538
+#: source/Adapt_It_wdr.cpp:4925
 msgid "A list of consistent changes (*.cct) files in the current folder path"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5544
+#: source/Adapt_It_wdr.cpp:4931
 msgid "The name of the consistent changes table that will be used"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5549
+#: source/Adapt_It_wdr.cpp:4936
 msgid "&Browse To Find CC Table..."
 msgstr "&Поиск таблицы ПИ"
 
-#: source/Adapt_It_wdr.cpp:5550
+#: source/Adapt_It_wdr.cpp:4937
 msgid "Click this button to browse for a different folder containing consistent changes (*.cct) files"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5553
+#: source/Adapt_It_wdr.cpp:4940
 msgid "&Create CC Table..."
 msgstr "&Создать таблицу ПИ"
 
-#: source/Adapt_It_wdr.cpp:5554
+#: source/Adapt_It_wdr.cpp:4941
 msgid "Click this button to create a new consistent changes table file"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5557
+#: source/Adapt_It_wdr.cpp:4944
 msgid "&Edit CC Table..."
 msgstr "&Редактировать таблицу ПИ"
 
-#: source/Adapt_It_wdr.cpp:5558
+#: source/Adapt_It_wdr.cpp:4945
 msgid "Click on this button to open and edit the consistent changes files selected from the list at left"
 msgstr ""
 
 # Priority 1
 # Could be translated as "Remove Selection"
-#: source/Adapt_It_wdr.cpp:5561
+#: source/Adapt_It_wdr.cpp:4948
 msgid "Select &None"
 msgstr "&Ничего не выбирать"
 
-#: source/Adapt_It_wdr.cpp:5562
+#: source/Adapt_It_wdr.cpp:4949
 msgid "Click this button to remove any previous selection of a consistent changes table"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5571
+#: source/Adapt_It_wdr.cpp:4958
 msgid "Folder path:"
 msgstr "Адрес папки:"
 
-#: source/Adapt_It_wdr.cpp:5579
+#: source/Adapt_It_wdr.cpp:4966
 msgid "This box shows the folder path or location from which consistent changes (*.cct) files are shown in the above list"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5613
-#: source/Adapt_It_wdr.cpp:5814
+#: source/Adapt_It_wdr.cpp:5000
+#: source/Adapt_It_wdr.cpp:5201
 msgid "Search In:"
 msgstr "Искать в:"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5616
-#: source/Adapt_It_wdr.cpp:5817
+#: source/Adapt_It_wdr.cpp:5003
+#: source/Adapt_It_wdr.cpp:5204
 msgid "Source Text Only"
 msgstr "Только &исходный текст"
 
-#: source/Adapt_It_wdr.cpp:5617
-#: source/Adapt_It_wdr.cpp:5818
+#: source/Adapt_It_wdr.cpp:5004
+#: source/Adapt_It_wdr.cpp:5205
 msgid "Find source text only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5622
-#: source/Adapt_It_wdr.cpp:5823
+#: source/Adapt_It_wdr.cpp:5009
+#: source/Adapt_It_wdr.cpp:5210
 msgid "Translated Text Only"
 msgstr "Только &переведенный текст"
 
-#: source/Adapt_It_wdr.cpp:5624
-#: source/Adapt_It_wdr.cpp:5825
+#: source/Adapt_It_wdr.cpp:5011
+#: source/Adapt_It_wdr.cpp:5212
 msgid "Find target text only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5629
-#: source/Adapt_It_wdr.cpp:5830
+#: source/Adapt_It_wdr.cpp:5016
+#: source/Adapt_It_wdr.cpp:5217
 msgid "Both Source Text and Translated Text"
 msgstr "И исходный текст, и переведенный &текст"
 
-#: source/Adapt_It_wdr.cpp:5630
-#: source/Adapt_It_wdr.cpp:5831
+#: source/Adapt_It_wdr.cpp:5017
+#: source/Adapt_It_wdr.cpp:5218
 msgid "Find data with both source and translation text as typed"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5639
-#: source/Adapt_It_wdr.cpp:5840
+#: source/Adapt_It_wdr.cpp:5026
+#: source/Adapt_It_wdr.cpp:5227
 msgid "Ignore Case"
 msgstr "И&гнорировать регистр"
 
-#: source/Adapt_It_wdr.cpp:5640
-#: source/Adapt_It_wdr.cpp:5841
+#: source/Adapt_It_wdr.cpp:5027
+#: source/Adapt_It_wdr.cpp:5228
 msgid "Check this box to ignore upper and lower case differences during find"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5662
-#: source/Adapt_It_wdr.cpp:5863
+#: source/Adapt_It_wdr.cpp:5049
+#: source/Adapt_It_wdr.cpp:5250
 msgid "Type source text to find here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5671
-#: source/Adapt_It_wdr.cpp:5872
+#: source/Adapt_It_wdr.cpp:5058
+#: source/Adapt_It_wdr.cpp:5259
 msgid "With Translation:"
 msgstr "С переводом:"
 
-#: source/Adapt_It_wdr.cpp:5677
-#: source/Adapt_It_wdr.cpp:5878
+#: source/Adapt_It_wdr.cpp:5064
+#: source/Adapt_It_wdr.cpp:5265
 msgid "Type translation text to find here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5694
-#: source/Adapt_It_wdr.cpp:5893
+#: source/Adapt_It_wdr.cpp:5081
+#: source/Adapt_It_wdr.cpp:5280
 msgid "Search in the lines which retain punctuation"
 msgstr "Поис&к в строках, сохраняющих пунктуацию"
 
-#: source/Adapt_It_wdr.cpp:5695
-#: source/Adapt_It_wdr.cpp:5894
+#: source/Adapt_It_wdr.cpp:5082
+#: source/Adapt_It_wdr.cpp:5281
 msgid "Search lines that include punctuation"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5700
-#: source/Adapt_It_wdr.cpp:5899
+#: source/Adapt_It_wdr.cpp:5087
+#: source/Adapt_It_wdr.cpp:5286
 msgid "Allow the search to occur in text spanning multiple piles"
 msgstr "Позво&лить производить поиск по тексту с многочисленными пакетами (данных)  "
 
-#: source/Adapt_It_wdr.cpp:5701
-#: source/Adapt_It_wdr.cpp:5900
+#: source/Adapt_It_wdr.cpp:5088
+#: source/Adapt_It_wdr.cpp:5287
 msgid "Include adjoining piles in search"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5712
+#: source/Adapt_It_wdr.cpp:5099
 msgid "Special Searches:"
 msgstr "Специальный поиск:"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5718
+#: source/Adapt_It_wdr.cpp:5105
 msgid "Retranslation"
 msgstr "П&овторный перевод"
 
-#: source/Adapt_It_wdr.cpp:5720
+#: source/Adapt_It_wdr.cpp:5107
 msgid "Find retranslations only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5725
+#: source/Adapt_It_wdr.cpp:5112
 msgid "Placeholder"
 msgstr "З&аполнитель"
 
-#: source/Adapt_It_wdr.cpp:5726
+#: source/Adapt_It_wdr.cpp:5113
 msgid "Find placeholders only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5731
+#: source/Adapt_It_wdr.cpp:5118
 msgid "Standard Format Marker"
 msgstr "&Маркеры стандартного формата"
 
-#: source/Adapt_It_wdr.cpp:5732
+#: source/Adapt_It_wdr.cpp:5119
 msgid "Find standard format marker location (select from list)"
 msgstr ""
 
 # Priority 1
 # Leave two spaces before the beginning of the sentence.
-#: source/Adapt_It_wdr.cpp:5741
+#: source/Adapt_It_wdr.cpp:5128
 msgid "   Select a standard format marker:"
 msgstr "   Выбрать маркер стандартного формата:"
 
-#: source/Adapt_It_wdr.cpp:5748
+#: source/Adapt_It_wdr.cpp:5135
 msgid "Select standard format marker from list"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5771
-#: source/Adapt_It_wdr.cpp:5940
+#: source/Adapt_It_wdr.cpp:5158
+#: source/Adapt_It_wdr.cpp:5327
 msgid "Find the next occurrence (if any)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5776
+#: source/Adapt_It_wdr.cpp:5163
 msgid "Special Search"
 msgstr "Специальный поиск"
 
-#: source/Adapt_It_wdr.cpp:5777
+#: source/Adapt_It_wdr.cpp:5164
 msgid "Activate special search context buttons"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5783
-#: source/Adapt_It_wdr.cpp:5958
+#: source/Adapt_It_wdr.cpp:5170
+#: source/Adapt_It_wdr.cpp:5345
 msgid "Close the Find-Replace dialog"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5909
+#: source/Adapt_It_wdr.cpp:5296
 msgid "Replacement Text:"
 msgstr "Текст замены:"
 
-#: source/Adapt_It_wdr.cpp:5917
+#: source/Adapt_It_wdr.cpp:5304
 msgid "Type replacement text here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5945
+#: source/Adapt_It_wdr.cpp:5332
 msgid "Replace"
 msgstr "&Заменить"
 
-#: source/Adapt_It_wdr.cpp:5946
+#: source/Adapt_It_wdr.cpp:5333
 msgid "Replace once"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5951
+#: source/Adapt_It_wdr.cpp:5338
 msgid "Replace All"
 msgstr "Заменить &все"
 
-#: source/Adapt_It_wdr.cpp:5952
+#: source/Adapt_It_wdr.cpp:5339
 msgid "Replace all instances found"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5979
+#: source/Adapt_It_wdr.cpp:5366
 msgid "Type the filename (omit the extention) for the consistent changes table. Adapt it will automatically append a .cct extension; and the file will be created in the project folder."
 msgstr "Наберите имя файла (без расширения) для таблицы последовательных изменений. Adapt It присвоит файлу расширение .cct автоматически и будет создан файл в проектной папке."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6019
+#: source/Adapt_It_wdr.cpp:5406
 msgid "Special Print Options"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6027
+#: source/Adapt_It_wdr.cpp:5414
 msgid "If you want to print a range, you may specify a range of pages, or a range of chapters/verses. You may also check boxes for any special handling of footer or section headings. Click on the \"Print >>\" button to proceed to the standard print dialog where you may adjust margins or the number of copies before actual printing."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6038
+#: source/Adapt_It_wdr.cpp:5425
 msgid "Print range"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6043
+#: source/Adapt_It_wdr.cpp:5430
 msgid "&All"
 msgstr "&Все"
 
-#: source/Adapt_It_wdr.cpp:6045
+#: source/Adapt_It_wdr.cpp:5432
 msgid "Select this button if you want to print the whole document"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6050
+#: source/Adapt_It_wdr.cpp:5437
 msgid "&Selection"
 msgstr "Вы&борка"
 
-#: source/Adapt_It_wdr.cpp:6051
+#: source/Adapt_It_wdr.cpp:5438
 msgid "Select this button if you only want to print part of the document (specify what part below)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6058
+#: source/Adapt_It_wdr.cpp:5445
 msgid "Pa&ges"
 msgstr "&Страницы"
 
-#: source/Adapt_It_wdr.cpp:6059
+#: source/Adapt_It_wdr.cpp:5446
 msgid "Select this button to indicate the pages to be printed"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6062
+#: source/Adapt_It_wdr.cpp:5449
 msgid "from:"
 msgstr "от:"
 
-#: source/Adapt_It_wdr.cpp:6066
+#: source/Adapt_It_wdr.cpp:5453
 msgid "Type the starting page number here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6069
+#: source/Adapt_It_wdr.cpp:5456
 msgid "to:"
 msgstr "до:"
 
-#: source/Adapt_It_wdr.cpp:6073
+#: source/Adapt_It_wdr.cpp:5460
 msgid "Type the ending page number here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6083
+#: source/Adapt_It_wdr.cpp:5470
 msgid "Select this button to print only a range of chapters/verses"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6096
+#: source/Adapt_It_wdr.cpp:5483
 msgid "Type the begining chapter to start printing here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6105
+#: source/Adapt_It_wdr.cpp:5492
 msgid "Type the beginning verse to start printing here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6112
+#: source/Adapt_It_wdr.cpp:5499
 msgid "Type the ending chapter to print here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6121
+#: source/Adapt_It_wdr.cpp:5508
 msgid "Type the ending verse to print here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6138
+#: source/Adapt_It_wdr.cpp:5525
 msgid "Margin elements"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6141
+#: source/Adapt_It_wdr.cpp:5528
 msgid "Section headings"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6144
+#: source/Adapt_It_wdr.cpp:5531
 msgid "Suppress a preceding section heading"
 msgstr "&Подавить предыдущий заголовок раздела"
 
-#: source/Adapt_It_wdr.cpp:6145
+#: source/Adapt_It_wdr.cpp:5532
 msgid "Check this box if you do not want a section heading at the beginning of the selection to print along with the selection"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6148
+#: source/Adapt_It_wdr.cpp:5535
 msgid "Include a following section heading"
 msgstr "В&ключить следующий заголовок раздела"
 
-#: source/Adapt_It_wdr.cpp:6149
+#: source/Adapt_It_wdr.cpp:5536
 msgid "Check this box if you want a section heading that follows the printed selection to be printed also"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6154
+#: source/Adapt_It_wdr.cpp:5541
 msgid "Footer"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6157
+#: source/Adapt_It_wdr.cpp:5544
 msgid "Suppress printing of the footer"
 msgstr "&Не печатать нижний колонтитул"
 
-#: source/Adapt_It_wdr.cpp:6158
+#: source/Adapt_It_wdr.cpp:5545
 msgid "Check this box if you do not want Adapt It to include a footer on the page(s) of the printed selection"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6169
+#: source/Adapt_It_wdr.cpp:5556
 msgid "Print >>"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6171
+#: source/Adapt_It_wdr.cpp:5558
 msgid "Press this button to proceed to the standard print dialog (where you can set margins and do the actual printing)"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6177
+#: source/Adapt_It_wdr.cpp:5564
 msgid "Press this button to Cancel the printing and close this dialog"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6208
+#: source/Adapt_It_wdr.cpp:5595
 msgid "If you want to use only one consistent changes table select it using the Table 1 tab. If you want to use more than one consistent changes tables, select the first one in the Table 1 tab, the second in the Table 2 tab and so on, up to four Tables. Note: When using multiple consistent change tables, they are processed in sequence starting with Table 1."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6222
+#: source/Adapt_It_wdr.cpp:5609
 msgid "Table 1"
 msgstr "Таблица 1"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6226
+#: source/Adapt_It_wdr.cpp:5613
 msgid "Table 2"
 msgstr "Таблица 2"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6230
+#: source/Adapt_It_wdr.cpp:5617
 msgid "Table 3"
 msgstr "Таблица 3"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6234
+#: source/Adapt_It_wdr.cpp:5621
 msgid "Table 4"
 msgstr "Таблица 4"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6266
+#: source/Adapt_It_wdr.cpp:5653
 msgid "List of Interface Language Localizations found for Adapt It:"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6273
+#: source/Adapt_It_wdr.cpp:5660
 msgid "This is a list of interface languages found at the path below"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6282
+#: source/Adapt_It_wdr.cpp:5669
 msgid "Short (Canonical) language name:"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6294
+#: source/Adapt_It_wdr.cpp:5681
 msgid "Full (Descriptive) language name:"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6306
+#: source/Adapt_It_wdr.cpp:5693
 msgid "Path of Adapt It's Localization Files (click Browse to change path):"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6312
+#: source/Adapt_It_wdr.cpp:5699
 msgid "The path where Adapt It looks for localization folders containing .mo files. Use the \"Browse...\" button at right to designate a different path"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6317
+#: source/Adapt_It_wdr.cpp:5704
 msgid "Browse..."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6318
+#: source/Adapt_It_wdr.cpp:5705
 #, fuzzy
 msgid "Click this button to browse for a different localization path "
 msgstr "Установка цвета текста навигации"
 
-#: source/Adapt_It_wdr.cpp:6328
+#: source/Adapt_It_wdr.cpp:5715
 msgid "Click OK to use a selected interface language"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6332
+#: source/Adapt_It_wdr.cpp:5719
 msgid "Click Cancel to make no changes to the interface language"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6357
+#: source/Adapt_It_wdr.cpp:5744
 #, fuzzy
 msgid "Removed:"
 msgstr "Удали&ть"
 
-#: source/Adapt_It_wdr.cpp:6374
+#: source/Adapt_It_wdr.cpp:5761
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6379
+#: source/Adapt_It_wdr.cpp:5766
 msgid "Undo Last Copy"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6413
+#: source/Adapt_It_wdr.cpp:5800
 msgid "Previous Step"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6418
+#: source/Adapt_It_wdr.cpp:5805
 #, fuzzy
 msgid "Next Step"
 msgstr "С&лед.>"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6423
+#: source/Adapt_It_wdr.cpp:5810
 #, fuzzy
 msgid "End Now"
 msgstr "&Объединить сейчас"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6429
+#: source/Adapt_It_wdr.cpp:5816
 #, fuzzy
 msgid "Cancel All Steps"
 msgstr "Удалить все примечания"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6451
+#: source/Adapt_It_wdr.cpp:5837
+#, fuzzy
+msgid "Define Source and Target Punctuation Correspondences"
+msgstr "Редактировать соответствия между пунктуацией исходного текста и пунктуацией целевого текста"
+
+#: source/Adapt_It_wdr.cpp:5841
+msgid "Enter single punctuation character correspondences in the list on the left tab."
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:5844
+msgid "Enter any double character correspondences in the list on the right tab."
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:5851
+msgid "Where there is no corresponding punctuation character, leave that cell empty - whether it is a source or a target cell."
+msgstr "Если нет соответствующего знака пунктуации, оставьте ячейку пустой, будь то исходная или целевая ячейка. "
+
+# Priority 1
+# Do not translate the U+nnnn
+#: source/Adapt_It_wdr.cpp:5858
+msgid "Show U+nnnn"
+msgstr "&Показать U+nnnn"
+
+#: source/Adapt_It_wdr.cpp:5859
+msgid "Toggle between showing the Unicode nnnn hex value codes and the actual Unicode characters"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:5875
+#, fuzzy
+msgid "Single Punctuation Charaters"
+msgstr "Включить копирование пунктуации"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:5879
+#, fuzzy
+msgid "Double Punctuation Characters"
+msgstr "Включить копирование пунктуации"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:5903
+msgid "SINGLE Punctuation Chars (up to 26 pairs):"
+msgstr ""
+
+# Priority 1
+# Abbreviate if necessary to keep the word short.
+#: source/Adapt_It_wdr.cpp:5931
+#: source/Adapt_It_wdr.cpp:5951
+#: source/Adapt_It_wdr.cpp:5971
+msgid "Source  "
+msgstr "Источник"
+
+# Priority 1
+# Leave two spaces before the beginning of the word. Abbreviate if necessary to keep the word short.
+#: source/Adapt_It_wdr.cpp:5937
+#: source/Adapt_It_wdr.cpp:5957
+#: source/Adapt_It_wdr.cpp:5977
+msgid "  Target"
+msgstr "  Цель"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6440
+msgid "DOUBLE Punctuation Chars (up to 10 pairs):"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6656
 msgid "&New\tCtrl-N"
 msgstr "&Новый"
 
-#: source/Adapt_It_wdr.cpp:6451
-#: source/Adapt_It_wdr.cpp:6577
+#: source/Adapt_It_wdr.cpp:6656
+#: source/Adapt_It_wdr.cpp:6782
 msgid "Create a new document"
 msgstr "Создать новый документ"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6452
+#: source/Adapt_It_wdr.cpp:6657
 msgid "&Open...\tCtrl-O"
 msgstr "&Открыть..."
 
-#: source/Adapt_It_wdr.cpp:6452
-#: source/Adapt_It_wdr.cpp:6579
+#: source/Adapt_It_wdr.cpp:6657
+#: source/Adapt_It_wdr.cpp:6784
 msgid "Open an existing document"
 msgstr "Открыть существующий документ"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6453
+#: source/Adapt_It_wdr.cpp:6658
 msgid "&Save\tCtrl-S"
 msgstr "&Сохранить"
 
-#: source/Adapt_It_wdr.cpp:6453
-#: source/Adapt_It_wdr.cpp:6581
+#: source/Adapt_It_wdr.cpp:6658
+#: source/Adapt_It_wdr.cpp:6786
 msgid "Save the active document"
 msgstr "Сохранить активный документ"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6454
+#: source/Adapt_It_wdr.cpp:6659
 msgid "&Close"
 msgstr "&Закрыть"
 
-#: source/Adapt_It_wdr.cpp:6454
+#: source/Adapt_It_wdr.cpp:6659
 msgid "Close the active document"
 msgstr "Закрыть активный документ"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6455
+#: source/Adapt_It_wdr.cpp:6660
 msgid "Export Source Text..."
 msgstr "Э&кспортировать исходный текст..."
 
-#: source/Adapt_It_wdr.cpp:6455
+#: source/Adapt_It_wdr.cpp:6660
 msgid "Export the source language text as a *.txt file type"
 msgstr "Экспортировать текст исходного языка в текстовом формате (*.txt)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6456
+#: source/Adapt_It_wdr.cpp:6661
 msgid "Export Translation Text..."
 msgstr "&Экспортировать текст перевода..."
 
-#: source/Adapt_It_wdr.cpp:6456
+#: source/Adapt_It_wdr.cpp:6661
 msgid "Export the target language translation as a *.txt file type"
 msgstr "Экспортировать текст целевого языка в текстовом формате (*.txt)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6457
+#: source/Adapt_It_wdr.cpp:6662
 msgid "Export Interlinear Text..."
 msgstr "Экспортировать текст &подстрочника..."
 
-#: source/Adapt_It_wdr.cpp:6457
+#: source/Adapt_It_wdr.cpp:6662
 msgid "Export the Source and Target languages in interlinear form as an *.rtf file type"
 msgstr "Экспортировать исходный и целевой языки в форме подстрочника в формате *.rtf"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6458
+#: source/Adapt_It_wdr.cpp:6663
 msgid "Pack Document..."
 msgstr "&Упаковать документ..."
 
-#: source/Adapt_It_wdr.cpp:6458
+#: source/Adapt_It_wdr.cpp:6663
 msgid "Pack document for transfer to another computer"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6459
+#: source/Adapt_It_wdr.cpp:6664
 msgid "Unpack Document..."
 msgstr "Распаковать &документ..."
 
-#: source/Adapt_It_wdr.cpp:6459
+#: source/Adapt_It_wdr.cpp:6664
 msgid "Unpack a document that was packed on another computer"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6461
+#: source/Adapt_It_wdr.cpp:6666
 msgid "&Print...\tCtrl-P"
 msgstr "Пе&чать..."
 
-#: source/Adapt_It_wdr.cpp:6461
-#: source/Adapt_It_wdr.cpp:6588
+#: source/Adapt_It_wdr.cpp:6666
+#: source/Adapt_It_wdr.cpp:6793
 msgid "Print the active document"
 msgstr "Вывести на печать активный документ"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6462
+#: source/Adapt_It_wdr.cpp:6667
 msgid "Print Pre&view"
 msgstr "Пре&дварительный просмотр"
 
-#: source/Adapt_It_wdr.cpp:6462
+#: source/Adapt_It_wdr.cpp:6667
 #, fuzzy
 msgid "Show what printed pages will look like (without printing)"
 msgstr "Показать полные страницы"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6463
+#: source/Adapt_It_wdr.cpp:6668
 msgid "P&age Setup..."
 msgstr "П&араметры страницы"
 
-#: source/Adapt_It_wdr.cpp:6463
+#: source/Adapt_It_wdr.cpp:6668
 msgid "Change the printing options"
 msgstr "Изменить параметры печати"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6465
+#: source/Adapt_It_wdr.cpp:6670
 msgid "Start &Working...\tCtrl-W"
 msgstr "Нача&ть работу"
 
-#: source/Adapt_It_wdr.cpp:6465
+#: source/Adapt_It_wdr.cpp:6670
 msgid "Show the sequence of dialog windows used for accessing a project and working on documents"
 msgstr "Показать последовательность диалоговых окон, используемых для доступа к проекту и для работы над документами"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6466
+#: source/Adapt_It_wdr.cpp:6671
 msgid "Close Pro&ject\tCtrl-J"
 msgstr "Закрыть прое&кт"
 
-#: source/Adapt_It_wdr.cpp:6466
+#: source/Adapt_It_wdr.cpp:6671
 msgid "Save the knowledge base and document, then close this project"
 msgstr "Сохранить базу знаний и документ, затем закрыть этот проект"
 
-#: source/Adapt_It_wdr.cpp:6467
+#: source/Adapt_It_wdr.cpp:6672
 msgid "Change to a different book folder for document storage (book mode must be ON)"
 msgstr "Выбрать другую книжную папку для сохранения документа (должен быть ВКЛЮЧЕН книжный режим)"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6469
+#: source/Adapt_It_wdr.cpp:6674
 msgid "Save &Knowledge Base"
 msgstr "Сохранить базу знаний"
 
-#: source/Adapt_It_wdr.cpp:6469
+#: source/Adapt_It_wdr.cpp:6674
 msgid "Update the knowledge base file for this project"
 msgstr "Обновить базу знаний для этого проекта"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6470
+#: source/Adapt_It_wdr.cpp:6675
 msgid "&Backup Knowledge Base"
 msgstr "Сделать резервную копию базы знаний"
 
-#: source/Adapt_It_wdr.cpp:6470
+#: source/Adapt_It_wdr.cpp:6675
 msgid "Make a new knowledge base backup immediately"
 msgstr "Немедленно создать резервную копию новой базы знаний"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6471
+#: source/Adapt_It_wdr.cpp:6676
 msgid "&Check Knowledge Base"
 msgstr "Проверить базу знаний"
 
-#: source/Adapt_It_wdr.cpp:6471
+#: source/Adapt_It_wdr.cpp:6676
 msgid "Perform an integrity check of the knowledge base, report errors"
 msgstr "Провести проверку целостности базы знаний, сообщить об ошибках"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6472
+#: source/Adapt_It_wdr.cpp:6677
 msgid "&Restore Knowledge Base..."
 msgstr "Восстано&вить базу знаний"
 
-#: source/Adapt_It_wdr.cpp:6472
+#: source/Adapt_It_wdr.cpp:6677
 msgid "Use all the saved documents to rebuild the knowledge base file"
 msgstr "Использовать все сохраненные документы для пересоставления файла базы знаний"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6473
+#: source/Adapt_It_wdr.cpp:6678
 msgid "Exp&ort Knowledge Base..."
 msgstr "Экспо&ртировать базу знаний"
 
-#: source/Adapt_It_wdr.cpp:6473
+#: source/Adapt_It_wdr.cpp:6678
 msgid "Export knowledge base in SIL standard format"
 msgstr "Экспортировать базу знаний в стандартном формате SIL"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6474
+#: source/Adapt_It_wdr.cpp:6679
 msgid "&Import to Knowledge Base..."
 msgstr "И&мпортировать в базу знаний"
 
-#: source/Adapt_It_wdr.cpp:6474
+#: source/Adapt_It_wdr.cpp:6679
 msgid "Extend knowledge base by importing dictionary records"
 msgstr "Расширить базу знаний через добавление словарных записей"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6476
+#: source/Adapt_It_wdr.cpp:6681
 msgid "E&xit"
 msgstr "Выйти"
 
-#: source/Adapt_It_wdr.cpp:6476
+#: source/Adapt_It_wdr.cpp:6681
 msgid "Quit the application; prompts to save documents"
 msgstr "Закрыть приложение; выведет предложение о сохранении документов"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6477
+#: source/Adapt_It_wdr.cpp:6682
 msgid "&File"
 msgstr "&Файл"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6480
+#: source/Adapt_It_wdr.cpp:6685
 msgid "&Undo\tCtrl-Z"
 msgstr "&Отменить операцию"
 
-#: source/Adapt_It_wdr.cpp:6480
+#: source/Adapt_It_wdr.cpp:6685
 msgid "Undo the last action"
 msgstr "Отменить последнее действие"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6482
+#: source/Adapt_It_wdr.cpp:6687
 msgid "Cu&t\tCtrl-X"
 msgstr "Выр&езать"
 
-#: source/Adapt_It_wdr.cpp:6482
-#: source/Adapt_It_wdr.cpp:6583
+#: source/Adapt_It_wdr.cpp:6687
+#: source/Adapt_It_wdr.cpp:6788
 msgid "Cut the selection and put it on the Clipboard"
 msgstr "Вырезать выделенный текст и поместить его в буфер памяти"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6483
+#: source/Adapt_It_wdr.cpp:6688
 msgid "&Copy\tCtrl-C"
 msgstr "&Копировать"
 
-#: source/Adapt_It_wdr.cpp:6483
-#: source/Adapt_It_wdr.cpp:6584
+#: source/Adapt_It_wdr.cpp:6688
+#: source/Adapt_It_wdr.cpp:6789
 msgid "Copy the selection and put it on the Clipboard"
 msgstr "Скопировать выделенный текст и поместить его в буфер памяти"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6484
+#: source/Adapt_It_wdr.cpp:6689
 msgid "&Paste\tCtrl-V"
 msgstr "&Вставить"
 
-#: source/Adapt_It_wdr.cpp:6484
-#: source/Adapt_It_wdr.cpp:6585
+#: source/Adapt_It_wdr.cpp:6689
+#: source/Adapt_It_wdr.cpp:6790
 msgid "Insert Clipboard contents"
 msgstr "Вставить содержимое буфера обмена"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6486
+#: source/Adapt_It_wdr.cpp:6691
 msgid "&Go To...\tCtrl-G"
 msgstr "Пере&йти к..."
 
-#: source/Adapt_It_wdr.cpp:6486
+#: source/Adapt_It_wdr.cpp:6691
 msgid "Go to a specific chapter and verse"
 msgstr "Перейти к определенной главе и стиху"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6487
+#: source/Adapt_It_wdr.cpp:6692
 msgid "Edit &Source Text...\tCtrl-Q"
 msgstr "Редактировать &исходный текст..."
 
-#: source/Adapt_It_wdr.cpp:6487
+#: source/Adapt_It_wdr.cpp:6692
 msgid "Edit the selected source text"
 msgstr "Редактировать выбранный исходный текст"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6488
+#: source/Adapt_It_wdr.cpp:6693
 msgid "Consist&ency Check..."
 msgstr "&Проверка последовательности..."
 
-#: source/Adapt_It_wdr.cpp:6488
+#: source/Adapt_It_wdr.cpp:6693
 msgid "Check all translations with those in the knowledge base for consistency"
 msgstr "Проверить на последовательность все переводы, сравнивая их с переводами в базе знаний "
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6490
+#: source/Adapt_It_wdr.cpp:6695
 msgid "Move Note Forward\tCtrl-3"
 msgstr "Передвинуть примечание вп&еред"
 
-#: source/Adapt_It_wdr.cpp:6490
+#: source/Adapt_It_wdr.cpp:6695
 msgid "Move the note forward in the document to the next word or phrase"
 msgstr "Переместить примечание в документе вперед к следующему слову или фразе"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6491
+#: source/Adapt_It_wdr.cpp:6696
 msgid "Move Note Backward\tCtrl-2"
 msgstr "Передвинуть примечание н&азад"
 
-#: source/Adapt_It_wdr.cpp:6491
+#: source/Adapt_It_wdr.cpp:6696
 msgid "Move the note backward in the document to the previous word or phrase"
 msgstr "Переместить примечание в документе назад к предыдущему слову или фразе"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6493
+#: source/Adapt_It_wdr.cpp:6698
 msgid "Pre&ferences..."
 msgstr "Пред&почтения..."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6493
+#: source/Adapt_It_wdr.cpp:6698
 msgid "Adapt It settings"
 msgstr "Установки Adapt It"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6494
+#: source/Adapt_It_wdr.cpp:6699
 msgid "&Edit"
 msgstr "&Редактировать"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6497
+#: source/Adapt_It_wdr.cpp:6702
 msgid "&Toolbar"
 msgstr "Панель &инструментов"
 
-#: source/Adapt_It_wdr.cpp:6497
+#: source/Adapt_It_wdr.cpp:6702
 msgid "Show or hide the toolbar"
 msgstr "Показать или спрятать панель инструментов"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6498
+#: source/Adapt_It_wdr.cpp:6703
 msgid "&Status Bar"
 msgstr "&Строка состояния"
 
-#: source/Adapt_It_wdr.cpp:6498
+#: source/Adapt_It_wdr.cpp:6703
 msgid "Show or hide the status bar"
 msgstr "Показать или спрятать строку состояния"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6499
+#: source/Adapt_It_wdr.cpp:6704
 msgid "&Compose Bar"
 msgstr "&Панель для составления набросков"
 
-#: source/Adapt_It_wdr.cpp:6499
+#: source/Adapt_It_wdr.cpp:6704
 msgid "Show or hide the bar for composing text"
 msgstr "Показать или скрыть строку для составления текста"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6501
+#: source/Adapt_It_wdr.cpp:6706
 msgid "Copy Sourc&e"
 msgstr "&Копировать источник"
 
-#: source/Adapt_It_wdr.cpp:6501
+#: source/Adapt_It_wdr.cpp:6706
 msgid "Copy source text to phrase box as default translation"
 msgstr "Скопировать исходный текст в фразовое окно в качестве перевода по умолчанию"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6502
+#: source/Adapt_It_wdr.cpp:6707
 msgid "&Wrap At Standard Format Markers"
 msgstr "Перенос на &новую строку при маркерах стандартного формата"
 
-#: source/Adapt_It_wdr.cpp:6502
+#: source/Adapt_It_wdr.cpp:6707
 msgid "Start a new strip whenever a standard format marker is encountered"
 msgstr "При наличии маркера стандартного формата каждый раз начинать новую полосу "
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6503
+#: source/Adapt_It_wdr.cpp:6708
 msgid "&Units of Measurement..."
 msgstr "&Единицы измерения..."
 
-#: source/Adapt_It_wdr.cpp:6503
+#: source/Adapt_It_wdr.cpp:6708
 msgid "Units to be used when printing"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6505
+#: source/Adapt_It_wdr.cpp:6710
 msgid "Change Interface Language..."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6505
+#: source/Adapt_It_wdr.cpp:6710
 msgid "Change the language of the program interface. You may need to restart Adapt It for the change to take effect"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6506
+#: source/Adapt_It_wdr.cpp:6711
 msgid "&View"
 msgstr "&Вид"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6509
+#: source/Adapt_It_wdr.cpp:6714
 msgid "&Find...\tCtrl-F"
 msgstr "&Найти..."
 
-#: source/Adapt_It_wdr.cpp:6509
+#: source/Adapt_It_wdr.cpp:6714
 msgid "Find text in source or target or both, or special search"
 msgstr "Найти текст в исходном или целевом текстах, или в обоих текстах, или провести специальный поиск"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6510
+#: source/Adapt_It_wdr.cpp:6715
 msgid "Find and &Replace...\tCtrl-H"
 msgstr "Найти и за&менить..."
 
-#: source/Adapt_It_wdr.cpp:6510
+#: source/Adapt_It_wdr.cpp:6715
 msgid "Replace in target text"
 msgstr "Заменить в целевом тексте"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6512
+#: source/Adapt_It_wdr.cpp:6717
 msgid "&Load Consistent Changes..."
 msgstr "&Загрузить последовательные изменения..."
 
-#: source/Adapt_It_wdr.cpp:6512
+#: source/Adapt_It_wdr.cpp:6717
 msgid "Define and load one or more consistent changes tables"
 msgstr "Определить и загрузить одну или более таблиц последовательных изменений"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6513
+#: source/Adapt_It_wdr.cpp:6718
 msgid "&Unload Consistent Changes"
 msgstr "&Разгрузить последовательные изменения..."
 
-#: source/Adapt_It_wdr.cpp:6513
+#: source/Adapt_It_wdr.cpp:6718
 msgid "Unload any loaded consistent changes tables"
 msgstr "Разгрузить любые загруженные таблицы последовательных изменений"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6514
+#: source/Adapt_It_wdr.cpp:6719
 msgid "Use &Consistent Changes"
 msgstr "Применить пос&ледовательные изменения"
 
-#: source/Adapt_It_wdr.cpp:6514
+#: source/Adapt_It_wdr.cpp:6719
 msgid "Use the consistent changes when copying source text"
 msgstr "Использовать функцию последовательных изменений при копировании исходного текста"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6515
+#: source/Adapt_It_wdr.cpp:6720
 msgid "&Accept Changes Without Stopping"
 msgstr "Принять изменения &без остановки"
 
-#: source/Adapt_It_wdr.cpp:6515
+#: source/Adapt_It_wdr.cpp:6720
 msgid "Accept the changed source text as the translation and continue on"
 msgstr "Принять измененный исходный текст в качестве перевода и продолжить"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6517
+#: source/Adapt_It_wdr.cpp:6722
 msgid "&SIL Converters..."
 msgstr "Конвер&теры SIL"
 
-#: source/Adapt_It_wdr.cpp:6517
+#: source/Adapt_It_wdr.cpp:6722
 msgid "Load an SIL Converter"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6518
+#: source/Adapt_It_wdr.cpp:6723
 msgid "Use S&IL Converter"
 msgstr "Применить кон&вертер SIL"
 
-#: source/Adapt_It_wdr.cpp:6518
+#: source/Adapt_It_wdr.cpp:6723
 msgid "Use a loaded SIL Converter"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6520
+#: source/Adapt_It_wdr.cpp:6725
 msgid "&Knowledge Base Editor...\tCtrl-K"
 msgstr "Ре&дактор базы знаний..."
 
-#: source/Adapt_It_wdr.cpp:6520
+#: source/Adapt_It_wdr.cpp:6725
 msgid "Display dialog for editing the knowledge base"
 msgstr "Показать диалоговое окно для редактирования базы знаний"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6522
+#: source/Adapt_It_wdr.cpp:6727
 msgid "Use Automatic Capitalization"
 msgstr "&Автоматическая замена на заглавные буквы"
 
-#: source/Adapt_It_wdr.cpp:6522
+#: source/Adapt_It_wdr.cpp:6727
 msgid "Use automatic capitalization when copying source text"
 msgstr "Использовать автоматическую замену на прописные  буквы при копировании исходного текста"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6524
+#: source/Adapt_It_wdr.cpp:6729
 msgid "Re&translation Report..."
 msgstr "&Отчет о повторном переводе"
 
-#: source/Adapt_It_wdr.cpp:6524
+#: source/Adapt_It_wdr.cpp:6729
 msgid "Output a file listing all retranslations"
 msgstr "Выходной файл с перечислением всех повторных переводов"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6526
+#: source/Adapt_It_wdr.cpp:6731
 msgid "Split Document..."
 msgstr "Разделить док&умент..."
 
-#: source/Adapt_It_wdr.cpp:6526
+#: source/Adapt_It_wdr.cpp:6731
 msgid "Split the document into two or more documents"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6527
+#: source/Adapt_It_wdr.cpp:6732
 msgid "Join Documents..."
 msgstr "&Соединить документы..."
 
-#: source/Adapt_It_wdr.cpp:6527
+#: source/Adapt_It_wdr.cpp:6732
 msgid "Join two or more documents into a single document"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6528
+#: source/Adapt_It_wdr.cpp:6733
 msgid "Move Document..."
 msgstr "Перемес&тить документ..."
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:6528
+#: source/Adapt_It_wdr.cpp:6733
 msgid "Move documents between the Adaptations folder and a book folder location"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6529
+#: source/Adapt_It_wdr.cpp:6734
 msgid "&Tools"
 msgstr "&Инструменты"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6532
+#: source/Adapt_It_wdr.cpp:6737
 msgid "See Glosses"
 msgstr "Смотреть &глоссы"
 
-#: source/Adapt_It_wdr.cpp:6532
+#: source/Adapt_It_wdr.cpp:6737
 msgid "Make glossing line visible on screen"
 msgstr "Сделать строку глоссирования видимой на экране"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6533
+#: source/Adapt_It_wdr.cpp:6738
 msgid "Glossing Uses Navigation Text's Font"
 msgstr "&Шрифт для глосс тот же, что для шрифта текста навигации"
 
-#: source/Adapt_It_wdr.cpp:6533
+#: source/Adapt_It_wdr.cpp:6738
 msgid "Use the navigation text font for glossing text"
 msgstr "Использовать шрифт текста навигации для текста глоссирования "
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6535
+#: source/Adapt_It_wdr.cpp:6740
 msgid "Transform Adaptations Into Glosses..."
 msgstr "&Преобразовать адаптации в глоссы..."
 
-#: source/Adapt_It_wdr.cpp:6535
+#: source/Adapt_It_wdr.cpp:6740
 msgid "Transform adaptations from another project into the current project's glosses"
 msgstr "Трансформировать адаптации из другого проекта в глоссы текущего проекта "
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6536
+#: source/Adapt_It_wdr.cpp:6741
 msgid "Delay..."
 msgstr "&Задержка..."
 
-#: source/Adapt_It_wdr.cpp:6536
+#: source/Adapt_It_wdr.cpp:6741
 msgid "Slow automatic insertions down to a speed suitable for reading along"
 msgstr "Замедлить автоматическую вставку до скорости, достаточно медленной для чтения  вслух"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6538
+#: source/Adapt_It_wdr.cpp:6743
 msgid "Storing Documents in Book Folders"
 msgstr "&Сохранить документы в книжных папках"
 
-#: source/Adapt_It_wdr.cpp:6538
+#: source/Adapt_It_wdr.cpp:6743
 msgid "Turn on, or off, storage of documents to book folders"
 msgstr "Включить или выключить сохранение документов в папки книг."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6540
+#: source/Adapt_It_wdr.cpp:6745
 msgid "Free Translation Mode"
 msgstr "&Режим свободного перевода"
 
-#: source/Adapt_It_wdr.cpp:6540
+#: source/Adapt_It_wdr.cpp:6745
 msgid "Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"
 msgstr "Включить или выключить набор свободных переводов на панели составления и показ их в главном окне."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6541
+#: source/Adapt_It_wdr.cpp:6746
 msgid "Use Target Text As Default Free Translation"
 msgstr "&Использовать целевой текст в качестве свободного перевода по умолчанию"
 
-#: source/Adapt_It_wdr.cpp:6541
+#: source/Adapt_It_wdr.cpp:6746
 msgid "Turn on, or off, composition of a default free translation from the existing target text"
 msgstr "Включить или выключить составление свободного перевода по умолчанию из существующего целевого текста."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6542
+#: source/Adapt_It_wdr.cpp:6747
 msgid "Use Gloss Text As Default Free Translation"
 msgstr "Использовать текст г&лосс в качестве свободного перевода по умолчанию"
 
-#: source/Adapt_It_wdr.cpp:6542
+#: source/Adapt_It_wdr.cpp:6747
 msgid "Turn on, or off, composition of a default free translation from the existing gloss text"
 msgstr "Включить или выключить составление свободного перевода по умолчанию из существующего глоссировочного текста"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6543
+#: source/Adapt_It_wdr.cpp:6748
 msgid "Remove Filtered Free Translations"
 msgstr "&Убрать отфильтрованные свободные переводы"
 
-#: source/Adapt_It_wdr.cpp:6543
+#: source/Adapt_It_wdr.cpp:6748
 msgid "Removes all the filtered free translations in the document"
 msgstr "Удалит все отфильтрованные свободные переводы из документа"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6545
+#: source/Adapt_It_wdr.cpp:6750
 msgid "Collect Back Translations..."
 msgstr "С&обрать обратные переводы..."
 
-#: source/Adapt_It_wdr.cpp:6545
+#: source/Adapt_It_wdr.cpp:6750
 msgid "Collect adaptations, or glosses, and store them with a back translation marker as filtered material"
 msgstr "Собрать адаптации или глоссы и сохранить их в качестве отфильтрованного материала с маркером обратного перевода"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6546
+#: source/Adapt_It_wdr.cpp:6751
 msgid "Remove Filtered Back Translations"
 msgstr "Убрать о&тфильтрованные обратные переводы"
 
-#: source/Adapt_It_wdr.cpp:6546
+#: source/Adapt_It_wdr.cpp:6751
 msgid "Deletes all the filtered back translations in the document"
 msgstr "Удалит все отфильтрованные обратные переводы из документа"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6548
+#: source/Adapt_It_wdr.cpp:6753
 msgid "Use Transliteration Mode"
 msgstr "Применять ре&жим транслитерации"
 
-#: source/Adapt_It_wdr.cpp:6548
+#: source/Adapt_It_wdr.cpp:6753
 msgid "Select this item to use SIL Converters in transliteration mode"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6550
+#: source/Adapt_It_wdr.cpp:6755
 msgid "Send Synchronized Scrolling Messages"
 msgstr "Отправить синхронизированные сообщени&я прокрутки"
 
-#: source/Adapt_It_wdr.cpp:6550
+#: source/Adapt_It_wdr.cpp:6755
 msgid "Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6551
+#: source/Adapt_It_wdr.cpp:6756
 msgid "Receive Synchronized Scrolling Messages"
 msgstr "При&нять синхронизированные сообщения прокрутки"
 
-#: source/Adapt_It_wdr.cpp:6551
+#: source/Adapt_It_wdr.cpp:6756
 msgid "Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6552
+#: source/Adapt_It_wdr.cpp:6757
 msgid "Advanced"
 msgstr "Расширенные &функции"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6555
+#: source/Adapt_It_wdr.cpp:6760
 msgid "Layout text in window from right to left"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6556
+#: source/Adapt_It_wdr.cpp:6761
 msgid "Layout"
 msgstr "Планировка"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6559
+#: source/Adapt_It_wdr.cpp:6764
 msgid "&Help Topics"
 msgstr "&Указатель тем справки"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6559
+#: source/Adapt_It_wdr.cpp:6764
 msgid "List Help topics"
 msgstr "Перечислить темы справки"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6560
+#: source/Adapt_It_wdr.cpp:6765
 msgid "Online Help (Requires Internet Access)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6560
+#: source/Adapt_It_wdr.cpp:6765
 msgid "Get Adapt It Help from the Internet in your browser"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6561
+#: source/Adapt_It_wdr.cpp:6766
 msgid "User Forum (Requires Internet Access)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6563
+#: source/Adapt_It_wdr.cpp:6768
 msgid "Use Tooltips"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6563
+#: source/Adapt_It_wdr.cpp:6768
 msgid "Select this item to turn on or turn off tooltip help messages"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6565
+#: source/Adapt_It_wdr.cpp:6770
 msgid "&About Adapt It..."
 msgstr "О программе Adapt It"
 
-#: source/Adapt_It_wdr.cpp:6565
+#: source/Adapt_It_wdr.cpp:6770
 msgid "Display program information, version number and copyright"
 msgstr "Показать информацию о программе, номере версии и авторском праве"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6566
+#: source/Adapt_It_wdr.cpp:6771
 msgid "&Help"
 msgstr "&Справка "
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6577
+#: source/Adapt_It_wdr.cpp:6782
 msgid "New"
 msgstr "Новый"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6581
+#: source/Adapt_It_wdr.cpp:6786
 msgid "Save"
 msgstr "Сохранить"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6583
+#: source/Adapt_It_wdr.cpp:6788
 msgid "Cut"
 msgstr "Вырезать"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6584
+#: source/Adapt_It_wdr.cpp:6789
 msgid "Copy"
 msgstr "Копировать"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6585
+#: source/Adapt_It_wdr.cpp:6790
 msgid "Paste"
 msgstr "Вставить"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6588
+#: source/Adapt_It_wdr.cpp:6793
 msgid "Print"
 msgstr "Печать"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6590
+#: source/Adapt_It_wdr.cpp:6795
 msgid "Open a Note dialog"
 msgstr "Открыть окно примечаний"
 
-#: source/Adapt_It_wdr.cpp:6590
+#: source/Adapt_It_wdr.cpp:6795
 msgid "Create a note dialog and open it for typing"
 msgstr "Создать окно примечаний и открыть его для набора текста"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6591
+#: source/Adapt_It_wdr.cpp:6796
 msgid "Jump to the previous Note"
 msgstr "Перейти к предыдущему примечанию"
 
-#: source/Adapt_It_wdr.cpp:6591
+#: source/Adapt_It_wdr.cpp:6796
 msgid "Go back and open the previous note"
 msgstr "Вернуться и открыть предыдущее примечание"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6592
+#: source/Adapt_It_wdr.cpp:6797
 msgid "Jump to the next Note"
 msgstr "Перейти к следующему примечанию"
 
-#: source/Adapt_It_wdr.cpp:6592
+#: source/Adapt_It_wdr.cpp:6797
 msgid "Go forward and open the next note"
 msgstr "Идти вперед и открыть следующее примечание"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6593
+#: source/Adapt_It_wdr.cpp:6798
 msgid "Delete All Notes"
 msgstr "Удалить все примечания"
 
-#: source/Adapt_It_wdr.cpp:6593
+#: source/Adapt_It_wdr.cpp:6798
 msgid "Delete all the notes currently in the document"
 msgstr "Удалить все примечания в документе"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6595
+#: source/Adapt_It_wdr.cpp:6800
 msgid "Ignore  Boundaries"
 msgstr "Не учитывать границы"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6598
+#: source/Adapt_It_wdr.cpp:6803
 msgid "Advance to End"
 msgstr "Перейти к концу"
 
-#: source/Adapt_It_wdr.cpp:6598
+#: source/Adapt_It_wdr.cpp:6803
 msgid "Advance to the end of the data"
 msgstr "Вперед к концу данных"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6599
+#: source/Adapt_It_wdr.cpp:6804
 msgid "Back to Start"
 msgstr "Назад к началу"
 
-#: source/Adapt_It_wdr.cpp:6599
+#: source/Adapt_It_wdr.cpp:6804
 msgid "Go back to the start of the data"
 msgstr "Вернуться к началу данных"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6601
+#: source/Adapt_It_wdr.cpp:6806
 msgid "Move Down One Step"
 msgstr "Передвинуть вниз на один шаг"
 
-#: source/Adapt_It_wdr.cpp:6601
+#: source/Adapt_It_wdr.cpp:6806
 msgid "Move the bundle down one step towards the bottom of the file"
 msgstr "Перенести группу данных  на шаг назад к концу файла"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6602
+#: source/Adapt_It_wdr.cpp:6807
 msgid "Move Up One Step"
 msgstr "Передвинуть вверх на один шаг"
 
-#: source/Adapt_It_wdr.cpp:6602
+#: source/Adapt_It_wdr.cpp:6807
 msgid "Move bundle back up one step towards the start of the file"
 msgstr "Перенести группу данных  на шаг вперед к началу файла"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6604
+#: source/Adapt_It_wdr.cpp:6809
 msgid "Jump Back"
 msgstr "Переход назад"
 
-#: source/Adapt_It_wdr.cpp:6604
+#: source/Adapt_It_wdr.cpp:6809
 msgid "Jump back to the last active location"
 msgstr "Переход назад к последнему активному положению"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6606
+#: source/Adapt_It_wdr.cpp:6811
 msgid "Make A Phrase"
 msgstr "Сформировать фразу"
 
-#: source/Adapt_It_wdr.cpp:6606
+#: source/Adapt_It_wdr.cpp:6811
 msgid "Merge selected words into a phrase"
 msgstr "Соединить выделенные слова в фразу"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6608
+#: source/Adapt_It_wdr.cpp:6813
 msgid "Unmake A Phrase"
 msgstr "Расформировать фразу"
 
-#: source/Adapt_It_wdr.cpp:6608
+#: source/Adapt_It_wdr.cpp:6813
 msgid "Restore selected phrase to a sequence of word objects"
 msgstr "Превратить выбранную фразу обратно в последовательность слов"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6611
+#: source/Adapt_It_wdr.cpp:6816
 msgid "Do A Retranslation"
 msgstr "Сделать повторный перевод"
 
-#: source/Adapt_It_wdr.cpp:6611
+#: source/Adapt_It_wdr.cpp:6816
 msgid "The selected section is a retranslation, not an adaptation"
 msgstr "Выбранный текст является повторным переводом, но не адаптацией"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6613
+#: source/Adapt_It_wdr.cpp:6818
 msgid "Edit A Retranslation"
 msgstr "Редактировать повторный перевод"
 
-#: source/Adapt_It_wdr.cpp:6613
+#: source/Adapt_It_wdr.cpp:6818
 msgid "Edit the retranslation at the selection or at the active location"
 msgstr "Редактировать повторный перевод в выборке или в активном месте"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6615
+#: source/Adapt_It_wdr.cpp:6820
 msgid "Remove A Retranslation"
 msgstr "Убрать повторный перевод"
 
-#: source/Adapt_It_wdr.cpp:6615
+#: source/Adapt_It_wdr.cpp:6820
 msgid "Remove the whole of the retranslation"
 msgstr "Полностью убрать повторный перевод"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6618
+#: source/Adapt_It_wdr.cpp:6823
 msgid "Insert A Placeholder"
 msgstr "Вставить заполнитель"
 
-#: source/Adapt_It_wdr.cpp:6618
+#: source/Adapt_It_wdr.cpp:6823
 msgid "Insert a placeholder into the source language text"
 msgstr "Вставить заполнитель в текст исходного языка"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6620
+#: source/Adapt_It_wdr.cpp:6825
 msgid "Remove A Placeholder"
 msgstr "Убрать заполнитель"
 
-#: source/Adapt_It_wdr.cpp:6620
+#: source/Adapt_It_wdr.cpp:6825
 msgid "Remove the placeholder and its adaptation text"
 msgstr "Убрать заполнитель и его адаптированный текст"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6623
+#: source/Adapt_It_wdr.cpp:6828
 msgid "Show The Choose Translation Dialog"
 msgstr "Показать диалоговое окно «Выбор перевода»"
 
-#: source/Adapt_It_wdr.cpp:6623
+#: source/Adapt_It_wdr.cpp:6828
 msgid "Force the Choose Translation dialog to be shown"
 msgstr "Показать диалоговое окно выбора перевода"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6625
+#: source/Adapt_It_wdr.cpp:6830
 #, fuzzy
 msgid "View Translation or Glosses Elsewhere in the Document"
 msgstr "Показать более ранний перевод"
 
-#: source/Adapt_It_wdr.cpp:6625
+#: source/Adapt_It_wdr.cpp:6830
 #, fuzzy
 msgid "View  translation or glosses elsewhere in the document; locate them by chapter and verse"
 msgstr "Показать перевод в более ранней главе и стихе"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6627
+#: source/Adapt_It_wdr.cpp:6832
 msgid "Display Help Topics"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6627
+#: source/Adapt_It_wdr.cpp:6832
 msgid "Display Adapt It program help topics"
 msgstr ""
 
@@ -6479,9 +6493,9 @@ msgstr "Стоп: установка диапазона главы и стиха
 msgid "Sorry, the length of the upper and lower case strings are not the same. Check the project's configuration file, edit it if necessary to make the lengths identical."
 msgstr "Стоп: длина списка заглавных и прописных букв неодинакова. Проверьте конфигурационный файл проекта, при необходимости отредактируйте его, чтобы длина списков была одинаковой."
 
-#: source/CaseEquivPage.cpp:822
-#: source/CaseEquivPage.cpp:843
-#: source/CaseEquivPage.cpp:864
+#: source/CaseEquivPage.cpp:828
+#: source/CaseEquivPage.cpp:849
+#: source/CaseEquivPage.cpp:870
 #, c-format
 msgid ""
 "Sorry, in the Case wizard page, the %s list contains and error - one or more\n"
@@ -6489,14 +6503,14 @@ msgid ""
 msgstr "Стоп: в списке %s есть ошибка – одна или несколько строк состоят из одной только буквы. Каждая строка должна состоять из строчной/прописной пары букв."
 
 # Priority 1
-#: source/CaseEquivPage.cpp:862
-#: source/CaseEquivPage.cpp:1093
+#: source/CaseEquivPage.cpp:868
+#: source/CaseEquivPage.cpp:1099
 msgid "Gloss"
 msgstr "Глосса"
 
-#: source/CaseEquivPage.cpp:1051
-#: source/CaseEquivPage.cpp:1073
-#: source/CaseEquivPage.cpp:1095
+#: source/CaseEquivPage.cpp:1057
+#: source/CaseEquivPage.cpp:1079
+#: source/CaseEquivPage.cpp:1101
 #, c-format
 msgid ""
 "Sorry, in the Case tab page, the %s list contains and error - one or more\n"
@@ -6540,44 +6554,44 @@ msgstr ""
 msgid " - [USED in Table 4]"
 msgstr ""
 
-#: source/CCTabbedDialog.cpp:429
+#: source/CCTabbedDialog.cpp:431
 #, c-format
 msgid "The %s changes table was already assigned in Table tab %d"
 msgstr ""
 
 # Priority 1
 # Do not translate the (*.cct)|*.cct|| part
-#: source/CCTabbedDialog.cpp:561
+#: source/CCTabbedDialog.cpp:563
 msgid "Consistent Changes Tables (*.cct)|*.cct||"
 msgstr "Таблица последовательных изменений (*.cct)|*.cct||"
 
-#: source/CCTabbedDialog.cpp:564
+#: source/CCTabbedDialog.cpp:566
 msgid "Locate The Consistent Change Table"
 msgstr "Найти таблицу последовательных изменений"
 
-#: source/CCTabbedDialog.cpp:695
+#: source/CCTabbedDialog.cpp:697
 msgid "Sorry, the default consistent changes table path supplied by the project settings configuration file is not valid. Adapt It has substituted the path to the project folder. Use the Browse button to locate the changes table files(s)."
 msgstr "Стоп: неверный путь доступа к таблице последовательных изменений, созданной по умолчанию, который дается конфигурационным файлом установок проекта. Adapt It заменил путь доступа к проектной папке.  Кнопкой Просмотр ищите файл(ы) таблицы изменений."
 
-#: source/CCTabbedDialog.cpp:705
+#: source/CCTabbedDialog.cpp:707
 msgid "Sorry, even the project folder is not a safe path. Check your project settings configuration file."
 msgstr ""
 
-#: source/CCTabbedDialog.cpp:736
+#: source/CCTabbedDialog.cpp:738
 msgid "Sorry, you have not yet selected a consistent changes table from the list box. Do so and then try the editing button again."
 msgstr "Стоп: Все ещё не выбрана таблица последовательных изменений из окна списка. Выберите таблицу и попробуйте нажать на кнопку редактирования еще раз. "
 
-#: source/CCTabbedDialog.cpp:773
-#: source/CCTabbedDialog.cpp:870
+#: source/CCTabbedDialog.cpp:775
+#: source/CCTabbedDialog.cpp:872
 msgid "Error opening the file. Cannot edit the file. Aborting."
 msgstr ""
 
-#: source/CCTabbedDialog.cpp:782
-#: source/CCTabbedDialog.cpp:879
+#: source/CCTabbedDialog.cpp:784
+#: source/CCTabbedDialog.cpp:881
 msgid "Error creating the file. Aborting."
 msgstr ""
 
-#: source/CCTabbedDialog.cpp:952
+#: source/CCTabbedDialog.cpp:954
 #, c-format
 msgid "Error opening cc table file for writing with path %s."
 msgstr ""
@@ -6597,19 +6611,19 @@ msgstr "Создать таблицу ПИ (последовательных и�
 msgid "Consistency Check"
 msgstr "Проверка последовательности"
 
-#: source/ChooseLanguageDlg.cpp:67
+#: source/ChooseLanguageDlg.cpp:68
 msgid "Select your preferred language for Adapt It's menus and other messages"
 msgstr ""
 
-#: source/ChooseLanguageDlg.cpp:357
+#: source/ChooseLanguageDlg.cpp:358
 msgid "(Use system default language)"
 msgstr ""
 
-#: source/ChooseLanguageDlg.cpp:400
+#: source/ChooseLanguageDlg.cpp:401
 msgid "Browse to the folder that contains interface localizations for Adapt It"
 msgstr ""
 
-#: source/ChooseLanguageDlg.cpp:419
+#: source/ChooseLanguageDlg.cpp:420
 #, c-format
 msgid ""
 "Sorry, there are no localization folders or files at the following location you chose:\n"
@@ -6617,12 +6631,12 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: source/ChooseLanguageDlg.cpp:584
+#: source/ChooseLanguageDlg.cpp:586
 msgid "Enter Language Name"
 msgstr ""
 
 # Priority 1
-#: source/ChooseLanguageDlg.cpp:586
+#: source/ChooseLanguageDlg.cpp:588
 #, fuzzy, c-format
 msgid "Please enter the common language name for the %s localization: "
 msgstr "Введите имя для нового документа:"
@@ -6632,14 +6646,14 @@ msgstr "Введите имя для нового документа:"
 msgid "Choose Translation"
 msgstr "Выбрать перевод"
 
-#: source/ChooseTranslation.cpp:429
-#: source/ChooseTranslation.cpp:480
-#: source/DocPage.cpp:673
+#: source/ChooseTranslation.cpp:435
+#: source/ChooseTranslation.cpp:493
+#: source/DocPage.cpp:689
 msgid "List box error when getting the current selection"
 msgstr ""
 
 # Translation text must have the same number and kind of %s and %d placeholders. They also must be in the same order as the original text.
-#: source/ChooseTranslation.cpp:520
+#: source/ChooseTranslation.cpp:545
 #, c-format
 msgid ""
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with the knowledge base.\n"
@@ -6659,8 +6673,7 @@ msgstr "Собрать текст в качестве обратных пере�
 msgid "Inconsistency Found"
 msgstr "Найдено несоответствие"
 
-#: source/ConsistencyCheckDlg.cpp:320
-#: source/ConsistencyCheckDlg.cpp:355
+#: source/ConsistencyCheckDlg.cpp:319
 msgid "List box error: probably nothing is selected yet. If so, then select the translation you want to use."
 msgstr ""
 
@@ -6679,75 +6692,75 @@ msgstr ""
 msgid "CC environment did not accept CCSetUTR8Encoding() call: Got error code: %d."
 msgstr ""
 
-#: source/DocPage.cpp:288
+#: source/DocPage.cpp:286
 msgid "You must Select a document (or <New Document>) from the list before continuing."
 msgstr ""
 
 # Priority 1
 # Should be translated as a short string equivalend for ON referring to a mode being active as in "Book folder mode is %s"
-#: source/DocPage.cpp:441
+#: source/DocPage.cpp:457
 msgid "ON"
 msgstr "ВКЛЮЧИТЬ"
 
 # Priority 1
-#: source/DocPage.cpp:443
-#: source/DocPage.cpp:453
+#: source/DocPage.cpp:459
+#: source/DocPage.cpp:469
 #, c-format
 msgid "Book folder mode is  %s"
 msgstr "Режим книжной папки %s"
 
-#: source/DocPage.cpp:445
-#: source/DocPage.cpp:455
+#: source/DocPage.cpp:461
+#: source/DocPage.cpp:471
 #, c-format
 msgid "Documents are being saved to the  %s  folder"
 msgstr "Документы сохраняются в папку %s"
 
 # Priority 1
 # Here OFF is in the sense of a feature or mode that is currently deactivated or that is switched off.
-#: source/DocPage.cpp:451
+#: source/DocPage.cpp:467
 msgid "OFF"
 msgstr "ВЫКЛЮЧИТЬ"
 
 # Priority 1
-#: source/DocPage.cpp:468
+#: source/DocPage.cpp:484
 msgid "<New Document>"
 msgstr "<Новый документ>"
 
 # Priority 1
-#: source/DocPage.cpp:584
+#: source/DocPage.cpp:600
 msgid "An Adapt It document does not start off empty. Instead, it starts out containing all of the source text you wish to translate in that document - perhaps a whole book such as Romans."
 msgstr "При создании документа Adapt It изначально в нем будет содержаться исходный текст, который вы хотите перевести, возможно, текст целой книги, например, Послание к Римлянам."
 
 # Priority 1
-#: source/DocPage.cpp:588
+#: source/DocPage.cpp:604
 msgid "To get the source text into the document, you must first double-click the <New Document> item. Then you will see a file dialog which you can use to locate and get the file which has the source text."
 msgstr "Чтобы ввести исходный текст в документ, следует  сначала сделать двойной щелчок мышью на <Новый документ>. Затем вы увидите файловый диалог, с помощью которого можно найти файл с исходным текстом."
 
 # Priority 1
-#: source/DocPage.cpp:592
+#: source/DocPage.cpp:608
 msgid "Any existing Adapt It documents will have their names shown in the list below the <New Document> item. To open one of those documents for further work, just double-click it."
 msgstr "Имена всех существующих документов Adapt It будут показаны в списке под заголовком <Новый документ>. Чтобы открыть один из этих документов, щелкните по имени два раза мышью."
 
 # Priority 1
-#: source/DocPage.cpp:596
+#: source/DocPage.cpp:612
 msgid "You don't have to finish translating a document in one session. Just be sure that it is saved when you close it. Adapt It stores your documents in your project's Adaptations folder."
 msgstr "Необязательно заканчивать перевод документа за один раз. Только убедитесь перед закрытием документа, что все изменения сохранены. Adapt It сохранит ваши документы в папке адаптаций вашего проекта."
 
 # Priority 1
-#: source/DocPage.cpp:600
+#: source/DocPage.cpp:616
 msgid "Adapt It documents cannot be read by other computer programs. To do that you must first have your document open in Adapt It, then export its translation to a file which another program can read."
 msgstr "Другие компьютерные программы не могут читать документы Adapt It. Для их прочтения следует  сначала открыть документ в программе Adapt It, затем экспортировать его перевод в файл формата, читаемого другой программой."
 
-#: source/DocPage.cpp:737
+#: source/DocPage.cpp:753
 #, c-format
 msgid "Warning: invalid path to the last new document: %s A safe default path will be used instead. "
 msgstr "Предупреждение: неверный путь доступа к последнему новому документу: %s. Вместо него будет использован безопасный путь доступа по умолчанию."
 
-#: source/DocPage.cpp:796
+#: source/DocPage.cpp:812
 msgid "Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"
 msgstr "Стоп: не удалось открыть новый документ. Возможно, вы отменили диалоговое окно для имени выходного файла или файл исходного текста открыт в другой программе."
 
-#: source/DocPage.cpp:856
+#: source/DocPage.cpp:872
 msgid "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"
 msgstr "Стоп: не удалось загрузить документ. (Возможно, файл уже используется другой программой. Или в файле появились ошибки и его следует удалить)"
 
@@ -6766,139 +6779,139 @@ msgid "Sorry, but the chapter and verse combination %s does not exist in this do
 msgstr ""
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:204
+#: source/EditPreferencesDlg.cpp:205
 msgid "Fonts"
 msgstr "Шрифты"
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:205
+#: source/EditPreferencesDlg.cpp:206
 #, fuzzy
 msgid "Backups and Misc"
 msgstr "Резервные копии и БЗ"
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:206
+#: source/EditPreferencesDlg.cpp:207
 msgid "View"
 msgstr "Просмотр"
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:207
+#: source/EditPreferencesDlg.cpp:208
 msgid "Auto-Saving"
 msgstr "Автосохранение"
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:208
-#: source/EditPreferencesDlg.cpp:250
-#: source/EditPreferencesDlg.cpp:261
-#: source/EditPreferencesDlg.cpp:263
+#: source/EditPreferencesDlg.cpp:209
+#: source/EditPreferencesDlg.cpp:302
+#: source/EditPreferencesDlg.cpp:313
+#: source/EditPreferencesDlg.cpp:315
 msgid "Punctuation"
 msgstr "Пунктуация"
 
 # Priority 1
 # Refering to the distinguishing of upper and lower case letters.
-#: source/EditPreferencesDlg.cpp:209
+#: source/EditPreferencesDlg.cpp:210
 msgid "Case"
 msgstr "Регистр"
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:211
+#: source/EditPreferencesDlg.cpp:212
 msgid "USFM"
 msgstr "USFM"
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:212
+#: source/EditPreferencesDlg.cpp:213
 msgid "Filtering"
 msgstr "Фильтрация"
 
-#: source/EditPreferencesDlg.cpp:252
+#: source/EditPreferencesDlg.cpp:304
 msgid ""
 "Note: The Edit Preferences \"Punctuation\" Tab is not available\n"
 "when the Glossing box is checked on the control bar\n"
 "and will now be removed."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:294
-#: source/FontPage.cpp:658
+#: source/EditPreferencesDlg.cpp:346
+#: source/FontPage.cpp:664
 msgid "Sorry, the source font name cannot be left blank."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:301
-#: source/FontPage.cpp:665
+#: source/EditPreferencesDlg.cpp:353
+#: source/FontPage.cpp:671
 msgid "Sorry, the target font name cannot be left blank."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:308
-#: source/FontPage.cpp:672
+#: source/EditPreferencesDlg.cpp:360
+#: source/FontPage.cpp:678
 msgid "Sorry, the navigation font name cannot be left blank."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:318
-#: source/FontPage.cpp:685
+#: source/EditPreferencesDlg.cpp:370
+#: source/FontPage.cpp:691
 #, c-format
 msgid "Sorry, the %s font size must be between %d and %d points. A default size of 12 points will be used instead."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:354
+#: source/EditPreferencesDlg.cpp:406
 #, c-format
 msgid ""
 "Sorry, the %s language name should be limited to\n"
 "no more than 64 characters in length. Please type a shorter name."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:374
+#: source/EditPreferencesDlg.cpp:426
 #, c-format
 msgid ""
 "Sorry, the %s value must be between %d and %d.\n"
 "Please type a value within that range."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:379
+#: source/EditPreferencesDlg.cpp:431
 msgid "maximum number of source words"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:389
+#: source/EditPreferencesDlg.cpp:441
 msgid "minimum number of words in the preceding context"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:399
+#: source/EditPreferencesDlg.cpp:451
 msgid "minimum number of words in the following context"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:409
+#: source/EditPreferencesDlg.cpp:461
 msgid "vertical gap between text strips"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:419
+#: source/EditPreferencesDlg.cpp:471
 msgid "inter-pile gap width"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:429
+#: source/EditPreferencesDlg.cpp:481
 msgid "expansion multiplier"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:441
+#: source/EditPreferencesDlg.cpp:493
 msgid "number of minutes value"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:451
+#: source/EditPreferencesDlg.cpp:503
 msgid "number of moves value"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:461
+#: source/EditPreferencesDlg.cpp:513
 msgid "number of minutes"
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:469
+#: source/EditPreferencesDlg.cpp:521
 #, c-format
 msgid "Sorry, this %s language punctuation edit box cannot have more than 4 punctuation characters."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:489
+#: source/EditPreferencesDlg.cpp:541
 #, c-format
 msgid "Sorry, this %s language punctuation edit box cannot have more than 9 punctuation characters."
 msgstr ""
 
-#: source/EditPreferencesDlg.cpp:511
+#: source/EditPreferencesDlg.cpp:563
 #, c-format
 msgid ""
 "Sorry, the list of %s language case correspondences should be limited to\n"
@@ -6906,7 +6919,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: source/EditPreferencesDlg.cpp:530
+#: source/EditPreferencesDlg.cpp:582
 msgid "gloss"
 msgstr ""
 
@@ -7006,47 +7019,47 @@ msgid "Export Document"
 msgstr "Экспортировать документ"
 
 # Priority 1
-#: source/FilterPage.cpp:189
+#: source/FilterPage.cpp:190
 msgid "To filter out (hide) the text associated with a marker, check the box next to the marker. To adapt the text associated with a marker, un-check the box next to the marker."
 msgstr ""
 
 # Priority 1
-#: source/FilterPage.cpp:191
+#: source/FilterPage.cpp:192
 msgid "When checked, the marker and associated text will be filtered out (hidden) from the adapted document."
 msgstr "Если есть отметка, маркер и связанный с ним текст будет отфильтрован из адаптированного документа."
 
-#: source/FilterPage.cpp:206
+#: source/FilterPage.cpp:207
 #, c-format
 msgid "Warning: The Document is using the %s. The Project, however, defaults to the %s."
 msgstr "Предупреждение: Этот документ использует %s. Проект же по умолчанию использует %s."
 
 # Priority 1
-#: source/FilterPage.cpp:210
+#: source/FilterPage.cpp:211
 msgid "Normally the sfm set for the document should be set to agree with the sfm set used for the project."
 msgstr "Обычно набор sfm для документа должен соответствовать набору sfm для проекта."
 
 # Priority 1
-#: source/FilterPage.cpp:249
+#: source/FilterPage.cpp:251
 #, fuzzy
 msgid "(NO DOCUMENT AVAILABLE IN THIS PROJECT - NO FILTER SETTINGS TO DISPLAY)"
 msgstr "( ДЛЯ ЭТОГО ПРОЕКТА ЕЩЁ НЕ СОЗДАНО НИКАКИХ ДОКУМЕНТОВ)"
 
 # Priority 1
-#: source/FilterPage.cpp:810
+#: source/FilterPage.cpp:812
 msgid "USFM version 2.0 Marker Set"
 msgstr "Набор маркеров USFM Версия 2.0 "
 
 # Priority 1
-#: source/FilterPage.cpp:811
+#: source/FilterPage.cpp:813
 msgid "PNG 1998 Marker Set"
 msgstr "Набор маркеров PNG 1998"
 
 # Priority 1
-#: source/FilterPage.cpp:812
+#: source/FilterPage.cpp:814
 msgid "USFM 2.0 and PNG 1998 Marker Sets"
 msgstr "Набор маркеров USFM 2.0 и PNG 1998 "
 
-#: source/FilterPage.cpp:1093
+#: source/FilterPage.cpp:1096
 #, c-format
 msgid ""
 "Warning: You are about to filter out the following marker:\n"
@@ -7138,16 +7151,16 @@ msgstr "Присоединение к текущему документу усп
 msgid "Joining documents exited prematurely because of a mismatched book ID code."
 msgstr "Объединение документов прервано из-за несоответствия кодовых названий книг."
 
-#: source/JoinDialog.cpp:515
+#: source/JoinDialog.cpp:513
 msgid "Error when getting the current selection, Move Down button has been ignored"
 msgstr ""
 
-#: source/JoinDialog.cpp:546
+#: source/JoinDialog.cpp:550
 msgid "Error when getting the current selection, Move Up button has been ignored"
 msgstr ""
 
 # Priority 1
-#: source/JoinDialog.cpp:580
+#: source/JoinDialog.cpp:592
 msgid "Nothing selected."
 msgstr ""
 
@@ -7156,41 +7169,41 @@ msgstr ""
 msgid "Edit or Examine the Knowledge Base"
 msgstr "Редактировать или просмотреть базу знаний"
 
-#: source/KBEditor.cpp:262
+#: source/KBEditor.cpp:267
 msgid "Keys list box error when getting the current selection"
 msgstr ""
 
-#: source/KBEditor.cpp:480
+#: source/KBEditor.cpp:495
 msgid "Sorry, editing this kind of entry is not permitted."
 msgstr "Стоп: недопустимо редактирование такого рода записей "
 
-#: source/KBEditor.cpp:489
+#: source/KBEditor.cpp:504
 msgid "Changing the spelling in this editor will leave the instances in the document unchanged. (Do a  Consistency Check later to fix this problem.) Do you wish to go ahead with the spelling change?"
 msgstr "Изменение орфографии в этом диалоговом окне не изменит орфографию в других местах. (Для исправления этой проблемы позже проведите проверку последовательности.) Действительно ли вы хотите изменить орфографию?"
 
-#: source/KBEditor.cpp:496
+#: source/KBEditor.cpp:511
 msgid "You have made the translation nothing. This is okay, but is it what you want to do?"
 msgstr "Вы превратили перевод в пустой перевод. Это возможно, но действительно ли вы хотите этого?"
 
-#: source/KBEditor.cpp:512
-#: source/KBEditor.cpp:1080
+#: source/KBEditor.cpp:527
+#: source/KBEditor.cpp:1128
 msgid "Sorry, the translation you are attempting to associate with the current source phrase already exists."
 msgstr "Стоп: перевод, который вы хотите соединить с  текущей исходной фразой, уже существует."
 
-#: source/KBEditor.cpp:582
-#: source/KBEditor.cpp:643
+#: source/KBEditor.cpp:603
+#: source/KBEditor.cpp:670
 msgid "Error warning: Did not find the translation text just inserted!"
 msgstr ""
 
-#: source/KBEditor.cpp:621
+#: source/KBEditor.cpp:648
 msgid "You adding a translation which is nothing. That is okay, but is it what you want to do?"
 msgstr "Вы добавляете пустой перевод. Это возможно, но действительно ли вы хотите сделать это?"
 
-#: source/KBEditor.cpp:694
+#: source/KBEditor.cpp:728
 msgid "Sorry, you can only remove this kind of entry by putting the phrase box at the relevant location in the document, and then click the  \"Save To Knowledge Base\" checkbox back to ON."
 msgstr "Стоп: такую запись вы можете удалить только поместив фразовое окно на соответствующем месте документа и затем пометив кнопку-флажок \"\"Сохранить в базе знаний\"\" в положение «Включено»."
 
-#: source/KBEditor.cpp:730
+#: source/KBEditor.cpp:764
 #, c-format
 msgid ""
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with\n"
@@ -7198,16 +7211,16 @@ msgid ""
 "Do you want to go ahead and remove it?"
 msgstr ""
 
-#: source/KBEditor.cpp:865
-#: source/KBEditor.cpp:934
+#: source/KBEditor.cpp:897
+#: source/KBEditor.cpp:973
 msgid "Translations list box error when getting the current selection"
 msgstr ""
 
-#: source/LanguagesPage.cpp:245
+#: source/LanguagesPage.cpp:251
 msgid "Sorry, the source language name cannot be left blank."
 msgstr "Стоп: нельзя оставлять пустым поле для названия исходного языка!"
 
-#: source/LanguagesPage.cpp:253
+#: source/LanguagesPage.cpp:259
 msgid "Sorry, the target language name cannot be left blank."
 msgstr "Стоп: нельзя оставлять пустым поле для названия целевого языка!"
 
@@ -7424,8 +7437,8 @@ msgstr "Конец файла, нет больше текста для глос�
 msgid "Placement Of Phrase-Medial Standard Format Markers"
 msgstr "Поместить фразово-срединные маркеры стандартного формата "
 
-#: source/PlaceInternalMarkers.cpp:198
-#: source/PlaceRetranslationInternalMarkers.cpp:186
+#: source/PlaceInternalMarkers.cpp:196
+#: source/PlaceRetranslationInternalMarkers.cpp:184
 msgid "List box error when getting the current selection, place manually instead"
 msgstr ""
 
@@ -7454,50 +7467,50 @@ msgid "Progress"
 msgstr "Всего пройдено"
 
 # Priority 1
-#: source/ProjectPage.cpp:255
+#: source/ProjectPage.cpp:284
 msgid "<New Project>"
 msgstr "<Новый проект>"
 
 # Priority 1
-#: source/ProjectPage.cpp:316
+#: source/ProjectPage.cpp:345
 msgid "A project stores your translation documents."
 msgstr "Проект содержит документы с вашим переводом."
 
 # Priority 1
-#: source/ProjectPage.cpp:320
+#: source/ProjectPage.cpp:349
 msgid "It also stores your typed adaptations for the source text's words and phrases in a file called a \"knowledge base\". If you do any glossing, glosses will be stored in a different knowledge base."
 msgstr "Также сохраняет ваши адаптации слов и фраз исходного текста в файле, называющемся \"\"база знаний\"\". При добавлении глосс, они будут сохраняться в отдельной базе знаний"
 
 # Priority 1
-#: source/ProjectPage.cpp:324
+#: source/ProjectPage.cpp:353
 msgid "Adapt It makes a name for a project by asking you to type in two names - the source language name and the target language name. For a given pair of languages, you do this only once."
 msgstr "Adapt It создает имя для каждого проекта, попросив набрать  два названия – названия исходного языка и целевого. Для каждой пары языков вы делаете это только один раз."
 
 # Priority 1
-#: source/ProjectPage.cpp:328
+#: source/ProjectPage.cpp:357
 msgid "You don't have to use language names for setting up a project. You can use any two names you like."
 msgstr "Вам необязательно использовать название языка для запуска проекта. Можно использовать любые два названия."
 
 # Priority 1
-#: source/ProjectPage.cpp:332
+#: source/ProjectPage.cpp:361
 msgid "Documents are different from projects. Each project will store many documents. For example, a project for adapting a New Testament will store a document for each book, or part of a book, that you translate."
 msgstr "Документы отличаются от проектов. Любой проект может состоять из нескольких документов. Так, проект по адаптации перевода Нового Завета будет  содержать документ для каждой книги или его части, которую вы переводите."
 
 # Priority 1
-#: source/ProjectPage.cpp:336
+#: source/ProjectPage.cpp:365
 msgid "In the list below, if you do not have your project set up yet, double click <New Project>. If it is already set up, you will see its name in the list - double click the name to open that project."
 msgstr "В следующем списке щелкните дважды на <Новый проект>, если вы еще не запустили проект. Если проект уже запущен, вы увидите его имя в списке. Чтобы открыть проект, дважды щелкните на названии проекта. "
 
 # Priority 1
-#: source/ProjectPage.cpp:364
+#: source/ProjectPage.cpp:385
 msgid "You must Select a project (or <New Project>) from the list before continuing."
 msgstr ""
 
-#: source/ProjectPage.cpp:493
+#: source/ProjectPage.cpp:532
 msgid "Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."
 msgstr "Стоп: не удалось загрузить базу знаний глосс, не удалось также заменить ее новой (пустой). Это фатальная ошибка."
 
-#: source/ProjectPage.cpp:507
+#: source/ProjectPage.cpp:546
 msgid ""
 "A reminder: backing up of the knowledge base is currently turned off.\n"
 "To turn it on again, see the Knowledge Base tab within the Preferences dialog."
@@ -7505,7 +7518,7 @@ msgstr ""
 "Напоминание: функция создания резервных копий базы знаний сейчас выключена.\n"
 "Чтобы вновь ее включить, обратитесь к вкладке «База знаний» в диалоге «Предпочтения»."
 
-#: source/ProjectPage.cpp:521
+#: source/ProjectPage.cpp:560
 msgid "Sorry, substituting a new empty knowledge base failed. Instead you should now try the Restore Knowledge Base command in the File menu. You need a valid knowledge base before doing any more work."
 msgstr "Стоп: не удалось заменить новую пустую базу знаний. Тогда следует попробовать использовать команду «Восстановить базу знаний» в меню Файл. Перед началом работы необходимо иметь правильно оформленную базу знаний."
 
@@ -7664,7 +7677,7 @@ msgid "(Obligatory) Type a generic name to which each chapter number can be adde
 msgstr "(Обязательно) Наберите общее имя, к которому можно будет добавить номер каждой главы"
 
 # Priority 1
-#: source/StartWorkingWizard.cpp:99
+#: source/StartWorkingWizard.cpp:100
 msgid "Start Working"
 msgstr ""
 
@@ -7746,25 +7759,25 @@ msgid "Back Translation"
 msgstr "Обратный перевод"
 
 # Priority 1
-#: source/ViewFilteredMaterialDlg.cpp:893
+#: source/ViewFilteredMaterialDlg.cpp:895
 msgid "&Save Changes"
 msgstr "&Сохранить изменения"
 
 # Priority 1
-#: source/ViewFilteredMaterialDlg.cpp:1095
-#: source/ViewFilteredMaterialDlg.cpp:1111
+#: source/ViewFilteredMaterialDlg.cpp:1097
+#: source/ViewFilteredMaterialDlg.cpp:1113
 #, c-format
 msgid "The text associated with  %s   can be made available for adaptation."
 msgstr "Текст связанный с %s может быть приготовлен для адаптации."
 
 # Priority 1
-#: source/ViewFilteredMaterialDlg.cpp:1100
+#: source/ViewFilteredMaterialDlg.cpp:1102
 #, c-format
 msgid "The text associated with  %s   cannot be made available for adaptation."
 msgstr "Текст, связанный с %s, не может быть приготовлен для адаптации."
 
 # Priority 1
-#: source/ViewFilteredMaterialDlg.cpp:1107
+#: source/ViewFilteredMaterialDlg.cpp:1109
 msgid "[This Marker Unknown In Currently Selected SFM Set]"
 msgstr "[Этот маркер не представлен в выбранном наборе SFM]"
 
@@ -7815,11 +7828,11 @@ msgid "Choose A Book Folder"
 msgstr "Выбрать книжную папку"
 
 # Priority 1
-#: source/WhichFilesDlg.cpp:64
+#: source/WhichFilesDlg.cpp:65
 msgid "Remove Unwanted Files From The List"
 msgstr "Убрать ненужные файлы из списка"
 
-#: source/WhichFilesDlg.cpp:256
+#: source/WhichFilesDlg.cpp:276
 msgid "Sorry, the left list must not be empty. Doing that makes it impossible to restore the knowledge base."
 msgstr "Стоп: левый список не должен быть пустым! Иначе  потом невозможно будет восстановить базу знаний."
 
