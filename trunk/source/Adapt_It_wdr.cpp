@@ -645,7 +645,7 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NL, _("Check the box below only if the standard format markers in the source language input data always start on new lines"), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NL, _("Check the box below only if the standard format markers in the source language input data always start on new lines"), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item22 = new wxCheckBox( parent, IDC_CHECK_SFM_AFTER_NEWLINES, _("Recognise standard format markers only following newlines"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -1935,7 +1935,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item4->SetToolTip( _("Check this box if you do not want automatic KB backups") );
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1943,7 +1943,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item6->SetToolTip( _("Check this box if you want a backup made when closing the document") );
     item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
@@ -1967,7 +1967,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item9->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item2->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1984,7 +1984,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item13->Add( 20, 20, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item2->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxStaticBox *item18 = new wxStaticBox( parent, -1, _("Set Order of Adaptations and Glosses for Vertical Editing Steps") );
     wxStaticBoxSizer *item17 = new wxStaticBoxSizer( item18, wxVERTICAL );
@@ -2715,7 +2715,7 @@ wxSizer *FilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxString *strs9 = (wxString*) NULL;
     wxCheckListBox *item9 = new wxCheckListBox( parent, IDC_LIST_SFMS, wxDefaultPosition, wxSize(-1,110), 0, strs9, wxLB_SINGLE|wxLB_SORT );
     item9->SetToolTip( _("This is a list of standard format markers that can be used in this document; when boxes are checked the markers are filtered (hidden)") );
-    item7->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item6->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
@@ -2725,7 +2725,7 @@ wxSizer *FilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxString *strs12 = (wxString*) NULL;
     wxCheckListBox *item12 = new wxCheckListBox( parent, IDC_LIST_SFMS_PROJ, wxDefaultPosition, wxSize(-1,110), 0, strs12, wxLB_SINGLE|wxLB_SORT );
     item12->SetToolTip( _("This is a list of default standard format markers for the project; when boxes are checked the markers are filtered (hidden)") );
-    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item6->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
@@ -2735,11 +2735,11 @@ wxSizer *FilterPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxString *strs15 = (wxString*) NULL;
     wxCheckListBox *item15 = new wxCheckListBox( parent, IDC_LIST_SFMS_FACTORY, wxDefaultPosition, wxSize(-1,110), 0, strs15, wxLB_SINGLE|wxLB_SORT );
     item15->SetToolTip( _("This is the list of default standard format markers that come from the Factory (at installation); their filter status cannot be changed") );
-    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item6->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -3253,14 +3253,14 @@ wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item6->SetToolTip( _("Click this button to activate the list below") );
     item4->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_EXPORT_OPTIONS, _("Select a marker, then click on \"Filter Out\" or \"Include in Export\" (or click on its box). When checked, the marker and associated text will be filtered out of the exported document. Note: If character formatting markers are filtered out, only the formatting is removed - the text itself is not removed."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item7->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxString *strs9 = (wxString*) NULL;
     wxCheckListBox *item9 = new wxCheckListBox( parent, IDC_LIST_SFMS, wxDefaultPosition, wxDefaultSize, 0, strs9, wxLB_SINGLE|wxLB_SORT );
@@ -3685,7 +3685,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_MARKER_TEXT, wxT(""), wxDefaultPosition, wxSize(500,100), wxTE_MULTILINE );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_MARKER_TEXT, wxT(""), wxDefaultPosition, wxSize(450,100), wxTE_MULTILINE );
     item11->SetToolTip( _("This is the text associated with the marker selected at left (it can be changed)") );
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -3900,7 +3900,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_KEY, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_READONLY );
     item8->SetToolTip( _("This source word or phrase has an inconsistency in the knowledge base") );
-    item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item5->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -3928,7 +3928,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_ADAPTATION, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_READONLY );
     item16->SetToolTip( _("This is the translation or gloss, but it is not in the knowledge base (see below for ways to correct this)") );
-    item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item13->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -3976,7 +3976,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxTextCtrl *item28 = new wxTextCtrl( parent, IDC_EDIT_TYPE_NEW, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
     item28->SetToolTip( _("Type a new translation or gloss here") );
-    item27->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item27->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item25->Add( item27, 1, wxALIGN_CENTER, 5 );
 
@@ -3986,15 +3986,15 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxButton *item30 = new wxButton( parent, IDC_NOTHING, _("Accept <no adaptation> for this item"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->SetToolTip( _("Use <no adaptation> for this item") );
-    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item29->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item29->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item31 = new wxButton( parent, IDC_BUTTON_IGNORE_IT, _("Ignore it, I will fix it later"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->SetToolTip( _("Click this button to ignore this inconsistency and correct it manually after the consistency check is complete") );
-    item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+    item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item19->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item19->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -4004,13 +4004,17 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item34 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->SetToolTip( _("Click OK to continue with the consistency check") );
-    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item35 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
-    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item35 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetToolTip( _("Click OK to continue with the consistency check") );
+    item34->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item36 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
+    item34->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item19->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4086,7 +4090,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC0, _("Preceding Context:"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -4154,7 +4158,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
     wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC4, _("Following Context:"), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -4244,11 +4248,11 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxString *strs9 = (wxString*) NULL;
     wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(-1,330), 0, strs9, wxLB_SINGLE|wxLB_SORT );
     item9->SetToolTip( _("Source words or phrases that have existing translations in the knowledge base") );
-    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
@@ -4264,9 +4268,9 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs14 = (wxString*) NULL;
-    wxListBox *item14 = new wxListBox( parent, IDC_LIST_EXISTING_TRANSLATIONS, wxDefaultPosition, wxSize(-1,150), 0, strs14, wxLB_SINGLE );
+    wxListBox *item14 = new wxListBox( parent, IDC_LIST_EXISTING_TRANSLATIONS, wxDefaultPosition, wxSize(-1,130), 0, strs14, wxLB_SINGLE );
     item14->SetToolTip( _("Existing translation(s) for the source phrase selected in list at left") );
-    item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item10->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4279,84 +4283,88 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item10->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item17 = new wxTextCtrl( parent, IDC_EDIT_EDITORADD, wxT(""), wxDefaultPosition, wxSize(360,40), 0 );
+    wxTextCtrl *item17 = new wxTextCtrl( parent, IDC_EDIT_EDITORADD, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
     item17->SetToolTip( _("Edit an existing translation here then press Update; or type a new translation here then press Add") );
-    item10->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxFlexGridSizer *item18 = new wxFlexGridSizer( 3, 0, 0 );
 
     wxButton *item19 = new wxButton( parent, IDC_BUTTON_UPDATE, _("&Update"), wxDefaultPosition, wxDefaultSize, 0 );
     item19->SetToolTip( _("Apply edits to the existing translation selected above") );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item20 = new wxButton( parent, IDC_BUTTON_MOVE_UP, _("Move &Up"), wxDefaultPosition, wxDefaultSize, 0 );
     item20->SetToolTip( _("Move the existing translation up in the list") );
-    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item21 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->SetToolTip( _("Remove the existing translation selected above") );
-    item18->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+    item18->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item22 = new wxButton( parent, IDC_BUTTON_ADD, _("&Add"), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("Add edits as a new translation for the source word or phrase selected at left") );
-    item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+    item18->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item23 = new wxButton( parent, IDC_BUTTON_MOVE_DOWN, _("Move &Down"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->SetToolTip( _("Move the existing translation down in the list") );
-    item18->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    item18->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item24 = new wxButton( parent, IDC_ADD_NOTHING, _("Add <&no adaptation>"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Add <no adaptation> to the existing translations list for the selected source word or phrase") );
-    item18->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
+    item18->Add( item24, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item10->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Checkbox: Force Choice For This Item is"), wxDefaultPosition, wxDefaultSize, 0 );
-    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item27 = new wxTextCtrl( parent, IDC_EDIT_SHOW_FLAG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
-    item27->SetToolTip( _("If YES makes Choose Translation dialog appear even when it is the only existing translation in the list") );
-    item25->Add( item27, 1, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("Checkbox: Force Choice For This Item is"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item28 = new wxButton( parent, IDC_BUTTON_FLAG_TOGGLE, _("&Toggle The Setting"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetToolTip( _("Toggle the \"Force Choice For This Item\" checkbox YES or NO") );
-    item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxTextCtrl *item28 = new wxTextCtrl( parent, IDC_EDIT_SHOW_FLAG, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
+    item28->SetToolTip( _("If YES makes Choose Translation dialog appear even when it is the only existing translation in the list") );
+    item26->Add( item28, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item25->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxButton *item29 = new wxButton( parent, IDC_BUTTON_FLAG_TOGGLE, _("&Toggle The Setting"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Toggle the \"Force Choice For This Item\" checkbox YES or NO") );
+    item25->Add( item29, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item10->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item3->Add( item10, 2, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item3->Add( item10, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
-    item29->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item30->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item30 = new wxStaticText( parent, ID_TEXT, _("Type &Key To Be Found:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("Type &Key To Be Found:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item29->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item30->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT_SRC_KEY, wxT(""), wxDefaultPosition, wxSize(320,40), 0 );
-    item31->SetToolTip( _("Type here the first few letters of a source phrase to be found in the list above") );
-    item29->Add( item31, 2, wxALIGN_CENTER|wxALL, 0 );
+    wxTextCtrl *item32 = new wxTextCtrl( parent, IDC_EDIT_SRC_KEY, wxT(""), wxDefaultPosition, wxSize(250,40), 0 );
+    item32->SetToolTip( _("Type here the first few letters of a source phrase to be found in the list above") );
+    item30->Add( item32, 2, wxALIGN_CENTER|wxALL, 0 );
 
-    item29->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    item30->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item32 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item33 = new wxTextCtrl( parent, IDC_EDIT_REF_COUNT, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
-    item33->SetToolTip( _("Number of references in the knowledge base (approximate)") );
-    item29->Add( item33, 1, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 0 );
+    wxTextCtrl *item34 = new wxTextCtrl( parent, IDC_EDIT_REF_COUNT, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY );
+    item34->SetToolTip( _("Number of references in the knowledge base (approximate)") );
+    item30->Add( item34, 1, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    item29->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
+    item30->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -4381,7 +4389,7 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxNotebook *item5 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
 #if !wxCHECK_VERSION(2,5,2)
@@ -4439,6 +4447,8 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item16->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item2->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4923,7 +4933,7 @@ wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxString *strs4 = (wxString*) NULL;
     wxListBox *item4 = new wxListBox( parent, IDC_LIST_CCTABLES, wxDefaultPosition, wxDefaultSize, 0, strs4, wxLB_SINGLE|wxLB_SORT );
     item4->SetToolTip( _("A list of consistent changes (*.cct) files in the current folder path") );
-    item1->Add( item4, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item4, 2, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
@@ -4956,7 +4966,7 @@ wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item12 = new wxStaticText( parent, ID_TEXT, _("Folder path:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item12, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item12, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
@@ -4968,7 +4978,7 @@ wxSizer *CCTablePageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item11->Add( item13, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item11->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5592,10 +5602,10 @@ wxSizer *CCTabbedNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("If you want to use only one consistent changes table select it using the Table 1 tab. If you want to use more than one consistent changes tables, select the first one in the Table 1 tab, the second in the Table 2 tab and so on, up to four Tables. Note: When using multiple consistent change tables, they are processed in sequence starting with Table 1."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxTextCtrl *item3 = new wxTextCtrl( parent, ID_TEXTCTRL, _("If you want to use only one consistent changes table select it using the Table 1 tab. If you want to use more than one consistent changes tables, select the first one in the Table 1 tab, the second in the Table 2 tab and so on, up to four Tables. Note: When using multiple consistent change tables, they are processed in sequence starting with Table 1."), wxDefaultPosition, wxSize(80,50), wxTE_MULTILINE|wxTE_READONLY );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxNotebook *item5 = new wxNotebook( parent, ID_CC_TABBED_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
 #if !wxCHECK_VERSION(2,5,2)
@@ -5660,7 +5670,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item5->SetToolTip( _("This is a list of interface languages found at the path below") );
     item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item2->Add( item4, 3, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 3, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5669,10 +5679,10 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Short (Canonical) language name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxALL, 0 );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_SHORT_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_SHORT_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item6->Add( item8, 1, wxGROW|wxALL, 0 );
 
-    item2->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item6, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5681,10 +5691,10 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Full (Descriptive) language name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALL, 0 );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_LONG_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(150,-1), wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_LONG_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY|wxTE_PROCESS_TAB|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item2->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item9, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -5695,7 +5705,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,50), wxTE_READONLY|wxHSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_READONLY|wxHSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item16->SetToolTip( _("The path where Adapt It looks for localization folders containing .mo files. Use the \"Browse...\" button at right to designate a different path") );
     item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

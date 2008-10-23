@@ -16637,7 +16637,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		// be cleared, likewise the current glossing KB
 		wxString message;
 		// IDS_ABOUT_TO_CLOBBER_KB
-		message = message.Format(_("Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries. Likewise for the glossing knowledge base, which contains %d entries. Are you willing for this to happen?"),nCount,nGlossingCount);
+		message = message.Format(_("Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\nLikewise for the glossing knowledge base, which contains %d entries.\nAre you willing for this to happen?"),nCount,nGlossingCount);
 		int nGoAhead = wxYES; // default (proceed)
 
 		nGoAhead = wxMessageBox(message,_T(""), wxYES_NO);

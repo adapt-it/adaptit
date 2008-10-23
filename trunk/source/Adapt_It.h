@@ -38,7 +38,7 @@
 
 #define VERSION_MAJOR_PART 4
 #define VERSION_MINOR_PART 0
-#define VERSION_BUILD_PART 0
+#define VERSION_BUILD_PART 1
 
 //#define _UNICODE 
 // whm Notes: The MFC version uses _NONROMAN everywhere instead of _UNICODE. For MFC, the 
