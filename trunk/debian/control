@@ -12,7 +12,7 @@ Description: Adapt It
  Adapt It gives you tools for translating text from one language which you know, to another related language known to you or a co-worker.
 
 Package: adaptit-docs
-Architecture: all
+Architecture: any
 Depends: adaptit
 Description: Adapt It Documentation and Localization
  Documentation and localization for Adapt It.
