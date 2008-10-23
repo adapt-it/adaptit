@@ -54,7 +54,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" \
-	"$(DESTDIR)$(pkgdatadir)"
+	"$(DESTDIR)$(xmldir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
@@ -127,8 +127,8 @@ am__vpath_adj = case $$p in \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
 htmlhelpDATA_INSTALL = $(INSTALL_DATA)
-pkgdataDATA_INSTALL = $(INSTALL_DATA)
-DATA = $(htmlhelp_DATA) $(pkgdata_DATA)
+xmlDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(htmlhelp_DATA) $(xml_DATA)
 HEADERS = $(noinst_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
@@ -311,7 +311,8 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = config.rpath
 
 # Resource files and help data
-pkgdata_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
+xmldir = $(pkgdatadir)
+xml_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
 
 # HTML help data
 htmlhelpdir = $(pkgdatadir)/help
@@ -1702,22 +1703,22 @@ uninstall-htmlhelpDATA:
 	  echo " rm -f '$(DESTDIR)$(htmlhelpdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(htmlhelpdir)/$$f"; \
 	done
-install-pkgdataDATA: $(pkgdata_DATA)
+install-xmlDATA: $(xml_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
-	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	test -z "$(xmldir)" || $(MKDIR_P) "$(DESTDIR)$(xmldir)"
+	@list='$(xml_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(pkgdataDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pkgdatadir)/$$f'"; \
-	  $(pkgdataDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	  echo " $(xmlDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(xmldir)/$$f'"; \
+	  $(xmlDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(xmldir)/$$f"; \
 	done
 
-uninstall-pkgdataDATA:
+uninstall-xmlDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(pkgdata_DATA)'; for p in $$list; do \
+	@list='$(xml_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(pkgdatadir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(pkgdatadir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(xmldir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(xmldir)/$$f"; \
 	done
 
 # This directory's subdirectories are mostly independent; you can cd
@@ -2003,7 +2004,7 @@ check: check-recursive
 all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(pkgdatadir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(htmlhelpdir)" "$(DESTDIR)$(xmldir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -2051,7 +2052,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-htmlhelpDATA install-pkgdataDATA
+install-data-am: install-htmlhelpDATA install-xmlDATA
 
 install-dvi: install-dvi-recursive
 
@@ -2090,7 +2091,7 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-htmlhelpDATA \
-	uninstall-pkgdataDATA
+	uninstall-xmlDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) install-am \
 	install-strip
@@ -2106,15 +2107,18 @@ uninstall-am: uninstall-binPROGRAMS uninstall-htmlhelpDATA \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-htmlhelpDATA install-info install-info-am install-man \
-	install-pdf install-pdf-am install-pkgdataDATA install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip install-xmlDATA installcheck installcheck-am \
 	installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-recursive uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-htmlhelpDATA \
-	uninstall-pkgdataDATA
+	uninstall-binPROGRAMS uninstall-htmlhelpDATA uninstall-xmlDATA
 
+
+#doc_DATA = $(shell ls ../../docs/*.htm ../../docs/*.txt ../../docs/*.doc)
+#docImagesdir = $(docdir)/Images/Adapt_It_Quick_Start/
+#docImages_DATA = $(shell ls ../../docs/Images/Adapt_It_Quick_Start/*.gif)
 
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp
