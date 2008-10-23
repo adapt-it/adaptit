@@ -50,9 +50,11 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/adaptit.
-	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit install-exec
+	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit \
+		install-exec install-xmlDATA
 
-	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit-docs install-data
+	$(MAKE) -C bin/linux/Unicode DESTDIR=$(CURDIR)/debian/adaptit-docs \
+		install-htmlhelpDATA
 
 
 # Build architecture-independent files here.

@@ -43,11 +43,16 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = config.rpath
 
 # Resource files and help data
-pkgdata_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
+xmldir = $(pkgdatadir)
+xml_DATA = ../../xml/AI_USFM.xml ../../xml/books.xml
 
 # HTML help data
 htmlhelpdir = $(pkgdatadir)/help
 htmlhelp_DATA = adaptit.htb
+
+#doc_DATA = $(shell ls ../../docs/*.htm ../../docs/*.txt ../../docs/*.doc)
+#docImagesdir = $(docdir)/Images/Adapt_It_Quick_Start/
+#docImages_DATA = $(shell ls ../../docs/Images/Adapt_It_Quick_Start/*.gif)
 
 # Rule to build adaptit.htb
 adaptit.htb: ../../hlp
