@@ -1,6 +1,12 @@
+adaptit (4.0.1-1) unstable; urgency=low
+
+  * Split packaging adaptit and adaptit-docs
+
+ -- Joel Martin <joel@martintribe.org>  Wed, 22 Oct 2008 20:00:00 -0500
+
 adaptit (4.0.0-1) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)
+  * Initial release
 
- -- Bill Martin <bill_martin@sil.org>  Wed, 10 Sep 2008 17:14:23 -0500
+ -- Joel Maritn <joel@martintribe.org>  Wed, 10 Sep 2008 17:14:23 -0500
 
