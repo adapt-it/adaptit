@@ -315,6 +315,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	USFMAnalysis* pSfm;
 	wxString key;
 	wxString cbStr;
+	m_pComboSFM->Clear(); // whm added 26Oct08
 	// wx version: I've modified the m_pComboSFM->Append() routines to only put sensible sfms in the
 	// combo box, i.e., none of the _basestyle markers or others that are merely used internally by 
 	// Adapt It are now included.
