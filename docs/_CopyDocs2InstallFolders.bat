@@ -26,11 +26,10 @@ echo    Known Issues and Limitations.txt
 echo    Tok Pisin fragment 1John.txt
 echo    KJV 1Jn 2.12-17.txt
 echo    SILConverters in AdaptIt.doc
+echo    Localization_Readme.txt
 echo.
 echo To all except Minimal, Documentation Only and Localizations Only:
 echo    CC\*.*
-echo To all except Minimal and Documentation Only:
-echo    Localization_Readme.txt
 echo To all except Localization Only:
 echo    ..\license\*.txt 
 echo To all setup Regular except Localization Only:
@@ -100,6 +99,7 @@ xcopy "KJV 1Jn 2.12-17.txt" "..\setup Regular Documentation Only\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Regular Documentation Only\" /Y
 xcopy "..\license\*.txt" "..\setup Regular Documentation Only\*.*" /Y
 xcopy "Readme.txt" "..\setup Regular Documentation Only\" /Y
+xcopy "Localization_Readme.txt" "..\setup Regular Documentation Only\" /Y
 
 @echo on
 rem 5. The following copies Documentation files to the "setup Regular Localizations Only" folder
@@ -165,6 +165,7 @@ xcopy "KJV 1Jn 2.12-17.txt" "..\setup Unicode Documentation Only\" /Y
 xcopy "SILConverters in AdaptIt.doc" "..\setup Unicode Documentation Only\" /Y
 xcopy "..\license\*.txt" "..\setup Unicode Documentation Only\*.*" /Y
 xcopy "Readme_Unicode_Version.txt" "..\setup Unicode Documentation Only\" /Y
+xcopy "Localization_Readme.txt" "..\setup Unicode Documentation Only\" /Y
 
 @echo on
 rem 10. The following copies Documentation files to the "setup Unicode Localizations Only" folder
