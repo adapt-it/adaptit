@@ -1,0 +1,10 @@
+Version 4.0.1 update 28Oct2008:
+
+Fixes a potential crash problem in the source text editing's vertical edit process. Adds sanity checks to insure that valid selections are made in a number of list box controls. Makes adjustments to the sizers in a number of the larger dialogs and the wizard to better fit on the smaller 800 x 600 pixel screens being used on the new generation of mini notebook computers. Updates the documentation for version 4. Makes a few changes to the localization files. This is the first version advertised to the user community.
+
+New WX Version 4.0.0 initial release 16Oct2008:
+
+Adapt It WX is an entirely new version of Adapt It based on the wxWidgets Cross-Platform GUI Library. This new version of Adapt It is no longer dependent on Microsoft's MFC programming framework, nor does it utilize the .NET Framework, but is now independent of Microsoft's proprietary technologies in order to become a truly cross-platform application. See the "Known Issues and Limitations.txt" file for information on how this cross-platform version differs from previous legacy versions.
+
+(See the legacy version 3.6.4 for changes prior to this new release of Adapt It WX)
+
