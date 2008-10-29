@@ -1,0 +1,3 @@
+New WX Version 4.0.0 initial release 16Oct2008:
+
+Adapt It WX is an entirely new version of Adapt It based on the wxWidgets Cross-Platform GUI Library. This new version of Adapt It is no longer dependent on Microsoft's MFC programming framework, nor does it utilize the .NET Framework, but is now independent of Microsoft's proprietary technologies in order to become a truly cross-platform application. See the "Known Issues and Limitations.txt" file for information on how this cross-platform version differs from previous legacy versions.
