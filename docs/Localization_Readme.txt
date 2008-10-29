@@ -17,9 +17,11 @@ localizations for Adapt It.
 
 Where localization folders and files are located after installation:
 
-The AdaptItWX program localizations for a given language are in a file 
-called Adapt_It.mo, and the general wxWidgets library's localizations 
-are in a file called wxstd.mo. These two files keep the same file names
+The Adapt It WX program localizations for a given language are in a file 
+called <AppName>.mo, and the general wxWidgets library's localizations 
+are in a file called wxstd.mo (<AppName> is the name for the application
+on the given platform - Adapt_It on Windows, adaptit on Linux and AdaptIt
+on the Macintosh. These two .mo files keep the same file names
 regardless of what language/localization they contain in them. Hence, 
 to keep things organized, they are kept in separate subfolders. 
 Different platforms have different conventins where the operating system
