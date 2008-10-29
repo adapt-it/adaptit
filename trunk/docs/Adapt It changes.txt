@@ -1,85 +1,10 @@
+Version 4.0.1 update 28Oct2008:
 
+Fixes a potential crash problem in the source text editing's vertical edit process. Adds sanity checks to insure that valid selections are made in a number of list box controls. Makes adjustments to the sizers in a number of the larger dialogs and the wizard to better fit on the smaller 800 x 600 pixel screens being used on the new generation of mini notebook computers. Updates the documentation for version 4. Makes a few changes to the localization files. This is the first version advertised to the user community.
 
-The following changes apply to the legacy version 3.6.4 and earlier:
+New WX Version 4.0.0 initial release 16Oct2008:
 
-Adapt It bug fixes, new features, and version information. Year 2007.
+Adapt It WX is an entirely new version of Adapt It based on the wxWidgets Cross-Platform GUI Library. This new version of Adapt It is no longer dependent on Microsoft's MFC programming framework, nor does it utilize the .NET Framework, but is now independent of Microsoft's proprietary technologies in order to become a truly cross-platform application. See the "Known Issues and Limitations.txt" file for information on how this cross-platform version differs from previous legacy versions.
 
-Developers: 
-Bruce Waters (bruce_waters@sil.org) and Bill Martin (Bill_Martin@sil.org)
-Online helps Bob Buss (Bob_Buss@wycliffe.org) and Bill Martin (due in 2007)
-Jonathan Field (volunteer; did the Split, Join, Move commands in version 3.)
+(See the legacy version 3.6.4 for changes prior to this new release of Adapt It WX)
 
-Known Problem: (Sept 2004) Adapt It Unicode sometimes does not render LeftToRight reading text correctly in the consistent changes editor window when the target text is RightToLeft reading (initial character is thrown to end of the string). This makes editing a cc table difficult. If this happens, do the editing of the table in MS Word instead, or in another unicode-capable word processor, and save the edited table as UTF-8.
-		_________________________________________________________________
-
-New Version Dec 28: version 3.6.1 (Spanish, Portuguese, Russian, Indonesian, Mandarin, French, English) 
-			Regular & Unicode
-
-Bug Fix Dec 27: A small potential problem with RTF exports was identified & fixed by Bill Martin
-
-New Version Dec 27: version 3.6.0  (Spanish only)
-
-Feature Change December 27: Previously if there was any filtered information (such as any or all of a Note, free translation or back translation, or any other filtered information type) stored on the first word or phrase of the selection which delineates a section the purpose of editing the source text, choosing the Edit Source Text command would put up a message box saying that editing the text is not allowed when the selection contains filtered information. This restriction was unnecessarily harsh, and so has been removed. The restriction, and the message, now apply only when some word or phrase which is not initial in the selection span has filtered information stored on it. To put it another way: if you start your selection where the green wedge is, you will be allowed to edit the source text provided your selection does not cross a second green wedge; but if you start your selection at some point which has no green wedge and your selection crosses a green wedge, you won't be allowed to edit that selection. If you must edit in the latter context, do it in two separate spans - one selection up to just preceding the green wedge, and edit that that much first; then another selection from the green wedge onwards, and edit that selection second.
-
-Bug Fix December 27: Unmerging a phrase on which a Note was stored, the Note icon got lost from the view and most of the Note functionality then failed to work with that particular Note. It now correctly retains the icon in the view and the Note continues to work properly.
-
-Feature Change Dec 27: In the French version, the Languages tab of the wizard uses the English word "to" rather than French "vers" between the names of the source and target languages. Also, in the Case page of the wizard, and the Preferences, the default button is now labelled Latin because it generates only the Latin case equivalences. French-specific ones have always needed to be typed in by hand, and so the name button name "Latin" is more consistent with that fact.
-
-Bug Fixes   December 21: Changes made in version 3 inadvertantly introduced bug or two in the Start Working wizard, in particular, special characters in the Case page entered at project setup time were not remembered. The work-around was to do it later, using the Preferences... dialog instead, after the wizard had finished. It now works correctly at both places. The same happened with the Punctuation page of the wizard; it too now works correctly at both places.
-
-Feature Change 21 December: Interface modifications to the application behaviour when in Review mode and Enter is pressed, were not also built into the functionality where the phrase box can be relocated by a click. In particular, the repositioned phrase box would wrongly do a lookup of the knowledge base, etc. This has been changed so that the review mode behaviour is uniform, whether changing the box location by a click or by pressing Enter or Tab.
-
-Bug Fix 20 December: In Reviewing mode, if Enter was pressed repeatedly to advance the phrase box through a number of holes, when it started at a new line, it failed to be visible (but was present) and one or more Enter presses would be needed to make it reappear further along in the new strip, or, it would stubbornly remain invisible.
-
-Feature Change 20 December: Earlier versions would, when delineating the span for the next free translation section, halt the delineation if storage of a Note was detected. This was usually a nuisance because Notes could be put anywhere and we don't want free translation sections to halt at arbitrary places. So the delineation process now ignores the presence of Notes. This effectively decouples free translation behaviours from Note behaviours, and you no longer need to enter Notes after free translations have all be put in. (You can create, delete or move Notes while free translation mode is on too - that has always been possible.)
-
-Feature Change 19 December: If Reviewing mode is turned on and the phrase box moves to a hole, the application won't copy the source text word into the phrase box, even if the Copy Source command is currently turned on.
-
-Bug Fix 19 December: The following sequence of actions resulted in a recalculated view but the phrase box remained hidden: launch application, open document (in Drafting mode), click to place the phrase box at a pile which is immediately preceding a hole (ie. before an unadapted source text word), click Reviewing mode one, press the Enter key. This is now fixed and the phrase box shows.
-
-Feature Change 19 December: When the Move Note Forward, or Move Note Backward command is used, the note is moved as before, but the source text at the new location is automatically selected so that the user can use CTRL + 2 to move the note further leftward, or CTRL + 3 to move the note further forwards, as many times as necessary for his purposes without having to reestablish the selection for the move each time. This speeds up moving notes around.
-
-Bug Fixes and Feature changes, November: (feature change) make the books.xml file work correctly if the user edits it so that it has fewer divisions and different numbers of books per division; (bug) a null byte sometimes added to the end of an SFM export of the source or target was removed, it made WinMerge think it was a binary file and hence it could not open it; (bug fix) RTF export, including interlinear RTF export, should now fit text to cells more accurately, not show a blank row for a free translation when there are no free translations in the document, and open robustly in all (we hope) versions of WORD (tested with WORD 2002 and 2003), and an RTF export of any kind from a document created from unstructured plain text (that is, one without standard format markup) and in which the user has created notes or free translations, will no longer crash WORD when the RTF file is opened.
-
-New Version 17 October: Version 3.5.2, English and Spanish versions only (a temporary version pending a later version with a few more bug fixes)
-
-Bug Fix 17 October: If the user launched the application and cancelled out of the Start Working... wizard before entering a project, and then tries to do an Unpack Document... command, the unpack operation failed (saying it could not find the *.aiz file).
-
-New Version 16 October: Version 3.5.1, Indonesian only
-
-Bug Fix  15 October: A long path to a consistent changes table file would cause the attempt to load it to fail. This is now fixed. (By an invisible hack which temporarily makes a copy of any chosen table in the root directory -- thereby shortening the path to it, loads it, and then deletes the copied file automatically.)
-
-New Version 7 August: Version 3.5.0  English, French, Mandarin (Unicode only), Portuguese, Spanish
-
-Bug Fix, 7 Aug: If a Split Document command was done on a document at a point which stored one or more endmarkers which ended some construct (such as a footnote), then the split of first part lacked the terminating endmarker(s), and the endmarker(s) were instead located at the start of the document part which followed the split. The new behaviour checks for this condition, and when found it creates an empty (dummy) document storage element to store the endmarkers at the end of the split off document part, maintaining correct document structure. In support of the preceding, the Join command now automatically looks for the presence of this dummy element, and automatically removes it, restoring endmarker locations, when joining.
-
-New Feature 02 July: (Source, Bob Eaton, SAG), the encoding attribute for KB and adaptation document's XML files was unilaterally set to UTF-8. This did not bother Adapt It, which ignored it anyway, but it produced errors in any 3rd party software which expected that attribute to have the name of the encoding which is to apply in the text in the XML document. The adaptation documentin XML format, and the KB files in XML format, now store the encoding name for the character set in use for the source text. (This may not be the same as the encodings for the target text and navigation text, but the XML prologue cannot support 3 encoding names, so we have to settle on one, and the source text one is the most widely relevant.) 
-Note: An encoding converter application currently created by Bob Eaton supports having source, target and navigation text's encodings each different, and will convert legacy (ANSI) Adapt It Regular projects to Adapt It Unicode projects, including relevant changes to the project and basic configuration files.
-
-Feature Change 23 June: Split and Join did not suppress the production of document backups while either operation was in effect; but the code for both did not address the issue of whether or not backups were wanted. There was no crash or anything bad, but it was just poor design because there was no explicit decision built into the code about what to do about backups for these operations - and the result was that there were no backups done for the split files except the last one, which was inconsistent behaviour. This is now changed. When either operation is doing its job, the code for producing a document backup does nothing - whether or not the user has requested document backups be produced. (The application, when doing Split or Join, does not try to clean up any backup files, on the grounds that the user never sees them in the interface and their presence is some insurance if there was a glitch. Windows Explorer can be used to remove some or all of them if they become too many. When not doing Split or Join, the application attempts to remove the matching backup document file before constructing a replacement one, when the save operation is done, as was the case previously.)
-
-Bug Fixes 23 June: Doing a Split Document command, with document backups requested, resulted in the last of the split files being wrongly given the backup filename of the original file. Doing a Join Document command resulted in an error message (but the application continued to work once the message was dismissed), and either failure to do all the joining, or when done it backed up the whole joined file with the backup filename appropriate for the first of the small files which contributed to the join.
-
-Bug Fix 23 June: For an XML load of an existing document, if there was more than one period (.) in the filename, the backup filename constructed was incorrect (some of the filename title was lost).
-
-New Version  27 March:  Version 3.4.0
-
-New Feature  27 March:  The application now supports, independently for each, both sending and receiving of "scripture reference focus" messages, so as to be able to scroll in sync with other applications, or to cause other applications that can receive such messages, to scroll in sync with Adapt It. If sending from Adapt It from a verse range, the scripture reference sent will use the verse number of the start of the range. Likewise, when receiving a scripture reference and Adapt It's document has, at the relevant location, a verse range, the phrase box will be placed at the start of the range. If a scripture reference is received and it is not in the currently open Adapt It document, Adapt It will attempt to find and open the correct document after closing the current document and saving automatically if the document was modified.
-
-Changed Feature 20 March: Formerly, when a retranslation was done, any KB entries resulting from adaptations (including mergers, if any) in the scope of the selection used for defining the retranslation span were, if their reference count was 1, removed from the KB; or if there reference count was greater than 1, it was decremented by 1. This behaviour had the capability of considerably dumbing down the KB's retained knowledge if the user, for communicability reasons, had to make a number of retranslations to material he earlier had adapted. Losing knowledge unnecessarily like this was unhelpful, so we stopped it happening when a retranslation was being set up.
-
-Bug Fix  13 March: In the Unicode version, each time the user uses the window splitter feature, then an extra Layout menu was added to the menu bar; and unsplitting the window did not remove the extra Layout menus. (Application functionality was not impared though.) Now splitting the window does not produce an exta Layout menu.
-
-Feature Change 13 March: The "Export Filter/Options" button did not restore the earlier options if the user dismissed the dialog using the Cancel button. Now it does.
-
-New Version March 05: Version 3.3.3, English (Regular & Unicode), French (Regular & Unicode),  Mandarin (Unicode version only)
-This version fixes a bug where the source text would not be parsed correctly for document creation if a footnote marker \f followed immediately after a punctuation character.
-
-Bug Fix 23 Feb: The unicode application got character counting wrong for counting punctuation characters following a word when there was a SF marker (such as \f for a footnote) immediately following the punctuation characters.
-
-Feature change Feb 08: In anticipation of the Dana version reading Windows version's files, the sizex attribute in the <Settings> tag of the XML document now stores a count of how many document storage elements are currently in the document. (The Dana will use this information to calibrate its progress bar when parsing in the document file.) (The attribute can be reused this way because it's value has been ignored by the Windows app for years now.)
-
-New Version Jan 05: Version 3.3.2, English (Regular & Unicode), French (Regular & Unicode),  Mandarin (Unicode version only)
-This version also distributes the newer AI_USFM.xml file in the new Regular versions (it was distributed already for the Unicode versions in 3.3.1). This AI_USFM.xml file supports the USFM 2.05 standard. The user need do nothing to have the newer file utilized, it is automatic.
-
-Bug Fix Jan 4: A change introduced in 3.2.4 of October 1 2006, regretably had the effect of making any multi-file operation (such as restoring the KB, or a consistency check on more than just the current document, or a retranslation report) fail when Adapt It tried to open the second document in the process. The same error quite likely caused file access failures in Book Folder Mode. 

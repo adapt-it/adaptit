@@ -219,15 +219,15 @@ in the Adapt It Start Menu group on Windows installations):
       Waters (bruce_waters@sil.org) who can supply the file in 
       .PDF or .RTF format instead. The PDF format is the preferred 
       alternate format because it is approximately the same size as
-      the Word document from which it is made (about 1 MB). The RTF 
-      file is huge (52MB unzipped).
+      the Word document from which it is made (about 2.3 MB). The 
+      RTF file is significantly larger (4MB).
    4. Localization_Readme.txt describes how the localization system 
       works in Adapt It WX and Adapt It WX Unicode. It also tells 
       how anyone can modify an existing interface translation, or 
       prepare a new language interface for Adapt It using the Poedit 
       program which is freely available from the Internet. 
    5. Adapt It changes.txt describes the changes from previous 
-      versions of Adapt It (starting with version 4.0.0).
+      versions of Adapt It WX (starting with version 4.0.0).
 
 ---------------------------------------------------------------------
 Localization:
