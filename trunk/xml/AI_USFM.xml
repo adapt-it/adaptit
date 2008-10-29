@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	18 April 2008, by Bill Martin
-USFM version:	2.103 as published in usfm.sty by UBS 4 April, 2008
+Last Updated:	28 October 2008, by Bill Martin
+USFM version:	2.2 as published in usfm.sty by UBS 17 October, 2008
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -1269,6 +1269,26 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	The \xq* end marker is optional in the USFM
 	marking system. Hence, the \xq* end marker may not exist
 	even though inLine="1" is the default for \xq. -->
+<SFM marker="xot" endMarker="xot*"
+	description="Cross-reference target reference(s), Old Testament only"
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
+	styleName="xot...xot* - Cross Reference - OT Target Refs (optional)"
+	styleType="character"
+	>
+</SFM>
+<SFM marker="xnt" endMarker="xnt*"
+	description="Cross-reference target reference(s), New Testament only"
+	usfm="1"
+	filter="1"
+	inLine="1" special="1"
+	textType="crossReference"
+	styleName="xnt...xnt* - Cross Reference - NT Target Refs (optional)"
+	styleType="character"
+	>
+</SFM>
 <SFM marker="xdc" endMarker="xdc*"
 	description="Cross-reference target reference(s), Deuterocanon only"
 	usfm="1"
@@ -1370,7 +1390,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	>
 </SFM>
 <SFM marker="pi"
-	description="Paragraph text, level 1 indent (if sinlge level), with first line indent; often used for discourse"
+	description="Paragraph text, level 1 indent (if sinlge level), with first line indent; often used for discourse (basic)"
 	usfm="1" png="1"
 	bdryOnLast="1"
 	inform="1" navigationText="para indented"
@@ -2389,15 +2409,43 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	>
 </SFM>
 <SFM marker="imte"
-	description="Introduction major title at introduction end"
+	description="Introduction major title at introduction end, level 1 (if single level)"
 	usfm="1"
 	userCanSetFilter="1"
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
-	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End"
+	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 1"
 	fontSize="20"
 	bold="1"
+	justification="center"
+	basedOn="imt" nextStyle="ie"
+	>
+</SFM>
+<SFM marker="imte1"
+	description="Introduction major title at introduction end, level 1 (if multiple levels)"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="intro major title at end"
+	textType="noType" wrap="1"
+	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 1"
+	fontSize="20"
+	bold="1"
+	justification="center"
+	basedOn="imt" nextStyle="ie"
+	>
+</SFM>
+<SFM marker="imte2"
+	description="Introduction major title at introduction end, level 2"
+	usfm="1"
+	userCanSetFilter="1"
+	special="1" bdryOnLast="1"
+	inform="1" navigationText="intro major title at end"
+	textType="noType" wrap="1"
+	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 2"
+	fontSize="16"
+	italic="1"
 	justification="center"
 	basedOn="imt" nextStyle="ie"
 	>
@@ -2758,6 +2806,17 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 	<!-- Use to explain missing book in a short/abridged Old
 	Testament -->
+<SFM marker="iqt" endMarker="iqt*"
+	description="For quoted scripture text appearing in the introduction"
+	usfm="1"
+	userCanSetFilter="1"
+	inLine="1" special="1"
+	textType="none"
+	styleName="iqt...iqt* - Special Text - Quoted Scripture Text in Introduction"
+	styleType="character"
+	italic="1"
+	>
+</SFM>
 <SFM marker="ie"
 	description="Introduction ending marker"
 	usfm="1"
@@ -3476,7 +3535,9 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	a note explains that the last part of Mark has weak
 	manuscript evidence -->
 <!-- OTHER SPECIAL TEXT ELEMENTS
-	!$ fixed space
+	!$ fixed space 
+	Note: USFM 2.2 now uses ~ (tilde) for fixed space but 
+	Adapt It does not recognize ~ as a fixed space
 	// discretionary line break -->
 <!-- ILLUSTRATION AND PICTURE FORMATTING -->
 <SFM marker="fig" endMarker="fig*"
