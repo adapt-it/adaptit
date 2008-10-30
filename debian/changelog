@@ -2,7 +2,7 @@ adaptit (4.0.1-1) unstable; urgency=low
 
   * Split packaging adaptit and adaptit-docs
 
- -- Joel Martin <joel@martintribe.org>  Wed, 22 Oct 2008 20:00:00 -0500
+ -- Joel Martin <joel@martintribe.org>  Wed, 29 Oct 2008 21:30:00 -0500
 
 adaptit (4.0.0-1) unstable; urgency=low
 
