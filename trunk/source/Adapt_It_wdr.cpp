@@ -225,7 +225,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item30->Add( item31, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item30->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item30, 0, wxALIGN_CENTER, 5 );
 
@@ -412,13 +412,13 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item25 = new wxButton( parent, IDC_BUTTON_CLEAR, _("Clear Contents"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->SetToolTip( _("Clear all text from the compose bar") );
-    item24->Add( item25, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item24->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item24->Add( 10, 3, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item26 = new wxButton( parent, IDC_BUTTON_SELECT_ALL, _("Select All"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->SetToolTip( _("Select all of the text in the compose bar") );
-    item24->Add( item26, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item24->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( item24, 0, wxALIGN_CENTER, 0 );
 
@@ -934,11 +934,11 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item1->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item2 = new wxStaticText( parent, IDC_PLEASE_WAIT, _("Please wait while Adapt It lays out the document again. This may take a while..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -2509,7 +2509,7 @@ wxSizer *WhichBookDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item23, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    item0->Add( item1, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -3104,7 +3104,7 @@ wxSizer *NoteDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item3->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item3, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -3356,7 +3356,7 @@ wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item19->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item16->Add( item19, 1, wxADJUST_MINSIZE|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add( item19, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -3374,7 +3374,7 @@ wxSizer *ExportOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item1, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -3703,7 +3703,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    item4->Add( item10, 3, wxADJUST_MINSIZE|wxGROW|wxALL, 0 );
+    item4->Add( item10, 3, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
@@ -4452,9 +4452,9 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item2, 1, wxADJUST_MINSIZE|wxGROW|wxALL, 5 );
+    item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 1, wxADJUST_MINSIZE|wxGROW|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -4484,7 +4484,7 @@ wxSizer *MoveDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item5->SetToolTip( _("Select the document in this list that you want to move") );
     item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item3, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
 
@@ -4538,11 +4538,11 @@ wxSizer *MoveDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item6->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item6, 1, wxADJUST_MINSIZE|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item2->Add( item6, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item1->Add( item2, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 1, wxADJUST_MINSIZE|wxGROW|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -4712,9 +4712,9 @@ wxSizer *ListDocInOtherFolderDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item2, 1, wxADJUST_MINSIZE|wxGROW|wxALL, 0 );
+    item1->Add( item2, 1, wxGROW|wxALL, 0 );
 
-    item0->Add( item1, 1, wxADJUST_MINSIZE|wxGROW|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -5027,9 +5027,9 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->SetToolTip( _("Find data with both source and translation text as typed") );
     item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item5->Add( item6, 0, wxADJUST_MINSIZE|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item5, 0, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
@@ -5039,7 +5039,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item11, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
 
-    item3->Add( item4, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
@@ -5080,7 +5080,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item14->Add( item19, 1, wxGROW|wxALL, 0 );
 
-    item13->Add( item14, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item13->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5098,7 +5098,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item25->SetToolTip( _("Include adjoining piles in search") );
     item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( item23, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item3->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5131,7 +5131,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item27->Add( item28, 0, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 0 );
+    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item34 = new wxBoxSizer( wxVERTICAL );
 
@@ -5149,17 +5149,17 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item34->Add( item36, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item27->Add( item34, 1, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 0 );
+    item27->Add( item34, 1, wxALIGN_CENTER|wxALL, 0 );
 
-    item26->Add( item27, 1, wxADJUST_MINSIZE|wxALIGN_CENTER, 0 );
+    item26->Add( item27, 1, wxALIGN_CENTER, 0 );
 
-    item3->Add( item26, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item3->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item2->Add( item3, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item1->Add( item2, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item38 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5180,9 +5180,9 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item41->SetToolTip( _("Close the Find-Replace dialog") );
     item38->Add( item41, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item38, 0, wxADJUST_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item38, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -5228,9 +5228,9 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item10->SetToolTip( _("Find data with both source and translation text as typed") );
     item6->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item5->Add( item6, 0, wxADJUST_MINSIZE|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item5, 0, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
@@ -5240,7 +5240,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item3->Add( item4, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
@@ -5281,7 +5281,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item14->Add( item19, 0, wxGROW|wxALL, 0 );
 
-    item13->Add( item14, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item13->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -5297,7 +5297,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item25->SetToolTip( _("Include adjoining piles in search") );
     item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( item23, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item3->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5320,15 +5320,15 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item27->Add( item29, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
 
-    item26->Add( item27, 1, wxADJUST_MINSIZE|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item26->Add( item27, 1, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item3->Add( item26, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item3->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item2->Add( item3, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item1->Add( item2, 1, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5355,9 +5355,9 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item36->SetToolTip( _("Close the Find-Replace dialog") );
     item32->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item32, 0, wxADJUST_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item32, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -5424,7 +5424,7 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_TEXTCTRL_EDIT_AS_STATIC, _("If you want to print a range, you may specify a range of pages, or a range of chapters/verses. You may also check boxes for any special handling of footer or section headings. Click on the \"Print >>\" button to proceed to the standard print dialog where you may adjust margins or the number of copies before actual printing."), wxDefaultPosition, wxSize(-1,80), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item5, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -5582,7 +5582,7 @@ wxSizer *PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -5642,7 +5642,7 @@ wxSizer *CCTabbedNotebookFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item1, 1, wxADJUST_MINSIZE|wxGROW|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -6645,6 +6645,217 @@ wxSizer *DoublePunctTabPageFunc( wxWindow *parent, bool call_fit, bool set_sizer
     item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *CC_GUI_Func( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Command History") );
+    wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
+
+    wxString strs4[] = 
+    {
+        _("ComboItem")
+    };
+    wxComboBox *item4 = new wxComboBox( parent, ID_COMBO_HISTORY, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs4, wxCB_DROPDOWN );
+    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item1->Add( item2, 1, wxGROW|wxALL, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item7 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Working Directory:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+
+    wxString strs10[] = 
+    {
+        _("ComboItem")
+    };
+    wxComboBox *item10 = new wxComboBox( parent, ID_COMBO_WORK_DIR, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs10, wxCB_DROPDOWN );
+    item9->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item6->Add( item9, 1, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item11 = new wxButton( parent, ID_BUTTON_WORK_DIR_BROWSE, _("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item5->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item14 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxHORIZONTAL );
+
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("Input File:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item13->Add( item15, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
+
+    wxString strs17[] = 
+    {
+        _("ComboItem")
+    };
+    wxComboBox *item17 = new wxComboBox( parent, ID_COMBO_INPUT_FILE, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs17, wxCB_DROPDOWN );
+    item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+
+    item18->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item19 = new wxCheckBox( parent, ID_CHECKBOX_CONTAINS_LIST, _("&Input contains list of input files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item13->Add( item16, 3, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item21 = new wxButton( parent, ID_BUTTON_INPUT_BROWSE, _("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->Add( item21, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item20->Add( 20, 4, 0, wxALIGN_CENTER, 0 );
+
+    wxButton *item22 = new wxButton( parent, ID_BUTTON_INTPUT_EDIT, _("Edit..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item20->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item13->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item25 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item24 = new wxStaticBoxSizer( item25, wxHORIZONTAL );
+
+    wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("Changes file:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item26, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
+
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+
+    wxString strs28[] = 
+    {
+        _("ComboItem")
+    };
+    wxComboBox *item28 = new wxComboBox( parent, ID_COMBO_CHANGES_FILE, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs28, wxCB_DROPDOWN );
+    item27->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
+
+    item29->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item30 = new wxCheckBox( parent, ID_CHECKBOX_CONTAINS_UTF8, _("Input and Output are &UTF-8 encoded files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->Add( item30, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( item27, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_CHANGES_BROWSE, _("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item31->Add( 20, 4, 0, wxALIGN_CENTER, 0 );
+
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_CHANGES_EDIT, _("Edit..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item24->Add( item31, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item34 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticBox *item36 = new wxStaticBox( parent, -1, wxT("") );
+    wxStaticBoxSizer *item35 = new wxStaticBoxSizer( item36, wxHORIZONTAL );
+
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("Output file:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item37, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 10 );
+
+    wxBoxSizer *item38 = new wxBoxSizer( wxVERTICAL );
+
+    wxString strs39[] = 
+    {
+        _("ComboItem")
+    };
+    wxComboBox *item39 = new wxComboBox( parent, ID_COMBO_OUTPUT_FILE, wxT(""), wxDefaultPosition, wxSize(100,-1), 1, strs39, wxCB_DROPDOWN );
+    item38->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item40 = new wxBoxSizer( wxVERTICAL );
+
+    wxCheckBox *item41 = new wxCheckBox( parent, ID_CHECKBOX_OVERWRITE_EXISTING, _("&Overwrite existing output"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxCheckBox *item42 = new wxCheckBox( parent, ID_CHECKBOX_OUTPUT_HAS_FILES, _("Output contains &list of output files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxCheckBox *item43 = new wxCheckBox( parent, ID_CHECKBOX_APPEND, _("&Append to existing output"), wxDefaultPosition, wxDefaultSize, 0 );
+    item40->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item38->Add( item40, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item35->Add( item38, 1, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    wxBoxSizer *item44 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item45 = new wxButton( parent, ID_BUTTON_OUTPUT_BROWSE, _("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item44->Add( item45, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item44->Add( 20, 4, 0, wxALIGN_CENTER, 0 );
+
+    wxButton *item46 = new wxButton( parent, ID_BUTTON_OUTPUT_VIEW, _("View..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item44->Add( item46, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item35->Add( item44, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item34->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item0->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxGridSizer *item47 = new wxGridSizer( 5, 0, 0 );
+
+    wxButton *item48 = new wxButton( parent, ID_BUTTON_PROCESS, _("Process"), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item48, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item49 = new wxButton( parent, wxID_CANCEL, _("Exit"), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item49, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item50 = new wxButton( parent, ID_BUTTON_OPTIONS, _("Options..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item50, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item51 = new wxButton( parent, ID_BUTTON_HELP, _("Help..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item51, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item52 = new wxButton( parent, ID_BUTTON_ABOUT, _("About..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item47->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item47, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

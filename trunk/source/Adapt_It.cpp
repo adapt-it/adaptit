@@ -5148,7 +5148,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//  // this should be done early on. The AfxInitRichEdit() call will load version 1
 	//	// so we must do its work manually ourselves to get version 3 used
 	//   m_hmodRichEd1 = LoadLibrary(_T("riched20.dll")); // we've decided not to use Rich Edit 
-	//													  // controls, but this can stay
+	//						      // controls, but this can stay
 //#endif
 
 	// CoInitialize() won't compile on Linux
