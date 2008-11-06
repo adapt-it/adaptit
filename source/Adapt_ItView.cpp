@@ -481,14 +481,15 @@ typedef struct
 	bool			bEditSpanHasGlosses;
 	bool			bEditSpanHasFreeTranslations;
 	bool			bEditSpanHasBackTranslations;
-	int				nSaveActiveSequNum;
+	BOOL			bCollectedFromTargetText;
+	int			nSaveActiveSequNum;
 	wxString		oldPhraseBoxText;
 	TextType		nStartingTextType;
 	TextType		nEndingTextType;
-	wxArrayString	deletedAdaptationsList;
-	wxArrayString	deletedGlossesList;
-	wxArrayString	deletedFreeTranslationsList;
-	wxArrayString	storedNotesList;
+	wxArrayString		deletedAdaptationsList;
+	wxArrayString		deletedGlossesList;
+	wxArrayString		deletedFreeTranslationsList;
+	wxArrayString		storedNotesList;
 	int				nStartingSequNum;
 	int				nEndingSequNum;
 	int				nFreeTrans_StartingSequNum;
@@ -31318,8 +31319,8 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, in
 /// caller will also reset the struct's nStartingBackTransSequNum and nEndingBackTransSequNum values to -1.
 // //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSN,
-					int& nEndingSN, int& WXUNUSED(nStartingFreeTransSequNum), int& WXUNUSED(nEndingFreeTransSequNum),
-					int& nStartingBackTransSequNum, int& nEndingBackTransSequNum, bool& bHasBackTranslations)
+	int& nEndingSN, int& WXUNUSED(nStartingFreeTransSequNum), int& WXUNUSED(nEndingFreeTransSequNum),
+	int& nStartingBackTransSequNum, int& nEndingBackTransSequNum, bool& bHasBackTranslations, bool& bCollectedFromTargetText)
 {
 	// 23Apr08, BEW added this function 
 	// use BOOL CAdapt_ItView::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, BOOL& bFound_bt_mkr) as the
@@ -34663,10 +34664,12 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 	// be made to coincide with the end of the free translations span nor with the end of the editable
 	// span - though  typically if will end somewhere shortly after the pRec->nEndingSequNum value.
 	bool bBackTransPresent;
+	bool bCollectedFromTargetText = TRUE; // initialize to default value
+
 	bAllWasOK = GetEditSourceTextBackTranslationSpan(pSrcPhrases, pRec->nStartingSequNum, 
-						pRec->nEndingSequNum, pRec->nFreeTrans_StartingSequNum, 
-						pRec->nFreeTrans_EndingSequNum, pRec->nBackTrans_StartingSequNum,
-						pRec->nBackTrans_EndingSequNum, bBackTransPresent);
+					pRec->nEndingSequNum, pRec->nFreeTrans_StartingSequNum, 
+					pRec->nFreeTrans_EndingSequNum, pRec->nBackTrans_StartingSequNum,
+					pRec->nBackTrans_EndingSequNum, bBackTransPresent, bCollectedFromTargetText);
 	if (!bAllWasOK)
 	{
 		// something went wrong, bail out (m_pSourcePhrases list contents have not yet been modified)
@@ -34678,7 +34681,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		else
 			wxExit();
 	}
-
+	pRec->bCollectedFromTargetText = bCollectedFromTargetText; // store the returned value for later use in the
+		// backTranslationsStep (if there is no collected back translation defined on the editable span,
+		// a default value of TRUE is nevertheless stored in gEditRecord, but would not later be used)
 	if (bBackTransPresent)
 	{
 		// set the EditRecord's flag, and get the deep copy done of all the CSourcePhrases in the

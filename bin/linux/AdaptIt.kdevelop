@@ -20,7 +20,7 @@
       <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
-      <mainprogram>adaptit</mainprogram>
+      <mainprogram>/home/watersb/adaptit/bin/linux/Unicode/adaptit</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs/>
@@ -77,7 +77,7 @@
       </default>
       <UnicodeDebug>
         <envvars/>
-        <configargs>--with-wx-config=/home/wmartin/wxGTK-2.8.7/buildgtkud/wx-config</configargs>
+        <configargs>--with-wx-config=/home/watersb/wxGTK-2.8.9/buildgtkud/wx-config</configargs>
         <builddir>UnicodeDebug</builddir>
         <topsourcedir/>
         <cppflags/>
@@ -94,7 +94,7 @@
       </UnicodeDebug>
       <Unicode>
         <envvars/>
-        <configargs>--with-wx-config=/home/wmartin/wxGTK-2.8.7/buildgtku_s/wx-config</configargs>
+        <configargs>--with-wx-config=/home/watersb/wxGTK-2.8.9/buildgtku/wx-config</configargs>
         <builddir>Unicode</builddir>
         <topsourcedir/>
         <cppflags/>
@@ -117,7 +117,7 @@
       </envvars>
       <abortonerror>false</abortonerror>
       <runmultiplejobs>true</runmultiplejobs>
-      <numberofjobs>4</numberofjobs>
+      <numberofjobs>2</numberofjobs>
       <dontact>false</dontact>
       <makebin/>
       <prio>0</prio>

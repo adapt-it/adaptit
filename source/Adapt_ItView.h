@@ -442,7 +442,7 @@ protected:
 	bool		GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& WXUNUSED(nStartingFreeTransSequNum), int& WXUNUSED(nEndingFreeTransSequNum),
 							int& nStartingBackTransSequNum, int& nEndingBackTransSequNum, 
-							bool& bHasBackTranslations); // BEW added 25Apr08
+							bool& bHasBackTranslations, bool& bCollectedFromTargetText); // BEW added 25Apr08
 	bool		GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
 							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
