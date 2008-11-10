@@ -20676,7 +20676,10 @@ int CAdapt_ItApp::FindArrayString(const wxString& findStr, wxArrayString* strArr
 /// substring type. Returns the index of the item if found, or -1 if not found. This function
 /// adds more search options and search criteria than what is available in the standard wxListBox
 /// which can do case sensitive or insensitive searches but cannot do substring searches with its 
-/// FindString() method.
+/// FindString() method. Care needs to be taken when using functions like FindListBoxItem on list
+/// boxes that may contain hundreds or thousands of items. Since the find operation is a simple
+/// brute force search through each item, the time taken can be considerable for list boxes that
+/// may contain very large numbers of items.
 ////////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType)

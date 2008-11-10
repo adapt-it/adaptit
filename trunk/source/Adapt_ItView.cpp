@@ -481,7 +481,8 @@ typedef struct
 	bool			bEditSpanHasGlosses;
 	bool			bEditSpanHasFreeTranslations;
 	bool			bEditSpanHasBackTranslations;
-	BOOL			bCollectedFromTargetText;
+	BOOL			bCollectedFromTargetText;
+
 	int			nSaveActiveSequNum;
 	wxString		oldPhraseBoxText;
 	TextType		nStartingTextType;
@@ -34664,7 +34665,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 	// be made to coincide with the end of the free translations span nor with the end of the editable
 	// span - though  typically if will end somewhere shortly after the pRec->nEndingSequNum value.
 	bool bBackTransPresent;
-	bool bCollectedFromTargetText = TRUE; // initialize to default value
+	bool bCollectedFromTargetText = TRUE; // initialize to default value
+
 
 	bAllWasOK = GetEditSourceTextBackTranslationSpan(pSrcPhrases, pRec->nStartingSequNum, 
 					pRec->nEndingSequNum, pRec->nFreeTrans_StartingSequNum, 
@@ -34681,9 +34683,12 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		else
 			wxExit();
 	}
-	pRec->bCollectedFromTargetText = bCollectedFromTargetText; // store the returned value for later use in the
-		// backTranslationsStep (if there is no collected back translation defined on the editable span,
-		// a default value of TRUE is nevertheless stored in gEditRecord, but would not later be used)
+	pRec->bCollectedFromTargetText = bCollectedFromTargetText; // store the returned value for later use in the
+
+		// backTranslationsStep (if there is no collected back translation defined on the editable span,
+
+		// a default value of TRUE is nevertheless stored in gEditRecord, but would not later be used)
+
 	if (bBackTransPresent)
 	{
 		// set the EditRecord's flag, and get the deep copy done of all the CSourcePhrases in the
