@@ -3493,7 +3493,6 @@ wxLanguage CAdapt_ItApp::GetLanguageFromDirStr(const wxString dirStr, wxString &
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFolderName)
 {
-	// TODO: Check of LC_MESSAGES as a child folder for each <lang> on dirPath under non-Windows ports.
 	if (dirPath.IsEmpty())
 		return FALSE;
 
@@ -3510,15 +3509,22 @@ bool CAdapt_ItApp::PathHas_mo_LocalizationFile(wxString dirPath, wxString subFol
 	for (ct = 0; ct < (int)subDirList.GetCount(); ct++)
 	{
 		bool bNamesMatch = TRUE; // assume match unless subFolderName parameter has a non-null string
+		bool bHasRegionCode = FALSE;
 		if (!subFolderName.IsEmpty())
 		{
 			wxString subDir = subDirList.Item(ct);
+			if (subDir.Length() > 2 && subDir[2] == _T('_') && subDir.Length() >= 5)
+				bHasRegionCode = TRUE;
 			wxString subFldr = subFolderName;
 #ifdef __WXMSW__
 			subDir.MakeLower();
 			subFldr.MakeLower();
 #endif
-			if (subFldr != subDir)
+			if (bHasRegionCode && subFldr.Mid(0,2) != subDir.Mid(0,2))
+			{
+				bNamesMatch = FALSE;
+			}
+			else if (subFldr != subDir)
 			{
 				bNamesMatch = FALSE;
 			}

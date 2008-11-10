@@ -161,10 +161,48 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	pListBox->Clear();
 	gpApp->GetListOfSubDirectories(pathToLocalizationFolders,subDirList);
 	
-	// Get the system language name (to be used as the first item in the list)
-	wxString tempStr = langsKnownToWX[0].fullName;
-	tempStr = tempStr.Format(tempStr, gpApp->m_languageInfo->Description.c_str());
-
+    // Get the system language name. We will use it as the first item in the list - provided 
+    // the system language is either English (or some form en_XX), or if it is the same as one 
+    // of the existing Adapt It localizations on the local computer.
+    // If the system language is neither English (or some form of it), nor one of the existing
+    // Adapt It localizations, we will default to listing English as the first item in the list.
+    // This check needs to be made every time the ChooseLanguageDlg is displayed (or forced to
+    // be displayed), because of the possibility that a user may have done one of the following
+    // since the last use of Adapt It:
+    //    1. Deleted a localization from his/her computer that was previously in use
+    //    2. Changed the registry/hidden settings file manually
+    //    3. Changed the system's default language
+	wxString fullDefaultLangNameListItem = langsKnownToWX[0].fullName;
+		
+	int sysLanguage = wxLocale::GetSystemLanguage();
+	const wxLanguageInfo *infoSys = wxLocale::GetLanguageInfo(sysLanguage);		
+	/*
+		currLocalizationInfo.curr_UI_Language = sysLanguage;
+		currLocalizationInfo.curr_shortName = info->CanonicalName;
+		currLocalizationInfo.curr_fullName = info->Description;
+		currLocalizationInfo.curr_localizationPath = GetDefaultPathForLocalizationSubDirectories();
+	*/
+	// Determine if the system default language has an existing localization
+	wxString shortDefaultLangName = infoSys->CanonicalName; //langsKnownToWX[0].shortName;
+	//wxString fullDefaultLangName;
+	//wxLanguage sysLangFullName = gpApp->GetLanguageFromDirStr(shortDefaultLangName,fullDefaultLangName);
+	// If the system default language has an existing localization we'll put it first in the list, otherwise
+	// we'll put "English" as first language in the list.
+	
+	if (gpApp->PathHas_mo_LocalizationFile(pathToLocalizationFolders, shortDefaultLangName))
+	{
+		fullDefaultLangNameListItem = fullDefaultLangNameListItem.Format(fullDefaultLangNameListItem, gpApp->m_languageInfo->Description.c_str());
+	}
+	else if (shortDefaultLangName.Length() > 2 && shortDefaultLangName.Mid(0,3) == _T("en_"))
+	{
+		fullDefaultLangNameListItem = _T("English");
+		fullDefaultLangNameListItem += _T(" [")+shortDefaultLangName+_T("]");
+	}
+	else
+	{
+		fullDefaultLangNameListItem = _T("English");
+	}
+		
 	//wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
 
 	// Ignore subdirectories in subDirList that do not contain .mo file(s) within the
@@ -316,8 +354,18 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	}
 	// Here we insert the default (English) as the first item in the list (position 0) using the
 	// wxListBox::Insert() method. 
-	defaultDirStr = gpApp->m_languageInfo->CanonicalName;
-	pListBox->Insert(tempStr,0,&defaultDirStr); // the default language (1st item in list) saves its Canonical name as client data
+	// whm: Check to see if the current system default language is NOT English. If that is the
+	// case we need to insure that en English is also a valid selection in the listbox. We also need
+	// to remove any "default" language if there is no actual localization for it on the local machine.
+	// A user whose computer was set to Dutch as its default system language, could not select English
+	// because it was not offered as a choice, and selecting Dutch would not work either since although
+	// the listbox offered Dutch as the "default" language, there was not actually a Dutch localization
+	// of Adapt It existing on the machine.
+	if (fullDefaultLangNameListItem == _T("English"))
+		defaultDirStr = _T("en");
+	else
+		defaultDirStr = gpApp->m_languageInfo->CanonicalName;
+	pListBox->Insert(fullDefaultLangNameListItem,0,&defaultDirStr); // the default language (1st item in list) saves its Canonical name as client data
 
 	// we added the system language name to the list above so there must be at least one item in the list
 	wxASSERT(pListBox->GetCount() > 0);
