@@ -1289,12 +1289,16 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 				continue;
 			}
 			int index;
-			index = m_pListBoxKeys->Append(srcKeyStr);
+			index = m_pListBoxKeys->Append(srcKeyStr,pCurTgtUnit); // whm modified 10Nov08 to use 2nd param
 			// In wx the index returned from wxListBox::Append on a sorted list cannot be used reliably
 			// for SetClientData; instead we must find the exact string's index in the sorted list
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKeyStr, caseSensitive, exactString);
-			wxASSERT(nNewSel != -1); // we just added it so it must be there!
-			m_pListBoxKeys->SetClientData(nNewSel,pCurTgtUnit);
+			// whm update 10Nov08: In this case we can use the Append function that takes the second
+			// parameter for the client data. For KBs with hundrends of key string items, using
+			// FindListBoxItem takes too long and causes a considerable amount of time to populate the
+			// m_pListBoxKeys list box.
+			//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKeyStr, caseSensitive, exactString);
+			//wxASSERT(nNewSel != -1); // we just added it so it must be there!
+			//m_pListBoxKeys->SetClientData(nNewSel,pCurTgtUnit);
 		}
 	}
 	else

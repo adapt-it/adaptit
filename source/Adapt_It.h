@@ -902,8 +902,10 @@ typedef struct
 				// we need only look for \bt marker content in the editable span, and in any preceding
 				// context - going back only as far as the first halt position as determined by the
 				// HaltCurrentCollection() function.
-	bool	bCollectedFromTargetText; // TRUE if back translations were collected from the target text line,
-				// FALSE if collected from the gloss line
+	bool	bCollectedFromTargetText; // TRUE if back translations were collected from the target text line,
+
+				// FALSE if collected from the gloss line
+
 	int		nSaveActiveSequNum; // location of the phrase box at entry (needed only for a Cancel operation)
 	wxString	oldPhraseBoxText; // contents of the phrase box when the edit was invoked
 	TextType	nStartingTextType; // value of m_curTextType at the CSourcePhrase with sequence number nStartingSequNum
