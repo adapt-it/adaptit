@@ -207,7 +207,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;C:\C++ Programming\Adapt It\adaptit\bin\win32\Release\Adapt_It.exe&quot; &quot;C:\C++ Programming\Adapt It\adaptit\setup Regular\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;C:\C++ Programming\Adapt It\adaptit\bin\win32\Release\Adapt_It.exe&quot; &quot;C:\C++ Programming\Adapt It\adaptit\setup Regular - Minimal\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;C:\C++ Programming\Adapt It\adaptit\bin\win32\Release\Adapt_It.exe&quot; &quot;C:\C++ Programming\Adapt It\adaptit\setup Regular - No Html Help\Adapt_It.exe&quot;&#x0D;&#x0A;"
+				CommandLine="copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - Minimal\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - No Html Help\Adapt_It.exe&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -375,7 +375,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;C:\C++ Programming\Adapt It\adaptit\bin\win32\Unicode Release\Adapt_It_Unicode.exe&quot; &quot;C:\C++ Programming\Adapt It\adaptit\setup Unicode\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;C:\C++ Programming\Adapt It\adaptit\bin\win32\Unicode Release\Adapt_It_Unicode.exe&quot; &quot;C:\C++ Programming\Adapt It\adaptit\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;C:\C++ Programming\Adapt It\adaptit\bin\win32\Unicode Release\Adapt_It_Unicode.exe&quot; &quot;C:\C++ Programming\Adapt It\adaptit\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;"
+				CommandLine="copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
