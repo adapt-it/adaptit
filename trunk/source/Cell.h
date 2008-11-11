@@ -57,11 +57,11 @@ public:
 	wxFont*					m_pFont;
 	wxPoint					m_ptBotRight;
 	wxPoint					m_ptTopLeft;
-	int						m_nTextExtent; // not set if m_bDisplay == FALSE
-	int						m_nCellIndex; // which one I am of the five
+	int					m_nTextExtent; // not set if m_bDisplay == FALSE
+	int					m_nCellIndex; // which one I am of the five
 	bool					m_bDisplay; // TRUE if the cell is to be displayed
-	CAdapt_ItDoc*			m_pDoc;
-	CSourceBundle*			m_pBundle;
+	CAdapt_ItDoc*				m_pDoc;
+	CSourceBundle*				m_pBundle;
 	CStrip*					m_pStrip;
 	CPile*					m_pPile;
 	wxString				m_phrase;

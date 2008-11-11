@@ -960,9 +960,9 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with 
-///			the first character in the string and ending when a character is found in the inputStr 
-///			that is not in charSet. If the first character of inputStr is not in the charSet, then 
-///			it returns an empty string.
+///		the first character in the string and ending when a character is found in the inputStr 
+///		that is not in charSet. If the first character of inputStr is not in the charSet, then 
+///		it returns an empty string.
 /// \param	inputStr	-> the string whose characters are examined
 /// \param	charSet		-> a string of characters that may be included in the span of characters returned
 /// \remarks
@@ -1342,3 +1342,85 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 	// Sanity checking is done so tell caller that everything is sane.
 	return TRUE;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the collected back translation came from the target text line;
+///		FALSE if it came from the gloss text line
+/// \param      pSrcPhrases  -> pointer to the m_pSourcePhrases list of the document
+/// \param	nInitialSequNum	->	sequence number of the first CSourcePhrase instance
+///					to be checked for presence of \bt
+/// \remarks
+/// a helper function for determining if the original collection of back translation information,
+/// which started at the CSourcePhrase instance corresponding to nInitialSequNum in the document
+/// list pSrcPhrases, was taken from the target text line -- but we check only as far as five
+/// consecutive pSrcPhrase instances because we should be able to always detect which is the case
+/// by just testing the first one or two instances, so certainly 5 should be plenty. If after five
+/// we still don't know, then default to returning TRUE. (
+/// BEW added 26Oct08
+////////////////////////////////////////////////////////////////////////////////////////////
+bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum)
+{
+		CAdapt_ItView* pView = gpApp->GetView();
+		int nIteratorSN = nInitialSequNum;
+		SPList::Node* pos = pSrcPhrases->Item(nIteratorSN); //POSITION pos = pSrcPhrases->FindIndex(nIteratorSN);
+		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail, so just ASSERT for a debug mode check
+		CSourcePhrase* pSrcPhrase = pos->GetData(); // this is the one which has the \bt marker
+		pos = pos->GetNext();
+		//CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pSrcPhrases->GetNext(pos);
+		wxString mkr = _T("\\bt");
+		wxString endMkr;
+		endMkr.Empty(); // back translation material has no endmarker
+		int offset = -1; // needed for next call, but we don't use the returned value
+		int length = 0;  // ditto
+		wxString collectedStr = pView->GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+		// repurpose the offset local variable
+		offset = -1;
+		bool bAdaptionInCollectedStr = FALSE;
+		bool bGlossInCollectedStr = FALSE;
+		int counter = 0;
+		do {
+			offset = collectedStr.Find(pSrcPhrase->m_adaption);
+			if (offset >= 0)
+			{
+				// m_adaption string was found within the collected text
+				bAdaptionInCollectedStr = TRUE;
+			}
+			offset = -1;
+			offset = collectedStr.Find(pSrcPhrase->m_gloss);
+			if (offset >= 0)
+			{
+				// m_glossStr string was found within the collected text
+				bGlossInCollectedStr = TRUE;
+			}
+			if (bAdaptionInCollectedStr && !bGlossInCollectedStr)
+			{
+				// collection was done from target text line
+				return TRUE;
+			}
+			if (bGlossInCollectedStr && !bAdaptionInCollectedStr)
+			{
+				// collection was done in gloss line
+				return FALSE;
+			}
+			counter++; // count the iterations
+
+			// situation is still indeterminate (each string was in collectedStr), so 
+			// iterate to check the m_adaption and m_gloss members of the next
+			// pSrcPhrase
+			if (pos == NULL)
+			{
+				// there isn't a "next" pSrcPhrase to check, so a return is forced
+				return TRUE; // still unresolved, so default to returning TRUE
+			}
+			else
+			{
+				//pSrcPhrase = (CSourcePhrase*)pSrcPhrases->GetNext(pos);
+				pSrcPhrase = pos->GetData();
+				pos = pos->GetNext();
+			}
+			offset = -1;
+		} while (counter <= 5);
+		// still indeterminate, so default to returning TRUE
+		return TRUE;
+}
+
