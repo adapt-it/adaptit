@@ -20,7 +20,7 @@
       <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/watersb/adaptit/bin/linux/Unicode/adaptit</mainprogram>
+      <mainprogram>/home/watersb/adaptit/bin/linux/UnicodeDebug/adaptit</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs/>
@@ -270,7 +270,8 @@
   </kdevfileview>
   <ctagspart>
     <customArguments/>
-    <customTagfilePath/>
+    <customTagfilePath>/home/watersb/adaptit/bin/linux/tags</customTagfilePath>
+    <activeTagsFiles/>
   </ctagspart>
   <kdevdocumentation>
     <projectdoc>

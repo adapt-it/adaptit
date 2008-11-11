@@ -56,18 +56,18 @@ public:
 	// attributes
 public:
 	// whm Note: Should CSourcePhrase* m_pSrcPhrase below be moved up in the member list???
-	bool				m_bIsActivePile;
-	int					m_nPileIndex;
-	wxRect				m_rectPile;
-	int					m_nWidth;
-	int					m_nMinWidth;
-	int					m_nHorzOffset;
+	bool			m_bIsActivePile;
+	int			m_nPileIndex;
+	wxRect			m_rectPile;
+	int			m_nWidth;
+	int			m_nMinWidth;
+	int			m_nHorzOffset;
 	CAdapt_ItDoc*		m_pDoc;
 	CSourceBundle*		m_pBundle;
-	CStrip*				m_pStrip;
-	CCell*				m_pCell[5]; // 2 source lines, 2 target lines, & one gloss per strip
+	CStrip*			m_pStrip;
+	CCell*			m_pCell[5]; // 2 source lines, 2 target lines, & one gloss per strip
 	CSourcePhrase*		m_pSrcPhrase;
-	bool				m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
+	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
 
 	// implementation
 	void		DestroyCells();

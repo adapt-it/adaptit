@@ -44,6 +44,7 @@ protected:
 
 private:
 
-	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
+	// MFC uses DECLARE_MESSAGE_MAP()
+	DECLARE_EVENT_TABLE() 
 };
 #endif /* UnitsDlg_h */

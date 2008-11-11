@@ -805,7 +805,7 @@ enum VertEditBarType
 {
 	Vert_Edit_RemovalsBar,
 	Vert_Edit_Bar,				// IDD_VERT_EDIT_BAR
-	Vert_Edit_Step_Trans_Bar
+	Vert_Edit_ComposeBar
 };
 
 typedef struct

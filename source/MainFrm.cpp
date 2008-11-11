@@ -110,7 +110,8 @@ extern EditStep gEditStep;
 extern wxString gOldEditBoxTextStr;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
-extern int gReplacementLocation_SequNum;
+extern int gnWasSequNum;
+//extern int gReplacementLocation_SequNum;
 
 /// This global is defined in Adapt_ItView.cpp
 extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
@@ -158,10 +159,10 @@ extern bool		gbMatchedKB_UCentry;
 extern wxChar	gcharNonSrcUC;
 
 /// This global is defined in PhraseBox.cpp.
-extern bool		gbCameToEnd; // see PhraseBox.cpp
+extern bool	gbCameToEnd; // see PhraseBox.cpp
 
 extern  bool	gbMatchedRetranslation;
-extern  int		gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
+extern  int	gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 extern  bool	gbHaltedAtBoundary;
 extern	bool	gbFindOrReplaceCurrent;
 
@@ -172,7 +173,7 @@ extern	bool	bUserCancelled;
 extern	bool	gbSuppressSetup;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool		gbTryingMRUOpen; 
+extern bool	gbTryingMRUOpen; 
 
 /// This global is defined in Adapt_It.cpp.
 extern	bool	gbViaMostRecentFileList;
@@ -181,10 +182,10 @@ extern	bool	gbViaMostRecentFileList;
 extern  bool	gbUpdateDocTitleNeeded;
 
 /// This global is defined in PhraseBox.cpp.
-extern  int		nCurrentSequNum;
+extern  int	nCurrentSequNum;
 
 /// This global is defined in Adapt_It.cpp.
-extern  int		nSequNumForLastAutoSave;
+extern  int	nSequNumForLastAutoSave;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxHtmlHelpController* m_pHelpController;
@@ -210,7 +211,6 @@ IMPLEMENT_CLASS(CMainFrame, wxDocParentFrame)
 DEFINE_EVENT_TYPE(wxEVT_Adaptations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Free_Translations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Back_Translations_Edit)
-//DEFINE_EVENT_TYPE(wxEVT_V_Collected_Back_Translations_Edit)
 DEFINE_EVENT_TYPE(wxEVT_End_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Cancel_Vertical_Edit)
 DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
@@ -261,11 +261,11 @@ DEFINE_EVENT_TYPE(wxEVT_Glosses_Edit)
 BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_IDLE(CMainFrame::OnIdle) // this is now used in wxWidgets instead of a virtual function
 	// The following carry over from the MFC version
-    EVT_MENU(ID_VIEW_TOOLBAR, CMainFrame::OnViewToolBar)
-    EVT_UPDATE_UI(ID_VIEW_TOOLBAR, CMainFrame::OnUpdateViewToolBar)
+	EVT_MENU(ID_VIEW_TOOLBAR, CMainFrame::OnViewToolBar)
+	EVT_UPDATE_UI(ID_VIEW_TOOLBAR, CMainFrame::OnUpdateViewToolBar)
 	EVT_MENU(ID_VIEW_STATUS_BAR, CMainFrame::OnViewStatusBar)
 	EVT_UPDATE_UI(ID_VIEW_STATUS_BAR, CMainFrame::OnUpdateViewStatusBar)
-    EVT_MENU(ID_VIEW_COMPOSE_BAR, CMainFrame::OnViewComposeBar)
+	EVT_MENU(ID_VIEW_COMPOSE_BAR, CMainFrame::OnViewComposeBar)
 	EVT_UPDATE_UI(ID_VIEW_COMPOSE_BAR, CMainFrame::OnUpdateViewComposeBar)
 	EVT_MENU(ID_EDIT_CONSISTENCY_CHECK, CMainFrame::OnEditConsistencyCheck)
 	EVT_UPDATE_UI(ID_EDIT_CONSISTENCY_CHECK, CMainFrame::OnUpdateEditConsistencyCheck)
@@ -286,8 +286,8 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	EVT_COMBOBOX(IDC_COMBO_REMOVALS, CMainFrame::OnRemovalsComboSelChange)
 
 	// The following are unique to the wxWidgets version
-    EVT_MENU(wxID_ABOUT, CMainFrame::OnAppAbout) // MFC handles this in CAdapt_ItApp, wxWidgets' doc/view here
-    EVT_SIZE(CMainFrame::OnSize)
+	EVT_MENU(wxID_ABOUT, CMainFrame::OnAppAbout) // MFC handles this in CAdapt_ItApp, wxWidgets' doc/view here
+	EVT_SIZE(CMainFrame::OnSize)
 	EVT_CLOSE(CMainFrame::OnClose)
 	EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CMainFrame::OnMRUFile)
 #ifdef __WXMSW__
@@ -299,14 +299,13 @@ BEGIN_EVENT_TABLE(CMainFrame, wxDocParentFrame)
 	// (wxDocParentFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam))
 	// otherwise.
 	// The following was for MFC only:
-    // ON_REGISTERED_MESSAGE(WM_SANTA_FE_FOCUS, CMainFrame::OnSantaFeFocus)
+	// ON_REGISTERED_MESSAGE(WM_SANTA_FE_FOCUS, CMainFrame::OnSantaFeFocus)
 #endif
 
 	// Our Custom Event handlers:
 	EVT_ADAPTATIONS_EDIT(-1, CMainFrame::OnCustomEventAdaptationsEdit)
 	EVT_FREE_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventFreeTranslationsEdit)
 	EVT_BACK_TRANSLATIONS_EDIT(-1, CMainFrame::OnCustomEventBackTranslationsEdit)
-	//EVT_COMMAND(ID_MY_WINDOW, wxEVT_V_Collected_Back_Translations_Edit, CMainFrame::OnMyEvent)
 	EVT_END_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventEndVerticalEdit)
 	EVT_CANCEL_VERTICAL_EDIT(-1, CMainFrame::OnCustomEventCancelVerticalEdit)
 	EVT_GLOSSES_EDIT(-1, CMainFrame::OnCustomEventGlossesEdit)
@@ -5154,22 +5153,6 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	if (gbVerticalEditInProgress)
 	{
 		CAdapt_ItView* pView = gpApp->GetView();
-		//CMainFrame* pFWnd = gpApp->GetMainFrame();
-		//wxASSERT(pFWnd != NULL);
-		//if (pFWnd == NULL)
-		//{
-		//	AfxMessageBox(_T("Failure to obtain pointer to the frame window in OnCurstomEventEndVerticalEdit()"), 
-		//		MB_ICONEXCLAMATION);
-		//	return 1; // use 1 as an error, it's unlikely to ever happen
-		//}
-		//wxPanel* pBar = pView->GetBar(Vert_Edit_Bar); // IDD_VERT_EDIT_BAR
-		//wxASSERT(pBar != NULL);
-		//if (pBar == NULL)
-		//{
-		//	AfxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in OnCurstomEventEndVerticalEdit()"),
-		//		MB_ICONEXCLAMATION);
-		//	return 1;
-		//}
 
 		// if free translations mode is still ON, turn it off
 		if (gpApp->m_bFreeTranslationMode)
@@ -5249,19 +5232,14 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		gpApp->GetDocument()->OnAdvancedReceiveSynchronizedScrollingMessages(evt); // toggle it back ON
 		gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE; // restore default setting
 	}
-/*	//9Oct08 Bruce advised commenting out the contents of this OnCustomEventCancelVerticalEdit() handler
-	// until further work can be done on it.
-// **** TODO ****   roll back through the steps doing restorations and set up original situation
+	// roll back through the steps doing restorations and set up original situation
 
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	bool bWasOK = TRUE;
 	CAdapt_ItView* pView = gpApp->GetView();
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxASSERT(pSrcPhrases != NULL);
 	EditRecord* pRec = &gEditRecord;
-	//CFrameWnd* pFWnd = NULL;
-	//CDialogBar* pBar = NULL;
-	//CWnd* pComposeBar = NULL;
-	//CEdit* pEdit = NULL;
 	// whm: we are in CMainFrame, so just assert that the member's pointers to the bars are valid
 	wxASSERT(m_pVertEditBar != NULL); 
 	wxASSERT(m_pComposeBar != NULL);
@@ -5269,36 +5247,10 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	wxASSERT(pEdit != NULL);
 	if (gbVerticalEditInProgress)
 	{
-		// get pointers to the bars and compose bar's edit box
-		//pFWnd = GetParentFrame();
-		//if (pFWnd == NULL)
-		//{
-		//	AfxMessageBox(_T("Failure to obtain pointer to the frame window in OnCurstomEventEndVerticalEdit()"), 
-		//		MB_ICONEXCLAMATION);
-		//	return 1; // use 1 as an error, it's unlikely to ever happen
-		//}
-		//pBar = (CDialogBar*)pFWnd->GetDlgItem(IDD_VERT_EDIT_BAR);
-		//if (pBar == NULL)
-		//{
-		//	AfxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in OnCurstomEventEndVerticalEdit()"),
-		//		MB_ICONEXCLAMATION);
-		//	return 1;
-		//}
-		//if((pComposeBar = pFWnd->GetDlgItem(IDD_COMPOSE_BAR)) != NULL)
-		//{
-		//	pEdit = (CEdit*)pComposeBar->GetDlgItem(IDC_EDIT_COMPOSE);
-		//	if (pEdit == 0)
-		//	{
-		//		AfxMessageBox(_T("Failure to obtain pointer to compose bar's box in OnCurstomEventCancelVerticalEdit()"),
-		//			MB_ICONEXCLAMATION);
-		//		return 1;
-		//	}
-		//}
-
 		// gEditStep, on entry, has the step which is current when the cause of the cancellation request
 		// posted the cancellation event; the switches in the blocks below then determine where the cancellation
 		// rollback steps begin; and as each step is rolled back, control falls through to the previous step. 
-		// Rollback goes only until the origina entry point's state is restored.
+		// Rollback goes only until the original entry point's state is restored.
 
 		// The order of cancellation steps depends on whether the user's preferred step order was adaptations
 		// before glosses (the default), or vise versa
@@ -5312,27 +5264,24 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				// but because of the potential for a failure during backTranslationsStep, we
 				// have to cater for cancellation from within this step
 
-
-
-
 			case freeTranslationsStep:
+
 				if (gEntryPoint == freeTranslationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
-
-
 
 					// clean up & restore original state
 					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 					wxPostEvent(this, eventCustom);
-					// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-					// the vertical edit tool bars from the main window.
+					// whm Note: This event also calls the code which hides any of the
+					// vertical edit tool bars so they are not seen from the main window.
 					return;
 				}
 				else
 				{
 					// entry point was at an earlier step
+					gEditStep = freeTranslationsStep; // unneeded, but it documents where we are
 					pEdit->SetValue(_T("")); // clear the box
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
@@ -5351,22 +5300,41 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 					pView->ToggleFreeTranslationMode(); // turn off free translation mode
+				} // fall through
+			case glossesStep:
+				if (gEntryPoint == glossesEntryPoint)
+				{
+					// rollback this step and then exit after posting end request
+
+					// clean up & restore original state
+					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
+					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
+					wxPostEvent(this, eventCustom);
+					// whm Note: This event also calls the code which hides any of the
+					// vertical edit tool bars so they are not seen from the main window.
+					return;
+				}
+				else
+				{
+					// entry point was at an earlier step
 					if (!gbIsGlossing)
 					{
+						// turn on glossing mode if it is not currently on
 						if (!gbEnableGlossing)
 						{
 							pView->ToggleSeeGlossesMode();
 						}
 						pView->ToggleGlossingMode();
 					}
+					gEditStep = glossesStep;
 					if (pRec->nNewSpanCount > 0)
 					{
-						// restore the editable span to what it was at the start of glossesStep
+						// restore the editable span to what it was at the start of glossesStep,
+						// i.e. the end of the previous adaptationsStep
 						int nHowMany = pRec->nGlossStep_SpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK;
-						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nGlossStep_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->glossStep_SrcPhraseList, 
@@ -5376,77 +5344,58 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
 						// the final call of InitializeEditRecord()
 					}
-					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
-										   // no harm if the window is not embedded
+					//pFWnd->RecalcLayout(); // (MFC) the bNotify parameter is default TRUE, let it do so,
+								 // no harm if the window is not embedded
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
-					gEditStep = glossesStep;
-				} // fall through
-			case glossesStep:
-				if (gEntryPoint == glossesEntryPoint)
-				{
-					// rollback this step and then exit after posting end request
-
-
-
-					// clean up & restore original state
-					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
-					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
-					wxPostEvent(this, eventCustom);
-					// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-					// the vertical edit tool bars from the main window.
-					return;
-				}
-				else
-				{
-					// entry point was at an earlier step
-					pView->ToggleGlossingMode();
-					if (pRec->nNewSpanCount > 0)
-					{
-						// restore the editable span to what it was when adaptationsStep was started
-						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
-						wxASSERT(nHowMany != 0);
-						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK;
-						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nAdaptationStep_StartingSequNum, 
-							nHowMany, // defines how many to remove to make the gap for the insertions
-							&pRec->adaptationStep_SrcPhraseList, 
-							0, // start at index 0, ie. insert whole of deep copied list
-							pRec->nAdaptationStep_OldSpanCount);
-						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
-						// MFC commented out lines below:
-						// restore original counts to step-initial values
-						//pRec->nAdaptationStep_EndingSequNum -= pRec->nAdaptationStep_ExtrasFromUserEdits;
-						//pRec->nAdaptationStep_ExtrasFromUserEdits = 0;
-						//pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
-						// deleting the contents of the glossStep_SrcPhraseList is left for InitializeEditRecord()
-					}
-					gEditStep = adaptationsStep;
-					//pFWnd->RecalcLayout();
-					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+					pView->ToggleGlossingMode(); // turn off glossing mode
 				} // fall through
 			case adaptationsStep:
 				if (gEntryPoint == adaptationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
 
-
-
 					// clean up & restore original state
 					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 					wxPostEvent(this, eventCustom);
-					// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-					// the vertical edit tool bars from the main window.
+					// whm Note: This event also calls the code which hides any of the
+					// vertical edit tool bars so they are not seen from the main window.
 					return;
 				}
 				else
 				{
 					// entry point was at an earlier step
+					gEditStep = adaptationsStep;
+					if (pRec->nNewSpanCount > 0)
+					{
+						// restore the editable span to what it was when adaptationsStep was started
+						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
+						wxASSERT(nHowMany != 0);
+						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							pRec->nAdaptationStep_StartingSequNum, 
+							nHowMany, // defines how many to remove to make the gap for the insertions
+							&pRec->adaptationStep_SrcPhraseList, 
+							0, // start at index 0, ie. insert whole of deep copied list
+							pRec->nAdaptationStep_OldSpanCount);
+						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+						// restore original counts to step-initial values
+						// pRec->nAdaptationStep_EndingSequNum -= pRec->nAdaptationStep_ExtrasFromUserEdits;
+						// pRec->nAdaptationStep_ExtrasFromUserEdits = 0;
+						// pRec->nAdaptationStep_NewSpanCount = pRec->nAdaptationStep_OldSpanCount;
+						// deleting the contents of the glossStep_SrcPhraseList is left for InitializeEditRecord()
+					}
+					//pFWnd->RecalcLayout();
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+				} // fall through
+			case sourceTextStep:
+				if (gEntryPoint == sourceTextEntryPoint)
+				{
 					// restore to the number of instances when editableSpan had not had any user edits yet
 					// (they don't have to be the correct ones, as the restoration of the cancel span will
 					// remove them all and insert the cancel span ones, later)
-					bool bWasOK = TRUE;
+					gEditStep = sourceTextStep;
+					//bool bWasOK = TRUE;
 					int nHowMany = 0;
 					bool bNewIsShorter = FALSE;
 					bool bOldIsShorter = FALSE;
@@ -5468,7 +5417,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							// need to make some insertions, just take them from start of cancel span (the
 							// only need we have is to move the right context rightwards so is gets located
 							// correctly before the replacement later on)
-							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nNewSpanCount, 
 								0, // no deletions wanted
 								&pRec->cancelSpan_SrcPhraseList, 
@@ -5477,7 +5426,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						if (bOldIsShorter)
 						{
-							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nOldSpanCount, 
 								nHowMany, // defines how many to delete
 								&pRec->cancelSpan_SrcPhraseList, 
@@ -5486,35 +5435,32 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 					}
 					// some of the instances in the span above are wrong, but the span is now co-extensive
-					// with the cancel span, so when we overwrite this wwith the cancel span, we've restored
+					// with the cancel span, so when we overwrite this with the cancel span, we've restored
 					// the original state (except perhaps if the propagation span sticks out past the end of
 					// the cancel span) - we do these copies in the sourceTextStp case below.
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
-					gEditStep = sourceTextStep;
-				} // fall through
-			case sourceTextStep:
-				if (gEntryPoint == sourceTextEntryPoint)
-				{
+					
 					// handle the user edits done in the Edit Source Text dialog
-					int nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
+					nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
 					wxASSERT(nHowMany != 0);
-					bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 						pRec->nCancelSpan_StartingSequNum, 
 						nHowMany, // defines how many to remove to make the gap for the insertions
 						&pRec->cancelSpan_SrcPhraseList, 
 						0, // start at index 0, ie. insert whole of deep copied list
 						nHowMany);
 					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+					
 					// if the end of the propagation span is beyond end of cancel span, restore those extras too
 					if (pRec->nPropagationSpan_EndingSequNum > pRec->nCancelSpan_EndingSequNum)
 					{
 						nHowMany = pRec->nPropagationSpan_EndingSequNum - pRec->nCancelSpan_EndingSequNum;
-						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
-							pRec->nPropagationSpan_EndingSequNum + 1, 
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							pRec->nPropagationSpan_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->propagationSpan_SrcPhraseList, 
-							pRec->nCancelSpan_EndingSequNum - pRec->nCancelSpan_StartingSequNum + 1, // index into propSpan list for start
-							nHowMany);
+							0, // index into propSpan list for start
+							pRec->propagationSpan_SrcPhraseList.GetCount());
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
 				}
@@ -5531,83 +5477,215 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				// but because of the potential for a failure during backTranslationsStep, we
 				// have to cater for cancellation from within this step
 
-
-
-
-
 			case freeTranslationsStep:
 				if (gEntryPoint == freeTranslationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
 
-
-
 					// clean up & restore original state
 					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 					wxPostEvent(this, eventCustom);
-					// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-					// the vertical edit tool bars from the main window.
+					// whm Note: This event also calls the code which hides any of the
+					// vertical edit tool bars so they are not seen from the main window.
 					return;
 				}
 				else
 				{
 					// entry point was at an earlier step
-
-
-
+					gEditStep = freeTranslationsStep;
+					//pEdit->SetWindowText(_T("")); // clear the box
+					pEdit->SetValue(_T("")); // clear the box
+					
+					// now restore the free translation span to what it was at last entry to
+					// freeTranslationsStep ie. as it was at the end of adaptationsStep
+					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
+						pRec->nFreeTrans_EndingSequNum != -1)
+					{
+						int nHowMany = pRec->nFreeTranslationStep_SpanCount;
+						wxASSERT(nHowMany != 0);
+						wxASSERT(pRec->freeTranslationStep_SrcPhraseList.GetCount() > 0);
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							pRec->nFreeTranslationStep_StartingSequNum, 
+							nHowMany, // defines how many to remove to make the gap for the insertions
+							&pRec->freeTranslationStep_SrcPhraseList, 
+							0, // start at index 0, ie. insert whole of deep copied list
+							pRec->nFreeTranslationStep_SpanCount);
+						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+					}
+					pView->ToggleFreeTranslationMode(); // turn off free translation mode
 				} // fall through
 			case adaptationsStep:
 				if (gEntryPoint == adaptationsEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
 
-
-
 					// clean up & restore original state
 					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 					wxPostEvent(this, eventCustom);
-					// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-					// the vertical edit tool bars from the main window.
+					// whm Note: This event also calls the code which hides any of the
+					// vertical edit tool bars so they are not seen from the main window.
 					return;
 				}
 				else
 				{
 					// entry point was at an earlier step
-
-
-
+					if (gbIsGlossing)
+					{
+						pView->ToggleGlossingMode(); // turn glossing mode off, as well as See Glosses
+						pView->ToggleSeeGlossesMode();
+					}
+					else  if (gbEnableGlossing)
+					{
+						// See Glosses is enabled, so turn if off, glossing mode is already off
+						pView->ToggleSeeGlossesMode();
+					}
+					gEditStep = adaptationsStep;
+					if (pRec->nNewSpanCount > 0)
+					{
+						// restore the editable span to what it was at the start of adaptationsStep
+						// ie. how it was at the end of the previous glossesStep
+						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
+						wxASSERT(nHowMany != 0);
+						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							pRec->nAdaptationStep_StartingSequNum, 
+							nHowMany, // defines how many to remove to make the gap for the insertions
+							&pRec->adaptationStep_SrcPhraseList, 
+							0, // start at index 0, ie. insert whole of deep copied list
+							pRec->nAdaptationStep_OldSpanCount);
+						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
+						// the final call of InitializeEditRecord()
+					}
+					//pFWnd->RecalcLayout(); // (MFC) the bNotify parameter is default TRUE, let it do so,
+								 // no harm if the window is not embedded
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 				} // fall through
 			case glossesStep:
 				if (gEntryPoint == glossesEntryPoint)
 				{
 					// rollback this step and then exit after posting end request
 
-
-
 					// clean up & restore original state
 					//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 					wxPostEvent(this, eventCustom);
-					// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-					// the vertical edit tool bars from the main window.
+					// whm Note: This event also calls the code which hides any of the
+					// vertical edit tool bars so they are not seen from the main window.
 					return;
 				}
 				else
 				{
 					// entry point was at an earlier step
-
-
-
+					if (!gbIsGlossing)
+					{
+						if (!gbEnableGlossing)
+						{
+							pView->ToggleSeeGlossesMode(); // turn on See Glosses
+						}
+						pView->ToggleGlossingMode(); // turn on glossing mode
+					}
+					gEditStep = glossesStep;
+					if (pRec->nNewSpanCount > 0)
+					{
+						// restore the editable span to what it was at the start of glossesStep
+						int nHowMany = pRec->nGlossStep_SpanCount;
+						wxASSERT(nHowMany != 0);
+						wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							pRec->nGlossStep_StartingSequNum, 
+							nHowMany, // defines how many to remove to make the gap for the insertions
+							&pRec->glossStep_SrcPhraseList, 
+							0, // start at index 0, ie. insert whole of deep copied list
+							pRec->nGlossStep_SpanCount);
+						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+						// leave deletion of contents of freeTranslationStep_SrcPhraseList until
+						// the final call of InitializeEditRecord()
+					}
+					//pFWnd->RecalcLayout(); // (MFC) the bNotify parameter is default TRUE, let it do so,
+							 	// no harm if the window is not embedded
+					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+					pView->ToggleGlossingMode(); // turn glossing mode back off
 				} // fall through
 			case sourceTextStep:
 				if (gEntryPoint == sourceTextEntryPoint)
 				{
-					// rollback this step and then exit
+					// rollback this step and then exit...
+					// restore to the number of instances when editableSpan had not had any user edits yet
+					// (they don't have to be the correct ones, as the restoration of the cancel span will
+					// remove them all and insert the cancel span ones, later)
+					//bool bWasOK = TRUE;
+					int nHowMany = 0;
+					bool bNewIsShorter = FALSE;
+					bool bOldIsShorter = FALSE;
+					
+					if (pRec->nOldSpanCount > pRec->nNewSpanCount)
+					{
+						bNewIsShorter = TRUE;
+						nHowMany = pRec->nOldSpanCount - pRec->nNewSpanCount; // this many insertions
+					}
+					else if (pRec->nNewSpanCount > pRec->nOldSpanCount)
+					{
+						bOldIsShorter = TRUE;
+						nHowMany = pRec->nNewSpanCount - pRec->nOldSpanCount; // this many deletions
+					}
+					if (nHowMany != 0)
+					{
+						// only if shorter or longer do we need to make an insertion or deletion, respectively
+						if (bNewIsShorter)
+						{
+							// need to make some insertions, just take them from start of cancel span (the
+							// only need we have is to move the right context rightwards so is gets located
+							// correctly before the replacement later on)
+							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+								pRec->nStartingSequNum + pRec->nNewSpanCount, 
+								0, // no deletions wanted
+								&pRec->cancelSpan_SrcPhraseList, 
+								0, // start at index 0, ie. insert whole of deep copied list
+								nHowMany);
+						}
+						if (bOldIsShorter)
+						{
+							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+								pRec->nStartingSequNum + pRec->nOldSpanCount, 
+								nHowMany, // defines how many to delete
+								&pRec->cancelSpan_SrcPhraseList, 
+								0, // need an index, but we don't use cancelSpan_SrcPhraseList
+								0);
+						}
+					}
+					// some of the instances in the span above are wrong, but the span is now co-extensive
+					// with the cancel span, so when we overwrite this with the cancel span, we've restored
+					// the original state (except perhaps if the propagation span sticks out past the end of
+					// the cancel span) - we do these copies in the sourceTextStp case below.
+					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+					gEditStep = sourceTextStep;
 
+					// handle the user edits done in the Edit Source Text dialog
+					nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
+					wxASSERT(nHowMany != 0);
+					bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						pRec->nCancelSpan_StartingSequNum, 
+						nHowMany, // defines how many to remove to make the gap for the insertions
+						&pRec->cancelSpan_SrcPhraseList, 
+						0, // start at index 0, ie. insert whole of deep copied list
+						nHowMany);
+					pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 
-
+					// if the end of the propagation span is beyond end of cancel span, restore those extras too
+					if (pRec->nPropagationSpan_EndingSequNum > pRec->nCancelSpan_EndingSequNum)
+					{
+						nHowMany = pRec->nPropagationSpan_EndingSequNum - pRec->nCancelSpan_EndingSequNum;
+						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							pRec->nPropagationSpan_StartingSequNum, 
+							nHowMany, // defines how many to remove to make the gap for the insertions
+							&pRec->propagationSpan_SrcPhraseList, 
+							0, // index into propSpan list for start
+							pRec->propagationSpan_SrcPhraseList.GetCount());
+						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
+					}
 				}
 				break;
 			} // end of switch (gEditStep)
@@ -5617,11 +5695,10 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
 		wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 		wxPostEvent(this, eventCustom);
-		// whm Note: This event calls OnCustomEventCancelVerticalEdit() which ends by hiding any of
-		// the vertical edit tool bars from the main window.
-
+		// whm Note: This event also calls the code which hides any of the
+		// vertical edit tool bars so they are not seen from the main window.
 	} // end of TRUE block for test (gbVerticalEditInProgress)
-*/
+	
 	// whm addition:
 	// When vertical editing is canceled we should hide the m_pRemovalsBar, and m_pVertEditBar,
 	//  - any and all that are visible.
@@ -5634,7 +5711,6 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 		m_pRemovalsBar->Hide();
 	}
 	SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw;
-
 	return;
 }
 
@@ -5667,7 +5743,8 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	theText = m_pRemovalsBarComboBox->GetString(nIndex); //m_pRemovalsBarComboBox->GetLBText(nIndex,theText);
 	wxASSERT(!theText.IsEmpty());
 
-	gReplacementLocation_SequNum = pApp->m_nActiveSequNum;
+//	gReplacementLocation_SequNum = pApp->m_nActiveSequNum;
+	gnWasSequNum = pApp->m_nActiveSequNum;
 
 	// now put the text into m_targetBox in the view, and get the view redrawn,
 	// or if freeTranslationsStep is in effect, into the edit box within the

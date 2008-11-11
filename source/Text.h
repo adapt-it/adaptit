@@ -44,7 +44,7 @@ public:
 protected:
 	wxPoint		m_topLeft;	///< point in logical coords, where text is to be displayed
 	wxFont*		m_pFont;	///< font in which to draw
-	int			m_nCell;	///< the parent cell
+	int		m_nCell;	///< the parent cell
 public:
 	wxString	m_phrase;	///< the phrase to be displayed
 	virtual ~CText();

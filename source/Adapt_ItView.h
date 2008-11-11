@@ -90,7 +90,7 @@ public:
 	// Use the "canvas" of a wxScrolledWindow for depicting our view
 	
 	CAdapt_ItCanvas *canvas;	// This canvas pointer is owned by the view, but OnCreate() sets 
-								// this pointer to always point to the main canvas pointer in CMainFrame
+					// this pointer to always point to the main canvas pointer in CMainFrame
 
 	CAdapt_ItView(); // constructor
 
