@@ -207,7 +207,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - Minimal\Adapt_It.exe&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - No Html Help\Adapt_It.exe&quot;"
+				CommandLine="mkdir &quot;..\..\setup Regular\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular\Adapt_It.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Regular - Minimal\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - Minimal\Adapt_It.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Regular - No Html Help\&quot;&#x0D;&#x0A;copy &quot;Release\Adapt_It.exe&quot; &quot;..\..\setup Regular - No Html Help\Adapt_It.exe&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -375,7 +375,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;"
+				CommandLine="mkdir &quot;..\..\setup Unicode\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Unicode - Minimal\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot;&#x0D;&#x0A;mkdir &quot;..\..\setup Unicode - No Html Help\&quot;&#x0D;&#x0A;copy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
