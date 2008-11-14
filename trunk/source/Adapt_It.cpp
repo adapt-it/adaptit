@@ -5881,7 +5881,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxASSERT(pCheckboxIsGlossing != NULL);
 	pCheckboxIsGlossing->Show(FALSE);
 
-	m_pMainFrame->Centre(wxBOTH);
+	//m_pMainFrame->Centre(wxBOTH);
     m_pMainFrame->Show(TRUE);
 
     SetTopWindow(m_pMainFrame);
