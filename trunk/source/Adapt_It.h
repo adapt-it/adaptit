@@ -2159,7 +2159,7 @@ public:
 	// wxTextFile is Unicode enabled, so we should only need a single version of these in the
 	// wxWidgets code.
 	void	GetBasicSettingsConfiguration(wxTextFile* pf);
-	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf);
+	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf, bool& bFaceNameFound, wxString& faceName);
 	void	GetProjectSettingsConfiguration(wxTextFile* pf);
 #ifdef _UNICODE
 	void	ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding),wxFile* pFile,wxString& str); //, bool bNoTerminatingNull = TRUE); // for unicode conversions
