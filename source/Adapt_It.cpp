@@ -12472,6 +12472,8 @@ inline wxString convertFromLocalCharset(const wxString& str)
 /// \param      fi   <- the fontInfo struct containing the font information as read in from the
 ///                         configuration files
 /// \param      pf   -> pointer to the wxTextFile that is being read as the config file
+/// \param      bFaceNameFound   -> TRUE if the font's face name was found on the local machine,
+///                                 otherwise FALSE if the face name was not found
 /// \remarks
 /// Called from: the App's GetConfigurationFile(). 
 /// Reads the font configuration part of a configuration file. GetFontConfiguration() gets
@@ -12479,7 +12481,7 @@ inline wxString convertFromLocalCharset(const wxString& str)
 /// navigation text language. The text file is opened by the caller and remains open after each
 /// call to GetFontConfiguration(). Note: wxTextFile is processed entirely in memory.
 ////////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
+bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFaceNameFound, wxString& faceName)
 // Note: wxTextFile is Unicode enabled when _UNICODE is defined
 // This function accepts the config file entries in any order, as long as the format of
 // each line's entry is correct: that is, a name, tab, string value, and \n at the end.
@@ -12819,8 +12821,22 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 				bFoundFaceName = m_pSourceFont->SetFaceName(fi.fFaceName);
 				if (!bFoundFaceName)
 				{
-					// use whatever facename the system came up with
-					fi.fFaceName = m_pSourceFont->GetFaceName();
+					faceName = fi.fFaceName;
+					bFaceNameFound = FALSE; // notify caller that m_pSourceFont's face name wasn't found and we're substituting system font
+					// revert to using a system font (for face name)
+					wxFont* tempFont = new wxFont(*wxNORMAL_FONT); // m_pSourceFont = new wxFont(wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT));
+					//wxASSERT(m_pSourceFont != NULL);
+					fi.fFaceName = tempFont->GetFaceName(); //fi.fFaceName = m_pSourceFont->GetFaceName();
+					if (!m_pSourceFont->SetFaceName(fi.fFaceName))
+					{
+						;
+						wxASSERT(FALSE);
+					}
+					m_pSourceFont->SetPointSize(12); // use a reasonable size for the system font
+					// TODO: we also need a way to inform the user that we substituted a system font for this
+					// font that came from the config file.
+					delete tempFont;
+					tempFont = (wxFont*)NULL;
 				}
 					
 			}
@@ -12829,8 +12845,22 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 				bFoundFaceName = m_pTargetFont->SetFaceName(fi.fFaceName);
 				if (!bFoundFaceName)
 				{
-					// use whatever facename the system came up with
-					fi.fFaceName = m_pTargetFont->GetFaceName();
+					faceName = fi.fFaceName;
+					bFaceNameFound = FALSE; // notify caller that m_pTargetFont's face name wasn't found and we're substituting system font
+					// revert to using a system font (for face name)
+					wxFont* tempFont = new wxFont(*wxNORMAL_FONT); // m_pTargetFont = new wxFont(wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT));
+					//wxASSERT(m_pSourceFont != NULL);
+					fi.fFaceName = tempFont->GetFaceName(); //fi.fFaceName = m_pTargetFont->GetFaceName();
+					if (!m_pTargetFont->SetFaceName(fi.fFaceName))
+					{
+						;
+						wxASSERT(FALSE);
+					}
+					m_pTargetFont->SetPointSize(12); // use a reasonable size for the system font
+					// TODO: we also need a way to inform the user that we substituted a system font for this
+					// font that came from the config file.
+					delete tempFont;
+					tempFont = (wxFont*)NULL;
 				}
 			}
 			else if (fi.fLangType.GetChar(0)  == _T('N'))
@@ -12838,8 +12868,22 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 				bFoundFaceName = m_pNavTextFont->SetFaceName(fi.fFaceName);
 				if (!bFoundFaceName)
 				{
-					// use whatever facename the system came up with
-					fi.fFaceName = m_pNavTextFont->GetFaceName();
+					faceName = fi.fFaceName;
+					bFaceNameFound = FALSE; // notify caller that m_pNavTextFont's face name wasn't found and we're substituting system font
+					// revert to using a system font (for face name)
+					wxFont* tempFont = new wxFont(*wxNORMAL_FONT); // m_pNavTextFont = new wxFont(wxSystemSettings::GetFont(wxSYS_SYSTEM_FONT));
+					//wxASSERT(m_pSourceFont != NULL);
+					fi.fFaceName = tempFont->GetFaceName(); //fi.fFaceName = m_pNavTextFont->GetFaceName();
+					if (!m_pNavTextFont->SetFaceName(fi.fFaceName))
+					{
+						;
+						wxASSERT(FALSE);
+					}
+					m_pNavTextFont->SetPointSize(12); // use a reasonable size for the system font
+					// TODO: we also need a way to inform the user that we substituted a system font for this
+					// font that came from the config file.
+					delete tempFont;
+					tempFont = (wxFont*)NULL;
 				}
 			}
 		}
@@ -15305,8 +15349,14 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 		configFileType = _("project");
 	msg = _("Unable to read %s font data from the %s configuration file. Default values will be used instead.");
 	
+	bool bSrcFontFaceNameFound = TRUE;
+	bool bTgtFontFaceNameFound = TRUE;
+	bool bNavFontFaceNameFound = TRUE;
+	wxString srcFontFaceName = _T("");
+	wxString tgtFontFaceName = _T("");
+	wxString navFontFaceName = _T("");
 	// get the source font's SrcFInfo data from the configFileType config file
-	bOK = GetFontConfiguration(SrcFInfo,&f);
+	bOK = GetFontConfiguration(SrcFInfo,&f,bSrcFontFaceNameFound,srcFontFaceName);
 	if (!bOK)
 	{
 		wxString fontType = _("source");
@@ -15316,7 +15366,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	// get the target font's TgtFInfo data from the configFileType config file
-	bOK = GetFontConfiguration(TgtFInfo,&f);
+	bOK = GetFontConfiguration(TgtFInfo,&f,bTgtFontFaceNameFound,tgtFontFaceName);
 	if (!bOK)
 	{
 		wxString fontType = _("target");
@@ -15326,7 +15376,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	// get the nav font's NavFInfo data from the configFileType config file
-	bOK = GetFontConfiguration(NavFInfo, &f);
+	bOK = GetFontConfiguration(NavFInfo, &f,bNavFontFaceNameFound,navFontFaceName);
 	if (!bOK)
 	{
 		wxString fontType = _("navigation");
@@ -15334,7 +15384,48 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			fontType.c_str(), configFileType.c_str());
 		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
 	}
-	
+	if (selector == 2)
+	{
+		// We've read the "project" config file's fonts.
+		// Notify the user if project config file fonts were not found and a system font face name was
+		// substituted.
+		wxString errMsg,sysFontName;
+		errMsg.Empty();
+		sysFontName.Empty();
+		if (!bSrcFontFaceNameFound)
+		{
+			errMsg += _T("\n   ");
+			errMsg += _("Source Font Name");
+			errMsg += _T(": ");
+			errMsg += srcFontFaceName;
+			sysFontName = SrcFInfo.fFaceName; // a system font should have the same face name in all cases
+		}
+		if (!bTgtFontFaceNameFound)
+		{
+			errMsg += _T("\n   ");
+			errMsg += _("Target Font Name");
+			errMsg += _T(": ");
+			errMsg += tgtFontFaceName;
+			sysFontName = SrcFInfo.fFaceName; // a system font should have the same face name in all cases
+		}
+		if (!bNavFontFaceNameFound)
+		{
+			errMsg += _T("\n   ");
+			errMsg += _("Navigation Font Name");
+			errMsg += _T(": ");
+			errMsg += navFontFaceName;
+			sysFontName = SrcFInfo.fFaceName; // a system font should have the same face name in all cases
+		}
+		if (!errMsg.IsEmpty())
+		{
+			wxString errMsg2;
+			errMsg2 = _("The following fonts (in the project configuration file) cannot be found on your computer:");
+			errMsg2 += errMsg;
+			errMsg2 = errMsg2 + _("\nA system font (%s) will be used instead. You may need to install the appropriate font, then select it from the Fonts tab of the Preferences... dialog (on the Edit menu).");
+			errMsg2 = errMsg2.Format(errMsg2,sysFontName.c_str());
+			wxMessageBox(errMsg2,_("Font name in configuration file not found"),wxICON_WARNING);
+		}
+	}
 	// get the section heading from our in-memory config file
 	data = f.GetNextLine(); // data should be "Settings" for basic config file or "ProjectSettings" for proj config file
 
