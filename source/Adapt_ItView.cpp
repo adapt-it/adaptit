@@ -32935,7 +32935,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList
 		{
 			CSourcePhrase* pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
-			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pOriginalList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+//			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pOriginalList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 		testpos = pDestinationList->GetFirst();
 		ct = 0;
@@ -32943,7 +32943,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList
 		{
 			CSourcePhrase* pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
-			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pDestinationList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+//			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pDestinationList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
 	return TRUE;
@@ -34719,7 +34719,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		{
 			CSourcePhrase* pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
-			wxLogDebug(_T("pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+//			wxLogDebug(_T("pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
 #ifdef _DEBUG
@@ -34729,7 +34729,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		{
 			CSourcePhrase* pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
-			wxLogDebug(_T("pTempList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+//			wxLogDebug(_T("pTempList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
 		if (!bAllWasOK)
@@ -34753,7 +34753,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		{
 			CSourcePhrase* pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
-			wxLogDebug(_T("After DeleteSourcePhrases pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
+//			wxLogDebug(_T("After DeleteSourcePhrases pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
 	} // end block for test (bFreeTransPresent == TRUE)
@@ -46237,22 +46237,47 @@ void CAdapt_ItView::OnButtonCancelAllSteps(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItView::OnUpdateButtonUndoLastCopy(wxUpdateUIEvent& event) 
 {
-	if (gbVerticalEditInProgress && !gOldEditBoxTextStr.IsEmpty())
+	// in the next test we don't require that gOldEditBoxTextStr be non-empty, so that the
+	// button can replace with an empty string too 
+	if (gbVerticalEditInProgress)
 	{
 		if (gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber == gnWasSequNum &&
 			gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords == gnWasNumWordsInSourcePhrase &&
 			gbWasFreeTranslationMode == gpApp->m_bFreeTranslationMode &&
 			gbIsGlossing == gbWasGlossingMode)
 		{
+/*
+#ifdef _DEBUG
+			wxLogDebug(_T("OnUpdateButtonUndoLastCopy() enabled: str= %s\n"), gOldEditBoxTextStr);
+#endif
+*/
 			event.Enable(TRUE);
 		}
 		else
 		{
+/*
+#ifdef _DEBUG
+			wxLogDebug(_T("OnUpdateButtonUndoLastCopy() disabled inner: str= %s\n"), gOldEditBoxTextStr);
+			wxLogDebug(_T("should be equal: sn = %d  old sn = %d\n"),
+				gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber, gnWasSequNum);
+			wxLogDebug(_T("should be equal: #words = %d  old #words = %d\n"),
+				gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords, gnWasNumWordsInSourcePhrase);
+			wxLogDebug(_T("should be equal: ftmode = %d  old ftmode = %d\n"),
+				gpApp->m_bFreeTranslationMode, gbWasFreeTranslationMode);
+			wxLogDebug(_T("should be equal: isGlossing? = %d  old isGlossing? = %d\n\n"),
+				gbIsGlossing, gbWasGlossingMode);
+#endif
+*/
 			event.Enable(FALSE);
 		}
 	}
 	else
 	{
+/*
+#ifdef _DEBUG
+		wxLogDebug(_T("OnUpdateButtonUndoLastCopy() disabled outer: str= %s\n"), gOldEditBoxTextStr);
+#endif
+*/
 		event.Enable(FALSE);
 	}
 }
@@ -46272,7 +46297,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 	pTextBox = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
 	wxASSERT(pTextBox != NULL);
 
-	// if free translaiton mode is current, then copy the contents of the gOldEditBoxTextStr
+	// if free translation mode is current, then copy the contents of the gOldEditBoxTextStr
 	// CString to the CEdit in the ComposeBar; otherwise, copy it to the phrase box, because
 	// the update handler has already determined the needed conditions are satisfied
 	wxString theText = gOldEditBoxTextStr;
@@ -46283,6 +46308,10 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 		{
 			wxMessageBox(_T("OnButtonUndoLastCopy error, compose bar's wxTextCtrl pointer is null; copy not done."),
 				_T(""), wxICON_EXCLAMATION);
+			gnWasSequNum = -1;
+			gnWasNumWordsInSourcePhrase = 0;
+			gbWasGlossingMode = FALSE;
+			gbWasFreeTranslationMode = FALSE;
 			return;
 		}
 		pTextBox->SetValue(theText);
@@ -46335,31 +46364,25 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 		gpApp->m_nStartChar = length;
 		RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 
-		// restore focus and make non-abandonable
-	// restore focus to the targetBox, if it is visible, and make non-abandonable
-	if (gpApp->m_pTargetBox != NULL)			//if (m_targetBox.m_hWnd != NULL)
-		if (gpApp->m_pTargetBox->IsShown())	// if ((m_targetBox.GetStyle() & WS_VISIBLE) != 0)
+		// restore focus to the targetBox, if it is visible, and make non-abandonable
+		if (gpApp->m_pTargetBox != NULL)
 		{
-			gpApp->m_pTargetBox->SetFocus();	// m_targetBox.SetFocus();
-			gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+			//if (m_targetBox.m_hWnd != NULL)
+			if (gpApp->m_pTargetBox->IsShown())	// if ((m_targetBox.GetStyle() & WS_VISIBLE) != 0)
+			{
+				gpApp->m_pTargetBox->SetFocus();	// m_targetBox.SetFocus();
+				gpApp->m_pTargetBox->m_bAbandonable = FALSE;
+			}
 		}
-	Invalidate();
-		
-		
-		//if (m_targetBox.m_hWnd != NULL)
-		//{
-		//	if ((m_targetBox.GetStyle() & WS_VISIBLE) != 0)
-		//	{
-		//		m_targetBox.SetFocus();
-		//		m_targetBox.m_bAbandonable = FALSE;
-		//	}
-		//}
-		//Invalidate();
+		Invalidate();
 	}
 
-
-
-	
+	// give bad values to the state-recording variables to ensure the Undo Last Copy
+	// button will be disabled after the Undo is completed
+	gnWasSequNum = -1;
+	gnWasNumWordsInSourcePhrase = 0;
+	gbWasGlossingMode = FALSE;
+	gbWasFreeTranslationMode = FALSE;
 }
 
 

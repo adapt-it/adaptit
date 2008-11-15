@@ -392,9 +392,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// lists in it have content which persists only for the life of the document currently open)
 	CAdapt_ItView* pView = gpApp->GetView();
 	pView->InitializeEditRecord(gEditRecord);
-	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
-	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
-	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
+	if (!gEditRecord.deletedAdaptationsList.IsEmpty())
+		gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
+	if (!gEditRecord.deletedGlossesList.IsEmpty())
+		gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
+	if (!gEditRecord.deletedFreeTranslationsList.IsEmpty())
+		gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
 
 
 	int width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
@@ -3553,7 +3556,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
 #ifdef _DEBUG
-				wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
+				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
 #endif
 				DeleteSingleSrcPhrase(pSrcPhrase);
 			}

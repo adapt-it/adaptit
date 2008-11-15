@@ -110,22 +110,30 @@ extern EditStep gEditStep;
 extern wxString gOldEditBoxTextStr;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
-extern int gnWasSequNum;
-//extern int gReplacementLocation_SequNum;
+extern int		gnWasSequNum;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern int		gnWasNumWordsInSourcePhrase;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern bool		gbWasGlossingMode;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern bool		gbWasFreeTranslationMode;
 
 /// This global is defined in Adapt_ItView.cpp
-extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
+extern bool		gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 /// This global is defined in Adapt_ItView.cpp
-extern bool gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON;
+extern bool		gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON;
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
+extern bool		gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 /// This global is defined in Adapt_ItView.cpp.
-extern bool gbGlossingUsesNavFont;
+extern bool		gbGlossingUsesNavFont;
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -159,10 +167,10 @@ extern bool		gbMatchedKB_UCentry;
 extern wxChar	gcharNonSrcUC;
 
 /// This global is defined in PhraseBox.cpp.
-extern bool	gbCameToEnd; // see PhraseBox.cpp
+extern bool		gbCameToEnd; // see PhraseBox.cpp
 
 extern  bool	gbMatchedRetranslation;
-extern  int	gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
+extern  int		gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 extern  bool	gbHaltedAtBoundary;
 extern	bool	gbFindOrReplaceCurrent;
 
@@ -173,7 +181,7 @@ extern	bool	bUserCancelled;
 extern	bool	gbSuppressSetup;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbTryingMRUOpen; 
+extern bool		gbTryingMRUOpen; 
 
 /// This global is defined in Adapt_It.cpp.
 extern	bool	gbViaMostRecentFileList;
@@ -5716,12 +5724,13 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 
 // MFC: OnRemovalsComboSelChange() handles a click in the dropped down list, sending the string direct to the
 // phrase box which is rebuilt, and with focus put there and cursor following the last character; but it
-// doesn't handle a click on the already visible item in the combobox window - there isn't a way to
-// make that work as far as I can tell
+// doesn't handle a click on the already visible item in the combobox window - there isn't a way to make that
+// work as far as I can tell
 // 
-// (whm note: Bruce tried using a OnRemovalsComboSetFocus() handler, which worked, but
-// blocked dropping down the list) so apparently the user will have to drop the list down manually
-// rather than be able to just click on the text in the combo box window).
+// (whm note: Bruce tried using a OnRemovalsComboSetFocus() handler, which worked, but blocked dropping down
+// the list) so apparently the user will have to drop the list down manually rather than be able to just
+// click on the text in the combo box window). void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent&
+// WXUNUSED(event))
 void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5743,6 +5752,12 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	theText = m_pRemovalsBarComboBox->GetString(nIndex); //m_pRemovalsBarComboBox->GetLBText(nIndex,theText);
 	wxASSERT(!theText.IsEmpty());
 
+	// store the active srcPhrase's m_nWords member's value for use in the test in OnUpdateButtonUndoLastCopy()
+	// and other "state-recording" information, for use by the same update handler
+	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords; // the merge state at active location
+	gbWasGlossingMode = gbIsGlossing; // whether glossing or adapting when the copy is done
+	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free translation mode is on at that time
+
 //	gReplacementLocation_SequNum = pApp->m_nActiveSequNum;
 	gnWasSequNum = pApp->m_nActiveSequNum;
 
@@ -5758,14 +5773,20 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
 		pEdit->SetValue(_T(""));
 		pEdit->SetValue(theText);
-		long len = theText.Length();
+		//wxString debugCheckStr = pEdit->GetValue();
+		long len = theText.Len();
 		pEdit->SetSelection(len,len);
 		pEdit->SetFocus();
 		//RecalcLayout(); // <- the CFrameWnd one, which gets the frame and its bars redrawn; 
 						// not my view one of same name
-		SendSizeEvent();
+		pEdit->Refresh();
+		//SendSizeEvent();
 		return;
 	}
+
+	// if control gets here then the copy must therefore be going to the phrase box; so
+	// store a copy of phrase box text here in case Undo Last Copy button is used later
+	gOldEditBoxTextStr = gpApp->m_pTargetBox->GetValue(); 
 
 	// if auto capitalization is on, determine the source text's case propertiess
 	bool bNoError = TRUE;
@@ -5783,6 +5804,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	pApp->m_targetPhrase = theText;
+
 
 	// the box may be bigger because of the text, so do a recalc of the layout
 	pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
@@ -5813,6 +5835,9 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
-	pView->Invalidate(); // whm: Why call Invalidate here?
+	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text could be different
+						 // length than what was there before, and hence move piles about or even
+						 // cause the following strips to have different pile content. But to
+						 // avoid flicker we need to make use of clipping region soon. BEW)
 }
 
