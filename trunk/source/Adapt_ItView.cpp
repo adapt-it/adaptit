@@ -40803,7 +40803,7 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 	wxTextCtrl* pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE); 
 	// whm 24Aug06 removed gFreeTranslationStr global here and below
 	wxString tempStr;
-	tempStr = pEdit->GetValue(); // update the global with whatever is in the box
+	tempStr = pEdit->GetValue(); // set tempStr to whatever is in the box
 
 	gpCurFreeTransSectionPileArray->Clear(); // start with an empty array
 
@@ -46314,13 +46314,16 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 			gbWasFreeTranslationMode = FALSE;
 			return;
 		}
-		pTextBox->SetValue(theText);
+		pTextBox->SetValue(theText); // change the string in the wxTextCtrl in the compose bar
 		long len = theText.Len();
 		pTextBox->SetSelection(len,len);
 		pTextBox->SetFocus();
-		//pFrame->RecalcLayout(); // <- the CFrameWnd one, which gets the frame and its bars redrawn; 
-						// not my view one of same name
-		gpApp->GetMainFrame()->SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+		gpApp->GetMainFrame()->SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run
+												// and do the needed redraw
+		// **TODO** have the free translation text displayed under the active section updated to
+		// comply with the change of free translation that has just happened
+
+
 	}
 	else
 	{

@@ -5777,10 +5777,14 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		long len = theText.Len();
 		pEdit->SetSelection(len,len);
 		pEdit->SetFocus();
-		//RecalcLayout(); // <- the CFrameWnd one, which gets the frame and its bars redrawn; 
-						// not my view one of same name
 		pEdit->Refresh();
-		//SendSizeEvent();
+        // we also need a redraw, which will, after redrawing the layout, will also redraw the
+        // current section's free translation text
+		pEdit->MarkDirty(); // this causes CComposeBarEditBox class's OnEditBoxChanged() handler
+							// to be invoked, which draws the text below the current section ??
+							// Oops, didn't work
+		// bool bismod = pEdit->IsModified(); // debug test to confirm the wxTextCtrl was marked dirty
+		
 		return;
 	}
 
