@@ -98,7 +98,6 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 	// we only update edits in free translation mode
 	if (gpApp->m_bFreeTranslationMode)
 	{
-		bool bIsMod = this->IsModified(); // for debugging test
 		if (this->IsModified())
 		{
 			CAdapt_ItView* pView = gpApp->GetView();

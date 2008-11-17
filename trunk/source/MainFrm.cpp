@@ -5342,7 +5342,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						int nHowMany = pRec->nGlossStep_SpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nGlossStep_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->glossStep_SrcPhraseList, 
@@ -5380,7 +5381,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nAdaptationStep_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->adaptationStep_SrcPhraseList, 
@@ -5425,7 +5427,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							// need to make some insertions, just take them from start of cancel span (the
 							// only need we have is to move the right context rightwards so is gets located
 							// correctly before the replacement later on)
-							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							bool bWasOK;
+							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nNewSpanCount, 
 								0, // no deletions wanted
 								&pRec->cancelSpan_SrcPhraseList, 
@@ -5434,7 +5437,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						if (bOldIsShorter)
 						{
-							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							bool bWasOK;
+							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nOldSpanCount, 
 								nHowMany, // defines how many to delete
 								&pRec->cancelSpan_SrcPhraseList, 
@@ -5463,7 +5467,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					if (pRec->nPropagationSpan_EndingSequNum > pRec->nCancelSpan_EndingSequNum)
 					{
 						nHowMany = pRec->nPropagationSpan_EndingSequNum - pRec->nCancelSpan_EndingSequNum;
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nPropagationSpan_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->propagationSpan_SrcPhraseList, 
@@ -5513,7 +5518,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						int nHowMany = pRec->nFreeTranslationStep_SpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->freeTranslationStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nFreeTranslationStep_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->freeTranslationStep_SrcPhraseList, 
@@ -5557,7 +5563,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						int nHowMany = pRec->nAdaptationStep_NewSpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->adaptationStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nAdaptationStep_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->adaptationStep_SrcPhraseList, 
@@ -5602,7 +5609,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						int nHowMany = pRec->nGlossStep_SpanCount;
 						wxASSERT(nHowMany != 0);
 						wxASSERT(pRec->glossStep_SrcPhraseList.GetCount() > 0);
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nGlossStep_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->glossStep_SrcPhraseList, 
@@ -5647,7 +5655,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							// need to make some insertions, just take them from start of cancel span (the
 							// only need we have is to move the right context rightwards so is gets located
 							// correctly before the replacement later on)
-							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							bool bWasOK;
+							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nNewSpanCount, 
 								0, // no deletions wanted
 								&pRec->cancelSpan_SrcPhraseList, 
@@ -5656,7 +5665,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 						}
 						if (bOldIsShorter)
 						{
-							bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+							bool bWasOK;
+							bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 								pRec->nStartingSequNum + pRec->nOldSpanCount, 
 								nHowMany, // defines how many to delete
 								&pRec->cancelSpan_SrcPhraseList, 
@@ -5674,7 +5684,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					// handle the user edits done in the Edit Source Text dialog
 					nHowMany = pRec->nCancelSpan_EndingSequNum + 1 - pRec->nCancelSpan_StartingSequNum;
 					wxASSERT(nHowMany != 0);
-					bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+					bool bWasOK;
+					bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 						pRec->nCancelSpan_StartingSequNum, 
 						nHowMany, // defines how many to remove to make the gap for the insertions
 						&pRec->cancelSpan_SrcPhraseList, 
@@ -5686,7 +5697,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					if (pRec->nPropagationSpan_EndingSequNum > pRec->nCancelSpan_EndingSequNum)
 					{
 						nHowMany = pRec->nPropagationSpan_EndingSequNum - pRec->nCancelSpan_EndingSequNum;
-						bool bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
+						bool bWasOK;
+						bWasOK = pView->ReplaceCSourcePhrasesInSpan(pSrcPhrases,
 							pRec->nPropagationSpan_StartingSequNum, 
 							nHowMany, // defines how many to remove to make the gap for the insertions
 							&pRec->propagationSpan_SrcPhraseList, 
@@ -5771,19 +5783,24 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
-		pEdit->SetValue(_T(""));
-		pEdit->SetValue(theText);
-		//wxString debugCheckStr = pEdit->GetValue();
-		long len = theText.Len();
-		pEdit->SetSelection(len,len);
+		pEdit->SetValue(_T("")); // SetValue() is OK to use here
+        // whm Note: SetValue() automatically (and by design) resets the dirty flag to FALSE when
+        // called, because it is primarily designed to establish the initial value of an edit control.
+        // Often when the initial value of a text control is programatically set, we don't want it
+        // marked as "dirty". It should be marked dirty when the user changes something. But, our
+        // ComposeBarEditBox is designed to echo the compose bar's contents and is does that by checking
+        // for changes in the compose bar's contents (the dirty flag). Therefore, calling SetValue()
+        // won't do what we want because SetValue automatically resets the dirty flag to FALSE; Instead,
+        // we need to call one of the other wxTextCtrl methods that sets the dirty flag to TRUE. We
+        // could use Append(), WriteText() or even just use the << operator to insert text into the
+        // control. I'll use the WriteText() method, which not only sets the dirty flag to TRUE, it also
+        // leaves the insertion point at the end of the inserted text. Using WriteText() also has the
+        // benefit of setting the insertion point at the end of the inserted text - so we don't need to
+        // call SetSelection() to do so.
+		pEdit->WriteText(theText); //pEdit->SetValue(theText);
+		//long len = theText.Len();
+		//pEdit->SetSelection(len,len); // not needed because WriteText() does this for us
 		pEdit->SetFocus();
-		pEdit->Refresh();
-        // we also need a redraw, which will, after redrawing the layout, will also redraw the
-        // current section's free translation text
-		pEdit->MarkDirty(); // this causes CComposeBarEditBox class's OnEditBoxChanged() handler
-							// to be invoked, which draws the text below the current section ??
-							// Oops, didn't work
-		// bool bismod = pEdit->IsModified(); // debug test to confirm the wxTextCtrl was marked dirty
 		
 		return;
 	}
