@@ -1,4 +1,4 @@
-Limitations and known issues in the initial release (version 4.0.1) of Adapt It WX and Adapt It WX Unicode:
+Limitations and known issues in the initial release (version 4.0.2) of Adapt It WX and Adapt It WX Unicode:
 
 1. The Edit Source Text feature on the Edit menu is experimental and not fully implemented. You should use it with caution.
 
@@ -16,3 +16,4 @@ Limitations and known issues in the initial release (version 4.0.1) of Adapt It 
 
 8. Adapt It WX tends to occupy the host computer's cpu at near full capacity when sitting idle (except when a dialog is being displayed). This will be corrected in a future version.
 
+9. This package does not work with Ubuntu 8.10 Intrepid Ibex. Adapt It hangs during initialization.
