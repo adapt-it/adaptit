@@ -37,6 +37,8 @@ echo    Readme.txt
 echo To all setup Unicode except Localization Only:
 echo    Readme_Unicode_Version.txt
 echo ===================================================
+echo Adapt It changes.txt is copied to ChangeLog in parent adaptit folder
+echo ===================================================
 echo Press CRTL-C to abort or
 pause
 
@@ -171,6 +173,9 @@ xcopy "Localization_Readme.txt" "..\setup Unicode Documentation Only\" /Y
 rem 10. The following copies Documentation files to the "setup Unicode Localizations Only" folder
 @echo off
 xcopy "Localization_Readme.txt" "..\setup Unicode Localizations Only\" /Y
+
+rem 11. Copy Adapt It changes.txt to ChangeLog file in parent adaptit folder (for Linux packaging)
+copy "Adapt It changes.txt" "..\ChangeLog"
 
 echo ===================================================
 echo Copy process completed.
