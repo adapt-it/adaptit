@@ -1534,36 +1534,47 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	// size dialog.
 	// The declaration is: AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer ).
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+	// whm note: the routine below often failed to get the actual modification date
+	//wxString appCreateDate,appModDate;
+	//if (wxFileExists(pApp->m_executingAppPathName))
+	//{
+	//	wxFileName fn(pApp->m_executingAppPathName);
+	//	wxDateTime dtModified,dtCreated;
+	//	if (fn.GetTimes(NULL,&dtModified,&dtCreated))
+	//	{
+	//		appCreateDate = dtCreated.FormatISODate();
+	//		appModDate = dtModified.FormatISODate();
+	//	}
+	//}
+	//if (!appModDate.IsEmpty())
+	//{
+	//	wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_DATE);
+	//	pStatic->SetLabel(appModDate);
+	//}
 	
-	// To Change version number, date, etc., use wxDesigner to modify them in AboutDlgFunc().
-	wxString appCreateDate,appModDate;
-	if (wxFileExists(pApp->m_executingAppPathName))
-	{
-		wxFileName fn(pApp->m_executingAppPathName);
-		wxDateTime dtModified,dtCreated;
-		if (fn.GetTimes(NULL,&dtModified,&dtCreated))
-		{
-			appCreateDate = dtCreated.FormatISODate();
-			appModDate = dtModified.FormatISODate();
-		}
-	}
-	if (!appModDate.IsEmpty())
-	{
-		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_DATE);
-		pStatic->SetLabel(appModDate);
-	}
+	// A better approach is to set the date from constants (since the Linux packages also need to
+	// specify a package date.
+	// Get date from string constants at beginning of Adapt_It.h.
+	wxString versionDateStr;
+	versionDateStr.Empty();
+	versionDateStr << VERSION_DATE_YEAR;
+	versionDateStr += _T("-");
+	versionDateStr << VERSION_DATE_MONTH;
+	versionDateStr += _T("-");
+	versionDateStr << VERSION_DATE_DAY;
+	wxStaticText* pStaticVersDate = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_DATE);
+	pStaticVersDate->SetLabel(versionDateStr);
+	
 
 	// Create the version number from the defines in Adapt_It.h:
-	//#define VERSION_MAJOR_PART 4
-	//#define VERSION_MINOR_PART 0
-	//#define VERSION_BUILD_PART 0
 	wxString strVersionNumber;
 	strVersionNumber.Empty();
-	strVersionNumber << VERSION_MAJOR_PART;
+	strVersionNumber << VERSION_MAJOR_PART; // 4
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_MINOR_PART;
+	strVersionNumber << VERSION_MINOR_PART; // 0
 	strVersionNumber += _T(".");
-	strVersionNumber << VERSION_BUILD_PART;
+	strVersionNumber << VERSION_BUILD_PART; // 3
 	wxStaticText* pVersionNum = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_NUM);
 	pVersionNum->SetLabel(strVersionNumber);
 
