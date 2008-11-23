@@ -1,4 +1,4 @@
-Version 4.0.2 update 14Nov2008:
+Version 4.0.2 update 22Nov2008:
 
 * Source Text Editing ("vertical editing") is more fully implemented and should be more robust.
 * Fixes a program hang that would happen if the computer's system language was set to something other than English and not a language that has an existing localization. This was reported by a user whose system language was set to Dutch, and the Default choice in the Choose Interface Language... dialog wrongly showed Dutch as the default first choice. But Dutch does not infact exist as an interface language choice, so the program encountered problems resulting in a program hang.

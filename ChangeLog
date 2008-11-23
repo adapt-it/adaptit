@@ -1,3 +1,11 @@
+Version 4.0.2 update 22Nov2008:
+
+* Source Text Editing ("vertical editing") is more fully implemented and should be more robust.
+* Fixes a program hang that would happen if the computer's system language was set to something other than English and not a language that has an existing localization. This was reported by a user whose system language was set to Dutch, and the Default choice in the Choose Interface Language... dialog wrongly showed Dutch as the default first choice. But Dutch does not infact exist as an interface language choice, so the program encountered problems resulting in a program hang.
+* Fixes a number of problems that can occur if a project configuration file refers to a font name that does not exist on the current local machine (which might happen when migrating data to a different computer or platform). When the configuration file is read in, Adapt It will substitute a system font for any unknown font referred to in the project configuration file and notify the user of the action taken. The user would then need to insure that the appropriate font was installed, and/or select the appropriate font from the Fonts tab of the Preferences... dialog from the Edit menu.
+* Fixes the bottleneck that was causing the KBEditor to take too much time to populate the key string list box when there are many hundreds or thousands of entries in the list box.
+* Updates the AI_USFM.xml style control file to reflect the new USFM 2.2 changes made by UBS on 17Oct2008.
+
 Version 4.0.1 update 28Oct2008:
 
 Fixes a potential crash problem in the source text editing's vertical edit process. Adds sanity checks to insure that valid selections are made in a number of list box controls. Makes adjustments to the sizers in a number of the larger dialogs and the wizard to better fit on the smaller 800 x 600 pixel screens being used on the new generation of mini notebook computers. Updates the documentation for version 4. Makes a few changes to the localization files. This is the first version advertised to the user community.
