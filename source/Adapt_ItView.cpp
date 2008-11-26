@@ -32933,7 +32933,8 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList
 		int ct = 0;
 		while (testpos)
 		{
-			CSourcePhrase* pSrcP = testpos->GetData();
+			CSourcePhrase* pSrcP;
+			pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
 //			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pOriginalList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
@@ -32941,7 +32942,8 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList
 		ct = 0;
 		while (testpos)
 		{
-			CSourcePhrase* pSrcP = testpos->GetData();
+			CSourcePhrase* pSrcP;
+			pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
 //			wxLogDebug(_T("CopyCSourcePhrasesToExtendSpan() pDestinationList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
@@ -34717,7 +34719,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		int ct = 0;
 		while (testpos)
 		{
-			CSourcePhrase* pSrcP = testpos->GetData();
+			CSourcePhrase* pSrcP;
+			pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
 //			wxLogDebug(_T("pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
@@ -34727,7 +34730,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		ct = 0;
 		while (testpos)
 		{
-			CSourcePhrase* pSrcP = testpos->GetData();
+			CSourcePhrase* pSrcP;
+			pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
 //			wxLogDebug(_T("pTempList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
@@ -34751,7 +34755,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 		ct = 0;
 		while (testpos)
 		{
-			CSourcePhrase* pSrcP = testpos->GetData();
+			CSourcePhrase* pSrcP;
+			pSrcP = testpos->GetData();
 			testpos = testpos->GetNext();
 //			wxLogDebug(_T("After DeleteSourcePhrases pRec->modificationsSpan_SrcPhraseList item %d at %x = %s"),ct++,pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
@@ -45781,23 +45786,31 @@ void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 
 void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
+	// Use of noSILConverters boolean below only to avoid compiler warning while SIL Converters is not implemented
+	bool noSILConverters; // remove once the COM equivalent is implemented
+	noSILConverters = FALSE; // remove once the COM equivalent is implemented
 #ifndef USE_SIL_CONVERTERS
 	// TODO: remove following message once the COM equivalent is implemented
 	wxMessageBox(_("Sorry - the SIL Converters feature is not available in the wxWidgets version at this time."),_T(""), wxICON_INFORMATION);
-	return;
+	noSILConverters = TRUE; // remove once the COM equivalent is implemented
 #endif
+	if (noSILConverters) // remove once the COM equivalent is implemented
+		return; // remove once the COM equivalent is implemented
 
     // bring up the SilConverter select dialog to allow the user to pick a converter
-    CSilConverterSelectDlg dlg
-    (
+#ifdef USE_SIL_CONVERTERS
+    CSilConverterSelectDlg dlg(
     gpApp->m_strSilEncConverterName,
     gpApp->m_bSilConverterDirForward,
-#ifdef USE_SIL_CONVERTERS
     gpApp->m_eSilConverterNormalizeOutput,
     gpApp->m_aEC,
+    gpApp->GetMainFrame() );
+#else
+    CSilConverterSelectDlg dlg(
+    gpApp->m_strSilEncConverterName,
+    gpApp->m_bSilConverterDirForward,
+    gpApp->GetMainFrame() );
 #endif
-    gpApp->GetMainFrame()
-    );
 
     if( dlg.ShowModal() == wxID_OK )
     {

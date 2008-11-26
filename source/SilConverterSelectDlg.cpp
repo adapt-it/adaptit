@@ -59,14 +59,19 @@ BEGIN_EVENT_TABLE(CSilConverterSelectDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 
+#ifdef USE_SIL_CONVERTERS
 CSilConverterSelectDlg::CSilConverterSelectDlg(
 						const wxString&  strConverterName, 
 						bool            bDirectionForward,
-#ifdef USE_SIL_CONVERTERS
 						NormalizeFlags  eNormalizeOutput,
 						IEC&            aEC, 
-#endif
 						wxWindow* parent) // dialog constructor
+#else
+CSilConverterSelectDlg::CSilConverterSelectDlg(
+						const wxString&  strConverterName, 
+						bool            bDirectionForward,
+						wxWindow* parent) // dialog constructor
+#endif
 	: AIModalDialog(parent, -1, _("Choose SIL Converter"),
 				wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 				, ConverterName(strConverterName)
