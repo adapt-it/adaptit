@@ -40,14 +40,19 @@
 class CSilConverterSelectDlg : public AIModalDialog
 {
 public:
+#ifdef USE_SIL_CONVERTERS
 	CSilConverterSelectDlg(
 		const wxString&  strConverterName, 
         bool            bDirectionForward,
-#ifdef USE_SIL_CONVERTERS
         NormalizeFlags  eNormalizeOutput,
         IEC&            aEC,
-#endif
 		wxWindow* parent); // constructor
+#else
+	CSilConverterSelectDlg(
+		const wxString&  strConverterName, 
+        bool            bDirectionForward,
+		wxWindow* parent); // constructor
+#endif
 	virtual ~CSilConverterSelectDlg(void); // destructor
 	//enum { IDD = IDD_DLG_SILCONVERTERS };
 
