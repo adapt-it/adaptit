@@ -1,7 +1,7 @@
 =====================================================================
 Adapt It WX
 =====================================================================
-Version 4.0.2
+Version 4.0.3
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -213,14 +213,14 @@ in the Adapt It Start Menu group on Windows installations):
       1John.txt" included with this package. It is ANSI data, but 
       uses only characters which are also correct UTF-8, so it can 
       be used also as a source text with Adapt It Unicode.
-   3. Adapt It Basic Reference. It is a WinWord 2000 *.doc file 
-      called Adapt It Basics.doc. If your word processor cannot 
-      open it, contact Bill Martin (bill_martin@sil.org) or Bruce 
-      Waters (bruce_waters@sil.org) who can supply the file in 
-      .PDF or .RTF format instead. The PDF format is the preferred 
-      alternate format because it is approximately the same size as
-      the Word document from which it is made (about 2.3 MB). The 
-      RTF file is significantly larger (4MB).
+   3. Adapt It Reference. It is a MS Word/Open Office *.doc file 
+      If your word processor cannot open it, contact Bill Martin 
+      (bill_martin@sil.org) or Bruce Waters (bruce_waters@sil.org) 
+      who can supply the file in .PDF or .RTF format instead. 
+      The PDF format is the preferred alternate format because it 
+      is approximately the same size as the Word document from 
+      which it is made (about 2.3 MB). The RTF file is significantly 
+      larger (4MB).
    4. Localization_Readme.txt describes how the localization system 
       works in Adapt It WX and Adapt It WX Unicode. It also tells 
       how anyone can modify an existing interface translation, or 
@@ -228,6 +228,9 @@ in the Adapt It Start Menu group on Windows installations):
       program which is freely available from the Internet. 
    5. Adapt It changes.txt describes the changes from previous 
       versions of Adapt It WX (starting with version 4.0.0).
+   6. Known Issues and Limitations.txt lists issues and/or 
+      limitations that were recognized but unresolved at the time 
+      of the current release.
 
 ---------------------------------------------------------------------
 Localization:

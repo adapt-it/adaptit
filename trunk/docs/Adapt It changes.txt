@@ -1,3 +1,8 @@
+Version 4.0.3 update 26Nov2008:
+
+* About dialog now displays the date of the current release as well as the current version number.
+* Documentation files edited and updated.
+
 Version 4.0.2 update 22Nov2008:
 
 * Source Text Editing ("vertical editing") is more fully implemented and should be more robust.
