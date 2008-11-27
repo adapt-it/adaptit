@@ -10607,19 +10607,23 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	// get rid of the knowledge base file
 	wxString message;
 	if (bDoOnGlossingKB)
+	{
 		if (!::wxRemoveFile(m_curGlossingKBPath))
 		{
 			message = message.Format(_(
 				"Warning: Did not remove bad knowledge base file %s."),
 															m_curGlossingKBPath.c_str());
 		}
+	}
 	else
+	{
 		if (!::wxRemoveFile(m_curKBPath))
 		{
 			message = message.Format(_(
 				"Warning: Did not remove bad knowledge base file %s."),
 															m_curKBPath.c_str());
 		}
+	}
 	wxMessageBox(message, _T(""), wxICON_ERROR);
 	wxASSERT(FALSE);
 	//AfxAbort();
