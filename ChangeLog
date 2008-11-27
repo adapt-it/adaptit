@@ -1,3 +1,8 @@
+Version 4.0.3 update 26Nov2008:
+
+* About dialog now displays the date of the current release as well as the current version number.
+* Documentation files edited and updated.
+
 Version 4.0.2 update 22Nov2008:
 
 * Source Text Editing ("vertical editing") is more fully implemented and should be more robust.
@@ -8,7 +13,11 @@ Version 4.0.2 update 22Nov2008:
 
 Version 4.0.1 update 28Oct2008:
 
-Fixes a potential crash problem in the source text editing's vertical edit process. Adds sanity checks to insure that valid selections are made in a number of list box controls. Makes adjustments to the sizers in a number of the larger dialogs and the wizard to better fit on the smaller 800 x 600 pixel screens being used on the new generation of mini notebook computers. Updates the documentation for version 4. Makes a few changes to the localization files. This is the first version advertised to the user community.
+* Fixes a potential crash problem in the source text editing's vertical edit process. 
+* Adds sanity checks to insure that valid selections are made in a number of list box controls. 
+* Makes adjustments to the sizers in a number of the larger dialogs and the wizard to better fit on the smaller 800 x 600 pixel screens being used on the new generation of mini notebook computers. 
+* Updates the documentation for version 4. 
+* Makes a few changes to the localization files. This is the first version advertised to the user community.
 
 New WX Version 4.0.0 initial release 16Oct2008:
 

@@ -1,12 +1,12 @@
-Limitations and known issues in the initial release (version 4.0.2) of Adapt It WX and Adapt It WX Unicode:
+Limitations and known issues in the version 4.0.3 release of Adapt It WX and Adapt It WX Unicode:
 
-1. The Edit Source Text feature on the Edit menu is experimental and not fully implemented. You should use it with caution.
+1. The Edit Source Text feature on the Edit menu should be robust using the "Next Step" button. The "Previous Step" button is not as robust and may have some issues.
 
 2. The SIL Converters feature is not yet implemented. We plan to implement this feature in the Windows port, but it may not be available at all in the Linux or Macintosh ports (because SIL Converters relies heavily on Microsoft specific technologies).
 
 3. In the Windows port, the Page Setup Dialog will only show the margin settings in millimeters, even if the Units dialog is set for "inches." This will eventually be corrected in a future release of the Windows port. 
 
-4. The layout of RTL text in the Adapt It WX Unicode version has not been thoroughly tested and may have some problems, especially on the non-Windows (Linux and/or Macintosh) ports.
+4. The layout of RTL text in the Adapt It WX Unicode version has not been thoroughly tested and may have some layout problems, especially on the non-Windows (Linux and/or Macintosh) ports.
 
 5. Sync Scrolling should work on the Windows port, but has not been implemented on the non-Windows ports because the mechanism that controls synchronized scrolling in application such as TW and Paratext was designed with only the Windows operating system in mind. Adapt It WX will eventually provide a synchronized scrolling feature for the Linux and Macintosh versions which use a different technology, but will allow Adapt It running on those ports to sync scroll with other applications capable of sync scrolling that run natively on those other ports.
 
@@ -16,4 +16,4 @@ Limitations and known issues in the initial release (version 4.0.2) of Adapt It 
 
 8. Adapt It WX tends to occupy the host computer's cpu at near full capacity when sitting idle (except when a dialog is being displayed). This will be corrected in a future version.
 
-9. This package does not work with Ubuntu 8.10 Intrepid Ibex. Adapt It hangs during initialization.
+9. The Linux port does not work with Ubuntu 8.10 Intrepid Ibex. Adapt It hangs during initialization.
