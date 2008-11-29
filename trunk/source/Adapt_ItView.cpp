@@ -1207,8 +1207,8 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	// whm Note: The idea here is to only draw the piles for strips
 	// which are visible within the client view area of the screen (the
 	// pApp->m_curLeading taken into account).
-	wxClientDC viewDC((wxWindow*)pApp->GetMainFrame()->canvas);//wxClientDC viewDC((wxWindow*)m_pBundle->m_pView->canvas);
-	canvas->DoPrepareDC(viewDC); //pApp->m_pBundle->m_pView->OnPrepareDC(&viewDC);	// sets the origins and extents, calls the OnPrepareDC base classe
+	//wxClientDC viewDC((wxWindow*)pApp->GetMainFrame()->canvas);//wxClientDC viewDC((wxWindow*)m_pBundle->m_pView->canvas);
+	//canvas->DoPrepareDC(viewDC); //pApp->m_pBundle->m_pView->OnPrepareDC(&viewDC);	// sets the origins and extents, calls the OnPrepareDC base classe
 								// in MFC, calls DoPrepareDC in wx.
 
 	// NOTE: The docs on MFC's GetClientRect() say: "The client coordinates
