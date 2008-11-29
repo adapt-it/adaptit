@@ -5658,7 +5658,10 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 1, 0, 0 );
+    item1->AddGrowableCol( 0 );
+    item1->AddGrowableRow( 0 );
+    item1->AddGrowableRow( 1 );
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("List of Interface Language Localizations found for Adapt It:") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
@@ -5666,11 +5669,11 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs5 = (wxString*) NULL;
-    wxListBox *item5 = new wxListBox( parent, ID_LIST_UI_LANGUAGES, wxDefaultPosition, wxSize(400,-1), 0, strs5, wxLB_SINGLE );
+    wxListBox *item5 = new wxListBox( parent, ID_LIST_UI_LANGUAGES, wxDefaultPosition, wxSize(400,220), 0, strs5, wxLB_SINGLE );
     item5->SetToolTip( _("This is a list of interface languages found at the path below") );
     item4->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item2->Add( item4, 3, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5682,7 +5685,7 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_SHORT_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item6->Add( item8, 1, wxGROW|wxALL, 0 );
 
-    item2->Add( item6, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -5694,30 +5697,30 @@ wxSizer *ChooseLanguageDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXT_AS_STATIC_LONG_LANG_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), wxTE_READONLY|wxTE_PROCESS_TAB|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    item2->Add( item9, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item2->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item2, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticBox *item14 = new wxStaticBox( parent, -1, _("Path of Adapt It's Localization Files (click Browse to change path):") );
     wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxHORIZONTAL );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_READONLY|wxHSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_LOCALIZATION_PATH, wxT(""), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL|wxNO_BORDER | wxGROW );
     item16->SetToolTip( _("The path where Adapt It looks for localization folders containing .mo files. Use the \"Browse...\" button at right to designate a different path") );
-    item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
-    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item15->Add( item16, 1, wxGROW|wxALL, 5 );
 
     wxButton *item17 = new wxButton( parent, IDC_BTN_BROWSE_PATH, _("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item17->SetToolTip( _("Click this button to browse for a different localization path ") );
-    item13->Add( item17, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item15->Add( item17, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
