@@ -588,7 +588,6 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// get the point into logical coordinates
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
-	pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 	//aDC.DPtoLP(&point); // get the point converted to logical coords - use CalcUnscrolledPosition below
 	//int x = aDC.DeviceToLogicalX(point.x);// get the device X coord converted to logical coord
 	//int y = aDC.DeviceToLogicalY(point.y);// get the device Y coord converted to logical coord
@@ -2080,7 +2079,6 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 	wxASSERT(pView != NULL);
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted - this only has significance if gbIsPrinting - needed?
-	pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 	
 	//wxPoint point = event.GetPosition();
 	// we don't need to call CalcUnscrolledPosition() here because GetLogicalPosition already
@@ -2248,7 +2246,6 @@ void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted
-	pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 	
 	//wxPoint point = event.GetPosition();
 	// whm note: The wx docs seem to indicate that, once DoPrepareDC is called, event.GetPosition() 
