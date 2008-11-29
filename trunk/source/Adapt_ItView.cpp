@@ -1210,8 +1210,6 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	wxClientDC viewDC((wxWindow*)pApp->GetMainFrame()->canvas);//wxClientDC viewDC((wxWindow*)m_pBundle->m_pView->canvas);
 	canvas->DoPrepareDC(viewDC); //pApp->m_pBundle->m_pView->OnPrepareDC(&viewDC);	// sets the origins and extents, calls the OnPrepareDC base classe
 								// in MFC, calls DoPrepareDC in wx.
-	canvas->pFrame->PrepareDC(viewDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
-
 
 	// NOTE: The docs on MFC's GetClientRect() say: "The client coordinates
 	// specify the upper-left and lower-right corners of the client area. Since
@@ -3759,7 +3757,6 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// convert to device coords
 	wxClientDC aDC(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(aDC); //OnPrepareDC(&aDC); // adjust origin
-	canvas->pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	wxPoint ptrLoc = *pLoc;
 
@@ -4416,7 +4413,6 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 	// get a device context, and get the origin adjusted (gRectViewClient is ignored when printing)
 	wxClientDC viewDC(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(viewDC); //  adjust origin
-	canvas->pFrame->PrepareDC(viewDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 	
 	// The map mode remains wxMM_TEXT for both normal screen rendering and for printing/previewing.
 	viewDC.SetMapMode(wxMM_TEXT); // equivalent to MFC's MM_TEXT for drawing to the screen
@@ -4576,7 +4572,6 @@ void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBu
 	// get a device context, and get the origin adjusted (gRectViewClient is ignored when printing)
 	wxClientDC viewDC(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(viewDC); //  adjust origin
-	canvas->pFrame->PrepareDC(viewDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 	
 //#ifdef _DEBUG
 //	// Here's sample code for alternative 1:
@@ -8146,7 +8141,6 @@ void CAdapt_ItView::LayoutStrip(SPList *pSrcPhrases, int nStripIndex, CSourceBun
 	// get a device context, and get the origin adjusted
 	wxClientDC viewDC(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(viewDC); // adjust origin
-	canvas->pFrame->PrepareDC(viewDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	int		nVertOffset;
 	int		nLastSequNumber;
@@ -12543,7 +12537,6 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); 
 
 	canvas->DoPrepareDC(aDC); //OnPrepareDC(&aDC); // adjust the origin
-	canvas->pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	CPile* pActivePile = pApp->m_pActivePile;
 	wxASSERT(pActivePile != NULL);
@@ -12745,7 +12738,6 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); 
 
 	canvas->DoPrepareDC(aDC); //OnPrepareDC(&aDC); // adjust the origin
-	canvas->pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	CPile* pActivePile = pApp->m_pActivePile;
 	wxASSERT(pActivePile != NULL);
@@ -23472,7 +23464,6 @@ void CAdapt_ItView::AdjustDialogPosition(wxDialog* pDlg)
 
 	wxClientDC dc(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(dc); //OnPrepareDC(&dc); // adjust origin
-	canvas->pFrame->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	// use location where phrase box would be put
 	//dc.LPtoDP(&ptBoxTopLeft); // converts ptBoxTopLeft from logical to screen/device coords
@@ -28391,7 +28382,6 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 	wxASSERT(pApp != NULL);
 	wxClientDC dc(pApp->GetMainFrame()->canvas);
 	canvas->DoPrepareDC(dc); //OnPrepareDC(&dc); // adjust origin
-	canvas->pFrame->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	// find the index of the first strip which is visible
 	wxRect rectStrip;
@@ -28853,7 +28843,6 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 	SelectAnchorOnly(); // reduce to just the anchor, before we rebuild the selection
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); // make a device context
 	canvas->DoPrepareDC(aDC); //OnPrepareDC(&aDC); // get origin adjusted
-	canvas->pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 	aDC.SetBackgroundMode(pApp->m_backgroundMode);
 	aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 
@@ -28945,7 +28934,6 @@ void CAdapt_ItView::SelectAnchorOnly()
 
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); // make a device context
 	canvas->DoPrepareDC(aDC); //OnPrepareDC(&aDC); // get origin adjusted
-	canvas->pFrame->PrepareDC(aDC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 
 	CCellList* pList = &pApp->m_selection; 
 	wxASSERT(pList);

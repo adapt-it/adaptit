@@ -104,7 +104,6 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			wxASSERT(pView != NULL);
 			wxClientDC dc((wxWindow*)gpApp->GetMainFrame()->canvas);
 			pView->canvas->DoPrepareDC(dc); // need to call this because we are drawing outside OnDraw()
-			pView->canvas->pFrame->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
 			CPile* pOldActivePile; // set in StoreFreeTranslation but unused here
 			CPile* saveThisPilePtr; // set in StoreFreeTranslation but unused here
 			// StoreFreeTranslation uses the current (edited) content of the edit box
