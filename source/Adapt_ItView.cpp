@@ -1207,9 +1207,17 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	// whm Note: The idea here is to only draw the piles for strips
 	// which are visible within the client view area of the screen (the
 	// pApp->m_curLeading taken into account).
+	
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// whm Note: The following DoPrepareDC line was the ultimate cause of the scrolling/painting problem on
+	// the Mac! The actual dc that gets passed into the pApp->m_pBundle->Draw(pDC) call below uses the
+	// passed in pDC (from the canvas's OnPaint()). But the following two lines were getting another
+	// display context "viewDC" on which a separate DoPrepareDC() call was being made. The Windows and
+	// Linux ports didn't have a problem, but the Mac port did.
 	//wxClientDC viewDC((wxWindow*)pApp->GetMainFrame()->canvas);//wxClientDC viewDC((wxWindow*)m_pBundle->m_pView->canvas);
 	//canvas->DoPrepareDC(viewDC); //pApp->m_pBundle->m_pView->OnPrepareDC(&viewDC);	// sets the origins and extents, calls the OnPrepareDC base classe
 								// in MFC, calls DoPrepareDC in wx.
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// NOTE: The docs on MFC's GetClientRect() say: "The client coordinates
 	// specify the upper-left and lower-right corners of the client area. Since
