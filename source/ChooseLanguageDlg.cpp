@@ -186,20 +186,25 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	wxString shortDefaultLangName = infoSys->CanonicalName; //langsKnownToWX[0].shortName;
 	//wxString fullDefaultLangName;
 	//wxLanguage sysLangFullName = gpApp->GetLanguageFromDirStr(shortDefaultLangName,fullDefaultLangName);
-	// If the system default language has an existing localization we'll put it first in the list, otherwise
-	// we'll put "English" as first language in the list.
+	// If the system default language has an existing localization we'll put it first in the list.
+	// If the system default's canonical name is some form of en_XX we put "English [en_XX]" first in the list, otherwise
+	// we'll just put "English" as first language in the list.
 	
 	if (gpApp->PathHas_mo_LocalizationFile(pathToLocalizationFolders, shortDefaultLangName))
 	{
+		// the shortDefaultLangName has an Adapt It localization
 		fullDefaultLangNameListItem = fullDefaultLangNameListItem.Format(fullDefaultLangNameListItem, gpApp->m_languageInfo->Description.c_str());
 	}
 	else if (shortDefaultLangName.Length() > 2 && shortDefaultLangName.Mid(0,3) == _T("en_"))
 	{
+		// the shortDefaultLangName is of the form en_XX
 		fullDefaultLangNameListItem = _T("English");
 		fullDefaultLangNameListItem += _T(" [")+shortDefaultLangName+_T("]");
 	}
 	else
 	{
+		// the shortDefaultLangName does not have a localization and is not some form of en_XX so we'll
+		// just list "English" as first item in the list
 		fullDefaultLangNameListItem = _T("English");
 	}
 		
@@ -208,11 +213,15 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// Ignore subdirectories in subDirList that do not contain .mo file(s) within the
 	// subdirectory. Add the localization subdirectories that do have <appName>.mo file(s) 
 	// for those localizations which the host OS and/or C run time environment say are 
-	// available.
+	// available. Note: After the "for" loop below we will insert the default language from 
+	// the fullDefaultLangNameListItem variable above as first list item at the beginning 
+	// of pListBox.
 	wxString appName;
 	appName = gpApp->GetAppName();
 	wxString dirPath;
 	int ct;
+	// For each subDirList item (canonical name) add the full name of any language that has a
+	// localization on the machine - saving its canonical name as ClientData in the pListBox item.
 	for (ct = 0; ct < (int)subDirList.GetCount(); ct++)
 	{
 		dirPath = pathToLocalizationFolders + gpApp->PathSeparator + subDirList.Item(ct);
@@ -275,9 +284,9 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 			}
 			else
 			{
-				// The list item data represents a language that we wxWidgets doesn't know about.
+				// The list item data represents a language that wxWidgets doesn't know about.
 				// It may be that we already got a name for this language from the user previously so
-				// we should check first and use that instead of [Contains Unknown or New Localization]
+				// we should check first and use that instead of "[Contains Unknown or New Localization]".
 				// If it really is a new localization, the user may choose to add this unknown language 
 				// once it is selected from the list, in which case we query him for the language name 
 				// Description and store it in wxConfig. See above for three ways to go from here.
@@ -360,7 +369,8 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 	// A user whose computer was set to Dutch as its default system language, could not select English
 	// because it was not offered as a choice, and selecting Dutch would not work either since although
 	// the listbox offered Dutch as the "default" language, there was not actually a Dutch localization
-	// of Adapt It existing on the machine.
+	// of Adapt It existing on the machine. But, if the current system default language is French, we
+	// want French to be the default selected choice because we do have a localization in French.
 	if (fullDefaultLangNameListItem == _T("English"))
 		defaultDirStr = _T("en");
 	else
@@ -369,8 +379,9 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 
 	// we added the system language name to the list above so there must be at least one item in the list
 	wxASSERT(pListBox->GetCount() > 0);
-	// highlight the currently used interface language
-	// highlight the first item (the default) unless a previously selected interface language was made
+	// Highlight the first item (the default) unless a previously selected interface language was made,
+	// in which case we want to continue using the previously selected interface regardless of the
+	// currently set default system language.
 	wxString str;
 	wxLanguage lang(wxLANGUAGE_UNKNOWN);
 	if (gpApp->currLocalizationInfo.curr_UI_Language == wxLANGUAGE_DEFAULT 
@@ -419,6 +430,16 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 			}
 		}
 	}
+	// update the static text showing the short and full language names of the selected item
+	int nSel;
+	nSel = pListBox->GetSelection();
+	wxASSERT(nSel != -1);
+	wxString shortName,longName;
+	longName = pListBox->GetStringSelection();
+	shortName = *(wxString*)pListBox->GetClientData(nSel);
+	pEditAsStaticShortName->SetValue(shortName);
+	pEditAsStaticLongName->SetValue(longName);
+	/*
 	const wxLanguageInfo *info = wxLocale::FindLanguageInfo(str);
 	if(info != NULL)
 	{
@@ -435,7 +456,8 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		pEditAsStaticShortName->SetValue(_T(""));
 		pEditAsStaticLongName->SetValue(_T(""));
 	}
-	m_fullNameOnEntry = gpApp->currLocalizationInfo.curr_fullName;
+	*/
+	m_fullNameOnEntry = longName;
 	// end of scope for wxLogNull
 }
 
@@ -492,6 +514,15 @@ void CChooseLanguageDlg::OnSelchangeListboxLanguages(wxCommandEvent& WXUNUSED(ev
 	//	//wxASSERT(FALSE);
 	//	return;
 	//}
+	
+	// update the static text showing the short and full language names of the selected item
+	wxASSERT(nSel != -1);
+	wxString shortName,longName;
+	longName = pListBox->GetStringSelection();
+	shortName = *(wxString*)pListBox->GetClientData(nSel);
+	pEditAsStaticShortName->SetValue(shortName);
+	pEditAsStaticLongName->SetValue(longName);
+	/*
 	wxLanguage lang;
 	wxString commonName;
 	if (nSel == 0)
@@ -527,6 +558,7 @@ void CChooseLanguageDlg::OnSelchangeListboxLanguages(wxCommandEvent& WXUNUSED(ev
 		pEditAsStaticShortName->SetValue(_T("[UNKNOWN]"));
 		pEditAsStaticLongName->SetValue(_T("[UNKNOWN]"));
 	}
+	*/
 	
 }
 
