@@ -5640,7 +5640,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// Bruce added 15Mar04 a parameter to EnsureWorkFolderPresent(m_localizedMyDocsPath), but
 	// it's not needed for the wxWidgets version.
 	// The m_workFolderPath typically is set to:
-	// On Windows:	"C:\Documents and Settings\<UserName>\My Documents\Adapt It (Unicode) Work" 
+	// On Windows:	"C:\Documents and Settings\<UserName>\(My) Documents\Adapt It (Unicode) Work" 
 	// On Linux:	"/home/<UserName>/Adapt It (Unicode) Work" 
 	// On MacOSX:	"/Users/<UserName>/Adapt It (Unicode) Work"
 
@@ -9865,47 +9865,73 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// cross-platform differences in directory structures and file handling.
 	// I haven't tried to represent what other changes Bruce made to the MFC version in his file 
 	// sent 15Mar04. He basically initialized rStrLocalizedMyDocsName then assigned dirPath to it.
-	wxString homeDir = _T("");
+	wxString stdDocsDir = _T("");
 	wxString dirPath = _T("");
 	wxString workFolderPath = _T("");
 	wxString workFolder;
 
-	workFolder = m_theWorkFolder;
+	workFolder = m_theWorkFolder; // always "Adapt It Work" or "Adapt It Unicode Work"
 
-	// The wxWidgets ::wxGetHomeDir() function returns different things depending 
-	// on the system/platform it's called on:
-	// On Windows systems it returns the path to the user's directory within 
-	// the "Documents and Settings" directory, usually off the C: drive. 
-	// We use this to test our assumption that the "My Documents" directory 
-	// is simply a direct subdirectory of this "home" Directory. 
-	// On Unix/Linux systems this should return the /usr/home directory.
+	// whm Design Notes:
+	// We want to provide a default work folder path for most users who will use the default location without
+	// second thought. The wxStandardPaths::GetDocumentsDir() method tells us the
+	// standard place to put documents on all platforms. It also works if, in Windows, the user
+	// changes/moves the location of his "Documents" folder (on Vista) or "My Documents" folder (on
+	// 2000/XP) to a non-default drive or folder location.
+	// 
+	// TODO: We also want to accommodate the power-user who may want to set up a work folder
+	// path in a non-default location. Some possibilities for accommodating a power user's desire to use
+	// a non-default location for his work folder:
+	// 1. Provide a Browse button on the Project page that would allow the user to select a different
+	// path for the project folder. There could also be a "Restore Default Path" button next to it on
+	// the Project page. This makes it easy to change (or too easy - could get naive users in trouble?).
+	// 2. Allow for command-line arguments to be passed at application startup that would allow the
+	// setting of a non-default work folder location. The commane-line arguments can be set by right
+	// clicking on a menu or desktop shortcut to Adapt It and selecting "Properties". Then on the
+	// "Shortcut" tab, a power user could add arguments to the existing Target: edit box to indicate
+	// a non-default work folder location. For example, the default Target string that calls the
+	// executable on Windows is something like this:
+	//    "C:\Program Files\Adapt It WX\Adapt_It.exe"
+	// A power user could add the -p command-line followed by the work folder path so that the whole
+	// Target edit box would look like this:
+	//    "C:\Program Files\Adapt It WX\Adapt_It.exe" -p "E:\Adapt It\Data"
+	// The -p switch means that the following string is a path to the work folder (in the above example
+	// the work folder is at E:\Adapt It\Data). Option 2 would be difficult for all but power users to do,
+	// but that may help prevent naive users from accidentally misplacing their data.
+	// At any rate, providing a way to set up a work folder path in a non-default location is a feature
+	// that should be capable of being turned off by an advisor if/when we provide such an adjustable
+	// interface.
+	// In case 1 (and possible also case 2) we could save the indicated non-default path as a key-value
+	// pair in the m_pConfig settings. The key value could be something like "user_defined_work_folder_path"
+	// with the data being the string representing the path to the non-default location.
+	
+	// whm Note: I first used the wxWidgets ::wxGetHomeDir() function to determine the users home
+	// directory and then augment it to include "Documents" or "My Documents" folder (if Windows). The
+	// wxGetHomeDir() function however, does not detect the situation where a user "Moves" his
+	// "Documents" (or My Documents) folder to a non-default location. Testing shows that using the
+	// wxStandardPaths::GetDocumentsDir() function does get the right folder, regardless of whether the
+	// user has "moved" it or not.
 
-	// Get the "home" directory for the current system/platform. 
-	homeDir = ::wxGetHomeDir();
-	// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
-	// whm note: We should not localize the "My Documents" folder otherwise
-	// we may not be able to find the folder
-	if (::wxDirExists(homeDir + PathSeparator +_T("My Documents")))
-	{
-		// We've found a typical "My Documents" folder so we probably have a Windows system
-		// Set the current directory to the "My Documents" folder
-		::wxSetWorkingDirectory(homeDir + PathSeparator + _T("My Documents"));
-		dirPath = ::wxGetCwd(); // on Win98 should be "C:\My Documents", but not on 
-								// NT or 2000 or XP where it would be "C:\Documents and Settings\<UserName>\My Documents"
-		m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe below
-		workFolderPath = dirPath + PathSeparator + workFolder;
-	}
-	else
-	{
-		// No "My Documents" folder exists off the HomeDir, so we either
-		// have an old Windows system or a Unix/Linux type file system
-		// so we'll just plan to use the detected HomeDir for the dirPath and
-		// dirPath + PathSeparator + WorkFolder to put our AI stuff
-		dirPath = homeDir;
-		m_localPathPrefix = dirPath; // m_checkFolder used in MakeForeignBasicConfigFileSafe below
-		workFolderPath = dirPath + PathSeparator + workFolder;
-		::wxSetWorkingDirectory(dirPath); // set the current dir to the HomeDir
-	}
+	// Get the "documents" directory for the current system/platform. 
+	wxStandardPaths stdPaths;
+	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since wxWidgets version 2.7.0
+	// Typically the "documents" directory depends on the system:
+    // Unix: ~ (the home directory )
+    // Windows (earlier and Vista): C:\Documents and Settings\username\Documents
+    // Windows (2000 and XP): C:\Documents and Settings\username\My Documents
+    // Mac: ~/Documents 
+
+	// whm note: In the cross-platform version we never refer to a specific "Documents" or "My Documents" folder
+	// and so we do not need to localize the name of the folder that is returned by the
+	// "GetDocumentsDir() function call. 
+	// 
+	// Set the current working directory to point to the standard docs directory which would normally
+	// be the "Documents" or "My Documents" folder on Windows, the ~ (home directory) on Linux, or the ~/Documents
+	// directory on the Mac.
+	::wxSetWorkingDirectory(stdDocsDir);
+	dirPath = ::wxGetCwd();
+	m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe which gets called subsequently in OnInit().
+	workFolderPath = dirPath + PathSeparator + workFolder;
 
 	if (!::wxDirExists(workFolderPath))
 	{
@@ -17473,7 +17499,7 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the App's OnInit().
 /// Compares the "home" directory part of the current user's path to the
-/// "My Documents" folder (or the "Adapt It Work" folder for non-Win systems), with the paths
+/// "(My) Documents" folder (or the "Adapt It Work" folder for non-Win systems), with the paths
 /// in the AdaptItPath, ProjectFolderPath, DocumentsFolderPath, KnowledgeBasePath, and 
 /// KBBackupsPath pathname strings in the current AI-BasicConfiguration.aic file. If its a 
 /// foreign config file, this first part of these paths will differ for any of the following 
@@ -17491,7 +17517,8 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	// Get the "home" directory for the current system/platform. This would typically be:
 	// For Windows: C:\Documents and Settings\<UserName>
 	// For Linux: /usr/home
-	wxString homeDir = ::wxGetHomeDir();
+	wxStandardPaths stdPaths;
+	wxString homeDir = stdPaths.GetDocumentsDir(); //wxString homeDir = ::wxGetHomeDir();
 	// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 	wxString configPath = folderPath + PathSeparator + configFName;
 	wxString localPathPrefix = m_localPathPrefix; // m_localPathPrefix was set in EnsureWorkFolderPresent.
