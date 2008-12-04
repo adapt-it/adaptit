@@ -6244,7 +6244,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Determine the path to the installation folder where Adapt_It.xxx is located
 	// Note: Our function FindAppPath() determined the most likely path where the Adapt It executable
 	// program is located and stored it in m_setupFolder. 
-	
+
 	wxString appName;
 	appName = GetAppName();
 	
@@ -6271,6 +6271,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 //	helpFileName = appName + _T(".htb"); // TODO: use the .htb form for Windows too! // may be .zip, .htb or .hhp if we switch to wxHtmlHelpController
 //#endif
 	helpFilePath = helpFilePath + PathSeparator + helpFileName;
+	// Display message in status bar that we are initializing the help system
+	message = message.Format(_("Initializing help system file %s..."),helpFilePath.c_str());
+	pStatusBar->SetStatusText(message,0); // use first field 0
+
 	wxLogDebug(_T("helpFilePath = %s"),helpFilePath.c_str());
     if ( !m_pHelpController->Initialize(helpFilePath) )
     {
@@ -6306,6 +6310,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
 	gpFreeTransArray = new wxArrayPtrVoid;
 
+	// Display message in status bar that startup initialization is complete
+	message = _("Initialization complete. Call Start Working...");
+	pStatusBar->SetStatusText(message,0); // use first field 0
 	// we are passed all the MFC initialization stuff, and about to enter the Start Working... wizard,
 	// so indicate it is safe for OnNewDocument() to be able to write out the project config file once the
 	// user's setting for book mode is in place
