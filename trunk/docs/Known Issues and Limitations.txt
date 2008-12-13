@@ -1,4 +1,4 @@
-Limitations and known issues in the version 4.0.3 release of Adapt It WX and Adapt It WX Unicode:
+Limitations and known issues in the version 4.0.4 release of Adapt It WX and Adapt It WX Unicode:
 
 1. The Edit Source Text feature on the Edit menu should be robust using the "Next Step" button. The "Previous Step" button is not as robust and may have some issues.
 
@@ -6,7 +6,7 @@ Limitations and known issues in the version 4.0.3 release of Adapt It WX and Ada
 
 3. In the Windows port, the Page Setup Dialog will only show the margin settings in millimeters, even if the Units dialog is set for "inches." This will eventually be corrected in a future release of the Windows port. 
 
-4. The layout of RTL text in the Adapt It WX Unicode version has not been thoroughly tested and may have some layout problems, especially on the non-Windows (Linux and/or Macintosh) ports.
+4. The layout of RTL text in the Adapt It WX Unicode version has not been thoroughly tested and may have some layout problems, especially on the non-Windows (Linux and/or Macintosh) ports. Feedback welcome.
 
 5. Sync Scrolling should work on the Windows port, but has not been implemented on the non-Windows ports because the mechanism that controls synchronized scrolling in application such as TW and Paratext was designed with only the Windows operating system in mind. Adapt It WX will eventually provide a synchronized scrolling feature for the Linux and Macintosh versions which use a different technology, but will allow Adapt It running on those ports to sync scroll with other applications capable of sync scrolling that run natively on those other ports.
 
