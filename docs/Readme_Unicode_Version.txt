@@ -1,11 +1,11 @@
 =====================================================================
 Adapt It WX Unicode
 =====================================================================
-Version 4.0.3
+Version 4.0.4
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
-and expected for the Macintosh in 2009.
+and expected for the Macintosh in early 2009.
 
 Adapt It WX Unicode is a copyrighted program. See license/LICENSE.txt
 for more information.

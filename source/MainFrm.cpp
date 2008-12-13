@@ -1795,20 +1795,24 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	eID = event.GetId();
 	//ShowHelp(event.GetId(), *m_pHelpController);
 	wxString pathName = gpApp->m_helpInstallPath + gpApp->PathSeparator + gpApp->m_htbHelpFileName;
-	bool bOK;
-	bOK = m_pHelpController->AddBook(wxFileName(pathName));
-	if (!bOK)
+	bool bOK1;
+	bOK1 = m_pHelpController->AddBook(wxFileName(pathName));
+	if (!bOK1)
 	{
 		wxString strMsg;
 		strMsg = strMsg.Format(_T("Adapt It could not add book contents to its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
 		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
 	}
-	bOK = m_pHelpController->DisplayContents();
-	if (!bOK)
+	if (bOK1)
 	{
-		wxString strMsg;
-		strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
-		wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+		bool bOK2;
+		bOK2 = m_pHelpController->DisplayContents();
+		if (!bOK2)
+		{
+			wxString strMsg;
+			strMsg = strMsg.Format(_T("Adapt It could not display the contents of its help file.\nThe name and location of the help file it looked for:\n %s\nTo insure that help is available, this help file must be installed with Adapt It."),pathName.c_str());
+			wxMessageBox(strMsg, _T(""), wxICON_WARNING);
+		}
 	}
 }
 
