@@ -23175,12 +23175,16 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	wxASSERT(pApp != NULL);
 	if (!gbUserWantsSelection)
 	{
-		// the above flag is never TRUE when this function is being called in association with
-		// a Find Next operation; but since this function is also used for making a selection
-		// when user hits the "Cancel And Select" button in CChooseTranslation dialog when
-		// called from LookAhead(), the flag will be TRUE when that happens, and in that context
-		// all the recalcs and scrolls and advances needed will have been done already in
-		// OnChar(), so we need to inhibit advancing in just that circumstance
+        // the above flag is never TRUE when this function is being called in association with a
+        // Find Next operation; but since this function is also used for making a selection when
+        // user hits the "Cancel And Select" button in CChooseTranslation dialog when called from
+        // LookAhead(), the flag will be TRUE when that happens, and in that context all the
+        // recalcs and scrolls and advances needed will have been done already in OnChar(), so we
+        // need to inhibit advancing in just that circumstance BEW added 19Dec08: we will use
+        // this function to create the needed selection within the
+        // RecreateCollectedBackTranslationsInVerticalEdit() function, and likewise will set
+        // gbUserWantsSelection to TRUE in that function, for the same reasons (ie. to inhibit
+        // AdvanceBundle() call)
 		pApp->m_pActivePile = AdvanceBundle(nNewSequNum); // also computes m_ptCurBoxLocation
 		pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy on phrase box
 		pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
@@ -36400,6 +36404,90 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), i
 		// or gloss if user switched modes, and if there is no such string yet, then do LookUpSrcWord()
 								  // and if there is an entry in the KB, use that, else leave empty
 	RedrawEverything(nSequNum);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if there was no error, FALSE if there was an error
+/// \param      pRec   ->   pointer to the EditRecord struct which stores the information needed
+///                         for recreating the one or more collected back translations pertinent
+///                         to the editable span for the current vertical edit operation
+/// \remarks
+/// The last step in the vertical edit process is to restore any collected backtranslations, using
+/// the updated adaptation or gloss information resulting from earlier user-interactive steps in the
+/// vertical edit process. This restoration is done without intervention from the user being required.
+/// All the information pertinent to doing the restoration is passed in within the pRec parameter.
+/// 
+/// The function checks that a restoration is required. If it is, then information in the pRec
+/// parameter is used to set up a programmatically generated selection for the CSourcePhrase instances
+/// involved in the (limited) span of the recollection - because without a selection, the
+/// collection would be done over the whole document which would be overkill. The work of doing the
+/// recollection is then given to the DoCollectBacktranslations() function.
+////////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* pRec, enum EntryPoint anEntryPoint)
+{
+	// if there were no back translations removed from the edit span, then none need be recollected
+	// and if so just return without doing anything
+	if (!pRec->bEditSpanHasBackTranslations)
+		return TRUE;
+
+	if (pRec->nBackTrans_StartingSequNum == -1)
+		return FALSE; // should not be -1 if bEditSpanHasBackTranslations is TRUE
+
+	int nBackTranslationSpanExtent = pRec->nBackTrans_EndingSequNum - pRec->nBackTrans_StartingSequNum + 1;
+	wxASSERT(nBackTranslationSpanExtent > 0);
+
+	// remove any selection
+	RemoveSelection();
+
+	// save the current active pile's sequ num,, we need to change the active location for the call of
+	// MakeSelectionForFind() below, so we must restore the former active location before exitting;
+	// then set the active location to be at the location where the first \bt marker was removed
+	int nSaveActiveSequNum = gpApp->m_nActiveSequNum;
+	gpApp->m_pActivePile = GetPile(pRec->nBackTrans_StartingSequNum);
+
+	// the extent of the edit span may have been changed in one or two ways - if the entry point was
+	// sourceTextEntryPoint, then the source text may have been edited to be longer or shorter, and
+	// subsequently, in adaptationsStep of the vertical edit, the user may have used retranslations,
+	// inserted placeholders, or mergers, all of which potentially change the extend of the edit span.
+	// Which of these applies must now be determined and the appropriate span adjustment made
+	switch (anEntryPoint)
+	{
+	case noEntryPoint:
+		// this should never happen, but if it does it means no source text or vertical edit was done
+		// -- in which case we just return and no do anything
+		return TRUE;
+	case sourceTextEntryPoint:
+		nBackTranslationSpanExtent += (pRec->nNewSpanCount - pRec->nOldSpanCount);
+		nBackTranslationSpanExtent += pRec->nAdaptationStep_ExtrasFromUserEdits;
+		break;
+	case adaptationsEntryPoint:
+		// the only possibility for span extent changes is due to mergers, retranslations, or
+		// placeholder insertions
+		nBackTranslationSpanExtent += pRec->nAdaptationStep_ExtrasFromUserEdits;
+		break;
+	// the next two cases involve no change to the span length, so they have no work to do
+	case glossesEntryPoint:
+	case freeTranslationsEntryPoint:
+		;
+	}
+
+	// use the final value of nBackTranslationSpanExtent, together with nBackTrans_StartingSequNum
+	// to define which CSourcePhrase instances in the m_pSourcePhrases list in the document
+	// need to be programmatically set as selected & create the selection; MakeSelectionForFind()
+	// can be used to make the selection even though we are not doing a Find command
+	gbUserWantsSelection = TRUE; // inhibit AdvanceBundle() call within MakeSelectionForFind()
+	int nSelectionLine = 1; // select in the punctuated source text line (assume first src line suppressed)
+	MakeSelectionForFind(pRec->nBackTrans_StartingSequNum, nBackTranslationSpanExtent, nSelectionLine);
+
+	// hand over to the function which does the collecting, using the selection defined above
+	DoCollectBacktranslations(pRec->bCollectedFromTargetText);
+
+	// do cleanup housekeeping
+	gbUserWantsSelection = FALSE; // restore default value
+	RemoveSelection();
+	gpApp->m_pActivePile = GetPile(nSaveActiveSequNum); // need this call because view is recalculated
+	
+	return TRUE;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
