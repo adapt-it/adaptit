@@ -360,6 +360,7 @@ public:
 	CCell*		GetPrevCell(CCell* pCell, int index); // moved to public
 	bool		IsBoundaryCell(CCell* pCell);
 	bool		IsTypeDifferent(CCell* pAnchor, CCell* pCurrent); // moved to public
+	bool		RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* pRec, enum EntryPoint anEntryPoint); // BEW added 18Dec08
 	void		RemovePrecedingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public in wx
 	void		RemoveEarlierSelForShortening(wxClientDC* pDC, CCell* pEndCell);
 	void		RemoveFollowingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public

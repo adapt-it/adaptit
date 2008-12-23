@@ -65,7 +65,6 @@ END_EVENT_TABLE()
 // the following constructor is never executed (see constructor in ComposeBarEditBox.h)
 CComposeBarEditBox::CComposeBarEditBox() // constructor
 {
-	
 }
 
 CComposeBarEditBox::~CComposeBarEditBox() // destructor

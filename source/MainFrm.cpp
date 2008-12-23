@@ -86,6 +86,7 @@
 #include "helpers.h"
 #include "AdaptitConstants.h"
 #include "XML.h"
+#include "ComposeBarEditBox.h" // BEW added 15Nov08
 // includes above
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
@@ -105,6 +106,9 @@ extern bool gbAdaptBeforeGloss;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern EditStep gEditStep;
+
+/// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
+extern EntryPoint gEntryPoint;
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern wxString gOldEditBoxTextStr;
@@ -5144,7 +5148,13 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	}
 
 // ***** TODO *****   the functions which will do the checking and recollecting of back translations
-
+	BOOL bOK = pView->RecreateCollectedBackTranslationsInVerticalEdit(&gEditRecord, sourceTextEntryPoint);
+	if (!bOK)
+	{
+		// unlikely to fail, give a warning if it does
+		wxMessageBox(_("Warning: recollecting the back translations did not succeed. Try doing it manually."),
+			_T(""), wxICON_EXCLAMATION);
+	}
 
 	// unilaterally end the vertical edit process - don't provide a rollback chance
 	//this->PostMessage(CUSTOM_EVENT_END_VERTICAL_EDIT,0,0);
@@ -5795,7 +5805,8 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	if (gEditStep == freeTranslationsStep || gpApp->m_bFreeTranslationMode)
 	{
 		wxASSERT(m_pComposeBar != NULL);
-		wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		//wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		CComposeBarEditBox* pEdit = (CComposeBarEditBox*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
 		pEdit->SetValue(_T("")); // SetValue() is OK to use here
