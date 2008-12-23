@@ -16205,6 +16205,19 @@ void CAdapt_ItApp::OnFilePageSetup(wxCommandEvent& WXUNUSED(event))
     // SetPageOrientation() sets the page orientation in our pPrintData global 
 	SetPageOrientation(m_bIsPortraitOrientation);
 	// the initializations of pPgSetupDlgData are done in OnInit()
+	
+    // Patrick Rietveld reported 19Dec08 that in his Dutch version of Windows XP the paper size
+    // selection and the orientation came up from the system grayed out. The following lines attempt to
+    // enable those parts of the Page Setup dialog (assuming the system will allow it). Update 23Dec08 -
+    // Patrick subsequently said he was mistaken and found that he was actually running the v. 3.6.4
+    // legacy version, but that the wx version 4.0.4 was OK. So there is likely no need for the
+    // following Enable... calls, but they don't hurt anything and might help insure that those parts of
+    // the Page Setup dialog actually work in some situations, so I'll leave them here in the code.
+	pPgSetupDlgData->EnableMargins(TRUE);
+	pPgSetupDlgData->EnableOrientation(TRUE);
+	pPgSetupDlgData->EnablePaper(TRUE);
+	pPgSetupDlgData->EnablePrinter(TRUE);
+
 	// Margin MM values determined using the less precise config_only_thousandthsInchToMillimetres conversion factor
 	pPgSetupDlgData->SetMarginTopLeft(wxPoint(m_marginLeftMM,m_marginTopMM));
 	pPgSetupDlgData->SetMarginBottomRight(wxPoint(m_marginRightMM,m_marginBottomMM));

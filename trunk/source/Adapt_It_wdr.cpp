@@ -3661,7 +3661,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
-    wxFlexGridSizer *item4 = new wxFlexGridSizer( 3, 0, 0 );
+    wxFlexGridSizer *item4 = new wxFlexGridSizer( 4, 0, 0, 0 );
     item4->AddGrowableCol( 1 );
     item4->AddGrowableRow( 1 );
 
@@ -3677,11 +3677,11 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs9 = (wxString*) NULL;
-    wxListBox *item9 = new wxListBox( parent, IDC_LIST_MARKER, wxDefaultPosition, wxSize(80,-1), 0, strs9, wxLB_SINGLE );
+    wxListBox *item9 = new wxListBox( parent, IDC_LIST_MARKER, wxDefaultPosition, wxSize(80,80), 0, strs9, wxLB_SINGLE );
     item9->SetToolTip( _("This is a list of filtered markers at this location") );
     item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item8, 2, wxGROW|wxALL, 5 );
+    item4->Add( item8, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
@@ -3703,82 +3703,40 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     item10->Add( item12, 0, wxALIGN_CENTER_VERTICAL, 0 );
 
-    item4->Add( item10, 3, wxGROW|wxALL, 0 );
+    item4->Add( item10, 1, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs16 = (wxString*) NULL;
-    wxListBox *item16 = new wxListBox( parent, IDC_LIST_MARKER_END, wxDefaultPosition, wxSize(80,-1), 0, strs16, wxLB_SINGLE );
+    wxListBox *item16 = new wxListBox( parent, IDC_LIST_MARKER_END, wxDefaultPosition, wxSize(80,80), 0, strs16, wxLB_SINGLE );
     item16->SetToolTip( _("This list contains any end markers associated with the marker in the list at far left") );
     item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item15, 2, wxGROW|wxALL, 5 );
+    item4->Add( item15, 1, wxGROW|wxALL, 5 );
 
-    wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Marker Description:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticText *item18 = new wxStaticText( parent, IDC_STATIC_MARKER_DESCRIPTION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("This is a description of the marker selected in the Marker list box (at upper left)") );
+    item4->Add( item18, 1, wxGROW|wxALL, 5 );
 
-    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Marker Description:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_RIGHT|wxALL, 5 );
+    wxButton *item19 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->SetToolTip( _("Click OK to save any edits and close the dialog") );
+    item4->Add( item19, 0, wxALIGN_CENTER, 5 );
 
-    item17->Add( item18, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Marker Status:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item20, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item4->Add( item17, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item21 = new wxStaticText( parent, IDC_STATIC_MARKER_STATUS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->SetToolTip( _("This tells if the text of the Marker can be available for adaptation (see Filtering tab in Edit Preferences)") );
+    item4->Add( item21, 1, wxGROW|wxALL, 5 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item22 = new wxStaticText( parent, IDC_STATIC_MARKER_DESCRIPTION, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("This is a description of the marker selected in the Marker list box (at upper left)") );
-    item21->Add( item22, 1, wxGROW|wxALL, 5 );
-
-    item20->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item4->Add( item20, 1, wxGROW|wxALL, 0 );
-
-    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item24 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetToolTip( _("Click OK to save any edits and close the dialog") );
-    item23->Add( item24, 0, wxALIGN_CENTER, 5 );
-
-    item4->Add( item23, 1, wxALIGN_CENTER_HORIZONTAL, 0 );
-
-    wxBoxSizer *item25 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item27 = new wxStaticText( parent, ID_TEXT, _("Marker Status:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->Add( item27, 0, wxALIGN_RIGHT|wxALL, 5 );
-
-    item25->Add( item26, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item4->Add( item25, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
-
-    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item30 = new wxStaticText( parent, IDC_STATIC_MARKER_STATUS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("This tells if the text of the Marker can be available for adaptation (see Filtering tab in Edit Preferences)") );
-    item29->Add( item30, 1, wxGROW|wxALL, 5 );
-
-    item28->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item4->Add( item28, 1, wxGROW|wxALL, 0 );
-
-    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item32 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("Click Cancel to discard any edits and close the dialog") );
-    item31->Add( item32, 0, wxALIGN_CENTER, 5 );
-
-    item4->Add( item31, 1, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item22 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Click Cancel to discard any edits and close the dialog") );
+    item4->Add( item22, 0, wxALIGN_CENTER, 5 );
 
     item3->Add( item4, 1, wxGROW, 0 );
-
-    item3->Add( 20, 5, 0, wxALIGN_CENTER, 5 );
 
     item2->Add( item3, 1, wxGROW, 0 );
 
