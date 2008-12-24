@@ -550,10 +550,12 @@ msgstr ""
 msgid "OTX"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It.cpp:824
 msgid "&Finish"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It.cpp:825
 msgid "< &Back"
 msgstr ""
@@ -588,6 +590,7 @@ msgstr ""
 msgid "Adapt It"
 msgstr ""
 
+# This will be the name of the folder that contains all the adapted documents for a project.
 #: source/Adapt_It.cpp:4638
 #: source/Adapt_It.cpp:19526
 #: source/Adapt_It.cpp:19588
@@ -1041,6 +1044,8 @@ msgstr ""
 msgid "project"
 msgstr ""
 
+# Priority 1
+# The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
 #: source/Adapt_It.cpp:15339
 #, c-format
 msgid "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"
@@ -2356,6 +2361,7 @@ msgstr ""
 msgid "Type a brief name for the file here"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:523
 msgid "Note: Do not use any of these characters in a file name:"
 msgstr ""
@@ -3211,6 +3217,7 @@ msgstr ""
 msgid "Close this dialog and continue working"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:1926
 msgid "Define KB and Miscellaneous Options"
 msgstr ""
@@ -3780,10 +3787,12 @@ msgstr ""
 msgid "Click this button to close this dialog"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:2888
 msgid "Split off the first part, name it and save it."
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:2891
 msgid "Display the remainder as the open document."
 msgstr ""
@@ -4147,6 +4156,7 @@ msgstr ""
 msgid "Select Standard Format Text File if you want to create a file having backslash markers that can be used as a source text for another Adapt It project, or that can be edited in a text editor, or loaded into the Paratext program."
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:3413
 msgid "&Rich Text Format (RTF) Document File (.rtf)"
 msgstr ""
@@ -4362,6 +4372,7 @@ msgstr ""
 msgid "Click Cancel to stop the interlinear export process and close the dialog"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:3657
 msgid "Select a marker on the left to see its associated text material that was filtered out (editable below)"
 msgstr ""
@@ -4371,6 +4382,7 @@ msgstr ""
 msgid "&Marker:"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:3671
 msgid "Associated &text material:"
 msgstr ""
@@ -4588,6 +4600,7 @@ msgstr ""
 msgid "This selection will first save the currently open document. You will then be able to choose the documents you want checked."
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:4095
 msgid "Preceding Context:"
 msgstr ""
@@ -4924,6 +4937,7 @@ msgstr ""
 msgid "Joining...  Please wait."
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:4667
 msgid "(Optional) Type a filename for the joined document. (If none is typed, the open document's name is used):"
 msgstr ""
@@ -4976,6 +4990,7 @@ msgstr ""
 msgid "Test the appearance of all your characters by typing them in this edit box"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:4804
 msgid "Chart of Assigned Characters 32-255 in the selected encoding and face name: (Note: The chart highlights characters you type in the Encoding Test Box)"
 msgstr ""
@@ -5009,6 +5024,7 @@ msgstr ""
 msgid "Click Cancel to close the dialog without changing the encoding or face name"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:4927
 msgid "&Select a Consistent Changes (CC) Table:"
 msgstr ""
@@ -5388,6 +5404,7 @@ msgstr ""
 msgid "Press this button to Cancel the printing and close this dialog"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5605
 msgid "If you want to use only one consistent changes table select it using the Table 1 tab. If you want to use more than one consistent changes tables, select the first one in the Table 1 tab, the second in the Table 2 tab and so on, up to four Tables. Note: When using multiple consistent change tables, they are processed in sequence starting with Table 1."
 msgstr ""
@@ -5457,6 +5474,7 @@ msgstr ""
 msgid "Click Cancel to make no changes to the interface language"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5757
 msgid "Removed:"
 msgstr ""
@@ -5473,14 +5491,17 @@ msgstr ""
 msgid "Previous Step"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5818
 msgid "Next Step"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5823
 msgid "End Now"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5829
 msgid "Cancel All Steps"
 msgstr ""
@@ -5490,10 +5511,12 @@ msgstr ""
 msgid "Define Source and Target Punctuation Correspondences"
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5854
 msgid "Enter single punctuation character correspondences in the list on the left tab."
 msgstr ""
 
+# Priority 1
 #: source/Adapt_It_wdr.cpp:5857
 msgid "Enter any double character correspondences in the list on the right tab."
 msgstr ""
@@ -6738,6 +6761,7 @@ msgstr ""
 msgid "Fonts"
 msgstr ""
 
+# Priority 1
 #: source/EditPreferencesDlg.cpp:206
 msgid "Backups and Misc"
 msgstr ""
