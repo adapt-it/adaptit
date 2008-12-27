@@ -5148,7 +5148,8 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	}
 
 // ***** TODO *****   the functions which will do the checking and recollecting of back translations
-	BOOL bOK = pView->RecreateCollectedBackTranslationsInVerticalEdit(&gEditRecord, sourceTextEntryPoint);
+	bool bOK;
+	bOK = pView->RecreateCollectedBackTranslationsInVerticalEdit(&gEditRecord, sourceTextEntryPoint);
 	if (!bOK)
 	{
 		// unlikely to fail, give a warning if it does
