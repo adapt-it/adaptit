@@ -3329,7 +3329,7 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	
 	wxString appName;
 	appName = GetAppName();
-	m_htbHelpFileName = appName + _T(".hhp"); //_T(".htb");
+	m_htbHelpFileName = appName + _T(".htb");
 	
 	wxString pathToHtmlHelpFiles;
 #ifdef __WXMAC__
