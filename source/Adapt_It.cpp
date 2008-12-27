@@ -6283,7 +6283,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		helpFileFound = FALSE;
 		wxLogDebug(wxT("Cannot find .htb file at path: %s."),helpFilePath.c_str());
 	}
-    if (!helpFileFound || !m_pHelpController->Initialize(helpFilePath) )
+    if (!helpFileFound) // || !m_pHelpController->Initialize(helpFilePath) )
     {
         wxLogDebug(wxT("Cannot initialize the help system. Online help will not be available."));
     }
