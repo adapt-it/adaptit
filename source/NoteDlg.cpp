@@ -407,10 +407,10 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			//m_strNote.Trim(_T(" \r\n\t")); //m_strNote.Trim(_T(" \r\n\t"));
 			// Under wx .Trim appears to only remove spaces, so I'll insure the other whitespace chars are also
 			// removed if present on the right end of m_strNote.
-			while (m_strNote.Length() > 0 && m_strNote[m_strNote.Length() -1] == _T(' ')
+			while (m_strNote.Length() > 0 && (m_strNote[m_strNote.Length() -1] == _T(' ')
 				|| m_strNote[m_strNote.Length() -1] == _T('\r')
 				|| m_strNote[m_strNote.Length() -1] == _T('\n')
-				|| m_strNote[m_strNote.Length() -1] == _T('\t'))
+				|| m_strNote[m_strNote.Length() -1] == _T('\t')))
 			{
 				m_strNote.Remove(m_strNote.Length() -1,1);
 			}
