@@ -785,7 +785,7 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 		return endmarkers;
 	}
 	aToken = MakeReverse(aToken);
-	if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
+	if ((aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng)) ||
 		((aToken != _T("ef\\") || aToken != _T("F\\")) && 
 		(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
 	{
@@ -806,7 +806,7 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 		else
 		{
 			aToken = MakeReverse(aToken);
-			if (aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng) ||
+			if ((aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng)) ||
 				((aToken != _T("ef\\") || aToken != _T("F\\")) && 
 				(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
 			{

@@ -1583,6 +1583,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 	{
 		CSourcePhrase* pSrcPhrase;
 		CBString aStr;
+		CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
 
 		// prologue (BEW changed 02July07 to use Bob's huge switch in the
 		// GetEncodingStrongForXmlFiles() function which he did, to better support
@@ -1623,7 +1624,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 
 		// doc closing tag
 		aStr = xml_adaptitdoc;
-		aStr = "</" + aStr;
+		aStr = openBraceSlash + aStr; //"</" + aStr;
 		aStr += ">\r\n";
 		DoWrite(f,aStr);
 
@@ -2428,6 +2429,7 @@ bool CAdapt_ItDoc::DoFileSave()
 	{
 		CSourcePhrase* pSrcPhrase;
 		CBString aStr;
+		CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
 
 		// prologue (Changed BEW 02July07 at Bob Eaton's request)
 		gpApp->GetEncodingStringForXmlFiles(aStr);
@@ -2507,7 +2509,7 @@ bool CAdapt_ItDoc::DoFileSave()
 
 		// doc closing tag
 		aStr = xml_adaptitdoc;
-		aStr = "</" + aStr;
+		aStr = openBraceSlash + aStr; //"</" + aStr;
 		aStr += ">\r\n"; // eol chars OK for cross-platform???
 		DoWrite(f,aStr);
 
@@ -2722,6 +2724,7 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 	{
 		CSourcePhrase* pSrcPhrase;
 		CBString aStr;
+		CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
 
 		// prologue (BEW changed 02July07)
 		gpApp->GetEncodingStringForXmlFiles(aStr);
@@ -2760,7 +2763,7 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 
 		// doc closing tag
 		aStr = xml_adaptitdoc;
-		aStr = "</" + aStr;
+		aStr = openBraceSlash + aStr; //"</" + aStr;
 		aStr += ">\r\n"; // eol chars OK in cross-platform version ???
 		DoWrite(f,aStr);
 

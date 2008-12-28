@@ -2546,7 +2546,7 @@ void DoExportInterlinearRTF()
 	// and hopefully avoid some of the situations where a particular version of Word is unable 
 	// to open the RTF file. See the options for setting N of the \fetN control word in comments above.
 	wxString fetNstr;
-	if (!bDocHasFootnotes && !bDocHasEndnotes || bDocHasFootnotes &&  !bDocHasEndnotes) // has Footnotes or neither
+	if ((!bDocHasFootnotes && !bDocHasEndnotes) || (bDocHasFootnotes &&  !bDocHasEndnotes)) // has Footnotes or neither
 		fetNstr = _T("\\fet0");
 	else if (!bDocHasFootnotes && bDocHasEndnotes) // has Endnotes only
 		fetNstr = _T("\\fet1");
@@ -6121,7 +6121,7 @@ void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportNam
 		bDocHasAINotes);
 
 	wxString fetNstr;
-	if (!bDocHasFootnotes && !bDocHasEndnotes || bDocHasFootnotes &&  !bDocHasEndnotes) // has Footnotes or neither
+	if ((!bDocHasFootnotes && !bDocHasEndnotes) || (bDocHasFootnotes &&  !bDocHasEndnotes)) // has Footnotes or neither
 		fetNstr = _T("\\fet0");
 	else if (!bDocHasFootnotes && bDocHasEndnotes) // has Endnotes only
 		fetNstr = _T("\\fet1");
@@ -8793,7 +8793,7 @@ int ParseFootnote(wxChar* pChar, wxChar* pBuffStart, wxChar* pEndChar,
 		// verse marker or any paragraph marker other than \f*
 		if ((wholeMkrUpperCase.Find(_T('F')) != 1
 			&& bIsAParagraphStyle) || wholeMkr == _T("\\v")
-			|| gpApp->gCurrentSfmSet != PngOnly && wholeMkr == _T("\\fe"))
+			|| (gpApp->gCurrentSfmSet != PngOnly && wholeMkr == _T("\\fe")))
 		{
 			// inform the caller that there is no end marker on this footnote.
 			parseError = no_end_marker;
@@ -11631,8 +11631,8 @@ bool NextMarkerIsFootnoteEndnoteCrossRef(wxChar* pChar, wxChar* pEndChar, int it
 			ptr += iLen;
 			if (*ptr == _T('\\') && ptr + 2 < pEnd)
 			{
-				if (*(ptr + 1) == _T('f') && pDoc->IsWhiteSpace(ptr + 2)
-					|| *(ptr + 1) == _T('x') && pDoc->IsWhiteSpace(ptr + 2))
+				if ((*(ptr + 1) == _T('f') && pDoc->IsWhiteSpace(ptr + 2))
+					|| (*(ptr + 1) == _T('x') && pDoc->IsWhiteSpace(ptr + 2)))
 					return TRUE;
 			}
 			if (*ptr == _T('\\') && ptr + 3 < pEnd)
