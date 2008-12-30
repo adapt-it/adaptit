@@ -265,7 +265,7 @@
 				Version="4.0.3"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 			/>
@@ -757,10 +757,6 @@
 				RelativePath="..\..\source\XMLErrorDlg.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\XYDispDriver.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -864,6 +860,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\EarlierTranslationDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ecdriver.h"
 				>
 			</File>
 			<File
@@ -1106,10 +1106,6 @@
 				RelativePath="..\..\source\XMLErrorDlg.h"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\XYDispDriver.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -1131,17 +1127,6 @@
 		<File
 			RelativePath="..\..\source\NewDialogImplementationTemplate.txt"
 			>
-		</File>
-		<File
-			RelativePath="..\..\source\SilEncConverters22.tlb"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-				/>
-			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>
