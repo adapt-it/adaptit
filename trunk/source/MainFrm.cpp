@@ -1118,11 +1118,11 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 
 
 	idleCount = 0;
-#ifdef __WXDEBUG__
-	m_bShowScrollData = TRUE; // shows scroll parameters and client size in status bar
-#else
+//#ifdef __WXDEBUG__
+//	m_bShowScrollData = TRUE; // shows scroll parameters and client size in status bar
+//#else
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
-#endif
+//#endif
 
 	// these dummy ID values are placeholders for unused entries in the accelerator below 
 	// that are not implemented in the wx version
