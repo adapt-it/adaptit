@@ -65,7 +65,6 @@ CTransformToGlossesDlg::CTransformToGlossesDlg(wxWindow* parent) // dialog const
 	// initial height of whole dialog (incl border and title) to 340 pixels heigh (the max height)
 	// and 400 pixels wide (the minimum width). There should be plenty of room for localized text
 	// to expand the three text controls used in the dialog for static text instructions.
-	// TODO: test appearance on Linux and the Mac!!!
 	//this->SetSizeHints(wxSize(400,240),wxSize(600,340));
 
 

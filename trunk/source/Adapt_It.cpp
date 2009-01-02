@@ -78,6 +78,8 @@
 
 #include <wx/display.h> // for wxDisplay
 
+#include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
+
 // Other includes
 #include "Adapt_It.h"
 #include "MainFrm.h"
@@ -2987,8 +2989,25 @@ wxString szSilConverterDirForward = _T("SilConverterDirectionForward");   // boo
 /// "SilConverterNormalizeOutput". This value is written in the "Settings" part of the basic
 /// configuration file. Adapt It stores this value in the App's m_eSilConverterNormalizeOutput global
 /// variable.
-wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");     // enum NormalizeFlags
+wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");
 
+// Note: ecDriverDynamicLibrary.Load() is called in OnInit()
+wxDynamicLibrary ecDriverDynamicLibrary;
+
+#if defined(__WXMSW__)
+const wxChar *LIB_NAME = _T("ECDriver.dll");
+#elif defined(__UNIX__)
+const wxChar *LIB_NAME = _T("/lib/ecdriver.so");
+#else
+#error "Cannot load wxDynamicLibrary ecdriver on this platform.";
+#endif
+
+// whm Note: constants must be static and integral types to be initialized within a class
+const wxChar *FUNC_NAME_EC_IS_INSTALLED = _T("IsEcInstalled");
+const wxChar *FUNC_NAME_EC_SELECT_CONVERTER_AW = _T("EncConverterSelectConverter");
+const wxChar *FUNC_NAME_EC_INITIALIZE_CONVERTER_AW = _T("EncConverterInitializeConverter");
+const wxChar *FUNC_NAME_EC_CONVERTER_DESCRIPTION_AW = _T("EncConverterConverterDescription");
+const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW = _T("EncConverterConvertString");
 
 /// The label that identifies the following string encoded value as the application's
 /// "DoAdaptingBeforeGlossing_InVerticalEdit". This value is written in the "ProjectSettings" part of
@@ -4819,10 +4838,33 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     m_strSilEncConverterName.Empty();
     m_bSilConverterDirForward = TRUE;
     m_bECConnected = FALSE;
-#ifdef USE_SIL_CONVERTERS
-    m_eSilConverterNormalizeOutput = NormalizeFlags_None;
-#endif
+	m_eSilConverterNormalizeOutput = 0;
 	m_bTransliterationMode = FALSE;
+
+	bool bECDriverDLLLoaded = FALSE;
+#ifdef USE_SIL_CONVERTERS
+	// Turn off system message "Failed to load shared library...(error 126: the specified module could
+	// not be found", which pops up in idle time if following .Load() call fails. We have our own message.
+	{ // block below for wxLogNull
+	wxLogNull logNo;	// eliminates any spurious messages from the system while reading read-only folders/files
+	bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(LIB_NAME);
+	if (!ecDriverDynamicLibrary.IsLoaded())
+	{
+		// the ECDriver.dll file was not found
+		bECDriverDLLLoaded = FALSE;
+		wxString msg;
+		// This error shouldn't happen with normal install, so it can remain in English
+		msg = msg.Format(_T("Could not find the %s dynamic library file. SIL Converters will not be available. You may need to reinstall Adapt It WX."),LIB_NAME);
+		wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
+	}
+	else
+	{
+		bECDriverDLLLoaded = TRUE;
+	}
+	} // end of block for wxLogNull
+#else
+	bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but not referenced" warning when define is not set
+#endif	// end of if USE_SIL_CONVERTERS
 
 	// BEW added 2Sep08
 	gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating before doing glosses updating
@@ -5154,15 +5196,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//  // this should be done early on. The AfxInitRichEdit() call will load version 1
 	//	// so we must do its work manually ourselves to get version 3 used
 	//   m_hmodRichEd1 = LoadLibrary(_T("riched20.dll")); // we've decided not to use Rich Edit 
-	//						      // controls, but this can stay
+	//													  // controls, but this can stay
 //#endif
 
 	// CoInitialize() won't compile on Linux
-#ifdef USE_SIL_CONVERTERS
-	CoInitialize(NULL); // initialize COM, so Unicode version can check for UTF8 when no BOM present
-						// in data (rde: now needed for Ansi version as well, since it's needed 
-						// for SilConverters)
-#endif
 
 	// whm added 7Dec05
 	// Retrieve the path to the setup folder (i.e., the path the executable was launched from)
@@ -5851,11 +5888,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #ifdef _RTL_FLAGS
 	//HWND hWnd = pEdit->GetSafeHwnd(); // MFC
 	//LONG lAlign = (LONG)::GetWindowLong(hWnd,GWL_EXSTYLE); // MFC
-	// Note: GetHandle() returns the platform-specific handle of the physical
-	// window. It needs to be cast to an appropriate handle, such as HWND
-	// for Windows, Widget for Motif, or GtkWidget for GTK. Therefore, the
-	// next line below will need platform specific conditional compiles.
-	// TODO: implement platform specific conditional compiles on next line.
 	//HWND hWnd = (HWND)pEdit->GetHandle(); 
 	//LONG lAlign = (LONG)::GetWindowLong(hWnd,GWL_EXSTYLE);
 	if (gpApp->m_bTgtRTL)
@@ -6255,21 +6287,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// The file name stored in helpFileName below will be Adapt_It.htb for Windows; adaptit.htb for Linux and AdaptIt.htb for Mac. 
 	// The extension may be .zip, .htb or .hhp when using wxHtmlHelpController
 	helpFileName = m_htbHelpFileName;  
-//#ifdef __WXMAC__
-//	helpFileName = appName + _T(".htb"); // may be .zip, .htb or .hhp if we switch to wxHtmlHelpController
-//#endif
 
 #ifdef __WXGTK__
 	// The call to m_pHelpController->Initialize() below will fail on wxGTK unless wxUSE-LIBMSPACK is 1
 #ifndef wxUSE_LIBMSPACK
 	wxLogDebug(_T("wxUSE_LIBMSPACK is NOT DEFINED! The MS Windows Adapt_It_Help.chm help file will not display properly."));
 #endif
-	//helpFileName = appName + _T(".htb"); // may be .zip, .htb or .hhp if we switch to wxHtmlHelpController
 #endif
 
-//#ifdef __WXMSW__
-//	helpFileName = appName + _T(".htb"); // TODO: use the .htb form for Windows too! // may be .zip, .htb or .hhp if we switch to wxHtmlHelpController
-//#endif
 	helpFilePath = helpFilePath + PathSeparator + helpFileName;
 	// Display message in status bar that we are initializing the help system
 	message = message.Format(_("Initializing help system file %s..."),helpFilePath.c_str());
@@ -8524,7 +8549,7 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pAdView))
 	dC.SetFont(*m_pTargetFont);
 	m_nTgtHeight = dC.GetCharHeight();
 
-	// TODO: The wxDC class does not use a separate TEXTMETRIC struct. Within
+	// whm Note: The wxDC class does not use a separate TEXTMETRIC struct. Within
 	// the wxDC class there appears to be no way to access an internal leading
 	// value. And, the external leading value seems to be only available when 
 	// measuring an actual string of text using GetTextExtent(). 
@@ -9680,7 +9705,6 @@ bool CAdapt_ItApp::DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event))
 
 	// Do we have a valid directory? Probably not if user copied
 	// a project from another user or a different platform.
-	// TODO: Check to see if following check is now redundant
 	bool bDirPathOk = ::wxDirExists(m_curAdaptionsPath);
 	if (m_curAdaptionsPath.IsEmpty())
 	{
@@ -14159,13 +14183,8 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szSilConverterDirForward << tab << number;
     pf->AddLine(data);
 
-#ifndef USE_SIL_CONVERTERS
-	number = _T("0");
-#endif
-#ifdef USE_SIL_CONVERTERS
 	number.Empty();
-	number <<  (int)m_eSilConverterNormalizeOutput; // use the int value of the m_eSilConverterNormalizeOutput enum 
-#endif
+	number << m_eSilConverterNormalizeOutput;
 	data.Empty();
 	data << szSilConverterNormalize << tab << number;
 	pf->AddLine(data);
@@ -14792,9 +14811,7 @@ t:				m_pCurrBookNamePair = NULL;
 		else if (name == szSilConverterNormalize)
 		{
 			num = wxAtoi(strValue);
-#ifdef USE_SIL_CONVERTERS
-			m_eSilConverterNormalizeOutput = (NormalizeFlags)num;
-#endif
+			m_eSilConverterNormalizeOutput = num;
 		}
 		else if (name == szLegacyCopyForPhraseBox)
 		{

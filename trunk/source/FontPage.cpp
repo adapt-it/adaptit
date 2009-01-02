@@ -177,7 +177,7 @@ void CFontPageCommon::DoInit()
 	// the following font page text controls had their SetEditable to FALSE and
 	// their validators set in the constructor above.
 	tempSourceFontName = gpApp->m_pSourceFont->GetFaceName();
-	pSrcFontNameBox->SetValue(tempSourceFontName); // TODO: needed ???
+	pSrcFontNameBox->SetValue(tempSourceFontName);
 
 	tempTargetFontName = gpApp->m_pTargetFont->GetFaceName();
 	pTgtFontNameBox->SetValue(tempTargetFontName);
@@ -634,7 +634,7 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	// OnWizardPageChanging() is called when the CFontPageWiz is used
 	// within the Start Working Wizard (during the creation of a
 	// <New Project>); 
-	// TODO: Check this: OnWizardPageChanging() is NOT called when
+	// OnWizardPageChanging() is NOT called when
 	// used as a panel within the Edit Preferences Notebook, when
 	// the user clicks on a different tab. Within the Edit Preferences
 	// Notebook, changes to the data structures are effected by

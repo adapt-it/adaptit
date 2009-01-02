@@ -3,7 +3,7 @@
 /// \file			Adapt_ItView.cpp
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	15 January 2008
+/// \date_revised	30 December 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CAdapt_ItView class. 
@@ -64,6 +64,7 @@
 #include <wx/progdlg.h> // for wxProgressDialog
 #include <wx/busyinfo.h>
 #include <wx/print.h>
+#include <wx/dynlib.h> // for wxDynamicLibrary
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -112,13 +113,26 @@
 #include "PrintOptionsDlg.h"
 #include "ConsistentChanger.h"
 #include "SilConverterSelectDlg.h"
+#ifdef USE_SIL_CONVERTERS
+#include "ECDriver.h"
+#endif
+
+// rde added the following but, if it is actually needed we'll use wxMax()
+//#ifndef max
+//#define max(a,b)            (((a) > (b)) ? (a) : (b))
+//#endif
 
 /// This global is defined in Adapt_ItView.cpp.
 bool gbLegacySourceTextCopy = FALSE; // BEW added 16July08 at Roland Fumey's request (see CViewPage.h & .cpp)
 
-#define IDW_TARGET_EDITBOX 1001
+//#define IDW_TARGET_EDITBOX 1001
 
 // Globals
+extern wxDynamicLibrary ecDriverDynamicLibrary;
+extern const wxChar *FUNC_NAME_EC_INITIALIZE_CONVERTER_AW;
+extern const wxChar *FUNC_NAME_EC_IS_INSTALLED;
+extern const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW;
+
 extern bool gbSavedLineFourInReviewingMode;			// these two are defined in PhraseBox.cpp and are for support
 extern wxString gStrSaveLineFourInReviewingMode;	// of preserving a hole when phrase box lands and leaves while
 													// Reviewing mode is turned on (added 19Dec07)
@@ -1027,7 +1041,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	//EVT_MENU(ID_EDIT_MOVE_NOTE_BACKWARD, CAdapt_ItView::OnEditMoveNoteBackward)
 	//EVT_UPDATE_UI(ID_EDIT_MOVE_NOTE_BACKWARD, CAdapt_ItView::OnUpdateEditMoveNoteBackward)
 
-	// TODO: Uncomment these after COM equivalent is implemented
 	EVT_MENU(ID_ADVANCED_USETRANSLITERATIONMODE, CAdapt_ItView::OnAdvancedUseTransliterationMode)
 	EVT_UPDATE_UI(ID_ADVANCED_USETRANSLITERATIONMODE, CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode)
 	// End of Advanced Menu ////////////////////////////////////////
@@ -1463,19 +1476,18 @@ void CAdapt_ItView::OnInitialUpdate()
 
 	// wx version: the Save As XML menu item is always shown with checkmark and cannot be changed
 
-	// TODO: Uncomment below after COM equivalent is implemented
-	//if (gpApp->m_bTransliterationMode)
-	//{
-	//	// make sure the Use Transliteration Mode menu item is shown with checkmark
-	//	gpApp->m_bTransliterationMode = FALSE;
-	//	OnAdvancedUseTransliterationMode(dummyevent); // toggle it ON, and set the checkmark
-	//}
-	//else
-	//{
-	//	// make sure the Use Transliteration Mode menu item is shown without checkmark
-	//	gpApp->m_bTransliterationMode = TRUE;
-	//	OnAdvancedUseTransliterationMode(dummyevent); // toggle it OFF, and clear the checkmark
-	//}
+	if (gpApp->m_bTransliterationMode)
+	{
+		// make sure the Use Transliteration Mode menu item is shown with checkmark
+		gpApp->m_bTransliterationMode = FALSE;
+		OnAdvancedUseTransliterationMode(dummyevent); // toggle it ON, and set the checkmark
+	}
+	else
+	{
+		// make sure the Use Transliteration Mode menu item is shown without checkmark
+		gpApp->m_bTransliterationMode = TRUE;
+		OnAdvancedUseTransliterationMode(dummyevent); // toggle it OFF, and clear the checkmark
+	}
 
 	if (gbIgnoreScriptureReference_Receive)
 	{
@@ -3916,23 +3928,6 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		wxDefaultSize,
 		wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX|wxDIALOG_MODAL );
 	editPrefsDlg.Centre();
-
-	// need to set size hints otherwise the preferences dialog is way too tall
-	// testing below //////////////////////////////////////////
-	//wxSize dummySize = editPrefsDlg.GetSizer()->GetSize();
-	//editPrefsDlg.SetSize(wxSize(640,480));
-	//editPrefsDlg.GetSizer()->SetVirtualSizeHints(editPrefsDlg.GetParent());
-	//wxWindow* dlgWnd = editPrefsDlg.GetParent();
-	//wxSize frameSize = dlgWnd->GetSize(); // this gets the size of CMainFrame
-	//wxSize dialogSize = editPrefsDlg.GetSize();
-	//editPrefsDlg.SetSize(dialogSize);
-	// testing above ///////////////////////////////////////////
-
-	// TODO: Check how the individual notebook pages of the CEditPreferencesDlg
-	// are initialized. Are their InitDialog() handlers called when the above
-	// CEDitPreferencesDlg dialog is instantiated? or, are their InitDialog()
-	// handlers called when user clicks on the appropriate tab in the notebook
-	// for that page? If not, we need to call their InitDialog() handlers here.
 
 	int nSaveMaxToDisplay;
 	nSaveMaxToDisplay = pApp->m_nMaxToDisplay; // save value in case user changes it
@@ -8640,7 +8635,7 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 			//	TODO: The fact that the target box is never null, may have side effects since
 			//	the code below the goto b jump below will always occur even in a Find operation.
 			//	I have a hard time with unconditional goto x statements so I think Bruce will 
-			//	need to evgentually check the logic here down to the next goto b block below
+			//	need to eventually check the logic here down to the next goto b block below
 			//	after the "if (gbAutoCaps)" block to see if they should always be executed even
 			//	after a Find operation.
 			if (gpApp->m_pTargetBox == NULL)
@@ -14170,14 +14165,18 @@ void CAdapt_ItView::OnUpdateUseConsistentChanges(wxUpdateUIEvent& event)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 {
-	if (gpApp->m_bFreeTranslationMode)
+	if (gpApp->m_bFreeTranslationMode || !gpApp->bECDriverDLLLoaded)
 	{
 		event.Enable(FALSE);
 		return;
 	}
 
+#ifdef USE_SIL_CONVERTERS
     // enable it if there's a configured table name
 	event.Enable(!gpApp->m_strSilEncConverterName.IsEmpty());
+#else
+	event.Enable(FALSE); // don't enable the menu item if we're not using SIL Converters
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -14243,7 +14242,6 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 
 		// and update the menu command to be unchecked
 		pToolsMenuUseCC->Check(FALSE);
-
 	}
 
 	// restore focus to the targetBox, if it is visible
@@ -14252,7 +14250,6 @@ void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
-// TODO: Uncomment blocks below after COM equivalent is implemented
 void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 {
 	CMainFrame *pFrame = gpApp->GetMainFrame();
@@ -14268,13 +14265,12 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 	wxMenuItem* pToolsMenuAcceptChanges;
 	pToolsMenuAcceptChanges = pMenuBar->FindItem(ID_ACCEPT_CHANGES);
 	wxASSERT(pToolsMenuAcceptChanges != NULL);
-/*
 
 	// toggle the setting
 	if (gpApp->m_bUseSilConverter)
 	{
 		// toggle the checkmark to OFF
-		pToolsMenuUseSilConverter->Check(FALSE); //pToolsMenu->CheckMenuItem(ID_USE_SILCONVERTER,MF_BYCOMMAND | MF_UNCHECKED);
+		pToolsMenuUseSilConverter->Check(FALSE);
 		gpApp->m_bUseSilConverter = FALSE;
 	}
 	else
@@ -14315,10 +14311,9 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// restore focus to the targetBox, if it is visible
-	if (gpApp->m_pTargetBox != NULL)			//if (m_targetBox.m_hWnd != NULL)
-		if (gpApp->m_pTargetBox->IsShown())	// if ((m_targetBox.GetStyle() & WS_VISIBLE) != 0)
-			gpApp->m_pTargetBox->SetFocus();	// m_targetBox.SetFocus();
-	*/
+	if (gpApp->m_pTargetBox != NULL)
+		if (gpApp->m_pTargetBox->IsShown())
+			gpApp->m_pTargetBox->SetFocus();
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -20854,19 +20849,14 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 	// crashes were in OnUpdateButtonRestore(), an unrelated update handler, because in the code
 	// line
 	//		CSourcePhrase* pSP = pApp->m_pActivePile->m_pSrcPhrase;
-	// m_pActivePile was valid, but the m_pSrcPhrase was uninitialized. Perhaps the wx version
+	// m_pActivePile was valid, but the m_pSrcPhrase was uninitialized. It seems the wx version
 	// update handlers in wx are more robust than those of MFC, or don't get blocked while a
-	// modal dialog is showing, I don't know. But to eliminate the crash, I'm temporarily turning
-	// off the update handler in the line below, and activating it again after ShowModal returns
-	// farther below. This should be appropriate because while the dialog is being shown, it is
-	// not possible to click on a toolbar button anyway.
-	// TODO: It might be appropriate to do this for other modal dialogs too. Another possibility
-	// is to have a special handler that disables all controls outside a modal dialog while the
-	// modal dialog is running.
-	// wx later note: I've incorporated the SetMode() call in the AIModalDialog class upon which all
-	// Adapt It modal dialogs are now based. It actually is wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED);
-	// which stops all background idle processing, including wxUpdateUIEvent event handling.
-	//wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_SPECIFIED); // prevent UI updating while dialog is shown
+	// modal dialog is showing, I don't know. At first, to eliminate the crash, I temporarily turned
+	// off the update handler before calling ShowModal(), and activating it again after ShowModal 
+	// returns farther below. Later I decided to incorporate the SetMode() call in the AIModalDialog 
+	// class upon which all Adapt It modal dialogs are now based. The call is 
+	// wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) which stops all background idle processing, 
+	// including wxUpdateUIEvent event handling.
 	// show the dialog
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -29215,7 +29205,6 @@ void CAdapt_ItView::DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile)
 	int lineCount = pFile->GetLineCount();
 
 	int ct;
-	// whm 29Dec06 TODO: determine if we should call convertToLocalCharset() here below on line
 	for (ct = 0; ct < lineCount; ct++)
 	{
 		line = pFile->GetLine(ct);
@@ -33598,8 +33587,9 @@ bool CAdapt_ItView::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRec
 												 // so don't do any Remove() before doing this deletion
 								// warn the user about what has happened
 								// IDS_KEEP_UNREPLACED_NOTE
-								// TODO: Surely IDS_KEEP_UNREPLACED_NOTE is not supposed to be a single
-								// space - not much of a message for the user!
+								// whm Note: Surely IDS_KEEP_UNREPLACED_NOTE is not supposed to be a single
+								// space - not much of a message for the user! I've commented the 
+								// wxMessageBox line below.
 								//wxMessageBox(_(" "), _T(""), wxICON_INFORMATION);
 								break; // break out of the loop and let the rest of the function do the 
 									   // replacements of those that were successfully relocated and stored
@@ -33674,8 +33664,9 @@ bool CAdapt_ItView::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRec
 									 // so don't do any Remove() before doing this deletion
 					// warn the user about what has happened
 					// IDS_KEEP_UNREPLACED_NOTE
-					// TODO: Surely IDS_KEEP_UNREPLACED_NOTE is not supposed to be a single
-					// space - not much of a message for the user!
+					// whm Note: Surely IDS_KEEP_UNREPLACED_NOTE is not supposed to be a single
+					// space - not much of a message for the user! I've commented out the
+					// wxMessageBox() line below
 					//wxMessageBox(_(" "), _T(""), wxICON_INFORMATION);
 				}
 			}
@@ -35470,13 +35461,6 @@ bailout:	pAdaptList->Clear();
 
 		// now get the preceding CSourcePhrase's pointer (ie. preceding the editable span),
 		// it could be NULL
-		// 
-		// whm Debug TODO: At this point the contents of pSrcPhrases has been corrupted so that
-		// pSrcPhrases->Item(nPrecedingSequNum) below gets the node for nPrecedingSequNum (10) and then
-		// the following gpPrecSrcPhrase = posPrec->GetData() call returns the "John" source phrase
-		// instead of the "Yupela" source phrase retrieved by the MFC version. To debug this I'll put a
-		// wxLogDebug() statement back up in the most likely place where the corrputed ordering is
-		// happening, namely the ReplaceCSourcePhrasesInSpan() call above.
 		// 
 		gpPrecSrcPhrase = NULL; // a global CSourcePhrase*
 		int nPrecedingSequNum = pRec->nStartingSequNum - 1;
@@ -45796,127 +45780,63 @@ bool CAdapt_ItView::MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxStrin
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
-/// The "SIL Converters..." item on the Edit menu is enabled on a Windows port if the registry key
-/// "SOFTWARE\\SIL\\SilEncConverters22" exists in the m_pConfig object, otherwise the menu item 
-/// is disabled. For testing the existence of this key we've created an alternate wxConfig object
-/// called m_pConfigSIL which was created with it root set at "SOFTWARE\\SIL". Therefore we need only
-/// test for the existence of the "SilEncConverters22" entry at that node in the registry.
+/// The "SIL Converters..." item on the Edit menu is enabled on a Windows port if the ECDriver.dll 
+/// is loaded and SIL Converters is installed on the local machine, otherwise the menu item is
+/// disabled.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 {
-	// only enable the SILConverters menu item if it is currently installed (as indicated by a registry key)
-	// and the repository dll exists. TECHNICALLY, this requires SilConverters 2.2 and newer, but I can't figure
-	// out how to determine that... (if not, it gracefully errors anyways)
-	// whm note: This OnUpdateSelectSilConverters() handler(s) modified 31May07 as per Bruce's email of 29May07
-	// to be included in MFC version 3.4.1
-	// MFC code next two lines:
-    //CRegKey keyRegSC;
-    //event.Enable( keyRegSC.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\SIL\\SilEncConverters22")) == ERROR_SUCCESS );
-	// whm 17May08 Note: our m_pConfig object was created with its root being Adapt_It. In order to be able to
-	// query a different branch off of the Software/SIL, I've created another wxConfig object called
-	// m_pConfigSIL whose root was configured to be "SIL". With that root we can simply test to see if the
-	// "SilEncConverters22 entry exists within the "SIL" group.
-	// save current config path
-	wxString oldPath = gpApp->m_pConfigSIL->GetPath(); // is always absolute path "/Recent_File_List"
-	if (gpApp->m_pConfigSIL->Exists(_T("SilEncConverters22")))
-		event.Enable(TRUE);
-	else
+	// Only enable the SILConverters menu item if we're building for SIL Converters and SIL Converters
+	// is installed on the local machine.
+	if (!gpApp->bECDriverDLLLoaded)
+	{
 		event.Enable(FALSE);
-	// restore the oldPath back to ""
-	gpApp->m_pConfigSIL->SetPath(oldPath);
+		return;
+	}
+#ifdef USE_SIL_CONVERTERS
+	// whm added 30Dec08 for SIL Converters support
+	typedef int (wxSTDCALL *wxECIsInstalledType)();
+	wxECIsInstalledType pfnECisInstalled = (wxECIsInstalledType)NULL;
+	// whm Note: The IsEcInstalled() function in ECDriver.dll does not have A and W forms so we must
+	// call GetSymbol() instead of GetSymbolAorW() here.
+	pfnECisInstalled = (wxECIsInstalledType)ecDriverDynamicLibrary.GetSymbol(FUNC_NAME_EC_IS_INSTALLED);
+	
+	event.Enable(pfnECisInstalled != NULL && pfnECisInstalled() == TRUE);
+#else
+	event.Enable(FALSE); // don't enable the menu item if we're not using SIL Converters
+#endif
 }
-
-
-/* 3.4.0 and earlier -- two tests, but Bob says now only the one is needed
-void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
-{
-	// whm Note: Windows registry access and Unix/Linux config file access is done in wxWidgets via
-	// the wxConfig class, which attempts to make dealing with the disparate OS's registry/config files
-	// look similar. The App has a pointer called m_pConfig which was initialized as a new wxConfig
-	// instance there. Unix systems forbid program code from writing directly to their equivalent of
-	// the HKEY_LOCAL_MACHINE except when done under Administrator priviledges/access (usually when
-	// the admin in installing software with admin's level access). I think we can use wxConfig to read
-	// values from HKEY_LOCAL_MACHINE keys, however, so this should work.
-
-	// TODO: test to see if following read of HKEY_LOCAL_MACHINE was successful
-
-    //CRegKey keyRegSC;
-    //if( keyRegSC.Open(HKEY_LOCAL_MACHINE, _T("SOFTWARE\\SIL\\SilEncConverters22")) == ERROR_SUCCESS )
-	if (gpApp->m_pConfig->Exists(_T("SOFTWARE\\SIL\\SilEncConverters22")))
-    {
-        // just in case the registry key was stranded, make sure the dll is also still there!
-        //ULONG nBufLen = _MAX_PATH;
-        //wxChar szRootDir[_MAX_PATH]; szRootDir[0] = 0;
-		wxString rootDir;
-        //if( keyRegSC.QueryStringValue(_T("RootDir"), szRootDir, &nBufLen) == ERROR_SUCCESS )
-		if (gpApp->m_pConfig->Read(_T("RootDir"), &rootDir))
-        {
-            // key is there... how about the dll?
-            wxString strFilename = rootDir; //szRootDir;
-            strFilename += _T("SilEncConverters22.tlb");
-            //CFileStatus fstat;
-            //event.Enable( CFile::GetStatus(strFilename, fstat) );
-			if (wxFileExists(strFilename))
-				event.Enable(TRUE);
-			else
-				event.Enable(FALSE);
-            return;
-        }
-    }
-
-    event.Enable(FALSE);
-}
-*/
 
 void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 {
-	// Use of noSILConverters boolean below only to avoid compiler warning while SIL Converters is not implemented
-	bool noSILConverters; // remove once the COM equivalent is implemented
-	noSILConverters = FALSE; // remove once the COM equivalent is implemented
-#ifndef USE_SIL_CONVERTERS
-	// TODO: remove following message once the COM equivalent is implemented
-	wxMessageBox(_("Sorry - the SIL Converters feature is not available in the wxWidgets version at this time."),_T(""), wxICON_INFORMATION);
-	noSILConverters = TRUE; // remove once the COM equivalent is implemented
-#endif
-	if (noSILConverters) // remove once the COM equivalent is implemented
-		return; // remove once the COM equivalent is implemented
-
     // bring up the SilConverter select dialog to allow the user to pick a converter
-#ifdef USE_SIL_CONVERTERS
-    CSilConverterSelectDlg dlg(
+    CSilConverterSelectDlg dlg
+    (
     gpApp->m_strSilEncConverterName,
     gpApp->m_bSilConverterDirForward,
     gpApp->m_eSilConverterNormalizeOutput,
-    gpApp->m_aEC,
-    gpApp->GetMainFrame() );
-#else
-    CSilConverterSelectDlg dlg(
-    gpApp->m_strSilEncConverterName,
-    gpApp->m_bSilConverterDirForward,
-    gpApp->GetMainFrame() );
-#endif
+    gpApp->GetMainFrame()
+    );
 
     if( dlg.ShowModal() == wxID_OK )
     {
         // save these values in the app, so they get written to the project settings file
         // (i.e. to be retentive across program launches)
         gpApp->m_strSilEncConverterName = dlg.ConverterName;
-        gpApp->m_bSilConverterDirForward = dlg.DirectionForward;
-#ifdef USE_SIL_CONVERTERS
+		if (dlg.DirectionForward == 0)
+			gpApp->m_bSilConverterDirForward = FALSE;
+		else
+			gpApp->m_bSilConverterDirForward = TRUE;
         gpApp->m_eSilConverterNormalizeOutput = dlg.NormalizeOutput;
-#endif
 
         // if no converter configured, then turn off the 'use' if it was on
         // (NOTE: this is the equivalent of "Unload")
         if( dlg.ConverterName.IsEmpty() )
         {
-	        CMainFrame *pFrame = gpApp->GetMainFrame(); //CFrameWnd* pFrame = GetParentFrame();
+	        CMainFrame *pFrame = gpApp->GetMainFrame();
 			wxASSERT(pFrame != NULL);
-	        //CMenu* pTopLevelMenu = pFrame->GetMenu();
 			wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 			wxASSERT(pMenuBar != NULL);
-	        //CMenu* pToolsMenu = pTopLevelMenu->GetSubMenu(3);
-	        //ASSERT(pToolsMenu != NULL);
 			wxMenuItem * pToolsMenuUseSilConverter = pMenuBar->FindItem(ID_USE_SILCONVERTER);
 			wxASSERT(pToolsMenuUseSilConverter != NULL);
 
@@ -45940,186 +45860,6 @@ void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
     }
 }
 
-#ifdef USE_SIL_CONVERTERS
-////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      aEC                <- reference to an SIL Converter
-/// \param      strFriendlyName    <- a wxString representing the name of the SIL Converter, used 
-///                                     in the get_Item() call to get a reference to the specific 
-///                                     converter to initialize (pointed to by aEC)
-/// \param      bDirectionForward  -> a bool representing a flag for the put_DirectionForward() call
-///                                     further initializing the converter (pointed to by aEC)
-/// \param      eNormalizeFlag     -> an enum value for the put_NormalizeOutput() call that further
-///                                     initializes the converter (pointed to by aEC)
-/// \remarks
-/// Called from: the View's DoSilConvert().
-/// Initializes a connection to an SIL Converter.
-/// The aEC reference (passed in as m_aEC from DoSilConvert) will be NULL on entry to 
-/// InitializeEC() since InitializeEC() is only called from DoSilConvert() when m_aEC is NULL 
-/// and needs to be initialized. The strFriendlyName should have the name of the SIL Converter that is
-/// to be initialized. If strFriendlyName is a null string it indicates that the user
-/// has not yet selected an SIL Converter and an error message is issued and the initialization 
-/// aborts. The pointer to the COM IEncConverters Interface (pECs being a type of IECs) is used to 
-/// call CoCreateInstance() on the "SilEncConverters22.EncConverters" ProgID string, which creates 
-/// an instance of the SIL Converters object in a type-safe manner. pECs is then used to call
-/// get_Item() in which the first parameter is the strFriendlyName property to retrieve made into a 
-/// VARIANT, and the second parameter aEC receives the pointer/reference to the retrieved property
-/// (i.e., the Converter to be used). This aEC pointer is then used to initialize two other run-time
-/// parameters needed before the Convert() call can be called (in the ProcessHResult part of
-/// DoSilConvert) on the retrieved Converter. The two initializations are accomplished by calling the
-/// following two methods on aEC; put_DirectionForward(), and put_NormalizeOutput() utilizing
-/// InitializeEC's "bDirectionForward" and "eNormalizeFlag" input parameters passed to these two 
-/// methods.
-/// If either the CoCreateInstance() or get_Item() call fails, appropriate error messages are issued 
-/// to the user.
-////////////////////////////////////////////////////////////////////////////////////////////
-void InitializeEC(IEC& aEC, const wxString& strFriendlyName, bool bDirectionForward, NormalizeFlags eNormalizeFlag)
-{
-	// helper function to initialize the converter
-    //wxASSERT(!aEC);
-    gpApp->m_bECConnected = FALSE;
-    if( strFriendlyName.IsEmpty() )
-    {
-		// IDS_NO_SIL_CONVERTER_CONFIGURED
-        wxMessageBox(_("No SILConverter configured! Click 'Tools', 'SIL Converters...' to re-configure a new converter"),_T(""),wxICON_INFORMATION);
-    }
-    else
-    {
-        //wxCursor cursor(wxCURSOR_WAIT); //CWaitCursor x; // TODO: see if setting wait cursor is necessary
-        
-		// whm Observarions based on looking at automtn.h library source in (C:\wxWidgets-2.8.7\include\wx\msw\ole)
-		// and automtn.cpp (in C:\wxWidgets-2.8.7\src\msw\ole):
-		// 
-		// 1. wxAutomationObject::GetInstance()
-		// Signature: GetInstance(const wxString& classId) const
-		// GetInstance() retrieves the current object associated with a class id, and attaches the
-		// IDispatch pointer to this object. Returns TRUE if a pointer was successfully retrieved,
-		// FALSE otherwise. It does the following:
-		//    a. Returns FALSE immediately if m_dispatchPtr is already defined (non-NULL).
-		//    b. Calls CLSIDFromProgID() to look up in the registry the CLSID corresponding to our progID 
-		//    (Unicode) string passed into GetInstance(). If CLSIDFromProgID() fails GetInstance()
-		//    immediately returns FALSE.
-		//    c. Using a valid CLSID from b above, GetActiveObject() is called using an IUnknown* pUnk
-		//    reference parameter to get back a pointer pUnk to a "running" object that has been
-		//    registered with OLE (using the class identifier CLSID). If GetActiveObject() fails, GetInstance() 
-		//    immediately returns FALSE.
-		//    d. Using the pUnk pointer to the found active object, pUnk->QueryInterface() is
-		//    called using IID_IDispatch to retrieve the raw interface pointer for the COM object which 
-		//    is stored in wxAutomationObject's m_dispatchPtr member. Note: the inline GetDispatchPtr()
-		//    method of wxAutomationObject simply returns this raw m_dispatchPtr.
-		//  
-		// 2. wxAutomationObject::CreateInstance()  
-		// Signature: CreateInstance(const wxString& classId) const
-		// CreateInstance() creates a new object based on the clas id, returning TRUE if the object was
-		// successfully created, FALSE otherwise. It does the following:
-		//    a. Returns FALSE immediately if m_dispatchPtr is already defined (non-NULL).
-		//    b. Calls CLSIDFromProgID() to look up in the registry the CLSID corresponding to our progID 
-		//    (Unicode) string passed into CreateInstance(). If CLSIDFromProgID() fails CreateInstance()
-		//    immediately returns FALSE.
-		//    c. Using a valid CLSID from b above, CoCreateInstance() is called using the parameters
-		//    CLSCTX_LOCAL_SERVER and IID_IDispatch, and on success stores the raw dispatch pointer
-		//    in m_dispatchPtr. 
-		//  
-		// 3. wxAutomationObject::GetObject()
-		// Signature: GetObject(wxAutomationObject &obj const wxString& property, int noArgs = 0, wxVariant args[] = NULL) const
-		// GetObject() retrieves one object from another object. It works by retrieving a property from this object, 
-		// assumed to be a dispatch pointer, and initializes obj with it. It avoids having to deal with IDispatch 
-		// pointers directly. It does the following:
-		//    a. Invokes the wxAutomationObject's internal GetDispatchProperty() function which returns
-		//    an IDispatch pointer to the object represented by property, and assigns this IDispatch
-		//    pointer to the obj reference parameter of GetObject() using SetDispatchPtr().
-		//    a.[more detail] The GetDispatchProperty() mentioned above calls the wxAutomationObject's 
-		//    internal Invoke() function which in turn calls the IDispatch's own Invoke() function to 
-		//    get the desired sub-object's own dispatch pointer.
-        
-        IECs    pECs;
-        //pECs.CoCreateInstance(L"SilEncConverters22.EncConverters");
-		//if (!pECs.GetInstance(_T("SilEncConverters22.EncConverters")))
-		//{
-			if (pECs.CreateObject(_T("SilEncConverters22.EncConverters"))) //if (pECs.CreateInstance(_T("SilEncConverters22.EncConverters"))) // if ( !!pECs )
-			{
-				
-				//wxVariant varName(strFriendlyName); //COleVariant varName(strFriendlyName);
-				//pECs->get_Item(varName, &aEC);
-				//if( !!aEC )
-				if (pECs.InvokeMethod(_T("get_Item"),strFriendlyName, &aEC)) //if (m_aEC.CreateObject(ConverterName))
-				//if (pECs.GetObject(aEC, strFriendlyName)) 
-				{
-					// initialize the other run-time parameters needed for the Convert call
-					bool bPutOK1, bPutOK2;
-					bPutOK1 = aEC.SetProperty(_T("put_DirectionForward"),wxVariant(bDirectionForward)); //aEC->put_DirectionForward((bDirectionForward) ? VARIANT_TRUE : VARIANT_FALSE);
-					bPutOK2 = aEC.SetProperty(_T("put_NormalizeOutput"),wxVariant(eNormalizeFlag)); //aEC->put_NormalizeOutput(eNormalizeFlag);
-					if (bPutOK1 && bPutOK2)
-						gpApp->m_bECConnected = TRUE;
-					else
-					{
-						wxString strError,strError1,strError2;
-						strError1 = _T("put_DirectionForward()");
-						strError2 = _T("put_NormalizeOutput()");
-						strError = strError.Format(_T("The followoing command(s) failed for the SILConverter named %s! \n\n %s\n%s \n\n Click 'Tools', 'SIL Converters...' to re-configure a new converter"),strFriendlyName.c_str(),strError1.c_str(), strError2.c_str());
-						wxMessageBox(strError,_T(""),wxICON_WARNING);
-					}
-
-				}
-				else
-				{
-					// must no longer be in the repository!
-					wxString strError;
-					//AfxFormatString1(strError, IDS_SILCONVERTER_NO_LONGER_IN_REPOSITORY, strFriendlyName);
-					strError = strError.Format(_("The SILConverter named \n\n\t'%s'\n\nis no longer in the system repository! Click 'Tools', 'SIL Converters...' to re-configure a new converter"),strFriendlyName.c_str());
-					wxMessageBox(strError,_T(""),wxICON_WARNING);
-				}
-			}
-			else
-			{
-				// something more serious is wrong... probably requires a reboot or reinstall
-				//AfxMessageBox(IDS_SILCONVERTERS_NO_AVAILABLE);
-				wxMessageBox(_("Unable to launch the SIL Converters Selection Dialog! Are you using SIL Converters version v 2.2 or greater? Otherwise, you need to re-install or reboot"),_T(""),wxICON_WARNING);
-			}
-		//}
-		//else
-		//{
-		//	// the call to pECs.GetInstance() above succeeded. According to the wxAutomationObject
-		//	// docs, GetInstance() retrieves the current ojbect associated with the classId, and
-		//	// attaches the IDispatch pointer to this object. 
-		//	// We should now be able to access that IDispatch pointer and call:
-		//	//IDispatch* pIDispPtr = pECs.GetDispatchPtr();
-		//	// but the wxAutomationObject class is designed to avoid direct use of dispatch pointers,
-		//	// so we'll call GetObject() to get the inner object and then call PutProperty() on that
-		//	// inner object (as within the block above)
-		//	//wxVariant varName(strFriendlyName); //COleVariant varName(strFriendlyName);
-		//	//pECs->get_Item(varName, &aEC);
-		//	//if( !!aEC )
-		//	if (pECs.GetObject(aEC, strFriendlyName))
-		//	{
-		//		// initialize the other run-time parameters needed for the Convert call
-		//		bool bPutOK1, bPutOK2;
-		//		bPutOK1 = aEC.PutProperty("put_DirectionForward",wxVariant(bDirectionForward)); //aEC->put_DirectionForward((bDirectionForward) ? VARIANT_TRUE : VARIANT_FALSE);
-		//		bPutOK2 = aEC.PutProperty("put_NormalizeOutput",wxVariant(eNormalizeFlag)); //aEC->put_NormalizeOutput(eNormalizeFlag);
-		//		if (bPutOK1 && bPutOK2)
-		//			gpApp->m_bECConnected = TRUE;
-		//		else
-		//		{
-		//			wxString strError,strError1,strError2;
-		//			strError1 = _T("put_DirectionForward()");
-		//			strError2 = _T("put_NormalizeOutput()");
-		//			strError = strError.Format(_T("The followoing command(s) failed for the SILConverter named %s! \n\n %s\n%s \n\n Click 'Tools', 'SIL Converters...' to re-configure a new converter"),strFriendlyName.c_str(),strError1.c_str(), strError2.c_str());
-		//			wxMessageBox(strError,_T(""),wxICON_WARNING);
-		//		}
-		//	}
-		//	else
-		//	{
-		//		// must no longer be in the repository!
-		//		wxString strError;
-		//		//IDS_SILCONVERTER_NO_LONGER_IN_REPOSITORY
-		//		strError = strError.Format(_("The SILConverter named \n\n\t'%s'\n\nis no longer in the system repository! Click 'Tools', 'SIL Converters...' to re-configure a new converter"),strFriendlyName.c_str());
-		//		wxMessageBox(strError,_T(""),wxICON_WARNING);
-		//	}
-		//}
-    }
-}
-#endif
-
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     a wxString representing the input str after it is modified by the action of the 
 ///                 SIL Converter; or a null/empty str if str was initially empty or if the SIL
@@ -46128,46 +45868,57 @@ void InitializeEC(IEC& aEC, const wxString& strFriendlyName, bool bDirectionForw
 /// \remarks
 /// Called from: the View's CopySourceKey() and DoTargetBoxPaste() functions.
 /// Calls the configured SilConverter to pre-process the data and return the result to the caller.
-/// First, DoSilConvert() creates a connection with the EncConverter, if the connection hasn't been 
-/// created previously. A NULL pointer in m_aEC indicates that no connection to a converter is 
-/// current and needs to be made. If the connection needs to be made (m_aEC is NULL), it is 
-/// established by calling the InitializeEC() function which passes the m_aEC pointer, the 
-/// App's m_strSilEncConverterName, m_bSilConverterDirForward, and m_eSilConverterNormalizeOutput 
-/// values. Then, if m_aEC is not NULL by that point (InitializeEC succeeded) and if the string 
-/// str originally passed to DoSilConvert() is not empty, ProcessHResult() is called 
-/// which is a wrapper to trap errors and which internally (within its parameter list) calls 
-/// m_aEC->Convert(CComBSTR(str), and returns the processed output string in its strOutput reference
-/// parameter, which is then finally used as the return value from DoSilConvert(). 
-/// The ProcessHResult() function also has a parameter which calls __uuidof(IEncConverter) as it
-/// passes into the function. If the m_aEC reference did not get associated with a COM object earlier, 
-/// or if the str input string was originally a null string, DoSilConvert() simply returns a null 
+/// First, DoSilConvert() sets up a function pointer to use in accessing the appropriate form of 
+/// the EncConverterInitializeConverter() function in the external ECDriver.dll. It calls that 
+/// function and returns an empty string if the converter initialization fails, otherwise the
+/// function proceeds to set up a function pointer to use in accessing the appropriate form of
+/// the EncConverterConvertString() function in ECDriver.dll. If calls that function to process
+/// the input string str by the external SIL Converter; then returns the result.
+/// If the str input string was originally a null string, DoSilConvert() simply returns a null 
 /// string.
 ////////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItView::DoSilConvert(const wxString& str)
 {
-
-#ifndef USE_SIL_CONVERTERS
-	int dummyLen;
-	dummyLen = (int)str.Length(); // avoids "unreferenced formal parameter" warning when USE_SIL_CONVERTERS is not defined
-#endif
-
 #ifdef USE_SIL_CONVERTERS
-    // if the connection to the EncConverter hasn't been created yet, create it now
-    if (!gpApp->m_bECConnected) //if( !gpApp->m_aEC )
-        InitializeEC(gpApp->m_aEC, gpApp->m_strSilEncConverterName, gpApp->m_bSilConverterDirForward, gpApp->m_eSilConverterNormalizeOutput);
+	// whm added 30Dec08 for SIL Converters support
+	typedef int (wxSTDCALL *wxECInitConverterType)(const wxChar*,int,int);
+	wxECInitConverterType pfnECInitializeConverterAorW = (wxECInitConverterType)NULL;
+	// whm Note: The EncConverterInitializeConverter() function in ECDriver.dll only has A and W forms so we must
+	// call GetSymbolAorW() instead of GetSymbol() here.
+	pfnECInitializeConverterAorW = (wxECInitConverterType)ecDriverDynamicLibrary.GetSymbolAorW(FUNC_NAME_EC_INITIALIZE_CONVERTER_AW);
+    
+	if (!gpApp->m_bECConnected && pfnECInitializeConverterAorW != NULL)
+        gpApp->m_bECConnected = (pfnECInitializeConverterAorW(gpApp->m_strSilEncConverterName, 
+			gpApp->m_bSilConverterDirForward, gpApp->m_eSilConverterNormalizeOutput) == S_OK);
+    
+	if (!gpApp->m_bECConnected)
+		return _T("");
 
-    // if it's connected (now) AND if the string isn't empty...
-    if (gpApp->m_bECConnected && !str.IsEmpty()) //if( !!gpApp->m_aEC && !str.IsEmpty() )
-    {
-        // then we're all set: call Convert
-        //CComBSTR strOutput;
-        //if( ProcessHResult(gpApp->m_aEC->Convert(CComBSTR(str), &strOutput), gpApp->m_aEC, __uuidof(IEncConverter)) )
-        wxString strOutput;
-        if (gpApp->m_aEC.InvokeMethod(_T("Convert"), str, &strOutput)) //if (gpApp->m_aEC.CallMethod(_T("Convert"), 2, wxVariant(str), wxVariant(strOutput)))
-            return wxString(strOutput);
-    }
-#endif
-    return _T("");
+	// whm Note: I assume Bob's EncConverterConvertString() function is internally limited to a 
+	// 1000 TCHAR length. Therefore I've made a local copy of the incoming string "str" and check its
+	// length, and truncate if at 1000 char if it happens to exceed that length - to avoid any buffer
+	// overrun problems.
+	wxString tempStr = str;
+	if (tempStr.Length() > 1000)
+		tempStr.Mid(0,1000);
+	
+	// whm added 30Dec08 for SIL Converters support
+	typedef int (wxSTDCALL *wxECConvertStringType)(const wxChar*,const wxChar*,wxChar*,int);
+	wxECConvertStringType pfnECConvertStringAorW = (wxECConvertStringType)NULL;
+	// whm Note: The EncConverterConvertString() function in ECDriver.dll only has A and W forms so we must
+	// call GetSymbolAorW() instead of GetSymbol() here.
+	pfnECConvertStringAorW = (wxECConvertStringType)ecDriverDynamicLibrary.GetSymbolAorW(FUNC_NAME_EC_CONVERT_STRING_AW);
+
+	TCHAR szOutput[1001];
+	szOutput[0] = NULL; // whm added
+	if (pfnECConvertStringAorW != NULL)
+		pfnECConvertStringAorW(gpApp->m_strSilEncConverterName, tempStr, szOutput, 1000);
+	return szOutput;
+#else
+	int strlen;
+	strlen = str.Length(); // to avoid "unreferenced formal parameter" warning
+	return _T("");
+#endif // end of if USE_SIL_CONVERTERS
 }
 
 void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event))
@@ -46213,9 +45964,10 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(ev
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
 /// The "Use Transliteration Mode" item on the Advanced menu is disabled if any of the following
-/// conditions are TRUE: the KB is not ready, there are no source phrases in the App's m_pSourcePhrases
-/// list, the application is in free translation mode or glossing mode. Otherwise, if the
-/// m_strSilEncConverterName string has a name loaded the menu item is enabled.
+/// conditions are TRUE: the build/port does not support SIL Converters, the KB is not ready, 
+/// there are no source phrases in the App's m_pSourcePhrases list, the application is in free 
+/// translation mode or glossing mode. Otherwise, if the m_strSilEncConverterName string has a 
+/// name loaded, the menu item is enabled.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event)
 {
@@ -46224,10 +45976,8 @@ void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& even
 		event.Enable(FALSE);
 		return;
 	}
+#ifdef USE_SIL_CONVERTERS
 	// toggle the mode on or off
-	//CAdapt_ItApp* pApp = (CAdapt_ItApp*)AfxGetApp();
-	//ASSERT(pApp != NULL);
-	//CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	// whm 15Aug06 added && !pApp->m_strSilEncConverterName.IsEmpty() condition to disable
 	// the menu item unless a SIL converter is loaded
 	if (gpApp->m_bKBReady && gpApp->m_pSourcePhrases->GetCount() > 0 && !gpApp->m_bFreeTranslationMode
@@ -46235,6 +45985,9 @@ void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& even
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
+#else
+	event.Enable(FALSE); // don't enable the menu item if we're not using SIL Converters
+#endif
 }
 
 void CAdapt_ItView::OnUpdateButtonNextStep(wxUpdateUIEvent& event) 

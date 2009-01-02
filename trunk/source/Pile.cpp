@@ -165,7 +165,7 @@ void CPile::Draw(wxDC* pDC)
 				// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
 				// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
 				wxPoint topLeft = m_pCell[2]->m_ptTopLeft;
-				// TODO: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
+				// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
 				//DWORD boxMargins = pApp->m_targetBox.GetMargins();
 				//int leftMargin = (int)LOWORD(boxMargins);
 				int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???

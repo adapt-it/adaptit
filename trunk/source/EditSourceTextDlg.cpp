@@ -87,7 +87,7 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	EditSourceTextDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	// TODO: Get pointerf for the following:
+	// Need pointers for the following:
 	// ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1 
 	// ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC2
 	// IDC_EDIT_OLD_SOURCE_TEXT

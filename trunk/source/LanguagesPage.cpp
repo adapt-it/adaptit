@@ -188,8 +188,6 @@ void CLanguagesPage::OnWizardCancel(wxWizardEvent& WXUNUSED(event))
 // design InitDialog is moved to public and called once 
 // in the App where the wizard pages are constructed before 
 // wizard itself starts.
-// whm TODO: See OnActivate() below. See if this would enable us to not have to
-// call the local InitDialog from the App
 
 void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
