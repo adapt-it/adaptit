@@ -97,7 +97,9 @@ CSilConverterSelectDlg::CSilConverterSelectDlg(
 		wxECInitConverterType pfnECInitializeConverterAorW = (wxECInitConverterType)NULL;
 		// whm Note: The EncConverterInitializeConverter() function in ECDriver.dll only has A and W forms so we must
 		// call GetSymbolAorW() instead of GetSymbol() here.
+#ifdef USE_SIL_CONVERTERS
 		pfnECInitializeConverterAorW = (wxECInitConverterType)ecDriverDynamicLibrary.GetSymbolAorW(FUNC_NAME_EC_INITIALIZE_CONVERTER_AW);
+#endif	// end of if USE_SIL_CONVERTERS
 	}
 
 	// other attribute initializations
