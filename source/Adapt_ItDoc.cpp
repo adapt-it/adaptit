@@ -5854,7 +5854,7 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 
 		wxString tempSelectedFullPath = fileDlg.GetPath();
 
-		//// TODO: Since we used wxWidget's file dialog, wxWidgets' doc/view
+		//// Since we used wxWidget's file dialog, wxWidgets' doc/view
 		//// assumes that this file is the one to add to its wxFileHistory (MRU)
 		//// list. However, it is not what we want since it is not a document 
 		//// file. Hence we need to remove it from the file history.

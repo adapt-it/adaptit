@@ -3331,7 +3331,7 @@ void DoExportInterlinearRTF()
 			// "[FILTERED] " prefixed to the NavStr. That way it will not reside in the same column
 			// as the source and target text that belongs to this current pSrcPhrase.
 
-			// TODO: As an interim step I will not implement the insertion of this extra column of
+			// As an interim step I will not implement the insertion of this extra column of
 			// cells into the output table. Instead, I'll just append the "[associated text] "
 			// material to the beginning of the existing SrcStr and TgtStr strings, and "[FILTERED] "
 			// to the NavStr string.
@@ -3994,7 +3994,7 @@ void DoExportInterlinearRTF()
 
 			}
 
-			// turn off the flag here TODO: Do we need it later ???
+			// turn off the flag here
 			bHasNoteMarker = FALSE;
 		}
 
@@ -8215,7 +8215,7 @@ b:		if (IsRTFControlWord(ptr,pEnd))
 					//}
 					//else
 					//{
-					//	bLastCellTagOutput = FALSE; // TODO: check this ???
+					//	bLastCellTagOutput = FALSE; 
 					//}
 
 					// Handle any pending bt and/or free material that should be output before
@@ -13775,7 +13775,6 @@ void FormatMarkerBufferForOutput(wxString& text)
 				// The MFC version insures there is always a space before an end marker, regardless of
 				// what the original text had, so check for a preceeding space, and add one in the new
 				// buffer if there isn't one.
-				// TODO: Check validity of above observation!!!
 				if (pOld > pBufStart && *(pOld -1) != _T(' '))
 				{
 					// add a space before the end marker in the new buffer

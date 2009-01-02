@@ -2775,7 +2775,7 @@ wxSizer *SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
-    wxButton *item6 = new wxButton( parent, IDC_BTN_SELECT_SILCONVERTER, wxT(" ... "), wxDefaultPosition, wxSize(40,-1), 0 );
+    wxButton *item6 = new wxButton( parent, IDC_BTN_SELECT_SILCONVERTER, wxT("Select Converter... "), wxDefaultPosition, wxDefaultSize, 0 );
     item6->SetToolTip( wxT("Click this button to browse for a consistent change table") );
     item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -6721,7 +6721,7 @@ wxMenuBar *AIMenuBarFunc()
     item5->Append( ID_ADVANCED_COLLECT_BACKTRANSLATIONS, _("Collect Back Translations..."), _("Collect adaptations, or glosses, and store them with a back translation marker as filtered material") );
     item5->Append( ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, _("Remove Filtered Back Translations"), _("Deletes all the filtered back translations in the document") );
     item5->AppendSeparator();
-    item5->Append( ID_ADVANCED_USETRANSLITERATIONMODE, _("Use Transliteration Mode"), _("Select this item to use SIL Converters in transliteration mode") );
+    item5->Append( ID_ADVANCED_USETRANSLITERATIONMODE, _("Use Transliteration Mode"), _("Select this item to use SIL Converters in transliteration mode"), wxITEM_CHECK );
     item5->AppendSeparator();
     item5->Append( ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, _("Send Synchronized Scrolling Messages"), _("Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"), wxITEM_CHECK );
     item5->Append( ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, _("Receive Synchronized Scrolling Messages"), _("Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"), wxITEM_CHECK );

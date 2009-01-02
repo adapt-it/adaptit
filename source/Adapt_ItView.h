@@ -86,6 +86,11 @@ WX_DECLARE_LIST(wxString, WordList); // see list definition macro in .cpp file
 class CAdapt_ItView : public wxView
 {
 public:
+	// the following are for SIL Converters support
+	typedef int (wxSTDCALL *wxECInitConverterType)(const wxChar*,int,int);
+	typedef int (wxSTDCALL *wxECIsInstalledType)();
+	typedef int (wxSTDCALL *wxECConvertStringType)(const wxChar*,const wxChar*,wxChar*,int);
+
 	// wx Note: All MFC coded variables except for our canvas have been moved to the App
 	// Use the "canvas" of a wxScrolledWindow for depicting our view
 	
@@ -761,10 +766,6 @@ public:
 	//void OnFitWindow();
 	//void OnEditPunctCorresp(); // incorporated into Edit|Preferences
 	void OnButtonMerge(wxCommandEvent& WXUNUSED(event));
-
-	// TODO: Uncomment these after COM equivalent is implemented
-	//void OnAdvancedUseTransliterationMode(wxCommandEvent& event);
-	//void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);
 
 private:
 	// in docview.h the next line is wxFrame* ... in the App rather than the view

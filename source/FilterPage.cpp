@@ -518,7 +518,7 @@ void CFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 		// No, the above doesn't work when the sfmSet has changed. tempFilterMarkersAfterEditDoc
 		// needs to be assigned the filter markers for the currently chosen (temp) sfm set for the 
 		// Doc, which is indicated by tempSfmSetAfterEditDoc in the CUSFMPage. 
-		// TODO: This correction could also be propagated back to the MFC version.
+		// This correction could also be propagated back to the MFC version.
 		if (pStartWorkingWizard == NULL)
 		{
 			// We're in Edit Preferences
@@ -664,7 +664,7 @@ void CFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 		// No, the above doesn't work when the sfmSet has changed. tempFilterMarkersAfterEditProj
 		// needs to be assigned the filter markers for the currently chosen (temp) sfm set for the 
 		// project, which is indicated by tempSfmSetAfterEditProj in the CUSFMPage. 
-		// TODO: This correction could also be propagated back to the MFC version.
+		// This correction could also be propagated back to the MFC version.
 		if (pStartWorkingWizard == NULL)
 		{
 			// We're in Edit Preferences

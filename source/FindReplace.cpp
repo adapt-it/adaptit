@@ -308,7 +308,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	// IDD_FIND_REPLACE dialog. The combox Sort attribute was also set.
 	// Here we populate m_comboSFM combo box with the appropriate sfms 
 	// depending on gCurrentSfmSet.
-	// wx revision of behavior: TODO: We should list only those sfms which
+	// wx revision of behavior: We should list only those sfms which
 	// are actually used in the currently open document (including any
 	// unknown markers).
 	MapSfmToUSFMAnalysisStruct::iterator iter;

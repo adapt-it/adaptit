@@ -2,10 +2,10 @@
 /// \project		adaptit
 /// \file			Adapt_ItCanvas.cpp
 /// \author			Bill Martin
+/// \date_created	05 January 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \description	This is the implementation file for the CAdapt_ItCanvas class. 
 /// The CAdapt_ItCanvas class implements the main Adapt It window based on
 /// wxScrolledWindow. This is required because wxWidgets' doc/view framework
@@ -264,11 +264,6 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 // According to the internal comment, the #ifdef directive should probably be 
 // removed and the wxLayout_RightToLeft flag taken into consideration for all ports, 
 // not just wxGTK.
-// TODO: Remove the #ifdef and #endif directives in the library source and test the 
-// wxMac version to see if this helps to solve the wxMac scrolling/painting/clipping 
-// problem.
-// TODO: Check to insure that the wxScrolledWindow::DoPrepareDC() or the 
-// wxScrollHelper::DoPrepareDC() base class method is called where appropriate - 
 // the wxWidgets docs say, "DoPrepareDC is called automatically within the default
 // wxScrolledWindow::OnPaint event handler, so your wxScrolledWindow::OnDraw override 
 // will be passed a 'pre-scrolled' device context. However, if you wish to draw from 
@@ -2979,7 +2974,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 
 //#ifdef _DEBUG
 //	int newXPos, newYPos;
-//	// TODO: Simplify all of the above by using this calc instead
+//	// We can simplify all of the above by using this calc instead
 //	CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
 //	wxASSERT(newXPos == scrollPos.x); // scrollPos.x = newXPos;
 //	wxASSERT(newYPos == scrollPos.y); // scrollPos.y = newYPos;
@@ -3095,7 +3090,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 
 //#ifdef _DEBUG
 //	int newXPos, newYPos;
-//	// TODO: Simplify all of the above by using this calc instead
+//	// We can simplify all of the above by using this calc instead
 //	CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
 //	wxASSERT(newXPos == scrollPos.x); // scrollPos.x = newXPos;
 //	wxASSERT(newYPos == scrollPos.y); // scrollPos.y = newYPos;

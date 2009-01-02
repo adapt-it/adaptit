@@ -3,7 +3,7 @@
 /// \file			Adapt_It.h
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	14 May 2008
+/// \date_revised	29 December 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
@@ -37,11 +37,11 @@
 // ******************************* my #defines *********************************************
 
 #define VERSION_MAJOR_PART 4
-#define VERSION_MINOR_PART 0
-#define VERSION_BUILD_PART 4
-#define VERSION_DATE_DAY 13
-#define VERSION_DATE_MONTH 12
-#define VERSION_DATE_YEAR 2008
+#define VERSION_MINOR_PART 1
+#define VERSION_BUILD_PART 0
+#define VERSION_DATE_DAY 16
+#define VERSION_DATE_MONTH 1
+#define VERSION_DATE_YEAR 2009
 
 //#define _UNICODE 
 // whm Notes: The MFC version uses _NONROMAN everywhere instead of _UNICODE. For MFC, the 
@@ -74,8 +74,8 @@
 // this may only work for the Windows port, so I've also conditionally defined the USE_SIL_CONVERTERS
 // define to be available only for __WXMSW__
 #ifdef __WXMSW__
-// Uncomment the line below to test the SIL Converters code on Windows platforms
-//#define USE_SIL_CONVERTERS
+// Comment out the line below to test the removal of SIL Converters code on Windows builds
+#define USE_SIL_CONVERTERS
 #endif
 
 #ifdef _UNICODE
@@ -1115,30 +1115,7 @@ public:
 	int ShowModal(); // calls wxIdleEvent::SetMode(wxIDLE_PROCESS_SPECIFIED) before calling wxDialog::ShowModal()
 };
 
-
-#ifdef USE_SIL_CONVERTERS
-
-#ifdef __WXMSW__
-//#include "wx/msw/ole/automtn.h"
-#include "XYDispDriver.h"
-#endif
-
-// MFC Note: the following was added to the MFC app's StdAfx.h file for Bob Eaton's 
-// SILConverters support. 
-// WX Note: I have moved the #import statement here in Adapt_It.h since the wx version
-// does not include MFC's StdAfx.h.
-// rde: include the interfaces for SilEncConverters from the typelibrary (these
-// don't change much, so they're good for the pre-compiled header file)
-#import "mscorlib.tlb" //"C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.tlb"
-#import "SilEncConverters22.tlb"  raw_interfaces_only
-using namespace SilEncConverters22;
-
-#ifdef __WXMSW__
-typedef XYDispDriver IECs; //typedef wxAutomationObject IECs; //typedef CComPtr<IEncConverters> IECs;
-typedef XYDispDriver IEC; //typedef wxAutomationObject IEC;  //typedef CComPtr<IEncConverter>  IEC;
-#endif
-
-#endif // of USE_SIL_CONVERTERS
+class wxDynamicLibrary;
 
 // ////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
@@ -1310,10 +1287,8 @@ public:
 	// deletes the View and recreates it afresh (calling the View's constructor)
 	
 	bool m_bECConnected; // whm added for wx version
-#ifdef USE_SIL_CONVERTERS
-	// added for SIL Converters support
-	IEC m_aEC;  // the reference to the SILConverter
-#endif
+
+	bool bECDriverDLLLoaded; // set TRUE or FALSE in OnInit()
 
 	//CFindReplace* m_pFindReplaceDlg; // non-modal
 	CFindDlg* m_pFindDlg; // whm added to partly replace original m_pFindReplaceDlg // non-modal
@@ -1857,17 +1832,14 @@ public:
 	// to the word or phrase in the phrase box
 	bool		m_bCopySourcePunctuation;
 
-	// TODO: Find equivalent for NormalizeFlags below for WX version
 	// RDE: added 3 Apr 06 in support of calling SilEncConverters for preprocessing 
 	// the target word form (c.f. Consistent Changes)
 	// whm: the following two need to be always available in order to interact with MFC produced config
 	// files which contain
 	wxString		m_strSilEncConverterName;
 	bool            m_bSilConverterDirForward;
-#ifdef USE_SIL_CONVERTERS
-	NormalizeFlags  m_eSilConverterNormalizeOutput;
-#endif
-	
+	int				m_eSilConverterNormalizeOutput;
+
 	enum SfmSet gCurrentSfmSet;			// whm 6May05. Restricted gCurrentSfmSet to indicate only the current 
 										// active SfmSet. It is initialized to UsfmOnly, but is assigned
 										// whatever value is stored in the project config file. If there is
