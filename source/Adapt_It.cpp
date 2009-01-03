@@ -4841,7 +4841,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_eSilConverterNormalizeOutput = 0;
 	m_bTransliterationMode = FALSE;
 
-	bool bECDriverDLLLoaded = FALSE;
+	bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
 	// Turn off system message "Failed to load shared library...(error 126: the specified module could
 	// not be found", which pops up in idle time if following .Load() call fails. We have our own message.
