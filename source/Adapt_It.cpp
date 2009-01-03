@@ -15499,9 +15499,25 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	// wx note: The wxTextFile remains open during the following calls which
 	// simply continue reading the configuration data from memory
 	if (selector == 1) // app level
+	{
 		GetBasicSettingsConfiguration(&f);
+	}
 	else // project level
+	{
 		GetProjectSettingsConfiguration(&f);
+		// whm added 3Dec08
+		// The wx version adds a "SourceHasUpperCaseAndLowerCase" value to the project config file.
+		// This value was not in the MFC version. Both the wx version and MFC has the "AutoCapitalizationFlag"
+		// setting in the project config file. In the wx version the value for the new
+		// "SourceHasUpperCaseAndLowerCase" setting should always be set to TRUE if the
+		// AutoCapitalizationFlag was set to TRUE when reading a legacy project config file. So we will
+		// insure that is the case here. If this consistency check is not done, the two global flags
+		// can get out of sync, and under some circumstances the wx application may give a spurious error 
+		// message when it saves values from the Case page (in OnOK) in Preferences after reading a 
+		// legacy project config file for the first time.
+		if (gbAutoCaps == TRUE && gbSrcHasUcAndLc == FALSE)
+			gbSrcHasUcAndLc = TRUE;
+	}
 
 	f.Close(); // closes the wxTextFile and frees memory used for it
 
