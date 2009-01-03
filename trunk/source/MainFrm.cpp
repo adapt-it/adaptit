@@ -1768,7 +1768,12 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 			pDoc->Modify(FALSE);
 			bool bOK = pDoc->OnOpenDocument(fileFromMRU);
 			if (!bOK)
+			{
+				// whm TODO: put the code here for updating the doc title that MFC version had in its
+				// OnIdle() handler. Then eliminate the if (gbUpdateDocTitleNeeded) block in OnIdle()
+				// and do away with the if gbUpdateDocTitleNeeded global altogether.
 				return;
+			}
 			pDoc->SetFilename(fileFromMRU,TRUE);
 			pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't automatically call it
 		}
@@ -3018,7 +3023,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		if (pApp->m_bSingleStep)
 		{
 			pApp->m_bAutoInsert = FALSE;
-			event.RequestMore();
+			//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 		}
 		//return TRUE; // enable next OnIdle call - this accomplished with event.RequestMore()
 	//case 3: // auto capitalization support for the typed string in the phrasebox - we
@@ -3026,7 +3031,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 
 		if (pApp->m_pActivePile == NULL || pApp->m_nActiveSequNum == -1)
 		{
-			event.RequestMore();
+			//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 			//return TRUE; // we are at the end and no phrase box exists, so return
 		}
 		if (gbAutoCaps && pApp->m_pActivePile != NULL) // whm added && pApp->m_pActivePile != NULL
@@ -3051,7 +3056,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					if (len != 1)
 					{
 						//return TRUE;
-						event.RequestMore(); // added
+						//event.RequestMore(); // whm removed 2Jan09 testing shows auto caps works OK
+						//without this.
 					}
 					else
 					{
@@ -3077,7 +3083,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			}
 		}
 		//return TRUE;
-		event.RequestMore(); // added
+		//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 	//case 4: // autosaving
 
 		// wx version whm added & pApp->m_pKB != NULL to if clause below because DoAutoSaveKB()
@@ -3097,7 +3103,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 						pApp->DoAutoSaveDoc();
 
 					//return TRUE; // don't attempt a KB save
-					event.RequestMore(); // added
+					//event.RequestMore(); // whm removed 2Jan09 testing shows autosaving works OK
+					//without this.
 				}
 			}
 			else
@@ -3108,7 +3115,8 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 					if(pDoc->IsModified())
 						pApp->DoAutoSaveDoc();
 					//return TRUE; // don't attempt a KB save
-					event.RequestMore(); // added
+					//event.RequestMore(); // whm removed 2Jan09 testing shows autosaving works OK
+					//without this.
 				}
 			}
 
@@ -3121,7 +3129,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			}
 		}
 		//return TRUE; // enable next OnIdle call
-		event.RequestMore(); // added
+		//event.RequestMore(); // whm removed 2Jan09
 
 	//case 6: // do the Replace All button handler
 		if (gbReplaceAllIsCurrent && pView != NULL && pApp->m_pReplaceDlg != NULL )
@@ -3152,14 +3160,15 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				pApp->m_pReplaceDlg->Show(TRUE);
 				gbReplaceAllIsCurrent = FALSE;
 				//return TRUE;
-				event.RequestMore(); // added
+				//event.RequestMore(); // whm removed 2Jan09 testing shows no need for RequestMore() here 
+				//at end of replace all.
 			}
 		}
-		else
-		{
-			//return TRUE; // enable more idle messages
-			event.RequestMore(); // added
-		}
+		//else
+		//{
+		//	//return TRUE; // enable more idle messages
+		//	//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle in CReplaceDlg?
+		//}
 
 	//case 7: // get the startup wizard up & running
 		if (pApp->m_bJustLaunched)
@@ -3251,7 +3260,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		// WX Note: There is no ::IsWindow() equivalent in wxWidgets and the phrasebox is not
 		// normally ever NULL; we need another flag to prevent autoinserts when the ChooseTranslationDlg
 		// is already showing
-		//TODO:
 		//if (pBox == NULL || !::IsWindow((HWND)pBox->GetHandle()))
 		//if (pBox == NULL)
 		//	return TRUE; // don't do anything here till we have a valid phrase box window
@@ -3274,7 +3282,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				// but continue to enable OnIdle calls
 				pApp->m_bAutoInsert = FALSE;
 				//return TRUE;
-				event.RequestMore(); // added
+				//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 			}
 		}
 		else
@@ -3288,7 +3296,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			//	return TRUE;
 			//else
 			//	return FALSE;
-			event.RequestMore(); // added
+			//if (idleCount % 1000 == 0)
+			//{
+				//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
+			//	idleCount = 0;
+			//}
 		}
 	//}
 	//event.Skip();
