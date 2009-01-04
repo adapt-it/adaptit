@@ -31677,8 +31677,12 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, in
 				// implies its collected text was drawn from CSourcePhrase instances lying beyond the
 				// end of the editable span - as far as the next halt location), or the current bt collection
 				// span doesn't end at the end of the editable span because the latter is not a halt location.
-				// Whichever is the case, the \bt subspan will end at the CSourcePhrase instance which is
-				// immediately preceding wherever the next halt location is. Find it.
+				// In the former case, the \bt subspan will end at the CSourcePhrase instance which is
+				// immediately preceding wherever the next halt location is; so we must try to find
+				// it. In the latter case, we can't assume we'll find a halt location because we
+				// may be editing source text close to or at the end of the document - in this
+				// case the best we can do is make the end of the editable span be the end of
+				// the back translation span, when the loop below exits
 				wxASSERT(pos != NULL);
 				while (pos != NULL)
 				{
@@ -31696,9 +31700,12 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, in
 					if (bIsHaltLocation)
 					{
 						nEndingBackTransSequNum = nIteratorSN - 1; // the location preceding the halt location
-						break;
+						return TRUE;
 					}
 				}
+				// if control gets to here, then we have no clear idea where to end, so end at
+				// end of the editable span
+				nEndingBackTransSequNum = nEndingSN;
 			}
 		}
 	}
@@ -34797,7 +34804,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 	{
 		// set the EditRecord's flag, and get the deep copy done of all the CSourcePhrases in the
 		// back translation span (the back translations in this span will be later removed so the user
-		// won't have to bother dealing with them while editing the source text; the are abandoned rather
+		// won't have to bother dealing with them while editing the source text; they are abandoned rather
 		// than stored, because they can be recollected later easily once this span is delineated
 		pRec->bEditSpanHasBackTranslations = TRUE;
 		bAllWasOK = DeepCopySourcePhraseSublist(pSrcPhrases,pRec->nBackTrans_StartingSequNum, 
