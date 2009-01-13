@@ -423,6 +423,12 @@ void CChooseTranslation::OnSelchangeListboxTranslations(wxCommandEvent& WXUNUSED
 
 void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(event)) 
 {
+    // whm Note: Sinced this is a "double-click" handler we want the behavior to be essentially
+	// equivalent to calling both the OnSelchangeListBoxTranslations(), followed by any code handling
+	// that goes into the OnOK() handler. Testing shows that when making a double-click on a list
+	// box the OnSelchangeListBoxTranslations() is called first, then this
+	// OnDblclkListboxTranslations() handler is called.
+	
 	wxString s;
 	// IDS_NO_ADAPTATION
 	s = s.Format(_("<no adaptation>")); // ready "<no adaptation>" in case it's needed
@@ -464,8 +470,11 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	}
 	m_chosenTranslation = str;
 	TransferDataToWindow();
-	EndModal(0);
-
+    EndModal(wxID_OK); //EndDialog(IDOK);
+    // whm Correction 12Jan08 - The zero parameter given previously to EndModal(0) was incorrect. The
+    // parameter needs to be the value that gets returned from the ShowModal() being invoked on this
+    // dialog - which in the case of a double-click, should be wxID_OK.
+	
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	pApp->m_pTargetBox->m_bAbandonable = FALSE;
