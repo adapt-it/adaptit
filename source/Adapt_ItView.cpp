@@ -14172,8 +14172,14 @@ void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 	}
 
 #ifdef USE_SIL_CONVERTERS
-    // enable it if there's a configured table name
-	event.Enable(!gpApp->m_strSilEncConverterName.IsEmpty());
+	// whm added 12Jan09 for SIL Converters support
+	typedef int (wxSTDCALL *wxECIsInstalledType)();
+	wxECIsInstalledType pfnECisInstalled = (wxECIsInstalledType)NULL;
+	// whm Note: The IsEcInstalled() function in ECDriver.dll does not have A and W forms so we must
+	// call GetSymbol() instead of GetSymbolAorW() here.
+	pfnECisInstalled = (wxECIsInstalledType)ecDriverDynamicLibrary.GetSymbol(FUNC_NAME_EC_IS_INSTALLED);
+    // enable it if ECisInstalled and there's a configured table name
+	event.Enable(pfnECisInstalled != NULL && pfnECisInstalled() == TRUE && !gpApp->m_strSilEncConverterName.IsEmpty());
 #else
 	event.Enable(FALSE); // don't enable the menu item if we're not using SIL Converters
 #endif
