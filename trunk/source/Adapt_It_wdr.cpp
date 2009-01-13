@@ -1626,23 +1626,21 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxFlexGridSizer *item7 = new wxFlexGridSizer( 2, 0, 0 );
-    item7->AddGrowableCol( 0 );
-    item7->AddGrowableRow( 0 );
+    wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Translations which are currently in the knowledge base:"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
     wxString *strs11 = (wxString*) NULL;
-    wxListBox *item11 = new wxListBox( parent, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition, wxSize(-1,150), 0, strs11, wxLB_SINGLE );
+    wxListBox *item11 = new wxListBox( parent, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition, wxSize(400,-1), 0, strs11, wxLB_SINGLE );
     item11->SetToolTip( _("List of translations currently in the knowledge base for the source text above") );
-    item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item10->Add( item11, 1, wxGROW|wxALL, 0 );
 
     item8->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -1700,9 +1698,9 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item12->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item7->Add( item12, 1, wxGROW|wxALL, 0 );
+    item7->Add( item12, 0, wxGROW|wxALL, 0 );
 
-    item1->Add( item7, 5, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
 
@@ -1723,7 +1721,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     item26->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    item1->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
