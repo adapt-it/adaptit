@@ -250,6 +250,6 @@ void COpenExistingProjectDlg::OnDblclkListboxAdaptions(wxCommandEvent& WXUNUSED(
 	gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
 	gpApp->GetDocument()->GetProjectConfiguration(gpApp->m_curProjectPath);
 	wxCommandEvent okevent = wxID_OK;
-	OnOK(okevent); //EndModal(wxID_OK);//EndDialog(IDOK); // TODO: check that this closes the dialog
+	OnOK(okevent); //EndModal(wxID_OK);//EndDialog(IDOK);
 }
 
