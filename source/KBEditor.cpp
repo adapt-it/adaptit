@@ -50,6 +50,7 @@
 #include "KB.h"
 #include "TargetUnit.h"
 #include "RefString.h"
+#include "Pile.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
@@ -1085,9 +1086,24 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	// if user selected a source phrase before calling the KBEditor, start by initializing
 	// the tab page having the correct number of words
 	if (gnWordsInPhrase != -1)
+	{
 		pageNumSelected = gnWordsInPhrase-1;
+	}
+	// whm added 13Jan08. If no selection has been made, next best thing is to look up the source
+	// phrase at the current active location of the phrasebox.
+	else if (gpApp->m_pActivePile != NULL)
+	{
+		int nWords;
+		nWords = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords;
+		if (nWords != -1)
+			pageNumSelected = nWords-1;
+		else
+			pageNumSelected = m_pKBEditorNotebook->GetSelection();
+	}
 	else
+	{
 		pageNumSelected = m_pKBEditorNotebook->GetSelection();
+	}
 	if (pageNumSelected != -1)
 	{
 		m_nWords = pageNumSelected + 1;
@@ -1328,6 +1344,24 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			//nLastSel = ; // setting nLastSel to gnWordsInPhrase is an error!
 			m_srcKeyStr = gTheSelectedKey;
 			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseInsensitive, subString);
+			if (nNewSel == -1) // LB_ERR
+			{
+				nNewSel = 0; // if not found, default to the first in the list
+			}
+			m_pListBoxKeys->SetSelection(nNewSel);
+			wxString str = m_pListBoxKeys->GetString(nNewSel);
+			nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys,str,caseSensitive,exactString);
+			wxASSERT(nNewSel != -1);
+			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
+		}
+		// whm added 13Jan08. If no selection has been made, next best thing is to look up the source
+		// phrase at the current active location of the phrasebox.
+		else if (gpApp->m_pActivePile != NULL)
+		{
+			// get the key for the source phrase at the active location
+			wxString srcKey;
+			srcKey = gpApp->m_pActivePile->m_pSrcPhrase->m_key;
+			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKey, caseInsensitive, subString);
 			if (nNewSel == -1) // LB_ERR
 			{
 				nNewSel = 0; // if not found, default to the first in the list
