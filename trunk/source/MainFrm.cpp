@@ -3772,6 +3772,12 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
 											   // no harm if the window is not embedded
 						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+						// BEW 13Jan09 added next 3 lines to fix bug reported by Roland Fumey  6Jan09 12:22pm,
+						// in which phrase box was left at end of the editable span, not returned to its start.
+						// place the phrase box at the start of the span, and update the layout etc
+						int activeSequNum = pRec->nAdaptationStep_StartingSequNum;
+						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
 					}  // end block for result TRUE for test (pRec->bEditSpanHasAdaptations)
 					else
 					{
