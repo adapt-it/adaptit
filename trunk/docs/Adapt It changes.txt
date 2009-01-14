@@ -1,3 +1,9 @@
+
+
+
+* Fixes a bug in vertical editing that resulted in the Choose Translation dialog appearing twice, the first time with none of the controls initialized, the second time with initialization done twice and so the list box had the entries doubled.
+* Fixes the following bug: in vertical edit, with glosses being done before adaptations, the phrase box was not programmatically returned to the start of the editable span in the adaptations line.
+
 Version 4.0.4 update 13Dec2008:
 
 * Better detection of the default documents working directory's actual location. For example, if on a Windows system, the user has "moved" the location of the "My Documents" folder (on Windows XP) or the "Documents" folder (on Vista), by right clicking on the default folder, selecting "Properties" and the "Move..." button and selects a new "destination" for "My Documents" (or "Documents"), this version should detect more acurately the change of location for these system folders, and establish/look for its "Adapt It (Unicode) Work" folder in that new location.
