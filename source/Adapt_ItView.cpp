@@ -34053,13 +34053,89 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 			RestoreDocAfterSrcTextEditModifiedIt(pSrcPhrases, pRec);
 		}
 	}
-	InitializeEditRecord(gEditRecord);
 
 	// do the resetting of the globals, so that we are ready for a new vertical edit process
 	gbVerticalEditInProgress = FALSE;	
 	gEntryPoint = noEntryPoint;
 	gEditStep = noEditStep;
 	gbEditingSourceAndDocNotYetChanged = TRUE;
+
+	// get the phrase box restored, and set up the m_targetStr member of source phrase at that location
+	wxString str3;
+	gpApp->m_nActiveSequNum = pRec->nSaveActiveSequNum;
+	gpApp->m_pActivePile = GetPile(gpApp->m_nActiveSequNum);
+	if (gpApp->m_pActivePile != NULL)
+	{
+		//CSourcePhrase* pSrcPhrase = gpApp->m_pActivePile->m_pSrcPhrase;
+		str3 = pRec->oldPhraseBoxText;
+		gpApp->m_targetPhrase = str3;
+		gpApp->m_pTargetBox->SetValue(str3);
+		gnStart = 0;
+		gnEnd = -1;
+		// at this point, the sourcephrase's m_bHasKBEntry flag will be the default (FALSE) value, 
+		// so we do not need to do any KB adjustments (such as calling GetRefString and then 
+		// RemoveRefString)
+	}
+	else
+	{
+		// layout not valid, shouldn't happen so just give a message & abort
+		wxMessageBox(_T("Null active pile pointer in BailOutFromEditProcess(), so will abort..."),
+						_T(""), wxICON_EXCLAMATION);
+		wxExit();
+	}
+	// layout to ensurer that the targetBox won't encroach on the next cell's adaption text 
+	RecalcLayout(pSrcPhrases,0,gpApp->m_pBundle);
+
+	// get a new valid active pile pointer
+	gpApp->m_pActivePile = GetPile(gpApp->m_nActiveSequNum);
+
+	// create the phraseBox at the active pile
+	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
+	gpApp->m_pTargetBox->SetFocus();
+	gpApp->m_pTargetBox->SetSelection(-1,-1); //(0,-1,TRUE); // no scroll
+
+	// remove selection and update the display
+	RemoveSelection();
+	Invalidate();
+
+	// ensure respect for boundaries is turned back on
+	if (!gpApp->m_bRespectBoundaries)
+	{
+		wxCommandEvent ev;
+		OnButtonFromIgnoringBdryToRespectingBdry(ev);
+	}
+	gbInsertingWithinFootnote = FALSE; // restore default (it can be set in IsConstantType( ) )
+
+	// if near the start or end of a bundle, detect this and retreat or advance the bundle
+	// so that the edited material is all visible; use the cancel span's indices, so that
+	// enough context will be present for later vertical edit operations without needing
+	// another bundle change; don't do this block if not near a bundle boundary
+	if (pRec->nCancelSpan_EndingSequNum > gpApp->m_upperIndex ||
+		pRec->nCancelSpan_StartingSequNum < gpApp->m_lowerIndex)
+	{
+		if (pRec->nCancelSpan_EndingSequNum > gpApp->m_upperIndex)
+		{
+			// do a bundle advance
+			gpApp->m_pActivePile = AdvanceBundle(gpApp->m_nActiveSequNum);
+			wxASSERT(gpApp->m_pActivePile != NULL);
+		}
+		else
+		{
+			// do a bundle retreat
+			gpApp->m_pActivePile = RetreatBundle(gpApp->m_nActiveSequNum);
+			wxASSERT(gpApp->m_pActivePile != NULL);
+		}
+		gpApp->m_curIndex = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+		gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
+
+		// recreate the phraseBox again (required, since we may have just done a
+		// PlacePhraseBox() call, so the calculated position will now have been
+		// invalidated by the advance of the bundle.)
+		RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
+		Invalidate();
+	}
+	InitializeEditRecord(*pRec);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -35295,7 +35371,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
-				goto z;
+				//goto z;
 			}
 			if (bWasExtended)
 				pRec->bExtendedForFiltering = TRUE; // record the fact
@@ -35386,7 +35462,7 @@ bailout:	pAdaptList->Clear();
 			errStr += _T("Will try now to restore the document to its pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			BailOutFromEditProcess(pSrcPhrases,pRec);
-			goto z;
+			//goto z;
 		}
 
 		/*
@@ -35790,7 +35866,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
-				goto z;
+				//goto z;
 			}
 
 			bGotSpanSuccessfully = GetMovedNotesSpan(pSrcPhrases, pRec, followingContext);
@@ -35813,7 +35889,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
-				goto z;
+				//goto z;
 			}
 
 			// do the restoration of the removed Notes
@@ -35831,7 +35907,7 @@ bailout:	pAdaptList->Clear();
 				errStr += _T("Will try now to restore the document to its pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 				BailOutFromEditProcess(pSrcPhrases,pRec);
-				goto z;
+				//goto z;
 			}
 		}
 
@@ -35848,7 +35924,7 @@ bailout:	pAdaptList->Clear();
 		errStr += _T("Will try now to restore the document to its pre-edit state.");
 		AfxMessageBox(errStr,MB_ICONEXCLAMATION);
 		BailOutFromEditProcess(pSrcPhrases,pRec);
-		goto z;
+		//goto z;
 		*/
 		// BEW added next block 16Jun05
 		// handle any filtering needed because one or more markers were edited to be markers
@@ -35959,7 +36035,7 @@ bailout:	pAdaptList->Clear();
 	}
 
 	// determine the text to be shown, if any, in the target box when it is recreated
-z:	;
+/*	BEW removed 14Jan09, put it in modified form in BailOutFromEditProcess(), vertical edit does view restoration
 	wxString str3;
 	if (!bActiveLocationWithinEditableSpan && pRec->nSaveActiveSequNum == gpApp->m_nActiveSequNum)
 	{
@@ -36036,6 +36112,7 @@ up:		gpApp->m_curIndex = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
 		RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 		Invalidate();
 	}
+*/
 	// delay cancel cleanup to here, as the restoration of the view needed to use the pRec
 	// values which are to be initialized here
 	if (bUserCancelled)
