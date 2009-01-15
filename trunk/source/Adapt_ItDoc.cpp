@@ -1246,23 +1246,25 @@ bool CAdapt_ItDoc::OpenDocumentInAnotherProject(wxString lpszPathName)
 	wxString extension = thePath.Right(4);
 	extension.MakeLower();
 	wxASSERT(extension[0] == _T('.')); // check it really is an extension
+
+	wxFileName fn(thePath);
+	wxString fullFileName;
+	fullFileName = fn.GetFullName();
 	if (extension == _T(".xml"))
 	{
 		// we have to input an xml document
-		wxString thePath = lpszPathName;
-
 		bool bReadOK = ReadDoc_XML(thePath,this);
 		if (!bReadOK)
 		{
 			wxString s;
 			s = _("There was an error parsing in the XML file. If you edited the XML file earlier, you may have introduced an error. Edit it in a word processor then try again."); //.Format(IDS_XML_READ_ERR);
-			wxMessageBox(s, _T(""), wxICON_INFORMATION);
+			wxMessageBox(s, fullFileName, wxICON_INFORMATION);
 			return FALSE; // return FALSE to tell caller we failed
 		}
 	}
 	else
 	{
-		wxMessageBox(_("Sorry, the wxWidgets version of Adapt It does not read legacy .adt document format; it only reads the .xml format."),_T(""),wxICON_WARNING);
+		wxMessageBox(_("Sorry, the wxWidgets version of Adapt It does not read legacy .adt document format; it only reads the .xml format."),fullFileName,wxICON_WARNING);
 		return FALSE;
 	}
 	return TRUE;
@@ -3185,6 +3187,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		// in XML documents for joining to the current document, and we want to
 		// populate the correct document's CSourcePhrase list
 		wxString thePath = filename;
+		wxFileName fn(thePath);
+		wxString fullFileName;
+		fullFileName = fn.GetFullName();
 		bool bReadOK = ReadDoc_XML(thePath,this);
 		if (!bReadOK)
 		{
@@ -3195,7 +3200,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				// any longer will keep the user from panic
 				// IDS_MRU_NO_FILE
 				s = _("The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead.");
-				wxMessageBox(s, _T(""), wxICON_INFORMATION);
+				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
 				wxCommandEvent dummyevent;
 				OnFileOpen(dummyevent); // have another go, via the Start Working wizard
 				return TRUE;
@@ -3205,7 +3210,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				// uglier message because we expect a good read, but we allow the user to continue
 				// IDS_XML_READ_ERR
 				s = _("There was an error parsing in the XML file.\nIf you edited the XML file earlier, you may have introduced an error.\nEdit it in a word processor then try again.");
-				wxMessageBox(s, _T(""), wxICON_INFORMATION);
+				wxMessageBox(s, fullFileName, wxICON_INFORMATION);
 			}
 			
 			return TRUE; // return TRUE to allow the user another go at it
