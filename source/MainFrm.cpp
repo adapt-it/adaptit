@@ -3522,6 +3522,10 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						// since the doc/view framework won't do it for us.
 						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 
+						// place the phrase box at the start of the span, and update the layout etc
+						int activeSequNum = pRec->nAdaptationStep_StartingSequNum;
+						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+
 					}  // end block for result TRUE for test (pRec->bEditSpanHasAdaptations)
 					else
 					{
@@ -3635,6 +3639,10 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
 										   // no harm if the window is not embedded
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+					// place the phrase box at the start of the span, and update the layout etc
+					int activeSequNum_ = pRec->nAdaptationStep_StartingSequNum;
+					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum_);
 
 				} // end block for result TRUE for test (gEditStep == glossesStep)
 				else
@@ -3956,6 +3964,10 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 					//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
 										   // no harm if the window is not embedded
 					SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+					// place the phrase box at the start of the span, and update the layout etc
+					int activeSequNum_ = pRec->nAdaptationStep_StartingSequNum;
+					pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum_);
 
 				} // end block for result TRUE for test (gEditStep == freeTranslationsStep)
 				else
@@ -4478,6 +4490,12 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 						//pFWnd->RecalcLayout(); // the bNotify parameter is default TRUE, let it do so,
 											   // no harm if the window is not embedded
 						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
+
+
+						// place the phrase box at the start of the span, and update the layout etc
+						int activeSequNum = pRec->nGlossStep_StartingSequNum;
+						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
+
 					}  // end block for result TRUE for test (pRec->bEditSpanHasGlosses)
 					else
 					{
