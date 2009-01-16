@@ -12,6 +12,7 @@ Version 4.1.0 update 31Jan2009:
 * Fixes the following bug: in vertical edit, with glosses being done before adaptations, the phrase box was not programmatically returned to the start of the editable span in the adaptations line.
 * In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
 * Ubuntu Intrepid: Fixed the program hang/crash problem that occurred when opening the Help Topics item on the Help menu in the Linux port under Ubuntu Intrepid.
+* The "Check Knowledge Base" selection was removed from the File menu. It was not really needed and only served to make project loading take longer.
 
 Version 4.0.4 update 13Dec2008:
 
