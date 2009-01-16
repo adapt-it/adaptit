@@ -1089,7 +1089,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	{
 		pageNumSelected = gnWordsInPhrase-1;
 	}
-	// whm added 13Jan08. If no selection has been made, next best thing is to look up the source
+	// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
 	// phrase at the current active location of the phrasebox.
 	else if (gpApp->m_pActivePile != NULL)
 	{
@@ -1354,7 +1354,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 		}
-		// whm added 13Jan08. If no selection has been made, next best thing is to look up the source
+		// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
 		// phrase at the current active location of the phrasebox.
 		else if (gpApp->m_pActivePile != NULL)
 		{
