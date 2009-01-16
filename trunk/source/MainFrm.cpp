@@ -1805,7 +1805,8 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	//ShowHelp(event.GetId(), *m_pHelpController);
 	wxString pathName = gpApp->m_helpInstallPath + gpApp->PathSeparator + gpApp->m_htbHelpFileName;
 	bool bOK1;
-	bOK1 = m_pHelpController->AddBook(wxFileName(pathName));
+	m_pHelpController->SetTempDir(_T(".")); // whm added 15Jan08 enables caching of helps for faster startups
+	bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_UNIX));
 	if (!bOK1)
 	{
 		wxString strMsg;
