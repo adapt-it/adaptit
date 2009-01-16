@@ -1965,7 +1965,7 @@ public:
 
 	void OnFileRestoreKb(wxCommandEvent& WXUNUSED(event));
 	void OnFileBackupKb(wxCommandEvent& WXUNUSED(event));
-	void OnFileCheckKb(wxCommandEvent& WXUNUSED(event));
+	//void OnFileCheckKb(wxCommandEvent& WXUNUSED(event)); // whm 16Jan08 Removed
 	void OnToolsDefineCC(wxCommandEvent& WXUNUSED(event));
 	void OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event));
 	
@@ -1980,7 +1980,7 @@ public:
 	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnUpdateFileChangeFolder(wxUpdateUIEvent& event);
 	void OnUpdateFileBackupKb(wxUpdateUIEvent& event);
-	void OnUpdateFileCheckKb(wxUpdateUIEvent& event);
+	//void OnUpdateFileCheckKb(wxUpdateUIEvent& event); // whm 16Jan08 Removed
 	void OnUpdateFileRestoreKb(wxUpdateUIEvent& event);
 	void OnUpdateFileStartupWizard(wxUpdateUIEvent& event);
 	void OnUpdateFilePageSetup(wxUpdateUIEvent& event);
@@ -1999,7 +1999,7 @@ public:
 protected:
 
 	void	AddWedgePunctPair(wxChar wedge);
-	bool	DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingKB = FALSE);
+	//bool	DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingKB = FALSE); // whm 16Jan08 Removed
 	void	DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulativeTotal);
 	bool	DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& folderPath, 
 										wxString& bookFolderName, bool bSuppressStatistics = FALSE);
@@ -2053,7 +2053,7 @@ public:
 
 	bool	AccessOtherAdaptionProject();
 	bool	AreBookFoldersCreated(wxString dirPath);
-	bool	CheckKBIntegrity(bool bSuppressOKMessage = TRUE,  bool bDoOnGlossingKB = FALSE);
+	//bool	CheckKBIntegrity(bool bSuppressOKMessage = TRUE,  bool bDoOnGlossingKB = FALSE); // whm 16Jan08 Removed
 	void	ClearKB(CAdapt_ItDoc* pDoc);
 	bool	ContainsOrdinaryQuote(wxString s, wxChar ch);
 	void	CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders); // MFC uses CPtrArray
@@ -2062,9 +2062,9 @@ public:
 	bool	DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPageCommon* pFilterPageCommon, bool& bSetChanged, enum Reparse reparseDoc); // whm added 23May05
 																					// BEW added bSetChanged 12Jun05
 	bool	DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, enum Reparse reparseDoc);
-	void	DoKBBackup(bool bSuppressOKMessage = TRUE);
+	void	DoKBBackup();
 	void	DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB = FALSE) ;
-	void	DoGlossingKBBackup(bool bSuppressOKMessage = TRUE);
+	void	DoGlossingKBBackup();
 	void	DoFileOpen(); // DoFileOpen() calls OnOpenDocument() which is in the Doc
 	bool	DoStartWorkingWizard(wxCommandEvent& WXUNUSED(event));
 	bool	DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enum Reparse reparseDoc); // whm revised 23May05
@@ -2083,7 +2083,7 @@ public:
 	void	GetPunctuationSets(wxString& srcPunctuation, wxString& tgtPunctuation);
 	int		GetSafePhraseBoxLocationUsingList(CAdapt_ItView* pView);
 	CAdapt_ItView* GetView();		// convenience function for accessing the View
-	void	GlossingKBIntegrityCheck();
+	//void	GlossingKBIntegrityCheck(); // whm 16Jan08 Removed
 	void	InitializeFonts(); // whm added
 	void	InitializePunctuation(); // whm added
 	bool	InitializeLanguageLocale(wxString shortLangName, wxString longLangName, wxString pathPrefix);
@@ -2096,7 +2096,7 @@ public:
 	void		AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id);
 	int		SetBundleIndices(SPList* pList, int nFirstSequNumInBundle); // for Joining documents, returns active loc'n
 
-	void	KBIntegrityCheck();
+	//void	KBIntegrityCheck(); // whm 16Jan08 Removed
 	bool	LoadKB();
 	bool	LoadGlossingKB();
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);

@@ -2146,8 +2146,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// OnUpdateFileSaveKb is in the View
 	EVT_MENU(ID_FILE_BACKUP_KB, CAdapt_ItApp::OnFileBackupKb)
 	EVT_UPDATE_UI(ID_FILE_BACKUP_KB, CAdapt_ItApp::OnUpdateFileBackupKb)
-	EVT_MENU(ID_FILE_CHECK_KB, CAdapt_ItApp::OnFileCheckKb)
-	EVT_UPDATE_UI(ID_FILE_CHECK_KB, CAdapt_ItApp::OnUpdateFileCheckKb)
+	//EVT_MENU(ID_FILE_CHECK_KB, CAdapt_ItApp::OnFileCheckKb) // whm 16Jan08 Removed
+	//EVT_UPDATE_UI(ID_FILE_CHECK_KB, CAdapt_ItApp::OnUpdateFileCheckKb) // whm 16Jan08 Removed
 	EVT_MENU(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnFileRestoreKb)
 	EVT_UPDATE_UI(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnUpdateFileRestoreKb)
 	EVT_MENU(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnFileChangeFolder)
@@ -5319,7 +5319,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// make a timesettings struct for autosaving feature & put some default values in it
 	// (after first launch, values will come from the m_pConfig file settings instead)
 	wxDateTime time;
-	time = wxDateTime::Now(); //wxDateTime::Now();
+	time = wxDateTime::Now();
 	m_timeSettings.m_tLastDocSave = time;
 	m_timeSettings.m_tLastKBSave = time;
 	//wxTimeSpan tsDoc(0,0,10,0); // 0 days, 0 hours, 10 minutes, 0 seconds - MFC version
@@ -9999,79 +9999,74 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     
-/// \param      bSuppressOKMessage   -> if TRUE suppresses OK prompt from CheckKBIntegrity()
+/// \return     nothing
 /// \remarks
 /// Called from: the App's OnFileBackupKb() and OnFileRestoreKb().
-/// Does an integrity check of the glossing KB. If that is OK, it calls SaveGlossingKB().
-/// If the integrity check fails, it asks the user if the backup KB should be used for the
-/// faulty one; if so, calls SubstituteKBBackup().
+/// Calls SaveGlossingKB().
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoGlossingKBBackup(bool bSuppressOKMessage)
+void CAdapt_ItApp::DoGlossingKBBackup()
 {
-	if (CheckKBIntegrity(bSuppressOKMessage, TRUE)) // TRUE == do it on the glossing KB
-	{
-		SaveGlossingKB(TRUE); // resaves the KB and makes a backup which is a copy, 
-							 // after deleting old one
-	}
-	else
-	{
-		// integrity check failed, so give user the option of substituting the backup KB
-		// IDS_SUBSTITUTE_KB_BAK
-		switch (wxMessageBox(_("Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"),_T(""), wxYES_NO))
-		{
-		case wxYES:
-			SubstituteKBBackup(TRUE); // TRUE == do it on the glossing KB
-			break;
-		case wxNO:
-			// don't make any substitution
-			break;
-		default:
-			wxASSERT(FALSE);
-			break;
-		}
-	}
+	//if (CheckKBIntegrity(bSuppressOKMessage, TRUE)) // TRUE == do it on the glossing KB
+	//{
+	SaveGlossingKB(TRUE); // resaves the KB and makes a backup which is a copy, 
+						  // after deleting old one
+	//}
+	//else
+	//{
+	//	// integrity check failed, so give user the option of substituting the backup KB
+	//	// IDS_SUBSTITUTE_KB_BAK
+	//	switch (wxMessageBox(_("Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"),_T(""), wxYES_NO))
+	//	{
+	//	case wxYES:
+	//		SubstituteKBBackup(TRUE); // TRUE == do it on the glossing KB
+	//		break;
+	//	case wxNO:
+	//		// don't make any substitution
+	//		break;
+	//	default:
+	//		wxASSERT(FALSE);
+	//		break;
+	//	}
+	//}
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     
-/// \param      bSuppressOKMessage   -> if TRUE suppresses OK prompt from CheckKBIntegrity()
 /// \remarks
 /// Called from: the App's OnFileBackupKb() and OnFileRestoreKb().
-/// Does an integrity check of the regular KB. If that is OK, it calls SaveKB().
-/// If the integrity check fails, it asks the user if the backup KB should be used for the
-/// faulty one; if so, calls SubstituteKBBackup().
+/// Calls SaveKB().
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::DoKBBackup(bool bSuppressOKMessage)
+void CAdapt_ItApp::DoKBBackup()
 {
-	if (CheckKBIntegrity(bSuppressOKMessage, FALSE)) // FALSE == do it on the adaptation KB
-	{
-		// NOTE: wxWidgets version: SaveKB returns bool value which is ignored here.
-		// I've added an error message in SaveKB() in case it fails. MFC code had no
-		// error message anywhere.
-		SaveKB(TRUE); // resaves the KB and makes a backup which is a copy, 
+	//if (CheckKBIntegrity(bSuppressOKMessage, FALSE)) // FALSE == do it on the adaptation KB
+	//{
+	// NOTE: wxWidgets version: SaveKB returns bool value which is ignored here.
+	// I've added an error message in SaveKB() in case it fails. MFC code had no
+	// error message anywhere.
+	SaveKB(TRUE); // resaves the KB and makes a backup which is a copy, 
 					  // after deleting old one
-	}
-	else
-	{
-		// integrity check failed, so give user the option of substituting the backup KB
-		// IDS_SUBSTITUTE_KB_BAK
-		switch (wxMessageBox(_("Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"), _T(""), wxYES_NO))
-		{
-		case wxYES:
-			SubstituteKBBackup(FALSE); // FALSE == do it on the glossing KB
-			break;
-		case wxNO:
-			// don't make any substitution
-			break;
-		default:
-			wxASSERT(FALSE);
-			break;
-		}
-	}
+	//}
+	//else
+	//{
+	//	// integrity check failed, so give user the option of substituting the backup KB
+	//	// IDS_SUBSTITUTE_KB_BAK
+	//	switch (wxMessageBox(_("Do you wish to substitute the backup knowledge base for the faulty one? (Entries made since you last saved will not be included.)"), _T(""), wxYES_NO))
+	//	{
+	//	case wxYES:
+	//		SubstituteKBBackup(FALSE); // FALSE == do it on the glossing KB
+	//		break;
+	//	case wxNO:
+	//		// don't make any substitution
+	//		break;
+	//	default:
+	//		wxASSERT(FALSE);
+	//		break;
+	//	}
+	//}
 }
-
+/*
+// whm 16Jan08 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
@@ -10103,6 +10098,7 @@ void CAdapt_ItApp::GlossingKBIntegrityCheck()
 	}
 }
 
+// whm 16Jan08 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
@@ -10134,13 +10130,13 @@ void CAdapt_ItApp::KBIntegrityCheck()
 	}
 }
 
+// whm 16Jan08 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if a failure occurred, otherwise TRUE
 /// \param      bSuppressOKMessage   -> suppress the OK prompt
 /// \param      bDoOnGlossingKB      -> check the glossing KB if TRUE, otherwise check the regular KB
 /// \remarks
-/// Called from: the App's DoGlossingKBBackup(), DoKBBackup(), GlossingKBIntegrityCheck(),
-/// and KBIntegrityCheck().
+/// Called from: the App's DoGlossingKBBackup(), DoKBBackup()
 /// Calls the DoKBIntegrityCheck() function on the appropriate KB. Writes any errors encountered
 /// in a KBErrorLog.txt file in the project folder.
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -10242,7 +10238,10 @@ bool CAdapt_ItApp::CheckKBIntegrity(bool bSuppressOKMessage, bool bDoOnGlossingK
 
 	return TRUE;
 }
+*/
 
+// whm 16Jan08 removed Integrity Check routines at Bruce's suggestion
+/* 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if any errors were found, otherwise TRUE
 /// \param      errors           <- an array string containing a list of errors encountered
@@ -10302,7 +10301,6 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 	// a suitable set of validity tests for valid pointers on Linux and
 	// the Mac. It will probably require conditional compiles for each
 	// particular platform/OS.
-	/*
 
 	// test 2: valid addresses for each map
 	bNoError = TRUE;
@@ -10416,7 +10414,7 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 				}
 			}
 		}
-		*/
+
 		// checking the list of target units is finished, if we get here then any 
 		// further errors could only be in the maps, so we do those now
 		// whm 15Jan09 commented the following test out as it executes too slowly
@@ -10464,13 +10462,13 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 		//}
 		/*
 	}
-	*/
 //a:	// label not needed
 	if (bFoundErrors)
 		return FALSE;
 	else
 		return TRUE;
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -10484,9 +10482,9 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event)) 
 {
 	if (gbIsGlossing)
-		DoGlossingKBBackup(TRUE); // suppress the ok message
+		DoGlossingKBBackup();
 	else
-		DoKBBackup(TRUE); // suppress the ok message
+		DoKBBackup();
 }
 
 
@@ -10520,6 +10518,8 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 	}
 }
 
+/*
+// whm 16Jan08 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   -> the wxCommandEvent that is generated when the associated menu item is
@@ -10566,6 +10566,7 @@ void CAdapt_ItApp::OnUpdateFileCheckKb(wxUpdateUIEvent& event)
 			event.Enable(FALSE);
 	}
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
@@ -10615,8 +10616,7 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 /// \return     nothing
 /// \param      bDoOnGlossingKB      -> check the glossing KB if TRUE, otherwise check the regular KB
 /// \remarks
-/// Called from: the App's DoGlossingKBBackup(), DoKBBackup(), GlossingKBIntegrityCheck(),
-/// and KBIntegrityCheck().
+/// Called from: the App's DoGlossingKBBackup(), DoKBBackup()
 /// Called only if a serious problem was detected in the active KB. After cleaning things up, it 
 /// substitutes the backup copy of the active KB after detleting the currently (corrupted) KB.
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -11385,9 +11385,9 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	if(m_bAutoBackupKB)
 	{
 		if (gbIsGlossing)
-			DoGlossingKBBackup(TRUE);
+			DoGlossingKBBackup();
 		else
-			DoKBBackup(TRUE);
+			DoKBBackup();
 	}
 
 	// inform user of success and some statistics

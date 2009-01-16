@@ -6672,7 +6672,6 @@ wxMenuBar *AIMenuBarFunc()
     item1->AppendSeparator();
     item1->Append( ID_FILE_SAVEKB, _("Save &Knowledge Base"), _("Update the knowledge base file for this project") );
     item1->Append( ID_FILE_BACKUP_KB, _("&Backup Knowledge Base"), _("Make a new knowledge base backup immediately") );
-    item1->Append( ID_FILE_CHECK_KB, _("&Check Knowledge Base"), _("Perform an integrity check of the knowledge base, report errors") );
     item1->Append( ID_FILE_RESTORE_KB, _("&Restore Knowledge Base..."), _("Use all the saved documents to rebuild the knowledge base file") );
     item1->Append( ID_FILE_EXPORT_KB, _("Exp&ort Knowledge Base..."), _("Export knowledge base in SIL standard format") );
     item1->Append( ID_IMPORT_TO_KB, _("&Import to Knowledge Base..."), _("Extend knowledge base by importing dictionary records") );

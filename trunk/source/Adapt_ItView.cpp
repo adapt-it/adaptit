@@ -932,7 +932,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_MENU(ID_FILE_SAVEKB, CAdapt_ItView::OnFileSaveKB)
 	EVT_UPDATE_UI(ID_FILE_SAVEKB, CAdapt_ItView::OnUpdateFileSaveKB)
 	// OnFileBackupKb and OnUpdateFileBackupKb are in the App
-	// OnFileCheckKb and OnUpdateFileCheckKb are in the App
 	// OnFileRestoreKb and OnUpdateFileRestoreKb are in the App
 	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItView::OnFileExportKb)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItView::OnUpdateFileExportKb)
