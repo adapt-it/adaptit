@@ -11,6 +11,7 @@ Version 4.1.0 update 31Jan2009:
 * Fixes a bug in vertical editing that resulted in the Choose Translation dialog appearing twice, the first time with none of the controls initialized, the second time with initialization done twice and so the list box had the entries doubled.
 * Fixes the following bug: in vertical edit, with glosses being done before adaptations, the phrase box was not programmatically returned to the start of the editable span in the adaptations line.
 * In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
+* Ubuntu Intrepid: Fixed the program hang/crash problem that occurred when opening the Help Topics item on the Help menu in the Linux port under Ubuntu Intrepid.
 
 Version 4.0.4 update 13Dec2008:
 
