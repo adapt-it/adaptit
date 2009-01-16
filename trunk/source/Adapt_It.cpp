@@ -5319,7 +5319,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// make a timesettings struct for autosaving feature & put some default values in it
 	// (after first launch, values will come from the m_pConfig file settings instead)
 	wxDateTime time;
-	time.SetToCurrent();
+	time = wxDateTime::Now(); //wxDateTime::Now();
 	m_timeSettings.m_tLastDocSave = time;
 	m_timeSettings.m_tLastKBSave = time;
 	//wxTimeSpan tsDoc(0,0,10,0); // 0 days, 0 hours, 10 minutes, 0 seconds - MFC version
@@ -10265,7 +10265,7 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 	wxASSERT(pKB != NULL);
 	wxString strError;
 	bool bFoundErrors = FALSE;
-	MapKeyStringToTgtUnit* pMap; 
+	//MapKeyStringToTgtUnit* pMap; 
 	// MapKeyStringToTgtUnit is a wxWidgets hash map delcared by macro in KB.h
 	// Note: Since the wxWidgets version has no AfxIsValidAddress() call the 
 	// only test we can conduct is test 1. So I'm commenting out pMap above
@@ -10419,46 +10419,49 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 		*/
 		// checking the list of target units is finished, if we get here then any 
 		// further errors could only be in the maps, so we do those now
-		for (index = 0; index <= nMaxIndex; index++)
-		{
-			pMap = pKB->m_pMap[index];
-			wxASSERT(pMap != NULL && (int)pMap->size() >= 0);
-			if (pMap->size() == 0)
-				continue; // could be some of the maps are empty
-			else
-			{
-				MapKeyStringToTgtUnit::iterator iter;
-				for (iter = pMap->begin(); iter != pMap->end(); ++iter) 
-				{
-					// test for a key of bad length (too small or too large)
-					wxString key;
-					key.Empty();
-					CTargetUnit* pTgtUnit = (CTargetUnit*)NULL;
-					key = iter->first; 
-					pTgtUnit = iter->second;
-					int len = key.Length();
-					if (len < 1 || len > 512)
-					{
-						//IDS_BAD_KEY_LENGTH
-						strError = strError.Format(_("Length of a source phrase has become bad.  (Length %d. In phrase \"%s\".  In list %d)"), len, key.c_str(), index + 1);
-						errors.Add(strError);
-						bFoundErrors = TRUE;
-					}
+		// whm 15Jan09 commented the following test out as it executes too slowly
+		// when there are thousands of mapped units to check
+		// TODO: determine if it is warranted to reimplement this check.
+		//for (index = 0; index <= nMaxIndex; index++)
+		//{
+		//	pMap = pKB->m_pMap[index];
+		//	wxASSERT(pMap != NULL && (int)pMap->size() >= 0);
+		//	if (pMap->size() == 0)
+		//		continue; // could be some of the maps are empty
+		//	else
+		//	{
+		//		MapKeyStringToTgtUnit::iterator iter;
+		//		for (iter = pMap->begin(); iter != pMap->end(); ++iter) 
+		//		{
+		//			// test for a key of bad length (too small or too large)
+		//			wxString key;
+		//			key.Empty();
+		//			CTargetUnit* pTgtUnit = (CTargetUnit*)NULL;
+		//			key = iter->first; 
+		//			pTgtUnit = iter->second;
+		//			int len = key.Length();
+		//			if (len < 1 || len > 512)
+		//			{
+		//				//IDS_BAD_KEY_LENGTH
+		//				strError = strError.Format(_("Length of a source phrase has become bad.  (Length %d. In phrase \"%s\".  In list %d)"), len, key.c_str(), index + 1);
+		//				errors.Add(strError);
+		//				bFoundErrors = TRUE;
+		//			}
 
-					// test for valid association
-					TUList* pList = pKB->m_pTargetUnits;
-					TUList::Node* pos3 = pList->Find(pTgtUnit);
-					if (pos3 == NULL)
-					{
-						// couldn't find the target unit in the CObList
-						// IDS_BAD_ASSOCIATION
-						strError = strError.Format(_("Bad association. The adaptation for the source phrase (\"%s\") was not found. (In list %d)"), key.c_str(), index + 1);
-						errors.Add(strError);
-						bFoundErrors = TRUE;
-					}
-				}
-			}
-		}
+		//			// test for valid association
+		//			TUList* pList = pKB->m_pTargetUnits;
+		//			TUList::Node* pos3 = pList->Find(pTgtUnit);
+		//			if (pos3 == NULL)
+		//			{
+		//				// couldn't find the target unit in the CObList
+		//				// IDS_BAD_ASSOCIATION
+		//				strError = strError.Format(_("Bad association. The adaptation for the source phrase (\"%s\") was not found. (In list %d)"), key.c_str(), index + 1);
+		//				errors.Add(strError);
+		//				bFoundErrors = TRUE;
+		//			}
+		//		}
+		//	}
+		//}
 		/*
 	}
 	*/
