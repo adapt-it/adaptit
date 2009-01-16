@@ -2146,8 +2146,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// OnUpdateFileSaveKb is in the View
 	EVT_MENU(ID_FILE_BACKUP_KB, CAdapt_ItApp::OnFileBackupKb)
 	EVT_UPDATE_UI(ID_FILE_BACKUP_KB, CAdapt_ItApp::OnUpdateFileBackupKb)
-	//EVT_MENU(ID_FILE_CHECK_KB, CAdapt_ItApp::OnFileCheckKb) // whm 16Jan08 Removed
-	//EVT_UPDATE_UI(ID_FILE_CHECK_KB, CAdapt_ItApp::OnUpdateFileCheckKb) // whm 16Jan08 Removed
+	//EVT_MENU(ID_FILE_CHECK_KB, CAdapt_ItApp::OnFileCheckKb) // whm 16Jan09 Removed
+	//EVT_UPDATE_UI(ID_FILE_CHECK_KB, CAdapt_ItApp::OnUpdateFileCheckKb) // whm 16Jan09 Removed
 	EVT_MENU(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnFileRestoreKb)
 	EVT_UPDATE_UI(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnUpdateFileRestoreKb)
 	EVT_MENU(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnFileChangeFolder)
@@ -10066,7 +10066,7 @@ void CAdapt_ItApp::DoKBBackup()
 	//}
 }
 /*
-// whm 16Jan08 Removed
+// whm 16Jan09 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
@@ -10098,7 +10098,7 @@ void CAdapt_ItApp::GlossingKBIntegrityCheck()
 	}
 }
 
-// whm 16Jan08 Removed
+// whm 16Jan09 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
@@ -10130,7 +10130,7 @@ void CAdapt_ItApp::KBIntegrityCheck()
 	}
 }
 
-// whm 16Jan08 Removed
+// whm 16Jan09 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if a failure occurred, otherwise TRUE
 /// \param      bSuppressOKMessage   -> suppress the OK prompt
@@ -10240,7 +10240,7 @@ bool CAdapt_ItApp::CheckKBIntegrity(bool bSuppressOKMessage, bool bDoOnGlossingK
 }
 */
 
-// whm 16Jan08 removed Integrity Check routines at Bruce's suggestion
+// whm 16Jan09 removed Integrity Check routines at Bruce's suggestion
 /* 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     FALSE if any errors were found, otherwise TRUE
@@ -10519,7 +10519,7 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 }
 
 /*
-// whm 16Jan08 Removed
+// whm 16Jan09 Removed
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      event   -> the wxCommandEvent that is generated when the associated menu item is

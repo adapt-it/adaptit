@@ -471,7 +471,7 @@ void CChooseTranslation::OnDblclkListboxTranslations(wxCommandEvent& WXUNUSED(ev
 	m_chosenTranslation = str;
 	TransferDataToWindow();
     EndModal(wxID_OK); //EndDialog(IDOK);
-    // whm Correction 12Jan08 - The zero parameter given previously to EndModal(0) was incorrect. The
+    // whm Correction 12Jan09 - The zero parameter given previously to EndModal(0) was incorrect. The
     // parameter needs to be the value that gets returned from the ShowModal() being invoked on this
     // dialog - which in the case of a double-click, should be wxID_OK.
 	

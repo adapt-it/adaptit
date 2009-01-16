@@ -1805,7 +1805,7 @@ void CMainFrame::OnAdvancedHtmlHelp(wxCommandEvent& event)
 	//ShowHelp(event.GetId(), *m_pHelpController);
 	wxString pathName = gpApp->m_helpInstallPath + gpApp->PathSeparator + gpApp->m_htbHelpFileName;
 	bool bOK1;
-	m_pHelpController->SetTempDir(_T(".")); // whm added 15Jan08 enables caching of helps for faster startups
+	m_pHelpController->SetTempDir(_T(".")); // whm added 15Jan09 enables caching of helps for faster startups
 	bOK1 = m_pHelpController->AddBook(wxFileName(pathName, wxPATH_UNIX)); // whm added wxPATH_UNIX which is OK on Windows and seems to be needed for Ubuntu Intrepid
 	if (!bOK1)
 	{

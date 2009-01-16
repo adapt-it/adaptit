@@ -410,7 +410,7 @@ void CConsistencyCheckDlg::OnSetfocusEditTypeNew(wxFocusEvent& event)
 void CConsistencyCheckDlg::OnButtonNoAdaptation(wxCommandEvent& WXUNUSED(event)) 
 {
 	TransferDataFromWindow(); // make sure m_bDoAutoFix is updated correctly
-	// whm updated 12Jan08 - the parameter sent to EndModal() below needs to be wxID_OK in order for
+	// whm updated 12Jan09 - the parameter sent to EndModal() below needs to be wxID_OK in order for
 	// ShowModal() in the calling routine to return that value
 	EndModal(wxID_OK); //EndModal(0); 
 }
@@ -419,7 +419,7 @@ void CConsistencyCheckDlg::OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event))
 {
 	TransferDataFromWindow(); // make sure m_bDoAutoFix is updated correctly
 	gbIgnoreIt = TRUE;
-	// whm updated 12Jan08 - the parameter sent to EndModal() below needs to be wxID_OK in order for
+	// whm updated 12Jan09 - the parameter sent to EndModal() below needs to be wxID_OK in order for
 	// ShowModal() in the calling routine to return that value
 	EndModal(wxID_OK); //EndModal(0); 
 }
