@@ -78,6 +78,12 @@
 #define USE_SIL_CONVERTERS
 #endif
 
+// uncomment the define below to output KB I/O benchmarks (in debug mode only)
+#define SHOW_KB_I_O_BENCHMARKS
+#define SORTKB 1 // change to 0 for output of legacy unsorted KB map entries
+
+#define SHOW_DOC_I_O_BENCHMARKS
+
 #ifdef _UNICODE
 #define _RTL_FLAGS  // for the m_bSrcRTL etc flags and supporting code, the Layout menu, etc
 #endif
@@ -90,6 +96,7 @@
 #include "AdaptitConstants.h"
 #include <wx/datetime.h>
 #include <wx/file.h>
+#include <wx/ffile.h>
 
 
 // Does wxWidgets recognize/utilize these clipboard defines???

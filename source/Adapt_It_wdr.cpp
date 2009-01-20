@@ -930,8 +930,6 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    item0->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
     item1->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -942,8 +940,6 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item1->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item0->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)
     {

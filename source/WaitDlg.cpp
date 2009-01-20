@@ -76,35 +76,50 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	switch (m_nWaitMsgNum)
 	{
-		case 0: // no longer used
-			// IDS_WAIT_FOR_DOC_LAYOUT
-			WaitMsg = _("Please wait while Adapt It lays out the document again...");
+		case 0: 
+			WaitMsg = _("Please wait while Adapt It restores the knowledge base...");
 			break;
-		case 1: // no longer used
+		case 1:
 			// IDS_WAIT_FOR_RTF_OUTPUT
 			WaitMsg = _("Please wait for Adapt It to output the RTF file. This may take a while...");
 			break;
-		case 2: // no longer used
-			// IDS_WAIT_FOR_BT_COLLECTION
-			WaitMsg = _("Please wait while Adapt It collects the back translations and stores them.\nThis may take a while...");
+		case 2: 
+			WaitMsg = _("Please wait while Adapt It opens the document...");
 			break;
 		case 3: 
-			WaitMsg = _("Please wait while Adapt It Reads the File...");
-			pStatic->SetLabel(WaitMsg); // not needed with validator
+			WaitMsg = _("Please wait while Adapt It processes filter changes...");
 			break;
 		case 4: 
-			WaitMsg = _("Please wait while Adapt It Saves the File...");
-			pStatic->SetLabel(WaitMsg); // not needed with validator
+			WaitMsg = _("Please wait while Adapt It saves the File...");
 			break;
 		case 5: 
 			WaitMsg = _T("");
 			pStatic->Hide(); // this selection just hides the static text message leaving the Title "Please Wait..."
 			break;
+		case 6: 
+			WaitMsg = _("Please wait while Adapt It saves the KB...");
+			break;
+		case 7: 
+			WaitMsg = _("Please wait while Adapt It saves the Glossing KB...");
+			break;
+		case 8: 
+			WaitMsg = _("Please wait while Adapt It loads the KB...");
+			break;
+		case 9: 
+			WaitMsg = _("Please wait while Adapt It loads the Glossing KB...");
+			break;
+		case 10: 
+			WaitMsg = _("Please wait while Adapt It backs up the KB...");
+			break;
+		case 11: 
+			WaitMsg = _("Please wait while Adapt It backs up the Glossing KB...");
+			break;
 		default:
 			WaitMsg = _("Please wait. This may take a while...");
 	}
-	TransferDataToWindow();
-	Refresh();
+	//TransferDataToWindow();
+	pStatic->SetLabel(WaitMsg); // not needed with validator
 	pWaitDlgSizer->Layout();
+	Refresh();
 }
 
