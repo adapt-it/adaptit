@@ -18416,7 +18416,8 @@ void CAdapt_ItApp::RemoveMarkerFromString(wxString& markerStr, wxString wholeMar
 /// marker and the following descriptive text in order to make them line up relatively 
 /// straight within the containing list box.
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArrayString* MkrAndDescrArray, int minNumSpaces)
+void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArrayString* MkrAndDescrArray, 
+													int minNumSpaces, wxArrayInt* pUserCanSetFilterFlags)
 {
 	// Takes an input CStringArray which is assumed to be composed of strings which are roughly 
 	// formatted as white space, followed by a whole marker (no embedded spaces) followed by some 
@@ -18442,6 +18443,11 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArr
 	// input into this FormatMarkerAndDescriptionsStringArray function. Hence, here in this
 	// function we only calculate the extents of markers that do not display within list 
 	// boxes. 
+	// whm added 19Jan09 additional parameter pUserCanSetFilterFlags so we can determine the subset 
+	// of markers and their descriptions that will actually be formatted and added to the listbox 
+	// (this eliminates the extra space formatted between the marker and its description, because 
+	// the amount of space was previously determined by the longest sfm which usually wouldn't 
+	// appear in the list box.
 	int arrayCt = MkrAndDescrArray->GetCount();
 	if (arrayCt == 0)
 	{
@@ -18471,40 +18477,83 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArr
 		spaceExtent = sizeSpace;
 	}
 
-	// first scan the input wxStringArray strings and determine the extent of the marker having the 
-	// greatest text extent
+	// First scan the input wxStringArray strings and determine the extent of the marker having the 
+	// greatest text extent.
 	for (int ct = 0; ct < arrayCt; ct++)
 	{
-		tempStr = MkrAndDescrArray->Item(ct);
-		int spCt = 0;
-		int nwspCt = 0;
-		int strLen = tempStr.Length();
-		// count white space
-		while(spCt < strLen && tempStr.GetChar(spCt) == _T(' '))
+		if (pUserCanSetFilterFlags == NULL)
 		{
-			spCt++;
-		}
-		// count non-white space (the whole marker)
-		while(spCt + nwspCt < strLen && tempStr.GetChar(spCt + nwspCt) != _T(' '))
-		{
-			nwspCt++;
-		}
-		// checkStr is the array string up to but not including the first "medial space"
-		checkStr = tempStr.Mid(0, spCt + nwspCt);
-
-		if (pDC != NULL)
-		{
-			// measure the text extent of this marker (including preceeding white space)
-			 pDC->GetTextExtent(checkStr,&testExtent.x, &testExtent.y);
-			if (testExtent.x > longestSfmExtent.x)
+			// No pUserCanSetFilterFlags array was passed in so we format all MkrAndDescArray items
+			tempStr = MkrAndDescrArray->Item(ct);
+			int spCt = 0;
+			int nwspCt = 0;
+			int strLen = tempStr.Length();
+			// count white space
+			while(spCt < strLen && tempStr.GetChar(spCt) == _T(' '))
 			{
-				longestSfmExtent = testExtent;
+				spCt++;
+			}
+			// count non-white space (the whole marker)
+			while(spCt + nwspCt < strLen && tempStr.GetChar(spCt + nwspCt) != _T(' '))
+			{
+				nwspCt++;
+			}
+			// checkStr is the array string up to but not including the first "medial space"
+			checkStr = tempStr.Mid(0, spCt + nwspCt);
+
+			if (pDC != NULL)
+			{
+				// measure the text extent of this marker (including preceeding white space)
+				 pDC->GetTextExtent(checkStr,&testExtent.x, &testExtent.y);
+				if (testExtent.x > longestSfmExtent.x)
+				{
+					longestSfmExtent = testExtent;
+				}
+			}
+			else
+			{
+				// use the sizeSpace determined in InitInstance for longestSfmExtent
+				longestSfmExtent = sizeSpace;
 			}
 		}
-		else
+		else // pUserCanSetFilterFlags was not NULL
 		{
-			// use the sizeSpace determined in InitInstance for longestSfmExtent
-			longestSfmExtent = sizeSpace;
+			if (pUserCanSetFilterFlags->Item(ct) == 1) // we only format those that will fill the box
+			{
+				// pUserCanSetFilterFlags array was passed in so we format only those markers that have
+				// their pUserCanSetFilterFlags[ct] == 1.
+				tempStr = MkrAndDescrArray->Item(ct);
+				int spCt = 0;
+				int nwspCt = 0;
+				int strLen = tempStr.Length();
+				// count white space
+				while(spCt < strLen && tempStr.GetChar(spCt) == _T(' '))
+				{
+					spCt++;
+				}
+				// count non-white space (the whole marker)
+				while(spCt + nwspCt < strLen && tempStr.GetChar(spCt + nwspCt) != _T(' '))
+				{
+					nwspCt++;
+				}
+				// checkStr is the array string up to but not including the first "medial space"
+				checkStr = tempStr.Mid(0, spCt + nwspCt);
+
+				if (pDC != NULL)
+				{
+					// measure the text extent of this marker (including preceeding white space)
+					 pDC->GetTextExtent(checkStr,&testExtent.x, &testExtent.y);
+					if (testExtent.x > longestSfmExtent.x)
+					{
+						longestSfmExtent = testExtent;
+					}
+				}
+				else
+				{
+					// use the sizeSpace determined in InitInstance for longestSfmExtent
+					longestSfmExtent = sizeSpace;
+				}
+			}
 		}
 	}
 
@@ -18513,79 +18562,164 @@ void CAdapt_ItApp::FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArr
 	// will line up
 	for (int ct = 0; ct < arrayCt; ct++)
 	{
-		initialWhiteSp.Empty();
-		descrStr.Empty();
-		wholeMkr.Empty();
-		formattedStr.Empty();
-
-		tempStr = MkrAndDescrArray->Item(ct);
-		int spCt = 0;
-		int nwspCt = 0;
-		int strLen = tempStr.Length();
-		// count white space
-		while(spCt < strLen && tempStr.GetChar(spCt) == _T(' '))
+		if (pUserCanSetFilterFlags == NULL)
 		{
-			spCt++;
-			initialWhiteSp += _T(' ');
-		}
-		// remove prefixed white space
-		tempStr = tempStr.Mid(spCt);
-		// count non-white space (the whole marker)
-		while(nwspCt < strLen && tempStr.GetChar(nwspCt) != _T(' '))
-		{
-			wholeMkr += tempStr.GetChar(nwspCt);
-			nwspCt++;
-		}
-		// checkStr is the array string up to but not including the first "medial space"
-		checkStr = tempStr.Mid(0, nwspCt);
+			// No pUserCanSetFilterFlags array was passed in so we format all MkrAndDescArray items
+			initialWhiteSp.Empty();
+			descrStr.Empty();
+			wholeMkr.Empty();
+			formattedStr.Empty();
 
-
-		if (pDC != NULL)
-		{
-			// measure the text extent of this marker (including preceeding white space)
-			 pDC->GetTextExtent(checkStr, &testExtent.x, &testExtent.y);
-			if (testExtent.x > longestSfmExtent.x)
+			tempStr = MkrAndDescrArray->Item(ct);
+			int spCt = 0;
+			int nwspCt = 0;
+			int strLen = tempStr.Length();
+			// count white space
+			while(spCt < strLen && tempStr.GetChar(spCt) == _T(' '))
 			{
-				longestSfmExtent = testExtent;
+				spCt++;
+				initialWhiteSp += _T(' ');
 			}
+			// remove prefixed white space
+			tempStr = tempStr.Mid(spCt);
+			// count non-white space (the whole marker)
+			while(nwspCt < strLen && tempStr.GetChar(nwspCt) != _T(' '))
+			{
+				wholeMkr += tempStr.GetChar(nwspCt);
+				nwspCt++;
+			}
+			// checkStr is the array string up to but not including the first "medial space"
+			checkStr = tempStr.Mid(0, nwspCt);
+
+
+			if (pDC != NULL)
+			{
+				// measure the text extent of this marker (including preceeding white space)
+				 pDC->GetTextExtent(checkStr, &testExtent.x, &testExtent.y);
+				if (testExtent.x > longestSfmExtent.x)
+				{
+					longestSfmExtent = testExtent;
+				}
+			}
+			else
+			{
+				// use the sizeSpace determined in InitInstance for longestSfmExtent
+				longestSfmExtent = sizeSpace;
+			}
+
+			descrStr += tempStr.Mid(nwspCt); // get remainder of string for descrStr
+			descrStr.Trim(TRUE); // trim right end
+			descrStr.Trim(FALSE); // trim left end
+			// build the formatted array string
+			formattedStr = initialWhiteSp;
+			formattedStr += wholeMkr;
+			// add enough spaces to make the text extent of formattedStr equal to or greater 
+			// than longestSfmExtent.cx
+
+			if (pDC != NULL)
+			{
+				int extSpacex, extSpacey;
+				int fStrExtx, fStrExty;
+				pDC->GetTextExtent(_T(' '),&extSpacex,&extSpacey);
+				pDC->GetTextExtent(formattedStr,&fStrExtx,&fStrExty);
+				while (fStrExtx < longestSfmExtent.x)
+				{
+					formattedStr += _T(' ');
+					fStrExtx += extSpacex;
+				}
+			}
+			// now add the minimum number of spaces of separation - the array string gets
+			// this much separation between whole marker and its description even when pDC == NULL
+			for (int minSp = 0; minSp < minNumSpaces; minSp++)
+			{
+				formattedStr += _T(' ');
+			}
+			// add back the description
+			formattedStr += descrStr;
+			// set the newly formatted string back into the array
+			(*MkrAndDescrArray)[ct] = formattedStr;
 		}
 		else
 		{
-			// use the sizeSpace determined in InitInstance for longestSfmExtent
-			longestSfmExtent = sizeSpace;
-		}
-
-		descrStr += tempStr.Mid(nwspCt); // get remainder of string for descrStr
-		descrStr.Trim(TRUE); // trim right end
-		descrStr.Trim(FALSE); // trim left end
-		// build the formatted array string
-		formattedStr = initialWhiteSp;
-		formattedStr += wholeMkr;
-		// add enough spaces to make the text extent of formattedStr equal to or greater 
-		// than longestSfmExtent.cx
-
-		if (pDC != NULL)
-		{
-			int extSpacex, extSpacey;
-			int fStrExtx, fStrExty;
-			pDC->GetTextExtent(_T(' '),&extSpacex,&extSpacey);
-			pDC->GetTextExtent(formattedStr,&fStrExtx,&fStrExty);
-			while (fStrExtx < longestSfmExtent.x)
+			if (pUserCanSetFilterFlags->Item(ct) == 1) // we only format those that will fill the box
 			{
-				formattedStr += _T(' ');
-				fStrExtx += extSpacex;
+				// pUserCanSetFilterFlags array was passed in so we format only those markers that have
+				// their pUserCanSetFilterFlags[ct] == 1.
+				initialWhiteSp.Empty();
+				descrStr.Empty();
+				wholeMkr.Empty();
+				formattedStr.Empty();
+
+				tempStr = MkrAndDescrArray->Item(ct);
+				int spCt = 0;
+				int nwspCt = 0;
+				int strLen = tempStr.Length();
+				// count white space
+				while(spCt < strLen && tempStr.GetChar(spCt) == _T(' '))
+				{
+					spCt++;
+					initialWhiteSp += _T(' ');
+				}
+				// remove prefixed white space
+				tempStr = tempStr.Mid(spCt);
+				// count non-white space (the whole marker)
+				while(nwspCt < strLen && tempStr.GetChar(nwspCt) != _T(' '))
+				{
+					wholeMkr += tempStr.GetChar(nwspCt);
+					nwspCt++;
+				}
+				// checkStr is the array string up to but not including the first "medial space"
+				checkStr = tempStr.Mid(0, nwspCt);
+
+
+				if (pDC != NULL)
+				{
+					// measure the text extent of this marker (including preceeding white space)
+					 pDC->GetTextExtent(checkStr, &testExtent.x, &testExtent.y);
+					if (testExtent.x > longestSfmExtent.x)
+					{
+						longestSfmExtent = testExtent;
+					}
+				}
+				else
+				{
+					// use the sizeSpace determined in InitInstance for longestSfmExtent
+					longestSfmExtent = sizeSpace;
+				}
+
+				descrStr += tempStr.Mid(nwspCt); // get remainder of string for descrStr
+				descrStr.Trim(TRUE); // trim right end
+				descrStr.Trim(FALSE); // trim left end
+				// build the formatted array string
+				formattedStr = initialWhiteSp;
+				formattedStr += wholeMkr;
+				// add enough spaces to make the text extent of formattedStr equal to or greater 
+				// than longestSfmExtent.cx
+
+				if (pDC != NULL)
+				{
+					int extSpacex, extSpacey;
+					int fStrExtx, fStrExty;
+					pDC->GetTextExtent(_T(' '),&extSpacex,&extSpacey);
+					pDC->GetTextExtent(formattedStr,&fStrExtx,&fStrExty);
+					while (fStrExtx < longestSfmExtent.x)
+					{
+						formattedStr += _T(' ');
+						fStrExtx += extSpacex;
+					}
+				}
+				// now add the minimum number of spaces of separation - the array string gets
+				// this much separation between whole marker and its description even when pDC == NULL
+				for (int minSp = 0; minSp < minNumSpaces; minSp++)
+				{
+					formattedStr += _T(' ');
+				}
+				// add back the description
+				formattedStr += descrStr;
+				// set the newly formatted string back into the array
+				(*MkrAndDescrArray)[ct] = formattedStr;
 			}
 		}
-		// now add the minimum number of spaces of separation - the array string gets
-		// this much separation between whole marker and its description even when pDC == NULL
-		for (int minSp = 0; minSp < minNumSpaces; minSp++)
-		{
-			formattedStr += _T(' ');
-		}
-		// add back the description
-		formattedStr += descrStr;
-		// set the newly formatted string back into the array
-		(*MkrAndDescrArray)[ct] = formattedStr;
 	}
 }
 

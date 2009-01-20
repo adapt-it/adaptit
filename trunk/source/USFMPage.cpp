@@ -221,7 +221,8 @@ void CUSFMPageCommon::DoInit()
 		pFilterPageInPrefs->filterPgCommon.AddUnknownMarkersToDocArrays();
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// Initialize the filter page's "before" flags and "before" marker string for the Doc
 		pFilterPageInPrefs->filterPgCommon.pFilterFlagsDocBeforeEdit->Clear();
@@ -240,7 +241,8 @@ void CUSFMPageCommon::DoInit()
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// Initialize the filter page's "before" flags and "before" marker string for the Proj
 		pFilterPageInPrefs->filterPgCommon.pFilterFlagsProjBeforeEdit->Clear();
@@ -277,7 +279,8 @@ void CUSFMPageCommon::DoInit()
 		//pFilterPgInWizard->AddUnknownMarkersToDocArrays();
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// Initialize the filter page's "before" flags and "before" marker string for the Doc
 		pFilterPageWiz->filterPgCommon.pFilterFlagsDocBeforeEdit->Clear();
@@ -294,7 +297,8 @@ void CUSFMPageCommon::DoInit()
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// Initialize the filter page's "before" flags and "before" marker string for the Proj
 		pFilterPageWiz->filterPgCommon.pFilterFlagsProjBeforeEdit->Clear();
@@ -376,7 +380,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		pFilterPageInPrefs->filterPgCommon.AddUnknownMarkersToDocArrays();
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
@@ -430,7 +435,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& WXUNUSED(
 		// filter arrays, so we don't call pFilterPageWiz->AddUnknownMarkersToDocArrays() here.
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -510,7 +516,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& WXUNUS
 		pFilterPageInPrefs->filterPgCommon.AddUnknownMarkersToDocArrays();
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -563,7 +570,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyDoc(wxCommandEvent& WXUNUS
 		// filter arrays, so we don't call pFilterPageWiz->AddUnknownMarkersToDocArrays() here.
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -642,7 +650,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNUSED(ev
 		pFilterPageInPrefs->filterPgCommon.AddUnknownMarkersToDocArrays();
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -694,7 +703,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseBothSetsDoc(wxCommandEvent& WXUNUSED(ev
 		// filter arrays, so we don't call pFilterPageWiz->AddUnknownMarkersToDocArrays() here.
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsDoc, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsDoc);
 
 		// At this point the m_filterFlagsDocBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditDoc
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -762,7 +772,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -808,7 +819,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseUbsSetOnlyProj(wxCommandEvent& event)
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -879,7 +891,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent& event
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -924,7 +937,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseSilpngSetOnlyProj(wxCommandEvent& event
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -995,7 +1009,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& event)
 			&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageInPrefs->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageInPrefs->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to
@@ -1041,7 +1056,8 @@ void CUSFMPageCommon::DoBnClickedRadioUseBothSetsProj(wxCommandEvent& event)
 			&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		gpApp->FormatMarkerAndDescriptionsStringArray(NULL, 
-				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2);
+				&pFilterPageWiz->filterPgCommon.m_SfmMarkerAndDescriptionsProj, 2,
+				&pFilterPageWiz->filterPgCommon.m_userCanSetFilterFlagsProj);
 
 		// At this point the m_filterFlagsProjBeforeEdit CUIntArray and the tempFilterMarkersBeforeEditProj
 		// are populated with data based on a different sfm set, so, in order to be able to use them to

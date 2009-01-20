@@ -45808,7 +45808,7 @@ void CAdapt_ItView::GetMarkerInventoryFromCurrentDoc()
 		}
 	}
 	wxClientDC dC(gpApp->GetMainFrame()->canvas);
-	gpApp->FormatMarkerAndDescriptionsStringArray(&dC,&m_exportMarkerAndDescriptions, 2);// MFC used CDC
+	gpApp->FormatMarkerAndDescriptionsStringArray(&dC,&m_exportMarkerAndDescriptions, 2, NULL);// MFC used CDC
 	// last parameter in call above is 2 spaces min between whole marker and its description
 }
 

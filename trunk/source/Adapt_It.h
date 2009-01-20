@@ -2079,7 +2079,7 @@ public:
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 							enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);
-	void	FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArrayString* MkrAndDescrArray, int minNumSpaces);
+	void	FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArrayString* MkrAndDescrArray, int minNumSpaces, wxArrayInt* pUserCanSetFilterFlags);
 	bool	GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView, CPhraseBox*& pBox);
 	MapSfmToUSFMAnalysisStruct* GetCurSfmMap(enum SfmSet sfmSet);
 	CAdapt_ItDoc* GetDocument();	// convenience function for accessing the Doc
