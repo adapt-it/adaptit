@@ -1181,8 +1181,17 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// manually transfer data between dialog controls and their variables.
 	//wxColour sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 	
-	// set the page in wxNotebook
-	m_pKBEditorNotebook->SetSelection(pageNumSel);
+    // set the page in wxNotebook
+    // 
+    // whm changed 20Jan09. Previously I wrongly used SetSelection() which "generates page changing
+    // events" and is now "deprecated". This LoadDataForPage() was being called twice since
+    // SetSelection() was triggering OnTabSelChange() which also calls this LoadDataForPage. This double
+    // action was causing doubled data to be inserted in the KB Editor's list box(es) and potentially
+    // other problems. The solution is to use ChangeSelection() instead of SetSelection() at this point.
+    // ChangeSelection() does not trigger page changeing events. See:
+    // http://docs.wxwidgets.org/stable/wx_eventhandlingoverview.html#progevent for a summary in the
+    // docs.
+	m_pKBEditorNotebook->ChangeSelection(pageNumSel);
 	wxNotebookPage* nbPage = m_pKBEditorNotebook->GetPage(pageNumSel);
 
 	// get pointers to dialog controls on this nbPage:
