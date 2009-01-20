@@ -865,6 +865,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		{
 			docPath = pApp->m_curAdaptionsPath + gpApp->PathSeparator + m_docName;
 		}
+
+#ifdef SHOW_DOC_I_O_BENCHMARKS
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 		bool bOK = pDoc->OnOpenDocument(docPath);
 		if (!bOK)
 		{
@@ -992,6 +997,12 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		// to be enabled
 		pDoc->Modify(FALSE);
 		gpApp->RefreshStatusBarInfo();
+
+#ifdef SHOW_DOC_I_O_BENCHMARKS
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("OnWizardFinish - OpenDocument executed in %s ms"), (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
 
 		return; //return CPropertyPage::OnWizardFinish();
 	}

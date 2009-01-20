@@ -61,6 +61,8 @@
 #include "KB.h" 
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
+#include "MainFrm.h"
+#include "WaitDlg.h"
 
 // globals
 
@@ -473,6 +475,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// it's an existing project, so we'll create KBs for it and show only the
 			// two-page wizard (Project Page and Doc Page)
 
+			// Roland Fumey requested that AI show a progress dialog during the project loading since
+			// large KBs can take a while to create backup copies and load.
+			
 			// fill out the app's member variables for the paths etc.
 			pApp->m_curProjectName = m_projectName;
 			pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator + pApp->m_curProjectName;
@@ -512,6 +517,15 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			wxASSERT(pApp->m_pKB == NULL);
 			pApp->m_pKB = new CKB;
 			wxASSERT(pApp->m_pKB != NULL);
+			{ // this block defines the existence of the wait dialog for loading the regular KB
+			CWaitDlg waitDlg(gpApp->GetMainFrame());
+			// indicate we want the reading file wait message
+			waitDlg.m_nWaitMsgNum = 8;	// 8 "Please wait while Adapt It loads the KB..."
+			waitDlg.Centre();
+			waitDlg.Show(TRUE);
+			waitDlg.Update();
+			// the wait dialog is automatically destroyed when it goes out of scope below.
+			} // end of CWaitDlg scope
 			bool bOK = pApp->LoadKB();
 			if (bOK)
 			{
@@ -521,7 +535,18 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				wxASSERT(pApp->m_pGlossingKB == NULL);
 				pApp->m_pGlossingKB = new CKB;
 				wxASSERT(pApp->m_pGlossingKB != NULL);
+				
+				{ // this block defines the existence of the wait dialog for loading the glossing KB
+				CWaitDlg waitDlg(gpApp->GetMainFrame());
+				// indicate we want the reading file wait message
+				waitDlg.m_nWaitMsgNum = 9;	// 9 "Please wait while Adapt It loads the Glossing KB..."
+				waitDlg.Centre();
+				waitDlg.Show(TRUE);
+				waitDlg.Update();
+				// the wait dialog is automatically destroyed when it goes out of scope below.
 				bOK = pApp->LoadGlossingKB();
+				} // end of CWaitDlg scope
+
 				if (bOK)
 				{
 					pApp->m_bGlossingKBReady = TRUE;
@@ -568,6 +593,8 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
 			pDocPage->InitDialog(idevent);
+
+			// close the progress dialog
 
 		}
 

@@ -8585,6 +8585,10 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pAdView))
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::LoadGlossingKB()
 {
+#ifdef SHOW_KB_I_O_BENCHMARKS
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 	bool bSaveIsGlossingFlag = gbIsGlossing;
 
 	// set the gbIsGlossing flag to TRUE, as the XML needs to use it (it may have a different
@@ -8677,6 +8681,13 @@ bool CAdapt_ItApp::LoadGlossingKB()
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
 	m_bSaveAsXML = bSaveFlag;
+
+#ifdef SHOW_KB_I_O_BENCHMARKS
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("LoadGlossingKB executed in %s ms"), (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+	
 	return TRUE;
 }
 
@@ -8690,6 +8701,10 @@ bool CAdapt_ItApp::LoadGlossingKB()
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::LoadKB()
 {
+#ifdef SHOW_KB_I_O_BENCHMARKS
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 	bool bSaveIsGlossingFlag = gbIsGlossing;
 
 	// set the gbIsGlossing flag to FALSE, as the XML needs to use it (it may have a different
@@ -8811,6 +8826,12 @@ bool CAdapt_ItApp::LoadKB()
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
 	m_bSaveAsXML = bSaveFlag;
+
+#ifdef SHOW_KB_I_O_BENCHMARKS
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("LoadKB executed in %s ms"), (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
 	
 	return TRUE;
 }
@@ -9108,6 +9129,10 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 {
 	// whm Note: This StoreGlossingKB() could easily be combined with the StoreKB()
 	// routine below into a single function
+#ifdef SHOW_KB_I_O_BENCHMARKS
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 	wxFile f; // create a CFile instance, using default constructor
 	wxString path;
 
@@ -9127,12 +9152,22 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 		return FALSE;
 	}
 
+	{ // this block defines the existence of the wait dialog for saving the glossing KB
+	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 7;	// 7 "Please wait while Adapt It saves the Glossing KB..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+
 	if (gpApp->m_bSaveAsXML) // always true in the wx version
 	{
 		DoKBSaveAsXML(f,TRUE); // TRUE means that we want a glossing KB file in XML format
 
 		// close the file
 		f.Close();
+		f.Flush();
 
 		// remove the .KB file, if there is one of same name, so that the *.xml file
 		// is the only form of the glossing kb left on disk
@@ -9149,6 +9184,8 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 			}
 		}
 	}
+	} // end of CWaitDlg block
+
 	// WX version doesn't use binary serialization
 	//else
 	//{
@@ -9225,12 +9262,21 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 				return FALSE;
 		}
 
+		{ // this block defines the existence of the wait dialog for backing up the glossing KB
+		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		// indicate we want the reading file wait message
+		waitDlg.m_nWaitMsgNum = 11;	// 11 "Please wait while Adapt It backs up the Glossing KB..."
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);
+		waitDlg.Update();
+		// the wait dialog is automatically destroyed when it goes out of scope below.
 		if (gpApp->m_bSaveAsXML) // always true in the wx version
 		{
 			DoKBSaveAsXML(f,TRUE); // TRUE means we are doing it for a Glossing KB saved in XML format
 
 			// close the file
 			f.Close();
+			f.Flush();
 
 			// remove the .BAK file, if there is one of same name, so that the .BAK.xml file
 			// is the only form of the KB backup file left on disk
@@ -9247,6 +9293,8 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 				}
 			}
 		}
+		} // end of CWaitDlg scope
+
 		// WX version doesn't do binary serialization
 		//else
 		//{
@@ -9289,7 +9337,12 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 		// which you'd not expect but then, that's MFC for you!
 		// Not needed in WX
 	}
-
+#ifdef SHOW_KB_I_O_BENCHMARKS
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("StoreGlossingKB executed in %s ms"), (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+	
 	return TRUE;
 }
 
@@ -9306,6 +9359,10 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 {
+#ifdef SHOW_KB_I_O_BENCHMARKS
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 	wxFile f; // create a CFile instance, using default constructor
 	wxString path;
 
@@ -9321,12 +9378,22 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			return FALSE;
 	}
 
+	{ // this block defines the existence of the wait dialog for saving the KB
+	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 6;	// 6 "Please wait while Adapt It saves the KB..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+
 	if (m_bSaveAsXML) // always true in the wx version
 	{
 		DoKBSaveAsXML(f);
 
 		// close the file
 		f.Close();
+		f.Flush();
 
 		// remove the .KB file, if there is one of same name, so that the .xml file
 		// is the only form of the document left on disk
@@ -9343,6 +9410,8 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			}
 		}
 	}
+	} // end of CWaitDlg block
+	
 	// WX version doesn't do binary serialization
 	//else
 	//{
@@ -9418,12 +9487,21 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			return FALSE;
 		}
 
+		{ // this block defines the existence of the wait dialog for backing up the KB
+		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		// indicate we want the reading file wait message
+		waitDlg.m_nWaitMsgNum = 10;	// 10 "Please wait while Adapt It backs up the KB..."
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);
+		waitDlg.Update();
+		// the wait dialog is automatically destroyed when it goes out of scope below.
 		if (gpApp->m_bSaveAsXML) // always true in the wx version
 		{
 			DoKBSaveAsXML(f);
 
 			// close the file
 			f.Close();
+			f.Flush();
 
 			// remove the .BAK file, if there is one of same name, so that the .BAK.xml file is the
 			// only form of the KB backup file left on disk
@@ -9439,6 +9517,8 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 				}
 			}
 		}
+		} // end of CWaitDlg scope
+
 		// WX version doesn't do binary serialization
 		//else
 		//{
@@ -9478,6 +9558,12 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 		//}
 
 	}
+#ifdef SHOW_KB_I_O_BENCHMARKS
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("StoreKB executed in %s ms"), (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+	
 	return TRUE;
 }
 
@@ -11688,7 +11774,7 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
 		CWaitDlg waitDlg(gpApp->GetMainFrame());
 		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
+		waitDlg.m_nWaitMsgNum = 0;	// 0 "Please wait while Adapt It Restores the Knowledge Base..."
 		waitDlg.Centre();
 		waitDlg.Show(TRUE);
 		waitDlg.Update();
@@ -19337,46 +19423,78 @@ void CAdapt_ItApp::GetEncodingStringForXmlFiles(CBString& aStr)
 ///                                 regular KB
 /// \remarks
 /// Called from: the App's StoreGlossingKB() and StoreKB().
-/// Structures the KB data in XML form, calling DoWrite() to save the various XML parts to the 
-/// external file.
+/// Structures the KB data in XML form. Builds the XML file in a wxMemoryBuffer with sorted TU elements
+/// and finally writes the buffer to an external file.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 {
 	// In DoKBSaveAsXML, the bIsGlossingKB parameter has a default FALSE value (ie. normal KB), and
 	// must be explicitly included as TRUE for the glossing KB
 	CBString aStr;
+	
+	// whm modified 17Jan09 to build the entire XML file in a buffer in a wxMemoryBuffer.
+	// The wxMemoryBuffer is a dynamic buffer which increases its size as needed, which means
+	// we can set it up with a reasonable default size and not have to know its exact size ahead
+	// of time.
+	static const size_t blockLen = 2097152; // 1MB = 1048576 bytes //4096; 
+	// the buff block sise doesn't matter here for writing since we will write the whole buffer using
+	// whatever size it turns out to be in one Write operation.
+	wxMemoryBuffer buff(blockLen);
 
-	// prologue (Changed by BEW, 18june07, at request of Bob Eaton so as to support
-	// legacy KBs using his SILConverters software, UTF-8 becomes Windows-1252 for the Regular app)
-	GetEncodingStringForXmlFiles(aStr);
-	DoWrite(f,aStr);
+	// The following strings can be pre-built before examining the maps.
+	CBString encodingStr;
+	CBString aiKBBeginStr;
+	CBString msWordWarnCommentStr;
+	CBString kbElementBeginStr;
+	// .. [calculate the total bytes for MAP and TU Elements]
+	CBString kbElementEndStr;
+	CBString aiKBEndStr;
+	
+	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
+	int maxWords;
+	if (bIsGlossingKB)
+	{
+		maxWords = 1; // GlossingKB has only one map
+	}
+	else
+	{
+		maxWords = (int)MAX_WORDS;
+	}
 
-	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
-	aStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
-	DoWrite(f,aStr);
-
-	// add the comment with the warning about not opening the XML file in MS WORD 
-	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-	// the latter goes into an infinite loop when the file is being parsed in.
-	// (MakeMSWORDWarning is defined in XML.cpp)
-	aStr = MakeMSWORDWarning(TRUE); // the warning ends with \r\n so we don't need
-									// to add them here; TRUE gives us a note included as well
-	DoWrite(f,aStr);
-
-
-	// construct the opening tag and add the list of targetUnits with their associated
-	// key strings (source text)
+	// Setup some local pointers
 	CTargetUnit* pTU;
 	CKB* pKB;
 	if (bIsGlossingKB)
 		pKB = m_pGlossingKB;
 	else
 		pKB = m_pKB;
+	
+	int mapIndex;
+	
+	// Now, start building the fixed strings.
+	// construct the opening tag and add the list of targetUnits with their associated
+	// key strings (source text)
+	// prologue (Changed by BEW, 18june07, at request of Bob Eaton so as to support
+	// legacy KBs using his SILConverters software, UTF-8 becomes Windows-1252 for the Regular app)
+	GetEncodingStringForXmlFiles(encodingStr);
+	buff.AppendData(encodingStr,encodingStr.GetLength()); // AppendData internally uses memcpy and GetAppendBuf and UngetAppendBuf
+	
+	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
+	aiKBBeginStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
+	buff.AppendData(aiKBBeginStr,aiKBBeginStr.GetLength());
+	
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	// (MakeMSWORDWarning is defined in XML.cpp)
+	msWordWarnCommentStr = MakeMSWORDWarning(TRUE); // the warning ends with \r\n so we don't need
+									// to add them here; TRUE gives us a note included as well
+	buff.AppendData(msWordWarnCommentStr,msWordWarnCommentStr.GetLength());
+
 	wxString srcStr;
 	CBString tempStr;
-	int i;
-	int maxWords;
+	//int i;
 	wxString intStr;
 	// wx note: the wx version in Unicode build refuses assign a CBString to char numStr[24]
 	// so I'll declare numStr as a CBString also
@@ -19439,27 +19557,16 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 		aStr += numStr;
 	}
 	aStr += "\">\r\n";
-	DoWrite(f,aStr);
+	kbElementBeginStr = aStr;
+	buff.AppendData(kbElementBeginStr,kbElementBeginStr.GetLength());
 
-	// now the maps -- note, we have to include the map number (and for the user's benefit
-	// it will be a 1-based value), we can't rely on counting maps on input of the xml file
-	// later on, because some maps may be empty and so not be included in the xml output
-	if (bIsGlossingKB)
+	for (mapIndex = 0; mapIndex < maxWords; mapIndex++)
 	{
-		maxWords = 1; // GlossingKB has only one map
-	}
-	else
-	{
-		maxWords = (int)MAX_WORDS;
-	}
-	// loop through all the maps
-	for (i = 0; i < maxWords; i++)
-	{
-		if (!pKB->m_pMap[i]->empty())
+		if (!pKB->m_pMap[mapIndex]->empty())
 		{
 			aStr = "\t<MAP mn=\"";
 			intStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-			intStr << i + 1;
+			intStr << mapIndex + 1;
 #ifdef _UNICODE
 			numStr = gpApp->Convert16to8(intStr);
 #else
@@ -19467,23 +19574,46 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 #endif
 			aStr += numStr;
 			aStr += "\">\r\n";
-			DoWrite(f,aStr);
-
+			buff.AppendData(aStr,aStr.GetLength());
 			MapKeyStringToTgtUnit::iterator iter;
-			for( iter = pKB->m_pMap[i]->begin(); iter != pKB->m_pMap[i]->end(); ++iter )
+#ifdef SHOW_KB_I_O_BENCHMARKS
+				wxDateTime dt1 = wxDateTime::Now(),
+						   dt2 = wxDateTime::UNow();
+#endif
+			wxArrayString TUkeyArrayString;
+			TUkeyArrayString.Clear();
+			TUkeyArrayString.Alloc(pKB->m_pMap[mapIndex]->size()); // Preallocate enough memory to store all keys in current map
+			for( iter = pKB->m_pMap[mapIndex]->begin(); iter != pKB->m_pMap[mapIndex]->end(); ++iter )
 			{
-				srcStr = iter->first;
-				pTU = iter->second;
-				aStr = MakeKBElementXML(srcStr,pTU,2); // 2 = two left-margin tabs
-				DoWrite(f,aStr);
+				TUkeyArrayString.Add(iter->first);
 			}
-
+			TUkeyArrayString.Sort(); // sort the array in ascending alphabetical order
+			wxASSERT(TUkeyArrayString.GetCount() == pKB->m_pMap[mapIndex]->size());
+			// Get the key elements from TUkeyArrayString in sequence and fetch the associated pTU from
+			// the map and do the usual MakeKBElementXML() and DoWrite() calls.
+			int ct;
+			for (ct = 0; ct < (int)TUkeyArrayString.GetCount(); ct++)
+			{
+				iter = pKB->m_pMap[mapIndex]->find(TUkeyArrayString[ct]);
+				if (iter != pKB->m_pMap[mapIndex]->end())
+				{
+					srcStr = iter->first;
+					pTU = iter->second;
+					wxASSERT(pTU != NULL);
+					aStr = MakeKBElementXML(srcStr,pTU,2); // 2 = two left-margin tabs
+					buff.AppendData(aStr,aStr.GetLength());
+				}
+			}
+#ifdef SHOW_KB_I_O_BENCHMARKS
+			dt1 = dt2;
+			dt2 = wxDateTime::UNow();
+			wxLogDebug(_T("Sorted Map %d executed in %s ms"), mapIndex, (dt2 - dt1).Format(_T("%l")).c_str());
+#endif
 			// close off this map
 			aStr = "\t</MAP>\r\n";
-			DoWrite(f,aStr);
+			buff.AppendData(aStr,aStr.GetLength());
 		}
 	}
-
 	// KB closing tag
 	aStr = "</";
 	if (bIsGlossingKB)
@@ -19496,11 +19626,15 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 		aStr += xml_kb;
 	}
 	aStr += ">\r\n";
-	DoWrite(f,aStr);
-
+	kbElementEndStr = aStr;
+	buff.AppendData(kbElementEndStr,kbElementEndStr.GetLength());
 	// BEW added 0Apr06 for .NET parsing support for xml
-	aStr = "</AdaptItKnowledgeBase>\r\n";
-	DoWrite(f,aStr);
+	aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
+	buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
+
+    const char *pByteStr = wx_static_cast(const char *, buff);
+	f.Write(pByteStr,buff.GetDataLen());
+	// The buff wxMemoryBuffer is automatically destroyed when it goes out of scope
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

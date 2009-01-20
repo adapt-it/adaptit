@@ -3025,7 +3025,7 @@ void DoExportInterlinearRTF()
 	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
 	CWaitDlg waitDlg(gpApp->GetMainFrame());
 	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
+	waitDlg.m_nWaitMsgNum = 1;	// 1 "Please wait for Adapt It to output the RTF file. This may take a while..."
 	waitDlg.Centre();
 	waitDlg.Show(TRUE);
 	waitDlg.Update();
@@ -6439,7 +6439,7 @@ void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportNam
 	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
 	CWaitDlg waitDlg(gpApp->GetMainFrame());
 	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
+	waitDlg.m_nWaitMsgNum = 1;	// 1 "Please wait for Adapt It to output the RTF file. This may take a while..."
 	waitDlg.Centre();
 	waitDlg.Show(TRUE);
 	waitDlg.Update();

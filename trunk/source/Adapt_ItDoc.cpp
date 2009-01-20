@@ -1632,6 +1632,7 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 
 		// close the file
 		f.Close();
+		f.Flush();
 	}
 	// The WX app doesn't do binary serialization
 	//else
@@ -2484,7 +2485,7 @@ bool CAdapt_ItDoc::DoFileSave()
 		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
 		CWaitDlg waitDlg(gpApp->GetMainFrame());
 		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
+		waitDlg.m_nWaitMsgNum = 4;	// 4 "Please wait while Adapt It Saves the File..."
 		waitDlg.Centre();
 		waitDlg.Show(TRUE);
 		waitDlg.Update();
@@ -2517,6 +2518,7 @@ bool CAdapt_ItDoc::DoFileSave()
 
 		// close the file
 		f.Close();
+		f.Flush();
 
 		// We won't worry about any .adt files in WX version
 		//// remove the .adt file, if there is one of same name, so that the .xml file
@@ -2771,6 +2773,7 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 
 		// close the file
 		f.Close();
+		f.Flush();
 	}
 	// wx version doesn't do binary serialization
 	//else

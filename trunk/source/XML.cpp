@@ -3632,7 +3632,7 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc)
 	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
 	CWaitDlg waitDlg(gpApp->GetMainFrame());
 	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 5;	// 5 hides the static leaving only "Please wait..." in title bar
+	waitDlg.m_nWaitMsgNum = 2;	// 2 "Please wait while Adapt It opens the document..."
 	waitDlg.Centre();
 	waitDlg.Show(TRUE);
 	waitDlg.Update();
