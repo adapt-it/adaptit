@@ -446,12 +446,13 @@ void CFilterPageCommon::LoadListBoxFromArrays(wxArrayString* pSfmMarkerAndDescr,
 			wxString test = pSfmMarkerAndDescr->Item(index);
 			// testing only !!!
 
-			pListBox->Append(pSfmMarkerAndDescr->Item(index));
+			int listBoxIndex;
+			listBoxIndex = pListBox->Append(pSfmMarkerAndDescr->Item(index));
 			// whm comment: MFC's FindStringExact and FindString do NOT do a case sensitive match 
 			// by default so we'll use our own more flexible FindListBoxItem method below with 
 			// caseSensitive and exactString parameters.
 			//int listBoxIndex = pListBox->FindStringExact(-1,pSfmMarkerAndDescr->GetAt(index));
-			int listBoxIndex = gpApp->FindListBoxItem(pListBox, pSfmMarkerAndDescr->Item(index), caseSensitive, exactString);
+			//int listBoxIndex = gpApp->FindListBoxItem(pListBox, pSfmMarkerAndDescr->Item(index), caseSensitive, exactString);
 			wxASSERT(listBoxIndex != -1); //LB_ERR
 			if (listBoxIndex != -1) //LB_ERR
 			{
