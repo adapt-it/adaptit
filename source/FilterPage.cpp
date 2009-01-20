@@ -572,6 +572,20 @@ void CFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 
 	filterMkrStr = tempFilterMarkersAfterEditDoc;
 
+	// whm added 19Jan09 the following wxStringArray to contain a list of the markers and descriptions
+	// that will only appear in the actual FilterPage listboxes. This pSfmMarkerAndDescForFormatting
+	// array will only contain any markers that have their pSfm->userCanSetFilter == TRUE. This array
+	// is then passed to FormatMarkerAndDescriptionsStringArray() below which will provide appropriate
+	// space padding between the marker and its description in the list box. Previously we passed the
+	// complete set of markers in pSfmMarkerAndDescriptionsDoc to the formatting function, but this
+	// made for too much space between the marker and descriptions because some of the longer markers
+	// never appear in the list boxes because they are pSfm->userCanSetFilter == FALSE. I've added
+	// another parameter to SetupFilterPageArrays() to populate this pSfmMarkerAndDescForFormatting
+	// array since the natural place to do it is within SetupFilterPageArrays().
+	wxArrayString SfmMarkerAndDescForFormatting;
+	wxArrayString* pSfmMarkerAndDescForFormatting = &SfmMarkerAndDescForFormatting;
+	pSfmMarkerAndDescForFormatting->Clear();
+
 	SetupFilterPageArrays(pMap, filterMkrStr, useString, pSfmMarkerAndDescriptionsDoc, 
 		pFilterFlagsDoc, pUserCanSetFilterFlagsDoc);
 
@@ -586,7 +600,7 @@ void CFilterPageCommon::LoadDocSFMListBox(enum ListBoxProcess lbProcess)
 
 	wxClientDC aDC((wxWindow*)gpApp->GetMainFrame()->canvas);
 	gpApp->FormatMarkerAndDescriptionsStringArray(&aDC, 
-												pSfmMarkerAndDescriptionsDoc, 2);
+			pSfmMarkerAndDescriptionsDoc, 2, pUserCanSetFilterFlagsDoc);
 
 	if (lbProcess == ReloadAndUpdateFromProjList || lbProcess == ReloadAndUpdateFromFactoryList)
 	{
@@ -725,7 +739,7 @@ void CFilterPageCommon::LoadProjSFMListBox(enum ListBoxProcess lbProcess)
 
 	wxClientDC aDC((wxWindow*)gpApp->GetMainFrame()->canvas);
 	gpApp->FormatMarkerAndDescriptionsStringArray(&aDC, 
-												pSfmMarkerAndDescriptionsProj, 2);
+			pSfmMarkerAndDescriptionsProj, 2, pUserCanSetFilterFlagsProj);
 
 	if (lbProcess == ReloadAndUpdateFromDocList || lbProcess == ReloadAndUpdateFromFactoryList)
 	{
@@ -796,7 +810,7 @@ void CFilterPageCommon::LoadFactorySFMListBox()
 
 	wxClientDC aDC((wxWindow*)gpApp->GetMainFrame()->canvas);
 	gpApp->FormatMarkerAndDescriptionsStringArray(&aDC, 
-												pSfmMarkerAndDescriptionsFactory, 2);
+			pSfmMarkerAndDescriptionsFactory, 2, pUserCanSetFilterFlagsFactory);
 
 	LoadListBoxFromArrays(pSfmMarkerAndDescriptionsFactory, 
 		pFilterFlagsFactory, pUserCanSetFilterFlagsFactory, pListBoxSFMsFactory);
