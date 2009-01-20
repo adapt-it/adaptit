@@ -15,6 +15,7 @@ Version 4.1.0 update 31Jan2009:
 * The "Check Knowledge Base" selection was removed from the File menu. It was not really needed and only served to make project loading take longer.
 * The TU elements in the Knowledge Base XML files are now sorted. Some user requested this to make Subversion backups more efficient.
 * Added "Please wait..." dialogs for KB loading, saving and backup operations.
+* Fixed another bug in the Knowledge Base Editor where look ups for source phrases containing two or more merged words could sometimes result in duplicate entries in the source keys list box.
 
 
 Version 4.0.4 update 13Dec2008:
