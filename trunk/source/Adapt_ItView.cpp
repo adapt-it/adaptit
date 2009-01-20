@@ -423,10 +423,9 @@ bool gbDummyAddedTemporarily = FALSE; // TRUE if an null sourcephrase is to be i
 // BEW 7May08: the next globals are for source text editing; the refactored functionality may not need all these...
 // and including those for the refactored code (after the old ones)
 
-// the following globals make it easy to access the sublists and their counts; for use in
-// CEditSourceTextDlg and in the subsequent CTransferMarkersDlg especialy
-SPList* gpOldSrcPhraseList; // TransferMarkersDlg needs this, so be careful about removing, because of flow on link errors
-SPList* gpNewSrcPhraseList; // TransferMarkersDlg needs this, so be careful about removing, because of flow on link errors
+// the following globals make it easy to access the sublists and their counts; for use in CEditSourceTextDlg
+//SPList* gpOldSrcPhraseList; // TransferMarkersDlg needs this, so be careful about removing, because of flow on link errors
+//SPList* gpNewSrcPhraseList; // TransferMarkersDlg needs this, so be careful about removing, because of flow on link errors
 int gnCount; // count of old srcphrases (user selected these) after unmerges, etc
 int gnNewCount; // count of the new srcphrases (after user finished editing the source text)
 //bool	 gbForceOpenMarkerTransferDialog = FALSE; // TRUE if use uses checkbox in Edit Source Text

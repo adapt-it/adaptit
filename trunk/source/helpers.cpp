@@ -288,7 +288,7 @@ bool IsXMLfile(wxString path)
 }
 
 // /////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// \return a a byte string (CBString) representing the the book ID of the document at FilePath, or
+/// \return a byte string (CBString) representing the the book ID of the document at FilePath, or
 ///			an empty string if no ID code could be found.
 /// \param	FilePath	-> the path of the file to be checked
 /// \remarks
@@ -361,6 +361,61 @@ CBString SearchXMLFileContentForBookID(wxString FilePath)
 	}
 	return returnStr;
 }
+
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return the index of the first space of one or more spaces which terminate the string, or if there are
+///			no spaces at the end, return the length of the string (that is, the position at which appending
+///			something would take place); if the string is empty, return wxNOT_FOUND
+/// \param	str	-> reference to the wxString
+/// \remarks
+/// BEW added 17Jan09; handy utility when inserting is wanted prior to any string final spaces.
+/// That is, if L is the length of the string, and the string ends with two spaces, then L-2 is returned.
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*int FindLocationBeforeFinalSpaces(wxString& str)
+{
+	int length = wxNOT_FOUND;
+	if (str.IsEmpty())
+		return length; // wxNOT_FOUND
+	length = (int)str.Len(); // its not empty, so get its length
+	wxString strReversed = MakeReverse(str);
+	const wxChar* pRev = strReversed.GetData();
+	int count = 0;
+	// count the initial spaces
+	while (pRev[count] == _T(' '))
+	{
+		count++;
+	}
+	if (count == 0)
+		return length;
+	else
+		return length - count;
+}
+*/
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// \return the index of the first non-space of one or more spaces which begins the string, or if there are
+///			no spaces at the beginning, return the zero; if the string is empty, return wxNOT_FOUND
+/// \param	str	-> reference to the wxString
+/// \remarks
+/// BEW added20Jan09; handy utility when inserting is wanted following any string-initial spaces.
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*int FindLocationAfterInitialSpaces(wxString& str)
+{
+	int count = wxNOT_FOUND;
+	if (str.IsEmpty())
+		return count; // wxNOT_FOUND
+	const wxChar* pStr = str.GetData();
+	count = 0;
+	// count the initial spaces
+	while (pStr[count] == _T(' '))
+	{
+		count++;
+	}
+	if (count == 0)
+		return 0;
+	else
+		return count;
+}
+*/
 
 /* *************************************************************************
 *

@@ -55,6 +55,10 @@ CBString	SearchXMLFileContentForBookID(wxString FilePath);
 
 //wxString	SearchPlainTextFileForBookID(wxString FilePath); // unused
 
+// next two I added in Jan 2009, but didn't use them. Commented out pending a use for them
+//int FindLocationBeforeFinalSpaces(wxString& str); // BEW added 17Jan09
+//int FindLocationAfterInitialSpaces(wxString& str); // BEW added 20Jan09
+
 // Helpers added by Jonathan Field 2005
 wxString ConcatenatePathBits(wxString Bit1, wxString Bit2);
 

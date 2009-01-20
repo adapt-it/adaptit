@@ -12958,7 +12958,7 @@ int RebuildSourceText(wxString& source)
 // \~FILTER and \~FILTER* from the source text. The export routines determine whether to include
 // the marker and associated text by inspecting the underlying marker within any filtered material.
 //
-// whm wx version observatioins and modifications: 
+// whm wx version observations and modifications: 
 // This RebuildSourceText() function basically prepares a buffer which is used only for writing
 // the source text out to disk in sfm form. (The RTF export routines need to process the text bit
 // by bit and add a great amount of RTF code words to the output text, hence the RTF routines
@@ -12969,7 +12969,7 @@ int RebuildSourceText(wxString& source)
 // up buffers within buffers (which the MFC version does where RebuildSourceText process an overall
 // buffer and FixSFMarkers sets up an embedded buffer within the overall buffer). That problem plus a 
 // desire to simplify the forward slash scheme led me to instead create a separate routine called 
-// FormatMarkerBufferForOutput() which gets called after RebuildSourceText() if finished. It goes 
+// FormatMarkerBufferForOutput() which gets called after RebuildSourceText() is finished. It goes 
 // through and makes all the end-of-line tweaks and adjusts the spaces where needed.
 //
 // Cross-platform code must accommodate the different end-of-line (eol) schemes that the various 
@@ -12992,33 +12992,51 @@ int RebuildSourceText(wxString& source)
 	wxASSERT(pList != NULL);
 
 	// as we traverse the list of CSourcePhrase instances, the special things we must be
-	// careful of are 1. null source phrase placeholders (we ignore these), 2. retranslations
-	// (we can ignore the fact these instances belong to a retranslation), and 3. mergers
-	// (these give us a headache - we have to look at the stored list of original CSourcePhrase
-	// instances on each such merged one, and build the source text from those - since they will
-	// have any sf markers in the right places, and that info is lost to the parent merged one.)
+	// careful of are 1. null source phrase placeholders (we ignore these, but we don't
+	// ignore any m_markers, m_precPunt, m_follPunct, content which has been moved to them
+	// by the user doing a Placeholder insertion where markers or punctuation is located),
+	// 2. retranslations (we can ignore the fact these instances belong to a retranslation),
+	// 3. mergers (these give us a headache - we have to look at the stored list of original
+	// CSourcePhrase instances on each such merged one, and build the source text from those - 
+	// since they will have any sf markers in the right places, and that info is lost to the
+	// parent merged one.)
 
-	// BEW added comment 08Oct05: version 3 introduces filtering, and this complicates the picture
-	// a little. Mergers are not possible across filtered information, and so saved original
-	// sourcephrase instances within a merged sourcephrase will never contain filtered information;
-	// moreover, notes, backtranslations and free translations are things which often are created
-	// within the document after it has been parsed in, and possibly after the mergers are all done,
-	// and so we will find filtered information on a merged sourcephrase itself and never in those
-	// it stores. This means we must use m_markers from the merged sourcephrase (it may contain both
-	// filtered and unfiltered markers), and for saved originals in the merged sourcephrase we must
-	// examine all those in the m_pSavedWords sublist but the first must be given special treatment -
-	// namely, we ignore its m_markers member, but use its m_srcPhrase text.
-	// In addition, preservation of the extent of free translation text sections can only be ensured
-	// across an export and subsequent parse in to create a new document provided that the number of
-	// words in each extent (null source phrase instances are not included in the count, for source
-	// text exporting) are saved within each \free ... \free* substring in the export file. The Adapt It
-	// parser automatically uses that information and eliminates the numbers as part of the document
-	// setup process, if the input file contains free translation information.
-	SPList::Node* pos = pList->GetFirst(); //POSITION pos = pList->GetHeadPosition();
+    // BEW added comment 08Oct05: version 3 introduces filtering, and this complicates the picture
+    // a little. Mergers are not possible across filtered information, and so saved original
+    // sourcephrase instances within a merged sourcephrase will never contain filtered information;
+    // moreover, notes, backtranslations and free translations are things which often are created
+    // within the document after it has been parsed in, and possibly after the mergers are all
+    // done, and so we will find filtered information on a merged sourcephrase itself and never in
+    // those it stores. This means we must use m_markers from the merged sourcephrase (it may
+    // contain both filtered and unfiltered markers), and for saved originals in the merged
+    // sourcephrase we must examine all those in the m_pSavedWords sublist but the first must be
+    // given special treatment - namely, we ignore its m_markers member, but use its m_srcPhrase
+    // text. In addition, preservation of the extent of free translation text sections can only be
+    // ensured across an export and subsequent parse in to create a new document provided that the
+    // number of words in each extent (null source phrase instances are not included in the count,
+    // for source text exporting) are saved within each \free ... \free* substring in the export
+    // file. The Adapt It parser automatically uses that information and eliminates the numbers as
+    // part of the document setup process, if the input file contains free translation information.
+    SPList::Node* pos = pList->GetFirst(); //POSITION pos = pList->GetHeadPosition();
 	wxASSERT(pos != NULL);
 	source.Empty();
 	wxString tempStr;
 	//TRACE0("\n");
+    // BEW added 16Jan08 A boolean added in support of adequate handling of markers which get added
+    // to a placeholder due to it being inserted at the beginning of a stretch of text where there
+    // are markers. Before this, placeholders were simply ignored, which meant that if they had
+    // received moved content from the m_markers member, then that content would get lost from the
+    // source text export. So now we check for moved markers, store them temporarily, and then make
+    // sure they are relocated appropriately. Also, a local wxString to hold the markers pending
+    // placement at the correct location. (We don't need to both with punctuation movement because
+    // it is already handled by our choice of using the m_srcPhrase member - which has it still
+    // attached.)
+    bool bMarkersOnPlaceholder = FALSE;
+	wxString strPlaceholderMarkers;
+	// Note, placing the above information is tricky. We have to delay markers relocation
+	// until the first non-placeholder CSourcePhrase instance has been dealt with, because that is the
+	// CSourcePhrase instance on to which they are to be moved.
+
 	while (pos != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -13028,9 +13046,25 @@ int RebuildSourceText(wxString& source)
 		str.Empty();
 		bool hasSFM = FALSE;
 
+		// BEW added to following block 16Jan09, for handling relocated markers on placeholders
 		if (pSrcPhrase->m_bNullSourcePhrase)
 		{
-			continue;
+            // markers placement from a preceding placeholder may be pending but there may be a
+            // second or other placeholder following, which must delay their relocation until a
+            // non-placeholder CSourcePhrase is encountered. So if the bMarkersOnPlaceholder flag
+            // is TRUE, just have this placeholder ignored without the population of the local
+            // wxString variable
+ 			if (!bMarkersOnPlaceholder)
+			{
+                // markers placement from a preceding placeholder is not pending, so from this
+                // placeholder gather any m_markers information - and set the flag
+                if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					strPlaceholderMarkers = pSrcPhrase->m_markers;
+					bMarkersOnPlaceholder = TRUE;
+				}
+			}
+			continue; // ignore the rest of the current placeholder's information
 		}
 		else if (pSrcPhrase->m_nSrcWords > 1)
 		{
@@ -13040,11 +13074,31 @@ int RebuildSourceText(wxString& source)
 			// sourcephrase in the sublist can contribute only its m_srcPhrase text string,
 			// but subsequent ones in the sublist must have their m_markers member examined
 			// and its contents restored to the exported information.
-			if (!pSrcPhrase->m_markers.IsEmpty())
+			// 
+			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
+			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
+			// must be placed now on this CSourcePhrase instance (which will not itself
+			// have its m_markers member having content because its former content is now
+			// what we are attempting to replace by relocation from the preceding placeholder.
+			if (!pSrcPhrase->m_markers.IsEmpty() || bMarkersOnPlaceholder)
 			{
-				// deal with the merged sourcephrase's m_marker string, it may contain
-				// filtered markers and their content, as well as unfiltered markers
-				tempStr = pSrcPhrase->m_markers;
+                // the marker string may contain filtered markers and their content, as well as
+                // unfiltered markers
+				if (bMarkersOnPlaceholder)
+				{
+					// relocate markers earlier moved to a preceding placeholder
+					tempStr = strPlaceholderMarkers;
+					bMarkersOnPlaceholder = FALSE; // clear to default FALSE value
+					strPlaceholderMarkers.Empty(); // ready for next encounter of a placeholder
+				}
+				else
+				{
+					// the markers are on this non-placeholder CSourcePhrase instance, so
+					// deal with the merged sourcephrase's m_marker string
+					tempStr = pSrcPhrase->m_markers;
+				}
+				// because there could be filtered info in the markers string, we must
+				// remove any filter brackets (ie. \~FILTER and ending \~FILTER* pairs)
 				tempStr = pDoc->RemoveAnyFilterBracketsFromString(tempStr);
 				int nCurPos = tempStr.Find(_T("\\free"));
 				if (nCurPos != -1)
@@ -13059,6 +13113,7 @@ int RebuildSourceText(wxString& source)
 					// insert it following the marker and its delimiting space
 					tempStr = InsertInString(tempStr,nCurPos + 6,entry);
 				}
+
 				str << tempStr; //str += tempStr;
 
 				// MFC has calls to FixSFMarkers and FixSFMarkers here
@@ -13108,7 +13163,7 @@ int RebuildSourceText(wxString& source)
 			SPList::Node* posInner = pSavedList->GetFirst();
 			wxASSERT(posInner != NULL);
 
-			// process each CSourcePhrase instances contents
+			// process each CSourcePhrase instance's contents
 			bool bIsFirst = TRUE;
 			for (int index = 0; index < nWords; index++)
 			{
@@ -13169,12 +13224,31 @@ int RebuildSourceText(wxString& source)
 			// handle any stnd format markers first, and don't concatenate the source
 			// text word until after FixSFmarkers() has done its work (this allows us to
 			// ignore whether gbSfmOnlyAfterNewlines was TRUE or FALSE in the original parse)
+			// 
+			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
+			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
+			// must be placed now on this CSourcePhrase instance (which will not itself
+			// have its m_markers member having content because its former content is now
+			// what we are attempting to replace by relocation from the preceding placeholder.
 			str.Empty();
-			if (!pSrcPhrase->m_markers.IsEmpty())
+			if (!pSrcPhrase->m_markers.IsEmpty() || bMarkersOnPlaceholder)
 			{
 				// add the sourceword-initial standard format markers
-				// whm Note: m_markers may include filtered material here, so remove them
-				tempStr = pSrcPhrase->m_markers;
+				if (bMarkersOnPlaceholder)
+				{
+					// relocate markers earlier moved to a preceding placeholder
+					tempStr = strPlaceholderMarkers;
+					bMarkersOnPlaceholder = FALSE; // clear to default FALSE value
+					strPlaceholderMarkers.Empty(); // ready for next encounter of a placeholder
+				}
+				else
+				{
+					// the markers are on this non-placeholder CSourcePhrase instance, so
+					// deal with the merged sourcephrase's m_marker string
+					tempStr = pSrcPhrase->m_markers;
+				}
+				// because there could be filtered info in the markers string, we must
+				// remove any filter brackets (ie. \~FILTER and ending \~FILTER* pairs)
 				tempStr = pDoc->RemoveAnyFilterBracketsFromString(tempStr);
 				int nCurPos = tempStr.Find(_T("\\free"));
 				if (nCurPos != -1)
@@ -13254,7 +13328,7 @@ int RebuildSourceText(wxString& source)
 	// newlines, and return the length of the source text (including newlines) - this also
 	// does the operation on unstructured data (which may have "/\p " instances in it)
 
-	// wx version note: We are no longer inseting newline placeholders, so the remainder
+	// wx version note: We are no longer inserting newline placeholders, so the remainder
 	// of this function in MFC is either obsolete or now taken care of by the functionality of
 	// FormatMarkerBufferForOutput().
 
