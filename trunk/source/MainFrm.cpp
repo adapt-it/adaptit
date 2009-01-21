@@ -5330,6 +5330,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			// adaptations step entered before glosses step, which is default order
 			switch (gEditStep)
 			{
+			case noEditStep:
+				return; // don't do anything if we don't have vertical edit mode currently on
 			case backTranslationsStep:
 				// backTranslationsStep is never an entry point for the vertical edit process,
 				// but because of the potential for a failure during backTranslationsStep, we
@@ -5548,6 +5550,8 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 			// glosses step entered before adaptations step (an unusual order, selectable in Preferences...)
 			switch (gEditStep)
 			{
+			case noEditStep:
+				return; // don't do anything if we don't have vertical edit mode currently on
 			case backTranslationsStep:
 				// backTranslationsStep is never an entry point for the vertical edit process,
 				// but because of the potential for a failure during backTranslationsStep, we

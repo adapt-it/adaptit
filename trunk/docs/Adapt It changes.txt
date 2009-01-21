@@ -16,7 +16,8 @@ Version 4.1.0 update 31Jan2009:
 * The TU elements in the Knowledge Base XML files are now sorted. Some user requested this to make Subversion backups more efficient.
 * Added "Please wait..." dialogs for KB loading, saving and backup operations.
 * Fixed another bug in the Knowledge Base Editor where look ups for source phrases containing two or more merged words could sometimes result in duplicate entries in the source keys list box.
-
+* Fixes a bug in opening the Knowledge Base Editor from a source text selection, the item selected in the dialog's list was the first, rather than the one the user selected in the main window.
+* Fixes the following bug: if the user inserted a placeholder before a word or phrase where standard format markers were stored, and later did a source text standard format export, then the SF markers at that location would not be included in the exported data.
 
 Version 4.0.4 update 13Dec2008:
 

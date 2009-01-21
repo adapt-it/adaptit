@@ -12940,9 +12940,12 @@ bool CAdapt_ItView::CheckForVerticalEditBoundsError(CPile* pPile)
 			nLeftBoundSN = gEditRecord.nFreeTranslationStep_StartingSequNum;
 			nRightBoundSN = gEditRecord.nFreeTranslationStep_EndingSequNum;
 			break;
-		//case noEditStep:
-		//case sourceTextStep:
-		//case backTranslationsStep:
+		case noEditStep:
+			break;
+		case sourceTextStep:
+			break;
+		case backTranslationsStep:
+			break;
 		//	bBadSwitchValue = TRUE;
 		}
 		if ((pPile->m_pSrcPhrase->m_nSequNumber < nLeftBoundSN)
@@ -36610,6 +36613,8 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 			{
 				switch (select)
 				{
+				case pleaseIgnore:
+					return FALSE; // **TODO** eliminate this case, the return, and the enum value later on
 				case nextStep:
 					if (gbAdaptBeforeGloss)
 					{
@@ -36655,6 +36660,8 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 			{
 				switch (select)
 				{
+				case pleaseIgnore:
+					return FALSE; // **TODO** eliminate this case, the return, and the enum value later on
 				case nextStep:
 					if (gbAdaptBeforeGloss)
 					{
@@ -36700,6 +36707,8 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 			{
 				switch (select)
 				{
+				case pleaseIgnore:
+					return FALSE; // **TODO** eliminate this case, the return, and the enum value later on
 				case nextStep:
 					{
 					StoreFreeTranslationOnLeaving();
@@ -36760,6 +36769,8 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 		{
 			switch (select)
 			{
+			case pleaseIgnore:
+				return FALSE; // **TODO** eliminate this case, the return, and the enum value later on
 			case nextStep:
 				if (gbAdaptBeforeGloss)
 				{
@@ -36798,8 +36809,6 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 				wxPostEvent(gpApp->GetMainFrame(), eventCustom); // the event handlers are in CMainFrame
 				return TRUE;
 				}
-			case pleaseIgnore:
-				return FALSE; // treat as a failure to end the step
 			}
 		}
 		break;
@@ -36808,6 +36817,8 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 		{
 			switch (select)
 			{
+			case pleaseIgnore:
+				return FALSE; // **TODO** eliminate this case, the return, and the enum value later on
 			case nextStep:
 				if (gbAdaptBeforeGloss)
 				{
@@ -36846,8 +36857,6 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 				wxPostEvent(gpApp->GetMainFrame(), eventCustom); // the event handlers are in CMainFrame
 				return TRUE;
 				}
-			case pleaseIgnore:
-				return FALSE; // treat as a failure to end the step
 			}
 		}
 		break;
@@ -36856,6 +36865,8 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, Ac
 		{
 			switch (select)
 			{
+			case pleaseIgnore:
+				return FALSE; // **TODO** eliminate this case, the return, and the enum value later on
 			case nextStep:
 				{
 				StoreFreeTranslationOnLeaving(); // may result in re-storing an already stored f.t. but its safety first
