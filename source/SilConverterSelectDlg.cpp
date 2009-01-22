@@ -92,12 +92,12 @@ CSilConverterSelectDlg::CSilConverterSelectDlg(
 	
 	if (gpApp->bECDriverDLLLoaded)
 	{
+#ifdef USE_SIL_CONVERTERS
 		// whm added 30Dec08 for SIL Converters support
 		typedef int (wxSTDCALL *wxECInitConverterType)(const wxChar*,int,int);
 		wxECInitConverterType pfnECInitializeConverterAorW = (wxECInitConverterType)NULL;
 		// whm Note: The EncConverterInitializeConverter() function in ECDriver.dll only has A and W forms so we must
 		// call GetSymbolAorW() instead of GetSymbol() here.
-#ifdef USE_SIL_CONVERTERS
 		pfnECInitializeConverterAorW = (wxECInitConverterType)ecDriverDynamicLibrary.GetSymbolAorW(FUNC_NAME_EC_INITIALIZE_CONVERTER_AW);
 #endif	// end of if USE_SIL_CONVERTERS
 	}

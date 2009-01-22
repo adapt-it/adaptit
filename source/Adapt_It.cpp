@@ -10546,7 +10546,6 @@ bool CAdapt_ItApp::DoKBIntegrityCheck(wxArrayString& errors, bool bDoOnGlossingK
 		//		}
 		//	}
 		//}
-		/*
 	}
 //a:	// label not needed
 	if (bFoundErrors)
