@@ -932,12 +932,8 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
-    item1->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
     wxStaticText *item2 = new wxStaticText( parent, IDC_PLEASE_WAIT, _("Please wait while Adapt It lays out the document again. This may take a while..."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4085,7 +4081,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_OLD_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
-    item8->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
+    item8->SetToolTip( _("This is the original source text you selected  - it is read only") );
     item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -4125,6 +4121,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
     item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE );
+    item18->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
     item12->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -4220,13 +4217,13 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs9 = (wxString*) NULL;
-    wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(-1,330), 0, strs9, wxLB_SINGLE|wxLB_SORT );
+    wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(300,330), 0, strs9, wxLB_SINGLE|wxLB_SORT|wxLB_HSCROLL );
     item9->SetToolTip( _("Source words or phrases that have existing translations in the knowledge base") );
     item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item8, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
@@ -4342,8 +4339,6 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
-
     if (set_sizer)
     {
         parent->SetSizer( item0 );
@@ -4362,8 +4357,8 @@ wxSizer *KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item3 = new wxStaticText( parent, ID_STATIC_TEXT_SELECT_A_TAB, _("Number of &Words: Select a Tab according to the number of words in the Source Phrase"), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxNotebook *item5 = new wxNotebook( parent, ID_KB_EDITOR_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
 #if !wxCHECK_VERSION(2,5,2)
