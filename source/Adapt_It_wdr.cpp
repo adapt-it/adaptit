@@ -4217,7 +4217,7 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs9 = (wxString*) NULL;
-    wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(300,330), 0, strs9, wxLB_SINGLE|wxLB_SORT|wxLB_HSCROLL );
+    wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(400,330), 0, strs9, wxLB_SINGLE|wxLB_SORT|wxLB_HSCROLL );
     item9->SetToolTip( _("Source words or phrases that have existing translations in the knowledge base") );
     item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
