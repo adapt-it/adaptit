@@ -51,6 +51,7 @@ public:
 	wxListBox*		m_pListBoxExistingTranslations;
 	wxListBox*		m_pListBoxKeys;
 	wxNotebook*		m_pKBEditorNotebook;
+	wxStaticText*	m_pStaticSelectATab;
 	wxButton*		m_pBtnUpdate;
 	wxButton*		m_pBtnAdd;
 	wxButton*		m_pBtnRemove;
@@ -67,17 +68,21 @@ public:
 	wxString		m_entryCountStr;
 	wxString		m_ON;
 	wxString		m_OFF;
-	int				m_nWords;
+	int				m_nWords; // whm eliminated gnWordsInPhrase since only CBKEditor member m_nWords is needed
+	wxString		m_TheSelectedKey; // if multiple keys selected, take only the first
+
 	wxString		m_curKey;
 	int				m_nCurPage; // whm added for wx version
+
+	/// Indicates the count of entries in each of the 10 MapKeyStringToTgtUnit maps in the KB. Used for
+	/// support of preallocation of storage prior to opening KB editor with list controls of many entries.
+	int				m_nMapLength[10]; // whm eliminated gnMapLength[10] global by using an int array local to CKBEditor
+	
 	CAdapt_ItApp*	pApp;
 	CKB*			pKB;
 	CTargetUnit*	pCurTgtUnit;
 	CRefString*		pCurRefString;
 	MapKeyStringToTgtUnit* pMap;
-//#ifdef __WXGTK__
-//	bool			m_bListBoxBeingCleared;
-//#endif
 
 	void LoadDataForPage(int pageNumSel,int nStartingSelection);
 	bool IsInListBox(wxListBox* listBox, wxString str);

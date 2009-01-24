@@ -3,7 +3,7 @@
 /// \file			KBEditor.cpp
 /// \author			Bill Martin
 /// \date_created	28 April 2004
-/// \date_revised	15 January 2008
+/// \date_revised	23 January 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CKBEditor class. 
@@ -51,13 +51,10 @@
 #include "TargetUnit.h"
 #include "RefString.h"
 #include "Pile.h"
+#include "Cell.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
-
-// for support of fast access to a selected CSourcePhrase's entry in the KB
-extern int gnWordsInPhrase; // use -1 as a flag for disabling the feature
-extern wxString gTheSelectedKey; // if multiple keys selected, take only the first
 
 // for support of auto-capitalization
 
@@ -68,31 +65,31 @@ extern bool	gbAutoCaps;
 extern bool	gbSourceIsUpperCase;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbNonSourceIsUpperCase;
+//extern bool	gbNonSourceIsUpperCase;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbMatchedKB_UCentry;
+//extern bool	gbMatchedKB_UCentry;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbNoSourceCaseEquivalents;
+//extern bool	gbNoSourceCaseEquivalents;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbNoTargetCaseEquivalents;
+//extern bool	gbNoTargetCaseEquivalents;
 
 /// This global is defined in Adapt_It.cpp.
-extern bool	gbNoGlossCaseEquivalents;
+//extern bool	gbNoGlossCaseEquivalents;
 
 /// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcLC;
+//extern wxChar gcharNonSrcLC;
 
 /// This global is defined in Adapt_It.cpp.
-extern wxChar gcharNonSrcUC;
+//extern wxChar gcharNonSrcUC;
 
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcLC;
 
 /// This global is defined in Adapt_It.cpp.
-extern wxChar gcharSrcUC;
+//extern wxChar gcharSrcUC;
 
 extern bool	gbCallerIsRemoveButton;
 
@@ -103,9 +100,6 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbGlossingUsesNavFont;
-
-/// This global is defined in Adapt_It.cpp.
-extern int	gnMapLength[10];
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -128,7 +122,6 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CKBEditor::OnButtonMoveUp)
 	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CKBEditor::OnButtonMoveDown)
 	EVT_BUTTON(IDC_BUTTON_FLAG_TOGGLE, CKBEditor::OnButtonFlagToggle)
-	//EVT_BUTTON(ID_DUMMY, CKBEditor::OnAccelChangePage) // testing - not working
 END_EVENT_TABLE()
 
 
@@ -141,10 +134,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
 	// size dialog.
 
-	// wx Note: Since InsertPage also calls SetSelection (which in turn activates our OnTabSelChange
-	// handler, we need to initialize some variables before KBEditorDlgFunc is called below.
-	// Specifically m_nCurPage and pKB needs to be initialized - so no harm in putting all vars
-	// here before the dialog contorls are created via KBEditorDlgFunc.
+	// wx Note: no harm in initializing vars here before the dialog contorls are created via KBEditorDlgFunc.
 	m_edTransStr = _T("");
 	m_srcKeyStr = _T("");
 	m_refCount = 0;
@@ -152,6 +142,11 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_flagSetting = _T("");
 	m_entryCountStr = _T("");
 
+	m_TheSelectedKey = _T("");	// whm moved from the View's global space (where it was gTheSelectedKey) and 
+								// renamed it to m_TheSelectedKey as member of CKBEditor
+
+	m_nWords = -1; // whm removed gnWordsInPhrase from global space and incorporated it into m_nWords
+	
 	// whm: In the following, I've changed the "ON" to "YES" and "OFF" to "NO" because it signifies 
 	// the status of "Force Choice For This Item is ___". This makes it possible to distinguish 
 	// localizations for the other place in the program where "ON" and "OFF" is used in relation to
@@ -171,9 +166,6 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_curKey = _T("");
 	m_nWords = 1;
 	m_nCurPage = 0; // default to first page (1 Word)
-//#ifdef __WXGTK__
-//	m_bListBoxBeingCleared = FALSE;
-//#endif
 
 	KBEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
@@ -185,33 +177,13 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	// it can only be associated with a pointer after the KBEditorDlgFunc above call
 	m_pKBEditorNotebook = (wxNotebook*)FindWindowById(ID_KB_EDITOR_NOTEBOOK);
 	wxASSERT(m_pKBEditorNotebook != NULL);
-
-	// testing - can't get these to work
-    //wxAcceleratorEntry entries[10];
-    //entries[0].Set(wxACCEL_ALT, (int) '1', ID_DUMMY);
-    //entries[1].Set(wxACCEL_ALT, (int) '2', ID_DUMMY);
-    //entries[2].Set(wxACCEL_ALT, (int) '3', ID_DUMMY);
-    //entries[3].Set(wxACCEL_ALT, (int) '4', ID_DUMMY);
-    //entries[4].Set(wxACCEL_ALT, (int) '5', ID_DUMMY);
-    //entries[5].Set(wxACCEL_ALT, (int) '6', ID_DUMMY);
-    //entries[6].Set(wxACCEL_ALT, (int) '7', ID_DUMMY);
-    //entries[7].Set(wxACCEL_ALT, (int) '8', ID_DUMMY);
-    //entries[8].Set(wxACCEL_ALT, (int) '9', ID_DUMMY);
-    //entries[9].Set(wxACCEL_ALT, (int) 'W', ID_DUMMY);
-    //wxAcceleratorTable accel(WXSIZEOF(entries), entries);
-    //SetAcceleratorTable(accel);
-
-	// other attribute initializations
+	m_pStaticSelectATab = (wxStaticText*)FindWindowById(ID_STATIC_TEXT_SELECT_A_TAB);
+	wxASSERT(m_pStaticSelectATab != NULL);
 }
 
 CKBEditor::~CKBEditor()
 {
 }
-
-//void CKBEditor::OnAccelChangePage(wxCommandEvent& event)
-//{
-//	int junk = 1;
-//}
 
 // OnTabSelChange added for wx version - handles changes to new tab selection
 void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
@@ -237,25 +209,11 @@ void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
 void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event)) 
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
-	// so we must check to see if the listbox contains no items and if so return immediately. Unfortunately,
-	// OnSelchangeListSrcKeys is called before the internal listbox data is cleared so GetCount() still 
-	// returns the count of items in the list. As a work around, I've added a CKBEditor member called
-	// m_bListBoxBeingCleared boolean which is set to TRUE just before calling Clear() on the listbox
+	// so we must check to see if the listbox contains no items and if so return immediately. 
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)m_pListBoxKeys))
 	{
 		return;
 	}
-
-//#ifdef __WXGTK__
-//	if (m_pListBoxKeys->GetCount() == 0 || m_bListBoxBeingCleared)
-//	{
-//		m_bListBoxBeingCleared = FALSE;
-//		return;
-//	}
-//#else
-//	if (m_pListBoxKeys->GetCount() == 0)
-//		return;
-//#endif
 
 	wxString s;
 	// IDS_NO_ADAPTATION
@@ -348,7 +306,7 @@ void CKBEditor::OnSelchangeListSrcKeys(wxCommandEvent& WXUNUSED(event))
 	UpdateButtons();
 }
 
-void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(event)) 
+void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
 	// so we must check to see if the listbox contains no items and if so return immediately
@@ -356,26 +314,13 @@ void CKBEditor::OnSelchangeListExistingTranslations(wxCommandEvent& WXUNUSED(eve
 	{
 		return;
 	}
-	//int nCount;
-	//nCount = m_pListBoxExistingTranslations->GetCount();
-	//if (nCount == 0)
-	//	return;
 
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION // that is, "<no adaptation>" 
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	//if (nSel == -1) // LB_ERR
-	//{
-	//	// In wxGTK, when m_pListBoxExistingTranslations->Clear() is called it triggers this OnSelchangeListExistingTranslations
-	//	// handler. The following message is of little help to the user even if it were called for a genuine
-	//	// problem, so I've commented it out, so the present handler can exit gracefully
-	//	//wxMessageBox(_T("Translations list box error when getting the current selection"), 
-	//	//	_T(""), wxICON_EXCLAMATION);
-	//	//wxASSERT(FALSE);
-	//	return; //AfxAbort();
-	//}
+
 	wxString str;
 	str = m_pListBoxExistingTranslations->GetStringSelection();
 	int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
@@ -479,11 +424,7 @@ void CKBEditor::OnButtonUpdate(wxCommandEvent& WXUNUSED(event))
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	//if(nSel == -1) // LB_ERR
-	//{
-	//	::wxBell();
-	//	return;
-	//}
+
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 	wxString s;
@@ -567,12 +508,7 @@ void CKBEditor::OnAddNoAdaptation(wxCommandEvent& event)
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	//if (nSel == -1) // LB_ERR
-	//{
-	//	// error, there must be *something* in the list of translations
-	//	::wxBell();
-	//	return;
-	//}
+
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 
@@ -626,11 +562,7 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	//if (nSel == -1) // LB_ERR
-	//{
-	//	::wxBell();
-	//	return;
-	//}
+
 	wxString oldText;
 	oldText = m_pListBoxExistingTranslations->GetStringSelection();
 
@@ -708,11 +640,6 @@ void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event))
 	// stored in pCurTgtUnit)
 	int nTransSel = 0;
 	nTransSel = m_pListBoxExistingTranslations->GetSelection();
-	//if (nTransSel == -1) // LB_ERR
-	//{
-	//	::wxBell();
-	//	return;
-	//}
 
 	// get the selected string
 	wxString str;
@@ -902,12 +829,7 @@ void CKBEditor::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	//if (nSel == -1) // LB_ERR
-	//{
-	//	wxMessageBox(_("Translations list box error when getting the current selection"),
-	//																	_T(""), wxICON_EXCLAMATION);
-	//	return;
-	//}
+
 	int nOldSel = nSel; // save old selection index
 
 	// change the order of the string in the list box
@@ -978,12 +900,6 @@ void CKBEditor::OnButtonMoveDown(wxCommandEvent& WXUNUSED(event))
 
 	int nSel;
 	nSel = m_pListBoxExistingTranslations->GetSelection();
-	//if (nSel == -1) // LB_ERR
-	//{
-	//	wxMessageBox(_("Translations list box error when getting the current selection"), 
-	//																		_T(""), wxICON_EXCLAMATION);
-	//	return;
-	//}
 	int nOldSel = nSel; // save old selection index
 
 	// change the order of the string in the list box
@@ -1082,12 +998,84 @@ void CKBEditor::OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event))
 void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+
+	// wx Note: The dialog fonts for the list boxes are set by calls to
+	// SetFontAndDirectionalityForDialogControl() in the LoadDataForPage() function. That is necessary
+	// because in the wx version there are different pointers to the dialog controls for each page in
+	// the tabbed notebook, and LoadDataForPage() is where those pointers are assigned.
+
+	wxASSERT(m_pKBEditorNotebook != NULL);
+
+	if (gbIsGlossing)
+	{
+		// wx version note: All pages are added to the wxNotebook in wxDesigner
+		// so we'll simply remove all but first one.
+		int ct;
+		bool removedOK;
+		int totNumPages;
+		totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
+		// remove page 9 through page 1, leaving page 0 as the only page in the wxNoteBook
+		for (ct = totNumPages-1; ct > 0; ct--)
+		{
+			removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
+		}
+		m_pKBEditorNotebook->Layout();
+		int pgCt;
+		pgCt = m_pKBEditorNotebook->GetPageCount();
+		wxASSERT(pgCt == 1);
+
+		m_nWords = 1;
+
+		// fix the titles to be what we want (ANSI strings)
+		m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases")); //title[0].Format(IDS_GLOSSING_TAB);
+		// Hide the static text "Number of Words: Select a Tab according to the number of words in the Source
+		// Phrase" while glossing.
+		m_pStaticSelectATab->Hide(); 
+	}
+
+    // MFC Note: New feature for version 2.2.1 requested by Gene Casad. A user selection will take the
+    // first CSourcePhrase instance in the selection and open the KB editor on the appropriate page and
+    // with that source key selected, but if the key is not in the KB the selection will default to the
+    // first item of the list. The selection in the main window can be anywhere, not necessarily at the
+    // phrasebox location.
+    // 
+    // WX version Note: New feature for version 4.1.0. In addition to being able to look up the KB entry
+    // of a selected source phrase at any location, Roland Fumey requested that the KB Editor look up
+    // the source phrase that is being displayed in the phrasebox at its current location when the KB
+    // Editor is invoked. This lookup should be made whether or not the source phrase at that active
+    // location is selected or not. The only gotcha happens in the case that the source phrase at the
+    // current location had a reference count of 1 before the phrasebox landed or was placed at the
+    // current location - in which case the self-editing feature of the KB will have removed the entry
+    // from the KB even though the user sees it in the phrasebox's current location, and the KB Editor
+    // would not ordinarily be able to find it. Clearly, it would be more intuitive for the user to be
+    // able to look up the source phrase that is currently being displayed in the phrasebox.
+    // 
+    // In order to effect a successful lookup in this case we need to temporarily add the source phrase
+    // in the phrasebox back to the KB if it has just disappeared due to a reference count having
+    // decremented to zero prior to invoking the KB Editor.
+	
+	// Determine how many words are in the lookup and what key to use in the lookup.
+	if (gpApp->m_selectionLine > 0 && gpApp->m_selection.GetCount() > 0)
+	{
+		// we have a selection
+		CCellList::Node* cpos = gpApp->m_selection.GetFirst();
+		CCell* pCell = (CCell*)cpos->GetData();
+		CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
+		m_nWords = pSrcPhrase->m_nSrcWords;
+		m_TheSelectedKey = pSrcPhrase->m_key;
+
+		gpApp->GetView()->RemoveSelection(); // to be safe, on return from the KB editor we want predictability
+		//Invalidate();
+	}
+	// !!! up to here !!!
+	// TODO: refactor the following and add current source phrase back to KB when needed
+
 	int pageNumSelected;
 	// if user selected a source phrase before calling the KBEditor, start by initializing
 	// the tab page having the correct number of words
-	if (gnWordsInPhrase != -1)
+	if (m_nWords != -1)
 	{
-		pageNumSelected = gnWordsInPhrase-1;
+		pageNumSelected = m_nWords-1;
 	}
 	// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
 	// phrase at the current active location of the phrasebox.
@@ -1106,10 +1094,17 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	}
 	if (pageNumSelected != -1)
 	{
+		// whm added 22Jan09. We check to see if the source phrase at the current location (as
+		// indicated by the current contents of the phrasebox) has an entry in the KB. If it does, we
+		// continue with the normal LoadDataForPage() below. If there is no entry in the KB, we need to
+		// temporarily add the entry to the KB, so that the user will see its entry in the KB. There
+		// are two situations that could lead up to this:
+		// 1. The contents of the phrasebox existed in the KB, but had a ref count of 1 before the
+		// phrase box moved to its present location
 		m_nWords = pageNumSelected + 1;
 		LoadDataForPage(pageNumSelected,0);	
 		// In LoadDataForPage above, the parameters may be changed in
-		// LoadDataForPage if gnWordsInPhrase and gTheSelectedKey have content.
+		// LoadDataForPage if m_nWordsInPhrase and m_TheSelectedKey have content.
 	}
 }
 
@@ -1171,7 +1166,7 @@ void CKBEditor::OnOK(wxCommandEvent& event) // unused in CKBEditor
 
 void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 {
-	// In the wx vesion wxDesigner has created identical sets of controls for each
+	// In the wx version wxDesigner has created identical sets of controls for each
 	// page (nbPage) in our wxNotebook. We need to associate the pointers with the correct
 	// controls here within LoadDataForPage() which is called initially and for each
 	// tab page selected. The pointers to controls will differ for each page, hence
@@ -1179,7 +1174,6 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// FindWindowById(). I chosen not to use Validators here because of the complications
 	// of having pointers to controls differ on each page of the notebook; instead we
 	// manually transfer data between dialog controls and their variables.
-	//wxColour sysColorBtnFace = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
 	
     // set the page in wxNotebook
     // 
@@ -1278,13 +1272,6 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 									m_pListBoxExistingTranslations, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
-//#ifdef __WXGTK__
-//	m_bListBoxBeingCleared = TRUE;	// a work around so OnSelchangedListSrcKeys will know that we
-//									// are calling Clear() below (on wxGTK OnSechangedListSrcKeys is
-//									// triggered by the call to Clear(), but in OnSelchangedListSrcKeys
-//									// m_pListBoxKeys->GetCount() still returns the count before clearing
-//									// the listbox
-//#endif
 
 	// start with an empty src keys listbox
 	m_pListBoxKeys->Clear(); // whm added
@@ -1315,12 +1302,10 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			}
 			int index;
 			index = m_pListBoxKeys->Append(srcKeyStr,pCurTgtUnit); // whm modified 10Nov08 to use 2nd param
-			// In wx the index returned from wxListBox::Append on a sorted list cannot be used reliably
-			// for SetClientData; instead we must find the exact string's index in the sorted list
-			// whm update 10Nov08: In this case we can use the Append function that takes the second
-			// parameter for the client data. For KBs with hundrends of key string items, using
-			// FindListBoxItem takes too long and causes a considerable amount of time to populate the
-			// m_pListBoxKeys list box.
+			// whm update 10Nov08: We can use the Append function that takes the second parameter for 
+			// the client data. This is more efficient. For KBs with hundrends of key string items,
+			// using FindListBoxItem takes too long and causes a considerable amount of time to 
+			// populate the m_pListBoxKeys list box. Therefore I've commented out the original code below:
 			//int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, srcKeyStr, caseSensitive, exactString);
 			//wxASSERT(nNewSel != -1); // we just added it so it must be there!
 			//m_pListBoxKeys->SetClientData(nNewSel,pCurTgtUnit);
@@ -1331,15 +1316,15 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		pCurTgtUnit = 0; // no valid pointer set
 	}
 
-	// select the first string in the keys listbox by default, if possible; but if the globals
-	// gnWordsInPhrase and gTheSelectedKey have content, then try to make the selection default
-	// to gnTheSelectedKey instead, for rapid access to the desired entry.
+	// select the first string in the keys listbox by default, if possible; but if 
+	// m_nWordsInPhrase and m_TheSelectedKey have content, then try to make the selection default
+	// to m_TheSelectedKey instead, for rapid access to the desired entry.
 	m_curKey = _T("");
 	int nCount = m_pListBoxKeys->GetCount();
 	if (nCount > 0)
 	{
 		// check out if we have a desired key to be accessed first
-		if (gnWordsInPhrase > 0 && !gTheSelectedKey.IsEmpty())
+		if (m_nWords > 0 && !m_TheSelectedKey.IsEmpty())
 		{
 			// user wants a certain key selected on entry to the editor, try set it up for him
 			// If successful this will change the initial selection passed in the 3rd parameter
@@ -1350,8 +1335,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			// Note: The View's OnToolsKBEditor() sets the tab page num before ShowModal() is
 			// called.
 
-			//nLastSel = ; // setting nLastSel to gnWordsInPhrase is an error!
-			m_srcKeyStr = gTheSelectedKey;
+			m_srcKeyStr = m_TheSelectedKey;
 			int nNewSel = gpApp->FindListBoxItem(m_pListBoxKeys, m_srcKeyStr, caseInsensitive, subString);
 			if (nNewSel == -1) // LB_ERR
 			{
@@ -1363,10 +1347,10 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 		}
-		// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
-		// phrase at the current active location of the phrasebox.
 		else if (gpApp->m_pActivePile != NULL)
 		{
+			// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
+			// phrase at the current active location of the phrasebox.
 			// get the key for the source phrase at the active location
 			wxString srcKey;
 			srcKey = gpApp->m_pActivePile->m_pSrcPhrase->m_key;
@@ -1398,9 +1382,9 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		if (m_pTypeSourceBox->GetValue() != m_srcKeyStr)
 			m_pTypeSourceBox->ChangeValue(m_srcKeyStr);
 
-		// clear the globals, ready for reuse
-		gnWordsInPhrase = -1;
-		gTheSelectedKey.Empty();
+		// set members to default state, ready for reuse
+		m_nWords = -1;
+		m_TheSelectedKey.Empty();
 
 		// the above could fail, eg. if nothing is in the list box, in which case -1 will be 
 		//  put in the pCurTgtUnit variable, so change it to a zero pointer
