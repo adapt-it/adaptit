@@ -531,10 +531,6 @@ int nSequNumForLastAutoSave;
 /// frame's OnMRUFile() function.
 bool gbViaMostRecentFileList = FALSE;
 
-/// Indicates the count of entries in each of the 10 MapKeyStringToTgtUnit maps in the KB. Used for
-/// support of preallocation of storage prior to opening KB editor with list controls of many entries.
-int gnMapLength[10];
-
 /// This global is defined in PhraseBox.cpp.
 extern int nCurrentSequNum;
 
