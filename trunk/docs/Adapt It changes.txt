@@ -1,23 +1,26 @@
 Version 4.1.0 update 31Jan2009:
 
 * Sil Converters is now implemented in the Windows port. SIL Converters must first be installed on the computer to enable Adapt It's Tools Menu and Advanced Menu items related to SIL Converters. See SIL Converters documentation for more information.
-* Fixes the problem of pegging the CPU usage at near 100% while Adapt It WX is running. Now Adapt It WX should use less that 1% when the application is running but it is sitting in an idle state.
+* Fixes the problem of pegging the CPU usage at near 100% while Adapt It is running. Now Adapt It should use less than 1% when the application is running but sitting in an idle state.
 * Fixes a problem in which the View Filtered Material dialog would not size properly if the list of standard format markers had many markers in it.
 * Fixes a possible spurious error message that can appear when the WX version reads a legacy project configuration file and the user sets up Auto Capitalization in the Case page of the Preferences dialog.
 * Fixes incorrect double-click behavior of the "Translations..." listbox in the Choose Translation dialog. Before the fix a double-click might result in the wrong list item being entered, or the dialog closing with nothing happening.
 * Fixes incorrect behavior of the "Accept <no adaptation> for this item" button and the "Ignore it, I will fix it later" button in the "Inconsistency Found" dialog which can pop up in the event of an inconsistency during a Consistency Check... selection (from the Edit menu). The bug was causing these two buttons to be the same as pressing the dialog's "Cancel" button.
 * The Go To... dialog and many other dialogs now default to the OK button when the user presses Enter.
-* The Knowledge Base Editor now automatically looks up the source phrase at the current location of the phrase box, unless the user has selected a different source phrase at another location in the text at the time the Knowledge Base Editor is invoked. Note: The Knowledge base editor will not show a source phrase entry in its lists if the source phrase reference count was only 1 before the phrase box is placed at that location. To see a source phrase, whose reference count was 1, you need to move the phrase box to a different location and select the source word/phrase you wish to look up before invoking the Knowledge Base Editor.
+* The Knowledge Base Editor now automatically looks up the source phrase at the current location of the phrase box, unless the user has selected a different source phrase at another location in the text at the time the Knowledge Base Editor is invoked. 
+* Previously, the Knowledge Base Editor would not show a source phrase entry in its lists if the source phrase reference count was only 1 before the phrase box is placed at that location. In such cases, to examine a source phrase whose reference count was 1, the user had to first move the phrase box to a different location and select the source word/phrase desired for lookup, before invoking the KB Editor. Now, the source phrase appearing in the phrase box will be looked up, and foundin the KB Editor even if its reference count was 1 before the KB Editor was invoked.
+* The Knowledge Base Editor now shows only the "All Gloss Words Or Phrases" tab while Glossing is active.
 * Fixes a bug in vertical editing that resulted in the Choose Translation dialog appearing twice, the first time with none of the controls initialized, the second time with initialization done twice and so the list box had the entries doubled.
 * Fixes the following bug: in vertical edit, with glosses being done before adaptations, the phrase box was not programmatically returned to the start of the editable span in the adaptations line.
 * In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
 * Ubuntu Intrepid: Fixed the program hang/crash problem that occurred when opening the Help Topics item on the Help menu in the Linux port under Ubuntu Intrepid.
 * The "Check Knowledge Base" selection was removed from the File menu. It was not really needed and only served to make project loading take longer.
-* The TU elements in the Knowledge Base XML files are now sorted. Some user requested this to make Subversion backups more efficient.
-* Added "Please wait..." dialogs for KB loading, saving and backup operations.
-* Fixed another bug in the Knowledge Base Editor where look ups for source phrases containing two or more merged words could sometimes result in duplicate entries in the source keys list box.
-* Fixes a bug in opening the Knowledge Base Editor from a source text selection, the item selected in the dialog's list was the first, rather than the one the user selected in the main window.
+* The TU elements in the Knowledge Base XML files are now sorted. Some users requested this change to make Subversion backups more efficient.
+* Added "Please wait..." dialogs for KB loading, saving and backup operations. These operations were also optimized for speed resulting in shorter wait times when opening a project with very large KBs.
+* Fixed another bug in the Knowledge Base Editor where look ups of source phrases composed of two or more merged words could sometimes result in duplicate entries in the Source Phrase list box.
+* Fixes a bug in opening the Knowledge Base Editor from a source text selection, the item highlighted in the dialog's Source Phrase list might turn out to be the first item in the list, rather than the one the user selected in the main window.
 * Fixes the following bug: if the user inserted a placeholder before a word or phrase where standard format markers were stored, and later did a source text standard format export, then the SF markers at that location would not be included in the exported data.
+* Fixes a bug in the KB Export function that failed to insert end-of-line characters into the exported KB file (Unicode version only - the ANSI version did not have the problem).
 
 Version 4.0.4 update 13Dec2008:
 
