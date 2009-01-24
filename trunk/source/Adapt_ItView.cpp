@@ -172,10 +172,6 @@ extern wxChar gSFescapechar; // the escape char used for start of a standard for
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHasBookFolders; // TRUE when Adaptations folder is found to have Bible book
 
-// for support of fast access to a selected CSourcePhrase's entry in the KB
-int gnWordsInPhrase = -1; // use -1 as a flag for disabling the feature
-wxString gTheSelectedKey = _T(""); // if multiple keys selected, take only the first
-
 /// Used for inhibiting multiple accesses to MakeLineFourString when only one is needed.
 bool gbInhibitLine4StrCall = FALSE;
 // for suppressing MakeLineFourString in ReDoPhraseBox( ) when moving to the
@@ -823,9 +819,6 @@ bool	gbEmptyAdaptationChosen = FALSE;
 // global for alerting OnLButtonUp() that selection has been halted at a boundary
 // (set in OnMouseMove())
 bool	gbHaltedAtBoundary = FALSE;
-
-/// This global is defined in Adapt_It.cpp.
-extern	int		gnMapLength[10];
 
 /// This global is defined in Adapt_It.cpp.
 extern wxPoint gptLastClick;
@@ -22432,13 +22425,18 @@ void CAdapt_ItView::OnUpdateToolsKbEditor(wxUpdateUIEvent& event)
 }
 
 void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
-// Modified for support of glossing or adapting, for version 2.0 and onwards
 {
-	// Since the Tools KB Edit menu item has an accelerator table hot key (CTRL-K see CMainFrame)
-	// and wxWidgets accelerator keys call menu and toolbar handlers even when they are disabled,
-	// we must check for a disabled button and return if disabled.
-	// On Windows, the accelerator key doesn't appear to call the handler for a disabled menu item, but
-	// I'll leave the following code here in case it works differently on other platforms.
+    // Modified for support of glossing or adapting, for version 2.0 and onwards
+    // 
+    // whm 23Jan09 Refactored the CKBEditor class and this handler. Changes to this handler involved
+	// moving most of the intitializations of CKBEditor members to the CKBEditor class itself, and
+	// eliminating several global variables that were only used in this handler and in CKBEditor.
+    // 
+    // wx version: Since the Tools KB Edit menu item has an accelerator table hot key (CTRL-K see
+    // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when they are
+    // disabled, we must check for a disabled button and return if disabled. On Windows, the accelerator
+    // key doesn't appear to call the handler for a disabled menu item, but I'll leave the following
+    // code here in case it works differently on other platforms.
 	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
@@ -22448,135 +22446,48 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	// want the view as the owning window
-
-	wxNotebookPage* noteBookPage[10];
-	CKBEditor editorPage(pApp->GetMainFrame());
+	CKBEditor editorPage(gpApp->GetMainFrame());
 	editorPage.Centre();
 
-	wxNotebook* pKBEditorNotebook = (wxNotebook*)editorPage.FindWindowById(ID_KB_EDITOR_NOTEBOOK);
-	wxASSERT(pKBEditorNotebook != NULL);
-
-	CKB* pKBase = NULL;
-	wxString title[10];
-	if (gbIsGlossing)
-	{
-		// wx version note: All pages are added to the wxNotebook in wxDesigner
-		// so we'll simply remove all but first one.
-		int ct;
-		for (ct = 0; ct < (int)pKBEditorNotebook->GetPageCount(); ct++)
-		{
-			noteBookPage[ct] = pKBEditorNotebook->GetPage(ct);
-			if (ct > 0)
-			{
-				pKBEditorNotebook->RemovePage(ct);
-			}
-		}
-
-		noteBookPage[0] = pKBEditorNotebook->GetPage(0);
-		editorPage.m_nWords = 1;
-
-		// fix the titles to be what we want (ANSI strings)
-		title[0] = _("All Gloss Words Or Phrases"); //title[0].Format(IDS_GLOSSING_TAB);
-
-		// get the current counts for each map into the gnMapLength array
-		pKBase = pApp->m_pGlossingKB;
-		gnMapLength[0] = pKBase->m_pMap[0]->size();
-	}
-	else
-	{
-		// fix the titles to be what we want (ANSI strings)
-		title[0] = _(" Word"); //title[0].Format(IDS_ONE_WORD);
-		title[0] = _("1") + title[0];
-		title[1] = _(" Words"); //title[1].Format(IDS_PLURAL_WORDS);
-		title[1] = _("2") + title[1];
-		title[2] = _(" Words"); //title[2].Format(IDS_PLURAL_WORDS);
-		title[2] = _("3") + title[2];
-		title[3] = _(" Words"); //title[3].Format(IDS_PLURAL_WORDS);
-		title[3] = _("4") + title[3];
-		title[4] = _(" Words"); //title[4].Format(IDS_PLURAL_WORDS);
-		title[4] = _("5") + title[4];
-		title[5] = _(" Words"); //title[5].Format(IDS_PLURAL_WORDS);
-		title[5] = _("6") + title[5];
-		title[6] = _(" Words"); //title[6].Format(IDS_PLURAL_WORDS);
-		title[6] = _("7") + title[6];
-		title[7] = _(" Words"); //title[7].Format(IDS_PLURAL_WORDS);
-		title[7] = _("8") + title[7];
-		title[8] = _(" Words"); //title[8].Format(IDS_PLURAL_WORDS);
-		title[8] = _("9") + title[8];
-		title[9] = _(" Words"); //title[9].Format(IDS_PLURAL_WORDS);
-		title[9] = _("10") + title[9];
-		int ii;
-
-		// get the current counts for each map into the gnMapLength array
-		pKBase = pApp->m_pKB;
-		for (ii=0; ii<MAX_WORDS; ii++)
-		{
-			gnMapLength[ii] = pKBase->m_pMap[ii]->size();
-		}
-	}
-
-	// use the current source and target language fonts for the list boxes
-	// and edit boxes (in case there are special characters)
-	// make the fonts show user's desired point size in the dialog
-	CopyFontBaseProperties(pApp->m_pSourceFont,pApp->m_pDlgSrcFont);
-	pApp->m_pDlgSrcFont->SetPointSize(pApp->m_dialogFontSize);
-
-	CopyFontBaseProperties(pApp->m_pTargetFont,pApp->m_pDlgTgtFont);
-	pApp->m_pDlgTgtFont->SetPointSize(pApp->m_dialogFontSize);
-
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		// in this situation press m_pDlgTgtFont into service for the display of glosses
-		// since we don't have an m_pDlgNavTextFont member in the app class
-		CopyFontBaseProperties(pApp->m_pNavTextFont,pApp->m_pDlgTgtFont);
-		pApp->m_pDlgTgtFont->SetPointSize(pApp->m_dialogFontSize);
-	}
-
+	
 	// New feature for version 2.2.1 requested by Gene Casad. A user selection will take the
 	// first CSourcePhrase instance in the selection and open the KB editor on the appropriate
 	// page and with that source key selected, but if the key is not in the KB the selection
 	// will default to the first item of the list. The selection in the main window can be
 	// anywhere, not necessarily at the phrasebox location.
-	if (pApp->m_selectionLine > 0 && pApp->m_selection.GetCount() > 0)
-	{
-		// we have a selection
-		CCellList::Node* cpos = pApp->m_selection.GetFirst();
-		CCell* pCell = (CCell*)cpos->GetData();
-		CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
-		gnWordsInPhrase = pSrcPhrase->m_nSrcWords;
-		gTheSelectedKey = pSrcPhrase->m_key;
+	//if (gpApp->m_selectionLine > 0 && gpApp->m_selection.GetCount() > 0)
+	//{
+	//	// we have a selection
+	//	CCellList::Node* cpos = gpApp->m_selection.GetFirst();
+	//	CCell* pCell = (CCell*)cpos->GetData();
+	//	CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
+	//	editorPage.m_nWords = pSrcPhrase->m_nSrcWords;
+	//	editorPage.m_TheSelectedKey = pSrcPhrase->m_key;
 
-		// set the active page to be shown first; for glossing ON, this will always be the one
-		// and only first page, but for adapting mode ON, this could be any of 10 pages
-		if (!gbIsGlossing)
-		{
-			editorPage.m_nWords = gnWordsInPhrase; // whm added
-		}
-		RemoveSelection(); // to be safe, on return from the KB editor we want predictability
-		Invalidate();
-	}
+	//	RemoveSelection(); // to be safe, on return from the KB editor we want predictability
+	//	Invalidate();
+	//}
 
 	if (editorPage.ShowModal() == wxID_OK) 
 	{
 		// make the user's changes to the KB persistent (FALSE = no Auto backup)
+		// whm TODO: Saving of KBs should only be done if a change was made in the KB Editor
 		if (gbIsGlossing)
-			pApp->SaveGlossingKB(FALSE);
+			gpApp->SaveGlossingKB(FALSE);
 		else
-			pApp->SaveKB(FALSE);
+			gpApp->SaveKB(FALSE);
 	}
 
 	// restore focus to the targetBox
-	if (pApp->m_pTargetBox != NULL)
+	if (gpApp->m_pTargetBox != NULL)
 	{
-		if (pApp->m_pTargetBox->IsShown())
+		if (gpApp->m_pTargetBox->IsShown())
 		{
-			int len = pApp->m_targetPhrase.Length();
+			int len = gpApp->m_targetPhrase.Length();
 			gnStart = len;
 			gnEnd = len;
-			pApp->m_pTargetBox->SetSelection(len,len);
-			pApp->m_pTargetBox->SetFocus();
+			gpApp->m_pTargetBox->SetSelection(len,len);
+			gpApp->m_pTargetBox->SetFocus();
 		}
 	}
 }
@@ -28766,6 +28677,7 @@ a:			for (iter = pKB->m_pMap[numWords-1]->begin(); iter != pKB->m_pMap[numWords-
 // encoding they could use a TECKit mapping after the export is done - safer way to go)
 //						gpApp->ConvertAndWrite(pApp->m_srcEncoding,pFile,key); // source text
 						gpApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,key); // source text
+						gpApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,gpApp->m_eolStr); // whm added fix 23Jan09 
 						bDelayed = FALSE;
 					}
 
@@ -28797,10 +28709,10 @@ a:			for (iter = pKB->m_pMap[numWords-1]->begin(); iter != pKB->m_pMap[numWords-
 					gpApp->ConvertAndWrite(gpApp->m_tgtEncoding,pFile,gloss);
 */
 					gpApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,gloss);
+					gpApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,gpApp->m_eolStr); // whm added fix 23Jan09 
 				}
 
 				// write a blank line
-//				gpApp->ConvertAndWrite(gpApp->m_srcEncoding,pFile,endText);
 				gpApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,gpApp->m_eolStr); //gpApp->ConvertAndWrite(eUTF8,pFile,endText);
 #endif
 			}
