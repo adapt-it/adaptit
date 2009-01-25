@@ -5256,7 +5256,8 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 
 		// restore the original mode, 
 		pView->RestoreMode(gbEnableGlossing, gbIsGlossing, &gEditRecord);
-
+		gEditStep = noEditStep; // no need to pretend any longer that vertical edit is in a step
+		
 		// put the phrase box at a suitable and safe location in the document
 		pView->RestoreBoxOnFinishVerticalMode();
 

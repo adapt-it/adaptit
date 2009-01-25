@@ -822,6 +822,7 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 ///	splitting at the box location, and at the next chapter.
 ///	Created 15Aug07 by BEW, in response to an email bug report from Bill Martin on same date
 ///	Revised 22Oct07 by whm to accommodate the different logic of wxStringTokenizer
+///	No change made, but in 2008 used additionally in the vertical edit process
 // ///////////////////////////////////////////////////////////////////////////////////////////////////
 wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet, bool& bLacksAny,
 								 bool bCopyOnly)

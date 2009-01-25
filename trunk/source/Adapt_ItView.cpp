@@ -32508,8 +32508,15 @@ bool CAdapt_ItView::TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrc
 	// of now-filtered information, RemoveInitialEndmarkers does not handle that, and the SFM set is irrelevant,
 	// so we handle that possibility first. There can't be both now-filtered info AND endmarkers to be transferred
 	// as well, only one or the other, or neither.
+	// BEW added 24Jan09: support for non-endmarker(s) in m_markers of a carrier CSourcePhrase
+	// with m_srcPhrase and m_follPunct members empty (this can happen if, in the dialog, after
+	// the user's edit, there is only non-endmarkers in the edit box, or, at the end of the edited string
+	// he adds final non-endmarkers for some reason) -- we need a bHasNonEndmarkers bool flag, and
+	// a block for processing any such
 	bool bLacksEndmarkers = FALSE; // default, because of the logic further down
+	bool bHasNonEndmarkers = FALSE; // default; BEW added 24Jan09
 	wxString endmarkers;
+	wxString nonEndmarkers; // BEW added 24Jan09
 	wxString filteredInfo;
 	bool bFilteredInfoToBeTransferred = FALSE;
 	pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // start off assuming there is none to be handled
@@ -32521,7 +32528,8 @@ bool CAdapt_ItView::TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrc
 		// has to be handled further down in the function -- but don't do it yet because it only needs
 		// to be done provided pLastSrcPhrase's m_key and m_follPunct CString members are both empty
 		bFilteredInfoToBeTransferred = TRUE;
-		filteredInfo = pLastSrcPhrase->m_markers;
+		filteredInfo = pLastSrcPhrase->m_markers; // note, if non-endmarker(s) followed the filtered info,
+												  // this copy transfers them too (we want that to happen)
 		pRec->strNewFinalEndmarkers.Empty(); // ensure this member is empty, there can't be endmarkers if
 									// it is now-filtered information that possibly needs to be transferred
 	}
@@ -32530,29 +32538,56 @@ bool CAdapt_ItView::TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrc
 		// there isn't any now-filtered info, but there might be endmarkers, so check and handle the
 		// removal of those from pLastSrcPhrase
 		pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // none to transfer
-		// now try for endmarkers instead
+		// now try for endmarkers instead (final parameter bCopyOnly, default FALSE, is unchanged --
+		// so that if endmarkers are removed, pLastSrcPhrase will be returned without them in its
+		// m_marker member)
 		endmarkers = RemoveInitialEndmarkers(pLastSrcPhrase, gpApp->gCurrentSfmSet, bLacksEndmarkers);
 		if (bLacksEndmarkers)
 		{
 			pRec->strNewFinalEndmarkers.Empty(); // ensure the member is empty
 		}
-		// we don't do an else block here in which we do the store, because we only store the endmarkers
-		// in pRec provided they get transferred, and we aren't sure we need to yet - until we test for
-		// empty key and m_follPunct members below
-	}
+		// BEW change 24Jan09: (see comment above too) since pLastSrcPhrase now has any initial
+		// endmarkers removed, or there were none, we must now check if there are still any
+		// non-endmarkers present, and if so put them in nonEndmarkers and set the
+		// bHasNonEndmarkers flag, because these must be transferred to if the conditions that
+		// m_srcPhrase and m_follPunct are both empty are met
+		if (!pLastSrcPhrase->m_markers.IsEmpty())
+		{
+			// something is still there, so we must store it for potential transfer below
+			nonEndmarkers = pLastSrcPhrase->m_markers;
+			bHasNonEndmarkers = TRUE;
+		}
+        // we don't do the store of any of the above stuff here, because we only store the
+        // endmarkers in pRec provided they get transferred, and we aren't sure we need to yet -
+        // until we test for empty key and m_follPunct members below
+    }
 
-	// we have some endmarkers or filtered info to transfer - do so, but only provided pLastSrcPhrase's
-	// m_key and m_follPunct CString members are both empty
-	if (bFilteredInfoToBeTransferred || !bLacksEndmarkers)
+    // we have some endmarkers or filtered info or non-endmarkers to transfer - do so, but only
+    // provided pLastSrcPhrase's m_key and m_follPunct CString members are both empty; do in the
+    // order 1. filtered stuff first (if any non-endmarkers are following it, they are carried
+    // along for the ride, so this is safe), then any non-endmarkers (because any after filtered
+    // stuff are already dealt with, and so we now handle any which are not accompanied by filtered
+    // info), and lastly endmarkers - these belong logically to information preceding
+    // CSourcePhrases in the document and so must be first in the final m-markers member which
+    // stores any or all of this stuff
+	if (bFilteredInfoToBeTransferred || !bLacksEndmarkers || bHasNonEndmarkers)
 	{
 		// only do the transfer provided there is something there to be transferred in the first place;
 		// and only if the relevant members are empty (which indicates a CSourcePhrase otherwise unwanted)
 		if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_follPunct.IsEmpty())
 		{
+			// if we are transferring something, then transfer a m_bFirstOfType == TRUE value,
+			// provided the pFollSrcPhrase member of same name is not itself TRUE
+			if (!pFollSrcPhrase->m_bFirstOfType && pLastSrcPhrase->m_bFirstOfType)
+			{
+				pFollSrcPhrase->m_bFirstOfType = TRUE; // needs to be set to ensure nav text gets rewritten
+			}
+
 			// in either case, the stuff is transferred to the start of the destination m_markers member
 			if (bFilteredInfoToBeTransferred)
 			{
-				// it's filtered information we are dealing with
+				// it's filtered information we are dealing with (and it might have one or more
+				// non-endmarkers following it - if so, they go along for the ride)
 				pFollSrcPhrase->m_markers = filteredInfo + pFollSrcPhrase->m_markers;
 
 				// record, in the EditRecord, what we just did
@@ -32597,11 +32632,25 @@ bool CAdapt_ItView::TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrc
 			}
 			else
 			{
-				// its endmarkers we are dealing with
+				// its endmarkers we are dealing with, and possibly non-endmarkers too
+				// first store non-endmarkers, if any
+				if (bHasNonEndmarkers)
+				{
+					pFollSrcPhrase->m_markers = nonEndmarkers + pFollSrcPhrase->m_markers;
+
+					// these can be expected to have content in m_inform, so transfer that
+					// information too
+					pFollSrcPhrase->m_inform = pLastSrcPhrase->m_inform + pFollSrcPhrase->m_inform;
+				}
+
+				// now transfer the endmarkers - they must be the last transfer
 				pFollSrcPhrase->m_markers = endmarkers + pFollSrcPhrase->m_markers;
 
-				// store the endmarkers, in case we later need to retore the original document state
-				pRec->strNewFinalEndmarkers = endmarkers;
+                // now store in the EditRecord the endmarkers themselves, in case we later need to
+                // restore the original document state
+                pRec->strNewFinalEndmarkers = endmarkers;
+// *** TODO *** check if pRec needs strTransferredNonEndmarkers for doc restoration -- see what
+// pRec->bTransferredFilterStuffFromCarrierSrcPhrase is used for elsewhere, and also pRec->strNewFinalEndmarkers
 			}
 
 			// now delete the carrier, pLastSrcPhrase, which is no longer needed & update the
@@ -34090,7 +34139,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 	// what we do depends on where the active pile is when this function is called. If the user has
 	// clicked the End Now button while the phrase box is still in an active editing step of Vertical Edit,
 	// then it is appropriate to save the box contents to the KB before restoring the phrase box to
-	// the original position or suitable placee nearby. On the other had, if the box has been advanced in
+	// the original position or suitable placee nearby. On the other hand, if the box has been advanced in
 	// the lookup loop and has reached the end of the current span and the dialog asking the user to either
 	// click Next Step, Previous Step, End Now or Cancel All Steps is showing and he elects to End Now, then
 	// the phrase box will be disengaged from the active pile: the box will be showing at the last pile in
@@ -34128,7 +34177,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 			}
 			break;
 		case freeTranslationsStep:
-			bFreeTransStepIsCurrent = FALSE;
+			bFreeTransStepIsCurrent = TRUE;
 			if (nCurSequNum >= pRec->nFreeTranslationStep_StartingSequNum &&
 				nCurSequNum <= pRec->nFreeTranslationStep_EndingSequNum)
 			{
@@ -34152,7 +34201,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 			// make sure m_targetPhrase doesn't have any final spaces
 			RemoveFinalSpaces(gpApp->m_pTargetBox,&gpApp->m_targetPhrase);
 
-			// any existing phraseBox text must be saved to the KB or glossingKB, unless its empty
+			// any existing phraseBox text must be saved to the KB or glossingKB, unless it's empty
 			if (!gpApp->m_targetPhrase.IsEmpty())
 			{
 				if (gpApp->m_pTargetBox->IsModified()) //MFC uses GetModify()
@@ -34173,8 +34222,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 					if (gbIsGlossing)
 					{
 						// the store attempt would fail if the user earlier edited the entry out of
-						// the glossingKB, as the latter cannot know which srcPhrases will be affected
-						// by such a change, so these in the document would still have their 
+						// the glossing KB, as the glossing KB cannot know which srcPhrases will be
+						// affected by such a change, so these in the document would still have their 
 						// m_bHasGlossingKBEntry set true. We have to test for this, ie. a
 						// null pRefString, but that flag being TRUE is a sufficient test, and if so,
 						// set the flag to FALSE
@@ -34191,7 +34240,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 						RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
 
 						// the store attempt would fail if the user earlier edited the entry out of
-						// the adaptation KB, as the latter cannot know which srcPhrases will be affected
+						// the adaptation KB, as the adaptation KB cannot know which srcPhrases will be affected
 						// by such a change, so these in the document would still have their 
 						// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString,
 						// but that flag being TRUE is a sufficient test, and if so, set the flag to FALSE
@@ -35174,6 +35223,9 @@ bailout:	pAdaptList->Clear();
 		CPile* pFirst = GetPile(pRec->nStartingSequNum);
 		bFirstIsFirstOfType = pFirst->m_pSrcPhrase->m_bFirstOfType; // use this later below
 
+		// treat the doc as dirty, regardeless of the outcome
+		pDoc->Modify(TRUE);
+
 		// Before we do anything to the CSourcePhrase instances, we have to set up a correct
 		// value for the chapter number used in the Document's member m_curChapter, which is to
 		// have a value of the form "n:" where n is the chapter number. We have a legacy function
@@ -35223,7 +35275,7 @@ bailout:	pAdaptList->Clear();
 				}
 			}
 		}
-
+		 
 		// Detect whether or not the user has edited the SF markers - specifically, if there is
 		// at least one SF marker in the edited text which is not in the original text, or vise
 		// versa. If either is the case, we later want to call DoMarkerHousekeeping() over the whole
@@ -35321,17 +35373,18 @@ bailout:	pAdaptList->Clear();
 		// after the document has been modified
 		gbEditingSourceAndDocNotYetChanged = FALSE;
 
-		// Before going further, we must replace the CSourcePhrase instances in the cancel span with
-		// the modified ones in the modifications list. This is to ensure that the changed CSourcePhrase
-		// instances resulting from the removed information which was removed prior to displaying the
-		// dialog, actually find their way into the document -- the instances we are particularly
-		// concerned with are those (if any) preceding the start of the editable span, and those (if any)
-		// which follow the end of the editable span, because those are not changed when the editable
-		// span's content is replaced by the CSourcePhrase instances resulting from the parse of the
-		// user's edited source text; so if we didn't do this substitution now, we'd run the risk of
-		// the old free translations, & collected back translations, remaining present (filtered) in
-		// those preceding and following contexts, when in actual fact we want them removed so that the
-		// vertical edit process can help the user to reconstitute them with appropriate changes.
+        // Before going further, we must replace the CSourcePhrase instances in the cancel span
+        // with the modified ones in the modifications list. This is to ensure that the changed
+        // CSourcePhrase instances resulting from the removed information which was removed prior
+        // to displaying the dialog, actually find their way into the document -- the instances we
+        // are particularly concerned with are those (if any) preceding the start of the editable
+        // span, and those (if any) which follow the end of the editable span, because those are
+        // not changed when the editable span's content is replaced by the CSourcePhrase instances
+        // resulting from the parse of the user's edited source text; so if we didn't do this
+        // substitution now, we'd run the risk of the old free translations, & collected back
+        // translations, remaining present (filtered) in those preceding and following contexts,
+        // when in actual fact we want them removed so that the vertical edit process can help the
+        // user to reconstitute them with appropriate changes.
 
 		/*
 		// check the spans
@@ -35405,27 +35458,40 @@ bailout:	pAdaptList->Clear();
 		}
 		*/
 
-		// Because the user can edit the markup as readily as the source text, we cannot assume that
-		// the old source text without any final endmarkers will remain that way, nor the old source
-		// text with final endmarkers will remain that way, or even that markers (and therefore
-		// TextType) won't change from what was in effect before. The user may also have respelled a
-		// mispelled marker, resulting in content being filtered. So we must assume nothing and check
-		// to see what is there, and do processing appropriate for what we find. The first task is
-		// to check the list of new CSourcePhrase instances to see if the end one is an insertion
-		// just to carry widowed endmarkers or filtered info that was at the end of the edited source
-		// text string. If either is the case, we need to do: (1) for unfiltered endmarkers, move those
-		// endmarkers to the start of the first CSourcePhrase instance in the following context -
-		// specifically, to the start of its m_markers member; and then remove that carrier CSourcePhrase
-		// instance - we can determine it is a carrier by checking that the m_follPunct and m_key members
-		// are both empty strings. For (2), a carrier with now-filtered information, that information will
-		// have been put into the m_markers member of the carrier, and the same tests as in (1) apply. In
-		// either case we can't remove the carrier if there is no following context (ie. the user's edit
-		// was done at the very end of the document). We set up members of the EditRecord to store the
-		// pre-edit information (in case the user Cancels, or an exception forces bail out back to the
-		// pre-edit document state).
+        // Because the user can edit the markup as readily as the source text, we cannot assume
+        // that the old source text without any final endmarkers will remain that way, nor the old
+        // source text with final endmarkers will remain that way, or even that markers (and
+        // therefore TextType) won't change from what was in effect before. The user may also have
+        // respelled a mispelled marker, resulting in content being filtered. So we must assume
+        // nothing and check to see what is there, and do processing appropriate for what we find.
+        // The first task is to check the list of new CSourcePhrase instances to see if the end one
+        // is an insertion just to carry widowed endmarkers or filtered info that was at the end of
+        // the edited source text string. If either is the case, we need to do: (1) for unfiltered
+        // endmarkers, move those endmarkers to the start of the first CSourcePhrase instance in
+        // the following context - specifically, to the start of its m_markers member; and then
+        // remove that carrier CSourcePhrase instance - we can determine it is a carrier by
+        // checking that the m_follPunct and m_key members are both empty strings. For (2), a
+        // carrier with now-filtered information, that information will have been put into the
+        // m_markers member of the carrier, and the same tests as in (1) apply. In either case we
+        // can't remove the carrier if there is no following context (ie. the user's edit was done
+        // at the very end of the document). We set up members of the EditRecord to store the
+        // pre-edit information (in case the user Cancels, or an exception forces bail out back to
+        // the pre-edit document state).
+
+        // BEW additions 24Jan09: we must also handle (1) user's edit leaves just SF markers in the
+        // edit box; (2) user's edit leaves SF markers other than endmarkers at the end of the
+        // edited string. Situation (1) generates an empty single CSourcePhrase storing the markers
+        // in m_markers, so we need to move those contents to the following context's first
+        // CSourcePhrase and remove the empty CSourcePhrase if was on. Situation (2) - we just need
+        // to ensure that the existing code moves not just endmarkers to the first CSourcePhrase in
+        // following context, but any initial markers too (no check is done on the markers if more
+        // than one, we just assume the user got them right - he can edit again if he didn't).
+
+
 		gpFollSrcPhrase = NULL; // a global CSourcePhrase*
 		int nFollowingSequNum = pRec->nEndingSequNum + 1;
-		SPList::Node* posFoll = pSrcPhrases->Item(nFollowingSequNum); //POSITION posFoll = pSrcPhrases->FindIndex(nFollowingSequNum); // returns NULL if out of bounds
+		SPList::Node* posFoll = pSrcPhrases->Item(nFollowingSequNum); // returns NULL if out of bounds
+			// was POSITION posFoll = pSrcPhrases->FindIndex(nFollowingSequNum); 
 		if (posFoll != NULL)
 		{
 			// we are not at the end of the document, so there is following context
