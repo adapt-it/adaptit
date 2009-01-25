@@ -125,7 +125,7 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Downloads: "), wxDefaultPosition, wxDefaultSize, 0 );
     item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, wxT("  http://adaptit.ebt.cx/"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, wxT("  http://adapt-it.org/"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item12->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
