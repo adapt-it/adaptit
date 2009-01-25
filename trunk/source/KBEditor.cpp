@@ -109,6 +109,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 // event handler table
 BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_INIT_DIALOG(CKBEditor::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_BUTTON(wxID_CANCEL, CKBEditor::OnCancel)
+	EVT_BUTTON(wxID_OK, CKBEditor::OnOK)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_KB_EDITOR_NOTEBOOK, CKBEditor::OnTabSelChange)
 	EVT_LISTBOX(IDC_LIST_SRC_KEYS, CKBEditor::OnSelchangeListSrcKeys)
 	EVT_LISTBOX(IDC_LIST_EXISTING_TRANSLATIONS, CKBEditor::OnSelchangeListExistingTranslations)
@@ -166,6 +168,8 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_curKey = _T("");
 	m_nWords = 1;
 	m_nCurPage = 0; // default to first page (1 Word)
+	
+	bKBEntryTemporarilyAddedForLookup = FALSE;
 
 	KBEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
@@ -1005,34 +1009,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	// the tabbed notebook, and LoadDataForPage() is where those pointers are assigned.
 
 	wxASSERT(m_pKBEditorNotebook != NULL);
-
-	if (gbIsGlossing)
-	{
-		// wx version note: All pages are added to the wxNotebook in wxDesigner
-		// so we'll simply remove all but first one.
-		int ct;
-		bool removedOK;
-		int totNumPages;
-		totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
-		// remove page 9 through page 1, leaving page 0 as the only page in the wxNoteBook
-		for (ct = totNumPages-1; ct > 0; ct--)
-		{
-			removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
-		}
-		m_pKBEditorNotebook->Layout();
-		int pgCt;
-		pgCt = m_pKBEditorNotebook->GetPageCount();
-		wxASSERT(pgCt == 1);
-
-		m_nWords = 1;
-
-		// fix the titles to be what we want (ANSI strings)
-		m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases")); //title[0].Format(IDS_GLOSSING_TAB);
-		// Hide the static text "Number of Words: Select a Tab according to the number of words in the Source
-		// Phrase" while glossing.
-		m_pStaticSelectATab->Hide(); 
-	}
-
+	
     // MFC Note: New feature for version 2.2.1 requested by Gene Casad. A user selection will take the
     // first CSourcePhrase instance in the selection and open the KB editor on the appropriate page and
     // with that source key selected, but if the key is not in the KB the selection will default to the
@@ -1054,7 +1031,9 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
     // in the phrasebox back to the KB if it has just disappeared due to a reference count having
     // decremented to zero prior to invoking the KB Editor.
 	
-	// Determine how many words are in the lookup and what key to use in the lookup.
+    // If any source phrase is selected, determine how many words are in the selection and what key to
+	// use in the lookup. The m_nWords and m_TheSelectedKey members need to be set regardless of
+	// whether the app is in active Glossing mode or not.
 	if (gpApp->m_selectionLine > 0 && gpApp->m_selection.GetCount() > 0)
 	{
 		// we have a selection
@@ -1064,34 +1043,96 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 		m_nWords = pSrcPhrase->m_nSrcWords;
 		m_TheSelectedKey = pSrcPhrase->m_key;
 
+        // If the Pile at this selection is the same as the active location's Pile we need to call
+        // StoreBeforeProceeding() and set the bKBEntryTemporarilyAddedForLookup flag here too as in the
+        // "else if" block below.
+		if (gpApp->m_pActivePile != NULL && pCell->m_pPile == gpApp->m_pActivePile)
+		{
+			gpApp->GetView()->StoreBeforeProceeding(gpApp->m_pActivePile->m_pSrcPhrase);
+			bKBEntryTemporarilyAddedForLookup = TRUE;
+		}
 		gpApp->GetView()->RemoveSelection(); // to be safe, on return from the KB editor we want predictability
-		//Invalidate();
 	}
-	// !!! up to here !!!
-	// TODO: refactor the following and add current source phrase back to KB when needed
-
-	int pageNumSelected;
-	// if user selected a source phrase before calling the KBEditor, start by initializing
-	// the tab page having the correct number of words
-	if (m_nWords != -1)
-	{
-		pageNumSelected = m_nWords-1;
-	}
-	// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
-	// phrase at the current active location of the phrasebox.
 	else if (gpApp->m_pActivePile != NULL)
 	{
-		int nWords;
-		nWords = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords;
-		if (nWords != -1)
-			pageNumSelected = nWords-1;
-		else
-			pageNumSelected = m_pKBEditorNotebook->GetSelection();
+        // No selection is active, but we have a valid active location, so use the source phrase
+        // at the active location for lookup.
+		m_nWords = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords;
+		m_TheSelectedKey = gpApp->m_pActivePile->m_pSrcPhrase->m_key;
+
+		// Determine if there is a KB entry for the source phrase at his active location. If not, then
+        // the ref count probably was decremented to zero prior to our arrival here, so we should
+        // temporarily add it back to the KB so that the user will be able to successfully look up that
+        // entry. The View's StoreBeforeProceeding() function does this.
+		gpApp->GetView()->StoreBeforeProceeding(gpApp->m_pActivePile->m_pSrcPhrase);
+		bKBEntryTemporarilyAddedForLookup = TRUE;
+	}
+	else
+	{
+		// No selection is active and there is no valid active location (which can happen, for example,
+		// after finishing adaptation at end of the document), so set suitable defaults.
+		m_nWords = -1;
+		m_TheSelectedKey = _T("");
+	}
+
+
+    // Determine which tab page needs to be pre-selected. 
+    // 
+	// When Glossing mode is active, all notebook tabs except the first need to be removed, the
+	// first tab needs to be renamed to "All Gloss Words Or Phrases", and the pageNumSelected must be
+	// set to an index value of 0.
+	// 
+	// When Glossing mode is not active, the pageNumSelected is set as follows depending on what the
+	// circumstances are when the KB Editor is invoked:
+	// 1. When there was a source phrase selection, the pageNumSelected should be one less than the number of 
+	// words in the source phrase selection.
+	// 2. When there was no source phrase selection, the pageNumSelected should be one less than the number of 
+	// words in the phrase box at the active location.
+    // 3. , or if m_nWords is -1, if user selected a source phrase before calling the
+    // KBEditor, start by initializing the tab page having the correct number of words.
+	int pageNumSelected;
+
+	if (gbIsGlossing)
+	{
+		// First, configure the wxNoteBook for Glossing: Remove all but the first tab page and rename
+		// that first tab page to "All Gloss Words Or Phrases".
+		// 
+		// wx version note: All pages are added to the wxNotebook in wxDesigner
+		// so we'll simply remove all but first one.
+		int ct;
+		bool removedOK;
+		int totNumPages;
+		totNumPages = (int)m_pKBEditorNotebook->GetPageCount();
+		// remove page 9 through page 1, leaving page 0 as the only page in the wxNoteBook
+		for (ct = totNumPages-1; ct > 0; ct--)
+		{
+			removedOK = m_pKBEditorNotebook->RemovePage(ct); // ct counts down from 9 through 1
+		}
+		m_pKBEditorNotebook->Layout();
+		int pgCt;
+		pgCt = m_pKBEditorNotebook->GetPageCount();
+		wxASSERT(pgCt == 1);
+
+		// fix the titles to be what we want (ANSI strings)
+		m_pKBEditorNotebook->SetPageText(0, _("All Gloss Words Or Phrases")); //title[0].Format(IDS_GLOSSING_TAB);
+		// Hide the static text "Number of Words: Select a Tab according to the number of words in the Source
+		// Phrase" while glossing.
+		m_pStaticSelectATab->Hide(); 
+
+		// Now, that the wxNoteBook is configured, set pageNumSelected.
+		// When Glossing is active there is always only one tab and its index number is 0.
+		pageNumSelected = 0;
+	}
+	else if (m_nWords != -1)
+	{
+		// the pageNumSelected is one less than m_nWords. If m_nWords is zero, 
+		pageNumSelected = m_nWords-1;
 	}
 	else
 	{
 		pageNumSelected = m_pKBEditorNotebook->GetSelection();
 	}
+	
 	if (pageNumSelected != -1)
 	{
 		// whm added 22Jan09. We check to see if the source phrase at the current location (as
@@ -1156,11 +1197,45 @@ bool CKBEditor::AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr)
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
-void CKBEditor::OnOK(wxCommandEvent& event) // unused in CKBEditor
+void CKBEditor::OnOK(wxCommandEvent& event)
 {
+	if (bKBEntryTemporarilyAddedForLookup)
+	{
+		int nWords;
+		// RemoveRefString below will internally calc nWords - 1 to get map page so we must increment the
+		// zero based page index here, for it to come out right within RemoveRefString.
+		nWords = m_pKBEditorNotebook->GetSelection() + 1; 
+		CAdapt_ItView* pView = gpApp->GetView();
+		CRefString* pRefString;
+		if (gbIsGlossing)
+			pRefString = pView->GetRefString(pView->GetKB(),nWords,gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_pActivePile->m_pSrcPhrase->m_gloss);
+		else
+			pRefString = pView->GetRefString(pView->GetKB(),nWords,gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_pActivePile->m_pSrcPhrase->m_adaption);
+		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->m_pSrcPhrase,nWords);
+	}
+
+	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
+void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event)) 
+{
+	if (bKBEntryTemporarilyAddedForLookup)
+	{
+		int nWords;
+		// RemoveRefString below will internally calc nWords - 1 to get map page so we must increment the
+		// zero based page index here, for it to come out right within RemoveRefString.
+		nWords = m_pKBEditorNotebook->GetSelection() + 1;
+		CAdapt_ItView* pView = gpApp->GetView();
+		CRefString* pRefString;
+		if (gbIsGlossing)
+			pRefString = pView->GetRefString(pView->GetKB(),nWords,gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_pActivePile->m_pSrcPhrase->m_gloss);
+		else
+			pRefString = pView->GetRefString(pView->GetKB(),nWords,gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_pActivePile->m_pSrcPhrase->m_adaption);
+		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->m_pSrcPhrase,nWords);
+	}
+	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
+}
 
 // other class methods
 
@@ -1418,6 +1493,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	{
 		TranslationsList::Node* pos = pCurTgtUnit->m_pTranslations->GetFirst();
 		wxASSERT(pos != NULL);
+		int nMatchedRefString = -1; // whm added 24Jan09
 		while (pos != NULL)
 		{
 			pCurRefString = (CRefString*)pos->GetData();
@@ -1427,17 +1503,32 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			{
 				str = s;
 			}
-			m_pListBoxExistingTranslations->Append(str);
-			// m_pListBoxExistingTranslations is NOT a sorted list but it is safest to use FindListBoxItem before
-			// we call SetClientData()
-			int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, str, caseSensitive, exactString);
-			wxASSERT(nNewSel != -1); // we just added it so it must be there!
-			m_pListBoxExistingTranslations->SetClientData(nNewSel,pCurRefString);
+			 
+			int aIndex = m_pListBoxExistingTranslations->Append(str,pCurRefString); // whm modified 24Jan09 to use 2nd param
+			// whm update 10Nov08: We can use the Append function that takes the second parameter for 
+			// the client data. This is more efficient. Therefore, I've commented out the original code below:
+			//int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations, str, caseSensitive, exactString);
+			//wxASSERT(nNewSel != -1); // we just added it so it must be there!
+			//m_pListBoxExistingTranslations->SetClientData(nNewSel,pCurRefString);
+			
+			// If the ref string's m_translation member is the same as the m_
+			if (gpApp->m_pActivePile != NULL && pCurRefString->m_translation == gpApp->m_pActivePile->m_pSrcPhrase->m_targetStr)
+				nMatchedRefString = aIndex;
 		}
 
-		// select the first translation in the listbox by default -- there will always be at least one
 		wxASSERT(m_pListBoxExistingTranslations->GetCount() > 0);
-		m_pListBoxExistingTranslations->SetSelection(0);
+		// if possible select the matched m_translation in the Ref String
+		if (nMatchedRefString != -1)
+		{
+			// there was a match
+			wxASSERT(nMatchedRefString < (int)m_pListBoxExistingTranslations->GetCount());
+			m_pListBoxExistingTranslations->SetSelection(nMatchedRefString);
+		}
+		else
+		{
+			// select the first translation in the listbox by default -- there will always be at least one
+			m_pListBoxExistingTranslations->SetSelection(0);
+		}
 		wxString str = m_pListBoxExistingTranslations->GetStringSelection();
 		int nNewSel = gpApp->FindListBoxItem(m_pListBoxExistingTranslations,str,caseSensitive,exactString);
 		wxASSERT(nNewSel != -1);

@@ -90,6 +90,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	virtual void OnCancel(wxCommandEvent& WXUNUSED(event));
 	bool AddRefString(CTargetUnit* pTargetUnit, wxString& translationStr);
 	void UpdateButtons();
 
@@ -108,6 +109,8 @@ protected:
 	void OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event));
 
 private:
+
+	bool bKBEntryTemporarilyAddedForLookup;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
