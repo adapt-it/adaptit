@@ -101,16 +101,16 @@ bool gTemporarilySuspendAltBKSP = FALSE; // to enable gbSuppressStoreForAltBacks
 /// immediately after the store is skipped. CTRL+ENTER also can be used for the transliteration.
 bool gbSuppressStoreForAltBackspaceKeypress = FALSE; 
 
-bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile( ) and the
-	// previous pile contains a merged phrase with internal punctuation - we don't want the
-	// ReDoPhraseBox( ) call to call MakeLineFourString( ) and so result in the PlaceMedialPunctuation
-	// dialog being put up an unwanted couple of times. So we'll use the gbMovingToPreviousPile being
-	// set to then set the gbInhibitLine4StrCall to TRUE, at start of ReDoPhraseBox( ), and turn it off at
-	// the end of that function. That should fix it.
+//bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile( ) and the
+	// previous pile may contain a merged phrase with internal punctuation - we don't want the
+	// ReDoPhraseBox( ) call, which normally calls MakeLineFourString( ) to get a punctuated
+	// m_targetStr value set that can be used for measuring the pile width needed for display
+	// of the box, and so result in the PlaceMedialPunctuation dialog being put up an unwanted
+	// couple of times. So we'll use the gbMovingToPreviousPile being set TRUE to skip the call
+	// BEW removed 27Jan09
 
-
-/// This global is defined in Adapt_ItView.cpp.
-extern bool gbInhibitLine4StrCall; // see view for reason for this
+/// This global is defined in Adapt_ItView.cpp. BEW removed 27Jan09
+//extern bool gbInhibitLine4StrCall; // see view for reason for this
 
 // for support of auto-capitalization
 
@@ -1345,6 +1345,7 @@ z:				JumpForward(pView);
 					// if that was a merged phrase with internal punctuation, we'd see the Place Punctuation
 					// dialog again, which we don't want. Ditto for next call about 20 lines below. So
 					// if gbMovingToPreviousPile is set, the call won't be made
+					//   gbMovingToPreviousPile <<<  BEW removed 27Jan09
 					pView->ReDoPhraseBox(pCell); // like PlacePhraseBox, but calculations based 
 												 // on m_targetPhrase
 
@@ -1374,7 +1375,7 @@ z:				JumpForward(pView);
 				pView->ReDoPhraseBox(pCell);
 
 				// okay, now we can remove the suppression of the MakeLineFourString( ) call.
-				gbMovingToPreviousPile = FALSE;
+				//gbMovingToPreviousPile = FALSE;   // BEW removed 27Jan09
 
 				// save the phrase box's text, in case user hits SHIFT+END key to unmerge 
 				// a phrase
@@ -1678,32 +1679,41 @@ c:	bOK = TRUE;
 		//	pCurPile->m_pSrcPhrase->m_gloss = pView->m_targetPhrase;
 		//}
 
-		// now do a store, but only of <Not In KB>, (StoreText uses gbSuppressStoreForAltBackspaceKeypress
-		// == TRUE to get this job done rather than a normal store) & sets flags appropriately
-		gbInhibitLine4StrCall = TRUE;
+        // now do a store, but only of <Not In KB>, (StoreText uses
+        // gbSuppressStoreForAltBackspaceKeypress == TRUE to get this job done rather than a normal
+        // store) & sets flags appropriately (Note, while we pass in gpApp->m_targetPhrase, the
+        // phrase box contents string, we StoreText doesn't use it when
+        // gbSuppressStoreForAltBackspaceKeypress is TRUE, but internally sets a local string to
+        // "<Not In KB>" and stores that instead) BEW 27Jan09, nothing more needed here
+		//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 		bOK = pView->StoreText(pView->GetKB(),pCurPile->m_pSrcPhrase,gpApp->m_targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		//gbInhibitLine4StrCall = FALSE;
 	}
 	else
 	{
 		// gbSuppressStoreForAltBackspaceKeypress is FALSE, so we are in normal adapting
-		// or glossing mode
-		if (!gbIsGlossing)
-			pView->MakeLineFourString(pCurPile->m_pSrcPhrase,gpApp->m_targetPhrase);
-
+		// or glossing mode...
 		// we are about to leave the current phrase box location, so we must try to store what is 
 		// now in the box, if the relevant flags allow it. Test to determine which KB to store to.
 		// StoreText( ) has been ammended for auto-capitalization support (July 2003)
 		if (!gbIsGlossing)
+		{
+			pView->MakeLineFourString(pCurPile->m_pSrcPhrase,gpApp->m_targetPhrase);
 			pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
+		}
 		if (gbIsGlossing)
-			bOK = pView->StoreText(pApp->m_pGlossingKB,pCurPile->m_pSrcPhrase,
-																		pApp->m_targetPhrase);
+		{
+			// BEW added next line 27Jan09
+			pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+			bOK = pView->StoreText(pApp->m_pGlossingKB,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+		}
 		else
 		{
-			gbInhibitLine4StrCall = TRUE;
+			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+			// BEW added next line 27Jan09
+			pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 			bOK = pView->StoreText(pApp->m_pKB,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			//gbInhibitLine4StrCall = FALSE;
 		}
 
 		// if in Transliteration Mode we want to cause gbSuppressStoreForAltBackspaceKeypress
@@ -2297,9 +2307,10 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 // returns TRUE if the move was successful, FALSE if not successful
 // Ammended July 2003 for auto-capitalization support
 {
-	gbMovingToPreviousPile = TRUE; // set here, but we clear it after the ReDoPhraseBox( ) calls in 
-															 // the relevant part (2 calls) in OnChar( ) after the suppression
-															 // of the MakeLineFourString( ) call has been effected
+	//gbMovingToPreviousPile = TRUE; // set here, but we clear it after the ReDoPhraseBox( ) 
+					// calls in the relevant part (2 calls) in OnChar( ) after the
+					// suppression of the MakeLineFourString( ) call has been effected
+					// BEW removed 27Jan09
 	// store the current translation, if one exists, before retreating, since each retreat
 	// unstores the refString's translation from the KB, so they must be put back each time
 	// (perhaps in edited form, if user changed the string before moving back again)
@@ -2311,7 +2322,8 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 	// make sure m_targetPhrase doesn't have any final spaces either
 	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
-	// if we are at the start, we can't move back any further - but check vertical edit situation first
+	// if we are at the start, we can't move back any further 
+	// - but check vertical edit situation first
 	int nCurSequNum = pCurPile->m_pSrcPhrase->m_nSequNumber;
 
 	// if vertical editing is in progress, don't permit a move backwards into the preceding
@@ -2429,21 +2441,22 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 
 	// make the punctuated target string, but only if adapting; note, for auto capitalization
 	// ON, the function will change initial lower to upper as required, whatever punctuation
-	// regime is in place for this particular sourcephrase instance
-	if (!gbIsGlossing)
-		pView->MakeLineFourString(pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
-
+	// regime is in place for this particular sourcephrase instance...
 	// we are about to leave the current phrase box location, so we must try to store what is 
 	// now in the box, if the relevant flags allow it. Test to determine which KB to store to.
 	// StoreText( ) has been ammended for auto-capitalization support (July 2003)
-	if (!gbIsGlossing)	
+	if (!gbIsGlossing)
+	{
+		pView->MakeLineFourString(pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-	gbInhibitLine4StrCall = TRUE;
-	bOK = pView->StoreTextGoingBack(pView->GetKB(),pCurPile->m_pSrcPhrase,
-																pApp->m_targetPhrase);
-	gbInhibitLine4StrCall = FALSE;
+	}
+	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+	// BEW added next line 27Jan09
+	pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+	bOK = pView->StoreTextGoingBack(pView->GetKB(),pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+	//gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
-		return FALSE; // can't move if the adaptation text is not yet completed
+		return FALSE; // can't move if the adaptation or gloss text is not yet completed
 
 	// store the current strip index, for update purposes
 b:	int nCurStripIndex;
@@ -2695,18 +2708,20 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 
 	// make the punctuated target string, but only if adapting; note, for auto capitalization
 	// ON, the function will change initial lower to upper as required, whatever punctuation
-	// regime is in place for this particular sourcephrase instance
-	if (!gbIsGlossing)
-		pView->MakeLineFourString(pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
-
+	// regime is in place for this particular sourcephrase instance...
 	// we are about to leave the current phrase box location, so we must try to store what is 
 	// now in the box, if the relevant flags allow it. Test to determine which KB to store to.
 	// StoreText( ) has been ammended for auto-capitalization support (July 2003)
 	if (!gbIsGlossing)
+	{
+		pView->MakeLineFourString(pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-	gbInhibitLine4StrCall = TRUE;
-	bOK = pView->StoreText(pView->GetKB(),pCurPile->m_pSrcPhrase,pApp->m_targetPhrase,FALSE); 
-	gbInhibitLine4StrCall = FALSE;
+	}
+	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+	// BEW added next line 27Jan09
+	pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+	bOK = pView->StoreText(pView->GetKB(),pCurPile->m_pSrcPhrase,pApp->m_targetPhrase); 
+	//gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 	{
 		// restore default button image, and m_bCopySourcePunctuation to TRUE

@@ -172,11 +172,12 @@ extern wxChar gSFescapechar; // the escape char used for start of a standard for
 /// This global is defined in Adapt_It.cpp.
 extern bool gbHasBookFolders; // TRUE when Adaptations folder is found to have Bible book
 
-/// Used for inhibiting multiple accesses to MakeLineFourString when only one is needed.
-bool gbInhibitLine4StrCall = FALSE;
+// Used for inhibiting multiple accesses to MakeLineFourString when only one is needed.
+//bool gbInhibitLine4StrCall = FALSE; BEW removed 27Jan09
+
 // for suppressing MakeLineFourString in ReDoPhraseBox( ) when moving to the
 // previous pile (which might have internal punct & we don't want to see Place dialog)
-extern bool gbMovingToPreviousPile;
+//extern bool gbMovingToPreviousPile;  // BEW removed 27Jan09
 
 // extern declarations for free translation support (whm moved these to the app)
 
@@ -274,7 +275,7 @@ bool	gbGlossingUsesNavFont = FALSE;
 
 /// Defaults to FALSE to allow things like 3:sg:Subj or 1.incl to be put into the glossing 
 /// KB 'as is'. When TRUE punctuation is stripped out before saving the gloss in the glossing
-/// KB.
+/// KB; or, the stripping is done after the gloss has been saved
 bool	gbRemovePunctuationFromGlosses = FALSE; 
 
 /// This flag is used to indicate that the text being processed is unstructured, i.e.,
@@ -8629,8 +8630,9 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 			//	need to eventually check the logic here down to the next goto b block below
 			//	after the "if (gbAutoCaps)" block to see if they should always be executed even
 			//	after a Find operation.
-			if (gpApp->m_pTargetBox == NULL)
-				goto b;
+			//	BEW commmented out next two lines on 27Jan09
+			//if (gpApp->m_pTargetBox == NULL)
+			//	goto b;
 
 			// in case the user edited out the <Not In KB> entry from the KB editor, we need to
 			// put it back so that the setting is preserved (the "right" way to change the setting
@@ -8650,6 +8652,8 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 			}
 
 			// from v 1.4.0 and onwards we will have to set up the punctuated line
+			// and (BEW change 27Jan09), we need to also make sure that the phrase box
+			// contents are stored to m_adaption too, since now StoreText() doesn't do it
 			wxString str1 = gpApp->m_targetPhrase;
 			RemovePunctuation(pDoc,&str1,1 /*from tgt*/);
 			if (gbAutoCaps)
@@ -8665,6 +8669,7 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 				}
 			}
 			gpApp->m_pActivePile->m_pSrcPhrase->m_adaption = str1;
+			SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase); // BEW added 27Jan09
 			MakeLineFourString(gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 			goto b;
 		}
@@ -8717,8 +8722,9 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 						if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
 							gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 						bool bOK;
-						bOK = StoreText(gpApp->m_pGlossingKB,gpApp->m_pActivePile->m_pSrcPhrase,
-													gpApp->m_targetPhrase);
+						// BEW added next line 27Jan09
+						SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+						bOK = StoreText(gpApp->m_pGlossingKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					}
 					else
 					{
@@ -8735,11 +8741,12 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 							gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
 						if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 							gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-						gbInhibitLine4StrCall = TRUE;
+						//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09 & 5 lines below
 						bool bOK;
-						bOK = StoreText(gpApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,
-													gpApp->m_targetPhrase);
-						gbInhibitLine4StrCall = FALSE;
+						// BEW added next line 27Jan09
+						SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+						bOK = StoreText(gpApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+						//gbInhibitLine4StrCall = FALSE;
 					}
 				}
 			}
@@ -8759,8 +8766,9 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-					bOK = StoreText(gpApp->m_pGlossingKB,gpApp->m_pActivePile->m_pSrcPhrase,
-																				gpApp->m_targetPhrase);
+					// BEW added next line 27Jan09
+					SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+					bOK = StoreText(gpApp->m_pGlossingKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				}
 				else // is adapting
 				{
@@ -8778,9 +8786,11 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-					gbInhibitLine4StrCall = TRUE;
+					//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09 & 4 lines below
+					// BEW added next line 27Jan09
+					SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					bOK = StoreText(gpApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-					gbInhibitLine4StrCall = TRUE;
+					//gbInhibitLine4StrCall = TRUE;
 				}
 
 				// check for a failure, abandon the function if the store failed
@@ -9363,11 +9373,12 @@ void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 			}
 		}
 	}
-	if (!gbIsGlossing && !gbMovingToPreviousPile)
-		MakeLineFourString(pSrcPhrase,str);
+	//if (!gbIsGlossing && !gbMovingToPreviousPile) // BEW removed 27Jan09 which permits elimination
+	//	MakeLineFourString(pSrcPhrase,str); // of the global gbMovingToPreviousPile (str used for
+	//	width calculations anyway, the MakeLineFourString call was doing nothing useful)
 	pApp->m_nCurPileMinWidth = pActivePile->m_nMinWidth;	// this is the pile's text-extent-based
 															// min width
-	// get a device context & do the calculation of the extent, set m_curBoxWidth
+	// get a device context & do the calculation of the extent using str, set m_curBoxWidth
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); 
 	wxFont* pFont;
 	if (gbIsGlossing && gbGlossingUsesNavFont)
@@ -9389,7 +9400,7 @@ void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 
 	// we must destroy the edit box's window, if not, an assert is tripped in Wincore.cpp,
 	// since it expects a null handle
-	// wx Note: we don't destroy the taget box; we just make its contents a null string.
+	// wx Note: we don't destroy the target box; we just make its contents a null string.
 	// ResizeBox below calls SetSize and causes it to be visible
 	pApp->m_pTargetBox->SetValue(_T(""));
 
@@ -9874,6 +9885,8 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 			if (!gpApp->m_targetPhrase.IsEmpty())
 			{
 				// it has to be saved to the glossing KB if not empty
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,gpApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,gpApp->m_targetPhrase);
 			}
 			else
@@ -9890,9 +9903,11 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 				// it has to be saved to the KB if not empty
 				MakeLineFourString(pSrcPhrase,gpApp->m_targetPhrase);
 				RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
-				gbInhibitLine4StrCall = TRUE;
+				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09 & 4 lines below
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,gpApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pKB,pSrcPhrase,gpApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				//gbInhibitLine4StrCall = FALSE;
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
@@ -10231,21 +10246,23 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& 
 	// otherwise it will add punctuation to the m_targetStr field on the document's
 	// pSrcPhrase which is currently active, and that member already has the required
 	// punctuation because we have copied the old string prior to the rebuild
-	gbInhibitLine4StrCall = TRUE;
-
+	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09 & 17 lines below
+	// BEW added next line 27Jan09
+	SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,adaptationStr);
 	bool bOK = StoreText(gpApp->m_pKB,pSrcPhrase,adaptationStr);
 
 	// now the glossing KB
 	gbEnableGlossing = TRUE;
 	gbIsGlossing = TRUE;
 
+	// BEW added next line 27Jan09
+	SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,glossStr);
 	bOK = StoreText(gpApp->m_pGlossingKB,pSrcPhrase,glossStr);
 
 	// restore current mode
 	gbEnableGlossing = bSaveEnableFlag;
 	gbIsGlossing = bSaveGlossingFlag;
-
-	gbInhibitLine4StrCall = FALSE; // restore the default setting
+	//gbInhibitLine4StrCall = FALSE; // restore the default setting
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -11363,10 +11380,12 @@ x:		nCount = nWordsInPhrase; // RHS is a global variable defined in PhraseBox.cp
 									pApp->m_pActivePile->m_pSrcPhrase->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 									pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-				gbInhibitLine4StrCall = TRUE;
+				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09
 				bool bOK;
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				//gbInhibitLine4StrCall = FALSE;
 			}
 
 			// get the first translation string, or something possibly useful, into the list
@@ -12112,7 +12131,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		{
 			// restore its KB entry
 			bool bOK;
-			bOK = StoreText(gpApp->m_pKB,pSP,pSP->m_adaption);
+			bOK = StoreText(gpApp->m_pKB,pSP,pSP->m_adaption); // BEW 27Jan09, SetAdaptionOrGloss() not needed here
 		}
 
 		if (IsItNotInKB(pSP))
@@ -12315,9 +12334,11 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 			// selected one the active one; so store the translation in the knowledge base
 			MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 			RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-			gbInhibitLine4StrCall = TRUE;
+			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09  & also line further below
+			// BEW added next line 27Jan09
+			SetAdaptationOrGloss(gbIsGlossing,pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 			bool bOK = StoreText(pApp->m_pKB,pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			//gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
 				return; // can't proceed until a valid adaption (which could be null) is supplied
 						// for the former active pile's srcPhrase
@@ -12959,28 +12980,73 @@ void CAdapt_ItView::MergeWords()
 	OnButtonMerge(dummyevent);
 }
 
-bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase,
-                                    bool bSuppressEmptyAdaptDlg)
-// return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE value
-// to block a move of the phraseBox to another pile) This function's behaviour was changed after
+// BEW created 27Jan09 in order to remove setting m_adaption, m_gloss, m_targetPhrase within
+// the StoreText() function, where logically such a job does not belong. The last of the three can
+// be set by a MakeLineFourString() call. And setting m_adaption or m_gloss is to be done here; in
+// the case of setting m_gloss, if the gbRemovePunctuationFromGlosses bool flag is TRUE, the
+// target punctuation characters, if any, are removed from the stored value in m_gloss (when this
+// function's code was part of StoreText(), this removal was not done; but since StoreTextGoingBack()
+// had this extra bit of code, presumably it should apply here too)
+void CAdapt_ItView::SetAdaptationOrGloss(bool bIsGlossing, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase)
+{
+	// take the passed in tgtPhrase value, it could be a gloss or an adaptation, bIsGlossing tells
+	// us which, and place a copy in the source phrase's m_adaption member, unless it is <Not In KB>;
+	// but when glossing  place a copy in the m_gloss memberh
+	if (bIsGlossing)
+	{
+		wxString s = tgtPhrase;
+		if (gbAutoCaps)
+		{
+			bool bNoError = TRUE;
+			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+			{
+				bNoError = SetCaseParameters(s,FALSE);
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change it to upper case
+					s.SetChar(0,gcharNonSrcUC);
+				}
+			}
+		}
+		pSrcPhrase->m_gloss = s;
+		if (gbRemovePunctuationFromGlosses)
+			RemovePunctuation(GetDocument(),&pSrcPhrase->m_gloss,1); // 1 means "use target punctuation"
+	}
+	else // currently adapting
+	{
+		if (tgtPhrase != _T("<Not In KB>"))
+		{
+			pSrcPhrase->m_adaption = tgtPhrase;
+		}
+	} 
+}
+
+bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, 
+										bool bSupportNoAdaptationButton)
+// return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE value to
+// block a move of the phraseBox to another pile) This function's behaviour was changed after
 // version1.2.8, on May 6 2002, in order to eliminate the occurence of the "Empty Adaption Dialog"
 // which would come up whenever the user deleted the contents of the phrase box and then moved on,
-// or clicked elsewhere. (In the new behaviour, a FALSE value now stores nothing when the box has
-// no content.)  The new default behaviour is that if the box is empty when the user causes
-// it to move, then nothing is stored in the knowledge base (same as the former default behaviour
-// for the empty adaption dialog) and the move is acted on immediately. If the user wants to store
-// a <no adaptation> empty entry in the KB, a button "<no adaptation>" has been provided on the
-// control bar. Click it before moving the phrase box to cause an empty adaptation to be stored in
-// the KB for the source text at the current active location.
-// version 2.0 and onward tests gbIsGlossing for storing to the appropriate KB, etc.
-// For adaptation, on input the tgtPhrase parameter should have the text with punctuation removed,
-// so this is typically done in the caller with a call to RemovePunctuation( ).
-// In order to support the user overriding the stored punctuation for the source text, a call to
+// or clicked elsewhere. The new default behaviour is that if the box is empty when the user causes
+// it to move, then nothing is stored in the knowledge base and the move is acted on immediately.
+// If the user wants to store a <no adaptation> empty entry in the KB, a button "<no adaptation>"
+// has been provided on the control bar. Click it before moving the phrase box to cause an empty
+// adaptation to be stored in the KB for the source text at the current active location. version
+// 2.0 and onward tests gbIsGlossing for storing to the appropriate KB, etc. For adaptation, on
+// input the tgtPhrase parameter should have the text with punctuation removed, so this is
+// typically done in the caller with a call to RemovePunctuation( ). For versions prior to 4.1.0,
+// in order to support the user overriding the stored punctuation for the source text, a call to
 // MakeLineFourString( ) is done in the caller, and then RemovePunctuation( ) is called in the
 // caller, so a second call of MakeLineFourString( ) within StoreText( ) is not required in this
 // circumstance - in this case, a global boolean gbInhibitLine4StrCall is used to jump the call
-// within StoreText( ).
+// within StoreText( ). For 4.1.0 and later, MakeLineFourString() is not now called. See below.
+// 
 // Ammended, July 2003, for Auto-Capitalization support
+// BEW changed 27Jan09: to remove setting of m_adaption, m_gloss, and m_targetStr in this function
+// in favour of functions SetAdaptionOrGloss() and MakeLineFourString() in caller instead; also
+// changed the relic bSuppressEmptyAdaptDlg bool to be the more informative
+// bSupportNoAdaptationButton which should be TRUE whenever we want the StoreText() function to be
+// able to store an empty string using the toolbar button "<no adaptation>"
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -13162,33 +13228,35 @@ bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgt
 
 	gbByCopyOnly = FALSE; // restore default setting
 
-	// First get rid of final spaces
+	// First get rid of final spaces, if tgtPhrase has content
 	int len;
 	int nIndexLast;
-	if (tgtPhrase.IsEmpty())
-		goto s; // code below would fail if string is empty, due to negative index
-	len = tgtPhrase.Length();
-	nIndexLast = len-1;
-	do {
-		if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
-		{
-			//tgtPhrase.Delete(nIndexLast);
-			// Note: wsString::Remove must have the second param as 1 here otherwise
-			// it will truncate the remainder of the string!
-			tgtPhrase.Remove(nIndexLast,1); // MFC Delete same as wxString::Remove
-			// can't trust the Delete's returned value, it exceeds string length by one
-			len = tgtPhrase.Length();
-			nIndexLast = len -1;
-		}
-		else
-		{
-			break;
-		}
-	} while (len > 0 && nIndexLast > -1);
+	if (!tgtPhrase.IsEmpty())
+	{
+		len = tgtPhrase.Length();
+		nIndexLast = len-1;
+		do {
+			if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
+			{
+				//tgtPhrase.Delete(nIndexLast);
+				// Note: wsString::Remove must have the second param as 1 here otherwise
+				// it will truncate the remainder of the string!
+				tgtPhrase.Remove(nIndexLast,1); // MFC Delete same as wxString::Remove
+				// can't trust the Delete's returned value, it exceeds string length by one
+				len = tgtPhrase.Length();
+				nIndexLast = len -1;
+			}
+			else
+			{
+				break;
+			}
+		} while (len > 0 && nIndexLast > -1);
+	}
 
+	/* BEW deprecated 27Jan09: m_adaption, m_glosss, m_targetStr are to be set in caller, not here
 	// always place a copy in the source phrase's m_adaption member, unless it is <Not In KB>;
 	// when glossing always place a copy in the m_gloss member.
-s:	if (gbIsGlossing)
+	if (gbIsGlossing)
 	{
 		wxString s = tgtPhrase;
 		if (gbAutoCaps)
@@ -13215,6 +13283,7 @@ s:	if (gbIsGlossing)
 				MakeLineFourString(pSrcPhrase, tgtPhrase); // set m_targetStr member too
 		}
 	}
+	*/ 
 	pApp->m_curIndex = pSrcPhrase->m_nSequNumber;
 
 	// if the source phrase is part of a retranslation, we allow updating of the m_adaption
@@ -13279,20 +13348,14 @@ s:	if (gbIsGlossing)
 	CRefString* pRefString;
 	if (pKB->m_pMap[nMapIndex]->empty())
 	{
-		// if suppression is off then we just won't store anything if the target phrase has no
-		// content. (When about to put up the ChooseTranslation dialog this is one context where
-		// the flag would be TRUE, another is when storing during a rebuild of the document due to
-		// punctuation having been changed, it is FALSE by default on all other StoreText calls)
-		if (!bSuppressEmptyAdaptDlg)
+		// we just won't store anything if the target phrase has no content, when
+		// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
+		// then we skip this block so that we can store an empty string as a valid
+		// KB "adaptation" or "gloss" - depending on which KB is active here
+		if (tgtPhrase.IsEmpty())
 		{
-			// is the pApp->m_targetPhrase empty?
-			if (tgtPhrase.IsEmpty())
+			if(!bSupportNoAdaptationButton)
 			{
-				// store nothing if there is no suppression (if this seems odd, remember
-				// the app used to have a dialog which would be put up if the flag
-				// was FALSE (ie no suppression)) and the bSuppressEmptyAdaptDlg has another
-				// function as well, so we can't eliminate it even though its main function
-				// no longer applies
 				if (!gbIsGlossing)
 				{
 					pSrcPhrase->m_bBeginRetranslation = FALSE;
@@ -13303,7 +13366,8 @@ s:	if (gbIsGlossing)
 				return TRUE; // make caller think all is well
 			}
 		}
-
+		
+		// we didn't return, so continue on to creaete a new CTargetUnit for storing to
 		pTU = new CTargetUnit;
 		wxASSERT(pTU != NULL);
 		pRefString = new CRefString(pTU);
@@ -13352,7 +13416,7 @@ s:	if (gbIsGlossing)
 				pKB->m_nMaxWords = pSrcPhrase->m_nSrcWords;
 		}
 	}
-	else // do block for when map is not empty
+	else // the block below is for when the map is not empty
 	{
 		// there might be a pre-existing association between this key and a CTargetUnit,
 		// so check it out
@@ -13394,16 +13458,14 @@ s:	if (gbIsGlossing)
 		// refCount of an existing one
 		if(!bFound)
 		{
-			// don't store if the box is empty and there is no suppression,
-			// and then return; otherwise, go on
+			// we just won't store anything if the target phrase has no content, when
+			// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
+			// then we skip this block so that we can store an empty string as a valid
+			// KB "adaptation" or "gloss" - depending on which KB is active here
 			if (tgtPhrase.IsEmpty())
 			{
-				// store nothing if there is no suppression (if this seems odd, remember
-				// the app used to have a dialog which would be put up if the flag
-				// was FALSE (ie no suppression))
-				if (!bSuppressEmptyAdaptDlg)
+				if(!bSupportNoAdaptationButton)
 				{
-					// store nothing
 					if (!gbIsGlossing)
 					{
 						pSrcPhrase->m_bBeginRetranslation = FALSE;
@@ -13534,14 +13596,12 @@ s:	if (gbIsGlossing)
 					// is the pApp->m_targetPhrase empty?
 					if (tgtPhrase.IsEmpty())
 					{
-						// don't store if there is no suppression, and then return
-						// otherwise go on
-						if (!bSuppressEmptyAdaptDlg)
+						// we just won't store anything if the target phrase has no content, when
+						// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
+						// then we skip this block so that we can store an empty string as a valid
+						// KB "adaptation" or "gloss" - depending on which KB is active here
+						if(!bSupportNoAdaptationButton)
 						{
-							// don't store if there is no suppression (if this seems odd,
-							// remember the app used to have a dialog which would be put up if
-							// the flag was FALSE (ie no suppression)) and then return, else
-							// just go on
 							if (!gbIsGlossing)
 							{
 								pSrcPhrase->m_bBeginRetranslation = FALSE;
@@ -13648,6 +13708,8 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxSt
 // when focus moves back.) TRUE if okay to go back, FALSE otherwise. For glossing, pKB must point
 // to the glossing KB, for adapting, to the normal KB.
 // Ammended, July 2003, for Auto-Capitalization support
+// BEW 27Jan09 removed setting m_adaption, m_gloss, and / or m_targetStr here, SetAdaptationOrGloss()
+// is to be used in caller instead, and possibly MakeLineFourString()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -13712,28 +13774,30 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxSt
 	// first, remove any phrase final space characters
 	int len;
 	int nIndexLast;
-	if (tgtPhrase.IsEmpty())
-		goto s; // code below would fail if string is empty, due to negative index
-	len = tgtPhrase.Length();
-	nIndexLast = len-1;
-	do {
-		if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
-		{
-			// wxString.Remove must have 1 otherwise the default is to truncate the
-			// remainder of the string!
-			tgtPhrase.Remove(nIndexLast,1); //tgtPhrase.Delete(nIndexLast);
-			// can't trust the Delete's returned value, it exceeds string length by one
-			len = tgtPhrase.Length();
-			nIndexLast = len -1;
-		}
-		else
-		{
-			break;
-		}
-	} while (len > 0 && nIndexLast > -1);
+	if (!tgtPhrase.IsEmpty())
+	{
+		len = tgtPhrase.Length();
+		nIndexLast = len-1;
+		do {
+			if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
+			{
+				// wxString.Remove must have 1 otherwise the default is to truncate the
+				// remainder of the string!
+				tgtPhrase.Remove(nIndexLast,1); //tgtPhrase.Delete(nIndexLast);
+				// can't trust the Delete's returned value, it exceeds string length by one
+				len = tgtPhrase.Length();
+				nIndexLast = len -1;
+			}
+			else
+			{
+				break;
+			}
+		} while (len > 0 && nIndexLast > -1);
+	}
 
+	/*  BEW removed, 27Jan09, use SetAdaptationOrGloss() in the caller instead
 	// always place a copy in the source phrase's m_adaption member, etc
-s:	if (gbIsGlossing)
+	if (gbIsGlossing)
 	{
 		wxString s = tgtPhrase;
 		if (gbAutoCaps)
@@ -13762,7 +13826,7 @@ s:	if (gbIsGlossing)
 				MakeLineFourString(pSrcPhrase, tgtPhrase); // set m_targetStr member too
 		}
 	}
-
+	*/
 	// if the user doesn't want a store done (he checked the dialog bar's control for this choice)
 	// then return without saving after setting the source phrase's m_bNotInKB flag to TRUE
 	int nMapIndex;
@@ -14947,15 +15011,17 @@ void CAdapt_ItView::InsertNullSrcPhraseBefore() // this one is public, and defau
 	// & make the punctuated target string
 a:	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown())
 	{
-		MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase); // StoreText( ) does it
+		MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 
 		// we are about to leave the current phrase box location, so we must try to store what
 		// is now in the box, if the relevant flags allow it
 		RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-		gbInhibitLine4StrCall = TRUE;
+		//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 		bool bOK;
+		// BEW added next line 27Jan09
+		SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 		bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		//gbInhibitLine4StrCall = FALSE;
 	}
 
 	InsertNullSourcePhrase(pDoc,pApp,pInsertLocPile,nCount);
@@ -15041,10 +15107,12 @@ b:	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown())
 		// we are about to leave the current phrase box location, so we must try to store what is now
 		// in the box, if the relevant flags allow it
 		RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-		gbInhibitLine4StrCall = TRUE;
+		//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 		bool bOK;
+		// BEW added next line 27Jan09
+		SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 		bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		//gbInhibitLine4StrCall = FALSE;
 	}
 
 	// at this point, we need to increment the pInsertLocPile pointer to the next pile, and the
@@ -15254,10 +15322,12 @@ b:		if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown()
 			// we are about to leave the current phrase box location, so we must try to store
 			// what is now in the box, if the relevant flags allow it
 			RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-			gbInhibitLine4StrCall = TRUE;
+			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 			bool bOK;
+			// BEW added next line 27Jan09
+			SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 			bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			//gbInhibitLine4StrCall = FALSE;
 		}
 
 		// at this point, we need to increment the pInsertLocPile pointer to the next pile, and the
@@ -15417,10 +15487,12 @@ b:		if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown()
 			// we are about to leave the current phrase box location, so we must try to store
 			// what is now in the box, if the relevant flags allow it
 			RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-			gbInhibitLine4StrCall = TRUE;
+			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 			bool bOK;
+			// BEW added next line 27Jan09
+			SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 			bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			//gbInhibitLine4StrCall = FALSE;
 		}
 
 		InsertNullSourcePhrase(pDoc,pApp,pInsertLocPile,nCount);
@@ -17514,10 +17586,12 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 		goto jp;
 	}
 	temp = pApp->m_targetPhrase;
-	if (!gbIsGlossing || gbRemovePunctuationFromGlosses)
+	//if (!gbIsGlossing || gbRemovePunctuationFromGlosses) // 27 Jan09, second test is in SetAdaptationOrGloss()
+	if (!gbIsGlossing)
 		RemovePunctuation(GetDocument(),&temp,1 /*from tgt*/);
-	bOK = StoreText(pKB,pSrcPhrase,temp,TRUE); // TRUE means we want suppression here
-												    // of the CEmptyAdaptDlg
+	// BEW added next line 27Jan09
+	SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,temp);
+	bOK = StoreText(pKB,pSrcPhrase,temp,TRUE); // TRUE means we can store an empty adaptation or gloss
 	wxASSERT(bOK);
 
 	// get a pointer to the target unit for the current key
@@ -17933,6 +18007,8 @@ void CAdapt_ItView::OnUpdateButtonToggleTargetLines(wxUpdateUIEvent& event)
 void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 // Modified for support of glossing KB as well as adapting KB. The caller must send the
 // correct KB pointer in the first parameter.
+// BEW 27Jan09 comment: StoreText() no longer unnecessarily sets m_adaption or m_gloss,
+// nor m_targetStr
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -17945,7 +18021,7 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 			return; // nothing to be done
 		}
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // has to be false on input to StoreText()
-		bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_gloss,TRUE);
+		bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_gloss,TRUE); // TRUE = support storing empty gloss
 		if (!bOK)
 		{
 			// I don't expect any error here, but just in case ...
@@ -17957,17 +18033,19 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 	{
 		if (!pSrcPhrase->m_bRetranslation)
 		{
-			if (pSrcPhrase->m_bNullSourcePhrase)
-			{
-				goto a;
-			}
-			else
-			{
+//			if (pSrcPhrase->m_bNullSourcePhrase) // BEW removed 27Jan09
+//			{
+//				goto a;
+//			}
+//			else
+//			{
 				if (pSrcPhrase->m_bNotInKB)
 				{
 					wxString str = _T("<Not In KB>");
 					pSrcPhrase->m_bHasKBEntry = FALSE; // to enable storage
-					bOK = StoreText(pKB,pSrcPhrase,str,TRUE);
+					//gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
+					bOK = StoreText(pKB,pSrcPhrase,str,TRUE); // TRUE = support storing empty adaptation
+					//gbInhibitLine4StrCall = FALSE;
 					if (!bOK)
 					{
 						// I don't expect any error here, but just in case ...
@@ -17976,13 +18054,16 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 					}
 					return;
 				}
-			}
-a:			if (!pSrcPhrase->m_bHasKBEntry)
+//			}
+//a:		if (!pSrcPhrase->m_bHasKBEntry)
+			if (!pSrcPhrase->m_bHasKBEntry)
 			{
 				return; // nothing to be done
 			}
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-			bool bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_adaption,TRUE);
+			//gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
+			bool bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE = support storing empty adaptation
+			//gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
 			{
 				// I don't expect any error here, but just in case ...
@@ -18104,23 +18185,10 @@ void CAdapt_ItView::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 		pSrcPhrase->m_bNotInKB = TRUE;
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 
-		// user can set pSrcPhrase->m_adaption to whatever he likes via phrase box, it won't go
-		// into KB, and it now will get clobbered, since "<Not In KB>" overrides anything which
-		// is there, so since "<Not In KB>" has been put in the source Phrase's m_adaption member
-		// in the StoreText call just above, we now must clear it -- we no longer do this,
-		// see next two comment lines. Following Susanna Imrie's recommendation that this feature
-		// should still allow a non-null translation to remain in the document, the following code
-		// will be commented out as of version 1.4.0 Dec 18.
-		/*
-		pSrcPhrase->m_adaption.Empty();
-		pSrcPhrase->m_targetStr.Empty();
-		if (pApp->m_targetBox.m_hWnd != NULL && (pApp->m_targetBox.GetStyle() & WS_VISIBLE) != 0)
-		{
-			pApp->m_targetPhrase.Empty();
-			pApp->m_targetBox.SetWindowText(pApp->m_targetPhrase);
-			pApp->m_targetBox.UpdateWindow();
-		}
-		*/
+        // user can set pSrcPhrase->m_adaption to whatever he likes via phrase box, it won't go
+        // into KB, and it now (no longer) will get clobbered, since we now follow Susanna Imrie's
+        // recommendation that this feature should still allow a non-null translation to remain in
+        // the document
 	}
 	else
 	{
@@ -18252,6 +18320,17 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
 // user clicks the No Punctuation Copy button on the command bar - so this flag was added to
 // support this new functionality. The flag is automatically reset TRUE once the phrase box moves
 // to a different location by any method.
+// Note 27Jan09: this function is usually called just before the phrase box is moved elsewhere. It
+// should be called before StoreText() is called if MakeLineFourString() uses the m_targetPhrase
+// member on the app class (which stores the phrase box contents), because m_targetPhrase might
+// contain user-typed punctuation different than what would otherwise be set by the normal transfer
+// of the puntuation equivalent to source text punctuation at that location. Doing it first gets
+// the m_targetStr member set correct, and that allows the m_targetPhrase member to be safely
+// modified by having any punctuation stripped out prior to using it for the StoreText() call, and
+// if needed, a call to SetAdaptationOrGloss() to set the m_adaption or m_gloss member. If a local
+// string is used for storing a copy of the phrase box contents, then MakeLineFourString() can be
+// called after StoreText() -- this happens in a few places, such as in the consistency checking
+// code.
 {
 	// BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about to
 	// leave a hole which may or may not have had punctuation there; the former m_targetStr is
@@ -18939,9 +19018,9 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 				bOK = AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
 				if (!bOK)
 				{
-					// fix it silently
+					// fix it silently; leave m_adaption value untouched
 					gpApp->m_bSaveToKB = TRUE; // ensure it gets stored
-					StoreText(pKB,pSrcPhrase,str); // don't want punctuation in KB
+					StoreText(pKB,pSrcPhrase,str); // BEW 27Jan09 comment: no longer sets m_adaption
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 					pSrcPhrase->m_bNotInKB = TRUE;
 				}
@@ -19053,8 +19132,9 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 					// an empty string
 					if (tempStr.IsEmpty())
 					{
-						StoreText(pKB,pSrcPhrase,tempStr,TRUE); // TRUE = suppress the
-																// (now relic) dialog
+						// BEW added next line 27Jan09, m_targetStr & punctuation handled later below
+						SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,tempStr);
+						StoreText(pKB,pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
 					}
 					else
 					{
@@ -19066,7 +19146,10 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 							// the user may have typed lower case for fixing the gloss or adaptation,
 							// but this is okay - the store will work right, so don't need anything
 							// here except the call to store it
-							StoreText(pKB,pSrcPhrase,tempStr);
+							// BEW added next 2 lines 27Jan09, m_targetStr & punctuation handled
+							// later below
+							SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,tempStr);
+							StoreText(pKB,pSrcPhrase,tempStr); // 27Jan09, just stores, doesn't set m_adaption
 						}
 						// do the gbIsGlossing case when no punct is to be removed, in next block
 					}
@@ -19319,12 +19402,15 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							// don't ignore, so handle the dialog's contents
 							if (tempStr.IsEmpty())
 							{
-								StoreText(pKB,pSrcPhrase,tempStr,TRUE); // TRUE = suppress the (now relic) dialog
+								// BEW added next line 27Jan09
+								SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,tempStr);
+								StoreText(pKB,pSrcPhrase,tempStr,TRUE); // TRUE = allow empty string storage
 							}
 							else
 							{
 								if (!gbIsGlossing)
 								{
+									SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,tempStr);
 									StoreText(pKB,pSrcPhrase,tempStr);
 								}
 								// do the gbIsGlossing case in next block
@@ -19379,59 +19465,6 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							} // end of block for glossing mode
 						} // end of else block for test: if (gbIgnoreIt)
 
-/*	// BEW removed 16May08, as it was a bit simplistic; copied the earlier code from the AutoFixRecord's
-	// way of doing it above, as that is smarter, tweaking it as necessary
-						if (gbAutoCaps)
-						{
-							bNoError = SetCaseParameters(pSrcPhrase->m_key);
-							if (bNoError && gbSourceIsUpperCase)
-							{
-								bNoError = SetCaseParameters(finalStr,FALSE);
-								if (bNoError && !gbNonSourceIsUpperCase &&
-																(gcharNonSrcUC != _T('\0')))
-								{
-									// need to make it start with upper case
-									finalStr.SetChar(0,gcharNonSrcUC);
-								}
-							}
-						}
-						wxString tempStr = finalStr; // could have punctuation in it
-						if (!gbIsGlossing)
-							RemovePunctuation(pDoc,&tempStr,1); // don't want punctuation in adaptations KB
-						if (tempStr.IsEmpty())
-						{
-							tempStr = _T("");
-							StoreText(pKB,pSrcPhrase,tempStr,TRUE); // store null string
-						}
-						else
-						{
-							if (gbIgnoreIt)
-							{
-								// if the user hit the "Ignore it, I will fix it later" button,
-								// then just put the existing adaptation or gloss back into the KB,
-								// after clearing the flag
-								if (gbIsGlossing)
-								{
-									tempStr = pSrcPhrase->m_gloss;
-									StoreText(pKB,pSrcPhrase,tempStr,TRUE);
-								}
-								else // adapting
-								{
-									tempStr = pSrcPhrase->m_targetStr;
-									StoreText(pKB,pSrcPhrase,tempStr,TRUE);
-									MakeLineFourString(pSrcPhrase,tempStr);
-								}
-								gbIgnoreIt = FALSE;
-								goto y;
-							}
-							// if we get here, then storage in the KB for the fix done to this
-							// item is required
-							StoreText(pKB,pSrcPhrase,tempStr);
-						}
-						if (!gbIsGlossing)
-							MakeLineFourString(pSrcPhrase,finalStr);
-						gpApp->m_targetPhrase = finalStr;
-*/
 						// show the progress window again
 y:						;
 #ifdef __WXMSW__
@@ -20741,9 +20774,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		// throwing it all out
 		MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 		RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
-		gbInhibitLine4StrCall = TRUE;
+		//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+		// BEW added next line 27Jan09
+		SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 		bool bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-		gbInhibitLine4StrCall = FALSE;
+		//gbInhibitLine4StrCall = FALSE;
 		if (!bOK)
 		{
 			gbIsRetranslationCurrent = FALSE;
@@ -21417,9 +21452,11 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
 			if (!gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 			{
-				gbInhibitLine4StrCall = TRUE;
+				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				bool bOK = StoreText(pApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				//gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
 				{
 					gbIsRetranslationCurrent = FALSE;
@@ -22113,9 +22150,11 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
 			if (gpApp->m_targetPhrase != gpApp->m_pActivePile->m_pSrcPhrase->m_adaption)
 			{
-				gbInhibitLine4StrCall = TRUE;
+				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				bool bOK = StoreText(pApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				//gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
 					return; // can't proceed until a valid adaption (which could be null)
 							// is supplied for the former active pile's srcPhrase
@@ -22615,6 +22654,8 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 				pRefStr = GetRefString(pApp->m_pGlossingKB, 1,pApp->m_pActivePile->m_pSrcPhrase->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
 					pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pGlossingKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 			}
 			else
@@ -22630,9 +22671,11 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 												pApp->m_pActivePile->m_pSrcPhrase->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 					pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-				gbInhibitLine4StrCall = TRUE;
+				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				//gbInhibitLine4StrCall = FALSE;
 			}
 		}
 	}
@@ -23775,6 +23818,8 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 				if (pRefStr == NULL || pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry) // be safe
 					pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 				// now do the store
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pGlossingKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 			}
 			else
@@ -23784,9 +23829,11 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 				if (pRefStr == NULL || pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry) // be safe
 					pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
 				// now do the store
-				gbInhibitLine4StrCall = TRUE;
+				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
+				// BEW added next line 27Jan09
+				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
+				//gbInhibitLine4StrCall = FALSE;
 			}
 
 			// now get rid of the phrase box, until we need it again
@@ -29207,12 +29254,12 @@ void CAdapt_ItView::DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile)
 					{
 						if (!IsAlreadyInKB(1,key,adaption))
 							// adaption parameter is assumed to be a gloss if glossing is ON
-							StoreText(pKB,pSrcPhrase,adaption,TRUE);
+							StoreText(pKB,pSrcPhrase,adaption,TRUE); // BEW 27Jan09, TRUE means "allow empty string save"
 					}
 					else
 					{
 						if (!IsAlreadyInKB(pSrcPhrase->m_nSrcWords,key,adaption))
-							StoreText(pKB,pSrcPhrase,adaption,TRUE);
+							StoreText(pKB,pSrcPhrase,adaption,TRUE); // BEW 27Jan09, TRUE means "allow empty string save"
 					}
 
 					// prepare for another adaptation (or gloss) for this key
@@ -29702,8 +29749,8 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 		pApp->m_pActivePile->m_pSrcPhrase->m_targetStr.Empty(); // too
 	}
 
-	// the TRUE flag is required (ie. suppress empty adapt dlg) since it leads to the store
-	// being automatically done - otherwise, no store would be done for the empty adaptation
+    // the TRUE flag is required, since it leads to the store being automatically done - otherwise,
+    // no store would be done for the empty adaptation 
 	bool bOK;
 	if (gbIsGlossing)
 		bOK = StoreText(pApp->m_pGlossingKB,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase,TRUE);
@@ -34232,6 +34279,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 						if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
 							gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 						bool bOK;
+						// BEW added next line 27Jan09
+						SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 						bOK = StoreText(gpApp->m_pGlossingKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					}
 					else
@@ -34249,10 +34298,12 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 							gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
 						if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 							gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-						gbInhibitLine4StrCall = TRUE;
+						//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 						bool bOK;
+						// BEW added next line 27Jan09
+						SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 						bOK = StoreText(gpApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-						gbInhibitLine4StrCall = FALSE;
+						//gbInhibitLine4StrCall = FALSE;
 					}
 				}
 			} // end block for non-empty box contents
@@ -34262,7 +34313,9 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 				bool bOK = FALSE;
 				if (gbIsGlossing)
 				{
-					gpApp->m_pActivePile->m_pSrcPhrase->m_gloss = gpApp->m_targetPhrase;
+					// BEW added next line 27Jan09
+					SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+					//gpApp->m_pActivePile->m_pSrcPhrase->m_gloss = gpApp->m_targetPhrase;
 
 					// see above for why we do this
 					CRefString* pRefStr = GetRefString(gpApp->m_pGlossingKB, 1,
@@ -34273,7 +34326,9 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 				}
 				else // is adapting
 				{
-					gpApp->m_pActivePile->m_pSrcPhrase->m_adaption = gpApp->m_targetPhrase;
+					SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+					//gpApp->m_pActivePile->m_pSrcPhrase->m_adaption = gpApp->m_targetPhrase;
+					//
 					MakeLineFourString(gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase); // punctuation is 
 																					// re-expressed
 					RemovePunctuation(pDoc,&gpApp->m_targetPhrase, 1 /*from tgt*/);
@@ -34283,9 +34338,9 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 						gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-					gbInhibitLine4StrCall = TRUE;
+					//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 					bOK = StoreText(gpApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-					gbInhibitLine4StrCall = TRUE;
+					//gbInhibitLine4StrCall = TRUE;
 				}
 
 				// check for a failure, abandon the function if the store failed, and because this
@@ -37668,6 +37723,8 @@ void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
 		if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
 		{
 			// we can assume no errors for StoreTest call
+			// BEW added next line 27Jan09
+			SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,gpApp->m_targetPhrase);
 			bOK = StoreText(gpApp->m_pGlossingKB,pSrcPhrase,pApp->m_targetPhrase);
 		}
 
@@ -37842,8 +37899,10 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 		// then we need to find a safe location for it as close as possible
 		if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
 		{
-			if (gbRemovePunctuationFromGlosses)
-				RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,1 ); //use tgt punct set
+			//if (gbRemovePunctuationFromGlosses)  // 27Jan09, it's now done in SetAdaptationOrGloss
+			//	RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,1 ); //use tgt punct set
+			// BEW added next line 27Jan09
+			SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,gpApp->m_targetPhrase);
 			// assume no errors
 			bOK = StoreText(gpApp->m_pGlossingKB,pSrcPhrase,pApp->m_targetPhrase);
 		}
@@ -37912,7 +37971,7 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 			{
 				str = pApp->m_targetPhrase;
 				RemovePunctuation(GetDocument(),&str,1 ); //from tgt
-				pSrcPhrase->m_adaption = str;
+				pSrcPhrase->m_adaption = str; // 27Jan09 comment, instead of calling SetAdaptationOrGloss()
 				MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
 				bOK = StoreText(gpApp->m_pKB,pSrcPhrase,str);
 			}
@@ -38799,6 +38858,13 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 		if (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 		{
 			// save the phrase box text to the KB
+			// BEW added next lines 27Jan09
+			if (!gbIsGlossing)
+			{
+				MakeLineFourString(gpApp->m_pActivePile->m_pSrcPhrase, gpApp->m_targetPhrase);
+				RemovePunctuation(GetDocument(),&gpApp->m_targetPhrase,1 ); //from tgt
+			}
+			SetAdaptationOrGloss(gbIsGlossing,pSP,gpApp->m_targetPhrase);
 			bool bOK;
 			bOK = StoreTextGoingBack(pKB,pSP,gpApp->m_targetPhrase); // store, so we can forget this location
 		}

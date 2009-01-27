@@ -10,6 +10,7 @@ Feature changes and new features in 4.1.0
 * The "Check Knowledge Base" selection was removed from the File menu. It was not really needed and only served to make project loading take longer.
 * The TU elements in the Knowledge Base XML files are now sorted. Some users requested this change to make Subversion backups more efficient.
 * Added "Please wait..." dialogs for KB loading, saving and backup operations. These operations were also optimized for speed resulting in shorter wait times when opening a project with very large KBs.
+* Change the Restore Knowledge Base functionality so that it avoids trying to set the adaptations to their punctuation-containing forms. This prevents any punctuation-placement dialogs from opening during the restore operation - a useful thing to do because such dialogs have no useful purpose during restoration of the knowledge base.
 ----------------------------------------------
 Bug fixes in 4.1.0
 ----------------------------------------------
@@ -27,6 +28,7 @@ Bug fixes in 4.1.0
 * Fixes the following bug: if the user inserted a placeholder before a word or phrase where standard format markers were stored, and later did a source text standard format export, then the SF markers at that location would not be included in the exported data.
 * Fixes a bug in the KB Export function that failed to insert end-of-line characters into the exported KB file (Unicode version only - the ANSI version did not have the problem).
 * Fixes the following bug: if the user selected source text which begins with an SF marker, such as \q for 'poetry', and in the Edit Source Text dialog removes all the selection but just leaves the \q marker in the box, the final result is that there is a white space gap in the text where the marker is stored (an underlying storage element with no content except the marker). What the user expects is that the marker will attach to the first word following the former selection - and that is now what happens.
+* Fixes the following bug introduced at version 4: if the source text contained two or more words in a merger and there was punctuation medially within the phrase, if the user did a File / Restore Knowledge Base operation, when the Place Phrase-Medial Punctuation dialog came up, the target text shown in the dialog was not the correct text, it was just whatever contents the phrase box had when the restore operation was invoked.
 
 Version 4.0.4 update 13Dec2008:
 
