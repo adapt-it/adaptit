@@ -283,7 +283,7 @@ public:
 						SPList* pCopiedSublist); // BEW added 16Apr08
 	bool		PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRec);  // BEW added 18Jul08
 	void		RemoveFilterWrappersButLeaveContent(wxString& str);	// removes "\~FILTER" and "\~FILTER*" from
-																	// str, but leaves the SFM, its content, and any following endmarker followed by any whitespace etc.	
+					// str, but leaves the SFM, its content, and any following endmarker followed by any whitespace etc.	
 	bool		ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 											SPList*  pReplacementsList, int nReplaceStartAt, int nReplaceCount); // BEW added 27May08
 	bool		FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
@@ -328,6 +328,7 @@ public:
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
+	void		SetAdaptationOrGloss(bool bIsGlossing, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase); 
 	bool		SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	void		SetupCurrentFreeTransSection(int activeSequNum); // BEW added 24Jun05 for free translation support
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
@@ -341,8 +342,8 @@ public:
 					enum EditBoxContents editBoxContents, const wxString& mkrStr); //moved to public
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
 	void		StoreSelection(int nSelectionLine);
-	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase,
-															bool bSuppressEmptyAdaptDlg = FALSE);
+	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, 
+										bool bSupportNoAdaptationButton = FALSE);
 	bool		StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
 	void		ToggleFreeTranslationMode(); // BEW added 20Sep08
 	void		ToggleGlossingMode(); // BEW added 19Sep08

@@ -148,8 +148,8 @@ extern bool gbPropagationNeeded;
 /// This global is defined in TransferMarkersDlg.cpp.
 extern TextType gPropagationType;
 
-/// This global is defined in Adapt_ItView.cpp.
-extern bool gbInhibitLine4StrCall; // see view for reason for this
+// This global is defined in Adapt_ItView.cpp.  BEW removed 27Jan09
+//extern bool gbInhibitLine4StrCall; // see view for reason for this
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbIsUnstructuredData;
@@ -2342,10 +2342,10 @@ bool CAdapt_ItDoc::DoFileSave()
 				pView->MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
 				pView->RemovePunctuation(this,&pApp->m_targetPhrase,1 ); //1 = from tgt
 			}
-			gbInhibitLine4StrCall = TRUE;
-			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->m_pSrcPhrase,
-														pApp->m_targetPhrase);
-			gbInhibitLine4StrCall = FALSE;
+			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09, and the one 3 lines down
+			pView->SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
+			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
+			//gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
 			{
 				// something is wrong if the store did not work, but we can tolerate the error 

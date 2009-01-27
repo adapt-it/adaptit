@@ -7,9 +7,9 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CPlaceInternalPunct class. 
-/// The CPlaceInternalPunct class provides a dialog called by MakeLineFourString, which
-/// in turn is called in various places where user intervention is needed to correctly
-/// place punctuation.
+/// The CPlaceInternalPunct class provides a dialog for the user to manually control placement
+/// of target text punctuation, or the user can ignore the placement. This class is instantiated
+/// from only one place, in the view's MakeLineFourString() function.
 /// \derivation		The CPlaceInternalPunct class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in PlaceInternalPunct.cpp (in order of importance): (search for "TODO")
@@ -141,7 +141,10 @@ void CPlaceInternalPunct::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 
 	// set the source text edit box contents, and ditto for the target text box
 	m_srcPhrase = m_pSrcPhrase->m_srcPhrase;
-	m_tgtPhrase = gpApp->m_targetPhrase;
+	//m_tgtPhrase = gpApp->m_targetPhrase; // BEW removed 26Jan09: because phrase box does not
+	//move during a KB restoration process, and apps m_targetPhrase stays constant then, instead
+	//do it using the m_adaption string from the passed in CSourcePhrase pointer
+	m_tgtPhrase = m_pSrcPhrase->m_adaption;
 
 	m_psrcPhraseBox->SetValue(m_srcPhrase);
 	m_ptgtPhraseBox->SetValue(m_tgtPhrase);
