@@ -117,7 +117,7 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		default:
 			WaitMsg = _("Please wait. This may take a while...");
 	}
-	//TransferDataToWindow();
+	TransferDataToWindow();
 	pStatic->SetLabel(WaitMsg); // not needed with validator
 	pWaitDlgSizer->Layout();
 	Refresh();

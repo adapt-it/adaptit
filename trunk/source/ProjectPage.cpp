@@ -525,7 +525,6 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			waitDlg.Show(TRUE);
 			waitDlg.Update();
 			// the wait dialog is automatically destroyed when it goes out of scope below.
-			} // end of CWaitDlg scope
 			bool bOK = pApp->LoadKB();
 			if (bOK)
 			{
@@ -536,16 +535,16 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pApp->m_pGlossingKB = new CKB;
 				wxASSERT(pApp->m_pGlossingKB != NULL);
 				
-				{ // this block defines the existence of the wait dialog for loading the glossing KB
-				CWaitDlg waitDlg(gpApp->GetMainFrame());
+				//{ // this block defines the existence of the wait dialog for loading the glossing KB
+				//CWaitDlg waitDlg(gpApp->GetMainFrame());
 				// indicate we want the reading file wait message
-				waitDlg.m_nWaitMsgNum = 9;	// 9 "Please wait while Adapt It loads the Glossing KB..."
-				waitDlg.Centre();
-				waitDlg.Show(TRUE);
-				waitDlg.Update();
+				//waitDlg.m_nWaitMsgNum = 9;	// 9 "Please wait while Adapt It loads the Glossing KB..."
+				//waitDlg.Centre();
+				//waitDlg.Show(TRUE);
+				//waitDlg.Update();
 				// the wait dialog is automatically destroyed when it goes out of scope below.
 				bOK = pApp->LoadGlossingKB();
-				} // end of CWaitDlg scope
+				//} // end of CWaitDlg scope
 
 				if (bOK)
 				{
@@ -588,12 +587,14 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pStartWorkingWizard->EndModal(1);
 				pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 			}
+			
 
 			// The pDocPage's InitDialog need to be called here just before going to it
 			// make sure the pDocPage is initialized to show the documents for the selected project
 			wxInitDialogEvent idevent;
 			pDocPage->InitDialog(idevent);
 
+			} // end of CWaitDlg scope
 			// close the progress dialog
 
 		}
