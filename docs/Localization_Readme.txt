@@ -6,14 +6,14 @@ Adapt It's interface has been translated.
 
 The full installations of Adapt It WX and Adapt It WX Unicode come with 
 interface translations for English (the default), Spanish, French, Russian,
-Portuguese, Indonesian, PNG Tok Pisin, and Chinese. Each language interface 
-is called a "Localization." Other localizations are in preparation. Some of 
-the above localizations initially are just partial translations, that is, 
-some interface text and interface messages are not yet translated - in which 
-case those parts of the interface will simply display in English instead of
-the other language localization. The Adapt It team is seeking translators
-to complete the above mentioned localizations, as well as produce new 
-localizations for Adapt It.
+Portuguese, Indonesian, PNG Tok Pisin, Chinese and Azeri. Each language 
+interface is called a "Localization." Other localizations are in preparation. 
+Some of the above localizations initially are just partial translations, that 
+is, some interface text and interface messages are not yet translated - in 
+which case those parts of the interface will simply display in English 
+instead of the other language localization. The Adapt It team is seeking 
+translators to complete the above mentioned localizations, as well as produce 
+new localizations for Adapt It.
 
 Where localization folders and files are located after installation:
 
@@ -40,6 +40,9 @@ Windows Installations:
     |
     |
     Languages
+       |- az -               <- subfolder for Azeri
+       |     |- Adapt_It.mo
+       |
        |- es -               <- subfolder for Spanish
        |     |- Adapt_It.mo
        |     |- wxstd.mo
@@ -50,7 +53,6 @@ Windows Installations:
        |
        |- id -               <- subfolder for Indonesian
        |     |- Adapt_It.mo
-       |     |- wxstd.mo
        |
        |- pt -               <- subfolder for Portuguese
        |     |- Adapt_It.mo
@@ -82,6 +84,10 @@ folder structure:
 <localization_folder>
     |
     |
+    |- az -               <- subfolder for Azeri
+    |     |- LC_MESSAGES
+    |           |- Adapt_It.mo
+    |
     |- es -               <- subfolder for Spanish
     |     |- LC_MESSAGES
     |           |- Adapt_It.mo
@@ -95,7 +101,6 @@ folder structure:
     |- id -               <- subfolder for Indonesian
     |     |- LC_MESSAGES
     |           |- Adapt_It.mo
-    |           |- wxstd.mo
     |
     |- pt -               <- subfolder for Portuguese
     |     |- LC_MESSAGES
@@ -139,7 +144,7 @@ From time to time new localizations become available and sometimes the
 interface elements of Adapt It may change and new localizations should
 be installed - usually these are included with the installer when a newly
 updated version of Adapt It becomes available. Once in a while a 
-localization is updated of corrected. In this case you only need to 
+localization is updated or corrected. In this case you only need to 
 download and install the localization installer (about 1MB in size) to 
 get any new and/or updated localizations. Once a new or updated Adapt_It.mo 
 and/or wxstd.mo files is present in a named language subfolder, they 
@@ -150,12 +155,12 @@ How to EDIT an EXISTING localization for Adapt It's interface:
 
 As mentioned the localizations initially provided with Adapt It WX and
 Adapt It WX Unicode are only partial. These partial localizations 
-include Spanish, French, Russian, Portuguese, Indonesian, and Chinese.
-If you would like to help complete or correct any of the existing
-translations for these languages, the Adapt It team welcomes your help!
-If you want to help complete or correct the localizations for Spanish, 
-French, Russian, Portuguese, Indonesian, or Chinese, here is how you
-can do so:
+include Spanish, French, Russian, Portuguese, Indonesian, Chinese
+and Azeri. If you would like to help complete or correct any of the 
+existing translations for these languages, the Adapt It team welcomes 
+your help! If you want to help complete or correct the localizations 
+for Spanish, French, Russian, Portuguese, Indonesian, Chinese, or Azeri, 
+here is how you can do so:
    * The easiest way to edit or correct an existing localization is
 to first install a free program called Poedit. PoEdit is an easy to 
 use program with a graphical interface that helps you translate 
@@ -182,6 +187,7 @@ Adapt It po file via email attachment.
 
 The .po files are currently named in the repository as follows:
 
+az.po	   - Azeri
 es.po      - Spanish
 fr.po      - French
 id.po      - Indonesian
