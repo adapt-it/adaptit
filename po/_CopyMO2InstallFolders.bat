@@ -17,14 +17,14 @@ echo     10. Visual Studio build folder "bin\win32\Unicode Release"
 echo The mo files are renamed to Adapt_It.mo or Adapt_It_Unicode.mo and placed 
 echo    in their proper localization folders as follows:
 echo ===================================================
-echo es.mo is copied as Adapt_It.mo to the Languages\es folder of each installation
-echo fr.mo is copied as Adapt_It.mo to the Languages\fr folder of each installation
-echo id.mo is copied as Adapt_It.mo to the Languages\id folder of each installation
-echo pt.mo is copied as Adapt_It.mo to the Languages\pt folder of each installation
-echo ru.mo is copied as Adapt_It.mo to the Languages\ru folder of each installation
-echo tpi.mo is copied as Adapt_It.mo to the Languages\tpi folder of each installation
-echo zh.mo is copied as Adapt_It.mo to the Languages\zh folder of each installation
-echo az.mo is copied as Adapt_It.mo to the Languages\az folder of each installation
+echo es.mo is copied as Adapt_It(_Unicode).mo to the Languages\es folder of each installation
+echo fr.mo is copied as Adapt_It(_Unicode).mo to the Languages\fr folder of each installation
+echo id.mo is copied as Adapt_It(_Unicode).mo to the Languages\id folder of each installation
+echo pt.mo is copied as Adapt_It(_Unicode).mo to the Languages\pt folder of each installation
+echo ru.mo is copied as Adapt_It(_Unicode).mo to the Languages\ru folder of each installation
+echo tpi.mo is copied as Adapt_It(_Unicode).mo to the Languages\tpi folder of each installation
+echo zh.mo is copied as Adapt_It_Unicode.mo to the Languages\zh folder of each Unicode installation
+echo az.mo is copied as Adapt_It_Unicode.mo to the Languages\az folder of each Unicode installation
 echo defauls.mo is copied under the same name to the Languages folder of each installation
 echo ===================================================
 echo Press CRTL-C to abort or
@@ -39,8 +39,6 @@ mkdir "..\setup Regular\Languages\id"
 mkdir "..\setup Regular\Languages\pt"
 mkdir "..\setup Regular\Languages\ru"
 mkdir "..\setup Regular\Languages\tpi"
-mkdir "..\setup Regular\Languages\zh"
-mkdir "..\setup Regular\Languages\az"
 copy es.mo "..\setup Regular\Languages\es\Adapt_It.mo"
 copy es.po "..\setup Regular\Languages\es\es.po"
 copy wxstd-es.mo "..\setup Regular\Languages\es\wxstd.mo"
@@ -61,11 +59,6 @@ copy tpi.po "..\setup Regular\Languages\tpi\tpi.po"
 copy tpi_readme.txt "..\setup Regular\Languages\tpi\tpi_readme.txt"
 copy books_tpi.xml "..\setup Regular\Languages\tpi\books_tpi.xml"
 copy wxstd-tpi.mo "..\setup Regular\Languages\tpi\wxstd.mo"
-copy zh.mo "..\setup Regular\Languages\zh\Adapt_It.mo"
-copy zh.po "..\setup Regular\Languages\zh\zh.po"
-copy wxstd-zh.mo "..\setup Regular\Languages\zh\wxstd.mo"
-copy az.mo "..\setup Regular\Languages\az\Adapt_It.mo"
-copy az.po "..\setup Regular\Languages\az\az.po"
 copy default.mo "..\setup Regular\Languages\default.mo"
 copy default.po "..\setup Regular\Languages\default.po"
 
@@ -78,8 +71,6 @@ mkdir "..\setup Regular - No Html Help\Languages\id"
 mkdir "..\setup Regular - No Html Help\Languages\pt"
 mkdir "..\setup Regular - No Html Help\Languages\ru"
 mkdir "..\setup Regular - No Html Help\Languages\tpi"
-mkdir "..\setup Regular - No Html Help\Languages\zh"
-mkdir "..\setup Regular - No Html Help\Languages\az"
 copy es.mo "..\setup Regular - No Html Help\Languages\es\Adapt_It.mo"
 copy es.po "..\setup Regular - No Html Help\Languages\es\es.po"
 copy wxstd-es.mo "..\setup Regular - No Html Help\Languages\es\wxstd.mo"
@@ -100,11 +91,6 @@ copy tpi.po "..\setup Regular - No Html Help\Languages\tpi\tpi.po"
 copy tpi_readme.txt "..\setup Regular - No Html Help\Languages\tpi\tpi_readme.txt"
 copy books_tpi.xml "..\setup Regular - No Html Help\Languages\tpi\books_tpi.xml"
 copy wxstd-tpi.mo "..\setup Regular - No Html Help\Languages\tpi\wxstd.mo"
-copy zh.mo "..\setup Regular - No Html Help\Languages\zh\Adapt_It.mo"
-copy zh.po "..\setup Regular - No Html Help\Languages\zh\zh.po"
-copy wxstd-zh.mo "..\setup Regular - No Html Help\Languages\zh\wxstd.mo"
-copy az.mo "..\setup Regular - No Html Help\Languages\az\Adapt_It.mo"
-copy az.po "..\setup Regular - No Html Help\Languages\az\az.po"
 copy default.mo "..\setup Regular - No Html Help\Languages\default.mo"
 copy default.po "..\setup Regular - No Html Help\Languages\default.po"
 
@@ -117,8 +103,6 @@ mkdir "..\setup Regular Localizations Only\Languages\id"
 mkdir "..\setup Regular Localizations Only\Languages\pt"
 mkdir "..\setup Regular Localizations Only\Languages\ru"
 mkdir "..\setup Regular Localizations Only\Languages\tpi"
-mkdir "..\setup Regular Localizations Only\Languages\zh"
-mkdir "..\setup Regular Localizations Only\Languages\az"
 copy es.mo "..\setup Regular Localizations Only\Languages\es\Adapt_It.mo"
 copy es.po "..\setup Regular Localizations Only\Languages\es\es.po"
 copy wxstd-es.mo "..\setup Regular Localizations Only\Languages\es\wxstd.mo"
@@ -139,11 +123,6 @@ copy tpi.po "..\setup Regular Localizations Only\Languages\tpi\tpi.po"
 copy tpi_readme.txt "..\setup Regular Localizations Only\Languages\tpi\tpi_readme.txt"
 copy books_tpi.xml "..\setup Regular Localizations Only\Languages\tpi\books_tpi.xml"
 copy wxstd-tpi.mo "..\setup Regular Localizations Only\Languages\tpi\wxstd.mo"
-copy zh.mo "..\setup Regular Localizations Only\Languages\zh\Adapt_It.mo"
-copy zh.po "..\setup Regular Localizations Only\Languages\zh\zh.po"
-copy wxstd-zh.mo "..\setup Regular Localizations Only\Languages\zh\wxstd.mo"
-copy az.mo "..\setup Regular Localizations Only\Languages\az\Adapt_It.mo"
-copy az.po "..\setup Regular Localizations Only\Languages\az\az.po"
 copy default.mo "..\setup Regular Localizations Only\Languages\default.mo"
 copy default.po "..\setup Regular Localizations Only\Languages\default.po"
 
@@ -273,8 +252,6 @@ mkdir "..\bin\win32\Debug\Languages\id"
 mkdir "..\bin\win32\Debug\Languages\pt"
 mkdir "..\bin\win32\Debug\Languages\ru"
 mkdir "..\bin\win32\Debug\Languages\tpi"
-mkdir "..\bin\win32\Debug\Languages\zh"
-mkdir "..\bin\win32\Debug\Languages\az"
 copy es.mo "..\bin\win32\Debug\Languages\es\Adapt_It.mo"
 copy es.po "..\bin\win32\Debug\Languages\es\es.po"
 copy wxstd-es.mo "..\bin\win32\Debug\Languages\es\wxstd.mo"
@@ -295,11 +272,6 @@ copy tpi.po "..\bin\win32\Debug\Languages\tpi\tpi.po"
 copy tpi_readme.txt "..\bin\win32\Debug\Languages\tpi\tpi_readme.txt"
 copy books_tpi.xml "..\bin\win32\Debug\Languages\tpi\books_tpi.xml"
 copy wxstd-tpi.mo "..\bin\win32\Debug\Languages\tpi\wxstd.mo"
-copy zh.mo "..\bin\win32\Debug\Languages\zh\Adapt_It.mo"
-copy zh.po "..\bin\win32\Debug\Languages\zh\zh.po"
-copy wxstd-zh.mo "..\bin\win32\Debug\Languages\zh\wxstd.mo"
-copy az.mo "..\bin\win32\Debug\Languages\az\Adapt_It.mo"
-copy az.po "..\bin\win32\Debug\Languages\az\az.po"
 copy default.mo "..\bin\win32\Debug\Languages\default.mo"
 copy default.po "..\bin\win32\Debug\Languages\default.po"
 
@@ -312,8 +284,6 @@ mkdir "..\bin\win32\Release\Languages\id"
 mkdir "..\bin\win32\Release\Languages\pt"
 mkdir "..\bin\win32\Release\Languages\ru"
 mkdir "..\bin\win32\Release\Languages\tpi"
-mkdir "..\bin\win32\Release\Languages\zh"
-mkdir "..\bin\win32\Release\Languages\az"
 copy es.mo "..\bin\win32\Release\Languages\es\Adapt_It.mo"
 copy es.po "..\bin\win32\Release\Languages\es\es.po"
 copy wxstd-es.mo "..\bin\win32\Release\Languages\es\wxstd.mo"
@@ -334,11 +304,6 @@ copy tpi.po "..\bin\win32\Release\Languages\tpi\tpi.po"
 copy tpi_readme.txt "..\bin\win32\Release\Languages\tpi\tpi_readme.txt"
 copy books_tpi.xml "..\bin\win32\Release\Languages\tpi\books_tpi.xml"
 copy wxstd-tpi.mo "..\bin\win32\Release\Languages\tpi\wxstd.mo"
-copy zh.mo "..\bin\win32\Release\Languages\zh\Adapt_It.mo"
-copy zh.po "..\bin\win32\Release\Languages\zh\zh.po"
-copy wxstd-zh.mo "..\bin\win32\Release\Languages\zh\wxstd.mo"
-copy az.mo "..\bin\win32\Release\Languages\az\Adapt_It.mo"
-copy az.po "..\bin\win32\Release\Languages\az\zh.po"
 copy default.mo "..\bin\win32\Release\Languages\default.mo"
 copy default.po "..\bin\win32\Release\Languages\default.po"
 
