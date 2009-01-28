@@ -147,7 +147,7 @@ public:
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase);
 	void			DeleteSourcePhrases();
 	void			DeleteSourcePhrases(SPList* pList);
-	bool			DoFileSave();
+	bool			DoFileSave(bool bShowWaitDlg);
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoTransformedDocFileSave(wxString path);

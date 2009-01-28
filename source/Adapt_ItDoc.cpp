@@ -1192,7 +1192,7 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 	// hidden ones, but remained empty. Nor was the written file anywhere else on the disk. A
 	// shortcut to the file gets created in C:\Windows\Recent, with correct path to where the
 	// file should be, but it is not there (ie. in the Adaptations folder). So I will do my own.
-	DoFileSave(); // don't care about return value here
+	DoFileSave(TRUE); // TRUE - show wait/progress dialog - don't care about return value here
 
 	//	CDocument::OnFileSave();	// MFC code commented this out in order not to use the DOC's
 									// base class OnFileSave() mechanism.
@@ -2279,6 +2279,7 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if file was successfully saved; FALSE otherwise
+/// \param	bShowWaitDlg	-> if TRUE the wait/progress dialog is shown, otherwise it is not shown
 /// \remarks
 /// Called from: the App's DoAutoSaveDoc(), the Doc's OnFileSave(), OnSaveModified() and
 /// OnFilePackDoc(), the View's OnEditConsistencyCheck() and DoConsistencyCheck(), and
@@ -2287,7 +2288,7 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 /// housekeeping involved.
 /// Ammended for handling saving when glossing or adapting.
 // //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::DoFileSave()
+bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 {
 	wxFile f; // create a CFile instance with default constructor
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -2386,21 +2387,6 @@ bool CAdapt_ItDoc::DoFileSave()
 		else
 			thisFilename = MakeReverse(thisFilename); // it's already *.xml
 	}
-	//else // no binary serialization in WX version
-	//{
-	//	// we want an .adt extension - make it so if it happens to be .xml
-	//	thisFilename.MakeReverse();
-	//	CString extn = thisFilename.Left(3);
-	//	extn.MakeReverse();
-	//	if (extn != _T("adt"))
-	//	{
-	//		thisFilename = thisFilename.Mid(3); // remove the xml extension
-	//		thisFilename.MakeReverse();
-	//		thisFilename += _T("adt"); // it's now *.adt
-	//	}
-	//	else
-	//		thisFilename.MakeReverse(); // it's already *.adt
-	//}
 
 	gpApp->m_curOutputFilename = thisFilename;	// m_curOutputFilename now complies with the 
 												// m_bSaveAsXML flag's value
@@ -2428,45 +2414,47 @@ bool CAdapt_ItDoc::DoFileSave()
 					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
 	}
 
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
-	{
-		CSourcePhrase* pSrcPhrase;
-		CBString aStr;
-		CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
 
-		// prologue (Changed BEW 02July07 at Bob Eaton's request)
-		gpApp->GetEncodingStringForXmlFiles(aStr);
+	// prologue (Changed BEW 02July07 at Bob Eaton's request)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
 //#ifdef _UNICODE
 //		aStr = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n";
 //#else
 //		aStr = "<?xml version=\"1.0\" encoding=\"Windows-1252\" standalone=\"yes\"?>\r\n";
 //#endif
-		DoWrite(f,aStr);
-	
-		// add the comment with the warning about not opening the XML file in MS WORD 
-		// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-		// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-		// the latter goes into an infinite loop when the file is being parsed in.
-		aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
-	
-		// doc opening tag
-		aStr += "<";
-		aStr += xml_adaptitdoc;
-		aStr += ">\r\n"; // eol chars OK for cross-platform???
-		DoWrite(f,aStr);
+	DoWrite(f,aStr);
 
-		// place the <Settings> element at the start of the doc
-		aStr = ConstructSettingsInfoAsXML(1);
-		DoWrite(f,aStr);
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
 
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
+
+	// place the <Settings> element at the start of the doc
+	aStr = ConstructSettingsInfoAsXML(1);
+	DoWrite(f,aStr);
+
+	int counter = 0;
+	int nTotal = gpApp->m_pSourcePhrases->GetCount();
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	if (bShowWaitDlg)
+	{
 #ifdef __WXMSW__
 		// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
 		// progress dialog here (not done in the MFC version)
-		int nTotal = gpApp->m_pSourcePhrases->GetCount();
-		int counter = 0;
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
-		wxProgressDialog progDlg(_("Saving File"),
+		//wxProgressDialog progDlg(_("Saving File"),
+		pProgDlg = new wxProgressDialog(_("Saving File"),
 						msgDisplayed,
 						nTotal,    // range
 						gpApp->GetMainFrame(),   // parent
@@ -2491,132 +2479,39 @@ bool CAdapt_ItDoc::DoFileSave()
 		waitDlg.Update();
 		// the wait dialog is automatically destroyed when it goes out of scope below.
 #endif
-
-		// add the list of sourcephrases
-		SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-		while (pos != NULL)
+	}
+	// add the list of sourcephrases
+	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+	while (pos != NULL)
+	{
+		if (bShowWaitDlg)
 		{
 #ifdef __WXMSW__
 			counter++;
 			if (counter % 1000 == 0) 
 			{
 				msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
-				progDlg.Update(counter,msgDisplayed);
+				pProgDlg->Update(counter,msgDisplayed);
 			}
 #endif
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
-			aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
-			DoWrite(f,aStr);
 		}
-
-		// doc closing tag
-		aStr = xml_adaptitdoc;
-		aStr = openBraceSlash + aStr; //"</" + aStr;
-		aStr += ">\r\n"; // eol chars OK for cross-platform???
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
 		DoWrite(f,aStr);
-
-		// close the file
-		f.Close();
-		f.Flush();
-
-		// We won't worry about any .adt files in WX version
-		//// remove the .adt file, if there is one of same name, so that the .xml file
-		//// is the only form of the document left on disk
-		//altFilename = m_curOutputFilename;
-		//altFilename.MakeReverse();
-		//int nFound = altFilename.Find(_T('.'));
-		//ASSERT(nFound > 0);
-		//altFilename = altFilename.Mid(nFound); // remove the extension
-		//altFilename.MakeReverse();
-		//altFilename += _T("adt");
-		//if (f.GetStatus(altFilename,status) && 
-		//		(status.m_attribute == CFile::normal || status.m_attribute == CFile::archive))
-		//{
-		//	// there is a *.adt document file on the disk, so delete it
-		//	try {
-		//		f.Remove(altFilename);
-		//	}
-		//	catch (CFileException* pe)
-		//	{
-		//		AfxMessageBox(_T("Could not remove the *.adt document file"));
-		//		pe->Delete();
-		//		// do nothing else, let the app continue
-		//	}
-		//}
 	}
-	// whm WX app doesn't do binary serialization
-	//else
-	//{
-	//	// legacy app (versions prior to 3.0.0) used MS serialization only for i/o
-	//	// attach a CArchive initialized for storing to the file object, so we can serialize
-	//	CArchive ar(&f,CArchive::store, 8192); // use double-sized buffer
 
-	//	// serialize the document
-	//	ar.m_pDocument = this;
-	//	try
-	//	{
-	//		Serialize(ar);
-	//		ar.Close();
-	//		f.Close();
-	//	}
-	//	catch (CFileException* pfe)
-	//	{
-	//		// inform user, & allow application to continue
-	//		AfxThrowFileException(pfe->m_cause,pfe->m_lOsError);
-	//		pfe->Delete();
-	//		bFailed = TRUE;
-	//		goto f;
-	//	}
+	// doc closing tag
+	aStr = xml_adaptitdoc;
+	aStr = openBraceSlash + aStr; //"</" + aStr;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
 
-	//	// remove the .xml file, if there is one of same name, so that the .adt file
-	//	// is the only form of the document left on disk
-	//	altFilename = m_curOutputFilename;
-	//	altFilename.MakeReverse();
-	//	int nFound = altFilename.Find(_T('.'));
-	//	ASSERT(nFound > 0);
-	//	altFilename = altFilename.Mid(nFound); // remove the extension
-	//	altFilename.MakeReverse();
-	//	altFilename += _T("xml");
-	//	if (f.GetStatus(altFilename,status) && 
-	//			(status.m_attribute == CFile::normal || status.m_attribute == CFile::archive))
-	//	{
-	//		// there is an *.xml document file on the disk, so delete it
-	//		try {
-	//			f.Remove(altFilename);
-	//		}
-	//		catch (CFileException* pe)
-	//		{
-	//			AfxMessageBox(_T("Could not remove the *.xml document file"));
-	//			pe->Delete();
-	//			// do nothing else, let the app continue
-	//		}
-	//	}
-	//}
+	// close the file
+	f.Close();
+	f.Flush();
 
-
-	// whm note: I don't think this is an issue with WX
-	// make sure its a "normal" file, if there is an error, return FALSE
-	// (file must be closed for this code to work)
-	//if (f.GetStatus(status))
-	//{
-	//	// no errors, so set set to a normal file
-	//	status.m_attribute = CFile::normal;
-	//	try
-	//	{
-	//		m_strPathName is a doc member storing the path for saving the
-	//		currently open document (this could be to the Adaptations folder or
-	//		to a Bible book folder)
-	//		f.SetStatus(m_strPathName,status);
-	//	}
-	//	catch (wxString pe)
-	//	{
-	//		//AfxThrowFileException(pe->m_cause,pe->m_lOsError); // wxWidgets version has no CFileException equivalent
-	//		//pe->Delete();
-	//		bFailed = TRUE;
-	//		goto f;
-	//	}
-	//}
+	// We won't worry about any .adt files in WX version
 
 	// recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath, because the
 	// path computed at the end of OnOpenDocument() will have been invalidated if the filename
@@ -2631,6 +2526,11 @@ bool CAdapt_ItDoc::DoFileSave()
 	}
 	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was used for this save operation
 
+	if (bShowWaitDlg)
+	{
+		progMsg = _("Please wait while Adapt It saves the KB...");
+		pProgDlg->Pulse(progMsg); // more general message during KB save
+	}
 	// do the document backup if required
 	if (gpApp->m_bBackupDocument)
 	{
@@ -2648,7 +2548,7 @@ bool CAdapt_ItDoc::DoFileSave()
 
 	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a file, 
 	// so must store both KBs, since the user could have altered both since the last save
-//f:	
+
 	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
 	gpApp->StoreKB(FALSE);
 	
@@ -2687,6 +2587,9 @@ bool CAdapt_ItDoc::DoFileSave()
 			}
 		}
 	}
+
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
 
 	if (bFailed)
 		return FALSE;
@@ -2897,7 +2800,7 @@ bool CAdapt_ItDoc::OnSaveModified() // note MFC name for this function is just S
 
 	case wxYES:
 		// If so, either Save or Update, as appropriate
-		bUserSavedDoc = DoFileSave(); // calls my version, not MFC's	
+		bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog - calls my version, not MFC's	
 		if (!bUserSavedDoc)
 		{
 			wxMessageBox(_("Warning: document save failed for some reason.\n"), _T(""),
@@ -13892,7 +13795,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 
 	// save the doc as XML (this handler can only be invoked when m_bSaveAsXML is TRUE)
 	bool bSavedOK;
-	bSavedOK = DoFileSave();
+	bSavedOK = DoFileSave(TRUE); // TRUE - show wait/progress dialog
 
 	// construct the absolute path to the document
 	wxString docPath;

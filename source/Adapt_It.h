@@ -3,14 +3,16 @@
 /// \file			Adapt_It.h
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	29 December 2008
+/// \date_revised	28 January 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
 /// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
-/// this source file's global space.
+/// this source file's global space. The AIModalDialog class provides Adapt It with a modal dialog
+/// base class which turns off Idle and UIUpdate processing while the dialog is being shown.
 /// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support for the document/view framework.
+/// The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
