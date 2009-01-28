@@ -6,7 +6,8 @@ Adapt It's interface has been translated.
 
 The full installations of Adapt It WX and Adapt It WX Unicode come with 
 interface translations for English (the default), Spanish, French, Russian,
-Portuguese, Indonesian, PNG Tok Pisin, Chinese and Azeri. Each language 
+Portuguese, Indonesian, PNG Tok Pisin, Chinese and Azeri. Localizations for
+Chinese and Azeri are available in Unicode installations only. Each language 
 interface is called a "Localization." Other localizations are in preparation. 
 Some of the above localizations initially are just partial translations, that 
 is, some interface text and interface messages are not yet translated - in 
@@ -40,8 +41,8 @@ Windows Installations:
     |
     |
     Languages
-       |- az -               <- subfolder for Azeri
-       |     |- Adapt_It.mo
+       |- az -               <- subfolder for Azeri (Unicode only)
+       |     |- Adapt_It_Unicode.mo
        |
        |- es -               <- subfolder for Spanish
        |     |- Adapt_It.mo
@@ -66,8 +67,8 @@ Windows Installations:
        |     |- Adapt_It.mo
        |     |- wxstd.mo
        |
-       |- zh -               <- subfolder for Mandarin Chinese
-       |     |- Adapt_It.mo
+       |- zh -               <- subfolder for Mandarin Chinese (Unicode only)
+       |     |- Adapt_It_Unicode.mo
        |     |- wxstd.mo
        |
        | ... [other localizations]
@@ -86,40 +87,40 @@ folder structure:
     |
     |- az -               <- subfolder for Azeri
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |
     |- es -               <- subfolder for Spanish
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
     |
     |- fr -               <- subfolder for French
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
     |
     |- id -               <- subfolder for Indonesian
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |
     |- pt -               <- subfolder for Portuguese
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
     |
     |- ru -               <- subfolder for Russian
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
     |
     |- tpi -               <- subfolder for PNG Tok Pisin
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
     |
     |- zh -               <- subfolder for Mandarin Chinese
     |     |- LC_MESSAGES
-    |           |- Adapt_It.mo
+    |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
     |
     | ... [other localizations]
