@@ -9148,13 +9148,13 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 		return FALSE;
 	}
 
-	{ // this block defines the existence of the wait dialog for saving the glossing KB
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	//{ // this block defines the existence of the wait dialog for saving the glossing KB
+	//CWaitDlg waitDlg(gpApp->GetMainFrame());
 	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 7;	// 7 "Please wait while Adapt It saves the Glossing KB..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
+	//waitDlg.m_nWaitMsgNum = 7;	// 7 "Please wait while Adapt It saves the Glossing KB..."
+	//waitDlg.Centre();
+	//waitDlg.Show(TRUE);
+	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
 	if (gpApp->m_bSaveAsXML) // always true in the wx version
@@ -9180,7 +9180,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 			}
 		}
 	}
-	} // end of CWaitDlg block
+	//} // end of CWaitDlg block
 
 	// WX version doesn't use binary serialization
 	//else
@@ -9258,13 +9258,13 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 				return FALSE;
 		}
 
-		{ // this block defines the existence of the wait dialog for backing up the glossing KB
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		//{ // this block defines the existence of the wait dialog for backing up the glossing KB
+		//CWaitDlg waitDlg(gpApp->GetMainFrame());
 		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 11;	// 11 "Please wait while Adapt It backs up the Glossing KB..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
+		//waitDlg.m_nWaitMsgNum = 11;	// 11 "Please wait while Adapt It backs up the Glossing KB..."
+		//waitDlg.Centre();
+		//waitDlg.Show(TRUE);
+		//waitDlg.Update();
 		// the wait dialog is automatically destroyed when it goes out of scope below.
 		if (gpApp->m_bSaveAsXML) // always true in the wx version
 		{
@@ -9289,7 +9289,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 				}
 			}
 		}
-		} // end of CWaitDlg scope
+		//} // end of CWaitDlg scope
 
 		// WX version doesn't do binary serialization
 		//else
@@ -9374,13 +9374,13 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			return FALSE;
 	}
 
-	{ // this block defines the existence of the wait dialog for saving the KB
-	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	//{ // this block defines the existence of the wait dialog for saving the KB
+	//CWaitDlg waitDlg(gpApp->GetMainFrame());
 	// indicate we want the reading file wait message
-	waitDlg.m_nWaitMsgNum = 6;	// 6 "Please wait while Adapt It saves the KB..."
-	waitDlg.Centre();
-	waitDlg.Show(TRUE);
-	waitDlg.Update();
+	//waitDlg.m_nWaitMsgNum = 6;	// 6 "Please wait while Adapt It saves the KB..."
+	//waitDlg.Centre();
+	//waitDlg.Show(TRUE);
+	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
 	if (m_bSaveAsXML) // always true in the wx version
@@ -9406,7 +9406,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			}
 		}
 	}
-	} // end of CWaitDlg block
+	//} // end of CWaitDlg block
 	
 	// WX version doesn't do binary serialization
 	//else
@@ -9483,13 +9483,13 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			return FALSE;
 		}
 
-		{ // this block defines the existence of the wait dialog for backing up the KB
-		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		//{ // this block defines the existence of the wait dialog for backing up the KB
+		//CWaitDlg waitDlg(gpApp->GetMainFrame());
 		// indicate we want the reading file wait message
-		waitDlg.m_nWaitMsgNum = 10;	// 10 "Please wait while Adapt It backs up the KB..."
-		waitDlg.Centre();
-		waitDlg.Show(TRUE);
-		waitDlg.Update();
+		//waitDlg.m_nWaitMsgNum = 10;	// 10 "Please wait while Adapt It backs up the KB..."
+		//waitDlg.Centre();
+		//waitDlg.Show(TRUE);
+		//waitDlg.Update();
 		// the wait dialog is automatically destroyed when it goes out of scope below.
 		if (gpApp->m_bSaveAsXML) // always true in the wx version
 		{
@@ -9513,7 +9513,7 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 				}
 			}
 		}
-		} // end of CWaitDlg scope
+		//} // end of CWaitDlg scope
 
 		// WX version doesn't do binary serialization
 		//else
