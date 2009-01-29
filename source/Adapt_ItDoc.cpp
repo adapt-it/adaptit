@@ -2528,8 +2528,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 
 	if (bShowWaitDlg)
 	{
+#ifdef __WXMSW__
 		progMsg = _("Please wait while Adapt It saves the KB...");
 		pProgDlg->Pulse(progMsg); // more general message during KB save
+#endif
 	}
 	// do the document backup if required
 	if (gpApp->m_bBackupDocument)
@@ -2588,8 +2590,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 		}
 	}
 
+#ifdef __WXMSW__
 	if (pProgDlg != NULL)
 		pProgDlg->Destroy();
+#endif
 
 	if (bFailed)
 		return FALSE;
