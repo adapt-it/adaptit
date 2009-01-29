@@ -2443,11 +2443,13 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 	aStr = ConstructSettingsInfoAsXML(1);
 	DoWrite(f,aStr);
 
-	int counter = 0;
+	int counter;
+	counter = 0;
 	int nTotal = gpApp->m_pSourcePhrases->GetCount();
 	wxString progMsg = _("%s  - %d of %d Total words and phrases");
 	wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
-	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+	wxProgressDialog* pProgDlg;
+	pProgDlg = (wxProgressDialog*)NULL;
 	if (bShowWaitDlg)
 	{
 #ifdef __WXMSW__
