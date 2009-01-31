@@ -11,6 +11,7 @@ Feature changes and new features in 4.1.0
 * Added "Please wait..." dialog for project loading at the project page. The saving of KBs was optimized for speed resulting in shorter wait times when opening a project with very large KBs.
 * Change the Restore Knowledge Base functionality so that it avoids trying to set the adaptations to their punctuation-containing forms. This prevents any punctuation-placement dialogs from opening during the restore operation - a useful thing to do because such dialogs have no useful purpose during restoration of the knowledge base.
 * In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
+* The Adapt It Reference.doc includes a more complete description of the enhanced Edit Source Text process and Adapt It's "vertical editing" process that assists in the process.
 ----------------------------------------------
 Bug fixes in 4.1.0
 ----------------------------------------------
