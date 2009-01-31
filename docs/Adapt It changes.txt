@@ -2,15 +2,15 @@ Version 4.1.0 update 31Jan2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.0
 ----------------------------------------------
-* In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
+* Sil Converters is now implemented in the Windows port. SIL Converters must first be installed on the computer to enable Adapt It's Tools Menu and Advanced Menu items related to SIL Converters. See SIL Converters documentation for more information.
+* The TU elements in the Knowledge Base XML files are now sorted. Some users requested this change to make Subversion backups more efficient.
 * The Knowledge Base Editor now shows only the "All Gloss Words Or Phrases" tab while Glossing is active.
 * Previously, the Knowledge Base Editor would not show a source phrase entry in its lists if the source phrase reference count was only 1 before the phrase box is placed at that location. In such cases, to examine a source phrase whose reference count was 1, the user had to first move the phrase box to a different location and select the source word/phrase desired for lookup, before invoking the KB Editor. Now, the source phrase appearing in the phrase box will be looked up, and found in the KB Editor even if its reference count was 1 before the KB Editor was invoked.
-* Sil Converters is now implemented in the Windows port. SIL Converters must first be installed on the computer to enable Adapt It's Tools Menu and Advanced Menu items related to SIL Converters. See SIL Converters documentation for more information.
 * The Knowledge Base Editor now automatically looks up the source phrase at the current location of the phrase box, unless the user has selected a different source phrase at another location in the text at the time the Knowledge Base Editor is invoked.
 * The "Check Knowledge Base" selection was removed from the File menu. It was not really needed and only served to make project loading take longer.
-* The TU elements in the Knowledge Base XML files are now sorted. Some users requested this change to make Subversion backups more efficient.
-* Added "Please wait..." dialogs for KB loading, saving and backup operations. These operations were also optimized for speed resulting in shorter wait times when opening a project with very large KBs.
+* Added "Please wait..." dialog for project loading at the project page. The saving of KBs was optimized for speed resulting in shorter wait times when opening a project with very large KBs.
 * Change the Restore Knowledge Base functionality so that it avoids trying to set the adaptations to their punctuation-containing forms. This prevents any punctuation-placement dialogs from opening during the restore operation - a useful thing to do because such dialogs have no useful purpose during restoration of the knowledge base.
+* In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
 ----------------------------------------------
 Bug fixes in 4.1.0
 ----------------------------------------------
