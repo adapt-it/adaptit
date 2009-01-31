@@ -32,8 +32,8 @@ is installed. Windows installers set up the localization with the
 following folder/file structure under the installation folder (the 
 <installation_folder> is normally c:\Program Files\Adapt It WX  for the 
 regular version; c:\Program Files\Adapt It WX Unicode for the Unicode 
-version - a different location for Linux and the Macintosh versions -
-see below):
+version - there is a different location for Linux and the Macintosh 
+versions - see below):
 
 Windows Installations:
 
@@ -45,26 +45,26 @@ Windows Installations:
        |     |- Adapt_It_Unicode.mo
        |
        |- es -               <- subfolder for Spanish
-       |     |- Adapt_It.mo
+       |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |     |- wxstd.mo
        |
        |- fr -               <- subfolder for French
-       |     |- Adapt_It.mo
+       |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |     |- wxstd.mo
        |
        |- id -               <- subfolder for Indonesian
-       |     |- Adapt_It.mo
+       |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |
        |- pt -               <- subfolder for Portuguese
-       |     |- Adapt_It.mo
+       |     |- Adapt_It.mo or Adapt_It_Unicode.mo
        |     |- wxstd.mo
        |
        |- ru -               <- subfolder for Russian
-       |     |- Adapt_It.mo
+       |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |     |- wxstd.mo
        |
        |- tpi -               <- subfolder for PNG Tok Pisin
-       |     |- Adapt_It.mo
+       |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |     |- wxstd.mo
        |
        |- zh -               <- subfolder for Mandarin Chinese (Unicode only)
