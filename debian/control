@@ -10,6 +10,9 @@ Architecture: any
 Depends: ${shlibs:Depends}
 Description: Adapt It
  Adapt It gives you tools for translating text from one language which you know, to another related language known to you or a co-worker.
+ Adapt It translates or adapts source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages.
+ Adapt It maintains a Knowledge Base which stores word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process.
+ Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported as a USFM text file or a Rich Text format file. 
 
 Package: adaptit-docs
 Architecture: any
@@ -17,3 +20,6 @@ Depends: adaptit
 Description: Adapt It Documentation and Localization
  Documentation and localization for Adapt It.
  Adapt It gives you tools for translating text from one language which you know, to another related language known to you or a co-worker.
+ Adapt It translates or adapts source text documents into target or translated text. This process depends on the knowledge of the human translator in understanding both languages.
+ Adapt It maintains a Knowledge Base which stores word and phrase adaptations that can be automatically inserted into the target text, thus speeding the translation process.
+ Adapt It uses plain text (txt) files for input and expects the use of Unified Standard Format Markers (USFM) in the input file. The translated text can be exported as a USFM text file or a Rich Text format file. 
