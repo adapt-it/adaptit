@@ -68,20 +68,21 @@ CStrip::CStrip()
 {
 	m_nVertOffset = 0;
 	m_nPileCount = 0;
-	m_nPileHeight = 20;
+	// m_nPileHeight = 20;  // BEW deprecated 3Feb09
 	m_nStripIndex = 0;
 	m_nFree = 0;
 	for (int i = 0; i<MAX_PILES; i++)
 		m_pPile[i] = (CPile*)NULL;
 }
 
-CStrip::CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle)
+//CStrip::CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle) // BEW deprecated 3Feb09
+CStrip::CStrip(CSourceBundle* pSourceBundle)
 {
-	m_pDoc = pDocument;
+	//m_pDoc = pDocument; // BEW deprecated 3Feb09
 	m_pBundle = pSourceBundle;
 	m_nVertOffset = 0;
 	m_nPileCount = 0;
-	m_nPileHeight = 20;
+	// m_nPileHeight = 20; // BEW deprecated 3Feb09
 	m_nStripIndex = 0;
 	m_nFree = 0;
 	m_rectStrip = wxRect(0,0,0,0);

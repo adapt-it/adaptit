@@ -396,14 +396,16 @@ protected:
 	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
 	//wxString	CopySourcePhrase(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); // unused
 	int			CountSourceWords(wxString& rStr);
-	CCell*		CreateCell(CAdapt_ItDoc* pDoc,
-						CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
+	//CCell*		CreateCell(CAdapt_ItDoc* pDoc,
+	//					CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
+	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
+	//					wxPoint* pBotRight, int index); // BEW deprecated 3Feb09
+	CCell*		CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
 						int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
 						wxPoint* pBotRight, int index);
 	//void		CreatePhraseBoxAtEnd();
-	CPile*		CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc,
-					CSourceBundle* pBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase, 
-					wxRect* pRectPile);
+	CPile*		CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
+							CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
 	int			CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
 												int& nLastSequNumber, int nEndIndex);
 	// see public function CreateStrip_SimulateOnly()

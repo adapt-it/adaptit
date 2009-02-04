@@ -27,8 +27,8 @@
 //#include "Strip.h" // Added by ClassView. MFC puts this here instead of in the SourceBundle.cpp file ???
 
 // forward references
-class CAdapt_ItDoc;
-class CAdapt_ItView;
+//class CAdapt_ItDoc; // BEW deprecated 3Feb09
+//class CAdapt_ItView; BEW deprecated 3Feb09
 class CStrip;
 class CCell;
 
@@ -44,7 +44,8 @@ class CSourceBundle : public wxObject
 
 public:
 	CSourceBundle(); // default constructor
-	CSourceBundle(CAdapt_ItDoc* pDocument, CAdapt_ItView* pView); // normal constructor
+	//CSourceBundle(CAdapt_ItDoc* pDocument, CAdapt_ItView* pView); // BEW deprecated 3Feb09
+	//CSourceBundle(CAdapt_ItView* pView); // normal constructor  // BEW deprecated 3Feb09
 
 	// attributes
 public:
@@ -57,10 +58,10 @@ public:
 	int					m_nStripIndex; // index to current strip being accessed or created
 	CStrip*				m_pStrip[6000]; // enough to handle paginating whole of Luke (1140 verses)
 										// for printing - at least it should be if margins are not large
-	int					m_nLMargin;
-	int					m_nLeading;
-	CAdapt_ItDoc*		m_pDoc;
-	CAdapt_ItView*		m_pView;
+	//int				m_nLMargin;  // BEW deprecated 3Feb09
+	//int				m_nLeading;  // BEW deprecated 3Feb09
+	//CAdapt_ItDoc*		m_pDoc; // BEW deprecated 3Feb09
+	//CAdapt_ItView*	m_pView; // BEW deprecated 3Feb09
 
 
 	// destructor

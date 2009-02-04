@@ -134,15 +134,16 @@ CCell::CCell()
 	;
 }
 
-CCell::CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
-												CStrip* pStrip, CPile* pPile)
+//CCell::CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
+//												CStrip* pStrip, CPile* pPile)
+CCell::CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile)
 {
-	m_pDoc = pDocument;
+//	m_pDoc = pDocument; // BEW deprecated 3Feb09
 	m_pBundle = pSourceBundle;
 	m_pStrip = pStrip;
 	m_pPile = pPile;;
 	m_pText = (CText*)NULL;
-	m_bDisplay = TRUE;
+	//m_bDisplay = TRUE; // BEW deprecated 3Feb09
 	m_nCellIndex = 0;
 	m_phrase = _T("");
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -466,8 +467,12 @@ void CCell::Draw(wxDC* pDC)
 
 				// BEW added 18Nov05, to colour the wedge differently if \free is contentless (as khaki), or if
 				// \bt is contentless (as pastel blue), or if both are contentless (as red)
-				bool bFreeHasNoContent = m_pBundle->m_pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-				bool bBackHasNoContent = m_pBundle->m_pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
+				//bool bFreeHasNoContent = m_pBundle->m_pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
+				//bool bBackHasNoContent = m_pBundle->m_pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
+				CAdapt_ItView* pView = gpApp->GetView(); // getting the view pointer this way allows me
+				// to remove the m_pView pointer from the definition of the CSourceBundle class
+				bool bFreeHasNoContent = pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
+				bool bBackHasNoContent = pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
 
 				#ifdef _RTL_FLAGS
 				if (gpApp->m_bRTL_Layout)

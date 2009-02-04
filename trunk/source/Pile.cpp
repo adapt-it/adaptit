@@ -88,10 +88,11 @@ CPile::CPile()
 	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
 }
 
-CPile::CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
-														CSourcePhrase* pSrcPhrase)
+//CPile::CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
+//			CSourcePhrase* pSrcPhrase) // BEW deprecated 3Feb09
+CPile::CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase)
 {
-	m_pDoc = pDocument;
+	// m_pDoc = pDocument; // BEW deprecated 3Feb09
 	m_pBundle = pSourceBundle;
 	m_pStrip = pStrip;
 	m_bIsActivePile = FALSE;

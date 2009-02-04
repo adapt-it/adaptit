@@ -49,7 +49,7 @@
 #include "Strip.h"
 #include "SourceBundle.h"
 #include "AdaptitConstants.h"
-#include "Adapt_ItView.h"
+//#include "Adapt_ItView.h"
  
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 //extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -64,23 +64,26 @@ IMPLEMENT_DYNAMIC_CLASS(CSourceBundle, wxObject)
 CSourceBundle::CSourceBundle()
 {
 
-	m_nLeading = 12;
-	m_nLMargin = 6;
+	//m_nLeading = 12; // BEW deprecated 3Feb09
+	//m_nLMargin = 6;  // BEW deprecated 3Feb09
 	m_nStripCount = 0;
 	for (int i=0; i<MAX_STRIPS; i++)
 		m_pStrip[i] = (CStrip*)NULL;
 }
 
-CSourceBundle::CSourceBundle(CAdapt_ItDoc* pDocument, CAdapt_ItView* pView)
+//CSourceBundle::CSourceBundle(CAdapt_ItDoc* pDocument, CAdapt_ItView* pView) // BEW deprecated 3Feb09
+/* no longer needed, if pView parameter is not required - deprecated 3Feb09
+CSourceBundle::CSourceBundle(CAdapt_ItView* pView)
 {
-	m_pDoc = pDocument;
-	m_nLeading = 12;
-	m_nLMargin = 6;
+	// m_pDoc = pDocument; // BEW deprecated 3Feb09
+	//m_nLeading = 12;  // BEW deprecated 3Feb09
+	//m_nLMargin = 6;   // BEW deprecated 3Feb09
 	m_nStripCount = 0;
 	for (int i=0; i<MAX_STRIPS; i++)
 		m_pStrip[i] = (CStrip*)NULL;
-	m_pView = pView;
+	CAdapt_ItView* viewP = pView; // just a dummy
 }
+*/
 
 CSourceBundle::~CSourceBundle()
 {

@@ -47,8 +47,9 @@ class CPile : public wxObject
 public:
 	// constructors
 	CPile();
-	CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
-														CSourcePhrase* pSrcPhrase);
+	//CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
+	//				CSourcePhrase* pSrcPhrase); // BEW deprecated 3Feb09
+	CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase);
 
 	// operations
 public:
@@ -62,7 +63,7 @@ public:
 	int			m_nWidth;
 	int			m_nMinWidth;
 	int			m_nHorzOffset;
-	CAdapt_ItDoc*		m_pDoc;
+	//CAdapt_ItDoc*		m_pDoc; // BEW deprecated 3Feb09
 	CSourceBundle*		m_pBundle;
 	CStrip*			m_pStrip;
 	CCell*			m_pCell[5]; // 2 source lines, 2 target lines, & one gloss per strip
