@@ -45,8 +45,9 @@ class CCell : public wxObject
 public:
 	// constructors
 	CCell();
-	CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
-												CStrip* pStrip, CPile* pPile);
+//	CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, 
+//												CStrip* pStrip, CPile* pPile); //BEW deprecated 3Feb09
+	CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile);
 
 
 	// attributes
@@ -57,11 +58,11 @@ public:
 	wxFont*					m_pFont;
 	wxPoint					m_ptBotRight;
 	wxPoint					m_ptTopLeft;
-	int					m_nTextExtent; // not set if m_bDisplay == FALSE
-	int					m_nCellIndex; // which one I am of the five
-	bool					m_bDisplay; // TRUE if the cell is to be displayed
-	CAdapt_ItDoc*				m_pDoc;
-	CSourceBundle*				m_pBundle;
+	int						m_nTextExtent; // not set if m_bDisplay == FALSE
+	int						m_nCellIndex; // which one I am of the five
+	//bool					m_bDisplay; // TRUE if the cell is to be displayed, BEW deprecated 3Feb09
+	//CAdapt_ItDoc*			m_pDoc; // BEW deprecated 3Feb09
+	CSourceBundle*			m_pBundle;
 	CStrip*					m_pStrip;
 	CPile*					m_pPile;
 	wxString				m_phrase;

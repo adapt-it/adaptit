@@ -1358,7 +1358,7 @@ void CAdapt_ItView::OnInitialUpdate()
 {
 	// CScrollView::OnInitialUpdate(); // not in wx
 	wxCommandEvent dummyevent; // for use in EVT governed function calls
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument(); // BEW deprecated 3Feb09
 
 	// get the checkbox pointer for glossing, and hide it when app is first launched
 	// (a command on the Advanced menu can be used for showing it later on); but since we
@@ -1621,7 +1621,9 @@ void CAdapt_ItView::OnInitialUpdate()
 		// dynamically created. Only CSourceBundle's constructor gets
 		// called below on the new CSourceBundle call, and it sets all
 		// 6,000 CStrip pointers to NULL.
-		gpApp->m_pBundle = new CSourceBundle(pDoc,this); //pApp->m_pBundle = new CSourceBundle(pDoc,this);
+		//gpApp->m_pBundle = new CSourceBundle(pDoc,this); // BEW deprecated 3Feb09
+		//gpApp->m_pBundle = new CSourceBundle(this); // BEW deprecated 3Feb09
+		gpApp->m_pBundle = new CSourceBundle();
 		wxASSERT(gpApp->m_pBundle != NULL);
 
 		// initial value for count of strips in the bundle
@@ -1842,7 +1844,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		}
 		// whm added 13Jun04 need to make m_pBundle's view member also point
 		// to the current view
-		pApp->m_pBundle->m_pView = this;
+		// pApp->m_pBundle->m_pView = this; // BEW deprecated 3Feb09
 	}
 
 
@@ -4472,7 +4474,7 @@ void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBu
 	// 4. Sets global grectViewClient for speed drawing (set w GetClientSize) & converts its coords to logical ones
 	// 5. MFC version sets mapping mode to wxMM_TEXT (wxMM_LOENGLISH when printing); wx versions always
 	//    uses wxMM_TEXT even for printing
-	// 6. Destroy old strips from nFirstStrip and recreate new strips from nFirstStrip through remainder of doc
+	// 6. Destroy old strips from nFirstStrip and recreate new strips from nFirstStrip through remainder of bundle
 	// 7. Set the virtual size of the document based on the newly layed out app's m_docSize
 	// 8. Set the line and page oriented scrolling parameters to account for any change in m_curPileHeight
 	//    and m_curLeading
@@ -5159,7 +5161,7 @@ int CAdapt_ItView::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffse
 {
 	wxASSERT(nLastSequNumber >= -1);
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	// CAdapt_ItDoc* pDoc = gpApp->GetDocument(); // BEW deprecated 3Feb09
 	int nextNumber = nLastSequNumber;
 	nextNumber++; // index of first CSourcePhrase element to be placed
 	wxRect rectStrip;
@@ -5168,7 +5170,8 @@ int CAdapt_ItView::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffse
 
 	CSourceBundle* pBundle = pApp->m_pBundle;
 	int stripIndex = pBundle->m_nStripIndex; // index of current strip
-	pBundle->m_pStrip[stripIndex] = new CStrip(pDoc,pBundle);
+	//pBundle->m_pStrip[stripIndex] = new CStrip(pDoc,pBundle); // BEW deprecated 3Feb09
+	pBundle->m_pStrip[stripIndex] = new CStrip(pBundle);
 	wxASSERT(pBundle->m_pStrip[stripIndex] != NULL);
 	CStrip* pStrip = pBundle->m_pStrip[stripIndex]; // get a convenient local pointer to it
 
@@ -5230,8 +5233,8 @@ int CAdapt_ItView::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffse
 		}
 
 		rectStrip = pStrip->m_rectStrip; // get a convenient local copy
-		pStrip->m_nPileHeight = pApp->m_curPileHeight;	// store pile height (I don't think I'll need
-														// to use this)
+		//pStrip->m_nPileHeight = pApp->m_curPileHeight;	// store pile height (I don't think I'll need
+														// to use this)  // BEW deprecated 3Feb09
 
 		// create the piles which belong in this strip
 		int pileIndex = 0;
@@ -5297,8 +5300,9 @@ c:			topLeft = wxPoint(rectStrip.GetRight() - horzOffset - pileWidth, rectStrip.
 
 			// call a CreatePile function, passing it the rectangle, etc, and return the CPile
 			// pointer for storage in the pile array
-			pStrip->m_pPile[pileIndex] = CreatePile(pDC,pApp,pDoc,pBundle,pStrip,pSrcPhrase,
-																					&rectPile);
+			//pStrip->m_pPile[pileIndex] = CreatePile(pDC,pApp,pDoc,pBundle,pStrip,pSrcPhrase,
+			//										&rectPile); // BEW deprecated 3Feb09
+			pStrip->m_pPile[pileIndex] = CreatePile(pDC,pApp,pBundle,pStrip,pSrcPhrase,&rectPile);
 			pStrip->m_pPile[pileIndex]->m_nPileIndex = pileIndex; // so the pile will know which
 																  // it is
 			pStrip->m_pPile[pileIndex]->m_nHorzOffset = horzOffset; // so it will know where to
@@ -5336,8 +5340,8 @@ d:		pStrip->m_nFree = rectStrip.GetWidth() - horzOffset;	// slop remaining at
 		pStrip->m_rectStrip = wxRect(topLeft,botRight);
 		
 		rectStrip = pStrip->m_rectStrip; // get a convenient local copy
-		pStrip->m_nPileHeight = pApp->m_curPileHeight;	// store pile height (I don't think I'll need to
-														// use this)
+		//pStrip->m_nPileHeight = pApp->m_curPileHeight;	// store pile height (I don't think I'll need to
+														// use this)  // BEW deprecated 3Feb09
 
 		// BEW added next block 24Jun05 for free translation support - if the flag is TRUE, then
 		// compute the m_rectFreeTrans rectangle for this strip in which any free translation
@@ -5447,8 +5451,9 @@ a:			topLeft = wxPoint(rectStrip.GetLeft() + horzOffset, rectStrip.GetTop());
 
 			// call a CreatePile function, passing it the rectangle, etc, and return the CPile
 			// pointer for storage in the pile array
-			pStrip->m_pPile[pileIndex] = CreatePile(pDC,pApp,pDoc,pBundle,pStrip,pSrcPhrase,
-																					&rectPile);
+			//pStrip->m_pPile[pileIndex] = CreatePile(pDC,pApp,pDoc,pBundle,pStrip,pSrcPhrase,
+			//																		&rectPile);
+			pStrip->m_pPile[pileIndex] = CreatePile(pDC,pApp,pBundle,pStrip,pSrcPhrase,&rectPile);
 			pStrip->m_pPile[pileIndex]->m_nPileIndex = pileIndex; // so the pile will know which
 																  // it is
 			pStrip->m_pPile[pileIndex]->m_nHorzOffset = horzOffset; // so it will know where to
@@ -5543,11 +5548,12 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 	return bValue;
 }
 
-CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItDoc *pDoc,
-			CSourceBundle *pBundle, CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
+CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
+								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
 {
 	// create the pile on the heap, initializing its cells to MAX_CELLS nulls
-	CPile* pPile = new CPile(pDoc,pBundle,pStrip,pSrcPhrase);
+	//CPile* pPile = new CPile(pDoc,pBundle,pStrip,pSrcPhrase); // BEW deprecated 3Feb09
+	CPile* pPile = new CPile(pBundle,pStrip,pSrcPhrase);
 	wxASSERT(pPile != NULL);
 
 	// now set the attributes not already set by the constructor's defaults
@@ -5616,16 +5622,21 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 				pDC->GetTextExtent(pSrcPhrase->m_key, &keyWidth, &keyDummyHeight);
 
 				// create the CCell and set its attributes
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-						pSrcPhrase->m_key,keyWidth,pSrcFont,&color,&topLeft,&botRight,
-						cellIndex);
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//		pSrcPhrase->m_key,keyWidth,pSrcFont,&color,&topLeft,&botRight,
+				//		cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,pSrcPhrase->m_key,
+						keyWidth,pSrcFont,&color,&topLeft,&botRight,cellIndex);	
 			}
 			else
 			{
 				pDC->GetTextExtent(pSrcPhrase->m_srcPhrase, &keyWidth, &keyDummyHeight);
 
 				// create the CCell and set its attributes
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//		pSrcPhrase->m_srcPhrase,keyWidth,pSrcFont,&color,&topLeft,
+				//		&botRight,cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_srcPhrase,keyWidth,pSrcFont,&color,&topLeft,
 						&botRight,cellIndex);
 			}
@@ -5649,7 +5660,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 			pDC->SetFont(*pSrcFont);
 			pDC->GetTextExtent(pSrcPhrase->m_srcPhrase, &spWidth, &spDummyHeight);
 
-			pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//				pSrcPhrase->m_srcPhrase,spWidth,pSrcFont,
+			//				&color,&topLeft,&botRight,cellIndex); // BEW deprecated 3Feb09
+			pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 											pSrcPhrase->m_srcPhrase,spWidth,pSrcFont,
 											&color,&topLeft,&botRight,cellIndex);
 
@@ -5665,7 +5679,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 			int keyDummyHeight;
 			pDC->GetTextExtent(pSrcPhrase->m_key, &keyWidth, &keyDummyHeight);
 
-			pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//				pSrcPhrase->m_key,keyWidth,pSrcFont,&color,
+			//				&topLeft,&botRight,cellIndex); // BEW deprecated 3Feb09
+			pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 											pSrcPhrase->m_key,keyWidth,pSrcFont,&color,
 											&topLeft,&botRight,cellIndex);
 		}
@@ -5752,11 +5769,17 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 			// create the cell and set its attributes; which font gets used will
 			// depend on the gbGlossingUsesNavFont flag
 			if (gbGlossingUsesNavFont)
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//	pSrcPhrase->m_gloss,glossWidth,pNavTextFont,&color,&topLeft,
+				//	&botRight,cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 					pSrcPhrase->m_gloss,glossWidth,pNavTextFont,&color,&topLeft,
 					&botRight,cellIndex);
 			else
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//	pSrcPhrase->m_gloss,glossWidth,pTgtFont,&color,&topLeft,
+				//	&botRight,cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 					pSrcPhrase->m_gloss,glossWidth,pTgtFont,&color,&topLeft,
 					&botRight,cellIndex);
 		}
@@ -5804,7 +5827,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 				}
 
 				// create the cell and set its attributes
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,&botRight,
+				//		cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,&botRight,
 						cellIndex);
 			}
@@ -5825,7 +5851,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 				}
 
 				// create the cell and set its attributes
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//		pSrcPhrase->m_adaption,aWidth,pTgtFont,&color,&topLeft,&botRight,
+				//		cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_adaption,aWidth,pTgtFont,&color,&topLeft,&botRight,
 						cellIndex);
 			}
@@ -5860,7 +5889,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 				}
 
 				// create the cell and set its attributes
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,
+				//		&botRight,cellIndex); //BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,
 						&botRight,cellIndex);
 			}
@@ -5912,7 +5944,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 			}
 
 			// create the cell and set its attributes
-			pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,&botRight,
+			//		cellIndex); // BEW deprecated 3Feb09
+			pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 					pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,&botRight,
 					cellIndex);
 		}
@@ -5932,7 +5967,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 			}
 
 			// create the cell and set its attributes
-			pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+			//		pSrcPhrase->m_adaption,aWidth,pTgtFont,&color,&topLeft,&botRight,
+			//		cellIndex); // BEW deprecated 3Feb09
+			pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 					pSrcPhrase->m_adaption,aWidth,pTgtFont,&color,&topLeft,&botRight,
 					cellIndex);
 		}
@@ -5967,7 +6005,10 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 				}
 
 				// create the cell and set its attributes
-				pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+				//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,
+				//		&botRight,cellIndex); // BEW deprecated 3Feb09
+				pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,
 						&botRight,cellIndex);
 			}
@@ -6030,11 +6071,17 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 				// create the cell and set its attributes; which font gets used will
 				// depend on the gbGlossingUsesNavFont flag
 				if (gbGlossingUsesNavFont)
-					pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+					//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+					//	pSrcPhrase->m_gloss,glossWidth,pNavTextFont,&color,&topLeft,
+					//	&botRight,cellIndex); / BEW deprecated 3Feb09
+					pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_gloss,glossWidth,pNavTextFont,&color,&topLeft,
 						&botRight,cellIndex);
 				else
-					pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+					//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
+					//	pSrcPhrase->m_gloss,glossWidth,pTgtFont,&color,&topLeft,
+					//	&botRight,cellIndex); // BEW deprecated 3Feb09
+					pPile->m_pCell[cellIndex] = CreateCell(pBundle,pStrip,pPile,
 						pSrcPhrase->m_gloss,glossWidth,pTgtFont,&color,&topLeft,
 						&botRight,cellIndex);
 			}
@@ -6043,12 +6090,17 @@ CPile* CAdapt_ItView::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CAdapt_ItD
 	return pPile;
 }
 
-CCell* CAdapt_ItView::CreateCell(CAdapt_ItDoc *pDoc,
-				CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, wxString phrase, int xExtent,
-				wxFont *pFont, wxColour *pColor, wxPoint *pTopLeft, wxPoint *pBotRight, int index)
+//CCell* CAdapt_ItView::CreateCell(CAdapt_ItDoc *pDoc,
+//			CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, wxString phrase, int xExtent,
+//			wxFont *pFont, wxColour *pColor, wxPoint *pTopLeft, wxPoint *pBotRight, int index)
+//			BEW deprecated 3Feb09
+CCell* CAdapt_ItView::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, 
+								wxString phrase, int xExtent, wxFont *pFont, wxColour *pColor,
+								wxPoint *pTopLeft, wxPoint *pBotRight, int index)
 {
 	// create the cell
-	CCell* pCell = new CCell(pDoc,pBundle,pStrip,pPile);
+	//CCell* pCell = new CCell(pDoc,pBundle,pStrip,pPile); // BEW deprecated 3Feb09
+	CCell* pCell = new CCell(pBundle,pStrip,pPile);
 	wxASSERT(pCell != NULL);
 
 	// set its attributes
@@ -6318,7 +6370,8 @@ CStrip* CAdapt_ItView::GetNearestStrip(const wxPoint *pPoint)
 	wxPoint point = *pPoint;
 	CStrip* pStrip;
 	wxRect rect;
-	int leading = gpApp->m_pBundle->m_nLeading; // defines the vertical extent of the nav text area above the strip
+	int leading = gpApp->m_curLeading; // defines the vertical extent of the nav text area above the strip
+	//int leading = gpApp->m_pBundle->m_nLeading; // BEW deprecated 3Feb09
 	int stripIndex;
 	for (stripIndex = 0; stripIndex < gpApp->m_pBundle->m_nStripCount; stripIndex++)
 	{

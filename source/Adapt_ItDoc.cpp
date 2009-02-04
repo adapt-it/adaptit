@@ -3233,7 +3233,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	if (pApp->m_pBundle == NULL)
 	{
 		// no CSourceBundle instance yet, so create one & initialize it
-		pApp->m_pBundle = new CSourceBundle(this,pView);
+		//pApp->m_pBundle = new CSourceBundle(this,pView); // BEW deprecated 3Feb09
+		//pApp->m_pBundle = new CSourceBundle(pView); // BEW deprecated 3Feb09
+		pApp->m_pBundle = new CSourceBundle();
 		wxASSERT(pApp->m_pBundle != NULL);
 
 		// initial value for count of strips in the bundle

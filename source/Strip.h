@@ -23,7 +23,7 @@
 #endif
 
 // forward references:
-class CAdapt_ItDoc;
+//class CAdapt_ItDoc; // BEW deprecated 3Feb09
 class CPile;
 class CSourceBundle;
 
@@ -37,7 +37,8 @@ class CStrip : public wxObject
 
 public:
 	CStrip();
-	CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // normal constructor
+	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
+	CStrip(CSourceBundle* pSourceBundle); // normal constructor
 
 
 	// attributes
@@ -47,14 +48,14 @@ public:
 	// CSourceBundle* m-pBundle line up before the declaration of CPile* m-pPile[36] line.
 	void DestroyPiles();
 	int					m_nStripIndex;
-	int					m_nPileHeight;
+	//int				m_nPileHeight;  // BEW deprecated 3Feb09
 	int					m_nPileCount;
 	int					m_nVertOffset;
 	int					m_nFree;	// how many pixels wide the free space at end is
 	wxRect				m_rectStrip;
 	CSourceBundle*		m_pBundle; // the owning souce bundle (can only be one)
 	CPile*				m_pPile[36];	// allow 36 per row
-	CAdapt_ItDoc*		m_pDoc;	// the doc, to give access to GetApp(), etc.
+	//CAdapt_ItDoc*		m_pDoc;	// the doc, to give access to GetApp(), etc. BEW deprecated 3Feb09
 	wxRect				m_rectFreeTrans; // BEW added 24Jun05 for support of free translations display
 
 
