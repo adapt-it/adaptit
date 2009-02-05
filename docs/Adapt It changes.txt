@@ -1,3 +1,9 @@
+Version 4.1.1 update 28Feb2009:
+----------------------------------------------
+Bug fixes in 4.1.1
+----------------------------------------------
+* Fixed a bug in the KB Editor that was causing a program crash when Removing an existing translation string from the list of translations for a given source phrase.
+
 Version 4.1.0 update 31Jan2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.0
