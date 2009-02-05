@@ -1579,6 +1579,12 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strVersionNumber << VERSION_MINOR_PART; // 0
 	strVersionNumber += _T(".");
 	strVersionNumber << VERSION_BUILD_PART; // 3
+	if (PRE_RELEASE != 0)
+	{
+		wxStaticText* pStaticWXVerLabel = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_LABEL);
+		wxASSERT(pStaticWXVerLabel != NULL);
+		pStaticWXVerLabel->SetLabel(_T("Pre-Release"));
+	}
 	wxStaticText* pVersionNum = (wxStaticText*)FindWindowById(ID_ABOUT_VERSION_NUM);
 	pVersionNum->SetLabel(strVersionNumber);
 
@@ -5839,7 +5845,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	theText = m_pRemovalsBarComboBox->GetString(nIndex); //m_pRemovalsBarComboBox->GetLBText(nIndex,theText);
 	wxASSERT(!theText.IsEmpty());
 
-	// store the active srcPhrase's m_nWords member's value for use in the test in OnUpdateButtonUndoLastCopy()
+	// store the active srcPhrase's m_nSrcWords member's value for use in the test in OnUpdateButtonUndoLastCopy()
 	// and other "state-recording" information, for use by the same update handler
 	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords; // the merge state at active location
 	gbWasGlossingMode = gbIsGlossing; // whether glossing or adapting when the copy is done

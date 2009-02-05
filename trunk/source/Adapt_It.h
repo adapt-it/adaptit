@@ -40,9 +40,10 @@
 
 #define VERSION_MAJOR_PART 4
 #define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 0
-#define VERSION_DATE_DAY 31
-#define VERSION_DATE_MONTH 1
+#define VERSION_BUILD_PART 1
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases
+#define VERSION_DATE_DAY 4
+#define VERSION_DATE_MONTH 2
 #define VERSION_DATE_YEAR 2009
 
 //#define _UNICODE 

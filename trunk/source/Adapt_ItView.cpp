@@ -22541,25 +22541,6 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	CKBEditor editorPage(gpApp->GetMainFrame());
 	editorPage.Centre();
 
-	
-	// New feature for version 2.2.1 requested by Gene Casad. A user selection will take the
-	// first CSourcePhrase instance in the selection and open the KB editor on the appropriate
-	// page and with that source key selected, but if the key is not in the KB the selection
-	// will default to the first item of the list. The selection in the main window can be
-	// anywhere, not necessarily at the phrasebox location.
-	//if (gpApp->m_selectionLine > 0 && gpApp->m_selection.GetCount() > 0)
-	//{
-	//	// we have a selection
-	//	CCellList::Node* cpos = gpApp->m_selection.GetFirst();
-	//	CCell* pCell = (CCell*)cpos->GetData();
-	//	CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
-	//	editorPage.m_nWords = pSrcPhrase->m_nSrcWords;
-	//	editorPage.m_TheSelectedKey = pSrcPhrase->m_key;
-
-	//	RemoveSelection(); // to be safe, on return from the KB editor we want predictability
-	//	Invalidate();
-	//}
-
 	if (editorPage.ShowModal() == wxID_OK) 
 	{
 		// make the user's changes to the KB persistent (FALSE = no Auto backup)
