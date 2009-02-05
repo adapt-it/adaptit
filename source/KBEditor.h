@@ -3,7 +3,7 @@
 /// \file			KBEditor.h
 /// \author			Bill Martin
 /// \date_created	28 April 2004
-/// \date_revised	15 January 2008
+/// \date_revised	4 February 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CKBEditor class. 
@@ -68,7 +68,7 @@ public:
 	wxString		m_entryCountStr;
 	wxString		m_ON;
 	wxString		m_OFF;
-	int				m_nWords; // whm eliminated gnWordsInPhrase since only CBKEditor member m_nWords is needed
+	int				m_nWordsSelected; // whm eliminated gnWordsInPhrase global; now only this m_nWordsSelected is needed
 	wxString		m_TheSelectedKey; // if multiple keys selected, take only the first
 
 	wxString		m_curKey;

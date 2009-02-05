@@ -3,7 +3,7 @@
 /// \file			KBEditor.cpp
 /// \author			Bill Martin
 /// \date_created	28 April 2004
-/// \date_revised	23 January 2009
+/// \date_revised	4 February 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file for the CKBEditor class. 
@@ -147,7 +147,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_TheSelectedKey = _T("");	// whm moved from the View's global space (where it was gTheSelectedKey) and 
 								// renamed it to m_TheSelectedKey as member of CKBEditor
 
-	m_nWords = -1; // whm removed gnWordsInPhrase from global space and incorporated it into m_nWords
+	m_nWordsSelected = -1; // whm removed gnWordsInPhrase from global space and incorporated it into m_nWordsSelected
 	
 	// whm: In the following, I've changed the "ON" to "YES" and "OFF" to "NO" because it signifies 
 	// the status of "Force Choice For This Item is ___". This makes it possible to distinguish 
@@ -166,7 +166,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	pCurTgtUnit = NULL;
 	pCurRefString = NULL;
 	m_curKey = _T("");
-	m_nWords = 1;
+
 	m_nCurPage = 0; // default to first page (1 Word)
 	
 	bKBEntryTemporarilyAddedForLookup = FALSE;
@@ -206,7 +206,6 @@ void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
 	m_nCurPage = pageNumSelected;
 
 	// Set up new page data by populating list boxes and controls
-	m_nWords = pageNumSelected + 1;
 	LoadDataForPage(pageNumSelected,0); // start with first item selected for new tab page
 }
 
@@ -1032,7 +1031,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
     // decremented to zero prior to invoking the KB Editor.
 	
     // If any source phrase is selected, determine how many words are in the selection and what key to
-	// use in the lookup. The m_nWords and m_TheSelectedKey members need to be set regardless of
+	// use in the lookup. The m_nWordsSelected and m_TheSelectedKey members need to be set regardless of
 	// whether the app is in active Glossing mode or not.
 	if (gpApp->m_selectionLine > 0 && gpApp->m_selection.GetCount() > 0)
 	{
@@ -1040,7 +1039,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 		CCellList::Node* cpos = gpApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
 		CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
-		m_nWords = pSrcPhrase->m_nSrcWords;
+		m_nWordsSelected = pSrcPhrase->m_nSrcWords;
 		m_TheSelectedKey = pSrcPhrase->m_key;
 
         // If the Pile at this selection is the same as the active location's Pile we need to call
@@ -1057,7 +1056,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	{
         // No selection is active, but we have a valid active location, so use the source phrase
         // at the active location for lookup.
-		m_nWords = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords;
+		m_nWordsSelected = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords;
 		m_TheSelectedKey = gpApp->m_pActivePile->m_pSrcPhrase->m_key;
 
 		// Determine if there is a KB entry for the source phrase at his active location. If not, then
@@ -1071,7 +1070,7 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	{
 		// No selection is active and there is no valid active location (which can happen, for example,
 		// after finishing adaptation at end of the document), so set suitable defaults.
-		m_nWords = -1;
+		m_nWordsSelected = -1;
 		m_TheSelectedKey = _T("");
 	}
 
@@ -1079,18 +1078,17 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
     // Determine which tab page needs to be pre-selected. 
     // 
 	// When Glossing mode is active, all notebook tabs except the first need to be removed, the
-	// first tab needs to be renamed to "All Gloss Words Or Phrases", and the pageNumSelected must be
+	// first tab needs to be renamed to "All Gloss Words Or Phrases", and the m_nCurPage must be
 	// set to an index value of 0.
 	// 
-	// When Glossing mode is not active, the pageNumSelected is set as follows depending on what the
+	// When Glossing mode is not active, the m_nCurPage is set as follows depending on what the
 	// circumstances are when the KB Editor is invoked:
-	// 1. When there was a source phrase selection, the pageNumSelected should be one less than the number of 
+	// 1. When there was a source phrase selection, the m_nCurPage should be one less than the number of 
 	// words in the source phrase selection.
-	// 2. When there was no source phrase selection, the pageNumSelected should be one less than the number of 
+	// 2. When there was no source phrase selection, the m_nCurPage should be one less than the number of 
 	// words in the phrase box at the active location.
-    // 3. , or if m_nWords is -1, if user selected a source phrase before calling the
+    // 3. , or if m_nWordsSelected is -1, if user selected a source phrase before calling the
     // KBEditor, start by initializing the tab page having the correct number of words.
-	int pageNumSelected;
 
 	if (gbIsGlossing)
 	{
@@ -1119,33 +1117,23 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 		// Phrase" while glossing.
 		m_pStaticSelectATab->Hide(); 
 
-		// Now, that the wxNoteBook is configured, set pageNumSelected.
+		// Now, that the wxNoteBook is configured, set m_nCurPage.
 		// When Glossing is active there is always only one tab and its index number is 0.
-		pageNumSelected = 0;
+		m_nCurPage = 0;
 	}
-	else if (m_nWords != -1)
+	else if (m_nWordsSelected != -1)
 	{
-		// the pageNumSelected is one less than m_nWords. If m_nWords is zero, 
-		pageNumSelected = m_nWords-1;
+		// the m_nCurPage is one less than m_nWordsSelected.
+		m_nCurPage = m_nWordsSelected-1;
 	}
 	else
 	{
-		pageNumSelected = m_pKBEditorNotebook->GetSelection();
+		m_nCurPage = m_pKBEditorNotebook->GetSelection();
 	}
 	
-	if (pageNumSelected != -1)
+	if (m_nCurPage != -1)
 	{
-		// whm added 22Jan09. We check to see if the source phrase at the current location (as
-		// indicated by the current contents of the phrasebox) has an entry in the KB. If it does, we
-		// continue with the normal LoadDataForPage() below. If there is no entry in the KB, we need to
-		// temporarily add the entry to the KB, so that the user will see its entry in the KB. There
-		// are two situations that could lead up to this:
-		// 1. The contents of the phrasebox existed in the KB, but had a ref count of 1 before the
-		// phrase box moved to its present location
-		m_nWords = pageNumSelected + 1;
-		LoadDataForPage(pageNumSelected,0);	
-		// In LoadDataForPage above, the parameters may be changed in
-		// LoadDataForPage if m_nWordsInPhrase and m_TheSelectedKey have content.
+		LoadDataForPage(m_nCurPage,0);	
 	}
 }
 
@@ -1312,8 +1300,8 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 
 	wxString srcKeyStr;
 	
-	wxASSERT(m_nWords > 0); // set when initializing the CPropertySheet wrapper
-	pMap = pKB->m_pMap[m_nWords-1]; 
+	wxASSERT(pageNumSel >= 0);
+	pMap = pKB->m_pMap[pageNumSel]; 
 	wxASSERT(pMap != NULL);
 	m_ON = _("ON"); //IDS_ON // for localization, use string table
 	m_OFF = _("OFF"); //IDS_OFF  // ditto
@@ -1392,14 +1380,14 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	}
 
 	// select the first string in the keys listbox by default, if possible; but if 
-	// m_nWordsInPhrase and m_TheSelectedKey have content, then try to make the selection default
+	// m_TheSelectedKey has content, then try to make the selection default
 	// to m_TheSelectedKey instead, for rapid access to the desired entry.
 	m_curKey = _T("");
 	int nCount = m_pListBoxKeys->GetCount();
 	if (nCount > 0)
 	{
 		// check out if we have a desired key to be accessed first
-		if (m_nWords > 0 && !m_TheSelectedKey.IsEmpty())
+		if (!m_TheSelectedKey.IsEmpty())
 		{
 			// user wants a certain key selected on entry to the editor, try set it up for him
 			// If successful this will change the initial selection passed in the 3rd parameter
@@ -1422,9 +1410,10 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			wxASSERT(nNewSel != -1);
 			pCurTgtUnit = (CTargetUnit*)m_pListBoxKeys->GetClientData(nNewSel);
 		}
-		else if (gpApp->m_pActivePile != NULL)
+		else if (gpApp->m_pActivePile != NULL && nStartingSelection == 0)
 		{
-			// whm added 13Jan09. If no selection has been made, next best thing is to look up the source
+			// whm added 13Jan09. No selection has been made, and caller expects a
+			// possible zero starting selection, next best thing is to look up the source
 			// phrase at the current active location of the phrasebox.
 			// get the key for the source phrase at the active location
 			wxString srcKey;
@@ -1458,7 +1447,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 			m_pTypeSourceBox->ChangeValue(m_srcKeyStr);
 
 		// set members to default state, ready for reuse
-		m_nWords = -1;
+		m_nWordsSelected = -1;
 		m_TheSelectedKey.Empty();
 
 		// the above could fail, eg. if nothing is in the list box, in which case -1 will be 
@@ -1482,7 +1471,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 		m_pFlagBox->SetValue(m_flagSetting);
 	}
 	// show user how many entries - whm moved here from inside end of above block
-	nCount = m_pListBoxKeys->GetCount();
+	// nCount was set above before if (nCount > 0) block
 	//IDS_ENTRY_COUNT
 	m_entryCountStr = m_pStaticCount->GetLabel();
 	m_entryCountStr = m_entryCountStr.Format(m_entryCountStr,nCount);
