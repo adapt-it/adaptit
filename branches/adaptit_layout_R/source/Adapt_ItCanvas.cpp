@@ -453,11 +453,11 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc) // this is called OnPrepareDC() in M
 
 	//    The View's ExtendSelectionRight(...) in the following calling sequence:
 	//		OnPrepareDC(&aDC); // adjust the origin
-	//		... before various pCell->m_pText->Draw(&aDC); calls
+	//		... before various pCell->DrawCell(&aDC); calls
 
 	//    The View's ExtendSelectionLeft(...) in the following calling sequence:
 	//		OnPrepareDC(&aDC); // adjust the origin
-	//		... before various pCell->m_pText->Draw(&aDC); calls
+	//		... before various pCell->DrawCell(&aDC); calls
 
 	//    The View's AdjustDialogPosition(...) in the following calling sequence:
 	//		CClientDC dc(pView);
@@ -1275,12 +1275,12 @@ t:	if (pCell == NULL)
 
 									// if it is already selected, continue to next one, 
 									// else select it
-									if (!pCurCell->m_pText->m_bSelected)
+									if (!pCurCell->m_bSelected)
 									{
 										aDC.SetBackgroundMode(pApp->m_backgroundMode);
 										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->m_pText->Draw(&aDC);
-										pCurCell->m_pText->m_bSelected = TRUE;
+										pCurCell->DrawCell(&aDC);
+										pCurCell->m_bSelected = TRUE;
 
 /* IMPORTANT RTL versus LTR comment */	
 // keep a record of it (my first attempt used AddHead or RTL and AddTail for LTR, but it ran into
@@ -1310,12 +1310,12 @@ t:	if (pCell == NULL)
 									pCurCell = pCurPile->m_pCell[pApp->m_selectionLine]; // the required
 												// cell if it is already selected, continue to next
 												// one, else select it
-									if (!pCurCell->m_pText->m_bSelected)
+									if (!pCurCell->m_bSelected)
 									{
 										aDC.SetBackgroundMode(pApp->m_backgroundMode);
 										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->m_pText->Draw(&aDC);
-										pCurCell->m_pText->m_bSelected = TRUE;
+										pCurCell->DrawCell(&aDC);
+										pCurCell->m_bSelected = TRUE;
 
 										// keep a record of it
 										pApp->m_selection.Append(pCurCell);
@@ -1371,12 +1371,12 @@ t:	if (pCell == NULL)
 																					   // cell
 										// if it is already selected, continue to next one, 
 										// else select it
-										if (!pCurCell->m_pText->m_bSelected)
+										if (!pCurCell->m_bSelected)
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
 											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-											pCurCell->m_pText->Draw(&aDC);
-											pCurCell->m_pText->m_bSelected = TRUE;
+											pCurCell->DrawCell(&aDC);
+											pCurCell->m_bSelected = TRUE;
 
 											// keep a record of it
 											pApp->m_selection.Append(pCurCell);
@@ -1411,12 +1411,12 @@ t:	if (pCell == NULL)
 
 										// if it is already selected, continue to next one, 
 										// else select it
-										if (!pCurCell->m_pText->m_bSelected)
+										if (!pCurCell->m_bSelected)
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
 											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-											pCurCell->m_pText->Draw(&aDC);
-											pCurCell->m_pText->m_bSelected = TRUE;
+											pCurCell->DrawCell(&aDC);
+											pCurCell->m_bSelected = TRUE;
 
 											// keep a record of it
 											pApp->m_selection.Append(pCurCell);
@@ -1477,12 +1477,12 @@ t:	if (pCell == NULL)
 
 									// if it is already selected, continue to next prev one, 
 									// else select it
-									if (!pCurCell->m_pText->m_bSelected)
+									if (!pCurCell->m_bSelected)
 									{
 										aDC.SetBackgroundMode(pApp->m_backgroundMode);
 										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->m_pText->Draw(&aDC);
-										pCurCell->m_pText->m_bSelected = TRUE;
+										pCurCell->DrawCell(&aDC);
+										pCurCell->m_bSelected = TRUE;
 
 										// keep a record of it, retaining order of words/phrases
 										pApp->m_selection.Insert(pCurCell);
@@ -1507,12 +1507,12 @@ t:	if (pCell == NULL)
 
 									// if it is already selected, continue to next prev one, 
 									// else select it
-									if (!pCurCell->m_pText->m_bSelected)
+									if (!pCurCell->m_bSelected)
 									{
 										aDC.SetBackgroundMode(pApp->m_backgroundMode);
 										aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-										pCurCell->m_pText->Draw(&aDC);
-										pCurCell->m_pText->m_bSelected = TRUE;
+										pCurCell->DrawCell(&aDC);
+										pCurCell->m_bSelected = TRUE;
 
 										// keep a record of it, preserving order of words/phrases
 										pApp->m_selection.Insert(pCurCell);
@@ -1580,12 +1580,12 @@ t:	if (pCell == NULL)
 
 										// if it is already selected, continue to next prev one, 
 										// else select it
-										if (!pCurCell->m_pText->m_bSelected)
+										if (!pCurCell->m_bSelected)
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
 											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-											pCurCell->m_pText->Draw(&aDC);
-											pCurCell->m_pText->m_bSelected = TRUE;
+											pCurCell->DrawCell(&aDC);
+											pCurCell->m_bSelected = TRUE;
 
 											// keep a record of it, retaining order of 
 											// words/phrases
@@ -1617,12 +1617,12 @@ t:	if (pCell == NULL)
 
 										// if it is already selected, continue to next prev one,
 										// else select it
-										if (!pCurCell->m_pText->m_bSelected)
+										if (!pCurCell->m_bSelected)
 										{
 											aDC.SetBackgroundMode(pApp->m_backgroundMode);
 											aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-											pCurCell->m_pText->Draw(&aDC);
-											pCurCell->m_pText->m_bSelected = TRUE;
+											pCurCell->DrawCell(&aDC);
+											pCurCell->m_bSelected = TRUE;
 
 											// keep a record of it, preserving order of 
 											// words/phrases
@@ -2030,8 +2030,8 @@ b:			if (pApp->m_selection.GetCount() != 0)
 					pos = pos->GetNext();
 					aDC.SetBackgroundMode(pApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,255)); // white
-					pOldSel->m_pText->Draw(&aDC);
-					pOldSel->m_pText->m_bSelected = FALSE;
+					pOldSel->DrawCell(&aDC);
+					pOldSel->m_bSelected = FALSE;
 				}
 				pApp->m_selection.Clear();
 				pApp->m_selectionLine = -1; // no selection
@@ -2042,8 +2042,8 @@ b:			if (pApp->m_selection.GetCount() != 0)
 a:			pApp->m_bSelectByArrowKey = FALSE;
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
 			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-			pCell->m_pText->Draw(&aDC);
-			pCell->m_pText->m_bSelected = TRUE;
+			pCell->DrawCell(&aDC);
+			pCell->m_bSelected = TRUE;
 
 			// preserve record of the selection
 			pApp->m_selection.Append(pCell);
@@ -2190,8 +2190,8 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 				aDC.SetBackgroundMode(pApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 				pApp->m_bSelectByArrowKey = FALSE;
-				pCell->m_pText->Draw(&aDC);
-				pCell->m_pText->m_bSelected = TRUE;
+				pCell->DrawCell(&aDC);
+				pCell->m_bSelected = TRUE;
 
 				// preserve record of the selection
 				if (pApp->m_curDirection == right)

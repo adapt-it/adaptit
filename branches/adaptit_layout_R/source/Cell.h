@@ -52,7 +52,7 @@ public:
 
 	// attributes
 public:
-	CText*					m_pText; // note, cell can exist with this ptr NULL
+	//CText*				m_pText; // note, cell can exist with this ptr NULL; BEW removed 6Feb09
 	wxColour				m_color;
 	wxColour				m_navColor;
 	wxFont*					m_pFont;
@@ -66,12 +66,16 @@ public:
 	CStrip*					m_pStrip;
 	CPile*					m_pPile;
 	wxString				m_phrase;
+	bool					m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
 
 	// destructor
 	virtual ~CCell();
-
 	virtual void Draw(wxDC* pDC);
-	// helper
+	// helpers
+	//void  DrawCell(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
+	//		const wxString& phrase, const wxColour& color, int nCell);
+	void  DrawCell(wxDC* pDC);
+	 
 private:
 	bool HasFilterMarker(CPile* pPile);
 

@@ -702,10 +702,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Text.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\TransformToGlossesDlg.cpp"
 				>
 			</File>
@@ -1048,10 +1044,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\TargetUnit.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Text.h"
 				>
 			</File>
 			<File

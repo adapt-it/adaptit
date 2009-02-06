@@ -25,6 +25,45 @@
 // 
 /////////////////////////////////////////////////////////////////////////////
 
+// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: (BEW moved here from deprecated CText)
+//    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function does not 
+// have an nFormat parameter like MFC's CDC::DrawText(const CString& str, lPRECT lpRect, UINT nFormat) 
+// text-drawing function. The MFC function utilizes the nFormat parameter to control the RTL vs LTR 
+// directionality, which apparently only affects the directionality of the display context WITHIN the
+// lpRect region of the display context. At present, it seems that the wxWidgets function cannot 
+// directly control the directionality of the text using its DrawText() function. In both MFC and 
+// wxWidgets there is a way to control the overall layout direction of the elements of a whole diaplay
+// context. In MFC it is CDC::SetLayout(DWORD dwLayout); in wxWidgets it is 
+// wxDC::SetLayoutDirection(wxLayoutDirection dir). Both of these dc layout functions cause the whole 
+// display context to be mirrored so that all elements drawn in the display context are reversed as 
+// though seen in a mirror. For a simple application that only displays a single language in its display
+// context, perhaps layout mirroring would work OK. However, Adapt It must layout several different
+// diverse languages within the same display context, some of which may have different directionality
+// and alignment. Therefore, except for possibly some widget controls, MFC's SetLayout() and wxWidgets'
+// SetLayoutDirection() would not be good choices. The MFC Adapt It sources NEVER call the mirroring 
+// functions. Instead, for writing on a display context, MFC uses the nFormat paramter within 
+// DrawText(str,m_enclosingRect,nFormat) to accomplish two things: (1) Render the text as Right-To-Left, 
+// and (2) Align the text to the RIGHT within the enclosing rectangle passed as parameter to DrawText().
+// The challenge within wxWidgets is to determine how to get the equivalent display of RTL and LTR text.
+//    2. The SetLayoutDirection() function within wxWidgets can be applied to certain controls containing
+// text such as wxTextCtrl and wxListBox, etc. It is presently an undocumented method with the following
+// signature: SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or 
+// wxLayout_RightToLeft. It should be noted that setting the layout to wxLayout_RightToLeft on these 
+// controls also involves mirroring, so that any scrollbar that gets displayed, for example, displays 
+// on the left rather than on the right for RTL, etc.
+// CONCLUSIONS:
+// Pango in wxGTK, ATSIU in wxMac and Uniscribe in wxMSW seem to do a good job of rendering Right-To-Left 
+// Reading text with the correct directionality in a display context without calling the 
+// SetLayoutDirection() method. The main thing we have to do is determine where the starting point for 
+// the DrawText() operation needs to be located to effect the correct text alignment within the cells 
+// (rectangles) of the pile for the given language - the upper left coordinates for LTR text, and the
+// upper-right coordinates for RTL text.
+// Therefore, in the wx version we have to be careful about the automatic mirroring features involved 
+// in the SetLayoutDirection() function, since Adapt It MFC was designed to micromanage the layout 
+// direction itself in the coding of text, cells, piles, strips, etc.
+
+
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Pile.h"
@@ -123,11 +162,11 @@ void CPile::DestroyCells()
 	{
 		if (m_pCell[i] != NULL)
 		{
-			if (m_pCell[i]->m_pText != NULL)
-			{
-				delete m_pCell[i]->m_pText;
-				m_pCell[i]->m_pText = (CText*)NULL;
-			}
+			//if (m_pCell[i]->m_pText != NULL) // BEW removed 6Feb09
+			//{
+			//	delete m_pCell[i]->m_pText;
+			//	m_pCell[i]->m_pText = (CText*)NULL;
+			//}
 			delete m_pCell[i];
 			m_pCell[i] = (CCell*)NULL;
 		}

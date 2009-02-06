@@ -2454,7 +2454,7 @@ void CAdapt_ItView::RestoreSelection()
 				pCell = pPile->m_pCell[gnSelectionLine]; // the cell which user previously selected
 				// AddHead and wxWindow's Insert place the object at the front of the list.
 				pApp->m_selection.Insert(pCell);
-				pCell->m_pText->m_bSelected = TRUE;
+				pCell->m_bSelected = TRUE;
 			}
 		}
 		else
@@ -2468,7 +2468,7 @@ void CAdapt_ItView::RestoreSelection()
 				wxASSERT(pPile != NULL); // it must be there in the layout
 				pCell = pPile->m_pCell[gnSelectionLine]; // the cell which user previously selected
 				pApp->m_selection.Append(pCell);
-				pCell->m_pText->m_bSelected = TRUE;
+				pCell->m_bSelected = TRUE;
 			}
 		}
 		CCellList::Node* cpos = pApp->m_selection.GetFirst();
@@ -4896,18 +4896,17 @@ void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBu
 				pPile->m_rectPile.GetLeft(), pPile->m_rectPile.GetRight(), pPile->m_nHorzOffset,
 				pPile->m_nWidth, pPile->m_pSrcPhrase->m_nSequNumber);
 			wxLogTrace(strPile);
-			CText* pText;
+			wxRect enclosingRec(pPile->m_pCell[0].m_ptTopLeft,pPile->m_pCell[0].m_ptBotRight);
 			wxString text1;
 			wxString text2;
-			pText = pPile->m_pCell[0]->m_pText;
 			text1 = text1.Format("     CELL[0]'s CTEXT:  Rect: T= %d, B= %d, L= %d, R= %d\n",
-				pText->m_enclosingRect.GetTop(), pText->m_enclosingRect.GetBottom(),
-				pText->m_enclosingRect.GetLeft(), pText->m_enclosingRect.GetRight());
+				enclosingRect.GetTop(), enclosingRect.GetBottom(),
+				enclosingRect.GetLeft(), enclosingRect.GetRight());
 			wxLogTrace(text1);
-			pText = pPile->m_pCell[1]->m_pText;
+			wxRect enclosingRec2(pPile->m_pCell[1].m_ptTopLeft,pPile->m_pCell[1].m_ptBotRight);
 			text2 = text2.Format("     CELL[1]'s CTEXT:  Rect: T= %d, B= %d, L= %d, R= %d\n",
-				pText->m_enclosingRect.GetTop(), pText->m_enclosingRect.GetBottom(),
-				pText->m_enclosingRect.GetLeft(), pText->m_enclosingRect.GetRight());
+				enclosingRect2.GetTop(), enclosingRect2.GetBottom(),
+				enclosingRect2.GetLeft(), enclosingRect2.GetRight());
 			wxLogTrace(text2);
 			wxLogTrace("\n");
 		}
@@ -6115,8 +6114,8 @@ CCell* CAdapt_ItView::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *
 	// create a CText for displaying the cell's string --
 	// (for ANSI build, CText is based on CObject, and will use TextOut() for drawing; but for the
 	// nonRoman build, it will use DrawText() which has the RTLReading smarts, etc.
-	pCell->m_pText = new CText(*pTopLeft,*pBotRight,pFont,phrase,*pColor,index);
-	wxASSERT(pCell->m_pText != NULL);
+	//pCell->m_pText = new CText(*pTopLeft,*pBotRight,pFont,phrase,*pColor,index); //BEW removed 6Feb09
+	//wxASSERT(pCell->m_pText != NULL);
 	return pCell;
 }
 
@@ -6351,8 +6350,10 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 				pCell = pPile->m_pCell[cellIndex];
 				if (pCell == NULL)
 					continue;
-				rect = pCell->m_pText->m_enclosingRect;
-				rect = NormalizeRect(rect); // use our own from helpers.h
+				wxRect rectEncl(pCell->m_ptTopLeft,pCell->m_ptBotRight);
+				//rect = pCell->m_pText->m_enclosingRect;
+				//rect = NormalizeRect(rect); // use our own from helpers.h
+				rect = NormalizeRect(rectEncl); // use our own from helpers.h
 				if (rect.Contains(point))
 					break;
 			}
@@ -6415,16 +6416,20 @@ void CAdapt_ItView::RemovePrecedingAnchor(wxClientDC* pDC, CCell *pAnchor)
 	{
 		// there is selected CCell previous to the anchor cell,
 		// so get rid of it & any earlier ones
-		CText* pText;
+		//CText* pText;
+		CCell* pPrevCell;
 		while (pos != NULL)
 		{
 			CCellList::Node* savePos = pos;
-			pText = ((CCell*)pos->GetData())->m_pText;
+			//pText = ((CCell*)pos->GetData())->m_pText;
+			pPrevCell = (CCell*)pos->GetData();
 			pos = pos->GetPrevious();
 			pDC->SetBackgroundMode(pApp->m_backgroundMode);
 			pDC->SetTextBackground(wxColour(255,255,255)); // white
-			pText->Draw(pDC);
-			pText->m_bSelected = FALSE;
+			//pText->Draw(pDC);
+			//pText->m_bSelected = FALSE;
+			pPrevCell->DrawCell(pDC);
+			pPrevCell->m_bSelected = FALSE;
 			pApp->m_selection.DeleteNode(savePos);
 		}
 	}
@@ -6443,16 +6448,20 @@ void CAdapt_ItView::RemoveFollowingAnchor(wxClientDC *pDC, CCell *pAnchor)
 	{
 		// there is selected CCell after the anchor cell,
 		// so get rid of it & any later ones
-		CText* pText;
+		//CText* pText;
+		CCell* pFollCell;
 		while (pos != NULL)
 		{
 			CCellList::Node* savePos = pos;
-			pText = ((CCell*)pos->GetData())->m_pText;
+			//pText = ((CCell*)pos->GetData())->m_pText;
+			pFollCell = (CCell*)pos->GetData();
 			pos = pos->GetNext();
 			pDC->SetBackgroundMode(pApp->m_backgroundMode);
 			pDC->SetTextBackground(wxColour(255,255,255)); // white
-			pText->Draw(pDC);
-			pText->m_bSelected = FALSE;
+			//pText->Draw(pDC);
+			//pText->m_bSelected = FALSE;
+			pFollCell->DrawCell(pDC);
+			pFollCell->m_bSelected = FALSE;
 			pApp->m_selection.DeleteNode(savePos);
 		}
 	}
@@ -6475,16 +6484,20 @@ void CAdapt_ItView::RemoveEarlierSelForShortening(wxClientDC *pDC, CCell *pEndCe
 		{
 			// there is previous selected CCell, so user must have shortened sel'n
 			// so get rid of it & any earlier ones
-			CText* pText;
+			//CText* pText;
+			CCell* pPrevCell;
 			while (pos != NULL)
 			{
 				CCellList::Node* savePos = pos;
-				pText = ((CCell*)pos->GetData())->m_pText;
+				//pText = ((CCell*)pos->GetData())->m_pText;
+				pPrevCell = (CCell*)pos->GetData();
 				pos = pos->GetPrevious();
 				pDC->SetBackgroundMode(pApp->m_backgroundMode);
 				pDC->SetTextBackground(wxColour(255,255,255)); // white
-				pText->Draw(pDC);
-				pText->m_bSelected = FALSE;
+				//pText->Draw(pDC);
+				//pText->m_bSelected = FALSE;
+				pPrevCell->DrawCell(pDC);
+				pPrevCell->m_bSelected = FALSE;
 				pApp->m_selection.DeleteNode(savePos);
 			}
 		}
@@ -6508,16 +6521,20 @@ void CAdapt_ItView::RemoveLaterSelForShortening(wxClientDC *pDC, CCell *pEndCell
 		{
 			// there is another selected CCell, so user must have shortened sel'n
 			// so get rid of it & any subsequent ones
-			CText* pText;
+			//CText* pText;
+			CCell* pLaterCell;
 			while (pos != NULL)
 			{
 				CCellList::Node* savePos = pos;
-				pText = ((CCell*)pos->GetData())->m_pText;
+				//pText = ((CCell*)pos->GetData())->m_pText;
+				pLaterCell = (CCell*)pos->GetData();
 				pos = pos->GetNext();
 				pDC->SetBackgroundMode(pApp->m_backgroundMode);
 				pDC->SetTextBackground(wxColour(255,255,255)); // white
-				pText->Draw(pDC);
-				pText->m_bSelected = FALSE;
+				//pText->Draw(pDC);
+				//pText->m_bSelected = FALSE;
+				pLaterCell->DrawCell(pDC);
+				pLaterCell->m_bSelected = FALSE;
 				pApp->m_selection.DeleteNode(savePos);
 			}
 		}
@@ -6581,19 +6598,23 @@ void CAdapt_ItView::RemoveSelection()
 		return;
 	}
 	wxClientDC aDC(pApp->GetMainFrame()->canvas);
-	CText* pText;
+	//CText* pText;
+	CCell* pCell;
 
 	// there is a current selection, so clobber it
 	CCellList::Node* pos = pApp->m_selection.GetFirst();
 	while (pos != NULL)
 	{
-		CCell* pCell = (CCell*)pos->GetData();
-		pText = pCell->m_pText;
+		//CCell* pCell = (CCell*)pos->GetData();
+		pCell = (CCell*)pos->GetData();
+		//pText = pCell->m_pText;
 		pos = pos->GetNext();
 		aDC.SetBackgroundMode(pApp->m_backgroundMode); // Do not use wxTRANSPARENT!! because background is not updated
 		aDC.SetTextBackground(wxColour(255,255,255)); // white
-		pText->Draw(&aDC);
-		pText->m_bSelected = FALSE;
+		//pText->Draw(&aDC);
+		//pText->m_bSelected = FALSE;
+		pCell->DrawCell(&aDC);
+		pCell->m_bSelected = FALSE;
 	}
 	pApp->m_selection.Clear();
 	pApp->m_selectionLine = -1;
@@ -6610,7 +6631,7 @@ void CAdapt_ItView::RemoveSelection()
 }
 
 // DeepCopySublist2Sublist was in Helpers.cpp in the legacy version.
-// of deep copied CSourcePhrase instances, to an empty pCopiedSublist, as deep copies and
+// Copies CSourcePhrase instances to an empty pCopiedSublist, as deep copies, and
 // preserves m_nSequNumber values in the copies
 void CAdapt_ItView::DeepCopySublist2Sublist(SPList* pOriginalList, SPList* pCopiedSublist)
 {
@@ -12623,8 +12644,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			// remove this cell's selection
 			aDC.SetBackgroundMode(pApp->m_backgroundMode); // Do not use wxTRANSPARENT here!! it leaves any existing yellow background
 			aDC.SetTextBackground(wxColour(255,255,255)); // white
-			pLeftmost->m_pText->Draw(&aDC);
-			pLeftmost->m_pText->m_bSelected = FALSE;
+			//pLeftmost->m_pText->Draw(&aDC);
+			pLeftmost->DrawCell(&aDC);
+			pLeftmost->m_bSelected = FALSE;
 
 			// preserve record of the deselection
 			CCellList::Node* pos = pApp->m_selection.GetFirst();
@@ -12640,9 +12662,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 				if (pNextPile == pActivePile)
 				{
 					// remove this pile's selection too
-					pNextCell->m_pText->Draw(&aDC);
+					pNextCell->DrawCell(&aDC);
 
-					pNextCell->m_pText->m_bSelected = FALSE;
+					pNextCell->m_bSelected = FALSE;
 
 
 
@@ -12697,8 +12719,8 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			wxASSERT(pNextCell != NULL);
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
 			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-			pNextCell->m_pText->Draw(&aDC);
-			pNextCell->m_pText->m_bSelected = TRUE;
+			pNextCell->DrawCell(&aDC);
+			pNextCell->m_bSelected = TRUE;
 
 			// preserve record of the selection
 			pApp->m_selection.Append(pNextCell); 
@@ -12724,8 +12746,8 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
 		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 		CCell* pCell = pActivePile->m_pCell[1];
-		pCell->m_pText->Draw(&aDC);
-		pCell->m_pText->m_bSelected = TRUE;
+		pCell->DrawCell(&aDC);
+		pCell->m_bSelected = TRUE;
 
 		// preserve record of the selection
 		pApp->m_selection.Append(pCell);
@@ -12754,8 +12776,8 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		if (pNextCell != NULL)
 		{
 			wxASSERT(pNextCell != NULL);
-			pNextCell->m_pText->Draw(&aDC);
-			pNextCell->m_pText->m_bSelected = TRUE;
+			pNextCell->DrawCell(&aDC);
+			pNextCell->m_bSelected = TRUE;
 
 			// preserve record of the selection
 			pApp->m_selection.Append(pNextCell);
@@ -12824,8 +12846,8 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 			// remove this cell's selection
 			aDC.SetBackgroundMode(pApp->m_backgroundMode); // Do not use wxTRANSPARENT here!! it leaves any existing yellow background
 			aDC.SetTextBackground(wxColour(255,255,255)); // white
-			pRightmost->m_pText->Draw(&aDC);
-			pRightmost->m_pText->m_bSelected = FALSE;
+			pRightmost->DrawCell(&aDC);
+			pRightmost->m_bSelected = FALSE;
 
 			// preserve record of the deselection
 			CCellList::Node* pos = pApp->m_selection.GetLast();
@@ -12841,8 +12863,8 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 				if (pPrevPile == pActivePile)
 				{
 					// remove this pile's selection too
-					pPrevCell->m_pText->Draw(&aDC);
-					pPrevCell->m_pText->m_bSelected = FALSE;
+					pPrevCell->DrawCell(&aDC);
+					pPrevCell->m_bSelected = FALSE;
 
 					// make all the parameter agree with no selection
 					pApp->m_bSelectByArrowKey = FALSE;
@@ -12890,8 +12912,8 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 					return FALSE;
 			}
 
-			pPrevCell->m_pText->Draw(&aDC);
-			pPrevCell->m_pText->m_bSelected = TRUE;
+			pPrevCell->DrawCell(&aDC);
+			pPrevCell->m_bSelected = TRUE;
 
 			// preserve record of the selection
 			pApp->m_selection.Insert(pPrevCell);
@@ -12913,8 +12935,8 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		aDC.SetBackgroundMode(pApp->m_backgroundMode);
 		aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 		CCell* pCell = pActivePile->m_pCell[1];
-		pCell->m_pText->Draw(&aDC);
-		pCell->m_pText->m_bSelected = TRUE;
+		pCell->DrawCell(&aDC);
+		pCell->m_bSelected = TRUE;
 
 		// preserve record of the selection
 		pApp->m_selection.Insert(pCell);
@@ -12959,8 +12981,8 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		}
 		if (pPrevCell != NULL)
 		{
-			pPrevCell->m_pText->Draw(&aDC);
-			pPrevCell->m_pText->m_bSelected = TRUE;
+			pPrevCell->DrawCell(&aDC);
+			pPrevCell->m_bSelected = TRUE;
 
 			// preserve record of the selection
 			pApp->m_selection.Insert(pPrevCell);
@@ -23192,8 +23214,8 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 			pos = pos->GetNext();
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
 			aDC.SetTextBackground(wxColour(255,255,255)); // white
-			pOldSel->m_pText->m_bSelected = FALSE;
-			pOldSel->m_pText->Draw(&aDC);
+			pOldSel->m_bSelected = FALSE;
+			pOldSel->DrawCell(&aDC);
 		}
 		pApp->m_selection.Clear();
 		pApp->m_selectionLine = -1; // no selection
@@ -23204,8 +23226,8 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	aDC.SetBackgroundMode(pApp->m_backgroundMode);
 	aDC.SetTextBackground(wxColour(255,255,0));// yellow
 	pApp->m_bSelectByArrowKey = FALSE;
-	pCell->m_pText->m_bSelected = TRUE;
-	pCell->m_pText->Draw(&aDC);
+	pCell->m_bSelected = TRUE;
+	pCell->DrawCell(&aDC);
 
 	// preserve record of the selection
 	pApp->m_selection.Append(pCell);
@@ -23267,12 +23289,12 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 			pCurCell = pCurPile->m_pCell[pApp->m_selectionLine]; // get the cell
 
 			// if it is already selected, continue to next one, else select it
-			if (!pCurCell->m_pText->m_bSelected)
+			if (!pCurCell->m_bSelected)
 			{
 				aDC.SetBackgroundMode(pApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pCurCell->m_pText->Draw(&aDC);
-				pCurCell->m_pText->m_bSelected = TRUE;
+				pCurCell->DrawCell(&aDC);
+				pCurCell->m_bSelected = TRUE;
 
 				// keep a record of it
 				pApp->m_selection.Append(pCurCell);
@@ -23292,12 +23314,12 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 			pCurCell = pCurPile->m_pCell[pApp->m_selectionLine]; // the required cell
 
 			// if it is already selected, continue to next one, else select it
-			if (!pCurCell->m_pText->m_bSelected)
+			if (!pCurCell->m_bSelected)
 			{
 				aDC.SetBackgroundMode(pApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pCurCell->m_pText->Draw(&aDC);
-				pCurCell->m_pText->m_bSelected = TRUE;
+				pCurCell->DrawCell(&aDC);
+				pCurCell->m_bSelected = TRUE;
 
 				// keep a record of it
 				pApp->m_selection.Append(pCurCell); 
@@ -28879,8 +28901,8 @@ a:		pCell = GetNextCell(pCell,cellIndex);
 								// key not down
 			gbHaltedAtBoundary = TRUE; // for use by OnLButtonUp()
 		}
-		pCell->m_pText->Draw(&aDC); // draw it selected
-		pCell->m_pText->m_bSelected = TRUE; // ensure updates continue to show it selected
+		pCell->DrawCell(&aDC); // draw it selected (background is set yellow already)
+		pCell->m_bSelected = TRUE; // ensure updates continue to show it selected
 		pApp->m_selection.Append(pCell); // store pointer in the selection list
 		if (!(bAtEnd || bAtBoundary))
 			goto a;
@@ -28914,8 +28936,8 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 		}
 		if (!bAtBoundary)
 		{
-			pCell->m_pText->Draw(&aDC); // draw it selected
-			pCell->m_pText->m_bSelected = TRUE; // ensure updates continue to show it selected
+			pCell->DrawCell(&aDC); // draw it selected (background is set yellow already)
+			pCell->m_bSelected = TRUE; // ensure updates continue to show it selected
 			pApp->m_selection.Insert(pCell); // store pointer in the selection list
 		}
 		if (!bAtEnd)
@@ -28951,8 +28973,8 @@ void CAdapt_ItView::SelectAnchorOnly()
 		{
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
 			aDC.SetTextBackground(wxColour(255,255,255)); // white
-			pCell->m_pText->Draw(&aDC);
-			pCell->m_pText->m_bSelected = FALSE;
+			pCell->DrawCell(&aDC);
+			pCell->m_bSelected = FALSE;
 		}
 	}
 	// now remove from the selection list the cells which were deselected
@@ -44518,8 +44540,8 @@ a:			wxMessageBox(_T("A zero pile pointer was returned, the sourcephrase with th
 					wxClientDC aDC(gpApp->GetMainFrame()->canvas); // get a temporary client device context for this view window
 					aDC.SetBackgroundMode(gpApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-					pCell->m_pText->Draw(&aDC);
-					pCell->m_pText->m_bSelected = TRUE;
+					pCell->DrawCell(&aDC);
+					pCell->m_bSelected = TRUE;
 				}
 			}
 		}
@@ -44777,8 +44799,8 @@ a:			wxMessageBox(_T("A zero pile pointer was returned, the sourcephrase with th
 					wxClientDC aDC(gpApp->GetMainFrame()->canvas); // get a temporary client device context for this view window
 					aDC.SetBackgroundMode(gpApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-					pCell->m_pText->Draw(&aDC);
-					pCell->m_pText->m_bSelected = TRUE;
+					pCell->DrawCell(&aDC);
+					pCell->m_bSelected = TRUE;
 				}
 			}
 		}

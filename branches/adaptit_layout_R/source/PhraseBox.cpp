@@ -3941,9 +3941,9 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pAppView, CPile* pNewPile)
 			wxColour oldBkColor = aDC.GetTextBackground();
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
 			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-			pAnchorCell->m_pText->Draw(&aDC);
+			pAnchorCell->DrawCell(&aDC);
 			pApp->m_bSelectByArrowKey = FALSE;
-			pAnchorCell->m_pText->m_bSelected = TRUE;
+			pAnchorCell->m_bSelected = TRUE;
 
 			// preserve record of the selection
 			pSelection->Append(pAnchorCell);

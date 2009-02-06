@@ -1117,9 +1117,9 @@ a:			CCell* pCell = 0;
 
 				aDC.SetBackgroundMode(gpApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pAnchorCell->m_pText->Draw(&aDC);
+				pAnchorCell->DrawCell(&aDC);
 				gpApp->m_bSelectByArrowKey = FALSE;
-				pAnchorCell->m_pText->m_bSelected = TRUE;
+				pAnchorCell->m_bSelected = TRUE;
 
 				// preserve record of the selection
 				pSelection->Append(pAnchorCell);
@@ -1956,9 +1956,9 @@ a:			CCell* pCell = 0;
 
 				aDC.SetBackgroundMode(gpApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pAnchorCell->m_pText->Draw(&aDC);
+				pAnchorCell->DrawCell(&aDC);
 				gpApp->m_bSelectByArrowKey = FALSE;
-				pAnchorCell->m_pText->m_bSelected = TRUE;
+				pAnchorCell->m_bSelected = TRUE;
 
 				// preserve record of the selection
 				pSelection->Append(pAnchorCell);
