@@ -74,7 +74,6 @@
 
 // includes below uncomment as implemented
 #include "Adapt_It.h"
-#include "Text.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "helpers.h"

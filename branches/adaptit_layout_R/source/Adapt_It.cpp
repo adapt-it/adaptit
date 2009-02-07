@@ -87,7 +87,6 @@
 // Other includes
 #include "Adapt_It.h"
 #include "MainFrm.h"
-#include "Text.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "AdaptitConstants.h"

@@ -22,8 +22,6 @@
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "Cell.h"
 #endif
-// The following include of Text.h was in MFC version
-#include "Text.h"	// Added by ClassView
 
 // forward references
 class CAdapt_ItDoc;

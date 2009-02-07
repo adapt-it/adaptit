@@ -38,7 +38,6 @@
 #include <wx/textctrl.h>
 
 // Other includes uncomment as implemented
-#include "Text.h"
 #include "Adapt_It.h"
 #include "PhraseBox.h"
 #include "Adapt_ItView.h"

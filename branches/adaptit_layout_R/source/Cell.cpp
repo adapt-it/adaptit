@@ -9,9 +9,10 @@
 /// \description	This is the implementation file for the CCell class. 
 /// The CCell class represents the next smaller division of a CPile, there
 /// potentially being up to five CCells displaying vertically top to bottom
-/// within a CPile. Each CCell stores a CText which is for the display of 
-/// the cell's text, and changing background colour (for selections, 
-/// highlighting) etc.
+/// within a CPile. The CCell has the smarts for drawing the text and changing
+/// background colour (eg. for selections) in its DrawCell() public function,
+/// and for handling free translation colouring, green wedges, navigation text
+/// etc. in its Draw() function. (CText removed 6Feb09)
 /// \derivation		The CCell class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items (in order of importance): (search for "TODO")
@@ -44,7 +45,6 @@
 
 //#include "helpers.h" // whm added 28Mar04
 #include "Adapt_It.h"
-#include "Text.h"
 #include "Cell.h"
 #include "Pile.h"
 #include "Strip.h"
