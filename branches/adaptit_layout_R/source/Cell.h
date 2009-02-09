@@ -76,6 +76,15 @@ public:
 	void	CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString* pPhrase,
 						int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
 						wxPoint* pBotRight, int index, wxColor* pNavTextColor);
+	// BEW 9Feb09: DrawTextRTL() is a duplicate of the function of the same name defined
+	// also in the CAdapt_ItView class. The one in the view class is used only for RTL drawing
+	// in the free translation rectangles at strip bottoms, in free translation mode. Unfortunately
+	// when that happens, no CCell is in scope, and so we cannot conveniently remove the duplicate
+	// function from CAdapt_ItView at this time. However, the one here in CCell needs to be here
+	// to round out the CCell function inventory fully. (If later we move the free translation
+	// drawing to the refactored layout code, we can put a copy of DrawTextRTLI() on the CLayout
+	// object, for drawing RTL text in free translation mode.)
+	void	DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect);
 
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 

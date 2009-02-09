@@ -196,7 +196,7 @@ public:
 	void		DoRetranslationByUpArrow();
 	void		DoStartupWizardOnLaunch();
 	void		DrawFreeTranslations(wxDC* pDC, CSourceBundle* pBundle, enum DrawFTCaller drawFTCaller);
-	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect);
+	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect); // BEW 9Feb09, a copy is now in CCell
 	void		ExtendSelectionForFind(CCell* pAnchorCell, int nCount);
 	bool		ExtendSelectionLeft();
 	bool		ExtendSelectionRight();
