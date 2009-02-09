@@ -586,6 +586,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Layout.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ListDocumentsInOtherFolderDialog.cpp"
 				>
 			</File>
@@ -928,6 +932,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\LanguagesPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Layout.h"
 				>
 			</File>
 			<File
