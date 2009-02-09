@@ -45,7 +45,7 @@ public:
 	CCell();
 //	CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, 
 //												CStrip* pStrip, CPile* pPile); //BEW deprecated 3Feb09
-	CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile);
+//	CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile);
 
 
 	// attributes
@@ -63,7 +63,7 @@ public:
 	CSourceBundle*			m_pBundle;
 	CStrip*					m_pStrip;
 	CPile*					m_pPile;
-	wxString				m_phrase;
+	wxString*				m_pPhrase; // BEW changed 9Feb09 to point at the text, not copy it
 	bool					m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
 
 	// destructor
@@ -72,10 +72,10 @@ public:
 	// helpers
 	//void  DrawCell(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
 	//		const wxString& phrase, const wxColour& color, int nCell);
-	void  DrawCell(wxDC* pDC);
-	 
-private:
-	bool HasFilterMarker(CPile* pPile);
+	void	DrawCell(wxDC* pDC);
+	void	CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString* pPhrase,
+						int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
+						wxPoint* pBotRight, int index, wxColor* pNavTextColor);
 
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 

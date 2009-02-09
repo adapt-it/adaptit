@@ -4907,8 +4907,7 @@ b:							bWholeScreenUpdate = FALSE; // used at end of this function
 						// there is no next strip, so no migration up is possible, 
 						// so layout the strip only
 						bWholeScreenUpdate = FALSE; // used at end of this function
-						pView->LayoutStrip(pApp->m_pSourcePhrases,
-														nCurrentStrip,pApp->m_pBundle);
+						pView->LayoutStrip(pApp->m_pSourcePhrases,nCurrentStrip,pApp->m_pBundle);
 					}
 				}
 

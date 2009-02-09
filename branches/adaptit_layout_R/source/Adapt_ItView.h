@@ -151,6 +151,23 @@ public:
 	wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
 	void		CalcIndicesForAdvance(int nSequNum);
 	void		CalcInitialIndices();
+	
+	CPile*		CalcPile(CPile *pPile);
+	int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
+	//CCell*		CreateCell(CAdapt_ItDoc* pDoc,
+	//					CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
+	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
+	//					wxPoint* pBotRight, int index); // BEW deprecated 3Feb09
+	//CCell*		CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
+	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
+	//					wxPoint* pBotRight, int index); // BEW moved to CCell 9Feb09
+	//void		CreatePhraseBoxAtEnd();
+	//CPile*	CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
+	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile); // BEW moved to Pile.h
+	//int		CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
+	//					int& nLastSequNumber, int nEndIndex); // BEW 9Feb09 moved to Strip.h
+	// see public function CreateStrip_SimulateOnly()
+
 	bool		CheckForVerticalEditBoundsError(CPile* pPile); // whm moved to public for wx version
 	void		ChooseTranslation();
 	void		ClearPagesList();
@@ -382,8 +399,6 @@ protected:
 	void		BuildRetranslationSourcePhraseInstances(SPList* pRetransList,int nStartSequNum,
 													int nNewLength,int nCount,int& nFinish);
 	void		CalcIndicesForRetreat(int nSequNum);
-	CPile*		CalcPile(CPile *pPile);
-	int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
 	void		BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 30Apr08
 	void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
@@ -396,19 +411,6 @@ protected:
 	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
 	//wxString	CopySourcePhrase(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); // unused
 	int			CountSourceWords(wxString& rStr);
-	//CCell*		CreateCell(CAdapt_ItDoc* pDoc,
-	//					CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
-	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
-	//					wxPoint* pBotRight, int index); // BEW deprecated 3Feb09
-	CCell*		CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
-						int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
-						wxPoint* pBotRight, int index);
-	//void		CreatePhraseBoxAtEnd();
-	CPile*		CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
-							CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
-	int			CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
-												int& nLastSequNumber, int nEndIndex);
-	// see public function CreateStrip_SimulateOnly()
 	void		DeleteAllNotes();
 	void		DeleteTempList(SPList* pList);	// must be a list of ptrs to CSourcePhrase instances
 												// on the heap 

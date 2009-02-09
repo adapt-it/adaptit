@@ -60,8 +60,11 @@ public:
 
 
 	virtual ~CStrip();
-
 	virtual void Draw(wxDC* pDC);
+
+	//  creator
+int	CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset, int& nLastSequNumber, int nEndIndex);
+
 	
 	DECLARE_DYNAMIC_CLASS(CStrip) 
 	// Used inside a class declaration to declare that the objects of 

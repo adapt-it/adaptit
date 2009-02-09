@@ -176,27 +176,62 @@ CCell::CCell()
 }
 
 //CCell::CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
-//												CStrip* pStrip, CPile* pPile)
+//				CStrip* pStrip, CPile* pPile)
+/*
 CCell::CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile)
 {
 //	m_pDoc = pDocument; // BEW deprecated 3Feb09
 	m_pBundle = pSourceBundle;
 	m_pStrip = pStrip;
-	m_pPile = pPile;;
+	m_pPile = pPile;
 	//m_pText = (CText*)NULL; // BEW removed 6Feb09
 	//m_bDisplay = TRUE; // BEW deprecated 3Feb09
 	m_bSelected =  FALSE;
 	m_nCellIndex = 0;
 	m_phrase = _T("");
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//wxASSERT(pApp != NULL);
 	m_navColor = pApp->m_navTextColor;
 }
+*/
 
 CCell::~CCell()
 {
 
 }
+
+void CCell::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, 
+				wxString* pPhrase, int xExtent, wxFont *pFont, wxColour *pColor,
+				wxPoint *pTopLeft, wxPoint *pBotRight, int index, wxColor* pNavTextColor)
+{
+	// create the cell
+	//CCell* pCell = new CCell(pDoc,pBundle,pStrip,pPile); // BEW deprecated 3Feb09
+	//CCell* pCell = new CCell(pBundle,pStrip,pPile);
+	//wxASSERT(pCell != NULL);
+
+	// set its attributes
+	m_pBundle = pBundle;
+	m_pStrip = pStrip;
+	m_pPile = pPile;
+	m_bSelected = FALSE;
+	m_navColor = *pNavTextColor;
+
+	m_color = *pColor;
+	m_pFont = pFont;
+	m_ptTopLeft = *pTopLeft;
+	m_ptBotRight = *pBotRight;
+	m_nTextExtent = xExtent;
+	m_pPhrase = pPhrase;
+	m_nCellIndex = index;
+
+	// create a CText for displaying the cell's string --
+	// (for ANSI build, CText is based on CObject, and will use TextOut() for drawing; but for the
+	// nonRoman build, it will use DrawText() which has the RTLReading smarts, etc.
+	//pCell->m_pText = new CText(*pTopLeft,*pBotRight,pFont,phrase,*pColor,index); //BEW removed 6Feb09
+	//wxASSERT(pCell->m_pText != NULL);
+	//return pCell;
+}
+
 
 // BEW 2Aug08, additions to for gray colouring of context regions in vertical edit steps
 void CCell::Draw(wxDC* pDC)
@@ -369,6 +404,7 @@ void CCell::Draw(wxDC* pDC)
 	pDC->SetBackgroundMode(gpApp->m_backgroundMode);
 	pDC->SetTextBackground(wxColour(255,255,255)); // white
 
+	/*
 	bool bRTLLayout;
 	bRTLLayout = FALSE;
 	wxRect rectBounding;
@@ -388,6 +424,7 @@ void CCell::Draw(wxDC* pDC)
 		bRTLLayout = FALSE;
 	}
 #endif
+
 
 	// stuff below is for drawing the navText stuff above this pile of the strip
 	// Note: in the wx version m_bSuppressFirst is now located in the App
@@ -726,11 +763,7 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 			pDC->SetPen(wxNullPen);
 		}
 	}
-}
-
-bool CCell::HasFilterMarker(CPile* pPile)
-{
-	return pPile->m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
+*/
 }
 
 //void CCell::DrawCellText(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
@@ -824,7 +857,7 @@ void CCell::DrawCell(wxDC* pDC)
 	// when Find has found a legitimate null match, but inhibit the yellow background for
 	// clicks in the cell at other times - the inhibiting is of course done in the
 	// OnLButtonDown( ) function in the view class rather than here
-	if (m_phrase.IsEmpty() && gbFindIsCurrent)
+	if ((*m_pPhrase).IsEmpty() && gbFindIsCurrent)
 	{
 		// create a string of spaces of length which will fit within the pileWidth
 		// so that a click on the empty cell will still show a yellow background
@@ -863,19 +896,19 @@ void CCell::DrawCell(wxDC* pDC)
 		if (bRTLLayout)
 		{
 #ifdef _LOG_DEBUG_DRAWING
-			wxLogDebug(_T("DrawText [%d chars] cell%d right align"),m_phrase.Length(),m_nCellIndex);
+			wxLogDebug(_T("DrawText [%d chars] cell%d right align"),(*m_pPhrase).Length(),m_nCellIndex);
 #endif
 			//wxSize sizeOfPhrase = pDC->GetTextExtent(m_phrase);
 			// ////////// Draw RTL Cell Text  /////////////////
-			pView->DrawTextRTL(pDC,m_phrase,enclosingRect);
+			pView->DrawTextRTL(pDC,*m_pPhrase,enclosingRect);
 		}
 		else
 		{
 #ifdef _LOG_DEBUG_DRAWING
-			wxLogDebug(_T("DrawText [%d chars] cell%d left align"),m_phrase.Length(),m_nCellIndex);
+			wxLogDebug(_T("DrawText [%d chars] cell%d left align"),(*m_pPhrase).Length(),m_nCellIndex);
 #endif
 			// ////////// Draw LTR Cell Text  /////////////////
-			pDC->DrawText(m_phrase,enclosingRect.GetLeft(), enclosingRect.GetTop());// ,nFormat);
+			pDC->DrawText(*m_pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());// ,nFormat);
 		}
 	}
 }

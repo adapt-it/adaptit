@@ -27,6 +27,7 @@
 #endif
 
 // forward references:
+class CAdapt_ItApp;
 class CAdapt_ItDoc;
 class CSourceBundle;
 class CStrip;
@@ -58,26 +59,30 @@ public:
 public:
 	// whm Note: Should CSourcePhrase* m_pSrcPhrase below be moved up in the member list???
 	bool			m_bIsActivePile;
-	int			m_nPileIndex;
+	int				m_nPileIndex;
 	wxRect			m_rectPile;
-	int			m_nWidth;
-	int			m_nMinWidth;
-	int			m_nHorzOffset;
-	//CAdapt_ItDoc*		m_pDoc; // BEW deprecated 3Feb09
-	CSourceBundle*		m_pBundle;
+	int				m_nWidth;
+	int				m_nMinWidth;
+	int				m_nHorzOffset;
+	//CAdapt_ItDoc*	m_pDoc; // BEW deprecated 3Feb09
+	CSourceBundle*	m_pBundle;
 	CStrip*			m_pStrip;
 	CCell*			m_pCell[5]; // 2 source lines, 2 target lines, & one gloss per strip
-	CSourcePhrase*		m_pSrcPhrase;
+	CSourcePhrase*	m_pSrcPhrase;
 	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
+	wxColour		m_navTextColor;
 
 	// implementation
-	void		DestroyCells();
+	void			DestroyCells();
 
 	// destructor
 public:
 	virtual ~CPile();
-
 	virtual void Draw(wxDC* pDC);
+	CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
+					CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
+private:
+	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 
 	DECLARE_DYNAMIC_CLASS(CPile) 
 	// Used inside a class declaration to declare that the objects of 
