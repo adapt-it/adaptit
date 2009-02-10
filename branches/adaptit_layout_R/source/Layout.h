@@ -33,6 +33,9 @@ class CPile;
 class CText;
 class CFont;
 
+WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
+
+
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips
 /// piles and cells of the layout. Setters in various parts of the application set
@@ -47,13 +50,26 @@ public:
 	CLayout(); // default constructor
 
 	// attributes
-public:
+	CAdapt_ItApp*		m_pApp;
+	CAdapt_ItDoc*		m_pDoc;
+	CAdapt_ItView*		m_pView;
+	CAdapt_ItCanvas*	m_pCanvas;
 
+public:
+	PileList* m_pPiles;
 
 
 private:
-	// names will be identical to those in other classes to keep the design clearer
-	int		m_nCurPileMinWidth; // for setting the min width a CPile instance may not contract less than
+	// two ints define the range of strips to be drawn at next draw
+	int			m_nFirstVisibleStrip;
+	int			m_nLastVisibleStrip;
+
+	// four ints define the clip rectange top, left, width & height for erasure 
+	// prior to draw (window client coordinates, (0,0) is client top left)
+	int			m_nClipRectTop;
+	int			m_nClipRectLeft;
+	int			m_nClipRectWidth;
+	int			m_nClipRectHeight;
 
 
 public:
@@ -61,7 +77,31 @@ public:
 	virtual ~CLayout();
 	virtual void Draw(wxDC* pDC);
 
-	// helpers
+	// helpers; setters & getters
+	CAdapt_ItApp*		GetApp();
+	CAdapt_ItView*		GetView();
+	CAdapt_ItCanvas*	GetCanvas();
+	CAdapt_ItDoc*		GetDoc();
+
+	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
+	// list, and each CPile instance has a member which points to one and only one
+	// CSourcePhrase instance in pSrcPhrases)
+	bool				CreatePiles(PileList* pPiles, SPList* pSrcPhrases);
+
+	// getters for clipping rectangle
+	wxRect				GetClipRect();
+
+	// setters for clipping rectangle
+	void				SetClipRectTop(int nTop);
+	void				SetClipRectLeft(int nLeft);
+	void				SetClipRectWidth(int nWidth);
+	void				SetClipRectHeight(int nHeight);
+
+	// setters and getters for visible strip range
+	int					GetFirstVisibleStrip();
+	int					GetLastVisibleStrip();
+	void				SetFirstVisibleStrip(int nFirstVisibleStrip);
+	void				SetLastVisibleStrip(int nLastVisibleStrip);
 
 	DECLARE_DYNAMIC_CLASS(CLayout) 
 	// Used inside a class declaration to declare that the objects of 

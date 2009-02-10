@@ -46,7 +46,15 @@
 #include "AdaptitConstants.h"
 #include "SourcePhrase.h"
 #include "Adapt_ItView.h"
+#include "MainFrm.h"
 #include "Layout.h"
+
+// Define type safe pointer lists
+#include "wx/listimpl.cpp"
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called PileList.
+WX_DEFINE_LIST(PileList);
 
 // globals for support of vertical editing
 
@@ -165,7 +173,14 @@ IMPLEMENT_DYNAMIC_CLASS(CLayout, wxObject)
 
 CLayout::CLayout()
 {
-	;
+	// set the pointer members for the classes the layout has to be able to access on demand
+	m_pApp = GetApp();
+	m_pView = GetView();
+	m_pCanvas = GetCanvas();
+	m_pDoc = GetDoc();
+	m_pPiles = NULL;
+
+
 }
 
 CLayout::~CLayout()
@@ -182,6 +197,111 @@ void CLayout::Draw(wxDC* pDC)
 
 
 }
+
+CAdapt_ItApp* CLayout::GetApp()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp == NULL)
+	{
+		wxMessageBox(_T("Error: failed to get m_pApp pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+	}
+	return pApp;
+}
+
+CAdapt_ItView* CLayout::GetView()
+{
+	CAdapt_ItView* pView = GetApp()->GetView();
+	if (pView == NULL)
+	{
+		wxMessageBox(_T("Error: failed to get m_pView pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+	}
+	return pView;
+}
+
+CAdapt_ItCanvas* CLayout::GetCanvas()
+{
+	CMainFrame* pFrame = GetApp()->GetMainFrame();
+	CAdapt_ItCanvas* pCanvas = pFrame->canvas;
+	if (pCanvas == NULL)
+	{
+		wxMessageBox(_T("Error: failed to get m_pCanvas pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+	}
+	return pCanvas;
+}
+
+CAdapt_ItDoc* CLayout::GetDoc()
+{
+	CAdapt_ItDoc* pDoc = GetView()->GetDocument();
+	if (pDoc == NULL)
+	{
+		wxMessageBox(_T("Error: failed to get m_pDoc pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+	}
+	return pDoc;
+}
+
+// Clipping support 
+wxRect CLayout::GetClipRect()
+{
+	wxRect rect(m_nClipRectLeft,m_nClipRectTop,m_nClipRectWidth,m_nClipRectHeight);
+	return rect;
+}
+
+void CLayout::SetClipRectTop(int nTop)
+{
+	m_nClipRectTop = nTop;
+}
+
+void CLayout::SetClipRectLeft(int nLeft)
+{
+	m_nClipRectLeft = nLeft;
+}
+
+void CLayout::SetClipRectWidth(int nWidth)
+{
+	m_nClipRectWidth = nWidth;
+}
+
+void CLayout::SetClipRectHeight(int nHeight)
+{
+	m_nClipRectHeight = nHeight;
+}
+
+// support for defining range of visible strips 
+int CLayout::GetFirstVisibleStrip()
+{
+	return m_nFirstVisibleStrip;
+}
+
+int CLayout::GetLastVisibleStrip()
+{
+	return m_nLastVisibleStrip;
+}
+
+void CLayout::SetFirstVisibleStrip(int nFirstVisibleStrip)
+{
+	m_nFirstVisibleStrip = nFirstVisibleStrip;
+}
+
+void CLayout::SetLastVisibleStrip(int nLastVisibleStrip)
+{
+	m_nLastVisibleStrip = nLastVisibleStrip;
+}
+
+bool CLayout::CreatePiles(PileList* pPileList, SPList* pSrcPhrases)
+{
+
+
+	return TRUE;
+}
+
+
+
+
+
 
 
 
