@@ -72,6 +72,10 @@ private:
 	int			m_nClipRectHeight;
 
 
+
+
+	void		InitializeCLayout();
+
 public:
 	// destructor
 	virtual ~CLayout();
@@ -86,22 +90,23 @@ public:
 	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
 	// list, and each CPile instance has a member which points to one and only one
 	// CSourcePhrase instance in pSrcPhrases)
-	bool				CreatePiles(PileList* pPiles, SPList* pSrcPhrases);
+	bool		CreatePiles(PileList* pPiles, SPList* pSrcPhrases);
+	bool		SetupLayout(SPList* pSrcPhrases);
 
 	// getters for clipping rectangle
-	wxRect				GetClipRect();
+	wxRect		GetClipRect();
 
 	// setters for clipping rectangle
-	void				SetClipRectTop(int nTop);
-	void				SetClipRectLeft(int nLeft);
-	void				SetClipRectWidth(int nWidth);
-	void				SetClipRectHeight(int nHeight);
+	void		SetClipRectTop(int nTop);
+	void		SetClipRectLeft(int nLeft);
+	void		SetClipRectWidth(int nWidth);
+	void		SetClipRectHeight(int nHeight);
 
 	// setters and getters for visible strip range
-	int					GetFirstVisibleStrip();
-	int					GetLastVisibleStrip();
-	void				SetFirstVisibleStrip(int nFirstVisibleStrip);
-	void				SetLastVisibleStrip(int nLastVisibleStrip);
+	int			GetFirstVisibleStrip();
+	int			GetLastVisibleStrip();
+	void		SetFirstVisibleStrip(int nFirstVisibleStrip);
+	void		SetLastVisibleStrip(int nLastVisibleStrip);
 
 	DECLARE_DYNAMIC_CLASS(CLayout) 
 	// Used inside a class declaration to declare that the objects of 

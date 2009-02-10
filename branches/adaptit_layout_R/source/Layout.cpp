@@ -173,12 +173,6 @@ IMPLEMENT_DYNAMIC_CLASS(CLayout, wxObject)
 
 CLayout::CLayout()
 {
-	// set the pointer members for the classes the layout has to be able to access on demand
-	m_pApp = GetApp();
-	m_pView = GetView();
-	m_pCanvas = GetCanvas();
-	m_pDoc = GetDoc();
-	m_pPiles = NULL;
 
 
 }
@@ -187,6 +181,25 @@ CLayout::~CLayout()
 {
 
 }
+
+// call InitializeCLayout when the application has the view, canvas, and document classes
+// initialized -- we set up pointers to them here so we want them to exist first --we'll get
+// a message (and an assert in debug mode) if we call this too early
+void CLayout::InitializeCLayout()
+{
+	// set the pointer members for the classes the layout has to be able to access on demand
+	m_pApp = GetApp();
+	m_pView = GetView();
+	m_pCanvas = GetCanvas();
+	m_pDoc = GetDoc();
+	m_pPiles = NULL;
+
+	// *** TODO ***   add more basic initializations here - only stuff that makes the
+	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
+	// other document-related initializations can be done in SetupLayout()
+	
+}
+
 
 void CLayout::Draw(wxDC* pDC)
 {
@@ -291,9 +304,76 @@ void CLayout::SetLastVisibleStrip(int nLastVisibleStrip)
 	m_nLastVisibleStrip = nLastVisibleStrip;
 }
 
-bool CLayout::CreatePiles(PileList* pPileList, SPList* pSrcPhrases)
+bool CLayout::CreatePiles(PileList* pPiles, SPList* pSrcPhrases)
 {
+	// we expect pSrcPhrases list is populated, so if it is not we
+	// treat that as a serious logic error
+	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
+		return FALSE;
 
+	// create the pile list if the pile list pointer is NULL, or if not,
+	// if the list is presently not populated
+	if (pPiles == NULL || (pPiles != NULL && pPiles->IsEmpty()))
+	{
+		// there either is no list on the heap yet, or there is but it
+		// has nothing in it - in either case we can go ahead
+		CSourcePhrase* pSrcPhrase = NULL;
+		SPList::Node* pos = pSrcPhrases->GetFirst();
+		while (pos != NULL)
+		{
+			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			wxASSERT(pSrcPhrase != NULL);
+			pos = pos->GetNext(); // jump to next Node
+
+// *** TODO *** pile creation etc -- can't go further here until I have pinned down
+// the CPile's attributes in the new design -- do that now
+
+
+
+		}
+		return TRUE;
+	}
+	// oops, there must be a list on the heap and it is populated, we must
+	// first explicitly depopulate it and delete it's CPile instances
+	// before we re-create the list from scratch -- redesign called for
+	wxMessageBox(_T("Error: trying to recreate m_pPiles list when it is not empty (in CLayout)"),_T(""), wxICON_ERROR);
+	wxASSERT(FALSE); // we can't recover, this is a major design fault
+	return FALSE; // compiler will complain if this is absent, & release version needs it
+}
+
+// return TRUE if a layout was set up, or if no layout can yet be set up;
+// but return FALSE if a layout setup was attempted and failed (app must then abort)
+bool CLayout::SetupLayout(SPList* pSrcPhrases)
+{
+	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
+	{
+		// no document is loaded, so no layout is appropriate yet, do nothing
+		// except ensure m_pPiles is NULL
+		if (m_pPiles != NULL)
+		{
+			if (m_pPiles->IsEmpty())
+			{
+				delete m_pPiles;
+			}
+			else
+			{
+				m_pPiles->DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
+				delete m_pPiles;
+			}
+			m_pPiles = NULL;
+		}
+		return TRUE;
+	}
+	// attempt the layout setup
+	bool bIsOK = CreatePiles(m_pPiles, pSrcPhrases);
+	if (!bIsOK)
+	{
+		// something was wrong - memory error or perhaps m_pPiles is a populated list already
+		// (CreatePiles()has generated an error message for the developer already)
+		return FALSE;
+	}
+
+// *** TODO **** more setup stuff goes here
 
 	return TRUE;
 }

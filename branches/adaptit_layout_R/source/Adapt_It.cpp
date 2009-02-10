@@ -123,6 +123,7 @@
 #include "AIPrintout.h"
 #include "ConsistentChanger.h"
 #include "ChooseLanguageDlg.h"
+#include "Layout.h"
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -4985,6 +4986,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbIgnoreScriptureReference_Send = TRUE;
 	gbLegacySourceTextCopy = TRUE; // default is legacy behaviour, to copy the source text (unless
 								   // the project config file establishes the FALSE value instead)
+								   
+	// The following initializations are for refactored view layout support
+	m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
+
 	// Variable initializations above moved here from the View
 	// /////////////////////////////////////////////////////////////////////
 	/*
@@ -6879,6 +6884,16 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		delete m_pLocale;
 		m_pLocale = (wxLocale*)NULL;
+	}
+
+	if (m_pLayout)
+	{
+		// ***** add code here to ensure the CLayout's lists are cleared before deleting it,
+		// we don't want to leak memory
+		
+		
+
+		delete m_pLayout;
 	}
 
 	return 0;

@@ -144,6 +144,8 @@ class wxHtmlHelpController;
 class CConsistentChanger;
 class wxPropertySheetDialog;
 
+// forward references for refactored view layout support
+class CLayout;
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x could find
 // them but the g++ 4.x linker can't find them even though XML.h is included above, so I've moved them
@@ -1436,6 +1438,9 @@ public:
 	wxSize			m_szView;
 
 	CCellList		m_selection;		// list of selected CCell instances - MFC uses CPtrList
+
+	// BEW added 10Feb09 for refactored view layout support
+	CLayout* m_pLayout;	
 
 	// values for members of printing support structures
 	
