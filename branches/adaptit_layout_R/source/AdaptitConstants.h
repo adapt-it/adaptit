@@ -27,7 +27,7 @@
 #define MAX_WORDS			10	// maximum # of words allowed in a src phrase before Adapt It chokes
 #define MAX_STRIPS			6000
 #define MAX_PILES			36  // per strip
-#define MAX_CELLS			5   // per pile (in version 2.0 and onwards, to support glossing), was 4
+#define MAX_CELLS			3   // per pile (version 4)
 #define WORK_SPAN			60  // how many extra elements beyond the prec & foll context to 
 								// allow for a move
 #define NUM_PREWORDS		40  // how many words to allow in preceding context (max)

@@ -33,6 +33,7 @@ class CSourceBundle;
 class CStrip;
 class CSourcePhrase;
 class CCell;
+class CLayout;
 
 /// The CPile class represents the next smaller divisions of a CStrip. The CPile
 /// instances are laid out sequentially within a CStrip. Each CPile stores a 
@@ -50,27 +51,33 @@ public:
 	CPile();
 	//CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
 	//				CSourcePhrase* pSrcPhrase); // BEW deprecated 3Feb09
-	CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase);
+	//CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase);
+	//CPile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); <<< don't need this one
 
 	// operations
 public:
 
 	// attributes
-public:
+//public:
+private:
 	// whm Note: Should CSourcePhrase* m_pSrcPhrase below be moved up in the member list???
+	CSourcePhrase*	m_pSrcPhrase;
+	CLayout*		m_pLayout;
+	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
+	int				m_nWidth;
+	int				m_nMinWidth;
+	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
+	/*
 	bool			m_bIsActivePile;
 	int				m_nPileIndex;
 	wxRect			m_rectPile;
-	int				m_nWidth;
-	int				m_nMinWidth;
 	int				m_nHorzOffset;
 	//CAdapt_ItDoc*	m_pDoc; // BEW deprecated 3Feb09
 	CSourceBundle*	m_pBundle;
 	CStrip*			m_pStrip;
 	CCell*			m_pCell[5]; // 2 source lines, 2 target lines, & one gloss per strip
-	CSourcePhrase*	m_pSrcPhrase;
-	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
 	wxColour		m_navTextColor;
+	*/
 
 	// implementation
 	void			DestroyCells();
@@ -78,9 +85,14 @@ public:
 	// destructor
 public:
 	virtual ~CPile();
-	virtual void Draw(wxDC* pDC);
-	CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
-					CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
+
+	virtual void Draw(wxDC* pDC); // *** TODO **** needs new param list and internals
+
+	//CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
+	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
+	//				
+	CPile* CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); // ** *TODO*** internals
+
 private:
 	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 

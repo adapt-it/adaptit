@@ -93,6 +93,7 @@
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h"
+#include "Layout.h"
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -118,6 +119,14 @@ IMPLEMENT_DYNAMIC_CLASS(CPile, wxObject)
 
 CPile::CPile()
 {
+	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
+	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
+	m_pSrcPhrase = (CSourcePhrase*)NULL;
+	CLayout* m_pLayout = (CLayout*)NULL;
+	m_nWidth = 20;
+	m_nMinWidth = 40;
+
+	/*  Use CreatePile() to set up the internals correctly
 	m_bIsActivePile = FALSE;
 	m_nPileIndex = 0;
 	m_rectPile = wxRect(0,0,0,0);
@@ -132,30 +141,23 @@ CPile::CPile()
 	m_pSrcPhrase = (CSourcePhrase*)NULL;
 	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
 	m_navTextColor = gpApp->m_navTextColor;
+	*/
 }
 
 //CPile::CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
 //			CSourcePhrase* pSrcPhrase) // BEW deprecated 3Feb09
-CPile::CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase)
+//CPile::CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase)
+/* unneeded, we will have a 2-step creation process using CPile() followed by CreatePile(params...)
+CPile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
 {
-	// m_pDoc = pDocument; // BEW deprecated 3Feb09
-	m_pBundle = pSourceBundle;
-	m_pStrip = pStrip;
-	m_bIsActivePile = FALSE;
+	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
 	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
-	m_nPileIndex = 0;
-	m_rectPile = wxRect(0,0,0,0);
-	// NOTE: Difference in MFC's CRect and wxWidgets' wxRect using 4 parameters: 
-	// MFC has (left, top, right, bottom); wxRect has (x, y, width, height).
-	// When initializing to 0,0,0,0 it doesn't matter, but may matter when used
-	// in CAdapt_ItView and CPhraseBox.
+	m_pSrcPhrase = pSrcPhrase;
+	CLayout* m_pLayout = pLayout;
 	m_nWidth = 20;
 	m_nMinWidth = 40;
-	m_nHorzOffset = 0;
-	m_pSrcPhrase = pSrcPhrase;
-	m_navTextColor = gpApp->m_navTextColor;
-	m_pCell[0] = m_pCell[1] = m_pCell[2] = m_pCell[3] = m_pCell[4] = (CCell*)NULL;
 }
+*/
 
 CPile::~CPile()
 {
@@ -166,6 +168,8 @@ CPile::~CPile()
 
 void CPile::DestroyCells()
 {
+
+	/*  *** TODO ***  modify for refactored layout
 	for (int i=0; i<MAX_CELLS; i++)
 	{
 		if (m_pCell[i] != NULL)
@@ -179,6 +183,7 @@ void CPile::DestroyCells()
 			m_pCell[i] = (CCell*)NULL;
 		}
 	}
+	*/
 }
 
 bool CPile::HasFilterMarker()
@@ -188,6 +193,9 @@ bool CPile::HasFilterMarker()
 
 void CPile::Draw(wxDC* pDC)
 {
+	// *** TODO *** the revised handler -- there will be more parameters in signature, etc
+
+	/*
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = pApp->GetView();
@@ -653,11 +661,21 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 			}
 		}
 	}
+	*/
 }
 
-CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
-								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
+//CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
+//								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
+CPile* CPile::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
 {
+	// do the new code
+	m_pLayout = pLayout;
+	m_pSrcPhrase = pSrcPhrase;
+
+	CPile* pPile = NULL; // temporary, to get a clean compile
+
+	/*  *** TODO ***  the new handler for refactored layout
+
 	// create the pile on the heap, initializing its cells to MAX_CELLS nulls
 	//CPile* pPile = new CPile(pDoc,pBundle,pStrip,pSrcPhrase); // BEW deprecated 3Feb09
 	//CPile* pPile = new CPile(pBundle,pStrip,pSrcPhrase); // BEW moved to Pile.cpp
@@ -1221,6 +1239,7 @@ CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBu
 			}
 		}
 	}
+	*/
 	return pPile;
 }
 

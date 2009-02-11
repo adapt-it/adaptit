@@ -1,3 +1,17 @@
+// Deprecation List..... get rid of these later....
+/*
+bool gbSuppressLast
+bool gbSuppressFirst
+int curRows     in param lists only?
+int m_curPileHeight     on the app
+
+
+
+
+
+
+*/
+
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			Layout.cpp
@@ -16,7 +30,6 @@
 /// by a considerable amount.
 /// \derivation		The CLayout class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -55,6 +68,10 @@
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called PileList.
 WX_DEFINE_LIST(PileList);
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called StripList.
+WX_DEFINE_LIST(StripList);
 
 // globals for support of vertical editing
 
@@ -192,12 +209,13 @@ void CLayout::InitializeCLayout()
 	m_pView = GetView();
 	m_pCanvas = GetCanvas();
 	m_pDoc = GetDoc();
+	m_pMainFrame = GetMainFrame(m_pApp);
 	m_pPiles = NULL;
+	m_pStrips = NULL;
 
-	// *** TODO ***   add more basic initializations here - only stuff that makes the
+	// *** TODO ***   add more basic initializations above here - only stuff that makes the
 	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
 	// other document-related initializations can be done in SetupLayout()
-	
 }
 
 
@@ -256,6 +274,18 @@ CAdapt_ItDoc* CLayout::GetDoc()
 	return pDoc;
 }
 
+CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
+{
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	if (pFrame == NULL)
+	{
+		wxMessageBox(_T("Error: failed to get m_pMainFrame pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+	}
+	return pFrame;
+}
+
+
 // Clipping support 
 wxRect CLayout::GetClipRect()
 {
@@ -304,6 +334,181 @@ void CLayout::SetLastVisibleStrip(int nLastVisibleStrip)
 	m_nLastVisibleStrip = nLastVisibleStrip;
 }
 
+// accessors for navText colour
+void CLayout::SetNavTextColor(CAdapt_ItApp* pApp)
+{
+	m_navTextColor = pApp->m_navTextColor;
+}
+
+wxColour CLayout::GetNavTextColor()
+{
+	return m_navTextColor;
+}
+
+// accessors for src, tgt, navText line heights
+void CLayout::SetSrcTextHeight(CAdapt_ItApp* pApp)
+{
+	m_nSrcHeight = pApp->m_nSrcHeight;
+}
+
+void CLayout::SetTgtTextHeight(CAdapt_ItApp* pApp)
+{
+	m_nTgtHeight = pApp->m_nTgtHeight;
+}
+
+void CLayout::SetNavTextHeight(CAdapt_ItApp* pApp)
+{
+	m_nNavTextHeight = pApp->m_nNavTextHeight;
+}
+
+int CLayout::GetSrcTextHeight()
+{
+	return m_nSrcHeight;
+}
+
+int CLayout::GetTgtTextHeight()
+{
+	return m_nTgtHeight;
+}
+
+int	CLayout::GetNavTextHeight()
+{
+	return m_nNavTextHeight;
+}
+
+// setter & getter for m_bShowTargetOnly
+/*
+void CLayout::SetShowTargetOnlyBoolean()
+{
+	m_bShowTargetOnly = gbShowTargetOnly;
+}
+bool CLayout::GetShowTargetOnlyBoolean()
+{
+	return m_bShowTargetOnly;
+}
+*/
+
+// leading for strips
+void CLayout::SetCurLeading(CAdapt_ItApp* pApp)
+{
+	m_nCurLeading = pApp->m_curLeading;
+}
+
+int CLayout::GetCurLeading()
+{
+	return m_nCurLeading;
+}
+
+// left margin for strips
+void CLayout::SetCurLMargin(CAdapt_ItApp* pApp)
+{
+	m_nCurLMargin = pApp->m_curLMargin;
+}
+
+int CLayout::GetCurLMargin()
+{
+	return m_nCurLMargin;
+}
+
+// setter and getters for the pile height and strip height
+int CLayout::GetPileHeight()
+{
+	return m_nPileHeight;
+}
+
+int CLayout::GetStripHeight()
+{
+	return m_nStripHeight;
+}
+
+void CLayout::SetPileAndStripHeight()
+{
+	if (gbShowTargetOnly)
+	{
+		if (gbIsGlossing)
+		{
+			if (gbGlossingUsesNavFont)
+				m_nPileHeight = m_nNavTextHeight;
+			else
+				m_nPileHeight = m_nTgtHeight;
+		}
+		else // adapting mode
+		{
+			m_nPileHeight = m_nTgtHeight;
+		}
+	}
+	else // normal adapting or glossing, at least 2 lines (src & tgt) but even if 3, still those two
+	{
+		m_nPileHeight = m_nSrcHeight + m_nTgtHeight;
+
+		// we've accounted for source and target lines; now handle possibility of a 3rd line
+		// (note, if 3 lines, target is always one, so we've handled that above already)
+		if (gbEnableGlossing)
+		{
+			if (gbGlossingUsesNavFont)
+			{
+				// we are showing only the source and target lines
+				m_nPileHeight += m_nNavTextHeight;
+			}
+			else // glossing uses tgtTextFont
+			{
+				m_nPileHeight += m_nTgtHeight;
+			}
+			// add 2 more pixels because we will space the glossing line off from
+			// whatever line it follows by an extra 3 pixels, in CreatePile( ) - since
+			// with many fonts it appears to encroach on the bottom of the line above
+			// (MFC app, we used 3, for wxWidgets try 2)
+			m_nPileHeight += 2; 
+		}
+	} // end of else block
+	// the pile height is now set; so in the stuff below, set the strip height too -
+	// it is the current leading value (i.e. the nav text whiteboard height) plus the
+	// m_nPileHeight value, =/-, depending on whether free translation mode is on or not, the
+	// target text line height plus 3 pixels of separating space from the bottom of the pile
+	m_nStripHeight = m_nCurLeading + m_nPileHeight;
+	if (gpApp->m_bFreeTranslationMode && !gbIsPrinting)
+	{
+        // add enough space for a single line of the height given by the target text's height + 3
+        // pixels to set it off a bit from the bottom of the pile
+		m_nStripHeight += m_nTgtHeight + 3;
+	}
+}
+
+// Call SetClientWindowSizeAndLogicalDocWidth() before just before strips are laid out; then call
+// SetLogicalDocHeight() after laying out the strips, to get private member m_logicalDocSize.y set 
+void CLayout::SetClientWindowSizeAndLogicalDocWidth()
+{
+	wxSize viewSize;
+	viewSize = m_pMainFrame->GetCanvasClientSize(); // dimensions of client window of wxScrollingWindow
+													// which canvas class is a subclass of
+	m_sizeClientWindow = viewSize; // set the private member
+	wxSize docSize;
+	docSize.y = 0; // can't be set yet, we call this setter before strips are laid out
+	docSize.x = m_sizeClientWindow.x - m_nCurLMargin - RH_SLOP; // RH_SLOP defined in AdaptItConstant.h
+					// with a value of 40 (reduces likelihood of long nav text above a narrow pile
+					// which is last in a strip, having the end of the nav text drawn off-window
+	m_logicalDocSize = docSize;
+}
+
+int CLayout::GetStripLeft()
+{
+	return m_nCurLMargin;
+}
+
+
+wxSize CLayout::GetClientWindowSize()
+{
+	return m_sizeClientWindow;
+}
+
+wxSize CLayout::GetLogicalDocSize()
+{
+	return m_logicalDocSize;
+}
+
+
+
+
 bool CLayout::CreatePiles(PileList* pPiles, SPList* pSrcPhrases)
 {
 	// we expect pSrcPhrases list is populated, so if it is not we
@@ -343,6 +548,10 @@ bool CLayout::CreatePiles(PileList* pPiles, SPList* pSrcPhrases)
 
 // return TRUE if a layout was set up, or if no layout can yet be set up;
 // but return FALSE if a layout setup was attempted and failed (app must then abort)
+// 
+// Note: SetupLayout() should be called, for best results, immediately before opening,
+// or creating, an Adapt It document. At that point all of the paramaters it collects
+// together should have their "final" values, such as font choices, colours, etc.
 bool CLayout::SetupLayout(SPList* pSrcPhrases)
 {
 	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
@@ -372,6 +581,21 @@ bool CLayout::SetupLayout(SPList* pSrcPhrases)
 		// (CreatePiles()has generated an error message for the developer already)
 		return FALSE;
 	}
+
+	// set the local private copy of the navText colour
+	SetNavTextColor(m_pApp);
+
+	// set the text heights for src, tgt, navText private members
+	SetSrcTextHeight(m_pApp);
+	SetTgtTextHeight(m_pApp);
+	SetNavTextHeight(m_pApp);
+
+	// set the m_bShowTargetOnly flag (controls whether or not to suppress src text line)
+	// SetShowTargetOnlyBoolean();  // nah, don't bother to fiddle with the globals yet
+
+
+
+
 
 // *** TODO **** more setup stuff goes here
 

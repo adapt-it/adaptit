@@ -6888,7 +6888,7 @@ int CAdapt_ItApp::OnExit(void)
 
 	if (m_pLayout)
 	{
-		// ***** add code here to ensure the CLayout's lists are cleared before deleting it,
+		// *** TODO ** add code here to ensure the CLayout's lists are cleared before deleting it,
 		// we don't want to leak memory
 		
 		
