@@ -5641,7 +5641,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
 	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
 	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
-    pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+    wxMenuItem* pFileExitItem;
+	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
+	wxASSERT(pFileExitItem != NULL);
+	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
 	
 	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(1);
 	wxASSERT(pEditMenu != NULL);
