@@ -1212,8 +1212,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     entries[26].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_STARTUP_WIZARD); // whm checked OK
 #endif
     entries[27].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND); // standard wxWidgets ID // whm checked OK
-    // whm Note: On Mac Command-G is reserved for Find Next of a selection. 
-	entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // whm checked OK
+	entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // On Mac Command-G is Find Next but this is close enough
     entries[29].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP); // standard wxWidgets ID // whm checked OK
     entries[30].Set(wxACCEL_NORMAL, WXK_F6, dummyID3); //ID_NEXT_PANE);
     entries[31].Set(wxACCEL_SHIFT, WXK_F6, dummyID4); //ID_PREV_PANE);
@@ -1231,7 +1230,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm Note: On Mac Command-Q is reserved for quitting the application, so we add an extra
 	// accelerator here for it (the Edit Source Text on Mac was changed to Ctrl-Shift-E above and
 	// Ctrl-Q remains defined above on Windows and Linux for Edit Source Text).
-	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT); // added to get compose bar button to work
+	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT); // 
 #endif
     
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
