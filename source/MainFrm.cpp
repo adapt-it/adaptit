@@ -1145,8 +1145,16 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// off accelerators when the item associated with them is disabled. The wx behavior mandates
 	// that we put code within the handlers (similar to what is already in the Update UI handlers)
 	// to prevent them from executing if the user types the accelerator key combination.
-    wxAcceleratorEntry entries[35]; //[43];
+	// 
+	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
+    wxAcceleratorEntry entries[36]; //[43];
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-1 is reserved for View as Icons, so we'll use Command-Shift-1 on Mac to
+	// avoid the reserved key.
+    entries[0].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '1', ID_ALIGNMENT);
+#else
     entries[0].Set(wxACCEL_CTRL, (int) '1', ID_ALIGNMENT);
+#endif
     entries[1].Set(wxACCEL_ALT, WXK_RETURN, dummyID1); //ID_ALTENTER);
     entries[2].Set(wxACCEL_CTRL, (int) 'L', ID_BUTTON_CHOOSE_TRANSLATION); // whm checked OK
     entries[3].Set(wxACCEL_CTRL, (int) 'E', ID_BUTTON_EDIT_RETRANSLATION); // whm checked OK
@@ -1160,27 +1168,71 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     entries[11].Set(wxACCEL_CTRL, WXK_INSERT, wxID_COPY); // standard wxWidgets ID
     entries[12].Set(wxACCEL_SHIFT, WXK_DELETE, wxID_CUT); // standard wxWidgets ID
     entries[13].Set(wxACCEL_CTRL, (int) 'X', wxID_CUT); // standard wxWidgets ID // whm checked OK
+#ifdef __WXMAC__
+    // whm Note: On Mac Command-2 is reserved for View as List, so we'll use Command-Shift-2 on Mac
+    // to avoid the reserved key.
+    entries[14].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
+#else
     entries[14].Set(wxACCEL_CTRL, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
+#endif
+#ifdef __WXMAC__
+    // whm Note: On Mac Command-3 is reserved for View as Columns, so we'll use Command-Shift-3 on Mac
+    // to avoid the reserved key.
+    entries[15].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
+#else
     entries[15].Set(wxACCEL_CTRL, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
+#endif
     entries[16].Set(wxACCEL_CTRL, (int) 'V', wxID_PASTE); // standard wxWidgets ID
     entries[17].Set(wxACCEL_SHIFT, WXK_INSERT, wxID_PASTE); // standard wxWidgets ID
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-Q is reserved for Quitting the Application. We'll use Command-Shift-E
+	// as a compromise for Editing the Source text.
+    entries[18].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'E', ID_EDIT_SOURCE_TEXT); // whm checked OK
+#else
     entries[18].Set(wxACCEL_CTRL, (int) 'Q', ID_EDIT_SOURCE_TEXT); // whm checked OK
+#endif
     entries[19].Set(wxACCEL_ALT, WXK_BACK, wxID_UNDO); // standard wxWidgets ID
     entries[20].Set(wxACCEL_CTRL, (int) 'Z', wxID_UNDO); // standard wxWidgets ID
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-J is reserved for Scrolling/Jumping to a selection, whereas Command-W
+	// is normally used for hiding/closing the active window
+    entries[21].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_CLOSEKB); // whm checked OK - close project
+#else
     entries[21].Set(wxACCEL_CTRL, (int) 'J', ID_FILE_CLOSEKB); // whm checked OK - close project
+#endif
     entries[22].Set(wxACCEL_CTRL, (int) 'N', wxID_NEW); // standard wxWidgets ID // whm checked OK
     entries[23].Set(wxACCEL_CTRL, (int) 'O', wxID_OPEN); // standard wxWidgets ID // whm checked OK
     entries[24].Set(wxACCEL_CTRL, (int) 'P', wxID_PRINT); // standard wxWidgets ID // whm checked OK
     entries[25].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE); // standard wxWidgets ID // whm checked OK
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-W is reserved for closing the active window (equivalent to the close
+	// command), so as a compromise we'll assign Command-Shift-O for Opening the start up wizard.
+    entries[26].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'O', ID_FILE_STARTUP_WIZARD); // whm checked OK
+#else
     entries[26].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_STARTUP_WIZARD); // whm checked OK
+#endif
     entries[27].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND); // standard wxWidgets ID // whm checked OK
-    entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // whm checked OK
+    // whm Note: On Mac Command-G is reserved for Find Next of a selection. 
+	entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // whm checked OK
     entries[29].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP); // standard wxWidgets ID // whm checked OK
     entries[30].Set(wxACCEL_NORMAL, WXK_F6, dummyID3); //ID_NEXT_PANE);
     entries[31].Set(wxACCEL_SHIFT, WXK_F6, dummyID4); //ID_PREV_PANE);
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-H is reserved for hiding/closing the active window, whereas Command F
+	// is used to open a combined Find and Find & Replace dialog. As a compromise we'll use
+	// Command-Shift-F for opening the Replace dialog.
+	entries[32].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'F', wxID_REPLACE); // standard wxWidgets ID // Mac: Command-Shift-F
+#else
     entries[32].Set(wxACCEL_CTRL, (int) 'H', wxID_REPLACE); // standard wxWidgets ID // whm checked OK
+#endif
     entries[33].Set(wxACCEL_CTRL, (int) 'K', ID_TOOLS_KB_EDITOR); // whm checked OK
     entries[34].Set(wxACCEL_CTRL, WXK_RETURN, dummyID5); //ID_TRIGGER_NIKB); // CTRL+Enter is Transliterate Mode TODO: check
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-Q is reserved for quitting the application, so we add an extra
+	// accelerator here for it (the Edit Source Text on Mac was changed to Ctrl-Shift-E above and
+	// Ctrl-Q remains defined above on Windows and Linux for Edit Source Text).
+	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT); // added to get compose bar button to work
+#endif
     
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
     //entries[36].Set(wxACCEL_ALT, (int) 'L', IDC_BUTTON_LENGTHEN); // added to get compose bar button to work
