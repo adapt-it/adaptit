@@ -5643,7 +5643,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
     pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q");
 	
-	wxMenu* pEditMenu = m_pMainFrame->GetmenuBar()->GetMenu(1);
+	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(1);
 	wxASSERT(pEditMenu != NULL);
 	
 	// Edit | Edit Source Text
@@ -5663,7 +5663,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // use Ctrl-Shift-3 for it here.
     pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3");
 	
-	wxMenu* pToolsMenu = m_pMainFrame->GetmenuBar()->GetMenu(3);
+	wxMenu* pToolsMenu = m_pMainFrame->GetMenuBar()->GetMenu(3);
 	wxASSERT(pToolsMenu != NULL);
 	
 	// Tools | Find and Replace
@@ -5672,7 +5672,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// menu to use Ctrl-Shift-F for it here.
 	pToolsMenu->SetLabel(wxID_REPLACE,Find and Replace...\tCtrl-Shift-F);
 
-	wxMenu* pLayoutMenu = m_pMainFrame->GetmenuBar()->GetMenu(5);
+	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(5);
 	wxASSERT(pLayoutMenu != NULL);
 	
 	// Layout | Layout Window Right To Left
