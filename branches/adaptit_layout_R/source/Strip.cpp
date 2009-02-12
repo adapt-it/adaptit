@@ -5,7 +5,8 @@
 /// \date_created	26 March 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General Public
+///  License (see license directory)
 /// \description	This is the implementation file for the CStrip class. 
 /// The CStrip class represents the next smaller divisions of a CBundle.
 /// Each CStrip stores an ordered list of CPile instances, which are
@@ -49,6 +50,7 @@
 #include "Strip.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h"
+#include "Layout.h"
 
 extern bool gbIsPrinting; // whm added because wxDC does not have ::IsPrinting() method
 extern CAdapt_ItApp* gpApp;
@@ -68,6 +70,11 @@ IMPLEMENT_DYNAMIC_CLASS(CStrip, wxObject)
 
 CStrip::CStrip()
 {
+	m_pLayout = NULL;
+	m_nFree = 0;
+	m_bFilled = FALSE;
+	m_bAffected = FALSE;
+	/*
 	m_nVertOffset = 0;
 	m_nPileCount = 0;
 	// m_nPileHeight = 20;  // BEW deprecated 3Feb09
@@ -75,9 +82,11 @@ CStrip::CStrip()
 	m_nFree = 0;
 	for (int i = 0; i<MAX_PILES; i++)
 		m_pPile[i] = (CPile*)NULL;
+	*/
 }
 
 //CStrip::CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle) // BEW deprecated 3Feb09
+/*
 CStrip::CStrip(CSourceBundle* pSourceBundle)
 {
 	//m_pDoc = pDocument; // BEW deprecated 3Feb09
@@ -92,14 +101,15 @@ CStrip::CStrip(CSourceBundle* pSourceBundle)
 	for (int i = 0; i<MAX_PILES; i++)
 		m_pPile[i] = (CPile*)NULL;
 }
-
+*/
 CStrip::~CStrip()
 {
 
 }
-
+/*
 void CStrip::DestroyPiles()
 {
+	//  *** TODO *** probably rename to RemovePiles & change code (don't destroy, layout manages them)
 	int count = m_nPileCount;
 	wxASSERT(count <= MAX_PILES);
 	for (int i=0; i<count; i++)
@@ -109,9 +119,12 @@ void CStrip::DestroyPiles()
 		m_pPile[i] = (CPile*)NULL;
 	}
 }
-
-void CStrip::Draw(wxDC* pDC)
+*/
+void CStrip::Draw(wxDC* pDC)  // *** TODO *** additional parameters needed for refactored version
 {
+
+
+	/*
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	if (gbIsPrinting)
@@ -163,6 +176,7 @@ void CStrip::Draw(wxDC* pDC)
 #endif
 		}
 	}
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,7 +194,29 @@ void CStrip::Draw(wxDC* pDC)
 /// pile that will fit within the strip. See CreateStrip_SimulateOnly() for a related function 
 /// which only simulates the calculations made by CreateStrip().
 ////////////////////////////////////////////////////////////////////////////////////////////
-int CStrip::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffset, int &nLastSequNumber, int nEndIndex)
+//int CStrip::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffset, int &nLastSequNumber, int nEndIndex)
+
+
+
+void CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile)
+{
+	m_nFree = nStripWidth;
+
+	// prepare for iterating over next group of CPiles to be placed in the strip
+	PileList* pPiles = pLayout->m_pPiles;
+	wxASSERT(!pPiles->IsEmpty());
+	CAdapt_ItView* pView = pLayout->m_pView; // for calling IsWrapMarker() on a pile's CSourcePhrase pointer
+	PileList::Node* pos = pPiles->Item(nIndexOfFirstPile);
+	wxASSERT(pos != NULL);
+	CPile* pPile = (CPile*)pos->GetData();
+
+	// *** TODO *** the rest... prepare m_arrPiles by preallocating space - default 20?, etc
+
+
+
+
+
+/*
 // MFC Note: returns the nVertOffset value for the strip, if it creates it, or -1 if it doesn't get created
 // nVertOffset will be +ve for MM_Text mapping mode, and -ve for other modes, such as MM_LOENGLISH
 // the global flag gbIsPrinting selects which will be the case, TRUE for a y axis increasing
@@ -437,12 +473,11 @@ d:		pStrip->m_nFree = rectStrip.GetWidth() - horzOffset;	// slop remaining at
 		wxRect rectPile;
 		while (pileIndex < MAX_PILES && nextNumber <= nEndIndex)
 		{
-			/*
-			#ifdef __WXDEBUG__
-			wxLogTrace(" ### while loop nextNumber value = %d   nEndIndex = %d    ",nextNumber,
-																					nEndIndex);
-			#endif
-			*/
+			
+			//#ifdef __WXDEBUG__
+			//wxLogTrace(" ### while loop nextNumber value = %d   nEndIndex = %d    ",nextNumber,
+			//																		nEndIndex);
+			//#endif
 			SPList::Node* pos = pSrcList->Item(nextNumber); // POSITION of the CSourcePhrase
 														    // for this pile
 			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -529,5 +564,6 @@ b:		pStrip->m_nFree = rectStrip.GetRight() - rectStrip.GetLeft() - horzOffset; /
 	// whm: for wx version we don't use negative offsets during printing
 	nVertOffset += pApp->m_curPileHeight + pApp->m_curLeading; // offset for bottom of this strip
 	return nVertOffset;
+	*/
 }
 
