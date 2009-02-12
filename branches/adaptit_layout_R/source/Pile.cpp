@@ -123,6 +123,7 @@ CPile::CPile()
 	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
 	m_pSrcPhrase = (CSourcePhrase*)NULL;
 	CLayout* m_pLayout = (CLayout*)NULL;
+	m_pOwningStrip = (CStrip*)NULL;
 	m_nWidth = 20;
 	m_nMinWidth = 40;
 

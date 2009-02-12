@@ -42,11 +42,13 @@ public:
 	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
 	//CStrip(CSourceBundle* pSourceBundle); // normal constructor
 
-
-	// attributes
 	// whm Note: Initialization of CStrip class members happens in the order in which
 	// they are declared. To avoid potential null pointer problems, I have moved the
 	// CSourceBundle* m-pBundle line up before the declaration of CPile* m-pPile[36] line.
+	
+	// attributes
+	int			m_nStrip; // index of this strip in CLayout's m_arrStrips array of pointers
+	
 private:
 	CLayout*	m_pLayout; // the owning CLayout
 	wxArrayInt	m_arrPiles; // array of CPile* instances which comprise the strip

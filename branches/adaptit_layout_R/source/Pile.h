@@ -61,6 +61,7 @@ public:
 
 	// attributes
 	CSourcePhrase*	m_pSrcPhrase;
+	CStrip*			m_pOwningStrip;
 
 private:
 	// whm Note: Should CSourcePhrase* m_pSrcPhrase below be moved up in the member list???

@@ -72,6 +72,7 @@ CStrip::CStrip()
 {
 	m_pLayout = NULL;
 	m_nFree = 0;
+	m_nStrip = 0;
 	m_bFilled = FALSE;
 	m_bAffected = FALSE;
 	/*
