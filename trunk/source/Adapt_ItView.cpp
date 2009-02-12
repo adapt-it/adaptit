@@ -17577,7 +17577,6 @@ void CAdapt_ItView::ChooseTranslation()
 		if (pApp->m_pActivePile != NULL && !pApp->m_pActivePile->m_pSrcPhrase->m_bNotInKB)
 			OnButtonChooseTranslation(dummyevent);
 		else
-			;
 			::wxBell();
 	}
 }

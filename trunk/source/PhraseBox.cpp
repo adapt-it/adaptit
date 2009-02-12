@@ -3073,8 +3073,13 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 		}
 		else if (event.GetKeyCode() == WXK_DOWN)
 		{
-			// down arrow was pressed, (& CTRL key is not pressed) so do insert of null 
-			// sourcephrase but first save old sequ number in case required for toolbar's 
+			// whm Note 12Feb09: Control passes through here when a simultaneous Ctrl-Alt-Down press is
+			// released. This equates to a Command-Option-Down combination, which is acceptable and
+			// doesn't conflict with any reserved keys on a Mac. If only Ctrl-Down (Command-Down on a
+			// Mac) is pressed, control does NOT pass through here, but through the WXK_DOWN block of 
+			// OnKeyUp().
+			// 
+			// Insert of null sourcephrase but first save old sequ number in case required for toolbar's 
 			// Back button (this one is activated when CTRL key is not down, so it does the
 			// default "insert before" case; the "insert after" case is done in the 
 			// OnKeyUp() handler)
@@ -3417,6 +3422,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	}
 
 	// does the user want to force the Choose Translation dialog open?
+	// whm Note 12Feb09: This F8 action is OK on Mac (no conflict)
 	if (event.GetKeyCode() == WXK_F8)
 	{
 		pView->ChooseTranslation();
@@ -3429,7 +3435,10 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		if (gbIsGlossing)
 			return;
 		else
+#ifdef __WXMAC__
+			// On Macs F9 is reserved for "Tile or untile all open windows".
 			pView->NewRetranslation();
+#endif
 		return;
 	}
 
@@ -3557,13 +3566,19 @@ c:		SetFocus();
 	{
 		if (event.ControlDown()) 
 		{
-			// CTRL + down arrow was pressed - asking for an "insert after" of a null srcphrase
-			// (ALT key is ignored, so CTRL + ALT + down arrow also gives the same result)
+			// CTRL + down arrow was pressed - asking for an "insert after" of a null srcphrase.
+			// CTRL + ALT + down arrow also gives the same result (on Windows and Linux) - see OnSysKeyUp().
+			// whm 12Feb09 Note: Ctrl + Down (equates to Command-Down on a Mac) conflicts with a Mac's
+			// system key assignment to "Move focus to another value/cell within a view such as a 
+			// table", so we'll prevent Ctrl+Down from calling InsertNullSrcPhraseAfter() on the Mac 
+			// port.
+#ifndef __WXMAC__
 			// first save old sequ number in case required for toolbar's Back button
 			// If glossing is ON, we don't allow the insertion, and just return instead
 			gnOldSequNum = pApp->m_nActiveSequNum;
 			if (!gbIsGlossing)
 				pView->InsertNullSrcPhraseAfter();
+#endif
 			return;
 		}
 

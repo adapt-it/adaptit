@@ -152,82 +152,87 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item28 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetDefault();
-    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item4->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
-
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 0 );
 
-    wxStaticLine *item29 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item27 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item29 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item31 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item31->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item33->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxFlexGridSizer *item32 = new wxFlexGridSizer( 2, 0, 0 );
 
-    item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item33, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item34 = new wxFlexGridSizer( 2, 0, 0 );
+    wxStaticText *item34 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item34, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item35, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item35, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item37, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item37, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item38 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item39, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item39, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item44 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item44 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item45 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item45 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item46 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item46 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item32->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item47 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item47, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item48 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item48, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item28->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item28, 0, wxALIGN_CENTER, 5 );
 
-    item30->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticLine *item47 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item47, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item30, 0, wxALIGN_CENTER, 5 );
+    wxBoxSizer *item48 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item49 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item49->SetDefault();
+    item48->Add( item49, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item48->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item48, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -3811,23 +3816,23 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetDefault();
-    item14->SetToolTip( _("Click OK to go to the chapter and verse indicated above") );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Only the chapter value is used if the verse is zero."), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Click Cancel to close the dialog without going to another location in the document") );
-    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetDefault();
+    item16->SetToolTip( _("Click OK to go to the chapter and verse indicated above") );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Only the chapter value is used if the verse is zero."), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetToolTip( _("Click Cancel to close the dialog without going to another location in the document") );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
