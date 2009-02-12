@@ -5621,6 +5621,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) list from *m_pConfig
 
+#ifdef __WXMAC__
+	// whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep them from
+	// conflicting with the customary Mac access keys and accelerator keys. The accelerator keys are
+	// created during the creation of the CMainFrame above, so we can make adjustments here.
+	wxString menuStr;
+	menuStr = pFileMenu->GetLabel(ID_FILE_STARTUP_WIZARD); // GetLabel() returns a menu item label, including any mnemonics and accelerators.
+	wxASSERT(!menuStr.IsEmpty());
+	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-E")); // 
+#endif
+
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
 	// However, the wx version does not use serialized .adt type data files. I don't think it 
 	// would necessarily be a good thing for users to be able to open AI documents by double 
