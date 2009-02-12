@@ -56,12 +56,14 @@ public:
 
 	// operations
 public:
+	//CSourcePhrase*	GetSrcPhrase();
+	//void	SetSrcPhrase(CSourcePhrase* pSrcPhrase);
 
 	// attributes
-//public:
+	CSourcePhrase*	m_pSrcPhrase;
+
 private:
 	// whm Note: Should CSourcePhrase* m_pSrcPhrase below be moved up in the member list???
-	CSourcePhrase*	m_pSrcPhrase;
 	CLayout*		m_pLayout;
 	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nWidth;

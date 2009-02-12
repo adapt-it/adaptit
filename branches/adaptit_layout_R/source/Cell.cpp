@@ -5,7 +5,8 @@
 /// \date_created	26 March 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General Public
+///  License (see license directory)
 /// \description	This is the implementation file for the CCell class. 
 /// The CCell class represents the next smaller division of a CPile, there
 /// potentially being up to five CCells displaying vertically top to bottom
@@ -175,7 +176,11 @@ IMPLEMENT_DYNAMIC_CLASS(CCell, wxObject)
 
 CCell::CCell()
 {
-	;
+	m_bSelected = FALSE; // changes according to user's or app's selecting/deselecting activity
+	m_pPhrase = NULL; // it is pointed at a wxString only by the Draw function
+	m_pLayout = NULL; // CreateCell() sets this
+	m_pOwningPile = NULL; // CreateCell() sets this
+	m_nCell = 0; // CreateCell() sets this to its permanent value
 }
 
 //CCell::CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
@@ -203,15 +208,26 @@ CCell::~CCell()
 
 }
 
-void CCell::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, 
-				wxString* pPhrase, int xExtent, wxFont *pFont, wxColour *pColor,
-				wxPoint *pTopLeft, wxPoint *pBotRight, int index, wxColor* pNavTextColor)
+//void CCell::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, 
+//				wxString* pPhrase, int xExtent, wxFont *pFont, wxColour *pColor,
+//				wxPoint *pTopLeft, wxPoint *pBotRight, int index, wxColor* pNavTextColor)
+void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 {
+	m_nCell = index; // remains this value for the life of the owning pile
+	m_pOwningPile = pOwnerPile; // lets the CCell access the CSourcePhrase the owning pile points at
+	m_pLayout = pLayout; // where drawing information can be had - eg. font pointer, font colour, etc
+
+	// Note: m_pPhrase is set by a SetCellText() call in the Draw functions
+	// the m_bSelected value must default to FALSE when the cell is first created
+	// _________________________________________________________________________________
+
+	// legacy code is below... (versions 4.1.x and earlier)
 	// create the cell
 	//CCell* pCell = new CCell(pDoc,pBundle,pStrip,pPile); // BEW deprecated 3Feb09
 	//CCell* pCell = new CCell(pBundle,pStrip,pPile);
 	//wxASSERT(pCell != NULL);
 
+	/*
 	// set its attributes
 	m_pBundle = pBundle;
 	m_pStrip = pStrip;
@@ -226,7 +242,7 @@ void CCell::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile,
 	m_nTextExtent = xExtent;
 	m_pPhrase = pPhrase;
 	m_nCellIndex = index;
-
+	*/
 	// create a CText for displaying the cell's string --
 	// (for ANSI build, CText is based on CObject, and will use TextOut() for drawing; but for the
 	// nonRoman build, it will use DrawText() which has the RTLReading smarts, etc.
@@ -239,6 +255,11 @@ void CCell::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile,
 // BEW 2Aug08, additions to for gray colouring of context regions in vertical edit steps
 void CCell::Draw(wxDC* pDC)
 {
+	// assign to m_pPhrase whichever wxString should be written for this cell
+	SetCellText();
+
+	/*    *** TODO *** pull the functionalities out into several helper functions & fix for refactor
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = pApp->GetView();
@@ -293,13 +314,13 @@ void CCell::Draw(wxDC* pDC)
 		}
 		else
 		{
-			// if its not one of those, just do the normal text colour as set by CreatePile() and CreateCell()
-			// in the view class
+            // if its not one of those, just do the normal text colour as set by CreatePile() and
+            // CreateCell() in the view class
 			;
 		}
 	}
-	// In all the remainder of this Draw() function, only backgrounds are ever changed in color, and the navigation
-	// whiteboard area's icons and text are drawn.
+    // In all the remainder of this Draw() function, only backgrounds are ever changed in color,
+    // and the navigation whiteboard area's icons and text are drawn.
 	if (m_bSelected)
 	{
 		oldBkColor = pDC->GetTextBackground(); // yellow
@@ -766,13 +787,15 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 			pDC->SetPen(wxNullPen);
 		}
 	}
-*/
+	*/
 }
 
 //void CCell::DrawCellText(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
 //			const wxString& phrase, const wxColour& color, int nCell)
 void CCell::DrawCell(wxDC* pDC)
 {
+
+	/*  *** TODO *** fix for refactored design
 	wxRect enclosingRect = wxRect(m_ptTopLeft,m_ptBotRight); // the rect where the text will be drawn
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxASSERT(pView != NULL);
@@ -916,10 +939,15 @@ void CCell::DrawCell(wxDC* pDC)
 			pDC->DrawText(*m_pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());// ,nFormat);
 		}
 	}
+	*/
 }
 
 void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 {
+
+
+	/*    *** TODO *** fix for refactored design
+
 	// Note: BEW 9Feb09, a copy of this function is also in CAdapt_ItView class - that
 	// copy is used only when drawing RTL text in free translation mode.
 	// 
@@ -977,5 +1005,29 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	// to best emulate what MFC's DrawText() does with its nFormat parameter
 	pDC->SetLayoutDirection(wxLayout_LeftToRight); // need this???
 #endif
+
+*/
 }
 
+void CCell::SetCellText()
+{
+	CSourcePhrase* pSrcPhrase = m_pOwningPile->GetSrcPhrase();
+	switch (m_nCell)
+	{
+	case 0: // source text line
+		m_pPhrase = &pSrcPhrase->m_srcPhrase;
+		break;
+	case 2: // gloss text line if glossing, else adaptation text line
+		if (gbIsGlossing)
+			m_pPhrase = &pSrcPhrase->m_targetStr;
+		else
+			m_pPhrase = &pSrcPhrase->m_gloss;
+		break;
+	default: // adaptation line
+		if (gbIsGlossing)
+			m_pPhrase = &pSrcPhrase->m_gloss;
+		else
+			m_pPhrase = &pSrcPhrase->m_targetStr;
+		break;
+	}
+}

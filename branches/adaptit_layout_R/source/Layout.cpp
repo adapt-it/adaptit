@@ -334,10 +334,63 @@ void CLayout::SetLastVisibleStrip(int nLastVisibleStrip)
 	m_nLastVisibleStrip = nLastVisibleStrip;
 }
 
-// accessors for navText colour
+// accessors for font pointers
+void CLayout::SetSrcFont(CAdapt_ItApp* pApp)
+{
+	m_pSrcFont = pApp->m_pSourceFont;
+}
+
+void CLayout::SetTgtFont(CAdapt_ItApp* pApp)
+{
+	m_pTgtFont = pApp->m_pTargetFont;
+}
+
+void CLayout::SetNavTextFont(CAdapt_ItApp* pApp)
+{
+	m_pNavTextFont = pApp->m_pNavTextFont;
+}
+
+wxFont*	CLayout::GetSrcFont()
+{
+	return m_pSrcFont;
+}
+
+wxFont* CLayout::GetTgtFont()
+{
+	return m_pTgtFont;
+}
+
+wxFont* CLayout::GetNavTextFont()
+{
+	return m_pNavTextFont;
+}
+
+
+
+// accessors and getters for src, tgt & navText colours
+void CLayout::SetSrcColor(CAdapt_ItApp* pApp)
+{
+	m_srcColor = pApp->m_sourceColor;
+}
+
+void CLayout::SetTgtColor(CAdapt_ItApp* pApp)
+{
+	m_tgtColor = pApp->m_targetColor;
+}
+
 void CLayout::SetNavTextColor(CAdapt_ItApp* pApp)
 {
 	m_navTextColor = pApp->m_navTextColor;
+}
+
+wxColour CLayout::GetSrcColor()
+{
+	return m_srcColor;
+}
+
+wxColour CLayout::GetTgtColor()
+{
+	return m_tgtColor;
 }
 
 wxColour CLayout::GetNavTextColor()
@@ -461,11 +514,11 @@ void CLayout::SetPileAndStripHeight()
 			m_nPileHeight += 2; 
 		}
 	} // end of else block
-	// the pile height is now set; so in the stuff below, set the strip height too -
-	// it is the current leading value (i.e. the nav text whiteboard height) plus the
-	// m_nPileHeight value, =/-, depending on whether free translation mode is on or not, the
-	// target text line height plus 3 pixels of separating space from the bottom of the pile
-	m_nStripHeight = m_nCurLeading + m_nPileHeight;
+    // the pile height is now set; so in the stuff below, set the strip height too - it is the
+    // m_nPileHeight value, +/-, depending on whether free translation mode is on or not, the
+    // target text line height plus 3 pixels of separating space from the bottom of the pile
+    // (Note: the m_nCurLeading value, for the navText area, is NOT regarded as part of the strip)
+	m_nStripHeight = m_nPileHeight;
 	if (gpApp->m_bFreeTranslationMode && !gbIsPrinting)
 	{
         // add enough space for a single line of the height given by the target text's height + 3

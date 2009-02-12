@@ -75,13 +75,20 @@ private:
 	int			m_nClipRectWidth;
 	int			m_nClipRectHeight;
 
-	// private copy of the navText color stored in app class
+	// private copies of the src, tgt &navText colors stored in app class
+	wxColour	m_srcColor;
+	wxColour	m_tgtColor;
 	wxColour	m_navTextColor;
 
 	// private copy of the src, tgt and gloss text heights (from Font metrics) stored on app
 	int			m_nSrcHeight;
 	int			m_nTgtHeight;
 	int			m_nNavTextHeight;
+
+	// font pointers
+	wxFont*		m_pSrcFont;
+	wxFont*		m_pTgtFont;
+	wxFont*		m_pNavTextFont;
 
 	//bool		m_bShowTargetOnly; // we won't bother just yet, retain the global
 
@@ -144,8 +151,20 @@ public:
 	void		SetFirstVisibleStrip(int nFirstVisibleStrip);
 	void		SetLastVisibleStrip(int nLastVisibleStrip);
 
-	// setter and getter for navText color, later remove the one on the app class
+	// setters and getters for font pointers
+	void		SetSrcFont(CAdapt_ItApp* pApp);
+	void		SetTgtFont(CAdapt_ItApp* pApp);
+	void		SetNavTextFont(CAdapt_ItApp* pApp);
+	wxFont*		GetSrcFont();
+	wxFont*		GetTgtFont();
+	wxFont*		GetNavTextFont();
+
+	// setters and getters for text colors
+	void		SetSrcColor(CAdapt_ItApp* pApp);
+	void		SetTgtColor(CAdapt_ItApp* pApp);
 	void		SetNavTextColor(CAdapt_ItApp* pApp);
+	wxColour	GetSrcColor();
+	wxColour	GetTgtColor();
 	wxColour	GetNavTextColor();
 
 	// setters and getters for source, target and navText heights (from TEXTMETRICS), the 

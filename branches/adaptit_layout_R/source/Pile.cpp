@@ -664,6 +664,18 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 	*/
 }
 
+//getter
+//CSourcePhrase* CPile::GetSrcPhrase()
+//{
+//	return m_pSrcPhrase;
+//}
+
+// setter
+//void CPile::SetSrcPhrase(CSourcePhrase* pSrcPhrase)
+//{
+//	m_pSrcPhrase = pSrcPhrase;
+//}
+
 //CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
 //								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
 CPile* CPile::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)

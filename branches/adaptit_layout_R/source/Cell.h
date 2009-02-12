@@ -5,7 +5,8 @@
 /// \date_created	26 March 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General 
+/// Public License (see license directory)
 /// \description	This is the header file for the CCell class. 
 /// The CCell class represents the next smaller division of a CPile, there
 /// potentially being up to five CCells displaying vertically top to bottom
@@ -28,7 +29,7 @@ class CAdapt_ItDoc;
 class CSourceBundle;
 class CStrip;
 class CPile;
-class CText;
+//class CText;
 class CFont;
 
 /// The CCell class represents the next smaller division of a CPile, there
@@ -49,6 +50,13 @@ public:
 
 
 	// attributes
+private:
+	bool		m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
+	int			m_nCell;	// index to this particular cell in the pile's array
+	wxString*	m_pPhrase;	// point to m_gloss or m_targetStr depending on gbIsGlossing
+	CLayout*	m_pLayout;
+	CPile*		m_pOwningPile;
+	/*
 public:
 	//CText*				m_pText; // note, cell can exist with this ptr NULL; BEW removed 6Feb09
 	wxColour				m_color;
@@ -65,17 +73,23 @@ public:
 	CPile*					m_pPile;
 	wxString*				m_pPhrase; // BEW changed 9Feb09 to point at the text, not copy it
 	bool					m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
-
+	*/
+public:
 	// destructor
 	virtual ~CCell();
 	virtual void Draw(wxDC* pDC);
 	// helpers
 	//void  DrawCell(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
 	//		const wxString& phrase, const wxColour& color, int nCell);
-	void	DrawCell(wxDC* pDC);
-	void	CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString* pPhrase,
-						int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
-						wxPoint* pBotRight, int index, wxColor* pNavTextColor);
+	void	DrawCell(wxDC* pDC); //  *** TODO *** we will give this more parameters
+
+	//void	CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString* pPhrase,
+	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
+	//					wxPoint* pBotRight, int index, wxColor* pNavTextColor);
+	void	CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index);
+
+	void	SetCellText(); // make the CCell instance point at the correct wxString for drawing
+
 	// BEW 9Feb09: DrawTextRTL() is a duplicate of the function of the same name defined
 	// also in the CAdapt_ItView class. The one in the view class is used only for RTL drawing
 	// in the free translation rectangles at strip bottoms, in free translation mode. Unfortunately
