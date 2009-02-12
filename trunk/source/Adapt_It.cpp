@@ -5682,7 +5682,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
 	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
 	// menu to use Ctrl-Shift-1 for it here.
-	pToolsMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
 #endif
 
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
