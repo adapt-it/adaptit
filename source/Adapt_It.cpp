@@ -5625,10 +5625,61 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep them from
 	// conflicting with the customary Mac access keys and accelerator keys. The accelerator keys are
 	// created during the creation of the CMainFrame above, so we can make adjustments here.
-	wxString menuStr;
-	menuStr = pFileMenu->GetLabel(ID_FILE_STARTUP_WIZARD); // GetLabel() returns a menu item label, including any mnemonics and accelerators.
-	wxASSERT(!menuStr.IsEmpty());
-	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-E")); // 
+
+	// File | Start Working...
+	// On Mac, Command-W is reserved for Closing the Active Window, and we've defined the accelerator key
+	// on Mac for "Start Working..." as Command-Shift-O to avoid the conflict.
+	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows & Linux have the default Ctrl-W
+	
+	// File | Close Project
+	// On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used it on
+	// Windows/Linux for Close Project, but the comperable hot key to close the active window for Mac 
+	// is Command-W.
+	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_(Close Project\tCtrl-W)); // Windows and Linux have the default Ctrl-J
+    
+	// File | Exit
+	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
+	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
+	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
+    pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q");
+	
+	wxMenu* pEditMenu = m_pMainFrame->GetmenuBar()->GetMenu(1);
+	wxASSERT(pEditMenu != NULL);
+	
+	// Edit | Edit Source Text
+	// On Mac, the hot key command to quit the application is Command-Q and we have set a Ctrl-Q accelerator
+	// key to be associated with wxID_Exit, so we've set the menu to use Ctrl-Shift-E for it here.
+    pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E");
+	
+	// Edit | Move Note Backward
+    // On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
+    // accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
+    // use Ctrl-Shift-2 for it here.
+    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2");
+	
+	// Edit | Move Note Forward
+    // On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
+    // accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
+    // use Ctrl-Shift-3 for it here.
+    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3");
+	
+	wxMenu* pToolsMenu = m_pMainFrame->GetmenuBar()->GetMenu(3);
+	wxASSERT(pToolsMenu != NULL);
+	
+	// Tools | Find and Replace
+	// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
+	// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
+	// menu to use Ctrl-Shift-F for it here.
+	pToolsMenu->SetLabel(wxID_REPLACE,Find and Replace...\tCtrl-Shift-F);
+
+	wxMenu* pLayoutMenu = m_pMainFrame->GetmenuBar()->GetMenu(5);
+	wxASSERT(pLayoutMenu != NULL);
+	
+	// Layout | Layout Window Right To Left
+	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
+	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
+	// menu to use Ctrl-Shift-1 for it here.
+	pToolsMenu->SetLabel(ID_ALIGNMENT,Layout Window Right To Left\tCtrl-Shift-1);
 #endif
 
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
@@ -5998,7 +6049,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// note: default display is LTR so menu item should read what clicking it should make the layout become
 	// after clicking. The menu text may be changed to appropriate value upon reading reading a project
 	// config file (the change is made in ???).
+#ifdef __WXMAC__
+	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+#else
 	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+#endif
+
 #endif 
 
 	// insure that the Use Tooltips menu item in the Help menu is checked or unchecked according to the

@@ -27129,7 +27129,11 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_RTL_LAYOUT
+#ifdef __WXMAC__
+		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+#else
 		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+#endif
 	}
 	else
 	{
@@ -27139,7 +27143,11 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_LTR_LAYOUT
+#ifdef __WXMAC__
+		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
+#else
 		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
+#endif
 	}
 
 	// redraw everything -- RecalcLayout uses the m_bRTL_LAYOUT flag in the CreateStrip() function
@@ -27173,7 +27181,11 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 		gbRTL_Layout = TRUE; // do the global too
 
 		// change text of the menu item ready for next time user accesses it
+#ifdef __WXMAC__
+		menuItem = _("Layout Window Left To Right\tCtrl-Shift-1"); //menuItem.Format(IDS_LTR_LAYOUT);
+#else
 		menuItem = _("Layout Window Left To Right\tCtrl-1"); //menuItem.Format(IDS_LTR_LAYOUT);
+#endif
 		pLayoutMenuAlignment->SetText(menuItem);
 	}
 	else
@@ -27185,7 +27197,11 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 			gbRTL_Layout = FALSE; // do the global too
 
 			// change text of the menu item ready for next time user accesses it
+#ifdef __WXMAC__
+			menuItem = _("Layout Window Right To Left\tCtrl-Shift-1"); //IDS_RTL_LAYOUT
+#else
 			menuItem = _("Layout Window Right To Left\tCtrl-1"); //IDS_RTL_LAYOUT
+#endif
 			pLayoutMenuAlignment->SetText(menuItem);
 		}
 		else
