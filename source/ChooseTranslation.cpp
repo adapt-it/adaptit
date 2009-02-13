@@ -135,6 +135,9 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	pChooseTransSizer = ChooseTranslationDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_refCount = 0;
 	m_refCountStr.Empty();
 	m_refCountStr << m_refCount;

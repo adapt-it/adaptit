@@ -174,6 +174,9 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	KBEditorDlgFunc(this, TRUE, TRUE);
 	// The declaration is: KBEditorDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	// pointers to the controls common to each page (most of them) are obtained within
 	// the LoadDataForPage() function
 

@@ -92,6 +92,9 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 	pViewFilteredMaterialDlgSizer = ViewFilteredMaterialDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	// get pointers for dialog's controls
 	pMarkers = (wxListBox*)FindWindowById(IDC_LIST_MARKER);
 	wxASSERT(pMarkers != NULL);

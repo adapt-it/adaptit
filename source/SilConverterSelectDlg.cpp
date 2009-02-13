@@ -83,6 +83,9 @@ CSilConverterSelectDlg::CSilConverterSelectDlg(
 	SilConvertersDlgFunc(this, TRUE, TRUE);
 	// The declaration is: SilConvertersDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	pEditSILConverterName = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_NAME);
 	wxASSERT(pEditSILConverterName != NULL);
 	pEditSILConverterInfo = (wxTextCtrl*)FindWindowById(IDC_ED_SILCONVERTER_INFO); // (read only)

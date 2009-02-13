@@ -43,6 +43,9 @@
 #include "UnitsDlg.h"
 #include "Adapt_ItView.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
+
 // event handler table
 BEGIN_EVENT_TABLE(CUnitsDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CUnitsDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -60,6 +63,9 @@ CUnitsDlg::CUnitsDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	UnitsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	
 	// use wxValidator for simple dialog data transfer
 	pRadioB = (wxRadioButton*)FindWindowById(IDC_RADIO_INCHES);

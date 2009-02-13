@@ -94,6 +94,9 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	NoteDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	pEditNote = (wxTextCtrl*)FindWindowById(IDC_EDIT_NOTE); // whm moved here to constructor
 	wxASSERT(pEditNote != NULL);
 

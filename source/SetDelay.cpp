@@ -65,6 +65,9 @@ CSetDelay::CSetDelay(wxWindow* parent) // dialog constructor
 	SetDelayDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_nDelay = 0;
 
 	m_pDelayBox = (wxTextCtrl*)FindWindowById(IDC_SPIN_DELAY_TICKS);

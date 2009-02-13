@@ -2042,6 +2042,7 @@ public:
 	bool	LocalizationFilesExist(); 
 	// Functions that let the user select/change Adapt It's interface language
 	bool	ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface);
+	bool	ReverseOkCancelButtonsForMac(wxDialog* dialog);
 
 	bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
 	wxString GetDefaultPathForLocalizationSubDirectories();
