@@ -44,6 +44,9 @@
 #include "Adapt_It.h"
 #include "TransformToGlossesDlg.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
+
 // event handler table
 BEGIN_EVENT_TABLE(CTransformToGlossesDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CTransformToGlossesDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -61,6 +64,9 @@ CTransformToGlossesDlg::CTransformToGlossesDlg(wxWindow* parent) // dialog const
 	pTransformToGlossesDlgSizer = TransformToGlossesDlgFunc(this, TRUE, TRUE);
 	// The declaration is: TransformToGlossesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	// dialog needs size hints, otherwise it is too tall and too narrow. The following sets the
 	// initial height of whole dialog (incl border and title) to 340 pixels heigh (the max height)
 	// and 400 pixels wide (the minimum width). There should be plenty of room for localized text

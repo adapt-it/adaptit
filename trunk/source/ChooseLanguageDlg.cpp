@@ -74,7 +74,10 @@ CChooseLanguageDlg::CChooseLanguageDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	ChooseLanguageDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	//
+	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	wxColor backgrndColor = this->GetBackgroundColour();
 	
 	pListBox = (wxListBox*)FindWindowById(ID_LIST_UI_LANGUAGES);

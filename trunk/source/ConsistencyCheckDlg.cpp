@@ -98,6 +98,10 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	// size dialog.
 	ConsistencyCheckDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+	
 	m_keyStr = _T("");
 	m_adaptationStr = _T("");
 	m_newStr = _T("");

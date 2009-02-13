@@ -67,6 +67,7 @@
 #include <wx/busyinfo.h>
 #include <wx/propdlg.h> // for wxPropertySheetDialog
 #include <wx/stdpaths.h> // for GetResourcesDir and GetLocalizedResourcesDir
+#include <wx/tooltip.h>
 
 // the next are for wxHtmlHelpController
 #include <wx/filesys.h>
@@ -4376,6 +4377,89 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 	
 	return bChangeMade;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if reversal succeeded, FALSE otherwise
+/// \param      pDialog -> pointer to the dialog whose OK and Cancel buttons are to be swapped
+/// \remarks
+/// Called from: Nearly all dialogs having OK and Cancel buttons. 
+/// Reverses the positions of the OK and Cancel buttons within their created dialogs. This is 
+/// accomplished by switching the button's ids and labels. The change is only made for the
+/// wxMac port. wxDesigner positioned the dialog's OK and Cancel buttons assuming the style
+/// of dialogs for Windows which have OK button on the left and Cancel button on the right.
+/// For the proper "look and feel" on a Mac, this order should be reversed to Cancel on 
+/// the left and OK on the right. The dialog assumes that the dialog has already been created
+/// from a function designed by wxDesigner, and that it contains a wxButton with the wxID_OK
+/// identifier and another button with the wxID_CANCEL identifier which were both created as
+/// child windows within a wxBoxSizer created as wxHORIZONTAL. Sets the new OK button as the
+/// default button that is selected when user hits Enter.
+////////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
+{
+#ifndef __WXMAC__ // TODO: Chande to #ifdef after debugged
+	wxASSERT(pDialog != NULL);
+	wxButton* pOKButton = (wxButton*)pDialog->FindWindow(wxID_OK); // FindWindow finds a child of pDialog
+	if (pOKButton == NULL)
+		return FALSE;
+	wxButton* pCancelButton = (wxButton*)pDialog->FindWindow(wxID_CANCEL); // FindWindow finds a child of pDialog
+	if (pCancelButton == NULL)
+		return FALSE;
+
+	// Get pointers to the containing sizer of the two buttons
+	wxBoxSizer* pContSizerOfOK = (wxBoxSizer*)pOKButton->GetContainingSizer();
+	wxASSERT(pContSizerOfOK != NULL);
+	wxBoxSizer* pContSizerOfCancel = (wxBoxSizer*)pCancelButton->GetContainingSizer();
+	wxASSERT(pContSizerOfCancel != NULL);
+	wxASSERT(pContSizerOfOK == pContSizerOfCancel);
+	// Don't proceed if the buttons don't have the same containing sizer
+	if (pContSizerOfOK == NULL || pContSizerOfCancel == NULL || pContSizerOfOK != pContSizerOfCancel)
+		return FALSE;
+
+	wxASSERT(pDialog->GetAffirmativeId() == wxID_OK);
+	wxASSERT(pDialog->GetEscapeId() == wxID_ANY);
+	// Don't proceed if the buttons don't operate in their expected default way
+	if (pDialog->GetAffirmativeId() != wxID_OK || pDialog->GetEscapeId() != wxID_ANY)
+		return FALSE;
+
+	// we only swap buttons if their containing sizer is of wxHORIZONTAL orientation.
+	if (pContSizerOfOK->GetOrientation() == wxHORIZONTAL)
+	{
+		wxString btnOKStr,btnCancelStr;
+		btnOKStr = pOKButton->GetLabel();
+		btnCancelStr = pCancelButton->GetLabel();
+		
+		// reverse the button IDs
+		pOKButton->SetId(wxID_CANCEL);
+		pCancelButton->SetId(wxID_OK);
+
+		// reverse the button labels
+		pOKButton->SetLabel(btnCancelStr);
+		pCancelButton->SetLabel(btnOKStr);
+
+		// reverse the button tooltips
+		wxString ttOKStr;
+		wxString ttCancelStr;
+		wxToolTip* pOkToolTip = pOKButton->GetToolTip();
+		if (pOkToolTip != NULL)
+		{
+			ttOKStr = pOkToolTip->GetTip();
+			pCancelButton->SetToolTip(ttOKStr);
+		}
+		wxToolTip* pCancelToolTip = pCancelButton->GetToolTip();
+		if (pCancelToolTip != NULL)
+		{
+			ttCancelStr = pCancelToolTip->GetTip();
+			pOKButton->SetToolTip(ttCancelStr);
+		}
+		pCancelButton->SetDefault();
+		return TRUE;
+	}
+
+#endif
+	return FALSE;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

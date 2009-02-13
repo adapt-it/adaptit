@@ -86,6 +86,8 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	EditSourceTextDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	
 	// Need pointers for the following:
 	// ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1 

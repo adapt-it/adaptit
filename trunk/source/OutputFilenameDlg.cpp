@@ -77,6 +77,8 @@ COutputFilenameDlg::COutputFilenameDlg(wxWindow* parent)
 	// size dialog.
 	// The declaration is: GetOutputFilenameDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	// initialize attributes
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 
 	m_strFilename = _T("");
 

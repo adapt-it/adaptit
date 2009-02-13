@@ -75,6 +75,9 @@ CRetranslationDlg::CRetranslationDlg(wxWindow* parent) // dialog constructor
 	pRetransSizer = RetranslationDlgFunc(this, TRUE, TRUE);
 	// The declaration is: RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	// use pointers to dialog's controls and wxValidator for simple dialog data transfer
 	pSrcPrecContextBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_PRECONTEXT);
 	pSrcPrecContextBox->SetValidator(wxGenericValidator(&m_preContext));

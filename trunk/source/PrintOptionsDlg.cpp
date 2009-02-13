@@ -120,6 +120,9 @@ CPrintOptionsDlg::CPrintOptionsDlg(wxWindow* parent)// ,wxPrintout* pPrintout) /
 	PrintOptionsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: PrintOptionsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_pView = gpApp->GetView();
 
 	//m_pPrintout = pPrintout; // initialize pointer to the AIPrintout of the caller (OnPrint in the View)

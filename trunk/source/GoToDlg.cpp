@@ -43,6 +43,9 @@
 #include "Adapt_It.h"
 #include "GoToDlg.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
+
 // event handler table
 BEGIN_EVENT_TABLE(CGoToDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CGoToDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
@@ -64,6 +67,8 @@ CGoToDlg::CGoToDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	GoToDlgFunc(this, TRUE, TRUE);
 	// The declaration is: GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	
 	m_pSpinCtrlChapter = (wxSpinCtrl*)FindWindowById(IDC_EDIT_CHAPTER);
 	m_pSpinCtrlVerse = (wxSpinCtrl*)FindWindowById(IDC_EDIT_VERSE);

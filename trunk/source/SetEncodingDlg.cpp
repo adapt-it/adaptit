@@ -97,6 +97,9 @@ CSetEncodingDlg::CSetEncodingDlg(wxWindow* parent) // dialog constructor
 	pSetEncDlgSizer = SetEncodingDlgFunc(this, TRUE, TRUE);
 	// The declaration is: SetEncodingDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	pStaticCurrEncodingIs = (wxStaticText*)FindWindowById(ID_STATIC_CURR_ENCODING_IS);
 	wxASSERT(pStaticCurrEncodingIs != NULL);
 	
