@@ -4397,7 +4397,7 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 {
-#ifndef __WXMAC__ // TODO: Chande to #ifdef after debugged
+#ifdef __WXMAC__ // Chande to #ifndef to test the swapping on Windows or Linux
 	wxASSERT(pDialog != NULL);
 	wxButton* pOKButton = (wxButton*)pDialog->FindWindow(wxID_OK); // FindWindow finds a child of pDialog
 	if (pOKButton == NULL)
