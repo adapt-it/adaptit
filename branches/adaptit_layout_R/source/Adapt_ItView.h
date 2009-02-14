@@ -40,7 +40,7 @@ class CAdapt_ItView;
 class CSourceBundle;
 class CSourcePhrase;
 class CPile;
-class CStrip;
+//class CStrip;
 class CCell;
 class CRefString;
 class CKB;

@@ -48,12 +48,12 @@
 #include "Adapt_It.h"
 #include "Cell.h"
 #include "Pile.h"
-#include "Strip.h"
-#include "SourceBundle.h"
-#include "Adapt_ItDoc.h"
+//#include "Strip.h"
+//#include "SourceBundle.h"
+//#include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "SourcePhrase.h"
-#include "Adapt_ItView.h"
+//#include "Adapt_ItView.h"
 
 // globals for support of vertical editing
 
@@ -794,6 +794,15 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 //			const wxString& phrase, const wxColour& color, int nCell)
 void CCell::DrawCell(wxDC* pDC)
 {
+	// we assume at the time DrawCell() is called that it's owning pile's pointer to the
+	// CSourcePhrase has be updated, if necessary, to comply with the user's changes to
+	// the document (if it hasn't, DrawCell() will crash, so we'll find out soon enough!)
+	// but we defer updating CCell's pointer to the relevant wxString member until now - 
+	// the next call does it
+	SetCellText();
+
+	// *** TODO ***   more, see below
+
 
 	/*  *** TODO *** fix for refactored design
 	wxRect enclosingRect = wxRect(m_ptTopLeft,m_ptBotRight); // the rect where the text will be drawn
@@ -1011,23 +1020,22 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 
 void CCell::SetCellText()
 {
-	CSourcePhrase* pSrcPhrase = m_pOwningPile->GetSrcPhrase();
 	switch (m_nCell)
 	{
 	case 0: // source text line
-		m_pPhrase = &pSrcPhrase->m_srcPhrase;
+		m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_srcPhrase;
 		break;
 	case 2: // gloss text line if glossing, else adaptation text line
 		if (gbIsGlossing)
-			m_pPhrase = &pSrcPhrase->m_targetStr;
+			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
 		else
-			m_pPhrase = &pSrcPhrase->m_gloss;
+			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_gloss;
 		break;
 	default: // adaptation line
 		if (gbIsGlossing)
-			m_pPhrase = &pSrcPhrase->m_gloss;
+			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_gloss;
 		else
-			m_pPhrase = &pSrcPhrase->m_targetStr;
+			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
 		break;
 	}
 }

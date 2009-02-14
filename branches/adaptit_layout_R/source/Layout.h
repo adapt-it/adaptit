@@ -5,7 +5,8 @@
 /// \date_created	09 February 2009
 /// \date_revised	
 /// \copyright		2009 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General Public 
+///                 License (see license directory)
 /// \description	This is the implementation file for the CLayout class. 
 /// The CLayout class replaces the legacy CSourceBundle class, and it encapsulated as much as
 /// possible of the visible layout code for the document. It manages persistent CPile objects
@@ -31,12 +32,9 @@ class CAdapt_ItDoc;
 class CSourceBundle;
 class CStrip;
 class CPile;
-class CText;
+//class CText;
 class CFont;
-
-WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
-WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
-
+class CAdapt_ItCanvas;
 
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips
@@ -133,8 +131,25 @@ public:
 	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
 	// list, and each CPile instance has a member which points to one and only one
 	// CSourcePhrase instance in pSrcPhrases)
-	bool		CreatePiles(PileList* pPiles, SPList* pSrcPhrases);
+	CPile*		CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); // create detached, 
+																		 // caller will store it
+	bool		CreatePiles(SPList* pSrcPhrases);
 	bool		SetupLayout(SPList* pSrcPhrases);
+
+
+
+	// Strip destructors
+	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these 
+										 // are managed by m_pPiles list & must persist
+	void		DestroyStripRange(int nFirstStrip, int nLastStrip);
+	void		DestroyStrips();
+
+	// Pile destructors (for the persistent ones in CLayout::m_pPiles list) - note, 
+	// destroying a pile also, in the same function, destroys its array of CCell instances
+	void		DestroyPile(CPile* pPile);
+	void		DestroyPileRange(int nFirstPile, int nLastPile);
+	void		DestroyPiles();
+
 
 	// getters for clipping rectangle
 	wxRect		GetClipRect();

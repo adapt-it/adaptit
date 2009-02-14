@@ -5,14 +5,15 @@
 /// \date_created	05 January 2004
 /// \date_revised	28 January 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CAdapt_ItApp class and the AIModalDialog class. 
-/// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
-/// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
-/// this source file's global space. The AIModalDialog class provides Adapt It with a modal dialog
-/// base class which turns off Idle and UIUpdate processing while the dialog is being shown.
-/// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support for the document/view framework.
-/// The AIModalDialog class is derived from wxDialog.
+/// \license		The Common Public License or The GNU Lesser General Public 
+///                 License (see license directory)
+/// \description This is the implementation file for the CAdapt_ItApp class and the AIModalDialog
+/// class. The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
+/// Adapt It's global enums, structs and variables are declared either as members of the
+/// CAdapt_ItApp class or in this source file's global space. The AIModalDialog class provides
+/// Adapt It with a modal dialog base class which turns off Idle and UIUpdate processing while the
+/// dialog is being shown. \derivation The CAdapt_ItApp class is derived from wxApp, and inherits
+/// its support for the document/view framework. The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in Adapt_It.cpp (in order of importance): (search for "TODO")
 // 1. Determine what to do about wxWidgets page setup dialog margins only 
@@ -201,6 +202,7 @@ WX_DEFINE_LIST(CCellList);
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called KPlusCList.
 WX_DEFINE_LIST(KPlusCList);
+
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.

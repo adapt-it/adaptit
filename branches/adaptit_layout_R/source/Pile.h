@@ -28,12 +28,15 @@
 
 // forward references:
 class CAdapt_ItApp;
-class CAdapt_ItDoc;
-class CSourceBundle;
+//class CAdapt_ItDoc;
+//class CSourceBundle;
 class CStrip;
 class CSourcePhrase;
 class CCell;
 class CLayout;
+class CPile;
+
+WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 
 /// The CPile class represents the next smaller divisions of a CStrip. The CPile
 /// instances are laid out sequentially within a CStrip. Each CPile stores a 
@@ -63,8 +66,8 @@ public:
 	CSourcePhrase*	m_pSrcPhrase;
 	CStrip*			m_pOwningStrip;
 
-private:
-	// whm Note: Should CSourcePhrase* m_pSrcPhrase below be moved up in the member list???
+//private: made public for same reason I did so in CStrip
+public:
 	CLayout*		m_pLayout;
 	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nWidth;
@@ -94,7 +97,7 @@ public:
 	//CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
 	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
 	//				
-	CPile* CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); // ** *TODO*** internals
+	int			CalcPileWidth();
 
 private:
 	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers

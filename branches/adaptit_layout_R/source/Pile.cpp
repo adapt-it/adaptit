@@ -5,7 +5,8 @@
 /// \date_created	26 March 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General Public 
+///                 License (see license directory)
 /// \description	This is the implementation file for the CPile class. 
 /// The CPile class represents the next smaller divisions of a CStrip. The CPile
 /// instances are laid out sequentially within a CStrip. Each CPile stores a 
@@ -88,12 +89,20 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "Strip.h"
-#include "SourceBundle.h"
-#include "Adapt_ItDoc.h"
+//#include "SourceBundle.h"
+//#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
-#include "Adapt_ItView.h"
+//#include "Adapt_ItView.h"
 #include "Layout.h"
+#include "MainFrm.h"
+
+// Define type safe pointer lists
+#include "wx/listimpl.cpp"
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called PileList.
+WX_DEFINE_LIST(PileList);
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -102,6 +111,13 @@ extern bool gbShowTargetOnly;
 extern bool gbEnableGlossing;
 extern CAdapt_ItApp* gpApp;
 extern const wxChar* filterMkr;
+
+// globals relevant to the phrase box  (usually defined in Adapt_ItView.cpp)
+extern short gnExpandBox; // set to 8
+
+
+/// This global is defined in PhraseBox.cpp.
+extern bool gbExpanding;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -122,7 +138,7 @@ CPile::CPile()
 	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
 	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
 	m_pSrcPhrase = (CSourcePhrase*)NULL;
-	CLayout* m_pLayout = (CLayout*)NULL;
+	m_pLayout = (CLayout*)NULL;
 	m_pOwningStrip = (CStrip*)NULL;
 	m_nWidth = 20;
 	m_nMinWidth = 40;
@@ -679,581 +695,98 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 
 //CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
 //								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
-CPile* CPile::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
+
+
+int CPile::CalcPileWidth()
+// Calculates the pile's width before laying out the current pile in a strip. The function
+// is not interested in the relative ordering of the glossing and adapting cells, and so
+// does not access CCell instances; rather, it just examines extent of the three text members
+// m_srcPhrase, m_targetStr, m_gloss on the CSourcePhrase instance pointed at by this
+// particular CPile instance. The width is the maximum extent.x for the three strings checked.
 {
-	// do the new code
-	m_pLayout = pLayout;
-	m_pSrcPhrase = pSrcPhrase;
+	int pileWidth = 10; // ensure we never get a pileWidth of zero
 
-	CPile* pPile = NULL; // temporary, to get a clean compile
-
-	/*  *** TODO ***  the new handler for refactored layout
-
-	// create the pile on the heap, initializing its cells to MAX_CELLS nulls
-	//CPile* pPile = new CPile(pDoc,pBundle,pStrip,pSrcPhrase); // BEW deprecated 3Feb09
-	//CPile* pPile = new CPile(pBundle,pStrip,pSrcPhrase); // BEW moved to Pile.cpp
-	//wxASSERT(pPile != NULL);
-	CPile* pPile = this; // this relieves me of the burden of removing the pPile-> code below
-	//CAdapt_ItView* pView = pApp->GetView();
-
-	// now set the attributes not already set by the constructor's defaults
-	pPile->m_rectPile = *pRectPile;
-	pPile->m_nWidth = pRectPile->GetRight() - pRectPile->GetLeft();
-
-	// the m_nMinWidth value needs to be set to the initial text-extent-based size of the editBox,
-	// so that if user removes text from the box it will contract back to this minimum size; the
-	// needed value will have been placed in the app's m_nCurPileMinWidth attr by the preceding
-	// GetPileWidth() call in the loop within the CreateStrip() function.
-	pPile->m_nMinWidth = pApp->m_nCurPileMinWidth;
-
-	// now we have to create the cells which this particular pile owns; this will depend on
-	// MAX_CELLS ( == 5 in version 2.0 and onwards), whether or not glossing is allowed, & the user's
-	// choice whether or not to suppress display of either 1st or last row (if 4 rows available);
-	// and whether or not to show or hide punctuation in lines 2 & 3 (see m_bHidePunctuation flag),
-	// and whether or not only the target line is to be shown. When glossing is allowed, the order
-	// of the cells from top to bottom will be: if adapting, src, src, tgt, tgt, gloss; if glossing
-	// src, src, gloss, tgt, tgt.
-	wxPoint  topLeft;
-	wxPoint  botRight;
-	wxFont*  pSrcFont = pApp->m_pSourceFont;
-	wxFont*  pTgtFont = pApp->m_pTargetFont;
-	wxFont*  pNavTextFont = pApp->m_pNavTextFont;
-	wxSize   extent;
-	wxColour color; // MFC had COLORREF color;
-	//m_navTextColor = pApp->m_navTextColor; // do it in class creator
-
-	int cellIndex = -1;
-	cellIndex++; // set cellIndex to zero
-
-	// set the required color for the text, but if target only, it has only target's color
-	// (which can be navText's color if we are glossing - we'll set the target text's color
-	// further down in the block.)
+	// get a device context for the canvas on the stack (wont' accept uncasted definition,
+	// but Adapt_ItView in RemoveSelectioin, line 5702, accepts the equiv without a cast! Huh?)
+	//wxClientDC aDC((wxWindow*)m_pLayout->m_pCanvas); // make a device context
+	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a device context
+	wxSize extent;
+	aDC.SetFont(*m_pLayout->GetSrcFont());
 	if (!gbShowTargetOnly)
 	{
-		if (pSrcPhrase->m_bSpecialText)
-			color = pApp->m_specialTextColor;
+		aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
+		pileWidth = extent.x; // can assume >= to key's width, as differ only by 
+							  // possible punctuation
+	}
+	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
+	{
+		aDC.SetFont(*m_pLayout->GetTgtFont());
+		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
+		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+	}
+	if (!m_pSrcPhrase->m_gloss.IsEmpty())
+	{
+		if (gbGlossingUsesNavFont)
+			aDC.SetFont(*m_pLayout->GetNavTextFont());
 		else
-			color = pApp->m_sourceColor;
-		if (pSrcPhrase->m_bRetranslation)
-			color = pApp->m_reTranslnTextColor;
+			aDC.SetFont(*m_pLayout->GetTgtFont());
+		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
+		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
 	}
-
-	// first two src lines are same whether glossing is enabled or not
-	if (pApp->m_bSuppressFirst)
+    // is this pile the active one? If so, recalc using m_pApp->m_targetPhrase (the phrase box
+    // contents) for the pile extent (plus some slop), because at the active location the
+    // m_adaption & m_targetStr members of pSrcPhrase are not set, and won't be until the user hits
+    // Enter key to move phrase box on or clickes to place it elsewhere, so only
+    // pApp->m_targetPhrase is valid; note, for version 2 which supports a glossing line, the box
+    // will contain a gloss rather than an adaptation whenever gbIsGlossing is TRUE. Glossing could
+    // be using the target font, or the navText font.
+	if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 	{
-		// the first source line is to be suppressed
-		cellIndex++; // == 1, so this will be cell[1] not cell[0]
-
-		// suppress the cell if we want to only show target text line; otherwise
-		// for gbShowTargetOnly == FALSE we want to show the source line too
-		if (!gbShowTargetOnly)
+		wxSize boxExtent;
+		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
-			// calculate the cell's topLeft and botRight points (CText calculates the CRect)
-			topLeft = wxPoint(pRectPile->GetLeft(),pRectPile->GetTop());
-			botRight = wxPoint(pRectPile->GetRight(), pRectPile->GetBottom());
-			// whm: the wx version doesn't use negative offsets
-			botRight.y = pRectPile->GetTop() + pApp->m_nSrcHeight;
-
-			// calculate the extent of the text
-			int keyWidth;
-			int keyDummyHeight;
-			pDC->SetFont(*pSrcFont);
-			if (pApp->m_bHidePunctuation)
-			{
-				pDC->GetTextExtent(pSrcPhrase->m_key, &keyWidth, &keyDummyHeight);
-
-				// create the CCell and set its attributes
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//		pSrcPhrase->m_key,keyWidth,pSrcFont,&color,&topLeft,&botRight,
-				//		cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_key,
-						keyWidth,pSrcFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
-			else
-			{
-				pDC->GetTextExtent(pSrcPhrase->m_srcPhrase, &keyWidth, &keyDummyHeight);
-
-				// create the CCell and set its attributes
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//		pSrcPhrase->m_srcPhrase,keyWidth,pSrcFont,&color,&topLeft,
-				//		&botRight,cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,
-						&pSrcPhrase->m_srcPhrase,keyWidth,pSrcFont,&color,&topLeft,
-						&botRight,cellIndex,&m_navTextColor);
-			}
+			aDC.SetFont(*m_pLayout->GetNavTextFont()); // it's using the navText font
+			aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
 		}
-	}
-	else // two src lines are to be visible
-	{
-		// this is cell[0]
-
-		if (!gbShowTargetOnly) // don't suppress the cell if we want to show src text line
+		else // if not glossing, or not using nav text when glossing, it's using the target font
 		{
-			// calculate the cell's topLeft and botRight points (CText calculates the CRect)
-			topLeft = wxPoint(pRectPile->GetLeft(), pRectPile->GetTop());
-			botRight = wxPoint(pRectPile->GetRight(), pRectPile->GetBottom());
-			// whm: the wx version doesn't use negative offsets
-			botRight.y = pRectPile->GetTop() + pApp->m_nSrcHeight;
-
-			// calculate the extent of the text
-			int spWidth;
-			int spDummyHeight;
-			pDC->SetFont(*pSrcFont);
-			pDC->GetTextExtent(pSrcPhrase->m_srcPhrase, &spWidth, &spDummyHeight);
-
-			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-			//				pSrcPhrase->m_srcPhrase,spWidth,pSrcFont,
-			//				&color,&topLeft,&botRight,cellIndex); // BEW deprecated 3Feb09
-			CCell* pCell = new CCell();
-			pPile->m_pCell[cellIndex] = pCell;
-			pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_srcPhrase,spWidth,pSrcFont,
-							&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-
-			// now the second cell, cell[1]
-			cellIndex++;
-
-			// whm: the wx version doesn't use negative offsets
-			topLeft.y = topLeft.y+pApp->m_nSrcHeight;
-			botRight.y = botRight.y+pApp->m_nSrcHeight;
-
-			// calculate the extent of the text
-			int keyWidth;
-			int keyDummyHeight;
-			pDC->GetTextExtent(pSrcPhrase->m_key, &keyWidth, &keyDummyHeight);
-
-			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-			//				pSrcPhrase->m_key,keyWidth,pSrcFont,&color,
-			//				&topLeft,&botRight,cellIndex); // BEW deprecated 3Feb09
-			pCell = new CCell();
-			pPile->m_pCell[cellIndex] = pCell;
-			pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_key,keyWidth,pSrcFont,&color,
-							&topLeft,&botRight,cellIndex,&m_navTextColor);
+			aDC.SetFont(*m_pLayout->GetTgtFont());
+			aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
 		}
-		else
+		if (boxExtent.x < 10)
+			boxExtent.x = 10; // in case m_targetPhrase was empty or very small 
+		wxString aChar = _T('w');
+		wxSize charSize;
+		aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
+		boxExtent.x += gnExpandBox*charSize.x;	// allow same slop factor as for 
+												// RemakePhraseBox & OnChar
+		pileWidth = boxExtent.x > pileWidth ? boxExtent.x : pileWidth;
+
+        // When the phrase box has just expanded (this happens in the FixBox() function called
+        // after OnChar() ) we have to possibly make a further increase in the size of the box. It
+        // can happen this way... OnChar(), and FixBox() (the latter has the ResizeBox() which
+        // effects box size adjustment) occur before the the event is posted which leads to
+        // OnPhraseBoxChanged() being called. So the box has been resized, and on the app class a
+        // variable m_curBoxWidth stores the new box width. In the MFC app, the box would at this
+        // point have been destroyed and not yet recreated; but the recreated box could be sized at
+        // the old size, and hence its new text may not fit in it. So in FixBox() expansion (but
+        // NOT contraction) sets a global boolean gbExpanding to TRUE, and this tested for now, and
+        // if the pileWidth value computed above is less than the app's m_curBoxWidth value, then
+        // pileWidth is reset to m_curBoxWidth
+        // 
+		// *** TODO *** Note: in wxWidgets, and with the change to having CalcPileWidth() moved to be
+		// a function in CPile, the possibility of pileWidth being sometimes less than m_curBoxWidth
+		// may not obtain - so we need to check if this following test and adjustment is still needed.
+		// If not needed, gbExpanding global can be removed (8 instances in the app)
+		if (gbExpanding)
 		{
-			cellIndex++; // suppress of both wanted, so just ready the index for next increment
-		}
-	} // end of blocks for one or two source text rows
-
-	if (gbIsGlossing)
-	{
-		// we are glossing and gbEnableGlossing is TRUE, so glosses will be visible
-		// as the 2nd line of the strip (or third if both src lines are visible,) so set up
-		// the cell with cellIndex == 2 (and note, if the flag gbShowTargetOnly is TRUE, this
-		// would be the only line in the strip which is visible)
-		if (gbEnableGlossing)
-		{
-			// set the gloss text color, and if using navText's font for the glossing
-			// then set up the device context to use it; else use target font
-			color = pApp->m_navTextColor; // glossing uses navText color always
-			if (gbGlossingUsesNavFont)
-			{
-				pDC->SetFont(*pNavTextFont);
-			}
-			else
-			{
-				pDC->SetFont(*pTgtFont);
-			}
-
-			// a gloss line is wanted, so construct its cell
-			cellIndex++; // cellIndex == 2
-
-			// calculate the cell's topLeft and botRight points
-			if (!gbShowTargetOnly) // this flag refers to glosses when gbIsGlossing is TRUE
-			{
-				if (gbGlossingUsesNavFont)
-				{
-					// give 3 pixel extra offset, for glossing line only
-					// whm: the wx version doesn't use negative offsets
-					topLeft.y = topLeft.y+pApp->m_nSrcHeight + 3;
-					botRight.y = botRight.y+pApp->m_nNavTextHeight + 3;
-				}
-				else
-				{
-					// whm: the wx version doesn't use negative offsets
-					topLeft.y = topLeft.y+pApp->m_nSrcHeight + 3;
-					botRight.y = botRight.y+pApp->m_nTgtHeight + 3;
-				}
-			}
-			else // we are showing only the glossing text (ie. no source and no target lines)
-			{
-				// calculate the cell's topLeft and botRight points (CText calculates the CRect),
-				// as it is the only cell in the pile, for this mode
-				topLeft = wxPoint(pRectPile->GetLeft(), pRectPile->GetTop());
-				botRight = wxPoint(pRectPile->GetRight(), pRectPile->GetBottom());
-				if (gbGlossingUsesNavFont)
-				{
-					// whm: the wx version doesn't use negative offsets
-					botRight.y = pRectPile->GetTop() + pApp->m_nNavTextHeight;
-				}
-				else
-				{
-					// whm: the wx version doesn't use negative offsets
-					botRight.y = pRectPile->GetTop() + pApp->m_nTgtHeight;
-				}
-			}
-
-			// calculate the extent of the text -- but if there is no text, then make
-			// the extent equal to the pileWidth (use m_adaption, so will be correct
-			// for retranslations, etc)
-			int glossWidth;
-			int glossDummyHeight;
-			if (pSrcPhrase->m_gloss.IsEmpty())
-			{
-				// no translation or retranslation, etc, so use pileWidth for extent
-				glossWidth = pPile->m_nWidth;
-			}
-			else
-			{
-				// get the extent of the text
-				pDC->GetTextExtent(pSrcPhrase->m_gloss, &glossWidth, &glossDummyHeight);
-			}
-
-			// create the cell and set its attributes; which font gets used will
-			// depend on the gbGlossingUsesNavFont flag
-			if (gbGlossingUsesNavFont)
-			{
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//	pSrcPhrase->m_gloss,glossWidth,pNavTextFont,&color,&topLeft,
-				//	&botRight,cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_gloss,glossWidth,
-					pNavTextFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
-			else
-			{
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//	pSrcPhrase->m_gloss,glossWidth,pTgtFont,&color,&topLeft,
-				//	&botRight,cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_gloss,glossWidth,
-					pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
-		}
-
-		if (!gbShowTargetOnly)
-		{
-			// continue to 4th visible line (or 3nd visible line if m_bSuppressFirst is TRUE),
-			// this is cell[3] and is the first of the lines which may have target text
-			cellIndex++; // set cellIndex to 3
-
-			// set the target language's text color
-			color = pApp->m_targetColor;
-
-			// calculate the cell's topLeft and botRight points
-			if (gbGlossingUsesNavFont)
-			{
-				// whm: the wx version doesn't use negative offsets
-				topLeft.y = topLeft.y+pApp->m_nNavTextHeight;
-				botRight.y = botRight.y+pApp->m_nTgtHeight;
-			}
-			else
-			{
-				// whm: the wx version doesn't use negative offsets
-				topLeft.y = topLeft.y+pApp->m_nTgtHeight;
-				botRight.y = botRight.y+pApp->m_nTgtHeight;
-			}
-
-			// calculate the extent of the text -- but if there is no text, then make the extent
-			// equal to the pileWidth (use m_adaption, so will be correct for retranslations, etc)
-			// (if this cell is at the active location, displaying it will be suppressed externally)
-			pDC->SetFont(*pTgtFont);
-			if (!pApp->m_bHidePunctuation && pApp->m_bSuppressLast)
-			{
-				int tgtWidth;
-				int tgtDummyHeight;
-				if (pSrcPhrase->m_targetStr.IsEmpty())
-				{
-					// no translation or retranslation, etc, so use pileWidth for extent
-					tgtWidth = pPile->m_nWidth; 
-				}
-				else
-				{
-					// get the extent of the text
-					pDC->GetTextExtent(pSrcPhrase->m_targetStr, &tgtWidth, &tgtDummyHeight);
-				}
-
-				// create the cell and set its attributes
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,&botRight,
-				//		cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_targetStr,tgtWidth,
-									pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
-			else // either hiding punctuation or not suppressing the last target line
-				// (cellIndex == 3)still
-			{
-				int aWidth;
-				int aDummyHeight;
-				if (pSrcPhrase->m_adaption.IsEmpty())
-				{
-					// no translation or retranslation, etc, so use pileWidth for extent
-					aWidth = pPile->m_nWidth; // don't care about extent.cy
-				}
-				else
-				{
-					// get the extent of the text
-					pDC->GetTextExtent(pSrcPhrase->m_adaption, &aWidth, &aDummyHeight);
-				}
-
-				// create the cell and set its attributes
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//		pSrcPhrase->m_adaption,aWidth,pTgtFont,&color,&topLeft,&botRight,
-				//		cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_adaption,aWidth,
-								pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
-
-			// now the 5th line, provided it is not suppressed (it's a punctuated target
-			// text line, if visible)
-			if (!pApp->m_bSuppressLast)
-			{
-				// a fifth line is wanted, construct its cell
-				cellIndex++; // cellIndex == 4
-
-				// calculate the cell's topLeft and botRight points
-				// whm: the wx version doesn't use negative offsets
-				topLeft.y = topLeft.y+pApp->m_nTgtHeight; 
-				botRight.y = botRight.y+pApp->m_nTgtHeight;
-
-				// calculate the extent of the text -- but if there is no text, then make
-				// the extent equal to the pileWidth (use m_adaption, so will be correct
-				// for retranslations, etc)
-				int tgtWidth;
-				int tgtDummyHeight;
-				if (pSrcPhrase->m_targetStr.IsEmpty())
-				{
-					// no translation or retranslation, etc, so use pileWidth for extent
-					//extent.cx = pPile->m_nWidth; // don't care about extent.cy
-					tgtWidth = pPile->m_nWidth; // don't care about extent.cy
-				}
-				else
-				{
-					// get the extent of the text
-					pDC->GetTextExtent(pSrcPhrase->m_targetStr, &tgtWidth, &tgtDummyHeight);
-				}
-
-				// create the cell and set its attributes
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,
-				//		&botRight,cellIndex); //BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_targetStr,tgtWidth,
-								pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
+			pileWidth = pileWidth < m_pLayout->m_pApp->m_curBoxWidth 
+						? m_pLayout->m_pApp->m_curBoxWidth : pileWidth;
+			gbExpanding = FALSE; // clear to default FALSE
 		}
 	}
-	else // the user is adapting (rather than glossing)
-	{
-		// continue to 3rd visible line (or 2nd visible line if m_bSuppressFirst is TRUE),
-		// this is cell[2], and it will contain target text
-		cellIndex++; // set cellIndex to 2
-
-		// set the target language's text color
-		color = pApp->m_targetColor;
-
-		if (!gbShowTargetOnly)
-		{
-			// calculate the cell's topLeft and botRight points
-			// whm: the wx version doesn't use negative offsets
-			topLeft.y = topLeft.y+pApp->m_nSrcHeight;
-			botRight.y = botRight.y+pApp->m_nTgtHeight;
-		}
-		else // we are showing only the target text
-		{
-			// calculate the cell's topLeft and botRight points (CText calculates the CRect),
-			// as it is the only cell in the pile, for this mode
-			topLeft = wxPoint(pRectPile->GetLeft(), pRectPile->GetTop());
-			botRight = wxPoint(pRectPile->GetRight(), pRectPile->GetBottom());
-			// whm: the wx version doesn't use negative offsets
-			botRight.y = pRectPile->GetTop() + pApp->m_nTgtHeight;
-		}
-
-		// calculate the extent of the text -- but if there is no text, then make the extent
-		// equal to the pileWidth (use m_adaption, so will be correct for retranslations, etc)
-		// (if this cell is at the active location, displaying it will be suppressed externally)
-		pDC->SetFont(*pTgtFont);
-		if (!pApp->m_bHidePunctuation && pApp->m_bSuppressLast)
-		{
-			int tgtWidth;
-			int tgtDummyHeight;
-			if (pSrcPhrase->m_targetStr.IsEmpty())
-			{
-				// no translation or retranslation, etc, so use pileWidth for extent
-				tgtWidth = pPile->m_nWidth; // don't care about extent.cy
-			}
-			else
-			{
-				// get the extent of the text
-				pDC->GetTextExtent(pSrcPhrase->m_targetStr, &tgtWidth, &tgtDummyHeight);
-			}
-
-			// create the cell and set its attributes
-			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-			//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,&botRight,
-			//		cellIndex); // BEW deprecated 3Feb09
-			CCell* pCell = new CCell();
-			pPile->m_pCell[cellIndex] = pCell;
-			pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_targetStr,tgtWidth,
-							pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-		}
-		else // either hiding punctuation or not suppressing the last target line
-		{
-			int aWidth;
-			int aDummyHeight;
-			if (pSrcPhrase->m_adaption.IsEmpty())
-			{
-				// no translation or retranslation, etc, so use pileWidth for extent
-				aWidth = pPile->m_nWidth; // don't care about extent.cy
-			}
-			else
-			{
-				// get the extent of the text
-				pDC->GetTextExtent(pSrcPhrase->m_adaption, &aWidth, &aDummyHeight);
-			}
-
-			// create the cell and set its attributes
-			//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-			//		pSrcPhrase->m_adaption,aWidth,pTgtFont,&color,&topLeft,&botRight,
-			//		cellIndex); // BEW deprecated 3Feb09
-			CCell* pCell = new CCell();
-			pPile->m_pCell[cellIndex] = pCell;
-			pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_adaption,aWidth,
-							pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-		}
-
-		// now the 4th line, provided it is not suppressed
-		if (!pApp->m_bSuppressLast)
-		{
-			if (!gbShowTargetOnly)
-			{
-				// a fourth line is wanted, construct its cell
-				cellIndex++; // cellIndex == 3
-
-				// calculate the cell's topLeft and botRight points
-				// whm: the wx version doesn't use negative offsets
-				topLeft.y = topLeft.y+pApp->m_nTgtHeight;
-				botRight.y = botRight.y+pApp->m_nTgtHeight;
-
-				// calculate the extent of the text -- but if there is no text, then make
-				// the extent equal to the pileWidth (use m_adaption, so will be correct
-				// for retranslations, etc)
-				int tgtWidth;
-				int tgtDummyHeight;
-				if (pSrcPhrase->m_targetStr.IsEmpty())
-				{
-					// no translation or retranslation, etc, so use pileWidth for extent
-					tgtWidth = pPile->m_nWidth; // don't care about extent.cy
-				}
-				else
-				{
-					// get the extent of the text
-					pDC->GetTextExtent(pSrcPhrase->m_targetStr, &tgtWidth, &tgtDummyHeight);
-				}
-
-				// create the cell and set its attributes
-				//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-				//		pSrcPhrase->m_targetStr,tgtWidth,pTgtFont,&color,&topLeft,
-				//		&botRight,cellIndex); // BEW deprecated 3Feb09
-				CCell* pCell = new CCell();
-				pPile->m_pCell[cellIndex] = pCell;
-				pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_targetStr,tgtWidth,
-								pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-			}
-			else
-			{
-				cellIndex++; // cellIndex == 3, to keep indices right for any gloss line
-			}
-
-		}
-
-		// not glossing, but if gbEnableGlossing is TRUE, then glosses will be visible
-		// as the last line of the strip, so set up the 5th cell to contain the gloss
-		if (gbEnableGlossing)
-		{
-			if (!gbShowTargetOnly) // don't calculate the cell if we are showing tgt only
-			{
-				// set the gloss text color, and if using navText's font for the glossing
-				// then set up the device context to use it
-				color = pApp->m_navTextColor; // glossing always uses navText's color
-				if (gbGlossingUsesNavFont)
-				{
-					pDC->SetFont(*pNavTextFont);
-				}
-
-				// a gloss line is wanted, so construct its cell
-				cellIndex++; // cellIndex == 3 (if one tgt line) or 4
-
-				// calculate the cell's topLeft and botRight points; we will offset the
-				// gloss line an extra 3 pixels from the line above it, since there appears
-				// to be some unwanted encroachment for some fonts in some sizes
-				if (gbGlossingUsesNavFont)
-				{
-					// whm: the wx version doesn't use negative offsets
-					topLeft.y = topLeft.y+pApp->m_nTgtHeight + 3;
-					botRight.y = botRight.y+pApp->m_nNavTextHeight + 3;
-				}
-				else
-				{
-					// whm: the wx version doesn't use negative offsets
-					topLeft.y = topLeft.y+pApp->m_nTgtHeight + 3;
-					botRight.y = botRight.y+pApp->m_nTgtHeight + 3;
-				}
-
-				// calculate the extent of the text -- but if there is no text, then make
-				// the extent equal to the pileWidth (use m_adaption, so will be correct
-				// for retranslations, etc)
-				int glossWidth;
-				int glossDummyHeight;
-				if (pSrcPhrase->m_gloss.IsEmpty())
-				{
-					// no translation or retranslation, etc, so use pileWidth for extent
-					glossWidth = pPile->m_nWidth; // don't care about extent.cy
-				}
-				else
-				{
-					// get the extent of the text
-					pDC->GetTextExtent(pSrcPhrase->m_gloss, &glossWidth, &glossDummyHeight);
-				}
-
-				// create the cell and set its attributes; which font gets used will
-				// depend on the gbGlossingUsesNavFont flag
-				if (gbGlossingUsesNavFont)
-				{
-					//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-					//	pSrcPhrase->m_gloss,glossWidth,pNavTextFont,&color,&topLeft,
-					//	&botRight,cellIndex); / BEW deprecated 3Feb09
-					CCell* pCell = new CCell();
-					pPile->m_pCell[cellIndex] = pCell;
-					pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_gloss,glossWidth,
-								pNavTextFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-				}
-				else
-				{
-					//pPile->m_pCell[cellIndex] = CreateCell(pDoc,pBundle,pStrip,pPile,
-					//	pSrcPhrase->m_gloss,glossWidth,pTgtFont,&color,&topLeft,
-					//	&botRight,cellIndex); // BEW deprecated 3Feb09
-					CCell* pCell = new CCell();
-					pPile->m_pCell[cellIndex] = pCell;
-					pCell->CreateCell(pBundle,pStrip,pPile,&pSrcPhrase->m_gloss,glossWidth,
-								pTgtFont,&color,&topLeft,&botRight,cellIndex,&m_navTextColor);
-				}
-			}
-		}
-	}
-	*/
-	return pPile;
+	return pileWidth;
 }
+
 
 

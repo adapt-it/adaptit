@@ -45,12 +45,19 @@
 #include "Adapt_It.h"
 #include "Cell.h"
 #include "Pile.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "MainFrm.h"
 #include "Strip.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h"
 #include "Layout.h"
+// Define type safe pointer lists
+#include "wx/listimpl.cpp"
+
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called StripList.
+WX_DEFINE_LIST(StripList);
+
 
 extern bool gbIsPrinting; // whm added because wxDC does not have ::IsPrinting() method
 extern CAdapt_ItApp* gpApp;
