@@ -43,14 +43,19 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
 #include "Adapt_It.h"
-#include "Cell.h"
-#include "Pile.h"
 //#include "SourceBundle.h"
 #include "MainFrm.h"
-#include "Strip.h"
 #include "AdaptitConstants.h"
+// don't mess with the order of the following includes, Strip must precede View must precede
+// Pile must precede Layout and Cell can usefully by last
+#include "Strip.h"
 #include "Adapt_ItView.h"
+#include "Pile.h"
 #include "Layout.h"
+#include "Cell.h"
+
+
+
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 

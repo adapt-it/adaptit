@@ -49,6 +49,8 @@ WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 /// \derivation		The CPile class is derived from wxObject.
 class CPile : public wxObject  
 {
+	friend class CCell;
+	friend class CLayout;
 public:
 	// constructors
 	CPile();
@@ -66,8 +68,7 @@ public:
 	CSourcePhrase*	m_pSrcPhrase;
 	CStrip*			m_pOwningStrip;
 
-//private: made public for same reason I did so in CStrip
-public:
+private:
 	CLayout*		m_pLayout;
 	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
 	int				m_nWidth;

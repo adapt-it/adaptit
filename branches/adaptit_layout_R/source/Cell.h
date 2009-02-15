@@ -40,7 +40,7 @@ class CFont;
 /// \derivation		The CCell class is derived from wxObject.
 class CCell : public wxObject  
 {
-
+	friend class CLayout;
 public:
 	// constructors
 	CCell();
@@ -50,8 +50,7 @@ public:
 
 
 	// attributes
-//private: made public for same reason I did so in CStrip
-public:
+private: 
 	bool		m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
 	int			m_nCell;	// index to this particular cell in the pile's array
 	wxString*	m_pPhrase;	// point to m_gloss or m_targetStr depending on gbIsGlossing

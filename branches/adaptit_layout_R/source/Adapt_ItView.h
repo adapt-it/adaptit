@@ -5,7 +5,8 @@
 /// \date_created	05 January 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General 
+///                 Public License (see license directory)
 /// \description	This is the header file for the CAdapt_ItView class. 
 /// The CAdapt_ItView class is the most complex class in the application. 
 /// It controls every aspect of how the

@@ -54,21 +54,24 @@ int m_curPileHeight     on the app
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
-#include "Adapt_It.h"
-#include "Cell.h"
-#include "Pile.h"
-#include "Strip.h"
-#include "Adapt_ItDoc.h"
-#include "AdaptitConstants.h"
-#include "SourcePhrase.h"
-#include "Adapt_ItView.h"
-#include "MainFrm.h"
-#include "Layout.h"
-
 // Define type safe pointer lists
 //#include "wx/listimpl.cpp"
 //#include "wx/list.h"
-//#include "wx/debug.h"
+//#include "wx/debug.h" 
+//
+#include "Adapt_It.h"
+#include "Adapt_ItDoc.h"
+#include "AdaptitConstants.h"
+#include "SourcePhrase.h"
+#include "MainFrm.h"
+// don't mess with the order of the following includes, Strip must precede View must precede
+// Pile must precede Layout and Cell can usefully by last
+#include "Strip.h"
+#include "Adapt_ItView.h"
+#include "Pile.h"
+#include "Layout.h"
+#include "Cell.h"
+
 
 // globals for support of vertical editing
 
@@ -347,21 +350,20 @@ void CLayout::SetNavTextFont(CAdapt_ItApp* pApp)
 	m_pNavTextFont = pApp->m_pNavTextFont;
 }
 
+/* using friends, we only need the setters
 wxFont*	CLayout::GetSrcFont()
 {
 	return m_pSrcFont;
 }
-
 wxFont* CLayout::GetTgtFont()
 {
 	return m_pTgtFont;
 }
-
 wxFont* CLayout::GetNavTextFont()
 {
 	return m_pNavTextFont;
 }
-
+*/
 
 
 // accessors and getters for src, tgt & navText colours

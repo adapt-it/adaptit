@@ -46,14 +46,16 @@
 
 //#include "helpers.h" // whm added 28Mar04
 #include "Adapt_It.h"
-#include "Cell.h"
-#include "Pile.h"
-//#include "Strip.h"
-//#include "SourceBundle.h"
-//#include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "SourcePhrase.h"
+//#include "SourceBundle.h"
+//#include "Adapt_ItDoc.h"
+// don't mess with the order of the following includes, Strip must precede View must precede
+// Pile must precede Layout and Cell can usefully by last
+//#include "Strip.h"
 //#include "Adapt_ItView.h"
+#include "Pile.h"
+#include "Cell.h"
 
 // globals for support of vertical editing
 

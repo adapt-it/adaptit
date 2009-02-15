@@ -86,15 +86,17 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
 #include "Adapt_It.h"
-#include "Cell.h"
-#include "Pile.h"
-#include "Strip.h"
 //#include "SourceBundle.h"
 //#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
+// don't mess with the order of the following includes, Strip must precede View must precede
+// Pile must precede Layout and Cell can usefully by last
+#include "Strip.h"
 //#include "Adapt_ItView.h"
+#include "Pile.h"
 #include "Layout.h"
+#include "Cell.h"
 #include "MainFrm.h"
 
 // Define type safe pointer lists
@@ -711,7 +713,8 @@ int CPile::CalcPileWidth()
 	//wxClientDC aDC((wxWindow*)m_pLayout->m_pCanvas); // make a device context
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a device context
 	wxSize extent;
-	aDC.SetFont(*m_pLayout->GetSrcFont());
+	//aDC.SetFont(*m_pLayout->GetSrcFont());
+	aDC.SetFont(*m_pLayout->m_pSrcFont); // works, now we are friends
 	if (!gbShowTargetOnly)
 	{
 		aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
@@ -720,16 +723,19 @@ int CPile::CalcPileWidth()
 	}
 	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
 	{
-		aDC.SetFont(*m_pLayout->GetTgtFont());
+		//aDC.SetFont(*m_pLayout->GetTgtFont());
+		aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
 		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
 	}
 	if (!m_pSrcPhrase->m_gloss.IsEmpty())
 	{
 		if (gbGlossingUsesNavFont)
-			aDC.SetFont(*m_pLayout->GetNavTextFont());
+			//aDC.SetFont(*m_pLayout->GetNavTextFont());
+			aDC.SetFont(*m_pLayout->m_pNavTextFont);
 		else
-			aDC.SetFont(*m_pLayout->GetTgtFont());
+			//aDC.SetFont(*m_pLayout->GetTgtFont());
+			aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
 		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
 	}
@@ -745,12 +751,14 @@ int CPile::CalcPileWidth()
 		wxSize boxExtent;
 		if (gbIsGlossing && gbGlossingUsesNavFont)
 		{
-			aDC.SetFont(*m_pLayout->GetNavTextFont()); // it's using the navText font
+			//aDC.SetFont(*m_pLayout->GetNavTextFont()); // it's using the navText font
+			aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
 			aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
 		}
 		else // if not glossing, or not using nav text when glossing, it's using the target font
 		{
-			aDC.SetFont(*m_pLayout->GetTgtFont());
+			//aDC.SetFont(*m_pLayout->GetTgtFont());
+			aDC.SetFont(*m_pLayout->m_pTgtFont);
 			aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
 		}
 		if (boxExtent.x < 10)

@@ -25,9 +25,10 @@
 
 // forward references:
 //class CAdapt_ItDoc; // BEW deprecated 3Feb09
+//class CSourceBundle;
 class CPile;
 class CStrip;
-//class CSourceBundle;
+class CLayout; // make the "friend class CLayout" declaration work
 
 WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
 
@@ -38,7 +39,8 @@ WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
 /// \derivation The CStrip class is derived from wxObject.
 class CStrip : public wxObject  
 {
-
+	friend class CPile;
+	friend class CLayout;
 public:
 	CStrip();
 	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
@@ -51,10 +53,7 @@ public:
 	// attributes
 	int			m_nStrip; // index of this strip in CLayout's m_arrStrips array of pointers
 	
-//private: changed to public, CLayout has to manage all this stuff & we don't want the code
-//bogged down with a plethora of access functions because we've hidden the information CLayout
-//needs from itself
-public:
+private:
 	CLayout*	m_pLayout; // the owning CLayout
 	wxArrayInt	m_arrPiles; // array of CPile* instances which comprise the strip
 	wxArrayInt	m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile

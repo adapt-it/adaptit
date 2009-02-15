@@ -27,6 +27,22 @@
     #pragma interface "Layout.h"
 #endif
 
+/////////// FRIENDSHIPS in the layout functionality, and their meanings ///////////////////////
+///
+///    CLayout is a friend for CStrip, CPile & CCell
+///    CStrip  is a friend for CPile & CLayout
+///    CPile   is a friend for CStrip & CLayout
+///    CCell   is a friend for CLayout
+///    CLayout* is passed as a parameter in the CreateXXXX() function for CStrip, CPile, CCell.
+///    CStrip is passed as a parameter to CPile, CPile is passed as a parameter to CCell.
+///    The friendships to CLayout mean that CStrip, CPile, and CCell may access CLayout's
+///    private members. Implication? We can dispense with getters in CLayout for those private
+///    members. We do need CLayout to have setters for the private members, as various parts of
+///    the application will, when the user changes some setting or other, need to update the
+///    relevant private members of CLayout safely.
+///
+////////////////////////////////////////////////////////////////////////////////////////////
+
 // forward references
 class CAdapt_ItDoc;
 class CSourceBundle;
@@ -44,6 +60,9 @@ class CAdapt_ItCanvas;
 /// \derivation		The CLayout class is derived from wxObject.
 class CLayout : public wxObject  
 {
+	friend class CStrip;
+	friend class CPile;
+	friend class CCell;
 
 public:
 	// constructors
@@ -56,7 +75,8 @@ public:
 	CAdapt_ItCanvas*	m_pCanvas;
 	CMainFrame*			m_pMainFrame;
 
-public:
+//public:
+private:
 	PileList*			m_pPiles;
 	StripList*			m_pStrips;
 
@@ -170,9 +190,11 @@ public:
 	void		SetSrcFont(CAdapt_ItApp* pApp);
 	void		SetTgtFont(CAdapt_ItApp* pApp);
 	void		SetNavTextFont(CAdapt_ItApp* pApp);
+	/* using friends, we only need the setters
 	wxFont*		GetSrcFont();
 	wxFont*		GetTgtFont();
 	wxFont*		GetNavTextFont();
+	*/
 
 	// setters and getters for text colors
 	void		SetSrcColor(CAdapt_ItApp* pApp);
