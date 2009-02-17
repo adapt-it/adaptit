@@ -3246,6 +3246,8 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
 	// It/../Resources/locale" which is programmatically represented by:
 	localizationFilePath + m_appInstallPathOnly + _T("/../Resources/locale"); // the path separator is added by the caller
+	wxFileName fn(localizationFilePath);
+	localizationFilePath = fn.Normalize();
 	pathToLocalizationFolders = localizationFilePath;
 #endif
 
@@ -3382,6 +3384,8 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
 	// It/../SharedSupport" which is programmatically represented by:
 	pathToHtmlHelpFiles = m_appInstallPathOnly + _T("/../SharedSupport"); // the path separator is added by the caller
+	wxFileName fn(pathToHtmlHelpFiles);
+	pathToHtmlHelpFiles = fn.Normalize();
 #endif
 
 #ifdef __WXGTK__
