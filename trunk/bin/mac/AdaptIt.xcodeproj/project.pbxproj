@@ -1,0 +1,837 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D20F462A570047FCAF /* AI_USFM.xml */; };
+		7DC038D50F462A570047FCAF /* books.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D30F462A570047FCAF /* books.xml */; };
+		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
+		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
+		C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
+		C8F82E5E0F3F9CAB007579B8 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */; };
+		C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */; };
+		C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */; };
+		C8F82E610F3F9CAB007579B8 /* AIPrintout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC00F3F9CAB007579B8 /* AIPrintout.cpp */; };
+		C8F82E620F3F9CAB007579B8 /* AutoSavingPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC20F3F9CAB007579B8 /* AutoSavingPage.cpp */; };
+		C8F82E630F3F9CAB007579B8 /* BString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC40F3F9CAB007579B8 /* BString.cpp */; };
+		C8F82E640F3F9CAB007579B8 /* CaseEquivPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC60F3F9CAB007579B8 /* CaseEquivPage.cpp */; };
+		C8F82E650F3F9CAB007579B8 /* CCModule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC90F3F9CAB007579B8 /* CCModule.cpp */; };
+		C8F82E660F3F9CAB007579B8 /* CCTabbedDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DCB0F3F9CAB007579B8 /* CCTabbedDialog.cpp */; };
+		C8F82E670F3F9CAB007579B8 /* CCTableEditDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DCD0F3F9CAB007579B8 /* CCTableEditDlg.cpp */; };
+		C8F82E680F3F9CAB007579B8 /* CCTableNameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DCF0F3F9CAB007579B8 /* CCTableNameDlg.cpp */; };
+		C8F82E690F3F9CAB007579B8 /* Cell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DD10F3F9CAB007579B8 /* Cell.cpp */; };
+		C8F82E6A0F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DD30F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.cpp */; };
+		C8F82E6B0F3F9CAB007579B8 /* ChooseLanguageDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DD50F3F9CAB007579B8 /* ChooseLanguageDlg.cpp */; };
+		C8F82E6C0F3F9CAB007579B8 /* ChooseTranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DD70F3F9CAB007579B8 /* ChooseTranslation.cpp */; };
+		C8F82E6D0F3F9CAB007579B8 /* CollectBacktranslations.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DD90F3F9CAB007579B8 /* CollectBacktranslations.cpp */; };
+		C8F82E6E0F3F9CAB007579B8 /* ComposeBarEditBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DDB0F3F9CAB007579B8 /* ComposeBarEditBox.cpp */; };
+		C8F82E6F0F3F9CAB007579B8 /* ConsistencyCheckDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DDD0F3F9CAB007579B8 /* ConsistencyCheckDlg.cpp */; };
+		C8F82E700F3F9CAB007579B8 /* ConsistentChanger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DDF0F3F9CAB007579B8 /* ConsistentChanger.cpp */; };
+		C8F82E710F3F9CAB007579B8 /* DocPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DE10F3F9CAB007579B8 /* DocPage.cpp */; };
+		C8F82E720F3F9CAB007579B8 /* EarlierTranslationDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DE30F3F9CAB007579B8 /* EarlierTranslationDlg.cpp */; };
+		C8F82E730F3F9CAB007579B8 /* EditPreferencesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DE50F3F9CAB007579B8 /* EditPreferencesDlg.cpp */; };
+		C8F82E740F3F9CAB007579B8 /* EditSourceTextDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DE70F3F9CAB007579B8 /* EditSourceTextDlg.cpp */; };
+		C8F82E750F3F9CAB007579B8 /* ExportFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DE90F3F9CAB007579B8 /* ExportFunctions.cpp */; };
+		C8F82E760F3F9CAB007579B8 /* ExportInterlinearDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DEB0F3F9CAB007579B8 /* ExportInterlinearDlg.cpp */; };
+		C8F82E770F3F9CAB007579B8 /* ExportOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DED0F3F9CAB007579B8 /* ExportOptionsDlg.cpp */; };
+		C8F82E780F3F9CAB007579B8 /* ExportSaveAsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DEF0F3F9CAB007579B8 /* ExportSaveAsDlg.cpp */; };
+		C8F82E790F3F9CAB007579B8 /* FilterPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF10F3F9CAB007579B8 /* FilterPage.cpp */; };
+		C8F82E7A0F3F9CAB007579B8 /* FindReplace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF30F3F9CAB007579B8 /* FindReplace.cpp */; };
+		C8F82E7B0F3F9CAB007579B8 /* FontPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF50F3F9CAB007579B8 /* FontPage.cpp */; };
+		C8F82E7C0F3F9CAB007579B8 /* GoToDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF70F3F9CAB007579B8 /* GoToDlg.cpp */; };
+		C8F82E7D0F3F9CAB007579B8 /* helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DF90F3F9CAB007579B8 /* helpers.cpp */; };
+		C8F82E7E0F3F9CAB007579B8 /* JoinDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DFB0F3F9CAB007579B8 /* JoinDialog.cpp */; };
+		C8F82E7F0F3F9CAB007579B8 /* KB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DFD0F3F9CAB007579B8 /* KB.cpp */; };
+		C8F82E800F3F9CAB007579B8 /* KBEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DFF0F3F9CAB007579B8 /* KBEditor.cpp */; };
+		C8F82E810F3F9CAB007579B8 /* KBPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E010F3F9CAB007579B8 /* KBPage.cpp */; };
+		C8F82E820F3F9CAB007579B8 /* LanguagesPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E030F3F9CAB007579B8 /* LanguagesPage.cpp */; };
+		C8F82E830F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E050F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.cpp */; };
+		C8F82E840F3F9CAB007579B8 /* MainFrm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E070F3F9CAB007579B8 /* MainFrm.cpp */; };
+		C8F82E850F3F9CAB007579B8 /* MoveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E090F3F9CAB007579B8 /* MoveDialog.cpp */; };
+		C8F82E860F3F9CAB007579B8 /* Mover.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E0B0F3F9CAB007579B8 /* Mover.cpp */; };
+		C8F82E870F3F9CAB007579B8 /* MyListBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E0D0F3F9CAB007579B8 /* MyListBox.cpp */; };
+		C8F82E880F3F9CAB007579B8 /* NoteDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E0F0F3F9CAB007579B8 /* NoteDlg.cpp */; };
+		C8F82E890F3F9CAB007579B8 /* OpenExistingProjectDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E110F3F9CAB007579B8 /* OpenExistingProjectDlg.cpp */; };
+		C8F82E8A0F3F9CAB007579B8 /* OutputFilenameDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E130F3F9CAB007579B8 /* OutputFilenameDlg.cpp */; };
+		C8F82E8B0F3F9CAB007579B8 /* PhraseBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E150F3F9CAB007579B8 /* PhraseBox.cpp */; };
+		C8F82E8C0F3F9CAB007579B8 /* Pile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E170F3F9CAB007579B8 /* Pile.cpp */; };
+		C8F82E8D0F3F9CAB007579B8 /* PlaceInternalMarkers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E190F3F9CAB007579B8 /* PlaceInternalMarkers.cpp */; };
+		C8F82E8E0F3F9CAB007579B8 /* PlaceInternalPunct.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E1B0F3F9CAB007579B8 /* PlaceInternalPunct.cpp */; };
+		C8F82E8F0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E1D0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp */; };
+		C8F82E900F3F9CAB007579B8 /* PrintOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E1F0F3F9CAB007579B8 /* PrintOptionsDlg.cpp */; };
+		C8F82E910F3F9CAB007579B8 /* ProgressDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E210F3F9CAB007579B8 /* ProgressDlg.cpp */; };
+		C8F82E920F3F9CAB007579B8 /* ProjectPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E230F3F9CAB007579B8 /* ProjectPage.cpp */; };
+		C8F82E930F3F9CAB007579B8 /* PunctCorrespPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E250F3F9CAB007579B8 /* PunctCorrespPage.cpp */; };
+		C8F82E940F3F9CAB007579B8 /* RefString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E270F3F9CAB007579B8 /* RefString.cpp */; };
+		C8F82E950F3F9CAB007579B8 /* RetranslationDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E290F3F9CAB007579B8 /* RetranslationDlg.cpp */; };
+		C8F82E960F3F9CAB007579B8 /* SetDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E2B0F3F9CAB007579B8 /* SetDelay.cpp */; };
+		C8F82E970F3F9CAB007579B8 /* SetEncodingDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E2D0F3F9CAB007579B8 /* SetEncodingDlg.cpp */; };
+		C8F82E980F3F9CAB007579B8 /* SilConverterSelectDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E2F0F3F9CAB007579B8 /* SilConverterSelectDlg.cpp */; };
+		C8F82E990F3F9CAB007579B8 /* SourceBundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E310F3F9CAB007579B8 /* SourceBundle.cpp */; };
+		C8F82E9A0F3F9CAB007579B8 /* SourcePhrase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E330F3F9CAB007579B8 /* SourcePhrase.cpp */; };
+		C8F82E9B0F3F9CAB007579B8 /* SplitDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E350F3F9CAB007579B8 /* SplitDialog.cpp */; };
+		C8F82E9C0F3F9CAB007579B8 /* Stack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E370F3F9CAB007579B8 /* Stack.cpp */; };
+		C8F82E9D0F3F9CAB007579B8 /* StartWorkingWizard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E390F3F9CAB007579B8 /* StartWorkingWizard.cpp */; };
+		C8F82E9E0F3F9CAB007579B8 /* Strip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E3B0F3F9CAB007579B8 /* Strip.cpp */; };
+		C8F82E9F0F3F9CAB007579B8 /* TargetUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */; };
+		C8F82EA00F3F9CAB007579B8 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E3F0F3F9CAB007579B8 /* Text.cpp */; };
+		C8F82EA10F3F9CAB007579B8 /* TransformToGlossesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E410F3F9CAB007579B8 /* TransformToGlossesDlg.cpp */; };
+		C8F82EA20F3F9CAB007579B8 /* UnitsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */; };
+		C8F82EA30F3F9CAB007579B8 /* UnitsPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E450F3F9CAB007579B8 /* UnitsPage.cpp */; };
+		C8F82EA40F3F9CAB007579B8 /* UnpackWarningDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E470F3F9CAB007579B8 /* UnpackWarningDlg.cpp */; };
+		C8F82EA50F3F9CAB007579B8 /* USFMPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E490F3F9CAB007579B8 /* USFMPage.cpp */; };
+		C8F82EA60F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E4B0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp */; };
+		C8F82EA70F3F9CAB007579B8 /* ViewPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E4D0F3F9CAB007579B8 /* ViewPage.cpp */; };
+		C8F82EA80F3F9CAB007579B8 /* WaitDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E4F0F3F9CAB007579B8 /* WaitDlg.cpp */; };
+		C8F82EA90F3F9CAB007579B8 /* Welcome.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E510F3F9CAB007579B8 /* Welcome.cpp */; };
+		C8F82EAA0F3F9CAB007579B8 /* WhichBook.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E530F3F9CAB007579B8 /* WhichBook.cpp */; };
+		C8F82EAB0F3F9CAB007579B8 /* WhichFilesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E550F3F9CAB007579B8 /* WhichFilesDlg.cpp */; };
+		C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E570F3F9CAB007579B8 /* XML.cpp */; };
+		C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */; };
+		C8F82F370F3F9CE7007579B8 /* AIWX.gif in Resources */ = {isa = PBXBuildFile; fileRef = C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */; };
+		C8F82FBB0F3FA161007579B8 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F82FBA0F3FA161007579B8 /* QuickTime.framework */; };
+		C8F830B00F3FA3EE007579B8 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830AF0F3FA3EE007579B8 /* AppKit.framework */; };
+		C8F830B40F3FA41B007579B8 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830B30F3FA41B007579B8 /* AGL.framework */; };
+		C8F830B80F3FA455007579B8 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830B70F3FA455007579B8 /* IOKit.framework */; };
+		C8F830BC0F3FA47D007579B8 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BB0F3FA47D007579B8 /* OpenGL.framework */; };
+		C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8F830BF0F3FA4AA007579B8 /* System.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
+		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		7DC038D20F462A570047FCAF /* AI_USFM.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_USFM.xml; path = ../../xml/AI_USFM.xml; sourceTree = SOURCE_ROOT; };
+		7DC038D30F462A570047FCAF /* books.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = books.xml; path = ../../xml/books.xml; sourceTree = SOURCE_ROOT; };
+		7DC0390C0F4654B30047FCAF /* Adapt It.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Adapt It.icns"; path = "../../res/Adapt It.icns"; sourceTree = SOURCE_ROOT; };
+		7DC0399C0F4672720047FCAF /* ai_build_phase_script.sh */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.script.sh; path = ai_build_phase_script.sh; sourceTree = "<group>"; };
+		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D0C4E970486CD37000505A6 /*  Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = " Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_Resources.h; path = ../../source/Adapt_It_Resources.h; sourceTree = SOURCE_ROOT; };
+		C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It_wdr.cpp; path = ../../source/Adapt_It_wdr.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_wdr.h; path = ../../source/Adapt_It_wdr.h; sourceTree = SOURCE_ROOT; };
+		C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It.cpp; path = ../../source/Adapt_It.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DB70F3F9CAB007579B8 /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
+		C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItCanvas.cpp; path = ../../source/Adapt_ItCanvas.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItCanvas.h; path = ../../source/Adapt_ItCanvas.h; sourceTree = SOURCE_ROOT; };
+		C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItDoc.cpp; path = ../../source/Adapt_ItDoc.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItDoc.h; path = ../../source/Adapt_ItDoc.h; sourceTree = SOURCE_ROOT; };
+		C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItView.cpp; path = ../../source/Adapt_ItView.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DBE0F3F9CAB007579B8 /* Adapt_ItView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItView.h; path = ../../source/Adapt_ItView.h; sourceTree = SOURCE_ROOT; };
+		C8F82DBF0F3F9CAB007579B8 /* AdaptitConstants.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AdaptitConstants.h; path = ../../source/AdaptitConstants.h; sourceTree = SOURCE_ROOT; };
+		C8F82DC00F3F9CAB007579B8 /* AIPrintout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AIPrintout.cpp; path = ../../source/AIPrintout.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DC10F3F9CAB007579B8 /* AIPrintout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AIPrintout.h; path = ../../source/AIPrintout.h; sourceTree = SOURCE_ROOT; };
+		C8F82DC20F3F9CAB007579B8 /* AutoSavingPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = AutoSavingPage.cpp; path = ../../source/AutoSavingPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DC30F3F9CAB007579B8 /* AutoSavingPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AutoSavingPage.h; path = ../../source/AutoSavingPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82DC40F3F9CAB007579B8 /* BString.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = BString.cpp; path = ../../source/BString.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DC50F3F9CAB007579B8 /* BString.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = BString.h; path = ../../source/BString.h; sourceTree = SOURCE_ROOT; };
+		C8F82DC60F3F9CAB007579B8 /* CaseEquivPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CaseEquivPage.cpp; path = ../../source/CaseEquivPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DC70F3F9CAB007579B8 /* CaseEquivPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CaseEquivPage.h; path = ../../source/CaseEquivPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82DC80F3F9CAB007579B8 /* Ccdll.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Ccdll.h; path = ../../source/Ccdll.h; sourceTree = SOURCE_ROOT; };
+		C8F82DC90F3F9CAB007579B8 /* CCModule.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CCModule.cpp; path = ../../source/CCModule.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DCA0F3F9CAB007579B8 /* CCModule.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CCModule.h; path = ../../source/CCModule.h; sourceTree = SOURCE_ROOT; };
+		C8F82DCB0F3F9CAB007579B8 /* CCTabbedDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CCTabbedDialog.cpp; path = ../../source/CCTabbedDialog.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DCC0F3F9CAB007579B8 /* CCTabbedDialog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CCTabbedDialog.h; path = ../../source/CCTabbedDialog.h; sourceTree = SOURCE_ROOT; };
+		C8F82DCD0F3F9CAB007579B8 /* CCTableEditDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CCTableEditDlg.cpp; path = ../../source/CCTableEditDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DCE0F3F9CAB007579B8 /* CCTableEditDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CCTableEditDlg.h; path = ../../source/CCTableEditDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DCF0F3F9CAB007579B8 /* CCTableNameDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CCTableNameDlg.cpp; path = ../../source/CCTableNameDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DD00F3F9CAB007579B8 /* CCTableNameDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CCTableNameDlg.h; path = ../../source/CCTableNameDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DD10F3F9CAB007579B8 /* Cell.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Cell.cpp; path = ../../source/Cell.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DD20F3F9CAB007579B8 /* Cell.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Cell.h; path = ../../source/Cell.h; sourceTree = SOURCE_ROOT; };
+		C8F82DD30F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ChooseConsistencyCheckTypeDlg.cpp; path = ../../source/ChooseConsistencyCheckTypeDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DD40F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChooseConsistencyCheckTypeDlg.h; path = ../../source/ChooseConsistencyCheckTypeDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DD50F3F9CAB007579B8 /* ChooseLanguageDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ChooseLanguageDlg.cpp; path = ../../source/ChooseLanguageDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DD60F3F9CAB007579B8 /* ChooseLanguageDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChooseLanguageDlg.h; path = ../../source/ChooseLanguageDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DD70F3F9CAB007579B8 /* ChooseTranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ChooseTranslation.cpp; path = ../../source/ChooseTranslation.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DD80F3F9CAB007579B8 /* ChooseTranslation.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ChooseTranslation.h; path = ../../source/ChooseTranslation.h; sourceTree = SOURCE_ROOT; };
+		C8F82DD90F3F9CAB007579B8 /* CollectBacktranslations.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CollectBacktranslations.cpp; path = ../../source/CollectBacktranslations.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DDA0F3F9CAB007579B8 /* CollectBacktranslations.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CollectBacktranslations.h; path = ../../source/CollectBacktranslations.h; sourceTree = SOURCE_ROOT; };
+		C8F82DDB0F3F9CAB007579B8 /* ComposeBarEditBox.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ComposeBarEditBox.cpp; path = ../../source/ComposeBarEditBox.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DDC0F3F9CAB007579B8 /* ComposeBarEditBox.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ComposeBarEditBox.h; path = ../../source/ComposeBarEditBox.h; sourceTree = SOURCE_ROOT; };
+		C8F82DDD0F3F9CAB007579B8 /* ConsistencyCheckDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ConsistencyCheckDlg.cpp; path = ../../source/ConsistencyCheckDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DDE0F3F9CAB007579B8 /* ConsistencyCheckDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ConsistencyCheckDlg.h; path = ../../source/ConsistencyCheckDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DDF0F3F9CAB007579B8 /* ConsistentChanger.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ConsistentChanger.cpp; path = ../../source/ConsistentChanger.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DE00F3F9CAB007579B8 /* ConsistentChanger.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ConsistentChanger.h; path = ../../source/ConsistentChanger.h; sourceTree = SOURCE_ROOT; };
+		C8F82DE10F3F9CAB007579B8 /* DocPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = DocPage.cpp; path = ../../source/DocPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DE20F3F9CAB007579B8 /* DocPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DocPage.h; path = ../../source/DocPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82DE30F3F9CAB007579B8 /* EarlierTranslationDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = EarlierTranslationDlg.cpp; path = ../../source/EarlierTranslationDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DE40F3F9CAB007579B8 /* EarlierTranslationDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EarlierTranslationDlg.h; path = ../../source/EarlierTranslationDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DE50F3F9CAB007579B8 /* EditPreferencesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = EditPreferencesDlg.cpp; path = ../../source/EditPreferencesDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DE60F3F9CAB007579B8 /* EditPreferencesDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EditPreferencesDlg.h; path = ../../source/EditPreferencesDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DE70F3F9CAB007579B8 /* EditSourceTextDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = EditSourceTextDlg.cpp; path = ../../source/EditSourceTextDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DE80F3F9CAB007579B8 /* EditSourceTextDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EditSourceTextDlg.h; path = ../../source/EditSourceTextDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DE90F3F9CAB007579B8 /* ExportFunctions.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ExportFunctions.cpp; path = ../../source/ExportFunctions.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DEA0F3F9CAB007579B8 /* ExportFunctions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExportFunctions.h; path = ../../source/ExportFunctions.h; sourceTree = SOURCE_ROOT; };
+		C8F82DEB0F3F9CAB007579B8 /* ExportInterlinearDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ExportInterlinearDlg.cpp; path = ../../source/ExportInterlinearDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DEC0F3F9CAB007579B8 /* ExportInterlinearDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExportInterlinearDlg.h; path = ../../source/ExportInterlinearDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DED0F3F9CAB007579B8 /* ExportOptionsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ExportOptionsDlg.cpp; path = ../../source/ExportOptionsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DEE0F3F9CAB007579B8 /* ExportOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExportOptionsDlg.h; path = ../../source/ExportOptionsDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DEF0F3F9CAB007579B8 /* ExportSaveAsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ExportSaveAsDlg.cpp; path = ../../source/ExportSaveAsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DF00F3F9CAB007579B8 /* ExportSaveAsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ExportSaveAsDlg.h; path = ../../source/ExportSaveAsDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DF10F3F9CAB007579B8 /* FilterPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FilterPage.cpp; path = ../../source/FilterPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DF20F3F9CAB007579B8 /* FilterPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FilterPage.h; path = ../../source/FilterPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82DF30F3F9CAB007579B8 /* FindReplace.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FindReplace.cpp; path = ../../source/FindReplace.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DF40F3F9CAB007579B8 /* FindReplace.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FindReplace.h; path = ../../source/FindReplace.h; sourceTree = SOURCE_ROOT; };
+		C8F82DF50F3F9CAB007579B8 /* FontPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FontPage.cpp; path = ../../source/FontPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DF60F3F9CAB007579B8 /* FontPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FontPage.h; path = ../../source/FontPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82DF70F3F9CAB007579B8 /* GoToDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GoToDlg.cpp; path = ../../source/GoToDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DF80F3F9CAB007579B8 /* GoToDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoToDlg.h; path = ../../source/GoToDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82DF90F3F9CAB007579B8 /* helpers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = helpers.cpp; path = ../../source/helpers.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DFA0F3F9CAB007579B8 /* helpers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = helpers.h; path = ../../source/helpers.h; sourceTree = SOURCE_ROOT; };
+		C8F82DFB0F3F9CAB007579B8 /* JoinDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = JoinDialog.cpp; path = ../../source/JoinDialog.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DFC0F3F9CAB007579B8 /* JoinDialog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = JoinDialog.h; path = ../../source/JoinDialog.h; sourceTree = SOURCE_ROOT; };
+		C8F82DFD0F3F9CAB007579B8 /* KB.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KB.cpp; path = ../../source/KB.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82DFE0F3F9CAB007579B8 /* KB.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KB.h; path = ../../source/KB.h; sourceTree = SOURCE_ROOT; };
+		C8F82DFF0F3F9CAB007579B8 /* KBEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBEditor.cpp; path = ../../source/KBEditor.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E000F3F9CAB007579B8 /* KBEditor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KBEditor.h; path = ../../source/KBEditor.h; sourceTree = SOURCE_ROOT; };
+		C8F82E010F3F9CAB007579B8 /* KBPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBPage.cpp; path = ../../source/KBPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E020F3F9CAB007579B8 /* KBPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KBPage.h; path = ../../source/KBPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E030F3F9CAB007579B8 /* LanguagesPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = LanguagesPage.cpp; path = ../../source/LanguagesPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E040F3F9CAB007579B8 /* LanguagesPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LanguagesPage.h; path = ../../source/LanguagesPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E050F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ListDocumentsInOtherFolderDialog.cpp; path = ../../source/ListDocumentsInOtherFolderDialog.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E060F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ListDocumentsInOtherFolderDialog.h; path = ../../source/ListDocumentsInOtherFolderDialog.h; sourceTree = SOURCE_ROOT; };
+		C8F82E070F3F9CAB007579B8 /* MainFrm.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = MainFrm.cpp; path = ../../source/MainFrm.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E080F3F9CAB007579B8 /* MainFrm.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MainFrm.h; path = ../../source/MainFrm.h; sourceTree = SOURCE_ROOT; };
+		C8F82E090F3F9CAB007579B8 /* MoveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = MoveDialog.cpp; path = ../../source/MoveDialog.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E0A0F3F9CAB007579B8 /* MoveDialog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MoveDialog.h; path = ../../source/MoveDialog.h; sourceTree = SOURCE_ROOT; };
+		C8F82E0B0F3F9CAB007579B8 /* Mover.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Mover.cpp; path = ../../source/Mover.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E0C0F3F9CAB007579B8 /* Mover.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Mover.h; path = ../../source/Mover.h; sourceTree = SOURCE_ROOT; };
+		C8F82E0D0F3F9CAB007579B8 /* MyListBox.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = MyListBox.cpp; path = ../../source/MyListBox.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E0E0F3F9CAB007579B8 /* MyListBox.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MyListBox.h; path = ../../source/MyListBox.h; sourceTree = SOURCE_ROOT; };
+		C8F82E0F0F3F9CAB007579B8 /* NoteDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = NoteDlg.cpp; path = ../../source/NoteDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E100F3F9CAB007579B8 /* NoteDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = NoteDlg.h; path = ../../source/NoteDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E110F3F9CAB007579B8 /* OpenExistingProjectDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = OpenExistingProjectDlg.cpp; path = ../../source/OpenExistingProjectDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E120F3F9CAB007579B8 /* OpenExistingProjectDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = OpenExistingProjectDlg.h; path = ../../source/OpenExistingProjectDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E130F3F9CAB007579B8 /* OutputFilenameDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = OutputFilenameDlg.cpp; path = ../../source/OutputFilenameDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E140F3F9CAB007579B8 /* OutputFilenameDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = OutputFilenameDlg.h; path = ../../source/OutputFilenameDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E150F3F9CAB007579B8 /* PhraseBox.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PhraseBox.cpp; path = ../../source/PhraseBox.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E160F3F9CAB007579B8 /* PhraseBox.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PhraseBox.h; path = ../../source/PhraseBox.h; sourceTree = SOURCE_ROOT; };
+		C8F82E170F3F9CAB007579B8 /* Pile.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Pile.cpp; path = ../../source/Pile.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E180F3F9CAB007579B8 /* Pile.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Pile.h; path = ../../source/Pile.h; sourceTree = SOURCE_ROOT; };
+		C8F82E190F3F9CAB007579B8 /* PlaceInternalMarkers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PlaceInternalMarkers.cpp; path = ../../source/PlaceInternalMarkers.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E1A0F3F9CAB007579B8 /* PlaceInternalMarkers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PlaceInternalMarkers.h; path = ../../source/PlaceInternalMarkers.h; sourceTree = SOURCE_ROOT; };
+		C8F82E1B0F3F9CAB007579B8 /* PlaceInternalPunct.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PlaceInternalPunct.cpp; path = ../../source/PlaceInternalPunct.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E1C0F3F9CAB007579B8 /* PlaceInternalPunct.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PlaceInternalPunct.h; path = ../../source/PlaceInternalPunct.h; sourceTree = SOURCE_ROOT; };
+		C8F82E1D0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PlaceRetranslationInternalMarkers.cpp; path = ../../source/PlaceRetranslationInternalMarkers.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E1E0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PlaceRetranslationInternalMarkers.h; path = ../../source/PlaceRetranslationInternalMarkers.h; sourceTree = SOURCE_ROOT; };
+		C8F82E1F0F3F9CAB007579B8 /* PrintOptionsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PrintOptionsDlg.cpp; path = ../../source/PrintOptionsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E200F3F9CAB007579B8 /* PrintOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PrintOptionsDlg.h; path = ../../source/PrintOptionsDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E210F3F9CAB007579B8 /* ProgressDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ProgressDlg.cpp; path = ../../source/ProgressDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E220F3F9CAB007579B8 /* ProgressDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProgressDlg.h; path = ../../source/ProgressDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E230F3F9CAB007579B8 /* ProjectPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectPage.cpp; path = ../../source/ProjectPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E240F3F9CAB007579B8 /* ProjectPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProjectPage.h; path = ../../source/ProjectPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E250F3F9CAB007579B8 /* PunctCorrespPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PunctCorrespPage.cpp; path = ../../source/PunctCorrespPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E260F3F9CAB007579B8 /* PunctCorrespPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PunctCorrespPage.h; path = ../../source/PunctCorrespPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E270F3F9CAB007579B8 /* RefString.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = RefString.cpp; path = ../../source/RefString.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E280F3F9CAB007579B8 /* RefString.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RefString.h; path = ../../source/RefString.h; sourceTree = SOURCE_ROOT; };
+		C8F82E290F3F9CAB007579B8 /* RetranslationDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = RetranslationDlg.cpp; path = ../../source/RetranslationDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E2A0F3F9CAB007579B8 /* RetranslationDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RetranslationDlg.h; path = ../../source/RetranslationDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E2B0F3F9CAB007579B8 /* SetDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SetDelay.cpp; path = ../../source/SetDelay.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E2C0F3F9CAB007579B8 /* SetDelay.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SetDelay.h; path = ../../source/SetDelay.h; sourceTree = SOURCE_ROOT; };
+		C8F82E2D0F3F9CAB007579B8 /* SetEncodingDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SetEncodingDlg.cpp; path = ../../source/SetEncodingDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E2E0F3F9CAB007579B8 /* SetEncodingDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SetEncodingDlg.h; path = ../../source/SetEncodingDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E2F0F3F9CAB007579B8 /* SilConverterSelectDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SilConverterSelectDlg.cpp; path = ../../source/SilConverterSelectDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E300F3F9CAB007579B8 /* SilConverterSelectDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SilConverterSelectDlg.h; path = ../../source/SilConverterSelectDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E310F3F9CAB007579B8 /* SourceBundle.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SourceBundle.cpp; path = ../../source/SourceBundle.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E320F3F9CAB007579B8 /* SourceBundle.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SourceBundle.h; path = ../../source/SourceBundle.h; sourceTree = SOURCE_ROOT; };
+		C8F82E330F3F9CAB007579B8 /* SourcePhrase.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SourcePhrase.cpp; path = ../../source/SourcePhrase.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E340F3F9CAB007579B8 /* SourcePhrase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SourcePhrase.h; path = ../../source/SourcePhrase.h; sourceTree = SOURCE_ROOT; };
+		C8F82E350F3F9CAB007579B8 /* SplitDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SplitDialog.cpp; path = ../../source/SplitDialog.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E360F3F9CAB007579B8 /* SplitDialog.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SplitDialog.h; path = ../../source/SplitDialog.h; sourceTree = SOURCE_ROOT; };
+		C8F82E370F3F9CAB007579B8 /* Stack.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Stack.cpp; path = ../../source/Stack.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E380F3F9CAB007579B8 /* Stack.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Stack.h; path = ../../source/Stack.h; sourceTree = SOURCE_ROOT; };
+		C8F82E390F3F9CAB007579B8 /* StartWorkingWizard.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = StartWorkingWizard.cpp; path = ../../source/StartWorkingWizard.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E3A0F3F9CAB007579B8 /* StartWorkingWizard.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = StartWorkingWizard.h; path = ../../source/StartWorkingWizard.h; sourceTree = SOURCE_ROOT; };
+		C8F82E3B0F3F9CAB007579B8 /* Strip.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Strip.cpp; path = ../../source/Strip.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E3C0F3F9CAB007579B8 /* Strip.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Strip.h; path = ../../source/Strip.h; sourceTree = SOURCE_ROOT; };
+		C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = TargetUnit.cpp; path = ../../source/TargetUnit.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TargetUnit.h; path = ../../source/TargetUnit.h; sourceTree = SOURCE_ROOT; };
+		C8F82E3F0F3F9CAB007579B8 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Text.cpp; path = ../../source/Text.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E400F3F9CAB007579B8 /* Text.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Text.h; path = ../../source/Text.h; sourceTree = SOURCE_ROOT; };
+		C8F82E410F3F9CAB007579B8 /* TransformToGlossesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = TransformToGlossesDlg.cpp; path = ../../source/TransformToGlossesDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E420F3F9CAB007579B8 /* TransformToGlossesDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TransformToGlossesDlg.h; path = ../../source/TransformToGlossesDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UnitsDlg.cpp; path = ../../source/UnitsDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E440F3F9CAB007579B8 /* UnitsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UnitsDlg.h; path = ../../source/UnitsDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E450F3F9CAB007579B8 /* UnitsPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UnitsPage.cpp; path = ../../source/UnitsPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E460F3F9CAB007579B8 /* UnitsPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UnitsPage.h; path = ../../source/UnitsPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E470F3F9CAB007579B8 /* UnpackWarningDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UnpackWarningDlg.cpp; path = ../../source/UnpackWarningDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E480F3F9CAB007579B8 /* UnpackWarningDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UnpackWarningDlg.h; path = ../../source/UnpackWarningDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E490F3F9CAB007579B8 /* USFMPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = USFMPage.cpp; path = ../../source/USFMPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E4A0F3F9CAB007579B8 /* USFMPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = USFMPage.h; path = ../../source/USFMPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E4B0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ViewFilteredMaterialDlg.cpp; path = ../../source/ViewFilteredMaterialDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E4C0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ViewFilteredMaterialDlg.h; path = ../../source/ViewFilteredMaterialDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E4D0F3F9CAB007579B8 /* ViewPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ViewPage.cpp; path = ../../source/ViewPage.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E4E0F3F9CAB007579B8 /* ViewPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ViewPage.h; path = ../../source/ViewPage.h; sourceTree = SOURCE_ROOT; };
+		C8F82E4F0F3F9CAB007579B8 /* WaitDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = WaitDlg.cpp; path = ../../source/WaitDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E500F3F9CAB007579B8 /* WaitDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = WaitDlg.h; path = ../../source/WaitDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E510F3F9CAB007579B8 /* Welcome.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Welcome.cpp; path = ../../source/Welcome.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E520F3F9CAB007579B8 /* Welcome.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Welcome.h; path = ../../source/Welcome.h; sourceTree = SOURCE_ROOT; };
+		C8F82E530F3F9CAB007579B8 /* WhichBook.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = WhichBook.cpp; path = ../../source/WhichBook.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E540F3F9CAB007579B8 /* WhichBook.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = WhichBook.h; path = ../../source/WhichBook.h; sourceTree = SOURCE_ROOT; };
+		C8F82E550F3F9CAB007579B8 /* WhichFilesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = WhichFilesDlg.cpp; path = ../../source/WhichFilesDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E560F3F9CAB007579B8 /* WhichFilesDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = WhichFilesDlg.h; path = ../../source/WhichFilesDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82E570F3F9CAB007579B8 /* XML.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = XML.cpp; path = ../../source/XML.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E580F3F9CAB007579B8 /* XML.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = XML.h; path = ../../source/XML.h; sourceTree = SOURCE_ROOT; };
+		C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = XMLErrorDlg.cpp; path = ../../source/XMLErrorDlg.cpp; sourceTree = SOURCE_ROOT; };
+		C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = XMLErrorDlg.h; path = ../../source/XMLErrorDlg.h; sourceTree = SOURCE_ROOT; };
+		C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = AIWX.gif; path = ../../res/AIWX.gif; sourceTree = SOURCE_ROOT; };
+		C8F82FBA0F3FA161007579B8 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/QuickTime.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830AF0F3FA3EE007579B8 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/AppKit.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830B30F3FA41B007579B8 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/AGL.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830B70F3FA455007579B8 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830BB0F3FA47D007579B8 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/OpenGL.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+		C8F830BF0F3FA4AA007579B8 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = SDKs/MacOSX10.4u.sdk/System/Library/Frameworks/System.framework; sourceTree = SYSTEM_DEVELOPER_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D0C4E910486CD37000505A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
+				C8F82FBB0F3FA161007579B8 /* QuickTime.framework in Frameworks */,
+				C8F830B00F3FA3EE007579B8 /* AppKit.framework in Frameworks */,
+				C8F830B40F3FA41B007579B8 /* AGL.framework in Frameworks */,
+				C8F830B80F3FA455007579B8 /* IOKit.framework in Frameworks */,
+				C8F830BC0F3FA47D007579B8 /* OpenGL.framework in Frameworks */,
+				C8F830C00F3FA4AA007579B8 /* System.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		195DF8CFFE9D517E11CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D0C4E970486CD37000505A6 /*  Adapt It.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		20286C29FDCF999611CA2CEA /* AdaptIt */ = {
+			isa = PBXGroup;
+			children = (
+				7DC0399B0F4672720047FCAF /* scripts */,
+				20286C2AFDCF999611CA2CEA /* Sources */,
+				20286C2CFDCF999611CA2CEA /* Resources */,
+				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
+				195DF8CFFE9D517E11CA2CBB /* Products */,
+			);
+			name = AdaptIt;
+			sourceTree = "<group>";
+		};
+		20286C2AFDCF999611CA2CEA /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
+				C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */,
+				C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */,
+				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
+				C8F82DB70F3F9CAB007579B8 /* Adapt_It.h */,
+				C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */,
+				C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */,
+				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
+				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
+				C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */,
+				C8F82DBE0F3F9CAB007579B8 /* Adapt_ItView.h */,
+				C8F82DBF0F3F9CAB007579B8 /* AdaptitConstants.h */,
+				C8F82DC00F3F9CAB007579B8 /* AIPrintout.cpp */,
+				C8F82DC10F3F9CAB007579B8 /* AIPrintout.h */,
+				C8F82DC20F3F9CAB007579B8 /* AutoSavingPage.cpp */,
+				C8F82DC30F3F9CAB007579B8 /* AutoSavingPage.h */,
+				C8F82DC40F3F9CAB007579B8 /* BString.cpp */,
+				C8F82DC50F3F9CAB007579B8 /* BString.h */,
+				C8F82DC60F3F9CAB007579B8 /* CaseEquivPage.cpp */,
+				C8F82DC70F3F9CAB007579B8 /* CaseEquivPage.h */,
+				C8F82DC80F3F9CAB007579B8 /* Ccdll.h */,
+				C8F82DC90F3F9CAB007579B8 /* CCModule.cpp */,
+				C8F82DCA0F3F9CAB007579B8 /* CCModule.h */,
+				C8F82DCB0F3F9CAB007579B8 /* CCTabbedDialog.cpp */,
+				C8F82DCC0F3F9CAB007579B8 /* CCTabbedDialog.h */,
+				C8F82DCD0F3F9CAB007579B8 /* CCTableEditDlg.cpp */,
+				C8F82DCE0F3F9CAB007579B8 /* CCTableEditDlg.h */,
+				C8F82DCF0F3F9CAB007579B8 /* CCTableNameDlg.cpp */,
+				C8F82DD00F3F9CAB007579B8 /* CCTableNameDlg.h */,
+				C8F82DD10F3F9CAB007579B8 /* Cell.cpp */,
+				C8F82DD20F3F9CAB007579B8 /* Cell.h */,
+				C8F82DD30F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.cpp */,
+				C8F82DD40F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.h */,
+				C8F82DD50F3F9CAB007579B8 /* ChooseLanguageDlg.cpp */,
+				C8F82DD60F3F9CAB007579B8 /* ChooseLanguageDlg.h */,
+				C8F82DD70F3F9CAB007579B8 /* ChooseTranslation.cpp */,
+				C8F82DD80F3F9CAB007579B8 /* ChooseTranslation.h */,
+				C8F82DD90F3F9CAB007579B8 /* CollectBacktranslations.cpp */,
+				C8F82DDA0F3F9CAB007579B8 /* CollectBacktranslations.h */,
+				C8F82DDB0F3F9CAB007579B8 /* ComposeBarEditBox.cpp */,
+				C8F82DDC0F3F9CAB007579B8 /* ComposeBarEditBox.h */,
+				C8F82DDD0F3F9CAB007579B8 /* ConsistencyCheckDlg.cpp */,
+				C8F82DDE0F3F9CAB007579B8 /* ConsistencyCheckDlg.h */,
+				C8F82DDF0F3F9CAB007579B8 /* ConsistentChanger.cpp */,
+				C8F82DE00F3F9CAB007579B8 /* ConsistentChanger.h */,
+				C8F82DE10F3F9CAB007579B8 /* DocPage.cpp */,
+				C8F82DE20F3F9CAB007579B8 /* DocPage.h */,
+				C8F82DE30F3F9CAB007579B8 /* EarlierTranslationDlg.cpp */,
+				C8F82DE40F3F9CAB007579B8 /* EarlierTranslationDlg.h */,
+				C8F82DE50F3F9CAB007579B8 /* EditPreferencesDlg.cpp */,
+				C8F82DE60F3F9CAB007579B8 /* EditPreferencesDlg.h */,
+				C8F82DE70F3F9CAB007579B8 /* EditSourceTextDlg.cpp */,
+				C8F82DE80F3F9CAB007579B8 /* EditSourceTextDlg.h */,
+				C8F82DE90F3F9CAB007579B8 /* ExportFunctions.cpp */,
+				C8F82DEA0F3F9CAB007579B8 /* ExportFunctions.h */,
+				C8F82DEB0F3F9CAB007579B8 /* ExportInterlinearDlg.cpp */,
+				C8F82DEC0F3F9CAB007579B8 /* ExportInterlinearDlg.h */,
+				C8F82DED0F3F9CAB007579B8 /* ExportOptionsDlg.cpp */,
+				C8F82DEE0F3F9CAB007579B8 /* ExportOptionsDlg.h */,
+				C8F82DEF0F3F9CAB007579B8 /* ExportSaveAsDlg.cpp */,
+				C8F82DF00F3F9CAB007579B8 /* ExportSaveAsDlg.h */,
+				C8F82DF10F3F9CAB007579B8 /* FilterPage.cpp */,
+				C8F82DF20F3F9CAB007579B8 /* FilterPage.h */,
+				C8F82DF30F3F9CAB007579B8 /* FindReplace.cpp */,
+				C8F82DF40F3F9CAB007579B8 /* FindReplace.h */,
+				C8F82DF50F3F9CAB007579B8 /* FontPage.cpp */,
+				C8F82DF60F3F9CAB007579B8 /* FontPage.h */,
+				C8F82DF70F3F9CAB007579B8 /* GoToDlg.cpp */,
+				C8F82DF80F3F9CAB007579B8 /* GoToDlg.h */,
+				C8F82DF90F3F9CAB007579B8 /* helpers.cpp */,
+				C8F82DFA0F3F9CAB007579B8 /* helpers.h */,
+				C8F82DFB0F3F9CAB007579B8 /* JoinDialog.cpp */,
+				C8F82DFC0F3F9CAB007579B8 /* JoinDialog.h */,
+				C8F82DFD0F3F9CAB007579B8 /* KB.cpp */,
+				C8F82DFE0F3F9CAB007579B8 /* KB.h */,
+				C8F82DFF0F3F9CAB007579B8 /* KBEditor.cpp */,
+				C8F82E000F3F9CAB007579B8 /* KBEditor.h */,
+				C8F82E010F3F9CAB007579B8 /* KBPage.cpp */,
+				C8F82E020F3F9CAB007579B8 /* KBPage.h */,
+				C8F82E030F3F9CAB007579B8 /* LanguagesPage.cpp */,
+				C8F82E040F3F9CAB007579B8 /* LanguagesPage.h */,
+				C8F82E050F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.cpp */,
+				C8F82E060F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.h */,
+				C8F82E070F3F9CAB007579B8 /* MainFrm.cpp */,
+				C8F82E080F3F9CAB007579B8 /* MainFrm.h */,
+				C8F82E090F3F9CAB007579B8 /* MoveDialog.cpp */,
+				C8F82E0A0F3F9CAB007579B8 /* MoveDialog.h */,
+				C8F82E0B0F3F9CAB007579B8 /* Mover.cpp */,
+				C8F82E0C0F3F9CAB007579B8 /* Mover.h */,
+				C8F82E0D0F3F9CAB007579B8 /* MyListBox.cpp */,
+				C8F82E0E0F3F9CAB007579B8 /* MyListBox.h */,
+				C8F82E0F0F3F9CAB007579B8 /* NoteDlg.cpp */,
+				C8F82E100F3F9CAB007579B8 /* NoteDlg.h */,
+				C8F82E110F3F9CAB007579B8 /* OpenExistingProjectDlg.cpp */,
+				C8F82E120F3F9CAB007579B8 /* OpenExistingProjectDlg.h */,
+				C8F82E130F3F9CAB007579B8 /* OutputFilenameDlg.cpp */,
+				C8F82E140F3F9CAB007579B8 /* OutputFilenameDlg.h */,
+				C8F82E150F3F9CAB007579B8 /* PhraseBox.cpp */,
+				C8F82E160F3F9CAB007579B8 /* PhraseBox.h */,
+				C8F82E170F3F9CAB007579B8 /* Pile.cpp */,
+				C8F82E180F3F9CAB007579B8 /* Pile.h */,
+				C8F82E190F3F9CAB007579B8 /* PlaceInternalMarkers.cpp */,
+				C8F82E1A0F3F9CAB007579B8 /* PlaceInternalMarkers.h */,
+				C8F82E1B0F3F9CAB007579B8 /* PlaceInternalPunct.cpp */,
+				C8F82E1C0F3F9CAB007579B8 /* PlaceInternalPunct.h */,
+				C8F82E1D0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp */,
+				C8F82E1E0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.h */,
+				C8F82E1F0F3F9CAB007579B8 /* PrintOptionsDlg.cpp */,
+				C8F82E200F3F9CAB007579B8 /* PrintOptionsDlg.h */,
+				C8F82E210F3F9CAB007579B8 /* ProgressDlg.cpp */,
+				C8F82E220F3F9CAB007579B8 /* ProgressDlg.h */,
+				C8F82E230F3F9CAB007579B8 /* ProjectPage.cpp */,
+				C8F82E240F3F9CAB007579B8 /* ProjectPage.h */,
+				C8F82E250F3F9CAB007579B8 /* PunctCorrespPage.cpp */,
+				C8F82E260F3F9CAB007579B8 /* PunctCorrespPage.h */,
+				C8F82E270F3F9CAB007579B8 /* RefString.cpp */,
+				C8F82E280F3F9CAB007579B8 /* RefString.h */,
+				C8F82E290F3F9CAB007579B8 /* RetranslationDlg.cpp */,
+				C8F82E2A0F3F9CAB007579B8 /* RetranslationDlg.h */,
+				C8F82E2B0F3F9CAB007579B8 /* SetDelay.cpp */,
+				C8F82E2C0F3F9CAB007579B8 /* SetDelay.h */,
+				C8F82E2D0F3F9CAB007579B8 /* SetEncodingDlg.cpp */,
+				C8F82E2E0F3F9CAB007579B8 /* SetEncodingDlg.h */,
+				C8F82E2F0F3F9CAB007579B8 /* SilConverterSelectDlg.cpp */,
+				C8F82E300F3F9CAB007579B8 /* SilConverterSelectDlg.h */,
+				C8F82E310F3F9CAB007579B8 /* SourceBundle.cpp */,
+				C8F82E320F3F9CAB007579B8 /* SourceBundle.h */,
+				C8F82E330F3F9CAB007579B8 /* SourcePhrase.cpp */,
+				C8F82E340F3F9CAB007579B8 /* SourcePhrase.h */,
+				C8F82E350F3F9CAB007579B8 /* SplitDialog.cpp */,
+				C8F82E360F3F9CAB007579B8 /* SplitDialog.h */,
+				C8F82E370F3F9CAB007579B8 /* Stack.cpp */,
+				C8F82E380F3F9CAB007579B8 /* Stack.h */,
+				C8F82E390F3F9CAB007579B8 /* StartWorkingWizard.cpp */,
+				C8F82E3A0F3F9CAB007579B8 /* StartWorkingWizard.h */,
+				C8F82E3B0F3F9CAB007579B8 /* Strip.cpp */,
+				C8F82E3C0F3F9CAB007579B8 /* Strip.h */,
+				C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */,
+				C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */,
+				C8F82E3F0F3F9CAB007579B8 /* Text.cpp */,
+				C8F82E400F3F9CAB007579B8 /* Text.h */,
+				C8F82E410F3F9CAB007579B8 /* TransformToGlossesDlg.cpp */,
+				C8F82E420F3F9CAB007579B8 /* TransformToGlossesDlg.h */,
+				C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */,
+				C8F82E440F3F9CAB007579B8 /* UnitsDlg.h */,
+				C8F82E450F3F9CAB007579B8 /* UnitsPage.cpp */,
+				C8F82E460F3F9CAB007579B8 /* UnitsPage.h */,
+				C8F82E470F3F9CAB007579B8 /* UnpackWarningDlg.cpp */,
+				C8F82E480F3F9CAB007579B8 /* UnpackWarningDlg.h */,
+				C8F82E490F3F9CAB007579B8 /* USFMPage.cpp */,
+				C8F82E4A0F3F9CAB007579B8 /* USFMPage.h */,
+				C8F82E4B0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp */,
+				C8F82E4C0F3F9CAB007579B8 /* ViewFilteredMaterialDlg.h */,
+				C8F82E4D0F3F9CAB007579B8 /* ViewPage.cpp */,
+				C8F82E4E0F3F9CAB007579B8 /* ViewPage.h */,
+				C8F82E4F0F3F9CAB007579B8 /* WaitDlg.cpp */,
+				C8F82E500F3F9CAB007579B8 /* WaitDlg.h */,
+				C8F82E510F3F9CAB007579B8 /* Welcome.cpp */,
+				C8F82E520F3F9CAB007579B8 /* Welcome.h */,
+				C8F82E530F3F9CAB007579B8 /* WhichBook.cpp */,
+				C8F82E540F3F9CAB007579B8 /* WhichBook.h */,
+				C8F82E550F3F9CAB007579B8 /* WhichFilesDlg.cpp */,
+				C8F82E560F3F9CAB007579B8 /* WhichFilesDlg.h */,
+				C8F82E570F3F9CAB007579B8 /* XML.cpp */,
+				C8F82E580F3F9CAB007579B8 /* XML.h */,
+				C8F82E590F3F9CAB007579B8 /* XMLErrorDlg.cpp */,
+				C8F82E5A0F3F9CAB007579B8 /* XMLErrorDlg.h */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		20286C2CFDCF999611CA2CEA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				7DC0390C0F4654B30047FCAF /* Adapt It.icns */,
+				7DC038D20F462A570047FCAF /* AI_USFM.xml */,
+				7DC038D30F462A570047FCAF /* books.xml */,
+				C8F82EBF0F3F9CE7007579B8 /* AIWX.gif */,
+				8D0C4E960486CD37000505A6 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				C8F830BF0F3FA4AA007579B8 /* System.framework */,
+				C8F830BB0F3FA47D007579B8 /* OpenGL.framework */,
+				C8F830B70F3FA455007579B8 /* IOKit.framework */,
+				C8F830B30F3FA41B007579B8 /* AGL.framework */,
+				C8F830AF0F3FA3EE007579B8 /* AppKit.framework */,
+				C8F82FBA0F3FA161007579B8 /* QuickTime.framework */,
+				20286C33FDCF999611CA2CEA /* Carbon.framework */,
+				4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */,
+				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		7DC0399B0F4672720047FCAF /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				7DC0399C0F4672720047FCAF /* ai_build_phase_script.sh */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8D0C4E890486CD37000505A6 /* AdaptIt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "AdaptIt" */;
+			buildPhases = (
+				8D0C4E8C0486CD37000505A6 /* Resources */,
+				8D0C4E8F0486CD37000505A6 /* Sources */,
+				8D0C4E910486CD37000505A6 /* Frameworks */,
+				7DC0397F0F4660190047FCAF /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AdaptIt;
+			productInstallPath = "$(HOME)/Applications";
+			productName = AdaptIt;
+			productReference = 8D0C4E970486CD37000505A6 /*  Adapt It.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		20286C28FDCF999611CA2CEA /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */;
+			hasScannedForEncodings = 1;
+			mainGroup = 20286C29FDCF999611CA2CEA /* AdaptIt */;
+			projectDirPath = "";
+			targets = (
+				8D0C4E890486CD37000505A6 /* AdaptIt */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D0C4E8C0486CD37000505A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C8F82F370F3F9CE7007579B8 /* AIWX.gif in Resources */,
+				7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */,
+				7DC038D50F462A570047FCAF /* books.xml in Resources */,
+				7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		7DC0397F0F4660190047FCAF /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "script_file=\"ai_build_phase_script.sh\"\necho \"Running a custom build phase script: $script_file\"\n${PROJECT_DIR}/scripts/${script_file}\necho \"DONE running custom build phase script: $script_file\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D0C4E8F0486CD37000505A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */,
+				C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */,
+				C8F82E5E0F3F9CAB007579B8 /* Adapt_ItCanvas.cpp in Sources */,
+				C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */,
+				C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */,
+				C8F82E610F3F9CAB007579B8 /* AIPrintout.cpp in Sources */,
+				C8F82E620F3F9CAB007579B8 /* AutoSavingPage.cpp in Sources */,
+				C8F82E630F3F9CAB007579B8 /* BString.cpp in Sources */,
+				C8F82E640F3F9CAB007579B8 /* CaseEquivPage.cpp in Sources */,
+				C8F82E650F3F9CAB007579B8 /* CCModule.cpp in Sources */,
+				C8F82E660F3F9CAB007579B8 /* CCTabbedDialog.cpp in Sources */,
+				C8F82E670F3F9CAB007579B8 /* CCTableEditDlg.cpp in Sources */,
+				C8F82E680F3F9CAB007579B8 /* CCTableNameDlg.cpp in Sources */,
+				C8F82E690F3F9CAB007579B8 /* Cell.cpp in Sources */,
+				C8F82E6A0F3F9CAB007579B8 /* ChooseConsistencyCheckTypeDlg.cpp in Sources */,
+				C8F82E6B0F3F9CAB007579B8 /* ChooseLanguageDlg.cpp in Sources */,
+				C8F82E6C0F3F9CAB007579B8 /* ChooseTranslation.cpp in Sources */,
+				C8F82E6D0F3F9CAB007579B8 /* CollectBacktranslations.cpp in Sources */,
+				C8F82E6E0F3F9CAB007579B8 /* ComposeBarEditBox.cpp in Sources */,
+				C8F82E6F0F3F9CAB007579B8 /* ConsistencyCheckDlg.cpp in Sources */,
+				C8F82E700F3F9CAB007579B8 /* ConsistentChanger.cpp in Sources */,
+				C8F82E710F3F9CAB007579B8 /* DocPage.cpp in Sources */,
+				C8F82E720F3F9CAB007579B8 /* EarlierTranslationDlg.cpp in Sources */,
+				C8F82E730F3F9CAB007579B8 /* EditPreferencesDlg.cpp in Sources */,
+				C8F82E740F3F9CAB007579B8 /* EditSourceTextDlg.cpp in Sources */,
+				C8F82E750F3F9CAB007579B8 /* ExportFunctions.cpp in Sources */,
+				C8F82E760F3F9CAB007579B8 /* ExportInterlinearDlg.cpp in Sources */,
+				C8F82E770F3F9CAB007579B8 /* ExportOptionsDlg.cpp in Sources */,
+				C8F82E780F3F9CAB007579B8 /* ExportSaveAsDlg.cpp in Sources */,
+				C8F82E790F3F9CAB007579B8 /* FilterPage.cpp in Sources */,
+				C8F82E7A0F3F9CAB007579B8 /* FindReplace.cpp in Sources */,
+				C8F82E7B0F3F9CAB007579B8 /* FontPage.cpp in Sources */,
+				C8F82E7C0F3F9CAB007579B8 /* GoToDlg.cpp in Sources */,
+				C8F82E7D0F3F9CAB007579B8 /* helpers.cpp in Sources */,
+				C8F82E7E0F3F9CAB007579B8 /* JoinDialog.cpp in Sources */,
+				C8F82E7F0F3F9CAB007579B8 /* KB.cpp in Sources */,
+				C8F82E800F3F9CAB007579B8 /* KBEditor.cpp in Sources */,
+				C8F82E810F3F9CAB007579B8 /* KBPage.cpp in Sources */,
+				C8F82E820F3F9CAB007579B8 /* LanguagesPage.cpp in Sources */,
+				C8F82E830F3F9CAB007579B8 /* ListDocumentsInOtherFolderDialog.cpp in Sources */,
+				C8F82E840F3F9CAB007579B8 /* MainFrm.cpp in Sources */,
+				C8F82E850F3F9CAB007579B8 /* MoveDialog.cpp in Sources */,
+				C8F82E860F3F9CAB007579B8 /* Mover.cpp in Sources */,
+				C8F82E870F3F9CAB007579B8 /* MyListBox.cpp in Sources */,
+				C8F82E880F3F9CAB007579B8 /* NoteDlg.cpp in Sources */,
+				C8F82E890F3F9CAB007579B8 /* OpenExistingProjectDlg.cpp in Sources */,
+				C8F82E8A0F3F9CAB007579B8 /* OutputFilenameDlg.cpp in Sources */,
+				C8F82E8B0F3F9CAB007579B8 /* PhraseBox.cpp in Sources */,
+				C8F82E8C0F3F9CAB007579B8 /* Pile.cpp in Sources */,
+				C8F82E8D0F3F9CAB007579B8 /* PlaceInternalMarkers.cpp in Sources */,
+				C8F82E8E0F3F9CAB007579B8 /* PlaceInternalPunct.cpp in Sources */,
+				C8F82E8F0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp in Sources */,
+				C8F82E900F3F9CAB007579B8 /* PrintOptionsDlg.cpp in Sources */,
+				C8F82E910F3F9CAB007579B8 /* ProgressDlg.cpp in Sources */,
+				C8F82E920F3F9CAB007579B8 /* ProjectPage.cpp in Sources */,
+				C8F82E930F3F9CAB007579B8 /* PunctCorrespPage.cpp in Sources */,
+				C8F82E940F3F9CAB007579B8 /* RefString.cpp in Sources */,
+				C8F82E950F3F9CAB007579B8 /* RetranslationDlg.cpp in Sources */,
+				C8F82E960F3F9CAB007579B8 /* SetDelay.cpp in Sources */,
+				C8F82E970F3F9CAB007579B8 /* SetEncodingDlg.cpp in Sources */,
+				C8F82E980F3F9CAB007579B8 /* SilConverterSelectDlg.cpp in Sources */,
+				C8F82E990F3F9CAB007579B8 /* SourceBundle.cpp in Sources */,
+				C8F82E9A0F3F9CAB007579B8 /* SourcePhrase.cpp in Sources */,
+				C8F82E9B0F3F9CAB007579B8 /* SplitDialog.cpp in Sources */,
+				C8F82E9C0F3F9CAB007579B8 /* Stack.cpp in Sources */,
+				C8F82E9D0F3F9CAB007579B8 /* StartWorkingWizard.cpp in Sources */,
+				C8F82E9E0F3F9CAB007579B8 /* Strip.cpp in Sources */,
+				C8F82E9F0F3F9CAB007579B8 /* TargetUnit.cpp in Sources */,
+				C8F82EA00F3F9CAB007579B8 /* Text.cpp in Sources */,
+				C8F82EA10F3F9CAB007579B8 /* TransformToGlossesDlg.cpp in Sources */,
+				C8F82EA20F3F9CAB007579B8 /* UnitsDlg.cpp in Sources */,
+				C8F82EA30F3F9CAB007579B8 /* UnitsPage.cpp in Sources */,
+				C8F82EA40F3F9CAB007579B8 /* UnpackWarningDlg.cpp in Sources */,
+				C8F82EA50F3F9CAB007579B8 /* USFMPage.cpp in Sources */,
+				C8F82EA60F3F9CAB007579B8 /* ViewFilteredMaterialDlg.cpp in Sources */,
+				C8F82EA70F3F9CAB007579B8 /* ViewPage.cpp in Sources */,
+				C8F82EA80F3F9CAB007579B8 /* WaitDlg.cpp in Sources */,
+				C8F82EA90F3F9CAB007579B8 /* Welcome.cpp in Sources */,
+				C8F82EAA0F3F9CAB007579B8 /* WhichBook.cpp in Sources */,
+				C8F82EAB0F3F9CAB007579B8 /* WhichFilesDlg.cpp in Sources */,
+				C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */,
+				C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		C0E91AC608A95435008D54AB /* UnicodeDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"wxUSE_UNICODE=1",
+					NO_GCC_PRAGMA,
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					MACOS_CLASSIC,
+					"__WXDEBUG__=1",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Development";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+				);
+				PREBINDING = YES;
+				PRODUCT_NAME = "Adapt It";
+				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = NO;
+			};
+			name = UnicodeDebug;
+		};
+		C0E91AC708A95435008D54AB /* UnicodeRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					ppc,
+					i386,
+				);
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"wxUSE_UNICODE=1",
+					NO_GCC_PRAGMA,
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					MACOS_CLASSIC,
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Deployment";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+				);
+				PRODUCT_NAME = " Adapt It";
+				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+			};
+			name = UnicodeRelease;
+		};
+		C0E91ACA08A95435008D54AB /* UnicodeDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+			};
+			name = UnicodeDebug;
+		};
+		C0E91ACB08A95435008D54AB /* UnicodeRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = UnicodeRelease;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "AdaptIt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0E91AC608A95435008D54AB /* UnicodeDebug */,
+				C0E91AC708A95435008D54AB /* UnicodeRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = UnicodeRelease;
+		};
+		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0E91ACA08A95435008D54AB /* UnicodeDebug */,
+				C0E91ACB08A95435008D54AB /* UnicodeRelease */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = UnicodeRelease;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 20286C28FDCF999611CA2CEA /* Project object */;
+}
