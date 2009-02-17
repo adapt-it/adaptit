@@ -3355,7 +3355,27 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default path for the Html Help files on the Mac.
-	pathToHtmlHelpFiles += appName + _T(".app/Contents/SharedSupport"); // the path separator is added by the caller
+	//pathToHtmlHelpFiles += appName + _T(".app/Contents/SharedSupport"); // the path separator is added by the caller
+	//
+	// whm modified 17Feb09 to determine the help file path as a relative adjustment to the absolute
+	// path to the actual executable that is running. 
+	// 
+	// On the Mac, the .htb help file is in the dmg bundle in a different part of the directory tree from
+	// the Adapt It executable. The executable is in <bundle>/Contents/MacOS/ folder but the .htb help file 
+	// is in the <bundle>/Contents/SharedSupport/ folder. The relative help path from executable to
+	// help file then is: "../SharedSupport". The double dot backs up the tree from the MacOS folder to
+	// the Contents folder, and then goes into the SharedSupport folder.
+	// 
+	// Make path to the SharedSupport folder be a combination of the path to the executable modified by
+	// the relative path from the executable to the SharedSupport folder. The path to the executable
+	// during UnicodeDebug on my MacBook is this:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt It"
+	// where the last "Adapt It" represents the actual executable file's name. From the MacOS folder (where
+	// the executable resides) to the SharedSupport folder requires the path augmented by:
+	// "/../SharedSupport". The combined path to find the help file would then be:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
+	// It/../SharedSupport" which is programmatically represented by:
+	pathToHtmlHelpFiles = m_appInstallPathOnly + _T("/../SharedSupport"); // the path separator is added by the caller
 #endif
 
 #ifdef __WXGTK__
