@@ -3245,7 +3245,7 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// "/../Resources/locale". The combined path to find the help file would then be:
 	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
 	// It/../Resources/locale" which is programmatically represented by:
-	localizationFilePath + m_appInstallPathOnly + _T("/../Resources/locale"); // the path separator is added by the caller
+	localizationFilePath = m_appInstallPathOnly + _T("/../Resources/locale"); // the path separator is added by the caller
 	//wxFileName fn(localizationFilePath);
 	//localizationFilePath = fn.Normalize();
 	pathToLocalizationFolders = localizationFilePath;
