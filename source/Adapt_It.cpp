@@ -3235,11 +3235,17 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default localizationFilePath for the Mac.
-	// There does not appear to be a wxStandardPaths method which gives us the path for locating the
-	// <lang> localization subdirectories so we'll just hard code it for the Mac.
-	// Note: The actual full path and name on the Mac for a given <lang> is: 
-	// "Adapt It.app/Contents/Resources/locale/<lang>/LC_MESSAGES/Adapt It.mo"
-	localizationFilePath += appName + _T(".app/Contents/Resources/locale"); // the path separator is added by the caller
+	// 
+	// Make path to the Resources folder be a combination of the path to the executable modified by
+	// the relative path from the executable to the Resources/locale folder. The path to the executable
+	// during UnicodeDebug on my MacBook is this:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt It"
+	// where the last "Adapt It" represents the actual executable file's name. From the MacOS folder (where
+	// the executable resides) to the Resources folder requires the path augmented by:
+	// "/../Resources/locale". The combined path to find the help file would then be:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
+	// It/../Resources/locale" which is programmatically represented by:
+	localizationFilePath + m_appInstallPathOnly + _T("/../Resources/locale"); // the path separator is added by the caller
 	pathToLocalizationFolders = localizationFilePath;
 #endif
 
