@@ -3274,6 +3274,8 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	}
 #endif
 	wxLogDebug(_T("pathToLocalizationFolders = %s"),pathToLocalizationFolders.c_str());
+	wxFileName fn(pathToLocalizationFolders);
+	fn.Normalize();
 	return pathToLocalizationFolders;
 }
 
@@ -3324,6 +3326,8 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 	pathToXMLFolders = m_appInstallPathOnly;
 #endif
 	wxLogDebug(_T("pathToXMLFolders = %s"),pathToXMLFolders.c_str());
+	wxFileName fn(pathToXMLFolders);
+	fn.Normalize();
 	return pathToXMLFolders;
 }
 
@@ -3399,6 +3403,8 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	pathToHtmlHelpFiles = m_appInstallPathOnly;
 #endif
 	wxLogDebug(_T("pathToHtmlHelpFiles = %s m_htbHelpFileName = %s"),pathToHtmlHelpFiles.c_str(),m_htbHelpFileName.c_str());
+	wxFileName fn(pathToHtmlHelpFiles);
+	fn.Normalize();
 	return pathToHtmlHelpFiles;
 }
 
@@ -4427,7 +4433,6 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 {
-#ifdef __WXMAC__ // Chande to #ifndef to test the swapping on Windows or Linux
 	wxASSERT(pDialog != NULL);
 	wxButton* pOKButton = (wxButton*)pDialog->FindWindow(wxID_OK); // FindWindow finds a child of pDialog
 	if (pOKButton == NULL)
@@ -4436,6 +4441,7 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 	if (pCancelButton == NULL)
 		return FALSE;
 
+#ifdef __WXMAC__ // Chande to #ifndef to test the swapping on Windows or Linux
 	// Get pointers to the containing sizer of the two buttons
 	wxBoxSizer* pContSizerOfOK = (wxBoxSizer*)pOKButton->GetContainingSizer();
 	wxASSERT(pContSizerOfOK != NULL);
@@ -4485,7 +4491,6 @@ bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
 		pCancelButton->SetDefault();
 		return TRUE;
 	}
-
 #endif
 	return FALSE;
 }
