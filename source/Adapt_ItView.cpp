@@ -12772,6 +12772,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			return FALSE;
 		}
 	}
+	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 
 	return TRUE;
 }
@@ -12973,6 +12974,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 			return FALSE;
 		}
 	}
+	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 	return TRUE;
 }
 
