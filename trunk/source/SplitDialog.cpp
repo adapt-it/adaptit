@@ -777,6 +777,10 @@ void CSplitDialog::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxASSERT(pFileName2 != NULL);
 	pFileList = (wxListBox*)FindWindowById(IDC_LIST_FOLDER_DOCS) ;
 	wxASSERT(pFileList != NULL);
+	pFileName1Label = (wxStaticText*)FindWindowById(IDC_STATIC_SPLIT_NAME);
+	wxASSERT(pFileName1Label != NULL);
+	pFileName2Label = (wxStaticText*)FindWindowById(IDC_STATIC_REMAIN_NAME) ;
+	wxASSERT(pFileName2Label != NULL);
 	
 	pSplittingWait->Show(FALSE);
 
@@ -883,12 +887,12 @@ void CSplitDialog::RadioButtonsChanged()
 	if (!pSplitIntoChapters->GetValue() == TRUE) 
 	{
 		pFileName2->Show(TRUE);
-		FileName2Label.Show(TRUE);
+		pFileName2Label->Show(TRUE);
 		s = _("(Obligatory) Type a suitable name for the split off document part:"); //IDS_SPLIT_DOC_NAME
 	} else {
 		pFileName2->Hide();
-		FileName2Label.Hide();
+		pFileName2Label->Hide();
 		s = _("(Obligatory) Type a generic name to which each chapter number can be added"); //IDS_GENERIC_DOC_NAME
 	}
-	FileName1Label.SetLabel(s);
+	pFileName1Label->SetLabel(s);
 }
