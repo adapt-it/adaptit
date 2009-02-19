@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
+		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
+		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
+		7DA17E920F4BC8E000BDDF30 /* LICENSING.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */; };
 		7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D20F462A570047FCAF /* AI_USFM.xml */; };
 		7DC038D50F462A570047FCAF /* books.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D30F462A570047FCAF /* books.xml */; };
 		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
@@ -106,12 +110,16 @@
 		20286C33FDCF999611CA2CEA /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
+		7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_CPLv05.txt; sourceTree = "<group>"; };
+		7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_GPLv2.txt; sourceTree = "<group>"; };
+		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
+		7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = LICENSING.txt; sourceTree = "<group>"; };
 		7DC038D20F462A570047FCAF /* AI_USFM.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = AI_USFM.xml; path = ../../xml/AI_USFM.xml; sourceTree = SOURCE_ROOT; };
 		7DC038D30F462A570047FCAF /* books.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = books.xml; path = ../../xml/books.xml; sourceTree = SOURCE_ROOT; };
 		7DC0390C0F4654B30047FCAF /* Adapt It.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Adapt It.icns"; path = "../../res/Adapt It.icns"; sourceTree = SOURCE_ROOT; };
 		7DC0399C0F4672720047FCAF /* ai_build_phase_script.sh */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.script.sh; path = ai_build_phase_script.sh; sourceTree = "<group>"; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		8D0C4E970486CD37000505A6 /*  Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = " Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_Resources.h; path = ../../source/Adapt_It_Resources.h; sourceTree = SOURCE_ROOT; };
 		C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It_wdr.cpp; path = ../../source/Adapt_It_wdr.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_wdr.h; path = ../../source/Adapt_It_wdr.h; sourceTree = SOURCE_ROOT; };
@@ -309,7 +317,7 @@
 		195DF8CFFE9D517E11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D0C4E970486CD37000505A6 /*  Adapt It.app */,
+				8D0C4E970486CD37000505A6 /* Adapt It.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -503,6 +511,8 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				7DA17E930F4BC92500BDDF30 /* docs */,
+				7DA17E8A0F4BC8E000BDDF30 /* license */,
 				7DC0390C0F4654B30047FCAF /* Adapt It.icns */,
 				7DC038D20F462A570047FCAF /* AI_USFM.xml */,
 				7DC038D30F462A570047FCAF /* books.xml */,
@@ -526,6 +536,25 @@
 				4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */,
 			);
 			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		7DA17E8A0F4BC8E000BDDF30 /* license */ = {
+			isa = PBXGroup;
+			children = (
+				7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */,
+				7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */,
+				7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */,
+				7DA17E8E0F4BC8E000BDDF30 /* LICENSING.txt */,
+			);
+			name = license;
+			path = ../../license;
+			sourceTree = SOURCE_ROOT;
+		};
+		7DA17E930F4BC92500BDDF30 /* docs */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = docs;
 			sourceTree = "<group>";
 		};
 		7DC0399B0F4672720047FCAF /* scripts */ = {
@@ -555,7 +584,7 @@
 			name = AdaptIt;
 			productInstallPath = "$(HOME)/Applications";
 			productName = AdaptIt;
-			productReference = 8D0C4E970486CD37000505A6 /*  Adapt It.app */;
+			productReference = 8D0C4E970486CD37000505A6 /* Adapt It.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -582,6 +611,10 @@
 				7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */,
 				7DC038D50F462A570047FCAF /* books.xml in Resources */,
 				7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */,
+				7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */,
+				7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */,
+				7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */,
+				7DA17E920F4BC8E000BDDF30 /* LICENSING.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -775,7 +808,7 @@
 					"-lz",
 					"-lwx_mac_static",
 				);
-				PRODUCT_NAME = " Adapt It";
+				PRODUCT_NAME = "Adapt It";
 				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
 				WARNING_CFLAGS = (
 					"-Wmost",
