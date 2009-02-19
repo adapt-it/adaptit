@@ -1922,20 +1922,20 @@ void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 {
-	wxMenuBar* pMenuBar = this->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
-	wxASSERT(pUseToolTips != NULL);
+	//wxMenuBar* pMenuBar = this->GetMenuBar();
+	//wxASSERT(pMenuBar != NULL);
+	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
+	//wxASSERT(pUseToolTips != NULL);
 	if (gpApp->m_bUseToolTips)
 	{
 		wxToolTip::Enable(FALSE);
-		pUseToolTips->Check(FALSE);
+		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,FALSE); //pUseToolTips->Check(FALSE);
 		gpApp->m_bUseToolTips = FALSE;
 	}
 	else
 	{
 		wxToolTip::Enable(TRUE);
-		pUseToolTips->Check(TRUE);
+		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,TRUE); //pUseToolTips->Check(TRUE);
 		gpApp->m_bUseToolTips = TRUE;
 	}
 	
