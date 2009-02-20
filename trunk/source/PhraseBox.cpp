@@ -3006,9 +3006,9 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 					wxMessageBox(_("Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."),_T(""), wxICON_INFORMATION);
 				}
 			}
-#ifdef __WXMAC__
-			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-#endif
+//#ifdef __WXMAC__
+//			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+//#endif
 			SetFocus();
 			SetSelection(nStart,nEnd);
 			gnStart = nStart;
@@ -3033,9 +3033,9 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 					wxMessageBox(_("Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "), _T(""), wxICON_INFORMATION);
 				}
 			}
-#ifdef __WXMAC__
-			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-#endif
+//#ifdef __WXMAC__
+//			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+//#endif
 			SetFocus();
 			SetSelection(nStart,nEnd);
 			gnStart = nStart;
