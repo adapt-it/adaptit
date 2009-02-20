@@ -12665,7 +12665,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 				return FALSE;
 			}
 //#ifdef __WXMAC__
-			//pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 			return TRUE;
 		}
@@ -12864,7 +12864,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 				return FALSE;
 			}
 //#ifdef __WXMAC__
-			//pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 			return TRUE;
 		}
