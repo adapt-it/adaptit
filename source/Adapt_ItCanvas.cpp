@@ -1650,9 +1650,9 @@ t:	if (pCell == NULL)
 				} // end block for a "same line" click which means extension of selection can 
 				  // be done
 			} // end block for extending a selection
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-//#endif
+#endif
 		} // end of block for a click with SHIFT key down - for extending selection
 		else
 		{
@@ -2217,9 +2217,9 @@ a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
 	// so we'll check first to make sure canvas has captured the mouse
 	if (HasCapture()) // whm added if (HasCapture()) because wx asserts if ReleaseMouse is called without capture
 	{
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 		pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-//#endif
+#endif
 		ReleaseMouse(); // assume no failure
 		wxLogDebug(_T("ReleaseMouse."));
 	}

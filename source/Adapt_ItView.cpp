@@ -12667,9 +12667,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 								// handler that tests the status of m_selectionLine != -1
 				return FALSE;
 			}
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-//#endif
+#endif
 			return TRUE;
 		}
 
@@ -12778,9 +12778,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			return FALSE;
 		}
 	}
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-//#endif
+#endif
 	return TRUE;
 }
 
@@ -12869,9 +12869,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
                 _T(""), wxICON_INFORMATION);
 				return FALSE;
 			}
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-//#endif
+#endif
 			return TRUE;
 		}
 		// find the leftmost cell of the selection
@@ -12987,9 +12987,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 			return FALSE;
 		}
 	}
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
-//#endif
+#endif
 	return TRUE;
 }
 
@@ -28954,8 +28954,14 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 			goto b;
 	}
 	CMainFrame *pFrame = pApp->GetMainFrame();
-	pFrame->canvas->Refresh(); // whm added 21Feb09 
+#ifdef __WXMAC__
+	// Mac needs this to eliminate shadow printing of values displaced on lower part of screen - due to
+	// double buffering?
+	pFrame->SendSizeEvent(); // whm added 21Feb09 This causes more flicker during drag
+#else
+	// Windows and Linux seem to only require Update()
 	pFrame->canvas->Update(); 
+#endif
 }
 
 void CAdapt_ItView::SelectAnchorOnly()
