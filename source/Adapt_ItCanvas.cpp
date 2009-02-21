@@ -1649,6 +1649,9 @@ t:	if (pCell == NULL)
 				} // end block for a "same line" click which means extension of selection can 
 				  // be done
 			} // end block for extending a selection
+//#ifdef __WXMAC__
+			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+//#endif
 		} // end of block for a click with SHIFT key down - for extending selection
 		else
 		{
