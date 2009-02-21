@@ -2215,7 +2215,12 @@ a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
 	// In wx, it is an error to call ReleaseMouse() if the canvas did not previously call CaptureMouse()
 	// so we'll check first to make sure canvas has captured the mouse
 	if (HasCapture()) // whm added if (HasCapture()) because wx asserts if ReleaseMouse is called without capture
+	{
+//#ifdef __WXMAC__
+		pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+//#endif
 		ReleaseMouse(); // assume no failure
+	}
 	gbHaltedAtBoundary = FALSE; // ensure it is cleared
 	
 	event.Skip(); //CScrollView::OnLButtonUp(nFlags, point);
