@@ -28954,6 +28954,7 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 			goto b;
 	}
 	CMainFrame *pFrame = pApp->GetMainFrame();
+	pFrame->canvas->Refresh(); // whm added 21Feb09 
 	pFrame->canvas->Update(); 
 }
 

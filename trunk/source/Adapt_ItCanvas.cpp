@@ -1179,6 +1179,7 @@ x:						CCell* pCell = 0;
 		pApp->m_mouse = point;
 		CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse() and DoCaptureMouse()
 						// in wxWidget sources wincmn.cpp and window.cpp
+		wxLogDebug(_T("CaptureMouse."));
 	}
 
 t:	if (pCell == NULL)
@@ -2220,6 +2221,7 @@ a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
 		pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 		ReleaseMouse(); // assume no failure
+		wxLogDebug(_T("ReleaseMouse."));
 	}
 	gbHaltedAtBoundary = FALSE; // ensure it is cleared
 	
