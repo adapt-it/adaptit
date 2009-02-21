@@ -12651,6 +12651,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 					pApp->m_selectionLine = -1;
 					pApp->m_pAnchor = NULL;
 					pApp->m_selection.Clear();
+					gnSelectionLine = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionStartSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionEndSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
 				}
 			}
 			else
@@ -12665,7 +12668,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 				return FALSE;
 			}
 //#ifdef __WXMAC__
-			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+			//pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 			return TRUE;
 		}
@@ -12776,7 +12779,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 		}
 	}
 //#ifdef __WXMAC__
-	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+	//pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 	return TRUE;
 }
@@ -12854,6 +12857,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 					pApp->m_selectionLine = -1;
 					pApp->m_pAnchor = NULL;
 					pApp->m_selection.Clear();
+					gnSelectionLine = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionStartSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionEndSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
 				}
 			}
 			else
@@ -12864,7 +12870,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 				return FALSE;
 			}
 //#ifdef __WXMAC__
-			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+			//pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 			return TRUE;
 		}
@@ -12982,7 +12988,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 		}
 	}
 //#ifdef __WXMAC__
-	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+	//pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
 //#endif
 	return TRUE;
 }
