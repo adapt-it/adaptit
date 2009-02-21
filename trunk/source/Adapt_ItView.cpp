@@ -28999,7 +28999,14 @@ void CAdapt_ItView::SelectAnchorOnly()
 	pList->Insert(pAnchor);
 	wxASSERT(pList->GetCount() == 1); // should only be one left in the list
 	CMainFrame *pFrame = pApp->GetMainFrame();
-	pFrame->canvas->Update();
+#ifdef __WXMAC__
+	// Mac needs this to eliminate shadow printing of values displaced on lower part of screen - due to
+	// double buffering?
+	pFrame->SendSizeEvent(); // whm added 21Feb09 This causes more flicker during drag
+#else
+	// Windows and Linux seem to only require Update()
+	pFrame->canvas->Update(); 
+#endif
 }
 
 bool CAdapt_ItView::IsTypeDifferent(CCell* pAnchor, CCell* pCurrent)
