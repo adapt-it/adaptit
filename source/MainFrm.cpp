@@ -2817,7 +2817,7 @@ void CMainFrame::ComposeBarGuts()
 			{
 				// when commencing free translation mode, show any pre-existing content selected
 				// also clear the starting and ending character indices for the box contents
-				gnStart = 0;
+				gnStart = -1;
 				gnEnd = -1;
 				pEdit->SetSelection(gnStart,gnEnd); // no scroll
 			}
@@ -3250,10 +3250,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			{
 				pApp->m_pTargetBox->SetFocus();
 				pApp->m_nEndChar = -1;
-				pApp->m_nStartChar = 0;
+				pApp->m_nStartChar = -1;
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 				pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
-				gnStart = 0;
+				gnStart = -1;
 				gnEnd = -1;
 			}
 

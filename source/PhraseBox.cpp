@@ -2940,7 +2940,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 
 			// select the lot
 			SetSelection(-1,-1);// -1,-1 selects all
-			gnStart = 0;
+			gnStart = -1;
 			gnEnd = -1;
 
 			// set old sequ number in case required for toolbar's Back button - in this case
@@ -4631,7 +4631,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			// fix the cursor location
 			if (bRestoringAll)
 			{
-				gnStart = 0;
+				gnStart = -1;
 				gnEnd = -1;
 				SetSelection(gnStart,gnEnd); // make it all be selected
 			}
