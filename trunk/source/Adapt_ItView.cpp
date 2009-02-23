@@ -1639,7 +1639,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	}
 
 	gpApp->m_targetPhrase = saveText;
-	gnStart = 0;
+	gnStart = -1;
 	gnEnd = -1;
 	gpApp->m_nStartChar = gnStart;
 	gpApp->m_nEndChar = gnEnd;
@@ -1649,7 +1649,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	// do it again
 	if (gpApp->m_pTargetBox != NULL)
 	{
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 		gpApp->m_nStartChar = gnStart;
 		gpApp->m_nEndChar = gnEnd;
@@ -14595,7 +14595,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 		if (pEdit != 0)
 		{
 			pEdit->SetSelection(-1,-1);
-			gnStart = 0;
+			gnStart = -1;
 			gnEnd = -1;
 			pEdit->SetFocus();
 		}
@@ -21197,7 +21197,7 @@ legacy:	if (pSrcPhrase->m_targetStr.IsEmpty() && !pSrcPhrase->m_bHasKBEntry && !
 		gpApp->m_targetPhrase = str3; // in our 4-line version, the Phrase Box can have punctuation 
 							   // as well as text
 		gpApp->m_pTargetBox->SetValue(str3);
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 
 		// layout again, so that the targetBox won't encroach on the next cell's adaption text 
@@ -22089,7 +22089,7 @@ legacy:	str3.Empty();
 		RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 		gpApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
 		gpApp->m_pTargetBox->SetFocus();
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 	}
 	else
@@ -34159,7 +34159,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 		str3 = pRec->oldPhraseBoxText;
 		gpApp->m_targetPhrase = str3;
 		gpApp->m_pTargetBox->SetValue(str3);
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 		// at this point, the sourcephrase's m_bHasKBEntry flag will be the default (FALSE) value, 
 		// so we do not need to do any KB adjustments (such as calling GetRefString and then 

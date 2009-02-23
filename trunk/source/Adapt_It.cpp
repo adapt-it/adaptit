@@ -5098,7 +5098,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
 	gbPrintFooter = TRUE;
-	gnStart = 0;
+	gnStart = -1;
 	gnEnd = -1;
 	
 	gbIgnoreScriptureReference_Receive = TRUE;
