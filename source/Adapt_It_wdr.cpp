@@ -6799,7 +6799,7 @@ wxMenuBar *AIMenuBarFunc()
     item0->Append( item6, _("Layout") );
     
     wxMenu* item7 = new wxMenu;
-    item7->Append( wxID_HELP, _("&Help Topics"), _("List Help topics") );
+    item7->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
     item7->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
     item7->Append( ID_USER_FORUM, _("User Forum (Requires Internet Access)"), wxT("") );
     item7->AppendSeparator();
