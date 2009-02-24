@@ -1147,7 +1147,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// to prevent them from executing if the user types the accelerator key combination.
 	// 
 	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
-    wxAcceleratorEntry entries[36]; //[43];
+    wxAcceleratorEntry entries[37]; //[43];
 #ifdef __WXMAC__
 	// whm Note: On Mac Command-1 is reserved for View as Icons, so we'll use Command-Shift-1 on Mac to
 	// avoid the reserved key.
@@ -1230,7 +1230,9 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// whm Note: On Mac Command-Q is reserved for quitting the application, so we add an extra
 	// accelerator here for it (the Edit Source Text on Mac was changed to Ctrl-Shift-E above and
 	// Ctrl-Q remains defined above on Windows and Linux for Edit Source Text).
-	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT); // 
+	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT);
+	// whm Note: On Mac both Command-Shift-/ is the usual hot key for getting app help
+    entries[36].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '/', wxID_HELP);
 #endif
     
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
@@ -2960,6 +2962,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 		if (pApp->m_pTargetBox != NULL)
 			if (pApp->m_pTargetBox->IsShown()) 
 				pApp->m_pTargetBox->SetFocus();
+		wxLogDebug(_T("CMainFrame::OnActivate() called."));
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
