@@ -5802,7 +5802,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
 	// menu to use Ctrl-Shift-1 for it here.
 	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+
+
 #endif
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
+	wxASSERT(pHelpTopicsMenu != NULL);
+	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
 
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
 	// However, the wx version does not use serialized .adt type data files. I don't think it 
