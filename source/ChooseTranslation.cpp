@@ -39,6 +39,7 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
+#include <wx/tooltip.h> // for wxToolTip
 
 #include "Adapt_It.h"
 #include "ChooseTranslation.h"
@@ -135,6 +136,39 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	pChooseTransSizer = ChooseTranslationDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	// whm modification 27Feb09: wxDesigner doesn't have an easy way to incorporate a custom derived
+	// listbox control such as our CMyListBox control. Hence, it has used the stock library wxListBox
+	// in the ChooseTranslationDlgFunc() dialog building function. I'll get a pointer to the sizer
+	// which encloses our wxDesigner-provided wxListBox, then delete the list box that wxDesigner
+	// provided and substitute an instance of our CMyListBox class created for the purpose. Our custom
+	// substituted list box will have the same parent, i.e., "this" (CChooseTranslation) so it will be
+	// destroyed when its parent CChooseTranslation is destroyed.
+	// Get the pointer to the containing sizer of the provided wxListBox
+	wxListBox* pLB = (wxListBox*)FindWindowById(IDC_MYLISTBOX_TRANSLATIONS);
+	wxASSERT(pLB != NULL);
+	wxBoxSizer* pContSizerOfLB = (wxBoxSizer*)pLB->GetContainingSizer();
+	wxASSERT(pContSizerOfLB != NULL);
+	// get the list box's existing tooltip
+	wxToolTip* pLBToolTip = pLB->GetToolTip();
+	wxString ttLBStr;
+	if (pLBToolTip != NULL)
+	{
+		ttLBStr = pLBToolTip->GetTip();
+	}
+	// delete the existing list box
+	delete pLB;
+	// create an instance of our CMyListBox class
+	m_pMyListBox = new CMyListBox(this, IDC_MYLISTBOX_TRANSLATIONS, wxDefaultPosition, wxSize(400,-1), 0, NULL, wxLB_SINGLE);
+	wxASSERT(m_pMyListBox != NULL);
+	// Transfer the tooltip to the new custom list box.
+	if (pLBToolTip != NULL)
+	{
+		m_pMyListBox->SetToolTip(ttLBStr);
+	}
+	// add our custom list box to the sizer in the place of the wxListBox that used to be there.
+	pContSizerOfLB->Add(m_pMyListBox, 1, wxGROW|wxALL, 0);
+	m_pMyListBox->SetFocus();
+
 	bool bOK;
 	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 
@@ -154,6 +188,8 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	m_pEditReferences = (wxTextCtrl*)FindWindowById(IDC_EDIT_REFERENCES);
 	m_pEditReferences->SetValidator(wxGenericValidator(&m_refCountStr));
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
+	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
+
 
 	// Note: We don't need to set up any SetValidators for data transfer 
 	// in this class since all assignment of values is done in OnOK()

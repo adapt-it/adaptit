@@ -21381,6 +21381,141 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the index of the list box item if found, otherwise -1
+/// \param      pListBox         -> a pointer to the list box being searched
+/// \param      searchStr        <- a wxString representing the string being searched for
+/// \param      searchCaseType   -> a SearchCaseType which can be caseSensitive or caseInsensitive
+/// \param      searchStrLenType <- a SearchStrLengthType which can be subString or exactString
+/// \param      startFromType    -> a StartFromType which can be fromFirstListPos, fromCurrentSelPosToListEnd,
+///                                 or fromCurrentSelPosCyclingBack
+/// \remarks
+/// Called from: CMyListBox::OnSysKeyUp(wxKeyEvent& event).
+/// This function is an override of the function of the same name but has a startFromType
+/// parameter added to the function signature to further indicate the scope of a list box
+/// search for an item. Hence, this function enables searches for successive list items that 
+/// match the list criteria. It is designed to emulate for wxGTK and wxMAC the list box behavior 
+/// that exists in wxMSW and wxMac native list boxes. As such it would ordinarily be called from
+/// within a #if defined(__WXGTK__) && defined(_UNICODE) conditional compilation block.
+/// Finds the index of an item in pListBox that matches the searchStr and the case and and/or
+/// substring type. Returns the index of the item if found, or -1 if not found. This function
+/// adds more search options and search criteria than what is available in the standard wxListBox
+/// which can do case sensitive or insensitive searches but cannot do substring searches with its 
+/// FindString() method. In this function, if the startFromType is fromCurrentSelPosToListEnd, it 
+/// will start searching using parameter search criteria from the current selection + 1 to the 
+/// end of the list, and will return an index number if an item is found, or -1 (not found) if 
+/// the searchStr could not be found according to the other parameter criteria. If the startFromType
+/// is fromCurrentSelPosCyclingBack, it will start searching as per the fromCurrentSelPosToListEnd,
+/// but if it reaches the end of the list and has not found an item matching search criteria, it
+/// will cycle back and search also from the top of the list to the current selection.
+/// Care needs to be taken when using functions like FindListBoxItem on list boxes that may 
+/// contain hundreds or thousands of items. Since the find operation is a simple brute force 
+/// search through each item, the time taken can be considerable for list boxes that may contain 
+/// very large numbers of items.
+////////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
+		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType, 
+		enum StartFromType startFromType)
+{
+	// FindListBoxItem searches for searchStr in pListBox and returns the zero-based
+	// index of a found item, or -1 if not found. If searchType is caseSensitive, it will
+	// return the index of the first exact (case sensitive) match found; if searchCaseType is
+	// caseInsensitive, it will return the index of the first match found that may differ
+	// in case; if searchStrLenType is subString, it will return the index of the first item
+	// with a matching substring; if startFromType is currentSelPos, it will only search for
+	// list items below the currently selected item in the list, or if none are found below
+	// the item, but an item is found preceding the currently selected item, it will cycle
+	// to that item.
+	int ct, nStartIndex, nEndIndex, nCurrSel, nTotLBItems;
+	bool bFound = FALSE;
+	wxString caseKeyStr = searchStr;
+	nCurrSel = pListBox->GetSelection();
+	nTotLBItems = (int)pListBox->GetCount();
+	if (searchCaseType == caseInsensitive)
+		caseKeyStr.UpperCase();
+	nStartIndex = 0; // the default starting point case which is fromFirstListPos
+	nEndIndex = nTotLBItems - 1; // the default ending point is index of last item in list
+	
+	// handle the special cases where starting index is from current selection index
+	if (startFromType == fromCurrentSelPosToListEnd || startFromType == fromCurrentSelPosCyclingBack)
+	{
+		// Set starting index at next index below the current selection position.
+		nStartIndex = nCurrSel + 1; // start searching with next item below current selection
+		// But first do some sanity checks.
+		if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
+		{
+			// no valid selection is current so cannot search
+			return -1; 
+		}
+	}
+	// Search from starting index through end of list
+	wxString srcStr;
+	for (ct = nStartIndex; ct <= nEndIndex; ct++) // use <= here
+	{
+		srcStr = pListBox->GetString(ct);
+		if (searchCaseType == caseInsensitive)
+			srcStr.UpperCase();
+		if (searchStrLenType == subString)
+		{
+			// If needed we could here further modify FindListBoxItem to allow
+			// for a substring at any location in the string, not just initially
+			// It would require an additional enum parameter SubStrType {initialOnly, anywhere}
+			if (srcStr.Find(caseKeyStr) == 0)
+			{
+				// we found an item whose beginning chars match 
+				bFound = TRUE;
+				return ct;
+			}
+		}
+		else
+		{
+			// searchStrLenType == exactString
+			if (srcStr == caseKeyStr)
+			{
+				// we found an item whose chars match exactly
+				bFound = TRUE;
+				return ct;
+			}
+		}
+	}
+	// For the possible cycle back bFound == FALSE case, search again from index 0 to current selection
+	if (startFromType == fromCurrentSelPosCyclingBack && bFound == FALSE)
+	{
+		nStartIndex = 0; // the default starting point case which is fromFirstListPos
+		nEndIndex = nCurrSel; // the default ending point is index of last item in list
+		wxString srcStr;
+		for (ct = nStartIndex; ct <= nEndIndex; ct++) // use <= here
+		{
+			srcStr = pListBox->GetString(ct);
+			if (searchCaseType == caseInsensitive)
+				srcStr.UpperCase();
+			if (searchStrLenType == subString)
+			{
+				// If needed we could here further modify FindListBoxItem to allow
+				// for a substring at any location in the string, not just initially
+				// It would require an additional enum parameter SubStrType {initialOnly, anywhere}
+				if (srcStr.Find(caseKeyStr) == 0)
+				{
+					// we found an item whose beginning chars match 
+					bFound = TRUE;
+					return ct;
+				}
+			}
+			else
+			{
+				// searchStrLenType == exactString
+				if (srcStr == caseKeyStr)
+				{
+					// we found an item whose chars match exactly
+					bFound = TRUE;
+					return ct;
+				}
+			}
+		}
+	}
+	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     an int representing an MFC paper size code value equivalent to the wxPaperSize id
 /// \param      id   -> the wxPaperSize id to be mapped to an MFC value
 /// \remarks
