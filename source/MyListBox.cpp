@@ -164,6 +164,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 			// List box has more than one item; first item is selected and user has pressed the up
 			// arrow key, so recycle down to select the last item in the list.
 			this->SetSelection(this->GetCount() -1);
+			this->SetFocus();
 			return; // don't pass on the key event to be handled by wxListBox base class
 		}
 		if (event.GetKeyCode() == WXK_DOWN && this->GetSelection() == (int)this->GetCount()-1)
@@ -171,6 +172,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 			// List box has more than one item; the last item is selected and user has pressed the down
 			// arrow key, so recycle up to select the first item in the list.
 			this->SetSelection(0);
+			this->SetFocus();
 			return; // don't call Skip() to pass on the key event to be handled by wxListBox base class
 		}
 
@@ -192,6 +194,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 			if (nFound != -1)
 			{
 				this->SetSelection(nFound);
+				this->SetFocus();
 				return; // don't call Skip() to pass on the key event to be handled by wxListBox base class
 			}
 		}
