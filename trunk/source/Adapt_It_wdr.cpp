@@ -1637,10 +1637,8 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Translations which are currently in the knowledge base:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticBox *item9 = new wxStaticBox( parent, -1, _("Translations which are currently in the knowledge base:") );
+    wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1719,7 +1717,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("New Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("&New Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
     item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );

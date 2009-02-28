@@ -3,7 +3,7 @@
 /// \file			Adapt_It.h
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	28 January 2009
+/// \date_revised	27 February 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
@@ -41,8 +41,8 @@
 #define VERSION_MAJOR_PART 4
 #define VERSION_MINOR_PART 1
 #define VERSION_BUILD_PART 1
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases
-#define VERSION_DATE_DAY 4
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases
+#define VERSION_DATE_DAY 27
 #define VERSION_DATE_MONTH 2
 #define VERSION_DATE_YEAR 2009
 
@@ -316,6 +316,13 @@ enum SearchStrLengthType
 {
 	subString,
 	exactString
+};
+
+enum StartFromType
+{
+	fromFirstListPos,
+	fromCurrentSelPosToListEnd,
+	fromCurrentSelPosCyclingBack
 };
 
 /// A struct for specifying time settings. Struct members include: m_tsDoc, m_tsKB, m_tLastDocSave, and m_tLastKBSave.
@@ -2083,6 +2090,9 @@ public:
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 							enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);
+	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
+							enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType, 
+							enum StartFromType startFromType);
 	void	FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArrayString* MkrAndDescrArray, int minNumSpaces, wxArrayInt* pUserCanSetFilterFlags);
 	bool	GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView, CPhraseBox*& pBox);
 	MapSfmToUSFMAnalysisStruct* GetCurSfmMap(enum SfmSet sfmSet);
