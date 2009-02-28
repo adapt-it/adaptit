@@ -64,6 +64,7 @@ IMPLEMENT_DYNAMIC_CLASS(CMyListBox, wxListBox)
 BEGIN_EVENT_TABLE(CMyListBox, wxListBox)
 	EVT_KEY_UP(CMyListBox::OnSysKeyUp)
 	EVT_KEY_DOWN(CMyListBox::OnSysKeyDown)
+	EVT_CHAR(CMyListBox::OnChar)
 END_EVENT_TABLE()
 
 
@@ -163,6 +164,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 		{
 			// List box has more than one item; first item is selected and user has pressed the up
 			// arrow key, so recycle down to select the last item in the list.
+			this->Deselect(this->GetSelection());
 			this->SetSelection(this->GetCount() -1);
 			this->SetFocus();
 			return; // don't pass on the key event to be handled by wxListBox base class
@@ -171,6 +173,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 		{
 			// List box has more than one item; the last item is selected and user has pressed the down
 			// arrow key, so recycle up to select the first item in the list.
+			this->Deselect(this->GetSelection());
 			this->SetSelection(0);
 			this->SetFocus();
 			return; // don't call Skip() to pass on the key event to be handled by wxListBox base class
@@ -193,6 +196,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 			nFound = gpApp->FindListBoxItem(this,searchStr,caseInsensitive, subString ,fromCurrentSelPosCyclingBack);
 			if (nFound != -1)
 			{
+				this->Deselect(this->GetSelection());
 				this->SetSelection(nFound);
 				this->SetFocus();
 				return; // don't call Skip() to pass on the key event to be handled by wxListBox base class
@@ -200,4 +204,11 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 		}
 	}
 	event.Skip(); // all other key strokes are passed on for default handling
+}
+
+void CMyListBox::OnChar(wxKeyEvent& event) 
+{
+	wxChar ch;
+	ch = event.GetKeyCode();
+	event.Skip();
 }

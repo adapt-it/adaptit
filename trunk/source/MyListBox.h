@@ -37,6 +37,7 @@ public:
 protected:
 	void OnSysKeyUp(wxKeyEvent& event);
 	void OnSysKeyDown(wxKeyEvent& event);
+	void OnChar(wxKeyEvent& event);
 
 private:
 	// class attributes
