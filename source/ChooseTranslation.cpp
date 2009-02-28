@@ -182,6 +182,7 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 
 	m_pSourcePhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_MATCHED_SOURCE);
 	m_pSourcePhraseBox->SetBackgroundColour(gpApp->sysColorBtnFace);
+	m_pSourcePhraseBox->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
 	m_pNewTranslationBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_TRANSLATION);
 
