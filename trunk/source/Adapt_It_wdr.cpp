@@ -1627,7 +1627,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item6->SetToolTip( _("Source text as translated previously") );
     item5->Add( item6, 1, wxGROW|wxALL, 0 );
 
-    item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item3->Add( item5, 1, wxALIGN_CENTER, 5 );
 
     item3->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -1726,7 +1726,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item31->SetToolTip( _("Type a new translation here if the translation you want is not in the list") );
     item30->Add( item31, 1, wxGROW|wxALL, 0 );
 
-    item28->Add( item30, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item28->Add( item30, 1, wxALIGN_CENTER, 5 );
 
     item28->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
