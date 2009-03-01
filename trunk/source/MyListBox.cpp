@@ -164,7 +164,7 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 		{
 			// List box has more than one item; first item is selected and user has pressed the up
 			// arrow key, so recycle down to select the last item in the list.
-			this->Deselect(this->GetSelection());
+			this->Deselect(this->GetSelection()); // 
 			this->SetSelection(this->GetCount() -1);
 			this->SetFocus();
 			return; // don't pass on the key event to be handled by wxListBox base class
@@ -189,7 +189,11 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 			// When more than one item is in list box, try to select a list item that starts with the
 			// character typed. This behavior is native to Windows and Mac list boxes, but apparently is
 			// not a native behavior for wxGTK, so we'll implement it here for wxGTK.
+#ifdef _UNICODE
 			wxChar searchCh = event.GetUnicodeKey();
+#else
+			wxChar searchCh = event.GetKeyCode(); // will be upper case but FindListBoxItem() below uses caseInsensitive search
+#endif
 			wxString searchStr = searchCh;
 			int nFound = -1;
 			// Search from the current selection position (using the FindListBoxItem() override function
@@ -208,7 +212,8 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 
 void CMyListBox::OnChar(wxKeyEvent& event) 
 {
-	wxChar ch;
-	ch = event.GetKeyCode();
+	// just testing!!!
+	//wxChar ch;
+	//ch = event.GetKeyCode();
 	event.Skip();
 }
