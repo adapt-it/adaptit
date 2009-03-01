@@ -1,7 +1,7 @@
 =====================================================================
 Adapt It WX Unicode
 =====================================================================
-Version 4.1.0
+Version 4.1.1
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -275,8 +275,12 @@ in the Adapt It Start Menu group on Windows installations):
    4. Localization_Readme.txt describes how the localization system 
       works in Adapt It WX and Adapt It WX Unicode. It also tells 
       how anyone can modify an existing interface translation, or 
-      prepare a new language interface for Adapt It using the Poedit 
-      program which is freely available from the Internet. 
+      prepare a new language interface for Adapt It using Adapt It's
+      Pootle localization web service at: 
+         http://pootle.sil.org/admin/users.html
+      Another way to contribute to Adapt It's localization needs
+      is to use the Poedit program which is freely available from 
+      the Internet (see the Localization_Readme.txt file). 
    5. Adapt It changes.txt describes the changes from previous 
       versions of Adapt It WX (starting with version 4.0.0).
    6. Known Issues and Limitations.txt lists issues and/or 

@@ -162,7 +162,14 @@ existing translations for these languages, the Adapt It team welcomes
 your help! If you want to help complete or correct the localizations 
 for Spanish, French, Russian, Portuguese, Indonesian, Chinese, or Azeri, 
 here is how you can do so:
-   * The easiest way to edit or correct an existing localization is
+   * The easiest way to edit or correct an existing localization is to
+register as a localization translator and use Adapt It's Pootle web 
+translation interface at: http://pootle.sil.org/projects/adaptit/. Using
+Adapt It's Pootle localization web site, you can help to get Adapt It's
+interface fully translated into the language of your choice! If you
+have any problems getting registered there please send an email to
+Bill Martin at bill_martin@sil.org for assistance and instructions. 
+   * Another way to edit or correct an existing localization is
 to first install a free program called Poedit. PoEdit is an easy to 
 use program with a graphical interface that helps you translate 
 Adapt It's interface elements. Poedit can be downloaded from the 
@@ -260,7 +267,18 @@ and restart Adapt It for the change to become effective.
 
 How to prepare a NEW localization for Adapt It's interface:
 
-Any translator can prepare a new localization for Adapt It. See the
+Any translator can prepare a new localization for Adapt It. 
+   * The easiest way to prepare a new localization is to
+register as a localization translator and use Adapt It's Pootle web 
+translation interface at: http://pootle.sil.org/projects/adaptit/. Using
+Adapt It's Pootle localization web site, you can help to get Adapt It's
+interface fully translated into the language of your choice! After you
+have registered there please send an email to Bill Martin at 
+bill_martin@sil.org to inform him of your intent, and for assistance and 
+instructions - especially if the language you want to prepare a 
+localization for is not yet listed in the Pootle web site.
+
+   * To use the Poedit method for starting a new localization, see the
 discussion above on how to get a .po file from Adapt It's open source
 Google Code site or via email from bill_martin@sil.org. To create a
 translation of Adapt It's interface into a new language, you will 
@@ -372,7 +390,7 @@ should appear in the list of choices. Select the new interface language
 and click OK. Adapt It reminds you that you will need to quit and restart 
 Adapt It for the change to become effective.
 
-As mentioned in 1 above, the easiest way to add a new interface
+As mentioned in 1 above, the quickest way to add a new interface
 localization is to send your translation prepared by Poedit to Bill 
 Martin who will gladly do the steps in point 2 above and send you
 a special installer to add your new localization, and also make
