@@ -1,3 +1,12 @@
+Version 4.1.1 update 28Feb2009:
+----------------------------------------------
+Bug fixes in 4.1.1
+----------------------------------------------
+* Fixed a bug in the KB Editor that was causing a program crash when removing an existing translation string from the list of translations for a given source phrase.
+* Changed the layout of buttons in some dialogs to allow configuration of OK and Cancel buttons to reverse their relative positions as required for the Mac port. This change has minimal impact on the Windows and Linux versions.
+* Choose Translation dialog now has a short-cut key for jumping to the "New Translation" edit box, and implements cyclical up/down arrow key selection (for Windows and Mac - Linux implementation is only partial)
+* Macintosh pre-release version: Fixes a number of Mac look-and-feel issues and source text selection issues.
+
 Version 4.1.0 update 31Jan2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.0
