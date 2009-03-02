@@ -61,16 +61,17 @@ public:
 
 	// operations
 public:
-	//CSourcePhrase*	GetSrcPhrase();
-	//void	SetSrcPhrase(CSourcePhrase* pSrcPhrase);
+	CSourcePhrase*	GetSrcPhrase();
+	void	SetSrcPhrase(CSourcePhrase* pSrcPhrase);
 
 	// attributes
-	CSourcePhrase*	m_pSrcPhrase;
-	CStrip*			m_pOwningStrip;
 
 private:
 	CLayout*		m_pLayout;
+	CSourcePhrase*	m_pSrcPhrase;
+	CStrip*			m_pOwningStrip;
 	CCell*			m_pCell[MAX_CELLS]; // 1 source line, 1 target line, & one gloss line per strip
+	int				m_nPile; // what my index is in the strip object
 	int				m_nWidth;
 	int				m_nMinWidth;
 	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
@@ -99,6 +100,8 @@ public:
 	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
 	//				
 	int			CalcPileWidth();
+	int			GetStripIndex();
+	CStrip*		GetStrip();
 
 private:
 	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers

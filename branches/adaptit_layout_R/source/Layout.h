@@ -44,11 +44,11 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // forward references
+#include "Strip.h"
 class CAdapt_ItDoc;
 class CSourceBundle;
-class CStrip;
+//class CStrip;
 class CPile;
-//class CText;
 class CFont;
 class CAdapt_ItCanvas;
 
@@ -226,14 +226,12 @@ public:
 
 	// left margin for strips
 	void		SetCurLMargin(CAdapt_ItApp* pApp);
-	int			GetCurLMargin();
+	//int		GetCurLMargin();
+	int			GetStripLeft(); // use this instead of GetCurLMargin()
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
-
-	// location (x-coord) of left boundary of a strip
-	int			GetStripLeft();
 
 
 	DECLARE_DYNAMIC_CLASS(CLayout) 

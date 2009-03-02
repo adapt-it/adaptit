@@ -71,7 +71,9 @@ public:
 	CSourceBundle*			m_pBundle;
 	CStrip*					m_pStrip;
 	CPile*					m_pPile;
-	wxString*				m_pPhrase; // BEW changed 9Feb09 to point at the text, not copy it
+	//wxString*				m_pPhrase; // BEW changed 9Feb09 to point at the text, not copy it
+	// and for the refactored design, we don't need to even store the pointer, but get it as needed
+	// using GetCellText()
 	bool					m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
 	*/
 public:
@@ -88,7 +90,7 @@ public:
 	//					wxPoint* pBotRight, int index, wxColor* pNavTextColor);
 	void	CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index);
 
-	void	SetCellText(); // make the CCell instance point at the correct wxString for drawing
+	wxString*	GetCellText(); // get a pointer to the correct wxString for drawing
 
 	// BEW 9Feb09: DrawTextRTL() is a duplicate of the function of the same name defined
 	// also in the CAdapt_ItView class. The one in the view class is used only for RTL drawing
@@ -98,8 +100,14 @@ public:
 	// to round out the CCell function inventory fully. (If later we move the free translation
 	// drawing to the refactored layout code, we can put a copy of DrawTextRTLI() on the CLayout
 	// object, for drawing RTL text in free translation mode.)
-	void	DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect);
+	// BEW 19Feb09 removed wxString& second parameter, as it's now calculated internally by a
+	// GetCellText() call instead
+	void	DrawTextRTL(wxDC* pDC, wxRect& rect);
 
+private:
+	int		GetCellTop();
+
+public:
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 

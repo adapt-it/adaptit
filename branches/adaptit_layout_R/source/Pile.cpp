@@ -144,6 +144,7 @@ CPile::CPile()
 	m_pOwningStrip = (CStrip*)NULL;
 	m_nWidth = 20;
 	m_nMinWidth = 40;
+	m_nPile = -1; // I don't belong in any strip yet
 
 	/*  Use CreatePile() to set up the internals correctly
 	m_bIsActivePile = FALSE;
@@ -684,16 +685,27 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 }
 
 //getter
-//CSourcePhrase* CPile::GetSrcPhrase()
-//{
-//	return m_pSrcPhrase;
-//}
+CSourcePhrase* CPile::GetSrcPhrase()
+{
+	return m_pSrcPhrase;
+}
 
 // setter
-//void CPile::SetSrcPhrase(CSourcePhrase* pSrcPhrase)
-//{
-//	m_pSrcPhrase = pSrcPhrase;
-//}
+void CPile::SetSrcPhrase(CSourcePhrase* pSrcPhrase)
+{
+	m_pSrcPhrase = pSrcPhrase;
+}
+
+int CPile::GetStripIndex()
+{
+	return m_pOwningStrip->m_nStrip;
+}
+
+CStrip* CPile::GetStrip()
+{
+	return m_pOwningStrip;
+}
+
 
 //CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
 //								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)

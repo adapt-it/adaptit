@@ -41,6 +41,7 @@ class CStrip : public wxObject
 {
 	friend class CPile;
 	friend class CLayout;
+	friend class CCell;
 public:
 	CStrip();
 	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
@@ -50,10 +51,10 @@ public:
 	// they are declared. To avoid potential null pointer problems, I have moved the
 	// CSourceBundle* m-pBundle line up before the declaration of CPile* m-pPile[36] line.
 	
-	// attributes
-	int			m_nStrip; // index of this strip in CLayout's m_arrStrips array of pointers
 	
 private:
+	// attributes
+	int			m_nStrip; // index of this strip in CLayout's m_arrStrips array of pointers
 	CLayout*	m_pLayout; // the owning CLayout
 	wxArrayInt	m_arrPiles; // array of CPile* instances which comprise the strip
 	wxArrayInt	m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile

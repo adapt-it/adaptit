@@ -69,8 +69,8 @@ int m_curPileHeight     on the app
 #include "Strip.h"
 #include "Adapt_ItView.h"
 #include "Pile.h"
-#include "Layout.h"
 #include "Cell.h"
+#include "Layout.h"
 
 
 // globals for support of vertical editing
@@ -451,13 +451,20 @@ int CLayout::GetCurLeading()
 	return m_nCurLeading;
 }
 
-// left margin for strips
+// set left margin for strips; for the getter, use GetStripLeft()
 void CLayout::SetCurLMargin(CAdapt_ItApp* pApp)
 {
 	m_nCurLMargin = pApp->m_curLMargin;
 }
 
+/*
 int CLayout::GetCurLMargin()
+{
+	return m_nCurLMargin;
+}
+*/
+
+int CLayout::GetStripLeft()
 {
 	return m_nCurLMargin;
 }
@@ -540,11 +547,6 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 					// with a value of 40 (reduces likelihood of long nav text above a narrow pile
 					// which is last in a strip, having the end of the nav text drawn off-window
 	m_logicalDocSize = docSize;
-}
-
-int CLayout::GetStripLeft()
-{
-	return m_nCurLMargin;
 }
 
 

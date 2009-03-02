@@ -55,6 +55,7 @@
 //#include "Strip.h"
 //#include "Adapt_ItView.h"
 #include "Pile.h"
+#include "Layout.h"
 #include "Cell.h"
 
 // globals for support of vertical editing
@@ -179,7 +180,8 @@ IMPLEMENT_DYNAMIC_CLASS(CCell, wxObject)
 CCell::CCell()
 {
 	m_bSelected = FALSE; // changes according to user's or app's selecting/deselecting activity
-	m_pPhrase = NULL; // it is pointed at a wxString only by the Draw function
+	//m_pPhrase = NULL; // it is pointed at a wxString only by the Draw function
+	// in refactored design, m_pPhrase is not needed, use GetCellText() instead
 	m_pLayout = NULL; // CreateCell() sets this
 	m_pOwningPile = NULL; // CreateCell() sets this
 	m_nCell = 0; // CreateCell() sets this to its permanent value
@@ -198,7 +200,7 @@ CCell::CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile)
 	//m_bDisplay = TRUE; // BEW deprecated 3Feb09
 	m_bSelected =  FALSE;
 	m_nCellIndex = 0;
-	m_phrase = _T("");
+	//m_phrase = _T("");
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//wxASSERT(pApp != NULL);
 	m_navColor = pApp->m_navTextColor;
@@ -257,8 +259,8 @@ void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 // BEW 2Aug08, additions to for gray colouring of context regions in vertical edit steps
 void CCell::Draw(wxDC* pDC)
 {
-	// assign to m_pPhrase whichever wxString should be written for this cell
-	SetCellText();
+	// assign to local var thePhrase whichever wxString should be written for this cell
+	wxString* pPhrase = GetCellText();
 
 	/*    *** TODO *** pull the functionalities out into several helper functions & fix for refactor
 
@@ -797,11 +799,22 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 void CCell::DrawCell(wxDC* pDC)
 {
 	// we assume at the time DrawCell() is called that it's owning pile's pointer to the
-	// CSourcePhrase has be updated, if necessary, to comply with the user's changes to
+	// CSourcePhrase has been updated, if necessary, to comply with the user's changes to
 	// the document (if it hasn't, DrawCell() will crash, so we'll find out soon enough!)
-	// but we defer updating CCell's pointer to the relevant wxString member until now - 
-	// the next call does it
-	SetCellText();
+	
+	// assign to local var thePhrase whichever wxString should be written for this cell
+	wxString* pPhrase = GetCellText();
+
+	// do the calculations for topLeft point of this cell
+	//int nLeftMarginOfStrip = m_pLayout->GetCurLMargin();
+	int nCurLeading = m_pLayout->GetCurLeading();
+	int nStripIndex = m_pOwningPile->GetStripIndex();
+	wxPoint ptTopLeft_Strip(m_pLayout->GetStripLeft(),
+		nCurLeading + nStripIndex * (nCurLeading + m_pLayout->GetStripHeight()));
+	int nPileIndex = m_pOwningPile->m_nPile;
+	int nLeftOffset_Pile = m_pOwningPile->m_pOwningStrip->m_arrPileOffsets[nPileIndex];
+	wxPoint ptTopLeft_Cell(ptTopLeft_Strip.x + nLeftOffset_Pile,
+		ptTopLeft_Strip.y   /* TODO add offset from strip top */);
 
 	// *** TODO ***   more, see below
 
@@ -953,11 +966,13 @@ void CCell::DrawCell(wxDC* pDC)
 	*/
 }
 
-void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
+void CCell::DrawTextRTL(wxDC* pDC, wxRect& rect)
 {
+	// assign to local var thePhrase whichever wxString should be written for this cell
+	wxString* pPhrase = GetCellText();
 
 
-	/*    *** TODO *** fix for refactored design
+	///*    *** TODO *** fix for refactored design
 
 	// Note: BEW 9Feb09, a copy of this function is also in CAdapt_ItView class - that
 	// copy is used only when drawing RTL text in free translation mode.
@@ -1001,9 +1016,10 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	// wxMSW needs SetLayoutDirection(wxLayout_RightToLeft) to be set; in addition we
 	// need to transform the urPt so it is mirrored from the right edge of 
 	// grectViewClient.
-	wxASSERT(grectViewClient.GetWidth() >= urPt.x);
+	wxASSERT(grectViewClient.GetWidth() >= urPt.x); // *** TODO *** ensure grectViewClient is already set
 	pDC->SetLayoutDirection(wxLayout_RightToLeft);
-	pDC->DrawText(str,grectViewClient.GetWidth() - urPt.x - 16,urPt.y); // 16 pixels for scrollbar width
+	//pDC->DrawText(str,grectViewClient.GetWidth() - urPt.x - 16,urPt.y); // 16 pixels for scrollbar width
+	pDC->DrawText(*pPhrase,grectViewClient.GetWidth() - urPt.x - 16,urPt.y); // 16 pixels for scrollbar width
 #else
 	// wxGTK and wxMac need to start drawing text at the point urPt less the width/extent
 	// of the text to be drawn
@@ -1017,10 +1033,10 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	pDC->SetLayoutDirection(wxLayout_LeftToRight); // need this???
 #endif
 
-*/
+//*/
 }
 
-void CCell::SetCellText()
+wxString* CCell::GetCellText()
 {
 	switch (m_nCell)
 	{
@@ -1040,4 +1056,16 @@ void CCell::SetCellText()
 			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
 		break;
 	}
+	return m_pPhrase;
 }
+
+int CCell::GetCellTop()
+{
+
+
+	return 1;
+}
+
+
+
+
