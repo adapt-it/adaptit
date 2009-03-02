@@ -549,6 +549,13 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 	m_logicalDocSize = docSize;
 }
 
+void CLayout::SetLogicalDocHeight(int nDocHeight)
+{
+	// the nDocHeight value passed in must be the total of strip heights, vertical gaps, and also
+	// free translation rectangle heights when gbFreeTranslationMode is TRUE
+	m_logicalDocSize.SetHeight(nDocHeight + 40); // add 40 vertical pixels to give a little white space
+					// at the bottom of the document
+}
 
 wxSize CLayout::GetClientWindowSize()
 {

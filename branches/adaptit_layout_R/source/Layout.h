@@ -126,7 +126,8 @@ private:
     // follows code found in the legacy RecalcLayout() function on the view class
 	wxSize		m_sizeClientWindow; // .x is width, .y is height (control bars taken into account)
 	wxSize		m_logicalDocSize; // the m_logicalDocSize.x  value is the strip width value to be
-								  // used for filling a strip with CPile objects
+	// used for filling a strip with CPile objects; the .y value,
+	// plus 40 pixels, is the range to be used for the vertical scroll bar
     // NOTE: *** TODO *** Bill's Canvas class inherits from wxScrollingWindow, which has a virtual
     // function SetVirtualSize() which can be used to define a virtual size different from the
     // client window's width (and height) -- Bill sets it using that function at the end of
@@ -230,6 +231,7 @@ public:
 	int			GetStripLeft(); // use this instead of GetCurLMargin()
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
+	void		SetLogicalDocHeight(int nDocHeight);
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
 

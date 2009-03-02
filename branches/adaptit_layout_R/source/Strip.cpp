@@ -579,4 +579,53 @@ b:		pStrip->m_nFree = rectStrip.GetRight() - rectStrip.GetLeft() - horzOffset; /
 	return nVertOffset;
 	*/
 }
+// return the width of the strip (it's width is the maximum width it can be for the current client
+// window size, less the left margin and right hand slop; the document size's .x value is already
+// set to that value, so just return that; the width is NOT the width of any piles in the strip
+// -- for that, use the Width() value and subtract m_nFree pixels from it)
+int CStrip::Width()
+{
+	return (m_pLayout->GetLogicalDocSize()).GetWidth();
+}
+
+int CStrip::Height()
+{
+	return m_pLayout->GetStripHeight();
+}
+
+int CStrip::Left()
+{
+	return m_pLayout->GetStripLeft();
+}
+
+int CStrip::Top()
+{
+	return m_pLayout->GetCurLeading() + m_nStrip * (Height() + m_pLayout->GetCurLeading());
+}
+
+int CStrip::GetFree()
+{
+	return m_nFree;
+}
+
+void CStrip::SetFree(int nFree)
+{
+	m_nFree = nFree;
+}
+
+// use GetStripRect_CellsOnly() to set a local strip rectangle which bounds the enclosed cells
+// only, that is, omitting the free translation rectangle if gbFreeTranslationMode is TRUE;
+// because for clicks on the layout, we never do anything for a click on the free translation
+// area, but only for clicks on cells (and even then we ignore clicks on cells with index == 2);
+// so we set the height value using GetPileHeight() rather than GetStripHeight()
+// Note: CStrip does not have any wxRect member; use this function to generate a local wxRect
+// whenever one is needed for a strip - such as when testing for a mousedown within the strip
+void CStrip::GetStripRect_CellsOnly(wxRect& rect)
+{
+	rect.SetTop(Top());
+	rect.SetLeft(Left());
+	rect.SetWidth(Width());
+	rect.SetHeight(m_pLayout->GetPileHeight());
+}
+
 

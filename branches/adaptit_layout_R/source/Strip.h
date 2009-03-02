@@ -78,6 +78,13 @@ public:
 
 	virtual ~CStrip();
 	virtual void Draw(wxDC* pDC);
+	int		Width();
+	int		Height();
+	int		Left();
+	int		Top();
+	int		GetFree();
+	void	SetFree(int nFree);
+	void	GetStripRect_CellsOnly(wxRect& rect);
 	
 
 	//  creator
