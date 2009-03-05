@@ -210,8 +210,9 @@ void CLayout::InitializeCLayout()
 	m_pCanvas = GetCanvas();
 	m_pDoc = GetDoc();
 	m_pMainFrame = GetMainFrame(m_pApp);
-	m_pPiles = NULL;
-	m_pStrips = NULL;
+	//m_pPiles = NULL;
+	//m_pStrips = NULL;
+	m_stripArray.Clear();
 
 	// *** TODO ***   add more basic initializations above here - but only stuff that makes the
 	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
@@ -595,7 +596,8 @@ wxSize CLayout::GetLogicalDocSize()
 
 void CLayout::DestroyStrip(int index)
 {
-	CStrip* pStrip = (CStrip*)(*m_pStrips)[index];
+	//CStrip* pStrip = (CStrip*)(*m_pStrips)[index];
+	CStrip* pStrip = (CStrip*)m_stripArray[index];
 	//WX_CLEAR_ARRAY(pStrip->m_arrPiles); << no, macro tries to use delete operator, use Clear()
 	pStrip->m_arrPiles.Clear();
 	pStrip->m_arrPileOffsets.Clear();
@@ -613,7 +615,7 @@ void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 
 void CLayout::DestroyStrips()
 {
-	int nLastStrip = m_pStrips->GetCount() - 1;
+	int nLastStrip = m_stripArray.Count() - 1;
 	DestroyStripRange(0, nLastStrip);
 }
 
@@ -625,38 +627,10 @@ void CLayout::DestroyPile(CPile* pPile)
 	delete pPile;
 }
 
-/*
 void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 {
-	PileList::Node* posStart = m_pPiles->Item(nFirstPile);
-	if (posStart == NULL)
-	{
-		wxMessageBox(_T("nFirstPile index did not return a valid iterator in DestroyPileRange()"),
-						_T(""), wxICON_STOP);
-		wxASSERT(FALSE);
-		wxExit();
-	}
-	PileList::Node* posEnd = m_pPiles->Item(nLastPile);
-	if (posEnd == NULL)
-	{
-		wxMessageBox(_T("nLastPile index did not return a valid iterator in DestroyPileRange()"),
-						_T(""), wxICON_STOP);
-		wxASSERT(FALSE);
-		wxExit();
-	}
-	PileList::Node* pos;
-	CPile* pPile = 0;
-	for (pos = posStart; pos <= posEnd; pos = pos->GetNext())
-	{
-		pPile = (CPile*)pos->GetData();
-		DestroyPile(pPile);
-	}
-}
-// a better way is below   */
-
-void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
-{
-	PileList::Node* pos = m_pPiles->Item(nFirstPile);
+	//PileList::Node* pos = m_pPiles->Item(nFirstPile);
+	PileList::Node* pos = m_pileList.Item(nFirstPile);
 	int index = nFirstPile;
 	if (pos == NULL)
 	{
@@ -678,7 +652,7 @@ void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 
 void CLayout::DestroyPiles()
 {
-	int nLastPile = m_pPiles->GetCount() - 1;
+	int nLastPile = m_pileList.GetCount() - 1;
 	DestroyPileRange(0, nLastPile);
 }
 
@@ -745,18 +719,20 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 
 	// we allow CreatePiles() to be called even when the list of piles is still populated, so
 	// CreatePiles() has the job of seeing that the old ones are deleted before creating a new set
-	bool bIsEmpty = m_pPiles->IsEmpty();
+	//bool bIsEmpty = m_pPiles->IsEmpty();
+	bool bIsEmpty = m_pileList.IsEmpty();
 	if (!bIsEmpty)
 	{
 		// delete the old ones
 		DestroyPiles();
 	}
-	wxASSERT(m_pPiles->IsEmpty());
+	wxASSERT(m_pileList.IsEmpty());
 
 	// there either is no list on the heap yet, or there is but it
 	// has nothing in it - in either case we can go ahead. To succeed, the count of
 	// items in each list must be identical
-	if (pSrcPhrases->GetCount() != m_pPiles->GetCount())
+	//if (pSrcPhrases->GetCount() != m_pPiles->GetCount())
+	if (pSrcPhrases->GetCount() != m_pileList.GetCount())
 	{
 		wxMessageBox(_T("SPList* passed in, in CreatePiles(), has a count which is different from that of the m_pPiles list in CLayout"),
 						_T(""), wxICON_STOP);
@@ -768,7 +744,8 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 	CSourcePhrase* pSrcPhrase = NULL;
 	CPile* pPile = NULL;
 	SPList::Node* pos = pSrcPhrases->GetFirst();
-	PileList::Node* posInPilesList = m_pPiles->GetFirst();
+	//PileList::Node* posInPilesList = m_pPiles->GetFirst();
+	PileList::Node* posInPilesList = m_pileList.GetFirst();
 	// Note: lack of memory could make the following loop fail in the release version if the
 	// user is processing a very large document - but recent computers should have plenty of
 	// RAM available, so we'll assume a low memory error will not arise; so keep the code lean
@@ -806,19 +783,12 @@ bool CLayout::SetupLayout(SPList* pSrcPhrases)
 	{
 		// no document is loaded, so no layout is appropriate yet, do nothing
 		// except ensure m_pPiles is NULL
-		if (m_pPiles != NULL)
+		if (!(m_pileList.IsEmpty()))
 		{
-			if (m_pPiles->IsEmpty())
-			{
-				delete m_pPiles;
-			}
-			else
-			{
-				m_pPiles->DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
-				delete m_pPiles;
-			}
-			m_pPiles = NULL;
+			m_pileList.DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
 		}
+		wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
+					_T(""), wxICON_WARNING);
 		return TRUE;
 	}
 	// attempt the layout setup
@@ -850,9 +820,11 @@ bool CLayout::SetupLayout(SPList* pSrcPhrases)
 	return TRUE;
 }
 
+void CLayout::UpdateStripIndices(int nStartFrom)
+{
 
 
-
+}
 
 /* 
 	//legacy code forCreatePile() (from wxWidgets code base 4.1.1 as tweaked by BEW before 

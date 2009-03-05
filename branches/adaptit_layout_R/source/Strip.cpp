@@ -216,7 +216,7 @@ void CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPil
 	m_nFree = nStripWidth;
 
 	// prepare for iterating over next group of CPiles to be placed in the strip
-	PileList* pPiles = pLayout->m_pPiles;
+	PileList* pPiles = &pLayout->m_pileList;
 	wxASSERT(!pPiles->IsEmpty());
 	CAdapt_ItView* pView = pLayout->m_pView; // for calling IsWrapMarker() on a pile's CSourcePhrase pointer
 	PileList::Node* pos = pPiles->Item(nIndexOfFirstPile);

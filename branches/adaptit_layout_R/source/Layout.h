@@ -77,9 +77,10 @@ public:
 
 //public:
 private:
-	PileList*			m_pPiles;
-	StripList*			m_pStrips;
-
+	//PileList*			m_pPiles;
+	PileList			m_pileList;
+	//StripList*		m_pStrips;
+	wxArrayPtrVoid		m_stripArray;
 
 private:
 	// two ints define the range of strips to be drawn at next draw
@@ -246,6 +247,10 @@ public:
 	void		SetLogicalDocHeight(int nDocHeight);
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
+
+	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
+	// the layout
+	void		UpdateStripIndices(int nStartFrom = 0);
 
 
 	DECLARE_DYNAMIC_CLASS(CLayout) 
