@@ -83,7 +83,9 @@ public:
 	// helpers
 	//void  DrawCell(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
 	//		const wxString& phrase, const wxColour& color, int nCell);
-	void	DrawCell(wxDC* pDC); //  *** TODO *** we will give this more parameters
+	void	DrawCell(wxDC* pDC, wxColor color); // pass in the colour too, as it can be dynamically 
+												// temporarily changed - such as to gray in
+												// vertical edit mode
 
 	//void	CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString* pPhrase,
 	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
@@ -91,6 +93,8 @@ public:
 	void	CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index);
 
 	wxString*	GetCellText(); // get a pointer to the correct wxString for drawing
+	wxFont*		GetFont(); // get the font to be used for drawing this cell's text
+	wxColour*	GetColor(); // get the colour to be used for drawing this cell's text
 
 	// BEW 9Feb09: DrawTextRTL() is a duplicate of the function of the same name defined
 	// also in the CAdapt_ItView class. The one in the view class is used only for RTL drawing
@@ -100,14 +104,16 @@ public:
 	// to round out the CCell function inventory fully. (If later we move the free translation
 	// drawing to the refactored layout code, we can put a copy of DrawTextRTLI() on the CLayout
 	// object, for drawing RTL text in free translation mode.)
-	// BEW 19Feb09 removed wxString& second parameter, as it's now calculated internally by a
-	// GetCellText() call instead
-	void	DrawTextRTL(wxDC* pDC, wxRect& rect);
+	void	DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect);
+	int		Width();
+	int		Height();
+	int		Left();
+	int		Top();
+	void	GetCellRect(wxRect& rect);
+	void	TopLeft(wxPoint& ptTopLeft);
+	void	BottomRight(wxPoint& ptBottomRight);
 
-private:
-	int		GetCellTop();
 
-public:
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 

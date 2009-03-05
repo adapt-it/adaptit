@@ -95,6 +95,8 @@ public:
 	virtual ~CPile();
 
 	virtual void Draw(wxDC* pDC); // *** TODO **** needs new param list and internals
+	void	DrawNavTextInfoAndIcons(wxDC* pDC); // handles wedge, note icon, retranslation, nav text etc
+	void	PrintPhraseBox(wxDC* pDC);
 
 	//CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
 	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
@@ -102,6 +104,14 @@ public:
 	int			CalcPileWidth();
 	int			GetStripIndex();
 	CStrip*		GetStrip();
+
+	int		Width();
+	int		Height();
+	int		Left();
+	int		Top();
+	void	GetPileRect(wxRect& rect);
+	void	TopLeft(wxPoint& ptTopLeft);
+
 
 private:
 	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers

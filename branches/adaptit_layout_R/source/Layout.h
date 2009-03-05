@@ -118,6 +118,9 @@ private:
 	int			m_nStripHeight;
 	int			m_nCurLeading;
 	int			m_nCurLMargin;
+	int			m_nCurGapWidth;
+	int			m_nSaveLeading;
+	int			m_nSaveGap;
 
 
     // client size (width & height as a wxSize) based on Bill's calculation in the CMainFrame, and
@@ -196,6 +199,15 @@ public:
 	wxFont*		GetTgtFont();
 	wxFont*		GetNavTextFont();
 	*/
+
+	// getters and setters for m_nCurLeading and m_nCurGapWidth
+	// (these mirror the app's m_curLeading and m_curGapWidth; and the "Saved" ones are for
+	// removing the globals gnSaveGap and gnSaveLeading
+	// 
+	int			GetSavedLeading();
+	int			GetSavedGapWidth();
+	void		SetSavedLeading(int nCurLeading);
+	void		SetSavedGapWidth(int nGapWidth);
 
 	// setters and getters for text colors
 	void		SetSrcColor(CAdapt_ItApp* pApp);

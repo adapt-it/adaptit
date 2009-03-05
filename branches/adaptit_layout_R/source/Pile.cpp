@@ -93,7 +93,7 @@
 // don't mess with the order of the following includes, Strip must precede View must precede
 // Pile must precede Layout and Cell can usefully by last
 #include "Strip.h"
-//#include "Adapt_ItView.h"
+#include "Adapt_ItView.h"
 #include "Pile.h"
 #include "Layout.h"
 #include "Cell.h"
@@ -111,7 +111,7 @@ WX_DEFINE_LIST(PileList);
 // these next globals are put here when I moved CreatePile() from the view to the CPile class
 extern bool gbShowTargetOnly;
 extern bool gbEnableGlossing;
-extern CAdapt_ItApp* gpApp;
+//extern CAdapt_ItApp* gpApp;
 extern const wxChar* filterMkr;
 
 // globals relevant to the phrase box  (usually defined in Adapt_ItView.cpp)
@@ -211,15 +211,122 @@ bool CPile::HasFilterMarker()
 	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
 }
 
+int CPile::Width()
+{
+	if (m_nWidth > m_nMinWidth)
+		return m_nWidth;
+	else
+		return m_nMinWidth;
+}
+
+int CPile::Height()
+{
+	return m_pLayout->GetPileHeight();
+}
+
+int CPile::Left()
+{
+	return m_pOwningStrip->m_arrPileOffsets[m_nPile];
+}
+
+int CPile::Top()
+{
+	return m_pOwningStrip->Top();
+}
+
+void CPile::GetPileRect(wxRect& rect)
+{
+	rect.SetTop(Top());
+	rect.SetLeft(Left());
+	rect.SetWidth(Width());
+	rect.SetHeight(m_pLayout->GetPileHeight());
+}
+
+void CPile::TopLeft(wxPoint& ptTopLeft)
+{
+	ptTopLeft.x = Left();
+	ptTopLeft.y = Top();
+}
+
+void CPile::PrintPhraseBox(wxDC* pDC)
+{
+	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
+	wxASSERT(pBox);
+	wxRect rectBox;
+	int width;
+	int height;
+	if (pBox != NULL && m_pLayout->m_pApp->m_nActiveSequNum != -1)
+	{
+		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			rectBox = pBox->GetRect();
+			width = rectBox.GetWidth(); // these will be old MM_TEXT mode 
+										// logical coords, but
+			height = rectBox.GetHeight(); // that will not matter
+
+			// this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in MM_TEXT coords, so
+			// get the proper coords (MM_LOENGLISH) from the CCell[2]'s rectangle
+			// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
+			// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
+			//wxPoint topLeft = m_pCell[2]->m_ptTopLeft;
+			wxPoint topLeft;
+			m_pCell[1]->TopLeft(topLeft);
+			// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
+			//DWORD boxMargins = pApp->m_targetBox.GetMargins();
+			//int leftMargin = (int)LOWORD(boxMargins);
+			int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???
+			wxPoint textTopLeft = topLeft;
+			textTopLeft.x += leftMargin;
+			int topMargin;
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+				topMargin = abs((height - m_pLayout->GetNavTextHeight())/2); // whm this is OK
+			else
+				topMargin = abs((height - m_pLayout->GetTgtTextHeight())/2); // whm this is OK
+			textTopLeft.y -= topMargin;
+			wxFont SaveFont;
+			wxFont TheFont;
+			//CAdapt_ItApp* pApp = &wxGetApp(); // added for calls below
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+				//TheFont = *m_pLayout->m_pApp->m_pNavTextFont;
+				TheFont = *m_pLayout->m_pNavTextFont;
+			else
+				//TheFont = *m_pLayout->m_pApp->m_pTargetFont;
+				TheFont = *m_pLayout->m_pTgtFont;
+			SaveFont = pDC->GetFont();
+			pDC->SetFont(TheFont);
+
+			wxColor color = *(m_pCell[1]->GetColor()); // get the default colour of this cell's text
+			//if (!m_pCell[2]->m_color.IsOk())
+			if (!color.IsOk())
+			{
+				::wxBell();
+				wxASSERT(FALSE);
+			}
+			pDC->SetTextForeground(color); // use color for this cell's text to print the box's text
+			
+			// /////////////// Draw the Target Text for the phrasebox //////////////////////
+			pDC->DrawText(m_pLayout->m_pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);	
+					// MFC uses TextOut()  // Note: diff param ordering!
+			pDC->SetFont(SaveFont);
+
+			// /////////////////// Draw the Box around the target text //////////////////////
+			pDC->SetPen(*wxBLACK_PEN); // whm added 20Nov06
+			
+			// whm: wx version flips top and bottom when rect coords are negative to maintain true
+			// "top" and "bottom". In the DrawLine code below MFC has -height but the wx version
+			// has +height.
+			pDC->DrawLine(topLeft.x, topLeft.y, topLeft.x+width, topLeft.y);
+			pDC->DrawLine(topLeft.x+width, topLeft.y, topLeft.x+width, topLeft.y +height);
+			pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
+			pDC->DrawLine(topLeft.x, topLeft.y+height, topLeft.x, topLeft.y);
+			pDC->SetPen(wxNullPen);
+		}
+	}
+}
+
 void CPile::Draw(wxDC* pDC)
 {
-	// *** TODO *** the revised handler -- there will be more parameters in signature, etc
-
-	/*
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CAdapt_ItView* pView = pApp->GetView();
-
+	// draw the cells this CPile instance owns, MAX_CELLS = 3
 	for (int i=0; i< MAX_CELLS; i++)
 	{
 		if (m_pCell[i] != NULL)
@@ -229,460 +336,388 @@ void CPile::Draw(wxDC* pDC)
 	// nav text whiteboard drawing for this pile...
 	if (!gbIsPrinting)
 	{
-		bool bRTLLayout;
-		bRTLLayout = FALSE;
-		wxRect rectBounding = m_rectPile;
-		wxPoint ptTopLeft = rectBounding.GetTopLeft();
-		wxPoint ptBotRight = rectBounding.GetBottomRight();
+		DrawNavTextInfoAndIcons(pDC);
+	}
 
-		rectBounding.SetTop(ptTopLeft.y);
-		rectBounding.SetLeft(ptTopLeft.x);
-		rectBounding.SetBottom(ptBotRight.y);
-		rectBounding.SetRight(ptBotRight.x);
-		#ifdef _RTL_FLAGS
-			if (gpApp->m_bNavTextRTL)
+	// draw the phrase box if it belongs to this pile
+	if (gbIsPrinting)
+	{
+		PrintPhraseBox(pDC);
+	}
+}
+
+void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
+{
+	bool bRTLLayout;
+	bRTLLayout = FALSE;
+	wxRect rectBounding;
+	GetPileRect(rectBounding); // get the bounding rectangle for this CCell instance
+#ifdef _RTL_FLAGS
+	if (m_pLayout->m_pApp->m_bNavTextRTL)
+	{
+		// navigation text has to be RTL & aligned RIGHT
+		bRTLLayout = TRUE;
+	}
+	else
+	{
+		// navigation text has to be LTR & aligned LEFT
+		bRTLLayout = FALSE;
+	}
+#endif
+
+	// get the navText color
+	wxColour navColor = m_pLayout->GetNavTextColor();
+
+	// stuff below is for drawing the navText stuff above this pile of the strip
+	// Note: in the wx version m_bSuppressFirst is now located in the App
+	//if (((m_nCellIndex == 0 && !m_pLayout->m_pApp->m_bSuppressFirst) ||
+	//	 (m_nCellIndex == 1 && m_pLayout->m_pApp->m_bSuppressFirst)) && !gbShowTargetOnly )
+	if (!gbShowTargetOnly)
+	{
+		int xOffset = 0;
+		int diff;
+		//bool bHasFilterMarker = HasFilterMarker(m_pPile);
+		bool bHasFilterMarker = HasFilterMarker();
+
+		// if a message is to be displayed above this word, draw it too
+		if (m_pSrcPhrase->m_bNotInKB)
+		{
+			wxPoint pt;
+			TopLeft(pt); //pt = m_ptTopLeft;
+#ifdef _RTL_FLAGS
+			if (m_pLayout->m_pApp->m_bNavTextRTL)
+				pt.x += rectBounding.GetWidth(); // align right
+#endif
+			// whm: the wx version doesn't use negative offsets
+			//diff = m_pLayout->m_pApp->m_nNavTextHeight - (m_pLayout->m_pApp->m_nSrcHeight/4);
+			diff = m_pLayout->GetNavTextHeight() - (m_pLayout->GetSrcTextHeight()/4);
+			pt.y -= diff;
+			wxString str;
+			xOffset += 8;
+			if (m_pSrcPhrase->m_bBeginRetranslation)
+				str = _T("*# "); // visibly mark start of a retranslation section
+			else
+				str = _T("* ");
+			wxFont SaveFont;
+			//wxFont* pNavTextFont = m_pLayout->m_pApp->m_pNavTextFont;
+			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
+			SaveFont = pDC->GetFont(); // save current font
+			pDC->SetFont(*pNavTextFont);
+			//if (!m_navColor.IsOk())
+			if (!navColor.IsOk())
 			{
-				// navigation text has to be RTL & aligned RIGHT
-				bRTLLayout = TRUE;
+				::wxBell(); 
+				wxASSERT(FALSE);
+			}
+			//pDC->SetTextForeground(m_navColor);
+			pDC->SetTextForeground(navColor);
+
+			rectBounding.Offset(0,-diff);
+			// wx version can only set layout direction directly on the whole pDC. 
+			// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
+			// right-to-left reading of the text, but we need to manually control 
+			// the right-alignment of text when we have bRTLLayout. The upper-left
+			// x coordinate for RTL drawing of the m_phrase should be 
+			// enclosingRect.GetLeft() + widthOfCell - textExtOfPhrase.
+			if (bRTLLayout)
+			{
+				// ////////// Draw the RTL Retranslation section marks *# or * in Navigation Text area /////////
+				// whm note: nav text stuff can potentially be much wider than the width of
+				// the cell where it is drawn. This would not usually be a problem since nav
+				// text is not normally drawn above every cell but just at major markers like
+				// at ch:vs points, section headings, etc. For RTL the nav text could extend
+				// out and be clipped beyond the left margin.
+				//pView->DrawTextRTL(pDC,str,rectBounding);
+				m_pCell[0]->DrawTextRTL(pDC,str,rectBounding); // any CCell pointer would do here
 			}
 			else
 			{
-				// navigation text has to be LTR & aligned LEFT
-				bRTLLayout = FALSE;
+				// ////////// Draw the LTR Retranslation section marks *# or * in Navigation Text area /////////
+				pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
 			}
-		#endif
+			pDC->SetFont(SaveFont);
+		}
 
-		// stuff below is for drawing the navText stuff above this pile of the strip
-		// Note: in the wx version m_bSuppressFirst is now located in the App
-		//if (((m_nCellIndex == 0 && !gpApp->m_bSuppressFirst) ||
-		//	 (m_nCellIndex == 1 && gpApp->m_bSuppressFirst)) && !gbShowTargetOnly )
-		if (!gbShowTargetOnly )
+		// ////////////////// Draw Green Wedge etc ////////////////////////////////
+		
+		// next stuff is for the green wedge - it should be shown at the left or the right
+		// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather
+		// than using the nav text's directionality
+		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
+			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
+			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
+			|| m_pSrcPhrase->m_markers.Find(filterMkr) != -1)
 		{
-			int xOffset = 0;
-			int diff;
-			//bool bHasFilterMarker = HasFilterMarker(m_pPile);
-			bool bHasFilterMarker = HasFilterMarker();
+			wxPoint pt;
+			TopLeft(pt); //pt = m_ptTopLeft;
 
-			// if a message is to be displayed above this word, draw it too
-			//if (m_pPile->m_pSrcPhrase->m_bNotInKB)
-			if (m_pSrcPhrase->m_bNotInKB)
+			// BEW added, for support of filter wedge icon
+			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
-				wxPoint pt;
-
-				//pt = m_ptTopLeft;
-				pt = ptTopLeft;
-	#ifdef _RTL_FLAGS
-				if (pApp->m_bNavTextRTL)
-					pt.x += rectBounding.GetWidth(); // align right
-	#endif
-				// whm: the wx version doesn't use negative offsets
-				// Note: m_nNavTextHeight and m_nSrcHeight are now located on the App
-				diff = pApp->m_nNavTextHeight - (pApp->m_nSrcHeight/4);
-				pt.y -= diff;
-				wxString str;
-				xOffset += 8;
-				//if (m_pPile->m_pSrcPhrase->m_bBeginRetranslation)
-				if (m_pSrcPhrase->m_bBeginRetranslation)
-					str = _T("*# "); // visibly mark start of a retranslation section
-				else
-					str = _T("* ");
-				wxFont SaveFont;
-				wxFont* pNavTextFont = pApp->m_pNavTextFont;
-				SaveFont = pDC->GetFont(); // save current font
-				pDC->SetFont(*pNavTextFont);
-				if (!m_navTextColor.IsOk())
-				{
-					::wxBell(); 
-					wxASSERT(FALSE);
-				}
-				pDC->SetTextForeground(m_navTextColor);
-
-				rectBounding.Offset(0,-diff);
-				// wx version can only set layout direction directly on the whole pDC. 
-				// Uniscribe in wxMSW and Pango in wxGTK automatically take care of the
-				// right-to-left reading of the text, but we need to manually control 
-				// the right-alignment of text when we have bRTLLayout. The upper-left
-				// x coordinate for RTL drawing of the m_phrase should be 
-				// m_enclosingRect.GetLeft() + widthOfCell - textExtOfPhrase.
-				if (bRTLLayout)
-				{
-					// ////////// Draw the RTL Retranslation section marks *# or * in Navigation Text area /////////
-					// whm note: nav text stuff can potentially be much wider than the width of
-					// the cell where it is drawn. This would not usually be a problem since nav
-					// text is not normally drawn above every cell but just at major markers like
-					// at ch:vs points, section headings, etc. For RTL the nav text could extend
-					// out and be clipped beyond the left margin.
-					pView->DrawTextRTL(pDC,str,rectBounding);
-				}
-				else
-				{
-					// ////////// Draw the LTR Retranslation section marks *# or * in Navigation Text area /////////
-					pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
-				}
-				pDC->SetFont(SaveFont);
+				xOffset = 7;  // offset any nav text 7 pixels to the right (or to the left if RTL rendering)
+								// to make room for the wedge
 			}
 
-			// next stuff is for the green wedge - it should be shown at the left or the right
-			// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather
-			// than the nav text's directionality
-			//if (m_pPile->m_pSrcPhrase->m_bFirstOfType || m_pPile->m_pSrcPhrase->m_bVerse
-			//	|| m_pPile->m_pSrcPhrase->m_bChapter || m_pPile->m_pSrcPhrase->m_bParagraph
-			//	|| m_pPile->m_pSrcPhrase->m_bFootnoteEnd || m_pPile->m_pSrcPhrase->m_bHasInternalMarkers
-			//	|| m_pPile->m_pSrcPhrase->m_markers.Find(filterMkr) != -1)
-			if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
-				|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
-				|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
-				|| m_pSrcPhrase->m_markers.Find(filterMkr) != -1)
+#ifdef _RTL_FLAGS
+			if (m_pLayout->m_pApp->m_bRTL_Layout) // was gpApp->m_bNavTextRTL
+				pt.x += rectBounding.GetWidth(); // align right
+#endif
+			// whm: the wx version doesn't use negative offsets
+			//diff = m_pLayout->m_pApp->m_nNavTextHeight + (m_pLayout->m_pApp->m_nSrcHeight/4) + 1;
+			diff = m_pLayout->GetNavTextHeight() + (m_pLayout->GetSrcTextHeight()/4) + 1;
+			pt.y -= diff;
+#ifdef _RTL_FLAGS
+			if (m_pLayout->m_pApp->m_bRTL_Layout) // was gpApp->m_bNavTextRTL
 			{
-				wxPoint pt = ptTopLeft;
-				//pt = m_ptTopLeft;
-
-				// BEW added, for support of filter wedge icon
-				if (bHasFilterMarker && !gbShowTargetOnly)
-				{
-					xOffset = 7;  // offset any nav text 7 pixels to the right (or to the left if RTL rendering)
-									// to make room for the wedge
-				}
-
-	#ifdef _RTL_FLAGS
-				if (pApp->m_bRTL_Layout) // was gpApp->m_bNavTextRTL
-					pt.x += rectBounding.GetWidth(); // align right
-	#endif
-				// whm: the wx version doesn't use negative offsets
-				// Note: m_nNavTextHeight and m_nSrcHeight are now located on the App
-				diff = pApp->m_nNavTextHeight + (pApp->m_nSrcHeight/4) + 1;
-				pt.y -= diff;
-	#ifdef _RTL_FLAGS
-				if (pApp->m_bRTL_Layout) // was gpApp->m_bNavTextRTL
-				{
-					pt.x -= xOffset;
-				}
-				else
-				{
-					pt.x += xOffset;
-				}
-	#else
-				pt.x += xOffset; // for ANSI version
-	#endif
-				// BEW revised 19 Apr 05 in support of USFM and SFM Filtering
-				// m_inform should have, at most, the name or short name of the last nonchapter & nonverse
-				// (U)SFM, and no information about anything filtered. All we need do with it is to append
-				// this information to str containing n:m if the latter is pertinent here, or fill str with m_inform
-				// if there is no chapter or verse info here. The construction of a wedge for signallying presence
-				// of filtered info in m_markers is also handled here, but independently of m_inform
-				wxString str = _T("");
-
-				if (bHasFilterMarker && !gbShowTargetOnly)
-				{
-					// if \~FILTERED is anywhere in the m_markers member of the sourcephrase stored which
-					// has its pointer stored in m_pPile, then we require a wedge to be drawn here.
-					// BEW modified 18Nov05; to have variable colours, also the colours differences are
-					// hard to pick up with a simple wedge, so the top of the wedge has been extended up
-					// two more pixels to form a column with a point at the bottom, which can show more colour
-					wxPoint ptWedge = ptTopLeft;
-
-					// BEW added 18Nov05, to colour the wedge differently if \free is contentless (as khaki), or if
-					// \bt is contentless (as pastel blue), or if both are contentless (as red)
-					//bool bFreeHasNoContent = m_pBundle->m_pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-					//bool bBackHasNoContent = m_pBundle->m_pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-					CAdapt_ItView* pView = pApp->GetView(); // getting the view pointer this way allows me
-					// to remove the m_pView pointer from the definition of the CSourceBundle class
-					//bool bFreeHasNoContent = pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-					//bool bBackHasNoContent = pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-					bool bFreeHasNoContent = pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
-					bool bBackHasNoContent = pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
-
-					#ifdef _RTL_FLAGS
-					if (pApp->m_bRTL_Layout)
-						ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
-					#endif
-					// get the point where the drawing is to start (from the bottom tip of the downwards pointing wedge)
-					ptWedge.x += 1;
-					ptWedge.y -= 2; 
-
-					// whm note: According to wx docs, wxWidgets shows all non-white pens as black on a monochrome
-					// display, i.e., OLPC screen in Black & White mode. In contrast, wxWidgets shows all brushes 
-					// as white unless the colour is really black on monochrome displays.
-					pDC->SetPen(*wxBLACK_PEN);
-
-					// draw the line to the top left of the wedge
-					pDC->DrawLine(ptWedge.x, ptWedge.y, ptWedge.x - 5, ptWedge.y - 5); // end points are not part of the line
-
-					// reposition for the vertical stroke up for the left of the short column
-					// do the vertical stroke (endpoint not part of it)
-					pDC->DrawLine(ptWedge.x - 4, ptWedge.y - 5, ptWedge.x - 4, ptWedge.y - 7);
-
-					// reposition for the horizontal stroke to the right
-					// do the horizontal stroke (endpoint not part of it)
-					pDC->DrawLine(ptWedge.x - 4, ptWedge.y - 7, ptWedge.x + 5, ptWedge.y - 7);
-
-
-					// reposition for the vertical stroke down for the right of the short column
-					// do the vertical stroke (endpoint not part of it)
-					pDC->DrawLine(ptWedge.x + 4, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 4);
-
-					// reposition for the stroke down to the left to join up with start position
-					// make the final stroke
-					pDC->DrawLine(ptWedge.x + 4, ptWedge.y - 4, ptWedge.x, ptWedge.y);
-					// we can quickly fill the wedge by brute force by drawing a few green horizontal lines
-					// rather than using more complex region calls
-					// BEW on 18Nov05 added extra tests and colouring code to support variable colour 
-					// to indicate when free translation or back translation fields are contentless
-
-					if (!bFreeHasNoContent && !bBackHasNoContent)
-					{
-						// make whole inner part of wedge green
-
-						pDC->SetPen(*wxGREEN_PEN);
-						
-						// add the two extra lines for the short column's colour
-a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6);
-						pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 5, ptWedge.x + 4, ptWedge.y - 5);
-						// now the former stuff for an actual wedge shape
-						pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 4, ptWedge.x + 4, ptWedge.y - 4);
-						pDC->DrawLine(ptWedge.x - 2, ptWedge.y - 3, ptWedge.x + 3, ptWedge.y - 3);
-						pDC->DrawLine(ptWedge.x - 1, ptWedge.y - 2, ptWedge.x + 2, ptWedge.y - 2);
-						pDC->DrawLine(ptWedge.x , ptWedge.y - 1, ptWedge.x + 1, ptWedge.y - 1);
-					}
-					else
-					{
-						if (bFreeHasNoContent && bBackHasNoContent)
-						{
-							// use a third colour - red grabs attention best
-							pDC->SetPen(*wxRED_PEN);
-							goto a;
-						}
-						else
-						{
-							// both are not together contentless, so only one of them is
-							// so do the one which it is in the appropriate colour
-							if (bFreeHasNoContent)
-							{
-								// colour it khaki
-								pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
-								goto a;
-							}
-							if (bBackHasNoContent)
-							{
-								// colour it pastel blue
-								pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
-								goto a;
-							}
-						}
-					}
-					pDC->SetPen(wxNullPen); // wxNullPen causes
-											// the current pen to be selected out of the device context, and the
-											// original pen restored.
-				}
-
-				// make (for version 3) the chapter&verse information come first
-				//if (m_pPile->m_pSrcPhrase->m_bVerse || m_pPile->m_pSrcPhrase->m_bChapter)
-				if (m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter)
-				{
-					//str = m_pPile->m_pSrcPhrase->m_chapterVerse;
-					str = m_pSrcPhrase->m_chapterVerse;
-				}
-
-				// now append anything which is in the m_inform member; there may not have been a chapter
-				// and/or verse number already placed in str, so allow for this possibility
-				//if (!m_pPile->m_pSrcPhrase->m_inform.IsEmpty())
-				if (!m_pSrcPhrase->m_inform.IsEmpty())
-				{
-					if (str.IsEmpty())
-					{
-						//str = m_pPile->m_pSrcPhrase->m_inform;
-						str = m_pSrcPhrase->m_inform;
-					}
-					else
-					{
-						str += _T(' ');
-						//str += m_pPile->m_pSrcPhrase->m_inform;
-						str += m_pSrcPhrase->m_inform;
-					}
-				}
-
-				wxFont pSaveFont;
-				wxFont* pNavTextFont = pApp->m_pNavTextFont;
-				pSaveFont = pDC->GetFont();
-				pDC->SetFont(*pNavTextFont);
-				if (!m_navTextColor.IsOk())
-				{
-					::wxBell(); 
-					wxASSERT(FALSE);
-				}
-				pDC->SetTextForeground(m_navTextColor);
-
-				// BEW modified 25Nov05 to move the start of navText to just after the green wedge when
-				// filtered info is present, because for fonts with not much internal leading built
-				// in, the nav text overlaps the top few pixels of the wedge
-
-				if (bHasFilterMarker)
-				{
-	#ifdef _RTL_FLAGS
-					// we need to make extra space available for some data configurations
-					if (pApp->m_bRTL_Layout)
-					{
-						// right to left layout
-						if (pApp->m_bNavTextRTL)
-							rectBounding.Offset(-xOffset,-diff); // navText is RTL
-						else
-							rectBounding.Offset(0,-diff); // navText is LTR
-					}
-					else
-					{
-						// left to right layout
-						if (pApp->m_bNavTextRTL)
-							rectBounding.Offset(0,-diff); // navText is RTL
-						else
-							rectBounding.Offset(xOffset,-diff); // navText is LTR
-					}
-	#else
-					rectBounding.Offset(xOffset, -diff);
-	#endif
-				}
-				else
-				{
-					// no filter marker, so we don't need to make extra space
-					rectBounding.Offset(0,-diff);
-				}
-
-				// wx version sets layout direction directly on the pDC
-				if (bRTLLayout)
-				{
-					// whm note: nav text stuff can potentially be much wider than the width of
-					// the cell where it is drawn. This would not usually be a problem since nav
-					// text is not normally drawn above every cell but just at major markers like
-					// at ch:vs points, section headings, etc. For RTL the nav text could extend
-					// out and be clipped beyond the left margin.
-					// ////////// Draw RTL Actual Ch:Vs and/or m_inform Navigation Text /////////////////
-					pView->DrawTextRTL(pDC,str,rectBounding);
-				}
-				else
-				{
-					// ////////// Draw LTR Actual Ch:Vs and/or m_inform Navigation Text /////////////////
-					pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
-				}
-				pDC->SetFont(pSaveFont);
+				pt.x -= xOffset;
 			}
-
-			// now note support
-			//if (m_pPile->m_pSrcPhrase->m_bHasNote)
-			if (m_pSrcPhrase->m_bHasNote)
+			else
 			{
-				//wxPoint ptNote = m_ptTopLeft;
-				wxPoint ptNote = ptTopLeft;
-				// offset top left (-13,-9) for regular app
+				pt.x += xOffset;
+			}
+#else
+			pt.x += xOffset; // for ANSI version
+#endif
+			// BEW revised 19 Apr 05 in support of USFM and SFM Filtering
+			// m_inform should have, at most, the name or short name of the last nonchapter & nonverse
+			// (U)SFM, and no information about anything filtered. All we need do with it is to append
+			// this information to str containing n:m if the latter is pertinent here, or fill str with m_inform
+			// if there is no chapter or verse info here. The construction of a wedge for signallying presence
+			// of filtered info in m_markers is also handled here, but independently of m_inform
+			wxString str = _T("");
+
+			if (bHasFilterMarker && !gbShowTargetOnly)
+			{
+				// if \~FILTERED is anywhere in the m_markers member of the sourcephrase stored which
+				// has its pointer stored in m_pPile, then we require a wedge to be drawn here.
+				// BEW modified 18Nov05; to have variable colours, also the colours differences are
+				// hard to pick up with a simple wedge, so the top of the wedge has been extended up
+				// two more pixels to form a column with a point at the bottom, which can show more colour
+				//wxPoint ptWedge = m_ptTopLeft;
+				wxPoint ptWedge;
+				TopLeft(ptWedge);
+
+				// BEW added 18Nov05, to colour the wedge differently if \free is contentless (as khaki), or if
+				// \bt is contentless (as pastel blue), or if both are contentless (as red)
+				//bool bFreeHasNoContent = m_pBundle->m_pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
+				//bool bBackHasNoContent = m_pBundle->m_pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
+				//CAdapt_ItView* pView = m_pLayout->m_pApp->GetView(); // getting the view pointer this way allows me
+				// to remove the m_pView pointer from the definition of the CSourceBundle class
+				bool bFreeHasNoContent = m_pLayout->m_pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
+				bool bBackHasNoContent = m_pLayout->m_pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
+
 				#ifdef _RTL_FLAGS
-				if (pApp->m_bRTL_Layout)
-				{
-					ptNote.x += rectBounding.GetWidth(); // align right if RTL layout
-					ptNote.x += 7;
-				}
-				else
-				{
-					ptNote.x -= 13;
-				}
-				#else
-				ptNote.x -= 13;
+				if (m_pLayout->m_pApp->m_bRTL_Layout)
+					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
 				#endif
-				ptNote.y -= 9;
+				// get the point where the drawing is to start (from the bottom tip of the downwards pointing wedge)
+				ptWedge.x += 1;
+				ptWedge.y -= 2; 
 
-				// create a brush
-				// whm note: According to wx docs, wxWidgets shows all brushes as white unless the colour
-				// is really black on monochrome displays, i.e., the OLPC screen in Black & White mode.
-				// In contrast, wxWidgets shows all non-white pens as black on monochrome displays.
-				pDC->SetBrush(wxBrush(wxColour(254,218,100),wxSOLID));
-				pDC->SetPen(*wxBLACK_PEN); // black - whm added 20Nov06
-				wxRect insides(ptNote.x,ptNote.y,ptNote.x + 9,ptNote.y + 9);
-				// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the interior using the current brush
-				pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a black border
-				pDC->SetBrush(wxNullBrush); // restore original brush - wxNullBrush causes
-											// the current brush to be selected out of the device context, and the
-											// original brush restored.
-				// now the two spirals at the top - left one, then right one
-				pDC->DrawLine(ptNote.x + 3, ptNote.y + 1, ptNote.x + 3, ptNote.y + 3);
-				pDC->DrawLine(ptNote.x + 2, ptNote.y + 2, ptNote.x + 2, ptNote.y + 3);
+				// whm note: According to wx docs, wxWidgets shows all non-white pens as black on a monochrome
+				// display, i.e., OLPC screen in Black & White mode. In contrast, wxWidgets shows all brushes 
+				// as white unless the colour is really black on monochrome displays.
+				pDC->SetPen(*wxBLACK_PEN);
 
-				pDC->DrawLine(ptNote.x + 6, ptNote.y + 1, ptNote.x + 6, ptNote.y + 3);
-				pDC->DrawLine(ptNote.x + 5, ptNote.y + 2, ptNote.x + 5, ptNote.y + 3);
-				pDC->SetPen(wxNullPen);
-			}
-		}
-	}
+				// draw the line to the top left of the wedge
+				pDC->DrawLine(ptWedge.x, ptWedge.y, ptWedge.x - 5, ptWedge.y - 5); // end points are not part of the line
 
-	if (gbIsPrinting)
-	{
-		// draw the phrase box if it belongs to this pile
-		wxTextCtrl* pBox = pApp->m_pTargetBox;
-		wxASSERT(pBox);
-		wxRect rectBox;
-		int width;
-		int height;
-		if (pBox != NULL && pApp->m_nActiveSequNum != -1)
-		{
-			if (m_pSrcPhrase->m_nSequNumber == pApp->m_nActiveSequNum)
-			{
-				rectBox = pBox->GetRect();
-				width = rectBox.GetWidth(); // these will be old MM_TEXT mode 
-											// logical coords, but
-				height = rectBox.GetHeight(); // that will not matter
+				// reposition for the vertical stroke up for the left of the short column
+				// do the vertical stroke (endpoint not part of it)
+				pDC->DrawLine(ptWedge.x - 4, ptWedge.y - 5, ptWedge.x - 4, ptWedge.y - 7);
 
-				// this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in MM_TEXT coords, so
-				// get the proper coords (MM_LOENGLISH) from the CCell[2]'s rectangle
-				// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
-				// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
-				wxPoint topLeft = m_pCell[2]->m_ptTopLeft;
-				// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
-				//DWORD boxMargins = pApp->m_targetBox.GetMargins();
-				//int leftMargin = (int)LOWORD(boxMargins);
-				int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???
-				wxPoint textTopLeft = topLeft;
-				textTopLeft.x += leftMargin;
-				int topMargin;
-				if (gbIsGlossing && gbGlossingUsesNavFont)
-					topMargin = abs((height - pApp->m_nNavTextHeight)/2); // whm this is OK
-				else
-					topMargin = abs((height - pApp->m_nTgtHeight)/2); // whm this is OK
-				textTopLeft.y -= topMargin;
-				wxFont SaveFont;
-				wxFont TheFont;
-				CAdapt_ItApp* pApp = &wxGetApp(); // added for calls below
-				if (gbIsGlossing && gbGlossingUsesNavFont)
-					TheFont = *pApp->m_pNavTextFont;
-				else
-					TheFont = *pApp->m_pTargetFont;
-				SaveFont = pDC->GetFont();
-				pDC->SetFont(TheFont);
+				// reposition for the horizontal stroke to the right
+				// do the horizontal stroke (endpoint not part of it)
+				pDC->DrawLine(ptWedge.x - 4, ptWedge.y - 7, ptWedge.x + 5, ptWedge.y - 7);
 
-				if (!m_pCell[2]->m_color.IsOk())
+
+				// reposition for the vertical stroke down for the right of the short column
+				// do the vertical stroke (endpoint not part of it)
+				pDC->DrawLine(ptWedge.x + 4, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 4);
+
+				// reposition for the stroke down to the left to join up with start position
+				// make the final stroke
+				pDC->DrawLine(ptWedge.x + 4, ptWedge.y - 4, ptWedge.x, ptWedge.y);
+				// we can quickly fill the wedge by brute force by drawing a few green horizontal lines
+				// rather than using more complex region calls
+				// BEW on 18Nov05 added extra tests and colouring code to support variable colour 
+				// to indicate when free translation or back translation fields are contentless
+
+				if (!bFreeHasNoContent && !bBackHasNoContent)
 				{
-					::wxBell();
-					wxASSERT(FALSE);
+					// make whole inner part of wedge green
+					pDC->SetPen(*wxGREEN_PEN);	
 				}
-				pDC->SetTextForeground(m_pCell[2]->m_color); // use color for this cell to print
-														// the box's text
-				
-				// /////////////// Draw the Target Text for the phrasebox //////////////////////
-				pDC->DrawText(pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);	// MFC uses TextOut()
-																					// Note: diff param ordering!
-				pDC->SetFont(SaveFont);
+				else
+				{
+					if (bFreeHasNoContent && bBackHasNoContent)
+					{
+						// use a third colour - red grabs attention best
+						pDC->SetPen(*wxRED_PEN);
+					}
+					else
+					{
+						// both are not together contentless, so only one of them is
+						// so do the one which it is in the appropriate colour
+						if (bFreeHasNoContent)
+						{
+							// colour it khaki
+							pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
+						}
+						if (bBackHasNoContent)
+						{
+							// colour it pastel blue
+							pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
+						}
+					}
+				}
+				// draw the two extra lines for the short column's colour
+				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6);
+				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 5, ptWedge.x + 4, ptWedge.y - 5);
+				// draw the actual wedge (ie. triangle) shape below the column
+				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 4, ptWedge.x + 4, ptWedge.y - 4);
+				pDC->DrawLine(ptWedge.x - 2, ptWedge.y - 3, ptWedge.x + 3, ptWedge.y - 3);
+				pDC->DrawLine(ptWedge.x - 1, ptWedge.y - 2, ptWedge.x + 2, ptWedge.y - 2);
+				pDC->DrawLine(ptWedge.x , ptWedge.y - 1, ptWedge.x + 1, ptWedge.y - 1);
 
-				// /////////////////// Draw the Box around the target text //////////////////////
-				pDC->SetPen(*wxBLACK_PEN); // whm added 20Nov06
-				
-				// whm: wx version flips top and bottom when rect coords are negative to maintain true
-				// "top" and "bottom". In the DrawLine code below MFC has -height but the wx version
-				// has +height.
-				pDC->DrawLine(topLeft.x, topLeft.y, topLeft.x+width, topLeft.y);
-				pDC->DrawLine(topLeft.x+width, topLeft.y, topLeft.x+width, topLeft.y +height);
-				pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
-				pDC->DrawLine(topLeft.x, topLeft.y+height, topLeft.x, topLeft.y);
-				pDC->SetPen(wxNullPen);
+				pDC->SetPen(wxNullPen); // wxNullPen causes
+										// the current pen to be selected out of the device context, and the
+										// original pen restored.
 			}
+
+			// make (for version 3) the chapter&verse information come first
+			if (m_pSrcPhrase->m_bVerse || m_pSrcPhrase->m_bChapter)
+			{
+				str = m_pSrcPhrase->m_chapterVerse;
+			}
+
+			// now append anything which is in the m_inform member; there may not have been a chapter
+			// and/or verse number already placed in str, so allow for this possibility
+			if (!m_pSrcPhrase->m_inform.IsEmpty())
+			{
+				if (str.IsEmpty())
+					str = m_pSrcPhrase->m_inform;
+				else
+				{
+					str += _T(' ');
+					str += m_pSrcPhrase->m_inform;
+				}
+			}
+
+			wxFont aSavedFont;
+			//wxFont* pNavTextFont = m_pLayout->m_pApp->m_pNavTextFont;
+			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
+			aSavedFont = pDC->GetFont();
+			pDC->SetFont(*pNavTextFont);
+			//if (!m_navColor.IsOk())
+			if (!navColor.IsOk())
+			{
+				::wxBell(); 
+				wxASSERT(FALSE);
+			}
+			//pDC->SetTextForeground(m_navColor);
+			pDC->SetTextForeground(navColor);
+
+			// BEW modified 25Nov05 to move the start of navText to just after the green wedge when
+			// filtered info is present, because for fonts with not much internal leading built
+			// in, the nav text overlaps the top few pixels of the wedge
+
+			if (bHasFilterMarker)
+			{
+#ifdef _RTL_FLAGS
+				// we need to make extra space available for some data configurations
+				if (m_pLayout->m_pApp->m_bRTL_Layout)
+				{
+					// right to left layout
+					if (m_pLayout->m_pApp->m_bNavTextRTL)
+						rectBounding.Offset(-xOffset,-diff); // navText is RTL
+					else
+						rectBounding.Offset(0,-diff); // navText is LTR
+				}
+				else
+				{
+					// left to right layout
+					if (m_pLayout->m_pApp->m_bNavTextRTL)
+						rectBounding.Offset(0,-diff); // navText is RTL
+					else
+						rectBounding.Offset(xOffset,-diff); // navText is LTR
+				}
+#else
+				rectBounding.Offset(xOffset, -diff);
+#endif
+			}
+			else
+			{
+				// no filter marker, so we don't need to make extra space
+				rectBounding.Offset(0,-diff);
+			}
+
+			// wx version sets layout direction directly on the pDC
+			if (bRTLLayout)
+			{
+				// whm note: nav text stuff can potentially be much wider than the width of
+				// the cell where it is drawn. This would not usually be a problem since nav
+				// text is not normally drawn above every cell but just at major markers like
+				// at ch:vs points, section headings, etc. For RTL the nav text could extend
+				// out and be clipped beyond the left margin.
+				// ////////// Draw RTL Actual Ch:Vs and/or m_inform Navigation Text /////////////////
+				//pView->DrawTextRTL(pDC,str,rectBounding);
+				m_pCell[0]->DrawTextRTL(pDC,str,rectBounding); // any CCell pointer would do here
+			}
+			else
+			{
+				// ////////// Draw LTR Actual Ch:Vs and/or m_inform Navigation Text /////////////////
+				pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
+			}
+			pDC->SetFont(aSavedFont);
+		}
+
+		// now note support
+		if (m_pSrcPhrase->m_bHasNote)
+		{
+			//wxPoint ptNote = m_ptTopLeft;
+			wxPoint ptNote;
+			TopLeft(ptNote);
+			// offset top left (-13,-9) for regular app
+			#ifdef _RTL_FLAGS
+			if (m_pLayout->m_pApp->m_bRTL_Layout)
+			{
+				ptNote.x += rectBounding.GetWidth(); // align right if RTL layout
+				ptNote.x += 7;
+			}
+			else
+			{
+				ptNote.x -= 13;
+			}
+			#else
+			ptNote.x -= 13;
+			#endif
+			ptNote.y -= 9;
+
+			// create a brush
+			// whm note: According to wx docs, wxWidgets shows all brushes as white unless the colour
+			// is really black on monochrome displays, i.e., the OLPC screen in Black & White mode.
+			// In contrast, wxWidgets shows all non-white pens as black on monochrome displays.
+			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxSOLID));
+			pDC->SetPen(*wxBLACK_PEN); // black - whm added 20Nov06
+			wxRect insides(ptNote.x,ptNote.y,ptNote.x + 9,ptNote.y + 9);
+			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the interior using the current brush
+			pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a black border
+			pDC->SetBrush(wxNullBrush); // restore original brush - wxNullBrush causes
+										// the current brush to be selected out of the device context, and the
+										// original brush restored.
+			// now the two spirals at the top - left one, then right one
+			pDC->DrawLine(ptNote.x + 3, ptNote.y + 1, ptNote.x + 3, ptNote.y + 3);
+			pDC->DrawLine(ptNote.x + 2, ptNote.y + 2, ptNote.x + 2, ptNote.y + 3);
+			// right one
+			pDC->DrawLine(ptNote.x + 6, ptNote.y + 1, ptNote.x + 6, ptNote.y + 3);
+			pDC->DrawLine(ptNote.x + 5, ptNote.y + 2, ptNote.x + 5, ptNote.y + 3);
+			// get rid of the pen
+			pDC->SetPen(wxNullPen);
 		}
 	}
-	*/
 }
+
 
 //getter
 CSourcePhrase* CPile::GetSrcPhrase()
@@ -758,51 +793,55 @@ int CPile::CalcPileWidth()
     // pApp->m_targetPhrase is valid; note, for version 2 which supports a glossing line, the box
     // will contain a gloss rather than an adaptation whenever gbIsGlossing is TRUE. Glossing could
     // be using the target font, or the navText font.
-	if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+    if (m_pSrcPhrase != NULL)
 	{
-		wxSize boxExtent;
-		if (gbIsGlossing && gbGlossingUsesNavFont)
+		// only do this calculation provided the m_pSrcPhrase pointer is set
+		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			//aDC.SetFont(*m_pLayout->GetNavTextFont()); // it's using the navText font
-			aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
-			aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
-		}
-		else // if not glossing, or not using nav text when glossing, it's using the target font
-		{
-			//aDC.SetFont(*m_pLayout->GetTgtFont());
-			aDC.SetFont(*m_pLayout->m_pTgtFont);
-			aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
-		}
-		if (boxExtent.x < 10)
-			boxExtent.x = 10; // in case m_targetPhrase was empty or very small 
-		wxString aChar = _T('w');
-		wxSize charSize;
-		aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
-		boxExtent.x += gnExpandBox*charSize.x;	// allow same slop factor as for 
-												// RemakePhraseBox & OnChar
-		pileWidth = boxExtent.x > pileWidth ? boxExtent.x : pileWidth;
+			wxSize boxExtent;
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+			{
+				//aDC.SetFont(*m_pLayout->GetNavTextFont()); // it's using the navText font
+				aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
+				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
+			}
+			else // if not glossing, or not using nav text when glossing, it's using the target font
+			{
+				//aDC.SetFont(*m_pLayout->GetTgtFont());
+				aDC.SetFont(*m_pLayout->m_pTgtFont);
+				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
+			}
+			if (boxExtent.x < 10)
+				boxExtent.x = 10; // in case m_targetPhrase was empty or very small 
+			wxString aChar = _T('w');
+			wxSize charSize;
+			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
+			boxExtent.x += gnExpandBox*charSize.x;	// allow same slop factor as for 
+													// RemakePhraseBox & OnChar
+			pileWidth = boxExtent.x > pileWidth ? boxExtent.x : pileWidth;
 
-        // When the phrase box has just expanded (this happens in the FixBox() function called
-        // after OnChar() ) we have to possibly make a further increase in the size of the box. It
-        // can happen this way... OnChar(), and FixBox() (the latter has the ResizeBox() which
-        // effects box size adjustment) occur before the the event is posted which leads to
-        // OnPhraseBoxChanged() being called. So the box has been resized, and on the app class a
-        // variable m_curBoxWidth stores the new box width. In the MFC app, the box would at this
-        // point have been destroyed and not yet recreated; but the recreated box could be sized at
-        // the old size, and hence its new text may not fit in it. So in FixBox() expansion (but
-        // NOT contraction) sets a global boolean gbExpanding to TRUE, and this tested for now, and
-        // if the pileWidth value computed above is less than the app's m_curBoxWidth value, then
-        // pileWidth is reset to m_curBoxWidth
-        // 
-		// *** TODO *** Note: in wxWidgets, and with the change to having CalcPileWidth() moved to be
-		// a function in CPile, the possibility of pileWidth being sometimes less than m_curBoxWidth
-		// may not obtain - so we need to check if this following test and adjustment is still needed.
-		// If not needed, gbExpanding global can be removed (8 instances in the app)
-		if (gbExpanding)
-		{
-			pileWidth = pileWidth < m_pLayout->m_pApp->m_curBoxWidth 
-						? m_pLayout->m_pApp->m_curBoxWidth : pileWidth;
-			gbExpanding = FALSE; // clear to default FALSE
+			// When the phrase box has just expanded (this happens in the FixBox() function called
+			// after OnChar() ) we have to possibly make a further increase in the size of the box. It
+			// can happen this way... OnChar(), and FixBox() (the latter has the ResizeBox() which
+			// effects box size adjustment) occur before the the event is posted which leads to
+			// OnPhraseBoxChanged() being called. So the box has been resized, and on the app class a
+			// variable m_curBoxWidth stores the new box width. In the MFC app, the box would at this
+			// point have been destroyed and not yet recreated; but the recreated box could be sized at
+			// the old size, and hence its new text may not fit in it. So in FixBox() expansion (but
+			// NOT contraction) sets a global boolean gbExpanding to TRUE, and this tested for now, and
+			// if the pileWidth value computed above is less than the app's m_curBoxWidth value, then
+			// pileWidth is reset to m_curBoxWidth
+			// 
+			// *** TODO *** Note: in wxWidgets, and with the change to having CalcPileWidth() moved to be
+			// a function in CPile, the possibility of pileWidth being sometimes less than m_curBoxWidth
+			// may not obtain - so we need to check if this following test and adjustment is still needed.
+			// If not needed, gbExpanding global can be removed (8 instances in the app)
+			if (gbExpanding)
+			{
+				pileWidth = pileWidth < m_pLayout->m_pApp->m_curBoxWidth 
+							? m_pLayout->m_pApp->m_curBoxWidth : pileWidth;
+				gbExpanding = FALSE; // clear to default FALSE
+			}
 		}
 	}
 	return pileWidth;

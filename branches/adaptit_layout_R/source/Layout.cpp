@@ -7,7 +7,7 @@ int m_curPileHeight     on the app
 ?? int m_nCurPileMinWidth  on the app ?? no, used scores of times, for resetting box width, m_curBoxWidth 
 						often sets it - eg. returned from RecalcPhraseBoxWidth(); so leave the phr box
 						mechanisms untouched at this time.
-
+gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLayout
 
 
 
@@ -469,6 +469,26 @@ int CLayout::GetStripLeft()
 	return m_nCurLMargin;
 }
 
+int CLayout::GetSavedLeading()
+{
+	return m_nCurLeading;
+}
+
+int CLayout::GetSavedGapWidth()
+{
+	return m_nCurGapWidth;
+}
+
+void CLayout::SetSavedLeading(int nCurLeading)
+{
+	m_nCurLeading = nCurLeading;
+}
+
+void CLayout::SetSavedGapWidth(int nGapWidth)
+{
+	m_nCurGapWidth = nGapWidth;
+}
+
 // setter and getters for the pile height and strip height
 int CLayout::GetPileHeight()
 {
@@ -662,6 +682,8 @@ void CLayout::DestroyPiles()
 	DestroyPileRange(0, nLastPile);
 }
 
+// Note: never call CreatePile() if there is not yet a valid pSrcPhrase pointer to pass in;
+// CreatePile() creates the CPile instance on the heap, and returns a pointer to it
 CPile* CLayout::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
 {
 	wxASSERT(pSrcPhrase != NULL);
