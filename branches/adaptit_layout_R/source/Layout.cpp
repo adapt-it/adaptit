@@ -570,12 +570,13 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 	m_logicalDocSize = docSize;
 }
 
-void CLayout::SetLogicalDocHeight(int nDocHeight)
+int CLayout::SetLogicalDocHeight()
 {
-	// the nDocHeight value passed in must be the total of strip heights, vertical gaps, and also
-	// free translation rectangle heights when gbFreeTranslationMode is TRUE
-	m_logicalDocSize.SetHeight(nDocHeight + 40); // add 40 vertical pixels to give a little white space
-					// at the bottom of the document
+	int nStripCount = m_stripArray.GetCount();
+	int nDocHeight = (GetCurLeading() + GetStripHeight()) * nStripCount;
+	nDocHeight += 40; // pixels for some white space at document's bottom
+	m_logicalDocSize.SetHeight(nDocHeight);
+	return nDocHeight;
 }
 
 wxSize CLayout::GetClientWindowSize()
@@ -588,7 +589,17 @@ wxSize CLayout::GetLogicalDocSize()
 	return m_logicalDocSize;
 }
 
-
+	// current gap width between piles (in pixels)
+void CLayout::SetGapWidth(CAdapt_ItApp* pApp)
+{
+	m_nCurGapWidth = pApp->m_curGapWidth; // user sets it in Preferences' View tab
+}
+/* CLayout, CStrip, CPile & CCell are mutual friends, so we'll grab m_nCurGapWidth directly
+int CLayout::GetGapWidth()
+{
+	return m_nCurGapWidth;
+}
+*/
 
 
 
@@ -615,7 +626,7 @@ void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 
 void CLayout::DestroyStrips()
 {
-	int nLastStrip = m_stripArray.Count() - 1;
+	int nLastStrip = m_stripArray.GetCount() - 1;
 	DestroyStripRange(0, nLastStrip);
 }
 
@@ -728,23 +739,9 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 	}
 	wxASSERT(m_pileList.IsEmpty());
 
-	// there either is no list on the heap yet, or there is but it
-	// has nothing in it - in either case we can go ahead. To succeed, the count of
-	// items in each list must be identical
-	//if (pSrcPhrases->GetCount() != m_pPiles->GetCount())
-	if (pSrcPhrases->GetCount() != m_pileList.GetCount())
-	{
-		wxMessageBox(_T("SPList* passed in, in CreatePiles(), has a count which is different from that of the m_pPiles list in CLayout"),
-						_T(""), wxICON_STOP);
-		wxASSERT(FALSE);
-		wxExit();	// something seriously wrong in design probably, such an error should not 
-					// happen, so don't try to go on
-		return FALSE;
-	}
 	CSourcePhrase* pSrcPhrase = NULL;
 	CPile* pPile = NULL;
 	SPList::Node* pos = pSrcPhrases->GetFirst();
-	//PileList::Node* posInPilesList = m_pPiles->GetFirst();
 	PileList::Node* posInPilesList = m_pileList.GetFirst();
 	// Note: lack of memory could make the following loop fail in the release version if the
 	// user is processing a very large document - but recent computers should have plenty of
@@ -766,19 +763,43 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 		pos = pos->GetNext();
 		posInPilesList = posInPilesList->GetNext();
 	}
+
+    // To succeed, the count of items in each list must be identical 
+	if (pSrcPhrases->GetCount() != m_pileList.GetCount())
+	{
+		wxMessageBox(_T("SPList* passed in, in CreatePiles(), has a count which is different from that of the m_pPiles list in CLayout"),
+						_T(""), wxICON_STOP);
+		wxASSERT(FALSE);
+		wxExit();	// something seriously wrong in design probably, such an error should not 
+					// happen, so don't try to go on
+		return FALSE;
+	}
 	return TRUE;
 }
 
 // return TRUE if a layout was set up, or if no layout can yet be set up;
 // but return FALSE if a layout setup was attempted and failed (app must then abort)
 // 
-// Note: SetupLayout() should be called, for best results, immediately before opening,
-// or creating, an Adapt It document. At that point all of the paramaters it collects
-// together should have their "final" values, such as font choices, colours, etc.
-bool CLayout::SetupLayout(SPList* pSrcPhrases)
+// Note: RecalcLayout() should be called, for best results, immediately before opening, or
+// creating, an Adapt It document. At that point all of the paramaters it collects together should
+// have their "final" values, such as font choices, colours, etc. It is also to be called whenever
+// the layout has been corrupted by a user action, such as a font change (which clobbers prior text
+// extent values stored in the piles) or a punctuation setting change, etc. RecalcLayout() in the
+// refactored design is a potentially "costly" calculation - if the document is large, the piles
+// and strips for the whole document has to be recalculated from the data in the current document -
+// (need to consider a progress bar in the status bar in window bottom)
+bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 {
+    // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
+    // function - the latter built only a bundle's-worth of strips, but the new design must build
+	// strips for the whole document - so potentially may consume a lot of time; however, the
+	// efficiency of the new design (eg. no rectangles are calculated) may compensate significantly
 
-// *** TODO *** rewrite so as to always destroy before setting up
+	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases; // the list of CSourcePhrase instances which
+	// comprise the document -- the CLayout instance will own a parallel list of CPile
+	// instances in one-to-one correspondence with the CSourcePhrase instances, and each of piles
+	// will contain a pointer to the sourcePhrase it is associated with
+	
 	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
 	{
 		// no document is loaded, so no layout is appropriate yet, do nothing
@@ -787,18 +808,18 @@ bool CLayout::SetupLayout(SPList* pSrcPhrases)
 		{
 			m_pileList.DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
 		}
+		// a message to us developers is needed here, in case we get the design wrong
 		wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
 					_T(""), wxICON_WARNING);
 		return TRUE;
 	}
-	// attempt the layout setup
-	bool bIsOK = CreatePiles(pSrcPhrases);
-	if (!bIsOK)
-	{
-		// something was wrong - memory error or perhaps m_pPiles is a populated list already
-		// (CreatePiles()has generated an error message for the developer already)
-		return FALSE;
-	}
+
+	// //////// first get up-to-date-values for all the needed data /////////
+
+	// set the latest wxFont pointers...
+	SetSrcFont(m_pApp);
+	SetTgtFont(m_pApp);
+	SetNavTextFont(m_pApp);
 
 	// set the local private copie of the colours
 	SetNavTextColor(m_pApp);
@@ -810,20 +831,74 @@ bool CLayout::SetupLayout(SPList* pSrcPhrases)
 	SetTgtTextHeight(m_pApp);
 	SetNavTextHeight(m_pApp);
 
-	// set the m_bShowTargetOnly flag (controls whether or not to suppress src text line)
-	// SetShowTargetOnlyBoolean();  // nah, don't bother to fiddle with the globals yet
+	// set left margin and vertical leading for strips, also pile and strip heights,
+	// and client window's dimensions - and hence the logical doc width (in pixels)
+	SetCurLMargin(m_pApp);
+	SetCurLeading(m_pApp);
+	SetPileAndStripHeight();
+	SetClientWindowSizeAndLogicalDocWidth(); // height gets set after strips are laid out
+	SetGapWidth(m_pApp); // gap (in pixels) between piles when laid out in strips
+
+	// *** ?? TODO ?? **** more parameter setup stuff goes here, if needed
+
+	// attempt the (re)creation of the m_pileList list of CPile instances if requested; if not
+	// requested then the current m_pileList's contents are valid still and will be used unchanged
+	if (bRecreatePileListAlso)
+	{
+		bool bIsOK = CreatePiles(pSrcPhrases);
+		if (!bIsOK)
+		{
+			// something was wrong - memory error or perhaps m_pPiles is a populated list already
+			// (CreatePiles()has generated an error message for the developer already)
+			return FALSE;
+		}
+	}
+
+	// estimate the number of CStrip instances required - assume an average of 16, which should
+	// result in more strips than needed, and so when the layout is built, we should call Shrink()
+	int aCount = pSrcPhrases->GetCount();
+	int anEstimate = aCount / 16;
+	m_stripArray.SetCount(anEstimate,(void*)NULL);
+	//int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 
 
 
-// *** TODO **** more setup stuff goes here
+	// *** TODO **** code to build the strips goes here 
+	
 
+
+	m_stripArray.Shrink();
+
+	// the height of the document can now be calculated
+	int nLogicalDocumentHeightInPixels = SetLogicalDocHeight();
+
+
+	// *** TODO ***
+	// set up the scroll bar to have the correct range (and it would be nice to try place the
+	// phrase box at the old active location if it is still within the document, etc) -- see the
+	// list of things done in the legacy CAdapt_ItView's version of this function (lines 4470++)
+	
+	
 	return TRUE;
 }
 
+// starting from the passed in index value, update the index of succeeding strip instances to be
+// in numerically ascending order without gaps
 void CLayout::UpdateStripIndices(int nStartFrom)
 {
-
-
+	int nCount = m_stripArray.GetCount();
+	int index = -1;
+	int newIndexValue = nStartFrom;
+	CStrip* pStrip = NULL;
+	if (nCount > 0)
+	{
+		for (index = nStartFrom; index < nCount; index++)
+		{
+			pStrip = (CStrip*)m_stripArray[index];
+			pStrip->m_nStrip = newIndexValue;
+			newIndexValue++;
+		}
+	}
 }
 
 /* 

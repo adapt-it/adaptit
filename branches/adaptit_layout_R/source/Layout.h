@@ -159,7 +159,7 @@ public:
 	CPile*		CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); // create detached, 
 																		 // caller will store it
 	bool		CreatePiles(SPList* pSrcPhrases);
-	bool		SetupLayout(SPList* pSrcPhrases);
+	bool		RecalcLayout(bool bRecreatePileListAlso = FALSE);
 
 
 
@@ -227,6 +227,10 @@ public:
 	int			GetTgtTextHeight();
 	int			GetNavTextHeight();
 
+	// current gap width between piles (in pixels)
+	void		SetGapWidth(CAdapt_ItApp* pApp);
+	//int			GetGapWidth(); // friendliness lets us grab this directly once set
+
 	// setter and getter global bool gbShowTargetOnly, later remove the global
 //	void		SetShowTargetOnlyBoolean();
 //	bool		GetShowTargetOnlyBoolean();
@@ -244,7 +248,8 @@ public:
 	int			GetStripLeft(); // use this instead of GetCurLMargin()
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
-	void		SetLogicalDocHeight(int nDocHeight);
+	int			SetLogicalDocHeight();	// a side effect internally is to set 
+										// m_logicalDocSize.cy to the return value
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
 
