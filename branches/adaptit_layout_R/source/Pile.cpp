@@ -185,11 +185,10 @@ CPile::~CPile()
 }
 
 // implementation
-
+/*
 void CPile::DestroyCells()
 {
-
-	/*  *** TODO ***  modify for refactored layout
+	// not yet refactored!!!
 	for (int i=0; i<MAX_CELLS; i++)
 	{
 		if (m_pCell[i] != NULL)
@@ -203,9 +202,8 @@ void CPile::DestroyCells()
 			m_pCell[i] = (CCell*)NULL;
 		}
 	}
-	*/
 }
-
+*/
 bool CPile::HasFilterMarker()
 {
 	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
@@ -226,7 +224,20 @@ int CPile::Height()
 
 int CPile::Left()
 {
-	return m_pOwningStrip->m_arrPileOffsets[m_nPile];
+	if (gbRTL_Layout)
+	{
+		// calculated as: "distance from left of client window to right boundary of strip"
+		// minus "the sum of the distance of the pile from the right boundary of the strip
+		// and the width of the pile"
+		return m_pOwningStrip->Left() + (m_pLayout->m_logicalDocSize).x - 
+				(m_pOwningStrip->m_arrPileOffsets[m_nPile] + Width());
+	}
+	else // left-to-right layout
+	{
+		// calculated as: "distance from left of client window to left boundary of strip"
+		// plus "the distance of the pile from the left boundary of the strip"
+		return m_pOwningStrip->Left() + m_pOwningStrip->m_arrPileOffsets[m_nPile];
+	}
 }
 
 int CPile::Top()
@@ -718,6 +729,25 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 	}
 }
 
+// return TRUE if the CSourcePhrase pointed at by this CPile is one which has a marker
+// which causes text wrap in a USFM-marked up document (eg. \p, \m, etc)
+bool CPile::IsWrapPile()
+{
+	CSourcePhrase* pSrcPhrase = this->m_pSrcPhrase;
+	if (!pSrcPhrase->m_markers.IsEmpty())
+	{
+		// this a potential candidate for starting a new strip, so check it out
+		if (pSrcPhrase->m_nSequNumber > 0)
+		{
+			if (m_pLayout->m_pView->IsWrapMarker(pSrcPhrase))
+			{
+				return TRUE; // if we need to wrap, discontinue assigning piles to this strip
+				// (the nPileIndex_InList value is already correct for returning to caller)
+			}
+		}
+	}
+	return FALSE;
+}
 
 //getter
 CSourcePhrase* CPile::GetSrcPhrase()

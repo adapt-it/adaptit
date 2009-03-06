@@ -837,7 +837,7 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 	SetCurLeading(m_pApp);
 	SetPileAndStripHeight();
 	SetClientWindowSizeAndLogicalDocWidth(); // height gets set after strips are laid out
-	SetGapWidth(m_pApp); // gap (in pixels) between piles when laid out in strips
+	SetGapWidth(m_pApp); // gap (in pixels) between piles when laid out in strips, m_nCurGapWidth
 
 	// *** ?? TODO ?? **** more parameter setup stuff goes here, if needed
 
@@ -858,14 +858,14 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 	// result in more strips than needed, and so when the layout is built, we should call Shrink()
 	int aCount = pSrcPhrases->GetCount();
 	int anEstimate = aCount / 16;
-	m_stripArray.SetCount(anEstimate,(void*)NULL);
+	m_stripArray.SetCount(anEstimate,(void*)NULL);	// create possibly enough space in the array 
+													// for all the piles
 	//int gap = m_nCurGapWidth; // distance in pixels for interpile gap
+	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
+	int nPilesEndIndex = m_pileList.GetCount() - 1; // use this to terminate the strip creation loop
 
 
-
-	// *** TODO **** code to build the strips goes here 
-	
-
+	// *** TODO **** code (a loop) to build the strips goes here 
 
 	m_stripArray.Shrink();
 

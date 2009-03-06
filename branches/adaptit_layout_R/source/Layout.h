@@ -249,7 +249,7 @@ public:
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
 	int			SetLogicalDocHeight();	// a side effect internally is to set 
-										// m_logicalDocSize.cy to the return value
+										// m_logicalDocSize.y to the return value
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
 

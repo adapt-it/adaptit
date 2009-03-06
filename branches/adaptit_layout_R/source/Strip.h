@@ -43,10 +43,14 @@ class CStrip : public wxObject
 	friend class CLayout;
 	friend class CCell;
 public:
+	// creation (a 2 step process)
 	CStrip();
+	//int	CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset, 
+	//				int& nLastSequNumber, int nEndIndex);
+	int	CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile, int gap);
+
 	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
 	//CStrip(CSourceBundle* pSourceBundle); // normal constructor
-
 	// whm Note: Initialization of CStrip class members happens in the order in which
 	// they are declared. To avoid potential null pointer problems, I have moved the
 	// CSourceBundle* m-pBundle line up before the declaration of CPile* m-pPile[36] line.
@@ -54,14 +58,14 @@ public:
 	
 private:
 	// attributes
-	int			m_nStrip; // index of this strip in CLayout's m_arrStrips array of pointers
-	CLayout*	m_pLayout; // the owning CLayout
-	wxArrayInt	m_arrPiles; // array of CPile* instances which comprise the strip
-	wxArrayInt	m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile
-	int			m_nFree;	// how many pixels wide the free space at end is
-	bool		m_bFilled; // TRUE if has populated fully, or up to a wrapping CPile
-	bool		m_bAffected; // TRUE if the strip is involved in a user action, and so has
-							 // to be checked by the action's cleanup code before drawing
+	int				m_nStrip;	// index of this strip in CLayout's m_arrStrips array of pointers
+	CLayout*		m_pLayout;  // the owning CLayout
+	wxArrayPtrVoid	m_arrPiles; // array of CPile* instances which comprise the strip
+	wxArrayInt		m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile
+	int				m_nFree;	// how many pixels wide the free space at end is
+	bool			m_bFilled;  // TRUE if has populated fully, or up to a wrapping CPile
+	bool			m_bAffected; // TRUE if the strip is involved in a user action, and so has
+								 // to be checked by the action's cleanup code before drawing
 	
 	/* legacy stuff not now needed
 	int					m_nStripIndex;
@@ -86,12 +90,6 @@ public:
 	void	SetFree(int nFree);
 	void	GetStripRect_CellsOnly(wxRect& rect);
 	
-
-	//  creator
-	//int	CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset, 
-	//				int& nLastSequNumber, int nEndIndex);
-	void	CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile);
-
 	
 	DECLARE_DYNAMIC_CLASS(CStrip) 
 	// Used inside a class declaration to declare that the objects of 

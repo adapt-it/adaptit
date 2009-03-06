@@ -50,6 +50,7 @@ WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 /// \derivation		The CPile class is derived from wxObject.
 class CPile : public wxObject  
 {
+	friend class CStrip;
 	friend class CCell;
 	friend class CLayout;
 public:
@@ -89,7 +90,7 @@ private:
 	*/
 
 	// implementation
-	void			DestroyCells();
+	//void			DestroyCells(); // DestroyPile() can do it instead
 
 	// destructor
 public:
@@ -98,6 +99,7 @@ public:
 	virtual void Draw(wxDC* pDC); // *** TODO **** needs new param list and internals
 	void	DrawNavTextInfoAndIcons(wxDC* pDC); // handles wedge, note icon, retranslation, nav text etc
 	void	PrintPhraseBox(wxDC* pDC);
+	bool	IsWrapPile();
 
 	//CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
 	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
