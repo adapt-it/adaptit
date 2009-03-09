@@ -248,8 +248,7 @@ public:
 	int			GetStripLeft(); // use this instead of GetCurLMargin()
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
-	int			SetLogicalDocHeight();	// a side effect internally is to set 
-										// m_logicalDocSize.y to the return value
+	void		SetLogicalDocHeight();	// set m_logicalDocSize.y (call after strips are built)
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
 

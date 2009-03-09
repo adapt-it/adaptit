@@ -570,13 +570,19 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 	m_logicalDocSize = docSize;
 }
 
-int CLayout::SetLogicalDocHeight()
+// sets m_logicalDocSize.y value to the logical height (in pixels) of the laid out strips, or to
+// zero if there are no strips in m_stripArray yet; however this function should never be called
+// when the latter is the case - that would be a serious design error
+void CLayout::SetLogicalDocHeight()
 {
-	int nStripCount = m_stripArray.GetCount();
-	int nDocHeight = (GetCurLeading() + GetStripHeight()) * nStripCount;
-	nDocHeight += 40; // pixels for some white space at document's bottom
+	int nDocHeight = 0;
+	if (!m_stripArray.IsEmpty())
+	{
+		int nStripCount = m_stripArray.GetCount();
+		int nDocHeight = (GetCurLeading() + GetStripHeight()) * nStripCount;
+		nDocHeight += 40; // pixels for some white space at document's bottom
+	}
 	m_logicalDocSize.SetHeight(nDocHeight);
-	return nDocHeight;
 }
 
 wxSize CLayout::GetClientWindowSize()
@@ -788,6 +794,7 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 // refactored design is a potentially "costly" calculation - if the document is large, the piles
 // and strips for the whole document has to be recalculated from the data in the current document -
 // (need to consider a progress bar in the status bar in window bottom)
+// The default value of the passed in flag bRecreatePileListAlso is FALSE
 bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 {
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
@@ -854,30 +861,44 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 		}
 	}
 
-	// estimate the number of CStrip instances required - assume an average of 16, which should
-	// result in more strips than needed, and so when the layout is built, we should call Shrink()
+    // estimate the number of CStrip instances required - assume an average of 16 piles per strip,
+    // which should result in more strips than needed, and so when the layout is built, we should
+    // call Shrink()
 	int aCount = pSrcPhrases->GetCount();
 	int anEstimate = aCount / 16;
 	m_stripArray.SetCount(anEstimate,(void*)NULL);	// create possibly enough space in the array 
 													// for all the piles
-	//int gap = m_nCurGapWidth; // distance in pixels for interpile gap
+	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
-	int nPilesEndIndex = m_pileList.GetCount() - 1; // use this to terminate the strip creation loop
+	//int nPilesEndIndex = m_pileList.GetCount() - 1; // use this to terminate the strip creation loop
+	int nIndexOfFirstPile = 0;
+	wxASSERT(!m_pileList.IsEmpty());
+	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
+	wxASSERT(pos != NULL);
+	CStrip* pStrip = NULL;
 
-
-	// *** TODO **** code (a loop) to build the strips goes here 
-
+	// the loop which builds the strips
+	while (pos != NULL)
+	{
+		pStrip = new CStrip;
+		pos = pStrip->CreateStrip(pos, nStripWidth, gap);
+	}
 	m_stripArray.Shrink();
 
 	// the height of the document can now be calculated
-	int nLogicalDocumentHeightInPixels = SetLogicalDocHeight();
+	SetLogicalDocHeight();
 
-
-	// *** TODO ***
+	// *** TODO 1 ***
 	// set up the scroll bar to have the correct range (and it would be nice to try place the
 	// phrase box at the old active location if it is still within the document, etc) -- see the
 	// list of things done in the legacy CAdapt_ItView's version of this function (lines 4470++)
 	
+
+	// *** TODO 2 *** free translation support - in the legacy code this just involved creating and
+	// storing the free translation rectangle in the m_rectFreeTrans member of the CStrip
+	// instance, but for the refactored design we will need to create this rectangle on the fly
+	// and from a function member, and other changes will be involved no doubt, because in the new
+	// design switching to or from free translation mode will not have RecalcLayout() called
 	
 	return TRUE;
 }

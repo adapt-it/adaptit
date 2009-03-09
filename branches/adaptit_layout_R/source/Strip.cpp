@@ -192,7 +192,7 @@ void CStrip::Draw(wxDC* pDC)  // *** TODO *** additional parameters needed for r
 	*/
 }
 
-// legacy one //////////////////////////////////////////////////////////////////////////////////////////
+// legacy comments //////////////////////////////////////////////////////////////////////////////////////////
 // / \return     the vertical offset (a new nVertOffset) of the strip that was created
 // / \param      pDC                 -> the display context for strip creation
 // / \param      pSrcList            -> the list of source phrases from which strips are composed
@@ -207,35 +207,36 @@ void CStrip::Draw(wxDC* pDC)  // *** TODO *** additional parameters needed for r
 // / pile that will fit within the strip. See CreateStrip_SimulateOnly() for a related function 
 // / which only simulates the calculations made by CreateStrip().
 // //////////////////////////////////////////////////////////////////////////////////////////
-//int CStrip::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffset, int &nLastSequNumber, int nEndIndex)
-//
-// refactored CreateStrip() returns the nPileIndex for the CPile instance which is to be first
-// when CreateStrip() is again called in order to build the next strip
-int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile, int gap)
+// int CStrip::CreateStrip(wxClientDC *pDC, SPList* pSrcList, int nVertOffset, int &nLastSequNumber, int nEndIndex)
+
+
+// refactored CreateStrip() returns the iterator set for the CPile instance which is to be first
+// when CreateStrip() is again called in order to build the next strip, or NULL if the document
+// end has been reached (passing in the iterator avoids having to have a PileList::Item() call at
+// the start of the function, so time is saved when setting up the strips for a whole document)
+PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
-	m_pLayout = pLayout;
 
 	// prepare for iterating over next group of CPiles to be placed in the strip
-	PileList* pPiles = &pLayout->m_pileList;
-	wxASSERT(!pPiles->IsEmpty());
-	PileList::Node* pos = pPiles->Item(nIndexOfFirstPile);
-	wxASSERT(pos != NULL);
-	int nPileIndex_InList = nIndexOfFirstPile; // use nPileIndex_InList as the iterator (it is an index
+	//PileList* pPiles = &pLayout->m_pileList;
+	//wxASSERT(!pPiles->IsEmpty());
+	//PileList::Node* pos = pPiles->Item(nIndexOfFirstPile);
+	//wxASSERT(pos != NULL);
+	//int nPileIndex_InList = nIndexOfFirstPile; // use nPileIndex_InList as the iterator (it is an index
 			// into the CLayout's m_pileList (rather than index in m_arrPiles within the strip), return
 			// its final value on exit so the next call can use it
 	CPile* pPile = NULL;
-	//int nPileCount = 0; // count the piles put into this strip (needed for tests within the loop?)
 	int pileWidth = 0;
 	int nCurrentSpan = 0;
 
 	// lay out the piles
 	/*
-	// this stuff is commented out because it turned out that RTL layout and LRT layout of the piles
-	// in the strip uses exactly the same code - they are appended to the strip in logical order,
-	// and it is only the rectangle calculations (none of which are done here) which specify the
-	// differing locations of pile[0], pile[1] etc for RTL versus LTR layout -- so that
-	// information will be in the coordinate calculations - specifically, in CPile::Left()
+    // this refactored code is commented out because it turned out that RTL layout and LRT layout
+    // of the piles in the strip uses exactly the same code - they are appended to the strip in
+    // logical order, and it is only the rectangle calculations (none of which are done here) which
+    // specify the differing locations of pile[0], pile[1] etc for RTL versus LTR layout -- so that
+    // information will be in the coordinate calculations - specifically, in CPile::Left()
 	if (gbRTL_Layout)
 	{
 		// Unicode version, and Right to Left layout is wanted
@@ -340,7 +341,7 @@ int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile
 
 		// prepare for next iteration
 		pileIndex_InStrip++;
-		nPileIndex_InList++;
+		//nPileIndex_InList++;
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 		nHorzOffset_FromLeft = pileWidth + gap;
 
@@ -348,7 +349,8 @@ int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile
 		if (m_nFree <= 0)
 		{
 			m_bFilled = TRUE;
-			return nPileIndex_InList;
+			//return nPileIndex_InList;
+			return pos;
 		}
 
 		// append second and later piles to the strip
@@ -369,7 +371,8 @@ int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
 					m_bFilled = TRUE;
-					return nPileIndex_InList;
+					//return nPileIndex_InList;
+					return pos;
 				}
 			}
 
@@ -391,7 +394,8 @@ int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile
 				// this pile won't fit, so the strip is full - declare it full and return
 				// the pile list's index for use in the next strip's creation
 				m_bFilled = TRUE;
-				return nPileIndex_InList;
+				//return nPileIndex_InList;
+				return pos;
 			}
 
 			// update index for next iteration
@@ -399,7 +403,7 @@ int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile
 
             // update index for the caller to be able to access the next CPile* in CLayout's
             // m_pileList 
-            nPileIndex_InList++;
+            //nPileIndex_InList++;
 
 			// advance the iterator for the CLayout's m_pileList list of pile pointers
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
@@ -414,7 +418,8 @@ int CStrip::CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile
 	// document or the first pile was wider than the whole strip - in either case we must declare
 	// this strip filled and we are done
 	m_bFilled = TRUE;
-	return nPileIndex_InList; // the index where we start when we create the next strip
+	//return nPileIndex_InList; // the index where we start when we create the next strip
+	return pos; // the iterator value where we start when we create the next strip
 }
 
 /* legacy code for CreateStrip...*** DON'T REMOVE THIS CODE UNTIL ALL FUNCTIONS ARE WORKING *** (free trans support is here)

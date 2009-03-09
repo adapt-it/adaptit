@@ -26,7 +26,8 @@
 // forward references:
 //class CAdapt_ItDoc; // BEW deprecated 3Feb09
 //class CSourceBundle;
-class CPile;
+//class CPile;
+#include "Pile.h"
 class CStrip;
 class CLayout; // make the "friend class CLayout" declaration work
 
@@ -47,7 +48,8 @@ public:
 	CStrip();
 	//int	CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset, 
 	//				int& nLastSequNumber, int nEndIndex);
-	int	CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile, int gap);
+	//int	CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile, int gap);
+	PileList::Node* CreateStrip(PileList::Node* pos, int nStripWidth, int gap);
 
 	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
 	//CStrip(CSourceBundle* pSourceBundle); // normal constructor
