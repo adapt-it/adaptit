@@ -33,6 +33,7 @@ class wxDataInputStream;
 class wxFile;
 class CAdapt_ItApp;
 class CAdapt_ItDoc;
+class CLayout;
 
 
 // If we need another list based on CSourcePhrase, we don't declare it
@@ -161,8 +162,10 @@ public:
 											// the project configuration file to the project's directory
 	//wxString		GetFileName(const wxString fullPath); // not used in wx version
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
+	CLayout*		GetLayout(); // view class also has its own member function of the same name
 	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
 					wxString* fileTitle);
+	CPile*			GetPile(const int nSequNum);
 	void			GetProjectConfiguration(wxString sourceFolderPath);
 	wxString		GetUnFilteredMarkers(wxString& src);
 	wxString		GetWholeMarker(wxChar *pChar);

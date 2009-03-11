@@ -376,6 +376,13 @@ int CCell::Top()
 	return top; // to avoid a compiler warning
 }
 
+wxPoint CCell::GetTopLeft()
+{
+	wxPoint topleft;
+	TopLeft(topleft);
+	return topleft;
+}
+
 void CCell::GetCellRect(wxRect& rect)
 {
 	rect.SetTop(Top());

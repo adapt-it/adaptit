@@ -91,6 +91,7 @@ public:
 	int		GetFree();
 	void	SetFree(int nFree);
 	void	GetStripRect_CellsOnly(wxRect& rect);
+	wxArrayPtrVoid* GetPilesArray();
 	
 	
 	DECLARE_DYNAMIC_CLASS(CStrip) 

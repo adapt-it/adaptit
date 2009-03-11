@@ -115,6 +115,7 @@
 #include "SilConverterSelectDlg.h"
 #ifdef USE_SIL_CONVERTERS
 #include "ECDriver.h"
+#include "Layout.h"
 #endif
 
 // rde added the following but, if it is actually needed we'll use wxMax()
@@ -1612,6 +1613,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	// OnInitialUpdate is NOT called each time OnFileNew is called, but only once each time
 	// the app is launched. OnInitialUpdate is called by our OnInit() at program startup, and
 	// by the doc/view framework in response to File | New and when loading a doc from MRU.
+	/*
 	if (gpApp->m_pBundle == NULL) // MFC had == 0
 	{
 		// No CSourceBundle instance yet, so create one & initialize it.
@@ -1637,7 +1639,13 @@ void CAdapt_ItView::OnInitialUpdate()
 
 		nSequNumForLastAutoSave = 0;
 	}
-
+	*/
+	// refactored version: try the following here
+	CLayout* pLayout = gpApp->m_pLayout;
+	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
+									// and other setters
+	bool bIsOK = pLayout->RecalcLayout(TRUE); // TRUE means "create the m_pileList too"
+	
 	gpApp->m_targetPhrase = saveText;
 	gnStart = 0;
 	gnEnd = -1;
@@ -7149,6 +7157,24 @@ CCell* CAdapt_ItView::GetNextCell(const CCell *pCell, const int cellIndex)
 		return pPile->m_pCell[cellIndex];
 }
 
+CLayout* CAdapt_ItView::GetLayout()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	return pApp->m_pLayout;
+}
+
+CPile* CAdapt_ItView::GetPile(const int nSequNum)
+{
+	// refactored, for new view layout design (no bundles)
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pLayout != NULL);
+	PileList* pPiles = pLayout->GetPileList();
+	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
+												  // and m_pileList lists
+	wxASSERT(pos != NULL);
+	return pos->GetData();
+}
+/* refactored 10Mar09
 CPile* CAdapt_ItView::GetPile(const int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -7220,6 +7246,7 @@ a:	CSourceBundle* pBundle = pApp->m_pBundle;
 	else
 		return (CPile*)0;
 }
+*/
 
 void CAdapt_ItView::SetupPhraseBoxParameters(CPile *pActivePile)
 {

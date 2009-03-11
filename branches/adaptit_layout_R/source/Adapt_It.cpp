@@ -6890,11 +6890,12 @@ int CAdapt_ItApp::OnExit(void)
 
 	if (m_pLayout)
 	{
-		// *** TODO ** add code here to ensure the CLayout's lists are cleared before deleting it,
+		// add code here to ensure the CLayout's lists are cleared before deleting it,
 		// we don't want to leak memory
-		
-		
-
+		m_pLayout->DestroyStrips(); // destroys each strip and the memory involved with their m_arrPiles
+						 // m_arrPileOffsets arrays (these are both wxArrayInt arrays)
+		m_pLayout->DestroyPiles();	// destroys each pile in m_pLayout's m_pPiles lists, and the CCell 
+						// instances that each pile owns
 		delete m_pLayout;
 	}
 
@@ -7935,7 +7936,8 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				// that the active location's KB entry has already been removed (or its count
 				// decremented) and so a re-store is appropriate now -- because the box location may
 				// end up elsewhere depending on the results of the rebuild process.)
-				pView->StoreBeforeProceeding(m_pActivePile->m_pSrcPhrase);// ignore returned BOOL
+				//pView->StoreBeforeProceeding(m_pActivePile->m_pSrcPhrase);// ignore returned BOOL
+				pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase());// ignore returned BOOL
 
 				wxString strSavePhraseBox = m_targetPhrase;
 				// now do the reparse - the functions which effect the reconstitution of the doc when 
@@ -8263,7 +8265,8 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 			else
 			{
 				// we are somewhere in the midst of the data, so a pile will be active
-				activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+				//activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+				activeSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 				gpApp->m_curIndex = activeSequNum;
 
 				// remove any current selection, as we can't be sure of any pointers
@@ -8476,7 +8479,8 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 			else
 			{
 				// we are somewhere in the midst of the data, so a pile will be active
-				activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+				//activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+				activeSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 				gpApp->m_curIndex = activeSequNum;
 
 				// remove any current selection, as we can't be sure of any pointers
@@ -8543,7 +8547,6 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pAdView))
 	wxASSERT(m_pSourceFont != NULL);
 	wxFont SaveFont = dC.GetFont();
 	dC.SetFont(*m_pSourceFont);
-
 	m_nSrcHeight = dC.GetCharHeight();
 
 	// whm note: The following is Bob Eaton's modification to detect if the font is a symbol
@@ -19813,7 +19816,8 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	if (gpApp->m_pTargetBox != NULL)
 	{
 		// whm added test for m_pActivePile == NULL
-		if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->m_pSrcPhrase == NULL 
+		//if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->m_pSrcPhrase == NULL 
+		if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->GetSrcPhrase() == NULL 
 			|| gpApp->m_nActiveSequNum < 0
 			|| gpApp->m_pTargetBox->IsShown())
 			bDocIsThere = FALSE;
@@ -19824,7 +19828,8 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	if (bDocIsThere)
 	{
 		gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum); // ensure a valid pointer (BEW added 28Jun05)
-		wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->m_pSrcPhrase);
+		//wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->m_pSrcPhrase);
+		wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->GetSrcPhrase());
 		if (!chVerse.IsEmpty())
 		{
 			message += _T("  ") + chVerse;

@@ -41,11 +41,12 @@ class CAdapt_ItView;
 class CSourceBundle;
 class CSourcePhrase;
 class CPile;
-//class CStrip;
+class CStrip;
 class CCell;
 class CRefString;
 class CKB;
 class MapKeyStringToTgtUnit;
+class CLayout;
 //class CProgressDlg;
 //class CEarlierTranslationDlg;
 
@@ -216,6 +217,7 @@ public:
 									CSourcePhrase* pSrcPhrase, int& offset, int & length);
 	wxChar		GetFirstChar(wxString& strText);
 	CKB*		GetKB();
+	CLayout*	GetLayout();
 	void		GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	CStrip*		GetNearestStrip(const wxPoint *pPoint); // moved here from protected
 	CPile*		GetNextEmptyPile(CPile* pPile);

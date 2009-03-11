@@ -8,7 +8,7 @@ int m_curPileHeight     on the app
 						often sets it - eg. returned from RecalcPhraseBoxWidth(); so leave the phr box
 						mechanisms untouched at this time.
 gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLayout
-
+grectViewClient	(was used for testing rect intersections for drawing in the legacy app)
 
 
 
@@ -70,6 +70,7 @@ gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLa
 #include "Adapt_ItView.h"
 #include "Pile.h"
 #include "Cell.h"
+#include "Adapt_ItCanvas.h"
 #include "Layout.h"
 
 
@@ -222,12 +223,100 @@ void CLayout::InitializeCLayout()
 
 void CLayout::Draw(wxDC* pDC)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CAdapt_ItView* pView = pApp->GetView();
-	wxASSERT(pView != NULL);
+	// bAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done based on the
+	// top of the first strip of a visible range of strips determined by the scroll car position
+	int i;
+	int nFirstStripIndex = -1;
+	int nLastStripIndex = -1;
+	int nActiveSequNum = -1;
 
-	// *** TODO ***  the rest of it...
+	// work out the range of visible strips based on the phrase box location
+	nActiveSequNum = m_pApp->m_nActiveSequNum;
+	// determine which strips are to be drawn
+	//GetVisibleStripsRange(nActiveSequNum, nFirstStripIndex, nLastStripIndex);
+	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex); // a scrolled wxDC must be passed in
+
+	// draw the visible strips (plus and extra one, if possible)
+	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
+	{
+		((CStrip*)m_stripArray[i])->Draw(pDC);
+	}
+}
+
+
+/* keep for later, if I refactor the scrolling support
+void CLayout::Draw(wxDC* pDC, bool bAtActiveLocation)
+{
+	// bAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done based on the
+	// top of the first strip of a visible range of strips determined by the scroll car position
+	int i;
+	int nFirstStripIndex = -1;
+	int nLastStripIndex = -1;
+	int nActiveSequNum = -1;
+
+	if (bAtActiveLocation)
+	{
+		// work out the range of visible strips based on the phrase box location
+		nActiveSequNum = m_pApp->m_nActiveSequNum;
+		// determine which strips are to be drawn
+		GetVisibleStripsRange(nActiveSequNum, nFirstStripIndex, nLastStripIndex);
+	}
+	else
+	{
+		// work out the visible strips based on the vertical scroll bar's current car position -
+		// use this block when, say, scrolling the view up or down
+
+		// *** TODO ***
+	}
+
+	// since a pre-offset device context is passed in (DoPrepareDC() will have already been
+	// called), if our draw location is different (eg. the box moved to a pile on next strip) we
+	// cannot assume that the device context's origin will be set to match the visible strips
+	// above; so we must set the DC origin back to (0,0), and use the Top() value for the first strip
+	// to be drawn to work out what the scroll bar should be, set the bar, and then call
+	// DoPrepareDC() again to have the right offset done. (This relieves us of the burden of
+	// having to call a function like ScrollIntoView().)
+	//pDC->SetDeviceOrigin(0,0); // remove the preset origin offset
+	//CStrip* pFirstStrip = (CStrip*)m_stripArray[nFirstStripIndex];
+	//int nVertScrollPos = pFirstStrip->Top() - GetCurLeading();
+	//wxASSERT(nVertScrollPos >= 0);
+	// next set the scroll thumb & then call DoPrepareDC() anew... but...
+	// *********************************************************************************************
+    // I've rethought this and decided that it isn't a reasonable task to try to redesign scrolling
+    // at the same time as removing bundles - those need to be separate refactoring jobs; so
+    // support scrolling "as is" for the present
+    // *********************************************************************************************
+
+
+	// draw the visible strips (plus and extra one, if possible)
+	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
+	{
+		((CStrip*)m_stripArray[i])->Draw(pDC);
+	}
+}
+*/
+
+// the Redraw() member function can be used in many places where, in the legacy application,
+// the document is unchanged but the layout needs repainting (eg. a window temporarily covered
+// part of the canvas/view); the legacy app just called RecalcLayout() to recreate the bundle, but
+// now that bundles are removed, calling CLayout::RecalcLayout(FALSE) is potentially to costly,
+// and unnecessary (since the strips piles and cells are okay already); so we just need to redraw
+// (we could call Invalidate() on the view, but with Redraw() we potentially have more control)
+// bFirstClear is default FALSE; if TRUE it causes aDC to paint the client area with background
+// colour (white); assumes the redraw is to be based on the active location
+void CLayout::Redraw(bool bFirstClear)
+{
+	wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
+	m_pCanvas->DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
+	wxClientDC* pDC = &aDC;
+	pDC->DestroyClippingRegion();
+	if (bFirstClear)
+	{
+		// erase the view rectangle
+		pDC->Clear();
+	}
+	Draw(pDC);  // the CLayout::Draw() which first works out which strips need to be drawn
+				// based on the active location (default param bool bAtActiveLocation is TRUE)
 }
 
 CAdapt_ItApp* CLayout::GetApp()
@@ -554,6 +643,16 @@ void CLayout::SetPileAndStripHeight()
 	}
 }
 
+PileList* CLayout::GetPileList()
+{
+	return &m_pileList;
+}
+
+wxArrayPtrVoid* CLayout::GetStripArray()
+{
+	return & m_stripArray;
+}
+
 // Call SetClientWindowSizeAndLogicalDocWidth() before just before strips are laid out; then call
 // SetLogicalDocHeight() after laying out the strips, to get private member m_logicalDocSize.y set 
 void CLayout::SetClientWindowSizeAndLogicalDocWidth()
@@ -607,9 +706,27 @@ int CLayout::GetGapWidth()
 }
 */
 
-
-
-
+// SetLayoutParameters() is where we do most of the hooking up to the current state of the app's
+// various view-related parameters, such as fonts, colours, text heights, and so forth
+void CLayout::SetLayoutParameters()
+{
+	InitializeCLayout(); // sets the app, doc, view, canvas & frame pointers
+	m_pApp->UpdateTextHeights(m_pView);
+	SetSrcFont(m_pApp);
+	SetTgtFont(m_pApp);
+	SetNavTextFont(m_pApp);
+	SetSrcColor(m_pApp);
+	SetTgtColor(m_pApp);
+	SetNavTextColor(m_pApp);
+	SetSrcTextHeight(m_pApp);
+	SetTgtTextHeight(m_pApp);
+	SetNavTextHeight(m_pApp);
+	SetGapWidth(m_pApp);
+	SetPileAndStripHeight();
+	SetCurLeading(m_pApp);
+	SetCurLMargin(m_pApp);
+	SetClientWindowSizeAndLogicalDocWidth();
+}
 
 void CLayout::DestroyStrip(int index)
 {
@@ -822,7 +939,7 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 	}
 
 	// //////// first get up-to-date-values for all the needed data /////////
-
+	/* do it instead in caller using SetLayoutParameters() call
 	// set the latest wxFont pointers...
 	SetSrcFont(m_pApp);
 	SetTgtFont(m_pApp);
@@ -845,7 +962,7 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 	SetPileAndStripHeight();
 	SetClientWindowSizeAndLogicalDocWidth(); // height gets set after strips are laid out
 	SetGapWidth(m_pApp); // gap (in pixels) between piles when laid out in strips, m_nCurGapWidth
-
+	*/
 	// *** ?? TODO ?? **** more parameter setup stuff goes here, if needed
 
 	// attempt the (re)creation of the m_pileList list of CPile instances if requested; if not
@@ -922,6 +1039,235 @@ void CLayout::UpdateStripIndices(int nStartFrom)
 	}
 }
 
+// the GetPile function also has equivalent member functions of the same name in the CAdapt_ItView
+// and CAdapt_ItDoc classes, for convenience's sake
+CPile* CLayout::GetPile(int index)
+{
+	PileList::Node* pos = m_pileList.Item(index);
+	wxASSERT(pos != NULL);
+	return pos->GetData();
+}
+
+int CLayout::GetStripIndex(int nSequNum)
+{
+	PileList::Node* pos = m_pileList.Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
+												  // and m_pileList lists
+	wxASSERT(pos != NULL);
+	CPile* pPile = pos->GetData();
+	return pPile->m_pOwningStrip->m_nStrip;
+}
+
+CStrip* CLayout::GetStrip(int nSequNum)
+{
+	PileList::Node* pos = m_pileList.Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
+												  // and m_pileList lists
+	wxASSERT(pos != NULL);
+	CPile* pPile = pos->GetData();
+	return pPile->m_pOwningStrip;
+}
+
+int CLayout::GetVisibleStrips()
+{
+	int clientHeight;
+	wxSize canvasSize;
+	canvasSize = m_pApp->GetMainFrame()->GetCanvasClientSize();
+	clientHeight = canvasSize.GetHeight(); // see lines 2425-2435 of Adapt_ItCanvas.cpp
+										   // and then lines 2454-56 for stuff below
+	int nVisStrips = clientHeight / m_nStripHeight;
+	int partStrip = clientHeight % m_nStripHeight; // modulo
+	if (partStrip > 0)
+		nVisStrips++;
+	return nVisStrips;
+}
+
+void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex)
+{
+	// get the logical distance (pixels) that the scroll bar's thumb indicates to top of client area
+	int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
+
+	// for the current client rectangle of the canvas, calculate how many strips will fit - a part
+	// strip is counted as an extra one
+	int nVisStrips = GetVisibleStrips();
+
+	// initialilze the values for the return parameters
+	nFirstStripIndex = -1;
+	nLastStripIndex = -1;
+
+	// find the current total number of strips
+	int nTotalStrips = m_stripArray.GetCount();
+	
+	// find the index of the first strip which has some content visible in the client area,
+	// that is, the first strip which has a bottom coordinate greater than nThumbPosition_InPixels
+	int index = 0;
+	int bottom;
+	CStrip* pStrip;
+	do {
+		pStrip = (CStrip*)m_stripArray[index];	
+		bottom = pStrip->Top() + GetStripHeight(); // includes free trans height if free trans mode is ON 
+		if (bottom > nThumbPosition_InPixels)
+		{
+			// this strip is at least partly visible - so start drawing at this one
+			break;
+		}
+		index++;
+	} while(index < nTotalStrips);
+	wxASSERT(index < nTotalStrips);
+	nFirstStripIndex = index;
+
+	// use nVisStrips to get the final visible strip (it may be off-window, but we don't care
+	// because it will be safe to draw it off window)
+	nLastStripIndex = nFirstStripIndex + (nVisStrips - 1);
+
+	// check the bottom of the last visible strip is lower than the bottom of the client area, if
+	// not, add an additional strip
+	pStrip = (CStrip*)m_stripArray[nLastStripIndex];
+	bottom = pStrip->Top() + GetStripHeight();
+	if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y ))
+	{
+		// add an extra one
+		nLastStripIndex++;
+	}
+}
+
+
+/*
+//retain this -- I coded it assuming I'd be refactoring the scrolling mechanism at same time as
+//removing the bundles, but it got too complex to do both jobs at once. Instead, for now, work out
+//the first and last strip indices using the passed in wxDC pre-scrolled location, and support
+//ScrollIntoView()
+void CLayout::GetVisibleStripsRange(int nSequNum, int& nFirstStrip, int& nLastStrip)
+{
+	int nVisStrips = GetVisibleStrips();
+	int nActiveStrip = GetStripIndex(nSequNum);
+	bool bHasAutoInsertRange = FALSE;
+	int nCountAutoInsertionStrips = 0;
+	int nBeginStripIndex = -1;
+	int nEndStripIndex = -1;
+	if (gnBeginInsertionsSequNum != -1)
+	{
+		// a range of auto insertions is currently in effect
+		bHasAutoInsertRange = TRUE;
+		nBeginStripIndex = GetStripIndex(gnBeginInsertionsSequNum);
+		nEndStripIndex = GetStripIndex(gnEndInsertionsSequNum);
+		nCountAutoInsertionStrips = nEndStripIndex - nBeginStripIndex + 1;
+	}
+
+	// establish values, assuming no auto insertions are pertinent, then
+	// later on adjust values if necessary
+	int nTotalStrips = m_stripArray.GetCount();
+	bool bAddedExtraOne = FALSE;
+	int nHalf = nVisStrips / 2; // keep the active strip about mid-window if possible
+	// if too close to the document start, start from the document start
+	if (nActiveStrip + 1 < nHalf)
+	{
+		nFirstStrip = 0;
+		nLastStrip = nVisStrips - 1;
+		if (nLastStrip < nTotalStrips - 1)
+		{
+			nLastStrip++; // add an extra strip at the bottom, to play safe, provided it fits
+			bAddedExtraOne = TRUE;
+		}
+	}
+	else
+	{
+		// if too close to the document end, adjust to show the document end
+		if (nActiveStrip + (nVisStrips - nHalf) > nTotalStrips)
+		{
+			nLastStrip = nTotalStrips - 1;
+			nFirstStrip = nTotalStrips - nVisStrips;
+			if (nFirstStrip < 0)
+			{
+				// document has fewer strips than can fill the client rectangle, so
+				// set the first one to be the first one in the document
+				nFirstStrip = 0;
+			}
+			else
+			{
+				// add an extra strip, provided it fits, so as to play safe
+				if (nFirstStrip > 0)
+				{
+					nFirstStrip--;
+					bAddedExtraOne = TRUE;
+				}
+			}
+		}
+		else
+		{
+			// not close to either end of the document
+			nFirstStrip = nActiveStrip + 1 - nHalf;
+			nLastStrip = nFirstStrip + nVisStrips - 1;
+			// if possible, add an extra strip at the end so as to play safe
+			if (nLastStrip < nTotalStrips - 1)
+			{
+				nLastStrip++; // this one most likely will be off-window
+				bAddedExtraOne = TRUE;
+			}
+		}
+	}
+
+	// do adjustments to accomodate auto-insertions as much as possible
+	if (bHasAutoInsertRange)
+	{
+		// auto insertions exist
+		if (nCountAutoInsertionStrips > nVisStrips)
+		{
+			// too many auto insertions for us to display all their strips in the visible
+			// rectangle, so we'll display the ones at the end, and the user can scroll back up
+			// manually if he needs to see the rest
+			int numToMove = bAddedExtraOne ? nLastStrip - 1 - nActiveStrip : nLastStrip - nActiveStrip;
+			int numMovesPossible = nFirstStrip;
+			if (numMovesPossible >= numToMove)
+			{
+				// we can do the needed move up
+				nFirstStrip -= numToMove;
+				nLastStrip -= numToMove;
+			}
+			else
+			{
+				// do as much as we can
+				nFirstStrip -= numMovesPossible;
+				if (nTotalStrips > nVisStrips)
+				{
+					// don't change the index of the last visible strip to be less if the total
+					// strips in the document is less than the number which would fit in the
+					// visible rectangle; but when the total is greater, then do so
+					nLastStrip -= numMovesPossible;
+				}
+			}
+		}
+		else
+		{
+			// all of them will fit in the visible rectangle; if some overlap the start,
+			// then make the start of the visible strips be earlier
+			if (nBeginStripIndex < nFirstStrip)
+			{
+				// all the autoinserted material is not all in the visible area already
+				// so an adjustment is required, if possible, to display the active strip 
+				// lower down
+				int nFreeStrips = nVisStrips - nCountAutoInsertionStrips;
+				int nOverlapped = nFirstStrip - nBeginStripIndex;
+				if (nFreeStrips >= nOverlapped)
+				{
+					// they can be fitted in the visible area - make the adjustment
+					nFirstStrip -= nOverlapped;
+					nLastStrip -= nOverlapped;
+				}
+				else
+				{
+					// do the best we can (probably this block won't ever be entered)
+					nFirstStrip -= nFreeStrips;
+					nLastStrip -= nFreeStrips;
+				}
+			}
+			else
+			{
+				// all visible, nothing to be one
+				;
+			}
+		}
+	}
+}
+*/
 /* 
 	//legacy code forCreatePile() (from wxWidgets code base 4.1.1 as tweaked by BEW before 
 	// starting refactor job (chuck later on)

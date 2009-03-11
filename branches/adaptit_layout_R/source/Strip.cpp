@@ -119,6 +119,12 @@ CStrip::~CStrip()
 {
 
 }
+
+wxArrayPtrVoid* CStrip::GetPilesArray()
+{
+	return &m_arrPiles;
+}
+
 /*
 void CStrip::DestroyPiles()
 {
@@ -133,11 +139,30 @@ void CStrip::DestroyPiles()
 	}
 }
 */
-void CStrip::Draw(wxDC* pDC)  // *** TODO *** additional parameters needed for refactored version
+
+void CStrip::Draw(wxDC* pDC)
 {
+	if (gbIsPrinting)
+	{
+		// whm Note: The pOffsets members nTop and nBottom were negative in the MFC version, but remain
+		// positive in the wx version.
+		POList* pList = &m_pLayout->m_pApp->m_pagesList;
+		POList::Node* pos = pList->Item(gnCurPage-1);
+		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
+		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
+			return;
+	}
+	int i;
+	int nPileCount = m_arrPiles.GetCount();
+	for (i = 0; i < nPileCount; i++)
+	{
+		((CPile*)m_arrPiles[i])->Draw(pDC);
+	}
+}
 
-
-	/*
+/* legacy CStrip::Draw(wxDC* pDC) before layout code was refactored
+void CStrip::Draw(wxDC* pDC)
+{
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	if (gbIsPrinting)
@@ -160,7 +185,7 @@ void CStrip::Draw(wxDC* pDC)  // *** TODO *** additional parameters needed for r
 		// BEW changed 7Jul05; moved original block, which only needs to be done once, to view's OnDraw() function
 
 		wxRect r;
-		r = grectViewClient;
+		r = grectViewClient; // it has been converted to logical coords already, after the DoPrepareDC() call
 		wxRect rectTest;
 		rectTest = m_rectStrip;
 		rectTest.SetY(rectTest.GetY()-pApp->m_curLeading); // move the top-left point up by m_curLeading
@@ -189,8 +214,8 @@ void CStrip::Draw(wxDC* pDC)  // *** TODO *** additional parameters needed for r
 #endif
 		}
 	}
-	*/
 }
+*/
 
 // legacy comments //////////////////////////////////////////////////////////////////////////////////////////
 // / \return     the vertical offset (a new nVertOffset) of the strip that was created

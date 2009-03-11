@@ -144,6 +144,7 @@ private:
 public:
 	// destructor
 	virtual ~CLayout();
+	//virtual void Draw(wxDC* pDC, bool bAtActiveLocation = TRUE); // keep for refactoring scrolling
 	virtual void Draw(wxDC* pDC);
 
 	// helpers; setters & getters
@@ -160,8 +161,11 @@ public:
 																		 // caller will store it
 	bool		CreatePiles(SPList* pSrcPhrases);
 	bool		RecalcLayout(bool bRecreatePileListAlso = FALSE);
-
-
+	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
+									   // to whatever is currently set within the app, doc and
+									   // view classes; that is, it hooks up CLayout to the
+									   // legacy parameters wherever they were stored (it calls
+									   // app class's UpdateTextHeights() function too
 
 	// Strip destructors
 	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these 
@@ -204,7 +208,6 @@ public:
 	// getters and setters for m_nCurLeading and m_nCurGapWidth
 	// (these mirror the app's m_curLeading and m_curGapWidth; and the "Saved" ones are for
 	// removing the globals gnSaveGap and gnSaveLeading
-	// 
 	int			GetSavedLeading();
 	int			GetSavedGapWidth();
 	void		SetSavedLeading(int nCurLeading);
@@ -229,7 +232,7 @@ public:
 
 	// current gap width between piles (in pixels)
 	void		SetGapWidth(CAdapt_ItApp* pApp);
-	//int			GetGapWidth(); // friendliness lets us grab this directly once set
+	//int		GetGapWidth(); // friendliness lets us grab this directly once set
 
 	// setter and getter global bool gbShowTargetOnly, later remove the global
 //	void		SetShowTargetOnlyBoolean();
@@ -252,10 +255,39 @@ public:
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
 
+	// getters for the m_pileList, and m_stripArray
+	PileList* GetPileList();
+	wxArrayPtrVoid* GetStripArray();
+
+	// ////// public utility functions ////////
+	// 
 	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
 	// the layout
 	void		UpdateStripIndices(int nStartFrom = 0);
+	// get the pile pointer for a given sequNumber passed in
+	CPile*		GetPile(int index);
+	// get the strip index from a passed in sequNumber for a pile in m_pileList
+	int			GetStripIndex(int nSequNum);
+	// get the strip pointer from a passed in sequNumber for a pile in m_pileList
+	CStrip*		GetStrip(int nSequNum);
+	// get the number of visible strips plus one for good measure
+	int			GetVisibleStrips();
 
+    // get the range of visible strips in the viscinity of the active location; pass in the sequNum
+    // value, and return indices for the first and last visible strips (the last may be partly or
+    // even wholely out lower than then the bottom of the window's client area); we also try to
+    // encompass all auto-inserted material within the visible region
+	//void		GetVisibleStripsRange(int nSequNum, int& nFirstStrip, int& nLastStrip);
+	// retain the above version for if/when I/we refactor scolling support etc
+	// 
+	// new version below, takes as input the pre-scrolled device context (after DoPrepareDC() has
+	// been called, and on the basis of the scrollbar thumb's position, gets the first strip
+	// which has content visible in the canvas client area, adds the other visible strips, and one
+	// more for good measure if possible - this is sort of equivalent to the legacy WX Adapt It's
+	// way of doing it, but in the new design (I'm keeping changes minimal for now)
+	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
+	// redraw the current visible strip range 
+	void		Redraw(bool bFirstClear = FALSE);
 
 	DECLARE_DYNAMIC_CLASS(CLayout) 
 	// Used inside a class declaration to declare that the objects of 

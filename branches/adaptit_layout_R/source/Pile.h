@@ -107,6 +107,7 @@ public:
 	int			CalcPileWidth();
 	int			GetStripIndex();
 	CStrip*		GetStrip();
+	CCell*		GetCell(int nCellIndex);
 
 	int		Width();
 	int		Height();

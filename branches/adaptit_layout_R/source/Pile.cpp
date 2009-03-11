@@ -129,6 +129,8 @@ extern bool gbGlossingUsesNavFont;
 
 extern bool gbIsPrinting; // whm added because wxDC does not have ::IsPrinting() method
 
+extern bool gbRTL_Layout;
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -204,6 +206,12 @@ void CPile::DestroyCells()
 	}
 }
 */
+
+CCell* CPile::GetCell(int nCellIndex)
+{
+	return m_pCell[nCellIndex];
+}
+
 bool CPile::HasFilterMarker()
 {
 	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
