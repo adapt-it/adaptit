@@ -3315,10 +3315,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	//case 9:
 		if (gbCameToEnd)
 		{
+			gbCameToEnd = FALSE;
 			// IDS_AT_END
 			wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."), 
 				_T(""), wxICON_INFORMATION);
-			gbCameToEnd = FALSE;
 		}
 	//	return TRUE; // enable  next OnIdle call
 	//case 5:
