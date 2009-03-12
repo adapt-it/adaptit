@@ -191,8 +191,6 @@ IMPLEMENT_DYNAMIC_CLASS(CLayout, wxObject)
 
 CLayout::CLayout()
 {
-
-
 }
 
 CLayout::~CLayout()
@@ -206,6 +204,8 @@ CLayout::~CLayout()
 void CLayout::InitializeCLayout()
 {
 	// set the pointer members for the classes the layout has to be able to access on demand
+	pPileBeforeEditSpan = NULL;
+	pPileAfterEditSpan = NULL;
 	m_pApp = GetApp();
 	m_pView = GetView();
 	m_pCanvas = GetCanvas();
@@ -403,27 +403,6 @@ void CLayout::SetClipRectHeight(int nHeight)
 	m_nClipRectHeight = nHeight;
 }
 
-// support for defining range of visible strips 
-int CLayout::GetFirstVisibleStrip()
-{
-	return m_nFirstVisibleStrip;
-}
-
-int CLayout::GetLastVisibleStrip()
-{
-	return m_nLastVisibleStrip;
-}
-
-void CLayout::SetFirstVisibleStrip(int nFirstVisibleStrip)
-{
-	m_nFirstVisibleStrip = nFirstVisibleStrip;
-}
-
-void CLayout::SetLastVisibleStrip(int nLastVisibleStrip)
-{
-	m_nLastVisibleStrip = nLastVisibleStrip;
-}
-
 // accessors for font pointers
 void CLayout::SetSrcFont(CAdapt_ItApp* pApp)
 {
@@ -578,6 +557,33 @@ void CLayout::SetSavedGapWidth(int nGapWidth)
 {
 	m_nCurGapWidth = nGapWidth;
 }
+
+// support of user edit actions (tracking of edit span boundaries in m_pileList)
+CPile* CLayout::GetPileBeforeEditSpan()
+{
+	return pPileBeforeEditSpan;
+}
+
+CPile* CLayout::GetPileAfterEditSpan()
+{
+	return pPileAfterEditSpan;
+}
+
+// pass in the CPile pointer for the revised location; returns the old pointer, or NULL
+CPile* CLayout::SetPileBeforeEditSpan(CPile* pPileToSet) // returns the old one
+{
+	CPile* pOld = pPileBeforeEditSpan;
+	pPileBeforeEditSpan = pPileToSet;
+	return pOld;
+}
+
+CPile* CLayout::SetPileAfterEditSpan(CPile* pPileToSet) // returns the old one
+{
+	CPile* pOld = pPileAfterEditSpan;
+	pPileAfterEditSpan = pPileToSet;
+	return pOld;
+}
+
 
 // setter and getters for the pile height and strip height
 int CLayout::GetPileHeight()

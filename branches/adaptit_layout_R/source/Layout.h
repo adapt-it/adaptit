@@ -83,10 +83,6 @@ private:
 	wxArrayPtrVoid		m_stripArray;
 
 private:
-	// two ints define the range of strips to be drawn at next draw
-	int			m_nFirstVisibleStrip;
-	int			m_nLastVisibleStrip;
-
 	// four ints define the clip rectange top, left, width & height for erasure 
 	// prior to draw (window client coordinates, (0,0) is client top left)
 	int			m_nClipRectTop;
@@ -123,6 +119,13 @@ private:
 	int			m_nSaveLeading;
 	int			m_nSaveGap;
 
+	// for tracking the edit span in m_pileList which corresponds to the piles affected by the
+	// user's edit actions on the document; we track the one before and the one after, because
+	// these pointers don't change and give us a reliable way to find the relevant indices into
+	// the list if we want, and also giving reliably the owning strips by their m_pOwningStrip
+	// member 
+	CPile* pPileBeforeEditSpan;
+	CPile* pPileAfterEditSpan;
 
     // client size (width & height as a wxSize) based on Bill's calculation in the CMainFrame, and
     // then as a spin off, the document width (actually m_logicalDocSize.x) and we initialize
@@ -179,6 +182,11 @@ public:
 	void		DestroyPileRange(int nFirstPile, int nLastPile);
 	void		DestroyPiles();
 
+	// support of user edit actions
+	CPile*		GetPileBeforeEditSpan();
+	CPile*		GetPileAfterEditSpan();
+	CPile*		SetPileBeforeEditSpan(CPile* pPileToSet); // returns the old one
+	CPile*		SetPileAfterEditSpan(CPile* pPileToSet); // returns the old one
 
 	// getters for clipping rectangle
 	wxRect		GetClipRect();
@@ -188,12 +196,6 @@ public:
 	void		SetClipRectLeft(int nLeft);
 	void		SetClipRectWidth(int nWidth);
 	void		SetClipRectHeight(int nHeight);
-
-	// setters and getters for visible strip range
-	int			GetFirstVisibleStrip();
-	int			GetLastVisibleStrip();
-	void		SetFirstVisibleStrip(int nFirstVisibleStrip);
-	void		SetLastVisibleStrip(int nLastVisibleStrip);
 
 	// setters and getters for font pointers
 	void		SetSrcFont(CAdapt_ItApp* pApp);

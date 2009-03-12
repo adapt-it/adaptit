@@ -66,8 +66,6 @@ private:
 	wxArrayInt		m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile
 	int				m_nFree;	// how many pixels wide the free space at end is
 	bool			m_bFilled;  // TRUE if has populated fully, or up to a wrapping CPile
-	bool			m_bAffected; // TRUE if the strip is involved in a user action, and so has
-								 // to be checked by the action's cleanup code before drawing
 	
 	/* legacy stuff not now needed
 	int					m_nStripIndex;

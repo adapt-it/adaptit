@@ -145,7 +145,8 @@ public:
 	void			AdjustSequNumbers(int nValueForFirst, SPList* pList);
 	wxString&		AppendFilteredItem(wxString& dest,wxString& src);
 	wxString&		AppendItem(wxString& dest,wxString& src, const wxChar* ptr, int itemLen);
-	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase);
+	void			DeletePartnerPile(CSourcePhrase* pSrcPhrase);
+	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);
 	void			DeleteSourcePhrases();
 	void			DeleteSourcePhrases(SPList* pList);
 	bool			DoFileSave(bool bShowWaitDlg);

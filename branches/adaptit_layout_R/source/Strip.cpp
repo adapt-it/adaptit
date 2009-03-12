@@ -86,7 +86,6 @@ CStrip::CStrip()
 	m_nFree = -1;
 	m_nStrip = -1;
 	m_bFilled = FALSE;
-	m_bAffected = FALSE;
 	/*
 	m_nVertOffset = 0;
 	m_nPileCount = 0;

@@ -3585,17 +3585,34 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 /// \return nothing
 /// \param		pSrcPhrase -> the source phrase to be deleted
 /// \remarks
+/// Deletes the passed in CSourcePhrase instance, and if the bDoPartnerPileDeletionAlso bool value
+/// is TRUE (its default value), then the partner pile in the CLayout::m_pileList list which
+/// points at it is also deleted. Pass FALSE for this boolean if the CSourcePhrase being destroyed
+/// is a temporary one in a list other than m_pSourcePhrases.
+/// 
 /// Called from: the App's DoTransformationsToGlosses(), DeleteSourcePhraseListContents(),
 /// the Doc's DeleteSourcePhrases(), ConditionallyDeleteSrcPhrase(), 
 /// ReconstituteOneAfterPunctuationChange(), ReconstituteOneAfterFilteringChange(),
-/// DeleteListContentsOnly(), the CMainFrame's DeleteSourcePhrases_ForSyncScrollReceive().
+/// DeleteListContentsOnly(), ReconstituteAfterPunctuationChange(), the View's 
+/// ReplaceCSourcePHrasesInSpan(), TransportWidowedEndmarkersToFollowingContext(), 
+/// TransferCOmpletedSrcPhrases(), and CMainFrame's DeleteSourcePhrases_ForSyncScrollReceive().
+/// 
 /// Clears and deletes any m_pMedialMarkers, m_pMedialPuncts and m_pSavedWords before deleting
 /// pSrcPhrase itself.
 // //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase)
+void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso)
 {
+	// refactored 12Mar09
 	if (pSrcPhrase == NULL)
 		return;
+
+	// if requested delete the CPile instance in CLayout::m_pileList which points to this pSrcPhrase
+	if (bDoPartnerPileDeletionAlso)
+	{
+		// this call is safe to make even if there is no partner pile, or if a matching pointer is
+		// not in the list
+		DeletePartnerPile(pSrcPhrase);
+	}
 
 	if (pSrcPhrase->m_pMedialMarkers != NULL)
 	{
@@ -3649,6 +3666,37 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase)
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param		pSrcPhrase -> the source phrase that was deleted
+/// \remarks
+/// Created 12Mar09 for layout refactoring. The m_pileList contents point to CSourcePhrase instances
+/// and deleting a CSourcePhrase from the doc's m_pSourcePhrases list usually needs to also have the
+/// CPile instance which points to it also deleted from the corresponding place in the m_pileList. That
+/// task is done here. Called from DeleteSingleSrcPhrase(), the latter having a bool parameter,
+/// bDoPartnerPileDeletionAlso, which defaults to TRUE, and when FALSE is passed in this function will
+/// not be called. (E.g. when the source phrase belongs to a temporary list and so has no partner pile)
+// //////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
+{
+	// refactor 12Mar09
+	int index = GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for
+																 // the passed in pSrcPhrase
+	wxASSERT(index != wxNOT_FOUND);
+	PileList* pPiles = GetLayout()->GetPileList();
+	PileList::Node* posPile = pPiles->Item(index);
+	// the item might be destroyed already, so only proceed if it was found;
+	// or the pSrcPhrase may be in a temporary list and so not have a partner pile
+	if (posPile != NULL)
+	{
+		// the pile pointer was found in CLayout::m_pileList
+		CPile* pPile = posPile->GetData();
+		wxASSERT(pPile != NULL);
+		pPiles->Erase(posPile); // remove the entry from m_pileList
+		GetLayout()->DestroyPile(pPile); // destroy the pile
+	}
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing
 /// \param		pSrcPhrase -> the source phrase to be deleted
 /// \param		pOtherList -> another list of source phrases
@@ -3663,6 +3711,10 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList)
 {
+	// refactored 12Mar09 - nothing was done here because it can be called only in
+	// ReconstituteAdfterPunctuationChange() - and only then provided a merger could not be
+	// reconstituted -- and so because all partner piles will need to be recreated anyway,
+	//  just dealing with a few is pointless; code in that function will handle all instead
 	if (pSrcPhrase == NULL)
 		return;
 
