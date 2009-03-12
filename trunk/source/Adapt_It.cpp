@@ -16790,7 +16790,7 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, wxFo
 		break;
 		}
 	//case eAnsi:
-	default: // same as wxFONTENCODING_UTF8 above
+	default: // Unknown encoding - assume it is probably ASCII and convert it as best as possible
 		{
 		if (bHasBOM)
 		{
@@ -16801,6 +16801,7 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, wxFo
 		}
 		CBString tempBuff(pbyteBuff);
 		pBuf = gpApp->Convert8to16(tempBuff);
+		//pBuf = wxString::FromAscii(pbyteBuff); 
 		break;
 		}
 	};

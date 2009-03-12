@@ -804,15 +804,15 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 
 		// if the user turned on automatic capitalization in this dialog, then make sure the
 		// menu item of that name is ticked (or unticked if off)
-		if (gbAutoCaps)
-		{
-			gbAutoCaps = FALSE;
-		}
-		else
-		{
-			gbAutoCaps = TRUE;
-		}
-		gpApp->OnToolsAutoCapitalization(event); // TODO: check if this is needed ???
+		//if (gbAutoCaps)
+		//{
+		//	gbAutoCaps = FALSE;
+		//}
+		//else
+		//{
+		//	gbAutoCaps = TRUE;
+		//}
+		//gpApp->OnToolsAutoCapitalization(event); // TODO: check if this is needed ???
 	
 		// build the source case strings
 		bGood = casePgCommon.BuildUcLcStrings(casePgCommon.m_strSrcEquivalences, gpApp->m_srcLowerCaseChars, 
@@ -1033,15 +1033,15 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 
 	// if the user turned on automatic capitalization in this dialog, then make sure the
 	// menu item of that name is ticked (or unticked if off)
-	if (gbAutoCaps)
-	{
-		gbAutoCaps = FALSE;
-	}
-	else
-	{
-		gbAutoCaps = TRUE;
-	}
-	gpApp->OnToolsAutoCapitalization(event); // TODO: check if this is needed ???
+	//if (gbAutoCaps)
+	//{
+	//	gbAutoCaps = FALSE;
+	//}
+	//else
+	//{
+	//	gbAutoCaps = TRUE;
+	//}
+	//gpApp->OnToolsAutoCapitalization(event); // TODO: check if this is needed ???
 	
 	// build the source case strings
 	bGood = casePgCommon.BuildUcLcStrings(casePgCommon.m_strSrcEquivalences, gpApp->m_srcLowerCaseChars, 
