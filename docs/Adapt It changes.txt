@@ -1,3 +1,10 @@
+Version 4.1.2 update 31Mar2009:
+----------------------------------------------
+Bug fixes in 4.1.2
+----------------------------------------------
+* Added Menu short cut keys for the Advanced and Layout menus
+* Fixed the action of the checkbox that reads "Check here if you want Adapt It to automatically distinguish between upper case and lower case letters". Previously checking this checkbox might fail to take effect until the second time it was checked. 
+
 Version 4.1.1 update 28Feb2009:
 ----------------------------------------------
 Bug fixes in 4.1.1
