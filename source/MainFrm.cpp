@@ -3315,7 +3315,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	//case 9:
 		if (gbCameToEnd)
 		{
-			gbCameToEnd = FALSE;
+			gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version was repeatedly calling wxMessageBox causing crash
 			// IDS_AT_END
 			wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."), 
 				_T(""), wxICON_INFORMATION);

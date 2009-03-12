@@ -10967,6 +10967,20 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 
 b:	int nSequNum = gpApp->m_beginIndex - 1; // if possible, active element will be last one earlier than
 								// start of the current bundle (but back over any retranslations)
+	// whm modified 12Mar09.
+	// In the situation where m_nActiveSequNum is -1, such as when at the end of the document, it is
+	// possible for m_beginIndex to be zero. In such cases the value of nSequNum above would be
+	// calculated to be -1, thereby making the App's m_nActiveSequNum below also -1. This resulted in a
+	// system error in the MFC version which pops up saying, "An Invalid argument was encountered". In
+	// the wx version it actually results in a debug assert in the Debug mode and a crash in release
+	// mode because pos below turns out to be NULL. To remedy the problem I've added the following block
+	// that detects if nSequNum is -1, it changes it to 0 (zero) which ends up putting the phrasebox
+	// back to the beginning of the bundle or beginning of the doc.
+	if (nSequNum == -1)
+	{
+		nSequNum++;
+	}
+	
 	gpApp->m_nActiveSequNum = nSequNum;
 
 	SPList::Node* pos = pList->Item(gpApp->m_nActiveSequNum);
