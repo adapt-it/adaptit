@@ -632,7 +632,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "script_file=\"ai_build_phase_script.sh\"\necho \"Running a custom build phase script: $script_file\"\n${PROJECT_DIR}/scripts/${script_file}\necho \"DONE running custom build phase script: $script_file\"";
+			shellScript = "script_file=\"ai_build_phase_script.sh\"\nchmod 500 ${PROJECT_DIR}/scripts/${script_file}\necho \"Running a custom build phase script: $script_file\"\n${PROJECT_DIR}/scripts/${script_file}\necho \"DONE running custom build phase script: $script_file\"";
 		};
 /* End PBXShellScriptBuildPhase section */
 
