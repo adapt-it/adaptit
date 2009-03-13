@@ -691,7 +691,12 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 	}
 	TransferDataToWindow();
 	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
-	m_pMyListBox->SetFocus();
+	// If the last translation was removed set focus to the New Translation edit box, otherwise to the
+	// Translations list box. (requested by Wolfgang Stradner).
+	if (nItems == 0)
+		m_pNewTranslationBox->SetFocus();
+	else
+		m_pMyListBox->SetFocus();
 }
 
 void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow

@@ -576,6 +576,19 @@ a:					pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6)
 				}
 			}
 
+			// whm added for testing 12Mar09 adding "end fn" to nav text at end of footnote
+			// (Requested by Wolfgang Stradner)
+			if (m_pPile->m_pSrcPhrase->m_bFootnoteEnd)
+			{
+				if (str.IsEmpty())
+					str = _("end fn");
+				else
+				{
+					str += _T(' ');
+					str += _("end fn");
+				}
+			}
+			
 			wxFont pSaveFont;
 			wxFont* pNavTextFont = gpApp->m_pNavTextFont;
 			pSaveFont = pDC->GetFont();
