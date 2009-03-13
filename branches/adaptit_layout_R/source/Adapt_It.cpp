@@ -20685,6 +20685,8 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 	// insert this instance at the start of the document
 	SPList::Node* pos = pSrcPhrasesList->GetFirst(); //POSITION pos = pSrcPhrasesList->GetHeadPosition();
 	pos = pSrcPhrasesList->Insert(pos,pSrcPhrase);
+	pDoc->CreatePartnerPile(pSrcPhrase);
+	m_findUserEditsSpan = scan_from_doc_ends;	// for passing to CLayout::AdjustForUserEdits()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

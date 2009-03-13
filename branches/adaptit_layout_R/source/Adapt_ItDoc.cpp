@@ -3669,12 +3669,13 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 /// \return     nothing
 /// \param		pSrcPhrase -> the source phrase that was deleted
 /// \remarks
-/// Created 12Mar09 for layout refactoring. The m_pileList contents point to CSourcePhrase instances
-/// and deleting a CSourcePhrase from the doc's m_pSourcePhrases list usually needs to also have the
-/// CPile instance which points to it also deleted from the corresponding place in the m_pileList. That
-/// task is done here. Called from DeleteSingleSrcPhrase(), the latter having a bool parameter,
-/// bDoPartnerPileDeletionAlso, which defaults to TRUE, and when FALSE is passed in this function will
-/// not be called. (E.g. when the source phrase belongs to a temporary list and so has no partner pile)
+/// Created 12Mar09 for layout refactoring. The m_pileList's CPile instances point to CSourcePhrase
+/// instances and deleting a CSourcePhrase from the doc's m_pSourcePhrases list usually needs to
+/// also have the CPile instance which points to it also deleted from the corresponding place in
+/// the m_pileList. That task is done here. Called from DeleteSingleSrcPhrase(), the latter having
+/// a bool parameter, bDoPartnerPileDeletionAlso, which defaults to TRUE, and when FALSE is passed
+/// in this function will not be called. (E.g. when the source phrase belongs to a temporary list
+/// and so has no partner pile)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 {
@@ -3695,6 +3696,54 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 		GetLayout()->DestroyPile(pPile); // destroy the pile
 	}
 }
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param		pSrcPhrase -> the source phrase that was created and inserted in the application's
+///                             m_pSourcePhrases list
+/// \remarks
+/// Created 13Mar09 for layout refactoring. The m_pileList's CPile instances point to CSourcePhrase
+/// instances and creating a new CSourcePhrase for the doc's m_pSourcePhrases list always needs to
+/// have the CPile instance which points to it also created, initialized and inserted into the corresponding place in
+/// the m_pileList. That task is done here.
+/// 
+/// Called from various places. It is not made a part of the CSourcePhrase creation process for a
+/// good reason. Quite often CSourcePhrase instances are created and are only temporary - such as
+/// those deep copied to be saved in various local lists during the vertical edit process, and in
+/// quite a few other contexts as well. Also, when documents are loaded from disk and very many
+/// CSourcePhrase instances are created in that process, it is more efficient to not create CPile
+/// instances as part of that process, but rather to create them all in a loop after the document
+/// has been loaded. For example, the current code creates new CSourcePhrases on the heap in about
+/// 30 places in the app's code, but only about 25% of those instances require a CPile partner
+/// created for the CLayout::m_pileList; therefore we call CreatePartnerPile() only when needed,
+/// and it should be called immediately after a newly created CSourcePhrase has just been inserted
+/// into the app's m_pSourcePhrases list - so that the list location can be determined internally
+/// for use in deciding where in m_pileList to insert the partner pile.
+// //////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
+{
+	// refactor 13Mar09
+	int index = GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for
+																 // the passed in pSrcPhrase
+	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
+	PileList* pPiles = GetLayout()->GetPileList();
+	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond the end of m_pileList
+	CPile* pNewPile = GetLayout()->CreatePile(pSrcPhrase); // initializes, sets m_nWidth and m_nMinWidth etc
+	if (posPile != NULL)
+	{
+		// the indexed location is within the unaugmented CLayout::m_pileList; therefore an insert
+		// operation is required; the index posPile value determined by index is the place where
+		// the insertion must be done
+		posPile = pPiles->Insert(posPile, pNewPile);	
+	}
+	else
+	{
+		// posPile returned as NULL implies the CSourcePhrase was appended to the app's
+		// m_pSourcePhrases list; so append the newly created CPile to m_pileList
+		posPile = pPiles->Append(pNewPile);	
+	}
+}
+
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing

@@ -52,6 +52,15 @@ class CPile;
 class CFont;
 class CAdapt_ItCanvas;
 
+#define	nJumpDistanceForUserEditsSpanDetermination 80 // how far to jump in either 
+			// direction from the current m_nActiveSequNum value to scan forward and back
+			// to determine the beginning and end locations for the user edit operations
+			// changes to the m_pileList contents
+typedef enum update_span {
+	scan_from_doc_ends,
+	scan_in_active_area_proximity
+};
+
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips
 /// piles and cells of the layout. Setters in various parts of the application set
@@ -74,6 +83,9 @@ public:
 	CAdapt_ItView*		m_pView;
 	CAdapt_ItCanvas*	m_pCanvas;
 	CMainFrame*			m_pMainFrame;
+
+	update_span			m_findUserEditsSpan; // takes one of two enum values,
+				// 	scan_from_doc_ends  (= 0), or scan_in_active_area_proximity (= 1)
 
 //public:
 private:
@@ -119,14 +131,6 @@ private:
 	int			m_nSaveLeading;
 	int			m_nSaveGap;
 
-	// for tracking the edit span in m_pileList which corresponds to the piles affected by the
-	// user's edit actions on the document; we track the one before and the one after, because
-	// these pointers don't change and give us a reliable way to find the relevant indices into
-	// the list if we want, and also giving reliably the owning strips by their m_pOwningStrip
-	// member 
-	CPile* pPileBeforeEditSpan;
-	CPile* pPileAfterEditSpan;
-
     // client size (width & height as a wxSize) based on Bill's calculation in the CMainFrame, and
     // then as a spin off, the document width (actually m_logicalDocSize.x) and we initialize
     // docSize.y to 0, and set that value later when all the strips are laid out; the setter
@@ -160,8 +164,7 @@ public:
 	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
 	// list, and each CPile instance has a member which points to one and only one
 	// CSourcePhrase instance in pSrcPhrases)
-	CPile*		CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); // create detached, 
-																		 // caller will store it
+	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
 	bool		CreatePiles(SPList* pSrcPhrases);
 	bool		RecalcLayout(bool bRecreatePileListAlso = FALSE);
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
@@ -183,10 +186,7 @@ public:
 	void		DestroyPiles();
 
 	// support of user edit actions
-	CPile*		GetPileBeforeEditSpan();
-	CPile*		GetPileAfterEditSpan();
-	CPile*		SetPileBeforeEditSpan(CPile* pPileToSet); // returns the old one
-	CPile*		SetPileAfterEditSpan(CPile* pPileToSet); // returns the old one
+	void		AdjustForUserEdits(enum update_span scope);
 
 	// getters for clipping rectangle
 	wxRect		GetClipRect();

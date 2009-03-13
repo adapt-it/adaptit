@@ -782,7 +782,8 @@ CStrip* CPile::GetStrip()
 
 //CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
 //								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
-
+// In the refactored design, CreatePile() has been put in CLayout because the latter not only
+// needs to know how to create CStrip instances, but also CPile instances (for its m_pileList)
 
 int CPile::CalcPileWidth()
 // Calculates the pile's width before laying out the current pile in a strip. The function

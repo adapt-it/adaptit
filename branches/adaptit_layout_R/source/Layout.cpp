@@ -204,8 +204,6 @@ CLayout::~CLayout()
 void CLayout::InitializeCLayout()
 {
 	// set the pointer members for the classes the layout has to be able to access on demand
-	pPileBeforeEditSpan = NULL;
-	pPileAfterEditSpan = NULL;
 	m_pApp = GetApp();
 	m_pView = GetView();
 	m_pCanvas = GetCanvas();
@@ -558,33 +556,6 @@ void CLayout::SetSavedGapWidth(int nGapWidth)
 	m_nCurGapWidth = nGapWidth;
 }
 
-// support of user edit actions (tracking of edit span boundaries in m_pileList)
-CPile* CLayout::GetPileBeforeEditSpan()
-{
-	return pPileBeforeEditSpan;
-}
-
-CPile* CLayout::GetPileAfterEditSpan()
-{
-	return pPileAfterEditSpan;
-}
-
-// pass in the CPile pointer for the revised location; returns the old pointer, or NULL
-CPile* CLayout::SetPileBeforeEditSpan(CPile* pPileToSet) // returns the old one
-{
-	CPile* pOld = pPileBeforeEditSpan;
-	pPileBeforeEditSpan = pPileToSet;
-	return pOld;
-}
-
-CPile* CLayout::SetPileAfterEditSpan(CPile* pPileToSet) // returns the old one
-{
-	CPile* pOld = pPileAfterEditSpan;
-	pPileAfterEditSpan = pPileToSet;
-	return pOld;
-}
-
-
 // setter and getters for the pile height and strip height
 int CLayout::GetPileHeight()
 {
@@ -798,10 +769,9 @@ void CLayout::DestroyPiles()
 
 // Note: never call CreatePile() if there is not yet a valid pSrcPhrase pointer to pass in;
 // CreatePile() creates the CPile instance on the heap, and returns a pointer to it
-CPile* CLayout::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
+CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 {
 	wxASSERT(pSrcPhrase != NULL);
-	wxASSERT(pLayout != NULL);
 
 	// create an empty pile on the heap
 	CPile* pPile = new CPile;
@@ -810,7 +780,7 @@ CPile* CLayout::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
 	// assign the passed in source phrase pointer to its m_pSrcPhrase public member,
 	// and also the pointer to the CLayout object
 	pPile->m_pSrcPhrase = pSrcPhrase;
-	pPile->m_pLayout = pLayout;
+	pPile->m_pLayout = this;
 
 	// set (in pixels) its minimum width based on which of the m_srcPhrase, m_adaption and m_gloss
 	// strings within the passed in CSourcePhrase is the widest; the min width member is thereafter
@@ -836,7 +806,7 @@ CPile* CLayout::CreatePile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
 	for (index = 0; index < MAX_CELLS; index++)
 	{
 		pCell = new CCell();
-		pCell->CreateCell(pLayout,pPile,index);
+		pCell->CreateCell(this,pPile,index);
 	}
 	// Note: to assist clarity, the extensive commented out legacy code has been removed
 	// from here and placed temporarily at the end of this file
@@ -882,7 +852,8 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 		wxASSERT(pSrcPhrase != NULL);
 
 		// create the CPile instance
-		pPile = CreatePile(this,pSrcPhrase);
+		//pPile = CreatePile(this,pSrcPhrase);
+		pPile = CreatePile(pSrcPhrase);
 		wxASSERT(pPile != NULL);
 
 		// store it in the node of the m_pPiles list of CLayout
@@ -1134,6 +1105,27 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 		nLastStripIndex++;
 	}
 }
+
+void CLayout::AdjustForUserEdits(enum update_span scope)
+{
+	// scan forwards and backwards in m_pileList matching CSourcePhrase pointer instances with
+	// those stored in the CPile copies in the strips in m_stripArray - and when there is a
+	// mismatch in the pointer values, we will have found a boundary for changes to the CPile
+	// pointers in m_pileList due to the user's editing changes to the document. Use these
+	// beginning and ending locations for updating the piles in the strips between those locations
+	// just prior to drawing the updated layout
+	// The passed in enum value, which can be scan_from_doc_ends  (= 0), or 
+	// scan_in_active_area_proximity (= 1), determines how extensive a scan is done - whether from
+	// the start and end of the document, or from locations prior to and after the active
+	// location; in the later case the jump distance from the current active location is given by
+	// the #define nJumpDistanceForUserEditsSpanDetermination which is currently set at 80
+	// (CSourcePhrase instances)
+
+
+// **** TODO ****
+
+}
+
 
 
 /*
