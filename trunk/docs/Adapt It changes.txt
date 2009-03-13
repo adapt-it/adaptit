@@ -3,8 +3,13 @@ Version 4.1.2 update 31Mar2009:
 Bug fixes in 4.1.2
 ----------------------------------------------
 * Fixed a crash in the Linux version that could happen when a text was adapted fully to the end of the document. The message "The End. Providing..." would appear to flicker and then a few seconds afterward the application would hang/crash (or the crash might happen if the Step Up button was clicked while at the end of the document).
-* Added Menu short cut keys for the Advanced and Layout menus
-* Fixed the action of the checkbox that reads "Check here if you want Adapt It to automatically distinguish between upper case and lower case letters". Previously checking this checkbox might fail to take effect until the second time it was checked. 
+* Fixed the action of the checkbox in the Case tab of the Preferences dialog that reads "Check here if you want Adapt It to automatically distinguish between upper case and lower case letters". Previously checking this checkbox might fail to take effect until the second time it was checked. 
+----------------------------------------------
+Feature changes and new features in 4.1.2
+----------------------------------------------
+* Added Menu short cut keys for the Advanced and Layout menus.
+* Focus now moves to the New Translation edit box of the Choose Translation dialog if the last Translation in the list box is removed.
+* Navigation text now displays "end fn" to mark the last source word of a footnote.
 
 Version 4.1.1 update 28Feb2009:
 ----------------------------------------------
