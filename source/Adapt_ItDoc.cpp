@@ -1365,6 +1365,15 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 									// in the MFC version TRUE meant "add to MRU list"
 	// Note: SetTitle works, but the doc/view framework overwrites the result with "Adapt It [unnamed1]", etc
 	// unless SetFilename() is also used.
+	// 
+	// whm modified 13Mar09: 
+	// When the doc is explicitly closed on Linux, the Ctrl+O hot key doesn't work unless the focus is
+	// placed on an existing element such as the toolbar's Open icon (which is where the next action
+	// would probably happen).
+	CMainFrame* pFrame = pApp->GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxASSERT(pFrame->m_pToolBar != NULL);
+	pFrame->m_pToolBar->SetFocus();
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
