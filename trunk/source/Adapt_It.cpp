@@ -5740,20 +5740,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) list from *m_pConfig
 
-#ifdef __WXMAC__
+	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
+	// See also the CMainFrame::CMainFrame constructor where accelerator key assignments are made to
+	// coordinate with these menu hot key adjustments.
+#if defined (__WXMAC__) || defined (__WXGTK__)
 	// whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep them from
 	// conflicting with the customary Mac access keys and accelerator keys. The accelerator keys are
 	// created during the creation of the CMainFrame above, so we can make adjustments here.
 
 	// File | Start Working...
-	// On Mac, Command-W is reserved for Closing the Active Window, and we've defined the accelerator key
-	// on Mac for "Start Working..." as Command-Shift-O to avoid the conflict.
+	// On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active Window, so 
+	// we've defined the accelerator key on Mac for "Start Working..." as Command-Shift-O, and on Linux
+	// as Ctrl-Shift-O, to avoid the conflict.
 	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows & Linux have the default Ctrl-W
+#endif
 	
+#ifdef __WXMAC__
 	// File | Close Project
 	// On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used it on
 	// Windows/Linux for Close Project, but the comperable hot key to close the active window for Mac 
 	// is Command-W.
+	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close (wxID_CLOSE) menu item.
 	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows and Linux have the default Ctrl-J
     
 	// File | Exit

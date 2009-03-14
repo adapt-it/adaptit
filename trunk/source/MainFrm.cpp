@@ -1124,6 +1124,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
 //#endif
 
+
 	// these dummy ID values are placeholders for unused entries in the accelerator below 
 	// that are not implemented in the wx version
 	int dummyID1 = -1;
@@ -1134,6 +1135,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//int dummyID6 = -1;
 
     // Accelerators
+	// ASSIGN THE ACCELERATOR HOT KEYS REQUIRED FOR THE DIFFERENT PLATFORMS
+	// See also the the App's OnInit() where menu adjustments are made to
+	// coordinate with these accelerator/hot key assignments.
+	// 
 	// Note: The wx docs say, "On Windows, menu or button commands are supported, on GTK (Linux)
 	// only menu commands are supported. Therefore, for those below which are accelerators for
 	// toolbar buttons, probably won't work on Linux. There would probably need to be a (hidden?)
@@ -1204,7 +1209,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     entries[23].Set(wxACCEL_CTRL, (int) 'O', wxID_OPEN); // standard wxWidgets ID // whm checked OK
     entries[24].Set(wxACCEL_CTRL, (int) 'P', wxID_PRINT); // standard wxWidgets ID // whm checked OK
     entries[25].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE); // standard wxWidgets ID // whm checked OK
-#ifdef __WXMAC__
+#if defined (__WXMAC__) || defined (__WXGTK__)
 	// whm Note: On Mac Command-W is reserved for closing the active window (equivalent to the close
 	// command), so as a compromise we'll assign Command-Shift-O for Opening the start up wizard.
     entries[26].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'O', ID_FILE_STARTUP_WIZARD); // whm checked OK
