@@ -20704,7 +20704,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxToolBarBase* pToolBar = pFrame->GetToolBar();
 	wxASSERT(pToolBar != NULL);
-	if (!(pToolBar->GetToolEnabled(ID_BUTTON_RETRANSLATION) || pToolBar->GetToolEnabled(ID_BUTTON_EDIT_RETRANSLATION)))
+	if (!pToolBar->GetToolEnabled(ID_BUTTON_RETRANSLATION))
 	{
 		::wxBell();
 		return;
