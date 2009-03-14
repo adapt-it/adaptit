@@ -1372,8 +1372,8 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	// would probably happen).
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
-	wxASSERT(pFrame->m_pToolBar != NULL);
-	pFrame->m_pToolBar->SetFocus();
+	wxASSERT(pFrame->m_pControlBar != NULL);
+	pFrame->m_pControlBar->SetFocus();
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
