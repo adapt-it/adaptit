@@ -66,6 +66,44 @@ typedef enum update_span {
 	scan_from_big_jump // 300 either side of active sequ num value
 };
 
+typedef enum doc_edit_op {
+	no_edit_op,
+	cancel_op,
+	target_box_paste_op,
+	relocate_box_op,
+	merge_op,
+	unmerge_op,
+	retranslate_op,
+	remove_retranslation_op,
+	edit_retranslation_op,
+	insert_placeholder_op,
+	remove_placeholder_op,
+	edit_source_text_op,
+	free_trans_op,
+	end_free_trans_op,
+	collect_back_translations_op,
+	vert_edit_enter_adaptions_op,
+	vert_edit_exit_adaptions_op,
+	vert_edit_enter_glosses_op,
+	vert_edit_exit_glosses_op,
+	vert_edit_enter_free_trans_op,
+	vert_edit_exit_free_trans_op,
+	vert_edit_cancel_op,
+	vert_edit_end_now_op,
+	vert_edit_previous_step_op,
+	vert_edit_exit_op,
+	exit_preferences_op,
+	change_punctuation_op,
+	change_filtered_markers_only_op,
+	change_sfm_set_only_op,
+	change_sfm_set_and_filtered_markers_op,
+	open_document_op,
+	new_document_op,
+	close_document_op,
+	enter_LTR_layout_op,
+	enter_RTL_layout_op
+};
+
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips
 /// piles and cells of the layout. Setters in various parts of the application set
@@ -91,6 +129,8 @@ public:
 
 	update_span			m_userEditsSpanCheckType; // takes one of two enum values,
 				// 	scan_from_doc_ends  (= 0), or scan_in_active_area_proximity (= 1)
+	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
+												// and used by PlacePhraseBoxInLayout()
 
 //public:
 private:

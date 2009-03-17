@@ -115,6 +115,7 @@ public:
 	void	TopLeft(wxPoint& ptTopLeft);
 	void	BottomRight(wxPoint& ptBottomRight);
 	wxPoint	GetTopLeft();
+	CPile*	GetPile();
 
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 

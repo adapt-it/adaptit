@@ -248,6 +248,11 @@ wxFont* CCell::GetFont()
 	return m_pLayout->m_pTgtFont; // never accessed, it's here just to avoid a compiler warning
 }
 
+CPile* CCell::GetPile()
+{
+	return m_pOwningPile;
+}
+
 wxColour* CCell::GetColor()
 {
 	switch (m_nCell)

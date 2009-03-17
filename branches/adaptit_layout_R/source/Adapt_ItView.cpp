@@ -76,7 +76,6 @@
 // includes below uncomment as implemented
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
-#include "Adapt_ItView.h"
 #include "helpers.h"
 #include "EditPreferencesDlg.h" 
 #include "KB.h"
@@ -85,6 +84,8 @@
 #include "Strip.h"
 #include "Pile.h"
 #include "Cell.h"
+#include "Layout.h"
+#include "Adapt_ItView.h"
 #include "AdaptitConstants.h"
 #include "RefString.h"
 #include "TargetUnit.h"
@@ -115,7 +116,6 @@
 #include "SilConverterSelectDlg.h"
 #ifdef USE_SIL_CONVERTERS
 #include "ECDriver.h"
-#include "Layout.h"
 #endif
 
 // rde added the following but, if it is actually needed we'll use wxMax()
@@ -1195,8 +1195,51 @@ CAdapt_ItView::~CAdapt_ItView() // whm added
 	// All cleanup is to be done in App's OnExit() function
 }
 
+CLayout* CAdapt_ItView::GetLayout()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	return pApp->m_pLayout;
+}
+
 // Can be used for default print/preview
 // as well as drawing on the screen
+void CAdapt_ItView::OnDraw(wxDC *pDC)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+	//if (pApp->m_pLayout == NULL)
+	if (GetLayout() == NULL)
+		return; // application not fully initialized yet
+	if (GetLayout()->GetPileList()->GetCount() == 0)
+		return; // still nothing to draw yet, so can't make any strips
+	wxSize canvasViewSize;
+	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize(); // gets the width and height of canvas in pixels
+
+	// set grectViewClient's upper left coords to be the logical scrolled position
+	/* not needed in refactored design, we don't test for rectangle intersection with this global rect any more
+	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&grectViewClient.x,&grectViewClient.y);
+	grectViewClient.width = canvasViewSize.x;
+	grectViewClient.height = canvasViewSize.y;
+	*/
+	pDC->DestroyClippingRegion(); // ensure whole client area is drawable
+	
+	// draw the layout
+	//pApp->m_pBundle->Draw(pDC);
+	//pApp->m_pLayout->Draw(pDC);
+	GetLayout()->Draw(pDC);
+
+	// BEW added 7Jul05 for drawing the free translation text substrings in the spaces created under
+	// each of the strips (drawing is not done outside the client area for the view)- but only when
+	// we are not currently printing
+	if (gpApp->m_bFreeTranslationMode && !gbIsPrinting)
+	{
+		// *** TODO *** fix signature for refactored design and uncomment out
+		//DrawFreeTranslations(pDC, pApp->m_pBundle, call_from_ondraw);
+	}
+}
+
+/* old code
 void CAdapt_ItView::OnDraw(wxDC *pDC)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -1333,6 +1376,204 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 							    // Nope, this don't work either, neither does UpdateWindow() here, .... 
 								// back to the drawing board
 }
+*/ // end old code from view's OnDraw() function
+
+CPile* CAdapt_ItView::GetPile(const int nSequNum)
+{
+	// refactored 10Mar09, for new view layout design (no bundles)
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pLayout != NULL);
+	PileList* pPiles = pLayout->GetPileList();
+	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
+												  // and m_pileList lists
+	wxASSERT(pos != NULL);
+	return pos->GetData();
+}
+/* refactored 10Mar09
+CPile* CAdapt_ItView::GetPile(const int nSequNum)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	SPList* pList = pApp->m_pSourcePhrases;
+	if (pList->GetCount() == 0)
+		return NULL;
+
+	int nCount = pList->GetCount();
+	wxASSERT(nCount != 0);
+	CPile* pPile;
+	// version 2.4.0 added second test, else inserting to the end would crash ScrollIntoView()
+	if (nSequNum == -1 || nSequNum >= nCount)
+		return (CPile*)0; // we are at EOF, so can't return a pile pointer
+	SPList::Node* pos = pList->Item(nSequNum);
+	wxASSERT(pos != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	wxASSERT(pSrcPhrase != NULL); 
+	bool bFirstTry = TRUE;
+
+	// now scan the strips and their piles to find a matching pSrcPhrase pointer
+a:	CSourceBundle* pBundle = pApp->m_pBundle;
+	wxASSERT(pBundle);
+
+	pPile = pBundle->m_pStrip[0]->m_pPile[0]; // first pile (sequ num could be 0, or >0
+											  // if advanced bundle)
+	CSourcePhrase* pSP;
+
+	// check if its the first one, if not, then loop to find which it is
+	pSP = pPile->m_pSrcPhrase;
+	if (pSP == pSrcPhrase)
+		return pPile; // its the first one
+
+	bool bFound = FALSE;
+	do {
+		pPile = GetNextPile(pPile);
+		if (pPile == NULL)
+		{
+			// we are at the end, without a match, so break out
+			break;
+		}
+		else
+		{
+			pSP = pPile->m_pSrcPhrase;
+			if (pSP == pSrcPhrase)
+			{
+				bFound = TRUE;
+				break;
+			}
+		}
+
+	} while (TRUE);
+
+	// this bundle might be distant from where the active location is wanted, hence
+	// if we didn't find the source phrase, we must advance the bundle and try again
+	if (!bFound && bFirstTry)
+	{
+		bFirstTry = FALSE;
+		AdvanceBundle(nSequNum); // this makes a recursive GetPile() call, but it should find
+								 // pPile on the first iteration, and hence not loop infinitely,
+								 // because AdvanceBundle calculates indices which put the active
+								 // location within the bundle
+		goto a;
+	}
+
+
+	if (bFound)
+		return pPile;
+	else
+		return (CPile*)0;
+}
+*/
+
+//CCell* CAdapt_ItView::GetNextCell(const CCell *pCell, const int cellIndex)
+CCell* CAdapt_ItView::GetNextCell(CCell *pCell, const int cellIndex)
+// returns the next cell at the level specified by cellIndex (note: switching levels is allowed
+// because we only care about the level of the cell in the next pile), or returns NULL if
+// there is no next pile (and hence no next cell)
+{
+	// refactored 17Mar09
+	CPile* pPile = pCell->GetPile();
+	PileList* pPiles = GetLayout()->GetPileList();
+	int index = pPiles->IndexOf(pPile);
+	index++; // index of next CPile instance
+	if (index >= pPiles->GetCount())
+	{
+		return NULL; // bounds error - passed end of document
+	}
+	else
+	{
+		// not past end of document
+		PileList::Node* pos = pPiles->Item(index);
+		pPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+	}
+	return pPile->GetCell(cellIndex);
+
+	/* old code
+	CPile* pPile = pCell->m_pPile;
+	pPile = GetNextPile(pPile);
+	if (pPile == 0)
+		return (CCell*)0;
+	else
+		return pPile->m_pCell[cellIndex];
+	*/
+}
+
+
+CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
+// returns a pointer to the next pile, or NULL if there is none
+{
+	// refactored 17Mar09
+	CPile* pNextPile = NULL;
+	PileList* pPiles = GetLayout()->GetPileList();
+	int index = pPiles->IndexOf(pPile);
+	index++; // index of next CPile instance
+	if (index >= pPiles->GetCount())
+	{
+		return NULL; // bounds error - passed end of document
+	}
+	else
+	{
+		// not past end of document
+		PileList::Node* pos = pPiles->Item(index);
+		pNextPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+	}
+	return pNextPile;
+	
+	/* old code
+	CPile* pNextPile;
+	CStrip* pStrip = pPile->m_pStrip;
+	CSourceBundle* pBundle = pStrip->m_pBundle;
+	int nCurPile = pPile->m_nPileIndex;
+	int nPileCount = pStrip->m_nPileCount;
+	if (nCurPile < nPileCount - 1)
+	{
+		// there is a next pile in the current strip
+		nCurPile++;
+		pNextPile = pStrip->m_pPile[nCurPile];
+	}
+	else
+	{
+		// next pile is in next strip, so get it from there, provided there is a next strip
+		int nCurStrip = pStrip->m_nStripIndex;
+		nCurStrip++; // the next strip
+		int nStripCount = pBundle->m_nStripCount;
+		if (nCurStrip > nStripCount - 1)
+		{
+			return (CPile*)0; // there is no next pile to be had
+		}
+		else
+		{
+			pStrip = pBundle->m_pStrip[nCurStrip];
+			pNextPile = pStrip->m_pPile[0]; // can only be the first one in the strip
+		}
+	}
+	return pNextPile;
+	*/
+}
+
+
+/* // BEW deprecated 16Mar09, the function was not generic enough and it complicated the function
+   // inventory for phrase box support unnecessarily (it was called only once, in RedrawEverything()
+void CAdapt_ItView::SetupPhraseBoxParameters(CPile *pActivePile)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	pApp->m_nActiveSequNum = pActivePile->m_pSrcPhrase->m_nSequNumber;
+	if (pApp->m_targetPhrase.IsEmpty())
+	{
+		pApp->m_curBoxWidth = pActivePile->m_nWidth;
+	}
+	else
+	{
+		// current pApp->m_curBoxWidth value will be used
+	}
+	pApp->m_nStartChar = gnStart;
+	pApp->m_nEndChar = gnEnd;
+	pApp->m_curIndex = pApp->m_nActiveSequNum;
+	pApp->m_ptCurBoxLocation = pActivePile->m_pCell[2]->m_ptTopLeft;
+}
+*/
+
 
 // MFC docs say that OnInitialUpdate() is "Called by the framework after the view
 // is first attached to the document, but before the view is initially displayed. The
@@ -1712,7 +1953,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// destroyed, all child windows (including our target box) are automatically
 	// destroyed too. Therefore, the target box must not be deleted again in
 	// the App's OnExit() method, when the App terminates.
-	pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1,_T(""), //pApp->m_targetBox.Create(canvas, IDW_TARGET_EDITBOX,_T(""),
+	pApp->m_pTargetBox = new CPhraseBox(pApp->GetMainFrame()->canvas, -1,_T(""),
 			wxDefaultPosition,wxDefaultSize,
 			wxSIMPLE_BORDER | wxWANTS_CHARS);
 	// whm Notes on the wxTextCtrl style flags:
@@ -1854,10 +2095,675 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		// to the current view
 		// pApp->m_pBundle->m_pView = this; // BEW deprecated 3Feb09
 	}
-
-
     return TRUE;
 }
+
+int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
+// a sudden change in the m_targetPhrase's length (eg. due to a paste into the phrase box) and
+// a subsequent RecalcLayout() call, would not allow the box to be smaller than its previous
+// value; so RecalcPhraseBoxWidth() can be called wherever the potential for a resizing of the box
+// is called for, (and m_nCurPileMinWidth needs to be set to the returned value in the caller too)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxClientDC dc(pApp->GetMainFrame()->canvas);
+	wxClientDC* pDC = &dc;
+	int pileWidth;
+	int dummyHeight;
+	wxFont SaveFont;
+	wxFont* pTheFont;
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+		pTheFont = pApp->m_pNavTextFont;
+	else
+		pTheFont = pApp->m_pTargetFont;
+	SaveFont = dc.GetFont();
+	pDC->SetFont(*pTheFont);
+	pDC->GetTextExtent(phrase,&pileWidth, &dummyHeight);
+	wxString aChar = _T('w');
+	int charWidth;
+	int charDummyHeight;
+	pDC->GetTextExtent(aChar,&charWidth,&charDummyHeight);
+	pileWidth += gnExpandBox*charWidth; // allow same slop factor as for RemakePhraseBox & OnChar
+	dc.SetFont(SaveFont); // restore original font, don't need wxClientDC any more
+	return pileWidth;
+}
+
+void CAdapt_ItView::PrepareForLayout(int nActiveSequNum)
+{
+
+// *** TODO *** code a typical case set up for hooking layout and phrase box together
+
+}
+
+void CAdapt_ItView::PlacePhraseBoxInLayout()
+{
+	// *** TODO *** code a big switch for tailoring what is done before, & after ResizeBox(), make
+	// that call too. Call this function in CLayout::Draw() after strips are drawn
+	enum doc_edit_op opType = GetLayout()->m_docEditOperationType;
+	switch(opType)
+	{
+	case no_edit_op:
+		{
+
+			break;
+		}
+	case cancel_op:
+		{
+
+			break;
+		}
+	case target_box_paste_op:
+		{
+
+			break;
+		}
+	case relocate_box_op:
+		{
+
+			break;
+		}
+	case merge_op:
+		{
+
+			break;
+		}
+	case unmerge_op:
+		{
+
+			break;
+		}
+	case retranslate_op:
+		{
+
+			break;
+		}
+	case remove_retranslation_op:
+		{
+
+			break;
+		}
+	case edit_retranslation_op:
+		{
+
+			break;
+		}
+	case insert_placeholder_op:
+		{
+
+			break;
+		}
+	case remove_placeholder_op:
+		{
+
+			break;
+		}
+	case edit_source_text_op:
+		{
+
+			break;
+		}
+	case free_trans_op:
+		{
+
+			break;
+		}
+	case end_free_trans_op:
+		{
+
+			break;
+		}
+	case collect_back_translations_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_cancel_op:
+		{
+
+			break;
+		}
+	case vert_edit_end_now_op:
+		{
+
+			break;
+		}
+	case vert_edit_previous_step_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_op:
+		{
+
+			break;
+		}
+	case exit_preferences_op:
+		{
+
+			break;
+		}
+	case change_punctuation_op:
+		{
+
+			break;
+		}
+	case change_filtered_markers_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_and_filtered_markers_op:
+		{
+
+			break;
+		}
+	case open_document_op:
+		{
+
+			break;
+		}
+	case new_document_op:
+		{
+
+			break;
+		}
+	case close_document_op:
+		{
+
+			break;
+		}
+	case enter_LTR_layout_op:
+		{
+
+			break;
+		}
+	case enter_RTL_layout_op:
+		{
+
+			break;
+		}
+	default:
+		{
+
+			break;
+		}
+	}
+}
+
+
+void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
+// Modified to handle glossing or adapting
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't be thrown away if
+						  // user subsequently clicks to place box elsewhere without doing anything
+						  // in the phrase box first
+	wxString pasteStr;
+
+	// In wx we'll use the clipboard GetData function directly
+	if (wxTheClipboard->Open())
+	{
+		if (wxTheClipboard->IsSupported( wxDF_TEXT ))
+		{
+			wxTextDataObject data;
+			wxTheClipboard->GetData( data );
+			pasteStr = data.GetText();
+		}
+		wxTheClipboard->Close();
+	}
+
+	// if consistent changes is turned on, the user must be given the option of having the
+	// changes applied or not applied, since we cannot assume that the text to be pasted was
+	// not copied from source text (if it was, the changes should be applied)
+	wxString insertionText = pasteStr;
+	wxASSERT( !(gpApp->m_bUseConsistentChanges && gpApp->m_bUseSilConverter) ); // can't be both TRUE
+	if (pApp->m_bUseConsistentChanges)
+    {
+		//IDS_ASK_USE_CC
+        if( wxMessageBox(_("Do you wish consistent changes to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
+		{
+			insertionText = DoConsistentChanges(pasteStr);
+		}
+    }
+    else if( gpApp->m_bUseSilConverter )
+    {
+		// IDS_ASK_USE_SILCONVERTER
+        if( wxMessageBox(_("Do you wish the configured SILConverter to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
+	    {
+		    insertionText = DoSilConvert(pasteStr);
+	    }
+    }
+
+	// if there is a text selection in the current targetBox, erase the selected chars, then get
+	// its text and the caret offset - this is where pasteStr must be inserted
+	// wx Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
+	// edit control. wxTextCtrl::Clear() "clears the text in the control, and generates
+	// a wxEVT_COMMAND_TEXT_UPDATED event." I'll first check for any existing selection by calling
+	// GetStringSelection. If GetStringSelection isn't empty we know there is a selection. If so,
+	// then use wxTextCtrl's Remove() method to only remove the selection.
+	long nS, nE;
+	if (!pApp->m_pTargetBox->GetStringSelection().IsEmpty()) // whm added to only Remove any selected text
+	{
+		pApp->m_pTargetBox->GetSelection(&nS,&nE);
+		pApp->m_pTargetBox->Remove(nS,nE); //m_targetBox.Clear();
+	}
+	long nStart; long nEnd;
+	pApp->m_pTargetBox->GetSelection(&nStart,&nEnd);
+	wxString targetPhrase;
+	targetPhrase = pApp->m_pTargetBox->GetValue();
+	wxString saveStr = targetPhrase; // make a copy in case we later have to abort the operation
+	CLayout* pLayout = GetLayout();
+
+	// BEW added 18July08, to support leaving cursor at paste location (see Roland Fumey request below)
+	int pasteStrLength = insertionText.Length();
+
+	// insert the insertionText into the targetStr at the desired location
+	// wxString doesn't have an Insert method, so we'll do it with our own InsertInString (see helpers.h)
+	targetPhrase = InsertInString(targetPhrase,(int)nStart,insertionText); //targetPhrase.Insert((int)nStart,insertionText);
+
+	// use the targetPhrase text only if the resulting phrase box can fit within a single strip
+	int width = RecalcPhraseBoxWidth(targetPhrase);
+	CStrip* pStrip = pPile->GetStrip();
+	//int stripWidth = pStrip->m_rectStrip.GetWidth(); 
+	int stripWidth = pStrip->Width(); 
+	wxASSERT(stripWidth > 0);
+	if (width >= stripWidth)
+	{
+		// it won't fit within a strip, so try to get out of this fix gracefully
+		pApp->m_targetPhrase = saveStr; // restore original text back into m_targetPhrase
+		// IDS_PASTE_TEXT_TOO_LONG
+		wxMessageBox(_("Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."),_T(""),wxICON_EXCLAMATION); // warn user
+	}
+	else
+	{
+		pApp->m_targetPhrase = targetPhrase; // put the composite text into m_targetPhrase
+	}
+
+	// if there was a selection in line 1, we will honour the assumed intent to merge
+	// first, and then the pasted stuff will be assumed to be its adaptation; however, if the
+	// selection is too long, we will just remove it (not do Retranslation instead as in OnChar)
+	// Do the next block only if glossing is OFF, if it is on, we don't allow a merge and
+	// so proceed to the 'else' block
+	int nSaveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+	if (!gbIsGlossing && pApp->m_selection.GetCount() > 1 && 
+		pApp->m_selection.GetCount() <= MAX_WORDS &&
+		pApp->m_pActivePile == pApp->m_pAnchor->GetPile())
+	{
+		// if we selected backwards, we have to be careful - we want nSaveSequNum to be first
+		// pile of the selection, so check it out now & if necessary adjust nSaveSequNum
+		CCellList::Node* cpos = pApp->m_selection.GetFirst();
+		CCell* pCell = (CCell*)cpos->GetData();
+		wxASSERT(pCell != NULL);
+		CPile* pFirstPile = pCell->GetPile();
+		int nFirstSequNum = pFirstPile->GetSrcPhrase()->m_nSequNumber;
+		if (nFirstSequNum < nSaveSequNum)
+			nSaveSequNum = nFirstSequNum;
+
+		// do the merge
+		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary suppression only
+		MergeWords();
+		bSuppressDefaultAdaptation = FALSE;
+
+		// restore the active pile pointers
+		pPile = GetPile(nSaveSequNum);
+		pApp->m_pActivePile = pPile;
+		pApp->m_pTargetBox->m_pActivePile = pPile;
+	}
+	else
+	{
+		// if there is a selection, but the anchor is removed from the active location, we don't
+		// want to make a phrase elsewhere, so just remove the selection; or if glossing is ON
+		RemoveSelection();
+	}
+
+	// the following code is copied and adapted from PlacePhraseBox. We have to recreate the
+	// box after measuring the text, because the existing box is almost certainly too small
+	// and it will reject any characters it cannot fit in. Note, this code would fail if we
+	// try to paste too much text, so we accept the text for pasting only if its extent fits within
+	// a strip's width - if not, clear the text & give a warning message, but allow any merge.
+
+	// we now allow punctuation in the phrase box, since MoveToNextPile & MoveToPrevPile will now
+	// call MakeLineFourString so as to allow any punct etc. the user has typed
+
+	// nOldStripIndex unused
+	//int nOldStripIndex = pPile->m_pStrip->m_nStripIndex; // the strip we are in (we may be thrown
+	//													 // to the next strip if the text is long,
+	//													 // or to the previous strip if the text is
+	//													 // short & we are at the end of the strip)
+
+	// remove any existing selection, it would be a confusion if left there
+	RemoveSelection();
+
+	// setup the phrase box at the same location, but with new size (probably)
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	wxASSERT(pSrcPhrase != NULL);
+	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
+	wxASSERT(pApp->m_nActiveSequNum >= 0);
+
+	// set initial location of the phraseBox
+	//pApp->m_ptCurBoxLocation = pPile->m_pCell[2]->m_ptTopLeft;
+
+    // Roland Fumey (18July08) said showing box contents selected is unhelpful, rather we should
+    // leave the cursor at the paste location - so I've commented out the next line and set the
+    // offsets to comply with his request
+	//gpApp->m_nStartChar = 0; gpApp->m_nEndChar = -1; // make sure the text is shown selected
+	gpApp->m_nStartChar = nStart + pasteStrLength; // not necessarily the end of the string, but the
+										// end of the pasted string within the larger original string
+	gpApp->m_nEndChar = gpApp->m_nStartChar;
+
+	// wx Note: we don't destroy the target box, just set its text to null
+	pApp->m_pTargetBox->SetValue(_T(""));
+
+	// recalculate the layout (strips only, relaying out the piles)
+	// *** TODO **** when our self-adjusting layout code in Draw() is complete, this can be
+	// commented out
+	pLayout->RecalcLayout(); // bool param (bCreatePilesToo) is FALSE - it just does strips
+							 // after destroying the old ones
+
+	// if a phrase jumps back on to the line due to the recalc of the layout, then the
+	// current location for the box will end up too far right, so we must find out where the
+	// active pile now is and reset m_ptCurBoxLocation before calling ResizeBox, so
+	// recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
+	/* old code
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile != NULL);
+	*/
+	// *** TODO *** comment out or remove next line when m_pActivePile is removed from CPhraseBox
+	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
+
+	// set location of the phraseBox in the reconstituted layout
+	//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[1]->m_ptTopLeft;
+	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->GetCell(1)->GetTopLeft();
+
+
+	// do a scroll if needed
+	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+	// recreate the box window
+	pApp->m_curBoxWidth = RecalcPhraseBoxWidth(pApp->m_targetPhrase); // recalc, since the pasted text might
+														  // be shorter
+	pApp->m_nCurPileMinWidth = pApp->m_curBoxWidth; // update this too, so box can be shorter if necessary
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
+		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nNavTextHeight,pApp->m_targetPhrase,
+													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
+		// set the color - CPhraseBox has a color variable & uses reflected notification
+		pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
+	}
+	else
+	{
+		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
+		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nTgtHeight,pApp->m_targetPhrase,
+													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
+		// set the color - CPhraseBox has a color variable & uses reflected notification
+		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+	}
+
+	pApp->m_pTargetBox->SetModify(FALSE); //calls our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
+
+	Invalidate();
+}
+
+/* pre-refactor code
+void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
+// Modified to handle glossing or adapting
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't be thrown away if
+						  // user subsequently clicks to place box elsewhere without doing anything
+						  // in the phrase box first
+	wxString pasteStr;
+
+	// In wx we'll use the clipboard GetData function directly
+	if (wxTheClipboard->Open())
+	{
+		if (wxTheClipboard->IsSupported( wxDF_TEXT ))
+		{
+			wxTextDataObject data;
+			wxTheClipboard->GetData( data );
+			pasteStr = data.GetText();
+		}
+		wxTheClipboard->Close();
+	}
+
+	// if consistent changes is turned on, the user must be given the option of having the
+	// changes applied or not applied, since we cannot assume that the text to be pasted was
+	// not copied from source text (if it was, the changes should be applied)
+	wxString insertionText = pasteStr;
+	wxASSERT( !(gpApp->m_bUseConsistentChanges && gpApp->m_bUseSilConverter) ); // can't be both TRUE
+	if (pApp->m_bUseConsistentChanges)
+    {
+		//IDS_ASK_USE_CC
+        if( wxMessageBox(_("Do you wish consistent changes to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
+		{
+			insertionText = DoConsistentChanges(pasteStr);
+		}
+    }
+    else if( gpApp->m_bUseSilConverter )
+    {
+		// IDS_ASK_USE_SILCONVERTER
+        if( wxMessageBox(_("Do you wish the configured SILConverter to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
+	    {
+		    insertionText = DoSilConvert(pasteStr);
+	    }
+    }
+
+	// if there is a text selection in the current targetBox, erase the selected chars, then get
+	// its text and the caret offset - this is where pasteStr must be inserted
+	// wx Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
+	// edit control. wxTextCtrl::Clear() "clears the text in the control, and generates
+	// a wxEVT_COMMAND_TEXT_UPDATED event." I'll first check for any existing selection by calling
+	// GetStringSelection. If GetStringSelection isn't empty we know there is a selection. If so,
+	// then use wxTextCtrl's Remove() method to only remove the selection.
+	long nS, nE;
+	if (!pApp->m_pTargetBox->GetStringSelection().IsEmpty()) // whm added to only Remove any selected text
+	{
+		pApp->m_pTargetBox->GetSelection(&nS,&nE);
+		pApp->m_pTargetBox->Remove(nS,nE); //m_targetBox.Clear();
+	}
+	long nStart; long nEnd;
+	pApp->m_pTargetBox->GetSelection(&nStart,&nEnd);
+	wxString targetPhrase;
+	targetPhrase = pApp->m_pTargetBox->GetValue();
+	wxString saveStr = targetPhrase; // make a copy in case we later have to abort the operation
+
+	// BEW added 18July08, to support leaving cursor at paste location (see Roland Fumey request below)
+	int pasteStrLength = insertionText.Length();
+
+	// insert the insertionText into the targetStr at the desired location
+	// wxString doesn't have an Insert method, so we'll do it with our own InsertInString (see helpers.h)
+	targetPhrase = InsertInString(targetPhrase,(int)nStart,insertionText); //targetPhrase.Insert((int)nStart,insertionText);
+
+	// if there was a selection in lines 1 or 2, we will honour the assumed intent to merge
+	// first, and then the pasted stuff will be assumed to be its adaptation; however, if the
+	// selection is too long, we will just remove it (not do Retranslation instead as in OnChar)
+	// Do the next block only if glossing is OFF, if it is on, we don't allow a merge and
+	// so proceed to the 'else' block
+	int nSaveSequNum = pPile->m_pSrcPhrase->m_nSequNumber;
+	if (!gbIsGlossing && pApp->m_selection.GetCount() > 1 && pApp->m_selection.GetCount() <= MAX_WORDS
+									&& pApp->m_pActivePile == pApp->m_pAnchor->m_pPile)
+	{
+		// if we selected backwards, we have to be careful - we want nSaveSequNum to be first
+		// pile of the selection, so check it out now & if necessary adjust nSaveSequNum
+		CCellList::Node* cpos = pApp->m_selection.GetFirst();
+		CCell* pCell = (CCell*)cpos->GetData();
+		wxASSERT(pCell != NULL);
+		CPile* pFirstPile = pCell->m_pPile;
+		int nFirstSequNum = pFirstPile->m_pSrcPhrase->m_nSequNumber;
+		if (nFirstSequNum < nSaveSequNum)
+			nSaveSequNum = nFirstSequNum;
+
+		// do the merge
+		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary suppression only
+		MergeWords();
+		bSuppressDefaultAdaptation = FALSE;
+
+		// restore the clobbered pointers
+		pPile = GetPile(nSaveSequNum);
+		pApp->m_pActivePile = pPile;
+		pApp->m_pTargetBox->m_pActivePile = pPile;
+	}
+	else
+	{
+		// if there is a selection, but the anchor is removed from the active location, we don't
+		// want to make a phrase elsewhere, so just remove the selection; or if glossing is ON
+		RemoveSelection();
+	}
+
+	// the following code is copied and adapted from PlacePhraseBox. We have to recreate the
+	// box after measuring the text, because the existing box is almost certainly too small
+	// and it will reject any characters it cannot fit in. Note, this code would fail if we
+	// try to paste too much text, so we accept the text for pasting only if its extent fits within
+	// a strip's width - if not, clear the text & give a warning message, but allow any merge.
+
+	// we now allow punctuation in the phrase box, since MoveToNextPile & MoveToPrevPile will now
+	// call MakeLineFourString so as to allow any punct etc. the user has typed
+
+	// nOldStripIndex unused
+	//int nOldStripIndex = pPile->m_pStrip->m_nStripIndex; // the strip we are in (we may be thrown
+	//													 // to the next strip if the text is long,
+	//													 // or to the previous strip if the text is
+	//													 // short & we are at the end of the strip)
+
+	// remove any existing selection, it would be a confusion if left there
+	RemoveSelection();
+
+	// setup the phrase box at the same location, but with new size (probably)
+	CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+	wxASSERT(pSrcPhrase != NULL);
+	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
+	wxASSERT(pApp->m_nActiveSequNum >= 0);
+
+	// set initial location of the phraseBox (it may be changed when we call RecalcLayout)
+	pApp->m_ptCurBoxLocation = pPile->m_pCell[2]->m_ptTopLeft;
+
+	// calculate the box's horz extent - will be pileWidth if the string is empty, else we should
+	// measure the cell's text & add some slop; if the text extent is less than the pile
+	// width, use the pile's current min width instead.
+	pApp->m_nCurPileMinWidth = pPile->m_nMinWidth; // this is the pile's text-extent-based min width
+	wxClientDC aDC(pApp->GetMainFrame()->canvas);
+	wxFont* pFont;
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+		pFont = pApp->m_pNavTextFont;
+	else
+		pFont = pApp->m_pTargetFont;
+	aDC.SetFont(*pFont);
+
+	int strWidth;
+	int strDummyHeight;
+	aDC.GetTextExtent(targetPhrase, &strWidth, &strDummyHeight);
+	int charWidth;
+	int charDummyHeight;
+	wxString aChar = _T('w');
+	aDC.GetTextExtent(aChar,&charWidth, &charDummyHeight);
+	int width = strWidth + gnExpandBox*charWidth;
+	pApp->m_nCurPileMinWidth = width <= pApp->m_nCurPileMinWidth ? pApp->m_nCurPileMinWidth : width;
+	pApp->m_curBoxWidth = pApp->m_nCurPileMinWidth;
+
+	// use the targetPhrase text only if the resulting phrase box can fit within a single strip
+	CStrip* pStrip = pPile->m_pStrip;
+	int stripWidth = pStrip->m_rectStrip.GetWidth(); 
+	wxASSERT(stripWidth > 0);
+	if (width >= stripWidth)
+	{
+		// it won't fit within a strip, so try to get out of this fix gracefully
+		pApp->m_targetPhrase = saveStr;
+		// IDS_PASTE_TEXT_TOO_LONG
+		wxMessageBox(_("Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."),_T(""),wxICON_EXCLAMATION); // warn user
+	}
+	else
+	{
+		pApp->m_targetPhrase = targetPhrase;
+	}
+	// Roland Fumey (18July08) said this is unhelpful, rather we should leave the cursor at
+	// the paste location - so I've commented out the next line and set the offsets to
+	// comply with his request
+	//gpApp->m_nStartChar = 0; gpApp->m_nEndChar = -1; // make sure the text is shown selected
+	gpApp->m_nStartChar = nStart + pasteStrLength;
+	gpApp->m_nEndChar = gpApp->m_nStartChar;
+
+	// wx Note: we don't destroy the target box, just set its text to null
+	pApp->m_pTargetBox->SetValue(_T(""));
+
+	// recalculate the layout
+	RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
+
+	// if a phrase jumps back on to the line due to the recalc of the layout, then the
+	// current location for the box will end up too far right, so we must find out where the
+	// active pile now is and reset m_ptCurBoxLocation before calling ResizeBox, so
+	// recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile != NULL);
+	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
+	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+
+	// do a scroll if needed
+	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+	// recreate the box window
+	pApp->m_curBoxWidth = RecalcPhraseBoxWidth(pApp->m_targetPhrase); // recalc, since the pasted text might
+														  // be shorter
+	pApp->m_nCurPileMinWidth = pApp->m_curBoxWidth; // update this too, so box can be shorter if necessary
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
+		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nNavTextHeight,pApp->m_targetPhrase,
+													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
+		// set the color - CPhraseBox has a color variable & uses reflected notification
+		pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
+	}
+	else
+	{
+		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
+		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nTgtHeight,pApp->m_targetPhrase,
+													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
+		// set the color - CPhraseBox has a color variable & uses reflected notification
+		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+	}
+
+	pApp->m_pTargetBox->SetModify(FALSE); //calls our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
+
+	Invalidate();
+}
+*/
+
 
 // OnPrepareDC() was moved to CAdapt_ItCanvas in the wx version
 
@@ -7132,165 +8038,6 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 }
 
-CPile* CAdapt_ItView::GetNextPile(const CPile *pPile)
-// returns a pointer to the next pile, or NULL if there is none
-{
-	CPile* pNextPile;
-	CStrip* pStrip = pPile->m_pStrip;
-	CSourceBundle* pBundle = pStrip->m_pBundle;
-	int nCurPile = pPile->m_nPileIndex;
-	int nPileCount = pStrip->m_nPileCount;
-	if (nCurPile < nPileCount - 1)
-	{
-		// there is a next pile in the current strip
-		nCurPile++;
-		pNextPile = pStrip->m_pPile[nCurPile];
-	}
-	else
-	{
-		// next pile is in next strip, so get it from there, provided there is a next strip
-		int nCurStrip = pStrip->m_nStripIndex;
-		nCurStrip++; // the next strip
-		int nStripCount = pBundle->m_nStripCount;
-		if (nCurStrip > nStripCount - 1)
-		{
-			return (CPile*)0; // there is no next pile to be had
-		}
-		else
-		{
-			pStrip = pBundle->m_pStrip[nCurStrip];
-			pNextPile = pStrip->m_pPile[0]; // can only be the first one in the strip
-		}
-	}
-	return pNextPile;
-}
-
-CCell* CAdapt_ItView::GetNextCell(const CCell *pCell, const int cellIndex)
-// returns the next cell at the level specified by cellIndex (note: switching levels is allowed
-// because we only care about the level of the cell in the next pile), or returns NULL if
-// there is no next pile (and hence no next cell)
-{
-	CPile* pPile = pCell->m_pPile;
-	pPile = GetNextPile(pPile);
-	if (pPile == 0)
-		return (CCell*)0;
-	else
-		return pPile->m_pCell[cellIndex];
-}
-
-CLayout* CAdapt_ItView::GetLayout()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	return pApp->m_pLayout;
-}
-
-CPile* CAdapt_ItView::GetPile(const int nSequNum)
-{
-	// refactored, for new view layout design (no bundles)
-	CLayout* pLayout = GetLayout();
-	wxASSERT(pLayout != NULL);
-	PileList* pPiles = pLayout->GetPileList();
-	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
-												  // and m_pileList lists
-	wxASSERT(pos != NULL);
-	return pos->GetData();
-}
-/* refactored 10Mar09
-CPile* CAdapt_ItView::GetPile(const int nSequNum)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	SPList* pList = pApp->m_pSourcePhrases;
-	if (pList->GetCount() == 0)
-		return NULL;
-
-	int nCount = pList->GetCount();
-	wxASSERT(nCount != 0);
-	CPile* pPile;
-	// version 2.4.0 added second test, else inserting to the end would crash ScrollIntoView()
-	if (nSequNum == -1 || nSequNum >= nCount)
-		return (CPile*)0; // we are at EOF, so can't return a pile pointer
-	SPList::Node* pos = pList->Item(nSequNum);
-	wxASSERT(pos != NULL);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	wxASSERT(pSrcPhrase != NULL); 
-	bool bFirstTry = TRUE;
-
-	// now scan the strips and their piles to find a matching pSrcPhrase pointer
-a:	CSourceBundle* pBundle = pApp->m_pBundle;
-	wxASSERT(pBundle);
-
-	pPile = pBundle->m_pStrip[0]->m_pPile[0]; // first pile (sequ num could be 0, or >0
-											  // if advanced bundle)
-	CSourcePhrase* pSP;
-
-	// check if its the first one, if not, then loop to find which it is
-	pSP = pPile->m_pSrcPhrase;
-	if (pSP == pSrcPhrase)
-		return pPile; // its the first one
-
-	bool bFound = FALSE;
-	do {
-		pPile = GetNextPile(pPile);
-		if (pPile == NULL)
-		{
-			// we are at the end, without a match, so break out
-			break;
-		}
-		else
-		{
-			pSP = pPile->m_pSrcPhrase;
-			if (pSP == pSrcPhrase)
-			{
-				bFound = TRUE;
-				break;
-			}
-		}
-
-	} while (TRUE);
-
-	// this bundle might be distant from where the active location is wanted, hence
-	// if we didn't find the source phrase, we must advance the bundle and try again
-	if (!bFound && bFirstTry)
-	{
-		bFirstTry = FALSE;
-		AdvanceBundle(nSequNum); // this makes a recursive GetPile() call, but it should find
-								 // pPile on the first iteration, and hence not loop infinitely,
-								 // because AdvanceBundle calculates indices which put the active
-								 // location within the bundle
-		goto a;
-	}
-
-
-	if (bFound)
-		return pPile;
-	else
-		return (CPile*)0;
-}
-*/
-
-/* // BEW deprecated 16Mar09, the function was not generic enough and it complicated the function
-   // inventory for phrase box support unnecessarily (it was called only once, in RedrawEverything()
-void CAdapt_ItView::SetupPhraseBoxParameters(CPile *pActivePile)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	pApp->m_nActiveSequNum = pActivePile->m_pSrcPhrase->m_nSequNumber;
-	if (pApp->m_targetPhrase.IsEmpty())
-	{
-		pApp->m_curBoxWidth = pActivePile->m_nWidth;
-	}
-	else
-	{
-		// current pApp->m_curBoxWidth value will be used
-	}
-	pApp->m_nStartChar = gnStart;
-	pApp->m_nEndChar = gnEnd;
-	pApp->m_curIndex = pApp->m_nActiveSequNum;
-	pApp->m_ptCurBoxLocation = pActivePile->m_pCell[2]->m_ptTopLeft;
-}
-*/
-
 CPile* CAdapt_ItView::GetPrevPile(const CPile *pPile)
 // returns the previous pile, or NULL if there is no previous one
 {
@@ -7533,258 +8280,6 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 		wxMessageBox( _("Cannot open the Clipboard"), _T(""), wxICON_EXCLAMATION);
 		return;
 	}
-}
-
-void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
-// Modified to handle glossing or adapting
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't be thrown away if
-						  // user subsequently clicks to place box elsewhere without doing anything
-						  // in the phrase box first
-	wxString pasteStr;
-
-	// In wx we'll use the clipboard GetData function directly
-	if (wxTheClipboard->Open())
-	{
-		if (wxTheClipboard->IsSupported( wxDF_TEXT ))
-		{
-			wxTextDataObject data;
-			wxTheClipboard->GetData( data );
-			pasteStr = data.GetText();
-		}
-		wxTheClipboard->Close();
-	}
-
-	// if consistent changes is turned on, the user must be given the option of having the
-	// changes applied or not applied, since we cannot assume that the text to be pasted was
-	// not copied from source text (if it was, the changes should be applied)
-	wxString insertionText = pasteStr;
-	wxASSERT( !(gpApp->m_bUseConsistentChanges && gpApp->m_bUseSilConverter) ); // can't be both TRUE
-	if (pApp->m_bUseConsistentChanges)
-    {
-		//IDS_ASK_USE_CC
-        if( wxMessageBox(_("Do you wish consistent changes to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
-		{
-			insertionText = DoConsistentChanges(pasteStr);
-		}
-    }
-    else if( gpApp->m_bUseSilConverter )
-    {
-		// IDS_ASK_USE_SILCONVERTER
-        if( wxMessageBox(_("Do you wish the configured SILConverter to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
-	    {
-		    insertionText = DoSilConvert(pasteStr);
-	    }
-    }
-
-	// if there is a text selection in the current targetBox, erase the selected chars, then get
-	// its text and the caret offset - this is where pasteStr must be inserted
-	// wx Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
-	// edit control. wxTextCtrl::Clear() "clears the text in the control, and generates
-	// a wxEVT_COMMAND_TEXT_UPDATED event." I'll first check for any existing selection by calling
-	// GetStringSelection. If GetStringSelection isn't empty we know there is a selection. If so,
-	// then use wxTextCtrl's Remove() method to only remove the selection.
-	long nS, nE;
-	if (!pApp->m_pTargetBox->GetStringSelection().IsEmpty()) // whm added to only Remove any selected text
-	{
-		pApp->m_pTargetBox->GetSelection(&nS,&nE);
-		pApp->m_pTargetBox->Remove(nS,nE); //m_targetBox.Clear();
-	}
-	long nStart; long nEnd;
-	pApp->m_pTargetBox->GetSelection(&nStart,&nEnd);
-	wxString targetPhrase;
-	targetPhrase = pApp->m_pTargetBox->GetValue();
-	wxString saveStr = targetPhrase; // make a copy in case we later have to abort the operation
-
-	// BEW added 18July08, to support leaving cursor at paste location (see Roland Fumey request below)
-	int pasteStrLength = insertionText.Length();
-
-	// insert the insertionText into the targetStr at the desired location
-	// wxString doesn't have an Insert method, so we'll do it with our own InsertInString (see helpers.h)
-	targetPhrase = InsertInString(targetPhrase,(int)nStart,insertionText); //targetPhrase.Insert((int)nStart,insertionText);
-
-	// if there was a selection in lines 1 or 2, we will honour the assumed intent to merge
-	// first, and then the pasted stuff will be assumed to be its adaptation; however, if the
-	// selection is too long, we will just remove it (not do Retranslation instead as in OnChar)
-	// Do the next block only if glossing is OFF, if it is on, we don't allow a merge and
-	// so proceed to the 'else' block
-	int nSaveSequNum = pPile->m_pSrcPhrase->m_nSequNumber;
-	if (!gbIsGlossing && pApp->m_selection.GetCount() > 1 && pApp->m_selection.GetCount() <= MAX_WORDS
-									&& pApp->m_pActivePile == pApp->m_pAnchor->m_pPile)
-	{
-		// if we selected backwards, we have to be careful - we want nSaveSequNum to be first
-		// pile of the selection, so check it out now & if necessary adjust nSaveSequNum
-		CCellList::Node* cpos = pApp->m_selection.GetFirst();
-		CCell* pCell = (CCell*)cpos->GetData();
-		wxASSERT(pCell != NULL);
-		CPile* pFirstPile = pCell->m_pPile;
-		int nFirstSequNum = pFirstPile->m_pSrcPhrase->m_nSequNumber;
-		if (nFirstSequNum < nSaveSequNum)
-			nSaveSequNum = nFirstSequNum;
-
-		// do the merge
-		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary suppression only
-		MergeWords();
-		bSuppressDefaultAdaptation = FALSE;
-
-		// restore the clobbered pointers
-		pPile = GetPile(nSaveSequNum);
-		pApp->m_pActivePile = pPile;
-		pApp->m_pTargetBox->m_pActivePile = pPile;
-	}
-	else
-	{
-		// if there is a selection, but the anchor is removed from the active location, we don't
-		// want to make a phrase elsewhere, so just remove the selection; or if glossing is ON
-		RemoveSelection();
-	}
-
-	// the following code is copied and adapted from PlacePhraseBox. We have to recreate the
-	// box after measuring the text, because the existing box is almost certainly too small
-	// and it will reject any characters it cannot fit in. Note, this code would fail if we
-	// try to paste too much text, so we accept the text for pasting only if its extent fits within
-	// a strip's width - if not, clear the text & give a warning message, but allow any merge.
-
-	// we now allow punctuation in the phrase box, since MoveToNextPile & MoveToPrevPile will now
-	// call MakeLineFourString so as to allow any punct etc. the user has typed
-
-	// nOldStripIndex unused
-	//int nOldStripIndex = pPile->m_pStrip->m_nStripIndex; // the strip we are in (we may be thrown
-	//													 // to the next strip if the text is long,
-	//													 // or to the previous strip if the text is
-	//													 // short & we are at the end of the strip)
-
-	// remove any existing selection, it would be a confusion if left there
-	RemoveSelection();
-
-	// setup the phrase box at the same location, but with new size (probably)
-	CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
-	wxASSERT(pSrcPhrase != NULL);
-	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
-	wxASSERT(pApp->m_nActiveSequNum >= 0);
-
-	// set initial location of the phraseBox (it may be changed when we call RecalcLayout)
-	pApp->m_ptCurBoxLocation = pPile->m_pCell[2]->m_ptTopLeft;
-
-	// calculate the box's horz extent - will be pileWidth if the string is empty, else we should
-	// measure the cell's text & add some slop; if the text extent is less than the pile
-	// width, use the pile's current min width instead.
-	pApp->m_nCurPileMinWidth = pPile->m_nMinWidth; // this is the pile's text-extent-based min width
-	wxClientDC aDC(pApp->GetMainFrame()->canvas);
-	wxFont* pFont;
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pFont = pApp->m_pNavTextFont;
-	else
-		pFont = pApp->m_pTargetFont;
-	aDC.SetFont(*pFont);
-
-	int strWidth;
-	int strDummyHeight;
-	aDC.GetTextExtent(targetPhrase, &strWidth, &strDummyHeight);
-	int charWidth;
-	int charDummyHeight;
-	wxString aChar = _T('w');
-	aDC.GetTextExtent(aChar,&charWidth, &charDummyHeight);
-	int width = strWidth + gnExpandBox*charWidth;
-	pApp->m_nCurPileMinWidth = width <= pApp->m_nCurPileMinWidth ? pApp->m_nCurPileMinWidth : width;
-	pApp->m_curBoxWidth = pApp->m_nCurPileMinWidth;
-
-	// use the targetPhrase text only if the resulting phrase box can fit within a single strip
-	CStrip* pStrip = pPile->m_pStrip;
-	int stripWidth = pStrip->m_rectStrip.GetWidth(); 
-	wxASSERT(stripWidth > 0);
-	if (width >= stripWidth)
-	{
-		// it won't fit within a strip, so try to get out of this fix gracefully
-		pApp->m_targetPhrase = saveStr;
-		// IDS_PASTE_TEXT_TOO_LONG
-		wxMessageBox(_("Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."),_T(""),wxICON_EXCLAMATION); // warn user
-	}
-	else
-	{
-		pApp->m_targetPhrase = targetPhrase;
-	}
-	// Roland Fumey (18July08) said this is unhelpful, rather we should leave the cursor at
-	// the paste location - so I've commented out the next line and set the offsets to
-	// comply with his request
-	//gpApp->m_nStartChar = 0; gpApp->m_nEndChar = -1; // make sure the text is shown selected
-	gpApp->m_nStartChar = nStart + pasteStrLength;
-	gpApp->m_nEndChar = gpApp->m_nStartChar;
-
-	// wx Note: we don't destroy the target box, just set its text to null
-	//pApp->m_pTargetBox->SetValue(_T(""));
-	pApp->m_pTargetBox->SetValue(_T("")); // does not generate an event
-
-	// recalculate the layout
-	RecalcLayout(pApp->m_pSourcePhrases,0 /* nOldStripIndex unsafe if bundle contracts */,pApp->m_pBundle);
-
-	// if a phrase jumps back on to the line due to the recalc of the layout, then the
-	// current location for the box will end up too far right, so we must find out where the
-	// active pile now is and reset m_ptCurBoxLocation before calling ResizeBox, so
-	// recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	wxASSERT(pApp->m_pActivePile != NULL);
-	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
-	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-
-	// do a scroll if needed
-	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-	// recreate the box window
-	pApp->m_curBoxWidth = RecalcPhraseBoxWidth(pApp->m_targetPhrase); // recalc, since the pasted text might
-														  // be shorter
-	pApp->m_nCurPileMinWidth = pApp->m_curBoxWidth; // update this too, so box can be shorter if necessary
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
-		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nNavTextHeight,pApp->m_targetPhrase,
-													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
-		// set the color - CPhraseBox has a color variable & uses reflected notification
-		pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
-	}
-	else
-	{
-		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
-		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nTgtHeight,pApp->m_targetPhrase,
-													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
-		// set the color - CPhraseBox has a color variable & uses reflected notification
-		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-	}
-
-	pApp->m_pTargetBox->SetModify(FALSE); //calls our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
-
-	Invalidate();
-}
-
-int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
-// a sudden change in the m_targetPhrase's length (eg. due to a paste into the phrase box) and
-// a subsequent RecalcLayout() call, would not allow the box to be smaller than its previous
-// value; so RecalcPhraseBoxWidth() can be called wherever the potential for a resizing of the box
-// is called for, (and m_nCurPileMinWidth needs to be set to the returned value in the caller too)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxClientDC dc(pApp->GetMainFrame()->canvas);
-	wxClientDC* pDC = &dc;
-	int pileWidth;
-	int dummyHeight;
-	wxFont SaveFont;
-	wxFont* pTheFont;
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pTheFont = pApp->m_pNavTextFont;
-	else
-		pTheFont = pApp->m_pTargetFont;
-	SaveFont = dc.GetFont();
-	pDC->SetFont(*pTheFont);
-	pDC->GetTextExtent(phrase,&pileWidth, &dummyHeight);
-	wxString aChar = _T('w');
-	int charWidth;
-	int charDummyHeight;
-	pDC->GetTextExtent(aChar,&charWidth,&charDummyHeight);
-	pileWidth += gnExpandBox*charWidth; // allow same slop factor as for RemakePhraseBox & OnChar
-	dc.SetFont(SaveFont); // restore original font, don't need wxClientDC any more
-	return pileWidth;
 }
 
 void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)

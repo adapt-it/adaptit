@@ -232,6 +232,11 @@ void CLayout::Draw(wxDC* pDC)
 	AdjustForUserEdits(m_userEditsSpanCheckType);
 	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value
 
+	// once the strips are all adjusted so that the pile instances are in their proper locations
+	// we can set the wxPoint member on the application which specifies the TopLeft coordinates
+	// for the phrase box at the active location - so we can set that member now
+	m_pApp->m_ptCurBoxLocation = m_pApp->m_pActivePile->GetCell(1)->GetTopLeft();
+	 
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
 	// determine which strips are to be drawn
@@ -243,6 +248,9 @@ void CLayout::Draw(wxDC* pDC)
 	{
 		((CStrip*)m_stripArray[i])->Draw(pDC);
 	}
+
+	// get the phrase box placed in the active location and made visible, and suitably prepared
+	m_pView->PlacePhraseBoxInLayout();
 }
 
 
@@ -744,7 +752,6 @@ void CLayout::DestroyPile(CPile* pPile)
 
 void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 {
-	//PileList::Node* pos = m_pPiles->Item(nFirstPile);
 	PileList::Node* pos = m_pileList.Item(nFirstPile);
 	int index = nFirstPile;
 	if (pos == NULL)
@@ -757,7 +764,7 @@ void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 	CPile* pPile = 0;
 	while (index <= nLastPile)
 	{
-		pPile = (CPile*)pos->GetData();
+		pPile = pos->GetData();
 		wxASSERT(pPile != NULL);
 		DestroyPile(pPile);
 		index++;

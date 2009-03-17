@@ -45,7 +45,7 @@ public:
 // Attributes
 public:
 	wxColour	m_textColor;
-	CPile*		m_pActivePile;
+	CPile*		m_pActivePile; // *** TODO *** remove this copy in the refactoring, view's one is enough
 	bool		m_bAbandonable;
 	wxString	m_backspaceUndoStr;
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()

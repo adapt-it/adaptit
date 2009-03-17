@@ -846,4 +846,3 @@ void CStrip::GetStripRect_CellsOnly(wxRect& rect)
 	rect.SetHeight(m_pLayout->GetPileHeight());
 }
 
-

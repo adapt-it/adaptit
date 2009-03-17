@@ -222,7 +222,7 @@ public:
 	CStrip*		GetNearestStrip(const wxPoint *pPoint); // moved here from protected
 	CPile*		GetNextEmptyPile(CPile* pPile);
 	CSourcePhrase* GetNextEmptySrcPhrase(int nStartingSequNum);
-	CPile*		GetNextPile(const CPile* pPile);
+	CPile*		GetNextPile(CPile* pPile); // GetNextPile(const CPile* pPile)
 	wxChar		GetOtherCaseChar(wxString& charSet, int nOffset);
 	//wxSize		GetPaperSize(short dmPaperSize);
 	CPile*		GetPile(const int nSequNum);
@@ -276,7 +276,9 @@ public:
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
 																  // enable/disable code
+	void		PlacePhraseBoxInLayout(); // BEW added 17Mar09
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
+	void		PrepareForLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
 	void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle* pBundle);
 	
@@ -463,7 +465,7 @@ protected:
 	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum, 
 							int nEndingFreeTransSequNum, bool bFreeTransPresent); // BEW added 01Oct08
 	bool		GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context); // BEW added 14Jun08
-	CCell*		GetNextCell(const CCell* pCell,  const int cellIndex);
+	CCell*		GetNextCell(CCell* pCell,  const int cellIndex); // GetNextCell(const CCell* pCell,  const int cellIndex)
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
 													CPile*& pFirstPile,SPList* pList);
 	void		GetSelectedSourcePhraseInstances(SPList*& pList,
