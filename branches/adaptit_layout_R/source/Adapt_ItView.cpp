@@ -5744,6 +5744,7 @@ void CAdapt_ItView::RemoveSelection()
 // DeepCopySublist2Sublist was in Helpers.cpp in the legacy version.
 // Copies CSourcePhrase instances to an empty pCopiedSublist, as deep copies, and
 // preserves m_nSequNumber values in the copies
+// Called only once, in OnEditSourceText()
 void CAdapt_ItView::DeepCopySublist2Sublist(SPList* pOriginalList, SPList* pCopiedSublist)
 {
 	// use a try/catch block, as we don't expect this to ever fail, and the only possible way
@@ -5889,6 +5890,7 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	// 26May08	function created as part of refactoring the Edit Source Text functionality
 	// whm note: Bruce has this function in helpers.h and .cpp, but it is only used in the
 	// View so I moved it to the View.
+	CAdapt_ItDoc* pDoc = GetDocument();
 	SPList::Node* posMaster = NULL; //POSITION posMaster = NULL;
 	SPList::Node* posReplace = NULL; //POSITION posReplace = NULL;
 	wxString error;
@@ -5956,6 +5958,11 @@ ins:	;
 			wxASSERT(pDeepCopiedSrcPhrase != NULL);
 			// insert each deep copy before the posMaster location each time
 			pos2 = pMasterList->Insert(posMaster, pDeepCopiedSrcPhrase); // wx Insert() does the same thing as MFC's InsertBefore()
+
+			// BEW added 13Mar09 for refactored layout
+			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
+			GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
+
 			// break out of loop if we have come to the end of the replacements list
 			if (pReplaceSrcPhrase == NULL)
 				break;
@@ -5992,8 +5999,9 @@ ins:	;
 				pSrcPhrase = posMaster->GetData(); // assume success
 				posMaster = posMaster->GetNext();
 				// TODO: 20Oct08 Fix program CRASH on call to DeleteNote (see Tok Pisin Fragment 1John.xml)
-				gpApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase); // delete pSrcPhrase and its elements from memory locations
-				pMasterList->DeleteNode(posSaved);						 // delete 
+				gpApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase); // delete pSrcPhrase and its elements 
+										// from memory locations
+				pMasterList->DeleteNode(posSaved);	// delete the list's pSrcPhrase element
 				// break out of the loop if we have come to the end of the pMasterList
 				if (posMaster == NULL)
 					break;
@@ -6015,6 +6023,11 @@ ins:	;
 					wxASSERT(pDeepCopiedSrcPhrase != NULL);
 					// append each deep copy to the master list
 					pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
+
+					// BEW added 13Mar09 for refactored layout
+					pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
+					GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
+
 					// break out of loop if we have come to the end of the replacements list
 					if (pReplaceSrcPhrase == NULL)
 						break;
@@ -7044,7 +7057,9 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 // Version 2.0 and onwards we have to test gbIsGlossing to set the colour; the caller
 // supplies the text (either gloss or adaptation)
 {
+	// refactor 16Mar09
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->m_pLayout;
 
 	// we need the text metrics for the chosen font for the target language
 	wxClientDC dC(pApp->GetMainFrame()->canvas); // get a device context
@@ -7067,11 +7082,16 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 
 	// calculate the extent
 	if ( phrase.IsEmpty())
-		pApp->m_curBoxWidth = pActivePile->m_nMinWidth;
+	{
+		//pApp->m_curBoxWidth = pActivePile->m_nMinWidth;
+		pApp->m_curBoxWidth = pActivePile->GetMinWidth();
+	}
 	else
 	{
 		// do the same calculation as is done in CalcPileWidth, so that the box extent matches
 		// the gap that RecalcLayout will put at the active location
+		pApp->m_curBoxWidth = RecalcPhraseBoxWidth(phrase);
+		/*
 		int phraseWidth;
 		int phraseDummyHeight;
 		dC.GetTextExtent(phrase,&phraseWidth,&phraseDummyHeight);
@@ -7081,9 +7101,10 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 		dC.GetTextExtent(aChar,&charWidth,&charDummyHeight);
 		phraseWidth += gnExpandBox*charWidth;
 		pApp->m_curBoxWidth = phraseWidth;
+		*/
 	}
 
-	dC.SetFont(SaveFont); // restore original font, don't need CDC any mor
+	dC.SetFont(SaveFont); // restore original font, don't need CDC any more
 
 	// recreate the text box with new parameters
 	pApp->m_targetPhrase = phrase; // ensure current typed string is stored on the view's member
@@ -7091,15 +7112,15 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
 		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
-		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nNavTextHeight,pApp->m_targetPhrase,pApp->m_nStartChar,
-																	pApp->m_nEndChar,pApp->m_pActivePile);
+		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth, pApp->m_nNavTextHeight, pApp->m_targetPhrase,
+						pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
 		pApp->m_pTargetBox->SetFont(*pApp->m_pNavTextFont); // set the font // MFC has 2nd param TRUE
 	}
 	else
 	{
 		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
-		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nTgtHeight,pApp->m_targetPhrase,pApp->m_nStartChar,
-																	pApp->m_nEndChar,pApp->m_pActivePile);
+		ResizeBox(&pApp->m_ptCurBoxLocation, pApp->m_curBoxWidth, pApp->m_nTgtHeight, pApp->m_targetPhrase,
+						pApp->m_nStartChar, pApp->m_nEndChar, pApp->m_pActivePile);
 		pApp->m_pTargetBox->SetFont(*pApp->m_pTargetFont); // set the font // MFC has 2nd param TRUE
 	}
 
@@ -7248,6 +7269,8 @@ a:	CSourceBundle* pBundle = pApp->m_pBundle;
 }
 */
 
+/* // BEW deprecated 16Mar09, the function was not generic enough and it complicated the function
+   // inventory for phrase box support unnecessarily (it was called only once, in RedrawEverything()
 void CAdapt_ItView::SetupPhraseBoxParameters(CPile *pActivePile)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -7266,6 +7289,7 @@ void CAdapt_ItView::SetupPhraseBoxParameters(CPile *pActivePile)
 	pApp->m_curIndex = pApp->m_nActiveSequNum;
 	pApp->m_ptCurBoxLocation = pActivePile->m_pCell[2]->m_ptTopLeft;
 }
+*/
 
 CPile* CAdapt_ItView::GetPrevPile(const CPile *pPile)
 // returns the previous pile, or NULL if there is no previous one
@@ -7690,7 +7714,8 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	gpApp->m_nEndChar = gpApp->m_nStartChar;
 
 	// wx Note: we don't destroy the target box, just set its text to null
-	pApp->m_pTargetBox->SetValue(_T(""));
+	//pApp->m_pTargetBox->SetValue(_T(""));
+	pApp->m_pTargetBox->SetValue(_T("")); // does not generate an event
 
 	// recalculate the layout
 	RecalcLayout(pApp->m_pSourcePhrases,0 /* nOldStripIndex unsafe if bundle contracts */,pApp->m_pBundle);
@@ -7744,11 +7769,13 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	wxClientDC* pDC = &dc;
 	int pileWidth;
 	int dummyHeight;
+	wxFont SaveFont;
 	wxFont* pTheFont;
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 		pTheFont = pApp->m_pNavTextFont;
 	else
 		pTheFont = pApp->m_pTargetFont;
+	SaveFont = dc.GetFont();
 	pDC->SetFont(*pTheFont);
 	pDC->GetTextExtent(phrase,&pileWidth, &dummyHeight);
 	wxString aChar = _T('w');
@@ -7756,7 +7783,7 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	int charDummyHeight;
 	pDC->GetTextExtent(aChar,&charWidth,&charDummyHeight);
 	pileWidth += gnExpandBox*charWidth; // allow same slop factor as for RemakePhraseBox & OnChar
-
+	dc.SetFont(SaveFont); // restore original font, don't need wxClientDC any more
 	return pileWidth;
 }
 
@@ -7911,7 +7938,8 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 						// if abandonable, then we want a placement click to throw away
 						// the text in the box; which will make the store operation do no store
 						gpApp->m_targetPhrase.Empty();
-						gpApp->m_pTargetBox->SetValue(_T(""));
+						//gpApp->m_pTargetBox->SetValue(_T(""));
+						gpApp->m_pTargetBox->SetValue(_T("")); // does not generate an event
 					}
 					else
 					{
@@ -11317,6 +11345,10 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		else
 			pList->Insert(newInsertBeforePos,pSP);
 
+		// BEW added 13Mar09 for refactored layout
+		GetDocument()->CreatePartnerPile(pSP);
+		GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
+
 		// since we must now insert before the inserted node above, we need to get a
 		// previous node (which will actually be the just inserted source phrase)
 		newInsertBeforePos = newInsertBeforePos->GetPrevious();
@@ -11412,6 +11444,10 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 	}
 	delete pBigOne->m_pSavedWords;
 	pBigOne->m_pSavedWords = (SPList*)NULL;
+
+	// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
+	GetDocument()->DeletePartnerPile(pBigOne);
+
 	delete pBigOne;
 	pBigOne = (CSourcePhrase*)NULL;
 
@@ -14949,6 +14985,10 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 		}
 
 		pList->Insert(insertPos,pSrcPhrasePH);
+
+		// BEW added 13Mar09 for refactored layout
+		pDoc->CreatePartnerPile(pSrcPhrasePH);
+		GetLayout()->m_userEditsSpanCheckType = scan_from_big_jump;	// for passing to CLayout::AdjustForUserEdits()
 	}
 
 	// fix up the bundle's indices, and the sequ num for the old insert location's source phrase
@@ -15804,6 +15844,11 @@ void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCoun
 	{
 		SPList::Node* pos2 = removePos; // save current position for RemoveAt call
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)removePos->GetData();
+
+		// BEW added 13Mar09 for refactored layout
+		GetDocument()->DeletePartnerPile(pSrcPhrase);
+		GetLayout()->m_userEditsSpanCheckType = scan_from_big_jump;	// for passing to CLayout::AdjustForUserEdits()
+
 		removePos = removePos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 		pRefString = GetRefString(GetKB(),pSrcPhrase->m_nSrcWords,
@@ -17065,7 +17110,24 @@ void CAdapt_ItView::RedrawEverything(int nActiveSequNum)
 	else
 	{
 		//int oldWidth = pApp->m_curBoxWidth; // for debugging // not used
-		SetupPhraseBoxParameters(pApp->m_pActivePile); // doesn't change pApp->m_targetPhrase value
+		//SetupPhraseBoxParameters(pApp->m_pActivePile); // doesn't change pApp->m_targetPhrase value
+		// BEW removed SetupPhraseBoxParameters() which was called once, only here, and is not generic
+		// enough to be a generally useful function - so removed it to make the phrase box
+		// supporting code a bit less of a mess; and so it's contents are put here explicitly
+		pApp->m_nActiveSequNum = pApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+		if (pApp->m_targetPhrase.IsEmpty())
+		{
+			pApp->m_curBoxWidth = pApp->m_pActivePile->m_nWidth;
+		}
+		else
+		{
+			// current pApp->m_curBoxWidth value will be used
+		}
+		pApp->m_nStartChar = gnStart;
+		pApp->m_nEndChar = gnEnd;
+		pApp->m_curIndex = pApp->m_nActiveSequNum;
+		pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+		// end of contents for removed SetupPhraseBoxParameters() call
 		if (pApp->m_pTargetBox != NULL)
 			RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 		else
@@ -19113,6 +19175,10 @@ void CAdapt_ItView::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhr
 			wxASSERT(mainPos != 0);
 			mainPos = pSrcPhrases->Find(pSrcPhraseCopy); // search from the beginning
 			wxASSERT(mainPos != NULL); // it must be there somewhere
+
+			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
+			GetDocument()->DeletePartnerPile(pSrcPhraseCopy);
+
 			pSrcPhrases->DeleteNode(mainPos); 
 
 			// fix the indices for the bundle
@@ -19258,7 +19324,8 @@ void CAdapt_ItView::UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,
 		}
 	}
 
-	// do the sublist updating, if required
+	// do the sublist updating, if required (this just clears the list and then
+	// puts copied pointers into the sublist, so no partner pile creation needed here
 	if (bAlsoUpdateSublist)
 	{
 		int nOldCount = pList->GetCount();
@@ -19281,12 +19348,15 @@ void CAdapt_ItView::UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,
 void CAdapt_ItView::BuildRetranslationSourcePhraseInstances(SPList* pRetransList,
 						int nStartSequNum,int nNewCount,int nCount,int& nFinish)
 {
+	// BEW refactor 13Mar09, needs CreatePartnerPile() calls added
 	CAdapt_ItDoc* pDoc = GetDocument();
 	int nSequNum = nStartSequNum - 1;
 	nFinish = nNewCount < nCount ? nCount : nNewCount;
 	for (int j=0; j<nFinish; j++)
 	{
 		nSequNum++;
+		// BEW note: 13Mar09 getting pSrcPhrase by a GetPile() call is clumsy, since we
+		// could use nSequNum (pass in m_pSourcePhrases) to access it directly --**** FIX ****
 		CPile* pPile = GetPile(nSequNum); // needed, because the InsertNullSourcePhrase
 										  // clobbered ptrs and so did a RecalcLayout()
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pPile->m_pSrcPhrase; // the one to be updated
@@ -19340,6 +19410,11 @@ void CAdapt_ItView::BuildRetranslationSourcePhraseInstances(SPList* pRetransList
 			//
 			//check that all is well
 			wxASSERT(pSrcPhrase->m_nSequNumber == pIncompleteSrcPhrase->m_nSequNumber);
+
+			// BEW added 13Mar09 for refactored layout
+			GetDocument()->ResetPartnerPileWidth(pSrcPhrase); // resets width & makes a CPile copy & replaces original with it
+			GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
+
 		}
 
 		// if nNewCount was less than nCount, we must clear any old punctuation off
@@ -19380,6 +19455,8 @@ int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str,  int nIni
 
 void CAdapt_ItView::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 {
+	// refactor 13Mar09; these are shallow copies, and have no partner piles, 
+	// so nothing to do here
 	if (pSaveList->GetCount() > 0)
 	{
 		SPList::Node* pos = pSaveList->GetFirst(); 
@@ -19631,6 +19708,10 @@ void CAdapt_ItView::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, in
 		else
 			pSrcPhrases->Insert(newInsertBeforePos,pSPhr); //pSrcPhrases->InsertAfter(pos,pSPhr);
 
+		// BEW added 13Mar09 for refactored layout
+		GetDocument()->CreatePartnerPile(pSPhr);
+		GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
+
 		// since we must now insert before the inserted node above, we need to get a
 		// previous node (which will actually be the just inserted source phrase)
 		newInsertBeforePos = newInsertBeforePos->GetPrevious();
@@ -19668,6 +19749,9 @@ void CAdapt_ItView::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pS
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
+
+		// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
+		GetDocument()->DeletePartnerPile(pSrcPhrase);
 
 		// before we can delete it, we must check it's not one of those (minimal) source phrases
 		// which is in the sublist of a merged source phrase in the saved list - if we deleted it,
@@ -20780,8 +20864,11 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			// remove their pointers from the lists and delete them from the heap
 			SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
 			wxASSERT(pos1 != NULL); // it has to be there
-			pSrcPhrases->DeleteNode(pos1); // remove its pointer from m_pSourcePhrases list on
-										 // the doc
+			pSrcPhrases->DeleteNode(pos1); // remove its pointer from m_pSourcePhrases list on the doc
+
+			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
+			GetDocument()->DeletePartnerPile(pSrcPhrase);
+
 			delete pSrcPhrase; // delete the null source phrase itself
 			pList->DeleteNode(savePos); // also remove its pointer from the local sublist
 
@@ -21021,6 +21108,10 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			else
 				pSrcPhrases->Insert(newInsertBeforePos,pSPhr); //pSrcPhrases->InsertAfter(pos,pSPhr);
 
+			// BEW added 13Mar09 for refactored layout
+			GetDocument()->CreatePartnerPile(pSPhr);
+			GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
+
 			// since we must now insert before the inserted node above, we need to get a
 			// previous node (which will actually be the just inserted source phrase)
 			newInsertBeforePos = newInsertBeforePos->GetPrevious();
@@ -21031,6 +21122,8 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 		// to memory that any merged source phrases in the saved list will point to in their
 		// m_pSavedWords sublists, so don't delete the memory in the latter sublists,
 		// just remove the pointers!
+		RemoveUnwantedSourcePhraseInstancesInRestoredList(pSrcPhrases, nCurCount, nSaveSequNum, pSaveList);
+		/* BEW replaced code below with call on line above 13Mar09
 		pos = pSrcPhrases->Item(nSaveSequNum); // first one's position
 		int count = 0;
 		while (pos != NULL && count < nCurCount)
@@ -21039,6 +21132,9 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
+
+			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
+			GetDocument()->DeletePartnerPile(pSrcPhrase);
 
 			// before we can delete it, we must check it's not one of those (minimal) source
 			// phrases which is in the sublist of a merged source phrase in the saved list - if
@@ -21120,7 +21216,7 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 				count++;
 			}
 		}
-
+		*/
 		// now fix the indices, we can assume nExtras is either 0 or positive
 		gpApp->m_endIndex += nExtras;
 		gpApp->m_upperIndex += nExtras;
@@ -21458,6 +21554,10 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			wxASSERT(pos1 != NULL); // it has to be there
 			pSrcPhrases->DeleteNode(pos1); // remove its pointer from m_pSourcePhrases list on
 										 // the doc
+
+			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
+			GetDocument()->DeletePartnerPile(pSrcPhrase);
+
 			delete pSrcPhrase->m_pMedialPuncts;
 			delete pSrcPhrase->m_pMedialMarkers;
 			pSrcPhrase->m_pSavedWords->Clear();
@@ -21483,6 +21583,9 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 
 			// we have to restore the original punctuation too
 			RestoreOriginalPunctuation(pSrcPhrase);
+
+			// these pSrcPhrase instances have to have their partner piles' widths recalculated
+			GetDocument()->ResetPartnerPileWidth(pSrcPhrase);
 		}
 	}
 
@@ -23345,6 +23448,7 @@ b:			if (pSrcPhrase->m_nSrcWords > 1)
 
 void CAdapt_ItView::DeleteTempList(SPList* pList)
 {
+	// BEW refactor 13Mar09, do nothing here, these are temporary incomplete ones, no partner piles
 	SPList::Node* p;
 	if (pList->IsEmpty())
 		goto a;
@@ -28936,7 +29040,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	}
 
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
-	pApp->m_pTargetBox->SetValue(_T("")); // clear out the box too
+	pApp->m_pTargetBox->SetValue(_T("")); // clear out the box too // SetValue() is deprecated
 	if (gbIsGlossing)
 		pApp->m_pActivePile->m_pSrcPhrase->m_gloss.Empty(); // clear this one when glossing
 	else

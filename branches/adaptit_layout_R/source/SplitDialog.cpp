@@ -458,6 +458,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 void CSplitDialog::MoveFinalEndmarkersToEndOfLastChapter(SPList* WXUNUSED(pDocSrcPhrases), SPList::Node*& pos,
 							ChList* pChaptersList, enum SfmSet currSfmSet)
 {
+	// BEW refactor 13Mar09; nothing to be done, as this is called to append a CSourcePhrase to a
+	// split off chapter document which is not loaded in to the view, so it has no partner piles
 	SPList::Node* pos2 = pos;
 
 	// obtain the m_markers member content
@@ -557,9 +559,11 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	// for a non-empty m_chapterVerse and when it finds the first such, extract the chapter number
 	// and set the Number member of Chapter() at that time.
 	bool bCountedChapter = TRUE;
+	SPList::Node* save_pos = NULL;
 	p = SourcePhrases->GetFirst();
 	while (p) {
 		sp = (CSourcePhrase*)p->GetData();
+		save_pos = p; // for use in the MoveFinalEndmarkersToEndOfLastChapter() call
 		p = p->GetNext();
 		if (sp->GetStartsNewChapter()) 
 		{
@@ -571,7 +575,15 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				c = new Chapter();
 				c->Number = 0; // will get set later
 				c->SourcePhrases = new SPList();
-				rv->Append(c);
+				rv->Append(c); // append the pointer to the chapter object to the end of the list of chapters
+
+				if (rv->GetCount() >= 2)
+				{
+					// move any final endmarkers to an appended CSourcePhrase at the end of the previous
+					// chapter's content; if done, the CSourcePhrase to append is created in
+					// internally in the call of MoveFinalEndmarkersToEndOfLastChapter()
+					MoveFinalEndmarkersToEndOfLastChapter(SourcePhrases, save_pos, rv, gpApp->gCurrentSfmSet);
+				}
 			}
 
 			// the second and subsequent lists of sourcephrases won't yet have an \id line with the book
@@ -604,6 +616,7 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 		}
 		// put the chapter's CSourcePhrase instances into the sublist
 		c->SourcePhrases->Append(sp);
+
 	}
 
 	// Assign filenames.

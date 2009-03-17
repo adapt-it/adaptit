@@ -9,7 +9,7 @@ int m_curPileHeight     on the app
 						mechanisms untouched at this time.
 gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLayout
 grectViewClient	(was used for testing rect intersections for drawing in the legacy app)
-
+m_maxIndex, and the other indices -- use GetCount() of m_pSourcePhrases wherever
 
 
 
@@ -227,6 +227,10 @@ void CLayout::Draw(wxDC* pDC)
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
 	int nActiveSequNum = -1;
+
+	// make any alterations needed to the strips because of user edit operations on the doc
+	AdjustForUserEdits(m_userEditsSpanCheckType);
+	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value
 
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
@@ -787,19 +791,19 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	// a lower bound for the width of the phrase box when the latter contracts, if located at this
 	// pile while the user is working
 	pPile->m_nMinWidth = pPile->CalcPileWidth(); // if an empty string, it is defaulted to 10 pixels
-	pPile->m_nWidth = pPile->m_nMinWidth; // a default value for starters, user edits may increase it later
+	if (pSrcPhrase->m_nSequNumber != m_pApp->m_nActiveSequNum)
+	{
+		pPile->m_nWidth = PHRASE_BOX_WIDTH_UNSET; // a default -1 value for starters, need an active sequ
+				// number and m_targetPhrase set before a value can be calculated, but only at the pile
+				// which is located at the active location
+	}
+	else
+	{
+		// this pile is going to be the active one, so calculate its m_nWidth value using m_targetPhrase
+		pPile->SetPhraseBoxGapWidth();
+		pPile->m_nWidth = pPile->GetPhraseBoxGapWidth();
+	}
 
-	// *** TODO? *** the mechanism for phrase box support (which we are not currently refactoring) uses
-	// two members on the app class as follows:
-	// 	m_nCurPileMinWidth and	pApp->m_curBoxWidth
-	// 	Typically these are used as follows, when building strips, etc, at the active pile a larger gap is
-	// 	left for the phrase box, it's width defaults to the m_nCurPileMinWidth value, then the CSourcePhrase
-	// 	is checked to see if it's extent is wider than m_nCurPileMinWidth, and if so,
-	// 	m_curBoxWidth is set to that wider extent, otherwise it is set to m_nCurPileMinWidth. When
-	// 	refactoring the code for strips, we must ensure that the strip building process supports
-	// 	these two variables in the way expected. "support" here just means "have a correct value
-	// 	for the m_nMinWidth member in the CPile object. (DoTargetBoxPaste() is a good example of use)
-	 	
 	// pile creation always creates the (fixed) array of CCells which it manages
 	int index;
 	CCell* pCell = NULL;
@@ -809,7 +813,7 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 		pCell->CreateCell(this,pPile,index);
 	}
 	// Note: to assist clarity, the extensive commented out legacy code has been removed
-	// from here and placed temporarily at the end of this file
+	// from here and placed temporarily at the end of this file; much of it no longer applies
 	return pPile;
 }
 
@@ -1106,27 +1110,37 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 	}
 }
 
-void CLayout::AdjustForUserEdits(enum update_span scope)
+void CLayout::AdjustForUserEdits(enum update_span type)
 {
-	// scan forwards and backwards in m_pileList matching CSourcePhrase pointer instances with
-	// those stored in the CPile copies in the strips in m_stripArray - and when there is a
-	// mismatch in the pointer values, we will have found a boundary for changes to the CPile
-	// pointers in m_pileList due to the user's editing changes to the document. Use these
-	// beginning and ending locations for updating the piles in the strips between those locations
-	// just prior to drawing the updated layout
-	// The passed in enum value, which can be scan_from_doc_ends  (= 0), or 
-	// scan_in_active_area_proximity (= 1), determines how extensive a scan is done - whether from
-	// the start and end of the document, or from locations prior to and after the active
-	// location; in the later case the jump distance from the current active location is given by
-	// the #define nJumpDistanceForUserEditsSpanDetermination which is currently set at 80
-	// (CSourcePhrase instances)
+    // scan forwards and backwards in m_pileList matching CSourcePhrase pointer instances with
+    // those stored in the CPile copies in the strips in m_stripArray - and when there is a
+    // mismatch in the pointer values, we will have found a boundary for changes to the CPile
+    // pointers in m_pileList due to the user's editing changes to the document. Use these
+    // beginning and ending locations for updating the piles in the strips between those locations
+    // just prior to drawing the updated layout The passed in enum value, which can be
+    // scan_from_doc_ends (= 0), or scan_in_active_area_proximity (= 1), or scan_from_big_jump,
+    // determines how extensive a scan is done - whether from the start and end of the document, or
+    // from locations prior to and after the active location but in its proximityh; in the later
+    // case the jump distance from the current active location is given by the #define
+    // nJumpDistanceForUserEditsSpanDetermination which is currently set at 80, or from a bigger
+    // jump nBigJumpDistance, currently set at 300 (CSourcePhrase instances)
+	
+
+	// **** TODO ****
+	switch (type)
+	{
+	case scan_in_active_area_proximity:
+		{
 
 
-// **** TODO ****
+		}
+	case scan_from_doc_ends:
+		{
 
+
+		}
+	}
 }
-
-
 
 /*
 //retain this -- I coded it assuming I'd be refactoring the scrolling mechanism at same time as

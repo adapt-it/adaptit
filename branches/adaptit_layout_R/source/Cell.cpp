@@ -187,6 +187,17 @@ CCell::CCell()
 	m_nCell = 0; // CreateCell() sets this to its permanent value
 }
 
+// the copy constructor does not need to be coded explicitly because it owns nothing, but no harm
+// in having it
+CCell::CCell(const CCell& cell)
+{
+	m_bSelected = cell.m_bSelected;
+	m_nCell = cell.m_nCell;
+	m_pPhrase = cell.m_pPhrase;
+	m_pLayout = cell.m_pLayout;
+	m_pOwningPile = cell.m_pOwningPile;
+}
+
 //CCell::CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
 //				CStrip* pStrip, CPile* pPile)
 /*

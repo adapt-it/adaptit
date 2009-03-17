@@ -26,6 +26,7 @@
 #endif
 
 #include "SourcePhrase.h" // needed for enum TextType
+#include "Pile.h" // needed for PileList symbol
 
 // Forward declarations
 class wxDataOutputStream;
@@ -145,8 +146,14 @@ public:
 	void			AdjustSequNumbers(int nValueForFirst, SPList* pList);
 	wxString&		AppendFilteredItem(wxString& dest,wxString& src);
 	wxString&		AppendItem(wxString& dest,wxString& src, const wxChar* ptr, int itemLen);
+
+	// partner pile functions (for refactored layout support)
 	void			CreatePartnerPile(CSourcePhrase* pSrcPhrase); // added 13Mar09
 	void			DeletePartnerPile(CSourcePhrase* pSrcPhrase); // added 12Mar09
+	CPile*			ReplacePartnerPile(PileList* pPiles, PileList::Node* posPile, CPile* pUpdatedOldPile);
+	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase); // added 13Mar09
+	// end of partner pile functions
+	
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);
 	void			DeleteSourcePhrases();
 	void			DeleteSourcePhrases(SPList* pList);
@@ -184,6 +191,7 @@ public:
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar *pChar);
 	int				ParseNumber(wxChar* pChar);
+	int				IndexOf(CSourcePhrase* pSrcPhrase); // BEW added 17Mar09
 	bool			IsVerseMarker(wxChar* pChar, int& nCount);
 	bool			IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd);

@@ -44,6 +44,8 @@ class CCell : public wxObject
 public:
 	// constructors
 	CCell();
+	CCell(const CCell& cell); // copy constructor
+
 //	CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, 
 //												CStrip* pStrip, CPile* pPile); //BEW deprecated 3Feb09
 //	CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile);

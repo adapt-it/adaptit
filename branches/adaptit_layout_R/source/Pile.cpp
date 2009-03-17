@@ -166,6 +166,22 @@ CPile::CPile()
 	*/
 }
 
+CPile::CPile(const CPile& pile)
+{
+	m_pLayout = pile.m_pLayout;
+	m_pSrcPhrase = pile.m_pSrcPhrase;
+	m_pOwningStrip = pile.m_pOwningStrip;
+	int i;
+	for (i = 0; i< MAX_CELLS; i++)
+	{
+		m_pCell[i] = new CCell(*(pile.m_pCell[i]));
+	}
+	m_nPile = pile.m_nPile;
+	m_nWidth = pile.m_nWidth;
+	m_nMinWidth = pile.m_nMinWidth;
+	m_bIsCurrentFreeTransSection = pile.m_bIsCurrentFreeTransSection;
+}
+
 //CPile::CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
 //			CSourcePhrase* pSrcPhrase) // BEW deprecated 3Feb09
 //CPile::CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase)
@@ -219,10 +235,24 @@ bool CPile::HasFilterMarker()
 
 int CPile::Width()
 {
-	if (m_nWidth > m_nMinWidth)
-		return m_nWidth;
-	else
+	// Note: for this calculation to return the correct values in all circumstances, the m_nWidth
+	// and m_nMinWidth values must be up to date before Draw is called on the CPile instance; in
+	// practice this most importantly means that the app's m_nActiveSequNum value is up to date,
+	// because the else block below is entered once per layout draw, and the width of the phrase
+	// box must be known and all relevant parameters set which are used for communicating its width
+	// to the pile at the active location and storing that width in its m_nWidth member
+	if (m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
+	{
+		// when not at the active location, set the width to m_nMinWidth;
 		return m_nMinWidth;
+	}
+	else
+	{
+		// at the active location, set the width using the .x extent of the app's m_targetPhrase
+		//  string - the width based on this is stored in m_nWidth, but is -1 if the pile is not
+		//  the active pile
+		return m_nWidth;
+	}
 }
 
 int CPile::Height()
@@ -267,102 +297,151 @@ void CPile::TopLeft(wxPoint& ptTopLeft)
 	ptTopLeft.y = Top();
 }
 
-void CPile::PrintPhraseBox(wxDC* pDC)
+//getter
+CSourcePhrase* CPile::GetSrcPhrase()
 {
-	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
-	wxASSERT(pBox);
-	wxRect rectBox;
-	int width;
-	int height;
-	if (pBox != NULL && m_pLayout->m_pApp->m_nActiveSequNum != -1)
+	return m_pSrcPhrase;
+}
+
+// setter
+void CPile::SetSrcPhrase(CSourcePhrase* pSrcPhrase)
+{
+	m_pSrcPhrase = pSrcPhrase;
+}
+
+int CPile::GetStripIndex()
+{
+	return m_pOwningStrip->m_nStrip;
+}
+
+CStrip* CPile::GetStrip()
+{
+	return m_pOwningStrip;
+}
+
+void CPile::SetMinWidth()
+{
+	m_nMinWidth = CalcPileWidth();
+}
+
+void CPile::SetPhraseBoxGapWidth()
+{
+	m_nWidth = CalcPhraseBoxGapWidth();
+}
+
+int	CPile::GetMinWidth()
+{
+	return m_nMinWidth;
+}
+
+int	CPile::GetPhraseBoxGapWidth()
+{
+	return m_nWidth;
+}
+
+
+// Calculates the pile's width before laying out the current pile in a strip. The function
+// is not interested in the relative ordering of the glossing and adapting cells, and so
+// does not access CCell instances; rather, it just examines extent of the three text members
+// m_srcPhrase, m_targetStr, m_gloss on the CSourcePhrase instance pointed at by this
+// particular CPile instance. The width is the maximum extent.x for the three strings checked.
+int CPile::CalcPileWidth()
+{
+	int pileWidth = 40; // ensure we never get a pileWidth of zero
+
+	// get a device context for the canvas on the stack (wont' accept uncasted definition)
+	//wxClientDC aDC((wxWindow*)m_pLayout->m_pCanvas); // make a temporary device context
+	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
+	wxSize extent;
+	aDC.SetFont(*m_pLayout->m_pSrcFont); // works, now we are friends
+	if (!gbShowTargetOnly)
+	{
+		aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
+		pileWidth = extent.x; // can assume >= to key's width, as differ only by 
+							  // possible punctuation
+	}
+	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
+	{
+		//aDC.SetFont(*m_pLayout->GetTgtFont());
+		aDC.SetFont(*m_pLayout->m_pTgtFont);
+		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
+		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+	}
+	if (!m_pSrcPhrase->m_gloss.IsEmpty())
+	{
+		if (gbGlossingUsesNavFont)
+			//aDC.SetFont(*m_pLayout->GetNavTextFont());
+			aDC.SetFont(*m_pLayout->m_pNavTextFont);
+		else
+			//aDC.SetFont(*m_pLayout->GetTgtFont());
+			aDC.SetFont(*m_pLayout->m_pTgtFont);
+		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
+		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+	}
+	return pileWidth;
+}
+
+int CPile::CalcPhraseBoxGapWidth()
+{
+    // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase (the
+    // phrase box contents) for the pile extent (plus some slop), because at the active location
+    // the m_adaption & m_targetStr members of pSrcPhrase are not set, and won't be until the user
+    // hits Enter key to move phrase box on or clickes to place it elsewhere, so only
+    // pApp->m_targetPhrase is valid; note, for version 2 which supports a glossing line, the box
+    // will contain a gloss rather than an adaptation whenever gbIsGlossing is TRUE. Glossing could
+    // be using the target font, or the navText font.
+	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
+	wxSize extent;
+	int boxGapWidth = 0;
+
+    // only do this calculation provided the m_pSrcPhrase pointer is set and the partner
+    // CSourcePhrase instance is the one at the active location, if not so, return a value of -1
+    // (the const int value for symbol PHRASE_BOX_WIDTH_UNSET)
+	if (m_pSrcPhrase != NULL)
 	{
 		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			rectBox = pBox->GetRect();
-			width = rectBox.GetWidth(); // these will be old MM_TEXT mode 
-										// logical coords, but
-			height = rectBox.GetHeight(); // that will not matter
-
-			// this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in MM_TEXT coords, so
-			// get the proper coords (MM_LOENGLISH) from the CCell[2]'s rectangle
-			// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
-			// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
-			//wxPoint topLeft = m_pCell[2]->m_ptTopLeft;
-			wxPoint topLeft;
-			m_pCell[1]->TopLeft(topLeft);
-			// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
-			//DWORD boxMargins = pApp->m_targetBox.GetMargins();
-			//int leftMargin = (int)LOWORD(boxMargins);
-			int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???
-			wxPoint textTopLeft = topLeft;
-			textTopLeft.x += leftMargin;
-			int topMargin;
+			wxSize boxExtent;
 			if (gbIsGlossing && gbGlossingUsesNavFont)
-				topMargin = abs((height - m_pLayout->GetNavTextHeight())/2); // whm this is OK
-			else
-				topMargin = abs((height - m_pLayout->GetTgtTextHeight())/2); // whm this is OK
-			textTopLeft.y -= topMargin;
-			wxFont SaveFont;
-			wxFont TheFont;
-			//CAdapt_ItApp* pApp = &wxGetApp(); // added for calls below
-			if (gbIsGlossing && gbGlossingUsesNavFont)
-				//TheFont = *m_pLayout->m_pApp->m_pNavTextFont;
-				TheFont = *m_pLayout->m_pNavTextFont;
-			else
-				//TheFont = *m_pLayout->m_pApp->m_pTargetFont;
-				TheFont = *m_pLayout->m_pTgtFont;
-			SaveFont = pDC->GetFont();
-			pDC->SetFont(TheFont);
-
-			wxColor color = *(m_pCell[1]->GetColor()); // get the default colour of this cell's text
-			//if (!m_pCell[2]->m_color.IsOk())
-			if (!color.IsOk())
 			{
-				::wxBell();
-				wxASSERT(FALSE);
+				aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
+				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
 			}
-			pDC->SetTextForeground(color); // use color for this cell's text to print the box's text
+			else // if not glossing, or not using nav text when glossing, it's using the target font
+			{
+				aDC.SetFont(*m_pLayout->m_pTgtFont);
+				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
+			}
+			if (boxExtent.x < 40)
+				boxExtent.x = 40; // in case m_targetPhrase was empty or very small 
+			wxString aChar = _T('w');
+			wxSize charSize;
+			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
+			boxExtent.x += gnExpandBox*charSize.x; // add a slop factor (gnExpandBox is user settable)
+			boxGapWidth = boxExtent.x;
 			
-			// /////////////// Draw the Target Text for the phrasebox //////////////////////
-			pDC->DrawText(m_pLayout->m_pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);	
-					// MFC uses TextOut()  // Note: diff param ordering!
-			pDC->SetFont(SaveFont);
-
-			// /////////////////// Draw the Box around the target text //////////////////////
-			pDC->SetPen(*wxBLACK_PEN); // whm added 20Nov06
-			
-			// whm: wx version flips top and bottom when rect coords are negative to maintain true
-			// "top" and "bottom". In the DrawLine code below MFC has -height but the wx version
-			// has +height.
-			pDC->DrawLine(topLeft.x, topLeft.y, topLeft.x+width, topLeft.y);
-			pDC->DrawLine(topLeft.x+width, topLeft.y, topLeft.x+width, topLeft.y +height);
-			pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
-			pDC->DrawLine(topLeft.x, topLeft.y+height, topLeft.x, topLeft.y);
-			pDC->SetPen(wxNullPen);
+			// adjust the value if the box has just expanded
+			/* in the refactored design we'll try to design away such adjustments
+			if (gbExpanding)
+			{
+				if (m_pLayout->m_pApp->m_curBoxWidth > boxExtent.x)
+					*pPhraseBoxWidth = m_pLayout->m_pApp->m_curBoxWidth;
+				else
+					*pPhraseBoxWidth = boxExtent.x;
+				gbExpanding = FALSE; // clear to default FALSE
+			}
+			*/
+		}
+		else
+		{
+			return PHRASE_BOX_WIDTH_UNSET;
 		}
 	}
-}
-
-void CPile::Draw(wxDC* pDC)
-{
-	// draw the cells this CPile instance owns, MAX_CELLS = 3
-	for (int i=0; i< MAX_CELLS; i++)
+	else
 	{
-		if (m_pCell[i] != NULL)
-			m_pCell[i]->Draw(pDC);
+		return PHRASE_BOX_WIDTH_UNSET;
 	}
-	
-	// nav text whiteboard drawing for this pile...
-	if (!gbIsPrinting)
-	{
-		DrawNavTextInfoAndIcons(pDC);
-	}
-
-	// draw the phrase box if it belongs to this pile
-	if (gbIsPrinting)
-	{
-		PrintPhraseBox(pDC);
-	}
+	return boxGapWidth;
 }
 
 void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
@@ -757,134 +836,102 @@ bool CPile::IsWrapPile()
 	return FALSE;
 }
 
-//getter
-CSourcePhrase* CPile::GetSrcPhrase()
+void CPile::PrintPhraseBox(wxDC* pDC)
 {
-	return m_pSrcPhrase;
-}
-
-// setter
-void CPile::SetSrcPhrase(CSourcePhrase* pSrcPhrase)
-{
-	m_pSrcPhrase = pSrcPhrase;
-}
-
-int CPile::GetStripIndex()
-{
-	return m_pOwningStrip->m_nStrip;
-}
-
-CStrip* CPile::GetStrip()
-{
-	return m_pOwningStrip;
-}
-
-
-//CPile* CPile::CreatePile(wxClientDC *pDC, CAdapt_ItApp *pApp, CSourceBundle *pBundle,
-//								 CStrip *pStrip, CSourcePhrase *pSrcPhrase, wxRect *pRectPile)
-// In the refactored design, CreatePile() has been put in CLayout because the latter not only
-// needs to know how to create CStrip instances, but also CPile instances (for its m_pileList)
-
-int CPile::CalcPileWidth()
-// Calculates the pile's width before laying out the current pile in a strip. The function
-// is not interested in the relative ordering of the glossing and adapting cells, and so
-// does not access CCell instances; rather, it just examines extent of the three text members
-// m_srcPhrase, m_targetStr, m_gloss on the CSourcePhrase instance pointed at by this
-// particular CPile instance. The width is the maximum extent.x for the three strings checked.
-{
-	int pileWidth = 10; // ensure we never get a pileWidth of zero
-
-	// get a device context for the canvas on the stack (wont' accept uncasted definition,
-	// but Adapt_ItView in RemoveSelectioin, line 5702, accepts the equiv without a cast! Huh?)
-	//wxClientDC aDC((wxWindow*)m_pLayout->m_pCanvas); // make a device context
-	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a device context
-	wxSize extent;
-	//aDC.SetFont(*m_pLayout->GetSrcFont());
-	aDC.SetFont(*m_pLayout->m_pSrcFont); // works, now we are friends
-	if (!gbShowTargetOnly)
+	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
+	wxASSERT(pBox);
+	wxRect rectBox;
+	int width;
+	int height;
+	if (pBox != NULL && m_pLayout->m_pApp->m_nActiveSequNum != -1)
 	{
-		aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
-		pileWidth = extent.x; // can assume >= to key's width, as differ only by 
-							  // possible punctuation
-	}
-	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
-	{
-		//aDC.SetFont(*m_pLayout->GetTgtFont());
-		aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
-	}
-	if (!m_pSrcPhrase->m_gloss.IsEmpty())
-	{
-		if (gbGlossingUsesNavFont)
-			//aDC.SetFont(*m_pLayout->GetNavTextFont());
-			aDC.SetFont(*m_pLayout->m_pNavTextFont);
-		else
-			//aDC.SetFont(*m_pLayout->GetTgtFont());
-			aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
-	}
-    // is this pile the active one? If so, recalc using m_pApp->m_targetPhrase (the phrase box
-    // contents) for the pile extent (plus some slop), because at the active location the
-    // m_adaption & m_targetStr members of pSrcPhrase are not set, and won't be until the user hits
-    // Enter key to move phrase box on or clickes to place it elsewhere, so only
-    // pApp->m_targetPhrase is valid; note, for version 2 which supports a glossing line, the box
-    // will contain a gloss rather than an adaptation whenever gbIsGlossing is TRUE. Glossing could
-    // be using the target font, or the navText font.
-    if (m_pSrcPhrase != NULL)
-	{
-		// only do this calculation provided the m_pSrcPhrase pointer is set
 		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			wxSize boxExtent;
-			if (gbIsGlossing && gbGlossingUsesNavFont)
-			{
-				//aDC.SetFont(*m_pLayout->GetNavTextFont()); // it's using the navText font
-				aDC.SetFont(*m_pLayout->m_pNavTextFont); // it's using the navText font
-				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y); 
-			}
-			else // if not glossing, or not using nav text when glossing, it's using the target font
-			{
-				//aDC.SetFont(*m_pLayout->GetTgtFont());
-				aDC.SetFont(*m_pLayout->m_pTgtFont);
-				aDC.GetTextExtent(m_pLayout->m_pApp->m_targetPhrase, &boxExtent.x, &boxExtent.y);
-			}
-			if (boxExtent.x < 10)
-				boxExtent.x = 10; // in case m_targetPhrase was empty or very small 
-			wxString aChar = _T('w');
-			wxSize charSize;
-			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
-			boxExtent.x += gnExpandBox*charSize.x;	// allow same slop factor as for 
-													// RemakePhraseBox & OnChar
-			pileWidth = boxExtent.x > pileWidth ? boxExtent.x : pileWidth;
+			rectBox = pBox->GetRect();
+			width = rectBox.GetWidth(); // these will be old MM_TEXT mode 
+										// logical coords, but
+			height = rectBox.GetHeight(); // that will not matter
 
-			// When the phrase box has just expanded (this happens in the FixBox() function called
-			// after OnChar() ) we have to possibly make a further increase in the size of the box. It
-			// can happen this way... OnChar(), and FixBox() (the latter has the ResizeBox() which
-			// effects box size adjustment) occur before the the event is posted which leads to
-			// OnPhraseBoxChanged() being called. So the box has been resized, and on the app class a
-			// variable m_curBoxWidth stores the new box width. In the MFC app, the box would at this
-			// point have been destroyed and not yet recreated; but the recreated box could be sized at
-			// the old size, and hence its new text may not fit in it. So in FixBox() expansion (but
-			// NOT contraction) sets a global boolean gbExpanding to TRUE, and this tested for now, and
-			// if the pileWidth value computed above is less than the app's m_curBoxWidth value, then
-			// pileWidth is reset to m_curBoxWidth
-			// 
-			// *** TODO *** Note: in wxWidgets, and with the change to having CalcPileWidth() moved to be
-			// a function in CPile, the possibility of pileWidth being sometimes less than m_curBoxWidth
-			// may not obtain - so we need to check if this following test and adjustment is still needed.
-			// If not needed, gbExpanding global can be removed (8 instances in the app)
-			if (gbExpanding)
+			// this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in MM_TEXT coords, so
+			// get the proper coords (MM_LOENGLISH) from the CCell[2]'s rectangle
+			// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
+			// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
+			//wxPoint topLeft = m_pCell[2]->m_ptTopLeft;
+			wxPoint topLeft;
+			m_pCell[1]->TopLeft(topLeft);
+			// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
+			//DWORD boxMargins = pApp->m_targetBox.GetMargins();
+			//int leftMargin = (int)LOWORD(boxMargins);
+			int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???
+			wxPoint textTopLeft = topLeft;
+			textTopLeft.x += leftMargin;
+			int topMargin;
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+				topMargin = abs((height - m_pLayout->GetNavTextHeight())/2); // whm this is OK
+			else
+				topMargin = abs((height - m_pLayout->GetTgtTextHeight())/2); // whm this is OK
+			textTopLeft.y -= topMargin;
+			wxFont SaveFont;
+			wxFont TheFont;
+			//CAdapt_ItApp* pApp = &wxGetApp(); // added for calls below
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+				//TheFont = *m_pLayout->m_pApp->m_pNavTextFont;
+				TheFont = *m_pLayout->m_pNavTextFont;
+			else
+				//TheFont = *m_pLayout->m_pApp->m_pTargetFont;
+				TheFont = *m_pLayout->m_pTgtFont;
+			SaveFont = pDC->GetFont();
+			pDC->SetFont(TheFont);
+
+			wxColor color = *(m_pCell[1]->GetColor()); // get the default colour of this cell's text
+			//if (!m_pCell[2]->m_color.IsOk())
+			if (!color.IsOk())
 			{
-				pileWidth = pileWidth < m_pLayout->m_pApp->m_curBoxWidth 
-							? m_pLayout->m_pApp->m_curBoxWidth : pileWidth;
-				gbExpanding = FALSE; // clear to default FALSE
+				::wxBell();
+				wxASSERT(FALSE);
 			}
+			pDC->SetTextForeground(color); // use color for this cell's text to print the box's text
+			
+			// /////////////// Draw the Target Text for the phrasebox //////////////////////
+			pDC->DrawText(m_pLayout->m_pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);	
+					// MFC uses TextOut()  // Note: diff param ordering!
+			pDC->SetFont(SaveFont);
+
+			// /////////////////// Draw the Box around the target text //////////////////////
+			pDC->SetPen(*wxBLACK_PEN); // whm added 20Nov06
+			
+			// whm: wx version flips top and bottom when rect coords are negative to maintain true
+			// "top" and "bottom". In the DrawLine code below MFC has -height but the wx version
+			// has +height.
+			pDC->DrawLine(topLeft.x, topLeft.y, topLeft.x+width, topLeft.y);
+			pDC->DrawLine(topLeft.x+width, topLeft.y, topLeft.x+width, topLeft.y +height);
+			pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
+			pDC->DrawLine(topLeft.x, topLeft.y+height, topLeft.x, topLeft.y);
+			pDC->SetPen(wxNullPen);
 		}
 	}
-	return pileWidth;
 }
 
+void CPile::Draw(wxDC* pDC)
+{
+	// draw the cells this CPile instance owns, MAX_CELLS = 3
+	for (int i=0; i< MAX_CELLS; i++)
+	{
+		if (m_pCell[i] != NULL)
+			m_pCell[i]->Draw(pDC);
+	}
+	
+	// nav text whiteboard drawing for this pile...
+	if (!gbIsPrinting)
+	{
+		DrawNavTextInfoAndIcons(pDC);
+	}
+
+	// draw the phrase box if it belongs to this pile
+	if (gbIsPrinting)
+	{
+		PrintPhraseBox(pDC);
+	}
+}
 
 

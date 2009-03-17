@@ -56,9 +56,14 @@ class CAdapt_ItCanvas;
 			// direction from the current m_nActiveSequNum value to scan forward and back
 			// to determine the beginning and end locations for the user edit operations
 			// changes to the m_pileList contents
+#define	nBigJumpDistance 300 // for use when user may have clicked some visible but far
+			// from the active location (eg. as when inserting a placeholder when reading
+			// back through his work & finding an error a long way from active location)
+
 typedef enum update_span {
 	scan_from_doc_ends,
-	scan_in_active_area_proximity
+	scan_in_active_area_proximity,	// 80 either side of active sequ num value
+	scan_from_big_jump // 300 either side of active sequ num value
 };
 
 /// The CLayout class manages the layout of the document. It's private members pull
@@ -84,14 +89,12 @@ public:
 	CAdapt_ItCanvas*	m_pCanvas;
 	CMainFrame*			m_pMainFrame;
 
-	update_span			m_findUserEditsSpan; // takes one of two enum values,
+	update_span			m_userEditsSpanCheckType; // takes one of two enum values,
 				// 	scan_from_doc_ends  (= 0), or scan_in_active_area_proximity (= 1)
 
 //public:
 private:
-	//PileList*			m_pPiles;
 	PileList			m_pileList;
-	//StripList*		m_pStrips;
 	wxArrayPtrVoid		m_stripArray;
 
 private:
@@ -185,9 +188,6 @@ public:
 	void		DestroyPileRange(int nFirstPile, int nLastPile);
 	void		DestroyPiles();
 
-	// support of user edit actions
-	void		AdjustForUserEdits(enum update_span scope);
-
 	// getters for clipping rectangle
 	wxRect		GetClipRect();
 
@@ -262,7 +262,7 @@ public:
 	wxArrayPtrVoid* GetStripArray();
 
 	// ////// public utility functions ////////
-	// 
+	 
 	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
 	// the layout
 	void		UpdateStripIndices(int nStartFrom = 0);
@@ -291,6 +291,12 @@ public:
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = FALSE);
 
+	// ////// private utility functions ////////
+private:
+	// support of user edit actions
+	void		AdjustForUserEdits(enum update_span type);
+
+public:
 	DECLARE_DYNAMIC_CLASS(CLayout) 
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 

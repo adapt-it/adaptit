@@ -39,14 +39,14 @@ class CPile;
 
 WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 
-/// The CPile class represents the next smaller divisions of a CStrip. The CPile
-/// instances are laid out sequentially within a CStrip. Each CPile stores a 
-/// stack or "pile" of CCells stacked vertically in the pile. Within a CPile
-/// the top CCell, if used, displays the source word or phrase with punctuation,
-/// the second CCell displays the same minus the punctuation. The third CCell
-/// displays the translation, minus any pnctuation. The fourth CCell displays the
-/// translation with punctuation as copied (if the user typed none) or as typed
-/// by the user. The fifth CCell displays the Gloss when used.
+const int PHRASE_BOX_WIDTH_UNSET = -1;
+
+/// The CPile class represents the next smaller divisions of a CStrip. The CPile instances are laid
+/// out sequentially within a CStrip. Each CPile stores a stack or "pile" of CCells stacked
+/// vertically in the pile. Within a CPile the top CCell displays the source word or phrase with
+/// punctuation, the second CCell displays the translation with punctuation as copied (if the user
+/// typed none) or as typed by the user. The third CCell displays the Gloss, when used. In glossing
+/// mode, second displays gloss and third displays target text.
 /// \derivation		The CPile class is derived from wxObject.
 class CPile : public wxObject  
 {
@@ -56,6 +56,7 @@ class CPile : public wxObject
 public:
 	// constructors
 	CPile();
+	CPile(const CPile& pile); // copy constructor
 	//CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
 	//				CSourcePhrase* pSrcPhrase); // BEW deprecated 3Feb09
 	//CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase);
@@ -105,6 +106,7 @@ public:
 	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
 	//				
 	int			CalcPileWidth();
+	int			CalcPhraseBoxGapWidth();
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	CCell*		GetCell(int nCellIndex);
@@ -115,6 +117,12 @@ public:
 	int		Top();
 	void	GetPileRect(wxRect& rect);
 	void	TopLeft(wxPoint& ptTopLeft);
+
+	void	SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
+	void	SetPhraseBoxGapWidth();  // sets m_nWidth (the width to be used at active 
+											  //location, calls CalcPhraseBoxGapWidth())
+	int		GetMinWidth(); // returns value of m_nMinWidth
+	int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
 
 
 private:

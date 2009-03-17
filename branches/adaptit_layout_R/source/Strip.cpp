@@ -264,8 +264,9 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 	if (gbRTL_Layout)
 	{
 		// Unicode version, and Right to Left layout is wanted
-		int nHorzOffset_FromRight = 0; // measuring from right of strip's rectangle
+		int nHorzOffset_FromRight = 0;
 		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
+		int nWidthOfPreviousPile = 0;
 		
         // we must always have at least one pile in the strip in order to prevent an infinite
         // loop of empty strips if the width of the first pile should happen to exceed the
@@ -274,20 +275,22 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 		pileWidth = pPile->m_nWidth; // if at m_nActiveSequNum, this value will be large enough
 									 // to accomodate the phrase box's width
 		m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
-		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromRight; // store offset to right boundary
+		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromRight; // store offset to left boundary
 		m_nFree -= pileWidth; // reduce the free space accordingly
+		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 
 		// prepare for next iteration
+		nWidthOfPreviousPile = pileWidth;
 		pileIndex_InStrip++;
-		nPileIndex_InList++;
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-		nHorzOffset_FromRight = pileWidth + gap;
+		nHorzOffset_FromRight = nWidthOfPreviousPile + gap;
 
 		// if m_nFree went negative or zero, we can't fit any more piles, so declare the strip full
 		if (m_nFree <= 0)
 		{
 			m_bFilled = TRUE;
-			return nPileIndex_InList;
+			//return nPileIndex_InList;
+			return pos;
 		}
 
 		// append second and later piles to the strip
@@ -308,7 +311,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
 					m_bFilled = TRUE;
-					return nPileIndex_InList;
+					//return nPileIndex_InList;
+					return pos;
 				}
 			}
 
@@ -323,28 +327,26 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 				m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
 				m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromRight; // store offset to left boundary
 				m_nFree -= nCurrentSpan; // reduce the free space accordingly
-
+				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 			}
 			else
 			{
 				// this pile won't fit, so the strip is full - declare it full and return
 				// the pile list's index for use in the next strip's creation
 				m_bFilled = TRUE;
-				return nPileIndex_InList;
+				//return nPileIndex_InList;
+				return pos;
 			}
 
 			// update index for next iteration
 			pileIndex_InStrip++;
-
-            // update index for the caller to be able to access the next CPile* in CLayout's
-            // m_pileList 
-            nPileIndex_InList++;
+			nWidthOfPreviousPile = pileWidth;
 
 			// advance the iterator for the CLayout's m_pileList list of pile pointers
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromRight += nCurrentSpan;
+			nHorzOffset_FromRight += nWidthOfPreviousPile + gap;
 		}
 	}
 	else // Unicode or ANSI version, left-to-right layout is wanted
@@ -352,6 +354,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 	*/
 		int nHorzOffset_FromLeft = 0;
 		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
+		int nWidthOfPreviousPile = 0;
 		
         // we must always have at least one pile in the strip in order to prevent an infinite
         // loop of empty strips if the width of the first pile should happen to exceed the
@@ -362,12 +365,13 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 		m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
 		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromLeft; // store offset to left boundary
 		m_nFree -= pileWidth; // reduce the free space accordingly
+		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 
 		// prepare for next iteration
+		nWidthOfPreviousPile = pileWidth;
 		pileIndex_InStrip++;
-		//nPileIndex_InList++;
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
-		nHorzOffset_FromLeft = pileWidth + gap;
+		nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
 
 		// if m_nFree went negative or zero, we can't fit any more piles, so declare the strip full
 		if (m_nFree <= 0)
@@ -411,7 +415,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 				m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
 				m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromLeft; // store offset to left boundary
 				m_nFree -= nCurrentSpan; // reduce the free space accordingly
-
+				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 			}
 			else
 			{
@@ -424,16 +428,13 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 
 			// update index for next iteration
 			pileIndex_InStrip++;
-
-            // update index for the caller to be able to access the next CPile* in CLayout's
-            // m_pileList 
-            //nPileIndex_InList++;
+			nWidthOfPreviousPile = pileWidth;
 
 			// advance the iterator for the CLayout's m_pileList list of pile pointers
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromLeft += nCurrentSpan;
+			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
 		}
 	/* reinstate this bracket if we require separate RTL and LTR code blocks
 	}

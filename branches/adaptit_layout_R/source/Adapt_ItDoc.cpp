@@ -65,7 +65,6 @@
 
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
-#include "Adapt_ItDoc.h"
 #include "OutputFilenameDlg.h"
 #include "helpers.h"
 #include "MainFrm.h"
@@ -76,8 +75,9 @@
 #include "Adapt_ItView.h"
 #include "SourceBundle.h"
 #include "Strip.h"
-#include "Pile.h"
+#include "Pile.h" // must precede the include for the document
 #include "Cell.h"
+#include "Adapt_ItDoc.h"
 #include "RefString.h"
 #include "ProgressDlg.h" // formerly called RestoreKBProgress.h
 #include "WaitDlg.h"
@@ -3680,8 +3680,7 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 {
 	// refactor 12Mar09
-	int index = GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for
-																 // the passed in pSrcPhrase
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
 	wxASSERT(index != wxNOT_FOUND);
 	PileList* pPiles = GetLayout()->GetPileList();
 	PileList::Node* posPile = pPiles->Item(index);
@@ -3704,8 +3703,8 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 /// \remarks
 /// Created 13Mar09 for layout refactoring. The m_pileList's CPile instances point to CSourcePhrase
 /// instances and creating a new CSourcePhrase for the doc's m_pSourcePhrases list always needs to
-/// have the CPile instance which points to it also created, initialized and inserted into the corresponding place in
-/// the m_pileList. That task is done here.
+/// have the CPile instance which points to it also created, initialized and inserted into the
+/// corresponding place in the m_pileList. That task is done here.
 /// 
 /// Called from various places. It is not made a part of the CSourcePhrase creation process for a
 /// good reason. Quite often CSourcePhrase instances are created and are only temporary - such as
@@ -3723,8 +3722,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 {
 	// refactor 13Mar09
-	int index = GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for
-																 // the passed in pSrcPhrase
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
 	PileList* pPiles = GetLayout()->GetPileList();
 	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond the end of m_pileList
@@ -3744,6 +3742,62 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 	}
 }
 
+// return the index in m_pSourcePhrases for the passed in pSrcPhrase
+int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
+{
+	wxASSERT(pSrcPhrase != NULL);
+	return GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); 
+}
+
+void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase)
+{
+	// refactor 13Mar09
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
+	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
+	PileList* pPiles = GetLayout()->GetPileList();
+	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond the end of m_pileList
+	if (posPile != NULL)
+	{
+		CPile* pPile = posPile->GetData();
+		wxASSERT(pPile != NULL);
+		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src, adapt or gloss text
+
+		// if it is at the active location, then the width needs to be wider -
+		// SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile instance
+		// (but if not at the active location, the default value PHRASE_BOX_WIDTH_UNSET = -1 will apply)
+		if (pSrcPhrase->m_nSequNumber != GetLayout()->m_pApp->m_nActiveSequNum)
+			pPile->SetPhraseBoxGapWidth();
+
+		// our detection method (pile pointer mismatch) for user edits area would not detect this
+		// change and so we need to have this pile be located at a different location on the heap so
+		// create a deep copy & replace the original with it in the original's location within the list
+		pPile = ReplacePartnerPile(pPiles, posPile, pPile); // no need to do anything with returned pointer
+	}
+}
+// returns: a deep copy of the passed in (and uptodate) CPile instance
+// remarks: the reason we have this function is so that we can get a CPile instance identical to
+// an instance already made uptodate, and have this copy replace the passed in original, in the
+// CLayout's m_pileList list at the original's location. We specifically want a change to the
+// stored pile pointer there, so that the layout's mechanism for comparing m_pileList's contents
+// with the pile pointer copies in the m_stripArray will be able to detect the mismatch of the
+// pile pointers and so determine where the user's editing changes took place - either the start
+// of them (when scanning forward in the check) or the end of them (when scanning backward in the
+// check) -  the check being done at the start of the CLayout::Draw() function
+// Note: ReplacePartnerPile destroys the pUpdatedOldPile once it has been deep copied; and it does
+// the required array adjustment - including the insert of the new pile, so the returning of the
+// new pile's pointer to the caller is just a convience in case sometime the caller wants to do
+// something more with it - but usually, or perhaps always, that won't be the case (the passed in
+// pPiles list is the manager of the new pile, as it was for the old one that was passed in)
+CPile* CAdapt_ItDoc::ReplacePartnerPile(PileList* pPiles, PileList::Node* posPile, CPile* pUpdatedOldPile)
+{
+	CPile* pPileReplacement = new CPile(*pUpdatedOldPile);
+	pPiles->Erase(posPile);
+	pPiles->Insert(posPile,pPileReplacement);
+
+	// now delete the original
+	GetLayout()->DestroyPile(pUpdatedOldPile);
+	return pPileReplacement;
+}
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing

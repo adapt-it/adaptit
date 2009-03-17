@@ -894,14 +894,15 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// always check text extent to see if box needs resizing
 		wxSize currBoxSize(gpApp->m_curBoxWidth,gpApp->m_nTgtHeight);
 
-		// whm Note: Because of differences in the handling of events, in wxWidgets the GetValue() 
-		// call below retrieves the contents of the phrasebox as it existed before the keystroke 
-		// that triggered this present OnChar() event handler. Hence, the text returned via GetValue()
-		// is not updated to reflect the current keystroke until AFTER the pesent OnChar() call.
-		// This is in contrast to the MFC version where GetWindowText(thePhrase) at the same
-		// code location in PhraseBox::OnChar there gets the contents of the phrasebox including the 
-		// just typed character.
-		thePhrase = GetValue(); // current box text
+        // whm Note: Because of differences in the handling of events, in wxWidgets the GetValue()
+        // call below retrieves the contents of the phrasebox after the keystroke and so it
+        // includes the keyed character. OnChar() is processed before OnPhraseBoxChanged(), and in
+        // that handler the key typed is not accessible. Getting it here, therefore, is the only
+        // way to get it after the character has been added to the box. This is in contrast to the
+        // MFC version where GetWindowText(thePhrase) at the same code location in
+        // PhraseBox::OnChar there gets the contents of the phrasebox including the just typed
+        // character.
+		thePhrase = GetValue(); // current box text (including the character just typed)
 
 		// update m_targetPhrase to agree with what has been typed so far
 		gpApp->m_targetPhrase = thePhrase;
@@ -3358,8 +3359,7 @@ m:	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 			pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it won't get recreated
 			pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04 
 			if (!gbBundleChanged)
-				pView->LayoutStrip(pApp->m_pSourcePhrases,nOldStripIndex,
-																		pApp->m_pBundle);
+				pView->LayoutStrip(pApp->m_pSourcePhrases, nOldStripIndex, pApp->m_pBundle);
 			pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
 			pView->Invalidate();
 		}

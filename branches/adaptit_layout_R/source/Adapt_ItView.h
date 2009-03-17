@@ -554,7 +554,7 @@ protected:
 	int			SetPileHeight(const int curRows,  const int srcHeight, const int tgtHeight, 
 					const int navTextHeight, const bool bSuppressFirst, const bool bSuppressLast);
 	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);
-	void		SetupPhraseBoxParameters(CPile* pActivePile);
+	//void		SetupPhraseBoxParameters(CPile* pActivePile);  // BEW deprecated 16Mar09
 	//void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile); //moved to public
 	void		StoreFreeTranslationOnLeaving(); // BEW added 11Sep08
 	void		TransferCompletedSrcPhrases(SPList* pNewSrcPhrasesList,int nSaveSequNum);
