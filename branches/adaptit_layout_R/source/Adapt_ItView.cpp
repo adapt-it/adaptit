@@ -2127,17 +2127,104 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	return pileWidth;
 }
 
-void CAdapt_ItView::PrepareForLayout(int nActiveSequNum)
+void CAdapt_ItView::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, int nBoxCursorOffset)
 {
+	// hook up the user's edit action's results to the layout and phrase box, in the most typical
+	// or generic way - this will be appropriate after the majority of user edit actions; place
+	// this function in the relevant cases of the switch in PrepareForLayout()
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pLayout != NULL);
+	CAdapt_ItApp* pApp = pLayout->m_pApp;
 
-// *** TODO *** code a typical case set up for hooking layout and phrase box together
+	// ensure the app's m_pActivePile pointer is set
+	pApp->m_pActivePile = pLayout->m_pView->GetPile(nActiveSequNum);
 
+	// *** TODO *** comment out or remove next line when m_pActivePile member is removed from
+	// CPhraseBox class -- having pointer copies for no good reason is to invite an error
+	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
+
+
+	// get the cursor set
+	switch (state)
+	{
+	case select_all:
+		{
+			pApp->m_nStartChar = 0;
+			pApp->m_nEndChar = -1;
+			break;
+		}
+	case cursor_at_text_end:
+		{
+			int len = phrase.Len();
+			pApp->m_nStartChar = len;
+			pApp->m_nEndChar = len;
+			break;
+		}
+	case cursor_at_offset:
+		{
+			wxASSERT(nBoxCursorOffset >= 0);
+			pApp->m_nStartChar = nBoxCursorOffset;
+			pApp->m_nEndChar = pApp->m_nStartChar;
+			break;
+		}
+	default: // do this if a garbage value is passed in
+		{
+			pApp->m_nStartChar = 0;
+			pApp->m_nEndChar = -1;
+			break;
+		}
+	}
+
+	// wx Note: we don't destroy the target box, just set its text to null
+	pApp->m_pTargetBox->SetValue(_T(""));
+
+    // recalculate the layout (strips only, relaying out the piles)
+    // *** TODO **** when our self-adjusting layout code in Draw()'s call of AdjustForUserEdits()
+	// is complete, this RecalcLayout() call can be commented out, because AdjustForUserEdits()
+	// will do the required pile and strip adjustments at the user's edit location in the layout,
+	// and a complete destroy and recreation of the strips, and redistribution of the pile
+	// instances in doing that, will no longer be required. However, for as long as the following
+	// RecalcLayout() call persists here, what it does is to (1) destroy the existing CStrip
+	// instances in CLayout::m_stripArray; (2) it leaves completely untouched the CPiles in the
+	// list CLayout::m_pileList (so these have to be made correct and up to date beforehand in the
+	// handler function for the user's doc editing operation); (3) it rebuilds, for the *whole*
+	// document the CStrip instances using the data in the CPile instances in m_pileList, making
+	// copies of the CPile pointers in that list to save those pointer copies in the CStrip
+	// instances. This rebuild should be fast, because it just uses pile width values already
+	// stored idn the CPile instances, and needs to calculate no location information for
+	// individual piles or strips. In this design, strips are just a partitioning of the sequence
+	// of pile instances in m_pileList where the partitioning criterion is "the sum of the widths
+	// plus the interpile gaps in the current strip must be less than the strip's width, measured
+	// in pixels"
+	pLayout->RecalcLayout(); // bool param (bCreatePilesToo) is FALSE - so it just reforms strips
+							 // after destroying the old ones
+							 // 
+	// in the old design, a computation of the TopLeft coordinates of the phrase box location for
+	// the passed in active location would be done here, now that the layout is up to date;
+	// however, the placing and showing of the phrase box is now in CLayout::Draw(), and is done
+	// after the strips, piles and cells are drawn in the client area - so at that time the
+	// relevant coordinates can be obtained from the active pile pointer by calling its
+	// GetTopLeft() function. The function placing the phrasebox is PlacePhraseBoxInLayout().
+
+	// *** TODO *** at present I've not investigated scrolling; this call below may be necessary, or
+	// maybe it can be programmed away by tweakings done within AdjustForUserEdits() - a possibly
+	// complicating fact will be what the wxScrollingWindow of which the scrollbar is an integral
+	// part do, if the scroll range and /or thumb position is changed just prior to drawing --
+	// possibly a new paint message will be posted on the queue and result in a second unwanted draw
+	// (hence flicker) which we'll want to suppress in some way - perhaps to remove the paint event
+	// before it can be handled.
+	
+	// do a scroll if needed
+	pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
 }
 
-void CAdapt_ItView::PlacePhraseBoxInLayout()
+void CAdapt_ItView::PrepareForLayout(int nActiveSequNum)
 {
-	// *** TODO *** code a big switch for tailoring what is done before, & after ResizeBox(), make
-	// that call too. Call this function in CLayout::Draw() after strips are drawn
+	CLayout* pLayout = GetLayout();
+	CAdapt_ItApp* pApp = pLayout->m_pApp;
+
+	// hook up the user's edit action's results to the layout and phrase box (call this after layout
+	// manipulations are completed, and before actual drawing commences, within CLayout::Draw())
 	enum doc_edit_op opType = GetLayout()->m_docEditOperationType;
 	switch(opType)
 	{
@@ -2152,8 +2239,8 @@ void CAdapt_ItView::PlacePhraseBoxInLayout()
 			break;
 		}
 	case target_box_paste_op:
-		{
-
+		{	
+			PrepareForLayout_Generic(pApp->m_nActiveSequNum, pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
 			break;
 		}
 	case relocate_box_op:
@@ -2209,6 +2296,11 @@ void CAdapt_ItView::PlacePhraseBoxInLayout()
 	case end_free_trans_op:
 		{
 
+			break;
+		}
+	case retokenize_text_op:
+		{
+			PrepareForLayout_Generic(pApp->m_nActiveSequNum, pApp->m_targetPhrase, cursor_at_text_end);
 			break;
 		}
 	case collect_back_translations_op:
@@ -2316,7 +2408,8 @@ void CAdapt_ItView::PlacePhraseBoxInLayout()
 
 			break;
 		}
-	default:
+	default: // do the same as default_op	
+	case default_op:
 		{
 
 			break;
@@ -2324,6 +2417,253 @@ void CAdapt_ItView::PlacePhraseBoxInLayout()
 	}
 }
 
+void CAdapt_ItView::PlacePhraseBoxInLayout(int nActiveSequNum)
+{
+	// Call this function in CLayout::Draw() after strips are drawn
+	CLayout* pLayout = GetLayout();
+	CAdapt_ItApp* pApp = pLayout->m_pApp;
+	bool bSetModify = FALSE; // governs what is done with the wxEdit control's dirty flag
+	
+	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there the phrase box is
+	// to be located
+	wxPoint ptPhraseBoxTopLeft;
+	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile instead; but this
+					// will work even if we have forgotten to update it in the edit operation's handler
+	pActivePile->TopLeft(ptPhraseBoxTopLeft);
+
+	// get the pile width at the active location; use that width for the width of the phrase box there
+	// (we rely on this CPile instance's SetPhraseBoxGapWidth() having been called after the user's
+	// edits are done - and before the drawing is done; AdjustForUserEdits() should have done it)
+	int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
+
+	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
+	// range specification have already been appropriately set by the PrepareForLayout() function.
+
+	// handle any operation specific parameter settings
+	enum doc_edit_op opType = GetLayout()->m_docEditOperationType;
+	switch(opType)
+	{
+	case no_edit_op:
+		{
+
+			break;
+		}
+	case cancel_op:
+		{
+
+			break;
+		}
+	case target_box_paste_op:
+		{
+			bSetModify = FALSE;
+			break;
+		}
+	case relocate_box_op:
+		{
+
+			break;
+		}
+	case merge_op:
+		{
+
+			break;
+		}
+	case unmerge_op:
+		{
+
+			break;
+		}
+	case retranslate_op:
+		{
+
+			break;
+		}
+	case remove_retranslation_op:
+		{
+
+			break;
+		}
+	case edit_retranslation_op:
+		{
+
+			break;
+		}
+	case insert_placeholder_op:
+		{
+
+			break;
+		}
+	case remove_placeholder_op:
+		{
+
+			break;
+		}
+	case edit_source_text_op:
+		{
+
+			break;
+		}
+	case free_trans_op:
+		{
+
+			break;
+		}
+	case end_free_trans_op:
+		{
+
+			break;
+		}
+	case retokenize_text_op:
+		{
+			bSetModify = FALSE;
+			break;
+		}
+	case collect_back_translations_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_cancel_op:
+		{
+
+			break;
+		}
+	case vert_edit_end_now_op:
+		{
+
+			break;
+		}
+	case vert_edit_previous_step_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_op:
+		{
+
+			break;
+		}
+	case exit_preferences_op:
+		{
+
+			break;
+		}
+	case change_punctuation_op:
+		{
+
+			break;
+		}
+	case change_filtered_markers_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_and_filtered_markers_op:
+		{
+
+			break;
+		}
+	case open_document_op:
+		{
+
+			break;
+		}
+	case new_document_op:
+		{
+
+			break;
+		}
+	case close_document_op:
+		{
+
+			break;
+		}
+	case enter_LTR_layout_op:
+		{
+
+			break;
+		}
+	case enter_RTL_layout_op:
+		{
+
+			break;
+		}
+	default: // do the same as default_op	
+	case default_op:
+		{
+
+			break;
+		}
+	}
+
+	// wx Note: we don't destroy the target box, just set its text to null
+	pApp->m_pTargetBox->SetValue(_T(""));
+
+	// make the phrase box size adjustments, set the colour of its text, tell it where
+	// it is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize()
+	// and causes it to be visible again; CPhraseBox has a color variable & uses 
+	// reflected notification
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, pLayout->GetNavTextHeight(), pApp->m_targetPhrase,
+					pApp->m_nStartChar, pApp->m_nEndChar, pActivePile);
+		pApp->m_pTargetBox->m_textColor = pLayout->GetNavTextColor(); //was pApp->m_navTextColor;
+	}
+	else
+	{
+		ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, pLayout->GetTgtTextHeight(), pApp->m_targetPhrase,
+					pApp->m_nStartChar, pApp->m_nEndChar, pActivePile);
+		pApp->m_pTargetBox->m_textColor = pLayout->GetTgtColor(); // was pApp->m_targetColor;
+	}
+
+	// handle the dirty flag
+	if (bSetModify)
+	{
+		// calls our own SetModify(TRUE)(see Phrasebox.cpp)
+		pApp->m_pTargetBox->SetModify(TRUE); 
+	}
+	else
+	{
+		// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
+		pApp->m_pTargetBox->SetModify(FALSE); 
+	}
+
+}
 
 void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 // Modified to handle glossing or adapting
@@ -2396,6 +2736,12 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	// wxString doesn't have an Insert method, so we'll do it with our own InsertInString (see helpers.h)
 	targetPhrase = InsertInString(targetPhrase,(int)nStart,insertionText); //targetPhrase.Insert((int)nStart,insertionText);
 
+    // We have to recreate the box after measuring the text, because the existing box is almost
+    // certainly too small and it will reject any characters it cannot fit in. Note, this code
+    // would fail if we try to paste too much text, so we accept the text for pasting only if its
+    // extent fits within a strip's width - if not, clear the text & give a warning message, but
+    // allow any merge.
+
 	// use the targetPhrase text only if the resulting phrase box can fit within a single strip
 	int width = RecalcPhraseBoxWidth(targetPhrase);
 	CStrip* pStrip = pPile->GetStrip();
@@ -2419,20 +2765,20 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	// selection is too long, we will just remove it (not do Retranslation instead as in OnChar)
 	// Do the next block only if glossing is OFF, if it is on, we don't allow a merge and
 	// so proceed to the 'else' block
-	int nSaveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+	int nSaveActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 	if (!gbIsGlossing && pApp->m_selection.GetCount() > 1 && 
 		pApp->m_selection.GetCount() <= MAX_WORDS &&
 		pApp->m_pActivePile == pApp->m_pAnchor->GetPile())
 	{
-		// if we selected backwards, we have to be careful - we want nSaveSequNum to be first
-		// pile of the selection, so check it out now & if necessary adjust nSaveSequNum
+		// if we selected backwards, we have to be careful - we want nSaveActiveSequNum to be first
+		// pile of the selection, so check it out now & if necessary adjust nSaveActiveSequNum
 		CCellList::Node* cpos = pApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
 		wxASSERT(pCell != NULL);
 		CPile* pFirstPile = pCell->GetPile();
 		int nFirstSequNum = pFirstPile->GetSrcPhrase()->m_nSequNumber;
-		if (nFirstSequNum < nSaveSequNum)
-			nSaveSequNum = nFirstSequNum;
+		if (nFirstSequNum < nSaveActiveSequNum)
+			nSaveActiveSequNum = nFirstSequNum;
 
 		// do the merge
 		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary suppression only
@@ -2440,31 +2786,10 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		bSuppressDefaultAdaptation = FALSE;
 
 		// restore the active pile pointers
-		pPile = GetPile(nSaveSequNum);
+		pPile = GetPile(nSaveActiveSequNum);
 		pApp->m_pActivePile = pPile;
 		pApp->m_pTargetBox->m_pActivePile = pPile;
 	}
-	else
-	{
-		// if there is a selection, but the anchor is removed from the active location, we don't
-		// want to make a phrase elsewhere, so just remove the selection; or if glossing is ON
-		RemoveSelection();
-	}
-
-	// the following code is copied and adapted from PlacePhraseBox. We have to recreate the
-	// box after measuring the text, because the existing box is almost certainly too small
-	// and it will reject any characters it cannot fit in. Note, this code would fail if we
-	// try to paste too much text, so we accept the text for pasting only if its extent fits within
-	// a strip's width - if not, clear the text & give a warning message, but allow any merge.
-
-	// we now allow punctuation in the phrase box, since MoveToNextPile & MoveToPrevPile will now
-	// call MakeLineFourString so as to allow any punct etc. the user has typed
-
-	// nOldStripIndex unused
-	//int nOldStripIndex = pPile->m_pStrip->m_nStripIndex; // the strip we are in (we may be thrown
-	//													 // to the next strip if the text is long,
-	//													 // or to the previous strip if the text is
-	//													 // short & we are at the end of the strip)
 
 	// remove any existing selection, it would be a confusion if left there
 	RemoveSelection();
@@ -2475,68 +2800,45 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 	wxASSERT(pApp->m_nActiveSequNum >= 0);
 
-	// set initial location of the phraseBox
-	//pApp->m_ptCurBoxLocation = pPile->m_pCell[2]->m_ptTopLeft;
+	// setup for PrepareForLayout_Generic()
+	// Doing this typically involves making sure that the following are correctly set at the end
+	// of a handler (such as here)
+	// 1. CAdapt_ItApp::m_nActiveSequNum  -- crutial: it governs where the phrase box will shown
+	// 2. the global int, gnBoxCursorOffset, if the cursor is to be placed at a certain offset from
+	//    the start of the app class's m_targetPhrase member string, in the visible phrase box
+	// 3. the document-editing operation type - these are defined in a global enum called doc_edit_op
+	//    at the beginning of Layout.y -- there are about 50 values defined, and more may be
+	//    added; each user-edit operation needs, at the end of its handler, to have its enum value
+	//    stored in CLayout::m_docEditOperationType so that the switches in PrepareForLayout(), and
+	//    PlacePhraseBoxInLayout() can do the appropriate tasks when CLayout::Draw() is called.
+	// 4. It isn't necessary to specify here a value for the global enum in Adapt_It.h called
+	//    box_cursor, which specifies where the cursor is to be left in the made-visible phrase
+	//    box - where the options are a) show all text selected (the default), b) place the
+	//    cursor at the end of the text, c) place the cursor at a specific offset - this last
+	//    option requires that 2. above, gnBoxCursorOffset, be set here to the wanted offset. The
+	//    relevant enum values for these choices are hard-coded into the switch's cases in
+	//    PrepareForLayout() since what should happen is known for each document-editing op type.
+	//    The switch itself is in PrepareForLayout_Generic(), and what get's set is the app's members
+	//    m_nStartChar and m_nEndChar for the start and end of the selection within
+	//    m_targetPhrase's string when displayed in the phrase box.
+	// 5. An efficiency-helping enum value for speeding up the algorithm for CLayout::Draw() to
+	//    find in both the m_pileList, and the m_stripArray, where the user's document edits start
+	//    and end. The algorith by default searches forward from the start of both those members, and
+	//    backward from the end of both those members, to find where CPile pointers mismatch. Enum
+	//    values are provided which allow searching from 80 piles either side of the current
+	//    active location, or 300 piles either side of the current active location. Different
+	//    editing operations can have different choices. The shorter search spans are more risky
+	//    because they might miss the start or end of the user's edit location and not then update
+	//    the layout correctly. The enum is called update_span. Place the desired enum value in 
+	//    CLayout::m_userEditsSpanCheckType and then the functions within CLayout::Draw() will
+	//    pick up the value and use it appropriately.
+	// 6. Make sure the CAdapt_ItApp::m_targetPhrase wxString member is correctly set to contain
+	//    the text which is to be shown in the made-visible phrase box when CLayout::Draw() is called.
+	gnBoxCursorOffset = nStart + pasteStrLength;
+	GetLayout()->m_docEditOperationType = target_box_paste_op;
+	GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity; // active loc +- max 80 (piles)
 
-    // Roland Fumey (18July08) said showing box contents selected is unhelpful, rather we should
-    // leave the cursor at the paste location - so I've commented out the next line and set the
-    // offsets to comply with his request
-	//gpApp->m_nStartChar = 0; gpApp->m_nEndChar = -1; // make sure the text is shown selected
-	gpApp->m_nStartChar = nStart + pasteStrLength; // not necessarily the end of the string, but the
-										// end of the pasted string within the larger original string
-	gpApp->m_nEndChar = gpApp->m_nStartChar;
-
-	// wx Note: we don't destroy the target box, just set its text to null
-	pApp->m_pTargetBox->SetValue(_T(""));
-
-	// recalculate the layout (strips only, relaying out the piles)
-	// *** TODO **** when our self-adjusting layout code in Draw() is complete, this can be
-	// commented out
-	pLayout->RecalcLayout(); // bool param (bCreatePilesToo) is FALSE - it just does strips
-							 // after destroying the old ones
-
-	// if a phrase jumps back on to the line due to the recalc of the layout, then the
-	// current location for the box will end up too far right, so we must find out where the
-	// active pile now is and reset m_ptCurBoxLocation before calling ResizeBox, so
-	// recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
-	/* old code
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	wxASSERT(pApp->m_pActivePile != NULL);
-	*/
-	// *** TODO *** comment out or remove next line when m_pActivePile is removed from CPhraseBox
-	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
-
-	// set location of the phraseBox in the reconstituted layout
-	//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[1]->m_ptTopLeft;
-	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->GetCell(1)->GetTopLeft();
-
-
-	// do a scroll if needed
-	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-	// recreate the box window
-	pApp->m_curBoxWidth = RecalcPhraseBoxWidth(pApp->m_targetPhrase); // recalc, since the pasted text might
-														  // be shorter
-	pApp->m_nCurPileMinWidth = pApp->m_curBoxWidth; // update this too, so box can be shorter if necessary
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
-		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nNavTextHeight,pApp->m_targetPhrase,
-													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
-		// set the color - CPhraseBox has a color variable & uses reflected notification
-		pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
-	}
-	else
-	{
-		// wx Note: ResizeBox doesn't recreate the box; it just calls SetSize and causes it to be visible again
-		ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nTgtHeight,pApp->m_targetPhrase,
-													pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
-		// set the color - CPhraseBox has a color variable & uses reflected notification
-		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-	}
-
-	pApp->m_pTargetBox->SetModify(FALSE); //calls our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
-
+	// makde the layout adjustments get done and then the draw and showing of the relocated phrase box
 	Invalidate();
 }
 
@@ -2764,6 +3066,85 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 }
 */
 
+CSourcePhrase* CAdapt_ItView::GetSrcPhrase(int nSequNum)
+{
+	// refactored, no change needed (18Mar09)
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	SPList* pList = pApp->m_pSourcePhrases; 
+	wxASSERT(pList);
+	int nCount;
+	nCount = pList->GetCount();
+	wxASSERT(nCount != 0);
+	SPList::Node* pos = pList->Item(nSequNum);
+	wxASSERT(pos != NULL);
+	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	wxASSERT(pSrcPhrase);
+	return pSrcPhrase;
+}
+
+CSourcePhrase* CAdapt_ItView::GetNextEmptySrcPhrase(int nStartingSequNum)
+// this searches in the list of stored source phrases, so it will search to the very end of the doc
+// if necessary For version 2.0 and onwards, test gbIsGlossing and branch accordingly.
+{
+	// refactored 18Mar09
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CSourcePhrase* pSrcPhrase;
+	int sn = nStartingSequNum;
+	int maxIndex = pApp->m_pSourcePhrases->GetCount() - 1;
+	SPList::Node* pos = pApp->m_pSourcePhrases->Item(sn);
+	do
+	{
+		++sn;
+		pos = pos->GetNext();
+		if (sn > maxIndex)
+			return (CSourcePhrase*)NULL; // we have gone past end of document
+		pSrcPhrase = pos->GetData();
+		wxASSERT(pSrcPhrase);
+		if (gbIsGlossing)
+		{
+			if (!pSrcPhrase->m_bHasGlossingKBEntry)
+				return pSrcPhrase;
+		}
+		else
+		{
+			if (!pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB && !pSrcPhrase->m_bRetranslation)
+				return pSrcPhrase;
+		}
+	} while (TRUE);
+}
+
+/* old code
+CSourcePhrase* CAdapt_ItView::GetNextEmptySrcPhrase(int nStartingSequNum)
+// this searches in the list of stored source phrases, so it will search to the very end of the doc
+// if necessary For version 2.0 and onwards, test gbIsGlossing and branch accordingly.
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CSourcePhrase* pSrcPhrase;
+	int sn = nStartingSequNum;
+	do
+	{
+		++sn;
+		if (sn > pApp->m_maxIndex)
+			return (CSourcePhrase*)NULL; // we have gone past end of document
+		pSrcPhrase = GetSrcPhrase(sn);
+		wxASSERT(pSrcPhrase);
+		if (gbIsGlossing)
+		{
+			if (!pSrcPhrase->m_bHasGlossingKBEntry)
+				return pSrcPhrase;
+		}
+		else
+		{
+			if (!pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB
+											&& !pSrcPhrase->m_bRetranslation)
+				return pSrcPhrase;
+		}
+	} while (TRUE);
+}
+*/
 
 // OnPrepareDC() was moved to CAdapt_ItCanvas in the wx version
 
@@ -28000,51 +28381,6 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 	}
 }
 
-CSourcePhrase* CAdapt_ItView::GetSrcPhrase(int nSequNum)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	SPList* pList = pApp->m_pSourcePhrases; 
-	wxASSERT(pList);
-	int nCount;
-	nCount = pList->GetCount();
-	wxASSERT(nCount != 0);
-	SPList::Node* pos = pList->Item(nSequNum);
-	wxASSERT(pos != NULL);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	wxASSERT(pSrcPhrase);
-	return pSrcPhrase;
-}
-
-CSourcePhrase* CAdapt_ItView::GetNextEmptySrcPhrase(int nStartingSequNum)
-// this searches in the list of stored source phrases, and is independent of the size of the
-// current bundle - so it will search to the very end of the doc if necessary
-// For version 2.0 and onwards, test gbIsGlossing and branch accordingly.
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	CSourcePhrase* pSrcPhrase;
-	int sn = nStartingSequNum;
-	do
-	{
-		++sn;
-		if (sn > pApp->m_maxIndex)
-			return (CSourcePhrase*)NULL; // we have gone past end of document
-		pSrcPhrase = GetSrcPhrase(sn);
-		wxASSERT(pSrcPhrase);
-		if (gbIsGlossing)
-		{
-			if (!pSrcPhrase->m_bHasGlossingKBEntry)
-				return pSrcPhrase;
-		}
-		else
-		{
-			if (!pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB
-											&& !pSrcPhrase->m_bRetranslation)
-				return pSrcPhrase;
-		}
-	} while (TRUE);
-}
 
 CSourcePhrase* CAdapt_ItView::GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
 {

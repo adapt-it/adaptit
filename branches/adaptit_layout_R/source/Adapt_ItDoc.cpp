@@ -4170,7 +4170,7 @@ b:			pSrcPhrase->m_gloss = gloss;
 // //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr)
 {
-	// refactored 10Mar09
+	// refactored 18Mar09
 	// BEW added 18May05
 	// Filtering has changed
 	bool bSuccessful = TRUE;
@@ -4876,6 +4876,7 @@ h:						bool bIsInitial = TRUE;
 		// unfiltered, so the updated phrase box location (ie. which sequence number it is)
 		// might now be out of the current bundle's bounds. Check for this, and if that is
 		// the case then adjust the bundle first before recalculating the layout
+		/* should not be required in the refactored design
 		if (gpApp->m_nActiveSequNum < gpApp->m_beginIndex ||
 			gpApp->m_nActiveSequNum > gpApp->m_endIndex)
 		{
@@ -4884,6 +4885,7 @@ h:						bool bIsInitial = TRUE;
 		}
 		pView->RecalcLayout(pList,0,gpApp->m_pBundle);
 		gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+		*/
 
 		// reinitialize the progress window for the filtering loop
 		nOldTotal = pList->GetCount();
@@ -5693,13 +5695,18 @@ d:				if (!bAtEnd || bGotEndmarker)
 		gpApp->GetSafePhraseBoxLocationUsingList(pView);
 	}
 
+	/*
+	// in the refactored layout, there won't be a DestroyWindow() call, and so there should be no
+	// need for this RecalcLayout() call here - we just need a final one for end of the
+	// reconstitute function's caller which is doc's RetokenizeText() function
+	
 	// get a valid layout so window painting won't crash due to bad pointers in the bundle due to
 	// the rebuilding; even though the phrase box is not recreated yet, we need a valid layout because
 	// the following DestroyWindow() call for the progress window will cause the view to repaint the
 	// part that was underneath the progress window, and for that not to crash we need a valid layout
 	pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-
+	*/
 	// remove the progress window, clear out the sublist from memory
 	// wx version note: Since the progress dialog is modeless we do not need to destroy
 	// or otherwise end its modeless state; it will be destroyed when 
@@ -10885,6 +10892,9 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
         }
     }
 
+	/* note Bill's comment at the end - it implies we don't need this RecalcLayout() call in the
+	   // refactored application
+	   
 	// get a valid layout so window painting won't crash due to bad pointers in the bundle due to
 	// the rebuilding; even though the phrase box is not recreated yet, we need a valid layout because
 	// the following DestroyWindow() call for the progress window will cause the view to repaint the
@@ -10899,6 +10909,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	// wx version note: Since the progress dialog is modeless we do not need to destroy
 	// or otherwise end its modeless state; it will be destroyed when RetokenizeText goes
 	// out of scope
+	*/ 
 
 	if (bChangedSfmSet)
     {
@@ -11006,11 +11017,14 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	// make sure everything is correctly numbered in sequence; shouldn't be necessary, but no harm done
 	UpdateSequNumbers(0);
 
+	/* in the refactored layout design, this RecalcLayout call should not be needed, just need the
+	   // one which followed the bNeedMessage == TRUE block
+	   
 	// get a valid layout so window painting won't crash due to bad pointers in the bundle due to
 	// the rebuilding
 	pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-
+	*/
 	// warn the user if he needs to do some visual checking etc.
 	if (bNeedMessage)
 	{
@@ -11072,8 +11086,13 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		wxMessageBox(fixesStr, _T(""), wxICON_INFORMATION);
 	}
 
-	pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
+	// this is where we need to have the layout updated. We will do the whole lot, that is,
+	// destroy and recreate both piles and strips
+	//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
+	GetLayout()->RecalcLayout(TRUE); // TRUE is bRecreatePileListAlso
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+
+	GetLayout()->m_docEditOperationType = retokenize_text_op;
 
 	return count;
 }
@@ -13880,7 +13899,9 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 	}
 	// enable if there is a KB ready (even if only a stub), and the document loaded, and
 	// documents are to be saved as XML is turned on; and glossing mode is turned off
-	if (gpApp->m_pBundle->m_nStripCount > 0 && gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
+	//if (gpApp->m_pBundle->m_nStripCount > 0 && gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
+	if (gpApp->m_pLayout->GetStripArray()->GetCount() > 0 &&
+		gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
 	{
 		event.Enable(TRUE);
 	}

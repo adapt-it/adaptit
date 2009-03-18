@@ -4939,7 +4939,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version 
 	m_pViewFilteredMaterialDlg = (CViewFilteredMaterialDlg*)NULL; // needed in wx version
 
-	m_pBundle = (CSourceBundle*)NULL;
+	//m_pBundle = (CSourceBundle*)NULL;
 	m_pActivePile = (CPile*)NULL; // start with null, in case user invokes Allow Glossing in the Advanced
 						  // menu after launching and only a project is open but not a document
 	m_pAnchor = (CCell*)NULL;
@@ -6708,6 +6708,7 @@ int CAdapt_ItApp::OnExit(void)
 
 
 	// delete the CSourceBundle instance
+	/*
 	if (m_pBundle != 0)
 	{
 		// old data still exists, so get rid of it
@@ -6715,6 +6716,7 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pBundle;
 		m_pBundle = (CSourceBundle*)NULL;
 	}
+	*/
 	// Code above transferred here from MFC View::PostNcDestroy() which is
 	// called just before MFC's ExitInstance(), which in turn calls Terminate(). 
 
@@ -17946,7 +17948,8 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	//if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	if (pKB != NULL && m_pLayout->GetStripArray()->GetCount() > 0)
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument
@@ -18030,7 +18033,8 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	//if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	if (pKB != NULL && m_pLayout->GetStripArray()->GetCount() > 0)
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument

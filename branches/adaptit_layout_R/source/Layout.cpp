@@ -4,14 +4,13 @@ bool gbSuppressLast
 bool gbSuppressFirst
 int curRows     in param lists only?
 int m_curPileHeight     on the app
-?? int m_nCurPileMinWidth  on the app ?? no, used scores of times, for resetting box width, m_curBoxWidth 
-						often sets it - eg. returned from RecalcPhraseBoxWidth(); so leave the phr box
-						mechanisms untouched at this time.
+int m_nCurPileMinWidth  on the app
 gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLayout
 grectViewClient	(was used for testing rect intersections for drawing in the legacy app)
-m_maxIndex, and the other indices -- use GetCount() of m_pSourcePhrases wherever
-
-
+m_maxIndex, and the other indices -- use GetCount() of m_pSourcePhrases wherever needed
+wxPoint m_ptCurBoxLocation on the app
+int m_curDocWidth on the app
+m_bSaveAsXML on app, not needed in WX version
 
 */
 
@@ -230,12 +229,7 @@ void CLayout::Draw(wxDC* pDC)
 
 	// make any alterations needed to the strips because of user edit operations on the doc
 	AdjustForUserEdits(m_userEditsSpanCheckType);
-	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value
-
-	// once the strips are all adjusted so that the pile instances are in their proper locations
-	// we can set the wxPoint member on the application which specifies the TopLeft coordinates
-	// for the phrase box at the active location - so we can set that member now
-	m_pApp->m_ptCurBoxLocation = m_pApp->m_pActivePile->GetCell(1)->GetTopLeft();
+	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value for next time
 	 
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
@@ -250,7 +244,7 @@ void CLayout::Draw(wxDC* pDC)
 	}
 
 	// get the phrase box placed in the active location and made visible, and suitably prepared
-	m_pView->PlacePhraseBoxInLayout();
+	m_pView->PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
 }
 
 

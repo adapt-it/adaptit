@@ -1317,7 +1317,7 @@ public:
 	// for use in tokenizing retranslations
 	//wxString buffer; moved here from the View, however, it wasn't used anywhere in the View
 	static bool bLookAheadMerge; // TRUE when merging a matched multiword phrase
-	CSourceBundle* m_pBundle; // whm moved to the App from the View
+	//CSourceBundle* m_pBundle; // whm moved to the App from the View // removed 18Mar09
 	CPile* m_pActivePile;	// where the phrase box is to be located // whm moved to the App from the View
 	CCell* m_pAnchor;		// anchor element for the selection // whm moved to the App from the View
 	int m_selectionLine;	// index of line which has the selection (0 to 3, -1 

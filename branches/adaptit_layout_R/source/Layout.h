@@ -68,6 +68,7 @@ typedef enum update_span {
 
 typedef enum doc_edit_op {
 	no_edit_op,
+	default_op, // assumes a ResizeBox() call is required
 	cancel_op,
 	target_box_paste_op,
 	relocate_box_op,
@@ -81,6 +82,7 @@ typedef enum doc_edit_op {
 	edit_source_text_op,
 	free_trans_op,
 	end_free_trans_op,
+	retokenize_text_op,
 	collect_back_translations_op,
 	vert_edit_enter_adaptions_op,
 	vert_edit_exit_adaptions_op,

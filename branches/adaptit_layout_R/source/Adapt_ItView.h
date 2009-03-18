@@ -72,7 +72,14 @@ WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp fil
 /// a list of pointers to wxString objects
 WX_DECLARE_LIST(wxString, WordList); // see list definition macro in .cpp file
 
-
+typedef enum box_cursor {
+	select_all,
+	cursor_at_text_end,
+	cursor_at_offset
+};
+int gnBoxCursorOffset = 0;	// pass gnBoxCursorOffset to PrepareForLayout_Generic() 
+							// for box_cursor enum value of cursor_at_offset
+						
 // ////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItView class is the most complex class in the application. 
 /// It controls every aspect of how the data is presented to the user, 
@@ -276,9 +283,11 @@ public:
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
 																  // enable/disable code
-	void		PlacePhraseBoxInLayout(); // BEW added 17Mar09
+	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
 	void		PrepareForLayout(int nActiveSequNum); // BEW added 17Mar09
+	void		PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, 
+											int gnBoxCursorOffset = 0); // BEW added 17Mar09
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
 	void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle* pBundle);
 	
