@@ -1205,6 +1205,15 @@ CLayout* CAdapt_ItView::GetLayout()
 // as well as drawing on the screen
 void CAdapt_ItView::OnDraw(wxDC *pDC)
 {
+	// the mechanism Bill has is that the canvas class handles the paint event, and the
+	// handler (OnPaint()) ignores the contents of the passed in event but creates a
+	// wxPaintDC with the call wxPaintDC paintDC(this); and then he explicitly calls
+	// DoPrepareDC(paintDC) to get the origin scrolled to agree with the scrollbar and
+	// then excutes the CAdapt_ItView's OnDraw(wxDC* pDC) by calling the canvas member 
+	// pView->OnDraw(&paintDC); - so the original wxDC passed to view's OnDraw() is
+	// ignored and replaced with the scrolled one from the canvas before any drawing is
+	// done - I don't see any problem with this mechanism (BEW note, 20Mar09)
+	
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
@@ -3091,14 +3100,11 @@ CSourcePhrase* CAdapt_ItView::GetNextEmptySrcPhrase(int nStartingSequNum)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CSourcePhrase* pSrcPhrase;
-	int sn = nStartingSequNum;
-	int maxIndex = pApp->m_pSourcePhrases->GetCount() - 1;
-	SPList::Node* pos = pApp->m_pSourcePhrases->Item(sn);
+	SPList::Node* pos = pApp->m_pSourcePhrases->Item(nStartingSequNum);
 	do
 	{
-		++sn;
 		pos = pos->GetNext();
-		if (sn > maxIndex)
+		if (pos == NULL)
 			return (CSourcePhrase*)NULL; // we have gone past end of document
 		pSrcPhrase = pos->GetData();
 		wxASSERT(pSrcPhrase);
@@ -3143,6 +3149,271 @@ CSourcePhrase* CAdapt_ItView::GetNextEmptySrcPhrase(int nStartingSequNum)
 				return pSrcPhrase;
 		}
 	} while (TRUE);
+}
+*/
+
+CSourcePhrase* CAdapt_ItView::GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
+{
+	// refactored 19Mar09
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	wxASSERT(pSrcPhrase);
+	int sn = pSrcPhrase->m_nSequNumber;
+	CSourcePhrase* pSP;
+	SPList::Node* pos = pApp->m_pSourcePhrases->Item(sn);
+	do
+	{
+		pos = pos->GetNext();
+		if (pos == NULL)
+			return (CSourcePhrase*)NULL; // we have gone past end of document
+		pSP = pos->GetData();
+		wxASSERT(pSP);
+	} while (pSP->m_bRetranslation);
+	return pSP; // found one where it is okay to have the phrase box put in the view
+}
+
+CSourcePhrase* CAdapt_ItView::GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
+{
+	// refactored 19Mar09
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	wxASSERT(pSrcPhrase);
+	int sn = pSrcPhrase->m_nSequNumber;
+	CSourcePhrase* pSP;
+	SPList::Node* pos = pApp->m_pSourcePhrases->Item(sn);
+	do
+	{
+		pos = pos->GetPrevious();
+		if (pos == NULL)
+			return (CSourcePhrase*)NULL; // we have gone back past start of document
+		pSP = pos->GetData();
+		wxASSERT(pSP);
+	} while (pSP->m_bRetranslation);
+	return pSP; // found one where it is okay to have the phrase box put in the view
+}
+/* old code
+CSourcePhrase* CAdapt_ItView::GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	wxASSERT(pSrcPhrase);
+	int sn = pSrcPhrase->m_nSequNumber;
+	CSourcePhrase* pSP;
+	do
+	{
+		++sn;
+		if (sn > pApp->m_maxIndex)
+			return (CSourcePhrase*)NULL; // we have gone past end of document
+		pSP = GetSrcPhrase(sn);
+		wxASSERT(pSP);
+	} while (pSP->m_bRetranslation);
+	return pSP; // found one where it is okay to have the phrase box put in the view
+}
+
+CSourcePhrase* CAdapt_ItView::GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
+{
+	wxASSERT(pSrcPhrase);
+	int sn = pSrcPhrase->m_nSequNumber;
+	CSourcePhrase* pSP;
+	do
+	{
+		--sn;
+		if (sn < 0)
+			return (CSourcePhrase*)NULL; // we have gone back past start of document
+		pSP = GetSrcPhrase(sn);
+		wxASSERT(pSP);
+	} while (pSP->m_bRetranslation);
+	return pSP; // found one where it is okay to have the phrase box put in the view
+}
+*/
+
+bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
+											   SPList* pSrcPhrases,int& nSaveActiveSequNum,
+											   int& nActiveSequNum,int nFinish)
+// nSaveActiveSequNum, on input, should be the tentative sequNum value we hope will be a valid
+// location but may not be; and nActiveSequNum, on input, should be the current active location's
+// sequNum; on output, nSaveActiveSequNum will be a different value if the input value landed the
+// box in a retranslation...
+// pSrcPhrases is the list on the app, nSaveActiveSequNum - this could be too large since
+// we try place the active location after the retranslation and that might be beyond the end of
+// the document, hence the need to try find a safe place somewhere (its passed by reference
+// because we want the caller's variable of the same name to be automatically updated too);
+// nActiveSequNum is a ref to the App's m_nActiveSequNum and we will set it from here;
+// nFinish is the final number of piles in the retranslation after all adjustments have been done.
+{
+	// refactored 19Mar09
+	if (nSaveActiveSequNum >= (int)pSrcPhrases->GetCount())
+	{
+		// need to put active location before the retranslation
+		int sequNum = nSaveActiveSequNum - nFinish;
+		bool bAtStart = FALSE; // if we get to doc start, put it there no matter what
+		CSourcePhrase* pSP;
+		do
+		{
+			--sequNum;
+			if (sequNum == 0)
+			{
+				bAtStart = TRUE;
+				break;
+			}
+			SPList::Node* pos = pSrcPhrases->Item(sequNum);
+			pSP = (CSourcePhrase*)pos->GetData();
+			wxASSERT(pSP != NULL);
+		} while (pSP->m_bRetranslation || pSP->m_bNotInKB);
+		if (bAtStart)
+			nSaveActiveSequNum = 0;
+		else
+			nSaveActiveSequNum = sequNum; // new value
+		pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
+	}
+	else
+	{
+		pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
+
+		// this could be a pile containing a retranslation, so check it out, and if so, advance
+		// until we find a safe location, and if that process reaches the end of the document
+		// without finding a safe location, then go backwards instead until we find one - one of
+		// these processes will definitely succeed.
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		if (pSrcPhrase->m_bRetranslation)
+		{
+			// a retranslation is not a valid phrase box location, so hunt for a safe place nearby
+			CSourcePhrase* pSaveSP = pSrcPhrase;
+			pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
+
+			if (pSrcPhrase == NULL)
+			{
+				// reached end of source phrase list without finding a safe place, so look in the
+				// opposite direction - this (almost certainly) MUST succeed - it could only fail
+				// if the previous active location was in the selection and the selection comprised
+				// all of the srcPhrases which are not already in a retranslation, and the whole
+				// doc is now a series of consecutive retranslations (most unlikely!)
+				pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSP);
+
+				if (pSrcPhrase == NULL)
+				{
+					// nowhere is a safe location! (Is the user retranslating everything? !!!)
+					// so our only option is to go to the end & put it there no matter what
+					int lastSequNum = (int)pSrcPhrases->GetCount()- 1;
+					CPile* pPile = GetPile(lastSequNum);
+					pApp->m_targetPhrase.Empty();
+					nActiveSequNum = lastSequNum;
+					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_targetPhrase = pPile->GetSrcPhrase()->m_adaption;
+					pApp->m_pActivePile = pPile;
+					return FALSE; // Note: of 9 calls in the app, only 2 actually use this returned
+					// FALSE VALUE - once in OnButtonRetranslation() and the other in 
+					// OnButtonEditRetranslation - where they, in the legacy version, caused a
+					// warning message to show and the function exited early; in the refactored
+					// version the return call after the message is commented out, so the function
+					// proceeds normally and the message still shows and the phrase box is put at
+					// the document end, visible.
+				}
+			}
+		}
+
+		// jump to whatever pile is not in a retranslation, as close to wanted loc'n as possible
+		nSaveActiveSequNum = pSrcPhrase->m_nSequNumber;
+		gnOldSequNum = nSaveActiveSequNum; // the only safe option, since old location may now
+										   // be within the retranslation
+		Jump(pApp,pSrcPhrase);
+	}
+	nActiveSequNum = nSaveActiveSequNum; // ensure value of pApp->m_nActiveSequNum agrees with any
+										 // adjustments
+	return TRUE;
+}
+/* old code
+bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
+											   SPList* pSrcPhrases,int& nSaveActiveSequNum,
+											   int& nActiveSequNum,int nFinish)
+// nSaveActiveSequNum, on input, should be the tentative sequNum value we hope will be a valid
+// location but may not be; and nActiveSequNum, on input, should be the current active location's
+// sequNum; on output, nSaveActiveSequNum will be a different value if the input value landed the
+// box in a retranslation...
+// pSrcPhrases is the list on the app, nSaveActiveSequNum - this could be too large since
+// we try place the active location after the retranslation and that might be beyond the end of
+// the document, hence the need to try find a safe place somewhere (its passed by reference
+// because we want the caller's variable of the same name to be automatically updated too);
+// nActiveSequNum is a ref to the App's m_nActiveSequNum and we will set it from here;
+// nFinish is the final number of piles in the retranslation after all adjustments have been done.
+{
+	if (nSaveActiveSequNum >= (int)pSrcPhrases->GetCount())
+	{
+		// need to put active location before the retranslation
+		int sequNum = nSaveActiveSequNum - nFinish;
+		CSourcePhrase* pSP;
+		do
+		{
+			--sequNum;
+			SPList::Node* pos = pSrcPhrases->Item(sequNum);
+			pSP = (CSourcePhrase*)pos->GetData();
+			wxASSERT(pSP != NULL);
+		} while (pSP->m_bRetranslation || pSP->m_bNotInKB);
+		nSaveActiveSequNum = sequNum; // new value
+
+		// are we still in the current bundle?
+		if (nSaveActiveSequNum < pApp->m_beginIndex)
+		{
+			// gone back preceding the bundle, so we have to fix the bundle too
+			pApp->m_pActivePile = AdvanceBundle(nSaveActiveSequNum); // not an "advance" but the
+															   // call works ok
+		}
+		else
+		{
+			pApp->m_pActivePile = GetPile(nSaveActiveSequNum); // in the current bundle
+		}
+	}
+	else
+	{
+		pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
+
+		// this could be a pile containing a retranslation, so check it out, and if so, advance
+		// until we find a safe location, and if that process reaches the end of the document
+		// without finding a safe location, then go backwards instead until we find one - one of
+		// these processes will definitely succeed.
+		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->m_pSrcPhrase;
+		if (pSrcPhrase->m_bRetranslation)
+		{
+			// a retranslation is not a valid phrase box location, so hunt for a safe place nearby
+			CSourcePhrase* pSaveSP = pSrcPhrase;
+			pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
+
+			if (pSrcPhrase == NULL)
+			{
+				// reached end of source phrase list without finding a safe place, so look in the
+				// opposite direction - this (almost certainly) MUST succeed - it could only fail
+				// if the previous active location was in the selection and the selection comprised
+				// all of the srcPhrases which are not already in a retranslation, and the whole
+				// doc is now a series of consecutive retranslations (most unlikely!)
+				pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSP);
+
+				if (pSrcPhrase == NULL)
+				{
+					// nowhere is a safe location! (Is the user retranslating everything? !!!)
+					// so our only option is to go to the end
+					int lastSequNum = pApp->m_maxIndex;
+					CPile* pPile;
+					pPile = AdvanceBundle(lastSequNum);
+					Invalidate();
+					// we don't want a phrase box, so step past the end
+					pApp->m_targetPhrase.Empty();
+					nActiveSequNum = pApp->m_curIndex = -1;
+					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
+					return FALSE;
+				}
+			}
+		}
+
+		// jump to whatever pile is not in a retranslation, as close to wanted loc'n as possible
+		nSaveActiveSequNum = pSrcPhrase->m_nSequNumber;
+		gnOldSequNum = nSaveActiveSequNum; // the only safe option, since old location may now
+										   // be within the retranslation
+		Jump(pApp,pSrcPhrase);
+	}
+	nActiveSequNum = nSaveActiveSequNum; // ensure value of pApp->m_nActiveSequNum agrees with any
+										 // adjustments
+	return TRUE;
 }
 */
 
@@ -5621,7 +5892,7 @@ void CAdapt_ItView::OnUpdateFilePrintSetup(wxUpdateUIEvent& event)
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 */
-
+/* deprecated in refactored layout 19Mar09
 int CAdapt_ItView::SetPileHeight(const int curRows, const int srcHeight, const int tgtHeight,
 				 const int navTextHeight, const bool bSuppressFirst, const bool bSuppressLast)
 // version 2.0 and onwards adds the height of the glossing line when gbEnableGlossing is TRUE
@@ -5656,6 +5927,7 @@ int CAdapt_ItView::SetPileHeight(const int curRows, const int srcHeight, const i
 	}
 	return pileHeight;
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     the number of Strips determined to compose the current layout (in simulation)
@@ -5671,7 +5943,64 @@ int CAdapt_ItView::SetPileHeight(const int curRows, const int srcHeight, const i
 /// that number for simulating a printed layout. This number is then used as input to 
 /// PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
 ////////////////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize sizeTotal,const int nBeginSN,const int nEndSN)
+int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize sizeTotal,
+											 const int nBeginSN, const int nEndSN)
+{
+	// refactored 19Mar09
+	// we'll use the passed in pSrcPhrases list pointer only for the next few lines which
+	// do tests. After that, we'll iterate across the CPile instances in CLayout::m_pileList
+	SPList* pSrcList = pSrcPhrases;
+	if (pSrcPhrases == NULL)
+		return 0;
+	if (pSrcPhrases->GetCount() == 0)
+		return 0;
+
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	CLayout* pLayout = GetLayout();
+	PileList* pPiles = pLayout->GetPileList(); // index into this list using nBeginSN and nEndSN
+
+	// set the pile height value
+	int nPileHeight_SimulationOnly = pLayout->GetPileHeight(); // wxMM_TEXT is used 
+	// for doc window, and printing -- which conveniently means that the pile widths
+	// for all the piles are stored on them already, and pile height is a known
+	// constant, which simplifies the calculations a lot - we don't need a device
+	// context, etc.
+	int		nLastSequNumber;
+	int		nEndIndex;
+	
+	nLastSequNumber = nBeginSN; // nBeginSN is incoming parameter
+	nEndIndex = nEndSN; // nEndSN is incoming parameter
+	int nStripIndex = -1;
+	int nStripCount = 0;
+	// Our incoming sizeTotal parameter contains the page printing dimensions in logical units (LU)
+	// which we need to pass on to CreateStrip_SimulateOnly for the width of its rectStrip creation.
+	int nPagePrintWidthLU = sizeTotal.x;
+
+	while (nLastSequNumber < nEndIndex)
+	{
+		nStripIndex++; // set local index for this strip
+		CreateStrip_SimulateOnly(pPiles, nPagePrintWidthLU, nLastSequNumber, nEndIndex);
+		nStripCount++; // increment local strip count
+	}
+	return nStripCount; // return our nStripCount
+}
+/* old code
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     the number of Strips determined to compose the current layout (in simulation)
+/// \param      pSrcPhrases   -> the list of source phrases of the current document
+/// \param      sizeTotal     -> the layout size consisting of the nPagePrintingWidthLU and
+///                                 nPagePrintingLengthLU dimensions (logical units)
+/// \param      nBeginSN      -> the sequence number of the first source phrase in the layout
+/// \param      nEndSN        -> the sequence number of the last source phrase in the layout
+/// \remarks
+/// Called from: CPrintOptionsDlg::InitDialog().
+/// RecalcLayout_SimulateOnly() does not create any objects; it only calculates the layout
+/// to the degree that it determines the number of Strips that will be needed and returns 
+/// that number for simulating a printed layout. This number is then used as input to 
+/// PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
+////////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize sizeTotal,
+											 const int nBeginSN, const int nEndSN)
 {
 	SPList* pSrcList = pSrcPhrases;
 	if (pSrcPhrases == NULL)// || pBundle == NULL)
@@ -5736,7 +6065,340 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 	// Simulating only - we don't set the App's m_docSize, nor do we call SetVirtualSize on the canvas
 	return nStripCount; // just return our non-pBundle nStripCount here for return value
 }
+*/
 
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pPiles              ->  the list of partner piles in CLayout::m_pileList (they
+///                                     are partners to CSourcePhrase instances in m_pSourcePhrases)
+/// \param      nPagePrintWidthLU   ->  the page printing width in logical units
+/// \param      nLastSequNumber     <-> the sequence number (gets incremented by one and returned)
+/// \param      nEndIndex           ->  the sequence number upper limit (not necessarily
+///                                     the end of the document)
+/// \remarks
+/// Called from: the View's RecalcLayout_SimulateOnly(). Relies on the fact that there is
+/// one CPile instance in m_pileList for every CSourcePhrase instance in m_pSourcePhrases
+/// list. CreateStrip_SimulateOnly() does similar, but minimal, calculations that the
+/// normal CreateStrip() does, but RecalcLayout_SimulateOnly() does not modify any of the
+/// document's variables or indices. It only simulates the creation of Strips for a
+/// document as a helper for RecalcLayout_SimulateOnly(). Both simulation functions are
+/// used to provide the data the PaginateDoc needs to determine the range of pages that
+/// could be printed in order to populate the Pages from: and Pages to: edit boxes in the
+/// Print Options dialog.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWidthLU, 
+											 int& nLastSequNumber, int nEndIndex)
+// we don't support WYSIWYG printing of the layout in free translation mode
+// (The printing support functions could later be put within CLayout, but for now I'm
+// leaving them in CAdapt_ItView class)
+{
+	// refactored 19Mar09
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	int nextNumber = nLastSequNumber;
+	nextNumber++; // index of first CSourcePhrase element to be placed
+
+    // Note: gbRTL_Layout TRUE or FALSE makes no difference to these calculations, in the
+	// refactored layout code; also no rectangles or points to calculate - all we need are
+	// the pile widths to determine what will fit in the printed pages' "strips"
+	CLayout* pLayout = GetLayout();
+	int gap = pLayout->GetGapWidth();
+	PileList::Node* pos = pPiles->Item(nextNumber); wxASSERT(pos);
+	PileList::Node* posEnd = pPiles->Item(nEndIndex); wxASSERT(posEnd);
+	CSourcePhrase* pSrcPhrase = NULL;
+	CPile* pPile = NULL;
+	int nFree = nPagePrintWidthLU;
+	int nSpaceTaken = 0;
+	int pileWidth = 0;
+
+	// first pile always belongs, to ensure we progress through the document
+	pPile = pos->GetData();
+	if (pPile->GetSrcPhrase()->m_nSequNumber == pApp->m_nActiveSequNum)
+	{
+		pileWidth = pPile->GetPhraseBoxGapWidth();
+	}
+	else
+	{
+		pileWidth = pPile->GetMinWidth();
+	}
+	nSpaceTaken = pileWidth;
+	nFree -= nSpaceTaken;
+
+	// return if we are at end or if the pile is so wide it overflows the printing width
+	if (nextNumber >= nEndIndex || nFree < 0)
+		return;
+
+	// prepare for loop
+	nextNumber++;
+	pos = pos->GetNext();
+
+	// simulate "placing" the rest of this simulated strip's piles
+	while (pos != NULL && pos <= posEnd && nextNumber <= nEndIndex)
+	{
+		pPile = pos->GetData();
+		if (pPile->GetSrcPhrase()->m_nSequNumber == pApp->m_nActiveSequNum)
+		{
+			pileWidth = pPile->GetPhraseBoxGapWidth();
+		}
+		else
+		{
+			pileWidth = pPile->GetMinWidth();
+		}
+		int span = gap + pileWidth;
+		if (span + nSpaceTaken > nFree)
+		{
+			nextNumber--;
+			nLastSequNumber = nextNumber;
+			return; // this pile won't fit, so we are done with this strip
+		}
+
+		// don't place it if it belongs in next strip due to wrap
+		pSrcPhrase = pPile->GetSrcPhrase();
+		wxASSERT(pSrcPhrase != NULL);
+		// cause source phrases with certain standard format markers to begin a new strip
+		if (pApp->m_bMarkerWrapsStrip) // set by menu item on View menu, default is TRUE
+		{
+			if (!pSrcPhrase->m_markers.IsEmpty())
+			{
+				// this a potential candidate for starting a new strip, so check it out
+				if (pSrcPhrase->m_nSequNumber > 0)
+				{
+					if (IsWrapMarker(pSrcPhrase))
+					{
+						nextNumber--;
+						nLastSequNumber = nextNumber;
+						return; // if we need to wrap, discontinue pile creation in this strip
+					}
+				}
+			}
+		}
+
+		// it fits, update free space tracker
+		nFree -= span;
+
+		// incremement for index of next pile we attempt to append
+		nextNumber++;
+		pos = pos->GetNext();
+	}
+	// get the index right which has to be returned
+	nextNumber--;
+	nLastSequNumber = nextNumber;
+}
+/* old code
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     the vertical offset (a new nVertOffset) of the strip that was created
+/// \param      pDC                 -> the display context for strip creation
+/// \param      pSrcList            -> the list of source phrases from which strips are composed
+/// \param      nVertOffset         -> the starting vertical offset for the strip being created
+/// \param      nPagePrintWidthLU   -> the page printing width in logical units
+/// \param      nLastSequNumber     <- the sequence number (gets incremented by one and returned)
+/// \param      nEndIndex           -> the sequence number upper limit
+/// \remarks
+/// Called from: the View's RecalcLayout_SimulateOnly().
+/// CreateStrip_SimulateOnly() does the same calculations that the normal CreateStrip() does, but
+/// RecalcLayout_SimulateOnly() does not modify any of the document's variables or indices. It only
+/// simulates the creation of Strips for a document as a helper for RecalcLayout_SimulateOnly(). Both
+/// simulations functions are used to provide the data the PaginateDoc needs to determine the range of
+/// pages that could be printed in order to populate the Pages from: and Pages to: edit boxes in the
+/// Print Options dialog.
+////////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItView::CreateStrip_SimulateOnly(wxClientDC *pDC, SPList* pSrcList, int nVertOffset,
+										int nPagePrintWidthLU, int &nLastSequNumber, int nEndIndex)
+// whm Note: CreateStrip returns positive offsets even when printing, and in the wx version we always
+// use wxMM_TEXT map mode.
+// 
+// BEW 12Jul05 - I don't think WYSIWYG printing of the free translation mode display is worth the
+// bother - the user should get it with the interlinear export option instead, so I'll suppress
+// free translation support in CreateStrip if gbIsPrinting is TRUE.
+{
+	wxASSERT(nLastSequNumber >= -1);
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	int nextNumber = nLastSequNumber;
+	nextNumber++; // index of first CSourcePhrase element to be placed
+	wxRect rectStrip;
+	wxPoint topLeft;
+	wxPoint botRight;
+
+	if (gbRTL_Layout)
+	{
+		// Unicode version, and Right to Left layout is wanted
+
+		// calculate the strip's rectangle
+		// wx note: the wx version does not use negative offsets, but uses the same code in this
+		// gbIsPrinting block as it does when gbIsPrinting is FALSE.
+		topLeft = wxPoint(0, nVertOffset + pApp->m_curLeading);
+        // for simulating the width of our rectStrip we use nPagePrintWidthLU rather than
+        // pApp->m_docSize.GetWidth().
+		botRight = wxPoint(nPagePrintWidthLU - pApp->m_curLMargin, topLeft.y + pApp->m_curPileHeight);
+		rectStrip = wxRect(topLeft,botRight);
+
+		// whm: Simulating Strip creation is only done when printing, so we can leave out the block
+		// relating to m_bFreeTranslationMode (which isn't applicable anyway when printing)
+
+		// calculate the piles which belong in this strip
+		int pileIndex = 0;
+		int horzOffset = 0; // from start of strip rectangle to right edge of last pile (followed
+							// by gap) (or to left edge of last pile if laying out right to left)
+							// for RTL layout horzOffset measures offset in pixels from the right
+							// of the strip's rectangle
+		wxRect rectPile;
+		while (pileIndex < MAX_PILES && nextNumber <= nEndIndex)
+		{
+			SPList::Node* pos = pSrcList->Item(nextNumber); // POSITION of the CSourcePhrase for
+															// this pile
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			wxASSERT(pSrcPhrase != NULL);
+
+			// cause source phrases with standard format markers to begin a new strip
+			if (pApp->m_bMarkerWrapsStrip) // set by menu item on View menu, defaut is TRUE
+			{
+				if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					// this a potential candidate for starting a new strip, so check it out
+					if (pSrcPhrase->m_nSequNumber > 0 && pileIndex > 0)
+					{
+						if (IsWrapMarker(pSrcPhrase))
+							break;
+					}
+				}
+			}
+
+			// work out the pile's rectangle, this involves measuring text extents to get a max
+			// width for all the phrases in the pile
+			int pileWidth = CalcPileWidth(pDC,pApp,pSrcPhrase);
+
+			// check there is room for this next pile & following gap - if not, break out of the
+			// loop; but we must allow at least one pile, even if it is too long, otherwise we
+			// will not advance through the list of source phrases, and just create empty strips
+			// until we get a bounds error
+			bool bNeedOne = FALSE;
+			// wx note: we'll use rectStrip.GetWidth() instead of .right - left
+			if (horzOffset + pApp->m_curGapWidth + pileWidth > rectStrip.GetWidth())
+			{
+				if (pileIndex == 0)
+				{
+					// we must have at least this one
+					bNeedOne = TRUE;
+					goto c;
+				}
+				else
+				{
+					break; // exit the loop, this strip is full
+				}
+			}
+
+			// set the rectPile for this pile instance (uses logical coordinates)
+c:			topLeft = wxPoint(rectStrip.GetRight() - horzOffset - pileWidth, rectStrip.GetTop());
+			botRight = wxPoint(rectStrip.GetRight() - horzOffset, rectStrip.GetBottom());
+			// wx note: creating the rectPile from the two points avoids height adjustments, but
+			// CAUTION: if coordinates of the points are negative (as when printing/previewing), the result
+			// may be a different spatial position for the wxRect than MFC has for its CRect created with the
+			// same negative coordinates!!!
+			rectPile = wxRect(topLeft,botRight);
+
+			nLastSequNumber = nextNumber;
+			nextNumber++; // for next source phrase & its pile
+			horzOffset += pileWidth + pApp->m_curGapWidth; // for next pile
+
+			// increment pile index for next time through the loop, & count this pile
+			pileIndex++;
+			if (bNeedOne)
+				goto d;
+		} // end of while (...) loop
+d:		;
+	}
+	else
+	{
+		// NR or ANSI version, Left to Right layout is wanted
+
+		// calculate the strip's rectangle
+		// wx note: the wx version does not use negative offsets, but uses the same code in this
+		// gbIsPrinting block as it does when gbIsPrinting is FALSE.
+		topLeft = wxPoint(pApp->m_curLMargin, nVertOffset + pApp->m_curLeading);
+        // for simulating the width of our rectStrip we use nPagePrintWidthLU rather than
+        // pApp->m_docSize.GetWidth().
+		botRight = wxPoint(nPagePrintWidthLU, topLeft.y + pApp->m_curPileHeight);
+		rectStrip = wxRect(topLeft,botRight); // added for simulated calc
+
+		// whm: Simulating Strip creation is only done when printing, so we can leave out the block
+		// relating to m_bFreeTranslationMode (which isn't applicable anyway when printing)
+
+		// calculate the piles which belong in this strip
+		int pileIndex = 0;
+		int horzOffset = 0; // from start of strip rectangle to right edge of last pile
+							// (followed by gap)
+		wxRect rectPile;
+		while (pileIndex < MAX_PILES && nextNumber <= nEndIndex)
+		{
+			SPList::Node* pos = pSrcList->Item(nextNumber); // POSITION of the CSourcePhrase
+														    // for this pile
+			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			wxASSERT(pSrcPhrase != NULL);
+
+			// cause source phrases with certain standard format markers to begin a new strip
+			if (pApp->m_bMarkerWrapsStrip) // set by menu item on View menu, default is TRUE
+			{
+				if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					// this a potential candidate for starting a new strip, so check it out
+					if (pSrcPhrase->m_nSequNumber > 0 && pileIndex > 0)
+					{
+						if (IsWrapMarker(pSrcPhrase))
+							break; // if we need to wrap, discontinue pile creation in this strip
+					}
+				}
+			}
+
+			// work out the pile's rectangle, this involves measuring text extents to get a max
+			// width for all the phrases in the pile
+			int pileWidth = CalcPileWidth(pDC,pApp,pSrcPhrase);
+
+			// check there is room for this next pile & following gap - if not, break out of the
+			// loop; but we must allow at least one pile, even if it is too long, otherwise we
+			// will not advance through the list of source phrases, and just create empty strips
+			// until we get a bounds error
+			bool bNeedOne = FALSE;
+			// wx note: we'll use rectStrip.GetWidth() instead of .right - left
+			if (horzOffset + pApp->m_curGapWidth + pileWidth > rectStrip.GetWidth())
+			{
+				if (pileIndex == 0)
+				{
+					// we must have at least this one
+					bNeedOne = TRUE;
+					goto a;
+				}
+				else
+				{
+					break; // exit the loop, this strip is full
+				}
+			}
+
+			// set the rectPile for this pile instance (uses logical coordinates)
+a:			topLeft = wxPoint(rectStrip.GetLeft() + horzOffset, rectStrip.GetTop());
+			botRight = wxPoint(rectStrip.GetLeft() + horzOffset + pileWidth, rectStrip.GetBottom());
+			rectPile = wxRect(topLeft,botRight);
+
+			// whm: For simulation we don't create any piles
+			// increment sequNum, etc.
+			nLastSequNumber = nextNumber;
+			nextNumber++; // for next source phrase & its pile
+			horzOffset += pileWidth + pApp->m_curGapWidth; // for next pile
+
+			// increment pile index for next time through the loop, & count this pile
+			pileIndex++;
+			if (bNeedOne)
+				goto b;
+		} // end of while (...) loop
+b:		;
+	}
+
+	// update variables ready for next one
+	// whm: for wx version we don't use negative offsets during printing
+	nVertOffset += pApp->m_curPileHeight + pApp->m_curLeading; // offset for bottom of this strip
+	return nVertOffset;
+}
+*/
+
+/*
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      pSrcPhrases   -> the list of source phrases of the current document
@@ -6027,11 +6689,11 @@ void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBu
 		// destroy old strips, if there are any
 				pBundle->DestroyStrips(0); // destroy from 0th to end
 
-		/* no longer want this - see above block for the reason
-		m_selection.RemoveAll(); // make sure the record of an existing selection is cleared too
-		m_selectionLine = -1;
-		m_pAnchor = NULL;
-		*/
+		// no longer want this - see above block for the reason
+		//m_selection.RemoveAll(); // make sure the record of an existing selection is cleared too
+		//m_selectionLine = -1;
+		//m_pAnchor = NULL;
+		//
 
 		// we are starting from the beginning
 		nVertOffset = 0;
@@ -6183,269 +6845,57 @@ void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBu
 			}
 		}
 	}
-/*
-  #ifdef __WXDEBUG__
-	wxLogTrace("\n");
-	int count = pBundle->m_nStripCount;
-	CStrip* pStrip;
-	for (int i=0; i<count; i++)
-	{
-		pStrip = pBundle->m_pStrip[i];
-		wxString str;
-		str = str.Format("strip index = %d ; pileHeight = %d ; pileCount %d ; vertOffset = %d ; slop= %d, T= %d, B= %d, L= %d, R= %d\n",
-			pStrip->m_nStripIndex, pStrip->m_nPileHeight, pStrip->m_nPileCount,
-			pStrip->m_nVertOffset, pStrip->m_nFree, pStrip->m_rectStrip.GetTop(),
-			pStrip->m_rectStrip.GetBottom(), pStrip->m_rectStrip.GetLeft(),
-			pStrip->m_rectStrip.GetRight());
-		wxLogTrace(str);
-		wxLogTrace("\n");
-		wxString strPile;
-		CPile* pPile;
-		int pileCount = pStrip->m_nPileCount;
-		for (int j=0; j<pileCount; j++)
-		{
-			pPile = pStrip->m_pPile[j];
-			strPile = strPile.Format("** PILE index= %d ; Rect: T= %d, B= %d, L= %d, R= %d, nHorzOffset = %d, width= %d, sequNum= %d\n",
-				pPile->m_nPileIndex, pPile->m_rectPile.GetTop(),  pPile->m_rectPile.GetBottom(),
-				pPile->m_rectPile.GetLeft(), pPile->m_rectPile.GetRight(), pPile->m_nHorzOffset,
-				pPile->m_nWidth, pPile->m_pSrcPhrase->m_nSequNumber);
-			wxLogTrace(strPile);
-			wxRect enclosingRec(pPile->m_pCell[0].m_ptTopLeft,pPile->m_pCell[0].m_ptBotRight);
-			wxString text1;
-			wxString text2;
-			text1 = text1.Format("     CELL[0]'s CTEXT:  Rect: T= %d, B= %d, L= %d, R= %d\n",
-				enclosingRect.GetTop(), enclosingRect.GetBottom(),
-				enclosingRect.GetLeft(), enclosingRect.GetRight());
-			wxLogTrace(text1);
-			wxRect enclosingRec2(pPile->m_pCell[1].m_ptTopLeft,pPile->m_pCell[1].m_ptBotRight);
-			text2 = text2.Format("     CELL[1]'s CTEXT:  Rect: T= %d, B= %d, L= %d, R= %d\n",
-				enclosingRect2.GetTop(), enclosingRect2.GetBottom(),
-				enclosingRect2.GetLeft(), enclosingRect2.GetRight());
-			wxLogTrace(text2);
-			wxLogTrace("\n");
-		}
-	}
-  #endif
-*/
+
+  //#ifdef __WXDEBUG__
+	//wxLogTrace("\n");
+	//int count = pBundle->m_nStripCount;
+	//CStrip* pStrip;
+	//for (int i=0; i<count; i++)
+	//{
+	//	pStrip = pBundle->m_pStrip[i];
+	//	wxString str;
+	//	str = str.Format("strip index = %d ; pileHeight = %d ; pileCount %d ; vertOffset = %d ; slop= %d, T= %d, B= %d, L= %d, R= %d\n",
+	//		pStrip->m_nStripIndex, pStrip->m_nPileHeight, pStrip->m_nPileCount,
+	//		pStrip->m_nVertOffset, pStrip->m_nFree, pStrip->m_rectStrip.GetTop(),
+	//		pStrip->m_rectStrip.GetBottom(), pStrip->m_rectStrip.GetLeft(),
+	//		pStrip->m_rectStrip.GetRight());
+	//	wxLogTrace(str);
+	//	wxLogTrace("\n");
+	//	wxString strPile;
+	//	CPile* pPile;
+	//	int pileCount = pStrip->m_nPileCount;
+	//	for (int j=0; j<pileCount; j++)
+	//	{
+	//		pPile = pStrip->m_pPile[j];
+	//		strPile = strPile.Format("** PILE index= %d ; Rect: T= %d, B= %d, L= %d, R= %d, nHorzOffset = %d, width= %d, sequNum= %d\n",
+	//			pPile->m_nPileIndex, pPile->m_rectPile.GetTop(),  pPile->m_rectPile.GetBottom(),
+	//			pPile->m_rectPile.GetLeft(), pPile->m_rectPile.GetRight(), pPile->m_nHorzOffset,
+	//			pPile->m_nWidth, pPile->m_pSrcPhrase->m_nSequNumber);
+	//		wxLogTrace(strPile);
+	//		wxRect enclosingRec(pPile->m_pCell[0].m_ptTopLeft,pPile->m_pCell[0].m_ptBotRight);
+	//		wxString text1;
+	//		wxString text2;
+	//		text1 = text1.Format("     CELL[0]'s CTEXT:  Rect: T= %d, B= %d, L= %d, R= %d\n",
+	//			enclosingRect.GetTop(), enclosingRect.GetBottom(),
+	//			enclosingRect.GetLeft(), enclosingRect.GetRight());
+	//		wxLogTrace(text1);
+	//		wxRect enclosingRec2(pPile->m_pCell[1].m_ptTopLeft,pPile->m_pCell[1].m_ptBotRight);
+	//		text2 = text2.Format("     CELL[1]'s CTEXT:  Rect: T= %d, B= %d, L= %d, R= %d\n",
+	//			enclosingRect2.GetTop(), enclosingRect2.GetBottom(),
+	//			enclosingRect2.GetLeft(), enclosingRect2.GetRight());
+	//		wxLogTrace(text2);
+	//		wxLogTrace("\n");
+	//	}
+	//}
+  //#endif
+
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     the vertical offset (a new nVertOffset) of the strip that was created
-/// \param      pDC                 -> the display context for strip creation
-/// \param      pSrcList            -> the list of source phrases from which strips are composed
-/// \param      nVertOffset         -> the starting vertical offset for the strip being created
-/// \param      nPagePrintWidthLU   -> the page printing width in logical units
-/// \param      nLastSequNumber     <- the sequence number (gets incremented by one and returned)
-/// \param      nEndIndex           -> the sequence number upper limit
-/// \remarks
-/// Called from: the View's RecalcLayout_SimulateOnly().
-/// CreateStrip_SimulateOnly() does the same calculations that the normal CreateStrip() does, but
-/// RecalcLayout_SimulateOnly() does not modify any of the document's variables or indices. It only
-/// simulates the creation of Strips for a document as a helper for RecalcLayout_SimulateOnly(). Both
-/// simulations functions are used to provide the data the PaginateDoc needs to determine the range of
-/// pages that could be printed in order to populate the Pages from: and Pages to: edit boxes in the
-/// Print Options dialog.
-////////////////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItView::CreateStrip_SimulateOnly(wxClientDC *pDC, SPList* pSrcList, int nVertOffset,
-										int nPagePrintWidthLU, int &nLastSequNumber, int nEndIndex)
-// whm Note: CreateStrip returns positive offsets even when printing, and in the wx version we always
-// use wxMM_TEXT map mode.
-// 
-// BEW 12Jul05 - I don't think WYSIWYG printing of the free translation mode display is worth the
-// bother - the user should get it with the interlinear export option instead, so I'll suppress
-// free translation support in CreateStrip if gbIsPrinting is TRUE.
-{
-	wxASSERT(nLastSequNumber >= -1);
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	int nextNumber = nLastSequNumber;
-	nextNumber++; // index of first CSourcePhrase element to be placed
-	wxRect rectStrip;
-	wxPoint topLeft;
-	wxPoint botRight;
-
-	if (gbRTL_Layout)
-	{
-		// Unicode version, and Right to Left layout is wanted
-
-		// calculate the strip's rectangle
-		// wx note: the wx version does not use negative offsets, but uses the same code in this
-		// gbIsPrinting block as it does when gbIsPrinting is FALSE.
-		topLeft = wxPoint(0, nVertOffset + pApp->m_curLeading);
-        // for simulating the width of our rectStrip we use nPagePrintWidthLU rather than
-        // pApp->m_docSize.GetWidth().
-		botRight = wxPoint(nPagePrintWidthLU - pApp->m_curLMargin, topLeft.y + pApp->m_curPileHeight);
-		rectStrip = wxRect(topLeft,botRight);
-
-		// whm: Simulating Strip creation is only done when printing, so we can leave out the block
-		// relating to m_bFreeTranslationMode (which isn't applicable anyway when printing)
-
-		// calculate the piles which belong in this strip
-		int pileIndex = 0;
-		int horzOffset = 0; // from start of strip rectangle to right edge of last pile (followed
-							// by gap) (or to left edge of last pile if laying out right to left)
-							// for RTL layout horzOffset measures offset in pixels from the right
-							// of the strip's rectangle
-		wxRect rectPile;
-		while (pileIndex < MAX_PILES && nextNumber <= nEndIndex)
-		{
-			SPList::Node* pos = pSrcList->Item(nextNumber); // POSITION of the CSourcePhrase for
-															// this pile
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			wxASSERT(pSrcPhrase != NULL);
-
-			// cause source phrases with standard format markers to begin a new strip
-			if (pApp->m_bMarkerWrapsStrip) // set by menu item on View menu, defaut is TRUE
-			{
-				if (!pSrcPhrase->m_markers.IsEmpty())
-				{
-					// this a potential candidate for starting a new strip, so check it out
-					if (pSrcPhrase->m_nSequNumber > 0 && pileIndex > 0)
-					{
-						if (IsWrapMarker(pSrcPhrase))
-							break;
-					}
-				}
-			}
-
-			// work out the pile's rectangle, this involves measuring text extents to get a max
-			// width for all the phrases in the pile
-			int pileWidth = CalcPileWidth(pDC,pApp,pSrcPhrase);
-
-			// check there is room for this next pile & following gap - if not, break out of the
-			// loop; but we must allow at least one pile, even if it is too long, otherwise we
-			// will not advance through the list of source phrases, and just create empty strips
-			// until we get a bounds error
-			bool bNeedOne = FALSE;
-			// wx note: we'll use rectStrip.GetWidth() instead of .right - left
-			if (horzOffset + pApp->m_curGapWidth + pileWidth > rectStrip.GetWidth())
-			{
-				if (pileIndex == 0)
-				{
-					// we must have at least this one
-					bNeedOne = TRUE;
-					goto c;
-				}
-				else
-				{
-					break; // exit the loop, this strip is full
-				}
-			}
-
-			// set the rectPile for this pile instance (uses logical coordinates)
-c:			topLeft = wxPoint(rectStrip.GetRight() - horzOffset - pileWidth, rectStrip.GetTop());
-			botRight = wxPoint(rectStrip.GetRight() - horzOffset, rectStrip.GetBottom());
-			// wx note: creating the rectPile from the two points avoids height adjustments, but
-			// CAUTION: if coordinates of the points are negative (as when printing/previewing), the result
-			// may be a different spatial position for the wxRect than MFC has for its CRect created with the
-			// same negative coordinates!!!
-			rectPile = wxRect(topLeft,botRight);
-
-			nLastSequNumber = nextNumber;
-			nextNumber++; // for next source phrase & its pile
-			horzOffset += pileWidth + pApp->m_curGapWidth; // for next pile
-
-			// increment pile index for next time through the loop, & count this pile
-			pileIndex++;
-			if (bNeedOne)
-				goto d;
-		} // end of while (...) loop
-d:		;
-	}
-	else
-	{
-		// NR or ANSI version, Left to Right layout is wanted
-
-		// calculate the strip's rectangle
-		// wx note: the wx version does not use negative offsets, but uses the same code in this
-		// gbIsPrinting block as it does when gbIsPrinting is FALSE.
-		topLeft = wxPoint(pApp->m_curLMargin, nVertOffset + pApp->m_curLeading);
-        // for simulating the width of our rectStrip we use nPagePrintWidthLU rather than
-        // pApp->m_docSize.GetWidth().
-		botRight = wxPoint(nPagePrintWidthLU, topLeft.y + pApp->m_curPileHeight);
-		rectStrip = wxRect(topLeft,botRight); // added for simulated calc
-
-		// whm: Simulating Strip creation is only done when printing, so we can leave out the block
-		// relating to m_bFreeTranslationMode (which isn't applicable anyway when printing)
-
-		// calculate the piles which belong in this strip
-		int pileIndex = 0;
-		int horzOffset = 0; // from start of strip rectangle to right edge of last pile
-							// (followed by gap)
-		wxRect rectPile;
-		while (pileIndex < MAX_PILES && nextNumber <= nEndIndex)
-		{
-			SPList::Node* pos = pSrcList->Item(nextNumber); // POSITION of the CSourcePhrase
-														    // for this pile
-			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			wxASSERT(pSrcPhrase != NULL);
-
-			// cause source phrases with certain standard format markers to begin a new strip
-			if (pApp->m_bMarkerWrapsStrip) // set by menu item on View menu, default is TRUE
-			{
-				if (!pSrcPhrase->m_markers.IsEmpty())
-				{
-					// this a potential candidate for starting a new strip, so check it out
-					if (pSrcPhrase->m_nSequNumber > 0 && pileIndex > 0)
-					{
-						if (IsWrapMarker(pSrcPhrase))
-							break; // if we need to wrap, discontinue pile creation in this strip
-					}
-				}
-			}
-
-			// work out the pile's rectangle, this involves measuring text extents to get a max
-			// width for all the phrases in the pile
-			int pileWidth = CalcPileWidth(pDC,pApp,pSrcPhrase);
-
-			// check there is room for this next pile & following gap - if not, break out of the
-			// loop; but we must allow at least one pile, even if it is too long, otherwise we
-			// will not advance through the list of source phrases, and just create empty strips
-			// until we get a bounds error
-			bool bNeedOne = FALSE;
-			// wx note: we'll use rectStrip.GetWidth() instead of .right - left
-			if (horzOffset + pApp->m_curGapWidth + pileWidth > rectStrip.GetWidth())
-			{
-				if (pileIndex == 0)
-				{
-					// we must have at least this one
-					bNeedOne = TRUE;
-					goto a;
-				}
-				else
-				{
-					break; // exit the loop, this strip is full
-				}
-			}
-
-			// set the rectPile for this pile instance (uses logical coordinates)
-a:			topLeft = wxPoint(rectStrip.GetLeft() + horzOffset, rectStrip.GetTop());
-			botRight = wxPoint(rectStrip.GetLeft() + horzOffset + pileWidth, rectStrip.GetBottom());
-			rectPile = wxRect(topLeft,botRight);
-
-			// whm: For simulation we don't create any piles
-			// increment sequNum, etc.
-			nLastSequNumber = nextNumber;
-			nextNumber++; // for next source phrase & its pile
-			horzOffset += pileWidth + pApp->m_curGapWidth; // for next pile
-
-			// increment pile index for next time through the loop, & count this pile
-			pileIndex++;
-			if (bNeedOne)
-				goto b;
-		} // end of while (...) loop
-b:		;
-	}
-
-	// update variables ready for next one
-	// whm: for wx version we don't use negative offsets during printing
-	nVertOffset += pApp->m_curPileHeight + pApp->m_curLeading; // offset for bottom of this strip
-	return nVertOffset;
-}
-
+*/ // end old code for RecalcLayout()
 
 // Modified by whm 14Feb05 to support USFM and SFM Filtering.
 bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 {
+	// refactored 19Mar09 -- no changes needed
 	// Version 3 implementation: We first extract each marker from
 	// the pSrcPhrase->m_markers member, and use Find to check if it is
 	// in the appropriate wrap string UsfmWrapMarkersStr, PngWrapMarkersStr,
@@ -6677,6 +7127,7 @@ int CAdapt_ItView::CalcPileWidth(wxClientDC *pDC, CAdapt_ItApp* pApp, CSourcePhr
 	return pileWidth;
 }
 
+/*  // removed 19Mar09 for refactor
 void CAdapt_ItView::CalcInitialIndices()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -6701,6 +7152,7 @@ void CAdapt_ItView::CalcInitialIndices()
 		pApp->m_upperIndex = pApp->m_endIndex - pApp->m_nFollowingContext;
 	}
 }
+*/
 
 CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 {
@@ -8413,7 +8865,7 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 
 	// set the color - CPhraseBox has a color variable for the text color & uses
 	// reflected notification. Glossing uses navText's colour, but target text's font.
-	if (gbIsGlossing)
+	if (gbIsGlossing && gbGlossingUsesNavFont)
 		pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
 	else
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
@@ -9821,6 +10273,7 @@ CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
 	return pPile;
 }
 
+/*
 void CAdapt_ItView::CalcIndicesForAdvance(int nSequNum)
 // recalculate all the indices when an advance of the bundle is required
 {
@@ -9856,6 +10309,7 @@ void CAdapt_ItView::CalcIndicesForAdvance(int nSequNum)
 	else
 		pApp->m_upperIndex = danger;
 }
+*/
 
 CPile* CAdapt_ItView::AdvanceBundle(int nSaveSequNum)
 // advances the bundle, returning the pile which has srcPhrase with nSaveSequNum
@@ -9878,7 +10332,7 @@ CPile* CAdapt_ItView::AdvanceBundle(int nSaveSequNum)
 //int CAdapt_ItView::ScrollDown(int nStrips) // Moved to CAdapt_ItCanvas in WX version:
 
 //int CAdapt_ItView::ScrollUp(int nStrips) // Moved to CAdapt_ItCanvas in WX version:
-
+/*  // removed 19Mar09
 bool CAdapt_ItView::NeedBundleAdvance(int nCurSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -9907,7 +10361,8 @@ bool CAdapt_ItView::NeedBundleAdvance(int nCurSequNum)
 	else
 		return FALSE; // we've still got enough context, so no advance required
 }
-
+*/
+/*  // removed 19Mar09
 bool CAdapt_ItView::NeedBundleRetreat(int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -9932,7 +10387,8 @@ bool CAdapt_ItView::NeedBundleRetreat(int nSequNum)
 	else
 		return FALSE; // we've still got enough context, so no retreat required
 }
-
+*/
+/*  // removed 19Mar09
 void CAdapt_ItView::CalcIndicesForRetreat(int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -9967,7 +10423,7 @@ void CAdapt_ItView::CalcIndicesForRetreat(int nSequNum)
 	else
 		pApp->m_lowerIndex = danger;
 }
-
+*/
 bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 // Return value: TRUE if all was well (whether or not an actual store to KB took place -
 // because certain flags inhibit saves, or an empty targetBox does not get anything saved
@@ -18034,13 +18490,8 @@ void CAdapt_ItView::RedrawEverything(int nActiveSequNum)
 				ResizeBox(&pApp->m_ptCurBoxLocation,pApp->m_curBoxWidth,pApp->m_nTgtHeight,pApp->m_targetPhrase,
 															pApp->m_nStartChar,pApp->m_nEndChar,pApp->m_pActivePile);
 				// set the color - CPhraseBox has a color variable & uses reflected notification
-				if (gbIsGlossing)
-					pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
-				else
-					pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-
+				pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 			}
-
 		}
 
 		pApp->m_nStartChar = 0;
@@ -20444,99 +20895,6 @@ void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItAp
 		return; // no padding needed
 }
 
-bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
-											   SPList* pSrcPhrases,int& nSaveActiveSequNum,
-											   int& nActiveSequNum,int nFinish)
-// nSaveActiveSequNum, on input, should be the tentative sequNum value we hope will be a valid
-// location but may not be; and nActiveSequNum, on input, should be the current active location's
-// sequNum; on output, nSaveActiveSequNum will be a different value if the input value landed the
-// box in a retranslation...
-// pSrcPhrases is the list on the app, nSaveActiveSequNum - this could be too large since
-// we try place the active location after the retranslation and that might be beyond the end of
-// the document, hence the need to try find a safe place somewhere (its passed by reference
-// because we want the caller's variable of the same name to be automatically updated too);
-// nActiveSequNum is a ref to the App's m_nActiveSequNum and we will set it from here;
-// nFinish is the final number of piles in the retranslation after all adjustments have been done.
-{
-	if (nSaveActiveSequNum >= (int)pSrcPhrases->GetCount())
-	{
-		// need to put active location before the retranslation
-		int sequNum = nSaveActiveSequNum - nFinish;
-		CSourcePhrase* pSP;
-		do
-		{
-			--sequNum;
-			SPList::Node* pos = pSrcPhrases->Item(sequNum);
-			pSP = (CSourcePhrase*)pos->GetData();
-			wxASSERT(pSP != NULL);
-		} while (pSP->m_bRetranslation || pSP->m_bNotInKB);
-		nSaveActiveSequNum = sequNum; // new value
-
-		// are we still in the current bundle?
-		if (nSaveActiveSequNum < pApp->m_beginIndex)
-		{
-			// gone back preceding the bundle, so we have to fix the bundle too
-			pApp->m_pActivePile = AdvanceBundle(nSaveActiveSequNum); // not an "advance" but the
-															   // call works ok
-		}
-		else
-		{
-			pApp->m_pActivePile = GetPile(nSaveActiveSequNum); // in the current bundle
-		}
-	}
-	else
-	{
-		pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
-
-		// this could be a pile containing a retranslation, so check it out, and if so, advance
-		// until we find a safe location, and if that process reaches the end of the document
-		// without finding a safe location, then go backwards instead until we find one - one of
-		// these processes will definitely succeed.
-		CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->m_pSrcPhrase;
-		if (pSrcPhrase->m_bRetranslation)
-		{
-			// a retranslation is not a valid phrase box location, so hunt for a safe place nearby
-			CSourcePhrase* pSaveSP = pSrcPhrase;
-			pSrcPhrase = GetFollSafeSrcPhrase(pSrcPhrase);
-
-			if (pSrcPhrase == NULL)
-			{
-				// reached end of source phrase list without finding a safe place, so look in the
-				// opposite direction - this (almost certainly) MUST succeed - it could only fail
-				// if the previous active location was in the selection and the selection comprised
-				// all of the srcPhrases which are not already in a retranslation, and the whole
-				// doc is now a series of consecutive retranslations (most unlikely!)
-				pSrcPhrase = GetPrevSafeSrcPhrase(pSaveSP);
-
-				if (pSrcPhrase == NULL)
-				{
-					// nowhere is a safe location! (Is the user retranslating everything? !!!)
-					// so our only option is to go to the end
-					int lastSequNum = pApp->m_maxIndex;
-					CPile* pPile;
-					pPile = AdvanceBundle(lastSequNum);
-					Invalidate();
-					// we don't want a phrase box, so step past the end
-					pApp->m_targetPhrase.Empty();
-					nActiveSequNum = pApp->m_curIndex = -1;
-					pApp->m_pTargetBox->SetValue(_T(""));
-					pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
-					return FALSE;
-				}
-			}
-		}
-
-		// jump to whatever pile is not in a retranslation, as close to wanted loc'n as possible
-		nSaveActiveSequNum = pSrcPhrase->m_nSequNumber;
-		gnOldSequNum = nSaveActiveSequNum; // the only safe option, since old location may now
-										   // be within the retranslation
-		Jump(pApp,pSrcPhrase);
-	}
-	nActiveSequNum = nSaveActiveSequNum; // ensure value of pApp->m_nActiveSequNum agrees with any
-										 // adjustments
-	return TRUE;
-}
-
 void CAdapt_ItView::ClearSublistKBEntries(SPList* pSublist)
 {
 	SPList::Node* pos = pSublist->GetFirst();
@@ -21152,7 +21510,10 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 			{
 				// IDS_ALL_RETRANSLATIONS
 				wxMessageBox(_("Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."), _T(""), wxICON_EXCLAMATION);
-				return; // we have to return with no phrase box, since we couldn't find anywhere it
+				// BEW changed 19Mar09 for refactored layout, to comment out & so allow the phrase box
+				// to be shown at the last pile of the document whether there's a retranslation
+				// there or not
+				//return; // we have to return with no phrase box, since we couldn't find anywhere it
 						// could be put
 			}
 		}
@@ -21892,7 +22253,10 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			{
 				// IDS_ALL_RETRANSLATIONS
 				wxMessageBox(_("Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."), _T(""), wxICON_EXCLAMATION);
-				return; // we have to return with no phrase box, since we couldn't find anywhere it
+				// BEW changed 19Mar09 for refactored layout, to comment out & so allow the phrase box
+				// to be shown at the last pile of the document whether there's a retranslation
+				// there or not
+				//return; // we have to return with no phrase box, since we couldn't find anywhere it
 						// could be put
 			}
 		}
@@ -22518,20 +22882,7 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 	gpApp->m_targetPhrase = str3;
 
 	// get a device context, and work out the targetBox initial size
-	wxClientDC aDC(gpApp->GetMainFrame()->canvas);
-	wxString str = gpApp->m_targetPhrase;
-	wxFont* pFont;
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pFont = gpApp->m_pNavTextFont;
-	else
-		pFont = gpApp->m_pTargetFont;
-	aDC.SetFont(*pFont);
-	wxSize extent;
-	aDC.GetTextExtent(str,&extent.x,&extent.y);
-	wxString aChar = _T('w');
-	wxSize charSize;
-	aDC.GetTextExtent(aChar,&charSize.x,&charSize.y);
-	int width = extent.GetWidth() + gnExpandBox*charSize.GetWidth();
+	int width = RecalcPhraseBoxWidth(gpApp->m_targetPhrase);
 	gpApp->m_nCurPileMinWidth = width <= gpApp->m_nCurPileMinWidth ? gpApp->m_nCurPileMinWidth : width;
 	gpApp->m_curBoxWidth = gpApp->m_nCurPileMinWidth;
 
@@ -28381,40 +28732,6 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 	}
 }
 
-
-CSourcePhrase* CAdapt_ItView::GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	wxASSERT(pSrcPhrase);
-	int sn = pSrcPhrase->m_nSequNumber;
-	CSourcePhrase* pSP;
-	do
-	{
-		++sn;
-		if (sn > pApp->m_maxIndex)
-			return (CSourcePhrase*)NULL; // we have gone past end of document
-		pSP = GetSrcPhrase(sn);
-		wxASSERT(pSP);
-	} while (pSP->m_bRetranslation);
-	return pSP; // found one where it is okay to have the phrase box put in the view
-}
-
-CSourcePhrase* CAdapt_ItView::GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
-{
-	wxASSERT(pSrcPhrase);
-	int sn = pSrcPhrase->m_nSequNumber;
-	CSourcePhrase* pSP;
-	do
-	{
-		--sn;
-		if (sn < 0)
-			return (CSourcePhrase*)NULL; // we have gone back past start of document
-		pSP = GetSrcPhrase(sn);
-		wxASSERT(pSP);
-	} while (pSP->m_bRetranslation);
-	return pSP; // found one where it is okay to have the phrase box put in the view
-}
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

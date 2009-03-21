@@ -682,12 +682,13 @@ void CLayout::SetGapWidth(CAdapt_ItApp* pApp)
 {
 	m_nCurGapWidth = pApp->m_curGapWidth; // user sets it in Preferences' View tab
 }
-/* CLayout, CStrip, CPile & CCell are mutual friends, so we'll grab m_nCurGapWidth directly
+// CLayout, CStrip, CPile & CCell are mutual friends, so they can grab m_nCurGapWidth
+// directly, but outsiders will need the followinng
 int CLayout::GetGapWidth()
 {
 	return m_nCurGapWidth;
 }
-*/
+
 
 // SetLayoutParameters() is where we do most of the hooking up to the current state of the app's
 // various view-related parameters, such as fonts, colours, text heights, and so forth

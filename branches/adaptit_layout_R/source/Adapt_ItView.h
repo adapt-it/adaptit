@@ -158,8 +158,8 @@ public:
 	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
 	bool		AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr); // MFC CMapStringToOb*
 	wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
-	void		CalcIndicesForAdvance(int nSequNum);
-	void		CalcInitialIndices();
+	//void		CalcIndicesForAdvance(int nSequNum); // removed 19Mar09
+	//void		CalcInitialIndices(); // removed 19Mar09
 	
 	CPile*		CalcPile(CPile *pPile);
 	int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
@@ -184,8 +184,11 @@ public:
 	void		CloseProject();
 	
 	// CreateStrip_SimulateOnly() is used only in RecalcLayout_SimulateOnly() for PaginateDoc
-	int			CreateStrip_SimulateOnly(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
-										int nPagePrintWidthLU, int& nLastSequNumber, int nEndIndex);
+	//int			CreateStrip_SimulateOnly(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
+	//									int nPagePrintWidthLU, int& nLastSequNumber, int
+	//									nEndIndex); // deprecated 19Mar09
+	void		CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWidthLU, int& nLastSequNumber,
+						int nEndIndex);
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); 
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE, bool bRestoreBoxOnFailure = FALSE); // BEW added 1Aug08
@@ -269,8 +272,8 @@ public:
 	void		MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase);
 	void		MoveToAndOpenFirstNote();
 	void		MoveToAndOpenLastNote();
-	bool		NeedBundleAdvance(int nCurSequNum);
-	bool		NeedBundleRetreat(int nSequNum);
+	//bool		NeedBundleAdvance(int nCurSequNum);
+	//bool		NeedBundleRetreat(int nSequNum);
 	void		NewRetranslation();
 	//void		OnScroll(wxScrollWinEvent& event); // process all scroll events of meaning to Adapt It
 	void		OnAdvanceButton(wxCommandEvent& event); // moved to public
@@ -289,10 +292,12 @@ public:
 	void		PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, 
 											int gnBoxCursorOffset = 0); // BEW added 17Mar09
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
-	void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle* pBundle);
+	//void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle*
+	//						pBundle); // removed for refactor, 19Mar09
 	
 	// RecalcLayout_SimulateOnly() is used only in PaginateDoc()
-	int			RecalcLayout_SimulateOnly(SPList* pSrcPhrases, const wxSize sizeTotal,const int nBeginSN,const int nEndSN);
+	int			RecalcLayout_SimulateOnly(SPList* pSrcPhrases, const wxSize sizeTotal, 
+						const int nBeginSN,const int nEndSN); // refactored 19Mar09
 	
 	CSourcePhrase*	ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*& insertPos,
 											bool bForRetranslation = FALSE);
@@ -412,7 +417,7 @@ protected:
 	void		AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt);
 	void		BuildRetranslationSourcePhraseInstances(SPList* pRetransList,int nStartSequNum,
 													int nNewLength,int nCount,int& nFinish);
-	void		CalcIndicesForRetreat(int nSequNum);
+	//void		CalcIndicesForRetreat(int nSequNum); // removed 19Mar09
 	void		BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 30Apr08
 	void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
@@ -562,8 +567,9 @@ protected:
 	//void		SelectDragRange(CCell* pAnchor,CCell* pCurrent); // moved to public
 	//void		SelectAnchorOnly();								// moved to public
 	void		SetNotInKBFlag(SPList* pList,bool bValue = TRUE);
-	int			SetPileHeight(const int curRows,  const int srcHeight, const int tgtHeight, 
-					const int navTextHeight, const bool bSuppressFirst, const bool bSuppressLast);
+	//int			SetPileHeight(const int curRows,  const int srcHeight, const int tgtHeight, 
+	//				const int navTextHeight, const bool bSuppressFirst, const bool
+	//				bSuppressLast); // removed 19Mar09
 	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);
 	//void		SetupPhraseBoxParameters(CPile* pActivePile);  // BEW deprecated 16Mar09
 	//void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile); //moved to public

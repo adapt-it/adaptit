@@ -2575,9 +2575,11 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		}
 		if (desiredViewBottom > logicalViewBottom)
 		{
-			Scroll(0,(desiredViewBottom + (desiredViewBottom - logicalViewBottom) - nWindowDepth)/yPixelsPerUnit);
-			// The following is Graeme's suggested correction to the above scrolling calculation:
-			//Scroll(0,(desiredViewBottom - nWindowDepth)/yPixelsPerUnit); // Correction suggested by Graeme Costin 14Aug08 
+			// Bill M. had next line, I've commented it out - 20Mar09, to use the one
+			// below it (or to at least test the one below it, eventually) - I think the
+			// logic of Bill's is not quite right
+			//Scroll(0,(desiredViewBottom + (desiredViewBottom - logicalViewBottom) - nWindowDepth)/yPixelsPerUnit);
+			Scroll(0,(desiredViewBottom - nWindowDepth)/yPixelsPerUnit); 
 			return; // don't do legacy routine below
 		}
 		// //////////////////////////// Simplified Routine Above /////////////////////////////////////

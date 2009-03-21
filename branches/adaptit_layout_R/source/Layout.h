@@ -66,6 +66,11 @@ typedef enum update_span {
 	scan_from_big_jump // 300 either side of active sequ num value
 };
 
+// add one of these to the end of the handler for a user editing operation, and
+// because of the possibility of nested operations (suboperations) the best
+// location is to put the the relevant operatation enum value immediately before
+// the Invalidate() call at the end of the function handling each particular
+// sub-operation
 typedef enum doc_edit_op {
 	no_edit_op,
 	default_op, // assumes a ResizeBox() call is required
@@ -276,7 +281,7 @@ public:
 
 	// current gap width between piles (in pixels)
 	void		SetGapWidth(CAdapt_ItApp* pApp);
-	//int		GetGapWidth(); // friendliness lets us grab this directly once set
+	int			GetGapWidth();
 
 	// setter and getter global bool gbShowTargetOnly, later remove the global
 //	void		SetShowTargetOnlyBoolean();
