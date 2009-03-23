@@ -164,9 +164,13 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	int nVal;
 	wxString strTemp;
 
+	/* refactored 22Mar09, this value no longer needed now we have no bundles
+	// so set it to a value which we can output in the config file safely but not use
 	strTemp = m_pEditMaxSrcWordsDisplayed->GetValue();
 	nVal = wxAtoi(strTemp);
 	pApp->m_nMaxToDisplay = nVal;
+	*/
+	pApp->m_nMaxToDisplay = pApp->GetMaxIndex() + 1; // count of CSourcePhrase instances
 
 	strTemp = m_pEditMinPrecContext->GetValue();
 	nVal = wxAtoi(strTemp);
@@ -210,7 +214,7 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	// initialize our local temp variables from those on the App
-	tempMaxToDisplay = pApp->m_nMaxToDisplay;
+	//tempMaxToDisplay = pApp->m_nMaxToDisplay; // refactored 22Mar09 - no longer needed
 	tempPrecCntxt = pApp->m_nPrecedingContext;
 	tempFollCntxt = pApp->m_nFollowingContext;
 	tempLeading = pApp->m_curLeading;

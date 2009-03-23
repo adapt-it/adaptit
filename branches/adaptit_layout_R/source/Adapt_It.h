@@ -1000,7 +1000,7 @@ typedef struct
 	int nPropagationSpan_EndingSequNum; // the index for the last CSourcePhrase in the following context which was
 				// affected by the propagation process
 	wxArrayInt arrNotesSequNumbers; //CArray<int,int> arrNotesSequNumbers; // preserve old location of each removed note in the editable subspan
-	int nOldMaxIndex;  // the view class's m_maxIndex value just before the edit was initiated
+	//int nOldMaxIndex;  // the view class's m_maxIndex value just before the edit was initiated
 	int nOldSpanCount; // the original (after any extension) editable span's number of CSourcePhrase instances
 	int	nNewSpanCount; // the final number of CSourcePhrase instances in the editable span after the user has
 					   // completed his editing of the source text (or whatever the edit did, eg. removal of
@@ -1396,36 +1396,40 @@ public:
 
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
-	//int				m_nMaxToDisplay; // max # of words/phrases to display at one time
+	int				m_nMaxToDisplay; // max # of words/phrases to display at one time (this has to
+									 // be retrained in our refactoring for backwards compatibility
+									 // with configuration files - formerly this was bundle's count 
+									 // of sourcephrases, but we'll now save the m_pSourcePhrases count
+
 	//int				m_nPrecedingContext; // minimum # of words/phrases in preceding context
 	//int				m_nFollowingContext; // ditto, for following context
-	int				m_curPileHeight;	 // pile height value to be used in RecalcLayout()
+	//int				m_curPileHeight;	 // pile height value to be used in RecalcLayout()
 	int				m_curLeading;		 // between-strips leading value
 	int				m_curLMargin;		 // if user wants a left margin, he can set this
 	int				m_curGapWidth;		 // inter-pile gap, measured in pixels (follows a pile)
 	//int				m_beginIndex; // start of the displayed CSourcePhrase instances in this group
 	//int				m_endIndex;	// end of the displayed CSourcePhrase instances in this group
-	int				m_curIndex; // current location
+	//int				m_curIndex; // current location
 	//int				m_upperIndex; // upper index for context end, move up if 
 								  // m_upperIndex = m_endIndex
 	//int				m_lowerIndex; // lower index for context end, move down if 
 								  // m_lowerIndex = m_beginIndex
-	int				m_maxIndex;  // index of last CSourcePhrase instance in the list
+	//int				m_maxIndex;  // index of last CSourcePhrase instance in the list
 	// for saving these across layout for printing, since print layout can go from start 
 	// to end of document rather than just a bundle; use the next set for selection printing
 	//int				m_saveBeginIndex;
 	//int				m_saveEndIndex;
-	int				m_saveCurIndex;
+	//int				m_saveCurIndex;
 	//int				m_saveLowerIndex;
 	//int				m_saveUpperIndex;
-	int				m_saveMaxIndex;
+	//int				m_saveMaxIndex;
 	// use the following set for a print of a chapter/verse range
 	//int				m_saveRangeBeginIndex;
 	//int				m_saveRangeEndIndex;
-	int				m_saveRangeCurIndex;
+	//int				m_saveRangeCurIndex;
 	//int				m_saveRangeLowerIndex;
 	//int				m_saveRangeUpperIndex;
-	int				m_saveRangeMaxIndex;
+	//int				m_saveRangeMaxIndex;
 
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int				m_nSrcHeight;	// line height for source language text
@@ -2065,7 +2069,7 @@ public:
 	void	RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName, const wxString fullName);
 	void	ChangeUILanguage();
 	int		GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid, wxArrayString keyArray);
-
+	int		GetMaxIndex(); // BEW added 21Mar09
 	void	UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo);
 	int		GetOptimumDlgEditBoxHeight(int pointSize);
 	int		GetOptimumDlgFontSize(int pointSize);
@@ -2109,11 +2113,11 @@ public:
 	bool	IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks);
 	
 	// the following ones were added by BEW to complete JF's implementation of Split, Join and Move functionalities
-	bool	IsValidBookID(wxString& id);
+	bool		IsValidBookID(wxString& id);
 	wxString	GetBookIDFromDoc();
 	wxString	GetBookID(); // this one handles both book mode on or off
 	void		AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id);
-	int		SetBundleIndices(SPList* pList, int nFirstSequNumInBundle); // for Joining documents, returns active loc'n
+	//int		SetBundleIndices(SPList* pList, int nFirstSequNumInBundle); // for Joining documents, returns active loc'n
 
 	//void	KBIntegrityCheck(); // whm 16Jan09 Removed
 	bool	LoadKB();

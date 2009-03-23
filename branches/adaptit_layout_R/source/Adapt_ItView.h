@@ -46,7 +46,8 @@ class CCell;
 class CRefString;
 class CKB;
 class MapKeyStringToTgtUnit;
-class CLayout;
+//class CLayout;
+#include "Layout.h"
 //class CProgressDlg;
 //class CEarlierTranslationDlg;
 
@@ -161,7 +162,7 @@ public:
 	//void		CalcIndicesForAdvance(int nSequNum); // removed 19Mar09
 	//void		CalcInitialIndices(); // removed 19Mar09
 	
-	CPile*		CalcPile(CPile *pPile);
+	//CPile*		CalcPile(CPile *pPile); // removed 23Mar09 because does same as GetNextPile()
 	int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
 	//CCell*		CreateCell(CAdapt_ItDoc* pDoc,
 	//					CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
@@ -286,11 +287,7 @@ public:
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
 																  // enable/disable code
-	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
-	void		PrepareForLayout(int nActiveSequNum); // BEW added 17Mar09
-	void		PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, 
-											int gnBoxCursorOffset = 0); // BEW added 17Mar09
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
 	//void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle*
 	//						pBundle); // removed for refactor, 19Mar09

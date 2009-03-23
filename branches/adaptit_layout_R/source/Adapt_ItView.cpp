@@ -1387,12 +1387,20 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 }
 */ // end old code from view's OnDraw() function
 
+// return the CPile* at the passed in index, or NULL if the index is out of bounds;
+// the pile list is at CLayout::m_pileList
 CPile* CAdapt_ItView::GetPile(const int nSequNum)
 {
 	// refactored 10Mar09, for new view layout design (no bundles)
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pLayout != NULL);
 	PileList* pPiles = pLayout->GetPileList();
+	int nCount = pPiles->GetCount();
+	if (nSequNum < 0 || nSequNum >= nCount)
+	{
+		// bounds error, so return NULL
+		return (CPile*)NULL;
+	}
 	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
 												  // and m_pileList lists
 	wxASSERT(pos != NULL);
@@ -1483,7 +1491,7 @@ CCell* CAdapt_ItView::GetNextCell(CCell *pCell, const int cellIndex)
 	PileList* pPiles = GetLayout()->GetPileList();
 	int index = pPiles->IndexOf(pPile);
 	index++; // index of next CPile instance
-	if (index >= pPiles->GetCount())
+	if (index >= (int)pPiles->GetCount())
 	{
 		return NULL; // bounds error - passed end of document
 	}
@@ -1515,7 +1523,7 @@ CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 	PileList* pPiles = GetLayout()->GetPileList();
 	int index = pPiles->IndexOf(pPile);
 	index++; // index of next CPile instance
-	if (index >= pPiles->GetCount())
+	if (index >= (int)pPiles->GetCount())
 	{
 		return NULL; // bounds error - passed end of document
 	}
@@ -1895,6 +1903,11 @@ void CAdapt_ItView::OnInitialUpdate()
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
 	bool bIsOK = pLayout->RecalcLayout(TRUE); // TRUE means "create the m_pileList too"
+	if (!bIsOK)
+	{
+		wxMessageBox(_T("RecalcLayout returned FALSE in OnInitialUpdate() in view class"),_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+	}
 	
 	gpApp->m_targetPhrase = saveText;
 	gnStart = 0;
@@ -2136,544 +2149,6 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	return pileWidth;
 }
 
-void CAdapt_ItView::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, int nBoxCursorOffset)
-{
-	// hook up the user's edit action's results to the layout and phrase box, in the most typical
-	// or generic way - this will be appropriate after the majority of user edit actions; place
-	// this function in the relevant cases of the switch in PrepareForLayout()
-	CLayout* pLayout = GetLayout();
-	wxASSERT(pLayout != NULL);
-	CAdapt_ItApp* pApp = pLayout->m_pApp;
-
-	// ensure the app's m_pActivePile pointer is set
-	pApp->m_pActivePile = pLayout->m_pView->GetPile(nActiveSequNum);
-
-	// *** TODO *** comment out or remove next line when m_pActivePile member is removed from
-	// CPhraseBox class -- having pointer copies for no good reason is to invite an error
-	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
-
-
-	// get the cursor set
-	switch (state)
-	{
-	case select_all:
-		{
-			pApp->m_nStartChar = 0;
-			pApp->m_nEndChar = -1;
-			break;
-		}
-	case cursor_at_text_end:
-		{
-			int len = phrase.Len();
-			pApp->m_nStartChar = len;
-			pApp->m_nEndChar = len;
-			break;
-		}
-	case cursor_at_offset:
-		{
-			wxASSERT(nBoxCursorOffset >= 0);
-			pApp->m_nStartChar = nBoxCursorOffset;
-			pApp->m_nEndChar = pApp->m_nStartChar;
-			break;
-		}
-	default: // do this if a garbage value is passed in
-		{
-			pApp->m_nStartChar = 0;
-			pApp->m_nEndChar = -1;
-			break;
-		}
-	}
-
-	// wx Note: we don't destroy the target box, just set its text to null
-	pApp->m_pTargetBox->SetValue(_T(""));
-
-    // recalculate the layout (strips only, relaying out the piles)
-    // *** TODO **** when our self-adjusting layout code in Draw()'s call of AdjustForUserEdits()
-	// is complete, this RecalcLayout() call can be commented out, because AdjustForUserEdits()
-	// will do the required pile and strip adjustments at the user's edit location in the layout,
-	// and a complete destroy and recreation of the strips, and redistribution of the pile
-	// instances in doing that, will no longer be required. However, for as long as the following
-	// RecalcLayout() call persists here, what it does is to (1) destroy the existing CStrip
-	// instances in CLayout::m_stripArray; (2) it leaves completely untouched the CPiles in the
-	// list CLayout::m_pileList (so these have to be made correct and up to date beforehand in the
-	// handler function for the user's doc editing operation); (3) it rebuilds, for the *whole*
-	// document the CStrip instances using the data in the CPile instances in m_pileList, making
-	// copies of the CPile pointers in that list to save those pointer copies in the CStrip
-	// instances. This rebuild should be fast, because it just uses pile width values already
-	// stored idn the CPile instances, and needs to calculate no location information for
-	// individual piles or strips. In this design, strips are just a partitioning of the sequence
-	// of pile instances in m_pileList where the partitioning criterion is "the sum of the widths
-	// plus the interpile gaps in the current strip must be less than the strip's width, measured
-	// in pixels"
-	pLayout->RecalcLayout(); // bool param (bCreatePilesToo) is FALSE - so it just reforms strips
-							 // after destroying the old ones
-							 // 
-	// in the old design, a computation of the TopLeft coordinates of the phrase box location for
-	// the passed in active location would be done here, now that the layout is up to date;
-	// however, the placing and showing of the phrase box is now in CLayout::Draw(), and is done
-	// after the strips, piles and cells are drawn in the client area - so at that time the
-	// relevant coordinates can be obtained from the active pile pointer by calling its
-	// GetTopLeft() function. The function placing the phrasebox is PlacePhraseBoxInLayout().
-
-	// *** TODO *** at present I've not investigated scrolling; this call below may be necessary, or
-	// maybe it can be programmed away by tweakings done within AdjustForUserEdits() - a possibly
-	// complicating fact will be what the wxScrollingWindow of which the scrollbar is an integral
-	// part do, if the scroll range and /or thumb position is changed just prior to drawing --
-	// possibly a new paint message will be posted on the queue and result in a second unwanted draw
-	// (hence flicker) which we'll want to suppress in some way - perhaps to remove the paint event
-	// before it can be handled.
-	
-	// do a scroll if needed
-	pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
-}
-
-void CAdapt_ItView::PrepareForLayout(int nActiveSequNum)
-{
-	CLayout* pLayout = GetLayout();
-	CAdapt_ItApp* pApp = pLayout->m_pApp;
-
-	// hook up the user's edit action's results to the layout and phrase box (call this after layout
-	// manipulations are completed, and before actual drawing commences, within CLayout::Draw())
-	enum doc_edit_op opType = GetLayout()->m_docEditOperationType;
-	switch(opType)
-	{
-	case no_edit_op:
-		{
-
-			break;
-		}
-	case cancel_op:
-		{
-
-			break;
-		}
-	case target_box_paste_op:
-		{	
-			PrepareForLayout_Generic(pApp->m_nActiveSequNum, pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
-			break;
-		}
-	case relocate_box_op:
-		{
-
-			break;
-		}
-	case merge_op:
-		{
-
-			break;
-		}
-	case unmerge_op:
-		{
-
-			break;
-		}
-	case retranslate_op:
-		{
-
-			break;
-		}
-	case remove_retranslation_op:
-		{
-
-			break;
-		}
-	case edit_retranslation_op:
-		{
-
-			break;
-		}
-	case insert_placeholder_op:
-		{
-
-			break;
-		}
-	case remove_placeholder_op:
-		{
-
-			break;
-		}
-	case edit_source_text_op:
-		{
-
-			break;
-		}
-	case free_trans_op:
-		{
-
-			break;
-		}
-	case end_free_trans_op:
-		{
-
-			break;
-		}
-	case retokenize_text_op:
-		{
-			PrepareForLayout_Generic(pApp->m_nActiveSequNum, pApp->m_targetPhrase, cursor_at_text_end);
-			break;
-		}
-	case collect_back_translations_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_cancel_op:
-		{
-
-			break;
-		}
-	case vert_edit_end_now_op:
-		{
-
-			break;
-		}
-	case vert_edit_previous_step_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_op:
-		{
-
-			break;
-		}
-	case exit_preferences_op:
-		{
-
-			break;
-		}
-	case change_punctuation_op:
-		{
-
-			break;
-		}
-	case change_filtered_markers_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_and_filtered_markers_op:
-		{
-
-			break;
-		}
-	case open_document_op:
-		{
-
-			break;
-		}
-	case new_document_op:
-		{
-
-			break;
-		}
-	case close_document_op:
-		{
-
-			break;
-		}
-	case enter_LTR_layout_op:
-		{
-
-			break;
-		}
-	case enter_RTL_layout_op:
-		{
-
-			break;
-		}
-	default: // do the same as default_op	
-	case default_op:
-		{
-
-			break;
-		}
-	}
-}
-
-void CAdapt_ItView::PlacePhraseBoxInLayout(int nActiveSequNum)
-{
-	// Call this function in CLayout::Draw() after strips are drawn
-	CLayout* pLayout = GetLayout();
-	CAdapt_ItApp* pApp = pLayout->m_pApp;
-	bool bSetModify = FALSE; // governs what is done with the wxEdit control's dirty flag
-	
-	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there the phrase box is
-	// to be located
-	wxPoint ptPhraseBoxTopLeft;
-	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile instead; but this
-					// will work even if we have forgotten to update it in the edit operation's handler
-	pActivePile->TopLeft(ptPhraseBoxTopLeft);
-
-	// get the pile width at the active location; use that width for the width of the phrase box there
-	// (we rely on this CPile instance's SetPhraseBoxGapWidth() having been called after the user's
-	// edits are done - and before the drawing is done; AdjustForUserEdits() should have done it)
-	int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
-
-	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
-	// range specification have already been appropriately set by the PrepareForLayout() function.
-
-	// handle any operation specific parameter settings
-	enum doc_edit_op opType = GetLayout()->m_docEditOperationType;
-	switch(opType)
-	{
-	case no_edit_op:
-		{
-
-			break;
-		}
-	case cancel_op:
-		{
-
-			break;
-		}
-	case target_box_paste_op:
-		{
-			bSetModify = FALSE;
-			break;
-		}
-	case relocate_box_op:
-		{
-
-			break;
-		}
-	case merge_op:
-		{
-
-			break;
-		}
-	case unmerge_op:
-		{
-
-			break;
-		}
-	case retranslate_op:
-		{
-
-			break;
-		}
-	case remove_retranslation_op:
-		{
-
-			break;
-		}
-	case edit_retranslation_op:
-		{
-
-			break;
-		}
-	case insert_placeholder_op:
-		{
-
-			break;
-		}
-	case remove_placeholder_op:
-		{
-
-			break;
-		}
-	case edit_source_text_op:
-		{
-
-			break;
-		}
-	case free_trans_op:
-		{
-
-			break;
-		}
-	case end_free_trans_op:
-		{
-
-			break;
-		}
-	case retokenize_text_op:
-		{
-			bSetModify = FALSE;
-			break;
-		}
-	case collect_back_translations_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_cancel_op:
-		{
-
-			break;
-		}
-	case vert_edit_end_now_op:
-		{
-
-			break;
-		}
-	case vert_edit_previous_step_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_op:
-		{
-
-			break;
-		}
-	case exit_preferences_op:
-		{
-
-			break;
-		}
-	case change_punctuation_op:
-		{
-
-			break;
-		}
-	case change_filtered_markers_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_and_filtered_markers_op:
-		{
-
-			break;
-		}
-	case open_document_op:
-		{
-
-			break;
-		}
-	case new_document_op:
-		{
-
-			break;
-		}
-	case close_document_op:
-		{
-
-			break;
-		}
-	case enter_LTR_layout_op:
-		{
-
-			break;
-		}
-	case enter_RTL_layout_op:
-		{
-
-			break;
-		}
-	default: // do the same as default_op	
-	case default_op:
-		{
-
-			break;
-		}
-	}
-
-	// wx Note: we don't destroy the target box, just set its text to null
-	pApp->m_pTargetBox->SetValue(_T(""));
-
-	// make the phrase box size adjustments, set the colour of its text, tell it where
-	// it is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize()
-	// and causes it to be visible again; CPhraseBox has a color variable & uses 
-	// reflected notification
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, pLayout->GetNavTextHeight(), pApp->m_targetPhrase,
-					pApp->m_nStartChar, pApp->m_nEndChar, pActivePile);
-		pApp->m_pTargetBox->m_textColor = pLayout->GetNavTextColor(); //was pApp->m_navTextColor;
-	}
-	else
-	{
-		ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, pLayout->GetTgtTextHeight(), pApp->m_targetPhrase,
-					pApp->m_nStartChar, pApp->m_nEndChar, pActivePile);
-		pApp->m_pTargetBox->m_textColor = pLayout->GetTgtColor(); // was pApp->m_targetColor;
-	}
-
-	// handle the dirty flag
-	if (bSetModify)
-	{
-		// calls our own SetModify(TRUE)(see Phrasebox.cpp)
-		pApp->m_pTargetBox->SetModify(TRUE); 
-	}
-	else
-	{
-		// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
-		pApp->m_pTargetBox->SetModify(FALSE); 
-	}
-
-}
-
 void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 // Modified to handle glossing or adapting
 {
@@ -2797,7 +2272,8 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		// restore the active pile pointers
 		pPile = GetPile(nSaveActiveSequNum);
 		pApp->m_pActivePile = pPile;
-		pApp->m_pTargetBox->m_pActivePile = pPile;
+		//pApp->m_pTargetBox->m_pActivePile = pPile; // removed this member from
+		//CPhraseBox class
 	}
 
 	// remove any existing selection, it would be a confusion if left there
@@ -2844,8 +2320,8 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	// 6. Make sure the CAdapt_ItApp::m_targetPhrase wxString member is correctly set to contain
 	//    the text which is to be shown in the made-visible phrase box when CLayout::Draw() is called.
 	gnBoxCursorOffset = nStart + pasteStrLength;
-	GetLayout()->m_docEditOperationType = target_box_paste_op;
-	GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity; // active loc +- max 80 (piles)
+	pLayout->m_docEditOperationType = target_box_paste_op;
+	pLayout->m_userEditsSpanCheckType = scan_in_active_area_proximity; // active loc +- max 80 (piles)
 
 	// makde the layout adjustments get done and then the draw and showing of the relocated phrase box
 	Invalidate();
@@ -3078,6 +2554,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 CSourcePhrase* CAdapt_ItView::GetSrcPhrase(int nSequNum)
 {
 	// refactored, no change needed (18Mar09)
+	// does the same job as Jonathan's GetSourcePhraseByIndex(int index) defined in CAdapt_ItApp
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	SPList* pList = pApp->m_pSourcePhrases; 
@@ -3416,6 +2893,107 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 	return TRUE;
 }
 */
+
+// returns a pointer to the next pile having no target language (adapted) string, or NULL
+// if there is no such empty pile later in the document
+//  for version 2.0 and on, the check is done on m_glossing instead, when glossing is ON
+CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
+{
+	// refactored 23Mar09
+	if (gbIsGlossing)
+	{
+		do
+		{
+			pPile = GetNextPile(pPile);
+			if (pPile == NULL)
+				break;
+		} while (pPile->GetSrcPhrase()->m_bHasGlossingKBEntry);
+	}
+	else // currently adapting
+	{
+		do
+		{
+			pPile = GetNextPile(pPile);
+			if (pPile == NULL)
+				break;
+		} while (pPile->GetSrcPhrase()->m_bHasKBEntry || pPile->GetSrcPhrase()->m_bNotInKB);
+	}
+	return pPile;
+}
+
+/* old code
+CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
+// returns a pointer to the next pile having no target language (adapted) string,
+// or NULL if there is no such empty pile later in the bundle; the search is restricted
+// to the current bundle - to advance here would clobber pointers in any function which
+// calls GetNextEmptyPile when an advance is required.
+// for version 2.0 and onwards, the check is done on m_glossing instead, when glossing is ON
+{
+	if (gbIsGlossing)
+	{
+		do
+		{
+			pPile = CalcPile(pPile);
+			if (pPile == NULL)
+				break;
+		} while (pPile->m_pSrcPhrase->m_bHasGlossingKBEntry);
+	}
+	else // currently adapting
+	{
+		do
+		{
+			pPile = CalcPile(pPile);
+			if (pPile == NULL)
+				break;
+		} while (pPile->m_pSrcPhrase->m_bHasKBEntry || pPile->m_pSrcPhrase->m_bNotInKB);
+	}
+	return pPile;
+}
+*/
+
+/* removed code, 23Mar09, because GetNextPile() does same job & has more meaningful name
+CPile* CAdapt_ItView::CalcPile(CPile *pPile)
+// helper for GetNextEmptyPile function; for version 2.0 and onwards
+{
+	CPile* pNextPile = (CPile*)NULL;
+	CStrip* pStrip = pPile->m_pStrip;;
+	CSourceBundle* pBundle = pStrip->m_pBundle;
+	int nCurPile;
+	int nPileCount;
+	nCurPile = pPile->m_nPileIndex;
+	nPileCount = pStrip->m_nPileCount;
+	if (nCurPile < nPileCount - 1)
+	{
+		// there is a next pile in the current strip
+		nCurPile++;
+		pNextPile = pStrip->m_pPile[nCurPile];
+	}
+	else
+	{
+		// next pile is in next strip, so get it from there, provided there is a next strip
+		int nCurStrip = pStrip->m_nStripIndex;
+		nCurStrip++; // the next strip
+		int nStripCount = pBundle->m_nStripCount;
+		if (nCurStrip > nStripCount - 1)
+		{
+			return NULL; // there is no "empty" next pile to be had in the current bundle
+		}
+		else
+		{
+			pStrip = pBundle->m_pStrip[nCurStrip];
+			pNextPile = pStrip->m_pPile[0]; // can only be the first one in the strip
+		}
+	}
+	return pNextPile;
+}
+*/
+
+
+
+
+
+
+
 
 // OnPrepareDC() was moved to CAdapt_ItCanvas in the wx version
 
@@ -5489,8 +5067,11 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX|wxDIALOG_MODAL );
 	editPrefsDlg.Centre();
 
+	/* refactored 22Mar09, no longer needed, so just set to doc length
 	int nSaveMaxToDisplay;
 	nSaveMaxToDisplay = pApp->m_nMaxToDisplay; // save value in case user changes it
+	*/
+	pApp->m_nMaxToDisplay = pApp->GetMaxIndex + 1;
 
 	// preserve the current active pile location, by preserving the srcPhrases's sequNum
 	// (because RecalcLayout will recreate everything any any saved pointers will no longer
@@ -10208,69 +9789,6 @@ void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcP
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
 	}
-}
-
-CPile* CAdapt_ItView::CalcPile(CPile *pPile)
-// helper for GetNextEmptyPile function; for version 2.0 and onwards
-{
-	CPile* pNextPile = (CPile*)NULL;
-	CStrip* pStrip = pPile->m_pStrip;;
-	CSourceBundle* pBundle = pStrip->m_pBundle;
-	int nCurPile;
-	int nPileCount;
-	nCurPile = pPile->m_nPileIndex;
-	nPileCount = pStrip->m_nPileCount;
-	if (nCurPile < nPileCount - 1)
-	{
-		// there is a next pile in the current strip
-		nCurPile++;
-		pNextPile = pStrip->m_pPile[nCurPile];
-	}
-	else
-	{
-		// next pile is in next strip, so get it from there, provided there is a next strip
-		int nCurStrip = pStrip->m_nStripIndex;
-		nCurStrip++; // the next strip
-		int nStripCount = pBundle->m_nStripCount;
-		if (nCurStrip > nStripCount - 1)
-		{
-			return NULL; // there is no "empty" next pile to be had in the current bundle
-		}
-		else
-		{
-			pStrip = pBundle->m_pStrip[nCurStrip];
-			pNextPile = pStrip->m_pPile[0]; // can only be the first one in the strip
-		}
-	}
-	return pNextPile;
-}
-
-CPile* CAdapt_ItView::GetNextEmptyPile(CPile *pPile)
-// returns a pointer to the next pile having no target language (adapted) string,
-// or NULL if there is no such empty pile later in the bundle; the search is restricted
-// to the current bundle - to advance here would clobber pointers in any function which
-// calls GetNextEmptyPile when an advance is required.
-// for version 2.0 and onwards, the check is done on m_glossing instead, when glossing is ON
-{
-	if (gbIsGlossing)
-	{
-		do
-		{
-			pPile = CalcPile(pPile);
-			if (pPile == NULL)
-				break;
-		} while (pPile->m_pSrcPhrase->m_bHasGlossingKBEntry);
-	}
-	else // currently adapting
-	{
-		do
-		{
-			pPile = CalcPile(pPile);
-			if (pPile == NULL)
-				break;
-		} while (pPile->m_pSrcPhrase->m_bHasKBEntry || pPile->m_pSrcPhrase->m_bNotInKB);
-	}
-	return pPile;
 }
 
 /*

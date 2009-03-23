@@ -88,6 +88,7 @@ public:
 	int		Top();
 	int		GetFree();
 	void	SetFree(int nFree);
+	int		GetStripIndex();
 	void	GetStripRect_CellsOnly(wxRect& rect);
 	wxArrayPtrVoid* GetPilesArray();
 	

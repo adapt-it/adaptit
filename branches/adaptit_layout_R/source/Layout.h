@@ -61,6 +61,7 @@ class CAdapt_ItCanvas;
 			// back through his work & finding an error a long way from active location)
 
 typedef enum update_span {
+	no_scan_needed, // when a full RecalcLayout(TRUE) call is done, use this "do nothing" value
 	scan_from_doc_ends,
 	scan_in_active_area_proximity,	// 80 either side of active sequ num value
 	scan_from_big_jump // 300 either side of active sequ num value
@@ -88,6 +89,9 @@ typedef enum doc_edit_op {
 	free_trans_op,
 	end_free_trans_op,
 	retokenize_text_op,
+	split_op,
+	join_op,
+	move_op,
 	collect_back_translations_op,
 	vert_edit_enter_adaptions_op,
 	vert_edit_exit_adaptions_op,
@@ -137,7 +141,8 @@ public:
 	update_span			m_userEditsSpanCheckType; // takes one of two enum values,
 				// 	scan_from_doc_ends  (= 0), or scan_in_active_area_proximity (= 1)
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
-												// and used by PlacePhraseBoxInLayout()
+												// and used by PlacePhraseBoxInLayout() 
+	bool				m_bDrawAtActiveLocation;
 
 //public:
 private:
@@ -166,6 +171,10 @@ private:
 	wxFont*		m_pSrcFont;
 	wxFont*		m_pTgtFont;
 	wxFont*		m_pNavTextFont;
+
+	// user edit span delimitation
+	int			m_nStartUserEdits; // set to -1 when value is not to be used
+	int			m_nEndUserEdits;   // ditto
 
 	//bool		m_bShowTargetOnly; // we won't bother just yet, retain the global
 
@@ -201,8 +210,8 @@ private:
 public:
 	// destructor
 	virtual ~CLayout();
-	//virtual void Draw(wxDC* pDC, bool bAtActiveLocation = TRUE); // keep for refactoring scrolling
-	virtual void Draw(wxDC* pDC);
+	virtual void Draw(wxDC* pDC, bool bDrawAtActiveLocation = TRUE); // bool is for scrollup/down support
+	//virtual void Draw(wxDC* pDC);
 
 	// helpers; setters & getters
 	CAdapt_ItApp*		GetApp();
@@ -322,6 +331,15 @@ public:
 	// get the number of visible strips plus one for good measure
 	int			GetVisibleStrips();
 
+	// function calls relevant to laying out the view updated after user's doc-editing operation
+	// support of user edit actions
+	bool		AdjustForUserEdits(enum update_span type);
+	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
+	void		PrepareForLayout(int nActiveSequNum); // BEW added 17Mar09
+	void		PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, 
+											int gnBoxCursorOffset = 0); // BEW added 17Mar09
+ 
+	
     // get the range of visible strips in the viscinity of the active location; pass in the sequNum
     // value, and return indices for the first and last visible strips (the last may be partly or
     // even wholely out lower than then the bottom of the window's client area); we also try to
@@ -333,15 +351,15 @@ public:
 	// been called, and on the basis of the scrollbar thumb's position, gets the first strip
 	// which has content visible in the canvas client area, adds the other visible strips, and one
 	// more for good measure if possible - this is sort of equivalent to the legacy WX Adapt It's
-	// way of doing it, but in the new design (I'm keeping changes minimal for now)
-	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
+	// way of doing it, but in the new design (I'm keeping changes minimal for now); if
+	// bDrawAtActiveLocation is TRUE, the visible strips are worked out to wrap the active
+	// strip location; if FALSE (as when scrolling up or down) the visible strips are
+	// worked out according to where the top of the scrolled device context is using the
+	// scrollbar thumb's position value.
+	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip, 
+							int bDrawAtActiveLocation);
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = FALSE);
-
-	// ////// private utility functions ////////
-private:
-	// support of user edit actions
-	void		AdjustForUserEdits(enum update_span type);
 
 public:
 	DECLARE_DYNAMIC_CLASS(CLayout) 

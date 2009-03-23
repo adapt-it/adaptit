@@ -3452,19 +3452,26 @@ CLayout* CAdapt_ItDoc::GetLayout()
 	return pApp->m_pLayout;
 }
 
+// return the CPile* at the passed in index, or NULL if the index is out of bounds;
+// the pile list is at CLayout::m_pileList.
 // CAdapt_ItView also has a member function of the same name
 CPile* CAdapt_ItDoc::GetPile(const int nSequNum)
 {
-	// refactored, for new view layout design (no bundles)
+	// refactored 10Mar09, for new view layout design (no bundles)
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pLayout != NULL);
 	PileList* pPiles = pLayout->GetPileList();
+	int nCount = pPiles->GetCount();
+	if (nSequNum < 0 || nSequNum >= nCount)
+	{
+		// bounds error, so return NULL
+		return (CPile*)NULL;
+	}
 	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
 												  // and m_pileList lists
 	wxASSERT(pos != NULL);
 	return pos->GetData();
 }
-
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the current document has been modified; FALSE otherwise
@@ -4817,6 +4824,8 @@ h:						bool bIsInitial = TRUE;
 						offset = 0;
 						offsetNextSection = 0;
 						UpdateSequNumbers(0); // get all the sequence numbers in correct order
+
+						/* refactored 22Mar09 -- the following should not now be needed
 						// fix up the indices, the list is now longer
 						int numElements = pList->GetCount();
 						gpApp->m_maxIndex = numElements - 1; // update, since our list is now longer
@@ -4827,6 +4836,7 @@ h:						bool bIsInitial = TRUE;
 							if (gpApp->m_upperIndex < 1)
 								gpApp->m_upperIndex = gpApp->m_endIndex;
 						}
+						*/
 					}
 					else
 					{
@@ -5649,6 +5659,7 @@ d:				if (!bAtEnd || bGotEndmarker)
 #endif
 		} // end of loop for scanning contents of successive pSrcPhrase instances
 
+		/* refactored 22Mar09 - now bundle concept removed, simpler syntax needed
 		// update view's indices, locate the phrase box about the middle of the bundle,
 		// but if the bundle contains the whole document, don't bother - but instead just
 		// set the bundle's indices to safe values and leave the box wherever it happens 
@@ -5680,6 +5691,13 @@ d:				if (!bAtEnd || bGotEndmarker)
 			if (gpApp->m_lowerIndex > gpApp->m_upperIndex)
 				gpApp->m_lowerIndex = gpApp->m_beginIndex;
 		}
+		*/
+		// prepare for update of view... locate the phrase box approximately where it was,
+		// but if that is not a valid location then put it at the end of the doc
+		int numElements = pList->GetCount();
+		if (gpApp->m_nActiveSequNum > gpApp->GetMaxIndex())
+			gpApp->m_nActiveSequNum = numElements - 1;
+
 	} // end of block for bIsFilteringRequired == TRUE
 
 	// since we now have valid indices for the potential active location, we can check it is a safe location

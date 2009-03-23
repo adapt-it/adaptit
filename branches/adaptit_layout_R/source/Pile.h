@@ -123,7 +123,7 @@ public:
 											  //location, calls CalcPhraseBoxGapWidth())
 	int		GetMinWidth(); // returns value of m_nMinWidth
 	int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
-
+	int		IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
 
 private:
 	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers

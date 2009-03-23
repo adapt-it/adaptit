@@ -2512,9 +2512,11 @@ wxString szRTFExportPath = _T("RTFExportPath"); // stored in the App's m_rtfExpo
 
 // the following ones relate to view parameters
 
-/// The label that identifies the following string encoded number as the application's 
-/// "MaxToDisplay". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_nMaxToDisplay global variable.
+// The label that identifies the following string encoded number as the application's 
+// "MaxToDisplay". This value is written in the "Settings" part of the basic configuration 
+// file. Adapt It stores this value in the App's m_nMaxToDisplay global variable.
+// BEW retained 21Mar09, but now it stores doc count of CSourcePhrase instances, no use
+// made of it though - for backwards compatibility of config files
 wxString szMaxToDisplay = _T("MaxToDisplay"); // stored in the App's m_nMaxToDisplay
 
 /// The label that identifies the following string encoded number as the application's 
@@ -6652,6 +6654,16 @@ void CAdapt_ItApp::Terminate()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+/// \return   the maximum index for the CSourcePhrases in the m_pSourcePhrases list  
+/// \remarks
+/// created 21Mar09 to replace the now deprecated m_maxIndex app member
+////////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetMaxIndex()
+{
+	return m_pSourcePhrases->GetCount() - 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always zero (0)
 /// \remarks
 /// Called from: the wxApp object just before it exits and returns control back to the system.
@@ -7949,19 +7961,27 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
 															FALSE,	// bFilterChange FALSE = no filter changes here
 															FALSE);	// bSfmSetChange FALSE = no sfm set change here
-				m_maxIndex = nNewSrcPhraseCount - 1; // update
+				//int maxIndex = nNewSrcPhraseCount - 1; // update
 
 				// set up some safe indices, since the counts could be quite different than before
 				difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
+
+				// for refactored layout support - there best way to be sure all is well
+				// is to completely regenerate the layout, including m_pileList
+				m_pLayout->RecalcLayout(TRUE);
+
+				/* next few lines removed 21Mar09, because bundle support no longer needed
 				// try expand sufficiently to encompass the active location within the lengthened
 				// bundle, assuming it actually is lengthened (it won't be if difference is zero)
-				m_endIndex = wxMin(gpApp->m_maxIndex,m_endIndex + difference);
+				//m_endIndex = wxMin(maxIndex,m_endIndex + difference);
 				// if difference was huge, we may need to further reduce the value
-				m_endIndex = wxMin(m_endIndex,m_beginIndex + m_nMaxToDisplay);
-				m_upperIndex -= m_nFollowingContext;
-				if (m_upperIndex < 0)
-					m_upperIndex = m_endIndex;
+				//m_endIndex = wxMin(m_endIndex,m_beginIndex + m_nMaxToDisplay);
+				//m_upperIndex -= m_nFollowingContext;
+				//if (m_upperIndex < 0)
+				//	m_upperIndex = m_endIndex;
+				*/
 
+				/* comment out this section - it is bundle-dependent
 				// Unfortunately, we can't ensure the viability of the saved phrase box contents - there are
 				// several scenarios that force us to abandon its contents - some are for filtering changes
 				// and so will be dealt with in DoUsfmFilterChanges(), but the one which concerns us for 
@@ -8008,6 +8028,12 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 					m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
 					pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
 				}
+				*/
+				// for refactored layout code, the following suffices because m_nActiveSequNum
+				// remains within the document and was used in the RecalcLayout(TRUE) call above
+				CSourcePhrase* pSrcPhrase = NULL;
+				m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
+				pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
 				wxASSERT(pSrcPhrase);
 
 				// remove the KB or GlossingKB entry for this location, depending on the mode
@@ -8024,9 +8050,12 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 												pSrcPhrase->m_key,pSrcPhrase->m_adaption);
 					pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 				}
+				/* //in refactored layout code, this comment is probably irrelevant because there probably
+				// won't be any RedrawEverything() function anymore...
 				// Note: RedrawEverything() is called at end of OnEditPreferences() - the latter doesn't
 				// change the indices, so we must exit here with the indices we want to have used when
 				// the view is set up again.
+				*/
 			}
 		}
 	}
@@ -8070,7 +8099,7 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 			while (pNextSrcPhrase->m_bRetranslation) 
 			{
 				++nNextSequNum;
-				if (nNextSequNum > m_maxIndex)
+				if (nNextSequNum > GetMaxIndex())
 				{
 					// there is nowhere where there is no retranslation
 					// so go to the start & just too bad - put the box
@@ -8078,7 +8107,6 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 					// will not die.
 					{
 						nNextSequNum = 0;
-						pView->CalcInitialIndices();
 						pNextSrcPhrase = pView->GetSrcPhrase(nNextSequNum);
 						break;
 					}
@@ -8104,18 +8132,6 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 			pSrcPhrase = pPrevSrcPhrase;
 			m_nActiveSequNum = pPrevSrcPhrase->m_nSequNumber;
 		}
-	}
-
-	// all of the above fiddling might have given us a final sourcephrase location
-	// which has gone outside the bundle's current bounds. If this is the case,
-	// then adjust the bundle to agree with the location we've chosen - that is,
-	// adjust the indices so the active location falls within them; but don't do
-	// so if it is already within them
-	if (m_nActiveSequNum < m_beginIndex ||
-		m_nActiveSequNum > m_endIndex)
-	{
-		// adjustment is needed
-		pView->CalcIndicesForAdvance(m_nActiveSequNum);
 	}
 
 	// set m_targetPhrase
@@ -8269,7 +8285,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 				// we are somewhere in the midst of the data, so a pile will be active
 				//activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
 				activeSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-				gpApp->m_curIndex = activeSequNum;
+				//gpApp->m_curIndex = activeSequNum; // removed 22Mar09
 
 				// remove any current selection, as we can't be sure of any pointers
 				// depending on what user may choose to alter
@@ -8291,8 +8307,12 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 			int nNewSrcPhraseCount = pDoc->RetokenizeText(FALSE, // FALSE = punctuation not changed here
 															bFilterChangeInDoc, 
 															FALSE); // FALSE = sfm set change not flagged here
+			/* removed 22Mar09, and put a dummy line to use nNewSrcPhraseCount to avoid a compiler warning
 			gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update (this is cosmetic, actually we have to have
 														// updated this index progressively as we retokenized)
+			*/
+			nNewSrcPhraseCount = nNewSrcPhraseCount; // avoid compiler warning
+
 			gpApp->m_targetPhrase = strSavePhraseBox;
 
 			// Note: RedrawEverything() is called at end of OnEditPreferences()
@@ -8471,19 +8491,17 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 #endif
 
 			// Reparse the Document
-			// code below copied and adapted from CAdapt_ItView::OnEditPunctCorresp()
-			int activeSequNum;
-			if (gpApp->m_nActiveSequNum < 0)
+			if (m_nActiveSequNum < 0)
 			{
 				// must not have data yet, or we are at EOF and so no pile is currently active
-				activeSequNum = -1;
+				// so do nothing here
+				;
 			}
 			else
 			{
-				// we are somewhere in the midst of the data, so a pile will be active
-				//activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
-				activeSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-				gpApp->m_curIndex = activeSequNum;
+				// phrase box is visible somewhere in the data, so a pile will be active
+				m_nActiveSequNum = m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+				//gpApp->m_curIndex = activeSequNum;
 
 				// remove any current selection, as we can't be sure of any pointers
 				// depending on what user may choose to alter
@@ -8504,7 +8522,8 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 			TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
 #endif
 
-			gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update
+			//gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update
+			nNewSrcPhraseCount = nNewSrcPhraseCount; // avoids a compile warning (we don't use this value)
 
 			// version 3 always rebuilds the doc, so we need to unconditionally restore the phrasebox contents...
 			// (The box contents will generally be correct and the location unchanged, except if the SFM set
@@ -12108,6 +12127,12 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 {
+    // BEW refactored 22Mar09, for compatibility with earlier settings file - write this
+    // out for the m_nMaxToDisplay value, which is not needed any more
+	m_nMaxToDisplay = GetMaxIndex() + 1;
+	int dummyValue1 = 10; // for removed m_nPrecedingContext;
+	int dummyValue2 = 10; // for removed m_nFollowingContext;
+
 	// wx version combines ANSI and UNICODE parts in common to simplify this function
 	wxString data = _T("");
 	wxString tab = _T("\t");
@@ -12223,11 +12248,13 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szMinPrecContext << tab << m_nPrecedingContext;
+	//data << szMinPrecContext << tab << m_nPrecedingContext;
+	data << szMinPrecContext << tab << dummyValue1;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szMinFollContext << tab << m_nFollowingContext;
+	//data << szMinFollContext << tab << m_nFollowingContext;
+	data << szMinFollContext << tab << dummyValue2;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -13491,23 +13518,34 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szMaxToDisplay)
 		{
 			num = wxAtoi(strValue);
-			if (num <= 80 || num > 4000)
-				num = 300;
+            // refactored 22Mar09, we don't use this anymore (and is now used just to save
+            // count of doc pSrcPhrase instances - though we make to use of that value
+            // anywhere, it's just for backwards compatibility of the config files)
+			//if (num <= 80 || num > 4000) 
+			//	num = 300;
 			m_nMaxToDisplay = num;
 		}
 		else if (name == szMinPrecContext)
 		{
 			num = wxAtoi(strValue);
+			/* refactored 22Mar09 - no longer needed, but retain in config file
 			if (num <= 10 || num > 80)
 				num = 50;
 			m_nPrecedingContext = num;
+			*/
+			int dummyvalue = num; // don't use it any more
+			dummyvalue = dummyvalue; // avoid compiler warning
 		}
 		else if (name == szMinFollContext)
 		{
 			num = wxAtoi(strValue);
+			/* 
 			if (num <= 10 || num > 60)
 				num = 30;
 			m_nFollowingContext = num;
+			*/
+			int dummyvalue = num; // don't use it any more
+			dummyvalue = dummyvalue; // avoid compiler warning
 		}
 		else if (name == szLeading)
 		{
@@ -13995,9 +14033,10 @@ void CAdapt_ItApp::SetDefaults()
 	InitializePunctuation();
 
 	// TODO: Should some/all of the following be put in Adapt_ItConstants.h ???
-	m_nMaxToDisplay = 300;
-	m_nPrecedingContext = 50;
-	m_nFollowingContext = 30;
+	//m_nMaxToDisplay = 300; // 22Mar09, no longer used, but retained for backwards 
+							 // compatibility of config file
+	//m_nPrecedingContext = 50;
+	//m_nFollowingContext = 30;
 	m_curLeading = 32;
 	m_curLMargin = 16;// whm changed default to 16 for better visibility of any notes icon at left margin
 	m_curGapWidth = 16;
@@ -20287,6 +20326,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 		// get all the sequence numbers into correct sequence
 		d->UpdateSequNumbers(0);
 
+		/* refactored 22Mar09 - removed, no bundles to have to worry about, but phr box located same place
 		// BEW modified 07Nov05
 		// the document may now be longer than a bundle can display, in fact it may have been that way
 		// before the append operation, so we have to ensure we get the indices correct for the currently
@@ -20299,6 +20339,19 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 		int nFirstIndex = nOldCount - m_nPrecedingContext;
 		if (nFirstIndex < 0) nFirstIndex = 0; // ensure a valid index
 		m_nActiveSequNum = SetBundleIndices(m_pSourcePhrases, nFirstIndex);
+		CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
+		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; else to a safe location
+		*/
+		int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just joined doc part
+		if (anActiveSequNum <= GetMaxIndex())
+		{
+			// it's within the document span
+			m_nActiveSequNum = anActiveSequNum;
+		}
+		else
+		{
+			m_nActiveSequNum = GetMaxIndex();
+		}
 		CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
 		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; else to a safe location
 	}
@@ -20321,11 +20374,15 @@ SPList *CAdapt_ItApp::GetSourcePhraseList()
 /// \remarks
 /// Called from: the App's CascadeSourcePhraseListChange(), and 
 /// CSplitDialog::GoToNextChapter_Interactive().
-/// Simply calls GetSourcePhraseByIndex() for the m_curIndex.
+/// Simply calls GetSourcePhraseByIndex() passing in the view's m_nActiveSequNum
+/// remarks:
+/// A similar function on the view class is GetSourcePhrase(int nSequNum)
 ////////////////////////////////////////////////////////////////////////////////////////////
 CSourcePhrase *CAdapt_ItApp::GetCurrentSourcePhrase()
 {
-	return GetSourcePhraseByIndex(m_curIndex);
+	// refactored 22Mar09: to be based on view's m_nActiveSequNum rather than bundle's m_curIndex
+	// because the latter has been removed
+	return GetSourcePhraseByIndex(m_nActiveSequNum); // was GetSourcePhraseByIndex(m_curIndex);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -20345,6 +20402,7 @@ CSourcePhrase *CAdapt_ItApp::GetCurrentSourcePhrase()
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCurrentSourcePhrase(CSourcePhrase *sp)
 {
+	// refactored 22Mar09 - no change needed
 	// BEW modified 02Nov05, to prevent a copy of the source text word at the new
 	// box location being copied to m_targetPhrase when there is no adaptation (or
 	// gloss if gloss mode is currently on) already available for that location
@@ -20504,10 +20562,12 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 {
-	CAdapt_ItDoc *d = GetDocument();
+	// refactored 22Mar09  -- all the index stuff is now unneeded, so just do the Jump
 	CAdapt_ItView *v = GetView();
-
+	CAdapt_ItDoc *d = GetDocument();
 	d->UpdateSequNumbers(0);
+
+	/*
 	m_maxIndex = m_pSourcePhrases->GetCount() - 1;
 	if (m_curIndex >= m_maxIndex) {
 		m_curIndex = 0;
@@ -20524,6 +20584,7 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 		m_lowerIndex = m_beginIndex;
 	if (m_upperIndex >= m_endIndex)
 		m_upperIndex = m_endIndex - wxMin(m_nFollowingContext,(m_endIndex - m_beginIndex)/10);
+	*/
 
 	if (DoFullScreenUpdate) {
 		v->Jump(this, GetCurrentSourcePhrase());
@@ -20541,22 +20602,25 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 /// Gets a pointer to the source phrase instance at Index in m_pSourcePhrases.
 /// whm: Does not do any error checking so it assumes that Index is a valid index into the list,
 /// i.e., within the list.
+/// Jonathan build this function, it does exactly the same as the
+/// CAdapt_ItView::GetSourcePhrase(int nSequNum) function - but the latter checks pointer
+/// validity in the debug build as well, Jonathan's doesn't
 ////////////////////////////////////////////////////////////////////////////////////////////
 CSourcePhrase *CAdapt_ItApp::GetSourcePhraseByIndex(int Index)
 {
+	// refactored 22Mar09 - no change needed
 	SPList *ol = m_pSourcePhrases;
 	SPList::Node* node = ol->Item(Index);
 	return (CSourcePhrase*)node->GetData();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      Index   -> an int representing the index of the source phrase to Jump to
-/// \remarks
-/// Called from: CSplitDialog::SplitAtPhraseBoxLocation_Interactive().
-/// Calls the View's Jump() method to jump to the source phrase instance at Index in m_pSourcePhrases.
-/// whm: Does not do any error checking so it assumes that Index is a valid index into the list,
-/// i.e., within the list.
+/// \return nothing \param Index -> an int representing the index of the source phrase to
+/// Jump to \remarks Called from: CSplitDialog::SplitAtPhraseBoxLocation_Interactive().
+/// Calls the View's Jump() method to jump to the source phrase instance at Index in
+/// m_pSourcePhrases. 
+/// whm: *** TODO someday *** Does not do any error checking so it assumes that Index is a
+/// valid index into the list, i.e., within the list.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCurrentSourcePhraseByIndex(int Index)
 {
@@ -20693,24 +20757,25 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 	m_pLayout->m_userEditsSpanCheckType = scan_from_doc_ends;	// for passing to CLayout::AdjustForUserEdits()
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     the index for the active location
-/// \param      pList                   -> the SPList for the document
-/// \param      nFirstSequNumInBundle   -> an int representing the first sequence number of the needed 
-///                                         bundle
-/// \remarks
-/// Called from: the App's AppendSourcePhrasesToCurrentDoc().
-/// SetBundleIndices takes a pointer to the m_pSourcePhrases list in the document, and an index
-/// to the CSourcePhrase instance in that list which is to be the first one of the bundle needed
-/// to be computed after a Join operation (since the join may have created a document bigger than
-/// a single bundle, even if not so previously), and returns the index for the active location
-/// (which typically is m_nPrecedingContext sourcephase instances further along than the 
-/// nFirstSequNumInBundle value). The caller can then do a GetSrcPhrase() call on the list using the
-/// returned index to get the active CSourcePhrase instance there, and then Jump() can be used
-/// to set up a correctly laid out bundle with the phrase box at the desired location. For the
-/// phrase box to be at the last join location, the caller should do a little simple arithmetic to
-/// work out the correct nFirstSequNumInBundle value to produce the wanted result.
-////////////////////////////////////////////////////////////////////////////////////////////
+/* BEW removed 21Mar09
+// //////////////////////////////////////////////////////////////////////////////////////////
+// / \return     the index for the active location
+// / \param      pList                   -> the SPList for the document
+// / \param      nFirstSequNumInBundle   -> an int representing the first sequence number of the needed 
+// /                                         bundle
+// / \remarks
+// / Called from: the App's AppendSourcePhrasesToCurrentDoc().
+// / SetBundleIndices takes a pointer to the m_pSourcePhrases list in the document, and an index
+// / to the CSourcePhrase instance in that list which is to be the first one of the bundle needed
+// / to be computed after a Join operation (since the join may have created a document bigger than
+// / a single bundle, even if not so previously), and returns the index for the active location
+// / (which typically is m_nPrecedingContext sourcephase instances further along than the 
+// / nFirstSequNumInBundle value). The caller can then do a GetSrcPhrase() call on the list using the
+// / returned index to get the active CSourcePhrase instance there, and then Jump() can be used
+// / to set up a correctly laid out bundle with the phrase box at the desired location. For the
+// / phrase box to be at the last join location, the caller should do a little simple arithmetic to
+// / work out the correct nFirstSequNumInBundle value to produce the wanted result.
+// //////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::SetBundleIndices(SPList* pList, int nFirstSequNumInBundle)
 {
 	CAdapt_ItView *v = GetView();
@@ -20742,6 +20807,7 @@ int CAdapt_ItApp::SetBundleIndices(SPList* pList, int nFirstSequNumInBundle)
 	}
 	return nActiveLoc;
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

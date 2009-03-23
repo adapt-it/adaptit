@@ -121,6 +121,9 @@ extern bool gbShowTargetOnly;
 /// This global is defined in Adapt_ItView.cpp.
 extern wxRect grectViewClient;
 
+/// This global is defined in Adapt_ItView.h.
+extern int gnBoxCursorOffset;
+
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
 // to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection dir) method
 // to change the logical direction of the display context. In wxDC the display context is mirrored
@@ -211,6 +214,7 @@ void CLayout::InitializeCLayout()
 	//m_pPiles = NULL;
 	//m_pStrips = NULL;
 	m_stripArray.Clear();
+	m_bDrawAtActiveLocation = TRUE;
 
 	// *** TODO ***   add more basic initializations above here - but only stuff that makes the
 	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
@@ -218,24 +222,28 @@ void CLayout::InitializeCLayout()
 }
 
 
-void CLayout::Draw(wxDC* pDC)
+void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 {
-	// bAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done based on the
+	// m_bDrawAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done based on the
 	// top of the first strip of a visible range of strips determined by the scroll car position
 	int i;
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
 	int nActiveSequNum = -1;
 
+	// *** TODO *** AdjustForUserEdits(), once we get rid of RecalcLayout(FALSE) calls,
+	// will need to replace those calls *** in the doc editing handlers themselves, eg
+	// OnButtonMerge() etc...***)
+	/*
 	// make any alterations needed to the strips because of user edit operations on the doc
-	AdjustForUserEdits(m_userEditsSpanCheckType);
+	AdjustForUserEdits(m_userEditsSpanCheckType); // replaces most of the legacy RecalcLayout() calls
 	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value for next time
-	 
+	*/
+
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
-	// determine which strips are to be drawn
-	//GetVisibleStripsRange(nActiveSequNum, nFirstStripIndex, nLastStripIndex);
-	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex); // a scrolled wxDC must be passed in
+	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
+	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex, bDrawAtActiveLocation);
 
 	// draw the visible strips (plus and extra one, if possible)
 	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
@@ -244,7 +252,7 @@ void CLayout::Draw(wxDC* pDC)
 	}
 
 	// get the phrase box placed in the active location and made visible, and suitably prepared
-	m_pView->PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+	PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
 }
 
 
@@ -618,7 +626,7 @@ void CLayout::SetPileAndStripHeight()
     // target text line height plus 3 pixels of separating space from the bottom of the pile
     // (Note: the m_nCurLeading value, for the navText area, is NOT regarded as part of the strip)
 	m_nStripHeight = m_nPileHeight;
-	if (gpApp->m_bFreeTranslationMode && !gbIsPrinting)
+	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
 	{
         // add enough space for a single line of the height given by the target text's height + 3
         // pixels to set it off a bit from the bottom of the pile
@@ -1023,9 +1031,16 @@ void CLayout::UpdateStripIndices(int nStartFrom)
 }
 
 // the GetPile function also has equivalent member functions of the same name in the CAdapt_ItView
-// and CAdapt_ItDoc classes, for convenience's sake
+// and CAdapt_ItDoc classes, for convenience's sake; return the CPile instance at the
+// given index, or NULL if the index is out of bounds
 CPile* CLayout::GetPile(int index)
 {
+	int nCount = m_pileList.GetCount();
+	if (index < 0 || index >= nCount)
+	{
+		// bounds error, so return NULL
+		return (CPile*)NULL;
+	}
 	PileList::Node* pos = m_pileList.Item(index);
 	wxASSERT(pos != NULL);
 	return pos->GetData();
@@ -1063,56 +1078,68 @@ int CLayout::GetVisibleStrips()
 	return nVisStrips;
 }
 
-void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex)
+void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex, int bDrawAtActiveLocation)
 {
-	// get the logical distance (pixels) that the scroll bar's thumb indicates to top of client area
-	int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
-
-	// for the current client rectangle of the canvas, calculate how many strips will fit - a part
-	// strip is counted as an extra one
-	int nVisStrips = GetVisibleStrips();
-
-	// initialilze the values for the return parameters
-	nFirstStripIndex = -1;
-	nLastStripIndex = -1;
-
-	// find the current total number of strips
-	int nTotalStrips = m_stripArray.GetCount();
-	
-	// find the index of the first strip which has some content visible in the client area,
-	// that is, the first strip which has a bottom coordinate greater than nThumbPosition_InPixels
-	int index = 0;
-	int bottom;
-	CStrip* pStrip;
-	do {
-		pStrip = (CStrip*)m_stripArray[index];	
-		bottom = pStrip->Top() + GetStripHeight(); // includes free trans height if free trans mode is ON 
-		if (bottom > nThumbPosition_InPixels)
-		{
-			// this strip is at least partly visible - so start drawing at this one
-			break;
-		}
-		index++;
-	} while(index < nTotalStrips);
-	wxASSERT(index < nTotalStrips);
-	nFirstStripIndex = index;
-
-	// use nVisStrips to get the final visible strip (it may be off-window, but we don't care
-	// because it will be safe to draw it off window)
-	nLastStripIndex = nFirstStripIndex + (nVisStrips - 1);
-
-	// check the bottom of the last visible strip is lower than the bottom of the client area, if
-	// not, add an additional strip
-	pStrip = (CStrip*)m_stripArray[nLastStripIndex];
-	bottom = pStrip->Top() + GetStripHeight();
-	if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y ))
+	// *** TODO ****  BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
+	// hide box
+	if (bDrawAtActiveLocation)
 	{
-		// add an extra one
-		nLastStripIndex++;
+		// get the logical distance (pixels) that the scroll bar's thumb indicates to top of client area
+		int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
+
+		// for the current client rectangle of the canvas, calculate how many strips will fit - a part
+		// strip is counted as an extra one
+		int nVisStrips = GetVisibleStrips();
+
+		// initialilze the values for the return parameters
+		nFirstStripIndex = -1;
+		nLastStripIndex = -1;
+
+		// find the current total number of strips
+		int nTotalStrips = m_stripArray.GetCount();
+		
+		// find the index of the first strip which has some content visible in the client area,
+		// that is, the first strip which has a bottom coordinate greater than nThumbPosition_InPixels
+		int index = 0;
+		int bottom;
+		CStrip* pStrip;
+		do {
+			pStrip = (CStrip*)m_stripArray[index];	
+			bottom = pStrip->Top() + GetStripHeight(); // includes free trans height if free trans mode is ON 
+			if (bottom > nThumbPosition_InPixels)
+			{
+				// this strip is at least partly visible - so start drawing at this one
+				break;
+			}
+			index++;
+		} while(index < nTotalStrips);
+		wxASSERT(index < nTotalStrips);
+		nFirstStripIndex = index;
+
+		// use nVisStrips to get the final visible strip (it may be off-window, but we don't care
+		// because it will be safe to draw it off window)
+		nLastStripIndex = nFirstStripIndex + (nVisStrips - 1);
+
+		// check the bottom of the last visible strip is lower than the bottom of the client area, if
+		// not, add an additional strip
+		pStrip = (CStrip*)m_stripArray[nLastStripIndex];
+		bottom = pStrip->Top() + GetStripHeight();
+		if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y ))
+		{
+			// add an extra one
+			nLastStripIndex++;
+		}
+	}
+	else
+	{
+		// **** TODO ****  similar calculations based on scroll bar thumb position
+
 	}
 }
 
-void CLayout::AdjustForUserEdits(enum update_span type)
+// return TRUE if the function checked for the start and end of the user edit span,
+// return FALSE is no check was done (ie. no_scan_needed) value passed in
+bool CLayout::AdjustForUserEdits(enum update_span type)
 {
     // scan forwards and backwards in m_pileList matching CSourcePhrase pointer instances with
     // those stored in the CPile copies in the strips in m_stripArray - and when there is a
@@ -1122,7 +1149,7 @@ void CLayout::AdjustForUserEdits(enum update_span type)
     // just prior to drawing the updated layout The passed in enum value, which can be
     // scan_from_doc_ends (= 0), or scan_in_active_area_proximity (= 1), or scan_from_big_jump,
     // determines how extensive a scan is done - whether from the start and end of the document, or
-    // from locations prior to and after the active location but in its proximityh; in the later
+    // from locations prior to and after the active location but in its proximity; in the later
     // case the jump distance from the current active location is given by the #define
     // nJumpDistanceForUserEditsSpanDetermination which is currently set at 80, or from a bigger
     // jump nBigJumpDistance, currently set at 300 (CSourcePhrase instances)
@@ -1131,17 +1158,30 @@ void CLayout::AdjustForUserEdits(enum update_span type)
 	// **** TODO ****
 	switch (type)
 	{
+	case no_scan_needed:
+		{
+			m_nStartUserEdits = -1; // set to -1 when value is not to be used
+			m_nEndUserEdits = -1;   // ditto
+
+		 return FALSE;
+		}
 	case scan_in_active_area_proximity:
 		{
 
+			break;
+		}
+	case scan_from_big_jump:
+		{
 
+			break;
 		}
 	case scan_from_doc_ends:
 		{
 
-
+			break;
 		}
 	}
+	return TRUE;
 }
 
 /*
@@ -1850,3 +1890,566 @@ void CLayout::GetVisibleStripsRange(int nSequNum, int& nFirstStrip, int& nLastSt
 		}
 	}
 */
+
+
+void CLayout::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, int nBoxCursorOffset)
+{
+	// hook up the user's edit action's results to the layout and phrase box, in the most typical
+	// or generic way - this will be appropriate after the majority of user edit actions; place
+	// this function in the relevant cases of the switch in PrepareForLayout()
+
+	// ensure the app's m_pActivePile pointer is set
+	m_pApp->m_pActivePile = m_pView->GetPile(nActiveSequNum);
+
+	// *** TODO *** comment out or remove next line when m_pActivePile member is removed from
+	// CPhraseBox class -- having pointer copies for no good reason is to invite an error
+	m_pApp->m_pTargetBox->m_pActivePile = m_pApp->m_pActivePile; // put copy in the CPhraseBox too
+
+
+	// get the cursor set
+	switch (state)
+	{
+	case select_all:
+		{
+			m_pApp->m_nStartChar = 0;
+			m_pApp->m_nEndChar = -1;
+			break;
+		}
+	case cursor_at_text_end:
+		{
+			int len = phrase.Len();
+			m_pApp->m_nStartChar = len;
+			m_pApp->m_nEndChar = len;
+			break;
+		}
+	case cursor_at_offset:
+		{
+			wxASSERT(nBoxCursorOffset >= 0);
+			m_pApp->m_nStartChar = nBoxCursorOffset;
+			m_pApp->m_nEndChar = m_pApp->m_nStartChar;
+			break;
+		}
+	default: // do this if a garbage value is passed in
+		{
+			m_pApp->m_nStartChar = 0;
+			m_pApp->m_nEndChar = -1;
+			break;
+		}
+	}
+
+	// wx Note: we don't destroy the target box, just set its text to null
+	m_pApp->m_pTargetBox->SetValue(_T(""));
+
+    // recalculate the layout (strips only, relaying out the piles)
+    // *** TODO **** when our self-adjusting layout code in Draw()'s call of AdjustForUserEdits()
+	// is complete, this RecalcLayout() call can be commented out, because AdjustForUserEdits()
+	// will do the required pile and strip adjustments at the user's edit location in the layout,
+	// and a complete destroy and recreation of the strips, and redistribution of the pile
+	// instances in doing that, will no longer be required. However, for as long as the following
+	// RecalcLayout() call persists here, what it does is to (1) destroy the existing CStrip
+	// instances in CLayout::m_stripArray; (2) it leaves completely untouched the CPiles in the
+	// list CLayout::m_pileList (so these have to be made correct and up to date beforehand in the
+	// handler function for the user's doc editing operation); (3) it rebuilds, for the *whole*
+	// document the CStrip instances using the data in the CPile instances in m_pileList, making
+	// copies of the CPile pointers in that list to save those pointer copies in the CStrip
+	// instances. This rebuild should be fast, because it just uses pile width values already
+	// stored idn the CPile instances, and needs to calculate no location information for
+	// individual piles or strips. In this design, strips are just a partitioning of the sequence
+	// of pile instances in m_pileList where the partitioning criterion is "the sum of the widths
+	// plus the interpile gaps in the current strip must be less than the strip's width, measured
+	// in pixels"
+	RecalcLayout(); // bool param (bCreatePilesToo) is FALSE - so it just reforms strips
+							 // after destroying the old ones
+							 // 
+	// in the old design, a computation of the TopLeft coordinates of the phrase box location for
+	// the passed in active location would be done here, now that the layout is up to date;
+	// however, the placing and showing of the phrase box is now in CLayout::Draw(), and is done
+	// after the strips, piles and cells are drawn in the client area - so at that time the
+	// relevant coordinates can be obtained from the active pile pointer by calling its
+	// GetTopLeft() function. The function placing the phrasebox is PlacePhraseBoxInLayout().
+
+	// *** TODO *** at present I've not investigated scrolling; this call below may be necessary, or
+	// maybe it can be programmed away by tweakings done within AdjustForUserEdits() - a possibly
+	// complicating fact will be what the wxScrollingWindow of which the scrollbar is an integral
+	// part do, if the scroll range and /or thumb position is changed just prior to drawing --
+	// possibly a new paint message will be posted on the queue and result in a second unwanted draw
+	// (hence flicker) which we'll want to suppress in some way - perhaps to remove the paint event
+	// before it can be handled.
+	
+	// do a scroll if needed
+	m_pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
+}
+
+
+void CLayout::PrepareForLayout(int nActiveSequNum)
+{
+	// hook up the user's edit action's results to the layout and phrase box (call this after layout
+	// manipulations are completed, and before actual drawing commences, within CLayout::Draw())
+	enum doc_edit_op opType = m_docEditOperationType;
+	switch(opType)
+	{
+	case no_edit_op:
+		{
+
+			break;
+		}
+	case cancel_op:
+		{
+
+			break;
+		}
+	case target_box_paste_op:
+		{	
+			PrepareForLayout_Generic(nActiveSequNum, m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
+			break;
+		}
+	case relocate_box_op:
+		{
+
+			break;
+		}
+	case merge_op:
+		{
+
+			break;
+		}
+	case unmerge_op:
+		{
+
+			break;
+		}
+	case retranslate_op:
+		{
+
+			break;
+		}
+	case remove_retranslation_op:
+		{
+
+			break;
+		}
+	case edit_retranslation_op:
+		{
+
+			break;
+		}
+	case insert_placeholder_op:
+		{
+
+			break;
+		}
+	case remove_placeholder_op:
+		{
+
+			break;
+		}
+	case split_op:
+		{
+
+			break;
+		}
+	case join_op:
+		{
+
+			break;
+		}
+	case move_op:
+		{
+
+			break;
+		}
+	case edit_source_text_op:
+		{
+
+			break;
+		}
+	case free_trans_op:
+		{
+
+			break;
+		}
+	case end_free_trans_op:
+		{
+
+			break;
+		}
+	case retokenize_text_op:
+		{
+			PrepareForLayout_Generic(m_pApp->m_nActiveSequNum, m_pApp->m_targetPhrase, cursor_at_text_end);
+			break;
+		}
+	case collect_back_translations_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_cancel_op:
+		{
+
+			break;
+		}
+	case vert_edit_end_now_op:
+		{
+
+			break;
+		}
+	case vert_edit_previous_step_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_op:
+		{
+
+			break;
+		}
+	case exit_preferences_op:
+		{
+
+			break;
+		}
+	case change_punctuation_op:
+		{
+
+			break;
+		}
+	case change_filtered_markers_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_and_filtered_markers_op:
+		{
+
+			break;
+		}
+	case open_document_op:
+		{
+
+			break;
+		}
+	case new_document_op:
+		{
+
+			break;
+		}
+	case close_document_op:
+		{
+
+			break;
+		}
+	case enter_LTR_layout_op:
+		{
+
+			break;
+		}
+	case enter_RTL_layout_op:
+		{
+
+			break;
+		}
+	default: // do the same as default_op	
+	case default_op:
+		{
+
+			break;
+		}
+	}
+}
+
+void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
+{
+	// Call this function in CLayout::Draw() after strips are drawn
+	bool bSetModify = FALSE; // governs what is done with the wxEdit control's dirty flag
+	
+	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there the phrase box is
+	// to be located
+	wxPoint ptPhraseBoxTopLeft;
+	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile instead; but this
+					// will work even if we have forgotten to update it in the edit operation's handler
+	pActivePile->TopLeft(ptPhraseBoxTopLeft);
+
+	// get the pile width at the active location; use that width for the width of the phrase box there
+	// (we rely on this CPile instance's SetPhraseBoxGapWidth() having been called after the user's
+	// edits are done - and before the drawing is done; AdjustForUserEdits() should have done it)
+	int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
+
+	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
+	// range specification have already been appropriately set by the PrepareForLayout() function.
+
+	// handle any operation specific parameter settings
+	enum doc_edit_op opType = m_docEditOperationType;
+	switch(opType)
+	{
+	case no_edit_op:
+		{
+
+			break;
+		}
+	case cancel_op:
+		{
+
+			break;
+		}
+	case target_box_paste_op:
+		{
+			bSetModify = FALSE;
+			break;
+		}
+	case relocate_box_op:
+		{
+
+			break;
+		}
+	case merge_op:
+		{
+
+			break;
+		}
+	case unmerge_op:
+		{
+
+			break;
+		}
+	case retranslate_op:
+		{
+
+			break;
+		}
+	case remove_retranslation_op:
+		{
+
+			break;
+		}
+	case edit_retranslation_op:
+		{
+
+			break;
+		}
+	case insert_placeholder_op:
+		{
+
+			break;
+		}
+	case remove_placeholder_op:
+		{
+
+			break;
+		}
+	case split_op:
+		{
+
+			break;
+		}
+	case join_op:
+		{
+
+			break;
+		}
+	case move_op:
+		{
+
+			break;
+		}
+	case edit_source_text_op:
+		{
+
+			break;
+		}
+	case free_trans_op:
+		{
+
+			break;
+		}
+	case end_free_trans_op:
+		{
+
+			break;
+		}
+	case retokenize_text_op:
+		{
+			bSetModify = FALSE;
+			break;
+		}
+	case collect_back_translations_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_adaptions_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_glosses_op:
+		{
+
+			break;
+		}
+	case vert_edit_enter_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_free_trans_op:
+		{
+
+			break;
+		}
+	case vert_edit_cancel_op:
+		{
+
+			break;
+		}
+	case vert_edit_end_now_op:
+		{
+
+			break;
+		}
+	case vert_edit_previous_step_op:
+		{
+
+			break;
+		}
+	case vert_edit_exit_op:
+		{
+
+			break;
+		}
+	case exit_preferences_op:
+		{
+
+			break;
+		}
+	case change_punctuation_op:
+		{
+
+			break;
+		}
+	case change_filtered_markers_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_only_op:
+		{
+
+			break;
+		}
+	case change_sfm_set_and_filtered_markers_op:
+		{
+
+			break;
+		}
+	case open_document_op:
+		{
+
+			break;
+		}
+	case new_document_op:
+		{
+
+			break;
+		}
+	case close_document_op:
+		{
+
+			break;
+		}
+	case enter_LTR_layout_op:
+		{
+
+			break;
+		}
+	case enter_RTL_layout_op:
+		{
+
+			break;
+		}
+	default: // do the same as default_op	
+	case default_op:
+		{
+
+			break;
+		}
+	}
+
+	// wx Note: we don't destroy the target box, just set its text to null
+	m_pApp->m_pTargetBox->SetValue(_T(""));
+
+	// make the phrase box size adjustments, set the colour of its text, tell it where
+	// it is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize()
+	// and causes it to be visible again; CPhraseBox has a color variable & uses 
+	// reflected notification
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetNavTextHeight(), m_pApp->m_targetPhrase,
+					m_pApp->m_nStartChar, m_pApp->m_nEndChar, pActivePile);
+		m_pApp->m_pTargetBox->m_textColor = GetNavTextColor(); //was pApp->m_navTextColor;
+	}
+	else
+	{
+		m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetTgtTextHeight(), m_pApp->m_targetPhrase,
+					m_pApp->m_nStartChar, m_pApp->m_nEndChar, pActivePile);
+		m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
+	}
+
+	// handle the dirty flag
+	if (bSetModify)
+	{
+		// calls our own SetModify(TRUE)(see Phrasebox.cpp)
+		m_pApp->m_pTargetBox->SetModify(TRUE); 
+	}
+	else
+	{
+		// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
+		m_pApp->m_pTargetBox->SetModify(FALSE); 
+	}
+
+}
+
