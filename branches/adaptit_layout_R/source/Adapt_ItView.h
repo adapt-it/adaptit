@@ -154,7 +154,7 @@ public:
 // Implementation
 public:
 	void		AdjustAlignmentMenu(bool bRTL,bool bLTR);
-	CPile*		AdvanceBundle(int nSaveSequNum);
+	//CPile*		AdvanceBundle(int nSaveSequNum); // removed 24Mar09
 	bool		AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,int& vLast,int nWantedVerse);
 	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
 	bool		AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr); // MFC CMapStringToOb*
@@ -163,7 +163,7 @@ public:
 	//void		CalcInitialIndices(); // removed 19Mar09
 	
 	//CPile*		CalcPile(CPile *pPile); // removed 23Mar09 because does same as GetNextPile()
-	int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
+	//int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
 	//CCell*		CreateCell(CAdapt_ItDoc* pDoc,
 	//					CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
 	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
@@ -346,8 +346,8 @@ public:
 	void		RestoreMode(bool WXUNUSED(bSeeGlossesEnabled), bool WXUNUSED(bIsGlossing), EditRecord* pRec); // BEW added 29July08
 	bool		RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList);
 	void		RestoreBoxOnFinishVerticalMode(); // BEW added 8Sept08
-	CPile*		RetreatBundle(int nSaveSequNum);
-	CPile*		RetreatBundleToStart();
+	//CPile*		RetreatBundle(int nSaveSequNum); // removed 24Mar09
+	//CPile*		RetreatBundleToStart(); // removed 24Mar09
 	//int			ScrollDown(int nStrips);
 	//void		ScrollIntoView(int nSequNum); //bool	ScrollIntoView(int nSequNum);
 	//void		ScrollToNearTop(int nSequNum);

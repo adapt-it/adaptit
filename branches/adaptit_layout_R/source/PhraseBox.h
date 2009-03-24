@@ -23,6 +23,8 @@
 #include "SourcePhrase.h" // needed for 
 
 // forward declarations
+class CAdapt_ItApp;
+class CAdapt_ItDoc;
 class CAdapt_ItView;
 class CPile;
 class CTargetUnit;
@@ -51,9 +53,26 @@ public:
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()
 
 protected:
+	bool CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile, 
+							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
+	void DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNextEmptyPile);
+							// BEW added DealWithUnsuccessfulStore() 24Mar09, to simplify MoveToNextPile()
+	bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
+							CPile* pCurPile, CPile* pNextEmptyPile, bool bIsTransliterateMode = FALSE);
+							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
-					int nSelector);
+							int nSelector);
+	void Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView, 
+							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
+	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
+							CPile* pNewPile, bool& bWantSelect); // BEW added 24Mar09, to simplify MoveToNextPile()
+	void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
+							CPile* pNewPile, bool& bWantSelect); // BEW added 24Mar09, to simplify MoveToNextPile()
+	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect);
+							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
 	bool MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile);
+	bool MoveToNextPile_InTransliterationMode(CAdapt_ItView* pView, CPile* pCurPile); // BEW added 24Mar09
+							// to simplify the syntax for MoveToNextPile()
 	bool MoveToPrevPile(CAdapt_ItView* pView, CPile* pCurPile);
 	bool MoveToImmedNextPile(CAdapt_ItView* pView, CPile* pCurPile);
 	bool IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile);

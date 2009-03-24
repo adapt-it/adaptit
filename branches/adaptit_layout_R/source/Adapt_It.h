@@ -1497,9 +1497,9 @@ public:
 	// View, and will simply be shown, hidden, moved, and/or resized where necessary.
 	CPhraseBox*		m_pTargetBox; //CPhraseBox		m_targetBox;
 
-	wxPoint			m_ptCurBoxLocation; // location of top left of m_targetBox (logical coords)
+//	wxPoint			m_ptCurBoxLocation; // location of top left of m_targetBox (logical coords)
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
-	int				m_curBoxWidth; // current m_targetBox width
+//	int				m_curBoxWidth; // current m_targetBox width
 	long			m_nStartChar; // start of selection in the target box
 	long			m_nEndChar; // end of selection in the target box
 	// //////////////////////////////////////////////////////////////////////////////////////////////////

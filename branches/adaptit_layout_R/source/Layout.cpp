@@ -1901,11 +1901,6 @@ void CLayout::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enu
 	// ensure the app's m_pActivePile pointer is set
 	m_pApp->m_pActivePile = m_pView->GetPile(nActiveSequNum);
 
-	// *** TODO *** comment out or remove next line when m_pActivePile member is removed from
-	// CPhraseBox class -- having pointer copies for no good reason is to invite an error
-	m_pApp->m_pTargetBox->m_pActivePile = m_pApp->m_pActivePile; // put copy in the CPhraseBox too
-
-
 	// get the cursor set
 	switch (state)
 	{

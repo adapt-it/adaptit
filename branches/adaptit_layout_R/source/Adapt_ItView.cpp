@@ -6548,6 +6548,7 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 //			wxFont *pFont, wxColour *pColor, wxPoint *pTopLeft, wxPoint *pBotRight, int index)
 //			BEW deprecated 3Feb09, then moved it to CCell classs on 9Feb09
 
+/* removed for layout refactoring, 24Mar09
 int CAdapt_ItView::CalcPileWidth(wxClientDC *pDC, CAdapt_ItApp* pApp, CSourcePhrase *pSrcPhrase)
 // Calculates the pile's width before laying out the current pile in a strip. The function
 // is not interested in the relative ordering of the glossing and adapting cells, and so
@@ -6707,6 +6708,7 @@ int CAdapt_ItView::CalcPileWidth(wxClientDC *pDC, CAdapt_ItApp* pApp, CSourcePhr
 
 	return pileWidth;
 }
+*/
 
 /*  // removed 19Mar09 for refactor
 void CAdapt_ItView::CalcInitialIndices()
@@ -9829,6 +9831,7 @@ void CAdapt_ItView::CalcIndicesForAdvance(int nSequNum)
 }
 */
 
+/* removed 24Mar09
 CPile* CAdapt_ItView::AdvanceBundle(int nSaveSequNum)
 // advances the bundle, returning the pile which has srcPhrase with nSaveSequNum
 // (typically this is the active sequ number, and pPile will be the active pile therefore)
@@ -9844,6 +9847,7 @@ CPile* CAdapt_ItView::AdvanceBundle(int nSaveSequNum)
 
 	return pPile;
 }
+*/
 
 //void CAdapt_ItView::ScrollIntoView(int nSequNum) // Moved to CAdapt_ItCanvas in WX version:
 
@@ -10009,6 +10013,7 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 	}
 }
 
+/* removed 24Mar09
 CPile* CAdapt_ItView::RetreatBundle(int nSaveSequNum)
 // retreats the bundle, returning the pile which has srcPhrase with nSaveSequNum
 // (typically this is the active sequ number, and pPile will be the active pile therefore)
@@ -10023,6 +10028,7 @@ CPile* CAdapt_ItView::RetreatBundle(int nSaveSequNum)
 	pApp->m_ptCurBoxLocation = pPile->m_pCell[2]->m_ptTopLeft;
 	return pPile;
 }
+*/
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -10618,6 +10624,7 @@ a:	gpApp->m_pActivePile = RetreatBundleToStart();
 	}
 }
 
+/* removed 24Mar09
 CPile* CAdapt_ItView::RetreatBundleToStart()
 {
 // retreats the bundle, returning the pile which has srcPhrase with nSaveSequNum
@@ -10633,6 +10640,7 @@ CPile* CAdapt_ItView::RetreatBundleToStart()
 	gpApp->m_ptCurBoxLocation = pPile->m_pCell[2]->m_ptTopLeft;
 	return pPile;
 }
+*/
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
