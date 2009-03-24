@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	28 October 2008, by Bill Martin
-USFM version:	2.2 as published in usfm.sty by UBS 17 October, 2008
+Last Updated:	24 March 2009, by Bill Martin
+USFM version:	2.205 as published in usfm.sty by UBS 24 March, 2009
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -2600,7 +2600,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 	<!-- Use to mark OT quotes in NT, or any other quoted text -->
 <SFM marker="nd" endMarker="nd*"
-	description="For name of diety (basic)"
+	description="For name of deity (basic)"
 	usfm="1" png="0"
 	filter="0" userCanSetFilter="0"
 	inLine="1" special="0" bdryOnLast="0"
@@ -3005,7 +3005,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inLine="0" special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
-	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 1"
+	styleName="imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1"
 	styleType="paragraph" fontSize="20" color="0"
 	italic="0" bold="1" underline="0"
 	smallCaps="0" superScript="0" justification="center"
@@ -3021,7 +3021,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	inLine="0" special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
-	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 2"
+	styleName="imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2"
 	styleType="paragraph" fontSize="16" color="0"
 	italic="1" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="center"
