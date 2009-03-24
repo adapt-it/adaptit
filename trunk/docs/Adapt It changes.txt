@@ -3,7 +3,9 @@ Version 4.1.2 update 31Mar2009:
 Bug fixes in 4.1.2
 ----------------------------------------------
 * Fixed a crash in the Linux version that could happen when a text was adapted fully to the end of the document. The message "The End. Providing..." would appear to flicker and then a few seconds afterward the application would hang/crash (or the crash might happen if the Step Up button was clicked while at the end of the document).
-* Fixed the action of the checkbox in the Case tab of the Preferences dialog that reads "Check here if you want Adapt It to automatically distinguish between upper case and lower case letters". Previously checking this checkbox might fail to take effect until the second time it was checked. 
+* Fixed the action of the checkbox in the Case tab of the Preferences dialog that reads "Check here if you want Adapt It to automatically distinguish between upper case and lower case letters". Previously checking this checkbox might fail to take effect until the second time it was checked.
+* Also adjusted the problem of the Case tab in Preferences not sizing properly when the list boxes have data in them (hiding some buttons at bottom).
+* Fixed Ctrl+O hot key on Linux version, and assigned Ctrl+Shift+O hot key to invoke Start Working... wizard on Linux version.
 ----------------------------------------------
 Feature changes and new features in 4.1.2
 ----------------------------------------------
