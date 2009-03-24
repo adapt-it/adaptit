@@ -391,10 +391,19 @@ and click OK. Adapt It reminds you that you will need to quit and restart
 Adapt It for the change to become effective.
 
 As mentioned in 1 above, the quickest way to add a new interface
-localization is to send your translation prepared by Poedit to Bill 
-Martin who will gladly do the steps in point 2 above and send you
-a special installer to add your new localization, and also make
-the localization you prepare available to other Adapt It users.
+localization is to register as a localization translator and use 
+Adapt It's Pootle web translation interface at: 
+http://pootle.sil.org/projects/adaptit/
+Using Adapt It's Pootle localization web site, you can help to get 
+Adapt It's interface fully translated into the language of your 
+choice! If you have any problems getting registered there please 
+send an email to Bill Martin at bill_martin@sil.org for assistance 
+and instructions. If you use the Poedit method for creating and/or
+modifying a localization, please send your translation prepared by 
+Poedit to Bill Martin who will gladly do the steps in point 2 above 
+and send you a special installer to add your new localization, and 
+also make the localization you prepare available to other Adapt It 
+users.
 
 Thank you in advance for any localization work that you do to make
 Adapt It more widely available to translators around the world!
