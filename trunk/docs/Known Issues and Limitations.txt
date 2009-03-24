@@ -1,4 +1,4 @@
-Limitations and known issues in the version 4.1.1 release of Adapt It WX and Adapt It WX Unicode:
+Limitations and known issues in the version 4.1.2 release of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
 1. In the Windows port, the Page Setup Dialog will only show the margin settings in millimeters, even if the Units dialog is set for "inches." This will eventually be corrected in a future release of the Windows port. 

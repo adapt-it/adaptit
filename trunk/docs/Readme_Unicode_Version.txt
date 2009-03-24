@@ -1,7 +1,7 @@
 =====================================================================
 Adapt It WX Unicode
 =====================================================================
-Version 4.1.1
+Version 4.1.2
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -332,6 +332,9 @@ be invaluable sources of information.
 
 The current user forum is located at:
 http://groups.google.com/group/AdaptIt-Talk
+
+Bug reports and and other Issues for discussion can be posted at:
+http://code.google.com/p/adaptit/issues/list
 
 
 We hope you enjoy using Adapt It!
