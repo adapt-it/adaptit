@@ -829,15 +829,6 @@ wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have t
 
 // support for USFM and SFM Filtering
 
-/// The actual count of default Unit-style strings contained in the defaultSFM string array. The field values
-/// are delimited by ':' characters. This number can be obtained automatically by uncommenting the 
-/// #define Output_Default_Style_Strings line at the beginning of XML.h file (see instructions in
-/// documentation for the defaultSFM[] string array). The number is automatically produced as the last line of 
-/// string output written to AI_USFM_full.txt file when Output_Default_Style_Strings is defined in XML.h.
-const int gnDefaultSFMs = 282;	// get this number from last line of string output written to AI_USFM_full.txt 
-								// (see note below). It is the count the actual number of strings contained
-								// in the defaultSFM string array below!
-
 /// An array of wxStrings which, when parsed by ParseAndFillStruct(), is used as default standard
 /// format marker style definitions if, for some reason, the program cannot find the AI_USFM.xml
 /// control file. 
@@ -847,14 +838,14 @@ const int gnDefaultSFMs = 282;	// get this number from last line of string outpu
 /// 2. Copy the current AI_USFM_full.xml file from the project's xml folder to the "Adapt It Work"
 /// folder (this file which contains the full style information and from which the AI_USFM.xml file for
 /// distribution to users is produced via the UsfmXml.cct and UsfmXmlTidy.cct changes operations).
-/// While the Output_Default_Strings define is active, running the Adapt It program up through the
+/// While the Output_Default_Strings define is active, running the Adapt It program (Debug) up through the
 /// appearance of the Start Working Wizard causes the routines in XML.cpp to read the full
 /// AI_USFM_full.xml file (instead of AI_USFM.xml) and produce the temporary AI_USFM_full.txt file
 /// which simply contains the Unix-format default strings ready to paste into the code block below.
 /// 3. Copy the strings from the AI_USFM_full.txt file and paste them here for recompilation. Note 
-/// that the last line of the file contains the number of usfm strings and should be manually pasted 
-/// to the value of const gnDefaultSFMs above. Also, Remember to remove the last comma from the 
-/// last string item once it is pasted into this array initialization list.
+/// that the last line of the file contains the number of usfm strings which should be equivalent to
+/// the calculation of gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString) below. Also, Remember to 
+/// remove the last comma from the last string item once it is pasted into this array initialization list.
 /// 4. Comment out the #define Output_Default_Style_Strings line at the beginning of XML.h file so that
 /// the application won't continue to produce the temporary AI_USFM_full.txt file in the work folder,
 /// but will instead revert back to using the normal (abbreviated) AI_USFM.xml file on program startup.
@@ -1143,6 +1134,14 @@ _T("_unknown_para_style::Unknown Paragraph Style Marker:1:1:1:::::::0::Unknown P
 _T("_unknown_char_style::Unknown Character Style Marker:1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::3::::::::::"),
 _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::3:2::::.3:p:_hidden_note:::")
 };
+
+/// The actual count of default Unix-style strings contained in the defaultSFM string array. 
+/// This number is calculated dynamically here, but is also calculated by uncommenting the 
+/// #define Output_Default_Style_Strings line at the beginning of XML.h file (see instructions 
+/// in documentation for the defaultSFM[] string array). The number is automatically produced 
+/// as the last line of string output written to AI_USFM_full.txt file when 
+/// Output_Default_Style_Strings is defined in XML.h.
+const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1.2 gnDefaultSFMs is 282
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
