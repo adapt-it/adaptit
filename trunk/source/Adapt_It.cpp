@@ -6447,6 +6447,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	if (bWorkStyleFileExists)
 	{
+		wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
 		// parse the file, and set up the three CMapStringToOb maps containing 
 		// mappings between usfm tags and the usfm analysis structs on the heap;
 		bool bReadOK = ReadSFM_XML(AIstyleFileWorkFolderPath);
@@ -6471,7 +6472,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// m_pUsfmStylesMap, m_pPngStylesMap, and m_pUsfmAndPngStylesMap 
 		// pointers are already created but as yet have no content
 		wxLogDebug(_T("AI_USFM.xml not found in work folder - using internal styles via SetupDefaultStylesMap."));
-		SetupDefaultStylesMap(); // hard coded for 267 default usfm styles
+		SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
 	}
 
     // Initialise the help system. We do it here because our m_setupFolder was determined above
