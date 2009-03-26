@@ -914,7 +914,7 @@ u:					if (pPile->m_pSrcPhrase->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
-						pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
+						pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
 						pApp->m_pTargetBox->SetFocus();
 					}
 				}
@@ -960,7 +960,7 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
+							pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
 							pApp->m_pTargetBox->SetFocus();
 						}
 					}
@@ -1059,7 +1059,7 @@ x:						CCell* pCell = 0;
 						{
 							if (pApp->m_pTargetBox->IsShown())
 							{
-								pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
+								pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
 								pApp->m_pTargetBox->SetFocus();
 							}
 						}

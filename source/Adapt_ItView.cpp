@@ -9255,7 +9255,7 @@ a:		wxClientDC aDC(gpApp->GetMainFrame()->canvas);
 	} // end of block for lookup, merger, and failure to find a KB entry
 
 	gpApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on 28April05 above
-	gpApp->m_nStartChar = 0; gpApp->m_nEndChar = -1; // make sure the text is shown selected
+	gpApp->m_nStartChar = -1; gpApp->m_nEndChar = -1; // make sure the text is shown selected
 	if (gbAutoCaps)
 	{
 		if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
@@ -9449,7 +9449,7 @@ void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 	int width = strWidth + gnExpandBox*charWidth;
 	pApp->m_nCurPileMinWidth = width <= pApp->m_nCurPileMinWidth ? pApp->m_nCurPileMinWidth : width;
 	pApp->m_curBoxWidth = pApp->m_nCurPileMinWidth;
-	pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+	pApp->m_nStartChar = -1; pApp->m_nEndChar = -1; // MFC had m_nStartChar = 0 for select all
 
 	// we must destroy the edit box's window, if not, an assert is tripped in Wincore.cpp,
 	// since it expects a null handle
@@ -10236,7 +10236,7 @@ a:	gpApp->m_pActivePile = AdvanceBundle(gpApp->m_nActiveSequNum);
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC had 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -10564,7 +10564,7 @@ a:	gpApp->m_pActivePile = RetreatBundleToStart();
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC had 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -10833,7 +10833,7 @@ c:	CRefString* pRefString = GetRefString(GetKB(),pSrcPhrase->m_nSrcWords,
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC had 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -11110,7 +11110,7 @@ a:	gpApp->m_pActivePile = RetreatBundle(gpApp->m_nActiveSequNum);
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC had 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -12566,7 +12566,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 
 	if (bWantSelect)
 	{
-		pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+		pApp->m_nStartChar = -1; pApp->m_nEndChar = -1; // MFC had 0 for m_nStartChar
 	}
 	else
 	{
@@ -17946,7 +17946,7 @@ void CAdapt_ItView::RedrawEverything(int nActiveSequNum)
 			pApp->m_nCurPileMinWidth = pApp->m_curBoxWidth; // update this too, so box can be shorter
 												// if necessary
 			pApp->m_targetPhrase.Empty();
-			pApp->m_nStartChar = 0;
+			pApp->m_nStartChar = -1; // MFC had 0
 			pApp->m_nEndChar = -1;
 			pApp->m_curIndex = pApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
 
@@ -17973,7 +17973,7 @@ void CAdapt_ItView::RedrawEverything(int nActiveSequNum)
 
 		}
 
-		pApp->m_nStartChar = 0;
+		pApp->m_nStartChar = -1; // MFC had 0
 		int len = pApp->m_pTargetBox->GetLineLength(0);// line number zero for our phrasebox
 		pApp->m_nEndChar = len;
 		pApp->m_pTargetBox->SetSelection(pApp->m_nEndChar,pApp->m_nEndChar); // put cursor at end // MFC SetSel
@@ -22434,7 +22434,7 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC had 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 
@@ -29868,7 +29868,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 		pApp->m_selection.Clear();
 
 	// recalc the box
-	pApp->m_nStartChar = 0;
+	pApp->m_nStartChar = 0; // whm Note: ResizeBox call below also sets gnStart and gnEnd to 0 from these values
 	pApp->m_nEndChar = 0;
 	//pApp->m_targetBox.Destroy(); //m_targetBox.DestroyWindow();
 	pApp->m_pTargetBox->SetValue(_T(""));
@@ -44114,7 +44114,7 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC was 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -44329,7 +44329,7 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-	gpApp->m_nStartChar = 0;
+	gpApp->m_nStartChar = -1; // MFC had 0
 	gpApp->m_nEndChar = -1; // ensure initially all is selected
 	RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 	// restore default button image, and m_bCopySourcePunctuation to TRUE
