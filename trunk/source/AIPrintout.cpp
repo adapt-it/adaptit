@@ -208,7 +208,7 @@ AIPrintout::~AIPrintout()
 		gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 		gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-		gpApp->m_nStartChar = 0;
+		gpApp->m_nStartChar = -1; // MFC had 0
 		gpApp->m_nEndChar = -1; // ensure initially all is selected
 		pView->RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase);
 		gpApp->m_pTargetBox->SetSelection(-1,-1); // select all

@@ -2266,7 +2266,7 @@ f:					if (gpApp->m_bCopySource)
 		// recreate the phraseBox using the stored information
 		if (bWantSelect)
 		{
-			gpApp->m_nStartChar = 0; gpApp->m_nEndChar = -1;
+			gpApp->m_nStartChar = -1; gpApp->m_nEndChar = -1; // In MFC m_nStartChar was 0
 		}
 		else
 		{
@@ -2583,7 +2583,7 @@ b:	int nCurStripIndex;
 		m_pActivePile = pApp->m_pActivePile;		
 		
 		// recreate the phraseBox using the stored information
-		pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+		pApp->m_nStartChar = -1; pApp->m_nEndChar = -1; // In MFC m_nStartChar was 0
 		pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 		pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 
@@ -2885,7 +2885,7 @@ b:	int nCurStripIndex;
 		m_pActivePile = pApp->m_pActivePile;		
 		
 		// recreate the phraseBox using the stored information
-		pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+		pApp->m_nStartChar = -1; pApp->m_nEndChar = -1; // In MFC m_nStartChar was 0
 		pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 		pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 
