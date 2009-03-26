@@ -6445,9 +6445,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 	}
 
+	wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
 	if (bWorkStyleFileExists)
 	{
-		wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
 		// parse the file, and set up the three CMapStringToOb maps containing 
 		// mappings between usfm tags and the usfm analysis structs on the heap;
 		bool bReadOK = ReadSFM_XML(AIstyleFileWorkFolderPath);
