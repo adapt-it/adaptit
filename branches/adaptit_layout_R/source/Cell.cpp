@@ -253,6 +253,18 @@ CPile* CCell::GetPile()
 	return m_pOwningPile;
 }
 
+bool CCell::IsSelected();
+{
+	return m_bSelected;
+}
+
+void CCell::SetSelected(bool bValue)
+{
+	// set to TRUE or FALSE, explicitly (no default)
+	m_bSelected = bValue;
+}
+
+
 wxColour* CCell::GetColor()
 {
 	switch (m_nCell)

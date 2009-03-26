@@ -116,6 +116,8 @@ public:
 	void	BottomRight(wxPoint& ptBottomRight);
 	wxPoint	GetTopLeft();
 	CPile*	GetPile();
+	bool	IsSelected();
+	void	SetSelected(bool bValue); // set to TRUE or FALSE, explicitly (no default)
 
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 

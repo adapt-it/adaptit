@@ -2569,9 +2569,11 @@ CSourcePhrase* CAdapt_ItView::GetSrcPhrase(int nSequNum)
 	return pSrcPhrase;
 }
 
+// return the first CSourcePhrase instance after the nStartingSequNum in m_pSourcePhrases
+// list, which has an empty m_adaption member, or NULL if no such instance can be found;
+// this searches in the list of stored source phrases, so it will search to the very end of 
+// the doc if necessary For version 2.0 and onwards, test gbIsGlossing and branch accordingly.
 CSourcePhrase* CAdapt_ItView::GetNextEmptySrcPhrase(int nStartingSequNum)
-// this searches in the list of stored source phrases, so it will search to the very end of the doc
-// if necessary For version 2.0 and onwards, test gbIsGlossing and branch accordingly.
 {
 	// refactored 18Mar09
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -11301,6 +11303,9 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 
 void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 {
+	// 25Mar09 added partner pile updating, but no other refactoring done yet *** TODO *** the rest
+	CLayout* pLayout = GetLayout();
+
 	// whm note: the code below was preventing the automatic merging of words
 	// Since the Merge Phrase toolbar button has an accelerator table hot key (CTRL-M see CMainFrame)
 	// and wxWidgets accelerator keys call menu and toolbar handlers even when they are disabled,
@@ -11984,6 +11989,9 @@ x:		nCount = nWordsInPhrase; // RHS is a global variable defined in PhraseBox.cp
 	// check all is well (Debug version only)
 	wxASSERT(pApp->m_nActiveSequNum == pFirstSrcPhrase->m_nSequNumber);
 
+	// next line added for refactored layout support 25Mar09
+	pDoc->ResetPartnerPileWidth(pFirstSrcPhrase); // & replaces old partner pile's pointer with new one
+	
 	// remove from the list the ones which have been merged to the first
 	nodeSPTemp = pSrcPhrases->Item(pApp->m_nActiveSequNum + 1); // position of first to be removed
 	SPList::Node* savePos; // used below
@@ -11993,7 +12001,11 @@ x:		nCount = nWordsInPhrase; // RHS is a global variable defined in PhraseBox.cp
 	{
 		savePos = nodeSPTemp;
 		CSourcePhrase* pSrcPhrase;
-		pSrcPhrase = (CSourcePhrase*)nodeSPTemp->GetData(); 
+		pSrcPhrase = (CSourcePhrase*)nodeSPTemp->GetData();
+
+		// next line added for refactored layout support 25Mar09
+		pDoc->DeletePartnerPile(pSrcPhrase);
+
 		nodeSPTemp = nodeSPTemp->GetNext(); 
 		pSrcPhrases->DeleteNode(savePos); // remove pointer, but leave srcPhrase on the heap,
 		j++;							// because it is pointed at from within pFirstSrcPhrase now

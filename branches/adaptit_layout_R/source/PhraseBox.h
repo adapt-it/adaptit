@@ -29,6 +29,7 @@ class CAdapt_ItView;
 class CPile;
 class CTargetUnit;
 class CKB;
+class CLayout;
 
 /// The CPhraseBox class governs the behavior of the phrase or
 /// target box where the user enters and/or edits translations while adapting text.
@@ -80,6 +81,7 @@ protected:
 
 public:
 	void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
+	CLayout* GetLayout();
 	bool LookAhead(CAdapt_ItView* pAppView, CPile* pNewPile);
 	bool FindMatchInKB(CKB* pKB, int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);

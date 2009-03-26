@@ -3771,9 +3771,8 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase)
 
 		// if it is at the active location, then the width needs to be wider -
 		// SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile instance
-		// (but if not at the active location, the default value PHRASE_BOX_WIDTH_UNSET = -1 will apply)
-		if (pSrcPhrase->m_nSequNumber != GetLayout()->m_pApp->m_nActiveSequNum)
-			pPile->SetPhraseBoxGapWidth();
+		// (but if not at the active location, the default value m_nMinWidth will apply)
+		pPile->SetPhraseBoxGapWidth();
 
 		// our detection method (pile pointer mismatch) for user edits area would not detect this
 		// change and so we need to have this pile be located at a different location on the heap so

@@ -11,6 +11,8 @@ m_maxIndex, and the other indices -- use GetCount() of m_pSourcePhrases wherever
 wxPoint m_ptCurBoxLocation on the app
 int m_curDocWidth on the app
 m_bSaveAsXML on app, not needed in WX version
+FixBox() in PhraseBox.cpp  -- this may not be needed, at present it is not called 
+				 and would do nothing useful if it was, but it is still compiled as a stub
 
 */
 
@@ -123,6 +125,9 @@ extern wxRect grectViewClient;
 
 /// This global is defined in Adapt_ItView.h.
 extern int gnBoxCursorOffset;
+
+/// This global is defined in PhraseBox.cpp
+extern bool gbExpanding;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
 // to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection dir) method
@@ -240,19 +245,28 @@ void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value for next time
 	*/
 
-	// work out the range of visible strips based on the phrase box location
-	nActiveSequNum = m_pApp->m_nActiveSequNum;
-	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
-	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex, bDrawAtActiveLocation);
-
-	// draw the visible strips (plus and extra one, if possible)
-	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
+	if (bDrawAtActiveLocation)
 	{
-		((CStrip*)m_stripArray[i])->Draw(pDC);
-	}
+		// work out the range of visible strips based on the phrase box location
+		nActiveSequNum = m_pApp->m_nActiveSequNum;
+		// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
+		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex, bDrawAtActiveLocation);
 
-	// get the phrase box placed in the active location and made visible, and suitably prepared
-	PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+		// draw the visible strips (plus and extra one, if possible)
+		for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
+		{
+			((CStrip*)m_stripArray[i])->Draw(pDC);
+		}
+
+		// get the phrase box placed in the active location and made visible, and suitably prepared
+		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+	}
+	else
+	{
+		// draw at scroll position
+		
+		// *** TODO *** the code
+	}
 }
 
 
@@ -314,8 +328,8 @@ void CLayout::Draw(wxDC* pDC, bool bAtActiveLocation)
 // now that bundles are removed, calling CLayout::RecalcLayout(FALSE) is potentially to costly,
 // and unnecessary (since the strips piles and cells are okay already); so we just need to redraw
 // (we could call Invalidate() on the view, but with Redraw() we potentially have more control)
-// bFirstClear is default FALSE; if TRUE it causes aDC to paint the client area with background
-// colour (white); assumes the redraw is to be based on the active location
+// bFirstClear is default TRUE; if TRUE it causes aDC to paint the client area with background
+// colour (white); assumes the redraw is to be based on an unchanged active location
 void CLayout::Redraw(bool bFirstClear)
 {
 	wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
@@ -477,7 +491,15 @@ wxColour CLayout::GetNavTextColor()
 {
 	return m_navTextColor;
 }
-
+/* use CCell::GetColor(), syntax wxColour* pColor = pCell->GetColor();
+wxColour CLayout::GetCurColor()
+{
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+		return m_navTextColor;
+	else
+		return m_tgtColor;
+}
+*/
 // accessors for src, tgt, navText line heights
 void CLayout::SetSrcTextHeight(CAdapt_ItApp* pApp)
 {
@@ -810,8 +832,7 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	else
 	{
 		// this pile is going to be the active one, so calculate its m_nWidth value using m_targetPhrase
-		pPile->SetPhraseBoxGapWidth();
-		pPile->m_nWidth = pPile->GetPhraseBoxGapWidth();
+		pPile->SetPhraseBoxGapWidth(); // calculates, and sets value in m_nWidth
 	}
 
 	// pile creation always creates the (fixed) array of CCells which it manages
@@ -985,6 +1006,36 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 	wxASSERT(pos != NULL);
 	CStrip* pStrip = NULL;
 
+	// before building the strips, we want to ensure that the gap left for the phrase box
+	// to be drawn in the layout is as wide as the phrase box is going to be when it is
+	// made visible by CLayout::Draw(). When RecalcLayout() is called, gbExpanding global
+	// bool may be TRUE, or FALSE (it's set by FixBox() and cleared in FixBox() at the end
+	// after layout adjustments are done - including a potential call to RecalcLayout(),
+	// it's also cleared to default as a safety first measure at start of each OnChar()
+	// call. If we destroyed and recreated the piles in the block above, CreatePile()
+	// will, at the active location, made use of the  gbExpanding value and set the "hole"
+	// for the phrase box to be the appropriate width. But if piles were not destroyed and
+	// recreated then the box may be about to be drawn expanded, and so we must make sure
+	// that the strip rebuilding about to be done below has the right box width value to
+	// be used for the pile at the active location. The safest way to ensure this is the
+	// case is to make a call to doc class's ResetPartnerPileWidth(), passing in the
+	// CSourcePhrase pointer at the active location - this call internally calls
+	// CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
+	// then the strip layout code below can use that value via a call to
+	// GetPhraseBoxGapWidth() to make the active pile's width have the right value.
+	if (!bRecreatePileListAlso)
+	{
+		// these four lines ensure that the active pile's width is based on the
+		// CLayout::m_curBoxWidth value that was stored there by any adjustment to the box
+		// width done by FixBox() just prior to this RecalcLayout() call ( similar code
+		// will be needed in AdjustForUserEdits() when we complete the layout refactoring,
+		// *** TODO *** )
+		CPile* pActivePile = GetPile(m_pApp->m_nActiveSequNum);
+		wxASSERT(pActivePile);
+		CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+		m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+	}
+
 	// the loop which builds the strips
 	while (pos != NULL)
 	{
@@ -995,6 +1046,8 @@ bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
 
 	// the height of the document can now be calculated
 	SetLogicalDocHeight();
+
+	gbExpanding = FALSE; // has to be restored to default value
 
 	// *** TODO 1 ***
 	// set up the scroll bar to have the correct range (and it would be nice to try place the
@@ -2199,10 +2252,10 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 					// will work even if we have forgotten to update it in the edit operation's handler
 	pActivePile->TopLeft(ptPhraseBoxTopLeft);
 
-	// get the pile width at the active location; use that width for the width of the phrase box there
-	// (we rely on this CPile instance's SetPhraseBoxGapWidth() having been called after the user's
-	// edits are done - and before the drawing is done; AdjustForUserEdits() should have done it)
-	int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
+	// get the pile width at the active location, using the value in
+	// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
+	//int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
+	int phraseBoxWidth = m_curBoxWidth;
 
 	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
 	// range specification have already been appropriately set by the PrepareForLayout() function.

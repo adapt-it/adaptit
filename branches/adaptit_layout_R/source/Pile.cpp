@@ -397,11 +397,11 @@ int CPile::CalcPhraseBoxGapWidth()
     // be using the target font, or the navText font.
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
-	int boxGapWidth = 0;
+	int boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
 
     // only do this calculation provided the m_pSrcPhrase pointer is set and the partner
-    // CSourcePhrase instance is the one at the active location, if not so, return a value of -1
-    // (the const int value for symbol PHRASE_BOX_WIDTH_UNSET)
+    // CSourcePhrase instance is the one at the active location, if not so, return 
+    // PHRASE_BOX_WIDTH_UNSET which has the value -1
 	if (m_pSrcPhrase != NULL)
 	{
 		if (m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
@@ -423,29 +423,40 @@ int CPile::CalcPhraseBoxGapWidth()
 			wxSize charSize;
 			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
 			boxExtent.x += gnExpandBox*charSize.x; // add a slop factor (gnExpandBox is user settable)
-			boxGapWidth = boxExtent.x;
+			boxGapWidth = boxGapWidth > boxExtent.x ? boxGapWidth : boxExtent.x;
 			
-			// adjust the value if the box has just expanded
-			/* in the refactored design we'll try to design away such adjustments
+            // again adjust the value if the box has just expanded, FixBox() has calculated
+            // a new phrase box width already and stored that width in
+            // CLayout::m_curBoxWidth, so we must now check, if the box is expanding, to
+            // see if that stored width is greater than the one so far calculated, and if
+            // so, use the greater value - and if expanding, FixBox() sets gbExpanding to
+            // TRUE. If not expanding (the box could be contracting) we just use the
+            // unadjusted value. FixBox() also clears the gbExpanding flag before exitting,
+			// so between setting that flag TRUE and clearing it to FALSE, there has to be
+			// a determination of the new box width, storage of it to
+			// CLayout::m_curBoxWidth, and a recalculation of the strips to reflect the
+			// correct pile population of them after the box width changed - the latter is
+			// done by RecalcLayout (and also by LayoutStrip() in the legacy code), but in
+			// the new layout code where we replace many calls to RecalcLayout() by
+			// AdjustForUserEdits(), then the latter would have to be called instead.
+			// CalcPhraseBoxGapWidth() therefore does not clear the gbExpanding flag, it
+			// just uses it for the following test
 			if (gbExpanding)
 			{
-				if (m_pLayout->m_pApp->m_curBoxWidth > boxExtent.x)
-					*pPhraseBoxWidth = m_pLayout->m_pApp->m_curBoxWidth;
-				else
-					*pPhraseBoxWidth = boxExtent.x;
-				gbExpanding = FALSE; // clear to default FALSE
+				if (m_pLayout->m_curBoxWidth > boxGapWidth)
+					boxGapWidth = m_pLayout->m_curBoxWidth;
 			}
-			*/
-		}
-		else
-		{
-			return PHRASE_BOX_WIDTH_UNSET;
 		}
 	}
 	else
 	{
+		// CSourcePhrase pointer was null, so cannot calculate a value
 		return PHRASE_BOX_WIDTH_UNSET;
 	}
+
+	// before returning, put the final value back into CLayout::m_curBoxWidth
+	m_pLayout->m_curBoxWidth = boxGapWidth;
+
 	return boxGapWidth;
 }
 

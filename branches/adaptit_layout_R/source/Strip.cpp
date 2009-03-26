@@ -272,8 +272,16 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
         // loop of empty strips if the width of the first pile should happen to exceed the
         // strip's width; so we place the first unilaterally, regardless of its width
 		pPile = (CPile*)pos->GetData();
-		pileWidth = pPile->m_nWidth; // if at m_nActiveSequNum, this value will be large enough
-									 // to accomodate the phrase box's width
+		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+										 // to accomodate the phrase box's width, even if just
+										 // expanded due to the user's typing
+		}
+		else
+		{
+			pileWidth = pPile->m_nMinWidth;
+		}
 		m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
 		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromRight; // store offset to left boundary
 		m_nFree -= pileWidth; // reduce the free space accordingly
@@ -318,7 +326,16 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 
 			// if control gets to here, the pile is a potential candidate for inclusion in this
 			// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
-			pileWidth = pPile->m_nWidth;
+			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			{
+				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+											 // to accomodate the phrase box's width, even if just
+											 // expanded due to the user's typing
+			}
+			else
+			{
+				pileWidth = pPile->m_nMinWidth;
+			}
 			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
 			if (nCurrentSpan <= m_nFree)
@@ -360,8 +377,16 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
         // loop of empty strips if the width of the first pile should happen to exceed the
         // strip's width; so we place the first unilaterally, regardless of its width
 		pPile = (CPile*)pos->GetData();
-		pileWidth = pPile->m_nWidth; // if at m_nActiveSequNum, this value will be large enough
-									 // to accomodate the phrase box's width
+		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+										 // to accomodate the phrase box's width, even if just
+										 // expanded due to the user's typing
+		}
+		else
+		{
+			pileWidth = pPile->m_nMinWidth;
+		}
 		m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
 		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromLeft; // store offset to left boundary
 		m_nFree -= pileWidth; // reduce the free space accordingly
@@ -406,7 +431,16 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 
 			// if control gets to here, the pile is a potential candidate for inclusion in this
 			// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
-			pileWidth = pPile->m_nWidth;
+			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			{
+				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+											 // to accomodate the phrase box's width, even if just
+											 // expanded due to the user's typing
+			}
+			else
+			{
+				pileWidth = pPile->m_nMinWidth;
+			}
 			nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space for this
 											// pile to be eligible for inclusion in the strip
 			if (nCurrentSpan <= m_nFree)

@@ -143,6 +143,7 @@ public:
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
 												// and used by PlacePhraseBoxInLayout() 
 	bool				m_bDrawAtActiveLocation;
+	int					m_curBoxWidth;
 
 //public:
 private:
@@ -278,6 +279,7 @@ public:
 	wxColour	GetSrcColor();
 	wxColour	GetTgtColor();
 	wxColour	GetNavTextColor();
+	//wxColour	GetCurColor(); // for the phrase box text // no, use CCell's GetColor()
 
 	// setters and getters for source, target and navText heights (from TEXTMETRICS), the 
 	// setters access members on the app & later can bypass them when we refactor further
@@ -359,7 +361,7 @@ public:
 	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip, 
 							int bDrawAtActiveLocation);
 	// redraw the current visible strip range 
-	void		Redraw(bool bFirstClear = FALSE);
+	void		Redraw(bool bFirstClear = TRUE);
 
 public:
 	DECLARE_DYNAMIC_CLASS(CLayout) 
