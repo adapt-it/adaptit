@@ -1682,6 +1682,13 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		pStatic->SetLabel(tempStr);
 	}
 
+	if (!pApp->m_pLocale->GetCanonicalName().IsEmpty())
+	{
+		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_CANONICAL_LOCALE_NAME);
+		tempStr = pApp->m_pLocale->GetCanonicalName();
+		tempStr = _T(' ') + tempStr;
+		pStatic->SetLabel(tempStr);
+	}
 	if (!pApp->m_pLocale->GetSysName().IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_LOCALE_NAME);
@@ -1692,27 +1699,24 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		// On Mac OS X: C
 #ifdef __WXMAC__
 		// GetSysName() on wxMac always returns "C", so we'll unilaterally change this to "MacOSX"
-		tempStr = _T("MacOSX");
+		tempStr = pApp->m_pLocale->GetCanonicalName() + _T(".") + _T("MacOSX");
 #endif
 		tempStr = _T(' ') + tempStr;
 		pStatic->SetLabel(tempStr);
 	}
 
-	if (!pApp->m_pLocale->GetCanonicalName().IsEmpty())
-	{
-		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_CANONICAL_LOCALE_NAME);
-		tempStr = pApp->m_pLocale->GetCanonicalName();
-		tempStr = _T(' ') + tempStr;
-		pStatic->SetLabel(tempStr);
-	}
 	if (!pApp->m_systemEncodingName.IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_ENCODING_NAME);
 		tempStr = pApp->m_systemEncodingName; //m_systemEncodingName is assigned by calling wxLocale::GetSystemEncodingName() in the App's OnInit()
 		// Windows: m_systemEncodingName = "windows-1252"
 		//  Ubuntu: m_systemEncodingName = "UTF-8"
-		//     Mac: m_systemEncodingName = MACROMAN [See App's OnInit() where GetSystemEncodingName()
-		//             is called. There we set this value to a MAC... encoding value]
+		//     Mac: m_systemEncodingName = "MacRoman" [See App's OnInit() where GetSystemEncodingName()
+		//             is called. There we set this value to a Mac... encoding value]
+		// Note: On Mac OS X, the default encoding depends on your chosen primary language 
+		// (System Preferences, International pane, Languages tab, list of languages).
+		// On a typical Western-European language Mac OS X config, the default encoding will be MacRoman.
+
 		tempStr.Trim(FALSE);
 		tempStr.Trim(TRUE);
 		tempStr = _T(' ') + tempStr;
