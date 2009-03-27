@@ -3782,7 +3782,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     item23->Add( 80, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item3->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
