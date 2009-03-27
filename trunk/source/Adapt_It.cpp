@@ -5512,7 +5512,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_systemEncodingName = wxLocale::GetSystemEncodingName();	// Windows: m_systemEncodingName = "windows-1252"
 																//  Ubuntu: m_systemEncodingName = "UTF-8"
 																//     Mac: m_systemEncodingName = ???
-//#ifdef __WXMAC__
+#ifdef __WXMAC__
 	switch (m_systemEncoding)
 	{
 	    case wxFONTENCODING_MACROMAN: m_systemEncodingName = _T("MACROMAN"); break; //47-77  the standard mac encodings [47-86]
@@ -5557,20 +5557,21 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		case wxFONTENCODING_MACKEYBOARD: m_systemEncodingName = _T("MACKEYBOARD"); break; //86
 	default: m_systemEncodingName = _T("MACROMAN");
 	}
-//#endif
+#endif
+	wxLogDebug(_T("m_systemEncodingName = %s wxFONTENCODING enum value = %d"),m_systemEncodingName.c_str(),(int)m_systemEncoding);
 
 	m_systemLanguage = wxLocale::GetSystemLanguage();			// Windows: m_systemLanguage = 58
 																//  Ubuntu: m_systemLanguage = 58
 																//     Mac: m_systemLanguage = 58
 	m_languageInfo = wxLocale::GetLanguageInfo(m_systemLanguage);
-	//wxLogDebug("m_languageInfo->Description = %s",m_languageInfo->Description.c_str()); // "English (U.S.)"
-	//wxLogDebug("m_languageInfo->CanonicalName = %s",m_languageInfo->CanonicalName.c_str()); // "en_US"
-	//wxLogDebug("m_languageInfo->Language = %d",m_languageInfo->Language); // 58 (both Windows and Ubuntu)
-//#ifdef __WIN32__
-//	wxLogDebug("m_languageInfo->WinLang = %d",m_languageInfo->WinLang); // Windows: 9
-//	wxLogDebug("m_languageInfo->WinSublang = %d",m_languageInfo->WinSublang); // Windows: 1
-//#endif
-//	wxLogDebug("m_languageInfo->LayoutDirection = %d",m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
+	wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
+	wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
+	wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
+#ifdef __WIN32__
+	wxLogDebug(_T("m_languageInfo->WinLang = %d"),m_languageInfo->WinLang); // Windows: 9
+	wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
+#endif
+	wxLogDebug(_T("m_languageInfo->LayoutDirection = %d"),m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
 	
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
 
