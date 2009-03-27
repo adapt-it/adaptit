@@ -1689,7 +1689,11 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		// GetSysName() returns the following:
 		// On wxMSW: English_United States.1252
 		// On Ubuntu: en_US.UTF-8
-		// On Mac OS X: C // TODO: check this!!
+		// On Mac OS X: C
+#ifdef __WXMAC__
+		// GetSysName() on wxMac always returns "C", so we'll unilaterally change this to "MacOSX"
+		tempStr = _T("MacOSX");
+#endif
 		tempStr = _T(' ') + tempStr;
 		pStatic->SetLabel(tempStr);
 	}
@@ -1707,7 +1711,8 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		tempStr = pApp->m_systemEncodingName; //m_systemEncodingName is assigned by calling wxLocale::GetSystemEncodingName() in the App's OnInit()
 		// Windows: m_systemEncodingName = "windows-1252"
 		//  Ubuntu: m_systemEncodingName = "UTF-8"
-		//     Mac: m_systemEncodingName = <blank>
+		//     Mac: m_systemEncodingName = MACROMAN [See App's OnInit() where GetSystemEncodingName()
+		//             is called. There we set this value to a MAC... encoding value]
 		tempStr.Trim(FALSE);
 		tempStr.Trim(TRUE);
 		tempStr = _T(' ') + tempStr;

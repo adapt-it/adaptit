@@ -5512,6 +5512,53 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_systemEncodingName = wxLocale::GetSystemEncodingName();	// Windows: m_systemEncodingName = "windows-1252"
 																//  Ubuntu: m_systemEncodingName = "UTF-8"
 																//     Mac: m_systemEncodingName = ???
+//#ifdef __WXMAC__
+	switch (m_systemEncoding)
+	{
+	    case wxFONTENCODING_MACROMAN: m_systemEncodingName = _T("MACROMAN"); break; //47-77  the standard mac encodings [47-86]
+		case wxFONTENCODING_MACJAPANESE: m_systemEncodingName = _T("MACJAPANESE"); break; //48
+	    case wxFONTENCODING_MACCHINESETRAD: m_systemEncodingName = _T("MACCHINESETRAD"); break; //49
+		case wxFONTENCODING_MACKOREAN: m_systemEncodingName = _T("MACKOREAN"); break; //50
+		case wxFONTENCODING_MACARABIC: m_systemEncodingName = _T("MACARABIC"); break; //51
+		case wxFONTENCODING_MACHEBREW: m_systemEncodingName = _T("MACHEBREW"); break; //52
+		case wxFONTENCODING_MACGREEK: m_systemEncodingName = _T("MACGREEK"); break; //53
+		case wxFONTENCODING_MACCYRILLIC: m_systemEncodingName = _T("MACCYRILLIC"); break; //54
+		case wxFONTENCODING_MACDEVANAGARI: m_systemEncodingName = _T("MACDEVANAGARI"); break; //55
+		case wxFONTENCODING_MACGURMUKHI: m_systemEncodingName = _T("MACGURMUKHI"); break; //56
+		case wxFONTENCODING_MACGUJARATI: m_systemEncodingName = _T("MACGUJARATI"); break; //57
+		case wxFONTENCODING_MACORIYA: m_systemEncodingName = _T("MACORIYA"); break; //58
+		case wxFONTENCODING_MACBENGALI: m_systemEncodingName = _T("MACBENGALI"); break; //59
+		case wxFONTENCODING_MACTAMIL: m_systemEncodingName = _T("MACTAMIL"); break; //60
+		case wxFONTENCODING_MACTELUGU: m_systemEncodingName = _T("MACTELUGU"); break; //61
+		case wxFONTENCODING_MACKANNADA: m_systemEncodingName = _T("MACKANNADA"); break; //62
+		case wxFONTENCODING_MACMALAJALAM: m_systemEncodingName = _T("MACMALAJALAM"); break; //63
+		case wxFONTENCODING_MACSINHALESE: m_systemEncodingName = _T("MACSINHALESE"); break; //64
+		case wxFONTENCODING_MACBURMESE: m_systemEncodingName = _T("MACBURMESE"); break; //65
+		case wxFONTENCODING_MACKHMER: m_systemEncodingName = _T("MACKHMER"); break; //66
+		case wxFONTENCODING_MACTHAI: m_systemEncodingName = _T("MACTHAI"); break; //67
+		case wxFONTENCODING_MACLAOTIAN: m_systemEncodingName = _T("MACLAOTIAN"); break; //68
+		case wxFONTENCODING_MACGEORGIAN: m_systemEncodingName = _T("MACGEORGIAN"); break; //69
+		case wxFONTENCODING_MACARMENIAN: m_systemEncodingName = _T("MACARMENIAN"); break; //70
+		case wxFONTENCODING_MACCHINESESIMP: m_systemEncodingName = _T("MACCHINESESIMP"); break; //71
+		case wxFONTENCODING_MACTIBETAN: m_systemEncodingName = _T("MACTIBETAN"); break; //72
+		case wxFONTENCODING_MACMONGOLIAN: m_systemEncodingName = _T("MACMONGOLIAN"); break; //73
+		case wxFONTENCODING_MACETHIOPIC: m_systemEncodingName = _T("MACETHIOPIC"); break; //74
+		case wxFONTENCODING_MACCENTRALEUR: m_systemEncodingName = _T("MACCENTRALEUR"); break; //75
+		case wxFONTENCODING_MACVIATNAMESE: m_systemEncodingName = _T("MACVIATNAMESE"); break; //76
+		case wxFONTENCODING_MACARABICEXT: m_systemEncodingName = _T("MACARABICEXT"); break; //77
+		case wxFONTENCODING_MACSYMBOL: m_systemEncodingName = _T("MACSYMBOL"); break; //78
+		case wxFONTENCODING_MACDINGBATS: m_systemEncodingName = _T("MACDINGBATS"); break; //79
+		case wxFONTENCODING_MACTURKISH: m_systemEncodingName = _T("MACTURKISH"); break; //80
+		case wxFONTENCODING_MACCROATIAN: m_systemEncodingName = _T("MACCROATIAN"); break; //81
+		case wxFONTENCODING_MACICELANDIC: m_systemEncodingName = _T("MACICELANDIC"); break; //82
+		case wxFONTENCODING_MACROMANIAN: m_systemEncodingName = _T("MACROMANIAN"); break; //83
+		case wxFONTENCODING_MACCELTIC: m_systemEncodingName = _T("MACCELTIC"); break; //84
+		case wxFONTENCODING_MACGAELIC: m_systemEncodingName = _T("MACGAELIC"); break; //85
+		case wxFONTENCODING_MACKEYBOARD: m_systemEncodingName = _T("MACKEYBOARD"); break; //86
+	default: m_systemEncodingName = _T("MACROMAN");
+	}
+//#endif
+
 	m_systemLanguage = wxLocale::GetSystemLanguage();			// Windows: m_systemLanguage = 58
 																//  Ubuntu: m_systemLanguage = 58
 																//     Mac: m_systemLanguage = 58
