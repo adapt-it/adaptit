@@ -48,7 +48,7 @@ protected:
 
 private:
 	// class attributes
-
+	
 	//DECLARE_CLASS(CComposeBarEditBox);
 	// Used inside a class declaration to declare that the class should 
 	// be made known to the class hierarchy, but objects of this class 

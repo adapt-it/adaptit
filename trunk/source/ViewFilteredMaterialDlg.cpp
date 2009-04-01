@@ -486,7 +486,9 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 
 	// Change the text in the CEdit to correspond to the marker clicked on in the Marker list box
 	tempStr = assocTextArrayBeforeEdit.Item(indexIntoAllMkrSelection);
-	pMkrTextEdit->SetValue(tempStr);
+	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+	// event, which now deprecated SetValue() generates.
+	pMkrTextEdit->ChangeValue(tempStr);
 
 	// Look up the marker description of first item in the bareMarkerArray and place the description
 	// in the static text to the right of the "Marker Description:"
@@ -597,7 +599,9 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	wxString tempStr;
 	indexIntoAllMkrSelection = markerLBIndexIntoAllMkrList.Item(newMkrSelection);
 	tempStr = assocTextArrayAfterEdit.Item(indexIntoAllMkrSelection);
-	pMkrTextEdit->SetValue(tempStr);
+	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+	// event, which now deprecated SetValue() generates.
+	pMkrTextEdit->ChangeValue(tempStr);
 
 	// Look up the marker description of selected item in the bareMarkerArray 
 	// and place the description in the static text to the right of the 
@@ -953,7 +957,9 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 	// (if it doesn't have an end marker, there will be a space there - so we delete that instead)
 	pMarkers->Delete(currentMkrSelection); //int nNewCount = pMarkers->DeleteString(currentMkrSelection);
 	int nNewCount = pMarkers->GetCount(); // added since wxListBox::Delete doesn't return a new count value
-	pMkrTextEdit->SetValue(_T(""));
+	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+	// event, which now deprecated SetValue() generates.
+	pMkrTextEdit->ChangeValue(_T(""));
 	pEndMarkers->Delete(currentMkrSelection);
 
 	// now do the needed deletions in the various lists and arrays, so that the class's
@@ -1027,7 +1033,9 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// change the text in the CEdit to correspond to the marker chosen by the
 		// indexIntoAllMkrSelection value
 		wxString tempStr = assocTextArrayAfterEdit.Item(indexIntoAllMkrSelection);
-		pMkrTextEdit->SetValue(tempStr);
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pMkrTextEdit->ChangeValue(tempStr);
 
 		// look up the marker description and place it in the static text
 		GetAndShowMarkerDescription(indexIntoAllMkrSelection);

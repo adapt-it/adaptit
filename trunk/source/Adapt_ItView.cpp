@@ -10035,7 +10035,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr); //pEdit->SetValue(tempStr); // whm changed 1Apr09 to ChangeValue()
 	}
 	gnOldSequNum = gpApp->m_nActiveSequNum; // save old location
 	/* BEW removed 31Jan08 because the global's value is not always reliable
@@ -10382,7 +10382,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr); //pEdit->SetValue(tempStr); // whm changed 1Apr09 to ChangeValue()
 	}
 
 	// BEW added 28Sep05, to fix the following bug. It the globals below are not here reset,
@@ -10644,7 +10644,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr); //pEdit->SetValue(tempStr); // whm changed 1Apr09 to ChangeValue()
 	}
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	SPList* pList = gpApp->m_pSourcePhrases;
@@ -10911,7 +10911,7 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr); //pEdit->SetValue(tempStr); // whm changed 1Apr09 to ChangeValue()
 	}
 	/* BEW removed 31Jan01 because the global's value is not always reliable
 	gLastSrcPhrasePos = 0; // ensure we use the safe but longer algorithm to find new position
@@ -14592,7 +14592,7 @@ void CAdapt_ItView::OnClearContentsButton(wxCommandEvent& WXUNUSED(event))
 		wxTextCtrl* pEdit = (wxTextCtrl*)pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			pEdit->SetValue(_T(""));
+			pEdit->ChangeValue(_T(""));// whm changed 1Apr09 to ChangeValue()
 			pEdit->SetFocus();
 		}
 	}
@@ -22289,7 +22289,7 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			pEdit->SetValue(strAdapt);
+			pEdit->ChangeValue(strAdapt); // whm changed 1Apr09 from deprecated SetValue to ChangeValue
 		}
 	}
 
@@ -36577,7 +36577,7 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 	//}
 	wxTextCtrl* pMsgBox = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_MSG_TEXT);
 	wxASSERT(pMsgBox != NULL);
-	pMsgBox->SetValue(messageText);
+	pMsgBox->ChangeValue(messageText); // whm changed 1Apr09 deprecated SetValue to ChangeValue
 }
 
 // use the following when placing the phrase box in vertical editing moode's steps
@@ -39646,7 +39646,10 @@ void CAdapt_ItView::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFir
 				wxString tempStr;
 				tempStr.Empty(); //FreeTranslationStr.Empty();
 				// whm changed 24Aug06 - update edit box with updated string
-				pEdit->SetValue(tempStr);
+				// whm changed 1Apr09. SetValue() is deprecated and sends wxEVT_COMMAND_TEXT_UPDATED
+				// event which wrongly triggers our OnEditBoxChanged() handler. I changed SetValue() to
+				// ChangeValue() which does not trigger our OnEditBoxChanged() handler.
+				pEdit->ChangeValue(tempStr);
 
 				pPileArray->RemoveAt(0); // first is dealt with
 
@@ -40660,7 +40663,10 @@ void CAdapt_ItView::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event
 			// clear the Compose Bar's edit box
 			// whm 24Aug06 modified below
 			tempStr.Empty();
-			pEdit->SetValue(tempStr);
+			// whm changed 1Apr09. SetValue() is deprecated and sends wxEVT_COMMAND_TEXT_UPDATED
+			// event which wrongly triggers our OnEditBoxChanged() handler. I changed SetValue() to
+			// ChangeValue() which does not trigger our OnEditBoxChanged() handler.
+			pEdit->ChangeValue(tempStr);
 
 			// clear the bool members on the source phrases in the array, but leave the array elements
 			// themselves since they correctly define this section's extent at the time the button
@@ -40812,7 +40818,10 @@ void CAdapt_ItView::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 					// do the composition from the section's target text
 					//gFreeTranslationStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
 					tempStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
-					pEdit->SetValue(tempStr); // show it in the ComposeBar's edit box
+					// whm changed 1Apr09. SetValue() is deprecated and sends wxEVT_COMMAND_TEXT_UPDATED
+					// event which wrongly triggers our OnEditBoxChanged() handler. I changed SetValue() to
+					// ChangeValue() which does not trigger our OnEditBoxChanged() handler.
+					pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 				}
 			}
 
@@ -40924,7 +40933,10 @@ void CAdapt_ItView::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 					// do the composition from the section's target text or glossing text
 					//gFreeTranslationStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
 					tempStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
-					pEdit->SetValue(tempStr); // show it in the ComposeBar's edit box
+					// whm changed 1Apr09. SetValue() is deprecated and sends wxEVT_COMMAND_TEXT_UPDATED
+					// event which wrongly triggers our OnEditBoxChanged() handler. I changed SetValue() to
+					// ChangeValue() which does not trigger our OnEditBoxChanged() handler.
+					pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 				}
 			}
 
@@ -41131,7 +41143,9 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 		wxString theEndMkr = _T("\\free*");
 		tempStr = GetExistingMarkerContent(theMkr, theEndMkr, gpApp->m_pActivePile->m_pSrcPhrase,
 										gnOffsetInMarkersStr, gnLengthInMarkersStr);
-		pEdit->SetValue(tempStr);	// show it in the ComposeBar's edit box, but don't
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pEdit->ChangeValue(tempStr);	// show it in the ComposeBar's edit box, but don't
 									// have it selected - too easy for user to mistakenly
 									// lose it
 
@@ -41341,7 +41355,9 @@ a:						if (pile->m_pSrcPhrase->m_nSequNumber == gpApp->m_maxIndex)
 			{
 				// do the composition from the section's target text, or glossing text
 				tempStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
-				pEdit->SetValue(tempStr); // show it in the ComposeBar's edit box
+				// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+				// event, which now deprecated SetValue() generates.
+				pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 			}
 		}
 	}
@@ -42932,6 +42948,9 @@ b:	if (!bSectionIntersects)
 			{
 				pDC->DrawText(s,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
 			}
+			// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations because it
+			// triggers a run-on condition endlessly calling the View's OnDraw.
+			//Invalidate();
 		}
 
 		subStrings.Clear(); // clear the array ready for the next iteration
@@ -46401,7 +46420,9 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 			gbWasFreeTranslationMode = FALSE;
 			return;
 		}
-		pTextBox->SetValue(theText); // change the string in the wxTextCtrl in the compose bar
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pTextBox->ChangeValue(theText); // change the string in the wxTextCtrl in the compose bar
 		long len = theText.Len();
 		pTextBox->SetSelection(len,len);
 		pTextBox->SetFocus();

@@ -65,6 +65,7 @@ END_EVENT_TABLE()
 // the following constructor is never executed (see constructor in ComposeBarEditBox.h)
 CComposeBarEditBox::CComposeBarEditBox() // constructor
 {
+
 }
 
 CComposeBarEditBox::~CComposeBarEditBox() // destructor
@@ -90,6 +91,7 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 	if (!event.AltDown())
 		event.Skip();
 	// The actual text characters typed in the compose bar's edit box go through here
+	
 }
 
 void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
@@ -116,6 +118,13 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			pView->DrawFreeTranslations(&dc, gpApp->m_pBundle, call_from_edit);
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
+
+			// On wxMac the wxTextCtrl becomes "dirty" (i.e., IsModified() returns TRUE) when the frame
+			// detects a size event. Since we are not saving the contents of the compose bar's edit box
+			// we can unilaterally reset the "dirty" state to "unmodified" using the
+			// wxTextCtrl::DiscardEdits method.
+			//DiscardEdits();
+
 		}
 	}
 }
