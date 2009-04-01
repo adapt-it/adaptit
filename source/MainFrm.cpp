@@ -3904,7 +3904,9 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						wxASSERT(pEdit != NULL);
 						if (pEdit != 0)
 						{
-							pEdit->SetValue(_T("")); // clear the box
+							// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+							// event, which now deprecated SetValue() generates.
+							pEdit->ChangeValue(_T("")); // clear the box
 						}
 					}
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
@@ -4303,7 +4305,9 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 						wxASSERT(pEdit != NULL);
 						if (pEdit != 0)
 						{
-							pEdit->SetValue(_T("")); // clear the box
+							// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+							// event, which now deprecated SetValue() generates.
+							pEdit->ChangeValue(_T("")); // clear the box
 						}
 					}
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
@@ -5437,7 +5441,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				{
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep; // unneeded, but it documents where we are
-					pEdit->SetValue(_T("")); // clear the box
+					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+					// event, which now deprecated SetValue() generates.
+					pEdit->ChangeValue(_T("")); // clear the box
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
 						pRec->nFreeTrans_EndingSequNum != -1)
@@ -5657,7 +5663,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep;
 					//pEdit->SetWindowText(_T("")); // clear the box
-					pEdit->SetValue(_T("")); // clear the box
+					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+					// event, which now deprecated SetValue() generates.
+					pEdit->ChangeValue(_T("")); // clear the box
 					
 					// now restore the free translation span to what it was at last entry to
 					// freeTranslationsStep ie. as it was at the end of adaptationsStep
@@ -5933,7 +5941,9 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		CComposeBarEditBox* pEdit = (CComposeBarEditBox*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
-		pEdit->SetValue(_T("")); // SetValue() is OK to use here
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pEdit->ChangeValue(_T("")); // SetValue() is OK to use here
         // whm Note: SetValue() automatically (and by design) resets the dirty flag to FALSE when
         // called, because it is primarily designed to establish the initial value of an edit control.
         // Often when the initial value of a text control is programatically set, we don't want it

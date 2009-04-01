@@ -250,8 +250,10 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	}
 
 	// wx note: we need to initialize dialog data since we aren't using UpdateData(FASLE) above
-	pEditNote->SetValue(m_strNote); // whm added 4Jul06
-	pEditSearch->SetValue(m_searchStr); // whm added 4Jul06
+	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+	// event, which now deprecated SetValue() generates.
+	pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
+	pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
 
 	int len = m_strNote.Length();
 	bool bSearchBoxHasFocus = FALSE; // BEW added 6Mar08
@@ -289,7 +291,9 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		m_searchStr = gSearchStr;
 
 		// get the search string text visible
-		pEditSearch->SetValue(m_searchStr);
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pEditSearch->ChangeValue(m_searchStr);
 
 		// BEW added 6Mar08 so that user can give successive Enter keypresses to
 		// step through several Notes without clobbering the matched text each time
@@ -556,8 +560,10 @@ void CNoteDlg::OnBnClickedDeleteBtn(wxCommandEvent& event)
 	m_strNote.Empty();
 	if (gpApp->m_pNoteDlg != NULL)
 	{
-		pEditNote->SetValue(m_strNote); // whm added 4Jul06
-		pEditSearch->SetValue(m_searchStr); // whm added 4Jul06
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
+		pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
 	}
 	OnOK(event); //OnBnClickedOk(event);
 }
