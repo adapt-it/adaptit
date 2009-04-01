@@ -39578,7 +39578,7 @@ void CAdapt_ItView::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFir
 	if (pBar != NULL && pBar->IsShown())
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
-		if (pEdit != 0)
+		if (pEdit != 0 && pPileArray->GetCount() > 0) // whm added second condition 1Apr09 because wxMac gets here on frame size event and pPileArray has 0 items
 		{
 			// get the box's current contents & remove spaces at end or start (one will be added
 			// by the InsertFilteredMaterial() call, at the end of the string, automatically, if there
