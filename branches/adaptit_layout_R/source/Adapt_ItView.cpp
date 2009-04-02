@@ -727,7 +727,7 @@ extern bool		gbEnterTyped;			 // see CPhraseBox for explanation
 // This global is defined in PhraseBox.cpp.
 //extern SPList::Node* gLastSrcPhrasePos; // used in GetSrcPhrasePos() call in BuildPhrases() to speed
 								   // up ... MFC uses POSITION
-bool			gbBundleChanged = FALSE;
+//bool			gbBundleChanged = FALSE; // removed 30Mar09
 
 extern  wxString	gSaveTargetPhrase; // for use by the SHIFT+END shortcut for unmerging a phrase
 
@@ -1525,7 +1525,7 @@ CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 	index++; // index of next CPile instance
 	if (index >= (int)pPiles->GetCount())
 	{
-		return NULL; // bounds error - passed end of document
+		return (CPile*)NULL; // bounds error - passed end of document
 	}
 	else
 	{
@@ -1567,6 +1567,58 @@ CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 	return pNextPile;
 	*/
 }
+
+CPile* CAdapt_ItView::GetPrevPile(CPile *pPile)
+// returns a pointer to the previous pile, or NULL if there is none
+{
+	// refactored 30Mar09
+	CPile* pPrevPile = NULL;
+	PileList* pPiles = GetLayout()->GetPileList();
+	int index = pPiles->IndexOf(pPile);
+	index--; // index of previous CPile instance
+	if (index < 0)
+	{
+		return (CPile*)NULL; // bounds error - passed beginning of document
+	}
+	else
+	{
+		// not past beginning of document
+		PileList::Node* pos = pPiles->Item(index);
+		pPrevPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+	}
+	return pPrevPile;
+}	
+
+/* old code
+CPile* CAdapt_ItView::GetPrevPile(const CPile *pPile)
+// returns the previous pile, or NULL if there is no previous one
+{
+	CPile* pPrevPile;
+	CStrip* pStrip = pPile->m_pStrip;
+	CSourceBundle* pBundle = pStrip->m_pBundle;
+	int nCurPile = pPile->m_nPileIndex;
+	if (nCurPile > 0)
+	{
+		// there is a previous pile in the current strip
+		nCurPile--;
+		pPrevPile = pStrip->m_pPile[nCurPile];
+	}
+	else
+	{
+		// prev pile is in previous strip, so get it from there
+		int nCurStrip = pStrip->m_nStripIndex;
+		nCurStrip--; // the previous strip
+		if (nCurStrip < 0)
+			return (CPile*)0;
+		pStrip = pBundle->m_pStrip[nCurStrip];
+		int nPileCount = pStrip->m_nPileCount;
+		nCurPile = nPileCount-1; // index of last pile in the strip
+		pPrevPile = pStrip->m_pPile[nCurPile];
+	}
+	return pPrevPile;
+}
+*/
 
 
 /* // BEW deprecated 16Mar09, the function was not generic enough and it complicated the function
@@ -2990,7 +3042,197 @@ CPile* CAdapt_ItView::CalcPile(CPile *pPile)
 }
 */
 
+void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
+// nFirstStrip = index of first strip visible (or partly visible) in the view
+// nLast Strip = index of last strip visible (or partly visible) in the view
+{
+	// refactored 1Apr09
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CLayout* pLayout = GetLayout();
+	//wxClientDC dc(pApp->GetMainFrame()->canvas);
+	wxClientDC dc(pLayout->m_pCanvas); // could just do  wxClientDC dc(canvas);  here I think
+	canvas->DoPrepareDC(dc); //OnPrepareDC(&dc); // adjust origin
 
+	// find the index of the first strip which is visible
+	wxRect rectStrip;
+	//int nTotalStrips = pApp->m_pBundle->m_nStripCount;
+	int nTotalStrips = pLayout->GetStripArray()->GetCount();
+	wxRect rectClient;
+	//GetClientRect(&rectClient); // gets view's client area (device coords) - upper left point is always (0,0)
+	//pApp->GetMainFrame()->canvas->GetClientSize(&rectClient.width,&rectClient.height);// gets the width and height in pixels
+	// wx note: calling GetClientSize on the canvas produced different results in wxGTK and
+	// wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the main frame's
+	// client size.
+	wxSize canvasViewSize;
+	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize();
+
+//#ifdef _DEBUG
+//	// Here's sample code for alternative 1:
+//	// save a copy of the initial grectViewClient values for use below (alternative 2 changes grectViewClient)
+//	wxRect testRectViewClient = rectClient;
+//#endif
+
+	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
+	//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
+	//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
+	//rectClient.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
+	//rectClient.y = yOrigin * yScrollUnits;
+
+//#ifdef _DEBUG
+//	//wx version uses CalcUnscrolledPosition
+//	int newXPos,newYPos;
+//	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
+//	wxASSERT(newXPos == rectClient.x); //rectClient.x = newXPos; // stays zero since we dont' have horizontal scrolling
+//	wxASSERT(newYPos == rectClient.y); //rectClient.y = newYPos;
+//#endif
+
+//#ifdef _DEBUG
+//	//dc.DPtoLP(&rectClient); // this is like the MFC method
+//	int x = dc.DeviceToLogicalX(testRectViewClient.x);// get the device X (width) coord converted to logical coord
+//	int y = dc.DeviceToLogicalY(testRectViewClient.y); // get the device Y (height) coord converted to logical coord
+//	wxASSERT(x == rectClient.x);
+//	wxASSERT(y == rectClient.y);
+//#endif
+
+	wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
+	CStrip* pStrip = NULL;
+	pLayout->m_pCanvas->CalcUnscrolledPosition(0,0,&rectClient.x,&rectClient.y);
+	rectClient.width = canvasViewSize.x;
+	rectClient.height = canvasViewSize.y;
+	wxPoint ptStripBottomRight;
+	wxPoint ptStripTopLeft;
+	int i;
+	for (i = 0; i < nTotalStrips; i++)
+	{
+		pStrip = (CStrip*)(*pStripArray)[i];
+		pStrip->GetStripRect_CellsOnly(rectStrip); 
+		ptStripBottomRight.x = rectStrip.GetRight();
+		ptStripBottomRight.y = rectStrip.GetBottom();
+
+		if (ptStripBottomRight.y > rectClient.GetTop())
+		{
+			// this strip is at least partly visible
+			nFirstStrip = pStrip->GetStripIndex(); // Hmmm, Bill could have just said
+											// nFirstStrip = i; here for the same result
+			break;
+		}
+	}
+
+	int j;
+	for (j = i + 1; j < nTotalStrips; j++)
+	{
+		pStrip = (CStrip*)(*pStripArray)[j];
+		pStrip->GetStripRect_CellsOnly(rectStrip);
+
+		ptStripTopLeft.x = rectStrip.GetLeft(); // get TopLeft in 2 steps
+		ptStripTopLeft.y = rectStrip.GetTop();
+		if (ptStripTopLeft.y >= rectClient.GetBottom())
+		{
+			nLastStrip = --j;
+			wxASSERT(nLastStrip > nFirstStrip);
+			break;
+		}
+	}
+	if (j == nTotalStrips)
+	{
+		// we got to the end of the document
+		nLastStrip = nTotalStrips - 1;
+		wxASSERT(nLastStrip > nFirstStrip);
+	}
+}
+
+/* old code
+void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
+// nFirstStrip = index of first strip visible (or partly visible) in the view
+// nLast Strip = index of last strip visible (or partly visible) in the view
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	wxClientDC dc(pApp->GetMainFrame()->canvas);
+	canvas->DoPrepareDC(dc); //OnPrepareDC(&dc); // adjust origin
+
+	// find the index of the first strip which is visible
+	wxRect rectStrip;
+	int nTotalStrips = pApp->m_pBundle->m_nStripCount;
+	wxRect rectClient;
+	//GetClientRect(&rectClient); // gets view's client area (device coords) - upper left point is always (0,0)
+	//pApp->GetMainFrame()->canvas->GetClientSize(&rectClient.width,&rectClient.height);// gets the width and height in pixels
+	// wx note: calling GetClientSize on the canvas produced different results in wxGTK and
+	// wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the main frame's
+	// client size.
+	wxSize canvasViewSize;
+	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize();
+
+//#ifdef _DEBUG
+//	// Here's sample code for alternative 1:
+//	// save a copy of the initial grectViewClient values for use below (alternative 2 changes grectViewClient)
+//	wxRect testRectViewClient = rectClient;
+//#endif
+
+	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
+	//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
+	//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
+	//rectClient.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
+	//rectClient.y = yOrigin * yScrollUnits;
+
+//#ifdef _DEBUG
+//	//wx version uses CalcUnscrolledPosition
+//	int newXPos,newYPos;
+//	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
+//	wxASSERT(newXPos == rectClient.x); //rectClient.x = newXPos; // stays zero since we dont' have horizontal scrolling
+//	wxASSERT(newYPos == rectClient.y); //rectClient.y = newYPos;
+//#endif
+
+//#ifdef _DEBUG
+//	//dc.DPtoLP(&rectClient); // this is like the MFC method
+//	int x = dc.DeviceToLogicalX(testRectViewClient.x);// get the device X (width) coord converted to logical coord
+//	int y = dc.DeviceToLogicalY(testRectViewClient.y); // get the device Y (height) coord converted to logical coord
+//	wxASSERT(x == rectClient.x);
+//	wxASSERT(y == rectClient.y);
+//#endif
+	
+	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&rectClient.x,&rectClient.y);
+	rectClient.width = canvasViewSize.x;
+	rectClient.height = canvasViewSize.y;
+
+	wxPoint ptStripBottomRight;
+	wxPoint ptStripTopLeft;
+	int i;
+	for (i = 0; i < nTotalStrips; i++)
+	{
+		ptStripBottomRight.x = pApp->m_pBundle->m_pStrip[i]->m_rectStrip.GetRight(); // get BottomRight in 2 steps
+		ptStripBottomRight.y = pApp->m_pBundle->m_pStrip[i]->m_rectStrip.GetBottom();
+		if (ptStripBottomRight.y > rectClient.GetTop())
+		{
+			// this strip is at least partly visible
+			nFirstStrip = pApp->m_pBundle->m_pStrip[i]->m_nStripIndex;
+			break;
+		}
+	}
+
+	int j;
+	for (j = i + 1; j < nTotalStrips; j++)
+	{
+		ptStripTopLeft.x = pApp->m_pBundle->m_pStrip[j]->m_rectStrip.GetLeft(); // get TopLeft in 2 steps
+		ptStripTopLeft.y = pApp->m_pBundle->m_pStrip[j]->m_rectStrip.GetTop();
+		if (ptStripTopLeft.y >= rectClient.GetBottom())
+		{
+			nLastStrip = --j;
+			wxASSERT(nLastStrip > nFirstStrip);
+			break;
+		}
+	}
+	if (j == nTotalStrips)
+	{
+		// we got to the end of the bundle
+		nLastStrip = nTotalStrips - 1;
+		wxASSERT(nLastStrip > nFirstStrip);
+	}
+}
+*/
+
+// *** END REFACTORED ***
 
 
 
@@ -6739,6 +6981,8 @@ void CAdapt_ItView::CalcInitialIndices()
 }
 */
 
+
+
 CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -8454,34 +8698,6 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 		pApp->m_pTargetBox->m_textColor = pApp->m_navTextColor;
 	else
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-}
-
-CPile* CAdapt_ItView::GetPrevPile(const CPile *pPile)
-// returns the previous pile, or NULL if there is no previous one
-{
-	CPile* pPrevPile;
-	CStrip* pStrip = pPile->m_pStrip;
-	CSourceBundle* pBundle = pStrip->m_pBundle;
-	int nCurPile = pPile->m_nPileIndex;
-	if (nCurPile > 0)
-	{
-		// there is a previous pile in the current strip
-		nCurPile--;
-		pPrevPile = pStrip->m_pPile[nCurPile];
-	}
-	else
-	{
-		// prev pile is in previous strip, so get it from there
-		int nCurStrip = pStrip->m_nStripIndex;
-		nCurStrip--; // the previous strip
-		if (nCurStrip < 0)
-			return (CPile*)0;
-		pStrip = pBundle->m_pStrip[nCurStrip];
-		int nPileCount = pStrip->m_nPileCount;
-		nCurPile = nPileCount-1; // index of last pile in the strip
-		pPrevPile = pStrip->m_pPile[nCurPile];
-	}
-	return pPrevPile;
 }
 
 void CAdapt_ItView::LayoutStrip(SPList *pSrcPhrases, int nStripIndex, CSourceBundle *pBundle)
@@ -28325,94 +28541,6 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 	// redraw everything -- CreateStrip() in RecalcLayout uses the m_bMarkerWrapsStrip flag to
 	// do the wanted wraps
 	RedrawEverything(pApp->m_nActiveSequNum);
-}
-
-void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
-// nFirstStrip = index of first strip visible (or partly visible) in the view
-// nLast Strip = index of last strip visible (or partly visible) in the view
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	wxClientDC dc(pApp->GetMainFrame()->canvas);
-	canvas->DoPrepareDC(dc); //OnPrepareDC(&dc); // adjust origin
-
-	// find the index of the first strip which is visible
-	wxRect rectStrip;
-	int nTotalStrips = pApp->m_pBundle->m_nStripCount;
-	wxRect rectClient;
-	//GetClientRect(&rectClient); // gets view's client area (device coords) - upper left point is always (0,0)
-	//pApp->GetMainFrame()->canvas->GetClientSize(&rectClient.width,&rectClient.height);// gets the width and height in pixels
-	// wx note: calling GetClientSize on the canvas produced different results in wxGTK and
-	// wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the main frame's
-	// client size.
-	wxSize canvasViewSize;
-	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize();
-
-//#ifdef _DEBUG
-//	// Here's sample code for alternative 1:
-//	// save a copy of the initial grectViewClient values for use below (alternative 2 changes grectViewClient)
-//	wxRect testRectViewClient = rectClient;
-//#endif
-
-	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-	//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-	//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-	//rectClient.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-	//rectClient.y = yOrigin * yScrollUnits;
-
-//#ifdef _DEBUG
-//	//wx version uses CalcUnscrolledPosition
-//	int newXPos,newYPos;
-//	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
-//	wxASSERT(newXPos == rectClient.x); //rectClient.x = newXPos; // stays zero since we dont' have horizontal scrolling
-//	wxASSERT(newYPos == rectClient.y); //rectClient.y = newYPos;
-//#endif
-
-//#ifdef _DEBUG
-//	//dc.DPtoLP(&rectClient); // this is like the MFC method
-//	int x = dc.DeviceToLogicalX(testRectViewClient.x);// get the device X (width) coord converted to logical coord
-//	int y = dc.DeviceToLogicalY(testRectViewClient.y); // get the device Y (height) coord converted to logical coord
-//	wxASSERT(x == rectClient.x);
-//	wxASSERT(y == rectClient.y);
-//#endif
-	
-	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&rectClient.x,&rectClient.y);
-	rectClient.width = canvasViewSize.x;
-	rectClient.height = canvasViewSize.y;
-
-	wxPoint ptStripBottomRight;
-	wxPoint ptStripTopLeft;
-	int i;
-	for (i = 0; i < nTotalStrips; i++)
-	{
-		ptStripBottomRight.x = pApp->m_pBundle->m_pStrip[i]->m_rectStrip.GetRight(); // get BottomRight in 2 steps
-		ptStripBottomRight.y = pApp->m_pBundle->m_pStrip[i]->m_rectStrip.GetBottom();
-		if (ptStripBottomRight.y > rectClient.GetTop())
-		{
-			// this strip is at least partly visible
-			nFirstStrip = pApp->m_pBundle->m_pStrip[i]->m_nStripIndex;
-			break;
-		}
-	}
-
-	int j;
-	for (j = i + 1; j < nTotalStrips; j++)
-	{
-		ptStripTopLeft.x = pApp->m_pBundle->m_pStrip[j]->m_rectStrip.GetLeft(); // get TopLeft in 2 steps
-		ptStripTopLeft.y = pApp->m_pBundle->m_pStrip[j]->m_rectStrip.GetTop();
-		if (ptStripTopLeft.y >= rectClient.GetBottom())
-		{
-			nLastStrip = --j;
-			wxASSERT(nLastStrip > nFirstStrip);
-			break;
-		}
-	}
-	if (j == nTotalStrips)
-	{
-		// we got to the end of the bundle
-		nLastStrip = nTotalStrips - 1;
-		wxASSERT(nLastStrip > nFirstStrip);
-	}
 }
 
 void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,

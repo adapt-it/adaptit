@@ -238,7 +238,8 @@ public:
 	//wxSize		GetPaperSize(short dmPaperSize);
 	CPile*		GetPile(const int nSequNum);
 	//bool		GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
-	CPile*		GetPrevPile(const CPile* pPile);
+	//CPile*		GetPrevPile(const CPile* pPile);
+	CPile*		GetPrevPile(CPile* pPile);
 	CSourcePhrase*  GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase);
 	CSourcePhrase*  GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Node*& posPrev);
 	CSourcePhrase*  GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase);

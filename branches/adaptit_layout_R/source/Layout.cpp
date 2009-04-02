@@ -11,8 +11,9 @@ m_maxIndex, and the other indices -- use GetCount() of m_pSourcePhrases wherever
 wxPoint m_ptCurBoxLocation on the app
 int m_curDocWidth on the app
 m_bSaveAsXML on app, not needed in WX version
-FixBox() in PhraseBox.cpp  -- this may not be needed, at present it is not called 
-				 and would do nothing useful if it was, but it is still compiled as a stub
+gbBundleChanged  defined in CAdapt_ItView.cpp
+
+
 
 */
 
@@ -1207,8 +1208,16 @@ bool CLayout::AdjustForUserEdits(enum update_span type)
     // nJumpDistanceForUserEditsSpanDetermination which is currently set at 80, or from a bigger
     // jump nBigJumpDistance, currently set at 300 (CSourcePhrase instances)
 	
+	// Note: the pileList stripArray discrepancy can also be used for working out the clip
+	// rectangle. First get the editing span located in each, and then perhaps get an
+	// array of pointers to the first pile in each of the old strips at that location
+	// (until strip is a few off screen), and then compare, after new layout is done, the
+	// pointers to first pile in each of the visible strips, and if no scrollintoview was
+	// done, then where the first pile pointers don't match, that strip area has to be in
+	// the clip rectangle; but where they match, that can be out of the clip rectangle.
 
-	// **** TODO ****
+	// **** TODO **** ... the locating and stripArray tweaking...  -- not sure yet where
+	// to put the PrepareForLayout() call - whether in this function or this function in that?
 	switch (type)
 	{
 	case no_scan_needed:

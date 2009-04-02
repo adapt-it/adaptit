@@ -121,6 +121,7 @@ public:
 	void	SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
 	void	SetPhraseBoxGapWidth();  // sets m_nWidth (the width to be used at active 
 											  //location, calls CalcPhraseBoxGapWidth())
+	void	SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
 	int		GetMinWidth(); // returns value of m_nMinWidth
 	int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
 	int		IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer

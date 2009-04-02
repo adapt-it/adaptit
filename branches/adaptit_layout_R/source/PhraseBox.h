@@ -48,7 +48,7 @@ public:
 // Attributes
 public:
 	wxColour	m_textColor;
-	//CPile*		m_pActivePile; // refactored BEW 23Mara09, removed this copy, view's one is enough
+	//CPile*		m_pActivePile; // refactored BEW 23Mar09, removed this copy, view's one is enough
 	bool		m_bAbandonable;
 	wxString	m_backspaceUndoStr;
 	bool		m_bMergeWasDone; // whm moved here from within OnChar()
@@ -58,8 +58,10 @@ protected:
 							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	void DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNextEmptyPile);
 							// BEW added DealWithUnsuccessfulStore() 24Mar09, to simplify MoveToNextPile()
+	//bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
+	//						CPile* pCurPile, CPile* pNextEmptyPile, bool bIsTransliterateMode = FALSE);
 	bool DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView,
-							CPile* pCurPile, CPile* pNextEmptyPile, bool bIsTransliterateMode = FALSE);
+							CPile* pCurPile, bool bIsTransliterateMode = FALSE);
 							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 							int nSelector);

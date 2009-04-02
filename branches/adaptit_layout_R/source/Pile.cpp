@@ -460,6 +460,11 @@ int CPile::CalcPhraseBoxGapWidth()
 	return boxGapWidth;
 }
 
+void CPile::SetPhraseBoxGapWidth(int nNewWidth)
+{
+	m_nWidth = nNewWidth; // a useful overload, for when the phrase box is contracting
+}
+
 void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 {
 	bool bRTLLayout;
