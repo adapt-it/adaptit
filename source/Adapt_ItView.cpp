@@ -26541,7 +26541,7 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 	// get a file dialog
 	wxString filter;
-	filter = _("Adapt It Reports (*.txt)|*txt||"); //IDS_REPORT_FILTER
+	filter = _("Adapt It Reports (*.txt)|*.txt||"); //IDS_REPORT_FILTER
 	wxFileDialog fileDlg(
 		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 		_("Filename For Retranslation Report"),
