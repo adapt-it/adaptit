@@ -116,7 +116,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
 			pView->DrawFreeTranslations(&dc, gpApp->m_pBundle, call_from_edit);
-			pView->canvas->Refresh();
+			//pView->canvas->Refresh();
 			pView->canvas->Update();
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
