@@ -1324,6 +1324,8 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	{
 		//const wxString nullStr = _T("");
 		DrawFreeTranslations(pDC, pApp->m_pBundle, call_from_ondraw);
+		canvas->Refresh();
+		canvas->Update();
 	}
 
 	//m_targetBox.Invalidate(); // Bruce's MFC Note 20Dec07: ensure a box draw is done later than any paint of the layout
