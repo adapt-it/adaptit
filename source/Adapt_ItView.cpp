@@ -1324,7 +1324,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	{
 		//const wxString nullStr = _T("");
 		DrawFreeTranslations(pDC, pApp->m_pBundle, call_from_ondraw);
-		canvas->Refresh();
+		//canvas->Refresh();
 		canvas->Update();
 	}
 
