@@ -1327,7 +1327,8 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 		// whm 4Apr09 note on problem of free translations in main window not being cleared for
 		// deletes or other edits the result in a shorter version: Having both Refresh and Update 
 		// here causes bad flicker indicating that OnDraw is being continuously invoked when those 
-		// calls are made. Having only Update() doesn't make the screen update any better.
+		// calls are made. See note in ComposeBarEditBox::OnEditBoxChanged() where Refresh and Update
+		// do need to be called to make deleting edits effective.
 		//canvas->Refresh();
 		//canvas->Update();
 	}
