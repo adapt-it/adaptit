@@ -126,13 +126,6 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			pView->canvas->Update();
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
-
-			// On wxMac the wxTextCtrl becomes "dirty" (i.e., IsModified() returns TRUE) when the frame
-			// detects a size event. Since we are not saving the contents of the compose bar's edit box
-			// we can unilaterally reset the "dirty" state to "unmodified" using the
-			// wxTextCtrl::DiscardEdits method.
-			//DiscardEdits();
-
 		}
 	}
 }

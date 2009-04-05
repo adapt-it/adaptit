@@ -39028,6 +39028,14 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 								 // also don't remove the new location's KB entry (as the phrase box is disabled)
 		gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
+
+		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
+		if (gpApp->m_pTargetBox->IsShown() && gpApp->m_pTargetBox->GetHandle() != NULL)
+			gpApp->m_pTargetBox->SetEditable(FALSE);
+		gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber);
+
+		// whm 4Apr09 moved this SetFocus below ScrollIntoView since ScrollIntoView seems to remove the
+		// focus on the Compose Bar's edit box if it follows the SetFocus call.
 		// now put the focus in the Compose Bar's edit box, and disable the phrase box for clicks & editing,
 		// and make it able to right justify and render RTL if we are in the Unicode app
 		if (pFrame->m_pComposeBar->GetHandle() != NULL)
@@ -39046,12 +39054,6 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 				#endif
 				pFrame->m_pComposeBarEditBox->SetFocus();
 			}
-
-		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
-		if (gpApp->m_pTargetBox->IsShown() && gpApp->m_pTargetBox->GetHandle() != NULL)
-			gpApp->m_pTargetBox->SetEditable(FALSE);
-		gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber);
-
 		// get any removed free translations in gEditRecord into the GUI list
 		bool bAllsWell;
 		bAllsWell = PopulateRemovalsComboBox(freeTranslationsStep, &gEditRecord);
