@@ -62,6 +62,9 @@
 #include <malloc/malloc.h>
 #endif
 
+// The following are from IBM's International Components for Unicode (icu) used under the LGPL license.
+//#include "csdetect.h" // used in GetNewFile(). 
+//#include "csmatch.h" // " "
 
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
@@ -5731,10 +5734,52 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 					// the app is mucking up the source data conversion, so the user wants
 					// to force UTF8 encoding to be used
 					gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-				}
+			}	
 		#ifdef __WIN32__
 				else
 				{
+/*
+#ifdef HAVE_ICU
+#include <unicode/ucsdet.h>
+#endif // HAVE_ICU
+
+static QByteArray detectEncoding(const QByteArray& text)
+{
+    Q_UNUSED(text);
+    QByteArray encoding;
+#ifdef HAVE_ICU
+    UErrorCode status = U_ZERO_ERROR;
+    UCharsetDetector* detector = ucsdet_open(&status);
+    if (detector && !U_FAILURE(status))
+    {
+        ucsdet_setText(detector, text.constData(), text.length(), &status);
+        if (!U_FAILURE(status))
+        {
+            const UCharsetMatch* match = ucsdet_detect(detector, &status);
+            if (match && !U_FAILURE(status))
+                encoding = ucsdet_getName(match, &status);
+        }
+    }
+
+
+    if (U_FAILURE(status)) {
+        qWarning("detectEncoding() failed: %s", u_errorName(status));
+    }
+
+    ucsdet_close(detector);
+#endif // HAVE_ICU
+    return encoding;
+}
+*/
+					// The following is from IBM's International Components for Unicode (icu) under the LGPL
+					// which we use since MS' IMultiLangauge2 interface (STL stuff) is not cross-platform.
+					//UErrorCode status;
+					//CharsetDetector* detector;
+					//detector = new CharsetDetector(status);
+					//detector->setText(pbyteBuff,strlen(pbyteBuff));
+					//const CharsetMatch* match = detector->detect(status);
+					
+
 					// whm: I think it is safest to just try using the default system encoding
 					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
 

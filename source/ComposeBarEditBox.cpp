@@ -120,8 +120,8 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// deletes or other edits the result in a shorter version: Having both Refresh and Update 
 			// here causes bad flicker indicating that OnDraw is being continuously invoked when those 
 			// calls are made. Having only Update() doesn't make the screen update any better.
-			//pView->canvas->Refresh();
-			//pView->canvas->Update();
+			pView->canvas->Refresh();
+			pView->canvas->Update();
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
 
