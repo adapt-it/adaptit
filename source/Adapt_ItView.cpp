@@ -1324,8 +1324,12 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	{
 		//const wxString nullStr = _T("");
 		DrawFreeTranslations(pDC, pApp->m_pBundle, call_from_ondraw);
+		// whm 4Apr09 note on problem of free translations in main window not being cleared for
+		// deletes or other edits the result in a shorter version: Having both Refresh and Update 
+		// here causes bad flicker indicating that OnDraw is being continuously invoked when those 
+		// calls are made. Having only Update() doesn't make the screen update any better.
 		//canvas->Refresh();
-		canvas->Update();
+		//canvas->Update();
 	}
 
 	//m_targetBox.Invalidate(); // Bruce's MFC Note 20Dec07: ensure a box draw is done later than any paint of the layout

@@ -116,8 +116,12 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
 			pView->DrawFreeTranslations(&dc, gpApp->m_pBundle, call_from_edit);
+			// whm 4Apr09 note on problem of free translations in main window not being cleared for
+			// deletes or other edits the result in a shorter version: Having both Refresh and Update 
+			// here causes bad flicker indicating that OnDraw is being continuously invoked when those 
+			// calls are made. Having only Update() doesn't make the screen update any better.
 			//pView->canvas->Refresh();
-			pView->canvas->Update();
+			//pView->canvas->Update();
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
 
