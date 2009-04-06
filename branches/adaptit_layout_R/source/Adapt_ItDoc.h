@@ -151,7 +151,7 @@ public:
 	void			CreatePartnerPile(CSourcePhrase* pSrcPhrase); // added 13Mar09
 	void			DeletePartnerPile(CSourcePhrase* pSrcPhrase); // added 12Mar09
 	CPile*			ReplacePartnerPile(PileList* pPiles, PileList::Node* posPile, CPile* pUpdatedOldPile);
-	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase); // added 13Mar09
+	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, bool bNoActiveLocationCalculation = FALSE); // added 13Mar09
 	// end of partner pile functions
 	
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);

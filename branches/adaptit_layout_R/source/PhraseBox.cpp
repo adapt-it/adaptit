@@ -516,6 +516,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		// the following function is now smart enough to capitalize m_targetStr in the context
 		// of preceding punctuation, etc, if required. No store done here, of course, since we
 		// are just restoring a <Not In KB> entry.
+		pView->SetAdaptationOrGloss(gbIsGlossing, pCurPile->GetSrcPhrase(), pApp->m_targetPhrase); // BEW added 27Jan09
 		pView->MakeLineFourString(pSP, pApp->m_targetPhrase);
 }
 
@@ -1088,8 +1089,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 		}
 
 		// *** TODO *** do we need this one??
-		pLayout->RecalcLayout(); // param bRecreatePileListAlso is FALSE, so m_stripArray rebuilt,
-								 // but m_pileList is left untouched
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bRecreatePileListAlso is
+				// FALSE, so m_stripArray rebuilt, but m_pileList is left untouched
 
 		// get the new active pile
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -1542,8 +1543,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 			pNewPile = pApp->m_pActivePile; // safe, whether glossing or not
 		}
 
-		pLayout->RecalcLayout(); // param bRecreatePileListAlso is FALSE, so m_stripArray rebuilt,
-								 // but m_pileList is left untouched
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bRecreatePileListAlso is
+					// FALSE, so m_stripArray rebuilt, but m_pileList is left untouched
 
 		// get the new active pile
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -1859,7 +1860,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 		//pApp->m_curBoxWidth = 2; // make very small so it doesn't push the next word/phrase
 									 // to the right before the next word/phrase can be measured
 		//pAppView->RecalcLayout(pApp->m_pSourcePhrases, 0, pApp->m_pBundle);
-		pLayout->RecalcLayout(); // default param is FALSE, so piles are not recreated
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // default param is FALSE, so piles are not recreated
 
 		// get the new active pile
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -2598,7 +2599,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 // situations, especially when typing into the box; this version needs to be smarter when
 // the refactored layout code is fully implemented - but currently if it detects that
 // adjustment to the layout is required, it calls CLayout::RecalcLayout() to destroy and
-// recreate the document's strips, without making any changes to the piles
+// recreate the document's strips, without making any changes to the piles. FixBox() is
+// currently called only in the following CPhraseBox functions: OnPhraseBoxChanged() with
+// selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
+// OnEditUndo() with selector 1 passed in.
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 						wxSize& textExtent,int nSelector)
 {
@@ -2740,7 +2744,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 		if (bUpdateOfLayoutNeeded)
 		{
-			pLayout->RecalcLayout(); // param bool bRecreatePileListAlso is default FALSE
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso is default FALSE
 			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 			wxASSERT(pApp->m_pActivePile != NULL);
 		}
@@ -3697,7 +3701,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
 		*/
 		// *** TODO *** do we need this one??
-		pLayout->RecalcLayout(); // param bRecreatePileListAlso is FALSE, so m_stripArray rebuilt,
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bRecreatePileListAlso is FALSE, so m_stripArray rebuilt,
 								 // but m_pileList is left untouched
 
 		// make sure the new active pile's pointer is set
@@ -4429,7 +4433,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			//pApp->m_pTargetBox->SetValue(_T("")); // whm added since it is hidden not destroyed
 			//pView->LayoutStrip(pApp->m_pSourcePhrases,nOldStripIndex,pApp->m_pBundle);
 			//
-			pLayout->RecalcLayout(); // bRecreatePileListAlso is default FALSE
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // bRecreatePileListAlso is default FALSE
 			pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
 			//pView->Invalidate();
 		}
@@ -5282,7 +5286,7 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 		pApp->m_targetPhrase = _T("");
 
 		// recalculate the layout
-		pLayout->RecalcLayout(); // default bool param bRecreatePileListAlso, is FALSE,
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // default bool param bRecreatePileListAlso, is FALSE,
 								 // so piles are not recreated
 		// get the new active pile
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);

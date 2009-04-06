@@ -917,25 +917,27 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 // but return FALSE if a layout setup was attempted and failed (app must then abort)
 // 
 // Note: RecalcLayout() should be called, for best results, immediately before opening, or
-// creating, an Adapt It document. At that point all of the paramaters it collects together should
-// have their "final" values, such as font choices, colours, etc. It is also to be called whenever
-// the layout has been corrupted by a user action, such as a font change (which clobbers prior text
-// extent values stored in the piles) or a punctuation setting change, etc. RecalcLayout() in the
-// refactored design is a potentially "costly" calculation - if the document is large, the piles
-// and strips for the whole document has to be recalculated from the data in the current document -
-// (need to consider a progress bar in the status bar in window bottom)
-// The default value of the passed in flag bRecreatePileListAlso is FALSE
-bool CLayout::RecalcLayout(bool bRecreatePileListAlso)
+// creating, an Adapt It document. At that point all of the paramaters it collects together
+// should have their "final" values, such as font choices, colours, etc. It is also to be
+// called whenever the layout has been corrupted by a user action, such as a font change
+// (which clobbers prior text extent values stored in the piles) or a punctuation setting
+// change, etc. RecalcLayout() in the refactored design is a potentially "costly"
+// calculation - if the document is large, the piles and strips for the whole document has
+// to be recalculated from the data in the current document - (need to consider a progress
+// bar in the status bar in window bottom) The default value of the passed in flag
+// bRecreatePileListAlso is FALSE The ptr value for the passed in pList is usually the
+// application's m_pSourcePhrases list, but it can be a sublist copied from that
+bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 {
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
     // function - the latter built only a bundle's-worth of strips, but the new design must build
 	// strips for the whole document - so potentially may consume a lot of time; however, the
 	// efficiency of the new design (eg. no rectangles are calculated) may compensate significantly
 
-	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases; // the list of CSourcePhrase instances which
-	// comprise the document -- the CLayout instance will own a parallel list of CPile
-	// instances in one-to-one correspondence with the CSourcePhrase instances, and each of piles
-	// will contain a pointer to the sourcePhrase it is associated with
+	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which comprise the
+	// document, or a sublist copied from it, -- the CLayout instance will own a parallel list of
+    // CPile instances in one-to-one correspondence with the CSourcePhrase instances, and
+    // each of piles will contain a pointer to the sourcePhrase it is associated with
 	
 	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
 	{
@@ -2015,9 +2017,8 @@ void CLayout::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enu
 	// of pile instances in m_pileList where the partitioning criterion is "the sum of the widths
 	// plus the interpile gaps in the current strip must be less than the strip's width, measured
 	// in pixels"
-	RecalcLayout(); // bool param (bCreatePilesToo) is FALSE - so it just reforms strips
-							 // after destroying the old ones
-							 // 
+	RecalcLayout(m_pApp->m_pSourcePhrases); // bool param (bCreatePilesToo) is FALSE - so it just
+							//reforms strips after destroying the old ones
 	// in the old design, a computation of the TopLeft coordinates of the phrase box location for
 	// the passed in active location would be done here, now that the layout is up to date;
 	// however, the placing and showing of the phrase box is now in CLayout::Draw(), and is done
@@ -2253,6 +2254,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 {
 	// Call this function in CLayout::Draw() after strips are drawn
 	bool bSetModify = FALSE; // governs what is done with the wxEdit control's dirty flag
+	bool bSetTextColor = FALSE; // governs whether or not we reset the box's text colour
 	
 	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there the phrase box is
 	// to be located
@@ -2263,8 +2265,17 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 
 	// get the pile width at the active location, using the value in
 	// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
-	//int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
-	int phraseBoxWidth = m_curBoxWidth;
+	int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
+    //int phraseBoxWidth = m_curBoxWidth; // I was going to use this, but I think the best
+    // design is to only use the value stored in CLayout::m_curBoxWidth for the brief
+    // interval within the execution of FixBox() when a box expansion happens (and
+    // immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
+    // then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
+    // will use that stored value when gbExpanding == TRUE to test for largest of
+    // m_curBoxWidth and a value based on text extent plus slop, and use the larger -
+    // setting result in m_nWidth, so the ResizeBox() calls here in PlacePhraseBoxInLayout()
+    // should always expect m_nWidth for the active pile will have been correctly set, and
+    // so always use that for the width to pass in to the ResizeBox() call below.
 
 	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
 	// range specification have already been appropriately set by the PrepareForLayout() function.
@@ -2290,7 +2301,8 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		}
 	case relocate_box_op:
 		{
-
+			bSetModify = FALSE;
+			bSetTextColor = TRUE;
 			break;
 		}
 	case merge_op:
@@ -2496,6 +2508,14 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
 	}
 
+	// set the color - CPhraseBox has a color variable & uses reflected notification
+	if (bSetTextColor)
+	{
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+			m_pApp->m_pTargetBox->m_textColor = GetNavTextColor();
+		else
+			m_pApp->m_pTargetBox->m_textColor = GetTgtColor();
+	}
 	// handle the dirty flag
 	if (bSetModify)
 	{

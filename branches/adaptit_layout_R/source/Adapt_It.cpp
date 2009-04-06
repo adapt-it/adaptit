@@ -7968,7 +7968,7 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 
 				// for refactored layout support - there best way to be sure all is well
 				// is to completely regenerate the layout, including m_pileList
-				m_pLayout->RecalcLayout(TRUE);
+				m_pLayout->RecalcLayout(m_pSourcePhrases, TRUE);
 
 				/* next few lines removed 21Mar09, because bundle support no longer needed
 				// try expand sufficiently to encompass the active location within the lengthened

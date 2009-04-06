@@ -226,7 +226,7 @@ public:
 	// CSourcePhrase instance in pSrcPhrases)
 	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
 	bool		CreatePiles(SPList* pSrcPhrases);
-	bool		RecalcLayout(bool bRecreatePileListAlso = FALSE);
+	bool		RecalcLayout(SPList* pList, bool bRecreatePileListAlso = FALSE);
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
 									   // to whatever is currently set within the app, doc and
 									   // view classes; that is, it hooks up CLayout to the

@@ -253,7 +253,7 @@ CPile* CCell::GetPile()
 	return m_pOwningPile;
 }
 
-bool CCell::IsSelected();
+bool CCell::IsSelected()
 {
 	return m_bSelected;
 }
@@ -264,6 +264,10 @@ void CCell::SetSelected(bool bValue)
 	m_bSelected = bValue;
 }
 
+int CCell::GetCellIndex()
+{
+	return m_nCell; // return this cell's index in the pile (values 0 to 3 inclusive)
+}
 
 wxColour* CCell::GetColor()
 {

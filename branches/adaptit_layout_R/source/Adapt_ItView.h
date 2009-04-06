@@ -286,8 +286,10 @@ public:
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event)); // moved to public
-	void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
-																  // enable/disable code
+	//void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
+	//															  // enable/disable code
+	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to 
+																// enable/disable code
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
 	//void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle*
@@ -342,8 +344,8 @@ public:
 	int			RecalcPhraseBoxWidth(wxString& phrase);
 	//bool		RestoreAllPagesPrinting(CPrintInfo* pInfo);
 	//bool		RestoreAllFromSelection(CPrintInfo* pInfo);
-	void		RestoreIndices();
-	void		RestoreIndicesFromRange();
+	//void		RestoreIndices();
+	//void		RestoreIndicesFromRange();
 	void		RestoreMode(bool WXUNUSED(bSeeGlossesEnabled), bool WXUNUSED(bIsGlossing), EditRecord* pRec); // BEW added 29July08
 	bool		RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList);
 	void		RestoreBoxOnFinishVerticalMode(); // BEW added 8Sept08
@@ -353,8 +355,8 @@ public:
 	//void		ScrollIntoView(int nSequNum); //bool	ScrollIntoView(int nSequNum);
 	//void		ScrollToNearTop(int nSequNum);
 	//int			ScrollUp(int nStrips);
-	void		SaveAndSetIndices(int nNewMaxIndex);
-	void		SaveIndicesForRange(); // doesn't reset the m_maxIndex value
+	//void		SaveAndSetIndices(int nNewMaxIndex);
+	//void		SaveIndicesForRange(); // doesn't reset the m_maxIndex value
 	void		SelectDragRange(CCell* pAnchor,CCell* pCurrent);
 	void		SelectAnchorOnly();
 	void		SelectFoundSrcPhrases(int nNewSequNum, int nCount, bool bIncludePunct, 
@@ -455,6 +457,10 @@ protected:
 						wxString& src,wxString& tgt, bool bIgnoreCase, int& nSequNum, int& nCount);
 	bool		DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
 								wxString& src,bool bIgnoreCase, int& nSequNum, int& nCount);
+	void		DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase,
+								int selector, CPile* pActivePile, wxString& str, bool bHasNothing,
+								bool bNoValidText, bool bSomethingIsCopied); // added 3Apr09
+	bool		DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase);	// added 3Apr09
 	bool		DoTgtOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
 								wxString& tgt,bool bIgnoreCase, int& nSequNum, int& nCount);
 	void		DoSrcPhraseSelCopy();

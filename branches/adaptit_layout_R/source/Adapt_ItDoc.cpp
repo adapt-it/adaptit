@@ -685,7 +685,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			CLayout* pLayout = GetLayout();
 			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 											// and other setters
-			bool bIsOK = pLayout->RecalcLayout(TRUE); // TRUE means "create the m_pileList too"
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, TRUE); // TRUE means "create the m_pileList too"
 			if (!bIsOK)
 			{
 				// unlikely to fail, so just have something for the developer here
@@ -748,7 +748,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 			translation = pApp->m_targetPhrase;
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 			//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-			pApp->m_ptCurBoxLocation = pApp->m_pActivePile->GetCell(1)->GetTopLeft();
+			//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->GetCell(1)->GetTopLeft(); // removed
+            // because now we will calculate the location from the layout dynamically from
+            // within the PlacePhraseBox() call
 			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 			//pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2);
 			pAdView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2);
@@ -3288,7 +3290,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	CLayout* pLayout = GetLayout();
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
-	bool bIsOK = pLayout->RecalcLayout(TRUE); // TRUE means "create the m_pileList too"
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases,TRUE); // TRUE means "create the m_pileList too"
 	if (!bIsOK)
 	{
 		// unlikely to fail, so just have something for the developer here
@@ -3756,7 +3758,7 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 	return GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); 
 }
 
-void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase)
+void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, bool bNoActiveLocationCalculation)
 {
 	// refactor 13Mar09
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
@@ -3772,7 +3774,20 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase)
 		// if it is at the active location, then the width needs to be wider -
 		// SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile instance
 		// (but if not at the active location, the default value m_nMinWidth will apply)
-		pPile->SetPhraseBoxGapWidth();
+		if (!bNoActiveLocationCalculation)
+		{
+            // EXPLANATION FOR THE ABOVE TEST: we need the capacity to have the phrase box
+            // be at the active location, but not have the gap width left in the layout be
+            // wide enough to accomodate the box - this situation happens in
+            // PlacePhraseBox() when we want a box width calculation for the pile which is
+            // being left behind (and which at the point when the pile's width is being
+            // calculated it is still the active pile, but later in the function when the
+            // clicked pile is instituted as the new active location, the gap will have to
+            // be based on what is at that new location, not the old one; hence setting the
+            // bNoActiveLocationCalculation parameter TRUE just for such a situation
+            // prevents the unwanted large gap calculation at the old location
+			pPile->SetPhraseBoxGapWidth();
+		}
 
 		// our detection method (pile pointer mismatch) for user edits area would not detect this
 		// change and so we need to have this pile be located at a different location on the heap so
@@ -11106,7 +11121,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	// this is where we need to have the layout updated. We will do the whole lot, that is,
 	// destroy and recreate both piles and strips
 	//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
-	GetLayout()->RecalcLayout(TRUE); // TRUE is bRecreatePileListAlso
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases,TRUE); // TRUE is bRecreatePileListAlso
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
 
 	GetLayout()->m_docEditOperationType = retokenize_text_op;

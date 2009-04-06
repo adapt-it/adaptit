@@ -1261,6 +1261,7 @@ public:
 
 	// store doc size parameters
 	wxSize		m_docSize;	// stores the virtual doc size (in pixels)
+	wxSize		m_saveDocSize; // used for restoring original doc size across a printing operation
 	SPList*		m_pSourcePhrases;
 	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized) text data on the
 							// heap; and still does so while parsing source text, but from late versions 2

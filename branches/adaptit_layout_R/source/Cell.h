@@ -118,6 +118,7 @@ public:
 	CPile*	GetPile();
 	bool	IsSelected();
 	void	SetSelected(bool bValue); // set to TRUE or FALSE, explicitly (no default)
+	int		GetCellIndex();
 
 	DECLARE_DYNAMIC_CLASS(CCell) 
 	// Used inside a class declaration to declare that the objects of 

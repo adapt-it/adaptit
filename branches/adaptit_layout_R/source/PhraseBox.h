@@ -65,8 +65,6 @@ protected:
 							// BEW added DoStore_NormalOrTransliterateModes() 24Mar09, to simplify MoveToNextPile()
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 							int nSelector);
-	void Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView, 
-							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 							CPile* pNewPile, bool& bWantSelect); // BEW added 24Mar09, to simplify MoveToNextPile()
 	void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
@@ -86,6 +84,8 @@ public:
 	CLayout* GetLayout();
 	bool LookAhead(CAdapt_ItView* pAppView, CPile* pNewPile);
 	bool FindMatchInKB(CKB* pKB, int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
+	void Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView, 
+							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);
 	bool OnePass(CAdapt_ItView *pView);
 	bool ChooseTranslation(bool bHideCancelAndSelectButton = FALSE);
