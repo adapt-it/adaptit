@@ -407,6 +407,7 @@ public:
 	void		RemoveEarlierSelForShortening(wxClientDC* pDC, CCell* pEndCell);
 	void		RemoveFollowingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public
 	void		RemoveLaterSelForShortening(wxClientDC* pDC, CCell* pEndCell);
+	void		RestoreSelection();
 	
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
 	void		InvalidateRect(wxRect& rect); // our own for wxWidgets (see cpp file notes)
@@ -556,7 +557,6 @@ protected:
 	void		RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 27May08
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
 	void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase);
-	void		RestoreSelection();
 	void		RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& str);
 	bool		RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 26May08
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,

@@ -110,6 +110,7 @@ public:
 	int			GetStripIndex();
 	CStrip*		GetStrip();
 	CCell*		GetCell(int nCellIndex);
+	CCell**		GetCellArray();
 
 	int		Width();
 	int		Height();

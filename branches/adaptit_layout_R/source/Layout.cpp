@@ -953,6 +953,9 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 		return TRUE;
 	}
 
+	// preserve selection parameters, so it can be preserved across the recalculation
+	m_pView->StoreSelection(m_pApp->m_selectionLine);
+
 	// //////// first get up-to-date-values for all the needed data /////////
 	/* do it instead in caller using SetLayoutParameters() call
 	// set the latest wxFont pointers...
@@ -1051,6 +1054,10 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	SetLogicalDocHeight();
 
 	gbExpanding = FALSE; // has to be restored to default value
+
+	// restore the selection, if there was one
+	m_pView->RestoreSelection();
+
 
 	// *** TODO 1 ***
 	// set up the scroll bar to have the correct range (and it would be nice to try place the

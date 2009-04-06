@@ -251,7 +251,8 @@ bool	gbCallerIsRemoveButton = FALSE;
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;// for rapid access to the app class
-
+// use this to get rid of gpApp...      CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+//
 // for getting source text updated after an edit
 int	gnOldMaxIndex = 0;
 
@@ -7126,8 +7127,7 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
 /// Disables the "New" item on the File menu if Vertical Editing is in progress. Enables the item if 
-/// the KB pointers are not NULL, if the m_pBundle is not NULL and if the bundle's m_nStripCount is 
-/// zero, otherwise it disables the menu item.
+/// the KB pointers are not NULL, and if the strip count is zero, otherwise it disables the menu item.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 {
@@ -7142,8 +7142,8 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 	// DeleteContents() is called, which does not happen until either the user chooses New...
 	// or Open... or the Wizard equivalents, or closes the app. So a zero strip count is
 	// a sufficient condition.
-	// whm added 27May04 the check && m_pBundle != NULL
-	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && pApp->m_pBundle != NULL && pApp->m_pBundle->m_nStripCount == 0)
+	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && 
+		pApp->m_pLayout->GetStripArray()->GetCount() == 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -7175,7 +7175,8 @@ void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 	// a sufficient condition.
 	// I've changed this now, the source phrases now get clobbered, but using the strip count
 	// is still perfectly acceptable, so I'll leave it unchanged.
-	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && pApp->m_pBundle->m_nStripCount == 0)
+	if (pApp->m_pKB != NULL && pApp->m_pGlossingKB != NULL && 
+		pApp->m_pLayout->GetStripArray()->GetCount() == 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -8512,7 +8513,84 @@ void CAdapt_ItView::CalcInitialIndices()
 */
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     the pointer to the CCell instance the user clicked
+/// \param      pPoint        -> pointer to the wxPoint (logical coords) where the user clicked 
+/// \remarks
+/// 
+/// Interrogates the m_stripArray to termine which strip, pile and cell was clicked in;
+/// returning the cell's pointer; it is the caller's responsibility to convert the client
+/// coords for the click as returned from the event record, into a logical point, before
+/// passing the result to GetClickedCell()
+////////////////////////////////////////////////////////////////////////////////////////////
+CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
+{
+	// refactored 6Apr09
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	wxASSERT(pLayout != NULL);
+	wxPoint point = *pPoint;
+	CStrip* pStrip = NULL; // whm initialized to NULL
+	CPile* pPile = NULL; // whm initialized to NULL 
+	CCell* pCell = NULL; // whm initialized to NULL
+	wxRect rect;
+	int	pileCount;
+	int	pileIndex;
+	int cellIndex;
+	int stripIndex;
+	wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
+	int nStripCount = pStripArray->GetCount();
 
+	// find the strip the click was in (we don't count a click on free translation text
+	// as a valid click on the strip, neither is a click in the navText whiteboard area)
+	for (stripIndex = 0; stripIndex < nStripCount; stripIndex++)
+	{
+		pStrip = (CStrip*)(*pStripArray)[stripIndex];
+		wxASSERT(pStrip != NULL);
+		pStrip->GetStripRect_CellsOnly(rect);
+		rect = NormalizeRect(rect); // use our own from helpers.h
+		if (rect.Contains(point))
+			break;
+	}
+	if (stripIndex == nStripCount || pStrip == NULL)
+		return NULL; // did not click within a strip
+	else
+	{
+		// find which pile the click was in
+		wxArrayPtrVoid*	pPilesArray = pStrip->GetPilesArray(); // gets ptr to m_arrPiles
+		pileCount = pPilesArray->GetCount();
+		for (pileIndex = 0; pileIndex < pileCount; pileIndex++)
+		{
+			pPile = (CPile*)((*pPilesArray)[pileIndex]);
+			pPile->GetPileRect(rect);
+			rect = NormalizeRect(rect); // use our own from helpers.h
+			if (rect.Contains(point))
+				break;
+		}
+		if (pileIndex == pileCount || pPile == NULL)
+			return NULL; // did not click within a pile - clicked in a gap, or at end, or in margin
+		else
+		{
+			// find which cell the click was in
+			for (cellIndex = 0; cellIndex < MAX_CELLS; cellIndex++)
+			{
+				pCell = pPile->GetCellArray()[cellIndex];
+				if (pCell == NULL)
+					continue;
+				pCell->GetCellRect(rect);
+				rect = NormalizeRect(rect); // use our own from helpers.h
+				if (rect.Contains(point))
+					break;
+			}
+			if (cellIndex == MAX_CELLS)
+				return NULL; // click was not in a cell
+		}
+	}
+	return pCell;
+}
+
+/* old code
 CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -8572,11 +8650,72 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 	}
 	return pCell;
 }
+*/
 
 // return FALSE if the click was not in a strip or its leading area - it should
 // be impossible to return FALSE though
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     return NULL if the click was not in a strip or its leading area - it should
+///             be impossible to return NULL though; otherwise return the 
+/// \param      pPoint        -> pointer to the wxPoint (logical coords) where the user clicked 
+/// \remarks
+/// 
+/// Interrogates the m_stripArray to termine which strip, or the leading just above it, the
+/// user clicked in - returning the strip's pointer; it is the caller's responsibility to
+/// convert the client coords for the click as returned from the event record, into a
+/// logical point, before passing the result to GetNearestStrip()
+/// The pStrip pointer passed back is the pointer to a CStrip instance, but we determine
+/// that the strip was clicked on if either it or the leading area was clicked on - since
+/// the note or wedge icons will be in the leading area.
+////////////////////////////////////////////////////////////////////////////////////////////
 CStrip* CAdapt_ItView::GetNearestStrip(const wxPoint *pPoint)
 {
+	// refactored 6Apr09
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	wxASSERT(pLayout != NULL);
+	wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
+	int nStripCount = pStripArray->GetCount();
+
+	wxPoint point = *pPoint;
+	CStrip* pStrip = NULL;
+	wxRect rect;
+	//int leading = gpApp->m_curLeading; // defines the vertical extent of the nav text area above the strip
+	int leading = pLayout->GetCurLeading(); // defines the vertical extent of the nav text area above the strip
+	int stripIndex;
+	for (stripIndex = 0; stripIndex < nStripCount; stripIndex++)
+	{
+		pStrip = (CStrip*)(*pStripArray)[stripIndex];
+		pStrip->GetStripRect_CellsOnly(rect);
+		rect = NormalizeRect(rect); // use our own from helpers.h
+        // subtract the leading from the top, because it's within there that we expect
+        // clicks on the wedge to happen
+        rect.SetTop(rect.GetTop()- leading);	// In wx's wxRect, this only moves the x,y coordinate and
+												// consequently the whole box, leaving the height the same,
+												// therefore, we also need to reset the height to include
+												// the leading value
+		rect.SetHeight(rect.GetHeight() + leading); // whm added
+		// BEW changed 02Aug05 to handle RTL layout better - for these the click could be outside the strip
+		// rectangle for a wedge offset to the right and at the right edge of the strip; so instead just check
+		// that the vertical offset for the click falls on or within the top and bottom coords of the rect
+		if (point.y >= rect.GetTop() && point.y <= rect.GetBottom()) // was   if (rect.PtInRect(point))
+			break;
+	}
+	if (stripIndex == nStripCount)
+		return NULL; // did not click within a strip or its leading area above it
+	else
+		return pStrip;
+}
+
+/* old code
+CStrip* CAdapt_ItView::GetNearestStrip(const wxPoint *pPoint)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pApp != NULL);
+	wxASSERT(pLayout != NULL);
+
 	wxPoint point = *pPoint;
 	CStrip* pStrip;
 	wxRect rect;
@@ -8608,12 +8747,14 @@ CStrip* CAdapt_ItView::GetNearestStrip(const wxPoint *pPoint)
 	else
 		return gpApp->m_pBundle->m_pStrip[stripIndex];
 }
+*/
 
 // Moved to CAdapt_ItCanvas in WX version:
 //void CAdapt_ItView::OnLButtonDown(wxMouseEvent& event)
 
 void CAdapt_ItView::RemovePrecedingAnchor(wxClientDC* pDC, CCell *pAnchor)
 {
+	// refactored 6Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CCellList::Node* pos = pApp->m_selection.Find(pAnchor);
@@ -8635,10 +8776,9 @@ void CAdapt_ItView::RemovePrecedingAnchor(wxClientDC* pDC, CCell *pAnchor)
 			pos = pos->GetPrevious();
 			pDC->SetBackgroundMode(pApp->m_backgroundMode);
 			pDC->SetTextBackground(wxColour(255,255,255)); // white
-			//pText->Draw(pDC);
-			//pText->m_bSelected = FALSE;
-			pPrevCell->DrawCell(pDC);
-			pPrevCell->m_bSelected = FALSE;
+			pPrevCell->DrawCell(pDC, GetLayout()->GetSrcColor());
+			//pPrevCell->m_bSelected = FALSE;
+			pPrevCell->SetSelected(FALSE);
 			pApp->m_selection.DeleteNode(savePos);
 		}
 	}
@@ -8667,10 +8807,9 @@ void CAdapt_ItView::RemoveFollowingAnchor(wxClientDC *pDC, CCell *pAnchor)
 			pos = pos->GetNext();
 			pDC->SetBackgroundMode(pApp->m_backgroundMode);
 			pDC->SetTextBackground(wxColour(255,255,255)); // white
-			//pText->Draw(pDC);
-			//pText->m_bSelected = FALSE;
-			pFollCell->DrawCell(pDC);
-			pFollCell->m_bSelected = FALSE;
+			pFollCell->DrawCell(pDC, GetLayout()->GetSrcColor());
+			//pFollCell->m_bSelected = FALSE;
+			pFollCell->SetSelected(FALSE);
 			pApp->m_selection.DeleteNode(savePos);
 		}
 	}
@@ -8693,20 +8832,17 @@ void CAdapt_ItView::RemoveEarlierSelForShortening(wxClientDC *pDC, CCell *pEndCe
 		{
 			// there is previous selected CCell, so user must have shortened sel'n
 			// so get rid of it & any earlier ones
-			//CText* pText;
 			CCell* pPrevCell;
 			while (pos != NULL)
 			{
 				CCellList::Node* savePos = pos;
-				//pText = ((CCell*)pos->GetData())->m_pText;
 				pPrevCell = (CCell*)pos->GetData();
 				pos = pos->GetPrevious();
 				pDC->SetBackgroundMode(pApp->m_backgroundMode);
 				pDC->SetTextBackground(wxColour(255,255,255)); // white
-				//pText->Draw(pDC);
-				//pText->m_bSelected = FALSE;
-				pPrevCell->DrawCell(pDC);
-				pPrevCell->m_bSelected = FALSE;
+				pPrevCell->DrawCell(pDC, GetLayout()->GetSrcColor());
+				//pPrevCell->m_bSelected = FALSE;
+				pPrevCell->SetSelected(FALSE);
 				pApp->m_selection.DeleteNode(savePos);
 			}
 		}
@@ -8730,7 +8866,6 @@ void CAdapt_ItView::RemoveLaterSelForShortening(wxClientDC *pDC, CCell *pEndCell
 		{
 			// there is another selected CCell, so user must have shortened sel'n
 			// so get rid of it & any subsequent ones
-			//CText* pText;
 			CCell* pLaterCell;
 			while (pos != NULL)
 			{
@@ -8740,10 +8875,9 @@ void CAdapt_ItView::RemoveLaterSelForShortening(wxClientDC *pDC, CCell *pEndCell
 				pos = pos->GetNext();
 				pDC->SetBackgroundMode(pApp->m_backgroundMode);
 				pDC->SetTextBackground(wxColour(255,255,255)); // white
-				//pText->Draw(pDC);
-				//pText->m_bSelected = FALSE;
-				pLaterCell->DrawCell(pDC);
-				pLaterCell->m_bSelected = FALSE;
+				pLaterCell->DrawCell(pDC, GetLayout()->GetSrcColor());
+				//pLaterCell->m_bSelected = FALSE;
+				pLaterCell->SetSelected(FALSE);
 				pApp->m_selection.DeleteNode(savePos);
 			}
 		}
@@ -8752,12 +8886,13 @@ void CAdapt_ItView::RemoveLaterSelForShortening(wxClientDC *pDC, CCell *pEndCell
 
 bool CAdapt_ItView::IsBoundaryCell(CCell *pCell)
 {
-	return pCell->m_pPile->m_pSrcPhrase->m_bBoundary;
+	//return pCell->m_pPile->m_pSrcPhrase->m_bBoundary;
+	return pCell->GetPile()->GetSrcPhrase()->m_bBoundary;
 }
 
+// returns the cell immediately preceding the pCell one, regardless of where boundaries
+// are; returns null if no previous cell
 CCell* CAdapt_ItView::GetPrevCell(CCell *pCell, int index)
-// returns the cell immediately preceding the pCell one, regardless of where boundaries are;
-// returns null if no previous cell
 {
 	CCell* pPrevCell;
 	CPile* pPrevPile;

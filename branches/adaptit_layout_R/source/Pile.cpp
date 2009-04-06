@@ -460,6 +460,11 @@ int CPile::CalcPhraseBoxGapWidth()
 	return boxGapWidth;
 }
 
+CCell** CPile::GetCellArray()
+{
+	return &m_pCell[0]; // return pointer to the array of CCell pointers
+}
+
 void CPile::SetPhraseBoxGapWidth(int nNewWidth)
 {
 	m_nWidth = nNewWidth; // a useful overload, for when the phrase box is contracting
