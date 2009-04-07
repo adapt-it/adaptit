@@ -1402,35 +1402,35 @@ public:
 									 // with configuration files - formerly this was bundle's count 
 									 // of sourcephrases, but we'll now save the m_pSourcePhrases count
 
-	//int				m_nPrecedingContext; // minimum # of words/phrases in preceding context
-	//int				m_nFollowingContext; // ditto, for following context
-	//int				m_curPileHeight;	 // pile height value to be used in RecalcLayout()
+	//int			m_nPrecedingContext; // minimum # of words/phrases in preceding context
+	//int			m_nFollowingContext; // ditto, for following context
+	//int			m_curPileHeight;	 // pile height value to be used in RecalcLayout()
 	int				m_curLeading;		 // between-strips leading value
 	int				m_curLMargin;		 // if user wants a left margin, he can set this
 	int				m_curGapWidth;		 // inter-pile gap, measured in pixels (follows a pile)
-	//int				m_beginIndex; // start of the displayed CSourcePhrase instances in this group
-	//int				m_endIndex;	// end of the displayed CSourcePhrase instances in this group
-	//int				m_curIndex; // current location
-	//int				m_upperIndex; // upper index for context end, move up if 
+	//int			m_beginIndex; // start of the displayed CSourcePhrase instances in this group
+	//int			m_endIndex;	// end of the displayed CSourcePhrase instances in this group
+	//int			m_curIndex; // current location
+	//int			m_upperIndex; // upper index for context end, move up if 
 								  // m_upperIndex = m_endIndex
-	//int				m_lowerIndex; // lower index for context end, move down if 
+	//int			m_lowerIndex; // lower index for context end, move down if 
 								  // m_lowerIndex = m_beginIndex
-	//int				m_maxIndex;  // index of last CSourcePhrase instance in the list
+	//int			m_maxIndex;  // index of last CSourcePhrase instance in the list
 	// for saving these across layout for printing, since print layout can go from start 
 	// to end of document rather than just a bundle; use the next set for selection printing
-	//int				m_saveBeginIndex;
-	//int				m_saveEndIndex;
-	//int				m_saveCurIndex;
-	//int				m_saveLowerIndex;
-	//int				m_saveUpperIndex;
-	//int				m_saveMaxIndex;
+	//int			m_saveBeginIndex;
+	//int			m_saveEndIndex;
+	//int			m_saveCurIndex;
+	//int			m_saveLowerIndex;
+	//int			m_saveUpperIndex;
+	//int			m_saveMaxIndex;
 	// use the following set for a print of a chapter/verse range
-	//int				m_saveRangeBeginIndex;
-	//int				m_saveRangeEndIndex;
-	//int				m_saveRangeCurIndex;
-	//int				m_saveRangeLowerIndex;
-	//int				m_saveRangeUpperIndex;
-	//int				m_saveRangeMaxIndex;
+	//int			m_saveRangeBeginIndex;
+	//int			m_saveRangeEndIndex;
+	//int			m_saveRangeCurIndex;
+	//int			m_saveRangeLowerIndex;
+	//int			m_saveRangeUpperIndex;
+	//int			m_saveRangeMaxIndex;
 
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int				m_nSrcHeight;	// line height for source language text

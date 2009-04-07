@@ -6653,6 +6653,7 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int nHeight,
 							   wxString &text, int nStartChar, int nEndChar, CPile* pActivePile)
 {
+	//refactored 7Apr09
 	#ifdef _Trace_Box_Loc_Wrong
 	if (gpApp->m_nActiveSequNum >20)
 	{
@@ -6660,10 +6661,22 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	}
 	#endif
 
+    // 7Apr09, in the refactored version, the pActivePile parameter is no longer needed, so
+    // I've repurposed it to provide a check of the gap width (active pile's m_nWidth
+    // value) against the nWidth value passed in - so that if nWidth exceeds the space left
+    // at the active pile's gap, the gap width is used instead
+	int nGapWidth = pActivePile->GetPhraseBoxGapWidth();
+	int aWidth = nWidth;
+	if ( nGapWidth >= 10)
+	{
+		aWidth = aWidth > nGapWidth ? nGapWidth : aWidth;
+	}
+
 	gbEnterTyped = FALSE; // ensure it is FALSE, only ENTER key typed should set it TRUE
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
-	wxRect rectBox(wxPoint((*pLoc).x,(*pLoc).y),wxPoint((*pLoc).x + nWidth,(*pLoc).y + nHeight+4)); // logical coords
+	wxRect rectBox(wxPoint((*pLoc).x, (*pLoc).y), wxPoint((*pLoc).x + aWidth,
+					(*pLoc).y + nHeight+4)); // logical coords
 
 	#ifdef _Trace_Box_Loc_Wrong
 	if (gpApp->m_nActiveSequNum >20)
@@ -7305,22 +7318,23 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 	// refactored 19Mar09
 	// we'll use the passed in pSrcPhrases list pointer only for the next few lines which
 	// do tests. After that, we'll iterate across the CPile instances in CLayout::m_pileList
-	SPList* pSrcList = pSrcPhrases;
 	if (pSrcPhrases == NULL)
 		return 0;
 	if (pSrcPhrases->GetCount() == 0)
 		return 0;
 
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	//CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CLayout* pLayout = GetLayout();
 	PileList* pPiles = pLayout->GetPileList(); // index into this list using nBeginSN and nEndSN
 
+	/* don't need a pile height, because pile population per strip only depends on their widths
 	// set the pile height value
-	int nPileHeight_SimulationOnly = pLayout->GetPileHeight(); // wxMM_TEXT is used 
+	//int nPileHeight_SimulationOnly = pLayout->GetPileHeight(); // wxMM_TEXT is used 
 	// for doc window, and printing -- which conveniently means that the pile widths
 	// for all the piles are stored on them already, and pile height is a known
 	// constant, which simplifies the calculations a lot - we don't need a device
 	// context, etc.
+	*/
 	int		nLastSequNumber;
 	int		nEndIndex;
 	
@@ -8892,6 +8906,27 @@ bool CAdapt_ItView::IsBoundaryCell(CCell *pCell)
 
 // returns the cell immediately preceding the pCell one, regardless of where boundaries
 // are; returns null if no previous cell
+CCell* CAdapt_ItView::GetPrevCell(CCell *pCell, int cellIndex)
+{
+	// refactored 7Apr09
+	CPile* pPile = pCell->GetPile();
+	PileList* pPiles = GetLayout()->GetPileList();
+	int index = pPiles->IndexOf(pPile);
+	index--; // index of previous CPile instance, could exceed bound
+	if (index < 0)
+	{
+		return NULL; // bounds error - passed beginning of document
+	}
+	else
+	{
+		// not past beginning of document
+		PileList::Node* pos = pPiles->Item(index);
+		pPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+	}
+	return pPile->GetCell(cellIndex);
+}
+/* old code
 CCell* CAdapt_ItView::GetPrevCell(CCell *pCell, int index)
 {
 	CCell* pPrevCell;
@@ -8922,9 +8957,10 @@ CCell* CAdapt_ItView::GetPrevCell(CCell *pCell, int index)
 	}
 	return pPrevCell;
 }
-
+*/
 void CAdapt_ItView::RemoveSelection()
 {
+	// refactored 7Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	wxCommandEvent dummyevent;
@@ -8957,8 +8993,8 @@ void CAdapt_ItView::RemoveSelection()
 		aDC.SetTextBackground(wxColour(255,255,255)); // white
 		//pText->Draw(&aDC);
 		//pText->m_bSelected = FALSE;
-		pCell->DrawCell(&aDC);
-		pCell->m_bSelected = FALSE;
+		pCell->DrawCell(&aDC, GetLayout()->GetSrcColor());
+		pCell->SetSelected(FALSE);
 	}
 	pApp->m_selection.Clear();
 	pApp->m_selectionLine = -1;
@@ -9519,11 +9555,13 @@ bool CAdapt_ItView::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
+	// refactored 7Apr09 - only needed GetMaxIndex() call
 	// BEW added 30May08 in support of the source text editing step of the vertical editing process
 	// first compile an array of consecutive note locations which need to be shifted right
 	// and return FALSE if we come to the end of the document without finding a CSourcePhrase
 	// instance which lacks a note (and which could otherwise have accepted a moved Note)
 	//CAdapt_ItView* pView = gpApp->GetView();
+	CAdapt_ItApp* pApp = &wxGetApp();
 	wxArrayInt locationsArr; //CArray<int,int> locationsArr;
 	int locIndex = nFirstNoteSN;
 	bool bHasNote = FALSE;
@@ -9531,7 +9569,8 @@ bool CAdapt_ItView::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhr
 	while (TRUE)
 	{
 		anArrayIndex++;
-		if (locIndex > gpApp->m_maxIndex)
+		//if (locIndex > gpApp->m_maxIndex)
+		if (locIndex > pApp->GetMaxIndex())
 		{
 			// we've passed the end of the document without finding a location
 			// that does not have a note, so we cannot succeed
@@ -9591,11 +9630,13 @@ bool CAdapt_ItView::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhr
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
+	// refactored 7Apr09 - only needed GetMaxIndex() call
 	// pSrcPhrases has to be the m_pSourcePhrases list, or a list of CSourcePhrase
 	// instances where the list index stays in synch with the stored m_nSequNumber
 	// value in each CSourcePhrase instance of the list, for this function to work
 	// right
 	//CAdapt_ItView* pView = gpApp->GetView();
+	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
 	bool bHasNote = IsNoteStoredHere(pSrcPhrases, nLocationSN);
@@ -9610,7 +9651,8 @@ bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 	else
 	{
 		// there is no Note at that location, so go ahead and create it there
-		if (nLocationSN > gpApp->m_maxIndex)
+		//if (nLocationSN > gpApp->m_maxIndex)
+		if (nLocationSN > pApp->GetMaxIndex())
 		{
 			// bounds error
 			wxString errStr = _T("Bounds error for text nLocationSN > pView->m_maxIndex in CreateNoteAtLocation.");
@@ -10278,8 +10320,8 @@ bool CAdapt_ItView::IsMarkerWithSpaceInFilterMarkersString(wxString& mkrWithSpac
 		return TRUE;
 }
 
-void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
-// this version works whether the phrase box's window currently exists at the old
+/* removed 7Apr09
+// RemakePhraseBox() works whether the phrase box's window currently exists at the old
 // location or not; the earlier version required the phrase (usually m_targetPhrase) to
 // be put in the phrase box window using SetWindowText in the caller - which became
 // a problem if we wanted to use RemakePhraseBox when the phrase box had been destroyed
@@ -10289,8 +10331,9 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 // the window in this new version
 // Version 2.0 and onwards we have to test gbIsGlossing to set the colour; the caller
 // supplies the text (either gloss or adaptation)
+void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 {
-	// refactor 16Mar09
+	// refactored 16Mar09 -- but I'm removing it on 7Apr09, it should not be needed again
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = pApp->m_pLayout;
 
@@ -10317,24 +10360,13 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 	if ( phrase.IsEmpty())
 	{
 		//pApp->m_curBoxWidth = pActivePile->m_nMinWidth;
-		pApp->m_curBoxWidth = pActivePile->GetMinWidth();
+		GetLayout()->m_curBoxWidth = pActivePile->GetMinWidth();
 	}
 	else
 	{
 		// do the same calculation as is done in CalcPileWidth, so that the box extent matches
 		// the gap that RecalcLayout will put at the active location
-		pApp->m_curBoxWidth = RecalcPhraseBoxWidth(phrase);
-		/*
-		int phraseWidth;
-		int phraseDummyHeight;
-		dC.GetTextExtent(phrase,&phraseWidth,&phraseDummyHeight);
-		wxString aChar = _T('w');
-		int charWidth;
-		int charDummyHeight;
-		dC.GetTextExtent(aChar,&charWidth,&charDummyHeight);
-		phraseWidth += gnExpandBox*charWidth;
-		pApp->m_curBoxWidth = phraseWidth;
-		*/
+		GetLayout()->m_curBoxWidth = RecalcPhraseBoxWidth(phrase);
 	}
 
 	dC.SetFont(SaveFont); // restore original font, don't need CDC any more
@@ -10364,7 +10396,9 @@ void CAdapt_ItView::RemakePhraseBox(CPile* pActivePile, wxString& phrase)
 	else
 		pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
 }
+*/
 
+/* removed 7Apr09, we'll use RecalcLayout() instead, and later, AdjustForUserEdits()
 void CAdapt_ItView::LayoutStrip(SPList *pSrcPhrases, int nStripIndex, CSourceBundle *pBundle)
 {
 	SPList* pSrcList = pSrcPhrases;
@@ -10495,10 +10529,12 @@ void CAdapt_ItView::LayoutStrip(SPList *pSrcPhrases, int nStripIndex, CSourceBun
 	rectInvalid.SetHeight(rectInvalid.GetHeight() + pApp->m_curLeading); // whm added for wxRect
 	InvalidateRect(rectInvalid); // our own
 }
+*/
 
 void CAdapt_ItView::DoSrcPhraseSelCopy()
 // Modified to handle glossing or adapting
 {
+	// refactored 7Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CCellList* pCellList = &pApp->m_selection; // get a local pointer
@@ -10515,10 +10551,11 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 			pos = pos->GetNext();
 			if (pCell == NULL)
 				return;
-			CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
+			//CSourcePhrase* pSrcPhrase = pCell->m_pPile->m_pSrcPhrase;
+			CSourcePhrase* pSrcPhrase = pCell->GetPile()->GetSrcPhrase();
 			wxASSERT(pSrcPhrase != NULL);
 
-			if (pCell->m_pPile == pApp->m_pActivePile)
+			if (pCell->GetPile() == pApp->m_pActivePile)
 			{
 				if (!pApp->m_targetPhrase.IsEmpty())
 				{
@@ -10627,6 +10664,7 @@ bool CAdapt_ItView::IsItNotInKB(CSourcePhrase* pSrcPhrase)
 	}
 }
 
+/* removed 7Apr09
 void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 // for version 2, the colour will be the nav text colour when glossing is on, and otherwise
 // when adapting it will be the normal target text colour;
@@ -10706,7 +10744,7 @@ void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 	pApp->m_pTargetBox->SetValue(_T(""));
 
 	// recalculate the layout
-	RecalcLayout(pApp->m_pSourcePhrases, 0 /* nFirstStrip unsafe if bundle contracts */,pApp->m_pBundle);
+	RecalcLayout(pApp->m_pSourcePhrases, 0, pApp->m_pBundle);
 
 	// if a phrase jumps back on to the line due to the recalc of the layout, then the
 	// current location for the box will end up to far right, so we must find out where the
@@ -10735,6 +10773,7 @@ void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 
 	Invalidate();
 }
+*/
 
 void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase,
 									int nWordsInPhrase)
@@ -11094,12 +11133,13 @@ void CAdapt_ItView::CalcIndicesForRetreat(int nSequNum)
 		pApp->m_lowerIndex = danger;
 }
 */
-bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
+
 // Return value: TRUE if all was well (whether or not an actual store to KB took place -
 // because certain flags inhibit saves, or an empty targetBox does not get anything saved
 // to a KB if the <no adaptation> button was not pressed), and FALSE if the store could not
 // be done (eg. if the embedded call to StoreText returned FALSE)
 // ammended, July 2003, for auto-capitalization support
+bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -11111,13 +11151,13 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = SetCaseParameters(gpApp->m_pActivePile->m_pSrcPhrase->m_key);
+		bNoError = SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 		if (bNoError && gbSourceIsUpperCase)
 		{
 			bNoError = SetCaseParameters(gpApp->m_targetPhrase,FALSE);
 			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 			{
-				gpApp->m_targetPhrase.SetChar(0,gcharNonSrcUC);
+				pApp->m_targetPhrase.SetChar(0,gcharNonSrcUC);
 			}
 		}
 	}
@@ -11126,12 +11166,12 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 	{
 		if (!pSrcPhrase->m_bHasGlossingKBEntry)
 		{
-			if (!gpApp->m_targetPhrase.IsEmpty())
+			if (!pApp->m_targetPhrase.IsEmpty())
 			{
 				// it has to be saved to the glossing KB if not empty
 				// BEW added next line 27Jan09
-				SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,gpApp->m_targetPhrase);
-				bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,gpApp->m_targetPhrase);
+				SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,pApp->m_targetPhrase);
+				bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,pApp->m_targetPhrase);
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
@@ -11140,23 +11180,23 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 	}
 	else
 	{
-		if (gpApp->m_bSaveToKB && !pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB)
+		if (pApp->m_bSaveToKB && !pSrcPhrase->m_bHasKBEntry && !pSrcPhrase->m_bNotInKB)
 		{
-			if (!gpApp->m_targetPhrase.IsEmpty())
+			if (!pApp->m_targetPhrase.IsEmpty())
 			{
 				// it has to be saved to the KB if not empty
-				MakeLineFourString(pSrcPhrase,gpApp->m_targetPhrase);
-				RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
+				MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
+				RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
 				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09 & 4 lines below
 				// BEW added next line 27Jan09
-				SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,gpApp->m_targetPhrase);
-				bOK = StoreText(pApp->m_pKB,pSrcPhrase,gpApp->m_targetPhrase);
+				SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,pApp->m_targetPhrase);
+				bOK = StoreText(pApp->m_pKB,pSrcPhrase,pApp->m_targetPhrase);
 				//gbInhibitLine4StrCall = FALSE;
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
 		}
-		gpApp->m_bSaveToKB = TRUE; // make sure it's turned on
+		pApp->m_bSaveToKB = TRUE; // make sure it's turned on
 		return bOK;
 	}
 }
@@ -11191,6 +11231,7 @@ CPile* CAdapt_ItView::RetreatBundle(int nSaveSequNum)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateButtonToEnd(wxUpdateUIEvent& event)
 {
+	// refactored 7Apr09
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -11208,7 +11249,8 @@ void CAdapt_ItView::OnUpdateButtonToEnd(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_endIndex < (int)pApp->m_pSourcePhrases->GetCount() - 1 && pApp->m_endIndex > 0)
+	//if (pApp->m_endIndex < (int)pApp->m_pSourcePhrases->GetCount() - 1 && pApp->m_endIndex > 0)
+	if (pApp->m_nActiveSequNum < pApp->GetMaxIndex())
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -11218,9 +11260,10 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 {
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit = NULL; // whm initialized to NULL
-	if (gpApp->m_bFreeTranslationMode)
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bFreeTranslationMode)
 	{
-		pFrame = (CMainFrame*)gpApp->GetMainFrame();
+		pFrame = (CMainFrame*)pApp->GetMainFrame();
 		wxASSERT(pFrame != NULL);
 		wxASSERT(pFrame->m_pComposeBar != NULL); 
 		pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -11230,7 +11273,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		tempStr.Empty();
 		pEdit->SetValue(tempStr);
 	}
-	gnOldSequNum = gpApp->m_nActiveSequNum; // save old location
+	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 	/* BEW removed 31Jan08 because the global's value is not always reliable
 	gLastSrcPhrasePos = 0; // ensure we use the safe but longer algorithm to find new position
 	*/
@@ -11253,15 +11296,14 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	// and causes the legacy scrolling block to be used in ScrollIntoView(), as wanted.
 	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, and make both be same value
 
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	SPList* pList = gpApp->m_pSourcePhrases;
 
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
 
-	wxASSERT(gpApp->m_pActivePile != NULL);
+	wxASSERT(pApp->m_pActivePile != NULL);
 	bool bOK;
-	bOK = StoreBeforeProceeding(gpApp->m_pActivePile->m_pSrcPhrase);
+	bOK = StoreBeforeProceeding(pApp->m_pActivePile->GetSrcPhrase());
 	// BEW changed 06May05 because if m_pSrcPhrase contains m_bHasKBEntry == TRUE, then
 	// StoreBeforeProceeding() returns FALSE without doing any store, and in that case
 	// we don't want to return from OnButtonToEnd immediately because then we have no
@@ -20587,7 +20629,8 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 					else
 						// make it look normal, don't use m_targetStr here
 						gpApp->m_targetPhrase = pSrcPhrase->m_adaption;
-					ReDoPhraseBox(pCell);
+					ReDoPhraseBox(pCell); // calls RecalcLayout()
+					GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 					Invalidate();
 
 					// get the chapter and verse
@@ -20843,6 +20886,7 @@ y:						;
 		}
 	}
 	afList.Clear();
+	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -27172,7 +27216,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 
 	CPile* pPile = GetPile(nActiveSequNum);
 	wxASSERT(pPile != NULL); 
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pPile->m_pSrcPhrase;
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 	wxASSERT(pSrcPhrase != NULL);
 
 	// if it's a retranslation, the whole will be selected, so nCount will not be 1, even if
@@ -27421,6 +27465,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			CCell* pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box
 			gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
 
+// *** TODO *** fix the next bit, we don't want two RecalcLayout() calls
 			// place the phrase box
 			PlacePhraseBox(pCell,2); // selector == 2 means location's KB entry will be removed
 									 // or ref count decremented if >1
@@ -27429,7 +27474,10 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			gpApp->m_pActivePile = GetPile(gpApp->m_nActiveSequNum);
 			pCell = gpApp->m_pActivePile->m_pCell[2]; // we want the 3rd line, for phrase box
 			gpApp->m_targetPhrase = finalStr;
-			ReDoPhraseBox(pCell); // clobbers pointers, because does a RecalcLayout()
+			RemoveSelection();
+			//ReDoPhraseBox(pCell); // clobbers pointers, because does a RecalcLayout()
+			GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases);
+			GetLayout()->m_docEditOperationType = default_op; // sets 0,-1 'select all'
 
 			// get a new active pile pointer, the PlacePhraseBox call did a recalc of the layout
 			gpApp->m_pActivePile = GetPile(gpApp->m_nActiveSequNum);
@@ -27509,6 +27557,8 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			CCell* pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box
 			gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
 
+// *** TODO *** fix the next bit, we don't want two RecalcLayout() calls
+
 			// place the phrase box
 			PlacePhraseBox(pCell,2); // selector == 2 means location's KB entry will be removed
 									 // or ref count decremented if >1
@@ -27517,7 +27567,10 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			gpApp->m_pActivePile = GetPile(gpApp->m_nActiveSequNum);
 			pCell = gpApp->m_pActivePile->m_pCell[2]; // we want the 3rd line, for phrase box
 			gpApp->m_targetPhrase = finalStr;
-			ReDoPhraseBox(pCell); // clobbers pointers, because does a RecalcLayout()
+			RemoveSelection();
+			//ReDoPhraseBox(pCell); // clobbers pointers, because does a RecalcLayout()
+			GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases);
+			GetLayout()->m_docEditOperationType = default_op; // sets 0,-1 'select all'
 
 			// get a new active pile pointer, the PlacePhraseBox call did a recalc of the layout
 			gpApp->m_pActivePile = GetPile(gpApp->m_nActiveSequNum);

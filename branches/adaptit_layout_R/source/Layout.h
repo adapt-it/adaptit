@@ -73,8 +73,9 @@ typedef enum update_span {
 // the Invalidate() call at the end of the function handling each particular
 // sub-operation
 typedef enum doc_edit_op {
-	no_edit_op,
+	no_edit_op, // a "do nothing" case
 	default_op, // assumes a ResizeBox() call is required
+	char_typed_op,
 	cancel_op,
 	target_box_paste_op,
 	relocate_box_op,
@@ -89,6 +90,7 @@ typedef enum doc_edit_op {
 	free_trans_op,
 	end_free_trans_op,
 	retokenize_text_op,
+	consistency_check_op,
 	split_op,
 	join_op,
 	move_op,
@@ -112,7 +114,8 @@ typedef enum doc_edit_op {
 	new_document_op,
 	close_document_op,
 	enter_LTR_layout_op,
-	enter_RTL_layout_op
+	enter_RTL_layout_op,
+	invalid_op_enum_value // this one must always be last
 };
 
 /// The CLayout class manages the layout of the document. It's private members pull
@@ -337,9 +340,8 @@ public:
 	// support of user edit actions
 	bool		AdjustForUserEdits(enum update_span type);
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
-	void		PrepareForLayout(int nActiveSequNum); // BEW added 17Mar09
-	void		PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, 
-											int gnBoxCursorOffset = 0); // BEW added 17Mar09
+	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
+							int gnBoxCursorOffset = 0); // BEW added 7Apr09
  
 	
     // get the range of visible strips in the viscinity of the active location; pass in the sequNum

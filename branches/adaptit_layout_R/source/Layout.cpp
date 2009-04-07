@@ -75,9 +75,42 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
 
+// for support of auto-capitalization
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbAutoCaps;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbSourceIsUpperCase;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbNonSourceIsUpperCase;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbMatchedKB_UCentry;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbNoSourceCaseEquivalents;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbNoTargetCaseEquivalents;
+
+/// This global is defined in Adapt_It.cpp.
+extern bool	gbNoGlossCaseEquivalents;
+
+/// This global is defined in Adapt_It.cpp.
+extern wxChar gcharNonSrcLC;
+
+/// This global is defined in Adapt_It.cpp.
+extern wxChar gcharNonSrcUC;
+
+/// This global is defined in Adapt_It.cpp.
+extern wxChar gcharSrcLC;
+
+/// This global is defined in Adapt_It.cpp.
+extern wxChar gcharSrcUC;
 
 // globals for support of vertical editing
-
 
 /// This global is defined in Adapt_It.cpp.
 extern EditRecord gEditRecord;
@@ -221,6 +254,7 @@ void CLayout::InitializeCLayout()
 	//m_pStrips = NULL;
 	m_stripArray.Clear();
 	m_bDrawAtActiveLocation = TRUE;
+	m_docEditOperationType = invalid_op_enum_value;
 
 	// *** TODO ***   add more basic initializations above here - but only stuff that makes the
 	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
@@ -1962,15 +1996,10 @@ void CLayout::GetVisibleStripsRange(int nSequNum, int& nFirstStrip, int& nLastSt
 	}
 */
 
-
-void CLayout::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enum box_cursor state, int nBoxCursorOffset)
+void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state, int nBoxCursorOffset)
 {
-	// hook up the user's edit action's results to the layout and phrase box, in the most typical
-	// or generic way - this will be appropriate after the majority of user edit actions; place
-	// this function in the relevant cases of the switch in PrepareForLayout()
-
-	// ensure the app's m_pActivePile pointer is set
-	m_pApp->m_pActivePile = m_pView->GetPile(nActiveSequNum);
+	// set the m_nStartChar and m_nEndChar cursor/selection globals prior to drawing the
+	// phrase box
 
 	// get the cursor set
 	switch (state)
@@ -2002,266 +2031,13 @@ void CLayout::PrepareForLayout_Generic(int nActiveSequNum, wxString& phrase, enu
 			break;
 		}
 	}
-
-	// wx Note: we don't destroy the target box, just set its text to null
-	m_pApp->m_pTargetBox->SetValue(_T(""));
-
-    // recalculate the layout (strips only, relaying out the piles)
-    // *** TODO **** when our self-adjusting layout code in Draw()'s call of AdjustForUserEdits()
-	// is complete, this RecalcLayout() call can be commented out, because AdjustForUserEdits()
-	// will do the required pile and strip adjustments at the user's edit location in the layout,
-	// and a complete destroy and recreation of the strips, and redistribution of the pile
-	// instances in doing that, will no longer be required. However, for as long as the following
-	// RecalcLayout() call persists here, what it does is to (1) destroy the existing CStrip
-	// instances in CLayout::m_stripArray; (2) it leaves completely untouched the CPiles in the
-	// list CLayout::m_pileList (so these have to be made correct and up to date beforehand in the
-	// handler function for the user's doc editing operation); (3) it rebuilds, for the *whole*
-	// document the CStrip instances using the data in the CPile instances in m_pileList, making
-	// copies of the CPile pointers in that list to save those pointer copies in the CStrip
-	// instances. This rebuild should be fast, because it just uses pile width values already
-	// stored idn the CPile instances, and needs to calculate no location information for
-	// individual piles or strips. In this design, strips are just a partitioning of the sequence
-	// of pile instances in m_pileList where the partitioning criterion is "the sum of the widths
-	// plus the interpile gaps in the current strip must be less than the strip's width, measured
-	// in pixels"
-	RecalcLayout(m_pApp->m_pSourcePhrases); // bool param (bCreatePilesToo) is FALSE - so it just
-							//reforms strips after destroying the old ones
-	// in the old design, a computation of the TopLeft coordinates of the phrase box location for
-	// the passed in active location would be done here, now that the layout is up to date;
-	// however, the placing and showing of the phrase box is now in CLayout::Draw(), and is done
-	// after the strips, piles and cells are drawn in the client area - so at that time the
-	// relevant coordinates can be obtained from the active pile pointer by calling its
-	// GetTopLeft() function. The function placing the phrasebox is PlacePhraseBoxInLayout().
-
-	// *** TODO *** at present I've not investigated scrolling; this call below may be necessary, or
-	// maybe it can be programmed away by tweakings done within AdjustForUserEdits() - a possibly
-	// complicating fact will be what the wxScrollingWindow of which the scrollbar is an integral
-	// part do, if the scroll range and /or thumb position is changed just prior to drawing --
-	// possibly a new paint message will be posted on the queue and result in a second unwanted draw
-	// (hence flicker) which we'll want to suppress in some way - perhaps to remove the paint event
-	// before it can be handled.
-	
-	// do a scroll if needed
-	m_pApp->GetMainFrame()->canvas->ScrollIntoView(nActiveSequNum);
-}
-
-
-void CLayout::PrepareForLayout(int nActiveSequNum)
-{
-	// hook up the user's edit action's results to the layout and phrase box (call this after layout
-	// manipulations are completed, and before actual drawing commences, within CLayout::Draw())
-	enum doc_edit_op opType = m_docEditOperationType;
-	switch(opType)
-	{
-	case no_edit_op:
-		{
-
-			break;
-		}
-	case cancel_op:
-		{
-
-			break;
-		}
-	case target_box_paste_op:
-		{	
-			PrepareForLayout_Generic(nActiveSequNum, m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
-			break;
-		}
-	case relocate_box_op:
-		{
-
-			break;
-		}
-	case merge_op:
-		{
-
-			break;
-		}
-	case unmerge_op:
-		{
-
-			break;
-		}
-	case retranslate_op:
-		{
-
-			break;
-		}
-	case remove_retranslation_op:
-		{
-
-			break;
-		}
-	case edit_retranslation_op:
-		{
-
-			break;
-		}
-	case insert_placeholder_op:
-		{
-
-			break;
-		}
-	case remove_placeholder_op:
-		{
-
-			break;
-		}
-	case split_op:
-		{
-
-			break;
-		}
-	case join_op:
-		{
-
-			break;
-		}
-	case move_op:
-		{
-
-			break;
-		}
-	case edit_source_text_op:
-		{
-
-			break;
-		}
-	case free_trans_op:
-		{
-
-			break;
-		}
-	case end_free_trans_op:
-		{
-
-			break;
-		}
-	case retokenize_text_op:
-		{
-			PrepareForLayout_Generic(m_pApp->m_nActiveSequNum, m_pApp->m_targetPhrase, cursor_at_text_end);
-			break;
-		}
-	case collect_back_translations_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_cancel_op:
-		{
-
-			break;
-		}
-	case vert_edit_end_now_op:
-		{
-
-			break;
-		}
-	case vert_edit_previous_step_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_op:
-		{
-
-			break;
-		}
-	case exit_preferences_op:
-		{
-
-			break;
-		}
-	case change_punctuation_op:
-		{
-
-			break;
-		}
-	case change_filtered_markers_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_and_filtered_markers_op:
-		{
-
-			break;
-		}
-	case open_document_op:
-		{
-
-			break;
-		}
-	case new_document_op:
-		{
-
-			break;
-		}
-	case close_document_op:
-		{
-
-			break;
-		}
-	case enter_LTR_layout_op:
-		{
-
-			break;
-		}
-	case enter_RTL_layout_op:
-		{
-
-			break;
-		}
-	default: // do the same as default_op	
-	case default_op:
-		{
-
-			break;
-		}
-	}
 }
 
 void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 {
 	// Call this function in CLayout::Draw() after strips are drawn
-	bool bSetModify = FALSE; // governs what is done with the wxEdit control's dirty flag
-	bool bSetTextColor = FALSE; // governs whether or not we reset the box's text colour
+	bool bSetModify = FALSE; // initialize, governs what is done with the wxEdit control's dirty flag
+	bool bSetTextColor = FALSE; // initialize, governs whether or not we reset the box's text colour
 	
 	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there the phrase box is
 	// to be located
@@ -2285,15 +2061,16 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
     // so always use that for the width to pass in to the ResizeBox() call below.
 
 	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
-	// range specification have already been appropriately set by the PrepareForLayout() function.
+	// range specification get set by the SetupCursorGlobals() calls in the switch below
 
 	// handle any operation specific parameter settings
 	enum doc_edit_op opType = m_docEditOperationType;
 	switch(opType)
 	{
-	case no_edit_op:
+	case default_op:
 		{
-
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (0,-1)
+			bSetModify = TRUE;
 			break;
 		}
 	case cancel_op:
@@ -2301,8 +2078,16 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 
 			break;
 		}
+	case char_typed_op:
+		{
+			// don't interfere with the m_nStartChar and m_nEndChar values, just set
+			// modify flag
+			bSetModify = TRUE;
+			break;
+		}
 	case target_box_paste_op:
 		{
+			SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
 			bSetModify = FALSE;
 			break;
 		}
@@ -2343,8 +2128,13 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 			break;
 		}
 	case remove_placeholder_op:
+		{ 
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (0,-1)
+			break;
+		}
+	case consistency_check_op:
 		{
-
+			m_pView->RemoveSelection();
 			break;
 		}
 	case split_op:
@@ -2379,6 +2169,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		}
 	case retokenize_text_op:
 		{
+			SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_text_end);
 			bSetModify = FALSE;
 			break;
 		}
@@ -2488,10 +2279,36 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 			break;
 		}
 	default: // do the same as default_op	
-	case default_op:
+	case no_edit_op:
 		{
-
+			// do nothing additional
 			break;
+		}
+	}
+	// reset m_docEditOperationType to an invalid value, so that if not explicitly set by
+	// the user's editing operation, or programmatic operation, the default: case will
+	// fall through to the no_edit_op case, which does nothing
+	m_docEditOperationType = invalid_op_enum_value; // an invalid value
+
+	// do any required auto capitalization...
+	// if auto capitalization is on, determine the source text's case properties
+	bool bNoError = TRUE;
+	if (gbAutoCaps)
+	{
+		bNoError = m_pView->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
+	}
+	// now set the m_targetPhrase contents accordingly
+	if (gbAutoCaps)
+	{
+		if (bNoError && gbSourceIsUpperCase)
+		{
+			// in the next call, FALSE is the value for param bool bIsSrcText
+			bNoError = m_pView->SetCaseParameters(m_pApp->m_targetPhrase,FALSE);
+			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+			{
+				// change to upper case initial letter
+				m_pApp->m_targetPhrase.SetChar(0,gcharNonSrcUC);
+			}
 		}
 	}
 

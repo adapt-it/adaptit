@@ -264,7 +264,7 @@ public:
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		JumpBackwardToNote_CoreCode(int nJumpOffSequNum);
 	void		JumpForwardToNote_CoreCode(int nJumpOffSequNum);
-	void		LayoutStrip(SPList* pSrcPhrases, int nStripIndex, CSourceBundle* pBundle);
+	//void		LayoutStrip(SPList* pSrcPhrases, int nStripIndex, CSourceBundle* pBundle); //removed 7Apr09
 	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase);
 	void		MakeAllPilesNonCurrent(CSourceBundle* pBundle); // moved here from protected
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray); // BEW added 2Jul05
@@ -303,11 +303,11 @@ public:
 											bool bForRetranslation = FALSE);
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
-	void		ReDoPhraseBox(const CCell* pCell);
+	//void		ReDoPhraseBox(const CCell* pCell); //removed 7Apr09
 	void		RedrawEverything(int nActiveSequNum);
 	void		RemoveContentWrappers(CSourcePhrase*& pSrcPhrase, wxString mkr, int offset); // BEW 12 Sept05
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
-	void		RemakePhraseBox(CPile* pActivePile, wxString& phrase);
+	//void		RemakePhraseBox(CPile* pActivePile, wxString& phrase); // removed 7Apr09
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
 	void		RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
 	void		RemoveSelection();

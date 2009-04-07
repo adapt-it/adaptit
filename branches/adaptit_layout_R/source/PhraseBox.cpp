@@ -2037,6 +2037,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 					// VerticalEdit_CheckForEndRequiringTransition() in the view class returns TRUE,
 					// which means that a PostMessage(() has been done to initiate a step transition
 					gbTunnellingOut = FALSE; // caller has no need of it, so clear to default value
+					pLayout->m_docEditOperationType = no_edit_op;
 					return;
 				}
 
@@ -2058,6 +2059,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 					if (bCommandPosted)
 					{
 						// don't proceed further because the current vertical edit step has ended
+						pLayout->m_docEditOperationType = no_edit_op;
 						return;
 					}
 				}
@@ -2093,6 +2095,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				translation.Empty(); // clear the static string storage for the translation
 				// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 				gSaveTargetPhrase = pApp->m_targetPhrase;
+				pLayout->m_docEditOperationType = no_edit_op;
 				return; // must be at EOF;
 			} // end of block for !bSuccessful
 
@@ -2287,6 +2290,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			} // end of test for more than or equal to 4 strips showing
 
 			// refresh the view
+			pLayout->m_docEditOperationType = relocate_box_op;
 			pView->Invalidate(); // BEW added 25Mar09, see comment about Refresh 10 lines above
 
 		} // end of block for test for m_bSingleStep == TRUE
@@ -2310,6 +2314,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// phrase box has not yet got that far (because gnEndInsertionsSequNum
 			// was set one too large)
 			gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+			pLayout->m_docEditOperationType = relocate_box_op;
 		}
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
 		// phrase
@@ -2342,6 +2347,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// handlers typically do a store of the phrase box contents to the kb if appropriate,
 				// we'll rely on it here and not do a store
 				//gbTunnellingOut = TRUE;
+				pLayout->m_docEditOperationType = no_edit_op;
 				return;
 			}
 		}
@@ -2350,6 +2356,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			::wxBell();
 			wxMessageBox(_("Sorry, transliteration mode is not supported in review mode. Turn review mode off."),
 						_T(""), wxICON_INFORMATION);
+			pLayout->m_docEditOperationType = no_edit_op;
 			return;
 		}
 
@@ -2409,6 +2416,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 					//pView->LayoutStrip(pApp->m_pSourcePhrases, nOldStripIndex, pApp->m_pBundle);
 					pApp->m_pActivePile = NULL; // can use this as a flag for at-EOF condition too
 
+					pLayout->m_docEditOperationType = no_edit_op;
 					pView->Invalidate();
 				}
 			}
@@ -2465,6 +2473,8 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// for the Drafting mode block above. Why the UpdateWindow() call won't do it is a mystery.
 			//pView->m_targetBox.UpdateWindow();
 			//pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase); // BEW 25Mara09 -- needed?? assume not
+			
+			pLayout->m_docEditOperationType = relocate_box_op;
 		} // end of block for bSuccessful == TRUE
 
 		//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -3000,6 +3010,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			}
 			pView->MergeWords(); // simply calls OnButtonMerge
 			m_bMergeWasDone = TRUE;
+			pLayout->m_docEditOperationType = merge_op;
 			bSuppressDefaultAdaptation = FALSE;
 
 			// we can assume what the user typed, provided it is a letter, replaces what was 
@@ -3053,6 +3064,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		wxClientDC dC(pLayout->m_pCanvas);
 		pView->canvas->DoPrepareDC(dC); // adjust origin
 		pApp->GetMainFrame()->PrepareDC(dC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
+		pLayout->m_docEditOperationType = no_edit_op;
 		pView->Invalidate();
 	}
 
@@ -3166,6 +3178,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 							gLastSrcPhrasePos = posTemp;
 					}
 					*/
+					pLayout->m_docEditOperationType = relocate_box_op;
 					gbEnterTyped = FALSE;
 				}
 
@@ -3215,7 +3228,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				if (!bSuccessful)
 				{
 					// we have come to the start of the document, so do nothing
-					;
+					pLayout->m_docEditOperationType = no_edit_op;
 				}
 				else
 				{
@@ -3246,6 +3259,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 							gLastSrcPhrasePos = posTemp;
 					}
 					*/
+					pLayout->m_docEditOperationType = relocate_box_op;
 				}
 
 				// scroll, if necessary
@@ -3390,6 +3404,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	case WXK_BACK: //8:		// BackSpace key
 		{
 			bool bWasMadeDirty = TRUE;
+			pLayout->m_docEditOperationType = no_edit_op;
 			// whm Note: pApp->m_targetPhrase is updated in OnPhraseBoxChanged, so the wx version uses
 			// the global below, rather than a value determined in OnChar(), which would not be current.
 			FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // selector = 2 for contracting
@@ -3437,6 +3452,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 				// we are about to try to move back into the gray text area before the edit span, disallow
 				::wxBell();
 				pApp->m_pTargetBox->SetFocus();
+				pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE;
 			}
 		}
@@ -3449,6 +3465,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 				// harm to play safe)
 				::wxBell();
 				pApp->m_pTargetBox->SetFocus();
+				pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE;
 			}
 		}
@@ -3458,6 +3475,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 		// IDS_CANNOT_GO_BACK
 		wxMessageBox(_("Sorry, you are already at the start of the file, so it is not possible to move back any further."), _T(""), wxICON_INFORMATION);
 		pApp->m_pTargetBox->SetFocus();
+		pLayout->m_docEditOperationType = no_edit_op;
 		return FALSE;
 	}
 	bool bOK;
@@ -3472,6 +3490,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 			// IDS_NO_ACCESS_TO_RETRANS
 			wxMessageBox(_("Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""), wxICON_INFORMATION);
 			pApp->m_pTargetBox->SetFocus();
+			pLayout->m_docEditOperationType = no_edit_op;
 			return FALSE;
 		}
 	}
@@ -3523,6 +3542,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 	{
 		// here, MoveToNextPile() calls DoStore_NormalOrTransliterateModes(), but for MoveToPrevPile()
 		// we will keep it simple and not try to get text for the phrase box
+		pLayout->m_docEditOperationType = no_edit_op;
 		return FALSE; // can't move if the adaptation or gloss text is not yet completed
 	}
 
@@ -3554,9 +3574,11 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 			{
 				// don't proceed further because the current vertical edit step has ended
 				gbTunnellingOut = TRUE; // so caller can use it
+				pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE;
 			}
 		}
+		pLayout->m_docEditOperationType = no_edit_op;
 		return FALSE; // we are at the start of the file too, so can't go further back
 	}
 	else
@@ -3578,6 +3600,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 			{
 				// don't proceed further because the current vertical edit step has ended
 				gbTunnellingOut = TRUE; // so caller can use it
+				pLayout->m_docEditOperationType = no_edit_op;
 				return FALSE; // try returning FALSE
 			}
 		}
@@ -3706,6 +3729,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 
 		// make sure the new active pile's pointer is set
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+		pLayout->m_docEditOperationType = relocate_box_op;
 		
 		// recreate the phraseBox using the stored information
 		pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
@@ -3774,6 +3798,7 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 			// IDS_NO_ACCESS_TO_RETRANS
 			wxMessageBox(_("Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."), _T(""), wxICON_INFORMATION);
 			pApp->m_pTargetBox->SetFocus();
+			GetLayout()->m_docEditOperationType = no_edit_op;
 			return FALSE;
 		}
 	}
@@ -3821,6 +3846,7 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 		// restore default button image, and m_bCopySourcePunctuation to TRUE
 		wxCommandEvent event;
 		pApp->GetView()->OnButtonEnablePunctCopy(event);
+		GetLayout()->m_docEditOperationType = no_edit_op;
 		return FALSE; // can't move if the storage failed
 	}
 
@@ -3852,6 +3878,7 @@ b:	CPile* pNewPile = pView->GetNextPile(pCurPile); // does not update the view's
 			{
 				// don't proceed further because the current vertical edit step has ended
 				gbTunnellingOut = TRUE; // so caller can use it
+				GetLayout()->m_docEditOperationType = no_edit_op;
 				return FALSE;
 			}
 		}
@@ -3864,6 +3891,7 @@ b:	CPile* pNewPile = pView->GetNextPile(pCurPile); // does not update the view's
 		// ensure the view knows the pile pointer is no longer valid
 		pApp->m_pActivePile = NULL;
 		pApp->m_nActiveSequNum = -1;
+		GetLayout()->m_docEditOperationType = no_edit_op;
 		return FALSE; // we are at the end of the file
 	}
 	else // we have a pointer to the next pile
@@ -3885,6 +3913,7 @@ b:	CPile* pNewPile = pView->GetNextPile(pCurPile); // does not update the view's
 			{
 				// don't proceed further because the current vertical edit step has ended
 				gbTunnellingOut = TRUE; // so caller can use it
+				GetLayout()->m_docEditOperationType = no_edit_op;
 				return FALSE; // try returning FALSE
 			}
 		}
@@ -4049,6 +4078,7 @@ b:	CPile* pNewPile = pView->GetNextPile(pCurPile); // does not update the view's
 
 		// recreate the phraseBox using the stored information
 		pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+		GetLayout()->m_docEditOperationType = relocate_box_op;
 
 		/* next two removed 30Mar09, not needed, CLayout::Draw() handles display of phrase box
 		pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
@@ -4105,6 +4135,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			if (gbIsGlossing || !(pApp->m_selection.GetCount() > 1))
 				return;
 			pView->MergeWords();
+			GetLayout()->m_docEditOperationType = merge_op;
 
 			// select the lot
 			SetSelection(-1,-1);// -1,-1 selects all
@@ -4316,6 +4347,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				return;
 			}
 			pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a 
+			GetLayout()->m_docEditOperationType = unmerge_op;
 				// lookup, so don't remake the phrase box with the global (CString) gSaveTargetPhrase,
 				// otherwise it will override a successful lookkup and make the ALT+Delete give
 				// a different result than the Unmerge button on the toolbar. So we in effect
@@ -4388,6 +4420,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			// VerticalEdit_CheckForEndRequiringTransition() in the view class returns TRUE,
 			// which means that a PostMessage(() has been done to initiate a step transition
 			gbTunnellingOut = FALSE; // caller has no need of it, so clear to default value
+			pLayout->m_docEditOperationType = no_edit_op;
 			return FALSE; // caller is OnIdle(), OnePass is not used elsewhere
 		}
 
@@ -4435,11 +4468,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			//
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // bRecreatePileListAlso is default FALSE
 			pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
+			pLayout->m_docEditOperationType = no_edit_op;
 			//pView->Invalidate();
 		}
 		else // not successful, but we have a non-null active pile defined, and sequence number >= 0
 		{
 			pApp->m_pTargetBox->SetFocus();
+			pLayout->m_docEditOperationType = no_edit_op; // is this correct for here?
 		}
 		translation.Empty(); // clear the static string storage for the translation (or gloss)
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
@@ -4541,6 +4576,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		return FALSE; // must return, or we'll hang or crash
 	}
 	*/ // end commented out section
+	pLayout->m_docEditOperationType = relocate_box_op;
 	gbEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
 	return TRUE; // all was okay
