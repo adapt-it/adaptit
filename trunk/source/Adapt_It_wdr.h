@@ -643,6 +643,8 @@ const int IDC_EDIT_2SRC9 = 484;
 const int IDC_EDIT_2TGT9 = 485;
 wxSizer *DoublePunctTabPageFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
 
+wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
+
 // Declare menubar functions
 
 const int ID_FILE_MENU = 486;
@@ -696,48 +698,51 @@ const int ID_ADVANCED_GLOSSING_USES_NAV_FONT = 533;
 const int ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES = 534;
 const int ID_ADVANCED_DELAY = 535;
 const int ID_ADVANCED_BOOKMODE = 536;
-const int ID_ADVANCED_FREE_TRANSLATION_MODE = 537;
-const int ID_ADVANCED_TARGET_TEXT_IS_DEFAULT = 538;
-const int ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT = 539;
-const int ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS = 540;
-const int ID_ADVANCED_COLLECT_BACKTRANSLATIONS = 541;
-const int ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS = 542;
-const int ID_ADVANCED_USETRANSLITERATIONMODE = 543;
-const int ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES = 544;
-const int ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES = 545;
-const int ID_LAYOUT_MENU = 546;
-const int ID_ALIGNMENT = 547;
-const int ID_HELP_MENU = 548;
-const int ID_ONLINE_HELP = 549;
-const int ID_USER_FORUM = 550;
-const int ID_HELP_USE_TOOLTIPS = 551;
+const int ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION = 537;
+const int ID_ADVANCED_FREE_TRANSLATION_MODE = 538;
+const int ID_ADVANCED_TARGET_TEXT_IS_DEFAULT = 539;
+const int ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT = 540;
+const int ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS = 541;
+const int ID_ADVANCED_COLLECT_BACKTRANSLATIONS = 542;
+const int ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS = 543;
+const int ID_ADVANCED_USETRANSLITERATIONMODE = 544;
+const int ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES = 545;
+const int ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES = 546;
+const int ID_LAYOUT_MENU = 547;
+const int ID_ALIGNMENT = 548;
+const int ID_HELP_MENU = 549;
+const int ID_ONLINE_HELP = 550;
+const int ID_USER_FORUM = 551;
+const int ID_HELP_USE_TOOLTIPS = 552;
 wxMenuBar *AIMenuBarFunc();
 
 // Declare toolbar functions
 
-const int ID_BUTTON_CREATE_NOTE = 552;
-const int ID_BUTTON_PREV_NOTE = 553;
-const int ID_BUTTON_NEXT_NOTE = 554;
-const int ID_BUTTON_DELETE_ALL_NOTES = 555;
-const int ID_BUTTON_RESPECTING_BDRY = 556;
-const int ID_BUTTON_SHOWING_PUNCT = 557;
-const int ID_BUTTON_TO_END = 558;
-const int ID_BUTTON_TO_START = 559;
-const int ID_BUTTON_STEP_DOWN = 560;
-const int ID_BUTTON_STEP_UP = 561;
-const int ID_BUTTON_BACK = 562;
-const int ID_BUTTON_MERGE = 563;
-const int ID_BUTTON_RESTORE = 564;
-const int ID_BUTTON_RETRANSLATION = 565;
-const int ID_BUTTON_EDIT_RETRANSLATION = 566;
-const int ID_REMOVE_RETRANSLATION = 567;
-const int ID_BUTTON_NULL_SRC = 568;
-const int ID_BUTTON_REMOVE_NULL_SRCPHRASE = 569;
-const int ID_BUTTON_CHOOSE_TRANSLATION = 570;
-const int ID_SHOWING_ALL = 571;
-const int ID_BUTTON_EARLIER_TRANSLATION = 572;
-const int ID_BUTTON_NO_PUNCT_COPY = 573;
+const int ID_BUTTON_CREATE_NOTE = 553;
+const int ID_BUTTON_PREV_NOTE = 554;
+const int ID_BUTTON_NEXT_NOTE = 555;
+const int ID_BUTTON_DELETE_ALL_NOTES = 556;
+const int ID_BUTTON_RESPECTING_BDRY = 557;
+const int ID_BUTTON_SHOWING_PUNCT = 558;
+const int ID_BUTTON_TO_END = 559;
+const int ID_BUTTON_TO_START = 560;
+const int ID_BUTTON_STEP_DOWN = 561;
+const int ID_BUTTON_STEP_UP = 562;
+const int ID_BUTTON_BACK = 563;
+const int ID_BUTTON_MERGE = 564;
+const int ID_BUTTON_RESTORE = 565;
+const int ID_BUTTON_RETRANSLATION = 566;
+const int ID_BUTTON_EDIT_RETRANSLATION = 567;
+const int ID_REMOVE_RETRANSLATION = 568;
+const int ID_BUTTON_NULL_SRC = 569;
+const int ID_BUTTON_REMOVE_NULL_SRCPHRASE = 570;
+const int ID_BUTTON_CHOOSE_TRANSLATION = 571;
+const int ID_SHOWING_ALL = 572;
+const int ID_BUTTON_EARLIER_TRANSLATION = 573;
+const int ID_BUTTON_NO_PUNCT_COPY = 574;
 void AIToolBarFunc( wxToolBar *parent );
+
+void AIToolBar32x30Func( wxToolBar *parent );
 
 // Declare bitmap functions
 
@@ -745,13 +750,17 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index );
 
 wxBitmap AIMainFrameIcons( size_t index );
 
-const int ID_BUTTON_IGNORING_BDRY = 574;
-const int ID_BUTTON_HIDING_PUNCT = 575;
-const int ID_SHOWING_TGT = 576;
-const int ID_BUTTON_ENABLE_PUNCT_COPY = 577;
+const int ID_BUTTON_IGNORING_BDRY = 575;
+const int ID_BUTTON_HIDING_PUNCT = 576;
+const int ID_SHOWING_TGT = 577;
+const int ID_BUTTON_ENABLE_PUNCT_COPY = 578;
 wxBitmap AIToolBarBitmapsToggledFunc( size_t index );
 
 wxBitmap WhichFilesBitmapsFunc( size_t index );
+
+wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index );
+
+wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index );
 
 #endif
 

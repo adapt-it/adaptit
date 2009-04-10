@@ -1124,6 +1124,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
 //#endif
 
+	m_bUsingHighResDPIScreen = FALSE;
 
 	// these dummy ID values are placeholders for unused entries in the accelerator below 
 	// that are not implemented in the wx version
@@ -1304,7 +1305,32 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxToolBar* toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
 	wxASSERT(toolBar != NULL);
 	m_pToolBar = toolBar;
-	AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+
+	// Determine the screen dpi to see if we are running on a 200dpi OLPC XO type screen.
+	// If so, we use the alternate AIToolBar32x30Func which has double sized toolbar bitmaps for better
+	// readability on the 200dpi screens.
+	wxSize displaySizeInPixels;
+	displaySizeInPixels = wxGetDisplaySize();
+	wxSize displaySizeInMM;
+	displaySizeInMM = wxGetDisplaySizeMM();
+	wxSize displaySizeInInches;
+	displaySizeInInches.x = displaySizeInMM.x / 25.4;
+	displaySizeInInches.y = displaySizeInMM.y / 25.4;
+	float screenDPI;
+	screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
+		/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
+
+	// uncomment below after modifying the toggled 32x30 bitmaps elsewhere
+	if (screenDPI > 150.0)
+	{
+		m_bUsingHighResDPIScreen = TRUE;
+		toolBar->SetToolBitmapSize(wxSize(32,30));
+		AIToolBar32x30Func( toolBar ); //
+	}
+	else
+	{
+		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+	}
 	SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
 	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
@@ -1342,7 +1368,17 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// controlbar), and the row of controls laid out in wxHORIZONTAL 
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
-	ControlBarFunc( controlBar, TRUE, TRUE );
+	
+	if (m_bUsingHighResDPIScreen)
+	{
+		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
+		// better fit in main frame
+		ControlBar2LineFunc( controlBar, TRUE, TRUE );
+	}
+	else
+	{
+		ControlBarFunc( controlBar, TRUE, TRUE );
+	}
 
 	// Note: We are creating a controlBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the controlBar's

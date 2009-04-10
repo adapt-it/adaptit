@@ -27555,11 +27555,22 @@ void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXU
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
-				AIToolBarBitmapsToggledFunc( 0 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Stop Selection At Boundaries"),
-				_("Respect boundaries when selecting"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 0 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Stop Selection At Boundaries"),
+					_("Respect boundaries when selecting"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
+					AIToolBarBitmapsToggledFunc( 0 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Stop Selection At Boundaries"),
+					_("Respect boundaries when selecting"));
+			}
 			// whm Note: Now, the ignoring bdry button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Respect Boundaries.
 			// must call Realize() after adding a new button
@@ -27618,11 +27629,22 @@ void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXU
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 9 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Ignore Boundaries"),
-				_("Ignore boundaries when making selections"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 9 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Ignore Boundaries"),
+					_("Ignore boundaries when making selections"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 9 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Ignore Boundaries"),
+					_("Ignore boundaries when making selections"));
+			}
 			// whm Note: Now, the respecting bdry button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Ignore Boundaries.
 			// must call Realize() after adding a new button
@@ -27727,11 +27749,22 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
-				AIToolBarBitmapsToggledFunc( 1 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Show Punctuation"),
-				_("Show text with punctuation"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 1 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Punctuation"),
+					_("Show text with punctuation"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
+					AIToolBarBitmapsToggledFunc( 1 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Punctuation"),
+					_("Show text with punctuation"));
+			}
 			// whm Note: Now, the hiding punct button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Show Punctuation.
 			// must call Realize() after adding a new button
@@ -27845,11 +27878,22 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event)) // 
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 27 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("No Punctuation Copy"),
-				_("Suppress the copying of source text punctuation temporarily"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 27 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("No Punctuation Copy"),
+					_("Suppress the copying of source text punctuation temporarily"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 27 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("No Punctuation Copy"),
+					_("Suppress the copying of source text punctuation temporarily"));
+			}
 			// must call Realize() after adding a new button
 			pToolBar->Realize();
 		}
@@ -27938,11 +27982,22 @@ void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
-				AIToolBarBitmapsToggledFunc( 3 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Enable Punctuation Copy"),
-				_("Re-enable automatic copying of source text punctuation"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 3 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Enable Punctuation Copy"),
+					_("Re-enable automatic copying of source text punctuation"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsToggledFunc( 3 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Enable Punctuation Copy"),
+					_("Re-enable automatic copying of source text punctuation"));
+			}
 			// must call Realize() after adding a new button
 			pToolBar->Realize();
 		}
@@ -28043,11 +28098,22 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 10 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Hide Punctuation"),
-				_("Don't show punctuation with the text"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 10 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Hide Punctuation"),
+					_("Don't show punctuation with the text"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 10 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Hide Punctuation"),
+					_("Don't show punctuation with the text"));
+			}
 			// whm Note: Now, the showing punct button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Hide Punctuation.
 			// must call Realize() after adding a new button
@@ -28169,11 +28235,22 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
-				AIToolBarBitmapsToggledFunc( 2 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Show normal view"),
-				_("Show Source And Target Text"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 2 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show normal view"),
+					_("Show Source And Target Text"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
+					AIToolBarBitmapsToggledFunc( 2 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show normal view"),
+					_("Show Source And Target Text"));
+			}
 			// whm Note: Now, the showing tgt only button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Show Source and
 			// Target Text.
@@ -28277,11 +28354,22 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 24 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Show Target Text Only"),
-				_("Show target text only"));
+			if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Target Text Only"),
+					_("Show target text only"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 24 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Target Text Only"),
+					_("Show target text only"));
+			}
 			// whm Note: Now, the showing all button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Show Target Text
 			// Only.
