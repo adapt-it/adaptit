@@ -14782,6 +14782,9 @@ void CAdapt_ItDoc::OnUpdateAdvancedReceiveSynchronizedScrollingMessages(wxUpdate
 	}
 	// the feature can be enabled only if we are in a project
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+#ifndef __WXMSW__
+	event.Enable(FALSE); // sync scrolling not yet implemented on Linux and the Mac
+#endif
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -14829,6 +14832,9 @@ void CAdapt_ItDoc::OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIE
 {
 	// the feature can be enabled only if we are in a project
 	event.Enable(gpApp->m_bKBReady && gpApp->m_bGlossingKBReady);
+#ifndef __WXMSW__
+	event.Enable(FALSE); // sync scrolling not yet implemented on Linux and the Mac
+#endif
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
