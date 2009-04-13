@@ -40,10 +40,10 @@
 
 #define VERSION_MAJOR_PART 4
 #define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 2
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases
-#define VERSION_DATE_DAY 24
-#define VERSION_DATE_MONTH 3
+#define VERSION_BUILD_PART 3
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases
+#define VERSION_DATE_DAY 11
+#define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2009
 
 //#define _UNICODE 
@@ -1395,6 +1395,8 @@ public:
 	int m_nTooltipDelay;	// amount in milliseconds of time tooltips display before disappearing 
 							// if m_bUseToolTips is TRUE the default time is 20000 (20 seconds)
 
+	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
+
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
 	int				m_nMaxToDisplay; // max # of words/phrases to display at one time
@@ -1988,6 +1990,8 @@ public:
 	
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
+	void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
+	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 	
 	// According to the wxWidgets developers, the "Print Setup..." menu selection is obsolete since
 	// Windows 95. Users are expecte to do any necessary print setup from the main print dialog.

@@ -27555,7 +27555,7 @@ void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXU
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
 					AIToolBarBitmapsToggled32x30Func( 0 ), wxNullBitmap,
@@ -27629,7 +27629,7 @@ void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXU
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
 					AIToolBarBitmapsUnToggled32x30Func( 9 ), wxNullBitmap,
@@ -27749,7 +27749,7 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
 					AIToolBarBitmapsToggled32x30Func( 1 ), wxNullBitmap,
@@ -27878,7 +27878,7 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event)) // 
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (gpApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
 					AIToolBarBitmapsUnToggled32x30Func( 27 ), wxNullBitmap,
@@ -27982,7 +27982,7 @@ void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (gpApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
 					AIToolBarBitmapsToggled32x30Func( 3 ), wxNullBitmap,
@@ -28098,7 +28098,7 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
 					AIToolBarBitmapsUnToggled32x30Func( 10 ), wxNullBitmap,
@@ -28235,7 +28235,7 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
 					AIToolBarBitmapsToggled32x30Func( 2 ), wxNullBitmap,
@@ -28354,7 +28354,7 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			if (pFrame->m_bUsingHighResDPIScreen)
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
 			{
 				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
 					AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap,
