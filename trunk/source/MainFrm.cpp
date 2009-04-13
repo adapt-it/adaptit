@@ -1326,16 +1326,16 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 		m_bUsingHighResDPIScreen = TRUE;
 		toolBar->SetToolBitmapSize(wxSize(32,30));
 		AIToolBar32x30Func( toolBar );
-		wxString msg;
-		msg = msg.Format(_T("High Resolution Screen detected at %4.1f DPI - using alternate Toolbar and ControlBar."),screenDPI);
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		//wxString msg;
+		//msg = msg.Format(_T("High Resolution Screen detected at %4.1f DPI - using alternate Toolbar and ControlBar."),screenDPI);
+		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 	}
 	else
 	{
 		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
-		wxString msg;
-		msg = msg.Format(_T("Screen Resolution detected at %4.1f DPI."),screenDPI);
-		wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+		//wxString msg;
+		//msg = msg.Format(_T("Screen Resolution detected at %4.1f DPI."),screenDPI);
+		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
 	}
 	SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
