@@ -6887,7 +6887,7 @@ wxMenuBar *AIMenuBarFunc()
 
 void AIToolBarFunc( wxToolBar *parent )
 {
-    parent->SetMargins( 1, 1 );
+    parent->SetMargins( 0, 0 );
     
     parent->AddTool( wxID_NEW, wxT(""), AIToolBarBitmapsUnToggledFunc( 0 ), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document") );
     parent->EnableTool( wxID_NEW, FALSE );
@@ -6947,20 +6947,13 @@ void AIToolBarFunc( wxToolBar *parent )
 
 void AIToolBar32x30Func( wxToolBar *parent )
 {
-    parent->SetMargins( 1, 1 );
+    parent->SetMargins( 0, 0 );
     
     parent->AddTool( wxID_NEW, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 0 ), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document") );
     parent->EnableTool( wxID_NEW, FALSE );
     parent->AddTool( wxID_OPEN, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 1 ), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document") );
     parent->EnableTool( wxID_OPEN, FALSE );
     parent->AddTool( wxID_SAVE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 2 ), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document") );
-    parent->AddSeparator();
-    parent->AddTool( ID_EDIT_CUT, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 3 ), wxNullBitmap, wxITEM_NORMAL, _("Cut"), _("Cut the selection and put it on the Clipboard") );
-    parent->AddTool( ID_EDIT_COPY, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 4 ), wxNullBitmap, wxITEM_NORMAL, _("Copy"), _("Copy the selection and put it on the Clipboard") );
-    parent->AddTool( ID_EDIT_PASTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 5 ), wxNullBitmap, wxITEM_NORMAL, _("Paste"), _("Insert Clipboard contents") );
-    parent->EnableTool( ID_EDIT_PASTE, FALSE );
-    parent->AddSeparator();
-    parent->AddTool( wxID_PRINT, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 6 ), wxNullBitmap, wxITEM_NORMAL, _("Print"), _("Print the active document") );
     parent->AddSeparator();
     parent->AddTool( ID_BUTTON_CREATE_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 28 ), wxNullBitmap, wxITEM_NORMAL, _("Open a Note dialog"), _("Create a note dialog and open it for typing") );
     parent->AddTool( ID_BUTTON_PREV_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 29 ), wxNullBitmap, wxITEM_NORMAL, _("Jump to the previous Note"), _("Go back and open the previous note") );
@@ -6999,7 +6992,6 @@ void AIToolBar32x30Func( wxToolBar *parent )
     parent->AddTool( ID_SHOWING_ALL, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap, wxITEM_NORMAL, _("Show Target Text Only"), _("Show target text only") );
     parent->AddTool( ID_BUTTON_EARLIER_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 25 ), wxNullBitmap, wxITEM_NORMAL, _("View Translation or Glosses Elsewhere in the Document"), _("View  translation or glosses elsewhere in the document; locate them by chapter and verse") );
     parent->AddTool( ID_BUTTON_NO_PUNCT_COPY, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 27 ), wxNullBitmap, wxITEM_NORMAL, _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily") );
-    parent->AddTool( wxID_HELP, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 26 ), wxNullBitmap, wxITEM_NORMAL, _("Display Help Topics"), _("Display Adapt It program help topics") );
     parent->AddSeparator();
     
     parent->Realize();
