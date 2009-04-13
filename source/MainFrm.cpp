@@ -1309,6 +1309,15 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// Determine the screen dpi to see if we are running on a 200dpi OLPC XO type screen.
 	// If so, we use the alternate AIToolBar32x30Func which has double sized toolbar bitmaps for better
 	// readability on the 200dpi screens.
+	// whm Note 14Apr09: The XO machine running under Intrepid actually reports 100.0 DPI!
+	// Therefore this test won't distinguish an XO from any other "normal" screen computer,
+	// so we try using wxPlatformInfo::GetArchName()
+	wxString archName,OSSystemID,hostName;
+	wxPlatformInfo platInfo;
+	archName = platInfo.GetArchName(); // returns "32 bit" on Windows
+	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
+	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
+
 	wxSize displaySizeInPixels;
 	displaySizeInPixels = wxGetDisplaySize();
 	wxSize displaySizeInMM;
@@ -1321,7 +1330,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 		/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
 
 	// uncomment below after modifying the toggled 32x30 bitmaps elsewhere
-	if (screenDPI > 150.0)
+	if (gpApp->m_bExecutingOnXO) //if (screenDPI > 150.0)
 	{
 		m_bUsingHighResDPIScreen = TRUE;
 		toolBar->SetToolBitmapSize(wxSize(32,30));
@@ -1375,7 +1384,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
 	
-	if (m_bUsingHighResDPIScreen)
+	if (gpApp->m_bExecutingOnXO) //if (m_bUsingHighResDPIScreen)
 	{
 		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
 		// better fit in main frame

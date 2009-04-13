@@ -84,6 +84,7 @@
 #include <wx/display.h> // for wxDisplay
 
 #include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
+#include <wx/filepicker.h> // for wxDirPickerCtrl
 
 // Other includes
 #include "Adapt_It.h"
@@ -2241,6 +2242,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
 	EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
 	EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
+	EVT_MENU(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation)
+	EVT_UPDATE_UI(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation)
 	//OnAdvancedDelay  is in the View
 	//OnUpdateAdvancedDelay  is in the View
 
@@ -4805,6 +4808,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_rtfExportPath = _T("");
 	m_retransReportPath = _T("");
 
+	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by use of command-line parameter -xo
+
 	m_bSuppressWelcome = FALSE;
 	m_bSuppressTargetHighlighting = FALSE;
 	nSequNumForLastAutoSave = -1; // global (-1 = _("turned off")
@@ -5452,6 +5457,36 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nMoves = 100; // initial default, save every 100 phrase box moves
 	m_bIsDocTimeButton = TRUE; // initial default, save according to time interval, not moves
 
+	// whm moved/changed 13Apr09 Command-line processing implemented in wx version and moved earlier in
+	// OnInit() to this location after most variable initializations and just before the application
+	// wxConfig processing. The command line processing must be done before CMainFrame is created since
+	// the parameter -xo determines which toolbar and commandbar is used in the main frame.
+	static const wxCmdLineEntryDesc cmdLineDesc[] = 
+	{
+		//{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Command Line operation not implemented!"), 
+		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP  },
+		//{ wxCMD_LINE_NONE }
+		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, _T("p"), _T("altpath"), _T("Use alternate path for work folder"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_NONE }
+	};
+
+	// Note: In the MFC version, InitiInstance() sets up CCommandLineInfo cmdInfo.
+	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
+	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
+	// OnFileNew() to initiate the doc/view creation process at program startup.
+	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
+	if (m_pParser->Parse())
+	 return false; // check this!!
+
+	if (m_pParser->Found(_T("xo")))
+	{
+		m_bExecutingOnXO = TRUE;
+	}
+
+
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
 	// wxConfig (below) stores the key "Adapt_It_WX" in HKEY_USERS "Software" 
@@ -5880,34 +5915,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//EnableShellOpen();
 	//RegisterShellFileTypes(TRUE);
 
+	// In the MFC version the following command-line parsing code was
+	// located here:
 	// Parse command line for standard shell commands, DDE, file open
 	//CCommandLineInfo cmdInfo;
 	//ParseCommandLine(cmdInfo);
-	// wx version Note: The wx docs on wxApp::OnInit() say, "Notice that if you want 
-	// to use the command line processing provided by wxWidgets you have to call the base class 
-	// version in the derived class OnInit()."
-	static const wxCmdLineEntryDesc cmdLineDesc[] = 
-	{
-		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Command Line operation not implemented!"), 
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP  },
-		{ wxCMD_LINE_NONE }
-	};
-
-   // Note: In the MFC version, InitiInstance() sets up CCommandLineInfo cmdInfo.
-   // InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
-   // statement which switches on CCommandLineInfo::FileNew, and calls the app's
-   // OnFileNew() to initiate the doc/view creation process at program startup.
-   m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
-   if (m_pParser->Parse())
-     return false;
-
-	// TODO: The command line parser above is not fully implemented.
-	// As far as I know Adapt It has no need for command line arguments nor any need
-	// to parse them, so I'm not going to implement this even though wxWidgets has
-	// a sophisticated wxCmdLineParser class. The one thing that ParseCommandLine()
-	// does in the MFC version is to start the application with a new View as though 
-    // File|New were executed giving the app access to valid pView and pDoc pointers.
-    // We provide the equivalent below where we call OnFileNew() directly.
+	// In the wx version, however, command-line processing is actually implemented but the code was
+	// moved earlier in this OnInit() function (see above).
+	
+    // The one thing that ParseCommandLine() does in the MFC version is to start the application with a
+    // new View as though File|New were executed giving the app access to valid pView and pDoc pointers.
+    // We provide the equivalent below where we call OnFileNew() directly (which is done below in this OnInit).
 
 	// for richer memory leak dumps
     // whm - wxWidgets has its own memory leak facilities built into its library
@@ -10295,10 +10313,10 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	wxStandardPaths stdPaths;
 	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since wxWidgets version 2.7.0
 	// Typically the "documents" directory depends on the system:
-    // Unix: ~ (the home directory )
+    // Unix: ~/(the home directory, i.e., /home/<username>/)
     // Windows (earlier and Vista): C:\Documents and Settings\username\Documents
     // Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-    // Mac: ~/Documents 
+    // Mac: ~/(the home directory, i.e., /Users/<username>/ 
 
 	// whm note: In the cross-platform version we never refer to a specific "Documents" or "My Documents" folder
 	// and so we do not need to localize the name of the folder that is returned by the
@@ -18371,6 +18389,118 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 
 	// enable if a project is active & the disable flag is not set
 	if ((m_bKBReady || m_bGlossingKBReady) && !m_bDisableBookMode)
+	{
+		event.Enable(TRUE); 
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   -> the wxCommandEvent that is generated when the associated menu item is
+///                         selected
+/// \remarks
+/// Called from: The Event Table of the CAdapt_ItApp class in response to a "Change Location of 
+/// Adapt It Work Folder" command on the Advanced menu. This handler presents the user with a
+/// wxDirPickerCtrl control which allows the user to navigate to and select a desired folder which
+/// is to be used as the new default work folder on the current machine. If a folder is selected
+/// (the wxDirPickerCtrl insures that only an existing directory can be selected), Adapt It saves
+/// the path to this folder in its m_pConfig (registry/hidden settings file), and continues to 
+/// use this path for its work folder from session to session (until the user changes it again). 
+/// If no work folder (containing projects) are in the new location, it offers to copy the work 
+/// folder and projects from the previous location to the new location, and invokes the Start 
+/// Working Wizard automatically which allows the user to select a project from the new location.
+/// If a work folder and one or more projects already exist at the new location, Adapt It simply
+/// invokes the Start Working Wizard allowing the user to select a project from that new 
+/// location.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event) 
+{
+	//CAdapt_ItView* pView = GetView();
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+	wxASSERT(pMenuBar != NULL);
+	wxMenuItem * pAdvancedMenuItem = pMenuBar->FindItem(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION);
+	wxASSERT(pAdvancedMenuItem != NULL);
+
+	wxString workFolderPath = _T("");
+	wxString workFolder;
+	workFolder = m_theWorkFolder; // always "Adapt It Work" or "Adapt It Unicode Work"
+	
+	wxString newPath;
+	long style = wxDIRP_DIR_MUST_EXIST;
+	wxDirPickerCtrl* dpDlg;
+	dpDlg = new wxDirPickerCtrl(pFrame, -1, m_workFolderPath, _T(""), wxDefaultPosition, wxDefaultSize, style);
+	//if (dpDlg.ShowModal() == wxID_OK)
+	//{
+	newPath = dpDlg->GetPath();
+	//}
+
+	workFolderPath = newPath + PathSeparator + workFolder;
+	if (!::wxDirExists(workFolderPath))
+	{
+		// "Adapt It (Unicode) Work" does not yet exist at the newPath, so offer
+		// to move the world folder from its previous location to the newPath
+		wxString msg = msg.Format(_("There is no %s folder yet in the location you chose.\nDo you want to move that folder from its current location to the location you just chose?"),m_theWorkFolder.c_str());
+		int result = wxMessageBox(msg,_(""), wxYES_NO | wxICON_INFORMATION);
+		if (result == wxYES)
+		{
+			// User wants the old work folder moved to the new location
+			// TODO: move old work folder to the new location
+		}
+		else if (result == wxNO)
+		{
+			// User doesn't want the old work folder moved to the new location
+			// so we call EnsureWorkFolderPresent() to create a work folder, then we
+			// call up the Start Working Wizard (which will only have <New Project>
+			// in its list.
+			EnsureWorkFolderPresent();
+			// Go ahead and call up the Start Working wizard (called below).
+		}
+		else
+		{
+			// user cancelled?
+			// return before modifying m_workFolderPath and saving the new path in m_pConfig
+			return;
+		}
+	}
+
+	// If/When we get here a workFolderPath exists at the current work directory, so
+	// set the current working directory and the App's m_workFolderPath member.
+	::wxSetWorkingDirectory(workFolderPath);
+	m_workFolderPath = workFolderPath;
+
+	// TODO: save m_workFolderPath in m_pConfig
+
+
+	// Call the Startup Wizard which will allow the user to get to work immediately
+	bool bSuccess = DoStartWorkingWizard(event);
+	if (!bSuccess)
+	{
+		wxMessageBox(_("The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
+				_T(""), wxICON_EXCLAMATION);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// The "Change Location of Adapt It Work Folder..." menu item on the Advanced menu is enabled only
+/// when there is no project currently open.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& event) 
+{
+
+	// enable only if no project is active
+	if (!(m_bKBReady || m_bGlossingKBReady))
 	{
 		event.Enable(TRUE); 
 	}
