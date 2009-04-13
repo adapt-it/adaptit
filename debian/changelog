@@ -1,4 +1,10 @@
-adaptit (4.1.3-1) unstable; urgency=low
+adaptit (4.1.3.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Tue, 13 Apr 2009 17:00:00 -0600
+
+adaptit (4.1.3.1-1) unstable; urgency=low
 
   * Pull in updates
 
