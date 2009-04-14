@@ -3462,6 +3462,8 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item15->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
     item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
+    item11->Add( 400, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
     item2->Add( item11, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
@@ -3681,7 +3683,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Select a marker on the left to see its associated text material that was filtered out (editable below)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Select a marker on the left to see its associated text"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
@@ -3697,7 +3699,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("&Marker:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item5, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Associated &text material:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Associated &text material (editable below):"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("End Marker:"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -6694,6 +6696,8 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
+    item2->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
+
     wxRadioButton *item3 = new wxRadioButton( parent, IDC_RADIO_DRAFTING, _("Drafting "), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item3->SetValue( TRUE );
     item3->SetToolTip( _("Use Drafting mode for initial drafting of your translation") );
@@ -6723,6 +6727,8 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item0->Add( item2, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    item9->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
 
     wxCheckBox *item10 = new wxCheckBox( parent, IDC_CHECK_FORCE_ASK, _("Force Choice For This Item "), wxDefaultPosition, wxDefaultSize, 0 );
     item10->SetToolTip( _("Check this box to show the Choose Translation Dialog even if there is only one adaptation for this source word or phrase") );

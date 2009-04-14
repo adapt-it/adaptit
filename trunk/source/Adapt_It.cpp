@@ -5468,7 +5468,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		//{ wxCMD_LINE_NONE }
 		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
-		{ wxCMD_LINE_OPTION, _T("p"), _T("altpath"), _T("Use alternate path for work folder"),
+		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_NONE }
 	};
@@ -5486,6 +5486,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_bExecutingOnXO = TRUE;
 	}
 
+	wxString wfPathStr;
+	if (m_pParser->Found(_T("wf"), &wfPathStr))
+	{
+		if (::wxDirExists(wfPathStr))
+		{
+			// the -wf parameter represents a path that exists as a folder, so use it as the forced
+			// work folder path
+			// TODO: up to here !!!
+		}
+	}
 
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
@@ -5960,12 +5970,50 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 								// a prior call to SetBackgroundMode(m_backgroundMode), in which the
 								// m_backgroundMode = wxSOLID.
 
-	// BEW added 06Mar06 code to MFC version to get the desktop's rectangle size and check for
-	// spurious overwriting of the coords of the window location (that has happened on some rare
-	// occasions). Bruce first created an off-screen temporary static control window to get a
-	// valid CWnd*, but there is a simpler way in wxWidgets which I'm using here.
+    // BEW added 06Mar06 code to MFC version to get the desktop's rectangle size and check for spurious
+    // overwriting of the coords of the window location (that has happened on some rare occasions).
+    // 
+    // whm Note: In MFC version Bruce first created an off-screen temporary static control window to get
+    // a valid CWnd*, but there is a simpler way in wxWidgets by using wxGetClientDisplayRect() which
+    // I'm using here. According to wx docs, the wxGetClientDisplayRect() function "returns the
+    // dimensions of the work area on the display. On Windows this means the area not covered by the
+    // taskbar, etc. Other platforms are currently defaulting to the whole display until a way is found
+    // to provide this infor for all windows managers, etc."
 	wxRect desktopWndRect = wxGetClientDisplayRect();
-	// once set, these two points should not change while the app runs
+    // MFC Note: "once set, these two points should not change while the app runs"
+    // 
+    // whm Note: If the user changes the screen resolution during program execution then desktopWndRect
+    // could change. Also the MFC checks do not work when more than one monitor are connected to the
+    // user's computer, especially when the application position might have been on a second monitor.
+    // Therefore we need to check for multiple monitor setup, and determine the boundaries for valid
+	// main frame positions in such configurations. Checking for multiple monitors can be done with the
+	// wxDisplay class.
+	int numMonitors;
+	numMonitors = wxDisplay::GetCount();
+	if (numMonitors > 1)
+	{
+		// assume two monitors
+		wxDisplay displayOne(0);
+		wxDisplay displayTwo(1);
+		wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920, height=1140 // doesn't include taskbar on Windows
+		wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920, height=1200
+		if (dispTwoRect.x > 0 || dispOneRect.x > 0)
+		{
+            // The second or first monitor's x coordinate is positive (instead of 0), therefore we can
+            // assume that the desktop is extended from one display monitor onto the other
+			int maxDispRectX, maxDispRectY;
+			maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
+			maxDispRectY = wxMin(dispOneRect.GetHeight(),dispTwoRect.GetHeight()); // account for task bar's presence
+			// set the adjusted width and height of combined desktop display rect
+			desktopWndRect.SetWidth(maxDispRectX);
+			desktopWndRect.SetHeight(maxDispRectY);
+		}
+	}
+	wxLogDebug(_T("desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
+		desktopWndRect.x,desktopWndRect.y,desktopWndRect.GetWidth(),desktopWndRect.GetHeight());
+    // 
+    // The wndTopLeft and wndBotRight point coordinates below are used within the App's
+    // GetBasicSettingsConfiguration() function
 	wndTopLeft = wxPoint(desktopWndRect.GetLeft(),desktopWndRect.GetTop());
 	wndBotRight = wxPoint(desktopWndRect.GetRight(),desktopWndRect.GetBottom());
 
@@ -6038,15 +6086,37 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_tableFolderPath[1] = m_defaultTablePath;
 		m_tableFolderPath[2] = m_defaultTablePath;
 		m_tableFolderPath[3] = m_defaultTablePath;
+
+        // whm added 14Apr09. The basic config file contains position and size information for the main
+        // frame and that information has now been read from the config file, so here is where we should
+        // update the position and size of the CMainFrame instance before other routines such as
+        // RecalcLayout will use it, or change the App's values which store the current main frame's
+        // metrics.
+        // 
+        // The wndBotRight and wndTopLeft coordinate points determined by the above call to the
+        // wxGetClientDisplayRect() function are used in GetBasicSettingsConfiguration() to insure that
+        // the m_ptViewTopLeft.x and m_ptViewTopLeft.y and m_szView.x and m_szView.y values are within
+		// range of the current desktop. If the read-in values were not within range they were adjusted
+		// to fall within the coordinates of the current desktop. Therefore, these values should be
+		// "safe" to use in our SetSize() call on the main frame below, which is called first to
+		// establish any non-zoomed window size, before re-establishing any zoomed state.
+		
+		m_pMainFrame->SetSize(gpApp->m_ptViewTopLeft.x,
+											gpApp->m_ptViewTopLeft.y,
+											gpApp->m_szView.x,
+											gpApp->m_szView.y,
+											wxSIZE_AUTO);
+		if (gpApp->m_bZoomed)
+		{
+			m_pMainFrame->Maximize(TRUE);
+		}
 	}
 
-	// TODO: Before implementing the ProcessShellCommand() below go back and do 
-	// the ParseCommandLine() above.
-	// Dispatch commands specified on the command line
+	// MFC: Dispatch commands specified on the command line
 	//if (!ProcessShellCommand(cmdInfo))
 	//	return FALSE;
 
-	// For all intents and purposes, MFC's ProcessShellCommand() functions within
+	// whm Note: For all intents and purposes, MFC's ProcessShellCommand() functions within
 	// Adapt It to simply initiate a call to the App's OnFileNew() method in order
 	// to create a doc/view as a stand-in at program startup.
 	// We can do the same in the wx version by also calling the App's OnFileNew()
@@ -6076,7 +6146,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// coupled with Adapt It's design in which initializations are scattered
 	// over many code locations make for a real messy conversion process.
 	//
-	// In the MFC version, OnInitialUpdat() is "called by the framework after the 
+	// In the MFC version, OnInitialUpdate() is "called by the framework after the 
 	// view is first attached to the document, but before the view is initially 
 	// displayed." To get that equivalency here in the wxWidgets version, I 
 	// determined by tracing through the MFC code exactly when OnInitialUpdate() 
@@ -13938,7 +14008,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTopLeftX)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < -6 || num > wndBotRight.x - 5) // -4 is maximized window's x value
 			{
 				bAdjusted = TRUE; // it's too far left or right
@@ -13949,7 +14021,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTopLeftY)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < -6 || num > wndBotRight.y - 5) // -4 is maximized window's y value
 			{
 				bAdjusted = TRUE; // it's too far up or down
@@ -13960,7 +14034,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szWSizeCX)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < 200 || num > wndBotRight.x - wndTopLeft.x)
 			{
 				bAdjusted = TRUE; // it's too narrow or too wide
@@ -13971,7 +14047,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szWSizeCY)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < 200 || num > wndBotRight.y - wndTopLeft.y)
 			{
 				bAdjusted = TRUE; // it's too short or too long
