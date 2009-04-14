@@ -697,6 +697,16 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	CAdapt_ItView* pView = pApp->GetView();
 
 	// send the app the current size & position data, for saving to config on closure
+	// 
+	// whm modification 14Apr09. I've commented out the assigning of frame position, size, and zoom
+	// characteristics below, because these should not be changed here at the time the docPage calls
+	// OnWizardFinish(). Instead, the main frame around any new or existing document should retain its dimensions
+	// as previously established by reading the basic config file or (if no config file has yet been
+	// saved) by the defaults set in OnInit(). The problem with having these set here is that, when our
+	// CMainFrame instance is created in the App's OnInit(), it is created an arbitrary size before the
+	// basic config file is read - and hence the position and size detection below will be wrong and
+	// obliterate any values that were already established.
+	/*
 	wxRect rectFrame;
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	rectFrame = pFrame->GetRect(); // screen coords
@@ -707,6 +717,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	pApp->m_szView.SetWidth(rectFrame.GetWidth());
 	pApp->m_szView.SetHeight(rectFrame.GetHeight());
 	pApp->m_bZoomed = pFrame->IsMaximized(); //pFrame->IsZoomed();
+	*/
 	
 	#ifdef _RTL_FLAGS // whm added23Mar07
 		// We've just defined a new project (via previous wizard pages), or we've loaded 

@@ -145,7 +145,7 @@ class CMainFrame : public wxDocParentFrame
 	int idleCount;
 	bool m_bShowScrollData;
 
-	bool m_bUsingHighResDPIScreen;
+	//bool m_bUsingHighResDPIScreen;
 
 	void OnIdle(wxIdleEvent& event); // MFC is virtual and returns BOOL
 

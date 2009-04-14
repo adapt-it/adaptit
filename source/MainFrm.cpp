@@ -1124,7 +1124,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
 //#endif
 
-	m_bUsingHighResDPIScreen = FALSE;
+	//m_bUsingHighResDPIScreen = FALSE;
 
 	// these dummy ID values are placeholders for unused entries in the accelerator below 
 	// that are not implemented in the wx version
@@ -1318,21 +1318,20 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
 	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
 
-	wxSize displaySizeInPixels;
-	displaySizeInPixels = wxGetDisplaySize();
-	wxSize displaySizeInMM;
-	displaySizeInMM = wxGetDisplaySizeMM();
-	wxSize displaySizeInInches;
-	displaySizeInInches.x = displaySizeInMM.x / 25.4;
-	displaySizeInInches.y = displaySizeInMM.y / 25.4;
-	float screenDPI;
-	screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
-		/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
+	//wxSize displaySizeInPixels;
+	//displaySizeInPixels = wxGetDisplaySize();
+	//wxSize displaySizeInMM;
+	//displaySizeInMM = wxGetDisplaySizeMM();
+	//wxSize displaySizeInInches;
+	//displaySizeInInches.x = displaySizeInMM.x / 25.4;
+	//displaySizeInInches.y = displaySizeInMM.y / 25.4;
+	//float screenDPI;
+	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
+	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
 
-	// uncomment below after modifying the toggled 32x30 bitmaps elsewhere
 	if (gpApp->m_bExecutingOnXO) //if (screenDPI > 150.0)
 	{
-		m_bUsingHighResDPIScreen = TRUE;
+		//m_bUsingHighResDPIScreen = TRUE;
 		toolBar->SetToolBitmapSize(wxSize(32,30));
 		AIToolBar32x30Func( toolBar );
 		//wxString msg;
