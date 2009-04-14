@@ -1127,6 +1127,12 @@ void CLayout::UpdateStripIndices(int nStartFrom)
 	}
 }
 
+int	CLayout::IndexOf(CPile* pPile)
+{
+	return m_pileList.IndexOf(pPile);
+}
+
+
 // the GetPile function also has equivalent member functions of the same name in the CAdapt_ItView
 // and CAdapt_ItDoc classes, for convenience's sake; return the CPile instance at the
 // given index, or NULL if the index is out of bounds

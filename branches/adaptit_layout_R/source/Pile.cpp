@@ -339,11 +339,6 @@ int	CPile::GetPhraseBoxGapWidth()
 	return m_nWidth;
 }
 
-int	CPile::IndexOf(CPile* pPile)
-{
-	return m_pLayout->m_pileList.IndexOf(pPile);
-}
-
 
 // Calculates the pile's width before laying out the current pile in a strip. The function
 // is not interested in the relative ordering of the glossing and adapting cells, and so

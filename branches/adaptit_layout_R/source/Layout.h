@@ -141,8 +141,10 @@ public:
 	CAdapt_ItCanvas*	m_pCanvas;
 	CMainFrame*			m_pMainFrame;
 
-	update_span			m_userEditsSpanCheckType; // takes one of two enum values,
-				// 	scan_from_doc_ends  (= 0), or scan_in_active_area_proximity (= 1)
+	update_span			m_userEditsSpanCheckType; // takes one of four enum values,
+				// 	no_scan_needed  (= 0), or scan_from_doc_ends  (= 1), 
+				// 	scan_in_active_area_proximity (= 2) or scan_from_big_jump (= 3); set
+				// 	the wanted value before calling RecalcLayout()	
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
 												// and used by PlacePhraseBoxInLayout() 
 	bool				m_bDrawAtActiveLocation;
@@ -335,6 +337,8 @@ public:
 	CStrip*		GetStrip(int nSequNum);
 	// get the number of visible strips plus one for good measure
 	int			GetVisibleStrips();
+	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
+
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 	// support of user edit actions

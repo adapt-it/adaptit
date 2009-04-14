@@ -2467,8 +2467,12 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	// need to initiate a recalc of the layout with new m_docSize value, since strip-wrap is on
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	if (pView)
-		pView->RedrawEverything(pApp->m_nActiveSequNum);
-
+	{
+		//pView->RedrawEverything(pApp->m_nActiveSequNum);
+		CLayout* pLayout = GetLayout();
+		pLayout->RecalcLayout(pLayout->m_pDoc->m_pSourcePhrases);
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	}
 	// code below was in docview sample
     // FIXME: On wxX11, we need the MDI frame to process this
     // event, but on other platforms this should not
@@ -2477,6 +2481,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     event.Skip();
 #endif
 
+	pView->Invalidate();
 }
 
 void CMainFrame::RecreateToolBar()

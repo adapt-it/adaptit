@@ -253,8 +253,10 @@ public:
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
-	void		InsertNullSrcPhraseBefore();
-	void		InsertNullSrcPhraseAfter();
+	//void		InsertNullSrcPhraseBefore(); // BEW removed 13Apr09, this function has
+	//never been used
+	//void		InsertNullSrcPhraseAfter(); // BEW removed 13Apr09, this function has
+	//never been used
 	bool		IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsItNotInKB(CSourcePhrase* pSrcPhrase);
@@ -304,7 +306,7 @@ public:
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
 	//void		ReDoPhraseBox(const CCell* pCell); //removed 7Apr09
-	void		RedrawEverything(int nActiveSequNum);
+	//void		RedrawEverything(int nActiveSequNum); // removed 13Apr09
 	void		RemoveContentWrappers(CSourcePhrase*& pSrcPhrase, wxString mkr, int offset); // BEW 12 Sept05
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	//void		RemakePhraseBox(CPile* pActivePile, wxString& phrase); // removed 7Apr09
@@ -657,10 +659,10 @@ protected:
 	void OnButtonEditRetranslation(wxCommandEvent& event);
 	void OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event);
-	void OnButtonToggleSourceLines(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonToggleSourceLines(wxUpdateUIEvent& event);
-	void OnButtonToggleTargetLines(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonToggleTargetLines(wxUpdateUIEvent& event);
+	//void OnButtonToggleSourceLines(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdateButtonToggleSourceLines(wxUpdateUIEvent& event);
+	//void OnButtonToggleTargetLines(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdateButtonToggleTargetLines(wxUpdateUIEvent& event);
 	void OnFileExport(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileExport(wxUpdateUIEvent& event);
 	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
