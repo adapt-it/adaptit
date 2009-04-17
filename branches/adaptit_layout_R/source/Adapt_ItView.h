@@ -80,7 +80,10 @@ typedef enum box_cursor {
 };
 int gnBoxCursorOffset = 0;	// pass gnBoxCursorOffset to PrepareForLayout_Generic() 
 							// for box_cursor enum value of cursor_at_offset
-						
+typedef enum removeFrom {
+	from_source_text,
+	from_target_text
+};						
 // ////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItView class is the most complex class in the application. 
 /// It controls every aspect of how the data is presented to the user, 
@@ -253,10 +256,8 @@ public:
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
-	//void		InsertNullSrcPhraseBefore(); // BEW removed 13Apr09, this function has
-	//never been used
-	//void		InsertNullSrcPhraseAfter(); // BEW removed 13Apr09, this function has
-	//never been used
+	void		InsertNullSrcPhraseBefore();
+	void		InsertNullSrcPhraseAfter();
 	bool		IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsItNotInKB(CSourcePhrase* pSrcPhrase);
@@ -386,8 +387,8 @@ public:
 	void		ToggleFreeTranslationMode(); // BEW added 20Sep08
 	void		ToggleGlossingMode(); // BEW added 19Sep08
 	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
-	void		ToggleSourceLines();
-	void		ToggleTargetLines();
+	//void		ToggleSourceLines(); // removed 17Apr09
+	//void		ToggleTargetLines();
 	int			TokenizeTextString(SPList* pNewList,wxString& str,int nInitialSequNum);
 	bool		TransformSourcePhraseAdaptationsToGlosses(SPList::Node* curPos,
 										SPList::Node* nextPos, CSourcePhrase* pSrcPhrase);
@@ -548,9 +549,8 @@ protected:
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,
 					bool remFT, bool remBT); // BEW added 27Apr08
 	void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
-	void		RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,int& endIndex,
-					int& upperIndex,int& maxIndex,int& nCount,int& nEndSequNum,
-					bool bActiveLocAfterSelection,int& nSaveActiveSequNum);
+	void		RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
+					int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum);
 	void		RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,int nCurCount,
 														int nStartingSequNum,SPList* pSublist);
 	void		RemoveUnwantedSrcPhrasesInDocList(int nSaveSequNum,int nNewCount,int nCount);
@@ -586,9 +586,8 @@ protected:
 	bool		TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrcPhrases, CSourcePhrase* pFollSrcPhrase,
 							EditRecord* pRec); //BEW added 7May08
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
-	void		UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,int& WXUNUSED(endIndex),
-							int& WXUNUSED(upperIndex),int& WXUNUSED(maxIndex),int& nCount,int& nEndSequNum,
-							bool bActiveLocAfterSelection,int& nSaveActiveSequNum,
+	void		UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
+							int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum,
 							bool bWantRetranslationFlagSet = TRUE,bool bAlsoUpdateSublist = FALSE);
 	wxString WhichMarker(wxString& markers, int nAtPos); // BEW added 17Sep05, for backtranslation support
 

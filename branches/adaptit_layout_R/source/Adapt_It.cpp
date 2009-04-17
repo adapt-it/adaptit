@@ -4949,10 +4949,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nActiveSequNum = -1; // negative until set after a file is read in and laid out
 
 	m_bSelectByArrowKey = FALSE;
+    // BEW comment 17Apr09: the next two are deprecated but retained and set TRUE, but the
+    // values are never used, they cannot be eliminated (well, not easily) because they are
+    // needed for backwards compatibility of the config files
 	m_bSuppressLast = TRUE; // default, very first time launched; thereafter uses config file 
-							// stored value
+							// stored value (which now will never be anything but TRUE)
 	m_bSuppressFirst = TRUE; // default, very first time launched; thereafter uses config file 
-							 // stored value
+							 // stored value (which now will never be anything but TRUE)
 	// default modes
 	m_bDrafting = TRUE;
 	m_bSingleStep = FALSE; // default was TRUE before version 1.1.0

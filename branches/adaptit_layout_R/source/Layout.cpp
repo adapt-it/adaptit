@@ -232,6 +232,7 @@ IMPLEMENT_DYNAMIC_CLASS(CLayout, wxObject)
 
 CLayout::CLayout()
 {
+
 }
 
 CLayout::~CLayout()
@@ -255,12 +256,18 @@ void CLayout::InitializeCLayout()
 	m_stripArray.Clear();
 	m_bDrawAtActiveLocation = TRUE;
 	m_docEditOperationType = invalid_op_enum_value;
+	m_bLayoutWithoutVisiblePhraseBox = FALSE;
 
 	// *** TODO ***   add more basic initializations above here - but only stuff that makes the
 	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
 	// other document-related initializations can be done in SetupLayout()
 }
 
+	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
+void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
+{
+	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
+}
 
 void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 {
@@ -293,15 +300,25 @@ void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 			((CStrip*)m_stripArray[i])->Draw(pDC);
 		}
 
-		// get the phrase box placed in the active location and made visible, and suitably prepared
-		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+		// get the phrase box placed in the active location and made visible, and suitably
+		// prepared - unless it should not be made visible (eg. when updating the layout
+		// in the middle of a procedure, before the final update is done at a later time)
+		if (!m_bLayoutWithoutVisiblePhraseBox)
+		{
+			// work out its location and resize (if necessary) and draw it
+			PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+		}
 	}
 	else
 	{
 		// draw at scroll position
 		
 		// *** TODO *** the code
+		 
+		//if (!m_bLayoutWithoutVisiblePhraseBox) // shouldn't be needed for this situation
+			
 	}
+	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 }
 
 
@@ -2012,7 +2029,8 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state, int nB
 	{
 	case select_all:
 		{
-			m_pApp->m_nStartChar = 0;
+			//m_pApp->m_nStartChar = 0; // MFC
+			m_pApp->m_nStartChar = -1; // wxWidgets
 			m_pApp->m_nEndChar = -1;
 			break;
 		}
@@ -2075,7 +2093,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 	{
 	case default_op:
 		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (0,-1)
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 			bSetModify = TRUE;
 			break;
 		}
@@ -2115,17 +2133,20 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		}
 	case retranslate_op:
 		{
-
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+			bSetModify = FALSE;
 			break;
 		}
 	case remove_retranslation_op:
 		{
-
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+			bSetModify = FALSE;
 			break;
 		}
 	case edit_retranslation_op:
 		{
-
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+			bSetModify = FALSE;
 			break;
 		}
 	case insert_placeholder_op:
@@ -2135,7 +2156,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		}
 	case remove_placeholder_op:
 		{ 
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (0,-1)
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 			break;
 		}
 	case consistency_check_op:

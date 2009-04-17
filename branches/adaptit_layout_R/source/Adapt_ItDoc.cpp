@@ -4065,7 +4065,7 @@ b:			pSrcPhrase->m_gloss = gloss;
 			if (bHasTargetContent)
 			{
 				adaption = targetStr;
-				pView->RemovePunctuation(this,&adaption,1); // 1 = from tgt
+				pView->RemovePunctuation(this,&adaption,from_target_text); // 1 = from tgt
 				pSrcPhrase->m_adaption = adaption;
 
 				// update the KBs (both glossing and adapting KBs) provided it is appropriate to do so
@@ -11261,7 +11261,7 @@ void CAdapt_ItDoc::ReconstituteDoc(SPList* pOldList, SPList* pNewList, int nHowM
 				// member
 				pNewSP->m_targetStr = pOldSP->m_targetStr;
 				pNewSP->m_adaption = pOldSP->m_targetStr;
-				pView->RemovePunctuation(this,&pNewSP->m_adaption,1); // from tgt
+				pView->RemovePunctuation(this,&pNewSP->m_adaption,from_target_text); // from tgt
 			}
 
 			// update position values
@@ -11367,14 +11367,14 @@ a:						pPrevSrcPhrase = pView->GetPrevSrcPhrase(posNew,posPrev);
 					// copy the translation but don't put in KB
 					pNewNullSrcPhrase->m_targetStr = pOldSP->m_targetStr;
 					pNewNullSrcPhrase->m_adaption = pOldSP->m_targetStr;
-					pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,1); // from tgt
+					pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,from_target_text); // from tgt
 				}
 				else
 				{
 					// it's a normal (ie. non null) retranslation source phrase
 					pNewSP->m_targetStr = pOldSP->m_targetStr;
 					pNewSP->m_adaption = pOldSP->m_targetStr;
-					pView->RemovePunctuation(this,&pNewSP->m_adaption,1); // from tgt
+					pView->RemovePunctuation(this,&pNewSP->m_adaption,from_target_text); // from tgt
 
 					// fix the flags appropriate for a retranslation src phrase
 					pNewSP->m_bRetranslation = TRUE;
@@ -11425,7 +11425,7 @@ a:						pPrevSrcPhrase = pView->GetPrevSrcPhrase(posNew,posPrev);
 				// m_adaption
 				pNewNullSrcPhrase->m_targetStr = pOldSP->m_targetStr;
 				pNewNullSrcPhrase->m_adaption = pOldSP->m_targetStr;
-				pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,1); // from tgt
+				pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,from_target_text); // from tgt
 
 				// copy anything non-empty from pOldSP, such as m_inform, etc. in case transfers
 				// have been done (this could copy wrong punctuation, or lack new punctuation, 
@@ -11515,7 +11515,7 @@ a:						pPrevSrcPhrase = pView->GetPrevSrcPhrase(posNew,posPrev);
 					// m_adaption member
 					pNewSP->m_targetStr = pOldSP->m_targetStr;
 					pNewSP->m_adaption = pOldSP->m_targetStr;
-					pView->RemovePunctuation(this,&pNewSP->m_adaption,1); // from tgt
+					pView->RemovePunctuation(this,&pNewSP->m_adaption,from_target_text); // from tgt
 				}
 
 				// make adjustments, if transfers are required. We do this by checking to see if

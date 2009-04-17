@@ -1,28 +1,28 @@
-/////////////////////////////////////////////////////////////////////////////
-/// \project		adaptit
-/// \file			Cell.cpp
-/// \author			Bill Martin
-/// \date_created	26 March 2004
-/// \date_revised	15 January 2008
-/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public
-///  License (see license directory)
-/// \description	This is the implementation file for the CCell class. 
-/// The CCell class represents the next smaller division of a CPile, there
-/// potentially being up to five CCells displaying vertically top to bottom
-/// within a CPile. The CCell has the smarts for drawing the text and changing
-/// background colour (eg. for selections) in its DrawCell() public function,
-/// and for handling free translation colouring, green wedges, navigation text
-/// etc. in its Draw() function. (CText removed 6Feb09)
-/// \derivation		The CCell class is derived from wxObject.
-/////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
+// / \project		adaptit
+// / \file			Cell.cpp
+// / \author			Bill Martin
+// / \date_created	26 March 2004
+// / \date_revised	15 January 2008
+// / \copyright		2008 Bruce Waters, Bill Martin, SIL International
+// / \license		The Common Public License or The GNU Lesser General Public
+// /  License (see license directory)
+// / \description	This is the implementation file for the CCell class. 
+// / The CCell class represents the next smaller division of a CPile, there
+// / potentially being up to five CCells displaying vertically top to bottom
+// / within a CPile. The CCell has the smarts for drawing the text and changing
+// / background colour (eg. for selections) in its DrawCell() public function,
+// / and for handling free translation colouring, green wedges, navigation text
+// / etc. in its Draw() function. (CText removed 6Feb09)
+// / \derivation		The CCell class is derived from wxObject.
+// ///////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items (in order of importance): (search for "TODO")
 // 1. NONE. Current with MFC version 3.10.0
 //
 // Unanswered questions: (search for "???")
 // 1.
 // 
-/////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -60,53 +60,53 @@
 
 // globals for support of vertical editing
 
-/// A gray color used to mark the non-editable surrounding context when vertical editing of source text
-/// is in progress
+// / A gray color used to mark the non-editable surrounding context when vertical
+// / editing of source text is in progress
 wxColor gMidGray = wxColour(128,128,128); //COLORREF gMidGray = (COLORREF)RGB(128,128,128);
 
-/// This global is defined in Adapt_It.cpp.
+// / This global is defined in Adapt_It.cpp.
 extern EditRecord gEditRecord;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern EditStep gEditStep;
 
-/// A local pointer to the global gEditRecord defined in Adapt_It.cpp
+// / A local pointer to the global gEditRecord defined in Adapt_It.cpp
 static EditRecord* pRec = &gEditRecord;
 
-/// This global is defined in Adapt_It.cpp.
+// / This global is defined in Adapt_It.cpp.
 extern CPile* gpGreenWedgePile;
 
-/// This global is defined in Adapt_It.cpp.
+// / This global is defined in Adapt_It.cpp.
 extern CPile* gpNotePile;
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 extern bool gbGlossingUsesNavFont;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern int gnBeginInsertionsSequNum;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern int gnEndInsertionsSequNum;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern bool	gbFindIsCurrent;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern bool gbShowTargetOnly;
 
-/// This global is defined in Adapt_ItView.cpp.
+// / This global is defined in Adapt_ItView.cpp.
 extern wxRect grectViewClient;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
@@ -125,7 +125,7 @@ extern wxRect grectViewClient;
 // SetLayoutDirection() function, since Adapt It MFC was designed to micromanage the layout direction
 // itself in the coding of text, cells, piles, strips, etc.
 
-/// This global is defined in Adapt_It.cpp.
+// / This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp; // want to access it fast
 
 extern const wxChar* filterMkr;
@@ -170,9 +170,9 @@ extern EditRecord gEditRecord;
 // direction itself in the coding of text, cells, piles, strips, etc.
 
 
-//////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
 
 IMPLEMENT_DYNAMIC_CLASS(CCell, wxObject)
 
@@ -269,24 +269,25 @@ int CCell::GetCellIndex()
 	return m_nCell; // return this cell's index in the pile (values 0 to 3 inclusive)
 }
 
-wxColour* CCell::GetColor()
+wxColour CCell::GetColor()
 {
 	switch (m_nCell)
 	{
 	case 0:
-		return &m_pLayout->m_srcColor;
+		return m_pLayout->m_srcColor;
 	case 1:
 		if (gbIsGlossing)
-			return &m_pLayout->m_navTextColor;
+			return m_pLayout->m_navTextColor;
 		else
-			return &m_pLayout->m_tgtColor;
+			return m_pLayout->m_tgtColor;
 	case 2:
 		if (gbIsGlossing)
-			return &m_pLayout->m_tgtColor;
+			return m_pLayout->m_tgtColor;
 		else
-			return &m_pLayout->m_navTextColor;
+			return m_pLayout->m_navTextColor;
 	}
-	return &m_pLayout->m_tgtColor; // never accessed, it's here just to avoid a compiler warning
+	return m_pLayout->m_tgtColor; // never accessed, it's here
+							// just to avoid a compiler warning
 }
 
 int CCell::Width()
@@ -497,16 +498,15 @@ void CCell::Draw(wxDC* pDC)
 	// the mode to wxSOLID before doing any drawing that is to be visible, including backgrounds)
 
 	wxColour oldBkColor;
-	wxColour color(*GetColor());	// get the default colour to be used for drawing this cell's text
-									// (it may be overridden below - eg. to gray, when vertical
-									// edit is being done)
-									
-	// vertical edit: change text colour to gray if it is before or after the editable span; we have to
-	// do it also in the m_pText CText member too, and beware because the latter can be NULL for some CCell
-	// instances.
-	// whm: initialized the following two ints to 0 to avoid "potentially uninitialized local variable"
-	// warnings, since they would be uninitialized when gbVerticalEditInProgress if FALSE (albeit the
-	// present code, they are not used anywhere but where gbVerticalEditInProgress tests true.
+	wxColour color(GetColor());	// get the default colour to be used for drawing this cell's text
+				// (it may be overridden below - eg. to gray, when vertical edit is being done)
+								
+    // vertical edit: change text colour to gray if it is before or after the editable
+    // span; we have to do it also in the m_pText CText member too, and beware because the
+    // latter can be NULL for some CCell instances. whm: initialized the following two ints
+    // to 0 to avoid "potentially uninitialized local variable" warnings, since they would
+    // be uninitialized when gbVerticalEditInProgress if FALSE (albeit the present code,
+    // they are not used anywhere but where gbVerticalEditInProgress tests true.
 	int nStart_Span = 0;
 	int nEnd_Span = 0; 
 	if (gbVerticalEditInProgress && (gEditStep == adaptationsStep) && pRec->bAdaptationStepEntered)

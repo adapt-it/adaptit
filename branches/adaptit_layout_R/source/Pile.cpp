@@ -228,6 +228,11 @@ CCell* CPile::GetCell(int nCellIndex)
 	return m_pCell[nCellIndex];
 }
 
+int CPile::GetPileIndex()
+{
+	return m_nPile;
+}
+
 bool CPile::HasFilterMarker()
 {
 	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;

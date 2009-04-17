@@ -497,7 +497,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		// for version 1.4.0 and onwards, we have to permit the construction of the punctuated 
 		// target string; for auto caps support, we may have to change to UC here too
 		wxString str1 = pApp->m_targetPhrase;
-		pView->RemovePunctuation(pDoc,&str1,1); // 1 means "from target text"
+		pView->RemovePunctuation(pDoc,&str1,from_target_text); // 1 means "from target text"
 		if (gbAutoCaps)
 		{
 			bool bNoError = pView->SetCaseParameters(pSP->m_key);
@@ -596,7 +596,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	if (!gbIsGlossing)
 	{
 		pView->MakeLineFourString(pOldActiveSrcPhrase, pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,1); //  1 means "from tgt"
+		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text); //  1 means "from tgt"
 	}
 	if (gbIsGlossing)
 	{
@@ -1808,8 +1808,8 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 			wxColour oldBkColor = aDC.GetTextBackground();
 			aDC.SetBackgroundMode(pApp->m_backgroundMode);
 			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-			wxColour* pTextColor = pAnchorCell->GetColor();
-			pAnchorCell->DrawCell(&aDC,*pTextColor);
+			wxColour textColor = pAnchorCell->GetColor();
+			pAnchorCell->DrawCell(&aDC,textColor);
 			pApp->m_bSelectByArrowKey = FALSE;
 			pAnchorCell->SetSelected(TRUE);
 
@@ -3531,7 +3531,7 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 	if (!gbIsGlossing)
 	{
 		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,1); // 1 means "remove from tgt text"
+		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text); // 1 means "remove from tgt text"
 	}
 	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 	// BEW added next line 27Jan09
@@ -3834,7 +3834,7 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 	if (!gbIsGlossing)
 	{
 		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,1); // 1 means "removed from tgt text"
+		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text); // 1 means "removed from tgt text"
 	}
 	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
 	// BEW added next line 27Jan09
@@ -5954,7 +5954,7 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 		// for version 1.4.0 and onwards, we have to permit the construction of the punctuated 
 		// target string; for auto caps support, we may have to change to UC here too
 		wxString str1 = pApp->m_targetPhrase;
-		pView->RemovePunctuation(pDoc,&str1,1); //  from tgt
+		pView->RemovePunctuation(pDoc,&str1,from_target_text); //  from tgt
 		if (gbAutoCaps)
 		{
 			bNoError = pView->SetCaseParameters(pCurPile->m_pSrcPhrase->m_key);
@@ -5999,7 +5999,7 @@ c:	bOK = TRUE;
 			// the m_targetStr member may now have punctuation, so get rid of it
 			// before assigning whatever is left to the m_adaption member
 			wxString strKeyOnly = pCurPile->m_pSrcPhrase->m_targetStr;
-			pView->RemovePunctuation(pDoc,&strKeyOnly,1); //  from tgt
+			pView->RemovePunctuation(pDoc,&strKeyOnly,from_target_text); //  from tgt
 
 			// set the m_adaption member too
 			pCurPile->m_pSrcPhrase->m_adaption = strKeyOnly;

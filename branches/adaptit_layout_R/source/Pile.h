@@ -111,6 +111,7 @@ public:
 	CStrip*		GetStrip();
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
+	int			GetPileIndex();
 
 	int		Width();
 	int		Height();

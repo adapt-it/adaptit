@@ -1326,8 +1326,11 @@ public:
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active 
 							// pile location
 	bool m_bSelectByArrowKey; // TRUE when user is using ALT + arrow key to extend sel'n
-	bool m_bSuppressLast;	 // suppress last target text line of display when TRUE
-	bool m_bSuppressFirst;	 // suppress first source text line of display when TRUE
+	//next two cannot be removed for refactored layout, because they are needed for
+	//backwards compatibility of the config files; retain them, but make no use of them
+	//except to put TRUE values in the config files - initialize those in the app's OnInit()
+	bool m_bSuppressLast;	// deprecated: (suppress last target text line of display when TRUE)
+	bool m_bSuppressFirst;	// deprecated: (suppress first source text line of display when TRUE)
 	bool m_bDrafting; // suggested by Bill Martin: a Drafting versus Review mode choice;
 								 // with the single-step versus automatic insertion choices 
 								 // possible only in drafting mode, while in review mode 

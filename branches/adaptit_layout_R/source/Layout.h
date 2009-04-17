@@ -163,6 +163,10 @@ private:
 	int			m_nClipRectWidth;
 	int			m_nClipRectHeight;
 
+    // use the following to suppress phrasebox being made visible in the middle of
+    // procedures when strips have to be updated but we've not yet got to the final layout
+    bool		m_bLayoutWithoutVisiblePhraseBox;
+
 	// private copies of the src, tgt &navText colors stored in app class
 	wxColour	m_srcColor;
 	wxColour	m_tgtColor;
@@ -250,6 +254,9 @@ public:
 	void		DestroyPileRange(int nFirstPile, int nLastPile);
 	void		DestroyPiles();
 
+	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
+	void		SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible);
+
 	// getters for clipping rectangle
 	wxRect		GetClipRect();
 
@@ -335,7 +342,8 @@ public:
 	int			GetStripIndex(int nSequNum);
 	// get the strip pointer from a passed in sequNumber for a pile in m_pileList
 	CStrip*		GetStrip(int nSequNum);
-	// get the number of visible strips plus one for good measure
+	// get the number of visible strips plus an extra one if a non-integral number of
+	// strips fit the window
 	int			GetVisibleStrips();
 	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
 
