@@ -909,7 +909,7 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 			SaveFont = pDC->GetFont();
 			pDC->SetFont(TheFont);
 
-			wxColor color = *(m_pCell[1]->GetColor()); // get the default colour of this cell's text
+			wxColor color = m_pCell[1]->GetColor(); // get the default colour of this cell's text
 			//if (!m_pCell[2]->m_color.IsOk())
 			if (!color.IsOk())
 			{

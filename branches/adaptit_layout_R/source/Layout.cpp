@@ -2179,6 +2179,13 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 
 			break;
 		}
+	case on_button_no_adaptation_op:
+		{
+			m_pApp->m_nStartChar = 0;
+			m_pApp->m_nEndChar = 0;
+			bSetModify = TRUE;
+			break;
+		}
 	case edit_source_text_op:
 		{
 
@@ -2252,7 +2259,14 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		}
 	case vert_edit_exit_op:
 		{
-
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+			bSetModify = FALSE;
+			break;
+		}
+	case vert_edit_bailout_op:
+		{
+			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+			bSetModify = FALSE;
 			break;
 		}
 	case exit_preferences_op:
