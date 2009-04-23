@@ -18497,6 +18497,11 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event) 
 {
+    // comment out the message below and remove the return statement, after implementation of the
+    // "Change Location of Adapt It Work Folder..." command on Advanced menu
+	wxMessageBox(_T("Sorry, this menu item is not yet implemented in this version of Adapt It.\nIt is being developed for a future version update."),_T(""),wxICON_INFORMATION);
+	return;
+
 	//CAdapt_ItView* pView = GetView();
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -18576,7 +18581,6 @@ void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& event) 
 {
-
 	// enable only if no project is active
 	if (!(m_bKBReady || m_bGlossingKBReady))
 	{
