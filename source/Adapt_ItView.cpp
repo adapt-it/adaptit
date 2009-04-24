@@ -21509,7 +21509,7 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			{
 				gbInhibitLine4StrCall = TRUE; 
 				bool bOK = StoreText(pApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-				//gbInhibitLine4StrCall = FALSE;
+				gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
 				{
 					gbIsRetranslationCurrent = FALSE;
@@ -34476,7 +34476,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
 					gbInhibitLine4StrCall = TRUE;
 					bOK = StoreText(gpApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-					gbInhibitLine4StrCall = TRUE;
+					gbInhibitLine4StrCall = FALSE;
 				}
 
 				// check for a failure, abandon the function if the store failed, and because this
