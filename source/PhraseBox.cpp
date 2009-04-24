@@ -109,8 +109,8 @@ bool gbSuppressStoreForAltBackspaceKeypress = FALSE;
 	// couple of times. So we'll use the gbMovingToPreviousPile being set TRUE to skip the call
 	// BEW removed 27Jan09
 
-/// This global is defined in Adapt_ItView.cpp. BEW removed 27Jan09
-//extern bool gbInhibitLine4StrCall; // see view for reason for this
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbInhibitLine4StrCall; // see view for reason for this
 
 // for support of auto-capitalization
 
@@ -1703,17 +1703,13 @@ c:	bOK = TRUE;
 		}
 		if (gbIsGlossing)
 		{
-			// BEW added next line 27Jan09
-			pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 			bOK = pView->StoreText(pApp->m_pGlossingKB,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 		}
 		else
 		{
-			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
-			// BEW added next line 27Jan09
-			pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = TRUE;
 			bOK = pView->StoreText(pApp->m_pKB,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
-			//gbInhibitLine4StrCall = FALSE;
+			gbInhibitLine4StrCall = FALSE;
 		}
 
 		// if in Transliteration Mode we want to cause gbSuppressStoreForAltBackspaceKeypress
@@ -2450,11 +2446,9 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 		pView->MakeLineFourString(pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
 	}
-	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
-	// BEW added next line 27Jan09
-	pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+	gbInhibitLine4StrCall = TRUE;
 	bOK = pView->StoreTextGoingBack(pView->GetKB(),pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
-	//gbInhibitLine4StrCall = FALSE;
+	gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 		return FALSE; // can't move if the adaptation or gloss text is not yet completed
 
@@ -2717,11 +2711,9 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 		pView->MakeLineFourString(pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
 	}
-	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
-	// BEW added next line 27Jan09
-	pView->SetAdaptationOrGloss(gbIsGlossing,pCurPile->m_pSrcPhrase,pApp->m_targetPhrase);
+	gbInhibitLine4StrCall = TRUE;
 	bOK = pView->StoreText(pView->GetKB(),pCurPile->m_pSrcPhrase,pApp->m_targetPhrase); 
-	//gbInhibitLine4StrCall = FALSE;
+	gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 	{
 		// restore default button image, and m_bCopySourcePunctuation to TRUE
