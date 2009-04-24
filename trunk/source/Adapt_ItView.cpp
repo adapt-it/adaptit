@@ -13071,51 +13071,10 @@ void CAdapt_ItView::MergeWords()
 	OnButtonMerge(dummyevent);
 }
 
-// BEW created 27Jan09 in order to remove setting m_adaption, m_gloss, m_targetPhrase within
-// the StoreText() function, where logically such a job does not belong. The last of the three can
-// be set by a MakeLineFourString() call. And setting m_adaption or m_gloss is to be done here; in
-// the case of setting m_gloss, if the gbRemovePunctuationFromGlosses bool flag is TRUE, the
-// target punctuation characters, if any, are removed from the stored value in m_gloss (when this
-// function's code was part of StoreText(), this removal was not done; but since StoreTextGoingBack()
-// had this extra bit of code, presumably it should apply here too)
-void CAdapt_ItView::SetAdaptationOrGloss(bool bIsGlossing, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase)
-{
-	// take the passed in tgtPhrase value, it could be a gloss or an adaptation, bIsGlossing tells
-	// us which, and place a copy in the source phrase's m_adaption member, unless it is <Not In KB>;
-	// but when glossing  place a copy in the m_gloss memberh
-	if (bIsGlossing)
-	{
-		wxString s = tgtPhrase;
-		if (gbAutoCaps)
-		{
-			bool bNoError = TRUE;
-			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-			{
-				bNoError = SetCaseParameters(s,FALSE);
-				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-				{
-					// change it to upper case
-					s.SetChar(0,gcharNonSrcUC);
-				}
-			}
-		}
-		pSrcPhrase->m_gloss = s;
-		if (gbRemovePunctuationFromGlosses)
-			RemovePunctuation(GetDocument(),&pSrcPhrase->m_gloss,1); // 1 means "use target punctuation"
-	}
-	else // currently adapting
-	{
-		if (tgtPhrase != _T("<Not In KB>"))
-		{
-			pSrcPhrase->m_adaption = tgtPhrase;
-		}
-	} 
-}
-
-bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, 
-										bool bSupportNoAdaptationButton)
-// return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE value to
-// block a move of the phraseBox to another pile) This function's behaviour was changed after
+bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase,
+                                    bool bSupportNoAdaptationButton)
+// return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE value
+// to block a move of the phraseBox to another pile) This function's behaviour was changed after
 // version1.2.8, on May 6 2002, in order to eliminate the occurence of the "Empty Adaption Dialog"
 // which would come up whenever the user deleted the contents of the phrase box and then moved on,
 // or clicked elsewhere. The new default behaviour is that if the box is empty when the user causes
@@ -17679,9 +17638,8 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	//if (!gbIsGlossing || gbRemovePunctuationFromGlosses) // 27 Jan09, second test is in SetAdaptationOrGloss()
 	if (!gbIsGlossing)
 		RemovePunctuation(GetDocument(),&temp,1 /*from tgt*/);
-	// BEW added next line 27Jan09
-	SetAdaptationOrGloss(gbIsGlossing,pSrcPhrase,temp);
-	bOK = StoreText(pKB,pSrcPhrase,temp,TRUE); // TRUE means we can store an empty adaptation or gloss
+	bOK = StoreText(pKB,pSrcPhrase,temp,TRUE); // TRUE means we want suppression here
+											   // of the CEmptyAdaptDlg
 	wxASSERT(bOK);
 
 	// get a pointer to the target unit for the current key
@@ -18101,6 +18059,7 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 // nor m_targetStr
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 	wxASSERT(pApp != NULL);
 	pApp->m_bForceAsk = FALSE;
 	bool bOK;
@@ -18133,9 +18092,9 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 				{
 					wxString str = _T("<Not In KB>");
 					pSrcPhrase->m_bHasKBEntry = FALSE; // to enable storage
-					//gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
+					gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
 					bOK = StoreText(pKB,pSrcPhrase,str,TRUE); // TRUE = support storing empty adaptation
-					//gbInhibitLine4StrCall = FALSE;
+					gbInhibitLine4StrCall = FALSE;
 					if (!bOK)
 					{
 						// I don't expect any error here, but just in case ...
@@ -18150,10 +18109,57 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 			{
 				return; // nothing to be done
 			}
+
+			// BEW added 24Apr09, for a while a bug allowed m_key to have following
+			// punctuation treated as part of the word, allowing punctuation to get into
+			// the adaptation KB's source text, and a different bug allowed punctuation to
+			// get into the KB in some m_adaption members where punctuation was not
+			// stripped out beforehand. This next code block is a "heal it" block which
+			// detects when punctuation has wrongly got into m_key or m_adaption members,
+			// removes it, and presents puncutation-less strings for storage instead; it
+			// also has two tracking booleans, each of which is TRUE whenever the
+			// associated string has been found to have had punctuation removed herein
+			bool bKeyHasPunct = FALSE;
+			bool bAdaptionHasPunct = FALSE;
+			wxString strCurKey = pSrcPhrase->m_key;
+			wxString strCurAdaption = pSrcPhrase->m_adaption;
+			wxString strKey(strCurKey);
+			wxString strAdaption(strCurAdaption);
+			RemovePunctuation(pDoc,&strKey,0); // 0 means "from source text"
+			RemovePunctuation(pDoc,&strAdaption,1); // 1 means "from target text"
+			if (strKey != strCurKey)
+				bKeyHasPunct = TRUE;
+			if (strAdaption != strCurAdaption)
+				bAdaptionHasPunct = TRUE;
+			// Here is where Bill can put code for a log file, to report where fixes were made
+			if (bKeyHasPunct || bAdaptionHasPunct)
+			{
+				// initialize the log file's entry here
+				;
+				if (bKeyHasPunct)
+				{
+					// compose a substring for log file
+					; 
+				}
+				if (bAdaptionHasPunct)
+				{
+					// extend or begin a substring for log file
+					; 
+				}
+				// finalize the entry here, and add it to the log file
+				;
+			}
+			// ensure a punctuation-less m_key in the CSourcePhrase instance
+			pSrcPhrase->m_key = strKey;
+			// ensure a punctuation-less m_adaption in the CSourcePhrase instance
+			pSrcPhrase->m_adaption = strAdaption;
+
+			// legacy code follows
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
-			//gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
+			gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
 			bool bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_adaption,TRUE); // TRUE = support storing empty adaptation
-			//gbInhibitLine4StrCall = FALSE;
+			gbInhibitLine4StrCall = FALSE;
+
 			if (!bOK)
 			{
 				// I don't expect any error here, but just in case ...
@@ -21542,9 +21548,7 @@ h:				wxMessageBox(_("Sorry, the whole of the selection was not within a section
 			RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
 			if (!gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 			{
-				//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
-				// BEW added next line 27Jan09
-				SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+				gbInhibitLine4StrCall = TRUE; 
 				bool bOK = StoreText(pApp->m_pKB,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				//gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
@@ -34502,8 +34506,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 				bool bOK = FALSE;
 				if (gbIsGlossing)
 				{
-					// BEW added next line 27Jan09
-					SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+
 					//gpApp->m_pActivePile->m_pSrcPhrase->m_gloss = gpApp->m_targetPhrase;
 
 					// see above for why we do this
@@ -34515,9 +34518,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 				}
 				else // is adapting
 				{
-					SetAdaptationOrGloss(gbIsGlossing,gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					//gpApp->m_pActivePile->m_pSrcPhrase->m_adaption = gpApp->m_targetPhrase;
-					//
+
 					MakeLineFourString(gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase); // punctuation is 
 																					// re-expressed
 					RemovePunctuation(pDoc,&gpApp->m_targetPhrase, 1 /*from tgt*/);
