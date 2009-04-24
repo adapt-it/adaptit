@@ -6635,7 +6635,7 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 				// on and the end of it is at the current location (ie. preceding SF escape
 				// character), then we have to put the final punctuation into followPunct
 				// so the caller can do what it has to do with word-final punctuation
-m:				if (bStarted && (wxUint32)(pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
+m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 && pPunctEnd == ptr)
 				{
 					// there is word-final punctuation content to be dealt with
 					// BEW modified 23Feb07; when working in Unicode, UTF-16 characters are
