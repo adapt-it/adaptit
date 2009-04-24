@@ -328,7 +328,6 @@ public:
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
-	void		SetAdaptationOrGloss(bool bIsGlossing, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase); 
 	bool		SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	void		SetupCurrentFreeTransSection(int activeSequNum); // BEW added 24Jun05 for free translation support
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,

@@ -6643,7 +6643,8 @@ m:				if (bStarted && (wxUint32)(pPunctEnd - pPunctStart) > 0 && pPunctEnd == pt
 					// two bytes long, so setting numChars to the pointer difference will
 					// double the correct value; we have to therefore divide by sizeof(wxChar)
 					// to get numChars right in regular and unicode apps
-					int numChars = (int)(pPunctEnd - pPunctStart) / sizeof(wxChar);
+					//int numChars = (int)(pPunctEnd - pPunctStart) / sizeof(wxChar); //bad
+					int numChars = ((int)pPunctEnd - (int)pPunctStart) / sizeof(wxChar);
 					wxString finals(pPunctStart,numChars);
 					followPunct = finals;
 				}
