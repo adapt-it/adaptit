@@ -118,6 +118,7 @@ public:
 	int		Left();
 	int		Top();
 	void	GetPileRect(wxRect& rect);
+	wxRect	GetPileRect(); // overloaded version
 	void	TopLeft(wxPoint& ptTopLeft);
 
 	void	SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
@@ -126,6 +127,8 @@ public:
 	void	SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
 	int		GetMinWidth(); // returns value of m_nMinWidth
 	int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
+	void	SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
+	bool	GetIsCurrentFreeTransSection();
 
 private:
 	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers

@@ -100,16 +100,16 @@ bool gTemporarilySuspendAltBKSP = FALSE; // to enable gbSuppressStoreForAltBacks
 /// immediately after the store is skipped. CTRL+ENTER also can be used for the transliteration.
 bool gbSuppressStoreForAltBackspaceKeypress = FALSE; 
 
-//bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile( ) and the
-	// previous pile may contain a merged phrase with internal punctuation - we don't want the
-	// ReDoPhraseBox( ) call, which normally calls MakeLineFourString( ) to get a punctuated
-	// m_targetStr value set that can be used for measuring the pile width needed for display
-	// of the box, and so result in the PlaceMedialPunctuation dialog being put up an unwanted
-	// couple of times. So we'll use the gbMovingToPreviousPile being set TRUE to skip the call
-	// BEW removed 27Jan09
+bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile( ) and the
+	// previous pile contains a merged phrase with internal punctuation - we don't want the
+	// ReDoPhraseBox( ) call to call MakeLineFourString( ) and so result in the PlaceMedialPunctuation
+	// dialog being put up an unwanted couple of times. So we'll use the gbMovingToPreviousPile being
+	// set to then set the gbInhibitLine4StrCall to TRUE, at start of ReDoPhraseBox( ), and turn it off at
+	// the end of that function. That should fix it.
 
-/// This global is defined in Adapt_ItView.cpp. BEW removed 27Jan09
-//extern bool gbInhibitLine4StrCall; // see view for reason for this
+
+/// This global is defined in Adapt_ItView.cpp.
+extern bool gbInhibitLine4StrCall; // see view for reason for this
 
 // for support of auto-capitalization
 
@@ -198,15 +198,13 @@ bool gbUnmergeJustDone = FALSE; // this is used to inhibit a second unmerge, whe
 					// ChooseTranslation() call within the LookUpSrcWord() call within 
 					// OnButtonRestore(). This is the opposite situatio than for gbSuppressLookup
 					// flag's use (the latter suppresses first unmerge but allows second)
-//bool gbSuppressMergeInMoveToNextPile = FALSE; // if a merge is done in LookAhead() so that the
+bool gbSuppressMergeInMoveToNextPile = FALSE; // if a merge is done in LookAhead() so that the
 					// phrase box can be shown at the correct location when the Choose Translation
 					// dialog has to be put up because of non-unique translations, then on return 
 					// to MoveToNextPile() with an adaptation chosen in the dialog dialog will
 					// come to code for merging (in the case when no dialog was needed), and if 
 					// not suppressed by this flag, a merge of an extra word or words is wrongly
 					// done 
-					// BEW removed 24Mar09 because MoveToNextPile() never needs to do the
-					// merge and so its block for that purpose is now removed
 bool gbSuppressLookup = FALSE; // used to suppress the LookUpSrcWord() call in view's 
 							   // OnButtonRestore() function when unmerging a merged phrase due 
 							   // to Cancel or Cancel And Select being chosen in the Choose 
@@ -516,7 +514,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		// the following function is now smart enough to capitalize m_targetStr in the context
 		// of preceding punctuation, etc, if required. No store done here, of course, since we
 		// are just restoring a <Not In KB> entry.
-		pView->SetAdaptationOrGloss(gbIsGlossing, pCurPile->GetSrcPhrase(), pApp->m_targetPhrase); // BEW added 27Jan09
+		//pView->SetAdaptationOrGloss(gbIsGlossing, pCurPile->GetSrcPhrase(), pApp->m_targetPhrase); // BEW added 27Jan09
 		pView->MakeLineFourString(pSP, pApp->m_targetPhrase);
 }
 
@@ -601,13 +599,13 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	if (gbIsGlossing)
 	{
 		// BEW added next line 27Jan09
-		pView->SetAdaptationOrGloss(gbIsGlossing, pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		//pView->SetAdaptationOrGloss(gbIsGlossing, pOldActiveSrcPhrase, pApp->m_targetPhrase);
 		bOK = pView->StoreText(pApp->m_pGlossingKB, pOldActiveSrcPhrase, pApp->m_targetPhrase);
 	}
 	else
 	{
 		// BEW added next line 27Jan09
-		pView->SetAdaptationOrGloss(gbIsGlossing, pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		//pView->SetAdaptationOrGloss(gbIsGlossing, pOldActiveSrcPhrase, pApp->m_targetPhrase);
 		bOK = pView->StoreText(pApp->m_pKB, pOldActiveSrcPhrase, pApp->m_targetPhrase);
 	}
 
@@ -1259,7 +1257,7 @@ c:	bOK = TRUE;
 		// the m_targetStr member may now have punctuation, so get rid of it
 		// before assigning whatever is left to the m_adaption member
 		wxString strKeyOnly = pOldActiveSrcPhrase->m_targetStr;
-		pView->RemovePunctuation(pDoc,&strKeyOnly,1 /*from tgt*/);
+		pView->RemovePunctuation(pDoc,&strKeyOnly,from_target_text);
 
 		// set the m_adaption member too
 		pOldActiveSrcPhrase->m_adaption = strKeyOnly;
@@ -2071,7 +2069,8 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 
 				// tell the user EOF has been reached
 				// IDS_AT_END
-				wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),_T(""), wxICON_INFORMATION);
+				wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
+				_T(""), wxICON_INFORMATION);
 				wxStatusBar* pStatusBar;
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				if (pFrame != NULL)
@@ -2151,7 +2150,8 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
                 
 				// tell the user EOF has been reached
 				// IDS_AT_END
-				wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."), _T(""), wxICON_INFORMATION);
+				wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
+				_T(""), wxICON_INFORMATION);
 				wxStatusBar* pStatusBar;
 				CMainFrame* pFrame = pApp->GetMainFrame();
 				if (pFrame != NULL)
@@ -3533,11 +3533,9 @@ bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text); // 1 means "remove from tgt text"
 	}
-	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
-	// BEW added next line 27Jan09
-	pView->SetAdaptationOrGloss(gbIsGlossing, pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+	gbInhibitLine4StrCall = TRUE;
 	bOK = pView->StoreTextGoingBack(pView->GetKB(), pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-	//gbInhibitLine4StrCall = FALSE;
+	gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 	{
 		// here, MoveToNextPile() calls DoStore_NormalOrTransliterateModes(), but for MoveToPrevPile()
@@ -3796,7 +3794,8 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 		if (!gbIsGlossing && pFwd->GetSrcPhrase()->m_bRetranslation)
 		{
 			// IDS_NO_ACCESS_TO_RETRANS
-			wxMessageBox(_("Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),
+			_T(""), wxICON_INFORMATION);
 			pApp->m_pTargetBox->SetFocus();
 			GetLayout()->m_docEditOperationType = no_edit_op;
 			return FALSE;
@@ -3834,13 +3833,11 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 	if (!gbIsGlossing)
 	{
 		pView->MakeLineFourString(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text); // 1 means "removed from tgt text"
+		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text);
 	}
-	//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09   & also line further below
-	// BEW added next line 27Jan09
-	pView->SetAdaptationOrGloss(gbIsGlossing, pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+	gbInhibitLine4StrCall = TRUE;
 	bOK = pView->StoreText(pView->GetKB(), pCurPile->GetSrcPhrase(), pApp->m_targetPhrase); 
-	//gbInhibitLine4StrCall = FALSE;
+	gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 	{
 		// restore default button image, and m_bCopySourcePunctuation to TRUE
@@ -4343,7 +4340,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			if (gbIsGlossing)
 			{
 				// IDS_NOT_WHEN_GLOSSING
-				wxMessageBox(_("This particular operation is not available when you are glossing."),_T(""),wxICON_INFORMATION);
+				wxMessageBox(_("This particular operation is not available when you are glossing."),
+				_T(""),wxICON_INFORMATION);
 				return;
 			}
 			pView->UnmergePhrase(); // calls OnButtonRestore() - which will attempt to do a 

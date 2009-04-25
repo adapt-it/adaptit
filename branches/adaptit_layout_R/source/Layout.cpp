@@ -110,6 +110,9 @@ extern wxChar gcharSrcLC;
 /// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcUC;
 
+/// This global is defined in Adapt_It.cpp.
+extern bool gbSuppressSetup;
+
 // globals for support of vertical editing
 
 /// This global is defined in Adapt_It.cpp.
@@ -671,12 +674,14 @@ void CLayout::SetPileAndStripHeight()
 			m_nPileHeight = m_nTgtHeight;
 		}
 	}
-	else // normal adapting or glossing, at least 2 lines (src & tgt) but even if 3, still those two
+	else // normal adapting or glossing, at least 2 lines (src & tgt) but even if 3, 
+		 // still those two
 	{
 		m_nPileHeight = m_nSrcHeight + m_nTgtHeight;
 
-		// we've accounted for source and target lines; now handle possibility of a 3rd line
-		// (note, if 3 lines, target is always one, so we've handled that above already)
+        // we've accounted for source and target lines; now handle possibility of a 3rd
+        // line (note, if 3 lines, target is always one, so we've handled that above
+        // already)
 		if (gbEnableGlossing)
 		{
 			if (gbGlossingUsesNavFont)
@@ -695,17 +700,24 @@ void CLayout::SetPileAndStripHeight()
 			m_nPileHeight += 2; 
 		}
 	} // end of else block
-    // the pile height is now set; so in the stuff below, set the strip height too - it is the
-    // m_nPileHeight value, +/-, depending on whether free translation mode is on or not, the
-    // target text line height plus 3 pixels of separating space from the bottom of the pile
-    // (Note: the m_nCurLeading value, for the navText area, is NOT regarded as part of the strip)
+    // the pile height is now set; so in the stuff below, set the strip height too - it is
+    // the m_nPileHeight value, +/-, depending on whether free translation mode is on or
+    // not, the target text line height plus 3 pixels of separating space from the bottom
+    // of the pile
+    // (Note: the m_nCurLeading value, for the navText area, is NOT regarded as part of 
+    // the strip)
 	m_nStripHeight = m_nPileHeight;
 	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
 	{
-        // add enough space for a single line of the height given by the target text's height + 3
-        // pixels to set it off a bit from the bottom of the pile
+        // add enough space for a single line of the height given by the target text's
+        // height + 3 pixels to set it off a bit from the bottom of the pile
 		m_nStripHeight += m_nTgtHeight + 3;
 	}
+}
+
+int CLayout::GetStripCount()
+{
+	return (int)m_stripArray.GetCount();
 }
 
 PileList* CLayout::GetPileList()
@@ -1119,8 +1131,40 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	// *** TODO 2 *** free translation support - in the legacy code this just involved creating and
 	// storing the free translation rectangle in the m_rectFreeTrans member of the CStrip
 	// instance, but for the refactored design we will need to create this rectangle on the fly
-	// and from a function member, and other changes will be involved no doubt, because in the new
-	// design switching to or from free translation mode will not have RecalcLayout() called
+	// and from a function member, and other changes will be involved no doubt...
+	
+	// if free translation mode is turned on, get the current section
+	// delimited and made visible - but only when not currently printing
+	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
+	{
+		if (!gbSuppressSetup)
+		{
+			m_pView->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
+		}
+		else
+		{
+			// when suppressing, we need the active pile set
+			m_pApp->m_pActivePile = GetPile(m_pApp->m_nActiveSequNum);
+		}
+
+		CMainFrame* pFrame;
+		pFrame = m_pApp->GetMainFrame();
+		wxASSERT(pFrame);
+		wxTextCtrl* pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		pEdit->SetFocus();
+		if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
+		{
+			pEdit->SetSelection(-1,-1); // -1, -1 selects it all
+		}
+		else
+		{
+			int len = pEdit->GetValue().Length(); 
+			if (len > 0)
+			{
+				pEdit->SetSelection(len,len);
+			}
+		}
+	}
 	
 	return TRUE;
 }
@@ -1182,6 +1226,11 @@ CStrip* CLayout::GetStrip(int nSequNum)
 	wxASSERT(pos != NULL);
 	CPile* pPile = pos->GetData();
 	return pPile->m_pOwningStrip;
+}
+
+CStrip* CLayout::GetStripByIndex(int index)
+{
+	return  (CStrip*)m_stripArray[index];
 }
 
 int CLayout::GetVisibleStrips()

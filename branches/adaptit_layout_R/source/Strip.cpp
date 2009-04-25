@@ -124,6 +124,16 @@ wxArrayPtrVoid* CStrip::GetPilesArray()
 	return &m_arrPiles;
 }
 
+int CStrip::GetPileCount()
+{
+	return m_arrPiles.GetCount();
+}
+
+CPile* CStrip::GetPileByIndex(int index)
+{
+	return (CPile*)m_arrPiles.Item(index);
+}
+
 /*
 void CStrip::DestroyPiles()
 {
@@ -879,6 +889,32 @@ void CStrip::GetStripRect_CellsOnly(wxRect& rect)
 	rect.SetLeft(Left());
 	rect.SetWidth(Width());
 	rect.SetHeight(m_pLayout->GetPileHeight());
+}
+
+// this overloaded version is more useful, it can be placed in line with other accessors
+wxRect CStrip::GetStripRect_CellsOnly()
+{
+	wxRect rect;
+	GetStripRect_CellsOnly(rect);
+	return rect;
+}
+
+void CStrip::GetFreeTransRect(wxRect& rect)
+{
+	GetStripRect_CellsOnly(rect);
+	// reset the Top to be 3 pixels below the bottom of the piles of the strip
+	rect.SetTop(rect.GetBottom() + 3);
+	// reset the Bottom to be the target text's height lower than the top
+	rect.SetBottom(rect.GetTop() + m_pLayout->GetTgtTextHeight());
+	// increase the width to be 50% of the RH_SLOP (which is 40) value = 20 pixels more
+	rect.SetWidth(rect.GetWidth() + RH_SLOP / 2);
+}
+
+wxRect CStrip::GetFreeTransRect()
+{
+	wxRect rect;
+	GetFreeTransRect(rect);
+	return rect;
 }
 
 int CStrip::GetStripIndex()

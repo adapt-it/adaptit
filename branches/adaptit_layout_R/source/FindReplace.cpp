@@ -449,9 +449,6 @@ void CFindDlg::DoFindNext()
 					if (pRefStr == NULL && 
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-					// BEW added next line 27Jan09
-					pView->SetAdaptationOrGloss(gbIsGlossing,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					bOK = pView->StoreText(gpApp->m_pGlossingKB,
 								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				}
@@ -463,9 +460,6 @@ void CFindDlg::DoFindNext()
 										gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-					// BEW added next line 27Jan09
-					pView->SetAdaptationOrGloss(gbIsGlossing,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					bOK = pView->StoreText(gpApp->m_pKB,
 								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				}
@@ -1415,9 +1409,6 @@ void CReplaceDlg::DoFindNext()
 					if (pRefStr == NULL && 
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-					// BEW added next line 27Jan09
-					pView->SetAdaptationOrGloss(gbIsGlossing,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					bOK = pView->StoreText(gpApp->m_pGlossingKB,
 								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				}
@@ -1429,9 +1420,6 @@ void CReplaceDlg::DoFindNext()
 										gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
 						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
-					// BEW added next line 27Jan09
-					pView->SetAdaptationOrGloss(gbIsGlossing,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 					bOK = pView->StoreText(gpApp->m_pKB,
 								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
 				}

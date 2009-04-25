@@ -211,7 +211,7 @@ public:
 	void		DoRetranslation();
 	void		DoRetranslationByUpArrow();
 	void		DoStartupWizardOnLaunch();
-	void		DrawFreeTranslations(wxDC* pDC, CSourceBundle* pBundle, enum DrawFTCaller drawFTCaller);
+	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCaller drawFTCaller);
 	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect); // BEW 9Feb09, a copy is now in CCell
 	void		ExtendSelectionForFind(CCell* pAnchorCell, int nCount);
 	bool		ExtendSelectionLeft();
@@ -251,6 +251,7 @@ public:
 	bool		GetSublist(SPList* pSaveList,SPList* pOriginalList,int nBeginSequNum,
 						int nEndSequNum);
 	int			GetSelectionWordCount();
+	CPile*		GetStartingPileForScan(int activeSequNum);
 	void		GetVisibleStrips(int& nFirstStrip,int&nLastStrip);
 	wxString	GetWholeMarkerFromString(wxString mkrStr, int nBeginPos); // whm added 18Oct05
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
@@ -269,7 +270,8 @@ public:
 	void		JumpForwardToNote_CoreCode(int nJumpOffSequNum);
 	//void		LayoutStrip(SPList* pSrcPhrases, int nStripIndex, CSourceBundle* pBundle); //removed 7Apr09
 	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase);
-	void		MakeAllPilesNonCurrent(CSourceBundle* pBundle); // moved here from protected
+	//void		MakeAllPilesNonCurrent(CSourceBundle* pBundle); // moved here from protected
+	void		MakeAllPilesNonCurrent(CLayout* pLayout); // moved here from protected
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray); // BEW added 2Jul05
 	bool		MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxString& wantedEndMkr); // whm added 18Nov05
 	void		MakeLineFourString(CSourcePhrase* pSrcPhrase, wxString targetStr);

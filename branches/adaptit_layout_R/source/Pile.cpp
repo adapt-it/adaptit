@@ -238,6 +238,17 @@ bool CPile::HasFilterMarker()
 	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
 }
 
+void CPile::SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection)
+{
+	m_bIsCurrentFreeTransSection = bIsCurrentFreeTransSection;
+}
+
+bool CPile::GetIsCurrentFreeTransSection()
+{
+	return m_bIsCurrentFreeTransSection;
+}
+
+
 int CPile::Width()
 {
 	// Note: for this calculation to return the correct values in all circumstances, the m_nWidth
@@ -294,6 +305,13 @@ void CPile::GetPileRect(wxRect& rect)
 	rect.SetLeft(Left());
 	rect.SetWidth(Width());
 	rect.SetHeight(m_pLayout->GetPileHeight());
+}
+
+wxRect CPile::GetPileRect()
+{
+	wxRect rect;
+	GetPileRect(rect);
+	return rect;
 }
 
 void CPile::TopLeft(wxPoint& ptTopLeft)

@@ -90,6 +90,11 @@ public:
 	void	SetFree(int nFree);
 	int		GetStripIndex();
 	void	GetStripRect_CellsOnly(wxRect& rect);
+	wxRect	GetStripRect_CellsOnly(); // overloaded version
+	void	GetFreeTransRect(wxRect& rect);
+	wxRect	GetFreeTransRect(); // overloaded version
+	int		GetPileCount();
+	CPile*	GetPileByIndex(int index);
 	wxArrayPtrVoid* GetPilesArray();
 	
 	

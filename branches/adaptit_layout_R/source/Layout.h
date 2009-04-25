@@ -342,13 +342,15 @@ public:
 	CPile*		GetPile(int index);
 	// get the strip index from a passed in sequNumber for a pile in m_pileList
 	int			GetStripIndex(int nSequNum);
-	// get the strip pointer from a passed in sequNumber for a pile in m_pileList
+	// get the strip pointer from a passed in sequNumber for a pile in m_pileList,
+	// or by the index into its storage array
 	CStrip*		GetStrip(int nSequNum);
+	CStrip*		GetStripByIndex(int index);
 	// get the number of visible strips plus an extra one if a non-integral number of
 	// strips fit the window
 	int			GetVisibleStrips();
 	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
-
+	int			GetStripCount(); // return a count of how many strips are in the current layout
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 	// support of user edit actions

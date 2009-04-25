@@ -150,7 +150,7 @@ extern bool gbPropagationNeeded;
 extern TextType gPropagationType;
 
 // This global is defined in Adapt_ItView.cpp.  BEW removed 27Jan09
-//extern bool gbInhibitLine4StrCall; // see view for reason for this
+extern bool gbInhibitLine4StrCall; // see view for reason for this
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbIsUnstructuredData;
@@ -2365,12 +2365,11 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 			if (!gbIsGlossing)
 			{
 				pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-				pView->RemovePunctuation(this,&pApp->m_targetPhrase,1 ); //1 = from tgt
+				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
-			//gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09, and the one 3 lines down
-			pView->SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = TRUE;
 			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-			//gbInhibitLine4StrCall = FALSE;
+			gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
 			{
 				// something is wrong if the store did not work, but we can tolerate the error 
@@ -6844,14 +6843,14 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 				// on and the end of it is at the current location (ie. preceding SF escape
 				// character), then we have to put the final punctuation into followPunct
 				// so the caller can do what it has to do with word-final punctuation
-m:				if (bStarted && (wxUint32)(pPunctEnd - pPunctStart) > 0 && pPunctEnd == ptr)
+m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 && pPunctEnd == ptr)
 				{
 					// there is word-final punctuation content to be dealt with
 					// BEW modified 23Feb07; when working in Unicode, UTF-16 characters are
 					// two bytes long, so setting numChars to the pointer difference will
 					// double the correct value; we have to therefore divide by sizeof(wxChar)
 					// to get numChars right in regular and unicode apps
-					int numChars = (int)(pPunctEnd - pPunctStart) / sizeof(wxChar);
+					int numChars = (int)((wxUint32)pPunctEnd - (wxUint32)pPunctStart) / (wxUint32)sizeof(wxChar);
 					wxString finals(pPunctStart,numChars);
 					followPunct = finals;
 				}
