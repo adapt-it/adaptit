@@ -1,21 +1,19 @@
 [OPTIONS]
 Auto Index=Yes
-Binary TOC=No
-Binary Index=Yes
-Compatibility=1.1
 Compiled file=Adapt_It.chm
 Contents file=Adapt_It.hhc
-Default topic=glossary_of_terms.htm
-Error log file=_errorlog.txt
-Index file=Adapt_It.hhk
-Title=Adapt It Help
-Full-text search=Yes
+Default Window=main
+Default topic=Using_Adapt_It.htm
 Display compile progress=Yes
-Display compile notes=Yes
-Default window=main
+Error log file=_errorlog.txt
+Full-text search=Yes
+Index file=Adapt_It.hhk
+Language=0x409 English (United States)
+Title=Adapt It Help
 
 [WINDOWS]
-main=,"Adapt_It.hhc","Adapt_It.hhk","glossary_of_terms.htm","glossary_of_terms.htm",,,,,0x23520,222,0x1046,[10,10,780,560],0xB0000,,,,,,0
+main=,"Adapt_It.hhc","Adapt_It.hhk","glossary_of_terms.htm","glossary_of_terms.htm",,,,,0x23520,222,0x1046,[10,10,780,560],0xb0000,,,,,,0
+
 
 [FILES]
 Exclude.txt
@@ -648,3 +646,6 @@ Windows_Concepts\Make_Filename_Extensions_Visible.htm
 Windows_Concepts\saving_files_vs_backup.htm
 Windows_Concepts\Standard_Editing_Functions.htm
 Windows_Concepts\Using_Windows_Explorer_with_Adapt_It.htm
+
+[INFOTYPES]
+
