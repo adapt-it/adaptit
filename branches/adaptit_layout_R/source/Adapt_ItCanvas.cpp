@@ -1248,7 +1248,7 @@ t:	if (pCell == NULL)
         // variables too
 		pApp->m_mouse.x = pApp->m_mouse.y = -1;
 	}
-	else
+	else // pCell is not NULL, that is, a cell was clicked on
 	{
 		if (event.ShiftDown())
 		{
@@ -1269,7 +1269,6 @@ t:	if (pCell == NULL)
 
 				// local variables to use in the loops below
 				CPile*	pEndPile;
-				//CSourceBundle* pBundle;
 				CPile*	pCurPile; // the one we use in the loop, starting from pOldSel's pile
 				CStrip* pCurStrip; // the strip the starting pile is in
 				CCell*	pCurCell; // the current cell in the current pile (used in loop)
@@ -1280,7 +1279,6 @@ t:	if (pCell == NULL)
                 // set all the above local variables from pCell and pAnchor (anchor is the
                 // cell first clicked, pCell is the one at the end of the extend or drag)
 				pEndPile = pCell->GetPile();
-				//pBundle = pCell->m_pBundle;
 				pCurPile = pAnchor->GetPile();
 				pCurStrip = pCurPile->GetStrip();
 				nCurPileCount = pCurStrip->GetPileCount();
@@ -1314,7 +1312,8 @@ t:	if (pCell == NULL)
 									wxMessageBox(_(
 "Sorry, but the application will not allow you to extend a selection forwards across any punctuation unless you use a technique for ignoring a boundary as well."),
 									_T(""), wxICON_INFORMATION);
-									goto c;
+									event.Skip();
+									return;
 								}
 							}
 
@@ -1435,7 +1434,8 @@ t:	if (pCell == NULL)
 									wxMessageBox(_(
 "Sorry, it is not possible to extend the selection backwards at this location unless you use one of the methods for ignoring a boundary."),
 									_T(""), wxICON_INFORMATION);
-									goto c;
+									event.Skip();
+									return;
 								}
 							}
 							  
@@ -1536,30 +1536,30 @@ t:	if (pCell == NULL)
 				  // be done
 			} // end block for extending a selection
 		} // end of block for a click with SHIFT key down - for extending selection
-
-
 		else
 		{
 			// SHIFT key is not down
 
             // found the cell, and the shift key is not down, so remove the old selection
             // (or shift key was down, but clicked cell was not on same line of a strip)
-			if (pCell->m_nCellIndex == 2)
+			if (pCell->GetCellIndex() == 1)
 			{
-                // third line - a click here places the phraseBox in that cell clicked,
-                // unless the cell is part of a retranslation
+                // second line - the phrase box's line (always): a click here places the
+                // phraseBox in that cell clicked, unless the cell is part of a
+                // retranslation
 				CPile* pRetrPile = pCell->GetPile();
 				wxASSERT(pRetrPile);
 				if (!gbIsGlossing && pRetrPile->GetSrcPhrase()->m_bRetranslation)
 				{
-                    // make any single pile within a retranslation (other than clicks in
-                    // lines 1 or 2 which cause a selection) inaccessible - user should
+                    // make any single pile within a retranslation (other than a click in
+                    // line 0 which causes a selection) inaccessible - user should
                     // treat a retranslation as a whole, & access it via toolbar buttons
 					if (!pApp->m_bFreeTranslationMode) // BEW added 8Jul05 to allow making 
-                                            // a retranslation pile the anchor location for
-                                            // free translation by a click
+											// a retranslation pile the anchor location for 
+											// a free translation by a click
 					{
 						// IDS_NO_ACCESS_TO_RETRANS
+						::wxBell(); // a ding here might help too
 						wxMessageBox(_(
 "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."),_T(""),
 						wxICON_INFORMATION);
@@ -1590,55 +1590,57 @@ t:	if (pCell == NULL)
 				CPile* pile = NULL;
 
 				// BEW added block 26Jun05 for free translation support
-q:				if (pApp->m_bFreeTranslationMode && gbBundleStartIteratingBack)
+				if (pApp->m_bFreeTranslationMode)
 				{
-                    // the goto for this block is about a hundred lines further down - we
-                    // come back here when we were iterating backwards over piles looking
-                    // for the one which is at the start of the free translation section,
-                    // but encountered the start of the bundle before coming to it - so
-                    // when control gets here a bundle retreat will have been done and here
-                    // we'll continue iterating backwards to find the correct active
-                    // location (the start of the free translation section), and we'll
-                    // place the phrase box there, and then send control to label r to
-                    // clean up with the last operations - as if the user had actually
-                    // clicked at this location - which was impossible since it was outside
-                    // the bundle, but this way we'll have simulated it
+					// get the phrase box to the start of the free translation section if
+					// in one, otherwise where clicked becomes the start of a free
+					// translation section
 					pile = pCell->GetPile();
 					CSourcePhrase* pSP = pile->GetSrcPhrase();
 					wxASSERT(pSP != NULL);
 					while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 					{
-                        // there must be a start earlier one, which is valid, so iterate
-                        // back until it is found (we've done the bundle adjustment which
-                        // should have put the free translation section about the middle of
-                        // the new bundle, so we can be sure we'll find it before
-                        // encountering the start of the new bundle - but beware, small
-                        // bundle sizes might defeat this assumption)
-                        // BEW modified 08Oct05 because, you guessed it, the assumption
-                        // failed. I needed to add code to retreat the bundle.
-						int sn = pSP->m_nSequNumber;
+                        // there must be an earlier one which starts the free translation
+                        // section, so iterate back until it is found; in the refactored
+                        // design (April 2009) iterating back will not find a bundle start
+                        // (there are no bundles anymore), the only possibility is to find
+                        // the free translation section's start - there has to be one
+                        // before the start of the doc is found, though it could be the
+						// first pile of the doc; but we'll test for a malformed doc too
+						// and make a fix as best we can
+						CPile* pOldPile = pile; // keep the one we are leaving in case the
+										// next line gives NULL and so the fix is needed
 						pile = pView->GetPrevPile(pile);
 						if (pile == NULL)
 						{
-							// retreat of bundle needed
-							gbSuppressSetup = TRUE;
-							pApp->m_pActivePile = pView->RetreatBundle(sn);
-							wxASSERT(pApp->m_pActivePile != NULL);
-							pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+                            // went past start of doc! we should find the section start
+                            // before coming to the doc start, (check Split Document
+                            // command - can it split within a free translation section
+                            // without alerting user or helping, and so generate a
+                            // doc-initial partial free trans section with no beginning?
+                            // Assume it can for now...) So, fix the srcPhrase & leave
+                            // phrase box here & return
+							gbSuppressSetup = TRUE; // don't permit reentry at 
+													// RecalcLayout() call
+							pApp->m_nActiveSequNum = 0;
+							CSourcePhrase* pOldSrcPhrase = pOldPile->GetSrcPhrase();
+							pOldSrcPhrase->m_bStartFreeTrans = TRUE; // it didn't have it 
+																	 // set, so do it
+							pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+							pApp->m_pActivePile = pView->GetPile(0);
+							wxASSERT(pApp->m_pActivePile != NULL);							
 
-							// now we've retreated the bundle, permit setup again
-							gbSuppressSetup = FALSE;
-							pile = pApp->m_pActivePile;
+							// now we've located the phrase box, permit setup again
+							gbSuppressSetup = FALSE; // allow reentry again
+							return;
 						}
 						pSP = pile->GetSrcPhrase(); // get the sourcephrase on the previous pile
-					}
-					pCell = pile->m_pCell[2]; // the correct adjusted pCell value at last!
+					} // end of while loop for test: pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans
 
-					gbBundleStartIteratingBack = FALSE; // makes sure we don't get an infinite loop
-					goto r; // jump to the box placement code now we have a valid pCell for the anchor location
-				}
-				if (pApp->m_bFreeTranslationMode)
-				{
+					pCell = pile->GetCell(1); // the correct pCell which is the free
+					// trans anchor for this F.Tr section; or if no free translation
+					// is at the place clicked, this one will become the anchor
+
                     // if about to place the phrase box elsewhere due to a click, and free
                     // translation mode is turned on, we don't want to retain the Compose
                     // Bar's edit box contents, since it will be different at the new
@@ -1649,250 +1651,56 @@ q:				if (pApp->m_bFreeTranslationMode && gbBundleStartIteratingBack)
                     // the place where the box was clicked has free translation text
                     // already - if the latter is true, then the phrase box will be
                     // automatically moved if necessary so that it is placed at the start
-                    // of the clicked free translation section
-					gbSuppressSetup = FALSE; // make sure it is turned back off (in case we 
-							// just used the Lengthen or Shorten buttons which set it TRUE)
+					// of the clicked free translation section
 					wxString tempStr;
 					tempStr.Empty();
 					pEditCompose->SetValue(tempStr); // clear the box
 
-					// make m_bIsCurrentFreeTransSection FALSE on every pile
-					pView->MakeAllPilesNonCurrent(pApp->m_pBundle);
-
-					// determine if pCell needs adjusting
-					pile = pCell->GetPile();
-					CSourcePhrase* pSP = pile->GetSrcPhrase();
-					wxASSERT(pSP != NULL);
-					while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
-					{
-                        // there must be a starting earlier one, which is valid, so iterate
-                        // back until it is found (but take care - it might lie in an
-                        // earlier bundle and the legacy code for OnLButtonDown() is not
-                        // written to handle a pCell instance outside the bundle, so some
-                        // convolutions will be required if we come to the bundle boundary
-                        // while iterating backwards)
-						CPile* pPrevPile = pView->GetPrevPile(pile);
-
-                        // whm 13Sep06 changed test for setting gbBundleStartIteratingBack
-                        // to TRUE to a test if the scroll position is at zero. This
-                        // triggers a bundle retreat earlier, so that the preceding context
-                        // (as provided by ScrollToNearTop) does not disappear when close
-                        // to the beginning of the bundle
-						int yScrollPos = GetScrollPos(wxVERTICAL);
-						if (yScrollPos == 0)
-						{
-                            // we've reached the start of this bundle, which means that the
-                            // starting sourcephrase for this free translation section is
-                            // in an earlier bundle, so make the required adjustments to
-                            // the bundle so we can continue iterating back - we'll make
-                            // two PlacePhraseBox() calls - one at the bundle boundary
-                            // (which will force the bundle adjustment (and uses special
-                            // code in RetreatBundle()), and then cycle through the code
-                            // above till we get to the wanted pile, where we call
-                            // PlacePhraseBox() again and exit
-							gbBundleStartIteratingBack = TRUE; // this global controls the process
-							pApp->m_nActiveSequNum = pile->GetSrcPhrase()->m_nSequNumber;
-							pApp->m_pActivePile = pile;
-							break; // exit loop to allow phrase box placement here
-								   // (the user doesn't see this)
-						}
-						else
-						{
-							// not null, so continue iterating
-							pile = pPrevPile;
-						}
-						pSP = pile->GetSrcPhrase(); // get the sourcephrase on the previous pile
-					}
-					pCell = pile->m_pCell[2]; // the adjusted pCell value (maybe the bundle 
-                            // start one) set the active sequence number to here - any
-                            // adjustments below will require a valid, or temporary
-                            // intermediate, value
 					pApp->m_nActiveSequNum = pile->GetSrcPhrase()->m_nSequNumber;
-				}
+					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 
-				if (gbBundleStartIteratingBack)
-				{
-					#ifdef _Trace_Click_FT
-					TRACE1("Bundle Retreat (iterating back) key: %s\n", pApp->m_targetPhrase);
-					#endif
-					// retreat of bundle needed
-					gbSuppressSetup = TRUE; 
-					pApp->m_pActivePile = pView->RetreatBundle(pApp->m_nActiveSequNum);
-					wxASSERT(pApp->m_pActivePile != NULL);
-					pApp->m_nActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+					// make m_bIsCurrentFreeTransSection FALSE on every pile
+					pView->MakeAllPilesNonCurrent(pLayout);
 
-					// now we've retreated the bundle, permit setup again
-					gbSuppressSetup = FALSE;
+					// the PlacePhraseBox() call calls CLayout::RecalcLayout()
+					pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
+					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+					ScrollIntoView(pApp->m_nActiveSequNum);
+					translation.Empty();
 
-					// calculate the new pCell value
-					pCell = pApp->m_pActivePile->m_pCell[2];
-
-					#ifdef _Trace_Click_FT
-					TRACE0("Entering block at label q\n");
-					#endif
-					goto q;
-				}
+				} // end of block for test: pApp->m_bFreeTranslationMode == TRUE
 				else
 				{
-                    // we found the anchor location without needing to iterate back, or we
-                    // are not in free translation mode & so are ready for the normal
-                    // PlacePhraseBox() call
-					if (pApp->m_bFreeTranslationMode)
+					// not in free translation mode
+					translation.Empty();
+
+					#ifdef _Trace_Click_FT
+					TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
+					#endif
+
+					// if the user has turned on the sending of synchronized scrolling
+					// messages, send the relevant message
+					if (!gbIgnoreScriptureReference_Send)
 					{
-                        // need to make sure we get the phrase box placed right in free
-                        // translation mode after the PlacePhraseBox() call; otherwise we
-                        // can get a displacement vertically; but we don't want this to
-                        // happen here when not in free trans mode
-
-r:						pApp->m_nActiveSequNum = pile->GetSrcPhrase()->m_nSequNumber;
-						pApp->m_pActivePile = pile;
-
-						#ifdef _Trace_Click_FT
-						TRACE1("PlacePhraseBox() next, FT mode; key: %s\n", pApp->m_targetPhrase);
-						#endif
-
-						pView->PlacePhraseBox(pCell,1); // suppress both KB-related code blocks
-
-                        // recreate the phraseBox again (required, since we may have just
-                        // done a PlacePhraseBox() call, & box location may not be quite
-                        // right in vertical dimension
-						#ifdef _Trace_Click_FT
-						TRACE1("RemakePhraseBox() now after PlacePhraseBox(); key: %s\n", m_targetPhrase);
-						#endif
-
-						ScrollIntoView(pApp->m_nActiveSequNum);
-
-						translation.Empty();
-						pApp->m_curIndex = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-						pApp->m_targetPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_key;
-						pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
-
-                        // a recalc is needed here, as box can overwrite adaptations to the
-                        // right of it so, sadly, another call to RemakePhraseBox is
-                        // required. Sigh! Actually this overwriting is quite rare, I
-                        // observed it only when clicking on a merged phrase (hence a long
-                        // box was required) at an earlier location and that merged phrase
-                        // was the anchor location, a not very common set of circumstances.
-                        // Leaving out these next 4 lines of code will permit that benign
-                        // error to occur; it is quite benign, a click on that box will
-                        // rewrite everything and the piles to the right are shifted
-                        // rightwards to accomodate the longish phrase box. But since
-                        // layout recalcs are pretty quick it is nicer to get it right with
-                        // the extra stuff below, though far from elegant computationally.
-						pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
-						pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-						pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-						pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
+						pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pCell->GetPile()->GetSrcPhrase());
 					}
-					else
-					{
-						// not in free translation mode
-						translation.Empty();
 
-						#ifdef _Trace_Click_FT
-						TRACE1("PlacePhraseBox() next, normal mode; key: %s\n", pApp->m_targetPhrase);
-						#endif
-
-						// if the user has turned on the sending of synchronized scrolling
-						// messages, send the relevant message
-						if (!gbIgnoreScriptureReference_Send)
-						{
-							pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pCell->GetPile()->GetSrcPhrase());
-						}
-
-						pView->PlacePhraseBox(pCell); // calls RecalcLayout, so clobbers pointers
-						
-					}
+					pView->PlacePhraseBox(pCell); // calls RecalcLayout()
+					ScrollIntoView(pApp->m_nActiveSequNum);
 				}
 
 				// restore default button image, and m_bCopySourcePunctuation to TRUE
 				wxCommandEvent event;
 				pApp->GetView()->OnButtonEnablePunctCopy(event);
 				
-				// determine whether or not an advance or retreat of the bundle is needed,
-				// and do it if required (ie, click at sequence numbers above m_upperIndex
-				// or lower than m_lowerIndex)
 				CPile* pPile;
 				pPile = pView->GetPile(pApp->m_nActiveSequNum);
-				wxASSERT(pApp->m_nActiveSequNum == pPile->GetSrcPhrase()->m_nSequNumber); // check all is 
-																				// well
-				// set the current box location
-				bool bNeededForAdvance, bNeededForRetreat;
-				// this test is not necessary, but may save a little time
-				if (gbBundleStartIteratingBack)
-				{
-					goto p; 
-				}
-				bNeededForAdvance = pView->NeedBundleAdvance(pApp->m_nActiveSequNum);
-				if (bNeededForAdvance)
-				{
-					#ifdef _Trace_Click_FT
-					TRACE0("Subsequent Bundle Advance\n");
-					#endif
-					// do the advance, return a new (valid) pointer to the active pile
-					pApp->m_pActivePile = pView->AdvanceBundle(pApp->m_nActiveSequNum);
-					wxASSERT(pApp->m_pActivePile != NULL);
-					pApp->m_curIndex = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-					ScrollIntoView(pApp->m_nActiveSequNum);
+				wxASSERT(pApp->m_nActiveSequNum == pPile->GetSrcPhrase()->m_nSequNumber);
 
-					#ifdef _Trace_Click_FT
-					TRACE1("RemakePhraseBox() next, after advance; key: %s\n", pApp->m_targetPhrase);
-					#endif
+				// refresh status info at the bottom of the main window
+				pApp->RefreshStatusBarInfo();
 
-                    // recreate the phraseBox again (required, since we may have just done
-                    // a PlacePhraseBox() call, so the calculated position will now have
-                    // been invalidated by the advance of the bundle.)
-					pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
-					goto d;
-				}
-p:				bNeededForRetreat = pView->NeedBundleRetreat(pApp->m_nActiveSequNum);
-				if (bNeededForRetreat)
-				{
-					#ifdef _Trace_Click_FT
-					TRACE0("Subsequent Bundle Retreat\n");
-					#endif
-					// do the retreat, return a new (valid) pointer to the active pile
-					pApp->m_pActivePile = pView->RetreatBundle(pApp->m_nActiveSequNum);
-					wxASSERT(pApp->m_pActivePile);
-					pApp->m_curIndex = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-					ScrollIntoView(pApp->m_nActiveSequNum);
-
-					#ifdef _Trace_Click_FT
-					TRACE1("RemakePhraseBox() next, after retreat; key: %s\n", pApp->m_targetPhrase);
-					#endif
-
-                    // recreate the phraseBox again (required, since we may have just done
-                    // a PlacePhraseBox() call, so the calculated position will now have
-                    // been invalidated by the retreat of the bundle.)
-					pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
-					goto d;
-				}
-
-				// update status bar with project name and chapter:verse
-d:				pApp->RefreshStatusBarInfo();
-
-				// whm added for wx version
-				// The wx version needs a ScrollIntoView call here for normal
-				// placement of the phrasebox whether or not there was neither a bundle
-				// advance nor bundle retreat.
-				wxASSERT(pApp->m_pActivePile);
-				ScrollIntoView(pApp->m_nActiveSequNum);
-
-				// BEW added 26Jun05 for free translation support
-				if (pApp->m_bFreeTranslationMode && gbBundleStartIteratingBack)
-				{
-					#ifdef _Trace_Click_FT
-					TRACE0("Subsequent, Entering block at label q\n");
-					#endif
-                    // if the second BOOL is TRUE, we have come to the beginning of the
-                    // bundle without finding the start of the free translation section,
-                    // and have just done a temporary phrase box placement at that location
-                    // - now we have to force control to keep iterating back in the new
-                    // bundle and then do the final (correct) phrase box placement - all
-                    // without exiting OnLButtonDown()
-					goto q; // the q label is about a couple of hundred lines above
-
-				}
+				// if we are in free translation mode, there is a bit more to do...
 				if (pApp->m_bFreeTranslationMode)
 				{
                     // put the focus in the compose bar's edit box, select any text there,
@@ -1917,48 +1725,59 @@ d:				pApp->RefreshStatusBarInfo();
 
 					// mark the current section
 					pView->MarkFreeTranslationPilesForColoring(gpCurFreeTransSectionPileArray);
-					if (pApp->m_nActiveSequNum >= 0 && pApp->m_nActiveSequNum <= pApp->m_maxIndex)
+					if (pApp->m_nActiveSequNum >= 0 && 
+											pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
+					{
 						ScrollIntoView(pApp->m_nActiveSequNum);
-				}
-
+					}
+				} // end of block for test: pApp->m_bFreeTranslationMode
 				return;
-			}
-			if (pCell->m_nCellIndex == 3)
-				return; // prevent clicks in 4th lines selecting or doing anything
 
-b:			if (pApp->m_selection.GetCount() != 0)
+			} // end block for test: pCell->GetCellIndex() == 1
+			if (pCell->GetCellIndex() == 2)
 			{
-				CCellList::Node* pos = pApp->m_selection.GetFirst();
-				CCell* pOldSel;
-				while (pos != NULL)
-				{
-					pOldSel = (CCell*)pos->GetData();
-					pos = pos->GetNext();
-					aDC.SetBackgroundMode(pApp->m_backgroundMode);
-					aDC.SetTextBackground(wxColour(255,255,255)); // white
-					pOldSel->DrawCell(&aDC);
-					pOldSel->m_bSelected = FALSE;
-				}
-				pApp->m_selection.Clear();
-				pApp->m_selectionLine = -1; // no selection
-				pApp->m_pAnchor = NULL;
+				return; // prevent clicks in bottom line of piles selecting or doing anything
 			}
 
-			// then do the new selection
-a:			pApp->m_bSelectByArrowKey = FALSE;
-			aDC.SetBackgroundMode(pApp->m_backgroundMode);
-			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-			pCell->DrawCell(&aDC);
-			pCell->m_bSelected = TRUE;
+			// if it's none of the above things, then just a plain old click for making a 
+			// selection... so clear the old selection, then make a new one
+			if (pCell->GetCellIndex() == 0)
+			{
+b:				if (pApp->m_selection.GetCount() != 0)
+				{
+					CCellList::Node* pos = pApp->m_selection.GetFirst();
+					CCell* pOldSel;
+					while (pos != NULL)
+					{
+						pOldSel = (CCell*)pos->GetData();
+						pos = pos->GetNext();
+						aDC.SetBackgroundMode(pApp->m_backgroundMode);
+						aDC.SetTextBackground(wxColour(255,255,255)); // white
+						pOldSel->DrawCell(&aDC, pLayout->GetSrcColor());
+						pOldSel->SetSelected(FALSE);
+					}
+					pApp->m_selection.Clear();
+					pApp->m_selectionLine = -1; // no selection
+					pApp->m_pAnchor = NULL;
+				}
 
-			// preserve record of the selection
-			pApp->m_selection.Append(pCell);
-			pApp->m_selectionLine = pCell->m_nCellIndex;
-			pApp->m_pAnchor = pCell;
-		}
-	}
+				// then do the new selection
+a:				pApp->m_bSelectByArrowKey = FALSE;
+				aDC.SetBackgroundMode(pApp->m_backgroundMode);
+				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+				pCell->DrawCell(&aDC, pLayout->GetSrcColor());
+				pCell->SetSelected(TRUE);
 
-c:	event.Skip(); //CScrollView::OnLButtonDown(nFlags, point);
+				// preserve record of the selection
+				pApp->m_selection.Append(pCell);
+				pApp->m_selectionLine = pCell->GetCellIndex();
+				pApp->m_pAnchor = pCell;
+			} //end of block for test: pCell->GetCellIndex() == 0
+
+		} // end of else block for test: event.ShiftDown() == TRUE
+	} // end of else block for test: pCell == NULL, i.e. pCell not null 
+
+	event.Skip();
 }
 
 void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
@@ -1976,6 +1795,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
     // call removes the selection.
 
 	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->m_pLayout;
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
@@ -2040,7 +1860,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 			}
 		}
 
-		if (pCell == NULL || pApp->m_selectionLine != pCell->m_nCellIndex)
+		if (pCell == NULL || pApp->m_selectionLine != pCell->GetCellIndex())
 		{
             // oops, we missed a cell, or are in wrong line, so we have to clobber any
             // existing selection
@@ -2098,8 +1918,8 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 				aDC.SetBackgroundMode(pApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 				pApp->m_bSelectByArrowKey = FALSE;
-				pCell->DrawCell(&aDC);
-				pCell->m_bSelected = TRUE;
+				pCell->DrawCell(&aDC, pLayout->GetSrcColor());
+				pCell->SetSelected(TRUE);
 
 				// preserve record of the selection
 				if (pApp->m_curDirection == right)
@@ -2303,11 +2123,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 // calling pFrame->GetClientRect; the client rect should be determined by calling
 // pView->GetClientRect which would eliminate the need for nWindowHeightReduction kluge.
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	CLayout* pLayout = pApp->m_pLayout;
 	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
 	if (!debugDisableScrollIntoView)
 	{
-		CAdapt_ItApp* pApp = &wxGetApp();
-		wxASSERT(pApp != NULL);
 		CAdapt_ItView* pView = pApp->GetView();
 
 #ifdef _LOG_DEBUG_SCROLLING
@@ -2328,9 +2149,24 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		wxLogDebug(trace);
 #endif
 
-		wxRect rectPile = pPile->GetPileRect(); // in logical coords (pixels) from doc/bundle start
-		CStrip* pStrip = pPile->m_pStrip;
-		wxRect rectStrip = pStrip->m_rectStrip; // in logical coords (pixels) from doc/bundle start
+		//wxRect rectPile = pPile->GetPileRect(); // in logical coords (pixels) 
+		//                                        // from doc/bundle start
+        // BEW 26Apr09, for refactored view code: get the pile's rect, in logical coords
+        // (pixels) from doc/bundle start; but note: in the legacy app, the pile rectangle
+        // had the height of the free trans line plus 3 extra pixels vertically; and in the
+        // new code, the pile rectangle only encompasses the height of the CCell instances;
+        // so I will use that and add the extra pixels to the height to get the equivalent
+        // to what was in the legacy app - so that Bill's arithmentic is not messed below
+        // up by me using the wrong rectPile height; similarly, a compatibility function,
+        // GetStripRect() is needed to get the same strip rectangle as in the legacy app 
+        // (the calcs are in logical coords (pixels) from doc/bundle start)
+		//wxRect rectPile = pPile->GetPileRect();
+		//rectPile.SetHeight(rectPile.GetHeight() + 3 + pLayout->GetTgtTextHeight());
+		CStrip* pStrip = pPile->GetStrip();
+		wxRect rectStrip = pStrip->GetStripRect();
+		//rectStrip.SetTop(rectStrip.GetTop() - pLayout->GetCurLeading()); // unneeded
+		// ******* CHECK THE ABOVE ASSUMPTIONS, OR CHECK BY TESTING SCROLLING ******
+		// (searching for "m_rectStrip = in CAdapt_ItView.cpp confirms the assumptions)
 
 #ifdef _LOG_DEBUG_SCROLLING
 		int nStripIndex = pStrip->m_nStripIndex; // index of strip where phrasebox is
@@ -2373,9 +2209,18 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
         // scrolling so that the active strip is at the top (which hides preceding context
         // and so is a nuisance), we will scroll to somewhere a little past the window
         // center (so as to show more, rather than less, of any automatic inserted material
-        // which may have background highlighting turned on)
+        // which may have background highlighting turned on)...
+        
+		// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
+		// in free translation mode) in the m_curPileHeight value; the refactored design
+		// doesn't so I'll have to add them here
 		int nWindowDepth = visRect.GetHeight();
-		int nStripHeight = pApp->m_curPileHeight + pApp->m_curLeading;
+		//int nStripHeight = pApp->m_curPileHeight + pApp->m_curLeading;
+		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
+		if (pApp->m_bFreeTranslationMode)
+		{
+			nStripHeight += 3 + pLayout->GetTgtTextHeight();
+		}
 		int nVisStrips = nWindowDepth / nStripHeight;
 		
 
@@ -2919,6 +2764,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	CLayout* pLayout = pApp->m_pLayout;
 	wxPoint scrollPos;
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
@@ -2963,6 +2809,16 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	visRect.width = canvasSize.x;
 	visRect.height = canvasSize.y;
 
+	// make adjustment due to fact that some parameters values are calculated differently
+	// in the refactored application
+	int nCurrentPileHeight = pLayout->GetPileHeight();
+	if (pApp->m_bFreeTranslationMode)
+	{
+		// the legacy app included the 3 pixels and tgt text height in the 
+		// m_curPileHeight calculation
+		nCurrentPileHeight += 3 + pLayout->GetTgtTextHeight();
+	}
+
 	// calculate the window depth
 	int yDist = 0;
 	int nLimit = GetScrollRange(wxVERTICAL);
@@ -2987,7 +2843,8 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	int nMaxDist = nLimit - scrollPos.y;
 
 	// do the vertical scroll asked for
-	yDist = pApp->m_curPileHeight + pApp->m_curLeading;
+	//yDist = pApp->m_curPileHeight + pApp->m_curLeading;
+	yDist = nCurrentPileHeight + pLayout->GetCurLeading();
 	yDist *= nStrips;
 
 	if (yDist > nMaxDist)
@@ -3041,6 +2898,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+	CLayout* pLayout = pApp->m_pLayout;
 	wxPoint scrollPos; 
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
@@ -3079,8 +2937,19 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	int yDist;
 	int nMaxDist = scrollPos.y;
 
+	// make adjustment due to fact that some parameters values are calculated differently
+	// in the refactored application
+	int nCurrentPileHeight = pLayout->GetPileHeight();
+	if (pApp->m_bFreeTranslationMode)
+	{
+		// the legacy app included the 3 pixels and tgt text height in the 
+		// m_curPileHeight calculation
+		nCurrentPileHeight += 3 + pLayout->GetTgtTextHeight();
+	}
+
 	// do the vertical scroll asked for
-	yDist = pApp->m_curPileHeight + pApp->m_curLeading;
+	//yDist = pApp->m_curPileHeight + pApp->m_curLeading;
+	yDist = nCurrentPileHeight + pLayout->GetCurLeading();
 	yDist *= nStrips;
 
 	if (yDist > nMaxDist)

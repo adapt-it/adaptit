@@ -178,8 +178,8 @@ extern bool gbMovingToPreviousPile;
 
 // extern declarations for free translation support (whm moved these to the app)
 
-// / This global is defined in Adapt_It.cpp.
-extern bool		gbBundleStartIteratingBack; // default FALSE, TRUE if pile pointer is NULL on GetPrevPile() call
+// / This global is defined in Adapt_It.cpp. BEW removed 26Apr09
+//extern bool		gbBundleStartIteratingBack; // default FALSE, TRUE if pile pointer is NULL on GetPrevPile() call
 
 // / This global is defined in Adapt_It.cpp.
 extern int			gnOffsetInMarkersStr; // offset to current free translation string in pSrcPhrase->m_markers

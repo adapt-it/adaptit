@@ -899,6 +899,16 @@ wxRect CStrip::GetStripRect_CellsOnly()
 	return rect;
 }
 
+// this rectangle gives the same topLeft, width and height as in the legacy (ie.
+// pre-refactoring) version -- we need this to avoid having to tweak the scroll calculations
+wxRect CStrip::GetStripRect()
+{
+	wxRect rect;
+	GetStripRect_CellsOnly(rect);
+	rect.SetHeight(rect.GetHeight() + 3 + m_pLayout->m_nTgtHeight);
+	return rect;
+}
+
 void CStrip::GetFreeTransRect(wxRect& rect)
 {
 	GetStripRect_CellsOnly(rect);

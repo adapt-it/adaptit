@@ -91,6 +91,9 @@ public:
 	int		GetStripIndex();
 	void	GetStripRect_CellsOnly(wxRect& rect);
 	wxRect	GetStripRect_CellsOnly(); // overloaded version
+	wxRect	GetStripRect(); // includes the free translation area if in free trans mode
+							// (this one is to give backwards compatibility to pre-refactored
+							// version calculations for scrolling)
 	void	GetFreeTransRect(wxRect& rect);
 	wxRect	GetFreeTransRect(); // overloaded version
 	int		GetPileCount();
