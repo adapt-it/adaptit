@@ -233,7 +233,7 @@ public:
 	void		JumpBackwardToNote_CoreCode(int nJumpOffSequNum);
 	void		JumpForwardToNote_CoreCode(int nJumpOffSequNum);
 	void		LayoutStrip(SPList* pSrcPhrases, int nStripIndex, CSourceBundle* pBundle);
-	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase);
+	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr);
 	void		MakeAllPilesNonCurrent(CSourceBundle* pBundle); // moved here from protected
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray); // BEW added 2Jul05
 	bool		MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxString& wantedEndMkr); // whm added 18Nov05
