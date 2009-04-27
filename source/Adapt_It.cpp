@@ -12069,7 +12069,30 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 	CAdapt_ItView* pView = GetView();
 	wxASSERT(pDoc);
 	wxASSERT(pView);
+
+	// variables below added by whm 27Apr09 for reporting errors in docs used for KB restore
+	bool bAnyDocChanged;
+	bAnyDocChanged = FALSE;
+	wxArrayString errors; // for use by KBRestoreErrorLog file
+	wxArrayString docIntros; // for use by KBRestoreErrorLog file
+	wxString errorStr;
+	wxString logName = _T("KBRestoreErrorLog.txt");
 	
+    // The error is not likely to have happend much, and the document text itself was not
+    // changed, so an English message in the log file should suffice.
+    errors.Clear();
+	wxDateTime theTime = wxDateTime::Now();
+	wxString dateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
+    wxString logFileTime;
+	logFileTime = logFileTime.Format(_T("This is the %s file - created %s."),logName.c_str(),dateTime.c_str());
+	errors.Add(logFileTime);
+	errors.Add(_T("\n\nDuring the KB Restore operation, punctuation errors were found and corrected in the KB,"));
+	errors.Add(_T("\nand changes were made to the punctuation stored in one or more documents used to restore the KB."));
+	errors.Add(_T("\nPlease Note the Following:")); 
+	errors.Add(_T("\n* You should no longer notice any punctuation in KB entries when viewed with the KB Editor.")); 
+	errors.Add(_T("\n* With punctuation purged from the KB Adapt It should handle punctuation in your documents as you expect.")); 
+	errors.Add(_T("\n* You may wish to open the document(s) below in Adapt It and check the punctuation for the items listed.")); 
+	errors.Add(_T("\n\n   In the following document(s) punctuation was removed from non-punctuation fields (see below):")); 
 	// iterate over the document files
 	int i;
 	for (i=0; i < nCount; i++)
@@ -12086,6 +12109,13 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 		// so we can do this like MFC has it.
 		pDoc->SetFilename(newName,TRUE); // here TRUE means "notify the views" whereas
 		// in the MFC version TRUE meant "add to MRU list"
+		
+		// Prepare an intro string for this document in case it has errors.
+		errors.Add(_T("\n   ----------------------------------------"));
+		// which had been wrongly stored there by a previous version of Adapt
+		wxString docStr;
+		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
+		errors.Add(docStr);
 
 		nTotal = m_pSourcePhrases->GetCount();
 		wxASSERT(nTotal > 0);
@@ -12123,6 +12153,7 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 		SPList* pPhrases = m_pSourcePhrases;
 		SPList::Node* pos1 = pPhrases->GetFirst();
 		int counter = 0;
+		bool bThisDocChanged = FALSE;
 		while (pos1 != NULL)
 		{
 			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
@@ -12130,7 +12161,14 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 			counter++;
 
 			// update the glossing or adapting KB for this source phrase
-			pView->RedoStorage(pKB,pSrcPhrase);
+			pView->RedoStorage(pKB,pSrcPhrase,errorStr);
+			if (!errorStr.IsEmpty())
+			{
+				// an error was detected (punctuation in non-punctuation field of doc)
+				bThisDocChanged = TRUE;
+				errors.Add(errorStr);
+				errorStr.Empty(); // for next iteration
+			}
 
 #ifdef __WXMSW__
 			// update the progress bar every 20th iteration
@@ -12140,6 +12178,18 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 				progDlg.Update(counter,msgDisplayed);
 			}
 #endif
+		}
+		// whm added 27Apr09 to save any changes made by RedoStorage above
+		if (bThisDocChanged)
+		{
+			bAnyDocChanged = TRUE;
+			// Save the current document before proceeding
+			wxCommandEvent evt;
+			pDoc->OnFileSave(evt);
+		}
+		else
+		{
+			errors.Add(_T("\n      * No changes were made in this file! *"));
 		}
 
 		GetView()->ClobberDocument();
@@ -12167,6 +12217,32 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 									wxICON_INFORMATION);
 		}
 	}
+	if (bAnyDocChanged)
+	{
+		// The wxArrayString errors contains all the text to be written to the log file
+		errors.Add(_T("\n\nEnd of log."));
+		// Write out errors to external log file.
+		bool bOK;
+		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
+		// Note: Since we want a text file output, we'll use wxTextOutputStream which
+		// writes text files as a stream on DOS, Windows, Macintosh and Unix in their native 
+		// formats (concerning their line endings)
+		wxFileOutputStream output(logName);
+		wxTextOutputStream cout(output);
+
+		// Write out the contents of the errors array dumping it to the wxTextOutputStream.
+		int ct;
+		for (ct = 0; ct < (int)errors.GetCount(); ct++)
+		{
+			// The wxArrayString errors contains the boiler text composed above plus the individual errorStr strings received from
+			// RedoStorage().
+			cout << errors.Item(ct);
+		}
+		wxString msg;
+		msg = msg.Format(_("Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),logName.c_str());
+		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
+	}
+	errors.Clear(); // clear the array
 
 }
 

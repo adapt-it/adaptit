@@ -18021,11 +18021,12 @@ void CAdapt_ItView::OnUpdateButtonToggleTargetLines(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
+void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr)
 // Modified for support of glossing KB as well as adapting KB. The caller must send the
 // correct KB pointer in the first parameter.
 // BEW 27Jan09 comment: StoreText() no longer unnecessarily sets m_adaption or m_gloss,
 // nor m_targetStr
+// whm modified 27Apr09 to report errors of punctuation existing in documents discovered during KB Restore
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -18100,20 +18101,38 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 				bKeyHasPunct = TRUE;
 			if (strAdaption != strCurAdaption)
 				bAdaptionHasPunct = TRUE;
-			// Here is where Bill can put code for a log file, to report where fixes were made
+			// Construct an errorStr for a log file, to report where fixes were made. This errorStr is
+			// passed back to the caller DoKBRestore() where log file is written out to disk.
 			if (bKeyHasPunct || bAdaptionHasPunct)
 			{
 				// initialize the log file's entry here
-				;
+				// whm note: For each given document used in the KB Restore where a correction was
+				// made, the following string is added (in the caller) to introduce the change in the
+				// log file:
+				//errorStr = _T("During the KB Restore, a correction involving punctuation was made to the KB and the following document:\n   %s\n   Punctuation was removed (see below) which had been wrongly stored by a previous version of Adapt It.");
 				if (bKeyHasPunct)
 				{
 					// compose a substring for log file
-					; 
+					errorStr += _T("\n      ");
+					errorStr += _T("\"");
+					errorStr += strCurKey;
+					errorStr += _T("\"");
+					errorStr += _T(" was changed to ");
+					errorStr += _T("\"");
+					errorStr += strKey;
+					errorStr += _T("\"");
 				}
 				if (bAdaptionHasPunct)
 				{
 					// extend or begin a substring for log file
-					; 
+					errorStr += _T("\n      ");
+					errorStr += _T("\"");
+					errorStr += strCurAdaption;
+					errorStr += _T("\"");
+					errorStr += _T(" was changed to ");
+					errorStr += _T("\"");
+					errorStr += strAdaption;
+					errorStr += _T("\"");
 				}
 				// finalize the entry here, and add it to the log file
 				;
