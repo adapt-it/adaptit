@@ -18497,11 +18497,13 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event) 
 {
-    // comment out the message below and remove the return statement, after implementation of the
-    // "Change Location of Adapt It Work Folder..." command on Advanced menu
+    // comment out the message below and remove the return statement and commented block below, after
+    // implementation of the "Change Location of Adapt It Work Folder..." command on Advanced menu
+    int junk;
+	junk = event.GetInt(); // to avoid warning
 	wxMessageBox(_T("Sorry, this menu item is not yet implemented in this version of Adapt It.\nIt is being developed for a future version update."),_T(""),wxICON_INFORMATION);
 	return;
-
+/*
 	//CAdapt_ItView* pView = GetView();
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	wxASSERT(pFrame != NULL);
@@ -18567,6 +18569,7 @@ void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event)
 		wxMessageBox(_("The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
 				_T(""), wxICON_EXCLAMATION);
 	}
+	*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
