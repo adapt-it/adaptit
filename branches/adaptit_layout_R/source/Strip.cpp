@@ -97,6 +97,15 @@ CStrip::CStrip()
 	*/
 }
 
+CStrip::CStrip(CLayout* pLayout)
+{
+	wxASSERT(pLayout != NULL);
+	m_pLayout = pLayout;
+	m_nFree = -1;
+	m_nStrip = -1;
+	m_bFilled = FALSE;
+}
+
 //CStrip::CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle) // BEW deprecated 3Feb09
 /*
 CStrip::CStrip(CSourceBundle* pSourceBundle)
@@ -293,8 +302,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 		{
 			pileWidth = pPile->m_nMinWidth;
 		}
-		m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
-		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromRight; // store offset to left boundary
+		m_arrPiles.Add(pPile); // store it
+		m_arrPileOffsets.Add(nHorzOffset_FromRight); // store offset to right boundary
 		m_nFree -= pileWidth; // reduce the free space accordingly
 		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 
@@ -318,14 +327,14 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 			pPile = (CPile*)pos->GetData();
 			wxASSERT(pPile != NULL);
 
-			// break out of the loop without including this pile in the strip if it is a
-			// non-initial pile which contains a marker in its pointed at pSrcPhrase which is a
-			// wrap marker for text (we want strips to wrap too, provided the view menu item has
-			// that feature turned on)
+            // break out of the loop without including this pile in the strip if it is a
+            // non-initial pile which contains a marker in its pointed at pSrcPhrase which
+            // is a wrap marker for text (we want strips to wrap too, provided the view
+            // menu item has that feature turned on)
 			if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
 			{
 				bool bCausesWrap = pPile->IsWrapPile();
-				if (bCausesWrap)
+				if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
 				{
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
@@ -335,13 +344,14 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 				}
 			}
 
-			// if control gets to here, the pile is a potential candidate for inclusion in this
-			// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
+            // if control gets to here, the pile is a potential candidate for inclusion in
+            // this strip, so work out if it will fit - and if it does, add it to the
+            // m_arrPiles, etc
 			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
-				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-											 // to accomodate the phrase box's width, even if just
-											 // expanded due to the user's typing
+				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
+                                // large enough to accomodate the phrase box's width, even
+                                // if just expanded due to the user's typing
 			}
 			else
 			{
@@ -352,8 +362,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 			if (nCurrentSpan <= m_nFree)
 			{
 				// this pile will fit in the strip, so add it
-				m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
-				m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromRight; // store offset to left boundary
+				m_arrPiles.Add(pPile); // store it
+				m_arrPileOffsets.Add(nHorzOffset_FromRight); // store offset to right boundary
 				m_nFree -= nCurrentSpan; // reduce the free space accordingly
 				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 			}
@@ -384,22 +394,23 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 		int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
 		int nWidthOfPreviousPile = 0;
 		
-        // we must always have at least one pile in the strip in order to prevent an infinite
-        // loop of empty strips if the width of the first pile should happen to exceed the
-        // strip's width; so we place the first unilaterally, regardless of its width
+        // we must always have at least one pile in the strip in order to prevent an
+        // infinite loop of empty strips if the width of the first pile should happen to
+        // exceed the strip's width; so we place the first unilaterally, regardless of its
+        // width
 		pPile = (CPile*)pos->GetData();
 		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
-			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
-										 // to accomodate the phrase box's width, even if just
-										 // expanded due to the user's typing
+			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
+                    // large enough to accomodate the phrase box's width, even if just
+                    // expanded due to the user's typing
 		}
 		else
 		{
 			pileWidth = pPile->m_nMinWidth;
 		}
-		m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
-		m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromLeft; // store offset to left boundary
+		m_arrPiles.Add(pPile); // store it
+		m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
 		m_nFree -= pileWidth; // reduce the free space accordingly
 		pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 
@@ -430,7 +441,9 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 			if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
 			{
 				bool bCausesWrap = pPile->IsWrapPile();
-				if (bCausesWrap)
+				// do the wrap only if it is a wrap marker and we have not just deal with
+				// a document-initial marker, such as \id
+				if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
 				{
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
@@ -457,8 +470,8 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 			if (nCurrentSpan <= m_nFree)
 			{
 				// this pile will fit in the strip, so add it
-				m_arrPiles[pileIndex_InStrip] = (void*)pPile; // store it
-				m_arrPileOffsets[pileIndex_InStrip] = nHorzOffset_FromLeft; // store offset to left boundary
+				m_arrPiles.Add(pPile); // store it
+				m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
 				m_nFree -= nCurrentSpan; // reduce the free space accordingly
 				pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
 			}
@@ -493,18 +506,18 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 }
 
 /* legacy code for CreateStrip...*** DON'T REMOVE THIS CODE UNTIL ALL FUNCTIONS ARE WORKING *** (free trans support is here)
-// MFC Note: returns the nVertOffset value for the strip, if it creates it, or -1 if it doesn't get created
-// nVertOffset will be +ve for MM_Text mapping mode, and -ve for other modes, such as MM_LOENGLISH
-// the global flag gbIsPrinting selects which will be the case, TRUE for a y axis increasing
-// upwards pDC will be set to MM_LOENGLISH if the gbIsPrinting flag is true, else it will be
-// MM_TEXT.
+// MFC Note: returns the nVertOffset value for the strip, if it creates it, or -1 if it
+// doesn't get created nVertOffset will be +ve for MM_Text mapping mode, and -ve for other
+// modes, such as MM_LOENGLISH the global flag gbIsPrinting selects which will be the case,
+// TRUE for a y axis increasing upwards pDC will be set to MM_LOENGLISH if the gbIsPrinting
+// flag is true, else it will be MM_TEXT.
 // 
-// whm Note: CreateStrip returns positive offsets even when printing, and in the wx version we always
-// use wxMM_TEXT map mode.
+// whm Note: CreateStrip returns positive offsets even when printing, and in the wx version
+// we always use wxMM_TEXT map mode.
 // 
-// BEW 12Jul05 - I don't think WYSIWYG printing of the free translation mode display is worth the
-// bother - the user should get it with the interlinear export option instead, so I'll suppress
-// free translation support in CreateStrip if gbIsPrinting is TRUE.
+// BEW 12Jul05 - I don't think WYSIWYG printing of the free translation mode display is
+// worth the bother - the user should get it with the interlinear export option instead, so
+// I'll suppress free translation support in CreateStrip if gbIsPrinting is TRUE.
 {
 	wxASSERT(nLastSequNumber >= -1);
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -528,9 +541,9 @@ PileList::Node* CStrip::CreateStrip(PileList::Node* pos, int nStripWidth, int ga
 		// Unicode version, and Right to Left layout is wanted
 
 		// calculate the strip's rectangle
-		// wx note: the wx version does not use negative offsets, but uses the same code whether
-		// gbIsPrinting is TRUE or FALSE. Also when creating a wxRect from two points, the constructor
-		// normalizes the wxRect.
+        // wx note: the wx version does not use negative offsets, but uses the same code
+        // whether gbIsPrinting is TRUE or FALSE. Also when creating a wxRect from two
+        // points, the constructor normalizes the wxRect.
 		topLeft = wxPoint(0, nVertOffset + pApp->m_curLeading);
 		botRight = wxPoint(pApp->m_docSize.GetWidth() - pApp->m_curLMargin,
 											topLeft.y + pApp->m_curPileHeight);

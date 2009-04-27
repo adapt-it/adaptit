@@ -51,7 +51,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItCanvas.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "Cell.h"
 #include "Pile.h"
 #include "Strip.h"

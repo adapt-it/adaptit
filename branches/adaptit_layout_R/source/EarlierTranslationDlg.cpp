@@ -542,7 +542,7 @@ void CEarlierTranslationDlg::OnCloseAndJump(wxCommandEvent& event)
 	wxCommandEvent Okevent = wxID_OK;
 	OnOK(event);	// get rid of the dialog - calls destroy and deletes gpApp->m_pEarlierTransDlg pointer
 
-	m_pView->Jump(pApp,pPile->m_pSrcPhrase);
+	m_pView->Jump(pApp,pPile->GetSrcPhrase());
 }
 
 void CEarlierTranslationDlg::OnShowMoreContext(wxCommandEvent& WXUNUSED(event)) 

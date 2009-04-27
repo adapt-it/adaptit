@@ -75,7 +75,7 @@
 #include "helpers.h"
 #include "EditPreferencesDlg.h" 
 #include "KB.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "SourcePhrase.h"
 #include "Strip.h"
 #include "Pile.h"
@@ -125,6 +125,11 @@ bool gbLegacySourceTextCopy = FALSE; // BEW added 16July08 at Roland Fumey's req
 //#define IDW_TARGET_EDITBOX 1001
 
 // Globals
+
+// next global is for passing to SetupCursorGlobals()'s third parameter, for box_cursor
+// enum value of cursor_at_offset
+int gnBoxCursorOffset = 0;
+
 extern wxDynamicLibrary ecDriverDynamicLibrary;
 extern const wxChar *FUNC_NAME_EC_INITIALIZE_CONVERTER_AW;
 extern const wxChar *FUNC_NAME_EC_IS_INSTALLED;
@@ -2194,7 +2199,8 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
 	int charWidth;
 	int charDummyHeight;
 	pDC->GetTextExtent(aChar,&charWidth,&charDummyHeight);
-	pileWidth += gnExpandBox*charWidth; // allow same slop factor as for RemakePhraseBox & OnChar
+	pileWidth += gnExpandBox*charWidth; // allow same slop factor as for 
+										// RemakePhraseBox & OnChar
 	dc.SetFont(SaveFont); // restore original font, don't need wxClientDC any more
 	return pileWidth;
 }
@@ -2204,9 +2210,9 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't be thrown away if
-						  // user subsequently clicks to place box elsewhere without doing anything
-						  // in the phrase box first
+	gbByCopyOnly = FALSE; // set this flag FALSE, so text put in the box won't
+                    // be thrown away if user subsequently clicks to place box elsewhere
+                    // without doing anything in the phrase box first
 	wxString pasteStr;
 
 	// In wx we'll use the clipboard GetData function directly
@@ -2221,15 +2227,17 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		wxTheClipboard->Close();
 	}
 
-	// if consistent changes is turned on, the user must be given the option of having the
-	// changes applied or not applied, since we cannot assume that the text to be pasted was
-	// not copied from source text (if it was, the changes should be applied)
+    // if consistent changes is turned on, the user must be given the option of having the
+    // changes applied or not applied, since we cannot assume that the text to be pasted
+    // was not copied from source text (if it was, the changes should be applied)
 	wxString insertionText = pasteStr;
-	wxASSERT( !(pApp->m_bUseConsistentChanges && pApp->m_bUseSilConverter) ); // can't be both TRUE
+	wxASSERT( !(pApp->m_bUseConsistentChanges && pApp->m_bUseSilConverter) ); // not both TRUE
 	if (pApp->m_bUseConsistentChanges)
     {
 		//IDS_ASK_USE_CC
-        if( wxMessageBox(_("Do you wish consistent changes to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
+        if( wxMessageBox(_(
+"Do you wish consistent changes to be applied to the text to be pasted?"),_T(""),
+		wxYES_NO) == wxYES )
 		{
 			insertionText = DoConsistentChanges(pasteStr);
 		}
@@ -2237,21 +2245,25 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
     else if( pApp->m_bUseSilConverter )
     {
 		// IDS_ASK_USE_SILCONVERTER
-        if( wxMessageBox(_("Do you wish the configured SILConverter to be applied to the text to be pasted?"),_T(""),wxYES_NO) == wxYES )
+        if( wxMessageBox(_(
+"Do you wish the configured SILConverter to be applied to the text to be pasted?"),_T(""),
+		wxYES_NO) == wxYES )
 	    {
 		    insertionText = DoSilConvert(pasteStr);
 	    }
     }
 
-	// if there is a text selection in the current targetBox, erase the selected chars, then get
-	// its text and the caret offset - this is where pasteStr must be inserted
-	// wx Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
-	// edit control. wxTextCtrl::Clear() "clears the text in the control, and generates
-	// a wxEVT_COMMAND_TEXT_UPDATED event." I'll first check for any existing selection by calling
-	// GetStringSelection. If GetStringSelection isn't empty we know there is a selection. If so,
-	// then use wxTextCtrl's Remove() method to only remove the selection.
+    // if there is a text selection in the current targetBox, erase the selected chars,
+    // then get its text and the caret offset - this is where pasteStr must be inserted wx
+    // Note: MFC's CEdit::Clear() deletes (clears) the current selection (if any) in the
+    // edit control. wxTextCtrl::Clear() "clears the text in the control, and generates a
+    // wxEVT_COMMAND_TEXT_UPDATED event." I'll first check for any existing selection by
+    // calling GetStringSelection. If GetStringSelection isn't empty we know there is a
+    // selection. If so, then use wxTextCtrl's Remove() method to only remove the
+    // selection.
 	long nS, nE;
-	if (!pApp->m_pTargetBox->GetStringSelection().IsEmpty()) // whm added to only Remove any selected text
+	if (!pApp->m_pTargetBox->GetStringSelection().IsEmpty()) // whm added to 
+												// only Remove any selected text
 	{
 		pApp->m_pTargetBox->GetSelection(&nS,&nE);
 		pApp->m_pTargetBox->Remove(nS,nE); //m_targetBox.Clear();
@@ -2260,21 +2272,23 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	pApp->m_pTargetBox->GetSelection(&nStart,&nEnd);
 	wxString targetPhrase;
 	targetPhrase = pApp->m_pTargetBox->GetValue();
-	wxString saveStr = targetPhrase; // make a copy in case we later have to abort the operation
+	wxString saveStr = targetPhrase; // make a copy in case we later have to abort 
+									 // the operation
 	CLayout* pLayout = GetLayout();
 
-	// BEW added 18July08, to support leaving cursor at paste location (see Roland Fumey request below)
+	// BEW added 18July08, to support leaving cursor at paste location 
+	// (see Roland Fumey request below)
 	int pasteStrLength = insertionText.Length();
 
-	// insert the insertionText into the targetStr at the desired location
-	// wxString doesn't have an Insert method, so we'll do it with our own InsertInString (see helpers.h)
-	targetPhrase = InsertInString(targetPhrase,(int)nStart,insertionText); //targetPhrase.Insert((int)nStart,insertionText);
+    // insert the insertionText into the targetStr at the desired location wxString doesn't
+    // have an Insert method, so we'll do it with our own InsertInString (see helpers.h)
+	targetPhrase = InsertInString(targetPhrase,(int)nStart,insertionText);
 
-    // We have to recreate the box after measuring the text, because the existing box is almost
-    // certainly too small and it will reject any characters it cannot fit in. Note, this code
-    // would fail if we try to paste too much text, so we accept the text for pasting only if its
-    // extent fits within a strip's width - if not, clear the text & give a warning message, but
-    // allow any merge.
+    // We have to recreate the box after measuring the text, because the existing box is
+    // almost certainly too small and it will reject any characters it cannot fit in. Note,
+    // this code would fail if we try to paste too much text, so we accept the text for
+    // pasting only if its extent fits within a strip's width - if not, clear the text &
+    // give a warning message, but allow any merge.
 
 	// use the targetPhrase text only if the resulting phrase box can fit within a single strip
 	int width = RecalcPhraseBoxWidth(targetPhrase);
@@ -2287,25 +2301,28 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 		// it won't fit within a strip, so try to get out of this fix gracefully
 		pApp->m_targetPhrase = saveStr; // restore original text back into m_targetPhrase
 		// IDS_PASTE_TEXT_TOO_LONG
-		wxMessageBox(_("Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."),_T(""),wxICON_EXCLAMATION); // warn user
+		wxMessageBox(_(
+"Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."),
+		_T(""),wxICON_EXCLAMATION); // warn user
 	}
 	else
 	{
 		pApp->m_targetPhrase = targetPhrase; // put the composite text into m_targetPhrase
 	}
 
-	// if there was a selection in line 1, we will honour the assumed intent to merge
-	// first, and then the pasted stuff will be assumed to be its adaptation; however, if the
-	// selection is too long, we will just remove it (not do Retranslation instead as in OnChar)
-	// Do the next block only if glossing is OFF, if it is on, we don't allow a merge and
-	// so proceed to the 'else' block
+    // if there was a selection in line 1, we will honour the assumed intent to merge
+    // first, and then the pasted stuff will be assumed to be its adaptation; however, if
+    // the selection is too long, we will just remove it (not do Retranslation instead as
+    // in OnChar) Do the next block only if glossing is OFF, if it is on, we don't allow a
+    // merge and so proceed to the 'else' block
 	int nSaveActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 	if (!gbIsGlossing && pApp->m_selection.GetCount() > 1 && 
 		pApp->m_selection.GetCount() <= MAX_WORDS &&
 		pApp->m_pActivePile == pApp->m_pAnchor->GetPile())
 	{
-		// if we selected backwards, we have to be careful - we want nSaveActiveSequNum to be first
-		// pile of the selection, so check it out now & if necessary adjust nSaveActiveSequNum
+        // if we selected backwards, we have to be careful - we want nSaveActiveSequNum to
+        // be first pile of the selection, so check it out now & if necessary adjust
+        // nSaveActiveSequNum
 		CCellList::Node* cpos = pApp->m_selection.GetFirst();
 		CCell* pCell = (CCell*)cpos->GetData();
 		wxASSERT(pCell != NULL);
@@ -2315,7 +2332,8 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 			nSaveActiveSequNum = nFirstSequNum;
 
 		// do the merge
-		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary suppression only
+		bSuppressDefaultAdaptation = TRUE; // the global BOOLEAN for temporary 
+										   // suppression only
 		MergeWords();
 		bSuppressDefaultAdaptation = FALSE;
 
@@ -2335,45 +2353,13 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 	wxASSERT(pApp->m_nActiveSequNum >= 0);
 
-	// setup for PrepareForLayout_Generic()
-	// Doing this typically involves making sure that the following are correctly set at the end
-	// of a handler (such as here)
-	// 1. CAdapt_ItApp::m_nActiveSequNum  -- crutial: it governs where the phrase box will shown
-	// 2. the global int, gnBoxCursorOffset, if the cursor is to be placed at a certain offset from
-	//    the start of the app class's m_targetPhrase member string, in the visible phrase box
-	// 3. the document-editing operation type - these are defined in a global enum called doc_edit_op
-	//    at the beginning of Layout.y -- there are about 50 values defined, and more may be
-	//    added; each user-edit operation needs, at the end of its handler, to have its enum value
-	//    stored in CLayout::m_docEditOperationType so that the switches in PrepareForLayout(), and
-	//    PlacePhraseBoxInLayout() can do the appropriate tasks when CLayout::Draw() is called.
-	// 4. It isn't necessary to specify here a value for the global enum in Adapt_It.h called
-	//    box_cursor, which specifies where the cursor is to be left in the made-visible phrase
-	//    box - where the options are a) show all text selected (the default), b) place the
-	//    cursor at the end of the text, c) place the cursor at a specific offset - this last
-	//    option requires that 2. above, gnBoxCursorOffset, be set here to the wanted offset. The
-	//    relevant enum values for these choices are hard-coded into the switch's cases in
-	//    PrepareForLayout() since what should happen is known for each document-editing op type.
-	//    The switch itself is in PrepareForLayout_Generic(), and what get's set is the app's members
-	//    m_nStartChar and m_nEndChar for the start and end of the selection within
-	//    m_targetPhrase's string when displayed in the phrase box.
-	// 5. An efficiency-helping enum value for speeding up the algorithm for CLayout::Draw() to
-	//    find in both the m_pileList, and the m_stripArray, where the user's document edits start
-	//    and end. The algorith by default searches forward from the start of both those members, and
-	//    backward from the end of both those members, to find where CPile pointers mismatch. Enum
-	//    values are provided which allow searching from 80 piles either side of the current
-	//    active location, or 300 piles either side of the current active location. Different
-	//    editing operations can have different choices. The shorter search spans are more risky
-	//    because they might miss the start or end of the user's edit location and not then update
-	//    the layout correctly. The enum is called update_span. Place the desired enum value in 
-	//    CLayout::m_userEditsSpanCheckType and then the functions within CLayout::Draw() will
-	//    pick up the value and use it appropriately.
-	// 6. Make sure the CAdapt_ItApp::m_targetPhrase wxString member is correctly set to contain
-	//    the text which is to be shown in the made-visible phrase box when CLayout::Draw() is called.
 	gnBoxCursorOffset = nStart + pasteStrLength;
 	pLayout->m_docEditOperationType = target_box_paste_op;
-	pLayout->m_userEditsSpanCheckType = scan_in_active_area_proximity; // active loc +- max 80 (piles)
+	pLayout->m_userEditsSpanCheckType = scan_in_active_area_proximity; // active 
+														// loc +- max 80 (piles)
 
-	// makde the layout adjustments get done and then the draw and showing of the relocated phrase box
+	// make the layout adjustments get done and then the draw and showing of the 
+	// relocated phrase box
 	Invalidate();
 }
 
@@ -3285,8 +3271,8 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSou
 {
 	wxASSERT(pApp);
 	bool bGotOne = FALSE;
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	wxASSERT(pDoc);
+//	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+//	wxASSERT(pDoc);
 
 	if (bHasNothing)
 	{
@@ -8559,9 +8545,9 @@ void CAdapt_ItView::CalcInitialIndices()
 CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 {
 	// refactored 6Apr09
-	CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//wxASSERT(pApp != NULL);
 	CLayout* pLayout = GetLayout();
-	wxASSERT(pApp != NULL);
 	wxASSERT(pLayout != NULL);
 	wxPoint point = *pPoint;
 	CStrip* pStrip = NULL; // whm initialized to NULL
@@ -8702,9 +8688,9 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 CStrip* CAdapt_ItView::GetNearestStrip(const wxPoint *pPoint)
 {
 	// refactored 6Apr09
-	CAdapt_ItApp* pApp = &wxGetApp();
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//wxASSERT(pApp != NULL);
 	CLayout* pLayout = GetLayout();
-	wxASSERT(pApp != NULL);
 	wxASSERT(pLayout != NULL);
 	wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
 	int nStripCount = pStripArray->GetCount();
@@ -14062,9 +14048,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 			// the selected pile is not the active one, so update the active one then make the
 			// selected one the active one; so store the translation in the knowledge base
 			MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
-			RemovePunctuation(pDoc, &pApp->m_targetPhrase, 1); // 1 means "from target text"
-			// BEW added next line 27Jan09
-			SetAdaptationOrGloss(gbIsGlossing, pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
+			RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 			bool bOK = StoreText(pApp->m_pKB, pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 			if (!bOK)
 				return; // can't proceed until a valid adaption (which could be null) is supplied
@@ -16792,26 +16776,25 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter() // this one is public
 	{
 		MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 
-		// we are about to leave the current phrase box location, so we must try to store what is now
-		// in the box, if the relevant flags allow it
+        // we are about to leave the current phrase box location, so we must try to store
+        // what is now in the box, if the relevant flags allow it
 		RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK;
-		SetAdaptationOrGloss(gbIsGlossing, pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 		bOK = StoreText(pApp->m_pKB, pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 	}
 
-	// at this point, we need to increment the pInsertLocPile pointer to the next pile, and the
-	// nSequNum to it's sequence number, since InsertNullSourcePhrase() always inserts "before"
-	// the pInsertLocPile; however, if the selection end, or active location if there is no
-	// selection, is at the very end of the document (ie. last sourcephrase), there is no
-	// following source phrase instance to insert before. If this is the case, we have to append
-	// a dummy sourcephrase at the end of the document, do the insertion, and then remove it
-	// again; and we will also have to set (and later clear) the global gbDummyAddedTemporarily
-	// because this is used in the function in order to force a leftwards association only (and
-	// hence the user does not have to be asked whether to associate right or left, if there is
-	// final punctuation)
+    // at this point, we need to increment the pInsertLocPile pointer to the next pile, and
+    // the nSequNum to it's sequence number, since InsertNullSourcePhrase() always inserts
+    // "before" the pInsertLocPile; however, if the selection end, or active location if
+    // there is no selection, is at the very end of the document (ie. last sourcephrase),
+    // there is no following source phrase instance to insert before. If this is the case,
+    // we have to append a dummy sourcephrase at the end of the document, do the insertion,
+    // and then remove it again; and we will also have to set (and later clear) the global
+    // gbDummyAddedTemporarily because this is used in the function in order to force a
+    // leftwards association only (and hence the user does not have to be asked whether to
+    // associate right or left, if there is final punctuation)
 	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
 	CSourcePhrase* pDummySrcPhrase = NULL; // whm initialized to NULL
 	if (nSequNum == pApp->GetMaxIndex())
@@ -16837,8 +16820,8 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter() // this one is public
 		// we need a valid layout which includes the new dummy element on its own pile
 		pApp->m_nActiveSequNum = pApp->GetMaxIndex();
 		GetLayout()->RecalcLayout(pSrcPhrases);
-		pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporary active location, at the dummy one
-
+		pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporary active 
+													// location, at the dummy one
 		// now we can do the insertion
 		pInsertLocPile = pApp->m_pActivePile;
 		nSequNum = pApp->GetMaxIndex();
@@ -17259,8 +17242,8 @@ CSourcePhrase* CAdapt_ItView::GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Nod
 CSourcePhrase* CAdapt_ItView::ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*& insertPos,bool bForRetranslation)
 // returns a pointer to the inserted single null source phrase which was inserted
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//wxASSERT(pApp != NULL);
 	wxASSERT(insertPos != NULL);
 	wxASSERT(pList);
 
@@ -23196,7 +23179,6 @@ h:				wxMessageBox(_(
 			if (!pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
 				gbInhibitLine4StrCall = TRUE;
-				SetAdaptationOrGloss(gbIsGlossing,pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 				bool bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
@@ -30319,8 +30301,8 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 							  CSourcePhrase* pFirstSrcPhrase, int nCount)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
+	//CAdapt_ItApp* pApp = &wxGetApp();
+	//wxASSERT(pApp != NULL);
 	SPList::Node* pos = posNext; // since posNext comes from the caller, it is already the 'next'
 							// position
 	// starting from the next minimal srcPhrase, Merge each succeeding one to pFirstSrcPhrase
@@ -41222,15 +41204,15 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 		if (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 		{
 			// save the phrase box text to the KB
-			/* left it here -- may need to ensure m_targetPhrase has no punct before passing to StoreTextGoingBack()
+			// left it here -- may need to ensure m_targetPhrase has no punct before 
+			// passing to StoreTextGoingBack()
 			// BEW added next lines 27Jan09
-			if (!gbIsGlossing)
-			{
-				MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
-				RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
-			}
-			SetAdaptationOrGloss(gbIsGlossing,pSP,pApp->m_targetPhrase);
-			*/
+			//if (!gbIsGlossing)
+			//{
+			//	MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
+			//	RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
+			//}
+			//SetAdaptationOrGloss(gbIsGlossing,pSP,pApp->m_targetPhrase);
 			bool bOK;
 			bOK = StoreTextGoingBack(pKB,pSP,pApp->m_targetPhrase); // store, so we can 
 																// forget this location

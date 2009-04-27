@@ -1404,9 +1404,10 @@ public:
 									 // be retrained in our refactoring for backwards compatibility
 									 // with configuration files - formerly this was bundle's count 
 									 // of sourcephrases, but we'll now save the m_pSourcePhrases count
-
-	//int			m_nPrecedingContext; // minimum # of words/phrases in preceding context
-	//int			m_nFollowingContext; // ditto, for following context
+	// next two retained for backwards compatibility of config files, but we make no use
+	// of them - just output values 30 & 40 every time, respectively, to basic config file
+	int			m_nPrecedingContext; // minimum # of words/phrases in preceding context
+	int			m_nFollowingContext; // ditto, for following context
 	//int			m_curPileHeight;	 // pile height value to be used in RecalcLayout()
 	int				m_curLeading;		 // between-strips leading value
 	int				m_curLMargin;		 // if user wants a left margin, he can set this

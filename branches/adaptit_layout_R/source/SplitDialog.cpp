@@ -352,7 +352,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// Do the actual split.
 	pView->canvas->Freeze();
 	SPList *SourcePhrases2 = gpApp->m_pSourcePhrases;
-	SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_curIndex);
+	//SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_curIndex);
+	SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_nActiveSequNum); // refactored 26Apr09
 
 	// BEW added test 02Nov05, to check the user actually advanced the phrasebox from the
 	// starting position in the document - if he didn't and he invoked the split, the SourcePhrases1

@@ -237,6 +237,8 @@ public:
 	// CSourcePhrase instance in pSrcPhrases)
 	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
 	bool		CreatePiles(SPList* pSrcPhrases);
+	void		CreateStrips(SPList* pSrcPhrases, int nStripWidth, int gap); // RecalcLayout() calls this
+
 	bool		RecalcLayout(SPList* pList, bool bRecreatePileListAlso = FALSE);
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
 									   // to whatever is currently set within the app, doc and
@@ -357,7 +359,7 @@ public:
 	bool		AdjustForUserEdits(enum update_span type);
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
-							int gnBoxCursorOffset = 0); // BEW added 7Apr09
+							int nBoxCursorOffset = 0); // BEW added 7Apr09
  
 	
     // get the range of visible strips in the viscinity of the active location; pass in the sequNum

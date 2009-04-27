@@ -166,6 +166,20 @@ CPile::CPile()
 	*/
 }
 
+CPile::CPile(CLayout* pLayout)  // use this one, it sets m_pLayout
+{
+	m_pLayout = pLayout;
+	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
+	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
+	m_pSrcPhrase = (CSourcePhrase*)NULL;
+	m_pLayout = (CLayout*)NULL;
+	m_pOwningStrip = (CStrip*)NULL;
+	m_nWidth = 20;
+	m_nMinWidth = 40;
+	m_nPile = -1; // I don't belong in any strip yet
+}
+
+
 CPile::CPile(const CPile& pile)
 {
 	m_pLayout = pile.m_pLayout;

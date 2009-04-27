@@ -179,16 +179,18 @@ IMPLEMENT_DYNAMIC_CLASS(CCell, wxObject)
 
 CCell::CCell()
 {
-	m_bSelected = FALSE; // changes according to user's or app's selecting/deselecting activity
-	//m_pPhrase = NULL; // it is pointed at a wxString only by the Draw function
-	// in refactored design, m_pPhrase is not needed, use GetCellText() instead
-	m_pLayout = NULL; // CreateCell() sets this
-	m_pOwningPile = NULL; // CreateCell() sets this
-	m_nCell = 0; // CreateCell() sets this to its permanent value
+	m_bSelected = FALSE; // changes according to user's or app's 
+		// selecting/deselecting activity
+		// m_pPhrase = NULL; // it is pointed at a wxString only by 
+		// the Draw function in refactored design, m_pPhrase is not 
+		// needed, use GetCellText() instead
+	m_pLayout = NULL; // CreateCell() will set this to m_pLayout
+	m_pOwningPile = NULL; // CreateCell() will set this
+	m_nCell = 0; // CreateCell() will set this to its permanent value
 }
 
-// the copy constructor does not need to be coded explicitly because it owns nothing, but no harm
-// in having it
+// the copy constructor does not need to be coded explicitly because it owns nothing, but
+// no harm in having it
 CCell::CCell(const CCell& cell)
 {
 	m_bSelected = cell.m_bSelected;

@@ -73,7 +73,7 @@
 #include "AdaptitConstants.h"
 #include "TargetUnit.h"
 #include "Adapt_ItView.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "Strip.h"
 #include "Pile.h" // must precede the include for the document
 #include "Cell.h"
@@ -680,8 +680,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			pAdView->CalcInitialIndices();
 			pAdView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle); //pAdView->RecalcLayout(m_pSourcePhrases,0,pAdView->m_pBundle);
 			*/
-			// try this for the refactored layout design
-			// refactored version: try the following here
+			// try this for the refactored layout design....
 			CLayout* pLayout = GetLayout();
 			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 											// and other setters
@@ -3284,7 +3283,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	pApp->m_nActiveSequNum = 0;
 	pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
 	*/
-	// try this for the refactored layout design
 	// refactored version: try the following here
 	CLayout* pLayout = GetLayout();
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()

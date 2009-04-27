@@ -78,8 +78,7 @@ typedef enum box_cursor {
 	cursor_at_text_end,
 	cursor_at_offset
 };
-int gnBoxCursorOffset = 0;	// pass gnBoxCursorOffset to PrepareForLayout_Generic() 
-							// for box_cursor enum value of cursor_at_offset
+			//
 typedef enum removeFrom {
 	from_source_text,
 	from_target_text

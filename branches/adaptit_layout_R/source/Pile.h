@@ -56,6 +56,7 @@ class CPile : public wxObject
 public:
 	// constructors
 	CPile();
+	CPile(CLayout* pLayout);
 	CPile(const CPile& pile); // copy constructor
 	//CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
 	//				CSourcePhrase* pSrcPhrase); // BEW deprecated 3Feb09

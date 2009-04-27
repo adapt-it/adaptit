@@ -678,10 +678,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\SourceBundle.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\SourcePhrase.cpp"
 				>
 			</File>
@@ -1024,10 +1020,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\SilConverterSelectDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\SourceBundle.h"
 				>
 			</File>
 			<File

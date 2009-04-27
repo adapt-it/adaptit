@@ -113,7 +113,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// real-time edits of free translation.
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
-			pView->DrawFreeTranslations(&dc, gpApp->m_pBundle, call_from_edit);
+			pView->DrawFreeTranslations(&dc, gpApp->m_pLayout, call_from_edit);
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
 		}

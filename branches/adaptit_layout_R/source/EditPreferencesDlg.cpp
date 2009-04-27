@@ -424,36 +424,39 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 	// Validate viewPage data
 	int intTemp;
 	subStr = _("Sorry, the %s value must be between %d and %d.\nPlease type a value within that range.");
-	strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 60 || intTemp > 4000)
-	{
-		msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
-		return;
-	}
-	strTemp = viewPage->m_pEditMinPrecContext->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 20 || intTemp > 80)
-	{
-		msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMinPrecContext->SetFocus();
-		return;
-	}
-	strTemp = viewPage->m_pEditMinFollContext->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 20 || intTemp > 60)
-	{
-		msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMinFollContext->SetFocus();
-		return;
-	}
+	// refactored 26Apr09 - this item is no longer needed
+	//strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
+	//intTemp = wxAtoi(strTemp);
+	//if (intTemp < 60 || intTemp > 4000)
+	//{
+	//	msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
+	//	pNotebook->SetSelection(2);
+	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	//	viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
+	//	return;
+	//}
+	// refactored 26Apr09 - this item is no longer needed
+	//strTemp = viewPage->m_pEditMinPrecContext->GetValue();
+	//intTemp = wxAtoi(strTemp);
+	//if (intTemp < 20 || intTemp > 80)
+	//{
+	//	msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
+	//	pNotebook->SetSelection(2);
+	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	//	viewPage->m_pEditMinPrecContext->SetFocus();
+	//	return;
+	//}
+	// refactored 26Apr09 - this item is no longer needed
+	//strTemp = viewPage->m_pEditMinFollContext->GetValue();
+	//intTemp = wxAtoi(strTemp);
+	//if (intTemp < 20 || intTemp > 60)
+	//{
+	//	msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
+	//	pNotebook->SetSelection(2);
+	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	//	viewPage->m_pEditMinFollContext->SetFocus();
+	//	return;
+	//}
 	strTemp = viewPage->m_pEditLeading->GetValue();
 	intTemp = wxAtoi(strTemp);
 	if (intTemp < 14 || intTemp > 80)

@@ -418,7 +418,7 @@ void CFindDlg::DoFindNext()
 		return;
 	}
 
-	int nKickOffSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+	int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	if (gbJustReplaced)
 	{
 		// do all the housekeeping tasks associated with a move, after a replace was done
@@ -433,8 +433,8 @@ void CFindDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
+					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
 				// the store will fail if the user edited the entry out of the KB, as the latter
 				// cannot know which srcPhrases will be affected, so these will still have their
@@ -445,23 +445,23 @@ void CFindDlg::DoFindNext()
 				if (gbIsGlossing)
 				{
 					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
-						gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && 
-						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
-						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pGlossingKB,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 				else
 				{
 					pRefStr = pView->GetRefString(gpApp->m_pKB,
-										gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords,
-										gpApp->m_pActivePile->m_pSrcPhrase->m_key,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
 										gpApp->m_targetPhrase);
-					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
-						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pKB,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -469,18 +469,19 @@ void CFindDlg::DoFindNext()
 		// now we can get rid of the phrase box till wanted again
 		// wx version just hides the phrase box
 		gpApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow();
-		gpApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it won't get recreated
+		gpApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it 
+											   // won't get recreated
 		gpApp->m_targetPhrase = _T("");
 
-		// did we just replace in a retranslation, if so, reduce the kick off sequ num by one
-		// otherwise anything matchable in the first srcPhrase after the retranslation will
-		// not get matched (ie. check if the end of a retranslation precedes the current location
-		// and if so, we'll want to make that the place we move forward from so that we actually
-		// try to match in the first pile after the retranslation) We don't need the adjustment
-		// if glossing is ON however.
+        // did we just replace in a retranslation, if so, reduce the kick off sequ num by
+        // one otherwise anything matchable in the first srcPhrase after the retranslation
+        // will not get matched (ie. check if the end of a retranslation precedes the
+        // current location and if so, we'll want to make that the place we move forward
+        // from so that we actually try to match in the first pile after the retranslation)
+        // We don't need the adjustment if glossing is ON however.
 		int nEarlierSN = nKickOffSequNum -1;
 		CPile* pPile = pView->GetPile(nEarlierSN);
-		bool bRetrans = pPile->m_pSrcPhrase->m_bRetranslation;
+		bool bRetrans = pPile->GetSrcPhrase()->m_bRetranslation;
 		if ( !gbIsGlossing && bRetrans)
 			nKickOffSequNum = nEarlierSN;
 
@@ -488,17 +489,18 @@ void CFindDlg::DoFindNext()
 		m_nCount = 0; // nothing currently matched
 	}
 
-	// in some situations (eg. after a merge in a replacement) a LayoutStrip call is needed, otherwise
-	// the destruction of the targetBox window will leave an empty white space at the active loc.
-	CPile* pPile = gpApp->m_pActivePile;
-	CStrip* pStrip = pPile->m_pStrip;
-	int nActiveStrip = pStrip->m_nStripIndex;
-	pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
+    // in some situations (eg. after a merge in a replacement) a LayoutStrip call is
+    // needed, otherwise the destruction of the targetBox window will leave an empty white
+    // space at the active loc.
+	//CPile* pPile = gpApp->m_pActivePile;
+	//CStrip* pStrip = pPile->m_pStrip;
+	//int nActiveStrip = pStrip->m_nStripIndex;
+	//pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
+	gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases);
 
 	// restore the pointers which were clobbered
-	pPile = pView->GetPile(gpApp->m_nActiveSequNum);
+	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 	gpApp->m_pActivePile = pPile;
-	gpApp->m_pTargetBox->m_pActivePile = pPile;
 
 	TransferDataFromWindow();
 
@@ -545,13 +547,15 @@ void CFindDlg::DoFindNext()
 			else
 				m_nTwoLineDepth += gpApp->m_nTgtHeight;
 		}
-		m_ptBoxTopLeft = gpApp->m_ptCurBoxLocation;
+		//m_ptBoxTopLeft = gpApp->m_ptCurBoxLocation;
+		m_ptBoxTopLeft = gpApp->m_pActivePile->GetCell(1)->GetTopLeft();
 		wxRect rectScreen;
 		rectScreen = wxGetClientDisplayRect();
 
 		wxClientDC dc(gpApp->GetMainFrame()->canvas);
 		pView->canvas->DoPrepareDC(dc); // adjust origin
-		gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
+		gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample 
+									// also calls PrepareDC on the owning frame
 
 		if (!gbIsGlossing && gbMatchedRetranslation)
 		{
@@ -559,19 +563,25 @@ void CFindDlg::DoFindNext()
 			CCellList::Node* cpos = gpApp->m_selection.GetLast();
 			CCell* pCell = (CCell*)cpos->GetData();
 			wxASSERT(pCell != NULL);
-			CPile* pPile = pCell->m_pPile;
-			pCell = pPile->m_pCell[3]; // last line
-			m_ptBoxTopLeft = pCell->m_ptTopLeft;
+			CPile* pPile = pCell->GetPile();
+			//pCell = pPile->m_pCell[3]; // last line
+			pCell = pPile->GetCell(1); // last line
+			//m_ptBoxTopLeft = pCell->m_ptTopLeft;
+			m_ptBoxTopLeft = pCell->GetTopLeft();
 			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
 			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
+			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin);
+			//                      // gets xOrigin and yOrigin in scroll units
+			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(
+			//    &xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
+			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is 
+			//                             // ScrollUnits * pixelsPerScrollUnit
 			//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
 
 			int newXPos,newYPos;
 			// CalcScrolledPosition translates logical coordinates to device ones. 
-			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,m_ptBoxTopLeft.y,&newXPos,&newYPos);
+			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
+												m_ptBoxTopLeft.y,&newXPos,&newYPos);
 			m_ptBoxTopLeft.x = newXPos;
 			m_ptBoxTopLeft.y = newYPos;
 		}
@@ -580,17 +590,22 @@ void CFindDlg::DoFindNext()
 			// use location where phrase box would be put
 			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
 			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
+			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); 
+			//                         // gets xOrigin and yOrigin in scroll units
+			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, 
+			//                     &yScrollUnits); // gets pixels per scroll unit
+			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is 
+			//                                 // ScrollUnits * pixelsPerScrollUnit
 			//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
 			int newXPos,newYPos;
 			// CalcScrolledPosition translates logical coordinates to device ones. 
-			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,m_ptBoxTopLeft.y,&newXPos,&newYPos);
+			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
+												m_ptBoxTopLeft.y,&newXPos,&newYPos);
 			m_ptBoxTopLeft.x = newXPos;
 			m_ptBoxTopLeft.y = newYPos;
 		}
-		gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,&m_ptBoxTopLeft.y); // now it's screen coords
+		gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,
+									&m_ptBoxTopLeft.y); // now it's screen coords
 		int height = m_nTwoLineDepth;
 		wxRect rectDlg;
 		GetClientSize(&rectDlg.width, &rectDlg.height); // dialog's window
@@ -983,13 +998,14 @@ void CFindDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		// we have tried a FindNext since the previous replacement, so we expect the phrase box
-		// to have been destroyed by the time we enter this code block;
-		// so place the phrase box, if it has been destroyed
+        // we have tried a FindNext since the previous replacement, so we expect the phrase
+        // box to have been destroyed by the time we enter this code block; so place the
+        // phrase box, if it has been destroyed
 		// wx version the phrase box always exists
-		// whm note 11Aug08 Since in the wx version the phrase box is never destroyed, but in the 
-		// MFC code it was "destroyed by the time we enter this code block" we should not test
-		// whether the m_pTargetBox == NULL here, but always execute the code block below.
+        // whm note 11Aug08 Since in the wx version the phrase box is never destroyed, but
+        // in the MFC code it was "destroyed by the time we enter this code block" we
+        // should not test whether the m_pTargetBox == NULL here, but always execute the
+        // code block below.
 		//if (gpApp->m_pTargetBox == NULL)
 		//{
 			// in wx version this block should never execute
@@ -1000,18 +1016,20 @@ a:			CCell* pCell = 0;
 				CCellList::Node* cpos = gpApp->m_selection.GetFirst();
 				pCell = cpos->GetData(); // could be on any line
 				wxASSERT(pCell != NULL);
-				pPile = pCell->m_pPile;
+				pPile = pCell->GetPile();
 			}
 			else
 			{
-				// no selection, so find another way to define active location & place the phrase box
+				// no selection, so find another way to define active location 
+				// & place the phrase box
 				int nCurSequNum = gpApp->m_nActiveSequNum;
 				if (nCurSequNum == -1)
 				{
-					nCurSequNum = gpApp->m_endIndex; // make active loc the last src phrase in the doc
+					nCurSequNum = gpApp->GetMaxIndex(); // make active loc the last 
+														// src phrase in the doc
 					gpApp->m_nActiveSequNum = nCurSequNum;
 				}
-				else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->m_endIndex)
+				else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->GetMaxIndex())
 				{
 					gpApp->m_nActiveSequNum = nCurSequNum;
 				}
@@ -1025,20 +1043,20 @@ a:			CCell* pCell = 0;
 
 			// preserve enough information to be able to recreate the appropriate selection
 			// since placing the phrase box will clobber the current selection
-			CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			int nCount = 0;
 			if (!gpApp->m_selection.IsEmpty())
 			{
 				nCount = gpApp->m_selection.GetCount();
 				wxASSERT(nCount >0);
 			}
-			int nSaveSelSequNum = pSrcPhrase->m_nSequNumber; // if in a retrans, selection will not
-															 // be where phrase box ends up
+			int nSaveSelSequNum = pSrcPhrase->m_nSequNumber; // if in a retrans, 
+										// selection will not be where phrase box ends up
 
-			// pPile is what we will use for the active pile, so set everything up there, provided it
-			// is not in a retranslation - if it is, place the box preceding it, if possible; but
-			// if glossing is ON, we can have the box within a retranslation in which case ignore
-			// the block of code 
+            // pPile is what we will use for the active pile, so set everything up there,
+            // provided it is not in a retranslation - if it is, place the box preceding
+            // it, if possible; but if glossing is ON, we can have the box within a
+            // retranslation in which case ignore the block of code
 			CPile* pSavePile = pPile;
 			if (!gbIsGlossing)
 			{
@@ -1053,18 +1071,19 @@ a:			CCell* pCell = 0;
 						{
 							pPile = pView->GetNextPile(pPile);
 							wxASSERT(pPile != NULL); // we'll assume this will never fail
-							pSrcPhrase = pPile->m_pSrcPhrase;
+							pSrcPhrase = pPile->GetSrcPhrase();
 						}
 						break;
 					}
-					pSrcPhrase = pPile->m_pSrcPhrase;
+					pSrcPhrase = pPile->GetSrcPhrase();
 				}
 			}
-			pSrcPhrase = pPile->m_pSrcPhrase;
+			pSrcPhrase = pPile->GetSrcPhrase();
 			gpApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 			gpApp->m_pActivePile = pPile;
-			pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box
-			gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
+			//pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box
+			pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
+			//gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
 
 			// scroll into view, just in case (but shouldn't be needed)
 			gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
@@ -1073,12 +1092,13 @@ a:			CCell* pCell = 0;
 			gbJustCancelled = TRUE;
 			pView->PlacePhraseBox(pCell,2);
 
-			// get a new active pile pointer, the PlacePhraseBox call did a recal of the layout
+			// get a new active pile pointer, the PlacePhraseBox call did a recal 
+			// of the layout
 			gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
 			wxASSERT(gpApp->m_pActivePile != NULL);
 
-			// get a new pointer to the pile at the start of the selection, since the recalc
-			// also clobbered the old one
+            // get a new pointer to the pile at the start of the selection, since the
+            // recalc also clobbered the old one
 			CPile* pSelPile = pView->GetPile(nSaveSelSequNum);
 			wxASSERT(pSelPile != NULL);
 
@@ -1095,10 +1115,12 @@ a:			CCell* pCell = 0;
 			}
 
 			// recreate the selection to be in line 1, hence ignoring boundary flags
-			CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
-            // whm 21Sep08 modified if test below: I added && pAnchorCell != NULL to avoid crash if user
-            // switches from 4-line to 2-line (using toolbar buttons) then cancels out. pAnchorCell can
-            // be null in such cases, and both MFC and wx applications can crash in such situations.
+			//CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
+			CCell* pAnchorCell = pSelPile->GetCell(0); // top cell, ie. line 1
+            // whm 21Sep08 modified if test below: I added && pAnchorCell != NULL to avoid
+            // crash if user switches from 4-line to 2-line (using toolbar buttons) then
+            // cancels out. pAnchorCell can be null in such cases, and both MFC and wx
+            // applications can crash in such situations.
 			if (nCount > 0 && pAnchorCell != NULL)
 			{
 				gpApp->m_pAnchor = pAnchorCell;
@@ -1111,9 +1133,9 @@ a:			CCell* pCell = 0;
 
 				aDC.SetBackgroundMode(gpApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pAnchorCell->DrawCell(&aDC);
+				pAnchorCell->DrawCell(&aDC, gpApp->m_pLayout->GetSrcColor());
 				gpApp->m_bSelectByArrowKey = FALSE;
-				pAnchorCell->m_bSelected = TRUE;
+				pAnchorCell->SetSelected(TRUE);
 
 				// preserve record of the selection
 				pSelection->Append(pAnchorCell);
@@ -1143,11 +1165,12 @@ a:			CCell* pCell = 0;
 
 	gbFindOrReplaceCurrent = FALSE; // turn it back off
 
+	// refactored 26Apr09 -- no longer can do this
 	// toggle back to earlier number of lines per strip
-	if (gbSaveSuppressFirst)
-		pView->ToggleSourceLines();
-	if (gbSaveSuppressLast)
-		pView->ToggleTargetLines();
+	//if (gbSaveSuppressFirst)
+	//	pView->ToggleSourceLines();
+	//if (gbSaveSuppressLast)
+	//	pView->ToggleTargetLines();
 
 	gpApp->m_pFindDlg = (CFindDlg*)NULL;
 
@@ -1381,7 +1404,7 @@ void CReplaceDlg::DoFindNext()
 		return;
 	}
 
-	int nKickOffSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+	int nKickOffSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	if (gbJustReplaced)
 	{
 		// do all the housekeeping tasks associated with a move, after a replace was done
@@ -1393,8 +1416,8 @@ void CReplaceDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
-					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,1 /*from tgt*/);
+					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
 				// the store will fail if the user edited the entry out of the KB, as the latter
 				// cannot know which srcPhrases will be affected, so these will still have their
@@ -1405,23 +1428,23 @@ void CReplaceDlg::DoFindNext()
 				if (gbIsGlossing)
 				{
 					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
-						gpApp->m_pActivePile->m_pSrcPhrase->m_key,gpApp->m_targetPhrase);
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && 
-						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry)
-						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pGlossingKB,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 				else
 				{
 					pRefStr = pView->GetRefString(gpApp->m_pKB,
-										gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords,
-										gpApp->m_pActivePile->m_pSrcPhrase->m_key,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
 										gpApp->m_targetPhrase);
-					if (pRefStr == NULL && gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry)
-						gpApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pKB,
-								gpApp->m_pActivePile->m_pSrcPhrase,gpApp->m_targetPhrase);
+								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -1429,18 +1452,19 @@ void CReplaceDlg::DoFindNext()
 		// now we can get rid of the phrase box till wanted again
 		// wx version just hides the phrase box
 		gpApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow()
-		gpApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it won't get recreated
+		gpApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it 
+											   // won't get recreated
 		gpApp->m_targetPhrase = _T("");
 
-		// did we just replace in a retranslation, if so, reduce the kick off sequ num by one
-		// otherwise anything matchable in the first srcPhrase after the retranslation will
-		// not get matched (ie. check if the end of a retranslation precedes the current location
-		// and if so, we'll want to make that the place we move forward from so that we actually
-		// try to match in the first pile after the retranslation) We don't need the adjustment
-		// if glossing is ON however.
+        // did we just replace in a retranslation, if so, reduce the kick off sequ num by
+        // one otherwise anything matchable in the first srcPhrase after the retranslation
+        // will not get matched (ie. check if the end of a retranslation precedes the
+        // current location and if so, we'll want to make that the place we move forward
+        // from so that we actually try to match in the first pile after the retranslation)
+        // We don't need the adjustment if glossing is ON however.
 		int nEarlierSN = nKickOffSequNum -1;
 		CPile* pPile = pView->GetPile(nEarlierSN);
-		bool bRetrans = pPile->m_pSrcPhrase->m_bRetranslation;
+		bool bRetrans = pPile->GetSrcPhrase()->m_bRetranslation;
 		if ( !gbIsGlossing && bRetrans)
 			nKickOffSequNum = nEarlierSN;
 
@@ -1448,17 +1472,18 @@ void CReplaceDlg::DoFindNext()
 		m_nCount = 0; // nothing currently matched
 	}
 
-	// in some situations (eg. after a merge in a replacement) a LayoutStrip call is needed, otherwise
-	// the destruction of the targetBox window will leave an empty white space at the active loc.
-	CPile* pPile = gpApp->m_pActivePile;
-	CStrip* pStrip = pPile->m_pStrip;
-	int nActiveStrip = pStrip->m_nStripIndex;
-	pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
+    // in some situations (eg. after a merge in a replacement) a LayoutStrip call is
+    // needed, otherwise the destruction of the targetBox window will leave an empty white
+    // space at the active loc.
+	//CPile* pPile = gpApp->m_pActivePile;
+	//CStrip* pStrip = pPile->m_pStrip;
+	//int nActiveStrip = pStrip->m_nStripIndex;
+	//pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
+	gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases);
 
 	// restore the pointers which were clobbered
-	pPile = pView->GetPile(gpApp->m_nActiveSequNum);
+	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 	gpApp->m_pActivePile = pPile;
-	gpApp->m_pTargetBox->m_pActivePile = pPile;
 
 	TransferDataFromWindow();
 
@@ -1512,23 +1537,24 @@ void CReplaceDlg::DoFindNext()
 			else
 				m_nTwoLineDepth += gpApp->m_nTgtHeight;
 		}
-		m_ptBoxTopLeft = gpApp->m_ptCurBoxLocation;
+		//m_ptBoxTopLeft = gpApp->m_ptCurBoxLocation;
+		m_ptBoxTopLeft = gpApp->m_pActivePile->GetCell(1)->GetTopLeft();
 		wxRect rectScreen;
 		rectScreen = wxGetClientDisplayRect();
 
 		wxClientDC dc(gpApp->GetMainFrame()->canvas);
 		pView->canvas->DoPrepareDC(dc); // adjust origin
-		gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
-
+		gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls 
+											  // PrepareDC on the owning frame
 		if (!gbIsGlossing && gbMatchedRetranslation)
 		{
 			// use end of retranslation
 			CCellList::Node* cpos = gpApp->m_selection.GetLast();
 			CCell* pCell = (CCell*)cpos->GetData();
 			wxASSERT(pCell != NULL); 
-			CPile* pPile = pCell->m_pPile;
-			pCell = pPile->m_pCell[3]; // last line
-			m_ptBoxTopLeft = pCell->m_ptTopLeft;
+			CPile* pPile = pCell->GetPile();
+			pCell = pPile->GetCell(1); // last line
+			m_ptBoxTopLeft = pCell->GetTopLeft();
 			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
 			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
 			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
@@ -1836,7 +1862,7 @@ a:			CCell* pCell = 0;
 				CCellList::Node* cpos = gpApp->m_selection.GetFirst();
 				pCell = cpos->GetData(); // could be on any line
 				wxASSERT(pCell != NULL);
-				pPile = pCell->m_pPile;
+				pPile = pCell->GetPile();
 			}
 			else
 			{
@@ -1844,10 +1870,10 @@ a:			CCell* pCell = 0;
 				int nCurSequNum = gpApp->m_nActiveSequNum;
 				if (nCurSequNum == -1)
 				{
-					nCurSequNum = gpApp->m_endIndex; // make active loc the last src phrase in the doc
+					nCurSequNum = gpApp->GetMaxIndex(); // make active loc the last src phrase in the doc
 					gpApp->m_nActiveSequNum = nCurSequNum;
 				}
-				else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->m_endIndex)
+				else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->GetMaxIndex())
 				{
 					gpApp->m_nActiveSequNum = nCurSequNum;
 				}
@@ -1861,7 +1887,7 @@ a:			CCell* pCell = 0;
 
 			// preserve enough information to be able to recreate the appropriate selection
 			// since placing the phrase box will clobber the current selection
-			CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			int nCount = 0;
 			if (!gpApp->m_selection.IsEmpty())
 			{
@@ -1889,18 +1915,19 @@ a:			CCell* pCell = 0;
 						{
 							pPile = pView->GetNextPile(pPile);
 							wxASSERT(pPile != NULL); // we'll assume this will never fail
-							pSrcPhrase = pPile->m_pSrcPhrase;
+							pSrcPhrase = pPile->GetSrcPhrase();
 						}
 						break;
 					}
-					pSrcPhrase = pPile->m_pSrcPhrase;
+					pSrcPhrase = pPile->GetSrcPhrase();
 				}
 			}
-			pSrcPhrase = pPile->m_pSrcPhrase;
+			pSrcPhrase = pPile->GetSrcPhrase();
 			gpApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 			gpApp->m_pActivePile = pPile;
-			pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box
-			gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
+			//pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box - legacy app
+			pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
+			//gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
 
 			// scroll into view, just in case (but shouldn't be needed)
 			gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
@@ -1931,7 +1958,8 @@ a:			CCell* pCell = 0;
 			}
 
 			// recreate the selection to be in line 1, hence ignoring boundary flags
-			CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
+			//CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
+			CCell* pAnchorCell = pSelPile->GetCell(0); // first line, index 0 cell
 			if (nCount > 0)
 			{
 				gpApp->m_pAnchor = pAnchorCell;
@@ -1944,9 +1972,9 @@ a:			CCell* pCell = 0;
 
 				aDC.SetBackgroundMode(gpApp->m_backgroundMode);
 				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pAnchorCell->DrawCell(&aDC);
+				pAnchorCell->DrawCell(&aDC, gpApp->m_pLayout->GetSrcColor());
 				gpApp->m_bSelectByArrowKey = FALSE;
-				pAnchorCell->m_bSelected = TRUE;
+				pAnchorCell->SetSelected(TRUE);
 
 				// preserve record of the selection
 				pSelection->Append(pAnchorCell);
@@ -1977,10 +2005,11 @@ a:			CCell* pCell = 0;
 	gbFindOrReplaceCurrent = FALSE; // turn it back off
 
 	// toggle back to earlier number of lines per strip
-	if (gbSaveSuppressFirst)
-		pView->ToggleSourceLines();
-	if (gbSaveSuppressLast)
-		pView->ToggleTargetLines();
+	// refactored 26Apr09 -- we no longer can toggle lines
+	//if (gbSaveSuppressFirst)
+	//	pView->ToggleSourceLines();
+	//if (gbSaveSuppressLast)
+	//	pView->ToggleTargetLines();
 
 	gpApp->m_pReplaceDlg = (CReplaceDlg*)NULL;
 

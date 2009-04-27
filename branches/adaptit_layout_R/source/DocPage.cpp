@@ -57,7 +57,7 @@
 #include "FilterPage.h"
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "Pile.h"
 #include "WhichBook.h"
 #include "helpers.h"
@@ -655,7 +655,7 @@ void CDocPage::OnButtonChangeFolder(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	if (pKB != NULL && gpApp->m_pLayout->GetStripCount() > 0)
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument
@@ -772,44 +772,49 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 		// we can come here with an existing doc open, so we must first close it &
 		// also prompt for doc save & kb save if user does not save the doc, then go on
-		if (pKB != NULL && pApp->m_pBundle->m_nStripCount > 0) //if (pKB != NULL && pView->m_pBundle->m_nStripCount > 0)
+		if (pKB != NULL && pApp->m_pLayout->GetStripCount() > 0)
 		{
 			// doc is open, so close it first
-			pDoc->OnFileClose(dummyevent); // my version, which does not call OnCloseDocument
+			pDoc->OnFileClose(dummyevent); // my version, which does not call 
+										   // OnCloseDocument
 		}
 
 		// use the OnNewDocument() function to go to the file dialog for inputting
 		// a source text file to use as the new document
 		pStartWorkingWizard->Show(FALSE); 
-		// wx version note: The Linux/GTK version in debug mode reports that the EndModal call
-		// gets called twice, so I've commented the call to EndModal below. EndModal apparently
-		// is automatically called by the wizard class (under Windows it didn't assert).
+        // wx version note: The Linux/GTK version in debug mode reports that the EndModal
+        // call gets called twice, so I've commented the call to EndModal below. EndModal
+        // apparently is automatically called by the wizard class (under Windows it didn't
+        // assert).
 		//pStartWorkingWizard->EndModal(1);
 		bool bResult = pDoc->OnNewDocument();
 		if (!bResult)
 		{
-			// BEW added test on 21Mar07, to distinguish a failure due to a 3-letter code mismatch
-			// preventing the document being constructed for the currently active book folder, and
-			// any other kind of failure
+            // BEW added test on 21Mar07, to distinguish a failure due to a 3-letter code
+            // mismatch preventing the document being constructed for the currently active
+            // book folder, and any other kind of failure
 			if (gbMismatchedBookCode)
 			{
-				// OnNewDocument() has already done the required warning, so just leave the user
-				// in the Document page of the wizard, to try again with a different file, or
-				// click the Change Book folder and then try again with the last tried file
+                // OnNewDocument() has already done the required warning, so just leave the
+                // user in the Document page of the wizard, to try again with a different
+                // file, or click the Change Book folder and then try again with the last
+                // tried file
 				gbMismatchedBookCode = FALSE;
 				wxCommandEvent uevent;
 				pDoc->OnFileOpen(uevent); // get the Document page of the wizard open again
-				return; // TRUE; // MFC note: FALSE means: don't destroy the property sheet; TRUE means destroy it
-							 // and as the above OnFileOpen() call is a nested call, a successful
-							 // document creation should result in the wizard being destroyed, and
-							 // so the remaining function exits just only need to return TRUE (or
-							 // FALSE) as they will do nothing and rightly so
+				return; // TRUE; // MFC note: FALSE means: don't destroy the property sheet; 
+                    // TRUE means destroy it and as the above OnFileOpen() call is a nested
+                    // call, a successful document creation should result in the wizard
+                    // being destroyed, and so the remaining function exits just only need
+                    // to return TRUE (or FALSE) as they will do nothing and rightly so
 			}
 			else
 			{
 				// other failures, just warn and close the wizard
 				// IDS_NO_OUTPUT_FILE
-				wxMessageBox(_("Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"), _T(""),wxICON_INFORMATION);
+				wxMessageBox(_(
+"Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"),
+				_T(""),wxICON_INFORMATION);
 				gbDoingInitialSetup = FALSE;
 				return; //return CPropertyPage::OnWizardFinish();
 			}
@@ -830,6 +835,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		pApp->m_bEarlierDocChosen = FALSE;
 		pApp->nLastActiveSequNum = 0;
 
+		// initialize m_nActiveSequNum to the nLastActiveSequNum value
+		pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
+		// set the active pile
+		pApp->m_pActivePile = pView->GetPile(0);
+
 		gbDoingInitialSetup = FALSE;
 
 		gpApp->RefreshStatusBarInfo();
@@ -837,18 +847,19 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	}
 	else // the user did not choose <New Document>
 	{
-		// it's an existing document that we want to open; but first
-		// we can come here with an existing doc open, so we must first close it &
-		// also prompt for doc save & kb save if user does not save the doc, then go on
+        // it's an existing document that we want to open; but first we can come here with
+        // an existing doc open, so we must first close it & also prompt for doc save & kb
+        // save if user does not save the doc, then go on
 		CKB* pKB;
 		if (gbIsGlossing)
 			pKB = pApp->m_pGlossingKB;
 		else
 			pKB = pApp->m_pKB;
-		if (pKB != NULL && pApp->m_pBundle->m_nStripCount > 0)
+		if (pKB != NULL && pApp->m_pLayout->GetStripCount() > 0)
 		{
 			// doc is open, so close it first
-			pDoc->OnFileClose(dummyevent); // my version, which does not call OnCloseDocument
+			pDoc->OnFileClose(dummyevent); // my version, which does not call 
+										   // OnCloseDocument
 			pApp->GetMainFrame()->canvas->Update(); // force immediate repaint // TODO: Need this ???
 		}
 				
@@ -858,7 +869,8 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		wxString docPath;
 		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 		{
-			docPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + pApp->m_pCurrBookNamePair->dirName;
+			docPath = pApp->m_curAdaptionsPath + pApp->PathSeparator + 
+											pApp->m_pCurrBookNamePair->dirName;
 			docPath += pApp->PathSeparator + m_docName;
 		}
 		else
@@ -874,7 +886,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		if (!bOK)
 		{
 			// IDS_LOAD_DOC_FAILURE
-			wxMessageBox(_("Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),_T(""), wxICON_STOP);
+			wxMessageBox(_(
+"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
+			_T(""), wxICON_STOP);
 			wxExit();
 		}
 
@@ -882,15 +896,15 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->GetHandle() != NULL && !pApp->m_targetPhrase.IsEmpty()
 			&& (pApp->m_pTargetBox->IsShown()))
 		{
-			int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero for our phrasebox
+			int len = pApp->m_pTargetBox->GetLineLength(0); // line number zero 
+															// for our phrasebox
 			pApp->m_nStartChar = len;
 			pApp->m_nEndChar = len;
 			pApp->m_pTargetBox->SetFocus();
 		}
 		else
 		{
-			if (pApp->m_pTargetBox->GetHandle() != NULL && 
-									(pApp->m_pTargetBox->IsShown()))
+			if (pApp->m_pTargetBox->GetHandle() != NULL && (pApp->m_pTargetBox->IsShown()))
 			{
 				pApp->m_nStartChar = 0;
 				pApp->m_nEndChar = 0;
@@ -900,9 +914,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 		// close off the wizard
 		pStartWorkingWizard->Show(FALSE); //pStartWorkingWizard->ShowWindow(SW_HIDE);
-		// wx version note: The Linux/GTK version in debug mode reports that the EndModal call
-		// gets called twice, so I've commented the call to EndModal below. EndModal apparently
-		// is automatically called by the wizard class (under Windows it didn't assert).
+            // wx version note: The Linux/GTK version in debug mode reports that the
+            // EndModal call gets called twice, so I've commented the call to EndModal
+            // below. EndModal apparently is automatically called by the wizard class
+            // (under Windows it didn't assert).
 		//pStartWorkingWizard->EndModal(1);
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 		CMainFrame* pFrame = (CMainFrame*)pView->GetFrame();
@@ -926,9 +941,11 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		fn.SplitPath(docPath,&fpath,&fname,&fext);
 		pFrame->SetTitle(fname + _T(" - ") + typeName);
 
-		pDoc->SetFilename(docPath,TRUE); // here TRUE means "notify the views" whereas in MFC means add to MRU
+		pDoc->SetFilename(docPath,TRUE); // here TRUE means "notify the views" whereas in 
+										 // MFC means add to MRU
 	
-		// determine whether user opened the same document, using info saved in the config file
+		// determine whether user opened the same document, using info saved in the 
+		// config file
 		pApp->m_bEarlierDocChosen = FALSE;
 		if (!pApp->m_lastDocPath.IsEmpty())
 		{
@@ -940,34 +957,40 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			}
 		}
 
-		// if the user opened the same project and document, then jump to the last active
-		// location when the app was last closed
+        // if the user opened the same project and document, then jump to the last active
+        // location when the app was last closed
 		if (pApp->m_bEarlierProjectChosen && pApp->m_bEarlierDocChosen)
 		{
-			// if the user did some operation that resulted in more sourcephrase instances being
-			// created (eg. such as a rebuild from a punctuation change affecting quote characters)
-			// and had the phrase box near the end in the document but did not save the document,
-			// then the nLastActiveSequNum saved in the configuration file could be greater than
-			// the number of sourcephrases that would be read in when the document was next opened,
-			// so we must test for this and reduce the sequ number value to a safe value before
-			// trying to set up a pile at that location.
+            // if the user did some operation that resulted in more sourcephrase instances
+            // being created (eg. such as a rebuild from a punctuation change affecting
+            // quote characters) and had the phrase box near the end in the document but
+            // did not save the document, then the nLastActiveSequNum saved in the
+            // configuration file could be greater than the number of sourcephrases that
+            // would be read in when the document was next opened, so we must test for this
+            // and reduce the sequ number value to a safe value before trying to set up a
+            // pile at that location.
 			if (pApp->nLastActiveSequNum >= (int)pApp->m_pSourcePhrases->GetCount())
 				pApp->nLastActiveSequNum = pApp->m_pSourcePhrases->GetCount() - 1;
 
+			// initialize m_nActiveSequNum to the nLastActiveSequNum value
+			pApp->m_nActiveSequNum = pApp->nLastActiveSequNum;
+			// set the active pile
 			CPile* pPile = pView->GetPile(pApp->nLastActiveSequNum);
 			wxASSERT(pPile != NULL);
 
-			// this could turn out to be a retranslation pile (if user removed a retranslation
-			// just before exiting the application without saving the document, it would be),
-			// so check & if necessary move beyond the retranslation or to an earlier safe 
-			// location
+            // this could turn out to be a retranslation pile (if user removed a
+            // retranslation just before exiting the application without saving the
+            // document, it would be), so check & if necessary move beyond the
+            // retranslation or to an earlier safe location
 			int nFinish = 1; // the next function was designed for retranslation use, 
 				// but it should work fine anywhere provided we set nFinish to 1 (or zero).
 			bool bSetSafely;
 			bSetSafely = pView->SetActivePilePointerSafely(pApp,pApp->m_pSourcePhrases,
 								pApp->nLastActiveSequNum,pApp->m_nActiveSequNum,nFinish);
+			// m_nActiveSequNum might have been changed by the preceding call, so reset 
+			// the active pile
 			pPile = pView->GetPile(pApp->m_nActiveSequNum);
-			CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			pView->Jump(pApp,pSrcPhrase); // jump there
 		}
 		gbDoingInitialSetup = FALSE;
@@ -989,19 +1012,20 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		}
 
 		// BEW added 02Nov05
-		// Even though the first placement of the phrase box makes the document theoretically
-		// dirty, it should never really give any problem for us to declare the document
-		// clean when just reopened, so we'll do so because we then buy the behaviour that
-		// a just-opened document is immediately ready for a Split operation without the user
-		// having to realize a save must first be done to get the document clean for the Split
-		// to be enabled
+        // Even though the first placement of the phrase box makes the document
+        // theoretically dirty, it should never really give any problem for us to declare
+        // the document clean when just reopened, so we'll do so because we then buy the
+        // behaviour that a just-opened document is immediately ready for a Split operation
+        // without the user having to realize a save must first be done to get the document
+        // clean for the Split to be enabled
 		pDoc->Modify(FALSE);
 		gpApp->RefreshStatusBarInfo();
 
 #ifdef SHOW_DOC_I_O_BENCHMARKS
 		dt1 = dt2;
 		dt2 = wxDateTime::UNow();
-		wxLogDebug(_T("OnWizardFinish - OpenDocument executed in %s ms"), (dt2 - dt1).Format(_T("%l")).c_str());
+		wxLogDebug(_T("OnWizardFinish - OpenDocument executed in %s ms"), 
+						(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
 		return; //return CPropertyPage::OnWizardFinish();

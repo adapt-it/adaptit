@@ -115,7 +115,7 @@
 #include "EarlierTranslationDlg.h"
 #include "Cell.h"
 #include "WhichBook.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "BString.h"
 #include "XML.h"
 #include "NoteDlg.h"
@@ -2427,161 +2427,161 @@ wxString szColor = _T("Color");
 /// "SourceLanguageName". This value is written in the "Settings" part
 /// of the basic configuration file and in the "ProjectSettings" part
 /// of the project configuration file. Adapt It stores this path
-/// in the App's m_sourceName global variable.
+/// in the App's m_sourceName member  variable.
 wxString szSourceLanguageName = _T("SourceLanguageName"); // stored in the App's m_sourceName
 
 /// The label that identifies the following string as the project's 
 /// "TargetLanguageName". This value is written in the "Settings" part
 /// of the basic configuration file and in the "ProjectSettings" part
 /// of the project configuration file. Adapt It stores this path
-/// in the App's m_targetName global variable.
+/// in the App's m_targetName member  variable.
 wxString szTargetLanguageName = _T("TargetLanguageName"); // stored in the App's m_targetName
 
 /// The label that identifies the following string as the project's 
 /// "TargetLanguageName". This value is written in the "Settings" part
 /// of the basic configuration file. After validating this path to 
 /// insure its validity on the local machine, Adapt It stores this path
-/// in the App's m_workFolderPath global variable.
+/// in the App's m_workFolderPath member  variable.
 wxString szAdaptitPath = _T("AdaptItPath"); // stored in the App's m_workFolderPath
 
 /// The label that identifies the following string as the project's 
 /// "ProjectName". This value is written in the "Settings" part
 /// of the basic configuration file. Adapt It stores this name in
-/// the App's m_curProjectName global variable.
+/// the App's m_curProjectName member  variable.
 wxString szCurProjectName = _T("ProjectName"); // stored in the App's m_curProjectName
 
 /// The label that identifies the following string as the project's 
 /// "ProjectFolderPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curProjectPath global variable.
+/// the App's m_curProjectPath member  variable.
 wxString szCurLanguagesPath = _T("ProjectFolderPath"); // stored in the App's m_curProjectPath
 
 /// The label that identifies the following string as the project's 
 /// "DocumentsFolderPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curAdaptionsPath global variable.
+/// the App's m_curAdaptionsPath member  variable.
 wxString szCurAdaptionsPath = _T("DocumentsFolderPath"); // stored in the App's m_curAdaptionsPath
 
 /// The label that identifies the following string as the project's 
 /// "KnowledgeBaseName". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this name in
-/// the App's m_curKBName global variable.
+/// the App's m_curKBName member  variable.
 wxString szCurKBName = _T("KnowledgeBaseName"); // stored in the App's m_curKBName
 
 /// The label that identifies the following string as the project's 
 /// "KnowledgeBasePath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curKBName global variable.
+/// the App's m_curKBName member  variable.
 wxString szCurKBPath = _T("KnowledgeBasePath"); // stored in the App's m_curKBName
 
 /// The label that identifies the following string as the project's 
 /// "KBBackupPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curKBBackupPath global variable.
+/// the App's m_curKBBackupPath member  variable.
 wxString szCurKBBackupPath = _T("KBBackupPath"); // stored in the App's m_curKBBackupPath
 
 /// The label that identifies the following string as the project's 
 /// "LastNewDocumentFolder". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_lastSourceFileFolder global variable.
+/// the App's m_lastSourceFileFolder member  variable.
 wxString szLastSourceFileFolder = _T("LastNewDocumentFolder"); // stored in the App's m_lastSourceFileFolder
 
 /// The label that identifies the following string as the project's 
 /// "LastSourceTextExportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_lastSrcExportPath global variable.
+/// the App's m_lastSrcExportPath member  variable.
 wxString szLastSourceExportPath = _T("LastSourceTextExportPath"); // stored in the App's m_lastSrcExportPath
 
 /// The label that identifies the following string as the project's 
 /// "KB_ExportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_kbExportPath global variable.
+/// the App's m_kbExportPath member  variable.
 wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_kbExportPath
 
 /// The label that identifies the following string as the project's 
 /// "RetranslationReportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_retransReportPath global variable.
+/// the App's m_retransReportPath member  variable.
 wxString szRetranslationReportPath = _T("RetranslationReportPath"); // stored in the App's m_retransReportPath
 
 /// The label that identifies the following string as the project's 
 /// "RTFExportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_rtfExportPath global variable.
+/// the App's m_rtfExportPath member  variable.
 wxString szRTFExportPath = _T("RTFExportPath"); // stored in the App's m_rtfExportPath
 
 // the following ones relate to view parameters
 
 // The label that identifies the following string encoded number as the application's 
 // "MaxToDisplay". This value is written in the "Settings" part of the basic configuration 
-// file. Adapt It stores this value in the App's m_nMaxToDisplay global variable.
+// file. Adapt It stores this value in the App's m_nMaxToDisplay member  variable.
 // BEW retained 21Mar09, but now it stores doc count of CSourcePhrase instances, no use
 // made of it though - for backwards compatibility of config files
 wxString szMaxToDisplay = _T("MaxToDisplay"); // stored in the App's m_nMaxToDisplay
 
 /// The label that identifies the following string encoded number as the application's 
 /// "MinPrecedingContext". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_nPrecedingContext global variable.
+/// file. Adapt It stores this path in the App's m_nPrecedingContext member  variable.
 wxString szMinPrecContext = _T("MinPrecedingContext"); // stored in the App's m_nPrecedingContext
 
 /// The label that identifies the following string encoded number as the application's 
 /// "MinFollowingContext". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_nFollowingContext global variable.
+/// file. Adapt It stores this path in the App's m_nFollowingContext member  variable.
 wxString szMinFollContext = _T("MinFollowingContext"); // stored in the App's m_nFollowingContext
 
 /// The label that identifies the following string encoded number as the application's 
 /// "Leading". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_curLeading global variable.
+/// file. Adapt It stores this path in the App's m_curLeading member  variable.
 wxString szLeading = _T("Leading"); // stored in the App's m_curLeading
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LeftMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_curLMargin global variable.
+/// file. Adapt It stores this path in the App's m_curLMargin member  variable.
 wxString szLeftMargin = _T("LeftMargin"); // stored in the App's m_curLMargin
 
 /// The label that identifies the following string encoded number as the application's 
 /// "InterpileGapWidth". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_curGapWidth global variable.
+/// file. Adapt It stores this path in the App's m_curGapWidth member  variable.
 wxString szGapWidth = _T("InterpileGapWidth"); // stored in the App's m_curGapWidth
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressFirstLine". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressFirst global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressFirst member  variable.
 wxString szSuppressFirst = _T("SuppressFirstLine"); // stored in the App's m_bSuppressFirst
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressLastLine". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressLast global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressLast member  variable.
 wxString szSuppressLast = _T("SuppressLastLine"); // stored in the App's m_bSuppressLast
 
 /// The label that identifies the following string encoded number as the application's 
 /// "HidePunctuationFlag". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bHidePunctuation global variable.
+/// file. Adapt It stores this path in the App's m_bHidePunctuation member  variable.
 wxString szHidePunctuation = _T("HidePunctuationFlag"); // stored in the App's m_bHidePunctuation
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SpecialTextColor". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_specialTextColor global variable.
+/// file. Adapt It stores this path in the App's m_specialTextColor member  variable.
 wxString szSpecialTextColor = _T("SpecialTextColor"); // stored in the App's m_specialTextColor
 
 /// The label that identifies the following string encoded number as the application's 
 /// "RetranslationTextColor". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_reTranslnTextColor global variable.
+/// file. Adapt It stores this path in the App's m_reTranslnTextColor member  variable.
 wxString szReTranslnTextColor = _T("RetranslationTextColor"); // stored in the App's m_reTranslnTextColor
 
 /// The label that identifies the following string encoded number as the application's 
 /// "PhraseBoxExpansionMultiplier". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's gnExpandBox global variable.
+/// file. Adapt It stores this path in the App's gnExpandBox member  variable.
 wxString szPhraseBoxExpansionMultiplier = _T("PhraseBoxExpansionMultiplier"); // stored in the App's gnExpandBox
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TooNearEndMultiplier". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's gnNearEndFactor global variable.
+/// file. Adapt It stores this path in the App's gnNearEndFactor member  variable.
 wxString szTooNearEndMultiplier = _T("TooNearEndMultiplier"); // stored in the App's gnNearEndFactor
 
 /// The label that identifies the following string encoded number as the application's
 /// "LegacyCopyForPhraseBox". This value is written in the "ProjectSettings" part of the project
-/// configuration file. Adapt It stores this path in the App's gbLegacySourceTextCopy global variable.
+/// configuration file. Adapt It stores this path in the App's gbLegacySourceTextCopy member  variable.
 wxString szLegacyCopyForPhraseBox = _T("LegacyCopyForPhraseBox");
 
 // Next two were for old punct, for when source & target are not differentiated
@@ -2664,34 +2664,34 @@ wxString szTwoPunctPairsTgt = _T("PunctuationTwoCharacterPairsTargetSet(ditto)")
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressWelcome". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressWelcome global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressWelcome member  variable.
 wxString szSuppressWelcome = _T("SuppressWelcome"); // stored in the App's m_bSuppressWelcome
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressTargetHighlighting". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressTargetHighlighting global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressTargetHighlighting member  variable.
 wxString szSuppressTargetHighlighting = _T("SuppressTargetHighlighting"); // stored in the App's m_bSuppressTargetHighlighting
 
 /// The label that identifies the following string encoded number as the application's 
 /// "AutoInsertionsHighlightColor". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_AutoInsertionsHighlightColor global variable.
+/// file. Adapt It stores this path in the App's m_AutoInsertionsHighlightColor member  variable.
 /// Adapt It uses the WxColour2Int() and Int2wxColour() helper functions to convert between the integer
 /// and wx color enum symbols.
 wxString szAutoInsertionsHighlightColor = _T("AutoInsertionsHighlightColor"); // stored in the App's m_AutoInsertionsHighlightColor
 
 /// The label that identifies the following string encoded number as the application's 
 /// "UseStartupWizardOnLaunch". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bUseStartupWizardOnLaunch global variable.
+/// file. Adapt It stores this path in the App's m_bUseStartupWizardOnLaunch member  variable.
 wxString szUseStartupWizardOnLaunch = _T("UseStartupWizardOnLaunch"); // stored in the App's m_bUseStartupWizardOnLaunch
 
 /// The label that identifies the following string encoded number as the application's 
 /// "BackupKnowledgeBase(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bAutoBackupKB global variable.
+/// file. Adapt It stores this path in the App's m_bAutoBackupKB member  variable.
 wxString szBackupKBFlag = _T("BackupKnowledgeBase(Boolean)"); // stored in the App's m_bAutoBackupKB
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TimeSpanForDocument - minutes". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_timeSettings global variable.
+/// file. Adapt It stores this path in the App's m_timeSettings member  variable.
 wxString szTS_DOC_MINS = _T("TimeSpanForDocument - minutes"); // stored in the App's m_timeSettings
 
 /// The label that identifies the following string encoded number as the application's 
@@ -2701,7 +2701,7 @@ wxString szTS_DOC_SECS = _T("TimeSpanForDocument - seconds");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TimeSpanForKB - minutes". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_timeSettings global variable.
+/// file. Adapt It stores this path in the App's m_timeSettings member  variable.
 wxString szTS_KB_MINS = _T("TimeSpanForKB - minutes"); // stored in the App's m_timeSettings
 
 /// The label that identifies the following string encoded number as the application's 
@@ -2711,29 +2711,29 @@ wxString szTS_KB_SECS = _T("TimeSpanForKB - seconds");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "NoAutoSaveFlag(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bNoAutoSave global variable.
+/// file. Adapt It stores this path in the App's m_bNoAutoSave member  variable.
 wxString szNoAutoSaveFlag = _T("NoAutoSaveFlag(Boolean)"); // stored in the App's m_bNoAutoSave
 
 /// The label that identifies the following string encoded number as the application's 
 /// "DocumentTimeSpanButtonIsON(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bIsDocTimeButton global variable.
+/// file. Adapt It stores this path in the App's m_bIsDocTimeButton member  variable.
 wxString szIsDocTimeButtonFlag = _T("DocumentTimeSpanButtonIsON(Boolean)"); // stored in the App's m_bIsDocTimeButton
 
 /// The label that identifies the following string encoded number as the application's 
 /// "PhraseBoxMovesForSave". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_nMoves global variable.
+/// file. Adapt It stores this value in the App's m_nMoves member  variable.
 wxString szPhraseBoxMoves = _T("PhraseBoxMovesForSave"); // stored in the App's m_nMoves
 
 /// The label that identifies the following string encoded number as the application's 
 /// "ColorOfNavigationText". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_navTextColor global variable.
+/// file. Adapt It stores this path in the App's m_navTextColor member  variable.
 /// Adapt It uses the WxColour2Int() and Int2wxColour() helper functions to convert between the integer
 /// and wx color enum symbols.
 wxString szNavTextColor = _T("ColorOfNavigationText"); // stored in the App's m_navTextColor
 
 /// The label that identifies the following string as the application's 
 /// "DefaultCCTablePath". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_defaultTablePath global variable.
+/// file. Adapt It stores this path in the App's m_defaultTablePath member  variable.
 wxString szDefaultTablePath = _T("DefaultCCTablePath"); // stored in the App's m_defaultTablePath
 
 /// The label that identifies the following string encoded number as the application's 
@@ -2743,108 +2743,108 @@ wxString szFitFlag = _T("FitWithinWindowFlag(Boolean)"); // a relic, unused as o
 
 /// The label that identifies the following string encoded number as the application's 
 /// "MarkersWrapStripsFlag(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bMarkerWrapsStrip global variable.
+/// file. Adapt It stores this path in the App's m_bMarkerWrapsStrip member  variable.
 wxString szMarkerWrapsFlag = _T("MarkersWrapStripsFlag(Boolean)"); // stored in the App's m_bMarkerWrapsStrip
 
 /// The label that identifies the following string encoded number as the application's 
 /// "BackupDocumentFlag". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bBackupDocument global variable.
+/// file. Adapt It stores this path in the App's m_bBackupDocument member variable.
 wxString szBackupDocument = _T("BackupDocumentFlag"); // stored in the App's m_bBackupDocument
 
 // window position and size
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TopLeftX". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_ptViewTopLeft.x global variable.
+/// file. Adapt It stores this value in the App's m_ptViewTopLeft.x member variable.
 wxString szTopLeftX = _T("TopLeftX");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TopLeftY". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_ptViewTopLeft.y global variable.
+/// file. Adapt It stores this value in the App's m_ptViewTopLeft.y member variable.
 wxString szTopLeftY = _T("TopLeftY");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "WinSizeCX". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_szView.x global variable.
+/// file. Adapt It stores this value in the App's m_szView.x member variable.
 wxString szWSizeCX = _T("WinSizeCX");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "WinSizeCY". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_szView.y global variable.
+/// file. Adapt It stores this value in the App's m_szView.y member variable.
 wxString szWSizeCY = _T("WinSizeCY");
 
 // restoring earlier doc location
 
 /// The label that identifies the following string as the application's 
 /// "LastDocumentPath". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_lastDocPath global variable.
+/// file. Adapt It stores this path in the App's m_lastDocPath member variable.
 wxString szLastDocPath = _T("LastDocumentPath");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LastActiveSequenceNumber". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's nLastActiveSequNum global variable.
+/// file. Adapt It stores this value in the App's nLastActiveSequNum member variable.
 wxString szLastActiveSequNum = _T("LastActiveSequenceNumber");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "IsMainWindowMaximized". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bZoomed global variable.
+/// file. Adapt It stores this value in the App's m_bZoomed member variable.
 wxString szZoomed = _T("IsMainWindowMaximized");
 
 /// The label that identifies the following string as the application's 
 /// "LastExportPath". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_lastExportPath global variable.
+/// file. Adapt It stores this path in the App's m_lastExportPath member variable.
 wxString szLastExportPath = _T("LastExportPath");
 
 // print margins, etc
 
 /// The label that identifies the following string encoded number as the application's 
 /// "UseInchesForMeasuring". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bIsInches global variable.
+/// file. Adapt It stores this value in the App's m_bIsInches member variable.
 wxString szLoEnglishFlag = _T("UseInchesForMeasuring");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "UsePortraitOrientation". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bIsPortraitOrientation global variable.
+/// file. Adapt It stores this value in the App's m_bIsPortraitOrientation member variable.
 wxString szUsePortraitOrientation = _T("UsePortraitOrientation");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TopPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginTop and m_marginTopMM global variable.
+/// file. Adapt It stores this value in the App's m_marginTop and m_marginTopMM member  variable.
 wxString szMarginTop = _T("TopPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "BottomPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginBottom and m_marginBottomMM global variable.
+/// file. Adapt It stores this value in the App's m_marginBottom and m_marginBottomMM member  variable.
 wxString szMarginBottom = _T("BottomPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LeftPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginLeft and m_marginLeftMM global variable.
+/// file. Adapt It stores this value in the App's m_marginLeft and m_marginLeftMM member  variable.
 wxString szMarginLeft = _T("LeftPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "RightPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginRight and m_marginRightMM global variable.
+/// file. Adapt It stores this value in the App's m_marginRight and m_marginRightMM member  variable.
 wxString szMarginRight = _T("RightPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LastUsedPageWidth". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_pageWidth and m_pageWidthMM global variable.
+/// file. Adapt It stores this value in the App's m_pageWidth and m_pageWidthMM member  variable.
 wxString szLastPageWidth = _T("LastUsedPageWidth");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LastUsedPageLength". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_pageLength and m_pageLengthMM global variable.
+/// file. Adapt It stores this value in the App's m_pageLength and m_pageLengthMM member  variable.
 wxString szLastPageLength = _T("LastUsedPageLength");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "PaperSizeCode". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_paperSizeCode global variable.
+/// file. Adapt It stores this value in the App's m_paperSizeCode member  variable.
 wxString szPaperSizeCode = _T("PaperSizeCode");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "RTL_Layout". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bRTL_Layout global variable.
+/// file. Adapt It stores this value in the App's m_bRTL_Layout member  variable.
 wxString szRTL_Layout = _T("RTL_Layout");
 
 // support for user-assignable SFM escape char
@@ -2855,24 +2855,24 @@ wxString szRTL_Layout = _T("RTL_Layout");
 wxString szSFMescapechar = _T("SFMescapeChar");
 
 /// The label that identifies the following string encoded number as the application's 
-/// "SFMafterNewlines". Adapt It stores this value in the App's gbSfmOnlyAfterNewlines global variable.
+/// "SFMafterNewlines". Adapt It stores this value in the App's gbSfmOnlyAfterNewlines member  variable.
 wxString szSFMafterNewlines = _T("SFMafterNewlines");
 
 #ifdef _RTL_FLAGS
 // NR version support
 
 /// The label that identifies the following string encoded number as the application's 
-/// "SourceIsRTL". Adapt It stores this value in the App's m_bSrcRTL global variable.
+/// "SourceIsRTL". Adapt It stores this value in the App's m_bSrcRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLSource = _T("SourceIsRTL");
 
 /// The label that identifies the following string encoded number as the application's 
-/// "TargetIsRTL". Adapt It stores this value in the App's m_bTgtRTL global variable.
+/// "TargetIsRTL". Adapt It stores this value in the App's m_bTgtRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLTarget = _T("TargetIsRTL");
 
 /// The label that identifies the following string encoded number as the application's 
-/// "NavTextIsRTL". Adapt It stores this value in the App's m_bNavTextRTL global variable.
+/// "NavTextIsRTL". Adapt It stores this value in the App's m_bNavTextRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLNavText = _T("NavTextIsRTL");
 #endif
@@ -2881,27 +2881,27 @@ wxString szRTLNavText = _T("NavTextIsRTL");
 
 /// The label that identifies the following string as the application's 
 /// "LowerCaseSourceLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_srcLowerCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_srcLowerCaseChars global  variable.
 wxString szLowerCaseSourceChars = _T("LowerCaseSourceLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "UpperCaseSourceLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_srcUpperCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_srcUpperCaseChars global  variable.
 wxString szUpperCaseSourceChars = _T("UpperCaseSourceLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "LowerCaseTargetLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_tgtLowerCaseChars global variable.
+/// file. Adapt It stores this path in the App's m_tgtLowerCaseChars global  variable.
 wxString szLowerCaseTargetChars = _T("LowerCaseTargetLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "UpperCaseTargetLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_tgtUpperCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_tgtUpperCaseChars global  variable.
 wxString szUpperCaseTargetChars = _T("UpperCaseTargetLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "LowerCaseGlossLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_glossLowerCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_glossLowerCaseChars global  variable.
 wxString szLowerCaseGlossChars = _T("LowerCaseGlossLanguageChars");
 
 /// The label that identifies the following string as the application's 

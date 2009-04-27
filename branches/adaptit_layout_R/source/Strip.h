@@ -45,7 +45,8 @@ class CStrip : public wxObject
 	friend class CCell;
 public:
 	// creation (a 2 step process)
-	CStrip();
+	CStrip(); // doesn't set m_pLayout member to nonNull pointer
+	CStrip(CLayout* pLayout); // use this one for strip creation
 	//int	CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset, 
 	//				int& nLastSequNumber, int nEndIndex);
 	//int	CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile, int gap);

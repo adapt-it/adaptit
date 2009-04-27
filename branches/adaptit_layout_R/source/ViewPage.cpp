@@ -85,9 +85,10 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempMakeWelcomeVisible = TRUE;
 	tempHighlightAutoInsertions = TRUE;
 
-	m_pEditMaxSrcWordsDisplayed = (wxTextCtrl*)FindWindowById(IDC_EDIT_MAX_DISPLAYED);
-	m_pEditMinPrecContext = (wxTextCtrl*)FindWindowById(IDC_EDIT_MIN_PREC_CONTEXT);
-	m_pEditMinFollContext = (wxTextCtrl*)FindWindowById(IDC_EDIT_MIN_FOLL_CONTEXT);
+	// refactored 26Apr09 -- next 3 no longer required
+	//m_pEditMaxSrcWordsDisplayed = (wxTextCtrl*)FindWindowById(IDC_EDIT_MAX_DISPLAYED);
+	//m_pEditMinPrecContext = (wxTextCtrl*)FindWindowById(IDC_EDIT_MIN_PREC_CONTEXT);
+	//m_pEditMinFollContext = (wxTextCtrl*)FindWindowById(IDC_EDIT_MIN_FOLL_CONTEXT);
 	m_pEditLeading = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEADING);
 	m_pEditGapWidth = (wxTextCtrl*)FindWindowById(IDC_EDIT_GAP_WIDTH);
 	m_pEditLeftMargin = (wxTextCtrl*)FindWindowById(IDC_EDIT_LEFTMARGIN);
@@ -172,13 +173,21 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	*/
 	pApp->m_nMaxToDisplay = pApp->GetMaxIndex() + 1; // count of CSourcePhrase instances
 
+	/* refactored 22Mar09, this value no longer needed now we have no bundles
+	// so set it to a value which we can output in the config file safely but not use
 	strTemp = m_pEditMinPrecContext->GetValue();
 	nVal = wxAtoi(strTemp);
 	pApp->m_nPrecedingContext = nVal;
+	*/
+	pApp->m_nPrecedingContext = 30; // arbitrary const value, we no longer use it
 
+	/* refactored 22Mar09, this value no longer needed now we have no bundles
+	// so set it to a value which we can output in the config file safely but not use
 	strTemp = m_pEditMinFollContext->GetValue();
 	nVal = wxAtoi(strTemp);
 	pApp->m_nFollowingContext = nVal;
+	*/
+	pApp->m_nFollowingContext = 40; // arbitrary const value, we no longer use it
 
 	strTemp = m_pEditLeading->GetValue();
 	nVal = wxAtoi(strTemp);
@@ -215,8 +224,8 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 
 	// initialize our local temp variables from those on the App
 	//tempMaxToDisplay = pApp->m_nMaxToDisplay; // refactored 22Mar09 - no longer needed
-	tempPrecCntxt = pApp->m_nPrecedingContext;
-	tempFollCntxt = pApp->m_nFollowingContext;
+	//tempPrecCntxt = pApp->m_nPrecedingContext; // refactored 26Apr09 - no longer needed
+	//tempFollCntxt = pApp->m_nFollowingContext; // refactored 26Apr09 - no longer needed
 	tempLeading = pApp->m_curLeading;
 	tempGapWidth = pApp->m_curGapWidth;
 	tempLMargin = pApp->m_curLMargin;
@@ -232,16 +241,19 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	// transfer initial values to controls
 	wxString strTemp;
 	strTemp.Empty();
-	strTemp << tempMaxToDisplay;
-	m_pEditMaxSrcWordsDisplayed->SetValue(strTemp);
+	// refactored 26Apr09 - no longer needed
+	//strTemp << tempMaxToDisplay;
+	//m_pEditMaxSrcWordsDisplayed->SetValue(strTemp);
 
-	strTemp.Empty();
-	strTemp << tempPrecCntxt;
-	m_pEditMinPrecContext->SetValue(strTemp);
+	// refactored 26Apr09 - no longer needed
+	//strTemp.Empty();
+	//strTemp << tempPrecCntxt;
+	//m_pEditMinPrecContext->SetValue(strTemp);
 
-	strTemp.Empty();
-	strTemp << tempFollCntxt;
-	m_pEditMinFollContext->SetValue(strTemp);
+	// refactored 26Apr09 - no longer needed
+	//strTemp.Empty();
+	//strTemp << tempFollCntxt;
+	//m_pEditMinFollContext->SetValue(strTemp);
 
 	strTemp.Empty();
 	strTemp << tempLeading;

@@ -784,8 +784,9 @@ int CLayout::GetGapWidth()
 }
 
 
-// SetLayoutParameters() is where we do most of the hooking up to the current state of the app's
-// various view-related parameters, such as fonts, colours, text heights, and so forth
+// SetLayoutParameters() is where we do most of the hooking up to the current state of the
+// app's various view-related parameters, such as fonts, colours, text heights, and so
+// forth
 void CLayout::SetLayoutParameters()
 {
 	InitializeCLayout(); // sets the app, doc, view, canvas & frame pointers
@@ -820,6 +821,8 @@ void CLayout::DestroyStrip(int index)
 
 void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 {
+	if (m_stripArray.IsEmpty())
+		return; // needed because DestroyStripRange() can be called when nothing is set up yet
 	int index;
 	for (index = nFirstStrip; index <= nLastStrip; index++)
 		DestroyStrip(index);
@@ -827,6 +830,8 @@ void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 
 void CLayout::DestroyStrips()
 {
+	if (m_stripArray.IsEmpty())
+		return; // needed because DestroyStrips() can be called when nothing is set up yet
 	int nLastStrip = m_stripArray.GetCount() - 1;
 	DestroyStripRange(0, nLastStrip);
 }
@@ -841,6 +846,8 @@ void CLayout::DestroyPile(CPile* pPile)
 
 void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 {
+	if (m_pileList.IsEmpty())
+		return; // needed because DestroyPileRange() can be called when nothing is set up yet
 	PileList::Node* pos = m_pileList.Item(nFirstPile);
 	int index = nFirstPile;
 	if (pos == NULL)
@@ -863,6 +870,8 @@ void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 
 void CLayout::DestroyPiles()
 {
+	if (m_pileList.IsEmpty())
+		return; // needed because DestroyPiles() can be called when nothing is set up yet
 	int nLastPile = m_pileList.GetCount() - 1;
 	DestroyPileRange(0, nLastPile);
 }
@@ -905,6 +914,8 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	for (index = 0; index < MAX_CELLS; index++)
 	{
 		pCell = new CCell();
+		// store it
+		pPile->m_pCell[index] = pCell; // index ranges through 0 1 and 2 in our new design
 		pCell->CreateCell(this,pPile,index);
 	}
 	// Note: to assist clarity, the extensive commented out legacy code has been removed
@@ -919,16 +930,17 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 	// treat that as a serious logic error
 	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
 	{
-		wxMessageBox(_T("SPList* passed in was either NULL or devoid of pilesl in CreatePiles()"),
-						_T(""), wxICON_STOP);
+		wxMessageBox(_T(
+		"SPList* passed in was either NULL or devoid of pilesl in CreatePiles()"),
+		_T(""), wxICON_STOP);
 		wxASSERT(FALSE);
 		wxExit(); // something seriously wrong in design, so don't try to go on
 		return FALSE;
 	}
 
-	// we allow CreatePiles() to be called even when the list of piles is still populated, so
-	// CreatePiles() has the job of seeing that the old ones are deleted before creating a new set
-	//bool bIsEmpty = m_pPiles->IsEmpty();
+    // we allow CreatePiles() to be called even when the list of piles is still populated,
+    // so CreatePiles() has the job of seeing that the old ones are deleted before creating
+    // a new set bool bIsEmpty = m_pPiles->IsEmpty();
 	bool bIsEmpty = m_pileList.IsEmpty();
 	if (!bIsEmpty)
 	{
@@ -940,10 +952,10 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 	CSourcePhrase* pSrcPhrase = NULL;
 	CPile* pPile = NULL;
 	SPList::Node* pos = pSrcPhrases->GetFirst();
-	PileList::Node* posInPilesList = m_pileList.GetFirst();
-	// Note: lack of memory could make the following loop fail in the release version if the
-	// user is processing a very large document - but recent computers should have plenty of
-	// RAM available, so we'll assume a low memory error will not arise; so keep the code lean
+    // Note: lack of memory could make the following loop fail in the release version if
+    // the user is processing a very large document - but recent computers should have
+    // plenty of RAM available, so we'll assume a low memory error will not arise; so keep
+    // the code lean
 	while (pos != NULL)
 	{
 		// get the CSourcePhrase pointer from the passed in list
@@ -955,19 +967,19 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 		pPile = CreatePile(pSrcPhrase);
 		wxASSERT(pPile != NULL);
 
-		// store it in the node of the m_pPiles list of CLayout
-		posInPilesList->SetData(pPile);
+		// store it m_pPiles list of CLayout
+		m_pileList.Append(pPile);
 
 		// get ready for next iteration
 		pos = pos->GetNext();
-		posInPilesList = posInPilesList->GetNext();
 	}
 
     // To succeed, the count of items in each list must be identical 
 	if (pSrcPhrases->GetCount() != m_pileList.GetCount())
 	{
-		wxMessageBox(_T("SPList* passed in, in CreatePiles(), has a count which is different from that of the m_pPiles list in CLayout"),
-						_T(""), wxICON_STOP);
+		wxMessageBox(_T(
+"SPList* passed in, in CreatePiles(), has a count which is different from that of the m_pPiles list in CLayout"),
+		_T(""), wxICON_STOP);
 		wxASSERT(FALSE);
 		wxExit();	// something seriously wrong in design probably, such an error should not 
 					// happen, so don't try to go on
@@ -1010,9 +1022,11 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 		{
 			m_pileList.DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
 		}
+		// remove this message - it gets shown about a dozen times before the Welcome
+		// splash window appears!!
 		// a message to us developers is needed here, in case we get the design wrong
-		wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
-					_T(""), wxICON_WARNING);
+		//wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
+		//			_T(""), wxICON_WARNING);
 		return TRUE;
 	}
 
@@ -1059,21 +1073,9 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 		}
 	}
 
-    // estimate the number of CStrip instances required - assume an average of 16 piles per strip,
-    // which should result in more strips than needed, and so when the layout is built, we should
-    // call Shrink()
-	int aCount = pSrcPhrases->GetCount();
-	int anEstimate = aCount / 16;
-	m_stripArray.SetCount(anEstimate,(void*)NULL);	// create possibly enough space in the array 
-													// for all the piles
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
 	//int nPilesEndIndex = m_pileList.GetCount() - 1; // use this to terminate the strip creation loop
-	int nIndexOfFirstPile = 0;
-	wxASSERT(!m_pileList.IsEmpty());
-	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
-	wxASSERT(pos != NULL);
-	CStrip* pStrip = NULL;
 
 	// before building the strips, we want to ensure that the gap left for the phrase box
 	// to be drawn in the layout is as wide as the phrase box is going to be when it is
@@ -1105,14 +1107,9 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 		m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
 	}
 
-	// the loop which builds the strips
-	while (pos != NULL)
-	{
-		pStrip = new CStrip;
-		pos = pStrip->CreateStrip(pos, nStripWidth, gap);
-	}
-	m_stripArray.Shrink();
-
+	// the loop which builds the strips, pList is the m_pSourcePhrases list member of app
+	CreateStrips(pList, nStripWidth, gap);
+	
 	// the height of the document can now be calculated
 	SetLogicalDocHeight();
 
@@ -1167,6 +1164,38 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	}
 	
 	return TRUE;
+}
+
+void CLayout::CreateStrips(SPList* pSrcPhrases, int nStripWidth, int gap)
+{
+    // estimate the number of CStrip instances required - assume an average of 10 piles per
+    // strip, which should result in more strips than needed except when running on
+    // computers with small screens, and so when the layout is built, we should call
+    // Shrink()
+	int aCount = pSrcPhrases->GetCount();
+	int anEstimate = aCount / 16;
+	anEstimate = anEstimate == 0 ? 1 : anEstimate; // at least one!
+	// create possibly enough space in the array for all the piles
+	m_stripArray.SetCount(anEstimate,(void*)NULL);	
+	int nIndexOfFirstPile = 0;
+	wxASSERT(!m_pileList.IsEmpty());
+	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
+	wxASSERT(pos != NULL);
+	CStrip* pStrip = NULL;
+
+	 //loop to create the strips, add them to CLayout::m_stripArray
+	int nStripIndex = 0;
+	while (pos != NULL)
+	{
+		pStrip = new CStrip(this);
+		pStrip->m_nStrip = nStripIndex; // set it's index
+		m_stripArray.Add(pStrip); // add the new strip to the strip array
+		// set up the strip's pile (and cells) contents
+		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with three 
+															//CPile instances, etc 
+		nStripIndex++;
+	}
+	m_stripArray.Shrink();
 }
 
 // starting from the passed in index value, update the index of succeeding strip instances to be
