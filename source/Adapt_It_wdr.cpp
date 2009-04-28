@@ -6856,8 +6856,6 @@ wxMenuBar *AIMenuBarFunc()
     item5->AppendSeparator();
     item5->Append( ID_ADVANCED_BOOKMODE, _("Storing Documents in Book Folders"), _("Turn on, or off, storage of documents to book folders"), wxITEM_CHECK );
     item5->AppendSeparator();
-    item5->Append( ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, _("Change Location of Adapt It Work Folder..."), _("Change location of the Adapt It (Unicode) Work folder and all projects in the work folder") );
-    item5->AppendSeparator();
     item5->Append( ID_ADVANCED_FREE_TRANSLATION_MODE, _("Free Translation Mode"), _("Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"), wxITEM_CHECK );
     item5->Append( ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, _("Use Target Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing target text"), wxITEM_CHECK );
     item5->Append( ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, _("Use Gloss Text As Default Free Translation"), _("Turn on, or off, composition of a default free translation from the existing gloss text"), wxITEM_CHECK );
