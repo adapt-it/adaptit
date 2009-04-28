@@ -1,12 +1,25 @@
 Version 4.1.3 update 30Apr2009:
 ----------------------------------------------
+Feature changes and new features in 4.1.3
+----------------------------------------------
+* Adapt It now can process an -xo command-line option. The -xo command-line option was specifically designed to make Adapt It's interface work better on an OLPC XO machine running the BALSA distribution of Ubuntu Linux (Intrepid). The -xo option causes Adapt It to use a toolbar with larger (but fewer) buttons; a mode bar that spans two lines instead of a single line under the toolbar; and a few dialogs adjusted for better layout. The -xo option is not restricted to use on the OLPC XO; it can be added to the command-line on most systems by right-clicking on a menu item, shortcut, or launcher icon that is normally used to start Adapt It, and choosing "Properties" from the popup menu. Find the Command or Target field that invokes Adapt It, and add a space followed by the -xo option to the launching command.
+----------------------------------------------
 Bug fixes in 4.1.3
 ----------------------------------------------
+* Fixed a bug that was displaying the wrong target phrase (usually a previous one) when the "Place medial punctuation" dialog appears during adaptation.
+* Fixed a bug that was allowing final punctuation to enter the Knowledgebase and be stored in adapted documents. If a user's current knowledge base has wrongly admitted items with punctuation into fields that should not contain punctuation, the user can fix the problem by doing the following: 
+   (1) run Adapt It, 
+   (2) Choose the project but cancel out at the Document page of the wizard so that no document is opened (or select File > Close if a document was opened), and 
+   (3) run the File > Restore Knowledgebase... command, selecting all documents that should be used for rebuilding the KB.
+   (4) If Restore Knowledgebase... command discovered any wrongly stored punctuation in the KB and adaptation documents, the user is notified and an error log called KBRestoreErrorLog.txt is saved in the project folder.
+The rebuilt KB will no longer contain any final punctuation. If any of the documents used to restore the KB contained incorrectly stored punctuation, that punctuation is removed from the appropriate fields of those documents and the documents are re-saved. 
+* Adapt It's position and size on the desktop is now preserved more consistently, between sessions. Also, if Adapt It's frame was maximized on last use, it starts the new session maximized, even when last used on a desktop spread across a second monitor with Adapt It on either monitor.
+
 Mac version:
-* Fixed numerous issues in the new Mac version. Although the Mac version is newly released, its version numbers begin with 4.1.3 to be concurrent with the version numbers for Windows and Linux.
+* Fixed a number of issues in the new Mac version. Note: Although the Mac version is newly released, its version numbers are assigned to be concurrent with the version numbers for Windows and Linux versions.
 
 Linux version:
-* Adapt It now detects when the Linux version runs of a computer with high dpi resolution screen (like the OLPC XO) and compensates by substituting a toolbar with double sized buttons/images, and by spreading the check box and other items in the control bar over two shorter lines so they won't disappear off the right end of the main window. Some other dialogs have also been adjusted to layout better on these high dpi resolution screens.
+* Adapt It can now be configured for a better layout of its interface when running on a computer with high dpi resolution screen (like the OLPC XO). When Adapt It is invoked with the -xo command-line option, Adapt It substitutes a toolbar with double sized buttons/images, and spreads the check box and other items in the mode bar over two rows of controls so they won't disappear off the right end of the main window. Some other dialogs have also been adjusted to layout better on these high dpi resolution screens.
 
 Version 4.1.2 update 24Mar2009:
 ----------------------------------------------

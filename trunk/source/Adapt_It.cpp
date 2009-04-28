@@ -2242,8 +2242,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
 	EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
 	EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
-	EVT_MENU(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation)
-	EVT_UPDATE_UI(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation)
+	//EVT_MENU(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation)
+	//EVT_UPDATE_UI(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation)
 	//OnAdvancedDelay  is in the View
 	//OnUpdateAdvancedDelay  is in the View
 
@@ -18573,7 +18573,19 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event) 
 {
-    // comment out the message below and remove the return statement and commented block below, after
+	// TODO: In order to activate this feature handler the following must first be done:
+	// 1. Using wxDesigner add a menu item between "Storing Documents in Book Folders"
+	//    and "Free Translation Mode". Make the ID name be "ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION".
+	//    Make the Label: "Change Location of Adapt It Work Folder...".
+	//    Make the Help text: "Change location of the Adapt It (Unicode) Work folder and projects 
+	//    in the work folder"
+	// 2. Using wxDesigner, add a Menu separator after the menu item, so that the item has a Menu
+	//    separator both before and after it.
+	// 3. Uncomment the two event table macro lines at the beginning of this Adapt_it.cpp source file:
+	//	  EVT_MENU(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation)
+	//	  EVT_UPDATE_UI(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation)
+	// 4. Comment out the 4 lines including the wxMessageBox() and return calls below.
+	// 5. Remove the commented out block below.
     // implementation of the "Change Location of Adapt It Work Folder..." command on Advanced menu
     int junk;
 	junk = event.GetInt(); // to avoid warning
