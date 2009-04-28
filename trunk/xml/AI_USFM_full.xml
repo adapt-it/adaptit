@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	24 March 2009, by Bill Martin
-USFM version:	2.205 as published in usfm.sty by UBS 24 March, 2009
+Last Updated:	28 April 2009, by Bill Martin
+USFM version:	2.208 as published in usfm.sty by UBS 21 April, 2009
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -482,6 +482,22 @@ marker attribute definitions below.  -->
 	spaceAbove="0" spaceBelow="0"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
 	basedOn="_notes_base" nextStyle="rem"
+	keepTogether="0" keepWithNext="0">
+</SFM>
+<SFM marker="sts" endMarker=""
+	description="Status of this file"
+	usfm="1" png="0"
+	filter="1" userCanSetFilter="1"
+	inLine="0" special="1" bdryOnLast="1"
+	inform="1" navigationText="comment"
+	textType="note" wrap="0"
+	styleName="rem - File - Status"
+	styleType="paragraph" fontSize="9" color="16711680"
+	italic="0" bold="0" underline="0"
+	smallCaps="0" superScript="0" justification="justified"
+	spaceAbove="0" spaceBelow="0"
+	leadingMargin="0" followingMargin="0" firstLineIndent="0"
+	basedOn="_notes_base" nextStyle="sts"
 	keepTogether="0" keepWithNext="0">
 </SFM>
 <SFM marker="restore" endMarker=""
@@ -2993,7 +3009,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	styleType="paragraph" fontSize="20" color="0"
 	italic="0" bold="1" underline="0"
 	smallCaps="0" superScript="0" justification="center"
-	spaceAbove="0" spaceBelow="0"
+	spaceAbove="8" spaceBelow="4"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
 	basedOn="imt" nextStyle="ie"
 	keepTogether="0" keepWithNext="0">
@@ -3009,7 +3025,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	styleType="paragraph" fontSize="20" color="0"
 	italic="0" bold="1" underline="0"
 	smallCaps="0" superScript="0" justification="center"
-	spaceAbove="0" spaceBelow="0"
+	spaceAbove="8" spaceBelow="4"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
 	basedOn="imt" nextStyle="ie"
 	keepTogether="0" keepWithNext="0">
@@ -3025,7 +3041,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	styleType="paragraph" fontSize="16" color="0"
 	italic="1" bold="0" underline="0"
 	smallCaps="0" superScript="0" justification="center"
-	spaceAbove="0" spaceBelow="0"
+	spaceAbove="8" spaceBelow="4"
 	leadingMargin="0" followingMargin="0" firstLineIndent="0"
 	basedOn="imt" nextStyle="ie"
 	keepTogether="0" keepWithNext="0">

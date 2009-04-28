@@ -5,6 +5,7 @@ _T("h1::Running header text:1::1:1::1:1:1:hdr:10::h1 - File - Header:0:12:::::::
 _T("h2::Running header text, left side of page:1::1:1::1:1:1:hdr-left:10::h2 - File - Left Header:0:12:::::::0::::::h1:h2:::"),
 _T("h3::Running header text, right side of page:1::1:1::1:1:1:hdr-rght:10::h3 - File - Right Header:0:12:::::::2::::::h1:h3:::"),
 _T("rem::Comments and remarks:1::1:1::1:1:1:comment:34::rem - File - Remark:0:9:16711680::::::3::::::_notes_base:rem:::"),
+_T("sts::Status of this file:1::1:1::1:1:1:comment:34::rem - File - Status:0:9:16711680::::::3::::::_notes_base:sts:::"),
 _T("restore::Project restore information:1::1::::1:::34::restore - File - Restore Information:0:12:16711680::::::3::::::__normal:restore:::"),
 _T("lit::For a comment or note inserted for liturgical use:1::1:1::1:1:1:lit-note:34::lit - Special Text - Liturgical note:0:12:::1::::2::::::p:lit:1:1:"),
 _T("nt::Note::1:1:1::1:1:1:note:34::nt - Note:0:9:16711680::::::3::::::_notes_base:nt:::"),
@@ -144,9 +145,9 @@ _T("imt1::Introduction major title, level 1 (if multiple levels):1:::1::1:1:1:in
 _T("imt2::Introduction major title, level 2:1:::1::1:1:1:intro major title L2:0:1:imt2 - Introduction - Major Title Level 2:0:13::1:::::1:6:3::::imt1:ip:1:1:"),
 _T("imt3::Introduction major title, level 3:1:::1::1:1:1:intro major title L3:0:1:imt3 - Introduction - Major Title Level 3:0:12:::1::::1:2:2::::imt2:ip:1:1:"),
 _T("imt4::Introduction major title, level 4 (usually within parenthesis):1:::1::1:1:1:intro major title L4:0:1:imt4 - Introduction - Major Title Level 4:0:12::1:::::1:2:2::::imt3:ip:1:1:"),
-_T("imte::Introduction major title at introduction end, level 1 (if single level):1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1::::::imt:ie:::"),
-_T("imte1::Introduction major title at introduction end, level 1 (if multiple levels):1:::1::1:1:1:intro major title at end:0:1:imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1::::::imt:ie:::"),
-_T("imte2::Introduction major title at introduction end, level 2:1:::1::1:1:1:intro major title at end:0:1:imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2:0:16::1:::::1::::::imt:ie:::"),
+_T("imte::Introduction major title at introduction end, level 1 (if single level):1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
+_T("imte1::Introduction major title at introduction end, level 1 (if multiple levels):1:::1::1:1:1:intro major title at end:0:1:imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
+_T("imte2::Introduction major title at introduction end, level 2:1:::1::1:1:1:intro major title at end:0:1:imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2:0:16::1:::::1:8:4::::imt:ie:::"),
 _T("is::Introduction section heading, level 1 (if single level) (basic):1:1::1::1:1:1:intro sect head:0:1:is - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::s:ip:1:1:"),
 _T("is1::Introduction section heading, level 1 (if multiple levels):1:::1::1:1:1:intro sect head L1:0:1:is1 - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::is:ip:1:1:"),
 _T("is2::Introduction section heading, level 2:1:::1::1:1:1:intro sect head L2:0:1:is2 - Introduction - Section Heading Level 2:0:12:::1::::1:8:4::::is1:ip:1:1:"),
@@ -280,4 +281,4 @@ _T("_double_boxed_para::Double Boxed Paragraph:1:1:1:::::::0::Double Boxed Parag
 _T("_unknown_para_style::Unknown Paragraph Style Marker:1:1:1:::::::0::Unknown Para Style Marker:0:12:255::::::3::::::_body_text:_unknown_para_style:::"),
 _T("_unknown_char_style::Unknown Character Style Marker:1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::3::::::::::"),
 _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::3:2::::.3:p:_hidden_note:::"),
-282
+283
