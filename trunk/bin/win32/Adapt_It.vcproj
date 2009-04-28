@@ -262,7 +262,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="wxmsw28ud_adv.lib wxmsw28ud_html.lib wxmsw28ud_core.lib wxbase28ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib oleacc.lib odbc32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
-				Version="4.1.2"
+				Version="4.1.3"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\"
