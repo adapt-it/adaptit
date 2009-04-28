@@ -14,6 +14,7 @@ Bug fixes in 4.1.3
    (4) If Restore Knowledgebase... command discovered any wrongly stored punctuation in the KB and adaptation documents, the user is notified and an error log called KBRestoreErrorLog.txt is saved in the project folder.
 The rebuilt KB will no longer contain any final punctuation. If any of the documents used to restore the KB contained incorrectly stored punctuation, that punctuation is removed from the appropriate fields of those documents and the documents are re-saved. 
 * Adapt It's position and size on the desktop is now preserved more consistently, between sessions. Also, if Adapt It's frame was maximized on last use, it starts the new session maximized, even when last used on a desktop spread across a second monitor with Adapt It on either monitor.
+* Changed the Adapt It Help Topics to display the "Using Adapt It" HTML page as its starting page instead of the Glossary page. Also fixed a number of reported dead links in the HTML Help files.
 
 Mac version:
 * Fixed a number of issues in the new Mac version. Note: Although the Mac version is newly released, its version numbers are assigned to be concurrent with the version numbers for Windows and Linux versions.
