@@ -41,8 +41,8 @@
 #define VERSION_MAJOR_PART 4
 #define VERSION_MINOR_PART 1
 #define VERSION_BUILD_PART 3
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases
-#define VERSION_DATE_DAY 11
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 30
 #define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2009
 
