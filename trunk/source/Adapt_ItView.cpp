@@ -18097,10 +18097,14 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
 			wxString strAdaption(strCurAdaption);
 			if (!pSrcPhrase->m_bNullSourcePhrase)
 			{
-				// Don't remove "..." which represents a null source phrase (placeholder)
+				// Don't remove "..." (in source phrase only) which represents a null source phrase (placeholder)
 				RemovePunctuation(pDoc,&strKey,0); // 0 means "from source text"
 			}
-			RemovePunctuation(pDoc,&strAdaption,1); // 1 means "from target text"
+			if (!pSrcPhrase->m_bNotInKB)
+			{
+				// Don't remove "<Not In KB>" (in target text only)
+				RemovePunctuation(pDoc,&strAdaption,1); // 1 means "from target text"
+			}
 			if (strKey != strCurKey)
 				bKeyHasPunct = TRUE;
 			if (strAdaption != strCurAdaption)
