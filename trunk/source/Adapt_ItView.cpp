@@ -18095,7 +18095,11 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
 			wxString strCurAdaption = pSrcPhrase->m_adaption;
 			wxString strKey(strCurKey);
 			wxString strAdaption(strCurAdaption);
-			RemovePunctuation(pDoc,&strKey,0); // 0 means "from source text"
+			if (!pSrcPhrase->m_bNullSourcePhrase)
+			{
+				// Don't remove "..." which represents a null source phrase (placeholder)
+				RemovePunctuation(pDoc,&strKey,0); // 0 means "from source text"
+			}
 			RemovePunctuation(pDoc,&strAdaption,1); // 1 means "from target text"
 			if (strKey != strCurKey)
 				bKeyHasPunct = TRUE;
