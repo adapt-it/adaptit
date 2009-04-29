@@ -3,7 +3,7 @@
 /// \file			Adapt_It.h
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	27 February 2009
+/// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
@@ -40,9 +40,9 @@
 
 #define VERSION_MAJOR_PART 4
 #define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 3
+#define VERSION_BUILD_PART 4
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 30
+#define VERSION_DATE_DAY 29
 #define VERSION_DATE_MONTH 4
 #define VERSION_DATE_YEAR 2009
 

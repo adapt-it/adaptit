@@ -1,10 +1,11 @@
-Version 4.1.3 update 30Apr2009:
+Version 4.1.4 update 29Apr2009:
 ----------------------------------------------
-Feature changes and new features in 4.1.3
+Feature changes and new features in 4.1.4
 ----------------------------------------------
 * Adapt It now can process an -xo command-line option. The -xo command-line option was specifically designed to make Adapt It's interface work better on an OLPC XO machine running the BALSA distribution of Ubuntu Linux (Intrepid). The -xo option causes Adapt It to use a toolbar with larger (but fewer) buttons; a mode bar that spans two lines instead of a single line under the toolbar; and a few dialogs adjusted for better layout. The -xo option is not restricted to use on the OLPC XO; it can be added to the command-line on most systems by right-clicking on a menu item, shortcut, or launcher icon that is normally used to start Adapt It, and choosing "Properties" from the popup menu. Find the Command or Target field that invokes Adapt It, and add a space followed by the -xo option to the launching command.
+* Updates the AI_USFM.xml USFM/style control file to coordinate with UBS USFM 2.208.
 ----------------------------------------------
-Bug fixes in 4.1.3
+Bug fixes in 4.1.4
 ----------------------------------------------
 * Fixed a bug that was displaying the wrong target phrase (usually a previous one) when the "Place medial punctuation" dialog appears during adaptation.
 * Fixed a bug that was allowing final punctuation to enter the Knowledgebase and be stored in adapted documents. If a user's current knowledge base has wrongly admitted items with punctuation into fields that should not contain punctuation, the user can fix the problem by doing the following: 
