@@ -32,6 +32,15 @@
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
+      <runarguments>
+        <adaptit/>
+      </runarguments>
+      <debugarguments>
+        <adaptit/>
+      </debugarguments>
+      <cwd>
+        <adaptit>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/./</adaptit>
+      </cwd>
     </run>
     <configurations>
       <optimized>
@@ -117,7 +126,7 @@
       </envvars>
       <abortonerror>false</abortonerror>
       <runmultiplejobs>true</runmultiplejobs>
-      <numberofjobs>2</numberofjobs>
+      <numberofjobs>4</numberofjobs>
       <dontact>false</dontact>
       <makebin/>
       <prio>0</prio>
