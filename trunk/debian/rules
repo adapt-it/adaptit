@@ -72,6 +72,8 @@ binary-arch: build install
 	dh_installdocs -X.svn
 	dh_installexamples
 	dh_install debian/adaptit.desktop usr/share/applications
+	dh_install res/32x32/adaptit.png usr/share/icons/hicolor/32x32/apps
+	dh_install res/48x48/adaptit.png usr/share/icons/hicolor/48x48/apps
 #	dh_install
 #	dh_installmenu
 #	dh_installdebconf	
