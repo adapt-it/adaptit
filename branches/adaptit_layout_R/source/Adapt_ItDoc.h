@@ -150,8 +150,9 @@ public:
 	// partner pile functions (for refactored layout support)
 	void			CreatePartnerPile(CSourcePhrase* pSrcPhrase); // added 13Mar09
 	void			DeletePartnerPile(CSourcePhrase* pSrcPhrase); // added 12Mar09
-	CPile*			ReplacePartnerPile(PileList* pPiles, PileList::Node* posPile, CPile* pUpdatedOldPile);
-	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, bool bNoActiveLocationCalculation = FALSE); // added 13Mar09
+	void			MarkStripInvalid(CPile* pChangedPile); // added 29Apr09, adds strip index to m_invalidStripArray
+	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, 
+							bool bNoActiveLocationCalculation = FALSE); // added 13Mar09, changed 29Apr09
 	// end of partner pile functions
 	
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);

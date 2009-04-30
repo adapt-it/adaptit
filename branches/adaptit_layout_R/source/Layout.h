@@ -156,6 +156,7 @@ public:
 private:
 	PileList			m_pileList;
 	wxArrayPtrVoid		m_stripArray;
+	wxArrayInt			m_invalidStripArray;
 
 private:
 	// four ints define the clip rectange top, left, width & height for erasure 
@@ -237,7 +238,7 @@ public:
 	// CSourcePhrase instance in pSrcPhrases)
 	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
 	bool		CreatePiles(SPList* pSrcPhrases);
-	void		CreateStrips(SPList* pSrcPhrases, int nStripWidth, int gap); // RecalcLayout() calls this
+	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 
 	bool		RecalcLayout(SPList* pList, bool bRecreatePileListAlso = FALSE);
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
@@ -323,7 +324,6 @@ public:
 
 	// left margin for strips
 	void		SetCurLMargin(CAdapt_ItApp* pApp);
-	//int		GetCurLMargin();
 	int			GetStripLeft(); // use this instead of GetCurLMargin()
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
@@ -331,9 +331,10 @@ public:
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
 
-	// getters for the m_pileList, and m_stripArray
+	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
 	PileList* GetPileList();
 	wxArrayPtrVoid* GetStripArray();
+	wxArrayInt*	GetInvalidStripArray();
 
 	// ////// public utility functions ////////
 	 

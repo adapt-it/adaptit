@@ -447,7 +447,11 @@ void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 	m_pOwningPile = pOwnerPile; // lets the CCell access the CSourcePhrase the owning pile points at
 	m_pLayout = pLayout; // where drawing information can be had - eg. font pointer, font colour, etc
 
-	// Note: m_pPhrase is set by a SetCellText() call in the Draw functions
+	// Note: m_pPhrase is set by a SetCellText() call in the Draw functions because
+	// depending on the mode (either adapting or glossing) what gets drawn in *m_pCell[1]
+	// will be either an m_adaption wxString, or an m_gloss wxString - so we point to the
+	// right one as late as possible, which therefore means in the Draw() function itself,
+	// immediately before drawing
 	// the m_bSelected value must default to FALSE when the cell is first created
 	// _________________________________________________________________________________
 

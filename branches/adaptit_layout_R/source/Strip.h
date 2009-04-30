@@ -47,18 +47,7 @@ public:
 	// creation (a 2 step process)
 	CStrip(); // doesn't set m_pLayout member to nonNull pointer
 	CStrip(CLayout* pLayout); // use this one for strip creation
-	//int	CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset, 
-	//				int& nLastSequNumber, int nEndIndex);
-	//int	CreateStrip(CLayout* pLayout, int nStripWidth, int nIndexOfFirstPile, int gap);
-	PileList::Node* CreateStrip(PileList::Node* pos, int nStripWidth, int gap);
 
-	//CStrip(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle); // BEW deprecated 3Feb09
-	//CStrip(CSourceBundle* pSourceBundle); // normal constructor
-	// whm Note: Initialization of CStrip class members happens in the order in which
-	// they are declared. To avoid potential null pointer problems, I have moved the
-	// CSourceBundle* m-pBundle line up before the declaration of CPile* m-pPile[36] line.
-	
-	
 private:
 	// attributes
 	int				m_nStrip;	// index of this strip in CLayout's m_arrStrips array of pointers
@@ -68,20 +57,10 @@ private:
 	int				m_nFree;	// how many pixels wide the free space at end is
 	bool			m_bFilled;  // TRUE if has populated fully, or up to a wrapping CPile
 	
-	/* legacy stuff not now needed
-	int					m_nStripIndex;
-	//int				m_nPileHeight;  // BEW deprecated 3Feb09
-	int					m_nPileCount;
-	int					m_nVertOffset;
-	int					m_nFree;	// how many pixels wide the free space at end is
-	wxRect				m_rectStrip;
-	CPile*				m_pPile[36];	// allow 36 per row
-	//CAdapt_ItDoc*		m_pDoc;	// the doc, to give access to GetApp(), etc. BEW deprecated 3Feb09
-	wxRect				m_rectFreeTrans; // BEW added 24Jun05 for support of free translations display
-	*/
 public:
 
 	virtual ~CStrip();
+	PileList::Node* CreateStrip(PileList::Node*& pos, int nStripWidth, int gap);
 	virtual void Draw(wxDC* pDC);
 	int		Width();
 	int		Height();
@@ -100,6 +79,11 @@ public:
 	int		GetPileCount();
 	CPile*	GetPileByIndex(int index);
 	wxArrayPtrVoid* GetPilesArray();
+
+	// validity flag (currently m_bFilled, but, TODO, later will be m_bValid)
+	void	SetValidityFlag(bool bValid);
+	bool	GetValidityFlag();
+
 	
 	
 	DECLARE_DYNAMIC_CLASS(CStrip) 

@@ -731,9 +731,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 									   // produce a different text); this is how we tell
 									   // that the user chose <New Document>
 	{
-		// since it takes a few seconds for the "Input Text File For Adaptation" file dialog to
-		// appear, I'm going to have the main frame's layout redrawn so the toolbar and controlbar
-		// looks better while waiting for the file dialog to appear
+        // since it takes a few seconds for the "Input Text File For Adaptation" file
+        // dialog to appear, I'm going to have the main frame's layout redrawn so the
+        // toolbar and controlbar looks better while waiting for the file dialog to appear
 		pApp->GetMainFrame()->Update();
 
 		// ensure that the current work folder is the project one for default
@@ -750,15 +750,18 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		{
 			wxString str;
 			// IDS_BAD_LAST_DOC_PATH
-			str = str.Format(_("Warning: invalid path to the last new document: %s A safe default path will be used instead. "),dirPath.c_str());
+			str = str.Format(_(
+"Warning: invalid path to the last new document: %s A safe default path will be used instead. "),
+			dirPath.c_str());
 			wxMessageBox(str, _T(""), wxICON_INFORMATION);
 			dirPath = pApp->m_workFolderPath;
 			bOK = ::wxSetWorkingDirectory(dirPath);
 			if (!bOK)
 			{
 				// should not fail, but if it did, then exit the new operation with message,
-				wxMessageBox(_T("Failure trying to set the current directory. Check the LastNewDocumentFolder entry in both the basic and project configuration files."),
-					_T(""), wxICON_EXCLAMATION);
+				wxMessageBox(_T(
+"Failure trying to set the current directory. Check the LastNewDocumentFolder entry in both the basic and project configuration files."),
+				_T(""), wxICON_EXCLAMATION);
 				gbDoingInitialSetup = FALSE;
 			}
 		}
@@ -787,6 +790,9 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
         // apparently is automatically called by the wizard class (under Windows it didn't
         // assert).
 		//pStartWorkingWizard->EndModal(1);
+		
+        // default the m_nActiveSequNum value to 0 when getting the doc created
+		pApp->m_nActiveSequNum = 0; 
 		bool bResult = pDoc->OnNewDocument();
 		if (!bResult)
 		{
@@ -882,6 +888,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
+        // default the m_nActiveSequNum value to 0 when getting the doc open, we check
+        // later for what the config file gave for the last active location, and jump there
+        // if not at sequence number 0
+		pApp->m_nActiveSequNum = 0; 
 		bool bOK = pDoc->OnOpenDocument(docPath);
 		if (!bOK)
 		{

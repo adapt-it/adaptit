@@ -3291,7 +3291,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	if (!bIsOK)
 	{
 		// unlikely to fail, so just have something for the developer here
-		wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"),_T(""), wxICON_STOP);
+		wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"),
+		_T(""),wxICON_STOP);
 		wxASSERT(FALSE);
 		wxExit();
 	}
@@ -3300,16 +3301,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	{
 		// nothing to show
 		// IDS_NO_DATA
-		wxMessageBox(_("Sorry, there is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_(
+"There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),
+		_T(""), wxICON_EXCLAMATION);
 		return FALSE;
 	}
-	//pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0];
-	pApp->m_pActivePile = GetPile(0);
+	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
 
-    // this last line gets the active pile overridden later when the xml doc's sizey attribute
-    // (co-opted to store the last m_nActiveSequNum for the doc) is used to reset the active
-    // location to that stored value)
-	
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
 	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
@@ -3318,7 +3316,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
 	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
-
 
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
 	// possible to in that way to choose a file from a different project; so the app will crash
@@ -3675,77 +3672,126 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 /// \return     nothing
 /// \param		pSrcPhrase -> the source phrase that was deleted
 /// \remarks
-/// Created 12Mar09 for layout refactoring. The m_pileList's CPile instances point to CSourcePhrase
-/// instances and deleting a CSourcePhrase from the doc's m_pSourcePhrases list usually needs to
-/// also have the CPile instance which points to it also deleted from the corresponding place in
-/// the m_pileList. That task is done here. Called from DeleteSingleSrcPhrase(), the latter having
-/// a bool parameter, bDoPartnerPileDeletionAlso, which defaults to TRUE, and when FALSE is passed
-/// in this function will not be called. (E.g. when the source phrase belongs to a temporary list
+/// Created 12Mar09 for layout refactoring. The m_pileList's CPile instances point to
+/// CSourcePhrase instances and deleting a CSourcePhrase from the doc's m_pSourcePhrases
+/// list usually needs to also have the CPile instance which points to it also deleted from
+/// the corresponding place in the m_pileList. That task is done here. Called from
+/// DeleteSingleSrcPhrase(), the latter having a bool parameter,
+/// bDoPartnerPileDeletionAlso, which defaults to TRUE, and when FALSE is passed in this
+/// function will not be called. (E.g. when the source phrase belongs to a temporary list
 /// and so has no partner pile)
+/// Note: the deletion will be done for some particular pSrcPhrase in the app's
+/// m_pSourcePhrases list, and we want to have at least an approximate idea of the index
+/// of which strip the copy of the pile pointer was in, because when we tweak the layout
+/// we will want to know which strips to concentrate our efforts on. Therefore before we
+/// do the deletion, we work out which strip the pile belongs to, mark it as invalid, and
+/// store its index in CLayout::m_invalidStripArry. Later, our strip tweaking code will
+/// use this information to make a speedy tweak of the layout before drawing is done (but
+/// the information is not used whenever RecalcLayout() does a full rebuild of the
+/// document's strips)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 {
 	// refactor 12Mar09
-	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
+	CLayout* pLayout = GetLayout();
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed 
+									 // in pSrcPhrase
 	wxASSERT(index != wxNOT_FOUND);
-	PileList* pPiles = GetLayout()->GetPileList();
+	PileList* pPiles = pLayout->GetPileList();
 	PileList::Node* posPile = pPiles->Item(index);
 	// the item might be destroyed already, so only proceed if it was found;
 	// or the pSrcPhrase may be in a temporary list and so not have a partner pile
 	if (posPile != NULL)
 	{
-		// the pile pointer was found in CLayout::m_pileList
+ 		// the pile pointer was found in CLayout::m_pileList...
+ 		
+		// get the CPile* instance currently at index, from it we can determine which strip
+        // the deletion will take place from (even if we get this a bit wrong, it won't
+        // matter)
 		CPile* pPile = posPile->GetData();
 		wxASSERT(pPile != NULL);
+		MarkStripInvalid(pPile); // sets CStrip::m_bFilled to FALSE, (later use m_bValid)
+								 // and adds the strip index to CLayout::m_invalidStripArray
+
+		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
 		pPiles->Erase(posPile); // remove the entry from m_pileList
-		GetLayout()->DestroyPile(pPile); // destroy the pile
+		pLayout->DestroyPile(pPile); // destroy the pile
 	}
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param		pSrcPhrase -> the source phrase that was created and inserted in the application's
-///                             m_pSourcePhrases list
+/// \param		pSrcPhrase -> the source phrase that was created and inserted in the 
+///                           application's m_pSourcePhrases list
 /// \remarks
-/// Created 13Mar09 for layout refactoring. The m_pileList's CPile instances point to CSourcePhrase
-/// instances and creating a new CSourcePhrase for the doc's m_pSourcePhrases list always needs to
-/// have the CPile instance which points to it also created, initialized and inserted into the
-/// corresponding place in the m_pileList. That task is done here.
+/// Created 13Mar09 for layout refactoring. The m_pileList's CPile instances point to
+/// CSourcePhrase instances and creating a new CSourcePhrase for the doc's m_pSourcePhrases
+/// list always needs to have the CPile instance which points to it also created,
+/// initialized and inserted into the corresponding place in the m_pileList. That task is
+/// done here.
 /// 
-/// Called from various places. It is not made a part of the CSourcePhrase creation process for a
-/// good reason. Quite often CSourcePhrase instances are created and are only temporary - such as
-/// those deep copied to be saved in various local lists during the vertical edit process, and in
-/// quite a few other contexts as well. Also, when documents are loaded from disk and very many
-/// CSourcePhrase instances are created in that process, it is more efficient to not create CPile
-/// instances as part of that process, but rather to create them all in a loop after the document
-/// has been loaded. For example, the current code creates new CSourcePhrases on the heap in about
-/// 30 places in the app's code, but only about 25% of those instances require a CPile partner
-/// created for the CLayout::m_pileList; therefore we call CreatePartnerPile() only when needed,
-/// and it should be called immediately after a newly created CSourcePhrase has just been inserted
-/// into the app's m_pSourcePhrases list - so that the list location can be determined internally
-/// for use in deciding where in m_pileList to insert the partner pile.
+/// Called from various places. It is not made a part of the CSourcePhrase creation process
+/// for a good reason. Quite often CSourcePhrase instances are created and are only
+/// temporary - such as those deep copied to be saved in various local lists during the
+/// vertical edit process, and in quite a few other contexts as well. Also, when documents
+/// are loaded from disk and very many CSourcePhrase instances are created in that process,
+/// it is more efficient to not create CPile instances as part of that process, but rather
+/// to create them all in a loop after the document has been loaded. For example, the
+/// current code creates new CSourcePhrases on the heap in about 30 places in the app's
+/// code, but only about 25% of those instances require a CPile partner created for the
+/// CLayout::m_pileList; therefore we call CreatePartnerPile() only when needed, and it
+/// should be called immediately after a newly created CSourcePhrase has just been inserted
+/// into the app's m_pSourcePhrases list - so that the so that the strip where the changes
+/// happened can be marked as "invalid".
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 {
 	// refactor 13Mar09
-	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
+	CLayout* pLayout = GetLayout();
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed
+									 // in pSrcPhrase
+	PileList::Node* aPosition = NULL;
+	CPile* aPilePtr = NULL;
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
-	PileList* pPiles = GetLayout()->GetPileList();
-	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond the end of m_pileList
-	CPile* pNewPile = GetLayout()->CreatePile(pSrcPhrase); // initializes, sets m_nWidth and m_nMinWidth etc
+	PileList* pPiles = pLayout->GetPileList();
+	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond  
+												   // the end of m_pileList
+	CPile* pNewPile = GetLayout()->CreatePile(pSrcPhrase); // initializes, sets m_nWidth 
+														   // and m_nMinWidth etc
 	if (posPile != NULL)
 	{
-		// the indexed location is within the unaugmented CLayout::m_pileList; therefore an insert
-		// operation is required; the index posPile value determined by index is the place where
-		// the insertion must be done
-		posPile = pPiles->Insert(posPile, pNewPile);	
+		// inserting or appending a new partner pile's pointer in the CLayout::m_pileList
+		// does not get it also inserted in the CLayout::m_stripArray, and so the laid out
+		// strips don't know of it. However, we can work out which strip it would be
+		// inserted within, or thereabouts, and mark that strip as invalid and put its
+		// index into CLayout::m_invalidStripArray. The inventory of invalid strips does
+		// not have to be 100% reliable - they are approximate indicators where the layout
+		// needs to be tweaked, which is all we need
+		// Therefore, use the current pPile pointer in the m_pileList at index, and find
+		// which strip that one is in, even though it is not the newly created CPile
+		aPosition = pPiles->Item(index);
+		aPilePtr = aPosition->GetData();
+
+        // the indexed location is within the unaugmented CLayout::m_pileList; therefore an
+        // insert operation is required; the index posPile value determined by index is the
+        // place where the insertion must be done
+		posPile = pPiles->Insert(posPile, pNewPile);
+
 	}
 	else
 	{
+		// determine a nearby pile pointer which already exists, to get at the relevant strip, 
+		// or one nearby...
+		aPosition = pPiles->GetLast();
+		aPilePtr = aPosition->GetData();
+
 		// posPile returned as NULL implies the CSourcePhrase was appended to the app's
 		// m_pSourcePhrases list; so append the newly created CPile to m_pileList
-		posPile = pPiles->Append(pNewPile);	
+		posPile = pPiles->Append(pNewPile); // do this after preceding 2 lines
 	}
+	MarkStripInvalid(aPilePtr); // use aPilePtr to have a good shot at which strip will
+								// receive the newly created pile, and mark it as invalid,
+								// and save its index in CLayout::m_invalidStripArray
 }
 
 // return the index in m_pSourcePhrases for the passed in pSrcPhrase
@@ -3755,22 +3801,27 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 	return GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); 
 }
 
-void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, bool bNoActiveLocationCalculation)
+void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
+										   bool bNoActiveLocationCalculation)
 {
-	// refactor 13Mar09
-	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in pSrcPhrase
+	// refactored 13Mar09 & some more on 27Apr09
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in 
+									 // pSrcPhrase, in the app's m_pSourcePhrases list
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
 	PileList* pPiles = GetLayout()->GetPileList();
-	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond the end of m_pileList
+	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond 
+												   // the end of m_pileList
 	if (posPile != NULL)
 	{
 		CPile* pPile = posPile->GetData();
 		wxASSERT(pPile != NULL);
-		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src, adapt or gloss text
+		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src, 
+							  // adapt or gloss text
 
-		// if it is at the active location, then the width needs to be wider -
-		// SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile instance
-		// (but if not at the active location, the default value m_nMinWidth will apply)
+        // if it is at the active location, then the width needs to be wider -
+        // SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile
+        // instance (but if not at the active location, the default value m_nMinWidth will
+        // apply)
 		if (!bNoActiveLocationCalculation)
 		{
             // EXPLANATION FOR THE ABOVE TEST: we need the capacity to have the phrase box
@@ -3786,35 +3837,32 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, bool bNoActi
 			pPile->SetPhraseBoxGapWidth();
 		}
 
-		// our detection method (pile pointer mismatch) for user edits area would not detect this
-		// change and so we need to have this pile be located at a different location on the heap so
-		// create a deep copy & replace the original with it in the original's location within the list
-		pPile = ReplacePartnerPile(pPiles, posPile, pPile); // no need to do anything with returned pointer
+		// mark the strip invalid (currently uses m_bFilled, but later change to using
+		// m_bValid) and put the parent strip's index into CLayout::m_invalidStripArray
+		MarkStripInvalid(pPile);
+	}
+	else
+	{
+		// if it is null, this is a catastrophic error, and we must terminate the application;
+		// or in DEBUG mode, give the developer a chance to look at the call stack
+		wxMessageBox(_T(
+		"Ouch! ResetPartnerPileWidth() was unable to find the partner pile. Must abort now."),
+		_T(""), wxICON_EXCLAMATION);
+		wxASSERT(FALSE);
+		wxExit();
 	}
 }
-// returns: a deep copy of the passed in (and uptodate) CPile instance
-// remarks: the reason we have this function is so that we can get a CPile instance identical to
-// an instance already made uptodate, and have this copy replace the passed in original, in the
-// CLayout's m_pileList list at the original's location. We specifically want a change to the
-// stored pile pointer there, so that the layout's mechanism for comparing m_pileList's contents
-// with the pile pointer copies in the m_stripArray will be able to detect the mismatch of the
-// pile pointers and so determine where the user's editing changes took place - either the start
-// of them (when scanning forward in the check) or the end of them (when scanning backward in the
-// check) -  the check being done at the start of the CLayout::Draw() function
-// Note: ReplacePartnerPile destroys the pUpdatedOldPile once it has been deep copied; and it does
-// the required array adjustment - including the insert of the new pile, so the returning of the
-// new pile's pointer to the caller is just a convience in case sometime the caller wants to do
-// something more with it - but usually, or perhaps always, that won't be the case (the passed in
-// pPiles list is the manager of the new pile, as it was for the old one that was passed in)
-CPile* CAdapt_ItDoc::ReplacePartnerPile(PileList* pPiles, PileList::Node* posPile, CPile* pUpdatedOldPile)
-{
-	CPile* pPileReplacement = new CPile(*pUpdatedOldPile);
-	pPiles->Erase(posPile);
-	pPiles->Insert(posPile,pPileReplacement);
 
-	// now delete the original
-	GetLayout()->DestroyPile(pUpdatedOldPile);
-	return pPileReplacement;
+void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
+{
+	CLayout* pLayout = GetLayout();
+	wxArrayInt* pInvalidStripArray = pLayout->GetInvalidStripArray();
+	CStrip* pStrip = pChangedPile->GetStrip();
+	pStrip->SetValidityFlag(FALSE); // currently, makes m_bFilled be FALSE, change to 
+									// rename the member to m_bValid later
+	int nStripIndex = pStrip->GetStripIndex();
+	pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
+										  // which strips are invalid
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////

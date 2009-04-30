@@ -235,7 +235,7 @@ IMPLEMENT_DYNAMIC_CLASS(CLayout, wxObject)
 
 CLayout::CLayout()
 {
-
+	m_stripArray.Clear();
 }
 
 CLayout::~CLayout()
@@ -244,8 +244,8 @@ CLayout::~CLayout()
 }
 
 // call InitializeCLayout when the application has the view, canvas, and document classes
-// initialized -- we set up pointers to them here so we want them to exist first --we'll get
-// a message (and an assert in debug mode) if we call this too early
+// initialized -- we set up pointers to them here so we want them to exist first --we'll
+// get a message (and an assert in debug mode) if we call this too early
 void CLayout::InitializeCLayout()
 {
 	// set the pointer members for the classes the layout has to be able to access on demand
@@ -257,13 +257,14 @@ void CLayout::InitializeCLayout()
 	//m_pPiles = NULL;
 	//m_pStrips = NULL;
 	m_stripArray.Clear();
+	m_invalidStripArray.Clear();
 	m_bDrawAtActiveLocation = TRUE;
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
 
-	// *** TODO ***   add more basic initializations above here - but only stuff that makes the
-	// session-persistent m_pLayout pointer on the app class have the basic info it needs,
-	// other document-related initializations can be done in SetupLayout()
+    // *** TODO *** add more basic initializations above here - but only stuff that makes
+    //     the session-persistent m_pLayout pointer on the app class have the basic info it
+    //     needs, other document-related initializations can be done in SetupLayout()
 }
 
 	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
@@ -274,16 +275,18 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 
 void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 {
-	// m_bDrawAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done based on the
-	// top of the first strip of a visible range of strips determined by the scroll car position
+    // m_bDrawAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done
+    // based on the top of the first strip of a visible range of strips determined by the
+    // scroll car position
 	int i;
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
 	int nActiveSequNum = -1;
 
 	// *** TODO *** AdjustForUserEdits(), once we get rid of RecalcLayout(FALSE) calls,
-	// will need to replace those calls *** in the doc editing handlers themselves, eg
-	// OnButtonMerge() etc...***)
+	// will need to replace those calls in the doc editing handlers themselves, eg
+	// OnButtonMerge() etc... OR, we may put AdjustForUserEdits() within RecalcLayout()
+	// and have a test to choose when we use that, or use older full relayout code
 	/*
 	// make any alterations needed to the strips because of user edit operations on the doc
 	AdjustForUserEdits(m_userEditsSpanCheckType); // replaces most of the legacy RecalcLayout() calls
@@ -300,7 +303,7 @@ void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 		// draw the visible strips (plus and extra one, if possible)
 		for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
 		{
-			((CStrip*)m_stripArray[i])->Draw(pDC);
+			((CStrip*)m_stripArray.Item(i))->Draw(pDC);
 		}
 
 		// get the phrase box placed in the active location and made visible, and suitably
@@ -755,7 +758,7 @@ void CLayout::SetLogicalDocHeight()
 	if (!m_stripArray.IsEmpty())
 	{
 		int nStripCount = m_stripArray.GetCount();
-		int nDocHeight = (GetCurLeading() + GetStripHeight()) * nStripCount;
+		nDocHeight = (GetCurLeading() + GetStripHeight()) * nStripCount;
 		nDocHeight += 40; // pixels for some white space at document's bottom
 	}
 	m_logicalDocSize.SetHeight(nDocHeight);
@@ -809,20 +812,24 @@ void CLayout::SetLayoutParameters()
 
 void CLayout::DestroyStrip(int index)
 {
-	//CStrip* pStrip = (CStrip*)(*m_pStrips)[index];
-	CStrip* pStrip = (CStrip*)m_stripArray[index];
-	//WX_CLEAR_ARRAY(pStrip->m_arrPiles); << no, macro tries to use delete operator, use Clear()
-	pStrip->m_arrPiles.Clear();
-	pStrip->m_arrPileOffsets.Clear();
-	// don't try to delete CCell array, because the cell objects are managed by the persistent
-	// pile pointers in the CLayout array m_pPiles, and the strip does not own these
-	delete pStrip;
+
+	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+	if (!pStrip->m_arrPiles.IsEmpty())
+		pStrip->m_arrPiles.Clear();
+	if (!pStrip->m_arrPileOffsets.IsEmpty())
+		pStrip->m_arrPileOffsets.Clear();
+    // don't try to delete CCell array, because the cell objects are managed 
+    // by the persistent pile pointers in the CLayout array m_pPiles, and the 
+    // strip does not own these
+	//delete pStrip;
+
 }
 
 void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 {
 	if (m_stripArray.IsEmpty())
-		return; // needed because DestroyStripRange() can be called when nothing is set up yet
+		return; // needed because DestroyStripRange() can be called when 
+				// nothing is set up yet
 	int index;
 	for (index = nFirstStrip; index <= nLastStrip; index++)
 		DestroyStrip(index);
@@ -831,9 +838,11 @@ void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 void CLayout::DestroyStrips()
 {
 	if (m_stripArray.IsEmpty())
-		return; // needed because DestroyStrips() can be called when nothing is set up yet
+		return; // needed because DestroyStrips() can be called when nothing 
+				// is set up yet
 	int nLastStrip = m_stripArray.GetCount() - 1;
 	DestroyStripRange(0, nLastStrip);
+	m_stripArray.Clear();
 }
 
 void CLayout::DestroyPile(CPile* pPile)
@@ -1008,6 +1017,12 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
     // function - the latter built only a bundle's-worth of strips, but the new design must build
 	// strips for the whole document - so potentially may consume a lot of time; however, the
 	// efficiency of the new design (eg. no rectangles are calculated) may compensate significantly
+	 
+	// any existing strips have to be destroyed before the new are build. Note: if we
+	// support both modes of strip support (ie. tweaking versus destroy and rebuild all)
+	// then the tweaking option must now destroy them, but just make essential adjustments
+	// for the stuff currently in the visible range
+	DestroyStrips();
 
 	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which comprise the
 	// document, or a sublist copied from it, -- the CLayout instance will own a parallel list of
@@ -1059,56 +1074,65 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	SetGapWidth(m_pApp); // gap (in pixels) between piles when laid out in strips, m_nCurGapWidth
 	*/
 	// *** ?? TODO ?? **** more parameter setup stuff goes here, if needed
+	
+	// RecalcLayout() depends on the app's m_nActiveSequNum valuel for where the active
+	// location is to be; so we'll make that dependency explicit in the next few lines,
+	// obtaining the active pile pointer which corresponds to that active location as well
+	CPile* pActivePile;
+	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 
-	// attempt the (re)creation of the m_pileList list of CPile instances if requested; if not
-	// requested then the current m_pileList's contents are valid still and will be used unchanged
+    // attempt the (re)creation of the m_pileList list of CPile instances if requested; if
+    // not requested then the current m_pileList's contents are valid still and will be
+    // used unchanged
 	if (bRecreatePileListAlso)
 	{
 		bool bIsOK = CreatePiles(pSrcPhrases);
 		if (!bIsOK)
 		{
-			// something was wrong - memory error or perhaps m_pPiles is a populated list already
-			// (CreatePiles()has generated an error message for the developer already)
+            // something was wrong - memory error or perhaps m_pPiles is a populated list
+            // already (CreatePiles()has generated an error message for the developer
+            // already)
 			return FALSE;
 		}
 	}
 
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
-	//int nPilesEndIndex = m_pileList.GetCount() - 1; // use this to terminate the strip creation loop
 
-	// before building the strips, we want to ensure that the gap left for the phrase box
-	// to be drawn in the layout is as wide as the phrase box is going to be when it is
-	// made visible by CLayout::Draw(). When RecalcLayout() is called, gbExpanding global
-	// bool may be TRUE, or FALSE (it's set by FixBox() and cleared in FixBox() at the end
-	// after layout adjustments are done - including a potential call to RecalcLayout(),
-	// it's also cleared to default as a safety first measure at start of each OnChar()
-	// call. If we destroyed and recreated the piles in the block above, CreatePile()
-	// will, at the active location, made use of the  gbExpanding value and set the "hole"
-	// for the phrase box to be the appropriate width. But if piles were not destroyed and
-	// recreated then the box may be about to be drawn expanded, and so we must make sure
-	// that the strip rebuilding about to be done below has the right box width value to
-	// be used for the pile at the active location. The safest way to ensure this is the
-	// case is to make a call to doc class's ResetPartnerPileWidth(), passing in the
-	// CSourcePhrase pointer at the active location - this call internally calls
-	// CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
-	// then the strip layout code below can use that value via a call to
-	// GetPhraseBoxGapWidth() to make the active pile's width have the right value.
+    // before building the strips, we want to ensure that the gap left for the phrase box
+    // to be drawn in the layout is as wide as the phrase box is going to be when it is
+    // made visible by CLayout::Draw(). When RecalcLayout() is called, gbExpanding global
+    // bool may be TRUE, or FALSE (it's set by FixBox() and cleared in FixBox() at the end
+    // after layout adjustments are done - including a potential call to RecalcLayout(),
+    // it's also cleared to default as a safety first measure at start of each OnChar()
+    // call. If we destroyed and recreated the piles in the block above, CreatePile() will,
+    // at the active location, made use of the gbExpanding value and set the "hole" for the
+    // phrase box to be the appropriate width. But if piles were not destroyed and
+    // recreated then the box may be about to be drawn expanded, and so we must make sure
+    // that the strip rebuilding about to be done below has the right box width value to be
+    // used for the pile at the active location. The safest way to ensure this is the case
+    // is to make a call to doc class's ResetPartnerPileWidth(), passing in the
+    // CSourcePhrase pointer at the active location - this call internally calls
+    // CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
+    // then the strip layout code below can use that value via a call to
+    // GetPhraseBoxGapWidth() to make the active pile's width have the right value.
 	if (!bRecreatePileListAlso)
 	{
-		// these four lines ensure that the active pile's width is based on the
+		// these three lines ensure that the active pile's width is based on the
 		// CLayout::m_curBoxWidth value that was stored there by any adjustment to the box
 		// width done by FixBox() just prior to this RecalcLayout() call ( similar code
 		// will be needed in AdjustForUserEdits() when we complete the layout refactoring,
 		// *** TODO *** )
-		CPile* pActivePile = GetPile(m_pApp->m_nActiveSequNum);
+		pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 		wxASSERT(pActivePile);
 		CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
 		m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
 	}
+	m_pApp->m_pActivePile = pActivePile; // update it as ResetPartnerPileWidth may have 
+										 // been called
 
-	// the loop which builds the strips, pList is the m_pSourcePhrases list member of app
-	CreateStrips(pList, nStripWidth, gap);
+	// the loop which builds the strips & populates them with the piles
+	CreateStrips(nStripWidth, gap);
 	
 	// the height of the document can now be calculated
 	SetLogicalDocHeight();
@@ -1119,16 +1143,17 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	m_pView->RestoreSelection();
 
 
-	// *** TODO 1 ***
-	// set up the scroll bar to have the correct range (and it would be nice to try place the
-	// phrase box at the old active location if it is still within the document, etc) -- see the
-	// list of things done in the legacy CAdapt_ItView's version of this function (lines 4470++)
+    // *** TODO 1 ?? *** set up the scroll bar to have the correct range (and it would be
+    //     nice to try place the phrase box at the old active location if it is still
+    //     within the document, etc) -- see the list of things done in the legacy
+    //     CAdapt_ItView's version of this function (lines 4470++)
 	
 
-	// *** TODO 2 *** free translation support - in the legacy code this just involved creating and
-	// storing the free translation rectangle in the m_rectFreeTrans member of the CStrip
-	// instance, but for the refactored design we will need to create this rectangle on the fly
-	// and from a function member, and other changes will be involved no doubt...
+    // *** TODO 2 ?? *** free translation support - in the legacy code this just involved
+    //     creating and storing the free translation rectangle in the m_rectFreeTrans
+    //     member of the CStrip instance, but for the refactored design we will need to
+    //     create this rectangle on the fly and from a function member, and other changes
+    //     will be involved no doubt...
 	
 	// if free translation mode is turned on, get the current section
 	// delimited and made visible - but only when not currently printing
@@ -1138,11 +1163,11 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 		{
 			m_pView->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
 		}
-		else
-		{
-			// when suppressing, we need the active pile set
-			m_pApp->m_pActivePile = GetPile(m_pApp->m_nActiveSequNum);
-		}
+		//else // remove, as m_pActivePile was set correctly above & has not been changed
+		//{
+		//	// when suppressing, we need the active pile set
+		//	m_pApp->m_pActivePile = GetPile(m_pApp->m_nActiveSequNum);
+		//}
 
 		CMainFrame* pFrame;
 		pFrame = m_pApp->GetMainFrame();
@@ -1162,21 +1187,41 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 			}
 		}
 	}
-	
+	m_invalidStripArray.Clear(); // initialize for next user edit operation
 	return TRUE;
 }
 
-void CLayout::CreateStrips(SPList* pSrcPhrases, int nStripWidth, int gap)
+wxArrayInt* CLayout::GetInvalidStripArray()
 {
-    // estimate the number of CStrip instances required - assume an average of 10 piles per
-    // strip, which should result in more strips than needed except when running on
-    // computers with small screens, and so when the layout is built, we should call
-    // Shrink()
-	int aCount = pSrcPhrases->GetCount();
-	int anEstimate = aCount / 16;
-	anEstimate = anEstimate == 0 ? 1 : anEstimate; // at least one!
-	// create possibly enough space in the array for all the piles
-	m_stripArray.SetCount(anEstimate,(void*)NULL);	
+	return &m_invalidStripArray;
+}
+
+void CLayout::CreateStrips(int nStripWidth, int gap)
+{
+
+	//wxLogDebug(_T("View::OnDraw CalcUnscrolledPosition: grectViewClient.x = %d grectViewClient.y = %d"),
+	//grectViewClient.x,grectViewClient.y);
+	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
+	SPList::Node* posDebug = pSrcPhrases->GetFirst();
+	int index = 0;
+	while (posDebug != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = posDebug->GetData();
+		wxLogDebug(_T("Index = %d   pSrcPhrase pointer  %x"),index,pSrcPhrase);
+		posDebug = posDebug->GetNext();
+		index++;
+	}
+	PileList::Node* posPDbg = m_pileList.GetFirst();
+	index = 0;
+	while (posPDbg != NULL)
+	{
+		CPile* pPile = posPDbg->GetData();
+		wxLogDebug(_T("Index = %d   pPile pointer  %x"),index,pPile);
+		posPDbg = posPDbg->GetNext();
+		index++;
+	}
+
+    // layout is built, we should call Shrink()
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
 	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
@@ -1191,8 +1236,7 @@ void CLayout::CreateStrips(SPList* pSrcPhrases, int nStripWidth, int gap)
 		pStrip->m_nStrip = nStripIndex; // set it's index
 		m_stripArray.Add(pStrip); // add the new strip to the strip array
 		// set up the strip's pile (and cells) contents
-		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with three 
-															//CPile instances, etc 
+		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles 
 		nStripIndex++;
 	}
 	m_stripArray.Shrink();
@@ -1282,28 +1326,31 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 	// hide box
 	if (bDrawAtActiveLocation)
 	{
-		// get the logical distance (pixels) that the scroll bar's thumb indicates to top of client area
+        // get the logical distance (pixels) that the scroll bar's thumb indicates to top
+        // of client area
 		int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
 
-		// for the current client rectangle of the canvas, calculate how many strips will fit - a part
-		// strip is counted as an extra one
+        // for the current client rectangle of the canvas, calculate how many strips will
+        // fit - a part strip is counted as an extra one
 		int nVisStrips = GetVisibleStrips();
 
 		// initialilze the values for the return parameters
-		nFirstStripIndex = -1;
-		nLastStripIndex = -1;
+		//nFirstStripIndex = -1; // initialized in the caller already
+		//nLastStripIndex = -1;
 
 		// find the current total number of strips
 		int nTotalStrips = m_stripArray.GetCount();
 		
-		// find the index of the first strip which has some content visible in the client area,
-		// that is, the first strip which has a bottom coordinate greater than nThumbPosition_InPixels
+        // find the index of the first strip which has some content visible in the client
+        // area, that is, the first strip which has a bottom coordinate greater than
+        // nThumbPosition_InPixels
 		int index = 0;
 		int bottom;
 		CStrip* pStrip;
 		do {
-			pStrip = (CStrip*)m_stripArray[index];	
-			bottom = pStrip->Top() + GetStripHeight(); // includes free trans height if free trans mode is ON 
+			pStrip = (CStrip*)m_stripArray.Item(index);	
+			bottom = pStrip->Top() + GetStripHeight(); // includes free trans height if 
+													   // free trans mode is ON 
 			if (bottom > nThumbPosition_InPixels)
 			{
 				// this strip is at least partly visible - so start drawing at this one
@@ -1314,18 +1361,22 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 		wxASSERT(index < nTotalStrips);
 		nFirstStripIndex = index;
 
-		// use nVisStrips to get the final visible strip (it may be off-window, but we don't care
-		// because it will be safe to draw it off window)
+        // use nVisStrips to get the final visible strip (it may be off-window, but we
+        // don't care because it will be safe to draw it off window)
 		nLastStripIndex = nFirstStripIndex + (nVisStrips - 1);
+		if (nLastStripIndex > nTotalStrips - 1)
+			nLastStripIndex = nTotalStrips - 1; // protect from bounds error
 
-		// check the bottom of the last visible strip is lower than the bottom of the client area, if
-		// not, add an additional strip
-		pStrip = (CStrip*)m_stripArray[nLastStripIndex];
+        // check the bottom of the last visible strip is lower than the bottom of the
+        // client area, if not, add an additional strip
+		pStrip = (CStrip*)m_stripArray.Item(nLastStripIndex);
 		bottom = pStrip->Top() + GetStripHeight();
 		if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y ))
 		{
-			// add an extra one
-			nLastStripIndex++;
+			// add an extra one, if there is an extra one to add - it won't hurt to write
+			// one strip partly or wholely off screen
+			if (nLastStripIndex < nTotalStrips - 1)
+				nLastStripIndex++;
 		}
 	}
 	else
@@ -2146,7 +2197,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 	wxPoint ptPhraseBoxTopLeft;
 	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile instead; but this
 					// will work even if we have forgotten to update it in the edit operation's handler
-	pActivePile->TopLeft(ptPhraseBoxTopLeft);
+	pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
 	// get the pile width at the active location, using the value in
 	// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
