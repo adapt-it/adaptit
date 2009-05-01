@@ -432,7 +432,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 		pApp->m_pBuffer = new wxString; // on the heap, because this could be a large block of source text
 		wxASSERT(pApp->m_pBuffer != NULL);
 		pApp->m_nInputFileLength = 0;
-
 		wxString filter = _T("*.*");
 		wxString fileTitle = _T(""); // stores name (minus extension) of user's chosen source file
 
@@ -2491,6 +2490,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 						wxPD_REMAINING_TIME
 						| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 						);
+
 #else
 		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
 		// notification on wxGTK and wxMAC
@@ -3858,6 +3858,8 @@ void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 	CLayout* pLayout = GetLayout();
 	wxArrayInt* pInvalidStripArray = pLayout->GetInvalidStripArray();
 	CStrip* pStrip = pChangedPile->GetStrip();
+	if (pStrip == NULL)
+		return; 
 	pStrip->SetValidityFlag(FALSE); // currently, makes m_bFilled be FALSE, change to 
 									// rename the member to m_bValid later
 	int nStripIndex = pStrip->GetStripIndex();

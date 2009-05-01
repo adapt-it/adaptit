@@ -686,9 +686,11 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                               // ptNoteBotRight.y is already correct
 
 		// get the number of piles in the clicked strip
-		//numPiles = pClickedStrip->m_nPileCount;
+#ifdef _ALT_LAYOUT_
+		numPiles = pClickedStrip->GetPileIndicesCount();
+#else
 		numPiles = pClickedStrip->GetPileCount();
-
+#endif
         // do the check only if we have not suppressed showing source text, and only if
         // there actually are piles in the strip (yeah, I know, there has to be; but safety
         // first isn't a bad idea)
@@ -698,8 +700,11 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 			int indexPile;
 			for (indexPile = 0; indexPile < numPiles; indexPile++)
 			{
-				//pPile = pClickedStrip->GetPile()[indexPile];
+#ifdef _ALT_LAYOUT_
+				pPile = pClickedStrip->GetPileByIndexInStrip(indexPile);
+#else
 				pPile = pClickedStrip->GetPileByIndex(indexPile);
+#endif
 				wxASSERT(pPile != NULL);
 
                 // is there anything filtered here - if not, check for a note, if that
@@ -1281,7 +1286,11 @@ t:	if (pCell == NULL)
 				pEndPile = pCell->GetPile();
 				pCurPile = pAnchor->GetPile();
 				pCurStrip = pCurPile->GetStrip();
+#ifdef _ALT_LAYOUT_
+				nCurPileCount = pCurStrip->GetPileIndicesCount();
+#else
 				nCurPileCount = pCurStrip->GetPileCount();
+#endif
 				nCurPile = pCurPile->GetPileIndex(); // value of m_nPile
 				nCurStrip = pCurStrip->GetStripIndex(); // value of m_nStrip
 
@@ -1333,7 +1342,11 @@ t:	if (pCell == NULL)
 									// there is at least one more pile in this strip, 
 									// so access it
 									nCurPile++; // index of next pile
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile); // the next pile
+#ifdef _ALT_LAYOUT_
+									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);
+#else
+									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
+#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
@@ -1367,9 +1380,15 @@ t:	if (pCell == NULL)
 									// get the pointer to next strip
 									pCurStrip = pLayout->GetStripByIndex(nCurStrip);
 									// get the pointer to its first pile
+#ifdef _ALT_LAYOUT_
+									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);
+									nCurPileCount = pCurStrip->GetPileIndicesCount(); // update 
+											// so test above remains correct for the strip
+#else
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
 									nCurPileCount = pCurStrip->GetPileCount(); // update 
 											// so test above remains correct for the strip
+#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
 									// get the required cell if it is already selected, 
@@ -1454,7 +1473,11 @@ t:	if (pCell == NULL)
 									// there is at least one previous pile in this strip, 
 									// so access it
 									nCurPile--; // index of previous pile
-									pCurPile = pCurStrip->GetPileByIndex(nCurPile); // the previous pile
+#ifdef _ALT_LAYOUT_
+									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);
+#else
+									pCurPile = pCurStrip->GetPileByIndex(nCurPile);
+#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ); // must match
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine); // get the cell
@@ -1486,11 +1509,19 @@ t:	if (pCell == NULL)
                                     // of previous strip
 									nCurStrip--; // the previous strip's index
 									pCurStrip = pLayout->GetStripByIndex(nCurStrip); // prev strip 
+#ifdef _ALT_LAYOUT_
+									nCurPileCount = pCurStrip->GetPileIndicesCount(); // update 
+											// this so test above remains correct for the strip
+									nCurPile = nCurPileCount-1; // last in this strip
+									pCurPile = pCurStrip->GetPileByIndexInStrip(nCurPile);  // pointer 
+																			 // to its last pile
+#else
 									nCurPileCount = pCurStrip->GetPileCount(); // update this so 
 													//test above remains correct for the strip
 									nCurPile = nCurPileCount-1; // last in this strip
 									pCurPile = pCurStrip->GetPileByIndex(nCurPile);  // pointer 
 																			 // to its last pile
+#endif
 									pCurSrcPhrase = pCurPile->GetSrcPhrase();
 									wxASSERT(pCurSrcPhrase->m_nSequNumber == sequ);
 									// get the required cell

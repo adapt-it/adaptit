@@ -52,7 +52,12 @@ private:
 	// attributes
 	int				m_nStrip;	// index of this strip in CLayout's m_arrStrips array of pointers
 	CLayout*		m_pLayout;  // the owning CLayout
+#ifdef _ALT_LAYOUT_
+	wxArrayInt		m_arrPileIndices; // array of CPile* indices into m_pileList, 
+									  // for those CPile pointers which comprise the strip
+#else
 	wxArrayPtrVoid	m_arrPiles; // array of CPile* instances which comprise the strip
+#endif
 	wxArrayInt		m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile
 	int				m_nFree;	// how many pixels wide the free space at end is
 	bool			m_bFilled;  // TRUE if has populated fully, or up to a wrapping CPile
@@ -60,7 +65,6 @@ private:
 public:
 
 	virtual ~CStrip();
-	PileList::Node* CreateStrip(PileList::Node*& pos, int nStripWidth, int gap);
 	virtual void Draw(wxDC* pDC);
 	int		Width();
 	int		Height();
@@ -76,9 +80,20 @@ public:
 							// version calculations for scrolling)
 	void	GetFreeTransRect(wxRect& rect);
 	wxRect	GetFreeTransRect(); // overloaded version
+
+#ifdef _ALT_LAYOUT_
+	int		CreateStrip(int nIndexToFirst, int nStripWidth, int gap); // return index of next 
+																	  // for placement
+	int		GetPileIndicesCount();
+	CPile*	GetPileByIndexInStrip(int index);
+	wxArrayInt* GetPileIndicesArray();
+#else
+	PileList::Node* CreateStrip(PileList::Node*& pos, int nStripWidth, int gap); // return 
+															// iterator of next for placement
 	int		GetPileCount();
 	CPile*	GetPileByIndex(int index);
 	wxArrayPtrVoid* GetPilesArray();
+#endif
 
 	// validity flag (currently m_bFilled, but, TODO, later will be m_bValid)
 	void	SetValidityFlag(bool bValid);

@@ -8569,8 +8569,8 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 	CPile* pPile = NULL; // whm initialized to NULL 
 	CCell* pCell = NULL; // whm initialized to NULL
 	wxRect rect;
-	int	pileCount;
-	int	pileIndex;
+	int	pileCountInStrip;
+	int	pileIndexInStrip;
 	int cellIndex;
 	int stripIndex;
 	wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
@@ -8580,7 +8580,7 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 	// as a valid click on the strip, neither is a click in the navText whiteboard area)
 	for (stripIndex = 0; stripIndex < nStripCount; stripIndex++)
 	{
-		pStrip = (CStrip*)(*pStripArray)[stripIndex];
+		pStrip = (CStrip*)pStripArray->Item(stripIndex);
 		wxASSERT(pStrip != NULL);
 		pStrip->GetStripRect_CellsOnly(rect);
 		rect = NormalizeRect(rect); // use our own from helpers.h
@@ -8591,18 +8591,30 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 		return NULL; // did not click within a strip
 	else
 	{
-		// find which pile the click was in
-		wxArrayPtrVoid*	pPilesArray = pStrip->GetPilesArray(); // gets ptr to m_arrPiles
-		pileCount = pPilesArray->GetCount();
-		for (pileIndex = 0; pileIndex < pileCount; pileIndex++)
+		// find which pile of the strip the click was in
+#ifdef _ALT_LAYOUT_
+		pileCountInStrip = pStrip->GetPileIndicesCount();
+		for (pileIndexInStrip = 0; pileIndexInStrip < pileCountInStrip; pileIndexInStrip++)
 		{
-			pPile = (CPile*)((*pPilesArray)[pileIndex]);
+			pPile = pStrip->GetPileByIndexInStrip(pileIndexInStrip);
 			pPile->GetPileRect(rect);
 			rect = NormalizeRect(rect); // use our own from helpers.h
 			if (rect.Contains(point))
 				break;
 		}
-		if (pileIndex == pileCount || pPile == NULL)
+#else
+		wxArrayPtrVoid*	pPilesArray = pStrip->GetPilesArray(); // gets ptr to m_arrPiles
+		pileCountInStrip = pPilesArray->GetCount();
+		for (pileIndexInStrip = 0; pileIndexInStrip < pileCountInStrip; pileIndexInStrip++)
+		{
+			pPile = (CPile*)pPilesArray->Item(pileIndexInStrip);
+			pPile->GetPileRect(rect);
+			rect = NormalizeRect(rect); // use our own from helpers.h
+			if (rect.Contains(point))
+				break;
+		}
+#endif
+		if (pileIndexInStrip == pileCountInStrip || pPile == NULL)
 			return NULL; // did not click within a pile - clicked in a gap, or at end, or in margin
 		else
 		{
@@ -14094,7 +14106,11 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 				{
 					CStrip* pFormerStrip = (CStrip*)
 										GetLayout()->GetStripArray()->Item(nFormerStrip);
+#ifdef _ALT_LAYOUT_
+					CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
+#else
 					CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
+#endif
 					CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 					pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase, TRUE); // TRUE is 
 														// bNoActiveLocationCalculation
@@ -22524,7 +22540,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 			if (nCurStripIndex != nFormerStrip)
 			{
 				CStrip* pFormerStrip = (CStrip*)GetLayout()->GetStripArray()->Item(nFormerStrip);
+#ifdef _ALT_LAYOUT_
+				CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
+#else
 				CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
+#endif
 				CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 				pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase,TRUE); // TRUE is 
 													// bNoActiveLocationCalculation
@@ -22540,10 +22560,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		pApp->m_pTargetBox->SetValue(pApp->m_targetPhrase);
 	}
 
-	// determine the value for the active sequ number on exit, so we will know where to place
-	// the phrase box on return to the caller; we'll place the phrase box at the first location
-	// after the retranslation - provided the active location was within the selection; but if
-	// it lay outside the selection, we will need to restore it to wherever it was.
+    // determine the value for the active sequ number on exit, so we will know where to
+    // place the phrase box on return to the caller; we'll place the phrase box at the
+    // first location after the retranslation - provided the active location was within the
+    // selection; but if it lay outside the selection, we will need to restore it to
+    // wherever it was.
 	//int nEndSequNum = ((CSourcePhrase*)pList->GetLast())->m_nSequNumber;
 	// break above complex call down into parts
 	SPList::Node* lastPos = pList->GetLast();
@@ -23229,7 +23250,11 @@ h:				wxMessageBox(_(
 					if (nCurStripIndex != nFormerStrip)
 					{
 						CStrip* pFormerStrip = (CStrip*)GetLayout()->GetStripArray()->Item(nFormerStrip);
+#ifdef _ALT_LAYOUT_
+						CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
+#else
 						CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
+#endif
 						CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 						pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase, TRUE); // TRUE
 														// is bNoActiveLocationCalculation
@@ -23967,7 +23992,11 @@ h:				wxMessageBox(_(
 					if (nCurStripIndex != nFormerStrip)
 					{
 						CStrip* pFormerStrip = (CStrip*)GetLayout()->GetStripArray()->Item(nFormerStrip);
+#ifdef _ALT_LAYOUT_
+						CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
+#else
 						CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
+#endif
 						CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 						pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase,TRUE); // TRUE 
 													// is bNoActiveLocationCalculation
@@ -25021,8 +25050,11 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 	//pBundle = pAnchorCell->m_pBundle;
 	pCurPile = pAnchorCell->GetPile();
 	pCurStrip = pCurPile->GetStrip();
-	//nCurPileCount = pCurStrip->m_nPileCount;
-	nCurPileCount = pCurStrip->GetPilesArray()->GetCount();
+#ifdef _ALT_LAYOUT_
+	nCurPileCount = pCurStrip->GetPileIndicesCount();
+#else
+	nCurPileCount = pCurStrip->GetPileCount();
+#endif
 	nCurPile = pCurPile->GetPileIndex();
 	nCurStrip = pCurStrip->GetStripIndex();
 
@@ -42090,6 +42122,18 @@ void CAdapt_ItView::StoreFreeTranslationOnLeaving()
 //void CAdapt_ItView::MakeAllPilesNonCurrent(CSourceBundle* pBundle)
 void CAdapt_ItView::MakeAllPilesNonCurrent(CLayout* pLayout)
 {
+	// this is quickest way
+	PileList* pList = pLayout->GetPileList();
+	PileList::Node* pos = pList->GetFirst();
+	CPile* pPile = NULL;
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		pPile->SetIsCurrentFreeTransSection(FALSE);
+		pos = pos->GetNext();
+	}
+
+	/* this is the refactored equivalent, but we don't need to use strips, do as above
 	wxArrayPtrVoid* pStripArray = pLayout->GetStripArray();
 	int nCount = pStripArray->GetCount();
 	int indexStrip;
@@ -42108,8 +42152,9 @@ void CAdapt_ItView::MakeAllPilesNonCurrent(CLayout* pLayout)
 			pile->SetIsCurrentFreeTransSection(FALSE);
 		}
 	}
+	*/
 
-	/* old code - bunde-based
+	/* old code - bundle-based
 	int nCount = pBundle->m_nStripCount;
 	int indexStrip;
 	int indexPile;
@@ -44752,8 +44797,12 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	nCurStripIndex = nCurStripIndex - numVisibleStrips;
 	if (nCurStripIndex < 0)
 		nCurStripIndex = 0;
-	CStrip* pStrip = (CStrip*)(*pLayout->GetStripArray())[nCurStripIndex];
-	pStartPile = (CPile*)(*pStrip->GetPilesArray())[0]; // ptr of 1st pile in strip
+	CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
+#ifdef _ALT_LAYOUT_
+	pStartPile = pStrip->GetPileByIndexInStrip(0);
+#else
+	pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
+#endif
 	wxASSERT(pStartPile);
 	return pStartPile;
 }
@@ -45005,7 +45054,12 @@ ed:	if (pPile == NULL)
 	pStrip = pPile->GetStrip();
 	curStripIndex = pStrip->GetStripIndex();
 	curPileIndex = pPile->GetPileIndex();
+
+#ifdef _ALT_LAYOUT_
+	curPileCount = pStrip->GetPileIndicesCount();
+#else
 	curPileCount = pStrip->GetPileCount();
+#endif
 	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
 	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, and reduce as 
 									// required below
@@ -45123,7 +45177,11 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 					// reinitialize the strip and pile parameters for this new strip
 					pStrip = pPile->GetStrip();
 					curStripIndex = pStrip->GetStripIndex();
+#ifdef _ALT_LAYOUT_
+					curPileCount = pStrip->GetPileIndicesCount();
+#else
 					curPileCount = pStrip->GetPileCount();
+#endif
 					curPileIndex = pPile->GetPileIndex();
 					/* old code
 					pStrip = pPile->m_pStrip;
@@ -45244,7 +45302,11 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 					// reinitialize the strip and pile parameters for this new strip
 					pStrip = pPile->GetStrip();
 					curStripIndex = pStrip->GetStripIndex();
+#ifdef _ALT_LAYOUT_
+					curPileCount = pStrip->GetPileIndicesCount();
+#else
 					curPileCount = pStrip->GetPileCount();
+#endif
 					curPileIndex = pPile->GetPileIndex();
 					/* old code
 					pStrip = pPile->m_pStrip;

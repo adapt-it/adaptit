@@ -60,7 +60,7 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 //#include "wx/listimpl.cpp"
 //#include "wx/list.h"
 //#include "wx/debug.h" 
-//
+
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
@@ -74,6 +74,7 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Cell.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
+//#include "memory.h"
 
 // for support of auto-capitalization
 
@@ -165,6 +166,8 @@ extern int gnBoxCursorOffset;
 
 /// This global is defined in PhraseBox.cpp
 extern bool gbExpanding;
+
+//static int nDebugIndex = 0;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
 // to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection dir) method
@@ -812,17 +815,51 @@ void CLayout::SetLayoutParameters()
 
 void CLayout::DestroyStrip(int index)
 {
-
+#ifdef _ALT_LAYOUT_
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
-	if (!pStrip->m_arrPiles.IsEmpty())
-		pStrip->m_arrPiles.Clear();
+	if (!pStrip->m_arrPileIndices.IsEmpty())
+	{
+		int count = pStrip->m_arrPileIndices.GetCount();
+		int index;
+		CPile* pPile = NULL;
+		for (index=0; index < count; index++)
+		{
+			pPile = pStrip->GetPileByIndexInStrip(index);
+			pPile->m_pOwningStrip = NULL; // remove memory of this strip in
+						// the persistent CPile instances in m_pileList, using
+						// the pointer copies from m_arrPiles
+		}
+		pStrip->m_arrPileIndices.Clear();
+	}
 	if (!pStrip->m_arrPileOffsets.IsEmpty())
 		pStrip->m_arrPileOffsets.Clear();
     // don't try to delete CCell array, because the cell objects are managed 
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
     // strip does not own these
-	//delete pStrip;
-
+	delete pStrip;
+#else
+	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+	if (!pStrip->m_arrPiles.IsEmpty())
+	{
+		int count = m_arrPiles.GetCount();
+		int index;
+		CPile* pPile = NULL;
+		for (index=0; index < count; index++)
+		{
+			pPile = (CPile*)m_arrPiles.Item(index);
+			pPile->m_pOwningStrip = NULL; // remove memory of this strip in
+						// the persistent CPile instances in m_pileList, using
+						// the pointer copies from m_arrPiles
+		}
+		pStrip->m_arrPiles.Clear();
+	}
+	if (!pStrip->m_arrPileOffsets.IsEmpty())
+		pStrip->m_arrPileOffsets.Clear();
+    // don't try to delete CCell array, because the cell objects are managed 
+    // by the persistent pile pointers in the CLayout array m_pPiles, and the 
+    // strip does not own these
+	delete pStrip;
+#endif
 }
 
 void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
@@ -895,6 +932,11 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	CPile* pPile = new CPile;
 	wxASSERT(pPile != NULL); // if tripped, must be a memory error
 
+//#ifdef __WXDEBUG__
+//	nDebugIndex = 1;
+//	wxLogDebug(_T("DebugIndex = %d  CLayout, CPile pointer  %x"),nDebugIndex,pPile);
+//#endif
+
 	// assign the passed in source phrase pointer to its m_pSrcPhrase public member,
 	// and also the pointer to the CLayout object
 	pPile->m_pSrcPhrase = pSrcPhrase;
@@ -923,6 +965,13 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	for (index = 0; index < MAX_CELLS; index++)
 	{
 		pCell = new CCell();
+
+//#ifdef __WXDEBUG__
+//	nDebugIndex = 2;
+//	wxLogDebug(_T("DebugIndex = %d  CLayout, CreatePile, CCell pointer  %x"),nDebugIndex,pCell);
+//#endif
+
+
 		// store it
 		pPile->m_pCell[index] = pCell; // index ranges through 0 1 and 2 in our new design
 		pCell->CreateCell(this,pPile,index);
@@ -1023,7 +1072,7 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	// then the tweaking option must now destroy them, but just make essential adjustments
 	// for the stuff currently in the visible range
 	DestroyStrips();
-
+	
 	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which comprise the
 	// document, or a sublist copied from it, -- the CLayout instance will own a parallel list of
     // CPile instances in one-to-one correspondence with the CSourcePhrase instances, and
@@ -1198,9 +1247,31 @@ wxArrayInt* CLayout::GetInvalidStripArray()
 
 void CLayout::CreateStrips(int nStripWidth, int gap)
 {
+#ifdef _ALT_LAYOUT_
+    // layout is built, we should call Shrink()
+	int index = 0;
+	wxASSERT(!m_pileList.IsEmpty());
+	CStrip* pStrip = NULL;
 
-	//wxLogDebug(_T("View::OnDraw CalcUnscrolledPosition: grectViewClient.x = %d grectViewClient.y = %d"),
-	//grectViewClient.x,grectViewClient.y);
+	 //loop to create the strips, add them to CLayout::m_stripArray
+	 int maxIndex = m_pApp->GetMaxIndex(); // determined from m_pSourcePhrases list,
+					// but since there is one CPile for each CSourcePhrase, the max
+					// value is appropriate for m_pileList too
+	int nStripIndex = 0;
+	while (index <= maxIndex)
+	{
+		pStrip = new CStrip(this);
+		pStrip->m_nStrip = nStripIndex; // set it's index
+		m_stripArray.Add(pStrip); // add the new strip to the strip array
+		// set up the strip's pile (and cells) contents; return the index value which is
+		// to be used for the next iteration's call of CreateStrip()
+		index = pStrip->CreateStrip(index, nStripWidth, gap);	// fill out with piles 
+		nStripIndex++;
+	}
+	m_stripArray.Shrink();
+#else
+/*
+#ifdef __WXDEBUG__
 	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
 	SPList::Node* posDebug = pSrcPhrases->GetFirst();
 	int index = 0;
@@ -1220,7 +1291,8 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 		posPDbg = posPDbg->GetNext();
 		index++;
 	}
-
+#endif
+*/
     // layout is built, we should call Shrink()
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
@@ -1234,12 +1306,17 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 	{
 		pStrip = new CStrip(this);
 		pStrip->m_nStrip = nStripIndex; // set it's index
+//#ifdef __WXDEBUG__
+//	nDebugIndex = 3;
+//	wxLogDebug(_T("DebugIndex = %d  CLayout, CreateStrips, CStrip pointer  %x"),nDebugIndex,pStrip);
+//#endif
 		m_stripArray.Add(pStrip); // add the new strip to the strip array
 		// set up the strip's pile (and cells) contents
 		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles 
 		nStripIndex++;
 	}
 	m_stripArray.Shrink();
+#endif
 }
 
 // starting from the passed in index value, update the index of succeeding strip instances to be
