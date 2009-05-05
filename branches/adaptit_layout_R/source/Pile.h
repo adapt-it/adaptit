@@ -110,6 +110,7 @@ public:
 	int			CalcPhraseBoxGapWidth();
 	int			GetStripIndex();
 	CStrip*		GetStrip();
+	void		SetStrip(CStrip* pStrip);
 	CCell*		GetCell(int nCellIndex);
 	CCell**		GetCellArray();
 	int			GetPileIndex();

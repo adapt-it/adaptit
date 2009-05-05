@@ -241,6 +241,7 @@ public:
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 
 	bool		RecalcLayout(SPList* pList, bool bRecreatePileListAlso = FALSE);
+	void		RecalcPileWidths(PileList* pPiles);
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
 									   // to whatever is currently set within the app, doc and
 									   // view classes; that is, it hooks up CLayout to the

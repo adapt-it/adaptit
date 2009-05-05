@@ -363,6 +363,11 @@ CStrip* CPile::GetStrip()
 	return m_pOwningStrip;
 }
 
+void CPile::SetStrip(CStrip* pStrip)
+{
+	m_pOwningStrip = pStrip; // can pass in NULL to set it to nothing
+}
+
 void CPile::SetMinWidth()
 {
 	m_nMinWidth = CalcPileWidth();
@@ -411,16 +416,22 @@ int CPile::CalcPileWidth()
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
 		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
 	}
-	if (!m_pSrcPhrase->m_gloss.IsEmpty())
+	if (gbEnableGlossing)
 	{
-		if (gbGlossingUsesNavFont)
-			//aDC.SetFont(*m_pLayout->GetNavTextFont());
-			aDC.SetFont(*m_pLayout->m_pNavTextFont);
-		else
-			//aDC.SetFont(*m_pLayout->GetTgtFont());
-			aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+		// include the m_gloss contents in the width calculation only if gbEnableGlossing
+		// is TRUE, that is, if the "See Glosses" menu item is checked; and also only
+		// provided the contents of m_gloss are not empty
+		if (!m_pSrcPhrase->m_gloss.IsEmpty())
+		{
+			if (gbGlossingUsesNavFont)
+				//aDC.SetFont(*m_pLayout->GetNavTextFont());
+				aDC.SetFont(*m_pLayout->m_pNavTextFont);
+			else
+				//aDC.SetFont(*m_pLayout->GetTgtFont());
+				aDC.SetFont(*m_pLayout->m_pTgtFont);
+			aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
+			pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+		}
 	}
 	return pileWidth;
 }
@@ -514,6 +525,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 	bool bRTLLayout;
 	bRTLLayout = FALSE;
 	wxRect rectBounding;
+	if (this == NULL)
+		return;
 	GetPileRect(rectBounding); // get the bounding rectangle for this CCell instance
 #ifdef _RTL_FLAGS
 	if (m_pLayout->m_pApp->m_bNavTextRTL)
@@ -980,14 +993,28 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 void CPile::Draw(wxDC* pDC)
 {
 	// draw the cells this CPile instance owns, MAX_CELLS = 3
+	if (!gbShowTargetOnly)
+	{
+		m_pCell[0]->Draw(pDC);
+	}
+	m_pCell[1]->Draw(pDC); // always draw the line which has the phrase box
+	if (gbEnableGlossing)
+	{
+		// when TRUE, that means the menu item "See Glosses" has been ticked; but we may
+		// or may not still be in adapting mode, but a further test is not required
+		// because three lines at must be shown (it's what's in middle & bottom lines
+		// which changes)
+		m_pCell[2]->Draw(pDC);
+	}
+	/*
 	for (int i=0; i< MAX_CELLS; i++)
 	{
 		if (m_pCell[i] != NULL)
 			m_pCell[i]->Draw(pDC);
 	}
-	
+	*/
 	// nav text whiteboard drawing for this pile...
-	if (!gbIsPrinting)
+	if (!gbIsPrinting && !gbShowTargetOnly)
 	{
 		DrawNavTextInfoAndIcons(pDC);
 	}
@@ -995,7 +1022,7 @@ void CPile::Draw(wxDC* pDC)
 	// draw the phrase box if it belongs to this pile
 	if (gbIsPrinting)
 	{
-		PrintPhraseBox(pDC);
+		PrintPhraseBox(pDC); // internally checks if this is active location
 	}
 }
 

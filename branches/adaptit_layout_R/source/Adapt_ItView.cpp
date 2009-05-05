@@ -3565,6 +3565,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
+#endif
 	
 	// if there is no active pile defined, construct one at the clicked location,
 	// or at whatever cell pointer was passed in - eg. when having just opened a document,
@@ -3611,6 +3614,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			bNoError = SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 		}
 	}
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),2,pApp->m_nActiveSequNum);
+#endif
 
     // Also inhibit if it is a "<Not In KB>" location where there is something in the
     // phrase box but the m_bSaveToKB flag is still off (FALSE) - but only provided we are
@@ -3653,6 +3659,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			// BEW changed 27Jun05, for free translation support - added test for selector == 3
 			// selector values 0 and 3 are the only ones which permit saving the old
 			// location's text to the KB
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3,pApp->m_nActiveSequNum);
+#endif
 			if (selector == 0 || selector == 3)
 			{
 				// user has not typed anything at the new location yet
@@ -3692,6 +3701,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					{
 						bOK = DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
 					}
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),4,pApp->m_nActiveSequNum);
+#endif
 				} // end block for test !pApp->m_targetPhrase.IsEmpty() == TRUE
 				else
 				{
@@ -3711,6 +3723,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						gSaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),5,pApp->m_nActiveSequNum);
+#endif
 						return;
 					}
 				} // end else block for test:  !pApp->m_targetPhrase.IsEmpty() i.e. block for empty m_targetPhrase
@@ -3729,6 +3744,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// bNoActiveLocationCalculation is TRUE to suppress the wide gap calculation
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase,TRUE);
 	}
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
+#endif
 
 	// honour the click
 	/* removed 3Apr09, the box relocation happens now after RecalcLayout() so no strip checking required
@@ -3756,6 +3774,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 
 	// remove any existing selection
 	RemoveSelection();
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
+#endif
 
     // setup the layout and phrase box at the new location; in the refactored design this
     // boils down to working out what the new active location's sequence number is, and
@@ -3804,6 +3825,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),8,pApp->m_nActiveSequNum);
+#endif
 
     // if we are attempting to place the box on a location where the entry is "<Not In
     // KB>", then we do so but adjust the flags to fit this situation; if not locating at a
@@ -3837,6 +3861,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),9,pApp->m_nActiveSequNum);
+#endif
 		goto a;
 	}
 	else
@@ -3864,6 +3891,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same 
 							// value that it sets in the active pile's m_nWidth member
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),10,pApp->m_nActiveSequNum);
+#endif
 		goto a;
 	}
 
@@ -3901,6 +3931,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // location
 	DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str, 
 										bHasNothing, bNoValidText, bSomethingIsCopied);
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),11,pApp->m_nActiveSequNum);
+#endif
 
 a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on 
 				// 28April05 to the code now in the DoGetSuitableText_ForPlacePhraseBox()
@@ -3927,6 +3960,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // the view's Invalidate() call is made below (Note: later, we can replace this
     // RecalcLayout() call with a call to the faster AdjustForUserEdits(), which also
     // likewise calls ResetPartnerPileWidth() - for the same reason as given above)
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),12,pApp->m_nActiveSequNum);
+#endif
 	pLayout->m_userEditsSpanCheckType = scan_from_doc_ends;
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases);	// rebuild strips, but don't recreate 
 													// the piles in m_pileList
@@ -3942,6 +3978,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	{
 		pDoc->ResetPartnerPileWidth(pSPhr); 										
 	}
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),13,pApp->m_nActiveSequNum);
+#endif
 
     // we had to delay the call of DoCancelAndSelect() until now because earlier
     // RecalcLayout() calls will clobber any selection we try to make beforehand, so do the
@@ -3979,6 +4018,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	// calls wxTextCtrl::DiscardEdits() -- 3Apr09 moved to CLayout::PlacePhraseBoxInLayout()'s switch
 
 	gbCompletedMergeAndMove = FALSE;
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
+#endif
 	Invalidate();
 }
 
@@ -20071,12 +20113,13 @@ void CAdapt_ItView::ClobberDocument()
     // now clobber it all the view stuff associated with the document, leaving an empty
     // document object
 	pDoc->Modify(FALSE); // MFC has SetModifiedFlag(FALSE)
-	//pApp->m_pBundle->DestroyStrips(0); // enough, file open will call DeleteContents anyway
-	pLayout->DestroyStrips();
-	pLayout->DestroyPiles();
 	pDoc->DeleteSourcePhrases();
+	pLayout->GetPileList()->Clear();
+	pLayout->GetInvalidStripArray()->Clear();
+	pLayout->DestroyStrips();
+	//pLayout->DestroyPiles(); // removed, DestroySingleSrcPhrase() in the DestroySourcePhrases()
+							   // call destroys the partner pile
 	pApp->m_pActivePile = (CPile*)NULL;
-	//pApp->m_curIndex = -1;
 	pApp->m_pTargetBox->SetValue(_T("")); //pApp->m_targetBox.Destroy();
 	pApp->m_nActiveSequNum = -1;
 	pApp->m_selectionLine = -1;
@@ -30292,8 +30335,11 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 			pToolBar->Realize(); // this should not be necessary
 			//RedrawEverything(pApp->m_nActiveSequNum);
 			CLayout* pLayout = GetLayout();
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases);
-			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+			if (!pApp->m_pSourcePhrases->IsEmpty())
+			{
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+			}
 			Invalidate();
 		}
 	}
@@ -30354,8 +30400,11 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 	// do the wanted wraps
 	//RedrawEverything(pApp->m_nActiveSequNum);
 	CLayout* pLayout = GetLayout();
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	if (!pApp->m_pSourcePhrases->IsEmpty())
+	{
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	}
 	Invalidate();
 }
 
@@ -40177,9 +40226,13 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		pCheckboxIsGlossing->Show(TRUE);
 	}
 
+	// BEW added 4May09 recalculate the pile widths (just m_nMinWidth members), and the pile 
+	// and strip heights
+	CLayout* pLayout = GetLayout();
+	pLayout->RecalcPileWidths(pLayout->GetPileList());
+
 	// redraw the layout etc.
 	//RedrawEverything(nSaveSequNum);
-	CLayout* pLayout = GetLayout();
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 

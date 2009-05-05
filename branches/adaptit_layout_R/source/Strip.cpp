@@ -157,7 +157,9 @@ void CStrip::Draw(wxDC* pDC)
 	int nPileCount = m_arrPileIndices.GetCount();
 	for (i = 0; i < nPileCount; i++)
 	{
-		GetPileByIndexInStrip(i)->Draw(pDC);
+		CPile* pPile = GetPileByIndexInStrip(i);
+		if (pPile != NULL)
+			pPile->Draw(pDC);
 	}
 }
 #else
@@ -243,7 +245,11 @@ int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
 										// pointer for the current nPileIndexInLayout value
 		// set the pile's m_pOwningStrip member
 		pPile->m_pOwningStrip = this;
-		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+		{
+			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+		}
+		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
 			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
                     // large enough to accomodate the phrase box's width, even if just
@@ -303,7 +309,13 @@ int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
             // if control gets to here, the pile is a potential candidate for inclusion in
             // this strip, so work out if it will fit - and if it does, add it to the
             // m_arrPiles, etc
-			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+            if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+			{
+				// when at the doc end, every pile uses m_nMinWidth value, as phrase box
+				// is hidden
+				pileWidth = pPile->m_nMinWidth;
+			}
+			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
 				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
                                 // large enough to accomodate the phrase box's width, even
@@ -408,7 +420,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pPile = (CPile*)pos->GetData();
 		// set the pile's m_pOwningStrip member
 		pPile->m_pOwningStrip = this;
-		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+		{
+			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+		}
+		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
 			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
                     // large enough to accomodate the phrase box's width, even if just
@@ -463,7 +479,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 			// if control gets to here, the pile is a potential candidate for inclusion in this
 			// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
-			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+			{
+				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+			}
+			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
 				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
 											 // to accomodate the phrase box's width, even if just
@@ -519,7 +539,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pPile = (CPile*)pos->GetData();
 		// set the pile's m_pOwningStrip member
 		pPile->m_pOwningStrip = this;
-		if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+		{
+			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+		}
+		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 		{
 			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
 										 // to accomodate the phrase box's width, even if just
@@ -575,7 +599,11 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
             // if control gets to here, the pile is a potential candidate for inclusion in
             // this strip, so work out if it will fit - and if it does, add it to the
             // m_arrPiles, etc
-			if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+			if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+			{
+				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+			}
+			else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
 			{
 				pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
                                 // large enough to accomodate the phrase box's width, even

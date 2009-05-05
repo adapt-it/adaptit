@@ -2156,6 +2156,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	if (pApp->m_nActiveSequNum == -1)
+	{
+		return; // do nothing if the phrase box is hidden because we are at doc end
+	}
+
 	CLayout* pLayout = pApp->m_pLayout;
 	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
 	if (!debugDisableScrollIntoView)

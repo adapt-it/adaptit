@@ -21,6 +21,7 @@
 
 #define _ALT_LAYOUT_
 
+
 // ///////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
 //	DWORD (unsigned long)			wxUint32

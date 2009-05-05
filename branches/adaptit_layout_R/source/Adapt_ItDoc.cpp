@@ -3253,6 +3253,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// be different w.r.t. extensions from what the user actually used when opening the doc
 	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = pApp->GetView();
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("OnOpenDocument at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
+//#endif
 	/*
 	if (pApp->m_pBundle == NULL)
 	{
@@ -3307,7 +3310,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		return FALSE;
 	}
 	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
-
+	pApp->m_nActiveSequNum = 0; // and this is it's sequ num; use these values 
+								// unless changed below
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
 	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
@@ -3437,7 +3441,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
 	// Note: Tests of the MFC version show that OnInitialUpdate() should not be
-	// called at all from OnOpenDocument().
+	// called at all from OnOpenDocument()
 
 	return TRUE;
 }
@@ -3692,8 +3696,48 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 {
-	// refactor 12Mar09
+	// refactored 4May09
 	CLayout* pLayout = GetLayout();
+	PileList* pPiles = pLayout->GetPileList();
+	if (pPiles->IsEmpty())
+		return;
+	PileList::Node* posPile = pPiles->GetFirst();
+	wxASSERT(posPile!= NULL);
+	CPile* pPile = NULL;
+	while (posPile != NULL)
+	{
+		pPile = posPile->GetData();
+		if (pSrcPhrase == pPile->GetSrcPhrase())
+		{
+			// we have found the partner pile, so break out
+			break;
+		}
+		posPile = posPile->GetNext(); // go to next Node*
+	} // end of while loop with test: posPile != NULL
+	if (posPile == NULL)
+	{
+		return; // we didn't find a partner pile, so just return;
+	}
+	else
+	{
+		// found the partner pile in CLayout::m_pileList, so delete it...
+ 		
+		// get the CPile* instance currently at index, from it we can determine which strip
+        // the deletion will take place from (even if we get this a bit wrong, it won't
+        // matter)
+		pPile = posPile->GetData();
+		wxASSERT(pPile != NULL);
+		MarkStripInvalid(pPile); // sets CStrip::m_bFilled to FALSE, (later use m_bValid)
+								 // and adds the strip index to CLayout::m_invalidStripArray
+
+		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
+		pPile->SetStrip(NULL);
+		pPiles->Erase(posPile); // remove the entry from m_pileList
+		pLayout->DestroyPile(pPile); // destroy the pile
+		pPile = NULL;
+	}
+
+	/* this fails, because list is progressively shortened until get bounds error
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed 
 									 // in pSrcPhrase
 	wxASSERT(index != wxNOT_FOUND);
@@ -3717,6 +3761,7 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 		pPiles->Erase(posPile); // remove the entry from m_pileList
 		pLayout->DestroyPile(pPile); // destroy the pile
 	}
+	*/
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -10370,7 +10415,8 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
 	// delete the source phrases
-	DeleteSourcePhrases();
+	DeleteSourcePhrases(); // this deletes the partner piles by calling DeletePartnerPile()
+						   // on each one in the m_pileList list in CLayout
 
 	// the strips, piles and cells have to be destroyed to make way for the new ones
 	CAdapt_ItView* pView = (CAdapt_ItView*)NULL;
@@ -10378,14 +10424,11 @@ bool CAdapt_ItDoc::DeleteContents()
 	wxASSERT(pApp != NULL);
 	if (pView != NULL)
 	{
-		/* refactored
-		CSourceBundle* pBundle = pApp->m_pBundle; 
-		if (pBundle != NULL && pBundle->m_nStripCount > 0)
-			pBundle->DestroyStrips(0); //destroy from index = 0
-		*/
 		CLayout* pLayout = GetLayout();
 		pLayout->DestroyStrips();
-		pLayout->DestroyPiles();
+		//pLayout->DestroyPiles(); // not needed here, DeleteSourcePhrases() deletes them
+		pLayout->GetPileList()->Clear();
+		pLayout->GetInvalidStripArray()->Clear();
 
 		if (pApp->m_pTargetBox != NULL)
 		{

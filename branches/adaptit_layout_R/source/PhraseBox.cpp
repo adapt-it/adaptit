@@ -213,15 +213,12 @@ bool gbCompletedMergeAndMove = FALSE; // for support of Bill Martin's wish that 
 						// be at the new location when the Choose Translation dialog is shown
 bool gbEnterTyped = FALSE; // used in BuildPhrases() to speed up finding the current srcPhrase
 
-// A node indicating the position of the last source phrase in a list of source phrases.
-//SPList::Node* gLastSrcPhrasePos = (SPList::Node*)NULL; // used in GetSrcPhrasePos() call in BuildPhrases() to speed
-								   // up ....
 bool gbMergeDone = FALSE;
 bool gbUserCancelledChooseTranslationDlg = FALSE;
-bool gbUserWantsNoMove = FALSE; // TRUE if user wants an empty adaptation to not move because 
-					// some text must be supplied for the adaptation first; used in 
-					// MoveToImmedNextPile() and the TAB case block of code in OnChar() to 
-					// suppress warning message
+//bool gbUserWantsNoMove = FALSE;  BEW removed 5May09 because it is never set TRUE, so unneeded
+    // TRUE if user wants an empty adaptation to not move because some text must be
+    // supplied for the adaptation first; used in MoveToImmedNextPile() and the TAB case
+    // block of code in OnChar() to suppress warning message
 
 /// Cursor location - needed for up & down arrow & page up & down arrows, since its
 /// already wrong by the time the handlers are invoked, so it needs to be set by OnChar().
@@ -2403,59 +2400,57 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		int bSuccessful = MoveToImmedNextPile(pView, pApp->m_pActivePile);
 		if (!bSuccessful)
 		{
-			if (gbUserWantsNoMove)
+			CPile* pFwdPile = pView->GetNextPile(pApp->m_pActivePile); // old 
+                                // active pile pointer (should still be valid)
+			//if ((!gbIsGlossing && pFwdPile->GetSrcPhrase()->m_bRetranslation) || pFwdPile == NULL)
+			if (pFwdPile == NULL)
 			{
-				gbUserWantsNoMove = FALSE;
-			}
-			else
-			{
-				CPile* pFwdPile = pView->GetNextPile(pApp->m_pActivePile); // old 
-                                    // active pile pointer (should still be valid)
-				if ((!gbIsGlossing && pFwdPile->GetSrcPhrase()->m_bRetranslation) 
-															|| pFwdPile == NULL)
-				{
-					// IDS_CANNOT_GO_FORWARD
-					wxMessageBox(_(
-"Sorry, the next pile cannot be a valid active location, so no move forward was done."),
-					_T(""), wxICON_INFORMATION);
-					pApp->m_pTargetBox->SetFocus();
-				}
-				else
-				{
-					// tell the user EOF has been reached
-					// IDS_AT_END
-					wxMessageBox(_(
+				// tell the user EOF has been reached
+				// IDS_AT_END
+				wxMessageBox(_(
 "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."),
-					_T(""), wxICON_INFORMATION);
-					wxStatusBar* pStatusBar;
-					CMainFrame* pFrame = pApp->GetMainFrame();
-					if (pFrame != NULL)
-					{
-						pStatusBar = pFrame->GetStatusBar();
-						wxString str = _("End of the file; nothing more to adapt.");
-						pStatusBar->SetStatusText(str,0); // use first field 0
-					}
-					// we are at EOF, so set up safe end conditions
-					pApp->m_pTargetBox->Hide(); // whm added 12Sep04 
-					pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null 
-												// str since it won't get recreated
-					pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
-					pApp->m_targetPhrase.Empty();
-					//pApp->m_nActiveSequNum = pApp->m_curIndex = -1;
-					pApp->m_nActiveSequNum = -1;
-					//pView->LayoutStrip(pApp->m_pSourcePhrases, nOldStripIndex, 
-					//                     pApp->m_pBundle);
-					pApp->m_pActivePile = NULL; // can use this as a flag for 
-												// at-EOF condition too
-					pLayout->m_docEditOperationType = no_edit_op;
-					pView->Invalidate();
+				_T(""), wxICON_INFORMATION);
+				wxStatusBar* pStatusBar;
+				CMainFrame* pFrame = pApp->GetMainFrame();
+				if (pFrame != NULL)
+				{
+					pStatusBar = pFrame->GetStatusBar();
+					wxString str = _("End of the file; nothing more to adapt.");
+					pStatusBar->SetStatusText(str,0); // use first field 0
 				}
+				// we are at EOF, so set up safe end conditions
+				pApp->m_pTargetBox->Hide(); // whm added 12Sep04 
+				pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null 
+											// str since it won't get recreated
+				pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
+				pApp->m_targetPhrase.Empty();
+				pApp->m_nActiveSequNum = -1;
+				//pView->LayoutStrip(pApp->m_pSourcePhrases,nOldStripIndex,pApp->m_pBundle);
+				pApp->m_pActivePile = NULL; // can use this as a flag for 
+											// at-EOF condition too
+				// recalc the layout without any gap for the phrase box, as it's hidden
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso
+															   // is default FALSE
 			}
-			translation.Empty(); // clear the static string storage for the 
-									// translation
-			// save the phrase box's text, in case user hits SHIFT+END to unmerge 
-			// a phrase
+			else // pFwdPile is valid, so must have bumped against a retranslation
+			{
+				// IDS_CANNOT_GO_FORWARD
+				wxMessageBox(_(
+"Sorry, the next pile cannot be a valid active location, so no move forward was done."),
+				_T(""), wxICON_INFORMATION);
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso
+															   // is default FALSE
+				pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+				pApp->m_pTargetBox->SetFocus();
+
+			}
+			translation.Empty(); // clear the static string storage for the translation
+			// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 			gSaveTargetPhrase = pApp->m_targetPhrase;
+
+			// get the view redrawn
+			pLayout->m_docEditOperationType = no_edit_op;
+			pView->Invalidate();
 			return;
 		} // end of block for test !bSuccessful
 		else
@@ -2517,9 +2512,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			pLayout->m_docEditOperationType = relocate_box_op;
 		} // end of block for bSuccessful == TRUE
 
-		//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 		gSaveTargetPhrase = pApp->m_targetPhrase;
 
@@ -2536,6 +2528,14 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		//pView->m_targetBox.Invalidate();
 		pView->RedrawEverything(pView->m_nActiveSequNum);
 		*/
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso
+													   // is default FALSE
+		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pApp->m_pActivePile != NULL);
+
+		//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
 		pView->Invalidate(); // it should be okay in the refactored code 
 							 // (cf. Bill's comment above)
 	} // end Review mode (single src phrase move) block
@@ -3858,7 +3858,7 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 	
 	if (pApp->m_targetPhrase.IsEmpty())
 	{
-		gbUserWantsNoMove = FALSE;
+		//gbUserWantsNoMove = FALSE; BEW removed 5May09 because it is never set TRUE, so unneeded
 		pApp->m_bForceAsk = FALSE; // make sure it's turned off, & allow 
 								   // function to continue
 		if (gbIsGlossing)

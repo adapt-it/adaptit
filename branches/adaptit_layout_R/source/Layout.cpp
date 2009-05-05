@@ -721,6 +721,23 @@ void CLayout::SetPileAndStripHeight()
 	}
 }
 
+void CLayout::RecalcPileWidths(PileList* pPiles)
+{
+	PileList::Node* pos = pPiles->GetFirst();
+	wxASSERT(pos != NULL);
+	CPile* pPile = NULL;
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		wxASSERT(pPile != NULL);
+		pPile->SetMinWidth(); // the calculation of the gap for the phrase box is
+							// handled within RecalcLayout(), so does not need to be
+							// done here
+		pos = pos->GetNext();
+	}
+	SetPileAndStripHeight(); // it may be changing, eg to or from "See Glosses"
+}
+
 int CLayout::GetStripCount()
 {
 	return (int)m_stripArray.GetCount();
@@ -815,28 +832,34 @@ void CLayout::SetLayoutParameters()
 
 void CLayout::DestroyStrip(int index)
 {
+	// when destroying a doc, call DestroyStrips() last, and so when it is called then the
+	// CPile instances have all been destroyed already
 #ifdef _ALT_LAYOUT_
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
 	if (!pStrip->m_arrPileIndices.IsEmpty())
 	{
-		int count = pStrip->m_arrPileIndices.GetCount();
-		int index;
-		CPile* pPile = NULL;
-		for (index=0; index < count; index++)
-		{
-			pPile = pStrip->GetPileByIndexInStrip(index);
-			pPile->m_pOwningStrip = NULL; // remove memory of this strip in
-						// the persistent CPile instances in m_pileList, using
-						// the pointer copies from m_arrPiles
-		}
 		pStrip->m_arrPileIndices.Clear();
 	}
 	if (!pStrip->m_arrPileOffsets.IsEmpty())
+	{
 		pStrip->m_arrPileOffsets.Clear();
+	}
     // don't try to delete CCell array, because the cell objects are managed 
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
     // strip does not own these
+
+#ifndef __WXDEBUG__
+	// have the "delete pStrip;" code in release build, not in debugger build as debugger
+	// crashes -- deleting the strip pointer makes the debugger think that a pSrcPhrase
+	// has been deleted, when control is in some code blocks, but not others, and in fact
+	// the pSrcPhrase hasn't been deleted at all. This is a MS debugger bug, not my error.
+	// It doesn't happen with the release build. So if __WXDEBUG__ is #defined, (see
+	// Adapt_It.h) then we don't compile this line (and ignore the fact that it will give
+	// memory leaks; but if not #defined, as in the Release build, the line is compiled
+	// and we don't get memory leaks
 	delete pStrip;
+#endif
+
 #else
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
 	if (!pStrip->m_arrPiles.IsEmpty())
@@ -885,9 +908,13 @@ void CLayout::DestroyStrips()
 void CLayout::DestroyPile(CPile* pPile)
 {
 	int index;
+	pPile->SetStrip(NULL); // sets m_pOwningStrip to NULL
 	for (index = 0; index < MAX_CELLS; index++)
+	{
 		delete pPile->m_pCell[index];
+	}
 	delete pPile;
+	pPile = NULL;
 }
 
 void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
@@ -1066,6 +1093,10 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
     // function - the latter built only a bundle's-worth of strips, but the new design must build
 	// strips for the whole document - so potentially may consume a lot of time; however, the
 	// efficiency of the new design (eg. no rectangles are calculated) may compensate significantly
+//#ifdef __WXDEBUG__
+//	CAdapt_ItApp* pAppl = &wxGetApp();
+//	wxLogDebug(_T("Location = %d  Active Sequ Num  %d"),1,pAppl->m_nActiveSequNum);
+//#endif
 	 
 	// any existing strips have to be destroyed before the new are build. Note: if we
 	// support both modes of strip support (ie. tweaking versus destroy and rebuild all)
@@ -1127,8 +1158,12 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	// RecalcLayout() depends on the app's m_nActiveSequNum valuel for where the active
 	// location is to be; so we'll make that dependency explicit in the next few lines,
 	// obtaining the active pile pointer which corresponds to that active location as well
+	bool bAtDocEnd = FALSE; // set TRUE if m_nActiveSequNum is -1 (as is the case when at 
+							// the end of the document)
 	CPile* pActivePile;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+	if (pActivePile == NULL)
+		bAtDocEnd = TRUE; // provide a different program path when this is the case
 
     // attempt the (re)creation of the m_pileList list of CPile instances if requested; if
     // not requested then the current m_pileList's contents are valid still and will be
@@ -1165,24 +1200,67 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
     // CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
     // then the strip layout code below can use that value via a call to
     // GetPhraseBoxGapWidth() to make the active pile's width have the right value.
-	if (!bRecreatePileListAlso)
+    if (!bAtDocEnd)
 	{
-		// these three lines ensure that the active pile's width is based on the
-		// CLayout::m_curBoxWidth value that was stored there by any adjustment to the box
-		// width done by FixBox() just prior to this RecalcLayout() call ( similar code
-		// will be needed in AdjustForUserEdits() when we complete the layout refactoring,
-		// *** TODO *** )
-		pActivePile = GetPile(m_pApp->m_nActiveSequNum);
-		wxASSERT(pActivePile);
-		CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
-		m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+		// when not at the end of the document, we will have a valid pile pointer for the
+		// current active location
+		if (!bRecreatePileListAlso)
+		{
+			// these three lines ensure that the active pile's width is based on the
+			// CLayout::m_curBoxWidth value that was stored there by any adjustment to the box
+			// width done by FixBox() just prior to this RecalcLayout() call ( similar code
+			// will be needed in AdjustForUserEdits() when we complete the layout refactoring,
+			// *** TODO *** )
+			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
+			wxASSERT(pActivePile);
+			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
+			m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+		}
 	}
-	m_pApp->m_pActivePile = pActivePile; // update it as ResetPartnerPileWidth may have 
-										 // been called
-
+	else
+	{
+		// we have no active active location currently, and the box is hidden, the active
+		// pile is null and the active sequence number is -1, so we want a layout that has
+		// no place provided for a phrase box, and we'll draw the end of the document
+		CreateStrips(nStripWidth, gap);
+		SetLogicalDocHeight();
+		gbExpanding = FALSE; // has to be restored to default value
+		// m_pView->RestoreSelection(); // there won't be a selection in this circumstance
+		m_invalidStripArray.Clear(); // initialize for next user edit operation
+		return TRUE;
+	}
+/*
+#ifdef __WXDEBUG__
+	{
+	PileList::Node* pos = m_pileList.GetFirst();
+	CPile* pPile = NULL;
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		wxLogDebug(_T("m_srcPhrase:  %s  *BEFORE* pPile->m_pOwningStrip =  %x"),
+			pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
+		pos = pos->GetNext();
+	}
+	}
+#endif
+*/
 	// the loop which builds the strips & populates them with the piles
 	CreateStrips(nStripWidth, gap);
-	
+/*	
+#ifdef __WXDEBUG__
+	{
+	PileList::Node* pos = m_pileList.GetFirst();
+	CPile* pPile = NULL;
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		wxLogDebug(_T("m_srcPhrase:  %s  *AFTER* pPile->m_pOwningStrip =  %x"),
+			pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
+		pos = pos->GetNext();
+	}
+	}
+#endif
+*/
 	// the height of the document can now be calculated
 	SetLogicalDocHeight();
 
@@ -1190,7 +1268,6 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 
 	// restore the selection, if there was one
 	m_pView->RestoreSelection();
-
 
     // *** TODO 1 ?? *** set up the scroll bar to have the correct range (and it would be
     //     nice to try place the phrase box at the old active location if it is still
@@ -1399,10 +1476,17 @@ int CLayout::GetVisibleStrips()
 
 void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex, int bDrawAtActiveLocation)
 {
-	// *** TODO ****  BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
-	// hide box
+	// BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
+	// hide box  -- I think we'll support it by just recalculating the layout without a
+	// scroll, at the current thumb position for the scroll car
+	//bool bAtDocEnd = FALSE; // code below should work for active sequ num == -1 
+							  // without modification
 	if (bDrawAtActiveLocation)
 	{
+		//if (m_pApp->m_nActiveSequNum == -1)
+		//{
+		//	bAtDocEnd = TRUE;
+		//}
         // get the logical distance (pixels) that the scroll bar's thumb indicates to top
         // of client area
 		int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
@@ -2266,14 +2350,21 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state, int nB
 void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 {
 	// Call this function in CLayout::Draw() after strips are drawn
-	bool bSetModify = FALSE; // initialize, governs what is done with the wxEdit control's dirty flag
-	bool bSetTextColor = FALSE; // initialize, governs whether or not we reset the box's text colour
+	if (nActiveSequNum == -1)
+	{
+		return; // do no phrase box placement if it is hidden, as at doc end
+	}
+	bool bSetModify = FALSE; // initialize, governs what is done with the wxEdit 
+							 // control's dirty flag
+	bool bSetTextColor = FALSE; // initialize, governs whether or not we reset 
+								// the box's text colour
 	
-	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there the phrase box is
-	// to be located
+	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there 
+	// the phrase box is to be located
 	wxPoint ptPhraseBoxTopLeft;
-	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile instead; but this
-					// will work even if we have forgotten to update it in the edit operation's handler
+	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile 
+                            // instead; but this will work even if we have forgotten to
+                            // update it in the edit operation's handler
 	pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
 
 	// get the pile width at the active location, using the value in
