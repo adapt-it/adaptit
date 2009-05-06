@@ -332,6 +332,26 @@ bool CAdapt_ItDoc::OnNewDocument()
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 
+ 	// get a pointer to the view
+	CAdapt_ItView* pAdView = (CAdapt_ItView*) pApp->GetView();
+	wxASSERT(pAdView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+
+    // BEW comment 6May -- this OnInitialUpdate() call contains a RecalcLayout() call,
+    // which has the boolean bRecreatePileListAlso set TRUE, so piles are destroyed and
+    // recreated - quite unnecessarily, and worse than that, a view OnSize() call is made
+    // and that has RecalcLayout() in it too - with the boolean FALSE, and that call
+    // happens BETWEEN the piles having been destroyed and before they are recreated (I've
+    // not checked how this happens, it just does) - so there is an immediate crash. It
+    // should be possible to have this call of OnInitialUpdate() done further up in
+    // OnNewDocument(), and to have it do nothing at all with the layout - do the layout
+    // stuff here in OnNewDocument() only... (moved here from end of function)
+    // 
+	// whm added OnInitialUpdate here, since in WX the doc/view framework doesn't call it 
+	// automatically we need to call it manually here. MFC calls its OnInitialUpdate()
+	// method sometime after exiting its OnNewDocument() and before showing the View. See
+	// Notes at OnInitialUpdate() for more info.
+	pAdView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't 
+								// automatically call it
 	// ensure that the current work folder is the project one for default
 	wxString dirPath = pApp->m_workFolderPath;
 	bool bOK;
@@ -414,10 +434,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 	if (pApp->m_pSourcePhrases == NULL)
 		pApp->m_pSourcePhrases = new SPList;
 	wxASSERT(pApp->m_pSourcePhrases != NULL);
-
-	// get a pointer to the view
-	CAdapt_ItView* pAdView = (CAdapt_ItView*) pApp->GetView();
-	wxASSERT(pAdView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 
 	bool bKBReady = FALSE;
@@ -750,8 +766,7 @@ bool CAdapt_ItDoc::OnNewDocument()
             // because now we will calculate the location from the layout dynamically from
             // within the PlacePhraseBox() call
 			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-			//pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2);
-			pAdView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2);
+			pAdView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // internally calls RecalcLayout()
 
 			// save old sequ number in case required for toolbar's Back button - in this case 
 			// there is no earlier location, so set it to -1
@@ -765,7 +780,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
 			// user cancelled, so cancel the New... command
 			// IDS_USER_CANCELLED
-			wxMessageBox(_("You should not cancel the dialog. Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_(
+"You should not cancel the dialog. Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+			_T(""), wxICON_INFORMATION);
 
 			// check if there was a document current, and if so, reinitialize everything
 			if (pAdView != 0)
@@ -810,12 +827,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
-
-	// whm added OnInitialUpdate here, since in WX the doc/view framework doesn't call it 
-	// automatically we need to call it manually here. MFC calls its OnInitialUpdate()
-	// method sometime after exiting its OnNewDocument() and before showing the View. See
-	// Notes at OnInitialUpdate() for more info.
-	pAdView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't automatically call it
 
 	return TRUE;
 }
@@ -3368,6 +3379,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		gbViaMostRecentFileList = FALSE; // clear it to default setting
 	}
 
+	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
+
 	// place the phrase box, but inhibit placement on first pile if doing a consistency check,
 	// because otherwise whatever adaptation is in the KB for the first word/phrase gets removed
 	// unconditionally from the KB when that is NOT what we want to occur!
@@ -3732,8 +3745,10 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 
 		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
 		pPile->SetStrip(NULL);
-		pPiles->Erase(posPile); // remove the entry from m_pileList
-		pLayout->DestroyPile(pPile); // destroy the pile
+		//pPiles->Erase(posPile); // remove the entry from m_pileList
+		pLayout->DestroyPile(pPile,pLayout->GetPileList()); // destroy the pile, & remove 
+					// its node from m_pileList, because bool param, bRemoveFromListToo, is
+					// default TRUE
 		pPile = NULL;
 	}
 

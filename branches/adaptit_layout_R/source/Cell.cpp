@@ -968,19 +968,60 @@ wxString* CCell::GetCellText()
 	switch (m_nCell)
 	{
 	case 0: // source text line
-		m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_srcPhrase;
-		break;
+		{
+			if (m_pLayout->m_pApp->m_bHidePunctuation)
+			{
+				// showing the text with punctuation stripped off
+				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_key;
+			}
+			else
+			{
+				// showing punctuation with the text
+				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_srcPhrase;
+			}
+			break;
+		}
 	case 2: // gloss text line if glossing, else adaptation text line
 		if (gbIsGlossing)
-			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
+		{
+			// this is the adaptation line, when glossing mode is on
+			if (m_pLayout->m_pApp->m_bHidePunctuation)
+			{
+				// showing the text with punctuation stripped off
+				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_adaption;
+			}
+			else
+			{
+				// showing punctuation with the text
+				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
+			}
+		}
 		else
+		{
+			// this is the gloss line when glossing mode is off
 			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_gloss;
+		}
 		break;
 	default: // adaptation line
 		if (gbIsGlossing)
+		{
+			// this line has the glosses when glossing mode is on
 			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_gloss;
+		}
 		else
-			m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
+		{
+			// this line has the adaptations, when glossing mode is off
+			if (m_pLayout->m_pApp->m_bHidePunctuation)
+			{
+				// showing the text with punctuation stripped off
+				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_adaption;
+			}
+			else
+			{
+				// showing punctuation with the text
+				m_pPhrase = &m_pOwningPile->m_pSrcPhrase->m_targetStr;
+			}
+		}
 		break;
 	}
 	return m_pPhrase;

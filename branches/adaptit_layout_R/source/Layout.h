@@ -256,8 +256,9 @@ public:
 
 	// Pile destructors (for the persistent ones in CLayout::m_pPiles list) - note, 
 	// destroying a pile also, in the same function, destroys its array of CCell instances
-	void		DestroyPile(CPile* pPile);
-	void		DestroyPileRange(int nFirstPile, int nLastPile);
+	//void		DestroyPile(CPile* pPile);
+	void		DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromListToo = TRUE);
+	//void		DestroyPileRange(int nFirstPile, int nLastPile); // removed 6May09, not used
 	void		DestroyPiles();
 
 	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean

@@ -450,7 +450,9 @@ bool gbSfmOnlyAfterNewlines = FALSE;
 wxChar gSFescapechar = _T('\\');	// the standard format escape char, default is backslash
 									
 /// TRUE while there is no m_targetBox created, during setup of the view. It is used to
-/// prevent premature merges.
+/// prevent premature merges, and at 6May09, also to suppress the interpretation of a null
+/// active pile pointer being due to having reached the doc end (because at initial launch
+/// we can have a null active pile due to the sequence number starting with value -1)
 bool gbDoingInitialSetup = FALSE;
 
 /// A global pointer to the application instance.

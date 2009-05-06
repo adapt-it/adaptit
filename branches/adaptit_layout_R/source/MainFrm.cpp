@@ -2471,11 +2471,12 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	}
 
 	// need to initiate a recalc of the layout with new m_docSize value, since strip-wrap is on
+	// BEW added 6May09 -- but only provided the pile list is not currently empty!!
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
-	if (pView)
+	CLayout* pLayout = pView->GetLayout();
+	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
 		//pView->RedrawEverything(pApp->m_nActiveSequNum);
-		CLayout* pLayout = pView->GetLayout();
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	}
@@ -2487,7 +2488,10 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     event.Skip();
 #endif
 
-	pView->Invalidate();
+	if (pView && !pLayout->GetPileList()->IsEmpty())
+	{
+		pView->Invalidate();
+	}
 }
 
 void CMainFrame::RecreateToolBar()

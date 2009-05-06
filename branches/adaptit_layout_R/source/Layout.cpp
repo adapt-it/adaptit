@@ -76,6 +76,9 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Layout.h"
 //#include "memory.h"
 
+/// This global is defined in Adapt_It.cpp. (default is FALSE)
+extern bool gbDoingInitialSetup;
+
 // for support of auto-capitalization
 
 /// This global is defined in Adapt_It.cpp.
@@ -905,6 +908,27 @@ void CLayout::DestroyStrips()
 	m_stripArray.Clear();
 }
 
+
+
+void CLayout::DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromListToo)
+{	
+	PileList::Node* pos;
+	int index;
+	pPile->SetStrip(NULL); // sets m_pOwningStrip to NULL
+	for (index = 0; index < MAX_CELLS; index++)
+	{
+		delete pPile->m_pCell[index];
+	}
+	if (bRemoveFromListToo)
+	{
+		pos = pPileList->Find(pPile);
+		wxASSERT(pos != NULL);
+		pPileList->Erase(pos);
+	}
+	delete pPile;
+	pPile = NULL;
+}
+/* changed 6May09, it was not good enough
 void CLayout::DestroyPile(CPile* pPile)
 {
 	int index;
@@ -916,7 +940,8 @@ void CLayout::DestroyPile(CPile* pPile)
 	delete pPile;
 	pPile = NULL;
 }
-
+*/
+/* not used
 void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 {
 	if (m_pileList.IsEmpty())
@@ -940,7 +965,23 @@ void CLayout::DestroyPileRange(int nFirstPile, int nLastPile)
 		pos = pos->GetNext();
 	}
 }
-
+*/
+void CLayout::DestroyPiles()
+{
+	if (m_pileList.IsEmpty())
+		return; // needed because DestroyPiles() can be called when nothing is set up yet
+	PileList::Node* pos = m_pileList.GetLast();
+	wxASSERT(pos != NULL);
+	CPile* pPile = NULL;
+	while (pos != NULL)
+	{
+		pPile = pos->GetData();
+		DestroyPile(pPile,&m_pileList,FALSE);
+		pos = pos->GetPrevious();
+	}
+	m_pileList.Clear(); // ensure there are no freed pointers left over
+}
+/* earlier version
 void CLayout::DestroyPiles()
 {
 	if (m_pileList.IsEmpty())
@@ -948,7 +989,7 @@ void CLayout::DestroyPiles()
 	int nLastPile = m_pileList.GetCount() - 1;
 	DestroyPileRange(0, nLastPile);
 }
-
+*/
 // Note: never call CreatePile() if there is not yet a valid pSrcPhrase pointer to pass in;
 // CreatePile() creates the CPile instance on the heap, and returns a pointer to it
 CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
@@ -1161,9 +1202,16 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	bool bAtDocEnd = FALSE; // set TRUE if m_nActiveSequNum is -1 (as is the case when at 
 							// the end of the document)
 	CPile* pActivePile;
-	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
-	if (pActivePile == NULL)
-		bAtDocEnd = TRUE; // provide a different program path when this is the case
+	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
+	if (!gbDoingInitialSetup)
+	{
+		// the above test is to exclude setting bAtDocEnd to TRUE if the pActivePile is
+		// NULL which can be the case on launch or opening a doc or creating a new one, at
+		// least temporarily, due to the default sequence number being -1;
+		// gbDoingInitialSetup is cleared to FALSE in OnNewDocument() and OnOpenDocument()
+		if (pActivePile == NULL)
+			bAtDocEnd = TRUE; // provide a different program path when this is the case
+	}
 
     // attempt the (re)creation of the m_pileList list of CPile instances if requested; if
     // not requested then the current m_pileList's contents are valid still and will be

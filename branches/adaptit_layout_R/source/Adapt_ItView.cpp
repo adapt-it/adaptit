@@ -1820,9 +1820,10 @@ void CAdapt_ItView::OnInitialUpdate()
 	// set the pointer to the save list
 	pApp->m_pSaveList = &pApp->m_saveList;
 	
-	// At this point the MFC version copies printing variables from those it had on the App to those it
-	// maintined here in the View. Since the wx version maintains its printing variable on the App, and
-	// they get updated when the config files are read from the App's OnInit(), it is not necessary to 
+    // At this point the MFC version copies printing variables from those it had on the App
+    // to those it maintined here in the View. Since the wx version maintains its printing
+    // variable on the App, and they get updated when the config files are read from the
+    // App's OnInit(), it is not necessary to
 
 	pApp->SetPageOrientation(pApp->m_bIsPortraitOrientation);
 
@@ -1956,13 +1957,14 @@ void CAdapt_ItView::OnInitialUpdate()
 	CLayout* pLayout = pApp->m_pLayout;
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
+	/*
 	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases,TRUE); // TRUE means "create the m_pileList too"
 	if (!bIsOK)
 	{
 		wxMessageBox(_T("RecalcLayout returned FALSE in OnInitialUpdate() in view class"),_T(""), wxICON_ERROR);
 		wxASSERT(FALSE);
 	}
-	
+	*/
 	pApp->m_targetPhrase = saveText;
 	gnStart = 0;
 	gnEnd = -1;
@@ -29421,7 +29423,7 @@ bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 
 void CAdapt_ItView::OnSize(wxSizeEvent& event)
 {
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+ 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
     // wx note: event.Skip() must be called here in order to pass the size event on to be
     // handled by the CMainFrame::OnSize() method.
@@ -29444,9 +29446,22 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 	// since strip-wrap is on
 	//RedrawEverything(pApp->m_nActiveSequNum);
 	CLayout* pLayout = GetLayout();
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	Invalidate();
+	if (!pLayout->GetPileList()->IsEmpty())
+	{
+		// BEW added this test 6May09, because in the refactored design, an size event
+		// was posted from (I think, somewhere in a CreatePiles() call within a
+		// RecalcLayout() call, and the event was posted after the list of piles was
+		// deleted and before it was recreated - and unfortunately in the legacy OnSize()
+		// function there was the following RecalcLayout() call, which then crashes
+		// because the pile pointers point at freed memory. The original call of
+		// RecalcLayout() was from within OnInitialUpdate(), and that from end of
+		// OnNewDocument() and all this re-calling of RecalcLayout() is bad design. Let's
+		// see if this safety first test gets us past the crash, and maybe later we can
+		// tidy up the design to be less redundant on the layout calls. *** TODO ***
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		Invalidate();
+	}
 }
 
 //******************************************************************************************
@@ -30091,7 +30106,8 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 			// and help text tell what clicking on this hiding button would do, i.e., Hide Punctuation.
 			// must call Realize() after adding a new button
 			pToolBar->Realize();
-			if (pApp->m_nActiveSequNum != -1)
+			CLayout* pLayout = GetLayout();
+			if (pApp->m_nActiveSequNum != -1 && !pLayout->GetPileList()->IsEmpty())
 			{
 				CPile* pPile = GetPile(pApp->m_nActiveSequNum);
 				wxASSERT(pPile);
@@ -30101,10 +30117,15 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 				pApp->m_targetPhrase = pSrcPhrase->m_targetStr;
 			}
 			//RedrawEverything(pApp->m_nActiveSequNum);
-			CLayout* pLayout = GetLayout();
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases);
-			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-			Invalidate();
+			if (pApp->m_pSourcePhrases != NULL)
+			{
+				if (!pApp->m_pSourcePhrases->IsEmpty())
+				{
+					pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+				}
+				Invalidate();
+			}
 		}
 	}
 }
@@ -30335,12 +30356,15 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 			pToolBar->Realize(); // this should not be necessary
 			//RedrawEverything(pApp->m_nActiveSequNum);
 			CLayout* pLayout = GetLayout();
-			if (!pApp->m_pSourcePhrases->IsEmpty())
+			if (pApp->m_pSourcePhrases != NULL)
 			{
-				pLayout->RecalcLayout(pApp->m_pSourcePhrases);
-				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+				if (!pApp->m_pSourcePhrases->IsEmpty())
+				{
+					pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+				}
+				Invalidate();
 			}
-			Invalidate();
 		}
 	}
 }
@@ -30400,12 +30424,15 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 	// do the wanted wraps
 	//RedrawEverything(pApp->m_nActiveSequNum);
 	CLayout* pLayout = GetLayout();
-	if (!pApp->m_pSourcePhrases->IsEmpty())
+	if (pApp->m_pSourcePhrases != NULL)
 	{
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
-		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		if (!pApp->m_pSourcePhrases->IsEmpty())
+		{
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		}
+		Invalidate();
 	}
-	Invalidate();
 }
 
 void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
