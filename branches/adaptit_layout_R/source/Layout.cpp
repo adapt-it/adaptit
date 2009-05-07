@@ -66,6 +66,7 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "AdaptitConstants.h"
 #include "SourcePhrase.h"
 #include "MainFrm.h"
+#include "helpers.h"
 // don't mess with the order of the following includes, Strip must precede View must precede
 // Pile must precede Layout and Cell can usefully by last
 #include "Strip.h"
@@ -279,7 +280,8 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
 }
 
-void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
+//void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
+void CLayout::Draw(wxDC* pDC)
 {
     // m_bDrawAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done
     // based on the top of the first strip of a visible range of strips determined by the
@@ -299,12 +301,13 @@ void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value for next time
 	*/
 
-	if (bDrawAtActiveLocation)
-	{
+//	if (bDrawAtActiveLocation)
+//	{
 		// work out the range of visible strips based on the phrase box location
 		nActiveSequNum = m_pApp->m_nActiveSequNum;
 		// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
-		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex, bDrawAtActiveLocation);
+		//GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex, bDrawAtActiveLocation);
+		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
 
 		// draw the visible strips (plus and extra one, if possible)
 		for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
@@ -320,16 +323,16 @@ void CLayout::Draw(wxDC* pDC, bool bDrawAtActiveLocation)
 			// work out its location and resize (if necessary) and draw it
 			PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
 		}
-	}
-	else
-	{
+//	}
+//	else
+//	{
 		// draw at scroll position
 		
 		// *** TODO *** the code
 		 
 		//if (!m_bLayoutWithoutVisiblePhraseBox) // shouldn't be needed for this situation
 			
-	}
+//	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 }
 
@@ -760,16 +763,32 @@ wxArrayPtrVoid* CLayout::GetStripArray()
 // SetLogicalDocHeight() after laying out the strips, to get private member m_logicalDocSize.y set 
 void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 {
-	wxSize viewSize;
-	viewSize = m_pMainFrame->GetCanvasClientSize(); // dimensions of client window of wxScrollingWindow
+	// GetClientRect gets a rectangle in which upper left coords are always 0,0
+	//pApp->GetMainFrame()->canvas->GetClientSize(&fwidth,&fheight); // get width & height in pixels
+	// wx note: calling GetClientSize on the canvas produced different results in wxGTK and
+	// wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the main frame's
+	// client size.
+	wxSize canvasViewSize;
+	canvasViewSize = m_pMainFrame->GetCanvasClientSize(); // dimensions of client window of wxScrollingWindow
 													// which canvas class is a subclass of
-	m_sizeClientWindow = viewSize; // set the private member
+	m_sizeClientWindow = canvasViewSize; // set the private member, CLayout::m_sizeClientWindow
 	wxSize docSize;
 	docSize.y = 0; // can't be set yet, we call this setter before strips are laid out
-	docSize.x = m_sizeClientWindow.x - m_nCurLMargin - RH_SLOP; // RH_SLOP defined in AdaptItConstant.h
-					// with a value of 40 (reduces likelihood of long nav text above a narrow pile
-					// which is last in a strip, having the end of the nav text drawn off-window
-	m_logicalDocSize = docSize;
+	if (gbIsPrinting)
+	{
+		// the document width will be set by the page dimensions and margins, externally
+		// to RecalcLayout(), so do nothing here except set it to zero
+		docSize.x = 0;
+	}
+	else
+	{
+		// not printing, so the layout is being done for the screen
+		docSize.x = m_sizeClientWindow.x - m_nCurLMargin - RH_SLOP; 
+                // RH_SLOP defined in AdaptItConstant.h with a value of 40 (reduces
+                // likelihood of long nav text above a narrow pile which is last in a
+                // strip, having the end of the nav text drawn off-window
+	}
+	m_logicalDocSize = docSize; // initialize the private member, CLayout::m_logicalDocSize
 }
 
 // sets m_logicalDocSize.y value to the logical height (in pixels) of the laid out strips, or to
@@ -1169,33 +1188,74 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	// preserve selection parameters, so it can be preserved across the recalculation
 	m_pView->StoreSelection(m_pApp->m_selectionLine);
 
-	// //////// first get up-to-date-values for all the needed data /////////
-	/* do it instead in caller using SetLayoutParameters() call
-	// set the latest wxFont pointers...
-	SetSrcFont(m_pApp);
-	SetTgtFont(m_pApp);
-	SetNavTextFont(m_pApp);
-
-	// set the local private copie of the colours
-	SetNavTextColor(m_pApp);
-	SetTgtColor(m_pApp);
-	SetSrcColor(m_pApp);
-
-	// set the text heights for src, tgt, navText private members
-	SetSrcTextHeight(m_pApp);
-	SetTgtTextHeight(m_pApp);
-	SetNavTextHeight(m_pApp);
-
-	// set left margin and vertical leading for strips, also pile and strip heights,
-	// and client window's dimensions - and hence the logical doc width (in pixels)
-	SetCurLMargin(m_pApp);
-	SetCurLeading(m_pApp);
-	SetPileAndStripHeight();
-	SetClientWindowSizeAndLogicalDocWidth(); // height gets set after strips are laid out
-	SetGapWidth(m_pApp); // gap (in pixels) between piles when laid out in strips, m_nCurGapWidth
-	*/
-	// *** ?? TODO ?? **** more parameter setup stuff goes here, if needed
 	
+	// send the app the current size & position data, for saving to config file on closure
+	wxRect rectFrame;
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	rectFrame = pFrame->GetRect(); // screen coords
+	rectFrame = NormalizeRect(rectFrame); // use our own from helpers.h
+	m_pApp->m_ptViewTopLeft.x = rectFrame.x;
+	m_pApp->m_ptViewTopLeft.y = rectFrame.y;
+	m_pApp->m_szView.SetWidth(rectFrame.GetWidth()); 
+	m_pApp->m_szView.SetHeight(rectFrame.GetHeight());
+	m_pApp->m_bZoomed = pFrame->IsMaximized();
+
+	// initialize CLayout's m_logicalDocSize, and m_sizeClientWindow (except 
+	// m_logicalDocSize.y is initialized to 0 here, because it can't be set until the
+	// strips have been laid out - that is done below
+	SetClientWindowSizeAndLogicalDocWidth();
+
+	// set the pile height, and the strip height (the latter includes the free translation
+	// height when in free translation mode; the former is always just the height of the
+	// visible cells)
+	SetPileAndStripHeight();
+
+	// scroll support...
+	// get a device context, and get the origin adjusted (gRectViewClient is ignored 
+	// when printing)
+	wxClientDC viewDC(m_pApp->GetMainFrame()->canvas);
+	m_pApp->GetMainFrame()->canvas->DoPrepareDC(viewDC); //  adjust origin
+	m_pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(
+										0,0,&grectViewClient.x,&grectViewClient.y);
+	grectViewClient.width = m_sizeClientWindow.GetWidth(); // m_sizeClientWindow set in
+						// the above call to SetClientWindowSizeAndLogicalDocWidth()
+	grectViewClient.height = m_sizeClientWindow.GetHeight();
+	// if we are printing, then we will want text extents (which use viewDC for their calculation)
+	// to be done for MM_LOENGLISH mapping mode
+	// whm notes:
+	// wxWidgets has the following defined mapping modes:
+	// wxMM_TWIPS		Each logical unit is 1/20 of a point, or 1/1440 of an inch.
+	// wxMM_POINTS		Each logical unit is a point, or 1/72 of an inch.
+	// wxMM_METRIC		Each logical unit is 1 mm.
+	// wxMM_LOMETRIC	Each logical unit is 1/10 of a mm.
+	// wxMM_TEXT		Each logical unit is 1 pixel.
+	// MFC has the following defined mapping modes:
+	// MM_ANISOTROPIC	Logical units are converted to arbitrary units with arbitrarily scaled axes. Setting the mapping mode to MM_ANISOTROPIC does not change the current window or viewport settings. To change the units, orientation, and scaling, call the SetWindowExt and SetViewportExt member functions. 
+	// MM_HIENGLISH		Each logical unit is converted to 0.001 inch. Positive x is to the right; positive y is up. 
+	// MM_HIMETRIC		Each logical unit is converted to 0.01 millimeter. Positive x is to the right; positive y is up. 
+	// MM_ISOTROPIC		Logical units are converted to arbitrary units with equally scaled axes; that is, 1 unit along the x-axis is equal to 1 unit along the y-axis. Use the SetWindowExt and SetViewportExt member functions to specify the desired units and the orientation of the axes. GDI makes adjustments as necessary to ensure that the x and y units remain the same size. 
+	// MM_LOENGLISH		Each logical unit is converted to 0.01 inch. Positive x is to the right; positive y is up. 
+	// MM_LOMETRIC		Each logical unit is converted to 0.1 millimeter. Positive x is to the right; positive y is up. 
+	// MM_TEXT			Each logical unit is converted to 1 device pixel. Positive x is to the right; positive y is down. 
+	// MM_TWIPS			Each logical unit is converted to 1/20 of a point. (Because a point is 1/72 inch, a twip is 1/1440 inch.) Positive x is to the right; positive y is up. 
+	// There are only 3 mapping modes that use the same units between MFC and wxWidgets which are:
+	// wxMM_TWIPS is same as MM_TWIPS - in both each logical unit is converted to 1/20 of a point or 1/1440 inch. Positive x to the right, positive y is up.
+	// wxMM_TEXT is same as MM_TEXT - in both each logical unit is converted to 1 device pixel. Positive x to the right, positive y is down.
+	// wxMM_LOMETRIC is same as MM_LOMETRIC - in both each logical unit is converted to 1/10 of a mm
+	// All other mapping modes are different units or scales
+	
+	// The map mode remains wxMM_TEXT for both normal screen rendering and for printing/previewing.
+	// MFC had MM_LOENGLISH, in which each logical unit is converted to 0.01 inch.
+	// and Positive x is to the right; positive y is up.
+	// wxMM_LOENGLISH compiles OK but give a run time error/assert "unknown mapping mode in
+	// SetMapMode." Therefore if we use anything other than wxMM_TEXT, we will need to use wxMM_LOMETRIC
+	// for printing in the wx version. Since MFC uses MM_LOENGLISH which reverses the y axis
+	// component during printing and previewing, we'll use wxMM_LOMETRIC, the closest equivalent which
+	// also reverses the y axis component during printing.
+	viewDC.SetMapMode(wxMM_TEXT); // equivalent to MFC's MM_TEXT for drawing to the screen
+
+
 	// RecalcLayout() depends on the app's m_nActiveSequNum valuel for where the active
 	// location is to be; so we'll make that dependency explicit in the next few lines,
 	// obtaining the active pile pointer which corresponds to that active location as well
@@ -1275,7 +1335,8 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 		gbExpanding = FALSE; // has to be restored to default value
 		// m_pView->RestoreSelection(); // there won't be a selection in this circumstance
 		m_invalidStripArray.Clear(); // initialize for next user edit operation
-		return TRUE;
+		//return TRUE;
+		
 	}
 /*
 #ifdef __WXDEBUG__
@@ -1309,10 +1370,78 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	}
 #endif
 */
+a:	gbExpanding = FALSE; // has to be restored to default value
+
 	// the height of the document can now be calculated
 	SetLogicalDocHeight();
+	
+	// next line for debugging...
+	//wxSize theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
 
-	gbExpanding = FALSE; // has to be restored to default value
+	// more scrolling support...
+	// whm: SetVirtualSize() is the equivalent of MFC's SetScrollSizes.
+	// SetVirtualSize() sets the virtual size of the window in pixels.
+	m_pApp->GetMainFrame()->canvas->SetVirtualSize(m_logicalDocSize);
+
+	// inform the application of the document's logical size... -- the canvas
+	// class uses this m_docSize value for determining scroll bar parameters and whether
+	// horizontal and / or vertical scroll bars are needed
+	m_pApp->m_docSize = m_logicalDocSize;
+
+	// next line for debugging...
+	//theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
+
+	// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
+	// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
+	// is evident that they are used to set the scrolling parameters within the scrolled
+	// view in the MFC app. We'll convert the values to the proper units and use
+	// SetScrollbars() to set the scrolling parameters.
+	//wxSize nSize = m_pageDev; // m_pageDev is "per page scroll size in device units"
+	//wxSize mSize = m_lineDev; // m_lineDev is "per line scroll size in device units"
+	// wx note: the m_lineDev value in MFC is equivalent to the first two parameters of
+	// wxScrollWindow's SetScrollbars (pixelsPerUnitX, and pixelsPerUnitY). Both MFC and
+	// WX values are in pixels.
+    // The m_pageDev value in MFC is set below as twice the height of a strip (including
+    // leading). In WX the height of a page of scrolled stuff should be determined
+    // automatically from the length of the document (in scroll units), divided by the
+    // height of the client view (also in scroll units).
+	// The parameters needed for SetScrollbars are:
+	int pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY;
+	int xPos, yPos; // xPos and yPos default to 0 if unspecified
+	bool noRefresh; // noRefresh defaults to FALSE if unspecified
+	// whm note: We allow our wxScrolledWindow to govern our scroll
+	// parameters based on the width and height of the virtual document
+	// 
+    // WX version: We only need to specify the length of the scrollbar in scroll
+    // steps/units. Before we can call SetScrollbars we must calculate the size of the
+    // document in scroll units, which is the size in pixels divided by the pixels per
+    // unit.
+	pFrame->canvas->GetScrollPixelsPerUnit(&pixelsPerUnitX,&pixelsPerUnitY);
+	noUnitsX = m_pApp->m_docSize.GetWidth() / pixelsPerUnitX;
+	noUnitsY = m_pApp->m_docSize.GetHeight() / pixelsPerUnitY;
+    // we need to specify xPos and yPos in the SetScrollbars call, otherwise it will cause
+    // the window to scroll to the zero position everytime RecalcLayout is called.
+    // We'll use GetViewStart instead of CalcUnscrolledPosition here since SetScrollbars
+    // below takes scroll units rather than pixels.
+	m_pApp->GetMainFrame()->canvas->GetViewStart(&xPos, &yPos); // gets xOrigin and yOrigin
+																// in scroll units
+	noRefresh = FALSE; // do a refresh
+    // Now call SetScrollbars - this is the only place where the scrolling parameters are
+    // established for our wxScrolledWindow (canvas). The scrolling parameters are reset
+    // everytime RecalcLayout is called. This is the only location where SetScrollbars() is
+    // called on the canvas.
+    
+    // whm IMPORTANT NOTE: We need to use the last position of the scrolled window here. If
+    // we don't include xPos and yPos here, the scrollbar immediately scrolls to the
+    // zero/initial position in the doc, which fouls up the calculations in other routines
+    // such as MoveToPrevPile.
+    m_pApp->GetMainFrame()->canvas->SetScrollbars(
+			pixelsPerUnitX,pixelsPerUnitY,	// number of pixels per "scroll step"
+        	noUnitsX,noUnitsY,				// sets the length of scrollbar in scroll steps, 
+											// i.e., the size of the virtual window
+    		xPos,yPos,						// sets initial position of scrollbars NEEDED!
+    		noRefresh);						// SetScrollPos called elsewhere
+  
 
 	// restore the selection, if there was one
 	m_pView->RestoreSelection();
@@ -1522,15 +1651,16 @@ int CLayout::GetVisibleStrips()
 	return nVisStrips;
 }
 
-void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex, int bDrawAtActiveLocation)
+//void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex, int bDrawAtActiveLocation)
+void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex)
 {
 	// BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
 	// hide box  -- I think we'll support it by just recalculating the layout without a
 	// scroll, at the current thumb position for the scroll car
 	//bool bAtDocEnd = FALSE; // code below should work for active sequ num == -1 
 							  // without modification
-	if (bDrawAtActiveLocation)
-	{
+	//if (bDrawAtActiveLocation)
+	//{
 		//if (m_pApp->m_nActiveSequNum == -1)
 		//{
 		//	bAtDocEnd = TRUE;
@@ -1587,12 +1717,12 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 			if (nLastStripIndex < nTotalStrips - 1)
 				nLastStripIndex++;
 		}
-	}
-	else
-	{
+	//}
+	//else
+	//{
 		// **** TODO ****  similar calculations based on scroll bar thumb position
 
-	}
+	//}
 }
 
 // return TRUE if the function checked for the start and end of the user edit span,

@@ -223,8 +223,8 @@ private:
 public:
 	// destructor
 	virtual ~CLayout();
-	virtual void Draw(wxDC* pDC, bool bDrawAtActiveLocation = TRUE); // bool is for scrollup/down support
-	//virtual void Draw(wxDC* pDC);
+	//virtual void Draw(wxDC* pDC, bool bDrawAtActiveLocation = TRUE);
+	virtual void Draw(wxDC* pDC);
 
 	// helpers; setters & getters
 	CAdapt_ItApp*		GetApp();
@@ -381,8 +381,10 @@ public:
 	// strip location; if FALSE (as when scrolling up or down) the visible strips are
 	// worked out according to where the top of the scrolled device context is using the
 	// scrollbar thumb's position value.
-	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip, 
-							int bDrawAtActiveLocation);
+	//void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip, 
+	//						int bDrawAtActiveLocation);
+	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
+
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = TRUE);
 
