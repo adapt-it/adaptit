@@ -9034,7 +9034,7 @@ CCell* CAdapt_ItView::GetPrevCell(CCell *pCell, int index)
 */
 void CAdapt_ItView::RemoveSelection()
 {
-	// refactored 7Apr09
+	// refactored 7May09
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	wxCommandEvent dummyevent;
@@ -9052,7 +9052,6 @@ void CAdapt_ItView::RemoveSelection()
 		return;
 	}
 	wxClientDC aDC(pApp->GetMainFrame()->canvas);
-	//CText* pText;
 	CCell* pCell;
 
 	// there is a current selection, so clobber it
@@ -13561,6 +13560,32 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 	} // end of for loop which merges all the non-first to the first in the selection
 
+	// Because later below we call DeletePartnerPile() on each of the non-first
+	// CSourcePhrase instances of the selection which have now been merged, and
+	// DeletePartnerPile() calls CLayout::DestroyPile() - freeing the memeory for those
+	// ones, we can't call RemoveSelection() after that, because the latter assumes the
+	// cell pointers are still valid and they aren't. So here we just set the source text
+	// line's first CCell of the selection to have m_bSelected set to FALSE, and Clear()
+	// the m_selection list, and appropriately set the other selection parameters to
+	// indicate there is no longer any selection. Then the StoreSelection() call in
+	// RecalcLayout() will not crash, and we don't need to call RemoveSelection() here
+	{
+		int nFirstSequNum = pFirstSrcPhrase->m_nSequNumber;
+		CPile* pFirstPile = GetPile(nFirstSequNum);
+		CCell* pFirstSrcCell = pFirstPile->GetCell(0);
+		pFirstSrcCell->SetSelected(FALSE);
+		if (!pApp->m_selection.IsEmpty())
+		{
+			pApp->m_selection.Clear();
+		}
+		pApp->m_selectionLine = -1;
+		pApp->m_pAnchor = (CCell*)NULL;
+		// and globals too
+		gnSelectionLine = -1;
+		gnSelectionStartSequNum = -1;
+		gnSelectionEndSequNum = -1;
+	}
+
     // put our default string into pApp->m_targetPhrase to be shown in the phrase box,
     // provided we have not temporarily suppressed the default adaptation using the global
     // flag...
@@ -13695,7 +13720,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 
     // ensure there is no selection, if we don't do this here, then the RestoreSelection()
     // call at the end of RecalcLayout() will fail
-	RemoveSelection();
+	//RemoveSelection();
 
 	// recalculate the layout
 	pLayout->RecalcLayout(pSrcPhrases);

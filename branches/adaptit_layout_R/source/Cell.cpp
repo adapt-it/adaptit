@@ -109,21 +109,23 @@ extern bool gbShowTargetOnly;
 // / This global is defined in Adapt_ItView.cpp.
 extern wxRect grectViewClient;
 
-// whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
-// to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection dir) method
-// to change the logical direction of the display context. In wxDC the display context is mirrored
-// right-to-left when wxLayout_RightToLeft is passed as the parameter;
-// While the MFC version changes the alignment and RTL reading direction of DrawText(), it is not
-// the same as mirroring (in which MFC would actually call CDC::SetLayout(LAYOUT_RTL) to effect RTL
-// mirroring in the display context. In wx, wxDC::DrawText() does not have a parameter that can 
-// be used to control Right alignment and/or RTL Reading of text at that level of the DC.
-// Certain controls such as wxTextCtrl and wxListBox, etc., also have an undocumented method called
-// SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or wxLayout_RightToLeft. 
-// Setting the layout to wxLayout_RightToLeft on these controls also involves some mirroring, so that 
-// any scrollbar that gets displayed, for example, displays on the left rather than on the right, etc.
-// In the wx version we have to be careful about the automatic mirroring features involved in the
-// SetLayoutDirection() function, since Adapt It MFC was designed to micromanage the layout direction
-// itself in the coding of text, cells, piles, strips, etc.
+// whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an
+// equivalent to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection
+// dir) method to change the logical direction of the display context. In wxDC the display
+// context is mirrored right-to-left when wxLayout_RightToLeft is passed as the parameter;
+// While the MFC version changes the alignment and RTL reading direction of DrawText(), it
+// is not the same as mirroring (in which MFC would actually call
+// CDC::SetLayout(LAYOUT_RTL) to effect RTL mirroring in the display context. In wx,
+// wxDC::DrawText() does not have a parameter that can be used to control Right alignment
+// and/or RTL Reading of text at that level of the DC. Certain controls such as wxTextCtrl
+// and wxListBox, etc., also have an undocumented method called
+// SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or
+// wxLayout_RightToLeft. Setting the layout to wxLayout_RightToLeft on these controls also
+// involves some mirroring, so that any scrollbar that gets displayed, for example,
+// displays on the left rather than on the right, etc. In the wx version we have to be
+// careful about the automatic mirroring features involved in the SetLayoutDirection()
+// function, since Adapt It MFC was designed to micromanage the layout direction itself in
+// the coding of text, cells, piles, strips, etc.
 
 // / This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp; // want to access it fast
@@ -133,41 +135,46 @@ extern const wxChar* filteredTextPlaceHolder;
 extern EditRecord gEditRecord;
 
 // whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: (BEW moved here from deprecated CText)
-//    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function does not 
-// have an nFormat parameter like MFC's CDC::DrawText(const CString& str, lPRECT lpRect, UINT nFormat) 
-// text-drawing function. The MFC function utilizes the nFormat parameter to control the RTL vs LTR 
-// directionality, which apparently only affects the directionality of the display context WITHIN the
-// lpRect region of the display context. At present, it seems that the wxWidgets function cannot 
-// directly control the directionality of the text using its DrawText() function. In both MFC and 
-// wxWidgets there is a way to control the overall layout direction of the elements of a whole diaplay
-// context. In MFC it is CDC::SetLayout(DWORD dwLayout); in wxWidgets it is 
-// wxDC::SetLayoutDirection(wxLayoutDirection dir). Both of these dc layout functions cause the whole 
-// display context to be mirrored so that all elements drawn in the display context are reversed as 
-// though seen in a mirror. For a simple application that only displays a single language in its display
-// context, perhaps layout mirroring would work OK. However, Adapt It must layout several different
-// diverse languages within the same display context, some of which may have different directionality
-// and alignment. Therefore, except for possibly some widget controls, MFC's SetLayout() and wxWidgets'
-// SetLayoutDirection() would not be good choices. The MFC Adapt It sources NEVER call the mirroring 
-// functions. Instead, for writing on a display context, MFC uses the nFormat paramter within 
-// DrawText(str,m_enclosingRect,nFormat) to accomplish two things: (1) Render the text as Right-To-Left, 
-// and (2) Align the text to the RIGHT within the enclosing rectangle passed as parameter to DrawText().
-// The challenge within wxWidgets is to determine how to get the equivalent display of RTL and LTR text.
-//    2. The SetLayoutDirection() function within wxWidgets can be applied to certain controls containing
-// text such as wxTextCtrl and wxListBox, etc. It is presently an undocumented method with the following
-// signature: SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or 
-// wxLayout_RightToLeft. It should be noted that setting the layout to wxLayout_RightToLeft on these 
-// controls also involves mirroring, so that any scrollbar that gets displayed, for example, displays 
-// on the left rather than on the right for RTL, etc.
+//    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) 
+// function does not have an nFormat parameter like MFC's CDC::DrawText(const CString& str,
+// lPRECT lpRect, UINT nFormat) text-drawing function. The MFC function utilizes the
+// nFormat parameter to control the RTL vs LTR directionality, which apparently only
+// affects the directionality of the display context WITHIN the lpRect region of the
+// display context. At present, it seems that the wxWidgets function cannot directly
+// control the directionality of the text using its DrawText() function. In both MFC and
+// wxWidgets there is a way to control the overall layout direction of the elements of a
+// whole diaplay context. In MFC it is CDC::SetLayout(DWORD dwLayout); in wxWidgets it is
+// wxDC::SetLayoutDirection(wxLayoutDirection dir). Both of these dc layout functions cause
+// the whole display context to be mirrored so that all elements drawn in the display
+// context are reversed as though seen in a mirror. For a simple application that only
+// displays a single language in its display context, perhaps layout mirroring would work
+// OK. However, Adapt It must layout several different diverse languages within the same
+// display context, some of which may have different directionality and alignment.
+// Therefore, except for possibly some widget controls, MFC's SetLayout() and wxWidgets'
+// SetLayoutDirection() would not be good choices. The MFC Adapt It sources NEVER call the
+// mirroring functions. Instead, for writing on a display context, MFC uses the nFormat
+// paramter within DrawText(str,m_enclosingRect,nFormat) to accomplish two things: (1)
+// Render the text as Right-To-Left, and (2) Align the text to the RIGHT within the
+// enclosing rectangle passed as parameter to DrawText(). The challenge within wxWidgets is
+// to determine how to get the equivalent display of RTL and LTR text.
+//    2. The SetLayoutDirection() function within wxWidgets can be applied to certain 
+// controls containing text such as wxTextCtrl and wxListBox, etc. It is presently an
+// undocumented method with the following signature: SetLayoutDirection(wxLayoutDirection
+// dir), where dir is wxLayout_LeftToRight or wxLayout_RightToLeft. It should be noted that
+// setting the layout to wxLayout_RightToLeft on these controls also involves mirroring, so
+// that any scrollbar that gets displayed, for example, displays on the left rather than on
+// the right for RTL, etc.
 // CONCLUSIONS:
-// Pango in wxGTK, ATSIU in wxMac and Uniscribe in wxMSW seem to do a good job of rendering Right-To-Left 
-// Reading text with the correct directionality in a display context without calling the 
-// SetLayoutDirection() method. The main thing we have to do is determine where the starting point for 
-// the DrawText() operation needs to be located to effect the correct text alignment within the cells 
-// (rectangles) of the pile for the given language - the upper left coordinates for LTR text, and the
-// upper-right coordinates for RTL text.
-// Therefore, in the wx version we have to be careful about the automatic mirroring features involved 
-// in the SetLayoutDirection() function, since Adapt It MFC was designed to micromanage the layout 
-// direction itself in the coding of text, cells, piles, strips, etc.
+// Pango in wxGTK, ATSIU in wxMac and Uniscribe in wxMSW seem to do a good job of rendering
+// Right-To-Left Reading text with the correct directionality in a display context without
+// calling the SetLayoutDirection() method. The main thing we have to do is determine where
+// the starting point for the DrawText() operation needs to be located to effect the
+// correct text alignment within the cells (rectangles) of the pile for the given language
+// - the upper left coordinates for LTR text, and the upper-right coordinates for RTL text.
+// Therefore, in the wx version we have to be careful about the automatic mirroring
+// features involved in the SetLayoutDirection() function, since Adapt It MFC was designed
+// to micromanage the layout direction itself in the coding of text, cells, piles, strips,
+// etc.
 
 
 // ////////////////////////////////////////////////////////////////////
@@ -200,26 +207,6 @@ CCell::CCell(const CCell& cell)
 	m_pOwningPile = cell.m_pOwningPile;
 }
 
-//CCell::CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle,
-//				CStrip* pStrip, CPile* pPile)
-/*
-CCell::CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile)
-{
-//	m_pDoc = pDocument; // BEW deprecated 3Feb09
-	m_pBundle = pSourceBundle;
-	m_pStrip = pStrip;
-	m_pPile = pPile;
-	//m_pText = (CText*)NULL; // BEW removed 6Feb09
-	//m_bDisplay = TRUE; // BEW deprecated 3Feb09
-	m_bSelected =  FALSE;
-	m_nCellIndex = 0;
-	//m_phrase = _T("");
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	//wxASSERT(pApp != NULL);
-	m_navColor = pApp->m_navTextColor;
-}
-*/
-
 CCell::~CCell()
 {
 
@@ -247,7 +234,8 @@ wxFont* CCell::GetFont()
 				return m_pLayout->m_pTgtFont;
 		}
 	}
-	return m_pLayout->m_pTgtFont; // never accessed, it's here just to avoid a compiler warning
+	return m_pLayout->m_pTgtFont; // never accessed, it's here just to 
+								  // avoid a compiler warning
 }
 
 CPile* CCell::GetPile()
@@ -268,7 +256,8 @@ void CCell::SetSelected(bool bValue)
 
 int CCell::GetCellIndex()
 {
-	return m_nCell; // return this cell's index in the pile (values 0 to 3 inclusive)
+	return m_nCell; // return this cell's index in the pile (values 
+					// 0 to 3 inclusive)
 }
 
 wxColour CCell::GetColor()
@@ -363,39 +352,44 @@ int CCell::Top()
 	case 0:
 		if (gbShowTargetOnly)
 		{
-			// the source text line is suppressed, but no harm if we return the pile's top
+			// the source text line is suppressed, but no harm if we return 
+			// the pile's top
 			top = m_pOwningPile->Top();
 		}
 		else
 		{
-			// source text line is not suppressed, it's top is same as pile's top
+			// source text line is not suppressed, it's top is same as 
+			// pile's top
 			top = m_pOwningPile->Top();
 		}
 		return top;
 	case 1:
 		if (gbShowTargetOnly)
 		{
-			// the target, or gloss text, line is at the top of the pile when source line is suppressed
+			// the target, or gloss text, line is at the top of the pile when 
+			// source line is suppressed
 			top = m_pOwningPile->Top();
 		}
 		else
 		{
-			// source text line is not suppressed, so the target line's top will be the source
-			// text height lower down in the pile (whether glossing or adapting)
+            // source text line is not suppressed, so the target line's top will be the
+            // source text height lower down in the pile (whether glossing or adapting)
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 		}
 		return top;
 	case 2:
 		if (gbShowTargetOnly)
 		{
-			// this line is never shown when source line is suppressed, so a nonsense value will do
+			// this line is never shown when source line is suppressed, so a nonsense 
+			// value will do
 			top = -1;
 		}
 		else
 		{
-			// source text line is not suppressed, so the third line's top, if the line is
-			// visible, will be the second line's top, plus the height of the text in the second
-			// line -- where the latter will depend on whether it is showing target text font,
+            // source text line is not suppressed, so the third line's top, if the line is
+            // visible, will be the second line's top, plus the height of the text in the
+            // second line -- where the latter will depend on whether it is showing target
+            // text font,
 			top = m_pOwningPile->Top() + m_pLayout->GetSrcTextHeight();
 			if (gbIsGlossing && gbGlossingUsesNavFont)
 			{
@@ -438,14 +432,13 @@ void CCell::BottomRight(wxPoint& ptBottomRight)
 	ptBottomRight.x = Left() + Width();
 }
 
-//void CCell::CreateCell(CSourceBundle *pBundle, CStrip *pStrip, CPile *pPile, 
-//				wxString* pPhrase, int xExtent, wxFont *pFont, wxColour *pColor,
-//				wxPoint *pTopLeft, wxPoint *pBotRight, int index, wxColor* pNavTextColor)
 void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 {
 	m_nCell = index; // remains this value for the life of the owning pile
-	m_pOwningPile = pOwnerPile; // lets the CCell access the CSourcePhrase the owning pile points at
-	m_pLayout = pLayout; // where drawing information can be had - eg. font pointer, font colour, etc
+	m_pOwningPile = pOwnerPile; // lets the CCell access the CSourcePhrase the 
+								// owning pile points at
+	m_pLayout = pLayout; // where drawing information can be had - eg. font 
+						 // pointer, font colour, etc
 
 	// Note: m_pPhrase is set by a SetCellText() call in the Draw functions because
 	// depending on the mode (either adapting or glossing) what gets drawn in *m_pCell[1]
@@ -453,59 +446,26 @@ void CCell::CreateCell(CLayout* pLayout, CPile* pOwnerPile, int index)
 	// right one as late as possible, which therefore means in the Draw() function itself,
 	// immediately before drawing
 	// the m_bSelected value must default to FALSE when the cell is first created
-	// _________________________________________________________________________________
-
-	// legacy code is below... (versions 4.1.x and earlier)
-	// create the cell
-	//CCell* pCell = new CCell(pDoc,pBundle,pStrip,pPile); // BEW deprecated 3Feb09
-	//CCell* pCell = new CCell(pBundle,pStrip,pPile);
-	//wxASSERT(pCell != NULL);
-
-	/*
-	// set its attributes
-	m_pBundle = pBundle;
-	m_pStrip = pStrip;
-	m_pPile = pPile;
-	m_bSelected = FALSE;
-	m_navColor = *pNavTextColor;
-
-	m_color = *pColor;
-	m_pFont = pFont;
-	m_ptTopLeft = *pTopLeft;
-	m_ptBotRight = *pBotRight;
-	m_nTextExtent = xExtent;
-	m_pPhrase = pPhrase;
-	m_nCellIndex = index;
-	*/
-	// create a CText for displaying the cell's string --
-	// (for ANSI build, CText is based on CObject, and will use TextOut() for drawing; but for the
-	// nonRoman build, it will use DrawText() which has the RTLReading smarts, etc.
-	//pCell->m_pText = new CText(*pTopLeft,*pBotRight,pFont,phrase,*pColor,index); //BEW removed 6Feb09
-	//wxASSERT(pCell->m_pText != NULL);
-	//return pCell;
 }
 
 
 // BEW 2Aug08, additions to for gray colouring of context regions in vertical edit steps
 void CCell::Draw(wxDC* pDC)
 {
-//	CAdapt_ItApp* pApp = m_pLayout->m_pApp; //&wxGetApp();
-//	wxASSERT(pApp != NULL);
-//	CAdapt_ItView* pView = m_pLayout->m_pView; //pApp->GetView();
-//	wxASSERT(pView != NULL);
+    // next call should not be needed now, the paint issue on wxMac had a different source,
+    // but keep it for the present as it should be called before setting any clip region
+    // later in the code
+	pDC->DestroyClippingRegion();
 
-	// next call should not be needed now, the paint issue on wxMac had a different source, but
-	// keep it for the present as it should be called before setting any clip region later in
-	// the code
-	pDC->DestroyClippingRegion(); // whm added 2May07 to try to resolve the paint issue on wxMac
-
-	pDC->SetBrush(*wxTRANSPARENT_BRUSH); // SetBackgroundMode() requires a valid brush on wxGTK
-	// ( a transparent brush results in nothing being visible - code below always sets
-	// the mode to wxSOLID before doing any drawing that is to be visible, including backgrounds)
+	pDC->SetBrush(*wxTRANSPARENT_BRUSH); // SetBackgroundMode() requires a valid brush 
+        // on wxGTK ( a transparent brush results in nothing being visible - code below
+        // always sets the mode to wxSOLID before doing any drawing that is to be visible,
+        // including backgrounds)
 
 	wxColour oldBkColor;
-	wxColour color(GetColor());	// get the default colour to be used for drawing this cell's text
-				// (it may be overridden below - eg. to gray, when vertical edit is being done)
+	wxColour color(GetColor());	// get the default colour to be used for drawing this 
+        // cell's text (it may be overridden below - eg. to gray, when vertical edit is
+        // being done)
 								
     // vertical edit: change text colour to gray if it is before or after the editable
     // span; we have to do it also in the m_pText CText member too, and beware because the
@@ -539,14 +499,13 @@ void CCell::Draw(wxDC* pDC)
 		&& (gEditStep == adaptationsStep || gEditStep == glossesStep || 
 			gEditStep == freeTranslationsStep))
 	{
-		// the spans to be made available for work can differ in each step, so they are set in
-		// the code above first 
-        //if (m_pPile->m_pSrcPhrase->m_nSequNumber < nStart_Span ||
-		//m_pPile->m_pSrcPhrase->m_nSequNumber > nEnd_Span)
+        // the spans to be made available for work can differ in each step, so they are set
+        // in the code above first
 		if (m_pOwningPile->m_pSrcPhrase->m_nSequNumber < nStart_Span || 
 			m_pOwningPile->m_pSrcPhrase->m_nSequNumber > nEnd_Span)
 		{
-			// it's either adaptations step, AND, the pile is before or after the editable span
+			// it's either adaptations step, AND, the pile is before or after the 
+			// editable span
 			color = gMidGray;
 		}
 		else
@@ -556,22 +515,19 @@ void CCell::Draw(wxDC* pDC)
 			;
 		}
 	}
-    // In all the remainder of this Draw() function, only backgrounds are ever changed in color,
-	// and the navigation whiteboard area's icons and text are drawn in the call to
-	// DrawNavTextInfoAndIcons() at the end.
+    // In all the remainder of this Draw() function, only backgrounds are ever changed in
+    // color, and the navigation whiteboard area's icons and text are drawn in the call to
+    // DrawNavTextInfoAndIcons() at the end.
 	if (m_bSelected)
 	{
 		oldBkColor = pDC->GetTextBackground(); // yellow
-		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is set to wxSOLID
+		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // m_backgroundMode is 
+																	 // set to wxSOLID
 		pDC->SetTextBackground(wxColour(255,255,0)); // yellow
-		//TRACE3("Sel'n Count %d  Pile %d  Strip %d\n",pView->m_selection.GetCount(),
-				//m_pOwningPile->m_nPile,m_pOwningPile->m_pOwningStrip->m_nStrip);
-
 	}
 
-	// BEW added 11Oct05 to have the top cell of the pile background coloured if the click was on
-	// a green wedge or note icon
-	//if (m_nCellIndex == 1 && !gbIsPrinting && (m_pPile == gpGreenWedgePile || m_pPile == gpNotePile))
+    // BEW added 11Oct05 to have the top cell of the pile background coloured if the click
+    // was on a green wedge or note icon
 	if (!gbShowTargetOnly && m_nCell == 0 && !gbIsPrinting && 
 		(m_pOwningPile == gpGreenWedgePile || m_pOwningPile == gpNotePile))
 	{
@@ -582,17 +538,21 @@ void CCell::Draw(wxDC* pDC)
 
 	// Target Text Highlight 
 	// Check for automatically inserted target text/glosses and highlight them
-	// BEW 12Jul05 add colouring for free translation sections, provided we are not currently printing
-	// BEW 10Oct05 added a block for colouring the source line (cell index == 0) whenever there is no
-	// target (or gloss) text that can be coloured, so that there will always be visual feedback about
-	// what is free translated, and what is about to be, and what is not.
+	// BEW 12Jul05 add colouring for free translation sections, provided we are not 
+	// currently printing
+    // BEW 10Oct05 added a block for colouring the source line (cell index == 0) whenever
+    // there is no target (or gloss) text that can be coloured, so that there will always
+    // be visual feedback about what is free translated, and what is about to be, and what
+    // is not.
 	if (m_nCell == 0 && m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsPrinting 
 		&& ((!gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_targetStr.IsEmpty()) || 
 		(gbIsGlossing && m_pOwningPile->m_pSrcPhrase->m_gloss.IsEmpty())))
 	{
-		// we use pastel pink and green for the current section, and other defined sections,
-		// respectively, and white (default) otherwise - ie. no free translation there
-		if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans && !m_pOwningPile->m_bIsCurrentFreeTransSection)
+        // we use pastel pink and green for the current section, and other defined
+        // sections, respectively, and white (default) otherwise - ie. no free translation
+        // there
+		if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans && 
+											!m_pOwningPile->m_bIsCurrentFreeTransSection)
 		{
 			// colour background pastel green
 			pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // wxSOLID
@@ -609,9 +569,11 @@ void CCell::Draw(wxDC* pDC)
 	{
 		if (m_pLayout->m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
 		{
-			// we use pastel pink and green for the current section, and other defined sections,
-			// respectively, and white (default) otherwise - ie. no free translation there
-			if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans && !m_pOwningPile->m_bIsCurrentFreeTransSection)
+            // we use pastel pink and green for the current section, and other defined
+            // sections, respectively, and white (default) otherwise - ie. no free
+            // translation there
+			if (m_pOwningPile->m_pSrcPhrase->m_bHasFreeTrans && 
+										!m_pOwningPile->m_bIsCurrentFreeTransSection)
 			{
 				// colour background pastel green
 				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
@@ -647,14 +609,11 @@ void CCell::Draw(wxDC* pDC)
 		}
 	}
 
-    // finally, since the cell's background colour has been set appropriately, the foreground
-    // drawing (ie. the text drawning) can be done... so draw every cell except where the phrase
-    // box is going to be displayed - i.e. don't draw in the cell with m_nCell index value == 1
-    // at the active pile's location in the layout
-     
-    //if (m_nCellIndex != 2 ||
-	//	m_pPile->m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
-	if (m_nCell != 1 ||
+    // finally, since the cell's background colour has been set appropriately, the
+    // foreground drawing (ie. the text drawning) can be done... so draw every cell except
+    // where the phrase box is going to be displayed - i.e. don't draw in the cell with
+    // m_nCell index value == 1 at the active pile's location in the layout
+   	if (m_nCell != 1 ||
 		m_pOwningPile->m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
 	{
 		//m_pText->Draw(pDC);
@@ -662,37 +621,35 @@ void CCell::Draw(wxDC* pDC)
 	}
 	else
 	{
-		// but we will draw it if a "Find Next" is current (gbFindIsCurrent gets cleared to FALSE
-		// either with a click in the view, or when the Find dialog's OnCancel() function is called)
+        // but we will draw it if a "Find Next" is current (gbFindIsCurrent gets cleared to
+        // FALSE either with a click in the view, or when the Find dialog's OnCancel()
+        // function is called)
 		if (gbFindIsCurrent)
 		{
 			//m_pText->Draw(pDC);
 			DrawCell(pDC, color);
 		}
 	}
-	// restore the white background for cells -- it is the default for the next call to this function
+	// restore the white background for cells -- it is the default for the next call 
+	// to this function
 	pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode); // wxSOLID
 	pDC->SetTextBackground(wxColour(255,255,255)); // white
 	// Note, drawing of the nav text & icons (note icon, green wedge, etc) is now in CPile
 }
 
-
-//void CCell::DrawCellText(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
-//			const wxString& phrase, const wxColour& color, int nCell)
 void CCell::DrawCell(wxDC* pDC, wxColor color)
 {
     // we assume at the time DrawCell() is called that it's owning pile's pointer to the
-    // CSourcePhrase has been updated, if necessary, to comply with the user's changes to the
-    // document (if it hasn't, DrawCell() will crash, so we'll find out soon enough!) Also, the
-    // caller must determine the text color, because it can be temporarily changed depending on
-    // what the user is currently doing (eg. to gray text when in vertical edit mode)
+    // CSourcePhrase has been updated, if necessary, to comply with the user's changes to
+    // the document (if it hasn't, DrawCell() will crash, so we'll find out soon enough!)
+    // Also, the caller must determine the text color, because it can be temporarily
+    // changed depending on what the user is currently doing (eg. to gray text when in
+    // vertical edit mode)
     
 	// assign to local var thePhrase whichever wxString should be written for this cell
 	wxString* pPhrase = GetCellText();
 	wxRect enclosingRect; // the rect where the text will be drawn
 	GetCellRect(enclosingRect); // set it
-	//CAdapt_ItView* pView = m_pLayout->m_pView;
-	//wxASSERT(pView != NULL);
 	pDC->SetFont(*GetFont()); // pDC->SetFont(*m_pFont);
 	wxColour oldColor = color; // Note: MFC code does not use oldColor anywhere 
 	if (!color.IsOk())
@@ -707,7 +664,6 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 	if (m_nCell == 0)
 	{
 		// it's source text
-		//if (gpApp->m_bSrcRTL)
 		if (m_pLayout->m_pApp->m_bSrcRTL)
 		{
 			// source text has to be RTL & aligned RIGHT
@@ -721,8 +677,8 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 	}
 	else // m_nCellIndex could be 2, or 3
 	{
-        // if glossing is seen (ie. gbEnableGlossing is TRUE) then it could be target text or
-        // gloss text in the cell, else must be target text
+        // if glossing is seen (ie. gbEnableGlossing is TRUE) then it could be target text
+        // or gloss text in the cell, else must be target text
 		if (!gbEnableGlossing)
 		{
 			// glossing not enabled (nor seen), so can only be target text in the cell
@@ -744,8 +700,8 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			// must be one of the target text cells
 			if ((gbIsGlossing && m_nCell == 1) || (!gbIsGlossing && m_nCell == 2))
 			{
-				// it's gloss text - the direction will depend on the setting for the font used
-				// test to see which direction we have in operation for this cell
+                // it's gloss text - the direction will depend on the setting for the font
+                // used test to see which direction we have in operation for this cell
 				if (gbGlossingUsesNavFont)
 				{
 					// glossing uses navText's direction
@@ -771,80 +727,12 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			}
 		}
 	}
-	/* legacy code (before refactoring of layout)
-	if (m_nCellIndex == 0 || m_nCellIndex == 1)
-	{
-		// it's source text
-		if (gpApp->m_bSrcRTL)
-		{
-			// source text has to be RTL & aligned RIGHT
-			bRTLLayout = TRUE;
-		}
-		else
-		{
-			// source text has to be LTR & aligned LEFT
-			bRTLLayout = FALSE;
-		}
-	}
-	else // m_nCellIndex could be 2, 3 or  4
-	{
-		// if glossing is allowed then it could be target text or gloss text 
-		// in the cell, else must be target text
-		if (!gbEnableGlossing)
-		{
-			// glossing not enabled, so can only be target text in the cell
-			if (gpApp->m_bTgtRTL)
-			{
-				// target text has to be RTL & aligned RIGHT
-				bRTLLayout = TRUE;
-			}
-			else
-			{
-				// target text has to be LTR & aligned LEFT
-				bRTLLayout = FALSE;
-			}
-		}
-		else // glossing allowed
-		{
-			// m_nCell == 2  or == 4 will be gloss text, which might be
-			// in the target text's direction, or navText's direction; any other option
-			// must be one of the target text cells
-			if ((gbIsGlossing && m_nCellIndex == 2) || (!gbIsGlossing && m_nCellIndex == 4))
-			{
-				// test to see which direction we have in operation for this cell
-				if (gbGlossingUsesNavFont)
-				{
-					// glossing uses navText's direction
-					if (gpApp->m_bNavTextRTL)
-						bRTLLayout = TRUE;
-					else
-						bRTLLayout = FALSE;
-				}
-				else // glossing uses target text's direction
-				{
-					if (gpApp->m_bTgtRTL)
-						bRTLLayout = TRUE;
-					else
-						bRTLLayout = FALSE;
-				}
-			}
-			else // must be cell with target text
-			{
-				if (gpApp->m_bTgtRTL)
-					bRTLLayout = TRUE;
-				else
-					bRTLLayout = FALSE;
-			}
-		}
-	}
-	*/ // end of legacy code
 #endif // for _RTL_FLAGS
 
-	// use gbFindIsCurrent  to see if I can get the empty cell to show a yellow background
-	// when Find has found a legitimate null match, but inhibit the yellow background for
-	// clicks in the cell at other times - the inhibiting is of course done in the
-	// OnLButtonDown( ) function in the view class rather than here
-	//if ((*m_pPhrase).IsEmpty() && gbFindIsCurrent)
+    // use gbFindIsCurrent to see if I can get the empty cell to show a yellow background
+    // when Find has found a legitimate null match, but inhibit the yellow background for
+    // clicks in the cell at other times - the inhibiting is of course done in the
+    // OnLButtonDown( ) function in the view class rather than here
 	if ((*pPhrase).IsEmpty() && gbFindIsCurrent)
 	{
 		// create a string of spaces of length which will fit within the pileWidth
@@ -867,13 +755,13 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		// for those differences (see notes in DrawTextRTL for further information).
 		if (bRTLLayout)
 		{
-			// ////////// Draw RTL Blank Spaces Cell Text  /////////////////
+			// ******** Draw RTL Blank Spaces Cell Text  *********
 			DrawTextRTL(pDC,str,enclosingRect);
 		}
 		else
 		{
-			// ////////// Draw LTR Blank Spaces Cell Text  /////////////////
-			pDC->DrawText(str,enclosingRect.GetLeft(), enclosingRect.GetTop());// ,nFormat);
+			// ******** Draw LTR Blank Spaces Cell Text  *********
+			pDC->DrawText(str,enclosingRect.GetLeft(), enclosingRect.GetTop());
 		}
 	}
 	else // find is not current or there is some text to draw
@@ -887,8 +775,7 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			wxLogDebug(_T("DrawText [%d chars] cell%d right align"),(*pPhrase).Length(),m_nCell);
 			#endif
 			//wxSize sizeOfPhrase = pDC->GetTextExtent(m_phrase);
-			// ////////// Draw RTL Cell Text  /////////////////
-			//pView->DrawTextRTL(pDC,m_*pPhrase,enclosingRect);
+			// ********* Draw RTL Cell Text  ***********
 			DrawTextRTL(pDC,*pPhrase,enclosingRect);
 		}
 		else
@@ -896,8 +783,8 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 			#ifdef _LOG_DEBUG_DRAWING
 			wxLogDebug(_T("DrawText [%d chars] cell%d left align"),(*pPhrase).Length(),m_nCell);
 			#endif
-			// ////////// Draw LTR Cell Text  /////////////////
-			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());// ,nFormat);
+			// ********* Draw LTR Cell Text  **********
+			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
 		}
 	}
 }
@@ -911,21 +798,21 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	// does not have an nFormat parameter as does the MFC function CDC::DrawText()
 	// and which currently (as of wxWidgets 2.8.4) has different behaviors on wxMSW,
 	// wxGTK and wxMAC.
-	// The challenge here is due in part to the fact that the wxDC::SetLayoutDirection() 
-	// method applies to the whole DC and, on wxMSW (but not the other ports) 
-	// SetLayoutDirection() effectively mirrors the underlying coordinate system (requiring
-	// coordinate values input to DrawText and other drawing methods be reversed on the
-	// x-axis while SetLayoutDirection() is set to RTL. Hence, for wxMSW, we must transform the 
-	// coordinates in such a way that, while mirroring is in effect, the logical 0,0 
-	// coordinate for drawing text is located at the upper right corner of the of the 
-	// logical document and x coordinate values increase toward the left rather than toward 
-	// the right. The wxGTK and wxMac ports do not require the use of SetLayoutDirection()
-	// to render punctuation correctly for RTL text, but drawing RTL text in those cases 
-	// requires that we must adjust the drawing coordinates of RTL text to start drawing 
-	// at the left end of the resulting RTL text, rather than at the right end (as MFC does).
-	// I've also used a wxRect as parameter rather than wxCoord x and wxCoord y coordinate
-	// parameters to make the upper right corner of the wxRect more readily available to
-	// the function.
+    // The challenge here is due in part to the fact that the wxDC::SetLayoutDirection()
+    // method applies to the whole DC and, on wxMSW (but not the other ports)
+    // SetLayoutDirection() effectively mirrors the underlying coordinate system (requiring
+    // coordinate values input to DrawText and other drawing methods be reversed on the
+    // x-axis while SetLayoutDirection() is set to RTL. Hence, for wxMSW, we must transform
+    // the coordinates in such a way that, while mirroring is in effect, the logical 0,0
+    // coordinate for drawing text is located at the upper right corner of the of the
+    // logical document and x coordinate values increase toward the left rather than toward
+    // the right. The wxGTK and wxMac ports do not require the use of SetLayoutDirection()
+    // to render punctuation correctly for RTL text, but drawing RTL text in those cases
+    // requires that we must adjust the drawing coordinates of RTL text to start drawing at
+    // the left end of the resulting RTL text, rather than at the right end (as MFC does).
+    // I've also used a wxRect as parameter rather than wxCoord x and wxCoord y coordinate
+    // parameters to make the upper right corner of the wxRect more readily available to
+    // the function.
 	//
 	// TODO: Since the wxWidgets RTL rendering behaviors are obviously still somewhat in an 
 	// immature state of development (and may change in future library releases to become 
@@ -946,7 +833,7 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	// wxMSW needs SetLayoutDirection(wxLayout_RightToLeft) to be set; in addition we
 	// need to transform the urPt so it is mirrored from the right edge of 
 	// grectViewClient.
-	wxASSERT(grectViewClient.GetWidth() >= urPt.x); // *** TODO *** ensure grectViewClient is already set
+	wxASSERT(grectViewClient.GetWidth() >= urPt.x); // ensure grectViewClient is already set
 	pDC->SetLayoutDirection(wxLayout_RightToLeft);
 	pDC->DrawText(str,grectViewClient.GetWidth() - urPt.x - 16,urPt.y); // 16 pixels for scrollbar width
 #else
@@ -1026,8 +913,3 @@ wxString* CCell::GetCellText()
 	}
 	return m_pPhrase;
 }
-
-
-
-
-

@@ -256,7 +256,6 @@ public:
 
 	// Pile destructors (for the persistent ones in CLayout::m_pPiles list) - note, 
 	// destroying a pile also, in the same function, destroys its array of CCell instances
-	//void		DestroyPile(CPile* pPile);
 	void		DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromListToo = TRUE);
 	//void		DestroyPileRange(int nFirstPile, int nLastPile); // removed 6May09, not used
 	void		DestroyPiles();
@@ -365,24 +364,18 @@ public:
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
  
 	
-    // get the range of visible strips in the viscinity of the active location; pass in the sequNum
-    // value, and return indices for the first and last visible strips (the last may be partly or
-    // even wholely out lower than then the bottom of the window's client area); we also try to
-    // encompass all auto-inserted material within the visible region
-	//void		GetVisibleStripsRange(int nSequNum, int& nFirstStrip, int& nLastStrip);
-	// retain the above version for if/when I/we refactor scolling support etc
+    // get the range of visible strips in the viscinity of the active location; pass in the
+    // sequNum value, and return indices for the first and last visible strips (the last
+    // may be partly or even wholely out lower than then the bottom of the window's client
+    // area); we also try to encompass all auto-inserted material within the visible region
 	// 
-	// new version below, takes as input the pre-scrolled device context (after DoPrepareDC() has
-	// been called, and on the basis of the scrollbar thumb's position, gets the first strip
-	// which has content visible in the canvas client area, adds the other visible strips, and one
-	// more for good measure if possible - this is sort of equivalent to the legacy WX Adapt It's
-	// way of doing it, but in the new design (I'm keeping changes minimal for now); if
-	// bDrawAtActiveLocation is TRUE, the visible strips are worked out to wrap the active
-	// strip location; if FALSE (as when scrolling up or down) the visible strips are
-	// worked out according to where the top of the scrolled device context is using the
-	// scrollbar thumb's position value.
-	//void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip, 
-	//						int bDrawAtActiveLocation);
+    // new version below, takes as input the pre-scrolled device context (after
+    // DoPrepareDC() has been called, and on the basis of the scrollbar thumb's position,
+    // gets the first strip which has content visible in the canvas client area, adds the
+    // other visible strips, and one more for good measure if possible - this is sort of
+    // equivalent to the legacy WX Adapt It's way of doing it, and in the new design the
+    // visible strips are worked out according to where the top of the scrolled device
+    // context is using the scrollbar thumb's position value.
 	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
 
 	// redraw the current visible strip range 

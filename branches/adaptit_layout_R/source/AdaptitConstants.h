@@ -32,7 +32,7 @@
 								// allow for a move
 #define NUM_PREWORDS		40  // how many words to allow in preceding context (max)
 #define NUM_FOLLWORDS		30  // how many words to allow in the following context (max)
-#define RH_SLOP				40  // leave 40 pixels of white space at end of strip, when strip-wrap
+#define RH_SLOP				60  // leave 60 pixels of white space at end of strip, when strip-wrap
 								// is on
 #define MAXPUNCTPAIRS		26  //24  // maximum number of paired src & target punct chars which can be 
 								// handled by the dialog

@@ -272,12 +272,13 @@ bool CPile::GetIsCurrentFreeTransSection()
 
 int CPile::Width()
 {
-	// Note: for this calculation to return the correct values in all circumstances, the m_nWidth
-	// and m_nMinWidth values must be up to date before Draw is called on the CPile instance; in
-	// practice this most importantly means that the app's m_nActiveSequNum value is up to date,
-	// because the else block below is entered once per layout draw, and the width of the phrase
-	// box must be known and all relevant parameters set which are used for communicating its width
-	// to the pile at the active location and storing that width in its m_nWidth member
+    // Note: for this calculation to return the correct values in all circumstances, the
+    // m_nWidth and m_nMinWidth values must be up to date before Draw is called on the
+    // CPile instance; in practice this most importantly means that the app's
+    // m_nActiveSequNum value is up to date, because the else block below is entered once
+    // per layout draw, and the width of the phrase box must be known and all relevant
+    // parameters set which are used for communicating its width to the pile at the active
+    // location and storing that width in its m_nWidth member
 	if (m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
 	{
 		// when not at the active location, set the width to m_nMinWidth;
@@ -285,9 +286,9 @@ int CPile::Width()
 	}
 	else
 	{
-		// at the active location, set the width using the .x extent of the app's m_targetPhrase
-		//  string - the width based on this is stored in m_nWidth, but is -1 if the pile is not
-		//  the active pile
+        // at the active location, set the width using the .x extent of the app's
+        // m_targetPhrase string - the width based on this is stored in m_nWidth, but is -1
+        // if the pile is not the active pile
 		return m_nWidth;
 	}
 }
@@ -391,9 +392,10 @@ int	CPile::GetPhraseBoxGapWidth()
 
 // Calculates the pile's width before laying out the current pile in a strip. The function
 // is not interested in the relative ordering of the glossing and adapting cells, and so
-// does not access CCell instances; rather, it just examines extent of the three text members
-// m_srcPhrase, m_targetStr, m_gloss on the CSourcePhrase instance pointed at by this
-// particular CPile instance. The width is the maximum extent.x for the three strings checked.
+// does not access CCell instances; rather, it just examines extent of the three text
+// members m_srcPhrase, m_targetStr, m_gloss on the CSourcePhrase instance pointed at by
+// this particular CPile instance. The width is the maximum extent.x for the three strings
+// checked.
 int CPile::CalcPileWidth()
 {
 	int pileWidth = 40; // ensure we never get a pileWidth of zero
@@ -438,13 +440,13 @@ int CPile::CalcPileWidth()
 
 int CPile::CalcPhraseBoxGapWidth()
 {
-    // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase (the
-    // phrase box contents) for the pile extent (plus some slop), because at the active location
-    // the m_adaption & m_targetStr members of pSrcPhrase are not set, and won't be until the user
-    // hits Enter key to move phrase box on or clickes to place it elsewhere, so only
-    // pApp->m_targetPhrase is valid; note, for version 2 which supports a glossing line, the box
-    // will contain a gloss rather than an adaptation whenever gbIsGlossing is TRUE. Glossing could
-    // be using the target font, or the navText font.
+    // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase
+    // (the phrase box contents) for the pile extent (plus some slop), because at the
+    // active location the m_adaption & m_targetStr members of pSrcPhrase are not set, and
+    // won't be until the user hits Enter key to move phrase box on or clickes to place it
+    // elsewhere, so only pApp->m_targetPhrase is valid; note, for version 2 which supports
+    // a glossing line, the box will contain a gloss rather than an adaptation whenever
+    // gbIsGlossing is TRUE. Glossing could be using the target font, or the navText font.
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
 	int boxGapWidth = m_nMinWidth; // start with this minimum value (text-based)
@@ -597,7 +599,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// enclosingRect.GetLeft() + widthOfCell - textExtOfPhrase.
 			if (bRTLLayout)
 			{
-				// ////////// Draw the RTL Retranslation section marks *# or * in Navigation Text area /////////
+				// *** Draw the RTL Retranslation section marks *# or * in Nav Text area ***
 				// whm note: nav text stuff can potentially be much wider than the width of
 				// the cell where it is drawn. This would not usually be a problem since nav
 				// text is not normally drawn above every cell but just at major markers like
@@ -608,7 +610,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			}
 			else
 			{
-				// ////////// Draw the LTR Retranslation section marks *# or * in Navigation Text area /////////
+				// *** Draw the LTR Retranslation section marks *# or * in Navigation Text area ***
 				pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
 			}
 			pDC->SetFont(SaveFont);
@@ -630,8 +632,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// BEW added, for support of filter wedge icon
 			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
-				xOffset = 7;  // offset any nav text 7 pixels to the right (or to the left if RTL rendering)
-								// to make room for the wedge
+				xOffset = 7;  // offset any nav text 7 pixels to the right (or to the 
+							  // left if RTL rendering) to make room for the wedge
 			}
 
 #ifdef _RTL_FLAGS
@@ -639,7 +641,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				pt.x += rectBounding.GetWidth(); // align right
 #endif
 			// whm: the wx version doesn't use negative offsets
-			//diff = m_pLayout->m_pApp->m_nNavTextHeight + (m_pLayout->m_pApp->m_nSrcHeight/4) + 1;
 			diff = m_pLayout->GetNavTextHeight() + (m_pLayout->GetSrcTextHeight()/4) + 1;
 			pt.y -= diff;
 #ifdef _RTL_FLAGS
@@ -655,48 +656,52 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pt.x += xOffset; // for ANSI version
 #endif
 			// BEW revised 19 Apr 05 in support of USFM and SFM Filtering
-			// m_inform should have, at most, the name or short name of the last nonchapter & nonverse
-			// (U)SFM, and no information about anything filtered. All we need do with it is to append
-			// this information to str containing n:m if the latter is pertinent here, or fill str with m_inform
-			// if there is no chapter or verse info here. The construction of a wedge for signallying presence
-			// of filtered info in m_markers is also handled here, but independently of m_inform
+            // m_inform should have, at most, the name or short name of the last nonchapter
+            // & nonverse (U)SFM, and no information about anything filtered. All we need
+            // do with it is to append this information to str containing n:m if the latter
+            // is pertinent here, or fill str with m_inform if there is no chapter or verse
+            // info here. The construction of a wedge for signallying presence of filtered
+            // info in m_markers is also handled here, but independently of m_inform
 			wxString str = _T("");
 
 			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
-				// if \~FILTERED is anywhere in the m_markers member of the sourcephrase stored which
-				// has its pointer stored in m_pPile, then we require a wedge to be drawn here.
-				// BEW modified 18Nov05; to have variable colours, also the colours differences are
-				// hard to pick up with a simple wedge, so the top of the wedge has been extended up
-				// two more pixels to form a column with a point at the bottom, which can show more colour
-				//wxPoint ptWedge = m_ptTopLeft;
+                // if \~FILTERED is anywhere in the m_markers member of the sourcephrase
+                // stored which has its pointer stored in m_pPile, then we require a wedge
+                // to be drawn here.
+                // BEW modified 18Nov05; to have variable colours, also the colours
+                // differences are hard to pick up with a simple wedge, so the top of the
+                // wedge has been extended up two more pixels to form a column with a point
+                // at the bottom, which can show more colour
 				wxPoint ptWedge;
 				TopLeft(ptWedge);
 
-				// BEW added 18Nov05, to colour the wedge differently if \free is contentless (as khaki), or if
-				// \bt is contentless (as pastel blue), or if both are contentless (as red)
-				//bool bFreeHasNoContent = m_pBundle->m_pView->IsFreeTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-				//bool bBackHasNoContent = m_pBundle->m_pView->IsBackTranslationContentEmpty(m_pPile->m_pSrcPhrase);
-				//CAdapt_ItView* pView = m_pLayout->m_pApp->GetView(); // getting the view pointer this way allows me
-				// to remove the m_pView pointer from the definition of the CSourceBundle class
-				bool bFreeHasNoContent = m_pLayout->m_pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
-				bool bBackHasNoContent = m_pLayout->m_pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
+                // BEW added 18Nov05, to colour the wedge differently if \free is
+                // contentless (as khaki), or if \bt is contentless (as pastel blue), or if
+                // both are contentless (as red)
+				bool bFreeHasNoContent = 
+					m_pLayout->m_pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
+				bool bBackHasNoContent = 
+					m_pLayout->m_pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
 
 				#ifdef _RTL_FLAGS
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
 					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
 				#endif
-				// get the point where the drawing is to start (from the bottom tip of the downwards pointing wedge)
+				// get the point where the drawing is to start (from the bottom tip of 
+				// the downwards pointing wedge)
 				ptWedge.x += 1;
 				ptWedge.y -= 2; 
 
-				// whm note: According to wx docs, wxWidgets shows all non-white pens as black on a monochrome
-				// display, i.e., OLPC screen in Black & White mode. In contrast, wxWidgets shows all brushes 
-				// as white unless the colour is really black on monochrome displays.
+                // whm note: According to wx docs, wxWidgets shows all non-white pens as
+                // black on a monochrome display, i.e., OLPC screen in Black & White mode.
+                // In contrast, wxWidgets shows all brushes as white unless the colour is
+                // really black on monochrome displays.
 				pDC->SetPen(*wxBLACK_PEN);
 
 				// draw the line to the top left of the wedge
-				pDC->DrawLine(ptWedge.x, ptWedge.y, ptWedge.x - 5, ptWedge.y - 5); // end points are not part of the line
+				pDC->DrawLine(ptWedge.x, ptWedge.y, ptWedge.x - 5, ptWedge.y - 5); // end 
+														// points are not part of the line
 
 				// reposition for the vertical stroke up for the left of the short column
 				// do the vertical stroke (endpoint not part of it)
@@ -714,10 +719,11 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				// reposition for the stroke down to the left to join up with start position
 				// make the final stroke
 				pDC->DrawLine(ptWedge.x + 4, ptWedge.y - 4, ptWedge.x, ptWedge.y);
-				// we can quickly fill the wedge by brute force by drawing a few green horizontal lines
-				// rather than using more complex region calls
-				// BEW on 18Nov05 added extra tests and colouring code to support variable colour 
-				// to indicate when free translation or back translation fields are contentless
+                // we can quickly fill the wedge by brute force by drawing a few green
+                // horizontal lines rather than using more complex region calls
+                // BEW on 18Nov05 added extra tests and colouring code to support variable
+                // colour to indicate when free translation or back translation fields are
+                // contentless
 
 				if (!bFreeHasNoContent && !bBackHasNoContent)
 				{
@@ -756,9 +762,9 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				pDC->DrawLine(ptWedge.x - 1, ptWedge.y - 2, ptWedge.x + 2, ptWedge.y - 2);
 				pDC->DrawLine(ptWedge.x , ptWedge.y - 1, ptWedge.x + 1, ptWedge.y - 1);
 
-				pDC->SetPen(wxNullPen); // wxNullPen causes
-										// the current pen to be selected out of the device context, and the
-										// original pen restored.
+				pDC->SetPen(wxNullPen); // wxNullPen causes the current pen to be 
+                        // selected out of the device context, and the original pen
+                        // restored.
 			}
 
 			// make (for version 3) the chapter&verse information come first
@@ -767,8 +773,9 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				str = m_pSrcPhrase->m_chapterVerse;
 			}
 
-			// now append anything which is in the m_inform member; there may not have been a chapter
-			// and/or verse number already placed in str, so allow for this possibility
+            // now append anything which is in the m_inform member; there may not have been
+            // a chapter and/or verse number already placed in str, so allow for this
+            // possibility
 			if (!m_pSrcPhrase->m_inform.IsEmpty())
 			{
 				if (str.IsEmpty())
@@ -781,7 +788,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			}
 
 			wxFont aSavedFont;
-			//wxFont* pNavTextFont = m_pLayout->m_pApp->m_pNavTextFont;
 			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
 			aSavedFont = pDC->GetFont();
 			pDC->SetFont(*pNavTextFont);
@@ -794,9 +800,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			//pDC->SetTextForeground(m_navColor);
 			pDC->SetTextForeground(navColor);
 
-			// BEW modified 25Nov05 to move the start of navText to just after the green wedge when
-			// filtered info is present, because for fonts with not much internal leading built
-			// in, the nav text overlaps the top few pixels of the wedge
+            // BEW modified 25Nov05 to move the start of navText to just after the green
+            // wedge when filtered info is present, because for fonts with not much
+            // internal leading built in, the nav text overlaps the top few pixels of the
+            // wedge
 
 			if (bHasFilterMarker)
 			{
@@ -836,13 +843,12 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				// text is not normally drawn above every cell but just at major markers like
 				// at ch:vs points, section headings, etc. For RTL the nav text could extend
 				// out and be clipped beyond the left margin.
-				// ////////// Draw RTL Actual Ch:Vs and/or m_inform Navigation Text /////////////////
-				//pView->DrawTextRTL(pDC,str,rectBounding);
-				m_pCell[0]->DrawTextRTL(pDC,str,rectBounding); // any CCell pointer would do here
+				// ** Draw RTL Actual Ch:Vs and/or m_inform Navigation Text **
+				m_pCell[0]->DrawTextRTL(pDC,str,rectBounding); // any CCell pointer would do
 			}
 			else
 			{
-				// ////////// Draw LTR Actual Ch:Vs and/or m_inform Navigation Text /////////////////
+				// *** Draw LTR Actual Ch:Vs and/or m_inform Navigation Text ***
 				pDC->DrawText(str,rectBounding.GetLeft(),rectBounding.GetTop());
 			}
 			pDC->SetFont(aSavedFont);
@@ -851,7 +857,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 		// now note support
 		if (m_pSrcPhrase->m_bHasNote)
 		{
-			//wxPoint ptNote = m_ptTopLeft;
 			wxPoint ptNote;
 			TopLeft(ptNote);
 			// offset top left (-13,-9) for regular app
@@ -871,17 +876,20 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			ptNote.y -= 9;
 
 			// create a brush
-			// whm note: According to wx docs, wxWidgets shows all brushes as white unless the colour
-			// is really black on monochrome displays, i.e., the OLPC screen in Black & White mode.
-			// In contrast, wxWidgets shows all non-white pens as black on monochrome displays.
+            // whm note: According to wx docs, wxWidgets shows all brushes as white unless
+            // the colour is really black on monochrome displays, i.e., the OLPC screen in
+            // Black & White mode. In contrast, wxWidgets shows all non-white pens as black
+            // on monochrome displays.
 			pDC->SetBrush(wxBrush(wxColour(254,218,100),wxSOLID));
 			pDC->SetPen(*wxBLACK_PEN); // black - whm added 20Nov06
 			wxRect insides(ptNote.x,ptNote.y,ptNote.x + 9,ptNote.y + 9);
-			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the interior using the current brush
-			pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a black border
+			// MFC CDC::Rectangle() draws a rectangle using the current pen and fills the 
+			// interior using the current brush
+			pDC->DrawRectangle(ptNote.x,ptNote.y,9,9); // rectangles are drawn with a 
+													   // black border
 			pDC->SetBrush(wxNullBrush); // restore original brush - wxNullBrush causes
-										// the current brush to be selected out of the device context, and the
-										// original brush restored.
+                    // the current brush to be selected out of the device context, and the
+                    // original brush restored.
 			// now the two spirals at the top - left one, then right one
 			pDC->DrawLine(ptNote.x + 3, ptNote.y + 1, ptNote.x + 3, ptNote.y + 3);
 			pDC->DrawLine(ptNote.x + 2, ptNote.y + 2, ptNote.x + 2, ptNote.y + 3);
@@ -906,8 +914,9 @@ bool CPile::IsWrapPile()
 		{
 			if (m_pLayout->m_pView->IsWrapMarker(pSrcPhrase))
 			{
-				return TRUE; // if we need to wrap, discontinue assigning piles to this strip
-				// (the nPileIndex_InList value is already correct for returning to caller)
+				return TRUE; // if we need to wrap, discontinue assigning piles to 
+                             // this strip (the nPileIndex_InList value is already correct
+                             // for returning to caller)
 			}
 		}
 	}
@@ -930,16 +939,15 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 										// logical coords, but
 			height = rectBox.GetHeight(); // that will not matter
 
-			// this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in MM_TEXT coords, so
-			// get the proper coords (MM_LOENGLISH) from the CCell[2]'s rectangle
+            // this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in
+            // MM_TEXT coords, so get the proper coords (MM_LOENGLISH) from the CCell[2]'s
+            // rectangle
 			// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
 			// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
-			//wxPoint topLeft = m_pCell[2]->m_ptTopLeft;
 			wxPoint topLeft;
 			m_pCell[1]->TopLeft(topLeft);
 			// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
 			//DWORD boxMargins = pApp->m_targetBox.GetMargins();
-			//int leftMargin = (int)LOWORD(boxMargins);
 			int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???
 			wxPoint textTopLeft = topLeft;
 			textTopLeft.x += leftMargin;
@@ -951,36 +959,34 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 			textTopLeft.y -= topMargin;
 			wxFont SaveFont;
 			wxFont TheFont;
-			//CAdapt_ItApp* pApp = &wxGetApp(); // added for calls below
 			if (gbIsGlossing && gbGlossingUsesNavFont)
-				//TheFont = *m_pLayout->m_pApp->m_pNavTextFont;
 				TheFont = *m_pLayout->m_pNavTextFont;
 			else
-				//TheFont = *m_pLayout->m_pApp->m_pTargetFont;
 				TheFont = *m_pLayout->m_pTgtFont;
 			SaveFont = pDC->GetFont();
 			pDC->SetFont(TheFont);
 
-			wxColor color = m_pCell[1]->GetColor(); // get the default colour of this cell's text
-			//if (!m_pCell[2]->m_color.IsOk())
+			wxColor color = m_pCell[1]->GetColor(); // get the default colour of 
+													// this cell's text
 			if (!color.IsOk())
 			{
 				::wxBell();
 				wxASSERT(FALSE);
 			}
-			pDC->SetTextForeground(color); // use color for this cell's text to print the box's text
+			pDC->SetTextForeground(color); // use color for this cell's text to print 
+										   // the box's text
 			
-			// /////////////// Draw the Target Text for the phrasebox //////////////////////
+			// **** Draw the Target Text for the phrasebox ****
 			pDC->DrawText(m_pLayout->m_pApp->m_targetPhrase,textTopLeft.x,textTopLeft.y);	
 					// MFC uses TextOut()  // Note: diff param ordering!
 			pDC->SetFont(SaveFont);
 
-			// /////////////////// Draw the Box around the target text //////////////////////
+			// ***** Draw the Box around the target text ******
 			pDC->SetPen(*wxBLACK_PEN); // whm added 20Nov06
 			
-			// whm: wx version flips top and bottom when rect coords are negative to maintain true
-			// "top" and "bottom". In the DrawLine code below MFC has -height but the wx version
-			// has +height.
+            // whm: wx version flips top and bottom when rect coords are negative to
+            // maintain true "top" and "bottom". In the DrawLine code below MFC has -height
+            // but the wx version has +height.
 			pDC->DrawLine(topLeft.x, topLeft.y, topLeft.x+width, topLeft.y);
 			pDC->DrawLine(topLeft.x+width, topLeft.y, topLeft.x+width, topLeft.y +height);
 			pDC->DrawLine(topLeft.x+width, topLeft.y+height, topLeft.x, topLeft.y +height);
@@ -1006,13 +1012,7 @@ void CPile::Draw(wxDC* pDC)
 		// which changes)
 		m_pCell[2]->Draw(pDC);
 	}
-	/*
-	for (int i=0; i< MAX_CELLS; i++)
-	{
-		if (m_pCell[i] != NULL)
-			m_pCell[i]->Draw(pDC);
-	}
-	*/
+
 	// nav text whiteboard drawing for this pile...
 	if (!gbIsPrinting && !gbShowTargetOnly)
 	{
@@ -1025,5 +1025,3 @@ void CPile::Draw(wxDC* pDC)
 		PrintPhraseBox(pDC); // internally checks if this is active location
 	}
 }
-
-
