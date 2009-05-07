@@ -2588,13 +2588,13 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		pApp->RefreshStatusBarInfo();
 
 		// restore the cursor position...
-		// BEW added 05Oct06; to support the alternative algorithm for setting up
-		// the phrase box text, and positioning the cursor, when the selection was
-		// done leftwards from the active location... that is, since the cursor
-		// position for leftwards selection merges is determined within OnButtonMerge()
-		// then we don't here want to let the values stored at the start of OnChar()
-		// clobber what OnButtonMerge() has already done - so we have a test to determine
-		// when to suppress the cursor setting call below in this new circumstance
+        // BEW added 05Oct06; to support the alternative algorithm for setting up the
+        // phrase box text, and positioning the cursor, when the selection was done
+        // leftwards from the active location... that is, since the cursor position for
+        // leftwards selection merges is determined within OnButtonMerge() then we don't
+        // here want to let the values stored at the start of OnChar() clobber what
+        // OnButtonMerge() has already done - so we have a test to determine when to
+        // suppress the cursor setting call below in this new circumstance
 		if (!(gbMergeSucceeded && pApp->m_curDirection == left))
 		{
 			SetSelection(nStartChar,nEndChar);
@@ -2610,14 +2610,14 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// glossing mode is on and glossing uses the navText font, the height
 		// might be different from the height of the target text font
 		*/
-        // whm Note: Because of differences in the handling of events, in wxWidgets the GetValue()
-        // call below retrieves the contents of the phrasebox after the keystroke and so it
-        // includes the keyed character. OnChar() is processed before OnPhraseBoxChanged(), and in
-        // that handler the key typed is not accessible. Getting it here, therefore, is the only
-        // way to get it after the character has been added to the box. This is in contrast to the
-        // MFC version where GetWindowText(thePhrase) at the same code location in
-        // PhraseBox::OnChar there gets the contents of the phrasebox including the just typed
-        // character.
+        // whm Note: Because of differences in the handling of events, in wxWidgets the
+        // GetValue() call below retrieves the contents of the phrasebox after the
+        // keystroke and so it includes the keyed character. OnChar() is processed before
+        // OnPhraseBoxChanged(), and in that handler the key typed is not accessible.
+        // Getting it here, therefore, is the only way to get it after the character has
+        // been added to the box. This is in contrast to the MFC version where
+        // GetWindowText(thePhrase) at the same code location in PhraseBox::OnChar there
+        // gets the contents of the phrasebox including the just typed character.
 		thePhrase = GetValue(); // current box text (including the character just typed)
 
 		// update m_targetPhrase to agree with what has been typed so far
@@ -2638,11 +2638,19 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
 
 		// set the globals for the cursor location, ie. set gnStart and gnEnd to whatever
-		// selection is in the phrase box
+		// selection is in the phrase box; and update m_nStartChar & m_nEndChar ready for
+		// box display
 		GetSelection(&gnStart, &gnEnd);
+		pApp->m_nStartChar = gnStart;
+		pApp->m_nEndChar = gnEnd;
 
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 		gSaveTargetPhrase = pApp->m_targetPhrase;
+
+		// scroll into view if necessary
+		GetLayout()->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+		GetLayout()->m_docEditOperationType = no_edit_op;
 	}
 }
 
@@ -2910,8 +2918,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 
 	GetSelection(&gnSaveStart,&gnSaveEnd);
 
-	// MFC Note: CEdit's Undo() function does not undo a backspace deletion of a selection or single 
-	// char, so implement that here & in an override for OnEditUndo();
+    // MFC Note: CEdit's Undo() function does not undo a backspace deletion of a selection
+    // or single char, so implement that here & in an override for OnEditUndo();
 	if (event.GetKeyCode() == WXK_BACK)
 	{
 		m_backspaceUndoStr.Empty();
@@ -2931,13 +2939,13 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			}
 			else // gnSaveStart must be zero, as when the box is empty
 			{
-				// BEW added 20June06, because if the CSourcePhrase has m_bHasKBEntry TRUE, but
-				// an empty m_adaption (because the user specified <no adaptation> there earlier)
-				// then there was no way in earlier versions to "remove" the <no adaptation> - so we
-				// want to allow a backspace keypress, with the box empty, to effect the clearing of
-				// m_bHasKBEntry to FALSE (or if glossing, m_bHasGlossingKBEntry to FALSE), and to
-				// decement the <no adaptation> ref count or remove the entry entirely if the count is 1
-				// from the KB entry
+                // BEW added 20June06, because if the CSourcePhrase has m_bHasKBEntry TRUE,
+                // but an empty m_adaption (because the user specified <no adaptation>
+                // there earlier) then there was no way in earlier versions to "remove" the
+                // <no adaptation> - so we want to allow a backspace keypress, with the box
+                // empty, to effect the clearing of m_bHasKBEntry to FALSE (or if glossing,
+                // m_bHasGlossingKBEntry to FALSE), and to decement the <no adaptation> ref
+                // count or remove the entry entirely if the count is 1 from the KB entry
 				if (pApp->m_pActivePile->GetSrcPhrase()->m_adaption.IsEmpty() &&
 					((pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry && !gbIsGlossing) ||
 					(pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry && gbIsGlossing)))
@@ -2975,16 +2983,18 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	// a non-virtual OnChar() method. See "wxTextCtrl OnChar event handling.txt"
 	// for a newsgroup sample describing how to use OnChar() to do "auto-
 	// completion" while a user types text into a text ctrl.
-	if (!(event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)) // I don't want a bell when RET key or HT key typed
+	if (!(event.GetKeyCode() == WXK_RETURN || event.GetKeyCode() == WXK_TAB)) // I don't
+											// want a bell when RET key or HT key typed
 	{
-		// whm note: Instead of explicitly calling the OnChar() function in the base class (as would 
-		// normally be done for C++ virtual functions), in wxWidgets, we call Skip() instead, for the 
-		// event to be processed either in the base wxWidgets class or the native control.
-		// This difference in event handling also means that part of the code in OnChar() that can
-		// be handled correctly in the MFC version, must be moved to our wx-specific OnPhraseBoxChanged()
-		// handler. This is necessitated because GetValue() does not get the new value of the control's
-		// contents when called from within OnChar, but received the previous value of the string as it
-		// existed before the keystroke that triggers OnChar.
+        // whm note: Instead of explicitly calling the OnChar() function in the base class
+        // (as would normally be done for C++ virtual functions), in wxWidgets, we call
+        // Skip() instead, for the event to be processed either in the base wxWidgets class
+        // or the native control. This difference in event handling also means that part of
+        // the code in OnChar() that can be handled correctly in the MFC version, must be
+        // moved to our wx-specific OnPhraseBoxChanged() handler. This is necessitated
+        // because GetValue() does not get the new value of the control's contents when
+        // called from within OnChar, but received the previous value of the string as it
+        // existed before the keystroke that triggers OnChar.
 		event.Skip(); // CEdit::OnChar(nChar, nRepCnt, nFlags);
 	}
 
@@ -2993,9 +3003,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	long nEndChar;
 	GetSelection(&nStartChar,&nEndChar);
 
-	// whm Note: See note below about meeding to move some code from OnChar() to the OnPhraseBoxChanged() 
-	// handler in the wx version, because the OnChar() handler does not have access to the changed value 
-	// of the new string within the control reflecting the keystroke that triggers OnChar().
+    // whm Note: See note below about meeding to move some code from OnChar() to the
+    // OnPhraseBoxChanged() handler in the wx version, because the OnChar() handler does
+    // not have access to the changed value of the new string within the control reflecting
+    // the keystroke that triggers OnChar().
 	// 
 	//UINT theChar = nChar; 
 	//wxPoint ptNew;
@@ -3080,10 +3091,11 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 					&& event.GetKeyCode() != WXK_RETURN 
 					&& event.GetKeyCode() != WXK_BACK)
 				{
-					// BEW removed 02Oct08 because I think recent changes to the character handling
-					// in merge situations no longer requires this, and if we leave this here then
-					// if erases the effect of those later changes and results in the cursor being at
-					// the start of the box and the typed character after it, which is NOT what we want
+                    // BEW removed 02Oct08 because I think recent changes to the character
+                    // handling in merge situations no longer requires this, and if we
+                    // leave this here then if erases the effect of those later changes and
+                    // results in the cursor being at the start of the box and the typed
+                    // character after it, which is NOT what we want
 					/*
 					long keycode = event.GetKeyCode();
 					wxString key;
@@ -3097,23 +3109,24 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	}
 	else
 	{
-		// if there is a selection, but the anchor is removed from the active location, we don't
-		// want to make a phrase elsewhere, so just remove the selection.
-		// Or if glossing, just silently remove the selection - that should be sufficient alert
-		// to the user that the merge operation is unavailable
+        // if there is a selection, but the anchor is removed from the active location, we
+        // don't want to make a phrase elsewhere, so just remove the selection. Or if
+        // glossing, just silently remove the selection - that should be sufficient alert
+        // to the user that the merge operation is unavailable
 		pView->RemoveSelection();
 		wxClientDC dC(pLayout->m_pCanvas);
 		pView->canvas->DoPrepareDC(dC); // adjust origin
-		pApp->GetMainFrame()->PrepareDC(dC); // wxWidgets' drawing.cpp sample also calls PrepareDC on the owning frame
+		pApp->GetMainFrame()->PrepareDC(dC); // wxWidgets' drawing.cpp sample also calls 
+											 // PrepareDC on the owning frame
 		pLayout->m_docEditOperationType = no_edit_op;
 		pView->Invalidate();
 	}
 
-	// whm Note: The following code is moved to the OnPhraseBoxChanged() handler in the wx version,
-	// because the OnChar() handler does not have access to the changed value of the new string within
-	// the control reflecting the keystroke that triggers OnChar(). Because of that difference in
-	// behavior, I moved the code dependent on updating pApp->m_targetPhrase from OnChar() to the
-	// OnPhraseBoxChanged() handler.
+    // whm Note: The following code is moved to the OnPhraseBoxChanged() handler in the wx
+    // version, because the OnChar() handler does not have access to the changed value of
+    // the new string within the control reflecting the keystroke that triggers OnChar().
+    // Because of that difference in behavior, I moved the code dependent on updating
+    // pApp->m_targetPhrase from OnChar() to the OnPhraseBoxChanged() handler.
 /*
 	// restore the cursor position...
 	// BEW added 05Oct06; to support the alternative algorithm for setting up
@@ -3180,9 +3193,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				// shift key is down, so move back a pile
 
 				/* removed 30Mar09, not needed for refactored layout code
-				// we have to check here if we have moved into the area where it is necessary 
-				// to move the bundle back up, and if so, then do it, & update everything again
-				bool bRetreat = pView->NeedBundleRetreat(pApp->m_nActiveSequNum);
+                // we have to check here if we have moved into the area where it is
+                // necessary to move the bundle back up, and if so, then do it, & update
+                // everything again bool bRetreat =
+                // pView->NeedBundleRetreat(pApp->m_nActiveSequNum);
 				if (bRetreat)
 				{
 					// do the retreat, return a new (valid) pointer to the active pile
@@ -3446,9 +3460,11 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		{
 			bool bWasMadeDirty = TRUE;
 			pLayout->m_docEditOperationType = no_edit_op;
-			// whm Note: pApp->m_targetPhrase is updated in OnPhraseBoxChanged, so the wx version uses
-			// the global below, rather than a value determined in OnChar(), which would not be current.
-			FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // selector = 2 for contracting
+            // whm Note: pApp->m_targetPhrase is updated in OnPhraseBoxChanged, so the wx
+            // version uses the global below, rather than a value determined in OnChar(),
+            // which would not be current.
+			FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // selector
+																	// = 2 for contracting
 		}
 	default:
 		;
