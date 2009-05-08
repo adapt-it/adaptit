@@ -12042,7 +12042,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	// and causes the legacy scrolling block to be used in ScrollIntoView(), as wanted.
 	gnBeginInsertionsSequNum = gnEndInsertionsSequNum = 0; // clear, and make both be same value
 
-	//gnOldSequNum = pApp->m_nActiveSequNum; // save old location
+	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
@@ -12361,7 +12361,7 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	gnBeginInsertionsSequNum = 0;
 	gnEndInsertionsSequNum = 0; // clear, and make both be same value
 
-	//gnOldSequNum = pApp->m_nActiveSequNum; // save old location
+	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 
 	// remove any selection to be safe from unwanted selection-related side effects
 	RemoveSelection();
@@ -22635,8 +22635,6 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
     // first location after the retranslation - provided the active location was within the
     // selection; but if it lay outside the selection, we will need to restore it to
     // wherever it was.
-	//int nEndSequNum = ((CSourcePhrase*)pList->GetLast())->m_nSequNumber;
-	// break above complex call down into parts
 	SPList::Node* lastPos = pList->GetLast();
 	int nEndSequNum = lastPos->GetData()->m_nSequNumber;
 	bool bActiveLocWithinSelection = FALSE;
@@ -22667,8 +22665,16 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
     // now we can work out where to place the phrase box on exit from this function - it is
     // currently the nSaveActiveSequNum value, unless the active location was within the
     // selection, in which case we must make the active location the first pile after the
-    // selection
-	if (bActiveLocWithinSelection)
+    // selection...
+    // BEW added 8May09; if the active location was far from the retranslation (defined as
+    // "more than 80 piles from its end"), it is probably better to make the final active
+    // location be the CSourcePhrase instance immediately following the retranslation, and
+    // set the global gnOldsequNum to the old sequence number value so the Back button can
+    // later jump back to the old active location if the user wants
+    gnOldSequNum = nSaveActiveSequNum;
+	int nSaveOldSequNum = gnOldSequNum; // need this to avoid calls below clobbering the 
+										// value set
+	if (bActiveLocWithinSelection || (abs(nEndSequNum - nSaveActiveSequNum) > 80))
 		nSaveActiveSequNum = nEndSequNum + 1;
 
 	// the src phrases in the sublist will not be saved to the KB (because we don't save
@@ -23015,6 +23021,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 	if (!pApp->m_bRespectBoundaries)
 		OnButtonFromIgnoringBdryToRespectingBdry(event);
 	gbInsertingWithinFootnote = FALSE; // restore default value
+	gnOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
 
 // ********************************************************************************************
@@ -31489,8 +31496,11 @@ void CAdapt_ItView::OnButtonBack(wxCommandEvent& WXUNUSED(event))
 		nOldSequNum = pApp->m_nActiveSequNum; // location we are about to leave becomes new old one
 	}
 	CPile* pPile = GetPile(gnOldSequNum);
-	Jump(pApp,pPile->GetSrcPhrase());
-
+	if (pPile != NULL)
+	{
+		pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber; // the new active location
+		Jump(pApp,pPile->GetSrcPhrase());
+	}
 	// update its value from the saved one in the local variable
 	gnOldSequNum = nOldSequNum;
 }

@@ -416,7 +416,10 @@ int CPile::CalcPileWidth()
 		//aDC.SetFont(*m_pLayout->GetTgtFont());
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+		if (extent.x > pileWidth)
+		{
+			pileWidth = extent.x;
+		}
 	}
 	if (gbEnableGlossing)
 	{
@@ -432,7 +435,10 @@ int CPile::CalcPileWidth()
 				//aDC.SetFont(*m_pLayout->GetTgtFont());
 				aDC.SetFont(*m_pLayout->m_pTgtFont);
 			aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
-			pileWidth = extent.x > pileWidth ? extent.x : pileWidth; 
+			if (extent.x > pileWidth)
+			{
+				pileWidth = extent.x;
+			}
 		}
 	}
 	return pileWidth;
@@ -475,7 +481,10 @@ int CPile::CalcPhraseBoxGapWidth()
 			wxSize charSize;
 			aDC.GetTextExtent(aChar, &charSize.x, &charSize.y); 
 			boxExtent.x += gnExpandBox*charSize.x; // add a slop factor (gnExpandBox is user settable)
-			boxGapWidth = boxGapWidth > boxExtent.x ? boxGapWidth : boxExtent.x;
+			if (boxGapWidth < boxExtent.x)
+			{
+				boxGapWidth = boxExtent.x;
+			}
 			
             // again adjust the value if the box has just expanded, FixBox() has calculated
             // a new phrase box width already and stored that width in
