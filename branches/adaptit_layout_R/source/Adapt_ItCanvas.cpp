@@ -2128,6 +2128,160 @@ void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
 }
 */
 
+// BEW new version 12May09 - logic identical to Bill's except at the very end, where the
+// last test is made
+void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+	if (pApp->m_nActiveSequNum == -1)
+	{
+		return; // do nothing if the phrase box is hidden because we are at doc end
+	}
+	CLayout* pLayout = pApp->m_pLayout;
+	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
+	if (!debugDisableScrollIntoView)
+	{
+		CAdapt_ItView* pView = pApp->GetView();
+		CPile* pPile = pView->GetPile(nSequNum);
+		CStrip* pStrip = pPile->GetStrip();
+		wxRect rectStrip = pStrip->GetStripRect();
+
+		// get the visible rectangle's coordinates
+		wxRect visRect; // wxRect rectClient;
+        // wx note: calling GetClientSize on the canvas produced different results in wxGTK
+        // and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the
+        // main frame's client size after subtracting the controlBar's height and
+        // composeBar's height (if visible).
+		wxSize canvasSize;
+		canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
+		visRect.width = canvasSize.GetWidth();
+		visRect.height = canvasSize.GetHeight();
+
+        // calculate the window depth, and then how many strips are fully visible in it; we
+        // will use the latter in order to change the behaviour so that instead of
+        // scrolling so that the active strip is at the top (which hides preceding context
+        // and so is a nuisance), we will scroll to somewhere a little past the window
+        // center (so as to show more, rather than less, of any automatic inserted material
+        // which may have background highlighting turned on)...
+        
+		// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
+		// in free translation mode) in the m_curPileHeight value; the refactored design
+		// doesn't so I'll have to add them here
+		int nWindowDepth = visRect.GetHeight();
+		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
+		if (pApp->m_bFreeTranslationMode)
+		{
+			nStripHeight += 3 + pLayout->GetTgtTextHeight();
+		}
+		int nVisStrips = nWindowDepth / nStripHeight;
+		
+		// get the current horizontal and vertical pixels currently scrolled
+		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
+		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
+
+        // determine how much preceding context (ie. how many strips) we want to try make
+        // visible above the phrase box when auto inserting (so as to show as much
+        // highlighted material as possible); we make this amount equal to nVisStrips less
+        // two (one for the phrase box strip itself, and another for one strip of following
+        // context below it) when auto inserting, but a much bigger value (see below) when
+        // auto inserting stops (so that more of any auto inserted & hilighted adapatations
+        // will be visible to the user without scrolling)
+		int nPrecedingContextDepth = 2 * nStripHeight; // nStripHeight includes the leading
+
+        // Get the required y-coord of the top of the phrase box's strip where the "strip"
+        // includes its preceding leading -- that is, the distance from the start of the
+        // document to the beginning of the leading for the active strip (the new value was
+        // determined by a prior call to RecalcLayout)
+		int yDistFromDocStartToStripTopLeading = 
+										pPile->GetPileRect().GetTop() - pApp->m_curLeading;
+		
+        // wx version design considerations 14Sep06: Most of the MFC ScrollIntoView code is
+        // designed to figure out how much to scroll from the current scroll position to
+        // get to the new position using ScrollWindow. But, the wx version equivalent of
+        // ScrollWindow is Scroll(x,y) which scrolls to a given position in the doc,
+        // eliminating the need to determine an "amount" to scroll from a current position.
+
+		// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as
+        // when the auto insertions have just stopped) then put the box near the bottom of
+        // the window to show more of the preceding context
+		if (!pApp->m_bAutoInsert)
+		{
+			if (pApp->m_bDrafting || !pApp->m_bSingleStep) // whm added
+				nPrecedingContextDepth = (nVisStrips - 3) * nStripHeight; // whm changed 2 to 3
+			else
+				nPrecedingContextDepth = nVisStrips / 2 * nStripHeight;
+		}
+
+		// get the desired logical top (ie. y Distance) to the desired scroll position
+		// (this calculation will yield a negative number if the target strip is closer
+		// to the top of the virtual document than the value of nPrecedingContextDepth)
+		int desiredViewTop = yDistFromDocStartToStripTopLeading - nPrecedingContextDepth;
+
+		// make a sanity check on the above value
+		if (desiredViewTop < 0)
+			desiredViewTop = 0; 
+
+		//-------------------- now the desiredViewBottom calculations ---------------
+		
+        // Determine the desired bottom position in the document of the content we wish to
+        // view. We make the bottom position to include two strips including their leading,
+        // unless there is no room for that much following context (as when we're at the
+        // bottom of the document).
+		wxSize virtDocSize;
+		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
+		int desiredViewBottom = pPile->GetPileRect().GetBottom();
+		if (pApp->m_bFreeTranslationMode)
+		{
+			desiredViewBottom += 3 + pLayout->GetTgtTextHeight();
+		}
+		// increment desiredViewBottom by the amount of two strips; note, this value may
+		// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
+		// sanity check first and make it equal to virtDocSize.y
+		desiredViewBottom += 2*nStripHeight;
+
+		// sanity check on the above value
+		if (desiredViewBottom > virtDocSize.y)
+			desiredViewBottom = virtDocSize.y;		
+		
+		//-------------------- now the current position data ------------------------
+
+		// get the current y distance to the top of the view, that is, to the top of the
+		// client area
+		int newXPos,current_yDistFromDocStartToViewTop;
+		CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
+
+		//------- now check if no scroll needed, or if needed, do it -----------------
+
+		// first check if no scroll is needed - return if it isn't needed
+		if ((desiredViewTop >= current_yDistFromDocStartToViewTop) &&
+			(desiredViewBottom <= current_yDistFromDocStartToViewTop + nWindowDepth))
+		{
+			// no scroll needed, the box is visible and within the preceding and following
+			// context depths, so just return
+			return;
+		}
+
+		// handle the situation where the desiredViewTop is < (i.e., above) 
+		// the current logical view top
+		if (desiredViewTop < current_yDistFromDocStartToViewTop)
+		{
+			Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+			return;
+		}
+
+		// handle the situation where the desiredViewBottom is > (i.e., above) 
+		// the current logical view bottom
+		if (desiredViewBottom > current_yDistFromDocStartToViewTop + nWindowDepth)
+		{
+			Scroll(0, (desiredViewBottom - nWindowDepth) / yPixelsPerUnit); //takes scroll units
+			return;
+		}
+	}
+}
+
+/*
 void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 // MFC Notes: A kludge is built in, with the syntax which is commented out, the bottom of
 // the offset visible rectangle ends up about 97 pixels (give or take one pixel) lower (ie.
@@ -2388,14 +2542,14 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		}
 		if (desiredViewBottom > logicalViewBottom)
 		{
-			// Bill M. had next line is correct (Bill tested it), my one commented out
-			// below it is wrong - but I can't figure out why
 			Scroll(0,(desiredViewBottom + (desiredViewBottom - logicalViewBottom) 
 						- nWindowDepth)/yPixelsPerUnit);
-			//Scroll(0,(desiredViewBottom - nWindowDepth)/yPixelsPerUnit); 
 			return; // don't do legacy routine below
 		}
-		// //////////////////////////// Simplified Routine Above //////////////////////
+	}
+}
+*/
+		// ****** Bill's Simplified Routine Is Above ******
 /*
 		// //////////// Legacy Scrolling Routine Below ////////////////////////////////
         // This legacy scrolling routine suffers from the problem that it doesn't make
@@ -2792,9 +2946,6 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 			}
 		}
 		*/
-	}
-	//Refresh();
-}
 
 int CAdapt_ItCanvas::ScrollDown(int nStrips)
 // returns positive y-distance for the scroll down (whm: return value is never used)
