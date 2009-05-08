@@ -2371,586 +2371,159 @@ void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
 }
 */
 
+// whm 8May09 modified ScrollIntoView below to incorporate Refactored code's ScrollIntoView routine
+// without references to CLayout's getters, and using the non-refactored values for pPile->m_rectPile,
+// pPile->m_pStrip, pStrip->m_rectStrip, pApp->m_curPileHeight, pApp->m_curLeading, and
+// pApp->m_nTgtHeight.
 void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
-// MFC Notes: A kludge is built in, with the syntax which is commented out, the bottom of the offset visible
-// rectangle ends up about 97 pixels (give or take one pixel) lower (ie. larger) than it should
-// be when compared with the strip + leading sizes, so I've reduced the .bottom value by 97
-// and then the function works fine. The older code would not scroll down when a wrap forced a
-// pile down to the start of the next strip, and the phrase box would end up below the visible
-// area with no scroll done. With the kludge this no longer happens. No idea why the old logic
-// was wrong.
-// BEW changed 03Jan06. The versions from 2.4.0 to 2.4.1i had a "smart scroll" block which, when
-// highlighting was turned on, calculated the number of highlighted strips and tried to show them
-// in the window; but this turned out to be a source of crashes when the number of such strips
-// became large (as when doing large numbers of automatic insertions without any halts) because
-// the code for calculating the starting and ending hilighted strips relied on pile pointers but
-// when many insertions are done inevitably a bundle advance will happen and this frees the old
-// pile pointers, leading to a crash when the code attempted to use the pointer for the first
-// pile in the highlighted section. So I've removed the smart code and we just now go with the
-// old legacy code which attempts to keep the phrase box about the middle of the window. (This 
-// means that when many auto insertions are done, the start of the highlighted section will be
-// above the visible rectangle more often than when smart scrolling was done, necessitating a
-// manual scroll to see it all when that is the case.)
-//
-// whm Note: We remove the kluge in the wxWidgets version. The MFC version had an error calling 
-// pFrame->GetClientRect; the client rect should be determined by calling pView->GetClientRect 
-// which would eliminate the need for nWindowHeightReduction kluge.
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+	if (pApp->m_nActiveSequNum == -1)
+	{
+		return; // do nothing if the phrase box is hidden because we are at doc end
+	}
 	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
 	if (!debugDisableScrollIntoView)
 	{
-		CAdapt_ItApp* pApp = &wxGetApp();
-		wxASSERT(pApp != NULL);
 		CAdapt_ItView* pView = pApp->GetView();
-
-#ifdef _LOG_DEBUG_SCROLLING
-		if (pApp->m_nActiveSequNum >1193)
-		{
-			wxLogDebug(_T("********** ScrollIntoView  BEGIN  ****************\n"));
-		}
-#endif
-
 		CPile* pPile = pView->GetPile(nSequNum);
-
-
-#ifdef _LOG_DEBUG_SCROLLING
-		wxString trace;
-		trace = trace.Format(_T("\n Scrolling #0 sequNum: %d   m_targetPhrase: %s\n"), nSequNum,pApp->m_targetPhrase.c_str());
-		wxLogDebug(trace);
-#endif
-
 		wxRect rectPile = pPile->m_rectPile; // in logical coords (pixels) from doc/bundle start
 		CStrip* pStrip = pPile->m_pStrip;
 		wxRect rectStrip = pStrip->m_rectStrip; // in logical coords (pixels) from doc/bundle start
 
-#ifdef _LOG_DEBUG_SCROLLING
-		int nStripIndex = pStrip->m_nStripIndex; // index of strip where phrasebox is
-		trace = trace.Format(_T(" Scrolling #1 (log) rectStrip top: %d  bottom: %d  nStripIndex: %d\n"),
-						rectStrip.GetTop(),rectStrip.GetBottom(),nStripIndex);
-		wxLogDebug(trace);
-#endif
-
 		// get the visible rectangle's coordinates
 		wxRect visRect; // wxRect rectClient;
-		// whm: At this point the MFC version had an error calling pFrame->GetClientRect; should be
-		// pView->GetClientRect which would eliminate the need for nWindowHeightReduction kluge.
-		
-		// wx note: calling GetClientSize on the canvas produced different results in wxGTK and
-		// wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the main frame's
-		// client size after subtracting the controlBar's height and composeBar's height (if visible).
+		// wx note: calling GetClientSize on the canvas produced different results in wxGTK
+		// and wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the 
+		// main frame's client size after subtracting the controlBar's height and 
+		// composeBar's height (if visible).
 		wxSize canvasSize;
-		canvasSize = gpApp->GetMainFrame()->GetCanvasClientSize();
+		canvasSize = pApp->GetMainFrame()->GetCanvasClientSize();
 		visRect.width = canvasSize.GetWidth();
 		visRect.height = canvasSize.GetHeight();
 
-		// MFC Note: A kludge, else visRect.bottom is too large a value (perhaps status bar and horiz scroll 
-		// bar are counted as within client area, so have to allow room by adjusting the lower value to be 
-		// used in tests below; 97 is a bit bigger than horiz scroll bar and status bar however.) It has the 
-		// effect of getting a scroll down to occur a little sooner than perhaps otherwise expected. 97 is 
-		// not an arbitrary value, it seems to be about what is needed; moreover this value has stayed constant
-		// constant over Windows 95, 98 and XP. I've no idea why it's necessary; but without it, the bottom
-		// of the visible rectangle is numerically a certain value and the bottom of a strip which extends
-		// below the bottom of the visible rectangle has a value about 90 or so less - which ought never to
-		// be the case. So making his height reduction by reducing the vis rect's bottom value & using that
-		// gets the scrolls working as expected
-		//int nWindowHeightReduction = 97; // The kludge - no longer needed
+		// calculate the window depth, and then how many strips are fully visible in it; we
+		// will use the latter in order to change the behaviour so that instead of 
+		// scrolling so that the active strip is at the top (which hides preceding context
+		// and so is a nuisance), we will scroll to somewhere a little past the window
+		// center (so as to show more, rather than less, of any automatic inserted material 
+		// which may have background highlighting turned on)...
 
-		// calculate the window depth, and then how many strips are fully visible in it; we will use
-		// the latter in order to change the behaviour so that instead of scrolling so that the active
-		// strip is at the top (which hides preceding context and so is a nuisance), we will scroll to
-		// somewhere a little past the window center (so as to show more, rather than less, of any
-		// automatic inserted material which may have background highlighting turned on)
+		// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
+		// in free translation mode) in the m_curPileHeight value; the refactored design
+		// doesn't so I'll have to add them here
 		int nWindowDepth = visRect.GetHeight();
 		int nStripHeight = pApp->m_curPileHeight + pApp->m_curLeading;
+		if (pApp->m_bFreeTranslationMode)
+		{
+			nStripHeight += 3 + pApp->m_nTgtHeight;
+		}
 		int nVisStrips = nWindowDepth / nStripHeight;
 		
-
-		#ifdef _LOG_DEBUG_SCROLLING
-		if (pApp->m_nActiveSequNum >1193)
-		{
-			wxLogDebug(_T("ScrollIntoView nWindowDepth %d nStripHeight %d nVisStrips %d\n"),nWindowDepth,nStripHeight,nVisStrips);
-		}
-		#endif
-
-		// get the current horizontal and vertical pixels scrolled
+		// get the current horizontal and vertical pixels currently scrolled
 		int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
 		GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 
-		// determine how much preceding context (ie. how many strips) we want to try make visible above
-		// the phrase box when auto inserting (so as to show as much highlighted material as possible); we
-		// make this amount equal to nVisStrips less two (one for the phrase box strip itself, and another
-		// for one strip of following context below it) when auto inserting, but a much bigger value (see
-		// below) when auto inserting stops (so that more of any auto inserted & hilighted adapatations
-		// will be visible to the user without scrolling)
+	        // determine how much preceding context (ie. how many strips) we want to try make
+	        // visible above the phrase box when auto inserting (so as to show as much
+	        // highlighted material as possible); we make this amount equal to nVisStrips less
+	        // two (one for the phrase box strip itself, and another for one strip of following
+	        // context below it) when auto inserting, but a much bigger value (see below) when
+	        // auto inserting stops (so that more of any auto inserted & hilighted adapatations
+	        // will be visible to the user without scrolling)
 		int nPrecedingContextDepth = 2 * nStripHeight; // nStripHeight includes the leading
 
-		// Get the required y-coord of the top of the phrase box's strip plus preceding leading -- that 
-		// is, the distance from the start of the document to the beginning of the leading for the 
-		// active strip (the new value was determined by a prior call to RecalcLayout). This distance 
-		// increases as the visRectFromBundleStart scrolls down, but suddenly decreases to a small value 
-		// when the caller has just done a bundle advance. called yDistActiveStripTop in MFC.
-		int yDistFromBundleStartToStripTopLeading = pPile->m_rectPile.GetTop() - pApp->m_curLeading;
+	        // Get the required y-coord of the top of the phrase box's strip where the "strip"
+	        // includes its preceding leading -- that is, the distance from the start of the
+        	// document to the beginning of the leading for the active strip (the new value was
+	        // determined by a prior call to RecalcLayout)
+		int yDistFromDocStartToStripTopLeading = 
+						pPile->m_rectPile.GetTop() - pApp->m_curLeading;
 		
-		// //////////////////////////// Simplified Routine Below /////////////////////////////////////
-		// From here to end of commented out section is an alternate/simplified wx code solution. It
-		// replaces the legacy ScrollIntoView behavior which is commented out toward the end of the
-		// function.
-		//
-		// wx version design considerations 14Sep06: Most of the MFC ScrollIntoView code is designed
-		// to figure out how much to scroll from the current scroll position to get to the new position 
-		// using ScrollWindow. But, the wx version equivalent of ScrollWindow is Scroll(x,y) which 
-		// scrolls to a given position in the doc, eliminating the need to determine an "amount" to 
-		// scroll from a current position.
-		//
-		// Note: wxWindow class does have a ScrollWindow(int dx, int dy) where dx and dy are amount 
-		// of pixels to scroll.
-		//
-		// Also, one cannot really depend on the "current position" being valid, particularly when 
-		// ScrollIntoView is called immediately after a bundle retreat, which leaves the scroll bars
-		// (at this point in ScrollIntoView) in the position they previously had in the previous 
-		// bundle. Moreover, RecalcLayout has by now calculated a new strip position for the active
-		// location that we want to scroll to. So why not just scroll to this new active location's 
-		// position, adjusting the scroll position by the desired preceding and/or following context
-		// to remain visible where possible.
+	        // wx version design considerations 14Sep06: Most of the MFC ScrollIntoView code is
+	        // designed to figure out how much to scroll from the current scroll position to
+	        // get to the new position using ScrollWindow. But, the wx version equivalent of
+	        // ScrollWindow is Scroll(x,y) which scrolls to a given position in the doc,
+	        // eliminating the need to determine an "amount" to scroll from a current position.
 
-		// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as when the auto
-		// insertions have just stopped) then put the box near the bottom of the window to show more
-		// of the preceding context
-		if (!gpApp->m_bAutoInsert)
+		// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as
+	        // when the auto insertions have just stopped) then put the box near the bottom of
+	        // the window to show more of the preceding context
+		if (!pApp->m_bAutoInsert)
 		{
 			if (pApp->m_bDrafting || !pApp->m_bSingleStep) // whm added
 				nPrecedingContextDepth = (nVisStrips - 3) * nStripHeight; // whm changed 2 to 3
 			else
 				nPrecedingContextDepth = nVisStrips / 2 * nStripHeight;
 		}
-		// Determine the desired top position in the document of the content we wish to view. 
-		// We make the top position to include the nPrecedingContextDepth, unless there is no room for
-		// it (as when we're at the beginning of the document).
-		int desiredViewTop = yDistFromBundleStartToStripTopLeading;
+
+		// get the desired logical top (ie. y Distance) to the desired scroll position
+		// (this calculation will yield a negative number if the target strip is closer
+		// to the top of the virtual document than the value of nPrecedingContextDepth)
+		int desiredViewTop = yDistFromDocStartToStripTopLeading - nPrecedingContextDepth;
+
+		// make a sanity check on the above value
+		if (desiredViewTop < 0)
+			desiredViewTop = 0; 
+
+		//-------------------- now the desiredViewBottom calculations ---------------
 		
-		if (yDistFromBundleStartToStripTopLeading - nPrecedingContextDepth >= 0)
-		{
-			// decrement desiredViewTop by the amount of the preceding context needed
-			desiredViewTop -= nPrecedingContextDepth;
-		}
-		else
-		{
-			// there is not enough document left to scroll up leaving the nPrecedingContextDepth
-			// so leave the desiredViewTop set at yDistFromBundleStartToStripTopLeading (see above)
-			;
-		}
-		// Determine the desired bottom position in the document of the content we wish to view.
-		// We make the bottom position to include the nFollowingContextDepth, unless there is no
-		// room for it (as when we're at the bottom of the document).
+	        // Determine the desired bottom position in the document of the content we wish to
+	        // view. We make the bottom position to include two strips including their leading,
+	        // unless there is no room for that much following context (as when we're at the
+	        // bottom of the document).
 		wxSize virtDocSize;
 		GetVirtualSize(&virtDocSize.x,&virtDocSize.y); // GetVirtualSize gets size in pixels
 		int desiredViewBottom = pPile->m_rectPile.GetBottom();
-		if (desiredViewBottom + 2*nStripHeight <= virtDocSize.y)
+		if (pApp->m_bFreeTranslationMode)
 		{
-			// increment desiredViewBottom by the amount of two strips
-			desiredViewBottom += 2*nStripHeight;
+			desiredViewBottom += 3 + pApp->m_nTgtHeight;
 		}
+		// increment desiredViewBottom by the amount of two strips; note, this value may
+		// be greater than virtDocSize.y, so if we get to use it, we'll need to do a
+		// sanity check first and make it equal to virtDocSize.y
+		desiredViewBottom += 2*nStripHeight;
 
-		int nMidScreenOffsetFromTop = nWindowDepth / 2;
-		
-		
-		// get the current horizontal and vertical pixels scrolled
-		int newXPos,newYPos;
-		int logicalViewTop, logicalViewBottom, logicalViewMiddle;
-		CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
-		
-		logicalViewTop = newYPos;
-		logicalViewBottom = logicalViewTop + nWindowDepth;
-		logicalViewMiddle = logicalViewTop + nMidScreenOffsetFromTop;
-		
-		// sanity check:
-		if (desiredViewTop < 0)
-			desiredViewTop = 0;
+		// sanity check on the above value
 		if (desiredViewBottom > virtDocSize.y)
-			desiredViewBottom = virtDocSize.y;
+			desiredViewBottom = virtDocSize.y;		
+		
+		//-------------------- now the current position data ------------------------
 
-		// If desiredViewTop is greater than or equal to the logical view top, and
-		// the desiredViewBottom is less than or equal to the logical view bottom, we
-		// do not need to do anything (no scroll needed).
-		if (desiredViewTop >= logicalViewTop && desiredViewBottom <= logicalViewBottom)
+		// get the current y distance to the top of the view, that is, to the top of the
+		// client area
+		int newXPos,current_yDistFromDocStartToViewTop;
+		CalcUnscrolledPosition(0,0,&newXPos,&current_yDistFromDocStartToViewTop);
+
+		//------- now check if no scroll needed, or if needed, do it -----------------
+
+		// first check if no scroll is needed - return if it isn't needed
+		if ((desiredViewTop >= current_yDistFromDocStartToViewTop) &&
+			(desiredViewBottom <= current_yDistFromDocStartToViewTop + nWindowDepth))
 		{
+			// no scroll needed, the box is visible and within the preceding and following
+			// context depths, so just return
 			return;
 		}
-		// handle the situation where the desiredViewTop is < (i.e., above) the logicalViewTop
-		if (desiredViewTop < logicalViewTop)
+
+		// handle the situation where the desiredViewTop is < (i.e., above) 
+		// the current logical view top
+		if (desiredViewTop < current_yDistFromDocStartToViewTop)
 		{
 			Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
-			return; // don't do legacy routine below
-		}
-		if (desiredViewBottom > logicalViewBottom)
-		{
-			Scroll(0,(desiredViewBottom + (desiredViewBottom - logicalViewBottom) - nWindowDepth)/yPixelsPerUnit);
-			// The following is Graeme's suggested correction to the above scrolling calculation:
-			//Scroll(0,(desiredViewBottom - nWindowDepth)/yPixelsPerUnit); // Correction suggested by Graeme Costin 14Aug08 
-			return; // don't do legacy routine below
-		}
-		// //////////////////////////// Simplified Routine Above /////////////////////////////////////
-/*
-		// //////////// Legacy Scrolling Routine Below ////////////////////////////////
-		// This legacy scrolling routine suffers from the problem that it doesn't make
-		// transitions between bundles very well. Also, I think it is overly complicated,
-		// so I've replaced it in the wxWidgets version with the simplified routine above.
-		//
-		// The routine below is a closer implementation of the MFC code for ScrollIntoView.
-		// It basically emulates MFC's "amount" to scroll. I changed some of the
-		// variable names to make it more self documenting. scrollPos is now called
-		// distDocStartToViewRect. In the end I could not get it to properly handle clicking
-		// on a previous bundle's target phrase (after the bundle advance, it insisted on
-		// jumping to the beginning of the new bundle.
-
-		wxPoint distDocStartToViewRect; //was called: wxPoint scrollPos;
-		//int xPixelsPerUnit,yPixelsPerUnit; // needed farther below
-		//GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
-		// MFC's GetScrollPosition() "gets the location in the document to which the upper
-		// left corner of the view has been scrolled. It returns values in logical units."
-		// wx note: The wx docs only say of GetScrollPos(), that it "Returns the built-in 
-		// scrollbar position." Testing shows that this means it gets the logical position 
-		// of the upper left corner, but it is in "scroll units" which need to be converted 
-		// to device (pixel) units by multiplying the coordinate by pixels per unit. 
-		// Another wxWidgets call is GetViewStart() which "gets the current horizontal and 
-		// vertical pixels scrolled." 
-		// OBSERVATION and CAUTION: 
-		// RecalcLayout() is normally called before this ScrollIntoView is called.
-		// In RecalcLayout, the SetScrollbars() function is called. When it is called I notice
-		// during debug tracing that the main window's scroll bars immediately adjust in length 
-		// to reflect the new bundle's newly calculated doc length, especially whenever a bundle 
-		// advance or retreat was just done. CAUTION: In the current function we must be aware 
-		// that RecalcLayout has changed the logical layout of the doc and that all logical 
-		// coordinates related to the visRect and the scroll position need to be recalculated
-		// based on the newly Recalc'd document. At the moment at this point in ScrollIntoView,
-		// the old doc's layout is still diaplayed on screen.
-		
-		// get the current horizontal and vertical pixels scrolled
-		//GetViewStart(&distDocStartToViewRect.x,&distDocStartToViewRect.y);  // MFC: CPoint scrollPos = GetScrollPosition();
-		//distDocStartToViewRect.x *= xPixelsPerUnit; wxASSERT(distDocStartToViewRect.x == 0);
-		//distDocStartToViewRect.y *= yPixelsPerUnit;
-
-//#ifdef _DEBUG
-//		// The following lines are a test to make sure that GetScrollPos returns the same final values
-//		// that calling GetViewStart returns.
-//		wxPoint testdistDocStartToViewRect;
-//		testdistDocStartToViewRect.x = GetScrollPos(wxHORIZONTAL);
-//		testdistDocStartToViewRect.y = GetScrollPos(wxVERTICAL); 
-//		testdistDocStartToViewRect.x *= xPixelsPerUnit; wxASSERT(testdistDocStartToViewRect.x == 0);
-//		testdistDocStartToViewRect.y *= yPixelsPerUnit;
-//		wxASSERT(testdistDocStartToViewRect.x == distDocStartToViewRect.x);
-//		wxASSERT(testdistDocStartToViewRect.y == distDocStartToViewRect.y);
-//#endif
-
-		// get the current horizontal and vertical pixels scrolled
-		CalcUnscrolledPosition(0,0,&distDocStartToViewRect.x,&distDocStartToViewRect.y);
-
-		#ifdef _Trace_Box_Loc_Wrong
-		wxString trace;
-		if (pApp->m_nActiveSequNum >1193)
-		{
-		trace = trace.Format("ScrollIntoView visRect top: %d  bottom: %d  distDocStartToViewRect  y: %d\n",
-					visRect.top, visRect.bottom, distDocStartToViewRect.y);
-		TRACE0(trace);
-		}
-		#endif
-		
-		// whm: I'm introducing a new wxRect called visRectFromBundleStart here to help clarify
-		// what the rect actually represents after the Offset operation. Before the Offset call
-		// below visRect was set at 0,0 for its upper left coordinate position, because it was
-		// assigned its rect values by GetCanvasClientSize() which always returns an upper left
-		// coordinate position of 0,0.
-		wxRect visRectFromBundleStart = visRect;
-		// offset the visRect in logical coord space (if the scroll car is at the bottom of the bar
-		// then this offsets the rectangle downwards so that the top of it will be at the nLimit
-		// value of the scrolling vertical limit; for Adapt It, there is no horizontal scrolling)
-		visRectFromBundleStart.Offset(distDocStartToViewRect); // MFC: visRect.OffsetRect(scrollPos);
-		// visRectFromBundleStart now has its upper left coord position 
-
-		#ifdef _Trace_Box_Loc_Wrong
-		if (pApp->m_nActiveSequNum >1193)
-		{
-		trace = trace.Format("ScrollIntoView after offset: visRectFromBundleStart top: %d  bottom: %d\n",visRectFromBundleStart.top,visRectFromBundleStart.bottom);
-		TRACE0(trace);
-		}
-		#endif
-		
-		// determine the vertical scroll needed
-		// MFC docs say about GetScrollLimit(SB_VERT), "Call this CWnd member function
-		// to retrieve the maximum scrolling position of the scroll bar. The int return
-		// value specifies the maximum position of a scroll bar if successful; otherwise 0.
-		// wx docs say about GetScrollRange(wxVERTICAL), "Returns the built-in scrollbar range"
-		// Testing shows that GetScrollRange gets the number of scroll units INCLUDING the
-		// size of the last page. To get the actual scrolling limit in the same terms as MFC's
-		// GetScrollLimit where it indicates the upper left y coordinate of the maximally scrolled
-		// window, we must subtract some pixels from the total range that WX's GetScrollRange
-		// gives us. See note below.
-		int nLimit = GetScrollRange(wxVERTICAL); //int nLimit = GetScrollLimit(SB_VERT);
-		// whm note: GetscrollRange returns scroll units, and MFC's GetScrollLimit apparently returns
-		// device units (pixels), so must multiply the value obtained from GetScrollRange by yPixelsPerUnit
-		// GetScrollRange got the range of scroll units for the whole virtual document, not just the 
-		// value of the upper left y coord for the window when maximally scrolled. 
-		// To find the y coord for the client window at its maximal scrolled extent we need to do 
-		// the following:
-		// Take the modulus of DocLengthInScrollUnits % ScrollUnitsPerPage
-		// The modulus operation will give the number of scroll units that exist beyond the last fully
-		// scrolled page. Multiply this value by pixelsPerScrollUnit to get the amount the y coord
-		// of the client view should be moved up toward the beginning of the doc to be the same
-		// value that MFC's GetScrollLimit obtains.
-		int scrollUnitsPerPage = GetScrollThumb(wxVERTICAL);
-		int unitsBeyondLastFullScrolledPage = nLimit % scrollUnitsPerPage;
-		// reduce the nLimit by the unitsBeyoneLastFullScrolledPage.
-		nLimit -= unitsBeyondLastFullScrolledPage; // to make wxWindow::GetScrollRange == CWnd::GetScrollLimit
-
-		nLimit *= yPixelsPerUnit; // convert scroll units to pixels
-
-		// if auto inserting, use a small nPrecedingContextDepth value; but if not (eg. as when the auto
-		// insertions have just stopped) then put the box near the bottom of the window to show more
-		// of the preceding context
-		if (!gpApp->m_bAutoInsert)
-		{
-			nPrecedingContextDepth = (nVisStrips - 2) * nStripHeight; 
-		}
-
-		#ifdef _Trace_Box_Loc_Wrong
-		if (pApp->m_nActiveSequNum >1193) 
-		{
-		TRACE1("FLAG m_bAutoInsert:  %d\n",gpApp->m_bAutoInsert);
-		TRACE3("ScrollIntoView nLimit %d (scroll limit) yDistFromBundleStartToStripTopLeading %d nPrecedingContextDepth %d\n",
-				nLimit,yDistFromBundleStartToStripTopLeading,nPrecedingContextDepth);
-		}
-		#endif
-
-		// Don't scroll if the active strip is further down than one strip height from the top of the
-		// visible rectangle AND its bottom is further up than two strip heights from the bottom of
-		// the visible rectangle (calculations done in logical coords); but if both conditions are not
-		// satisfied then a scroll either up or down will be required.
-		if (yDistFromBundleStartToStripTopLeading > visRectFromBundleStart.GetTop() + nStripHeight && 
-			rectStrip.GetBottom() < visRectFromBundleStart.GetBottom() - 2*nStripHeight)
-		{
-			#ifdef _Trace_Box_Loc_Wrong
-			if (pApp->m_nActiveSequNum >1193) 
-			{
-			TRACE0("*** Exit early, box within one strip of top or bottom ***\n");
-			}
-			#endif
-
 			return;
 		}
 
-		// BEW changed 28Sep05 to fix a scroll positioning bug which occurred when the caller has just
-		// done an advance of the bundle which results in the box y-coord suddenly being much smaller
-		// but the scroll car is at the bottom of the bar. The legacy code did not check for this, and
-		// instead just continued with the visRectFromBundleStart at the bottom of the new bundle -- 
-		// and consequently the phrase box was above the top of the visRectFromBundleStart -- making the app appear 
-		// to have hung, and especially so when the ChooseTranslation dialog was opened (the coord 
-		// calculations were sometimes so far out that the dialog would open off screen and the user 
-		// would get a bell and no response to any keyboard or mouse action - only an ESC keypress 
-		// would invoke the dlg's Cancel button and restore responsiveness, but the phrase box remained 
-		// off window until the user manually scrolled to show it again. The legacy code was nice in 
-		// that it minimized scroll repositioning, so that the user had a visual sense of working down 
-		// through the document - the box going lower and lower as he worked. The replacement code will 
-		// try to maintain this type of behaviour, but it will need to check for bundle advancements 
-		// and scroll up when these happen.
-
-		int scrollDistanceNeeded;	//int yDist; // +ve or -ve; this is the indicator for whether the visible rectangle 
-									// is lower than we want it to be (scrollDistanceNeeded will be +ve), 
-									// or higher than we want it to be (scrollDistanceNeeded -ve);
-									// so dependending on this value we scroll the visRectFromBundleStart up or down 
-									// (scrollDistanceNeeded is calculated as the top of the visible 
-									// rectangle minus the distance to the start of the preceding
-									// context pixel span which is to remain visible above the strip which 
-									// has the phrasebox)
-		//yDist = visRect.top - (yDistActiveStripTop - nPrecedingContextDepth); // could be -ve
-		scrollDistanceNeeded = visRectFromBundleStart.GetTop() - yDistFromBundleStartToStripTopLeading; // could be -ve
-
-		if (scrollDistanceNeeded > 0) // if (yDist > 0)
+		// handle the situation where the desiredViewBottom is > (i.e., above) 
+		// the current logical view bottom
+		if (desiredViewBottom > current_yDistFromDocStartToViewTop + nWindowDepth)
 		{
-			// the visRectFromBundleStart's top is situated too low, so that some desired context preceding 
-			// the box is not visible, maybe even the box is not visible, so a scroll up is mandatory. 
-			// We now have to figure out by what amount, since we can't presume the desired amount of 
-			// preceding context is always going to be available (a bundle advance may have located the 
-			// box in the first strip)
-			int delta= 0;
-
-			// If we scroll up we must make sure we don't scroll past the start of the bundle. The calculation
-			// for a safe scroll up reduces to the condition that yDist must be greater or equal to the
-			// current scrollPos.y value; if not, then we can only scroll to the top (a shorter distance 
-			// than otherwise wanted).
-			if (distDocStartToViewRect.y < scrollDistanceNeeded) //if (scrollPos.y < yDist)
-			{
-				#ifdef _Trace_Box_Loc_Wrong
-				if (pApp->m_nActiveSequNum >1193) 
-				{
-				TRACE2("**Unsafe scroll up, so scrollPos.y reset to zero: yDist  %d, old distDocStartToViewRect.y  %d\n",
-						yDist,distDocStartToViewRect.y);
-				TRACE3("**Unsafe calc: visRectFromBundleStart.top  %d - yDistFromBundleStartToStripTopLeading %d + nPrecedingContextDepth %d\n",
-						visRectFromBundleStart.top,yDistFromBundleStartToStripTopLeading,nPrecedingContextDepth);
-				TRACE1("**Unsafe's nLimit value = %d\n", nLimit);
-				}
-				#endif
-
-				// scrollDistanceNeeded would be a scroll up too far; so scroll just to the beginning of the
-				// bundle, i.e., scroll position zero.
-				delta = distDocStartToViewRect.y; //delta = 0;
-				// The 2nd param of wxWindow::SetScrollPos is the position in scroll units, whereas the second 
-				// parameter of MFC's SetScrollPos is apparently device units (pixels), therefore we need to
-				// divide the wx version position value by yPixelsPerUnit.
-				// 
-				int posn = delta;
-				posn = posn / yPixelsPerUnit;
-				//SetScrollPos(wxVERTICAL,0,TRUE); //SetScrollPos(SB_VERT,0,TRUE); // WX's SetScrollPos takes scroll units
-				// Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount
-				// to scroll in device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are in
-				// SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow takes parameters whose value
-				// represents an "amount" to scroll from the current position, whereas the wxScrolledWindow::Scroll
-				// takes parameters which represent an absolute "position" in scroll units. To convert the
-				// amount we need to add the amount to (or subtract from if negative) the logical pixel unit
-				// of the upper left point of the client viewing area; then convert to scroll units in Scroll().
-				// whm note: wxScrolledWindow::Scroll() scrolls the window so the view start is at the given
-				// point (expressed in scroll units)
-				 Scroll(0,posn); //Scroll(0,yOrigin); //ScrollWindow(0,delta); // Scroll() takes scroll units
-			}
-			else
-			{
-				// scrollDistanceNeeded is a safe distance to scroll up, so do it
-				delta = distDocStartToViewRect.y - scrollDistanceNeeded; // is +ve
-
-				// The 2nd param of wxWindow::SetScrollPos is the position in scroll units, whereas the  
-				// second parameter of MFC's SetScrollPos is device units (pixels), therefore we need to
-				// divide the wx version position value by yPixelsPerUnit.
-				int posn = delta;
-				posn = posn / yPixelsPerUnit;
-				//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,delta,TRUE); // WX's SetScrollPos takes scroll units
-				// Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount
-				// to scroll in device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are in
-				// SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow takes parameters whose value
-				// represents an "amount" to scroll from the current position, whereas the wxScrolledWindow::Scroll
-				// takes parameters which represent an absolute "position" in scroll units. To convert the
-				// amount we need to add the amount to (or subtract from if negative) the logical pixel unit
-				// of the upper left point of the client viewing area; then convert to scroll units in Scroll().
-				// whm: we want to scroll to the posn as calculated above
-				// whm note: wxScrolledWindow::Scroll() scrolls the window so the view start is at the given
-				// point (expressed in scroll units)
-				Scroll(0,posn); //Scroll(0,yOrigin); //ScrollWindow(0,delta); // makes logical coord Origin less negative, that is, a scroll up
-
-				#ifdef _Trace_Box_Loc_Wrong
-				if (pApp->m_nActiveSequNum >1193) 
-				{
-				TRACE1("Safe scroll up by yDist =  %d\n",yDist);
-				}
-				#endif
-
-			}
+			Scroll(0, (desiredViewBottom - nWindowDepth) / yPixelsPerUnit); //takes scroll units
+			return;
 		}
-		else
-		{
-			// the visRectFromBundleStart's top is at or above the desired amount of preceding context, 
-			// i.e., yDistFromBundleStartToStripTopLeading is equal or greater than the top of 
-			// visRectFromBundleStart's rect space; so a scroll down is required to make more context 
-			// above active location visible. 
-			// We also must test to prevent the phrase box from getting within a strip's distance 
-			// from the bottom of the visible rectangle, because we want the user to have some 
-			// following context so he can do his adapting meaningfully
-			if (rectStrip.GetBottom() > visRectFromBundleStart.GetBottom() - nStripHeight) //if (rectStrip.bottom > nAdjustedVisRectBottom - nStripHeight)
-			{
-				// a scroll down is needed, if it is possible; we will try to scroll down by at least one
-				// strip's depth; if we can't do so because we are at or near the scroll limit already
-				// then put the visible rectangle at the scroll limit & do whatever scroll is needed
-				// for that to happen
-	godown:		int increment = 0;	// whm: In g++ the lower position of this label generated an error because 
-									// the label jump skips the initialization of increment; so I've moved 
-									// the label up so that it initializes increment.
-
-	//godown:		if (rectStrip.GetBottom() < nLimit - nStripHeight)
-				if (rectStrip.GetBottom() < nLimit - nStripHeight)
-				{
-					// there is room for safe scrolling down by at least one strip plus its leading, so work
-					// out the actual scroll distance required (may be much greater than one strip) and do it
-					increment = yDistFromBundleStartToStripTopLeading 
-						- nPrecedingContextDepth - visRectFromBundleStart.GetTop(); 
-					wxASSERT(increment >= 0); // whm changed from > to >=
-					
-					int posn = distDocStartToViewRect.y + increment;
-					posn = posn / yPixelsPerUnit;
-					//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,scrollPos.y + increment,TRUE);
-					// Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount
-					// to scroll in device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are in
-					// SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow takes parameters whose value
-					// represents an "amount" to scroll from the current position, whereas the wxScrolledWindow::Scroll
-					// takes parameters which represent an absolute "position" in scroll units. To convert the
-					// amount we need to add the amount to (or subtract from if negative) the logical pixel unit
-					// of the upper left point of the client viewing area; then convert to scroll units in Scroll().
-					// whm note: wxScrolledWindow::Scroll() scrolls the window so the view start is at the given
-					// point (expressed in scroll units)
-					Scroll(0,posn);  //Scroll(0,yOrigin); //ScrollWindow(0,-increment); // makes logical coord Origin more negative, that is, a scroll down
-					
-					#ifdef _Trace_Box_Loc_Wrong
-					if (pApp->m_nActiveSequNum >1193) 
-					{
-					TRACE1("Safe scroll down by increment =  %d\n",increment);
-					}
-					#endif
-				}
-				else
-				{
-					// we are at or near the scroll limit, so just scroll down whatever distance
-					// we remain short of the limit, i.e, just scroll to the position of nLimit
-					increment = nLimit - visRectFromBundleStart.GetBottom(); // +ve
-					
-					int posn = increment; //int posn = nLimit;
-					posn = posn / yPixelsPerUnit;
-					//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,nLimit,TRUE);
-					// Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount
-					// to scroll in device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are in
-					// SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow takes parameters whose value
-					// represents an "amount" to scroll from the current position, whereas the wxScrolledWindow::Scroll
-					// takes parameters which represent an absolute "position" in scroll units. To convert the
-					// amount we need to add the amount to (or subtract from if negative) the logical pixel unit
-					// of the upper left point of the client viewing area; then convert to scroll units in Scroll().
-					// whm note: wxScrolledWindow::Scroll() scrolls the window so the view start is at the given
-					// point (expressed in scroll units)
-					Scroll(0,posn); //ScrollWindow(0,-increment); //posn is the limit in scroll units // makes logical coord Origin more negative, that is, a scroll down
-
-					#ifdef _Trace_Box_Loc_Wrong
-					if (pApp->m_nActiveSequNum >1193) 
-					{
-					TRACE1("**Shortened scroll down by increment =  %d\n",increment);
-					}
-					#endif
-				}
-			}
-			else
-			{
-				// we don't need to scroll. However, if we do nothing here we can get the phrasebox moving
-				// forward doing auto insertions in the strip at the very bottom of the visible rectangle
-				// which is a nuisance because the user sees not enough meaningful context ahead of the
-				// box location; so we'll detect this and when it happens we'll force a scroll down to put the
-				// active strip much further up in the window
-				if (rectStrip.GetBottom() > visRectFromBundleStart.GetBottom() - nStripHeight)
-				{
-					#ifdef _Trace_Box_Loc_Wrong
-					if (pApp->m_nActiveSequNum >1193) 
-					{
-					TRACE0("***Force a scroll down as active strip is at bottom of visible rectangle***\n");
-					}
-					#endif
-
-					goto godown;
-				}
-				// otherwise do nothing
-				;
-				#ifdef _Trace_Box_Loc_Wrong
-				if (pApp->m_nActiveSequNum >1193) 
-				{
-				TRACE0("***Don't scroll in either direction***\n");
-				}
-				#endif
-			}
-		}
-		*/
 	}
-	//Refresh();
 }
 
 int CAdapt_ItCanvas::ScrollDown(int nStrips)
