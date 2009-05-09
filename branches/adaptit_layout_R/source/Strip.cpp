@@ -85,7 +85,7 @@ CStrip::CStrip()
 	m_pLayout = NULL;
 	m_nFree = -1;
 	m_nStrip = -1;
-	m_bFilled = FALSE;
+	m_bValid = FALSE;
 }
 
 CStrip::CStrip(CLayout* pLayout)
@@ -94,7 +94,7 @@ CStrip::CStrip(CLayout* pLayout)
 	m_pLayout = pLayout;
 	m_nFree = -1;
 	m_nStrip = -1;
-	m_bFilled = FALSE;
+	m_bValid = FALSE;
 }
 
 CStrip::~CStrip()
@@ -278,7 +278,7 @@ int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
 		// the strip full
 		if (m_nFree <= 0)
 		{
-			m_bFilled = TRUE;
+			m_bValid = TRUE;
 			return nPileIndexInLayout;
 		}
 
@@ -301,7 +301,7 @@ int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
 				{
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
-					m_bFilled = TRUE;
+					m_bValid = TRUE;
 					return nPileIndexInLayout;
 				}
 			}
@@ -341,7 +341,7 @@ int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
 			{
 				// this pile won't fit, so the strip is full - declare it full and return
 				// the pile list's index for use in the next strip's creation
-				m_bFilled = TRUE;
+				m_bValid = TRUE;
 				return nPileIndexInLayout;
 			}
 
@@ -367,8 +367,8 @@ int CStrip::CreateStrip(int nIndexToFirst, int nStripWidth, int gap)
 //	}
 	// if the loop exits because the while test yields FALSE, then either we are at the end of the
 	// document or the first pile was wider than the whole strip - in either case we must declare
-	// this strip filled and we are done
-	m_bFilled = TRUE;
+	// this strip valid and we are done
+	m_bValid = TRUE;
 	return nPileIndexInLayout; // the index value where we start when we create the next strip
 }
 #else
@@ -693,12 +693,12 @@ void CStrip::SetFree(int nFree)
 // validity flag (currently m_bFilled, but, TODO, later will be m_bValid)
 void CStrip::SetValidityFlag(bool bValid)
 {
-	m_bFilled = bValid;   // change this later to m_bValid = bValid
+	m_bValid = bValid;
 }
 
 bool CStrip::GetValidityFlag()
 {
-	return m_bFilled; // change this later to:  return m_bValid;
+	return m_bValid;
 }
 
 

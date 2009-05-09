@@ -377,6 +377,7 @@ public:
     // visible strips are worked out according to where the top of the scrolled device
     // context is using the scrollbar thumb's position value.
 	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
+	int			GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips, int numTotalStrips);
 
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = TRUE);

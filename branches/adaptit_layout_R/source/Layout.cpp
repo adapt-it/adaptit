@@ -303,7 +303,6 @@ void CLayout::Draw(wxDC* pDC)
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
 	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
-	//GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex, bDrawAtActiveLocation);
 	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
 
 	// draw the visible strips (plus and extra one, if possible)
@@ -789,9 +788,8 @@ void CLayout::SetLayoutParameters()
 
 void CLayout::DestroyStrip(int index)
 {
-	// when destroying a doc, call DestroyStrips() last, and so when it is called then the
-	// CPile instances have all been destroyed already
-#ifdef _ALT_LAYOUT_
+	// CStrip now does not store pointers, so the only memory it owns are the blocks for
+	// the two wxArrayInt arrays - so Clear() these and then delete the strip
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
 	if (!pStrip->m_arrPileIndices.IsEmpty())
 	{
@@ -801,45 +799,10 @@ void CLayout::DestroyStrip(int index)
 	{
 		pStrip->m_arrPileOffsets.Clear();
 	}
-    // don't try to delete CCell array, because the cell objects are managed 
+ 	delete pStrip;
+	// don't try to delete CCell array, because the cell objects are managed 
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
     // strip does not own these
-
-#ifndef __WXDEBUG__
-	// have the "delete pStrip;" code in release build, not in debugger build as debugger
-	// crashes -- deleting the strip pointer makes the debugger think that a pSrcPhrase
-	// has been deleted, when control is in some code blocks, but not others, and in fact
-	// the pSrcPhrase hasn't been deleted at all. This is a MS debugger bug, not my error.
-	// It doesn't happen with the release build. So if __WXDEBUG__ is #defined, (see
-	// Adapt_It.h) then we don't compile this line (and ignore the fact that it will give
-	// memory leaks; but if not #defined, as in the Release build, the line is compiled
-	// and we don't get memory leaks
-	delete pStrip;
-#endif
-
-#else
-	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
-	if (!pStrip->m_arrPiles.IsEmpty())
-	{
-		int count = m_arrPiles.GetCount();
-		int index;
-		CPile* pPile = NULL;
-		for (index=0; index < count; index++)
-		{
-			pPile = (CPile*)m_arrPiles.Item(index);
-			pPile->m_pOwningStrip = NULL; // remove memory of this strip in
-						// the persistent CPile instances in m_pileList, using
-						// the pointer copies from m_arrPiles
-		}
-		pStrip->m_arrPiles.Clear();
-	}
-	if (!pStrip->m_arrPileOffsets.IsEmpty())
-		pStrip->m_arrPileOffsets.Clear();
-    // don't try to delete CCell array, because the cell objects are managed 
-    // by the persistent pile pointers in the CLayout array m_pPiles, and the 
-    // strip does not own these
-	delete pStrip;
-#endif
 }
 
 void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
@@ -1566,17 +1529,17 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
     // fit - a part strip is counted as an extra one
 	int nVisStrips = GetVisibleStrips();
 
-	// initialilze the values for the return parameters
-	//nFirstStripIndex = -1; // initialized in the caller already
-	//nLastStripIndex = -1;
-
 	// find the current total number of strips
 	int nTotalStrips = m_stripArray.GetCount();
 	
-    // find the index of the first strip which has some content visible in the client
+ 	// estimate the index to start scanning forward from in order to find the first strip
+	// which has some content visible in the client area (do it by a binary chop)
+	int nIndexToStartFrom = GetStartingIndex_ByBinaryChop(nThumbPosition_InPixels,
+															nVisStrips, nTotalStrips);
+   // find the index of the first strip which has some content visible in the client
     // area, that is, the first strip which has a bottom coordinate greater than
     // nThumbPosition_InPixels
-	int index = 0;
+	int index = nIndexToStartFrom;
 	int bottom;
 	CStrip* pStrip;
 	do {
@@ -1610,6 +1573,44 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 		if (nLastStripIndex < nTotalStrips - 1)
 			nLastStripIndex++;
 	}
+}
+
+int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips, 
+										   int numTotalStrips)
+{
+	// "upper" partition is the one with small sequence number, "lower" has larger
+	// sequence numbers
+	if (numTotalStrips < 64)
+		// don't need a binary chop if there are not heaps of strips
+		return 0;
+	int maxStripIndex = numTotalStrips - 1;
+	int nTwoScreensWorthOfStrips = 2*numVisStrips; // LHS = usually about 20 or so
+	int nIndexToStartFrom = 0;
+	CStrip* pStrip = NULL;
+	int nLowerBound = nIndexToStartFrom;
+	int nUpperBound = maxStripIndex;
+	int nTop = 0;
+	int midway = 0;
+	int half = 0;
+	while ((nUpperBound - nLowerBound) > nTwoScreensWorthOfStrips)
+	{
+		half = (nUpperBound - nLowerBound)/2;
+		midway = nLowerBound + half;
+		pStrip = (CStrip*)m_stripArray.Item(midway);
+		nTop = pStrip->Top();
+		if (nThumbPos_InPixels <= nTop)
+		{
+			// thumb is in upper partition
+			nUpperBound = midway;
+		}
+		else
+		{
+			// thumb is in lower partition
+			nLowerBound = midway;
+		}
+		nIndexToStartFrom = nLowerBound;
+	}
+	return nIndexToStartFrom;	
 }
 
 // return TRUE if the function checked for the start and end of the user edit span,

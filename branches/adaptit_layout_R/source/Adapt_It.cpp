@@ -6366,6 +6366,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedMFCinitialization = TRUE;
 
 	// **** test code fragments here ****
+	 
+	/*
+	int sizeofCStrip = sizeof(CStrip); // 48 bytes
+	int sizeofCPile = sizeof(CPile); // 48 bytes
+	int sizeofCCell = sizeof(CCell); // 28 bytes
+	int sizeofCSourcePhrase = sizeof(CSourcePhrase); // 96 bytes
+	int sizeofwxNode = sizeof(wxNode); // 24 bytes
+	int sizeofwxString = sizeof(wxString); // 4 bytes
+	int sizeofwxArrayInt = sizeof(wxArrayInt); // 12 bytes & its 16 int initial buffer is 4*16 = 64
+	int sizeofwxArrayPtrVoid = sizeof(wxArrayPtrVoid); // 12 bytes
+	int sizeofCLayout = sizeof(CLayout); // 252 bytes
+	*/
 
 /*
 	// This test compared with the same code under MFC shows that

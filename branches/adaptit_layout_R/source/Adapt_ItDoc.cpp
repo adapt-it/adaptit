@@ -3740,8 +3740,8 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
         // matter)
 		pPile = posPile->GetData();
 		wxASSERT(pPile != NULL);
-		MarkStripInvalid(pPile); // sets CStrip::m_bFilled to FALSE, (later use m_bValid)
-								 // and adds the strip index to CLayout::m_invalidStripArray
+		MarkStripInvalid(pPile); // sets CStrip::m_bValid to FALSE, and adds the 
+								 // strip index to CLayout::m_invalidStripArray
 
 		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
 		pPile->SetStrip(NULL);
@@ -3751,32 +3751,6 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 					// default TRUE
 		pPile = NULL;
 	}
-
-	/* this fails, because list is progressively shortened until get bounds error
-	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed 
-									 // in pSrcPhrase
-	wxASSERT(index != wxNOT_FOUND);
-	PileList* pPiles = pLayout->GetPileList();
-	PileList::Node* posPile = pPiles->Item(index);
-	// the item might be destroyed already, so only proceed if it was found;
-	// or the pSrcPhrase may be in a temporary list and so not have a partner pile
-	if (posPile != NULL)
-	{
- 		// the pile pointer was found in CLayout::m_pileList...
- 		
-		// get the CPile* instance currently at index, from it we can determine which strip
-        // the deletion will take place from (even if we get this a bit wrong, it won't
-        // matter)
-		CPile* pPile = posPile->GetData();
-		wxASSERT(pPile != NULL);
-		MarkStripInvalid(pPile); // sets CStrip::m_bFilled to FALSE, (later use m_bValid)
-								 // and adds the strip index to CLayout::m_invalidStripArray
-
-		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
-		pPiles->Erase(posPile); // remove the entry from m_pileList
-		pLayout->DestroyPile(pPile); // destroy the pile
-	}
-	*/
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -3863,7 +3837,7 @@ int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 
 void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 										   bool bNoActiveLocationCalculation)
-{
+{//*
 	// refactored 13Mar09 & some more on 27Apr09
 	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in 
 									 // pSrcPhrase, in the app's m_pSourcePhrases list
@@ -3897,8 +3871,8 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 			pPile->SetPhraseBoxGapWidth();
 		}
 
-		// mark the strip invalid (currently uses m_bFilled, but later change to using
-		// m_bValid) and put the parent strip's index into CLayout::m_invalidStripArray
+		// mark the strip invalid and put the parent strip's index into 
+		// CLayout::m_invalidStripArray
 		MarkStripInvalid(pPile);
 	}
 	else
@@ -3910,18 +3884,25 @@ void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
 		_T(""), wxICON_EXCLAMATION);
 		wxASSERT(FALSE);
 		wxExit();
-	}
+	}//*/
 }
 
 void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 {
 	CLayout* pLayout = GetLayout();
+	// we can mark a strip invalid only provided it exists; so if calling this in
+	// RecalcLayout() after the strips were destroyed, and beforer they are rebuilt, we'd
+	// be trying to access freed memory if we went ahead here without a test for strips
+	// being in existence - so return if the m_stripArray has no contents currently
+	if (pLayout->GetStripArray()->IsEmpty())
+		return;
+	// if control gets to here, there are CStrip pointers stored in m_stripArray, so go
+	// ahead and mark the owning strip invalid
 	wxArrayInt* pInvalidStripArray = pLayout->GetInvalidStripArray();
 	CStrip* pStrip = pChangedPile->GetStrip();
 	if (pStrip == NULL)
 		return; 
-	pStrip->SetValidityFlag(FALSE); // currently, makes m_bFilled be FALSE, change to 
-									// rename the member to m_bValid later
+	pStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 	int nStripIndex = pStrip->GetStripIndex();
 	pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
 										  // which strips are invalid

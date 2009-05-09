@@ -60,7 +60,10 @@ private:
 #endif
 	wxArrayInt		m_arrPileOffsets; // offset from left bdry of strip to left bdry of pile
 	int				m_nFree;	// how many pixels wide the free space at end is
-	bool			m_bFilled;  // TRUE if has populated fully, or up to a wrapping CPile
+	bool			m_bValid;  // TRUE if has populated fully, or not involved in any user
+                               // editing but FALSE if one or more of its piles were edited or
+                               // changed in any way, or if the strip's population of piles
+                               // is not yet full
 	
 public:
 
@@ -95,7 +98,7 @@ public:
 	wxArrayPtrVoid* GetPilesArray();
 #endif
 
-	// validity flag (currently m_bFilled, but, TODO, later will be m_bValid)
+	// validity flag for a strip, TRUE if strip is unchanged by user editing
 	void	SetValidityFlag(bool bValid);
 	bool	GetValidityFlag();
 

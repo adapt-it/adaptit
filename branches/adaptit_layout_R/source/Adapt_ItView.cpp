@@ -3739,8 +3739,8 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	// before we deal with the clicked location, we want to recalculate the width of the
 	// pile at the old active location, but suppress the fact that it is still the active
 	// location when we do that calculation, and get the index of the changed strip put in
-	// CLayout:m_invalidStripArray and mark the strip invalid as well (currently by
-	// setting m_bFilled to FALSE, but later on we must change m_bFilled to m_bValid)
+    // CLayout:m_invalidStripArray and mark the strip invalid as well (by setting m_bValid
+    // to FALSE)
 	if (pOldActiveSrcPhrase != NULL)
 	{
 		// bNoActiveLocationCalculation is TRUE to suppress the wide gap calculation
@@ -3751,25 +3751,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 #endif
 
 	// honour the click
-	/* removed 3Apr09, the box relocation happens now after RecalcLayout() so no strip checking required
-	// first preserve which strip we were in, in case we click on a cell
-	// in a different strip, then we'll have to update the old strip too
-	int nOldStripIndex;
-	if (pApp->m_curIndex == -1 || pApp->m_nActiveSequNum == -1 || pApp->m_pActivePile == NULL)
-	{
-		// we are at EOF, so active pile is not valid, so set old strip index using the
-		// bundle's members
-		nOldStripIndex = pApp->m_pBundle->m_nStripCount - 1;
-	}
-	else
-	{
-		// we are not at the end, so m_pActivePile is valid so can use it to set the old strip
-		// index value
-		nOldStripIndex = pApp->m_pActivePile->m_pStrip->m_nStripIndex;
-	}
-	*/
-
-	//CPile* pActivePile = pCell->m_pPile;	
 	CPile* pActivePile = pClickedPile;	// the clicked pile now has to become the 
 										// new active location
 	wxASSERT(pActivePile);
@@ -13690,7 +13671,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 
 	// next line added for refactored layout support 25Mar09...
 	// puts the affected strip's index in CLayout::m_invalidStripArray and sets the
-	// strip's m_bFilled boolean to FALSE (later, change m_bFilled to m_bValid)
+	// strip's m_bValid boolean to FALSE
 	pDoc->ResetPartnerPileWidth(pFirstSrcPhrase);  											  
 	
 	// remove from the list the ones which have been merged to the first
