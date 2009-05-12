@@ -7985,67 +7985,11 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 
 				// for refactored layout support - there best way to be sure all is well
 				// is to completely regenerate the layout, including m_pileList
-				m_pLayout->RecalcLayout(m_pSourcePhrases, TRUE);
-
-				/* next few lines removed 21Mar09, because bundle support no longer needed
-				// try expand sufficiently to encompass the active location within the lengthened
-				// bundle, assuming it actually is lengthened (it won't be if difference is zero)
-				//m_endIndex = wxMin(maxIndex,m_endIndex + difference);
-				// if difference was huge, we may need to further reduce the value
-				//m_endIndex = wxMin(m_endIndex,m_beginIndex + m_nMaxToDisplay);
-				//m_upperIndex -= m_nFollowingContext;
-				//if (m_upperIndex < 0)
-				//	m_upperIndex = m_endIndex;
-				*/
-
-				/* comment out this section - it is bundle-dependent
-				// Unfortunately, we can't ensure the viability of the saved phrase box contents - there are
-				// several scenarios that force us to abandon its contents - some are for filtering changes
-				// and so will be dealt with in DoUsfmFilterChanges(), but the one which concerns us for 
-				// punctuation changes is the following:
-				//		So many extra source phrases were produced that the updated active location got
-				//		pushed so far to the right that it is greater than m_beginIndex + m_nMaxToDisplay. 
-				// If the latter obtains, then we'll have to find a new safe phrase box location within the
-				// current bundle bounds - which also means we have to check for retranslations and avoid those;
-				// and we should remove the KB entry for the active location and set the sourcephrase's
-				// m_bHasKBEntry (or if glossing, m_bHasGlossingKBEntry) to FALSE so that the next move of the
-				// phrase box will resave correctly.
-				CSourcePhrase* pSrcPhrase = NULL;
-				// remember, the layout is invalid and not yet recalculated, so we can't use pile pointers
-				// in the adjustments being made below
-				if (m_nActiveSequNum > m_endIndex)
-				{
-					// We must calculate a new save box location - try put it near the end of the bundle.
-					// Clear the box if it currently exists.
-					if (m_pTargetBox->GetHandle() != NULL)
-					{
-						m_pTargetBox->m_bAbandonable = TRUE;
-						m_pTargetBox->SetValue(_T(""));
-					}
-					// Empty the view's m_targetPhrase member of any text currently in it
-					m_targetPhrase.Empty();
-
-					// Set an arbitrary active location -- there is no way to be smart about doing this
-					// (just allow a little context to appear to its right)
-					m_nActiveSequNum = m_endIndex - m_nFollowingContext - 1;
-					if (m_nActiveSequNum < 0) 
-						m_nActiveSequNum = 0;
-
-					// GetSavePhraseBoxLocationUsingList calculates a safe location, sets the view's
-					// m_nActiveSequNumber member to that value, and calculates and sets m_targetPhrase
-					// to agree with what will be the new phrase box location; we could ignore the
-					// return value, but we won't.
-					int nNewSequNum;
-					nNewSequNum = GetSafePhraseBoxLocationUsingList(pView);
-				}
-				else
-				{
-					// the updated active location is still within the adjusted bundle, so just use
-					// that value
-					m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
-					pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
-				}
-				*/
+#ifdef _NEW_LAYOUT
+				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#else
+				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+#endif
 				// for refactored layout code, the following suffices because m_nActiveSequNum
 				// remains within the document and was used in the RecalcLayout(TRUE) call above
 				CSourcePhrase* pSrcPhrase = NULL;
@@ -20771,7 +20715,6 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 	SPList::Node* pos = pSrcPhrasesList->GetFirst(); //POSITION pos = pSrcPhrasesList->GetHeadPosition();
 	pos = pSrcPhrasesList->Insert(pos,pSrcPhrase);
 	pDoc->CreatePartnerPile(pSrcPhrase);
-	m_pLayout->m_userEditsSpanCheckType = scan_from_doc_ends;	// for passing to CLayout::AdjustForUserEdits()
 }
 
 /* BEW removed 21Mar09

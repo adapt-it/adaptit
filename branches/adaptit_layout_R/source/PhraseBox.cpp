@@ -1082,9 +1082,11 @@ b:	pApp->m_bSaveToKB = TRUE;
 		else
 		{
 			// do we need this one?? I think so, but should step it to make sure
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // bRecreatePileListAlso is
-					// FALSE, so m_stripArray rebuilt, but m_pileList is left untouched
-
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			// get the new active pile
 			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 			wxASSERT(pApp->m_pActivePile != NULL);
@@ -1541,9 +1543,13 @@ b:	pApp->m_bSaveToKB = TRUE;
 		}
 		else
 		{
-			// do we need this one?? I think so, but should step it to make sure
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // bRecreatePileListAlso is
-					// FALSE, so m_stripArray rebuilt, but m_pileList is left untouched
+			// do we need this one?? I think so
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+			// in call above, m_stripArray gets rebuilt, but m_pileList is left untouched
 
 			// get the new active pile
 			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -1855,22 +1861,16 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 		}
 
 		// recalculate the layout
-		//pApp->m_curBoxWidth = 2; // make very small so it doesn't push the next word/phrase
-									 // to the right before the next word/phrase can be measured
-		//pAppView->RecalcLayout(pApp->m_pSourcePhrases, 0, pApp->m_pBundle);
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // default param is FALSE, so piles are not recreated
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
 		// get the new active pile
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 		wxASSERT(pApp->m_pActivePile != NULL);
 		
-		/* phrase box support is now build into CLayout::Draw() in the refactored design
-		// recreate the phraseBox but empty, and get its location so that we can determine
-		// where the dialog is to be located
-		pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-		pAppView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
-		*/
-
 		// scroll into view
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
@@ -2429,8 +2429,11 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				pApp->m_pActivePile = NULL; // can use this as a flag for 
 											// at-EOF condition too
 				// recalc the layout without any gap for the phrase box, as it's hidden
-				pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso
-															   // is default FALSE
+#ifdef _NEW_LAYOUT
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			}
 			else // pFwdPile is valid, so must have bumped against a retranslation
 			{
@@ -2438,8 +2441,11 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				wxMessageBox(_(
 "Sorry, the next pile cannot be a valid active location, so no move forward was done."),
 				_T(""), wxICON_INFORMATION);
-				pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso
-															   // is default FALSE
+#ifdef _NEW_LAYOUT
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+				pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 				pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 				pApp->m_pTargetBox->SetFocus();
 
@@ -2528,8 +2534,11 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		//pView->m_targetBox.Invalidate();
 		pView->RedrawEverything(pView->m_nActiveSequNum);
 		*/
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso
-													   // is default FALSE
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 		wxASSERT(pApp->m_pActivePile != NULL);
 
@@ -2803,7 +2812,11 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 		if (bUpdateOfLayoutNeeded)
 		{
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bool bRecreatePileListAlso is default FALSE
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 			wxASSERT(pApp->m_pActivePile != NULL);
 		}
@@ -3781,8 +3794,11 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		
         pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // param bRecreatePileListAlso is FALSE, 
-								// so m_stripArray is rebuilt, but m_pileList is left untouched
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
 		// make sure the new active pile's pointer is reset
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -4508,15 +4524,14 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it won't get recreated
 			pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
 			pApp->m_targetPhrase.Empty();
-			//pApp->m_nActiveSequNum = pApp->m_curIndex = -1;
 			pApp->m_nActiveSequNum = -1;
-			//pApp->m_pTargetBox->SetValue(_T("")); // whm added since it is hidden not destroyed
-			//pView->LayoutStrip(pApp->m_pSourcePhrases,nOldStripIndex,pApp->m_pBundle);
-			//
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases); // bRecreatePileListAlso is default FALSE
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = (CPile*)NULL; // can use this as a flag for at-EOF condition too
 			pLayout->m_docEditOperationType = no_edit_op;
-			//pView->Invalidate();
 		}
 		else // not successful, but we have a non-null active pile defined, and sequence number >= 0
 		{
@@ -5369,8 +5384,11 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 		pApp->m_targetPhrase = _T("");
 
 		// recalculate the layout
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases); // default bool param bRecreatePileListAlso, is FALSE,
-								 // so piles are not recreated
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		// get the new active pile
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 		wxASSERT(pApp->m_pActivePile != NULL);

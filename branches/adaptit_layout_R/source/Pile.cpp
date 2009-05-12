@@ -356,7 +356,10 @@ void CPile::SetSrcPhrase(CSourcePhrase* pSrcPhrase)
 
 int CPile::GetStripIndex()
 {
-	return m_pOwningStrip->m_nStrip;
+	if (m_pOwningStrip == NULL)
+		return -1; // the owning strip pointer was not set
+	else
+		return m_pOwningStrip->m_nStrip;
 }
 
 CStrip* CPile::GetStrip()

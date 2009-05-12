@@ -2476,8 +2476,11 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	CLayout* pLayout = pView->GetLayout();
 	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
-		//pView->RedrawEverything(pApp->m_nActiveSequNum);
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	}
 	// code below was in docview sample
@@ -5934,7 +5937,12 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 
 
 	// the box may be bigger because of the text, so do a recalc of the layout
-	pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+	CLayout* pLayout = pApp->m_pLayout;
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
     // if a phrase jumps back on to the line due to the recalc of the layout, then the
     // current location for the box will end up too far right, so we must find out where

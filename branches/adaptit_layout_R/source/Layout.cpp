@@ -282,9 +282,16 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 
 void CLayout::Draw(wxDC* pDC)
 {
-    // m_bDrawAtActiveLocation is default TRUE; pass explicit FALSE to have drawing done
-    // based on the top of the first strip of a visible range of strips determined by the
-    // scroll car position
+    // drawing is done based on the top of the first strip of a visible range of strips
+    // determined by the scroll car position; to have drawing include the phrase box, a
+    // caller (typically a handler for a user edit operation) has to set the active
+    // location (the app's m_nActiveSequNum value) correctly first; for ScrollUp() and
+    // ScrollDown() the function handlers of these ignore the active location and just
+    // define a client area's worth of drawing based on the scroll car position
+     
+    
+
+
 	int i;
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
@@ -294,11 +301,8 @@ void CLayout::Draw(wxDC* pDC)
 	// will need to replace those calls in the doc editing handlers themselves, eg
 	// OnButtonMerge() etc... OR, we may put AdjustForUserEdits() within RecalcLayout()
 	// and have a test to choose when we use that, or instead use the older full relayout code
-	/*
-	// make any alterations needed to the strips because of user edit operations on the doc
-	AdjustForUserEdits(m_userEditsSpanCheckType); // replaces most of the legacy RecalcLayout() calls
-	m_userEditsSpanCheckType = scan_from_doc_ends; // reset to the safer default value for next time
-	*/
+	
+	
 
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
@@ -320,6 +324,8 @@ void CLayout::Draw(wxDC* pDC)
 		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
 	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
+
+	m_invalidStripArray.Clear(); // initialize for next user edit operation
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -791,6 +797,7 @@ void CLayout::DestroyStrip(int index)
 	// CStrip now does not store pointers, so the only memory it owns are the blocks for
 	// the two wxArrayInt arrays - so Clear() these and then delete the strip
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+#ifdef _ALT_LAYOUT_
 	if (!pStrip->m_arrPileIndices.IsEmpty())
 	{
 		pStrip->m_arrPileIndices.Clear();
@@ -799,6 +806,16 @@ void CLayout::DestroyStrip(int index)
 	{
 		pStrip->m_arrPileOffsets.Clear();
 	}
+#else
+	if (!pStrip->m_arrPiles.IsEmpty())
+	{
+		pStrip->m_arrPiles.Clear();
+	}
+	if (!pStrip->m_arrPiles.IsEmpty())
+	{
+		pStrip->m_arrPiles.Clear();
+	}
+#endif
  	delete pStrip;
 	// don't try to delete CCell array, because the cell objects are managed 
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
@@ -1027,7 +1044,7 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 // bar in the status bar in window bottom) The default value of the passed in flag
 // bRecreatePileListAlso is FALSE The ptr value for the passed in pList is usually the
 // application's m_pSourcePhrases list, but it can be a sublist copied from that
-bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
+bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 {
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
     // function - the latter built only a bundle's-worth of strips, but the new design must build
@@ -1037,32 +1054,36 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 //	CAdapt_ItApp* pAppl = &wxGetApp();
 //	wxLogDebug(_T("Location = %d  Active Sequ Num  %d"),1,pAppl->m_nActiveSequNum);
 //#endif
-	 
-	// any existing strips have to be destroyed before the new are build. Note: if we
-	// support both modes of strip support (ie. tweaking versus destroy and rebuild all)
-	// then the tweaking option must now destroy them, but just make essential adjustments
-	// for the stuff currently in the visible range
-	DestroyStrips();
+
+	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which
+        // comprise the document, or a sublist copied from it, -- the CLayout instance will
+        // own a parallel list of CPile instances in one-to-one correspondence with the
+        // CSourcePhrase instances, and each of piles will contain a pointer to the
+        // sourcePhrase it is associated with
 	
-	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which comprise the
-	// document, or a sublist copied from it, -- the CLayout instance will own a parallel list of
-    // CPile instances in one-to-one correspondence with the CSourcePhrase instances, and
-    // each of piles will contain a pointer to the sourcePhrase it is associated with
-	
-	if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
+	if (selector == create_strips_and_piles || selector == create_strips_keep_piles)
 	{
-		// no document is loaded, so no layout is appropriate yet, do nothing
-		// except ensure m_pPiles is NULL
-		if (!(m_pileList.IsEmpty()))
+		// any existing strips have to be destroyed before the new are build. Note: if we
+		// support both modes of strip support (ie. tweaking versus destroy and rebuild all)
+		// then the tweaking option must now destroy them, but just make essential adjustments
+		// for the stuff currently in the visible range
+		DestroyStrips();
+		
+		if (pSrcPhrases == NULL || pSrcPhrases->IsEmpty())
 		{
-			m_pileList.DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
+			// no document is loaded, so no layout is appropriate yet, do nothing
+			// except ensure m_pPiles is NULL
+			if (!(m_pileList.IsEmpty()))
+			{
+				m_pileList.DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
+			}
+			// remove this message - it gets shown about a dozen times before the Welcome
+			// splash window appears!!
+			// a message to us developers is needed here, in case we get the design wrong
+			//wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
+			//			_T(""), wxICON_WARNING);
+			return TRUE;
 		}
-		// remove this message - it gets shown about a dozen times before the Welcome
-		// splash window appears!!
-		// a message to us developers is needed here, in case we get the design wrong
-		//wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
-		//			_T(""), wxICON_WARNING);
-		return TRUE;
 	}
 
 	// preserve selection parameters, so it can be preserved across the recalculation
@@ -1154,9 +1175,9 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	}
 
     // attempt the (re)creation of the m_pileList list of CPile instances if requested; if
-    // not requested then the current m_pileList's contents are valid still and will be
-    // used unchanged
-	if (bRecreatePileListAlso)
+    // not requested then the current m_pileList's contents will be retained, though their
+    // contents may be adjusted in the area where the user did editing
+	if (selector == create_strips_and_piles)
 	{
 		bool bIsOK = CreatePiles(pSrcPhrases);
 		if (!bIsOK)
@@ -1171,20 +1192,20 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
 
-    // before building the strips, we want to ensure that the gap left for the phrase box
-    // to be drawn in the layout is as wide as the phrase box is going to be when it is
-    // made visible by CLayout::Draw(). When RecalcLayout() is called, gbExpanding global
-    // bool may be TRUE, or FALSE (it's set by FixBox() and cleared in FixBox() at the end
-    // after layout adjustments are done - including a potential call to RecalcLayout(),
-    // it's also cleared to default as a safety first measure at start of each OnChar()
-    // call. If we destroyed and recreated the piles in the block above, CreatePile() will,
-    // at the active location, made use of the gbExpanding value and set the "hole" for the
-    // phrase box to be the appropriate width. But if piles were not destroyed and
-    // recreated then the box may be about to be drawn expanded, and so we must make sure
-    // that the strip rebuilding about to be done below has the right box width value to be
-    // used for the pile at the active location. The safest way to ensure this is the case
-    // is to make a call to doc class's ResetPartnerPileWidth(), passing in the
-    // CSourcePhrase pointer at the active location - this call internally calls
+    // before building or tweaking the strips, we want to ensure that the gap left for the
+    // phrase box to be drawn in the layout is as wide as the phrase box is going to be
+    // when it is made visible by CLayout::Draw(). When RecalcLayout() is called,
+    // gbExpanding global bool may be TRUE, or FALSE (it's set by FixBox() and cleared in
+    // FixBox() at the end after layout adjustments are done - including a potential call
+    // to RecalcLayout(), it's also cleared to default as a safety first measure at start
+    // of each OnChar() call. If we destroyed and recreated the piles in the block above,
+    // CreatePile() will, at the active location, made use of the gbExpanding value and set
+    // the "hole" for the phrase box to be the appropriate width. But if piles were not
+    // destroyed and recreated then the box may be about to be drawn expanded, and so we
+    // must make sure that the strip rebuilding about to be done below has the right box
+    // width value to be used for the pile at the active location. The safest way to ensure
+    // this is the case is to make a call to doc class's ResetPartnerPileWidth(), passing
+    // in the CSourcePhrase pointer at the active location - this call internally calls
     // CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
     // then the strip layout code below can use that value via a call to
     // GetPhraseBoxGapWidth() to make the active pile's width have the right value.
@@ -1192,12 +1213,13 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
 		// current active location
-		if (!bRecreatePileListAlso)
+		if (selector == create_strips_keep_piles || selector == keep_strips_keep_piles)
 		{
-			// these three lines ensure that the active pile's width is based on the
-			// CLayout::m_curBoxWidth value that was stored there by any adjustment to the box
-			// width done by FixBox() just prior to this RecalcLayout() call ( similar code
-			// will be needed in AdjustForUserEdits() when we complete the layout refactoring,
+            // these three lines ensure that the active pile's width is based on the
+            // CLayout::m_curBoxWidth value that was stored there by any adjustment to the
+            // box width done by FixBox() just prior to this RecalcLayout() call ( similar
+            // code will be needed in AdjustForUserEdits() when we complete the layout
+            // refactoring,
 			// *** TODO *** )
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
@@ -1205,52 +1227,74 @@ bool CLayout::RecalcLayout(SPList* pList, bool bRecreatePileListAlso)
 			m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
 		}
 	}
-	else
+	else // control is past the end of the document
 	{
 		// we have no active active location currently, and the box is hidden, the active
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
-		CreateStrips(nStripWidth, gap);
-		SetLogicalDocHeight();
 		gbExpanding = FALSE; // has to be restored to default value
 		// m_pView->RestoreSelection(); // there won't be a selection in this circumstance
-		m_invalidStripArray.Clear(); // initialize for next user edit operation
-		//return TRUE;
-		goto a;
 	}
 /*
 #ifdef __WXDEBUG__
 	{
-	PileList::Node* pos = m_pileList.GetFirst();
-	CPile* pPile = NULL;
-	while (pos != NULL)
-	{
-		pPile = pos->GetData();
-		wxLogDebug(_T("m_srcPhrase:  %s  *BEFORE* pPile->m_pOwningStrip =  %x"),
-			pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
-		pos = pos->GetNext();
-	}
+		PileList::Node* pos = m_pileList.GetFirst();
+		CPile* pPile = NULL;
+		while (pos != NULL)
+		{
+			pPile = pos->GetData();
+			wxLogDebug(_T("m_srcPhrase:  %s  *BEFORE* pPile->m_pOwningStrip =  %x"),
+				pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
+			pos = pos->GetNext();
+		}
 	}
 #endif
 */
 	// the loop which builds the strips & populates them with the piles
-	CreateStrips(nStripWidth, gap);
+	if (selector == create_strips_and_piles || selector == create_strips_keep_piles)
+	{
+		CreateStrips(nStripWidth, gap);
+	}
+	if (selector == keep_strips_keep_piles)
+	{
+		bool bLayoutTweakingWasSuccessful = TRUE;
+		// for this option, strips are not destroyed and recreated, instead they are
+		// just tweaked at the location where they were marked as invalid by the
+		// m_bValid flag in each being cleared to FALSE (when the user edit region
+		// and the active location are separated by a gap, possibly large, all the
+		// strips in between are included in the updating/tweaking (since the user is
+		// only likely to do a thing like this for an edit area visible from the
+		// visible active location, possibly the gap would only be a dozen piles
+		// at most, and updating there should be so quick as to be unnoticed)
+		// Note: in the next call, if it can't successfully delineate the user's editing
+		// area, then if calls RecalcLayout() to get a full strip recreation done instead,
+		// and returns FALSE; otherwise TRUE is returned
+		bLayoutTweakingWasSuccessful = AdjustForUserEdits(nStripWidth, gap);
+		if (bLayoutTweakingWasSuccessful == FALSE)
+		{
+			// when FALSE was returned, RecalcLayout() will have been reentered internally
+			// with the input parameter create_strips_keep_piles, and will have already
+			// done the layout recalculation by destroying and recreating all the strips,
+			// and so we've nothing to do here except return immediately
+			return TRUE;
+		}
+	}
 /*	
 #ifdef __WXDEBUG__
 	{
-	PileList::Node* pos = m_pileList.GetFirst();
-	CPile* pPile = NULL;
-	while (pos != NULL)
-	{
-		pPile = pos->GetData();
-		wxLogDebug(_T("m_srcPhrase:  %s  *AFTER* pPile->m_pOwningStrip =  %x"),
-			pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
-		pos = pos->GetNext();
-	}
+		PileList::Node* pos = m_pileList.GetFirst();
+		CPile* pPile = NULL;
+		while (pos != NULL)
+		{
+			pPile = pos->GetData();
+			wxLogDebug(_T("m_srcPhrase:  %s  *AFTER* pPile->m_pOwningStrip =  %x"),
+				pPile->GetSrcPhrase()->m_srcPhrase,pPile->m_pOwningStrip);
+			pos = pos->GetNext();
+		}
 	}
 #endif
 */
-a:	gbExpanding = FALSE; // has to be restored to default value
+	gbExpanding = FALSE; // has to be restored to default value
 
 	// the height of the document can now be calculated
 	SetLogicalDocHeight();
@@ -1354,7 +1398,7 @@ a:	gbExpanding = FALSE; // has to be restored to default value
 			}
 		}
 	}
-	m_invalidStripArray.Clear(); // initialize for next user edit operation
+	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 	return TRUE;
 }
 
@@ -1512,7 +1556,7 @@ int CLayout::GetVisibleStrips()
 	int partStrip = clientHeight % m_nStripHeight; // modulo
 	if (partStrip > 0)
 		nVisStrips++;
-	return nVisStrips;
+	return nVisStrips; // how many strips can appear in the client area
 }
 
 void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex)
@@ -1613,67 +1657,97 @@ int CLayout::GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStr
 	return nIndexToStartFrom;	
 }
 
-// return TRUE if the function checked for the start and end of the user edit span,
-// return FALSE is no check was done (ie. no_scan_needed) value passed in
-bool CLayout::AdjustForUserEdits(enum update_span type)
+void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
+								   int nCountValueForTooFar)
 {
-	// *** TODO ***  deprecated: the idea of scanning from ends to find mismatched pointers
-	// won't work - the wrong pointers result in layout crashes. Instead, we will use an
-	// array of indices to "invalid" strips  ....   so we'll get rid of the contents of
-	// this current version of the function later on, as at the momenty
-	// AdjustForUserEdits() is nowhere called. We'll give it content when we build the
-	// code for Phase 2 of the refactored layout design.
-	
-	// *** comments and code below are DEPRECATED as of May 2009
-    // scan forwards and backwards in m_pileList matching CSourcePhrase pointer instances with
-    // those stored in the CPile copies in the strips in m_stripArray - and when there is a
-    // mismatch in the pointer values, we will have found a boundary for changes to the CPile
-    // pointers in m_pileList due to the user's editing changes to the document. Use these
-    // beginning and ending locations for updating the piles in the strips between those locations
-    // just prior to drawing the updated layout The passed in enum value, which can be
-    // scan_from_doc_ends (= 0), or scan_in_active_area_proximity (= 1), or scan_from_big_jump,
-    // determines how extensive a scan is done - whether from the start and end of the document, or
-    // from locations prior to and after the active location but in its proximity; in the later
-    // case the jump distance from the current active location is given by the #define
-    // nJumpDistanceForUserEditsSpanDetermination which is currently set at 80, or from a bigger
-    // jump nBigJumpDistance, currently set at 300 (CSourcePhrase instances)
-	
-	// Note: the pileList stripArray discrepancy can also be used for working out the clip
-	// rectangle. First get the editing span located in each, and then perhaps get an
-	// array of pointers to the first pile in each of the old strips at that location
-	// (until strip is a few off screen), and then compare, after new layout is done, the
-	// pointers to first pile in each of the visible strips, and if no scrollintoview was
-	// done, then where the first pile pointers don't match, that strip area has to be in
-	// the clip rectangle; but where they match, that can be out of the clip rectangle.
-
-	// **** TODO **** ... the locating and stripArray tweaking...  -- not sure yet where
-	// to put the PrepareForLayout() call - whether in this function or this function in that?
-	switch (type)
+	// always get the active strip - it may or may not be within the strips whole indices
+	// are in the m_invalidStripArray, but we'll include it in the calculations to be sure
+	// the layout is correct everwhere related to the user's last editing operation (the
+	// active strip may stay the active strip, or it may not, and we don't want to waste
+	// time trying to figure out which is the case)
+	int nIndexOfActiveStrip = -1;
+	int nIndexOfFirst_Active = -1; // indicates no value was set (caller can check for != -1)
+	int nIndexOfLast_Active = -1;  // ditto
+	if (m_pApp->m_pActivePile != NULL)
 	{
-	case no_scan_needed:
+		// there will be an active pile except when the phrase box is hidden because the
+		// user advanced the box into limbo past the end of the document; but if for some
+		// reason the active pile's m_pOwningStrip pointer was not set, then -1 will be 
+		// returned
+		nIndexOfActiveStrip = m_pApp->m_pActivePile->GetStripIndex();
+	}
+	if (nIndexOfActiveStrip != -1)
+	{
+		nIndexOfFirst_Active = nIndexOfActiveStrip;
+		nIndexOfLast_Active = nIndexOfActiveStrip;
+	}
+	int nFirst = -1;
+	int nLast = -1;
+	int index = 0;
+	if (m_invalidStripArray.IsEmpty())
+	{
+		nIndexOfFirst = nIndexOfFirst_Active;
+		nIndexOfLast = nIndexOfLast_Active;
+		return;
+	}
+	else
+	{
+		int nCount = m_invalidStripArray.GetCount();
+		wxASSERT(nCount >= 1);
+		int aValue = m_invalidStripArray.Item(index);
+		nFirst = aValue;
+		nLast = aValue;
+		for (index = 1; index < nCount; index++)
 		{
-			m_nStartUserEdits = -1; // set to -1 when value is not to be used
-			m_nEndUserEdits = -1;   // ditto
-
-		 return FALSE;
-		}
-	case scan_in_active_area_proximity:
-		{
-
-			break;
-		}
-	case scan_from_big_jump:
-		{
-
-			break;
-		}
-	case scan_from_doc_ends:
-		{
-
-			break;
+			aValue = m_invalidStripArray.Item(index);
+			if (aValue > nLast)
+			{
+				nLast = aValue;
+				continue;
+			}
+			if (aValue < nFirst)
+			{
+				nFirst = aValue;
+			}
 		}
 	}
-	return TRUE;
+	// now get the final range...
+	if (nFirst == -1)
+	{
+        // the calculations with m_invalidStripArray yielded nothing, so either nothing
+        // worked and so return -1 values to signal to caller to not use what is returned;
+        // or we got the active strip, and return its index
+		nIndexOfFirst = nIndexOfFirst_Active; // = -1 or the index of the active strip
+		nIndexOfLast = nIndexOfLast_Active; // = -1 or the index of the active strip
+		return;
+	}
+	else
+	{
+		// we got an index range from m_invalidStripArray, so if the active strip is
+		// within it, just return that range; but if the active strip is earlier or beyond
+		// it, then extend the strip range to include the active strip
+		nIndexOfFirst = nFirst;
+		nIndexOfLast = nLast;
+		if (nIndexOfFirst_Active < nIndexOfFirst)
+		{
+			if ((nIndexOfFirst - nIndexOfFirst_Active) > nCountValueForTooFar)
+				return; // it's too far away from the edit location for us to be bothered, 
+                        // so return the values we have found already and ignore the active
+                        // strip
+			// otherwise, extend the index range to include the active strip
+			nIndexOfFirst = nIndexOfFirst_Active;
+			return;
+		}
+		if (nIndexOfLast_Active > nIndexOfLast)
+		{
+			if ((nIndexOfLast_Active - nIndexOfLast) > nCountValueForTooFar)
+				return; // it's too far away from the edit location for us to be bothered, 
+                        // so return the values we have found already and ignore the active
+                        // strip
+			// otherwise, extend the index range to include the active strip
+			nIndexOfLast = nIndexOfLast_Active;
+		}
+	}
 }
 
 void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
@@ -2060,4 +2134,267 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 		m_pApp->m_pTargetBox->SetModify(FALSE); 
 	}
 }
+
+// if the first strip in the doc is invalid, pBeforePile will be returned as NULL, if the
+// last strip in the doc is invalid, pAfterPile will be NULL, if all strips in the
+// document are invalid (eg. as when editing a one-strip document), both will be returned
+// as NULL
+bool CLayout::GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
+						int nLastInvalidStrip, CPile* pBeforePile, CPile* pAfterPile)
+{
+	if (nFirstInvalidStrip == -1 || nLastInvalidStrip == -1)
+	{
+		// an invalid range was not calculated, so reenter RecalcLayout() doing a full
+		// strip destroy and recreation, so that we get a valid layout that way
+		RecalcLayout(m_pApp->m_pSourcePhrases,create_strips_keep_piles);		
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+		return FALSE;
+	}
+	// set either or both of these TRUE if the user edit area is at the doc start or doc
+	// end - but beware, don't test for these strips being invalid, because they may
+	// indeed be invalid, but not due to the current user edit operation - as the latter
+	// may be well away from the document ends and invalid initial or final strips could
+	// just be relics of an earlier editing operation that have not been made valid yet
+	bool bFirstInDocIsInvalid = FALSE;
+	bool bLastInDocIsInvalid = FALSE;
+
+	// define pBeforeStrip and pAfterStrip to be strip pointers to the strip immediately
+	// before the user's editing area, provided there is such a strip (NULL if there
+	// isn't) and the strip immediately after the user's editing area, provided there is
+	// such a strip (NULL if there isn't), respectively
+	CStrip* pBeforeStrip = (CStrip*)m_stripArray.Item(nFirstInvalidStrip);
+	CStrip* pAfterStrip = (CStrip*)m_stripArray.Last();
+
+	// check if pBeforeStrip is the first in the doc, or pAfterStrip is the last in the
+	// doc - if either is so, set the respective booleans
+	int nBeforeStripIndex = pBeforeStrip->m_nStrip;
+	int nAfterStripIndex = pAfterStrip->m_nStrip;
+	if (nBeforeStripIndex == 0)
+	{
+		bFirstInDocIsInvalid = TRUE;
+		pBeforePile = NULL; // there is no "before" pile, edits start at doc start
+	}
+	if (nAfterStripIndex == (int)(m_stripArray.GetCount() - 1))
+	{
+		bLastInDocIsInvalid = TRUE;
+		pAfterPile = NULL; // there is no "after" pile, edits go to the doc's end
+	}
+
+	// get the pBeforePile value, providing there is a previous strip - a sufficient
+	// condition for the latter qualification is that bFirstInDocIsInvalid is FALSE
+	if (!bFirstInDocIsInvalid)
+	{
+		--nBeforeStripIndex; // this is the index for the valid strip immediately
+							 // before the start of the area where user did editing
+		pBeforeStrip = (CStrip*)m_stripArray.Item(nBeforeStripIndex);
+		wxASSERT(pBeforeStrip);
+		int nIndexToLastPileInStrip = pBeforeStrip->m_arrPiles.GetCount() - 1;
+		pBeforePile = (CPile*)pBeforeStrip->m_arrPiles.Item(nIndexToLastPileInStrip);
+		wxASSERT(pBeforePile);
+	}
+
+	// get the pAfterPile value, providing there is a following strip - a sufficient
+	// condition for the latter qualification is that bLastInDocIsInvalid is FALSE
+	if (!bLastInDocIsInvalid)
+	{
+		++nAfterStripIndex; // this is the index for the valid strip immediately
+							 // after the end of the area where user did editing
+		pAfterStrip = (CStrip*)m_stripArray.Item(nAfterStripIndex);
+		wxASSERT(pAfterStrip);
+		pAfterPile = (CPile*)pAfterStrip->m_arrPiles.Item(0);
+		wxASSERT(pAfterPile);
+	}
+	return TRUE;
+}
+
+// Returns: a count of how many strips were emptied
+// This function empties the pile pointers stored in the invalid strips, and the array
+// containing the offsets from the strip's boundary (left for LTR text, right for RTL
+// text), but it does not alter any of the other strip members except to reset the m_nFree
+// member to the nStripWidth value ready for pile points to be added later
+int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth)
+{
+	int nCount = 0;
+	int index;
+	CStrip* pStrip = NULL;
+	for (index = nFirstStrip; index <= nLastStrip; index++)
+	{
+		pStrip = (CStrip*)m_stripArray.Item(index);
+		wxASSERT(pStrip);
+		pStrip->m_nFree = nStripWidth;
+		if (!pStrip->m_arrPiles.IsEmpty())
+		{
+			pStrip->m_arrPiles.Clear();
+		}
+		if (!pStrip->m_arrPiles.IsEmpty())
+		{
+			pStrip->m_arrPiles.Clear();
+		}
+		nCount++;
+	}
+	return nCount;
+}
+
+//***************************************************************************************
+// / \return   a count of the final number of rebuild strips  -  this could be fewer, the
+// /           same, or more than the value of nInitialStripCount passed in
+// / \param
+// / nFirstStrip   <-> input: ref to index of first invalid strip (it is now emptied of piles)
+// /                   output: same as value input, refilling doesn't affect this value
+// / nLastStrip    <-> input: ref to index of last invalid strip (it is now emptied of piles)
+// /                   output: index of last rebuilt strip (it could be less than, the same,
+// /                   or greater than what was input - depending on whether pile widths
+// /                   have changed, and how many there are to be placed
+// / nStripWidth   ->  used for initializing m_nFree member of CStrip - we will need this
+// /                   if we have to create one or more extra strips to accomodate all the
+// /                   new CPile pointers to be placed in the rebuilt strips
+// / gap           ->  the interpile gap (in pixels) - we need this for filling the emptied
+//                     strips with the appropriate gap between each pile
+// / pBeforePile   ->  pointer to the CPile pointer for the pile in CLayout::m_pileList which
+// /                   is the last in the (valid) strip immediately preceding the user's editing
+// /                   area; but if the user's editing area includes the first strip of the
+// /                   document, it will be NULL that is passed in (we use this as a flag)
+// / pAfterPile   ->   pointer to the CPile pointer for the pile in CLayout::m_pileList which
+// /                   is the first in the (valid) strip immediately following the user's editing
+// /                   area; but if the user's editing area includes the last strip of the
+// /                   document, it will be NULL that is passed in (we use this as a flag)
+// / posBegin     ->   iterator specifying the beginning position in m_pileList for the
+// /                   first CPile pointer to be placed in the rebuilt strips; but if
+// /                   pBeforePile is NULL, then it too will be NULL and we'll find the
+// /                   pile's position internally instead -- it will be the first in the doc
+// / posEnd       ->   iterator specifying the position in m_pileList for the last CPile pointer
+// /                   which needs to be placed in the rebuilt strips; but if pAfterPile is
+// /                   NULL then it too will be NULL and we'll use this fact to just place
+// /                   all the remaining piles as the ending strips of the document and if
+// /                   last strip is unfilled, we set m_bValid = TRUE anyway, because we
+// /                   at the document's end
+// / pos          ->   the iterator which traverses m_pileList from the first CPile
+// /                   pointer to be placed, to the one at posEnd, inclusive
+// / nInitialStripCount    ->  count of how many strips were emptied by the last function call
+// /                           in the caller; we use this to initialize the return value
+// / \remarks
+// / The function fills the strips with the pile pointers resulting from the user's edits,
+// / adding strips if necessary, or removing empty strips left over when done. Each completed
+// / strip is marked m_bValid = TRUE, but the last is marked m_bValid = TRUE only if we check
+// / and find that the pAfterPile is too wide to fit in that strip, or if we are at the end
+// / of the document, otherwise it is left with a FALSE value. (When Draw() sees a strip with
+// / m_bValid == FALSE and the strip is in the visible area of the view, it will attempt to
+// / flow one or more piles up to fill the strip, and similarly for strips lower down but 
+// / visible and which become invalid because they lose one or more piles due to the upward
+// / flow to fill the strip above, iterating until it comes to an off-view strip - at which
+// / point it leaves that strip marked as invalid - and it remains so until at some later
+// / time if becomes visible and drawn, or a full destroy all strips and rebuild is done due
+// / to some operation which requires it (such as changing the font size, etc).
+//***************************************************************************************
+int CLayout::RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
+		int nStripWidth, int gap, CPile* pBeforePile, CPile* pAfterPile, 
+		PileList::Node* posBegin, PileList::Node* posEnd, PileList::Node* pos,
+		int nInitialStripCount)
+{
+	int nFinalStripCount = nInitialStripCount;
+
+
+
+
+	return nFinalStripCount;
+}
+
+
+// AdjustForUserEdits() adjusts the CStrip instances in the layout, when RecalcLayout()
+// was called with input enum value keep_strips_keep_piles, where the user did his last
+// editing or movement of the phrase box. It includes a "fail-safe" mechanism too.
+// 
+// We don't try to get exactly the first and last of the edited piles delineated, that's
+// too fiddly, the strips they reside in is sufficient, since a few dozen strips being
+// rebuild can be done really fast. If the active strip is a ways off from where the
+// editing was done, we extend the strip range to include the active strip - except when
+// the active strip is more than the number of visible strips away from the editing area -
+// if that is the case, we just forget about updating the old active strip because it is
+// probably off-screen anyway, and the Draw() function will, if it remains invalid at the
+// present time, fix this when it next becomes visible.
+// 
+// Return TRUE if the adjustment went without error, return FALSE if the user edits area
+// was not defined and so GetPilesBoundingTheInvalidStrips() internally called
+// RecalcLayout() with parameter create_strips_keep_piles in order to get a valid layout
+// recalculation be destroying and recreating all the strips.
+bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
+{
+	int nIndexWhereEditsStart = -1;
+	int nIndexWhereEditsEnd = -1;
+	int nVisStrips = GetVisibleStrips(); // get count of how many strips fit in client area
+
+	// interrogate the active location and the CLayout::m_invalidStripArray to work out
+	// which strips, at the last user editing operation, were marked as invalid
+	GetInvalidStripRange(nIndexWhereEditsStart, nIndexWhereEditsEnd, nVisStrips);
+
+	// use the invalid strip range to get the CPile pointers which bound either end, that
+	// is, the last pile of the preceding (valid) strip, and the first pile of the
+	// following (valid) strip. If the last strip in the document is invalid, there will
+	// be no "after" bounding CPile pointer, so it will be returned as NULL. The "after"
+	// pointer is crutial - it is found in the strip array, and being a copy of a pile
+	// pointer in CLayout::m_pileList, by searching in the latter we can determine a
+	// location where we know the user's edits have not changed anything at that point and
+	// beyond - it is this fact alone which gives us a bound for halting the strip so as
+	// to keep strip updates of short duration - otherwise we'd be updating strips to the
+	// end of the document at every user edit.
+	CPile* pBeforePile = NULL;
+	CPile* pAfterPile = NULL;
+	bool bWasSuccessful = GetPilesBoundingTheInvalidStrips(nIndexWhereEditsStart, 
+											nIndexWhereEditsEnd, pBeforePile, pAfterPile);
+	if (!bWasSuccessful)
+		return FALSE; // enable caller to inform RecalcLayout() to exit early because layout 
+					  // was done by reentering RecalcLayout() within 
+					  // GetPilesBoundingTheInvalidStrips(), and the active pile reset too
+
+	// we now have pBeforePile and pAfterPile set, remember pAfterPile will be NULL if the
+	// last strip in the document was marked invalid and that strip was at the start of
+	// the user's current editing location; and / or pBeforePile will be NULL if
+	// the first strip in the document was marked invalid and that strip was at the end of
+	// the user's current editing location
+
+	// define an iterator for the m_pileList list, and determine the iterator values for
+	// the bounding piles, pBeforePile and pAfterPile, (leave NULL if the pile pointer was
+	// NULL) and define some local booleans to simplify keeping track 
+	// of what situation we have
+	PileList::Node* posBegin = NULL;
+	PileList::Node* posEnd = NULL;
+	PileList::Node* pos = NULL;
+	bool bEditsGoToDocStart = TRUE;
+	bool bEditsGoToDocEnd = TRUE;
+	if (pBeforePile != NULL)
+	{
+		posBegin = m_pileList.Find(pBeforePile);
+		wxASSERT(posBegin);
+		bEditsGoToDocStart = FALSE;
+	}
+	if (pAfterPile != NULL)
+	{
+		posEnd = m_pileList.Find(pAfterPile);
+		wxASSERT(posEnd);
+		bEditsGoToDocEnd = FALSE;
+	}
+	pos = posBegin; // either NULL, or a valid iterator value
+
+	// now empty the invalid strips - these are always contiguous and in a block, not a
+	// discontinuous set; the m_arrPiles, and m_arrPileOffsets arrays are cleared, and the
+	// m_nFree member reinitialized to the nStripWidth value, and a count of how many were
+	// cleared is returned. Other members of the strip are not changed.
+	int nHowManyStrips = EmptyTheInvalidStrips(nIndexWhereEditsStart, 
+												nIndexWhereEditsEnd, nStripWidth);	
+
+	// now rebuild the emptied strips, from the sublist of CPile pointers defined by the
+	// posBegin and posEnd values, or by doc start or end if one or both is NULL,
+	// respectively. Return a count of how many strips comprise the rebuilt area in the
+	// strip array. The last rebuilt strip will usually be marked m_bValid = FALSE. (It is
+	// the Draw() function's job to flow piles up as necessary to fill any strips in the
+	// visible range that are marked as invalid still.)
+	int nHowManyNewStrips = RebuildTheInvalidStripRange(nIndexWhereEditsStart, 
+								nIndexWhereEditsEnd, nStripWidth, gap, pBeforePile, 
+								pAfterPile, posBegin, posEnd, pos, nHowManyStrips);
+
+	return TRUE;
+}
+
+
+
 

@@ -449,7 +449,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		// the strip full
 		if (m_nFree <= 0)
 		{
-			m_bFilled = TRUE;
+			m_bValid = TRUE;
 			return pos;
 		}
 
@@ -472,7 +472,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				{
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
-					m_bFilled = TRUE;
+					m_bValid = TRUE;
 					return pos;
 				}
 			}
@@ -507,7 +507,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{
 				// this pile won't fit, so the strip is full - declare it full and return
 				// the pile list's index for use in the next strip's creation
-				m_bFilled = TRUE;
+				m_bValid = TRUE;
 				return pos;
 			}
 
@@ -568,7 +568,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		// the strip full
 		if (m_nFree <= 0)
 		{
-			m_bFilled = TRUE;
+			m_bValid = TRUE;
 			//return nPileIndex_InList;
 			return pos;
 		}
@@ -590,7 +590,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 				{
 					// if we need to wrap, discontinue assigning piles to this strip (the
 					// nPileIndex_InList value is already correct for returning to caller)
-					m_bFilled = TRUE;
+					m_bValid = TRUE;
 					//return nPileIndex_InList;
 					return pos;
 				}
@@ -627,7 +627,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			{
 				// this pile won't fit, so the strip is full - declare it full and return
 				// the pile list's index for use in the next strip's creation
-				m_bFilled = TRUE;
+				m_bValid = TRUE;
 				return pos;
 			}
 
@@ -649,7 +649,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 	// if the loop exits because the while test yields FALSE, then either we are at the end of the
 	// document or the first pile was wider than the whole strip - in either case we must declare
 	// this strip filled and we are done
-	m_bFilled = TRUE;
+	m_bValid = TRUE;
 	return pos; // the iterator value where we start when we create the next strip
 }
 #endif
@@ -690,12 +690,13 @@ void CStrip::SetFree(int nFree)
 	m_nFree = nFree;
 }
 
-// validity flag (currently m_bFilled, but, TODO, later will be m_bValid)
+// set the value of the validity flag 
 void CStrip::SetValidityFlag(bool bValid)
 {
 	m_bValid = bValid;
 }
 
+// get the validity flag's value
 bool CStrip::GetValidityFlag()
 {
 	return m_bValid;

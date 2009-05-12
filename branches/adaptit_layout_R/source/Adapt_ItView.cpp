@@ -2275,7 +2275,6 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	targetPhrase = pApp->m_pTargetBox->GetValue();
 	wxString saveStr = targetPhrase; // make a copy in case we later have to abort 
 									 // the operation
-	CLayout* pLayout = GetLayout();
 
 	// BEW added 18July08, to support leaving cursor at paste location 
 	// (see Roland Fumey request below)
@@ -2355,9 +2354,6 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	wxASSERT(pApp->m_nActiveSequNum >= 0);
 
 	gnBoxCursorOffset = nStart + pasteStrLength;
-	pLayout->m_docEditOperationType = target_box_paste_op;
-	pLayout->m_userEditsSpanCheckType = scan_in_active_area_proximity; // active 
-														// loc +- max 80 (piles)
 
 	// make the layout adjustments get done and then the draw and showing of the 
 	// relocated phrase box
@@ -3567,9 +3563,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CPile* pClickedPile = pCell->GetPile();
 	wxASSERT(pClickedPile);
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
+//#endif
 	
 	// if there is no active pile defined, construct one at the clicked location,
 	// or at whatever cell pointer was passed in - eg. when having just opened a document,
@@ -3616,9 +3612,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			bNoError = SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key);
 		}
 	}
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),2,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),2,pApp->m_nActiveSequNum);
+//#endif
 
     // Also inhibit if it is a "<Not In KB>" location where there is something in the
     // phrase box but the m_bSaveToKB flag is still off (FALSE) - but only provided we are
@@ -3661,9 +3657,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 			// BEW changed 27Jun05, for free translation support - added test for selector == 3
 			// selector values 0 and 3 are the only ones which permit saving the old
 			// location's text to the KB
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),3,pApp->m_nActiveSequNum);
+//#endif
 			if (selector == 0 || selector == 3)
 			{
 				// user has not typed anything at the new location yet
@@ -3703,9 +3699,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 					{
 						bOK = DoStore_ForPlacePhraseBox(pApp, pApp->m_targetPhrase);
 					}
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),4,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),4,pApp->m_nActiveSequNum);
+//#endif
 				} // end block for test !pApp->m_targetPhrase.IsEmpty() == TRUE
 				else
 				{
@@ -3725,9 +3721,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						gSaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),5,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),5,pApp->m_nActiveSequNum);
+//#endif
 						return;
 					}
 				} // end else block for test:  !pApp->m_targetPhrase.IsEmpty() i.e. block for empty m_targetPhrase
@@ -3746,9 +3742,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// bNoActiveLocationCalculation is TRUE to suppress the wide gap calculation
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase,TRUE);
 	}
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),6,pApp->m_nActiveSequNum);
+//#endif
 
 	// honour the click
 	CPile* pActivePile = pClickedPile;	// the clicked pile now has to become the 
@@ -3757,9 +3753,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 
 	// remove any existing selection
 	RemoveSelection();
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),7,pApp->m_nActiveSequNum);
+//#endif
 
     // setup the layout and phrase box at the new location; in the refactored design this
     // boils down to working out what the new active location's sequence number is, and
@@ -3808,9 +3804,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
                                 // value that it sets in the active pile's m_nWidth member
 		goto a;
 	}
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),8,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),8,pApp->m_nActiveSequNum);
+//#endif
 
     // if we are attempting to place the box on a location where the entry is "<Not In
     // KB>", then we do so but adjust the flags to fit this situation; if not locating at a
@@ -3844,9 +3840,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same
 							// value that it sets in the active pile's m_nWidth member
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),9,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),9,pApp->m_nActiveSequNum);
+//#endif
 		goto a;
 	}
 	else
@@ -3874,9 +3870,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 		// - these conditions are guaranteed by code above in this function (360 lines up)
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same 
 							// value that it sets in the active pile's m_nWidth member
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),10,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),10,pApp->m_nActiveSequNum);
+//#endif
 		goto a;
 	}
 
@@ -3914,9 +3910,9 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // location
 	DoGetSuitableText_ForPlacePhraseBox(pApp, pSrcPhrase, selector, pActivePile, str, 
 										bHasNothing, bNoValidText, bSomethingIsCopied);
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),11,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),11,pApp->m_nActiveSequNum);
+//#endif
 
 a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on 
 				// 28April05 to the code now in the DoGetSuitableText_ForPlacePhraseBox()
@@ -3943,12 +3939,14 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // the view's Invalidate() call is made below (Note: later, we can replace this
     // RecalcLayout() call with a call to the faster AdjustForUserEdits(), which also
     // likewise calls ResetPartnerPileWidth() - for the same reason as given above)
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),12,pApp->m_nActiveSequNum);
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),12,pApp->m_nActiveSequNum);
+//#endif
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-	pLayout->m_userEditsSpanCheckType = scan_from_doc_ends;
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);	// rebuild strips, but don't recreate 
-													// the piles in m_pileList
 
     // update the active pile pointer to point at the refreshed pile pointer which the
     // RecalcLayout() call created
@@ -3961,9 +3959,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	{
 		pDoc->ResetPartnerPileWidth(pSPhr); 										
 	}
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),13,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),13,pApp->m_nActiveSequNum);
+//#endif
 
     // we had to delay the call of DoCancelAndSelect() until now because earlier
     // RecalcLayout() calls will clobber any selection we try to make beforehand, so do the
@@ -4001,9 +3999,9 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 	// calls wxTextCtrl::DiscardEdits() -- 3Apr09 moved to CLayout::PlacePhraseBoxInLayout()'s switch
 
 	gbCompletedMergeAndMove = FALSE;
-#ifdef __WXDEBUG__
-	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
-#endif
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
+//#endif
 	Invalidate();
 }
 
@@ -6308,7 +6306,11 @@ e:	bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequ
 	// recalc the layout with the new width (note, the gbPrintingRange value being TRUE means
 	// that the SaveSelection() and RestoreSelection() calls in RecalcLayout() do nothing)
 	//RecalcLayout(pList,0,pApp->m_pBundle);
-	pLayout->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 
 	// hide the box, and set safe values for a non-active location (leave m_targetPhrase
 	// untouched)
@@ -6959,7 +6961,14 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	*/
 	//RedrawEverything(activeSequNum);
 	// Probably we should recreate the piles too, as widths may be different
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, TRUE); // TRUE means "destroy and recreate the piles as well"
+	// *** TODO **** we may want to be smarter here so that we don't create piles and
+	// strips again unnecessarily - eg. if user changes the colour of text only, no
+	// recalculation of the layout would be needed
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
 
 	int len;
 	// BEW modified 3Apr08, restore focus to the phrase box, except when in free translation
@@ -9289,9 +9298,8 @@ ins:	;
 			// wx Insert() does the same thing as MFC's InsertBefore()
 
 			// BEW added 13Mar09 for refactored layout
-			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
-			GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	
-			// the above value is for passing to CLayout::AdjustForUserEdits()
+			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks its or a
+														// nearby strip as invalid
 
 			// break out of loop if we have come to the end of the replacements list
 			if (pReplaceSrcPhrase == NULL)
@@ -9333,7 +9341,7 @@ ins:	;
 				// TODO: 20Oct08 Fix program CRASH on call to DeleteNote 
 				// (see Tok Pisin Fragment 1John.xml)
 				pApp->GetDocument()->DeleteSingleSrcPhrase(pSrcPhrase); // delete pSrcPhrase
-						// and its elements from memory locations
+					// and its elements from memory locations; also calls DeletePartnerPile()
 				pMasterList->DeleteNode(posSaved);	// delete the list's pSrcPhrase element
 				// break out of the loop if we have come to the end of the pMasterList
 				if (posMaster == NULL)
@@ -9358,9 +9366,8 @@ ins:	;
 					pos2 = pMasterList->Append(pDeepCopiedSrcPhrase);
 
 					// BEW added 13Mar09 for refactored layout
-					pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
-					GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;
-					// above value is for passing to CLayout::AdjustForUserEdits()
+					pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase); // also marks the owning
+													// strip, or a nearby one, as invalid
 
 					// break out of loop if we have come to the end of the replacements list
 					if (pReplaceSrcPhrase == NULL)
@@ -9579,6 +9586,9 @@ bool CAdapt_ItView::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 	}
 	// the shift is possible, so do it
 	MoveNote(pOriginalSrcPhrase,pDestSrcPhrase);
+	// mark the one or both owning strips invalid
+	GetDocument()->ResetPartnerPileWidth(pOriginalSrcPhrase); // mark its strip invalid
+	GetDocument()->ResetPartnerPileWidth(pDestSrcPhrase); // mark its strip invalid
 	return TRUE;
 }
 
@@ -9736,6 +9746,8 @@ bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 		bool bInsertContentOnly = FALSE; // need the whole lot done, including wrapping filter markers
 		InsertFilteredMaterial(noteMkr,noteEndMkr,strNote,pToSrcPhrase,nInsertionOffset,bInsertContentOnly);
 		pToSrcPhrase->m_bHasNote = TRUE;
+		// mark its owning strip as invalid
+		GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
 	}
 	return TRUE;
 }
@@ -11457,7 +11469,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	}
 
 	// update the layout and get a fresh active pile pointer
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	// the active pile must not contain a retranslation, since we want to put the phrase box
@@ -11477,7 +11493,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 				pApp->m_nActiveSequNum = 0;
 				pPile = GetPile(0);
 				pApp->m_targetPhrase = pPile->GetSrcPhrase()->m_adaption;
-				GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+				GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+				GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 				pApp->m_pActivePile = GetPile(0);
 				return;
 			}
@@ -11490,8 +11510,9 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		// handle the possibility that the new active location might be a "<Not In KB>" one
 		if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		{
-			// this ensures user has to explicitly type into the box and explicitly check the
-			// checkbox if he wants to override the "not in kb" earlier setting at this location
+            // this ensures user has to explicitly type into the box and explicitly check
+            // the checkbox if he wants to override the "not in kb" earlier setting at this
+            // location
 			pApp->m_bSaveToKB = FALSE;
 			pApp->m_targetPhrase.Empty();
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
@@ -11563,7 +11584,11 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	//GetLayout()->m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // gets the gap width 
 									// set, & a copy in to CLayout::m_curBoxWidth
 	// recalculate the layout
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 
 	// recalculate the active pile
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -11807,7 +11832,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	}
 
 	// update the layout and get a fresh active pile pointer
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	// the active pile must not contain a retranslation, since we want to put the phrase box
@@ -11827,7 +11856,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 				pApp->m_nActiveSequNum = pApp->GetMaxIndex();
 				pPile = GetPile(pApp->m_nActiveSequNum);
 				pApp->m_targetPhrase = pPile->GetSrcPhrase()->m_adaption;
-				GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+				GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+				GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 				pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 				return;
 			}
@@ -11913,7 +11946,11 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 								// width set, & a copy in to CLayout::m_curBoxWidth
 
 	// recalculate the layout
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 	
 	// recalculate the active pile
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -12234,7 +12271,11 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	} // end block for "not free translation mode"
 
 	// update the layout and get a fresh active pile pointer
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -12556,7 +12597,11 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	} // end block for "not free translation mode"
 
 	// update the layout and get a fresh active pile pointer
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -13704,7 +13749,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	//RemoveSelection();
 
 	// recalculate the layout
-	pLayout->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 
 	// get a new (valid) active pile pointer, now that the layout is recalculated
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -13897,7 +13946,6 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 
 		// BEW added 13Mar09 for refactored layout
 		GetDocument()->CreatePartnerPile(pSP);
-		GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
 
 		// since we must now insert before the inserted node above, we need to get a
 		// previous node (which will actually be the just inserted source phrase)
@@ -14125,6 +14173,10 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 		pSrcPhrase = pPile->GetSrcPhrase();
 		nSaveSequNum = pSrcPhrase->m_nSequNumber; // save its sequ number, everything
 												  // depends on it
+		// the active location may be remote from where the unmerge is done, so make sure
+		// the active strip is marked invalid too
+		pDoc->ResetPartnerPileWidth(pSrcPhrase); // FALSE for param 
+														// bNoActiveLocationCalculation
 
         // there could be an edited phrase waiting for a RETURN key press, and the
         // selection may be on a different pile, in which case unless we update the active
@@ -14147,8 +14199,11 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 			else
 			{
 				// make the pile at start of former strip have a new pointer - new layout
-				// code will then tweak the layout from that point on
+				// code will then tweak the layout from that point on; if there is no
+				// former strip, use the current one instead
 				int nFormerStrip = pActivePile->GetStripIndex();
+				pDoc->ResetPartnerPileWidth(pActivePile->GetSrcPhrase()); // mark the
+																// active strip invalid
 				pApp->m_pTargetBox->SetValue(_T("")); // we don't want the former active 
 										// pile's text to be carried to the selected pile
 				int nCurStripIndex = pStartingPile->GetStripIndex();
@@ -14162,6 +14217,8 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 					CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
 #endif
 					CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
+					// also mark the former strip invalid (ensures we include all piles
+					// that might require updating)
 					pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase, TRUE); // TRUE is 
 														// bNoActiveLocationCalculation
 					//LayoutStrip(pSrcPhrases,nFormerStrip,pApp->m_pBundle);
@@ -14172,11 +14229,15 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	}
 	else // there is no current selection
 	{
-		// no selection, so just remove the merger at wherever the phraseBox currently is located
+        // no selection, so just remove the merger at wherever the phraseBox currently is
+        // located 
 		pPile = pApp->m_pActivePile;
 		pStartingPile = pPile;
 		pSrcPhrase = pPile->GetSrcPhrase();
-		nSaveSequNum = pSrcPhrase->m_nSequNumber; // save its sequ number, everything depends on it
+		nSaveSequNum = pSrcPhrase->m_nSequNumber; // save its sequ number, 
+												  // everything depends on it		
+		pDoc->ResetPartnerPileWidth(pSrcPhrase); // FALSE for 
+												   // bNoActiveLocationCalculation
 	}
 
 	// make m_targetPhrase cleared, as it must accumulate any existing translations
@@ -14238,7 +14299,11 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	RemoveSelection();
 
 	// recalculate the layout
-	GetLayout()->RecalcLayout(pSrcPhrases); // don't recreate the piles, just the strips
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 
 	// get a new (valid) active pile pointer, now that the layout is recalculated
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -14297,7 +14362,11 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 		}
 
 		// need to recalc layout again
-		GetLayout()->RecalcLayout(pSrcPhrases); // don't recreate the piles, just the strips
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		wxASSERT(pApp->m_pActivePile != NULL);
 	}
@@ -16916,7 +16985,11 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter() // this one is public
 
 		// we need a valid layout which includes the new dummy element on its own pile
 		pApp->m_nActiveSequNum = pApp->GetMaxIndex();
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporary active 
 													// location, at the dummy one
 		// now we can do the insertion
@@ -16950,7 +17023,11 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter() // this one is public
 
 		// get another valid layout
 		pApp->m_nActiveSequNum = pApp->GetMaxIndex();
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporarily at the end, caller will fix
 		nSequNum = pApp->GetMaxIndex();
 		//nSequNum = GetLayout()->IndexOf(pApp->m_pActivePile); // needlessly complex
@@ -17112,11 +17189,16 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			// now we need to add a partner pile for it in CLayout::m_pileList
 			pDoc->CreatePartnerPile(pDummySrcPhrase);
 
-			// we need a valid layout which includes the new dummy element on its own pile
+			// we need a valid layout which includes the new dummy element on 
+			// its own pile
 			pApp->m_nActiveSequNum = pApp->GetMaxIndex();
-			GetLayout()->RecalcLayout(pSrcPhrases);
-			pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporary active location, at the dummy one
-
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
+			pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporary 
+											// active location, at the dummy one
 			// now we can do the insertion
 			pInsertLocPile = pApp->m_pActivePile;
 			nSequNum = pApp->GetMaxIndex();
@@ -17124,10 +17206,10 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		/* removed 13Apr09 because there are no bundles now
 		else
 		{
-			// we are not out of the woods yet; the selection end, or the active location if no
-			//selection, may be at the very end of the bundle, so a call to GetNextPile() would
-			// return null in that case, and we would crash - so we must check for an advance, do
-			// it if needed, and then get the next pile etc.
+            // we are not out of the woods yet; the selection end, or the active location
+            // if no selection, may be at the very end of the bundle, so a call to
+            // GetNextPile() would return null in that case, and we would crash - so we
+            // must check for an advance, do it if needed, and then get the next pile etc.
 			CPile* pPile = GetNextPile(pInsertLocPile);
 			if (pPile == 0)
 			{
@@ -17164,7 +17246,11 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 
 			// get another valid layout
 			pApp->m_nActiveSequNum = pApp->GetMaxIndex();
-			GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->GetMaxIndex()); // temporarily at the end, caller will fix
 			nSequNum = pApp->GetMaxIndex();
 		}
@@ -17498,7 +17584,6 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 
 		// BEW added 13Mar09 for refactored layout
 		pDoc->CreatePartnerPile(pSrcPhrasePH);
-		GetLayout()->m_userEditsSpanCheckType = scan_from_big_jump;	// for passing to CLayout::AdjustForUserEdits()
 	}
 
 	// fix up the bundle's indices, and the sequ num for the old insert location's source phrase
@@ -18066,7 +18151,11 @@ a:				bAssociatingRightwards = FALSE;
 	}
 
 	// recalculate the layout
-m:	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+m:	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	wxASSERT(pApp->m_pActivePile);
 
@@ -18384,8 +18473,6 @@ void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCoun
 
 		// BEW added 13Mar09 for refactored layout
 		GetDocument()->DeletePartnerPile(pSrcPhrase);
-		GetLayout()->m_userEditsSpanCheckType = scan_from_big_jump;	// for passing
-												// to CLayout::AdjustForUserEdits()
 		removePos = removePos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
 		pRefString = GetRefString(GetKB(),pSrcPhrase->m_nSrcWords,
@@ -18452,7 +18539,11 @@ b:		pApp->m_pActivePile = pNewPile;
 		pApp->m_targetPhrase = pSP->m_adaption;
 
 	// recalculate the layout
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 
 	// get a new (valid) active pile pointer, now that the layout is recalculated
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -21134,7 +21225,11 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 					pApp->m_nActiveSequNum = nActiveSequNum; // added 16Apr09, should be okay
 					// and is needed because CLayout::RecalcLayout() relies on the
 					// m_nActiveSequNum value being correct
-					pLayout->RecalcLayout(pPhrases);
+#ifdef _NEW_LAYOUT
+					pLayout->RecalcLayout(pPhrases, keep_strips_keep_piles);
+#else
+					pLayout->RecalcLayout(pPhrases, create_strips_keep_piles);
+#endif
 					pApp->m_pActivePile = GetPile(nActiveSequNum);
 					//pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile;
 					
@@ -21993,10 +22088,8 @@ void CAdapt_ItView::BuildRetranslationSourcePhraseInstances(SPList* pRetransList
 			wxASSERT(pSrcPhrase->m_nSequNumber == pIncompleteSrcPhrase->m_nSequNumber);
 
 			// BEW added 13Mar09 for refactored layout
-			pDoc->ResetPartnerPileWidth(pSrcPhrase); // resets width
-							// & makes a CPile copy & replaces original with it
-			GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for
-							// passing to CLayout::AdjustForUserEdits()
+			pDoc->ResetPartnerPileWidth(pSrcPhrase); // resets width and marks the
+													 // owning strip invalid
 		}
 
         // if nNewCount was less than nCount, we must clear any old punctuation off the
@@ -22112,7 +22205,11 @@ void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItAp
 			// we need a valid layout which includes the new dummy element on its own pile
 			//RecalcLayout(pSrcPhrases,0,pApp->m_pBundle);
 			pApp->m_nActiveSequNum = nEndIndex; // temporary location only
-			GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum); // temporary active location
 
 			// now we can do the insertions, preceding the dummy end pile
@@ -22205,7 +22302,6 @@ void CAdapt_ItView::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, in
 
 		// BEW added 13Mar09 for refactored layout
 		GetDocument()->CreatePartnerPile(pSPhr);
-		GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for passing to CLayout::AdjustForUserEdits()
 
 		// since we must now insert before the inserted node above, we need to get a
 		// previous node (which will actually be the just inserted source phrase)
@@ -22583,10 +22679,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		}
 		else
 		{
-			// make the pile at start of former strip have a new pointer - new layout
-			// code will then tweak the layout from that point on (see also
-			// OnButtonRestore() at lines 14,014 to 14,026)
+            // make the former strip be invalid - new layout code will then tweak the
+            // layout from that point on; mark it invalid as well as the current one
 			int nFormerStrip = pApp->m_pActivePile->GetStripIndex();
+			pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // mark active strip
+																			  // invalid
 			int nCurStripIndex = pStartingPile->GetStripIndex();
 			if (nCurStripIndex != nFormerStrip)
 			{
@@ -22670,7 +22767,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
     // dialog about to be put up, accesses to Draw() for the cells, piles & strips will
     // fail.
 	pApp->m_nActiveSequNum = nSaveActiveSequNum; // could be a wrong location eg. in the retrans
-	GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	// create the CRetranslationDlg dialog
@@ -22746,7 +22847,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		// deleted, then the layout's pointers will be clobbered; but we won't draw it yet
 		// because later we must ensure the active location is not within the
 		// retranslation and set it safely before a final layout calculation to get it all correct
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 		// get a new valid starting pile pointer
@@ -22913,7 +23018,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 
 	// recalculate the layout
 	pApp->m_nActiveSequNum = nSaveActiveSequNum;
-	GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
 
 	// get the CSourcePhrase at the active location
@@ -22979,7 +23088,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		// RecalcLayout(pSrcPhrases,nStartingStripIndex,pBundle);
 		// can fail if the recalculated bundle has fewer strips than nStartingStripIndex, so use 
 		// 0 to be always safe
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		
 		// create the phraseBox at the active pile
@@ -23304,6 +23417,8 @@ h:				wxMessageBox(_(
 					// code will then tweak the layout from that point on (see also
 					// OnButtonRestore() at lines 14,014 to 14,026)
 					int nFormerStrip = pApp->m_pActivePile->GetStripIndex();
+					pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // mark owning
+																					// strip invalid
 					int nCurStripIndex = pStartingPile->GetStripIndex();
 					if (nCurStripIndex != nFormerStrip)
 					{
@@ -23314,6 +23429,7 @@ h:				wxMessageBox(_(
 						CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
 #endif
 						CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
+						// mark this strip invalid too (a little extra insurance)
 						pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase, TRUE); // TRUE
 														// is bNoActiveLocationCalculation
 						// layout the former strip too, if it is not the current one
@@ -23469,7 +23585,11 @@ h:				wxMessageBox(_(
 	// because if preceding code deleted null phrases, the layout's pointers would be clobbered
 	// and moving the dialog window would crash the app when Draw messages use the dud pointers
 	pApp->m_nActiveSequNum = nSaveActiveSequNum; // could be a wrong location eg. in the retrans
-	GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	bool bConstType;
@@ -23527,7 +23647,11 @@ h:				wxMessageBox(_(
         // we must have a valid layout, so we have to recalculate it before we go any
         // further, because if preceding code deleted null phrases, then the layout's
         // pointers will be clobbered
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 		// get a new valid starting pile pointer
@@ -23670,8 +23794,6 @@ h:				wxMessageBox(_(
 
 			// BEW added 13Mar09 for refactored layout
 			GetDocument()->CreatePartnerPile(pSPhr);
-			GetLayout()->m_userEditsSpanCheckType = scan_in_active_area_proximity;	// for
-												// passing to CLayout::AdjustForUserEdits()
 
 			// since we must now insert before the inserted node above, we need to get a
 			// previous node (which will actually be the just inserted source phrase)
@@ -23823,7 +23945,11 @@ h:				wxMessageBox(_(
     // recalculate the layout from the first strip in the selection, 
     // to force the text to change color
 	pApp->m_nActiveSequNum = nSaveActiveSequNum;
-	GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
 
 	// get the CSourcePhrase at the active location
@@ -23900,7 +24026,11 @@ h:				wxMessageBox(_(
         // text (can't just layout the strip, because if the text is long then source
         // phrases get pushed off into limbo and we get access violation & null pointer
         // returned in the GetPile call)
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		
 		// get a new valid active pile pointer
@@ -24014,6 +24144,7 @@ h:				wxMessageBox(_(
 	if (pApp->m_pActivePile != NULL)
 	{
 		CSourcePhrase* pActiveSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+		pDoc->ResetPartnerPileWidth(pActiveSrcPhrase); // mark its strip as invalid
 		SPList::Node* pos = pList->GetFirst();
 		bool bInSelection = FALSE;
 		while (pos != NULL)
@@ -24042,9 +24173,8 @@ h:				wxMessageBox(_(
 							// is supplied for the former active pile's srcPhrase
 				else
 				{
-					// make the pile at start of former strip have a new pointer - new layout
-					// code will then tweak the layout from that point on (see also
-					// OnButtonEditRetranslation() at lines 23,166 to 23,173)
+					// make the former strip be marked invalid - new layout
+					// code will then tweak the layout from that point on
 					int nFormerStrip = pApp->m_pActivePile->GetStripIndex();
 					int nCurStripIndex = pStartingPile->GetStripIndex();
 					if (nCurStripIndex != nFormerStrip)
@@ -24056,6 +24186,7 @@ h:				wxMessageBox(_(
 						CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
 #endif
 						CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
+						// mark this strip as invalid too (some extra insurance)
 						pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase,TRUE); // TRUE 
 													// is bNoActiveLocationCalculation
 						// layout the former strip too, if it is not the current one
@@ -24202,7 +24333,11 @@ h:				wxMessageBox(_(
 	pApp->m_nActiveSequNum = nStartingSequNum;
 
 	// now do the recalculation of the layout & update the active pile pointer
-	GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum); // need this up-to-date so that
 				// RestoreTargetBoxText( ) call will not fail in the code which is below
 	// get the text to be displayed in the target box, if any
@@ -25026,7 +25161,11 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		// calculation is needed, so just reset the active location, recalculate the
 		// layout and scroll into view
 		pApp->m_nActiveSequNum = nNewSequNum;
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
 		/* old code
@@ -28302,9 +28441,11 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			pApp->m_targetPhrase = finalStr;
 			RemoveSelection();
 
-			//ReDoPhraseBox(pCell); // clobbers pointers, because does a RecalcLayout()
-			//
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			GetLayout()->m_docEditOperationType = default_op; // sets 0,-1 'select all'
 
 			// get a new active pile pointer, the PlacePhraseBox call did a recalc of the layout
@@ -28397,7 +28538,11 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 
 			//ReDoPhraseBox(pCell); // clobbers pointers, because does a RecalcLayout()
 			//
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			GetLayout()->m_docEditOperationType = default_op; // sets 0,-1 'select all'
 
 			// get a new active pile pointer, the PlacePhraseBox call did a recalc of the layout
@@ -29228,7 +29373,11 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 	// redraw everything -- RecalcLayout uses the m_bRTL_LAYOUT flag in the CreateStrip() function
 	// RedrawEverything(pApp->m_nActiveSequNum);
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	// restore focus to the targetBox, if it is visible
@@ -29471,7 +29620,11 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 		// OnNewDocument() and all this re-calling of RecalcLayout() is bad design. Let's
 		// see if this safety first test gets us past the crash, and maybe later we can
 		// tidy up the design to be less redundant on the layout calls. *** TODO ***
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		Invalidate();
 	}
@@ -29806,7 +29959,11 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 			}
 			//RedrawEverything(pApp->m_nActiveSequNum);
 			CLayout* pLayout = GetLayout();
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			Invalidate();
 		}
@@ -30134,7 +30291,11 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 			{
 				if (!pApp->m_pSourcePhrases->IsEmpty())
 				{
-					pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+					pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+					pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 				}
 				Invalidate();
@@ -30256,7 +30417,11 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 			pToolBar->Realize();
 			//RedrawEverything(pApp->m_nActiveSequNum);
 			CLayout* pLayout = GetLayout();
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			Invalidate();
 		}
@@ -30373,7 +30538,11 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 			{
 				if (!pApp->m_pSourcePhrases->IsEmpty())
 				{
-					pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+					pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+					pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 				}
 				Invalidate();
@@ -30441,7 +30610,11 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 	{
 		if (!pApp->m_pSourcePhrases->IsEmpty())
 		{
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		}
 		Invalidate();
@@ -31761,7 +31934,11 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 		int saveSequNum = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 		pApp->m_nActiveSequNum = saveSequNum; // BEW added 18Apr09
 		OnButtonMerge(event);
-		GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = GetPile(saveSequNum);
 		pCurPile = pApp->m_pActivePile;
 	}
@@ -31807,7 +31984,11 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 		bOK = StoreText(pApp->m_pKB,pCurPile->GetSrcPhrase(),pApp->m_targetPhrase,TRUE);
 
 	// layout the strips
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	
 	/* old code
@@ -36287,7 +36468,11 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 	// layout to ensurer that the targetBox won't encroach on the next cell's 
 	// adaption text 
 	//RecalcLayout(pSrcPhrases,0,pApp->m_pBundle);
-	GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 
 	// get a new valid active pile pointer
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -36725,7 +36910,11 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	}
 	//RedrawEverything(nSequNum);
 	CLayout* pLayout = GetLayout();
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	GetLayout()->m_docEditOperationType = vert_edit_exit_op;
@@ -36803,6 +36992,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
     // safe location if that is a retranslation) -- so our refactored code probably won't
     // make use of the saved value much
 	pRec->nSaveActiveSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	pDoc->ResetPartnerPileWidth(pApp->m_pActivePile->GetSrcPhrase()); // mark its strip as invalid 
 
 	// preserve the active location's phrase box text, in case the phrase box is recreated 
 	// there when done
@@ -38268,7 +38458,11 @@ bailout:	pAdaptList->Clear();
 											   // InsertNullSrcPhrase() won't crash
         // we must have a valid layout, because the last function call will have clobbered
         // some of the original layout's pointers
-		GetLayout()->RecalcLayout(pSrcPhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+#endif
 		pStartingPile = GetPile(nSaveSequNum);
 		wxASSERT(pStartingPile != NULL);
 		pApp->m_pActivePile = pStartingPile;
@@ -38933,7 +39127,11 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), i
 								  // and if there is an entry in the KB, use that, else leave empty
 	//RedrawEverything(nSequNum);
 	CLayout* pLayout = GetLayout();
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	Invalidate();
 }
@@ -40269,14 +40467,17 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		pCheckboxIsGlossing->Show(TRUE);
 	}
 
-	// BEW added 4May09 recalculate the pile widths (just m_nMinWidth members), and the pile 
-	// and strip heights
+    // BEW added 4May09 recalculate the pile widths (just m_nMinWidth members), and the
+    // pile and strip heights
 	CLayout* pLayout = GetLayout();
 	pLayout->RecalcPileWidths(pLayout->GetPileList());
 
 	// redraw the layout etc.
-	//RedrawEverything(nSaveSequNum);
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
@@ -40491,7 +40692,11 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
     // pile out wrong) 
     // RedrawEverything(nSaveSequNum);
 	CLayout* pLayout = GetLayout();
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 
@@ -40530,7 +40735,11 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 	// redraw everything with the other Font and directionality setting
 	//RedrawEverything(pApp->m_nActiveSequNum);
 	CLayout* pLayout = GetLayout();
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	// restore focus to the targetBox, if it is visible
@@ -41926,7 +42135,11 @@ void CAdapt_ItView::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 			
 			// To get SetupCurrenetFreeTranslationSection() called, we must call RecalcLayout()
 			// with gbSuppressSetup == FALSE, then the section will be resized smaller
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			//RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 
@@ -41966,7 +42179,11 @@ void CAdapt_ItView::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 
 			// To get SetupCurrentFreeTranslationSection() called, we must call RecalcLayout()
 			// with gbSuppressSetup == FALSE, then the section will be resized larger
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			//RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 
@@ -46840,7 +47057,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	//GetLayout()->m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // gets the gap 
 				// width set, & a copy in to CLayout::m_curBoxWidth
 	// recalculate the layout
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 
 	// recalculate the active pile
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -47079,7 +47300,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	//GetLayout()->m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // gets the gap width 
 							// set, & a copy into CLayout::m_curBoxWidth
 	// recalculate the layout
-	GetLayout()->RecalcLayout(pList);
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
 
 	// recalculate the active pile
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
@@ -49253,7 +49478,11 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 
 		// the box may be bigger because of the text, so do a recalc of the layout
 		//RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
-		GetLayout()->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
         // recalculate the active pile pointer
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);

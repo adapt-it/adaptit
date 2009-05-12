@@ -60,13 +60,6 @@ class CAdapt_ItCanvas;
 			// from the active location (eg. as when inserting a placeholder when reading
 			// back through his work & finding an error a long way from active location)
 
-typedef enum update_span {
-	no_scan_needed, // when a full RecalcLayout(TRUE) call is done, use this "do nothing" value
-	scan_from_doc_ends,
-	scan_in_active_area_proximity,	// 80 either side of active sequ num value
-	scan_from_big_jump // 300 either side of active sequ num value
-};
-
 // add one of these to the end of the handler for a user editing operation, and
 // because of the possibility of nested operations (suboperations) the best
 // location is to put the the relevant operatation enum value immediately before
@@ -120,6 +113,12 @@ typedef enum doc_edit_op {
 	invalid_op_enum_value // this one must always be last
 };
 
+typedef enum layout_selector {
+	create_strips_and_piles,
+	create_strips_keep_piles,
+	keep_strips_keep_piles
+};
+
 /// The CLayout class manages the layout of the document. It's private members pull
 /// together into one place parameters pertinent to dynamically laying out the strips
 /// piles and cells of the layout. Setters in various parts of the application set
@@ -143,10 +142,6 @@ public:
 	CAdapt_ItCanvas*	m_pCanvas;
 	CMainFrame*			m_pMainFrame;
 
-	update_span			m_userEditsSpanCheckType; // takes one of four enum values,
-				// 	no_scan_needed  (= 0), or scan_from_doc_ends  (= 1), 
-				// 	scan_in_active_area_proximity (= 2) or scan_from_big_jump (= 3); set
-				// 	the wanted value before calling RecalcLayout()	
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
 												// and used by PlacePhraseBoxInLayout() 
 	bool				m_bDrawAtActiveLocation;
@@ -157,6 +152,7 @@ private:
 	PileList			m_pileList;
 	wxArrayPtrVoid		m_stripArray;
 	wxArrayInt			m_invalidStripArray;
+	enum layout_selector	m_lastLayoutSelector; // RecalcLayout() sets it, Draw() uses it
 
 private:
 	// four ints define the clip rectange top, left, width & height for erasure 
@@ -232,27 +228,16 @@ public:
 	CAdapt_ItCanvas*	GetCanvas();
 	CAdapt_ItDoc*		GetDoc();
 	CMainFrame*			GetMainFrame(CAdapt_ItApp* pApp);
-
-	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
-	// list, and each CPile instance has a member which points to one and only one
-	// CSourcePhrase instance in pSrcPhrases)
-	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
-	bool		CreatePiles(SPList* pSrcPhrases);
-	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
-
-	bool		RecalcLayout(SPList* pList, bool bRecreatePileListAlso = FALSE);
-	void		RecalcPileWidths(PileList* pPiles);
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
 									   // to whatever is currently set within the app, doc and
 									   // view classes; that is, it hooks up CLayout to the
 									   // legacy parameters wherever they were stored (it calls
 									   // app class's UpdateTextHeights() function too
-
 	// Strip destructors
 	void		DestroyStrip(int index); // note: doesn't destroy piles and their cells, these 
 										 // are managed by m_pPiles list & must persist
 	void		DestroyStripRange(int nFirstStrip, int nLastStrip);
-	void		DestroyStrips();
+	void		DestroyStrips();// RecalcLayout() calls this
 
 	// Pile destructors (for the persistent ones in CLayout::m_pPiles list) - note, 
 	// destroying a pile also, in the same function, destroys its array of CCell instances
@@ -357,12 +342,22 @@ public:
 	int			GetStripCount(); // return a count of how many strips are in the current layout
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
-	// support of user edit actions
-	bool		AdjustForUserEdits(enum update_span type);
+	// support of user edit actions...
+	
+	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
+	// list, and each CPile instance has a member which points to one and only one
+	// CSourcePhrase instance in pSrcPhrases)
+	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
+	bool		CreatePiles(SPList* pSrcPhrases);// RecalcLayout() calls this
+	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
+	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
+	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
+	void		RecalcPileWidths(PileList* pPiles);
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
- 
+	void		GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
+										int nCountValueForTooFar); // uses m_invalidStripArray
 	
     // get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
@@ -377,7 +372,16 @@ public:
     // visible strips are worked out according to where the top of the scrolled device
     // context is using the scrollbar thumb's position value.
 	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
-	int			GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips, int numTotalStrips);
+	int			GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips,
+												int numTotalStrips);
+	bool		GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
+							int nLastInvalidStrip, CPile* pBeforePile, CPile* pAfterPile);
+	int			EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth);
+	int			RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
+											int nStripWidth, int gap, CPile* pBeforePile,
+											CPile* pAfterPile, PileList::Node* posBegin,
+											PileList::Node* posEnd, PileList::Node* pos,
+											int nInitialStripCount);
 
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = TRUE);

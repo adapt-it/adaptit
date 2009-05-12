@@ -1657,7 +1657,11 @@ t:	if (pCell == NULL)
 							CSourcePhrase* pOldSrcPhrase = pOldPile->GetSrcPhrase();
 							pOldSrcPhrase->m_bStartFreeTrans = TRUE; // it didn't have it 
 																	 // set, so do it
-							pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+							pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+							pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 							pApp->m_pActivePile = pView->GetPile(0);
 							wxASSERT(pApp->m_pActivePile != NULL);							
 

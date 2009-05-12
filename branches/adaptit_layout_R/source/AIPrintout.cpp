@@ -154,7 +154,11 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 	// do a fill recalc of the layout (but leave piles untouched) before printing, so that
 	// all strips are properly filled
 	CLayout* pLayout = pApp->m_pLayout;
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_saveDocSize = pApp->m_docSize; // store original size
 }
 
@@ -215,8 +219,11 @@ AIPrintout::~AIPrintout()
 	// phrase box, scroll, invalidate window to restore pre-printing appearance (if we had been
 	// printing a selection, it will get restored now because the globals will have been preserved)
 	pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum;
-	//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
-	pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+	pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
 	// recalculate the active pile & update location for phraseBox creation
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -226,19 +233,17 @@ AIPrintout::~AIPrintout()
 								// preview. When closing print preview this routine would otherwise
 								// crash below because GetPile makes m_pActivePile NULL.
 	{
-		//gpApp->m_ptCurBoxLocation = gpApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 		pApp->m_nStartChar = 0;
 		pApp->m_nEndChar = -1; // ensure initially all is selected
-		//pView->RemakePhraseBox(gpApp->m_pActivePile,gpApp->m_targetPhrase); // Draw() does it
 		pApp->m_pTargetBox->SetSelection(-1,-1); // select all
 		pApp->m_pTargetBox->SetFocus();
 	}
    	
 	pView->Invalidate();
 	wxWindow* pWnd;
-	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set by the above code, so
-							 // unfortunately the cursor will have to be manually put back in the
+	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set by the above code,
+							 // so unfortunately the cursor will have to be manually put back in the
 							 // box
 	pApp->m_nSaveActiveSequNum = -1;
 	
@@ -759,9 +764,12 @@ void AIPrintout::OnPreparePrinting()
         // (the number of pixels per width will vary depending on the scale set in preview).
 		//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 		//gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases); // leave piles unchanged
+#ifdef _NEW_LAYOUT
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-
 	}
 	else
 	{
@@ -801,7 +809,11 @@ void AIPrintout::OnPreparePrinting()
         // Recalc the layout with the new width (note, the gbPrintingSelection value being TRUE means
         // that the SaveSelection() and RestoreSelection() calls in RecalcLayout() do nothing).
 		//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases); // leave piles unchanged
+#ifdef _NEW_LAYOUT
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
 		// Set safe values for a non-active location (but leave m_targetPhrase unchanged).
 		pApp->m_pActivePile = NULL;

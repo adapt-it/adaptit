@@ -699,7 +699,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 			CLayout* pLayout = GetLayout();
 			pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 											// and other setters
-			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, TRUE); // TRUE means "create the m_pileList too"
+#ifdef _NEW_LAYOUT
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+			bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
 			if (!bIsOK)
 			{
 				// unlikely to fail, so just have something for the developer here
@@ -3301,7 +3305,11 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	CLayout* pLayout = GetLayout();
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
-	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases,TRUE); // TRUE means "create the m_pileList too"
+#ifdef _NEW_LAYOUT
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
 	if (!bIsOK)
 	{
 		// unlikely to fail, so just have something for the developer here
@@ -3631,7 +3639,7 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPart
 	{
 		// this call is safe to make even if there is no partner pile, or if a matching pointer is
 		// not in the list
-		DeletePartnerPile(pSrcPhrase);
+		DeletePartnerPile(pSrcPhrase); // marks its strip as invalid as well
 	}
 
 	if (pSrcPhrase->m_pMedialMarkers != NULL)
@@ -3823,9 +3831,10 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 		// m_pSourcePhrases list; so append the newly created CPile to m_pileList
 		posPile = pPiles->Append(pNewPile); // do this after preceding 2 lines
 	}
-	MarkStripInvalid(aPilePtr); // use aPilePtr to have a good shot at which strip will
-								// receive the newly created pile, and mark it as invalid,
-								// and save its index in CLayout::m_invalidStripArray
+	if (aPosition != NULL && aPilePtr != NULL)
+		MarkStripInvalid(aPilePtr); // use aPilePtr to have a good shot at which strip will
+									// receive the newly created pile, and mark it as invalid,
+									// and save its index in CLayout::m_invalidStripArray
 }
 
 // return the index in m_pSourcePhrases for the passed in pSrcPhrase
@@ -11206,12 +11215,14 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 
 	// this is where we need to have the layout updated. We will do the whole lot, that is,
 	// destroy and recreate both piles and strips
-	//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases,TRUE); // TRUE is bRecreatePileListAlso
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-
 	GetLayout()->m_docEditOperationType = retokenize_text_op;
-
 	return count;
 }
 

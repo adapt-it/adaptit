@@ -7,20 +7,19 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public 
 ///                 License (see license directory)
-/// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
-/// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
-/// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
-/// this source file's global space. The AIModalDialog class provides Adapt It with a modal dialog
-/// base class which turns off Idle and UIUpdate processing while the dialog is being shown.
+/// \description This is the header file for the CAdapt_ItApp class and the AIModalDialog
+/// class.  
+/// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
+/// Adapt It's global enums, structs and variables are declared either as members of the
+/// CAdapt_ItApp class or in this source file's global space. The AIModalDialog class
+/// provides Adapt It with a modal dialog base class which turns off Idle and UIUpdate
+/// processing while the dialog is being shown.
 /// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support 
 ///                 for the document/view framework.
 /// The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
-
-#define _ALT_LAYOUT_
-
 
 // ///////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
@@ -51,6 +50,14 @@
 #define VERSION_DATE_MONTH 2
 #define VERSION_DATE_YEAR 2009
 
+//#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
+                       // strips, indices used instead; if not defined, CPile* copies are
+					   // in strips -- our final design requires the CPile pointers to be
+					   // stored in the strips
+#define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
+                      // never kept & tweaked; if #defined, piles & strips are retained &
+                      // tweaked where necessary to update after user editing -- our final
+                      // design requires this #define be set
 //#define _UNICODE 
 // whm Notes: The MFC version uses _NONROMAN everywhere instead of _UNICODE. For MFC, the 
 // _NONROMAN symbol gets defined in the VC 7.1 Preprocessor Definitions for UDebug Dual builds

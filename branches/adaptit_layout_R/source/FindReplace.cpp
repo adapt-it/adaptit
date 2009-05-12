@@ -496,7 +496,11 @@ void CFindDlg::DoFindNext()
 	//CStrip* pStrip = pPile->m_pStrip;
 	//int nActiveStrip = pStrip->m_nStripIndex;
 	//pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
-	gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
 	// restore the pointers which were clobbered
 	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
@@ -1479,7 +1483,11 @@ void CReplaceDlg::DoFindNext()
 	//CStrip* pStrip = pPile->m_pStrip;
 	//int nActiveStrip = pStrip->m_nStripIndex;
 	//pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
-	gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases);
+#ifdef _NEW_LAYOUT
+		gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+		gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
 	// restore the pointers which were clobbered
 	CPile* pPile = pView->GetPile(gpApp->m_nActiveSequNum);
