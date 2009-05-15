@@ -106,7 +106,7 @@ public:
 	//CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
 	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
 	//				
-	int			CalcPileWidth();
+	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 	int			CalcPhraseBoxGapWidth();
 	int			GetStripIndex();
 	CStrip*		GetStrip();

@@ -93,6 +93,16 @@ public:
 #else
 	PileList::Node* CreateStrip(PileList::Node*& pos, int nStripWidth, int gap); // return 
 															// iterator of next for placement
+	// next version is overloaded, uses indices, and has nEndPileIndex for the index of
+	// the last pile which is to be placed in the emptied strips; this version used for filling
+	// emptied strips using a subrange of the available pile pointers only
+	int		CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap);
+	// next version is overloaded, has posEnd parameter; this version used for filling
+	// emptied strips using a subrange of the available pile pointers only, posEnd is the
+	// position of the last pile pointer to be placed in an emptied strip -- this version
+	// proved to be non-robust, so removed it in favour of the version above using indices
+	//PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, PileList::Node*& posEnd, 
+	//									int nStripWidth, int gap);
 	int		GetPileCount();
 	CPile*	GetPileByIndex(int index);
 	wxArrayPtrVoid* GetPilesArray();

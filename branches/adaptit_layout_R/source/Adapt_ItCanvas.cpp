@@ -2136,6 +2136,10 @@ void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
 // last test is made
 void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 {
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("ScrollIntoView entered"));
+#endif
+
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 

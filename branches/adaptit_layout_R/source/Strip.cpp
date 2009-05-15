@@ -654,6 +654,272 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 }
 #endif
 
+// the following is an overrided version to be used when refilling emptied strips, for a
+// range of piles - rather than all the piles to the document's end, and so it has an
+// ending index value passed in for the last pile pointer to be placed in a strip.
+// The value returned is a count of how many CPile pointers were placed in the current
+// strip, there will always be at least one - empty strips are illegal; the function
+// should not be called if there are no more piles to be placed.
+int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
+{
+	m_nFree = nStripWidth;
+
+	CPile* pPile = NULL;
+	int pileWidth = 0;
+	int nCurrentSpan = 0;
+
+	// establish an iterator for the pPiles list, initialize to the start of the range
+	// and a count of how many CPile pointer instances are to be placed; and a counter for
+	// how many get placed in the current strip - this value we return when the strip is
+	// full or we have run out of piles to be placed
+	PileList::Node* pos = m_pLayout->m_pileList.Item(nInitialPileIndex);
+	wxASSERT(pos);
+	int numPlaced = 0;
+	int pileIndex = nInitialPileIndex;
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("0.		CreateStrip: Remaining to be placed:  %d"),nEndPileIndex - nInitialPileIndex + 1);
+	}
+#endif
+
+    // clear the two arrays - failure to do this leaves gargage in their members (such as
+    // m_size & m_count being left as huge numbers) & could lead to an app crash
+	m_arrPiles.Clear();
+	m_arrPileOffsets.Clear();
+
+	// lay out the piles...
+    // Note: RTL layout and LRT layout of the piles in the strip uses exactly the same code
+    
+	int nHorzOffset_FromLeft = 0;
+	int pileIndex_InStrip = 0; // index into CStrip's m_arrPiles array of void*
+	int nWidthOfPreviousPile = 0;
+	
+    // we must always have at least one pile in the strip in order to prevent an
+    // infinite loop of empty strips if the width of the first pile should happen to
+    // exceed the strip's width; so we place the first unilaterally, regardless of its
+    // width
+	pPile = (CPile*)pos->GetData();
+	wxASSERT(pPile);
+	// set the pile's m_pOwningStrip member
+	pPile->m_pOwningStrip = this;
+	if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+	{
+		pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+	}
+	else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+	{
+		// when tweaking strips rather than rebuilding, we won't get a larger gap
+		// calculated at the active pile unless we call it here, provided the active
+		// location is within the area of strips being rebuilt
+		pileWidth = pPile->CalcPhraseBoxGapWidth();
+		//pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
+                // large enough to accomodate the phrase box's width, even if just
+                // expanded due to the user's typing
+	}
+	else
+	{
+		pileWidth = pPile->m_nMinWidth;
+	}
+	m_arrPiles.Add(pPile); // store it
+	m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+	numPlaced++; // increment counter of how many placed
+	pileIndex++; // set tracker index to index of next pile to be placed
+	m_nFree -= pileWidth; // reduce the free space accordingly
+	pPile->m_nPile = pileIndex_InStrip; // store its index within strip's m_arrPiles array
+
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("1.		CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d"),
+					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree);
+	}
+#endif
+	if (pileIndex >= nEndPileIndex)
+	{
+		// we've just placed the last pile to be placed, so return numPlaced and set m_bValid
+		// to TRUE, and let the caller work out if it should instead by set to FALSE
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("1.1		CreateStrip: Early exit: pileIndex > nEndPileIndex is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+	}
+#endif
+		m_bValid = TRUE;
+		return numPlaced;
+	}
+
+	// prepare for next iteration
+	nWidthOfPreviousPile = pileWidth;
+	pileIndex_InStrip++;
+	pos = pos->GetNext(); // will be NULL if the pile just placed was at doc end
+	if (pos == NULL)
+	{
+		// no more piles available for placement, so return
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("1.2		CreateStrip: Early exit: pos == NULL is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+	}
+#endif
+		m_bValid = TRUE;
+		return numPlaced;
+	}
+	nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
+
+	// if m_nFree went negative or zero, we can't fit any more piles, so declare 
+	// the strip full
+	if (m_nFree <= 0)
+	{
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("1.3		CreateStrip: Early exit: m_nFree <= 0 is TRUE,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+	}
+#endif
+		m_bValid = TRUE;
+		return numPlaced;
+	}
+
+	// append second and later piles to this strip
+	while (pos != NULL  && m_nFree > 0 && pileIndex <= nEndPileIndex)
+	{
+		pPile = (CPile*)pos->GetData();
+		wxASSERT(pPile != NULL);
+
+		// break out of the loop without including this pile in the strip if it is a
+		// non-initial pile which contains a marker in its pointed at pSrcPhrase which is a
+		// wrap marker for text (we want strips to wrap too, provided the view menu item has
+		// that feature turned on)
+		if (m_pLayout->m_pApp->m_bMarkerWrapsStrip && pileIndex_InStrip > 0)
+		{
+			bool bCausesWrap = pPile->IsWrapPile();
+			// do the wrap only if it is a wrap marker and we have not just deal with
+			// a document-initial marker, such as \id
+			if (bCausesWrap && !(m_nStrip == 0 && pileIndex_InStrip == 1))
+			{
+				// if we need to wrap, discontinue assigning piles to this strip (the
+				// nPileIndex_InList value is already correct for returning to caller)
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("1.4		CreateStrip: Exit due to WRAP condition satisfied,  pile[%d] Placed %d"), pileIndex - 1, numPlaced);
+	}
+#endif
+				m_bValid = TRUE;
+				return numPlaced;
+			}
+		}
+
+		// if control gets to here, the pile is a potential candidate for inclusion in this
+		// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
+		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+		{
+			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
+		}
+		else if (pPile->m_pSrcPhrase->m_nSequNumber == m_pLayout->m_pApp->m_nActiveSequNum)
+		{
+			pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be large enough
+										 // to accomodate the phrase box's width, even if just
+										 // expanded due to the user's typing
+		}
+		else
+		{
+			pileWidth = pPile->m_nMinWidth;
+		}
+		nCurrentSpan = pileWidth + gap; // this much has to fit in the m_nFree space 
+						// for this pile to be eligible for inclusion in the strip
+		if (nCurrentSpan <= m_nFree)
+		{
+			// this pile will fit in the strip, so add it
+			m_arrPiles.Add(pPile); // store it
+			m_arrPileOffsets.Add(nHorzOffset_FromLeft); // store offset to left boundary
+			numPlaced++; // increment counter of how many placed
+			pileIndex++; // set tracker index to index of next pile to be placed
+			m_nFree -= nCurrentSpan; // reduce the free space accordingly
+			pPile->m_nPile = pileIndex_InStrip; // store its index within strip's 
+												// m_arrPiles array
+			// set the pile's m_pOwningStrip member
+			pPile->m_pOwningStrip = this;
+#ifdef __WXDEBUG__
+	{
+		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
+		wxLogDebug(_T("2. inloop	CreateStrip: m-nStrip %d   pile[ %d ] pileWidth %d , offset %d , free left %d, numPlaced %d srcPhrase %s"),
+					this->m_nStrip,pileIndex_InStrip,pileWidth,nHorzOffset_FromLeft,m_nFree, numPlaced, src);
+	}
+#endif
+		}
+		else
+		{
+			// this pile won't fit, so the strip is full - declare it full and return
+			// the pile list's index for use in the next strip's creation
+#ifdef __WXDEBUG__
+	{
+		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
+		wxLogDebug(_T("2.1	inloop	CreateStrip:  nCurrentSpan <= m_nFree is TRUE so return,  pile[%d] Placed %d , nCurrentSpan %d m_nFree %d srcPhrase %s"), 
+					pileIndex - 1, numPlaced, nCurrentSpan, m_nFree, src);
+	}
+#endif
+			m_bValid = TRUE;
+			return numPlaced;
+		}
+
+		// have we just dealt with the last one to be placed? (pileIndex has been
+		// augmented to the next pile's index, so if we placed the last one, pileIndex
+		// will have a value larger than nEndPileIndex at this point
+		if (pileIndex > nEndPileIndex)
+		{
+			// we've just placed the last pile to be placed, so return numPlaced and set m_bValid
+			// to TRUE, and let the caller work out if it should instead by set to FALSE
+			m_bValid = TRUE;
+#ifdef __WXDEBUG__
+	{
+		wxString src = pPile->GetSrcPhrase()->m_srcPhrase;
+		wxLogDebug(_T("2.2	inloop	CreateStrip: pileIndex > nEndPileIndex is TRUE, so return,  pile[%d] Placed %d srcPhrase %s"),
+						pileIndex - 1, numPlaced, src);
+	}
+#endif
+			return numPlaced;
+		}
+		else
+		{
+			// there is at least one more to be placed, so prepare for next iteration...
+			pileIndex_InStrip++;
+			nWidthOfPreviousPile = pileWidth;
+
+			// advance the iterator for the CLayout's m_pileList list of pile pointers
+			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
+#ifdef __WXDEBUG__
+	{
+		if (pos != NULL)
+		{
+			CPile* pile = pos->GetData();
+			wxString src = pile->GetSrcPhrase()->m_srcPhrase;
+			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d Trying srcPhrase %s"), 
+				pos, pileIndex - 1, numPlaced, src);
+		}
+		else
+		{
+			wxLogDebug(_T("2.3	inloop	CreateStrip: iterating loop: next pos %x, last pile was [%d] Placed %d , and WILL EXIT since pos is NULL"), 
+				pos, pileIndex - 1, numPlaced);
+		}
+	}
+#endif
+
+			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
+			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
+#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("	inloop	CreateStrip: ** Iterate Loop Now **, for next pile, nHorzOffset_FromLeft is %d"), nHorzOffset_FromLeft);
+	}
+#endif
+		}
+	}
+
+    // if the loop exits because the while test yields FALSE, then 1. either we are at the end
+    // of the document, or 2. the first pile was wider than the whole strip, or 3. we have
+    // reached and processed the pile at nEndPileIndex - we will declare this strip filled and
+    // let the caller work out if m_bValid should instead be set to FALSE and it can then do so
+	// (actually, the internal test for pileIndex >= nEndPileIndex should pick up reasons 1. and
+	// 2. so we expect to get to the next line only when a pile covers or exceeds the whole
+	// width of a strip)
+	m_bValid = TRUE;
+	return numPlaced;
+}
 
 // return the width of the strip (it's width is the maximum width it can be for the current
 // client window size, less the left margin and right hand slop; the document size's .x
@@ -761,3 +1027,4 @@ int CStrip::GetStripIndex()
 {
 	return m_nStrip;
 }
+

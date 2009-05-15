@@ -356,8 +356,6 @@ public:
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
-	void		GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
-										int nCountValueForTooFar); // uses m_invalidStripArray
 	
     // get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
@@ -372,17 +370,32 @@ public:
     // visible strips are worked out according to where the top of the scrolled device
     // context is using the scrollbar thumb's position value.
 	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
+
+	// calculate the range of strips marked with m_bValid = FALSE, but don't include the
+	// old active location in the range if it is more than nCountValueForTooFar strips
+	// away from where the user's edits commenced (latter value is # vis strips, which
+	// means that we expect the old active location to be off-window, and no need to
+	// update that strip as it won't be drawn)
+	void		GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
+										int nCountValueForTooFar); // uses m_invalidStripArray
+	// search for an approximate location vertically in the logical document, where a
+	// linear forwards search in the array of strips will locate the strip closest to
+	// the document position indicated by the current vertical scroll bar thumb position
 	int			GetStartingIndex_ByBinaryChop(int nThumbPos_InPixels, int numVisStrips,
 												int numTotalStrips);
-	bool		GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
-							int nLastInvalidStrip, CPile* pBeforePile, CPile* pAfterPile);
+	bool		GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidStrip, 
+											int& nFirstPileIndex, int& nEndPileIndex);
+	//bool		GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
+	//						int nLastInvalidStrip, CPile*& pBeforePile, CPile*& pAfterPile);
 	int			EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth);
-	int			RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
-											int nStripWidth, int gap, CPile* pBeforePile,
-											CPile* pAfterPile, PileList::Node* posBegin,
-											PileList::Node* posEnd, PileList::Node* pos,
-											int nInitialStripCount);
-
+	//int			RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
+	//										int nStripWidth, int gap, CPile* pBeforePile,
+	//										CPile* pAfterPile, PileList::Node* posBegin,
+	//										PileList::Node* posEnd, PileList::Node* pos,
+	//										int nInitialStripCount);
+	int			RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, 
+										int nStripWidth, int gap, int nFirstPileIndex, 
+										int nEndPileIndex, int nInitialStripCount);
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = TRUE);
 
