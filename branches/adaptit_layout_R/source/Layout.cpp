@@ -17,6 +17,13 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 
 */
 
+// for debugging support
+// comment out the following when the document does not have 13 strips
+// (more can be handled, up to 26 - but only data for 13, and in a few places, some more,
+// will be shown by wxLogDebug) but if extras are added beware, over 26 and the app will
+// hang when the debugging blocks try to read or write beyond the 26th element)
+#define _13STRIPS_DOC
+
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			Layout.cpp
@@ -2194,65 +2201,12 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 	}
 	return TRUE;
 }
-/* no longer need this, it's easier to use indices and easier to debug that way
-// if the first strip in the doc is invalid, pBeforePile will be returned as NULL, if the
-// last strip in the doc is invalid, pAfterPile will be NULL, if all strips in the
-// document are invalid (eg. as when editing a one-strip document), both will be returned
-// as NULL;
-// also detect if the edit area is not adequately defined, in which case reenter
-// RecalcLayout() to rebuild the doc by destroying and recreating all strips and return
-// FALSE to the caller so that it can return FALSE to the original RecalcLayout() call so
-// it can exit without doing any more work; otherwise return TRUE when all was well
-bool CLayout::GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
-						int nLastInvalidStrip, CPile*& pBeforePile, CPile*& pAfterPile)
-{
-	if (nFirstInvalidStrip == -1 || nLastInvalidStrip == -1)
-	{
-		// an invalid range was not calculated, so reenter RecalcLayout() doing a full
-		// strip destroy and recreation, so that we get a valid layout that way
-		RecalcLayout(m_pApp->m_pSourcePhrases,create_strips_keep_piles);		
-		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
-		return FALSE;
-	}
 
-	// get pBeforePile, or NULL if there does not exist any "before" strip
-	int nBeforeStripIndex = nFirstInvalidStrip - 1; // previous strip's index, or -1
-	if (nFirstInvalidStrip == 0)
-	{
-		pBeforePile = NULL; // there is no "before" pile opr strip, edits start at doc start
-	}
-	else
-	{
-		CStrip* pBeforeStrip = (CStrip*)m_stripArray.Item(nBeforeStripIndex);
-		pBeforePile = (CPile*)pBeforeStrip->m_arrPiles.Last();
-		wxASSERT(pBeforePile);
-	}
-	// get pAfterPile, or NULL if there does not exist any "after" strip
-	int nAfterStripIndex = nLastInvalidStrip + 1; // following strip's index, or bounds error
-	if (nAfterStripIndex > (int)(m_stripArray.GetCount() - 1))
-	{
-		// the "after" strip does not exist, therefore the last invalid strip is also the
-		// last strip in the document
-		pAfterPile = NULL; // there is no "after" pile, edits go to the doc's end
-	}
-	else
-	{
-		// there is an "after" strip, so we can get it's first pile as the bounding one
-		CStrip* pAfterStrip = (CStrip*)m_stripArray.Item(nAfterStripIndex);
-		pAfterPile = (CPile*)pAfterStrip->m_arrPiles.Item(0);
-		wxASSERT(pAfterPile);
-	}
-	return TRUE;
-}
-*/
 // Returns: a count of how many strips were emptied
 // This function empties the pile pointers stored in the invalid strips, and the array
 // containing the offsets from the strip's boundary (left for LTR text, right for RTL
 // text), but it does not alter any of the other strip members except to reset the m_nFree
 // member to the nStripWidth value ready for pile points to be added later
-//* 
-// we don't need this, as it's work is done in CreateStrip(), and the return value gotten
-// another way -- But I'll use it for the present
 int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth)
 {
 	int nCount = 0;
@@ -2263,6 +2217,9 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 		pStrip = (CStrip*)m_stripArray.Item(index);
 		wxASSERT(pStrip);
 		pStrip->m_nFree = nStripWidth;
+		pStrip->m_arrPiles.Clear();
+		pStrip->m_arrPiles.Clear();
+		/*
 		if (!pStrip->m_arrPiles.IsEmpty())
 		{
 			pStrip->m_arrPiles.Clear();
@@ -2271,11 +2228,12 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 		{
 			pStrip->m_arrPiles.Clear();
 		}
+		*/
 		nCount++;
 	}
 	return nCount;
 }
-//*/
+
 //***************************************************************************************
 // / \return   a count of the final number of rebuild strips  -  this could be fewer, the
 // /           same, or more than the value of nInitialStripCount passed in
@@ -2331,19 +2289,21 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(stripIndex);
 	wxASSERT(pStrip);
 
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < count; anIndex++)
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
 		{
-			//CStrip* theStripPtr = (CStrip*)m_stripArray.Item(anIndex);
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			int indices[26];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < count; anIndex++)
+			{
+				//CStrip* theStripPtr = (CStrip*)m_stripArray.Item(anIndex);
+				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			}
+			wxLogDebug(_T("	Rebuild: 1. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
 		}
-		wxLogDebug(_T("	Rebuild: 1. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
-	}
+	#endif
 #endif
 	// loop over the range of CPile pointers to be copied to the emptied strips - adding
 	// strips if necessary; count any that get added
@@ -2358,19 +2318,21 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 		nNumberPlaced += nNumberPlacedAtThisCall;
 		nStripCount++; // count this now-refilled strip
 		pileIndex += nNumberPlacedAtThisCall; // update pileIndex to point at the first
-											  // to be placed at the next iteration 
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < count; anIndex++)
-		{
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
-		}
-		wxLogDebug(_T("	Rebuild: 2. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
-	}
+											  // to be placed at the next iteration
+#ifdef _13STRIPS_DOC
+		#ifdef __WXDEBUG__
+			{
+				int indices[26];
+				int count = m_stripArray.GetCount();
+				int anIndex;
+				for (anIndex = 0; anIndex < count; anIndex++)
+				{
+					indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+				}
+				wxLogDebug(_T("	Rebuild: 2. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+					count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
+			}
+		#endif
 #endif
 		// for the CPile instances in the user's edit area, have we placed them all?
 		if (pileIndex > nEndPileIndex)
@@ -2398,6 +2360,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 					// strip array and set the new strip's m_nStrip index member
 					pStrip->m_nStrip = currentMaximumStripIndex + 1;
 					m_stripArray.Add(pStrip); // append the new strip to the strip array
+//#ifdef _13STRIPS_DOC
 					#ifdef __WXDEBUG__
 						{
 							int nNewStripCount = m_stripArray.GetCount();
@@ -2405,6 +2368,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 										pileIndex, nEndPileIndex, nNewStripCount);
 						}
 					#endif
+//#endif
 				}
 				else
 				{
@@ -2416,6 +2380,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 					pStrip->m_nStrip = nIndexOfNextStrip; // we renumber relevant strips 
 														  // consecutively later on
 					m_stripArray.Insert(pStrip,nIndexOfNextStrip); // inserts before
+//#ifdef _13STRIPS_DOC
 					#ifdef __WXDEBUG__
 						{
 							int nNewStripCount = m_stripArray.GetCount();
@@ -2423,6 +2388,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 									pileIndex, nEndPileIndex, nNewStripCount, nIndexOfNextStrip);
 						}
 					#endif
+//#endif
 				}
 				nNumberAdded++; // update count of how many strips have been added
 			}
@@ -2433,6 +2399,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 				// control passes through this block)
 				pStrip = (CStrip*)m_stripArray.Item(stripIndex + 1);
 				wxASSERT(pStrip);
+//#ifdef _13STRIPS_DOC
 				#ifdef __WXDEBUG__
 					{
 						int nNewStripCount = m_stripArray.GetCount();
@@ -2440,11 +2407,13 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 								pileIndex, nEndPileIndex, stripIndex + 1, nNewStripCount);
 					}
 				#endif
+//#endif
 			}
 			stripIndex++;
+#ifdef _13STRIPS_DOC
 			#ifdef __WXDEBUG__
 				{
-					int indices[13];
+					int indices[26];
 					int count = m_stripArray.GetCount();
 					int anIndex;
 					for (anIndex = 0; anIndex < count; anIndex++)
@@ -2453,35 +2422,50 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 					}
 					wxLogDebug(_T("	Rebuild: 3. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d   stripIndex %d"),
 						count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12], stripIndex);
+					int nExtras = count - 13;
+					if (nExtras > 0)
+					{
+						for (anIndex = 13; anIndex < count; anIndex++)
+						{
+							indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+							wxLogDebug(_T("	Rebuild: 3. Extras: strip with index: [%d] %d "),anIndex, indices[anIndex]);
+						}
+					}
 				}
 			#endif
+#endif
 		}
 	} // end of while loop
 
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < count; anIndex++)
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
 		{
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			int indices[26];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < count; anIndex++)
+			{
+				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			}
+			wxLogDebug(_T("	Rebuild: 4. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
 		}
-		wxLogDebug(_T("	Rebuild: 4. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
-	}
+	#endif
 #endif
-    // if there are empty strips left over, remove them and count how many removed; set the
+	// if there are empty strips left over, remove them and count how many removed; set the
     // value for nFinalStripCount
 	int nIndexOfLastStripFilled = nFirstStrip + nStripCount - 1;
 	CStrip* pLastStripFilled = (CStrip*)m_stripArray.Item(nIndexOfLastStripFilled);
 	wxASSERT(pLastStripFilled);
-#ifdef __WXDEBUG__
-	{
-		wxLogDebug(_T("	Rebuild: 4.1   nIndexOfLastStripFilled %d   nLastStrip %d  Deletes if nIndexOfLastStripFilled < nLastStrip"), 
-						nIndexOfLastStripFilled, nLastStrip);
-	}
-#endif
+//#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
+		{
+			wxLogDebug(_T("	Rebuild: 4.1   nIndexOfLastStripFilled %d   nLastStrip %d  Deletes if nIndexOfLastStripFilled < nLastStrip"), 
+							nIndexOfLastStripFilled, nLastStrip);
+		}
+	#endif
+//#endif
+		
 	if (nIndexOfLastStripFilled < nLastStrip)
 	{
 		// we didn't fill all the emptied strips, so remove the remainders which are empty
@@ -2490,6 +2474,9 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 		int iterator;
 		for (iterator = nIndexOfLastStripFilled + 1; iterator <= nLastStrip; iterator++)
 		{
+			pStripForRemoval = (CStrip*)m_stripArray.Item(index);
+			wxASSERT(pStripForRemoval);
+
 			// only delete it if it really is an emptied strip (Note: the emptying is done
 			// by a function in the caller, even though we have strip emptying calls at the
 			// start of RebuildTheInvalidStripRange() itself - but any strip not filled will
@@ -2498,14 +2485,16 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			// cause the app to crash because their m_pOwningStrip would point at freed
 			// memory 
 			if (pStripForRemoval->m_arrPiles.IsEmpty() && 
-				pStripForRemoval->m_arrPileOffsets.IsEmpty())
+				pStripForRemoval->m_arrPileOffsets.IsEmpty())	// << FIX THIS (offsets array not emptied)
+			//if (pStripForRemoval->m_arrPiles.IsEmpty())
 			{
-				pStripForRemoval = (CStrip*)m_stripArray.Item(index);
-#ifdef __WXDEBUG__
-	{
-		wxLogDebug(_T("	Rebuild: 4.2  ** DELETING ** strip[ %d ]"),  pStripForRemoval->m_nStrip);
-	}
-#endif
+//#ifdef _13STRIPS_DOC
+				#ifdef __WXDEBUG__
+					{
+						wxLogDebug(_T("	Rebuild: 4.2  ** DELETING ** strip[ %d ]"),  pStripForRemoval->m_nStrip);
+					}
+				#endif
+//#endif
 				delete pStripForRemoval;
 				m_stripArray.RemoveAt(index);
 				nNumberRemoved++;
@@ -2514,22 +2503,24 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 	}
 	nFinalStripCount += nNumberAdded - nNumberRemoved; // return this to the caller
 
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		CStrip* pointers[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < count; anIndex++)
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
 		{
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
-			pointers[anIndex] = (CStrip*)m_stripArray.Item(anIndex);
+			int indices[26];
+			CStrip* pointers[13];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < count; anIndex++)
+			{
+				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+				pointers[anIndex] = (CStrip*)m_stripArray.Item(anIndex);
+			}
+			wxLogDebug(_T("	Rebuild: 5. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
+			wxLogDebug(_T("	Rebuild: 5.1 strip POINTERS: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				pointers[0],pointers[1],pointers[2],pointers[3],pointers[4],pointers[5],pointers[6],pointers[7],pointers[8],pointers[9],pointers[10],pointers[11],pointers[12]);
 		}
-		wxLogDebug(_T("	Rebuild: 5. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
-		wxLogDebug(_T("	Rebuild: 5.1 strip POINTERS: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			pointers[0],pointers[1],pointers[2],pointers[3],pointers[4],pointers[5],pointers[6],pointers[7],pointers[8],pointers[9],pointers[10],pointers[11],pointers[12]);
-	}
+	#endif
 #endif
 	// check the final strip; first, if it is the document's final strip, mark it m_bValid
 	// = TRUE; otherwise, check to see if it has no room for the document's next CPile
@@ -2595,14 +2586,16 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			pLastStripFilled->m_bValid = TRUE; 
 		}
 	}
-#ifdef __WXDEBUG__
-	{
-		if (pLastStripFilled->m_bValid)
-			wxLogDebug(_T("	Rebuild: 6. Last filled strip is VALID,  Final count of refilled strips is %d"),nFinalStripCount);
-		else
-			wxLogDebug(_T("	Rebuild: 6. Last filled strip is INVALID,  Final count of refilled strips is %d"),nFinalStripCount);
-	}
-#endif
+//#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
+		{
+			if (pLastStripFilled->m_bValid)
+				wxLogDebug(_T("	Rebuild: 6. Last filled strip is VALID,  Final count of refilled strips is %d"),nFinalStripCount);
+			else
+				wxLogDebug(_T("	Rebuild: 6. Last filled strip is INVALID,  Final count of refilled strips is %d"),nFinalStripCount);
+		}
+	#endif
+//#endif
 	return nFinalStripCount; // the caller will renumber strip indices if that is necessary
 }
 
@@ -2634,24 +2627,28 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	// which strips, at the last user editing operation, were marked as invalid
 	GetInvalidStripRange(nIndexWhereEditsStart, nIndexWhereEditsEnd, nVisStrips);
 	int nInitialInvalidStripCount = nIndexWhereEditsEnd - nIndexWhereEditsStart + 1;
-#ifdef __WXDEBUG__
-	{
-		wxLogDebug(_T("\nAdjust...Beginning... Invalid_Strip_Range: start index %d , end index %d , invalids count %d"),
-			nIndexWhereEditsStart, nIndexWhereEditsEnd, nInitialInvalidStripCount);
-	}
-#endif
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < 13; anIndex++)
+//#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
 		{
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			wxLogDebug(_T("\nAdjust...Beginning... Invalid_Strip_Range: start index %d , end index %d , invalids count %d"),
+				nIndexWhereEditsStart, nIndexWhereEditsEnd, nInitialInvalidStripCount);
 		}
-		wxLogDebug(_T("Adjust... 1. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
-	}
+	#endif
+//#endif
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
+		{
+			int indices[26];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < 13; anIndex++)
+			{
+				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			}
+			wxLogDebug(_T("Adjust... 1. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
+		}
+	#endif
 #endif
 	// use the invalid strip range to get the CPile pointers which bound either end, that
 	// is, the last pile of the preceding (valid) strip, and the first pile of the
@@ -2671,27 +2668,29 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 		return FALSE; // enable caller to inform RecalcLayout() to exit early because layout 
 					  // was done by reentering RecalcLayout() within 
 					  // GetPilesBoundingTheInvalidStrips(), and the active pile reset too
-#ifdef __WXDEBUG__
-	{
-		wxLogDebug(_T("Adjust...  index of first pile for placement  %d , index of last pile for placement  %d"), 
-					nFirstPileIndex, nEndPileIndex );
-	}
-#endif
-
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < count; anIndex++)
+//#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
 		{
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			wxLogDebug(_T("Adjust...  index of first pile for placement  %d , index of last pile for placement  %d"), 
+						nFirstPileIndex, nEndPileIndex );
 		}
-		wxLogDebug(_T("Adjust... 2. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
-	}
+	#endif
+//#endif
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
+		{
+			int indices[26];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < count; anIndex++)
+			{
+				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			}
+			wxLogDebug(_T("Adjust... 2. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
+		}
+	#endif
 #endif
-
     // now empty the invalid strips - these are always contiguous and in a block, not a
     // discontinuous set; the m_arrPiles, and m_arrPileOffsets arrays are cleared, and the
     // m_nFree member reinitialized to the nStripWidth value, and a count of how many were
@@ -2704,18 +2703,37 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	int nHowManyStrips = 
 		   EmptyTheInvalidStrips(nIndexWhereEditsStart, nIndexWhereEditsEnd, nStripWidth);
 
-#ifdef __WXDEBUG__
-	{
-		int indices[13];
-		int count = m_stripArray.GetCount();
-		int anIndex;
-		for (anIndex = 0; anIndex < count; anIndex++)
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
 		{
-			indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			int pilesarray[26];
+			int offsetsarray[26];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < count; anIndex++)
+			{
+				pilesarray[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->m_arrPiles.GetCount();
+				offsetsarray[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->m_arrPileOffsets.GetCount();
+				wxLogDebug(_T("Adjust... 2.9. strip[%d], its m_nStrip =  %d ,  piles count %d , offsets count %d"),
+					anIndex,((CStrip*)m_stripArray.Item(anIndex))->m_nStrip,pilesarray[anIndex],offsetsarray[anIndex]);
+			}
 		}
-		wxLogDebug(_T("Adjust... 3. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-			count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7]),indices[8],indices[9],indices[10],indices[11],indices[12];
-	}
+	#endif
+#endif
+#ifdef _13STRIPS_DOC
+	#ifdef __WXDEBUG__
+		{
+			int indices[26];
+			int count = m_stripArray.GetCount();
+			int anIndex;
+			for (anIndex = 0; anIndex < count; anIndex++)
+			{
+				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+			}
+			wxLogDebug(_T("Adjust... 3. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7]),indices[8],indices[9],indices[10],indices[11],indices[12];
+		}
+	#endif
 #endif
 	// now rebuild the emptied strips, from the sublist of CPile pointers defined by the
 	// posBegin and posEnd values, or by doc start or end if one or both is NULL,
@@ -2731,10 +2749,36 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 		// update each of the m_nStrip index members so that they match the 
 		// array storage index
 		UpdateStripIndices(nIndexWhereEditsStart);
-#ifdef __WXDEBUG__
-	{
-		wxLogDebug(_T("Adjust... 4. UpdateStripIndices() called, starting from strip[%d]"),nIndexWhereEditsStart);
-	}
+//#ifdef _13STRIPS_DOC
+		#ifdef __WXDEBUG__
+			{
+				wxLogDebug(_T("Adjust... 4. UpdateStripIndices() called, starting from strip[%d]"),nIndexWhereEditsStart);
+			}
+		#endif
+//#endif
+#ifdef _13STRIPS_DOC
+		#ifdef __WXDEBUG__
+			{
+				int indices[26];
+				int count = m_stripArray.GetCount();
+				int anIndex;
+				for (anIndex = 0; anIndex < count; anIndex++)
+				{
+					indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+				}
+				wxLogDebug(_T("Adjust... after UpdateStripIndices() strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d and extras..."),
+					count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7],indices[8],indices[9],indices[10],indices[11],indices[12]);
+				int nExtras = count - 13;
+				if (nExtras > 0)
+				{
+					for (anIndex = 13; anIndex < count; anIndex++)
+					{
+						indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
+						wxLogDebug(_T("	Rebuild: 3. Extras: strip with index: [%d] %d "),anIndex, indices[anIndex]);
+					}
+				}
+			}
+		#endif
 #endif
 	}
 	m_stripArray.Shrink();

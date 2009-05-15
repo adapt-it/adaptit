@@ -388,11 +388,6 @@ public:
 	//bool		GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
 	//						int nLastInvalidStrip, CPile*& pBeforePile, CPile*& pAfterPile);
 	int			EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth);
-	//int			RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
-	//										int nStripWidth, int gap, CPile* pBeforePile,
-	//										CPile* pAfterPile, PileList::Node* posBegin,
-	//										PileList::Node* posEnd, PileList::Node* pos,
-	//										int nInitialStripCount);
 	int			RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, 
 										int nStripWidth, int gap, int nFirstPileIndex, 
 										int nEndPileIndex, int nInitialStripCount);
