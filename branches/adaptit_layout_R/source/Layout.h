@@ -391,8 +391,14 @@ public:
 	int			RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, 
 										int nStripWidth, int gap, int nFirstPileIndex, 
 										int nEndPileIndex, int nInitialStripCount);
+	bool		FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollowingStrip);
+	void		CleanUpTheLayoutFollowingTheEditArea(int nIndexOfStripToStartAt);	
+
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = TRUE);
+
+	// a debugging function
+	//void		DebugIndexMismatch(int nPileIndex_InList, int locator);
 
 public:
 	DECLARE_DYNAMIC_CLASS(CLayout) 

@@ -3662,6 +3662,24 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 //#endif
 			if (selector == 0 || selector == 3)
 			{
+				// mark invalid the strip preceding the active strip, so as to allow
+				// migration upwards of a small pile at start of active strip if the
+				// active location moves further away and so the old active location's
+				// pile becomes less wide and able to fit at the end of the previous strip
+				// - the only way to get it there is to make that strip m_bValid = FALSE
+				// (if there was no active location and we created one at the destination
+				// click's pile in the code above, doing this creates no problem)
+				if (pApp->m_nActiveSequNum != -1)
+				{
+					CPile* pile = GetPile(pApp->m_nActiveSequNum);
+					wxASSERT(pile != NULL);
+					int stripIndex = pile->GetStripIndex();
+					if (stripIndex > 0)
+					{
+						stripIndex--;
+						pLayout->GetInvalidStripArray()->Add(stripIndex);
+					}
+				}
 				// user has not typed anything at the new location yet
 				pApp->m_bUserTypedSomething = FALSE;
 
@@ -3931,6 +3949,27 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 		}
 	}
 	gSaveTargetPhrase = pApp->m_targetPhrase;
+
+	// mark invalid the strip following the new active strip, so as to allow
+	// migration upwards of pile in a strip which sometimes may not be full; but do this
+	// only if there is less than 3/4 of the strip's width occupied by piles currently
+	if (pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pile = GetPile(pApp->m_nActiveSequNum);
+		wxASSERT(pile != NULL);
+		int stripIndex = pile->GetStripIndex();
+		if (stripIndex < (int)pLayout->GetStripArray()->GetCount() - 1)
+		{
+			stripIndex++;
+			CStrip* pStrip = pLayout->GetStripByIndex(stripIndex);
+			int stripWidth = pStrip->Width();
+			int free = pStrip->GetFree();
+			if (free > stripWidth / 4)
+			{
+				pLayout->GetInvalidStripArray()->Add(stripIndex);
+			}
+		}
+	}
 
     // recalculate the layout; before the actual strips are rebuilt, doc class member
     // ResetPartnerPileWidth(), with bool param, bNoActiveLocationCalculation, default

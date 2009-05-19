@@ -58,10 +58,6 @@ public:
 	CPile();
 	CPile(CLayout* pLayout);
 	CPile(const CPile& pile); // copy constructor
-	//CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
-	//				CSourcePhrase* pSrcPhrase); // BEW deprecated 3Feb09
-	//CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase);
-	//CPile(CLayout* pLayout, CSourcePhrase* pSrcPhrase); <<< don't need this one
 
 	// operations
 public:
@@ -79,33 +75,16 @@ private:
 	int				m_nWidth;
 	int				m_nMinWidth;
 	bool			m_bIsCurrentFreeTransSection; // BEW added 24Jun05 for support of free translations
-	/*
-	bool			m_bIsActivePile;
-	int				m_nPileIndex;
-	wxRect			m_rectPile;
-	int				m_nHorzOffset;
-	//CAdapt_ItDoc*	m_pDoc; // BEW deprecated 3Feb09
-	CSourceBundle*	m_pBundle;
-	CStrip*			m_pStrip;
-	CCell*			m_pCell[5]; // 2 source lines, 2 target lines, & one gloss per strip
-	wxColour		m_navTextColor;
-	*/
-
-	// implementation
-	//void			DestroyCells(); // DestroyPile() can do it instead
 
 	// destructor
 public:
-	virtual ~CPile();
+	virtual		~CPile();
 
-	virtual void Draw(wxDC* pDC); // *** TODO **** needs new param list and internals
-	void	DrawNavTextInfoAndIcons(wxDC* pDC); // handles wedge, note icon, retranslation, nav text etc
-	void	PrintPhraseBox(wxDC* pDC);
-	bool	IsWrapPile();
+	virtual		void Draw(wxDC* pDC); // *** TODO **** needs new param list and internals
+	void		DrawNavTextInfoAndIcons(wxDC* pDC); // handles wedge, note icon, retranslation, nav text etc
+	void		PrintPhraseBox(wxDC* pDC);
+	bool		IsWrapPile();
 
-	//CPile* CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
-	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile);
-	//				
 	int			CalcPileWidth(); // based on the text in the cells only, no account taken of active loc
 	int			CalcPhraseBoxGapWidth();
 	int			GetStripIndex();
@@ -115,25 +94,25 @@ public:
 	CCell**		GetCellArray();
 	int			GetPileIndex();
 
-	int		Width();
-	int		Height();
-	int		Left();
-	int		Top();
-	void	GetPileRect(wxRect& rect);
-	wxRect	GetPileRect(); // overloaded version
-	void	TopLeft(wxPoint& ptTopLeft);
+	int			Width();
+	int			Height();
+	int			Left();
+	int			Top();
+	void		GetPileRect(wxRect& rect);
+	wxRect		GetPileRect(); // overloaded version
+	void		TopLeft(wxPoint& ptTopLeft);
 
-	void	SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
-	void	SetPhraseBoxGapWidth();  // sets m_nWidth (the width to be used at active 
-											  //location, calls CalcPhraseBoxGapWidth())
-	void	SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
-	int		GetMinWidth(); // returns value of m_nMinWidth
-	int		GetPhraseBoxGapWidth(); // returns value of m_nWidth
-	void	SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
-	bool	GetIsCurrentFreeTransSection();
+	void		SetMinWidth(); // sets m_nMinWidth (width large enough for cells, calls CalcPileWidth())
+	void		SetPhraseBoxGapWidth();  // sets m_nWidth (the width to be used at active 
+										 //location, calls CalcPhraseBoxGapWidth())
+	void		SetPhraseBoxGapWidth(int nNewWidth);  // this overload sets m_nWidth to the passed in value
+	int			GetMinWidth(); // returns value of m_nMinWidth
+	int			GetPhraseBoxGapWidth(); // returns value of m_nWidth
+	void		SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection);
+	bool		GetIsCurrentFreeTransSection();
 
 private:
-	bool HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
+	bool		HasFilterMarker(); // returns TRUE if the pointed at CSourcePhrase has \~FILTER in m_markers
 
 	DECLARE_DYNAMIC_CLASS(CPile) 
 	// Used inside a class declaration to declare that the objects of 

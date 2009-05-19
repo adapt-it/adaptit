@@ -22,7 +22,7 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 // (more can be handled, up to 26 - but only data for 13, and in a few places, some more,
 // will be shown by wxLogDebug) but if extras are added beware, over 26 and the app will
 // hang when the debugging blocks try to read or write beyond the 26th element)
-#define _13STRIPS_DOC
+//#define _13STRIPS_DOC
 
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
@@ -1729,7 +1729,15 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 		nIndexOfLast = nIndexOfLast_Active; // = -1 or the index of the active strip
 		return;
 	}
-	else
+	else if (abs(nLast - nFirst) > nCountValueForTooFar)
+	{
+		// active region and where the box was are far far apart, so use the active
+		// location only
+		nIndexOfFirst = nIndexOfFirst_Active; // the index of the active strip
+		nIndexOfLast = nIndexOfLast_Active;  // or the index of the active strip
+		return;
+	}
+	else // active loc and user edits area are locations close to each other
 	{
 		// we got an index range from m_invalidStripArray, so if the active strip is
 		// within it, just return that range; but if the active strip is earlier or beyond
@@ -2218,17 +2226,7 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 		wxASSERT(pStrip);
 		pStrip->m_nFree = nStripWidth;
 		pStrip->m_arrPiles.Clear();
-		pStrip->m_arrPiles.Clear();
-		/*
-		if (!pStrip->m_arrPiles.IsEmpty())
-		{
-			pStrip->m_arrPiles.Clear();
-		}
-		if (!pStrip->m_arrPiles.IsEmpty())
-		{
-			pStrip->m_arrPiles.Clear();
-		}
-		*/
+		pStrip->m_arrPileOffsets.Clear();
 		nCount++;
 	}
 	return nCount;
@@ -2313,8 +2311,10 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 	{
 		// fill the one or more strips which have been emptied
 		//pos = pStrip->CreateStrip(pos, posEnd, nStripWidth, gap);
+		// DebugIndexMismatch(111, 100);
 		nNumberPlacedAtThisCall = pStrip->CreateStrip(pileIndex, nEndPileIndex, 
 														nStripWidth, gap);
+		// DebugIndexMismatch(111, 101);
 		nNumberPlaced += nNumberPlacedAtThisCall;
 		nStripCount++; // count this now-refilled strip
 		pileIndex += nNumberPlacedAtThisCall; // update pileIndex to point at the first
@@ -2354,13 +2354,14 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 				pStrip = new CStrip(this);
 				wxASSERT(pStrip);
 				int currentMaximumStripIndex = m_stripArray.GetCount() - 1;
+				//DebugIndexMismatch(111, 102);
 				if (stripIndex == currentMaximumStripIndex)
 				{
 					// the new strip will be at the document's end, so we append it to the
 					// strip array and set the new strip's m_nStrip index member
 					pStrip->m_nStrip = currentMaximumStripIndex + 1;
 					m_stripArray.Add(pStrip); // append the new strip to the strip array
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 					#ifdef __WXDEBUG__
 						{
 							int nNewStripCount = m_stripArray.GetCount();
@@ -2368,7 +2369,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 										pileIndex, nEndPileIndex, nNewStripCount);
 						}
 					#endif
-//#endif
+#endif
 				}
 				else
 				{
@@ -2380,7 +2381,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 					pStrip->m_nStrip = nIndexOfNextStrip; // we renumber relevant strips 
 														  // consecutively later on
 					m_stripArray.Insert(pStrip,nIndexOfNextStrip); // inserts before
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 					#ifdef __WXDEBUG__
 						{
 							int nNewStripCount = m_stripArray.GetCount();
@@ -2388,7 +2389,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 									pileIndex, nEndPileIndex, nNewStripCount, nIndexOfNextStrip);
 						}
 					#endif
-//#endif
+#endif
 				}
 				nNumberAdded++; // update count of how many strips have been added
 			}
@@ -2399,7 +2400,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 				// control passes through this block)
 				pStrip = (CStrip*)m_stripArray.Item(stripIndex + 1);
 				wxASSERT(pStrip);
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 				#ifdef __WXDEBUG__
 					{
 						int nNewStripCount = m_stripArray.GetCount();
@@ -2407,7 +2408,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 								pileIndex, nEndPileIndex, stripIndex + 1, nNewStripCount);
 					}
 				#endif
-//#endif
+#endif
 			}
 			stripIndex++;
 #ifdef _13STRIPS_DOC
@@ -2457,17 +2458,18 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 	int nIndexOfLastStripFilled = nFirstStrip + nStripCount - 1;
 	CStrip* pLastStripFilled = (CStrip*)m_stripArray.Item(nIndexOfLastStripFilled);
 	wxASSERT(pLastStripFilled);
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
 		{
 			wxLogDebug(_T("	Rebuild: 4.1   nIndexOfLastStripFilled %d   nLastStrip %d  Deletes if nIndexOfLastStripFilled < nLastStrip"), 
 							nIndexOfLastStripFilled, nLastStrip);
 		}
 	#endif
-//#endif
+#endif
 		
 	if (nIndexOfLastStripFilled < nLastStrip)
 	{
+		//DebugIndexMismatch(111, 104);
 		// we didn't fill all the emptied strips, so remove the remainders which are empty
 		CStrip* pStripForRemoval = NULL;
 		int index = nIndexOfLastStripFilled + 1; // will be constant, higher items shift down
@@ -2485,19 +2487,19 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			// cause the app to crash because their m_pOwningStrip would point at freed
 			// memory 
 			if (pStripForRemoval->m_arrPiles.IsEmpty() && 
-				pStripForRemoval->m_arrPileOffsets.IsEmpty())	// << FIX THIS (offsets array not emptied)
-			//if (pStripForRemoval->m_arrPiles.IsEmpty())
+											pStripForRemoval->m_arrPileOffsets.IsEmpty())	
 			{
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 				#ifdef __WXDEBUG__
 					{
 						wxLogDebug(_T("	Rebuild: 4.2  ** DELETING ** strip[ %d ]"),  pStripForRemoval->m_nStrip);
 					}
 				#endif
-//#endif
+#endif
 				delete pStripForRemoval;
 				m_stripArray.RemoveAt(index);
 				nNumberRemoved++;
+				//DebugIndexMismatch(111, 105);
 			}
 		}
 	}
@@ -2555,6 +2557,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			// is the active location and if so, use the larger width which can accomodate
 			// the extent of the phrase box, m_nWidth, rather than the minimum width
 			// m_nMinWidth which is based on the max width of the text in the cells
+			// DebugIndexMismatch(111, 106);
 			int sequNumOfBoundingPile = pAfterPile->m_pSrcPhrase->m_nSequNumber;
 			int pileWidth = 40; // default
 			if (sequNumOfBoundingPile == m_pApp->m_nActiveSequNum)
@@ -2586,7 +2589,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 			pLastStripFilled->m_bValid = TRUE; 
 		}
 	}
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
 		{
 			if (pLastStripFilled->m_bValid)
@@ -2595,7 +2598,7 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 				wxLogDebug(_T("	Rebuild: 6. Last filled strip is INVALID,  Final count of refilled strips is %d"),nFinalStripCount);
 		}
 	#endif
-//#endif
+#endif
 	return nFinalStripCount; // the caller will renumber strip indices if that is necessary
 }
 
@@ -2622,19 +2625,20 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	int nIndexWhereEditsStart = -1;
 	int nIndexWhereEditsEnd = -1;
 	int nVisStrips = GetVisibleStrips(); // get count of how many strips fit in client area
+	//DebugIndexMismatch(111, 1);
 
 	// interrogate the active location and the CLayout::m_invalidStripArray to work out
 	// which strips, at the last user editing operation, were marked as invalid
 	GetInvalidStripRange(nIndexWhereEditsStart, nIndexWhereEditsEnd, nVisStrips);
 	int nInitialInvalidStripCount = nIndexWhereEditsEnd - nIndexWhereEditsStart + 1;
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
 		{
 			wxLogDebug(_T("\nAdjust...Beginning... Invalid_Strip_Range: start index %d , end index %d , invalids count %d"),
 				nIndexWhereEditsStart, nIndexWhereEditsEnd, nInitialInvalidStripCount);
 		}
 	#endif
-//#endif
+#endif
 #ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
 		{
@@ -2668,14 +2672,14 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 		return FALSE; // enable caller to inform RecalcLayout() to exit early because layout 
 					  // was done by reentering RecalcLayout() within 
 					  // GetPilesBoundingTheInvalidStrips(), and the active pile reset too
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
 		{
 			wxLogDebug(_T("Adjust...  index of first pile for placement  %d , index of last pile for placement  %d"), 
 						nFirstPileIndex, nEndPileIndex );
 		}
 	#endif
-//#endif
+#endif
 #ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
 		{
@@ -2700,6 +2704,7 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
     // because it allows RebuildTheInvalidStripRange() to check that it removes only
     // pre-emptied strips, where the emptying is done here - this protects against data
     // loss)
+	// DebugIndexMismatch(111, 2);
 	int nHowManyStrips = 
 		   EmptyTheInvalidStrips(nIndexWhereEditsStart, nIndexWhereEditsEnd, nStripWidth);
 
@@ -2741,21 +2746,24 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	// strip array. The last rebuilt strip will usually be marked m_bValid = FALSE. (It is
 	// the Draw() function's job to flow piles up as necessary to fill any strips in the
 	// visible range that are marked as invalid still.)
+	// DebugIndexMismatch(111, 3);
 	int nHowManyNewStrips = RebuildTheInvalidStripRange(nIndexWhereEditsStart, 
 								nIndexWhereEditsEnd, nStripWidth, gap, nFirstPileIndex, 
 								nEndPileIndex, nInitialInvalidStripCount);
+	// DebugIndexMismatch(111, 4);
 	if (nHowManyNewStrips != nHowManyStrips)
 	{
 		// update each of the m_nStrip index members so that they match the 
 		// array storage index
+		//DebugIndexMismatch(111, 5);
 		UpdateStripIndices(nIndexWhereEditsStart);
-//#ifdef _13STRIPS_DOC
+#ifdef _13STRIPS_DOC
 		#ifdef __WXDEBUG__
 			{
 				wxLogDebug(_T("Adjust... 4. UpdateStripIndices() called, starting from strip[%d]"),nIndexWhereEditsStart);
 			}
 		#endif
-//#endif
+#endif
 #ifdef _13STRIPS_DOC
 		#ifdef __WXDEBUG__
 			{
@@ -2781,10 +2789,221 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 		#endif
 #endif
 	}
+	// additional cleanup maybe required
+	int nActiveStripIndex = (m_pView->GetPile(m_pApp->m_nActiveSequNum))->GetStripIndex();
+	if (nActiveStripIndex != -1 && (nActiveStripIndex < (int)m_stripArray.GetCount() - 2))
+	{
+        // start at the active strip and flow piles from lower strips up, filling strips,
+        // do up to the client area's visible strips amount, or fewer if near the document
+        // end (doing as many as can be seen in the visible area of view guarantees that
+        // we'll fix up all the visible strips)
+		// DebugIndexMismatch(111, 6);
+		CleanUpTheLayoutFollowingTheEditArea(nActiveStripIndex + 1);
+		// DebugIndexMismatch(111, 7);
+	}
 	m_stripArray.Shrink();
 	return TRUE;
 }
 
+// return TRUE if there was sufficient free space in the nUpStripIndex strip for the
+// initial piles in the following strip to migrate up (and do the migration); else return
+// FALSE when there is not enough space (and no migration is then attempted); also return
+// FALSE if the following strip does not exist, ie. the nUpStripIndex is the last in the
+// laid out document; or the first pile of the following strip was one which triggers
+// strip wrap.
+// Note: flowing piles up can potentially empty the "following" strip of all its piles; we
+// must check for this and whenever it happens, remove the empty strip from the
+// m_stripArray, and continue processing the upward flow of piles from the next strip (if
+// there is one)
+// Therefore, functions which call FlowInitialPileUp() must take into account that the
+// count of elements in m_stripArray may dynamically change; this is of no consequence
+// when the flowing is done in a part of the document not near its end, but near its end
+// callers will have to take this possibility into account, failure to do so would lead to
+// an app crash. To help us out, the third parameter, bDeletedFollowingStrip, returns TRUE
+// to the caller when we've emptied the following strip and deleted it; else it returns FALSE
+bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollowingStrip)
+{
+	bDeletedFollowingStrip = FALSE;
+	// prevent bounds error
+	int lastStripIndex = m_stripArray.GetCount() - 1;
+	//int nStripWidth = GetLogicalDocSize().x;
+	if ( nUpStripIndex > lastStripIndex)
+	{
+		// index passed in was beyond the end of the array, return indicating inability to
+		// perform the requested flow up
+		return FALSE;
+	}
+	int nFollStripIndex = nUpStripIndex + 1;
+	CStrip* pUpStrip = (CStrip*)m_stripArray.Item(nUpStripIndex);
+	wxASSERT(pUpStrip);
+	CStrip* pFollStrip = NULL;
+	if (nFollStripIndex > lastStripIndex)
+	{
+		// there is no following strip which can supply a pile pointer for flow up
+		pUpStrip->m_bValid = TRUE;
+		return FALSE;
+	}
+	pFollStrip = (CStrip*)m_stripArray.Item(nFollStripIndex);
+	CPile* pPileToFlowUp = (CPile*)pFollStrip->m_arrPiles.Item(0);
+	wxASSERT(pPileToFlowUp);
+	int nPileIndex_InList = pPileToFlowUp->m_pSrcPhrase->m_nSequNumber;
+	bool bIsActivePile = m_pApp->m_nActiveSequNum == nPileIndex_InList; // rarely, if ever,
+																	// should it be TRUE
+	// get the pile's width as currently set - depends on whether it is the active one or not
+	int width;
+	if (bIsActivePile)
+		width = pPileToFlowUp->m_nWidth;
+	else
+		width = pPileToFlowUp->m_nMinWidth;
+	int totalWidth = width + gap;
 
+	// determine if it can flow up...
+	// it can't flow up if it is a wrap pile and we have wrapping checks turned on
+	if (m_pApp->m_bMarkerWrapsStrip && pPileToFlowUp->IsWrapPile())
+	{
+		// wrapping checks are ON, and there is a marker at this pile which triggers strip
+		// wrap, so this pile cannot be flowed up to the end of the "up" strip; declare the
+		// "up" strip valid, too
+		pUpStrip->m_bValid = TRUE;
+		return FALSE;
+	}
+	if (totalWidth > pUpStrip->m_nFree)
+	{
+		// it won't fit in the free space of the up strip, so return FALSE, and mark the
+		// "up" strip filled, ie. valid
+		pUpStrip->m_bValid = TRUE;
+		return FALSE;
+	}
+	else
+	{
+		// it will fit and it doesn't trigger strip wrap, so move it up...
+		
+		// first, remove the record of it having been in the following strip
+		pFollStrip->m_arrPiles.RemoveAt(0);
+		pFollStrip->m_arrPileOffsets.RemoveAt(0);
+		pFollStrip->m_nFree += totalWidth;
+		pFollStrip->m_bValid = FALSE; // this invalidates that strip, even if it was
+									  // formerly valid
+        // add the pile pointer to the end of the "up" strip and set the offset to leading
+        // edge in the m_arrPileOffsets array, and decrease the free space accordingly
+		int nLastPileLeadingEdgeOffset = pUpStrip->m_arrPileOffsets.Last();
+		CPile* pLastPileInStrip = (CPile*)pUpStrip->m_arrPiles.Last();
+		int nLastPileWidth = 0;
+		if (pLastPileInStrip->m_pSrcPhrase->m_nSequNumber == m_pApp->m_nActiveSequNum)
+			nLastPileWidth = pLastPileInStrip->m_nWidth;
+		else
+			nLastPileWidth = pLastPileInStrip->m_nMinWidth;
+		pUpStrip->m_arrPileOffsets.Add(nLastPileLeadingEdgeOffset + nLastPileWidth + gap);
+		pUpStrip->m_arrPiles.Add(pPileToFlowUp); // this call has to come after the above lines
+		pUpStrip->m_nFree -= totalWidth;
 
+		// the pile is now in a different strip, and at a different index in the strip
+		// than before, so update these parameters too; the pPileToFlowUp is already added
+		// to the strip
+		pPileToFlowUp->m_pOwningStrip = pUpStrip;
+		pPileToFlowUp->m_nPile = (int)(pUpStrip->m_arrPiles.GetCount() - 1);
 
+		// the piles in the lower strip from which it flowed up have now shifted to an
+		// earlier position in the m_arrPiles array, and m_arrPileOffsets has been
+		// adjusted too; but at present each of those remaining piles still has their old
+		// m_nPile index values unchanged - these are the index locations for their old
+		// locations in the strip - so now they have a 1-off error. We must now loop over
+		// these to reset their m_nPile values to agree with their new array locations
+		int lastIndex = (int)(pFollStrip->m_arrPiles.GetCount() - 1);
+		if (lastIndex > -1)
+		{
+			int indx;
+			for (indx = 0; indx <= lastIndex; indx++)
+			{
+				CPile* pPile = (CPile*)pFollStrip->m_arrPiles.Item(indx);
+				pPile->m_nPile = indx;
+			}
+		}
+        // check if the flow up has just emptied the "following" strip - if so, remove the
+        // empty strip from the m_stripArray, & the caller must check for the end of the
+        // document and exit its loop after doing the appropriate adjustments if this strip
+        // removal process resulted in the removal of the last strip of the document
+		if (pFollStrip->m_arrPiles.IsEmpty() && pFollStrip->m_arrPileOffsets.IsEmpty())
+		{
+			// if about to delete the final strip in the document, declare the pUpStrip
+			// which has just received all its piles, m_bValid = TRUE
+			if ((int)(m_stripArray.GetCount() - 1) == nFollStripIndex)
+			{
+				pUpStrip->m_bValid = TRUE; // make sure it's valid, the last in doc always is
+			}
+			// now do the strip deletion (not always is it the last in the doc though)
+			delete pFollStrip;
+			m_stripArray.RemoveAt(nFollStripIndex);
+			bDeletedFollowingStrip = TRUE;
+			UpdateStripIndices(nUpStripIndex); // keep strip numbering consecutive
+			return TRUE; // let the caller work out if more flowing is required with any
+						 // strips which followed this one just deleted
+		}
+	}
+	return TRUE;
+}
+
+// returns nothing; the layout-tweaking code can, if the user clicks around the document
+// where there are some short strips, result in several consecutive strips having just a
+// singleton pile within them, even though only one of the may precede a strip which
+// commences with a "wrap-causing" pile; so this clean up function does flow up of piles
+// to whatever extent is possible, for up to nVisibleStrips strips from the strip with
+// index nIndexOfStripToStartAt -- which typically should be the strip following whichever
+// is the active pile after the user's edit operation is done. 
+// Doing this should relieve the subsequent Draw(() of the layout from finding m_bValid ==
+// FALSE strips within the view's client area and have to then do pile flow upwards to make
+// the visible ones all be valid; that is, we try to this validating job within
+// RecalcLayout() rather than pass some of it to Draw() to have to do on a frequent basis;
+// Draw() will still make the check, but we expect it rarely to find any invalid strips
+// that require pile flow.
+// Note: the internal call of FlowInitialPileUp() can result in the source strip becoming
+// empty of piles, and the latter function then removes any such emptied strip before
+// returning, and so we must be prepared for the count of strips in m_stripArray to change
+// dynamically in the code below - and particular care must be exercised near the
+// document's end.
+void CLayout::CleanUpTheLayoutFollowingTheEditArea(int nIndexOfStripToStartAt)
+{
+	bool bDeletedFollowingStrip;
+	int nLastStrip = m_stripArray.GetCount() - 1;
+	int nFixHowManyStrips = GetVisibleStrips();
+	int nLastStripToFix = nIndexOfStripToStartAt + nFixHowManyStrips - 1;
+	if (nLastStripToFix >= nLastStrip)
+		nLastStripToFix = nLastStrip - 1;
+	int index;
+	bool bSuccessfulFlowOfASinglePileUpwards = FALSE;
+	for (index = nIndexOfStripToStartAt; index <= nLastStripToFix; index++)
+	{
+		do
+		{
+			// Note: bSuccessfulFlowOfASinglePileUpwards, cannot be FALSE if the value
+			// returned in bDeletedFollowingStrip is TRUE
+			bSuccessfulFlowOfASinglePileUpwards = 
+						FlowInitialPileUp(index, m_nCurGapWidth, bDeletedFollowingStrip);
+
+			// check for an empty strip having been removed, and adjust accordingly
+			if (bDeletedFollowingStrip)
+			{
+				nLastStripToFix--; // there is one less strip to be fixed
+
+			}
+		} while (bSuccessfulFlowOfASinglePileUpwards && index <= nLastStripToFix);
+	}
+	//UpdateStripIndices(nIndexOfStripToStartAt);
+}
+
+/* 
+// created for identifying where some piles didn't get their m_nPile values updated -- turned out
+// to be the leftover ones in the strip after flow up to the preceding strip finished
+// because the preceding strip had become full; so fixed the bad code in FlowInitialPileUp()
+void CLayout::DebugIndexMismatch(int nPileIndex_InList, int locator)
+{
+	CPile* pPile = GetPile(nPileIndex_InList);
+	CStrip* pOwningStrip = pPile->m_pOwningStrip;
+	int nWhereAt = pOwningStrip->m_arrPiles.Index(pPile);
+	int nWhereItThinksItsAt = pPile->m_nPile;
+	if (nWhereAt != nWhereItThinksItsAt)
+		wxLogDebug(_T("Locator %d  m_arrPiles position [%d] m_nPile index %d  MISMATCHED"),locator,nWhereAt,nWhereItThinksItsAt);
+	else
+		wxLogDebug(_T("Locator %d  m_arrPiles position [%d] m_nPile index %d"),locator,nWhereAt,nWhereItThinksItsAt);
+}
+*/
