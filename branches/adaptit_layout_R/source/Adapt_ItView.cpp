@@ -10672,7 +10672,7 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 	CCellList::Node* pos = pCellList->GetFirst();
 	if (pos == NULL)
 		return;
-	if (pApp->m_selectionLine == 0 || pApp->m_selectionLine == 1)
+	if (pApp->m_selectionLine == 0)
 	{
 		while (pos != NULL)
 		{
@@ -14606,7 +14606,6 @@ bool CAdapt_ItView::ExtendSelectionRight()
 
 			// preserve record of the selection
 			pApp->m_selection.Append(pNextCell); 
-			//pApp->m_selectionLine = 1;
 			pApp->m_selectionLine = 0;
 		}
 		else
@@ -14634,7 +14633,6 @@ bool CAdapt_ItView::ExtendSelectionRight()
 
 		// preserve record of the selection
 		pApp->m_selection.Append(pCell);
-		//pApp->m_selectionLine = 1;
 		pApp->m_selectionLine = 0;
 
 		// now try extend it one cell right
@@ -14805,7 +14803,6 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 
 			// preserve record of the selection
 			pApp->m_selection.Insert(pPrevCell);
-			//pApp->m_selectionLine = 1;
 			pApp->m_selectionLine = 0;
 		}
 		else // pPrevCell is NULL
@@ -14830,7 +14827,6 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 
 		// preserve record of the selection
 		pApp->m_selection.Insert(pCell);
-		//pApp->m_selectionLine = 1;
 		pApp->m_selectionLine = 0;
 
 		// now try extend it one cell left
@@ -16576,7 +16572,7 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	if (pApp->m_selectionLine == 0 || pApp->m_selectionLine == 1)
+	if (pApp->m_selectionLine == 0)
 	{
 		// this has priority, ie. if there is / are sourcePhrase(s) selected
 		DoSrcPhraseSelCopy();
@@ -16653,7 +16649,7 @@ void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 		}
 
 	bool bSrcPhraseSel = FALSE;
-	if (pApp->m_selectionLine == 0 || pApp->m_selectionLine == 1)
+	if (pApp->m_selectionLine == 0)
 		bSrcPhraseSel = TRUE;
 
 	event.Enable(bComposeSel || bTargetBoxSel || bSrcPhraseSel);
@@ -24626,6 +24622,9 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 		}
 	}
+
+	// BEW added 20May09, next loine required in order to remove the selection
+	GetLayout()->Redraw();
 }
 
 bool CAdapt_ItView::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
@@ -25292,7 +25291,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 
 	// preserve record of the selection
 	pApp->m_selection.Append(pCell);
-	pApp->m_selectionLine = nSelectionLine; // can be 0 or 1, not just 0
+	pApp->m_selectionLine = nSelectionLine;
 	pApp->m_pAnchor = pCell;
 
 	if (nCount > 1)
@@ -40451,7 +40450,7 @@ void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
 	int nSaveSequNum = pApp->m_nActiveSequNum;
 
 	// won't allow a selection to be preserved, this is too major a modality change
-	if (pApp->m_selectionLine >= 0)
+	if (pApp->m_selectionLine != -1)
 		RemoveSelection();
 
     // before we redraw the layout and phrasebox, we have to save what is in the box
@@ -40635,7 +40634,7 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 	int nSaveSequNum = pApp->m_nActiveSequNum;
 
 	// won't allow a selection to be preserved, this is too major a modality change
-	if (pApp->m_selectionLine >= 0)
+	if (pApp->m_selectionLine != -1)
 		RemoveSelection();
 
     // before we redraw the layout and phrasebox, we have to save what is in the box
@@ -47637,9 +47636,8 @@ a:			wxMessageBox(_T(
 				else
 				{
                     // the pile pointer is known, we can assume it is valid; we'll create
-                    // the selection in the cell with index = 1 as this is always shown for
-                    // either value of m_bSuppressFirst boolean
-					pApp->m_selectionLine = gnSelectionLine = 1;
+                    // the selection in the cell with index = 0
+					pApp->m_selectionLine = gnSelectionLine = 0;
 					CCell* pCell = pNewPile->GetCell(0);
 					pApp->m_selection.Insert(pCell);
 					pApp->m_pAnchor = pCell;
@@ -47905,9 +47903,8 @@ a:			wxMessageBox(_T(
 				else
 				{
                     // the pile pointer is known, we can assume it is valid; we'll create
-                    // the selection in the cell with index = 1 as this is always shown for
-                    // either value of m_bSuppressFirst boolean
-					pApp->m_selectionLine = gnSelectionLine = 1;
+                    // the selection in the cell with index = 0 
+					pApp->m_selectionLine = gnSelectionLine = 0;
 					CCell* pCell = pNewPile->GetCell(0);
 					pApp->m_selection.Insert(pCell);
 					pApp->m_pAnchor = pCell;

@@ -1106,7 +1106,8 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
     // If any source phrase is selected, determine how many words are in the selection and
     // what key to use in the lookup. The m_nWordsSelected and m_TheSelectedKey members
     // need to be set regardless of whether the app is in active Glossing mode or not.
-	if (gpApp->m_selectionLine > 0 && gpApp->m_selection.GetCount() > 0)
+    int selectionCount = gpApp->m_selection.GetCount();
+	if (gpApp->m_selectionLine == 0 && selectionCount > 0)
 	{
 		// we have a selection
 		CCellList::Node* cpos = gpApp->m_selection.GetFirst();
