@@ -13887,6 +13887,36 @@ void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
 
 int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nStartingSequNum)
 {
+	// The following note is copied from Layout.cpp... it is very important
+	// NOTE: in the event of an Unmerge operation, the active pile was the one that
+	// got unmerged (and hence destroyed and its memory freed) - which; the
+	// RestoreOriginalMinPhrases() function inserts the old CSourcePhrase instances
+	// back into the app's m_pSourcePhrases list, and creates partner piles for these
+	// with CAdapt_ItDoc::CreatePartnerPile() calls. The latter does not know about
+	// what strip it will end up in, nor what position in that strip, because when
+	// these creations are done the old strips are current (we could have a guess and
+	// probably set the strip pointer correctly if the old strips exist, but not reliably
+    // set the index within the strip's m_arrPiles array, and sometimes pile creation
+    // is done when all strips are destroyed for a full layout rebuild, so there is not
+    // much point in trying) - so we only go as far as having RestoreOriginalMinPhrases()
+    // point the CAdapt_It::m_pActivePile at the partner pile for the first of the
+	// created original minimum CSourcePhrase instances we've replaced in the list -
+	// knowing full well that its m_pOwningStrip value will be NULL, and its m_nPile
+	// value will be -1. That means that until the strips are updated, those members
+	// will have those values, which means any function which depends on them before
+	// RecalcLayout() has finished must know what to do if such a pile is the active
+	// one - for instance, calling CPile::GetStripIndex() will return the invalid
+	// index -1, and any attempt to Draw() such a pile would fail because m_nPile is
+	// accessed in order to find its location in a strip in order to work out its
+	// drawing rectangle, and garbage would be being accessed.	 
+
+	// According to the above note, we must (in the refactored layout code) ensure that
+	// deleting the pBigOne (merged) pile, which will also be the active pile, does not
+	// result in the function exiting with m_pActivePile set to freed memory, so we add
+	// code to reset the active pile to the first of the partner CPile pointers created
+	// below; this is done at the end, and the passed in nStartingSequNum is the active
+	// sequence number we use for resetting m_pActivePile
+	
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	int nCount = pSrcPhrase->m_nSrcWords;
@@ -14090,6 +14120,20 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 
 	// update the sequence numbers for elements subsequent to the first
 	UpdateSequNumbers(nStartingSequNum);
+
+	// BEW added 20May09, in the refactored layout, restoring original CSourcePhrase
+	// instances requires CPile partners be created and inserted into equivalent positions
+	// in the m_pileList list as for their CSourcePhrase partners in m_pSourcePhrases
+	// list, but the newly created piles won't have their m_pOwningStrip member set (it
+	// will be NULL) nor their m_nPile member set to a valid index, but to -1. Deleting
+	// the passed in original CSourcePhrase (it was at the active location) results in
+	// m_pActivePile which formerly pointed at its partner pile, and which also got freed,
+	// not pointing at a valid CPile pointer in memory; so m_pActivePile has to be
+	// re-established here before returning (in the legacy layout, m_pActivePile got
+	// reset after the layout was rebuilt, but in our refactored approach, piles are
+	// persistent and so we have to reestablish the active pile pointer before
+	// RecalcLayout() is called, because code in the latter uses it)
+	pApp->m_pActivePile = GetPile(nStartingSequNum);
 
 	return nCount;
 }

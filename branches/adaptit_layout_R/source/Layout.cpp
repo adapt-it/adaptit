@@ -1682,13 +1682,44 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 		// user advanced the box into limbo past the end of the document; but if for some
 		// reason the active pile's m_pOwningStrip pointer was not set, then -1 will be 
 		// returned
-		nIndexOfActiveStrip = m_pApp->m_pActivePile->GetStripIndex();
+		// NOTE: in the event of an Unmerge operation, the active pile was the one that
+		// got unmerged (and hence destroyed and its memory freed) - which; the
+		// RestoreOriginalMinPhrases() function inserts the old CSourcePhrase instances
+		// back into the app's m_pSourcePhrases list, and creates partner piles for these
+		// with CAdapt_ItDoc::CreatePartnerPile() calls. The latter does not know about
+		// what strip it will end up in, nor what position in that strip, because when
+		// these creations are done the old strips are current (we could have a guess and
+		// probably set the strip pointer correctly if the old strips exist, but not reliably
+        // set the index within the strip's m_arrPiles array, and sometimes pile creation
+        // is done when all strips are destroyed for a full layout rebuild, so there is not
+        // much point in trying) - so we only go as far as having RestoreOriginalMinPhrases()
+        // point the CAdapt_It::m_pActivePile at the partner pile for the first of the
+		// created original minimum CSourcePhrase instances we've replaced in the list -
+		// knowing full well that its m_pOwningStrip value will be NULL, and its m_nPile
+		// value will be -1. That means that until the strips are updated, those members
+		// will have those values, which means any function which depends on them before
+		// RecalcLayout() has finished must know what to do if such a pile is the active
+		// one - for instance, calling CPile::GetStripIndex() will return the invalid
+		// index -1, and any attempt to Draw() such a pile would fail because m_nPile is
+		// accessed in order to find its location in a strip in order to work out its
+		// drawing rectangle, and garbage would be being accessed. So in the stuff below
+		// we must allow for an Unmerge operation - when it happens, we'll just not try to
+		// get the active location information, but rely on the strip indices in
+		// CLayout::m_invalidStripArray instead.
+		nIndexOfActiveStrip = m_pApp->m_pActivePile->GetStripIndex(); // returns -1 if
+		// the active pile is one newly created (eg. at an Unmerge operation)
+		// (because it has its m_pOwningStrip member set to NULL); otherwise returns a
+		// valid strip index
 	}
+	bool bActiveStripSet = TRUE;
 	if (nIndexOfActiveStrip != -1)
 	{
 		nIndexOfFirst_Active = nIndexOfActiveStrip;
 		nIndexOfLast_Active = nIndexOfActiveStrip;
 	}
+	else
+		bActiveStripSet = FALSE;
+
 	int nFirst = -1;
 	int nLast = -1;
 	int index = 0;
@@ -1733,8 +1764,27 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 	{
 		// active region and where the box was are far far apart, so use the active
 		// location only
-		nIndexOfFirst = nIndexOfFirst_Active; // the index of the active strip
-		nIndexOfLast = nIndexOfLast_Active;  // or the index of the active strip
+		if (bActiveStripSet)
+		{
+			nIndexOfFirst = nIndexOfFirst_Active; // the index of the active strip
+			nIndexOfLast = nIndexOfLast_Active;  // or the index of the active strip
+		}
+		else
+		{
+			// no active strip was set, (this can happen at an Unmerge operation because
+			// the recreated partner piles have their m_pOwningStrip member set to NULL),
+			// so we must do what we can with the huge range we've calculated - we'll just
+			// ignore it and instead use the visible strips, hoping that that will cover
+			// the area needing to be relaid out
+a:			wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
+			m_pCanvas->DoPrepareDC(aDC); // get origin adjusted
+			wxClientDC* pDC = &aDC;
+			int nFirstStripIndex = -1;
+			int nLastStripIndex = -1;
+			GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
+			nIndexOfFirst = nFirstStripIndex;
+			nIndexOfLast = nLastStripIndex;
+		}
 		return;
 	}
 	else // active loc and user edits area are locations close to each other
@@ -1742,6 +1792,10 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 		// we got an index range from m_invalidStripArray, so if the active strip is
 		// within it, just return that range; but if the active strip is earlier or beyond
 		// it, then extend the strip range to include the active strip
+		if (!bActiveStripSet) 
+			goto a; // if we didn't get an active strip, return the
+					// range of visible strips instead
+		// we've got a valid active strip, so use it in the calculations below
 		nIndexOfFirst = nFirst;
 		nIndexOfLast = nLast;
 		if (nIndexOfFirst_Active < nIndexOfFirst)
