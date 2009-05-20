@@ -26050,6 +26050,17 @@ void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
 		wxASSERT(nCount == 1);;
 	}
 
+	bIncludePunct = TRUE; // set it, rather than ignore, to avoid compiler warning
+	int nSelLineIndex;
+	if (bSearchedInSrc)
+	{
+		nSelLineIndex = 0;
+	}
+	else
+	{
+		nSelLineIndex = 1;
+	}
+	/* bIncludePunct value irrelevant in refactored layout, source always has punctuation
 	int nSelLineIndex;
 	if (bSearchedInSrc)
 	{
@@ -26065,6 +26076,7 @@ void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
 		else
 			nSelLineIndex = 2;
 	}
+	*/
 	// set up bundle, recalc layout, etc, and make the appropriate selection
 	MakeSelectionForFind(nNewSequNum,nCount,nSelLineIndex);
 

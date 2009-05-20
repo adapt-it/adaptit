@@ -30,6 +30,8 @@
 #pragma hdrstop
 #endif
 
+#define _FIND_DELAY
+
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
@@ -972,6 +974,32 @@ b:	pApp->m_bSaveToKB = TRUE;
 		{
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 
+            // adaptation is available, so use it if the source phrase has only a single
+            // word, but if it's multi-worded, we must first do a merge and recalc of the
+            // layout
+			if (!gbIsGlossing && !gbSuppressMergeInMoveToNextPile)
+			{
+                // this merge is suppressed if we get here after doing a merge in
+                // LookAhead() in order to see the phrase box at the correct location when
+                // the Choose Translation dialog is up
+				if (nWordsInPhrase > 1) // nWordsInPhrase is a global, set in LookAhead()
+										// or in LookUpSrcWord()
+				{
+					// do the needed merge, etc.
+					pApp->bLookAheadMerge = TRUE; // set static flag to ON
+					bool bSaveFlag = m_bAbandonable; // the box is "this"
+					pView->MergeWords();
+					m_bAbandonable = bSaveFlag; // preserved the flag across the merge
+					pApp->bLookAheadMerge = FALSE; // restore static flag to OFF
+				}
+			}
+			else
+			{
+				// clear the flag to false
+				gbSuppressMergeInMoveToNextPile = FALSE; // make sure it's reset to 
+														 // the default value
+			}
+
             // For automatically inserted target/gloss text highlighting, we increment the
             // Ending Sequence Number as long as the Beginning Sequence Number is
             // non-negative. If the Beginning Sequence Number is negative, the Ending
@@ -1384,7 +1412,33 @@ b:	pApp->m_bSaveToKB = TRUE;
 		{
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 
-            // For automatically inserted target/gloss text highlighting, we increment the
+             // adaptation is available, so use it if the source phrase has only a single
+            // word, but if it's multi-worded, we must first do a merge and recalc of the
+            // layout
+			if (!gbIsGlossing && !gbSuppressMergeInMoveToNextPile)
+			{
+                // this merge is suppressed if we get here after doing a merge in
+                // LookAhead() in order to see the phrase box at the correct location when
+                // the Choose Translation dialog is up
+				if (nWordsInPhrase > 1) // nWordsInPhrase is a global, set in LookAhead()
+										// or in LookUpSrcWord()
+				{
+					// do the needed merge, etc.
+					pApp->bLookAheadMerge = TRUE; // set static flag to ON
+					bool bSaveFlag = m_bAbandonable; // the box is "this"
+					pView->MergeWords();
+					m_bAbandonable = bSaveFlag; // preserved the flag across the merge
+					pApp->bLookAheadMerge = FALSE; // restore static flag to OFF
+				}
+			}
+			else
+			{
+				// clear the flag to false
+				gbSuppressMergeInMoveToNextPile = FALSE; // make sure it's reset to 
+														 // the default value
+			}
+
+			// For automatically inserted target/gloss text highlighting, we increment the
             // Ending Sequence Number as long as the Beginning Sequence Number is
             // non-negative. If the Beginning Sequence Number is negative, the Ending
             // Sequence Number must also be negative. Each time a new insertion is done,
@@ -1971,6 +2025,9 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("9. Start of JumpForward"));
+#endif
 	// refactored 25Mar09
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = pLayout->m_pApp;
@@ -2535,7 +2592,13 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		pView->RedrawEverything(pView->m_nActiveSequNum);
 		*/
 #ifdef _NEW_LAYOUT
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("10. Start of RecalcLayout in JumpForward"));
+#endif
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("11. End of RecalcLayout in JumpForward"));
+#endif
 #else
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -2548,6 +2611,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		pView->Invalidate(); // it should be okay in the refactored code 
 							 // (cf. Bill's comment above)
 	} // end Review mode (single src phrase move) block
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("12. End of JumpForward"));
+#endif
 }
 
 bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
@@ -4430,6 +4496,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 // the LookAhead function (such as when there was no match); otherwise, return FALSE so as to
 // be able to exit from the caller's loop
 {
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("1. Start of OnePass"));
+#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CLayout* pLayout = GetLayout();
@@ -4470,7 +4539,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	}
 	else
 	{
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("2. Before MoveToNextPile"));
+#endif
 		bSuccessful = MoveToNextPile(pView, pApp->m_pActivePile);
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("3. After MoveToNextPile"));
+#endif
 	}
 	if (!bSuccessful)
 	{
@@ -4526,7 +4601,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_targetPhrase.Empty();
 			pApp->m_nActiveSequNum = -1;
 #ifdef _NEW_LAYOUT
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("4. Before RecalcLayout"));
+#endif
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("5. After RecalcLayout"));
+#endif
 #else
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -4548,7 +4629,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 	// if control gets here, all is well so far, so set up the main window
 	//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("6. Before ScrollIntoView"));
+#endif
 	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("7. After ScrollIntoView"));
+#endif
 
 	/* //I think the rest, except for last few lines, is not required in the refactored layout code
 	//because the MoveToNextPile() call does it all (BEW 1Apr09)
@@ -4641,6 +4728,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	pLayout->m_docEditOperationType = relocate_box_op;
 	gbEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
+#ifdef _FIND_DELAY
+	wxLogDebug(_T("8. End of OnePass"));
+#endif
 	return TRUE; // all was okay
 }
 
@@ -5195,6 +5285,7 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 									 // OnButtonRestore() because
 			pView->UnmergePhrase(); // UnmergePhrase() otherwise calls LookUpSrcWord()
 									// which calls ChooseTranslation()
+			gbSuppressMergeInMoveToNextPile = FALSE; // reinstate it, 20May09
 			//gbSuppressMergeInMoveToNextPile = FALSE; // allow the MoveToNextPile() merge,
 						// though it won't be accessed... removed this on 24Mar09
 		}
@@ -5205,6 +5296,7 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 				// these should not be necessary, but will keep things safe when glossing
 				gbMergeDone = FALSE;
 				gbSuppressLookup = TRUE;
+				gbSuppressMergeInMoveToNextPile = FALSE; // reinstate it, 20May09
 				//gbSuppressMergeInMoveToNextPile = TRUE; // removed 24Mar09
 			}
 		}
