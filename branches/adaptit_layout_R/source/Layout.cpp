@@ -60,6 +60,8 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include <wx/wx.h>
 #endif
 
+//#define _OFFSETS_BUG
+
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
@@ -291,32 +293,41 @@ void CLayout::Draw(wxDC* pDC)
 {
     // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
-    // caller (typically a handler for a user edit operation) has to set the active
-    // location (the app's m_nActiveSequNum value) correctly first; for ScrollUp() and
-    // ScrollDown() the function handlers of these ignore the active location and just
+    // caller has to set the active location first --typically its done by code in the
+    // AdjustForUserEdits() function called within RecalcLayout(), but if rebuilding the
+    // full inventory of strips then it is based on the active strip as defined by the
+    // active sequence number's value -- and the idea is to set the active strip somewhere
+    // in the visible area and use ScrollIntoView() to ensure the scroll car is set to the
+    // appropriate value before any drawning is done; for ScrollUp() and ScrollDown() the
+    // function handlers of these scroll operations ignore the active location and just
     // define a client area's worth of drawing based on the scroll car position
-     
-    
-
-
-	int i;
+ 	int i;
 	int nFirstStripIndex = -1;
 	int nLastStripIndex = -1;
 	int nActiveSequNum = -1;
-
-	// *** TODO *** AdjustForUserEdits(), once we get rid of RecalcLayout(FALSE) calls,
-	// will need to replace those calls in the doc editing handlers themselves, eg
-	// OnButtonMerge() etc... OR, we may put AdjustForUserEdits() within RecalcLayout()
-	// and have a test to choose when we use that, or instead use the older full relayout code
-	
-	
 
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
 	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
 	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
 
-	// draw the visible strips (plus and extra one, if possible)
+	// check for any invalid strips in the range to be drawn, and if one is found, call
+	// the CleanUpFromStripAt() function, doing it for a window's worth of strips, so that
+	// no invalid strip will be visible to the user - either when displaying document
+	// editing results, or when scrolling up or down
+	CStrip* aStripPtr = NULL;
+	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
+	{
+		aStripPtr = (CStrip*)m_stripArray.Item(i);
+		if (aStripPtr->m_bValid == FALSE)
+		{
+			// fix a window's worth of strips from here on - do it only once per loop
+			CleanUpTheLayoutFromStripAt(aStripPtr->m_nStrip, GetNumVisibleStrips());
+			break;
+		}
+	}
+
+	// draw the visible strips (includes an extra one, where possible)
 	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
 	{
 		((CStrip*)m_stripArray.Item(i))->Draw(pDC);
@@ -1061,6 +1072,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 //	CAdapt_ItApp* pAppl = &wxGetApp();
 //	wxLogDebug(_T("Location = %d  Active Sequ Num  %d"),1,pAppl->m_nActiveSequNum);
 //#endif
+	// every call of RecalcLayout() should calculate the number of strips currently that
+	// could be shown in the client area, setting the m_numVisibleStrips private member of
+	// the CLayout instance - other functions can then access it using
+	// GetNumVisibleStrips() and rely on the value returned
+	m_numVisibleStrips = CalcNumVisibleStrips();
 
 	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which
         // comprise the document, or a sublist copied from it, -- the CLayout instance will
@@ -1553,7 +1569,12 @@ CStrip* CLayout::GetStripByIndex(int index)
 	return  (CStrip*)m_stripArray[index];
 }
 
-int CLayout::GetVisibleStrips()
+int CLayout::GetNumVisibleStrips()
+{
+	return m_numVisibleStrips; // how many strips can appear in the client area
+}
+
+int CLayout::CalcNumVisibleStrips()
 {
 	int clientHeight;
 	wxSize canvasSize;
@@ -1567,6 +1588,7 @@ int CLayout::GetVisibleStrips()
 	return nVisStrips; // how many strips can appear in the client area
 }
 
+
 void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLastStripIndex)
 {
 	// BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
@@ -1579,7 +1601,72 @@ void CLayout::GetVisibleStripsRange(wxDC* pDC, int& nFirstStripIndex, int& nLast
 
     // for the current client rectangle of the canvas, calculate how many strips will
     // fit - a part strip is counted as an extra one
-	int nVisStrips = GetVisibleStrips();
+	int nVisStrips = GetNumVisibleStrips();
+
+	// find the current total number of strips
+	int nTotalStrips = m_stripArray.GetCount();
+	
+ 	// estimate the index to start scanning forward from in order to find the first strip
+	// which has some content visible in the client area (do it by a binary chop)
+	int nIndexToStartFrom = GetStartingIndex_ByBinaryChop(nThumbPosition_InPixels,
+															nVisStrips, nTotalStrips);
+   // find the index of the first strip which has some content visible in the client
+    // area, that is, the first strip which has a bottom coordinate greater than
+    // nThumbPosition_InPixels
+	int index = nIndexToStartFrom;
+	int bottom;
+	CStrip* pStrip;
+	do {
+		pStrip = (CStrip*)m_stripArray.Item(index);	
+		bottom = pStrip->Top() + GetStripHeight(); // includes free trans height if 
+												   // free trans mode is ON 
+		if (bottom > nThumbPosition_InPixels)
+		{
+			// this strip is at least partly visible - so start drawing at this one
+			break;
+		}
+		index++;
+	} while(index < nTotalStrips);
+	wxASSERT(index < nTotalStrips);
+	nFirstStripIndex = index;
+
+    // use nVisStrips to get the final visible strip (it may be off-window, but we
+    // don't care because it will be safe to draw it off window)
+	nLastStripIndex = nFirstStripIndex + (nVisStrips - 1);
+	if (nLastStripIndex > nTotalStrips - 1)
+		nLastStripIndex = nTotalStrips - 1; // protect from bounds error
+
+    // check the bottom of the last visible strip is lower than the bottom of the
+    // client area, if not, add an additional strip
+	pStrip = (CStrip*)m_stripArray.Item(nLastStripIndex);
+	bottom = pStrip->Top() + GetStripHeight();
+	if (!(bottom >= nThumbPosition_InPixels + GetClientWindowSize().y ))
+	{
+		// add an extra one, if there is an extra one to add - it won't hurt to write
+		// one strip partly or wholely off screen
+		if (nLastStripIndex < nTotalStrips - 1)
+			nLastStripIndex++;
+	}
+}
+// the following is an overloaded version which creates a device context internally rather
+// than relying on one being passed from the caller
+void CLayout::GetVisibleStripsRange(int& nFirstStripIndex, int& nLastStripIndex)
+{
+	// BE SURE TO HANDLE active sequ num of -1 --> make it end of doc, but
+	// hide box  -- I think we'll support it by just recalculating the layout without a
+	// scroll, at the current thumb position for the scroll car
+
+	wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
+	m_pCanvas->DoPrepareDC(aDC); // get origin adjusted
+	wxClientDC* pDC = &aDC;
+
+    // get the logical distance (pixels) that the scroll bar's thumb indicates to top
+    // of client area
+	int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
+
+    // for the current client rectangle of the canvas, calculate how many strips will
+    // fit - a part strip is counted as an extra one
+	int nVisStrips = GetNumVisibleStrips();
 
 	// find the current total number of strips
 	int nTotalStrips = m_stripArray.GetCount();
@@ -1776,12 +1863,9 @@ void CLayout::GetInvalidStripRange(int& nIndexOfFirst, int& nIndexOfLast,
 			// so we must do what we can with the huge range we've calculated - we'll just
 			// ignore it and instead use the visible strips, hoping that that will cover
 			// the area needing to be relaid out
-a:			wxClientDC aDC((wxWindow*)m_pCanvas); // make a device context
-			m_pCanvas->DoPrepareDC(aDC); // get origin adjusted
-			wxClientDC* pDC = &aDC;
-			int nFirstStripIndex = -1;
+a:			int nFirstStripIndex = -1;
 			int nLastStripIndex = -1;
-			GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
+			GetVisibleStripsRange(nFirstStripIndex, nLastStripIndex);
 			nIndexOfFirst = nFirstStripIndex;
 			nIndexOfLast = nLastStripIndex;
 		}
@@ -2678,7 +2762,7 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 {
 	int nIndexWhereEditsStart = -1;
 	int nIndexWhereEditsEnd = -1;
-	int nVisStrips = GetVisibleStrips(); // get count of how many strips fit in client area
+	int nVisStrips = GetNumVisibleStrips(); // count of how many strips fit in client area
 	//DebugIndexMismatch(111, 1);
 
 	// interrogate the active location and the CLayout::m_invalidStripArray to work out
@@ -2843,7 +2927,7 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 		#endif
 #endif
 	}
-	// additional cleanup maybe required
+	// additional cleanup may be required
 	int nActiveStripIndex = (m_pView->GetPile(m_pApp->m_nActiveSequNum))->GetStripIndex();
 	if (nActiveStripIndex != -1 && (nActiveStripIndex < (int)m_stripArray.GetCount() - 2))
 	{
@@ -2852,7 +2936,10 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
         // end (doing as many as can be seen in the visible area of view guarantees that
         // we'll fix up all the visible strips)
 		// DebugIndexMismatch(111, 6);
-		CleanUpTheLayoutFollowingTheEditArea(nActiveStripIndex + 1);
+		int nFixHowManyStrips = GetNumVisibleStrips()/2 + 2; // a little over half a client
+			// area's worth should be enough because we'll not locate the phrase box higher
+			// than about mid window
+		CleanUpTheLayoutFromStripAt(nActiveStripIndex + 1, nFixHowManyStrips);
 		// DebugIndexMismatch(111, 7);
 	}
 	m_stripArray.Shrink();
@@ -2901,9 +2988,10 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 	CPile* pPileToFlowUp = (CPile*)pFollStrip->m_arrPiles.Item(0);
 	wxASSERT(pPileToFlowUp);
 	int nPileIndex_InList = pPileToFlowUp->m_pSrcPhrase->m_nSequNumber;
-	bool bIsActivePile = m_pApp->m_nActiveSequNum == nPileIndex_InList; // rarely, if ever,
-																	// should it be TRUE
-	// get the pile's width as currently set - depends on whether it is the active one or not
+	bool bIsActivePile = m_pApp->m_nActiveSequNum == nPileIndex_InList; // rarely, if 
+															// ever, should it be TRUE
+	// get the pile's width as currently set - depends on whether it is the active one or
+	// not 
 	int width;
 	if (bIsActivePile)
 		width = pPileToFlowUp->m_nWidth;
@@ -2931,6 +3019,13 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 	else
 	{
 		// it will fit and it doesn't trigger strip wrap, so move it up...
+		// The offset of the left boundary of the pile in its new position is calculated
+		// using the previous pile's left offset plus that pile's width plus the interpile
+		// gap, but this calculation will not be appropriate if the pile is being flowed
+		// up to be the first of a currently empty strip - in the latter case, the new
+		// position of the pile's left boundary will be 0, so we must test for whether or
+		// not the pUpStrip is currently empty and act accordingly
+		bool bUpStripIsEmpty = pUpStrip->m_arrPiles.IsEmpty();
 		
 		// first, remove the record of it having been in the following strip
 		pFollStrip->m_arrPiles.RemoveAt(0);
@@ -2940,14 +3035,25 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 									  // formerly valid
         // add the pile pointer to the end of the "up" strip and set the offset to leading
         // edge in the m_arrPileOffsets array, and decrease the free space accordingly
-		int nLastPileLeadingEdgeOffset = pUpStrip->m_arrPileOffsets.Last();
-		CPile* pLastPileInStrip = (CPile*)pUpStrip->m_arrPiles.Last();
-		int nLastPileWidth = 0;
-		if (pLastPileInStrip->m_pSrcPhrase->m_nSequNumber == m_pApp->m_nActiveSequNum)
-			nLastPileWidth = pLastPileInStrip->m_nWidth;
-		else
-			nLastPileWidth = pLastPileInStrip->m_nMinWidth;
-		pUpStrip->m_arrPileOffsets.Add(nLastPileLeadingEdgeOffset + nLastPileWidth + gap);
+        if (bUpStripIsEmpty)
+		{
+			// we have to provide for this eventuality, but some testing returned the
+			// result that this block never gets entered -- nevertheless, we'll code for
+			// the possibility just in case...
+			//wxLogDebug(_T("*** HALT HERE ***"));
+			pUpStrip->m_arrPileOffsets.Add(0);
+		}
+		else // there is at least one pile already in the "up" strip
+		{
+			int nLastPileLeadingEdgeOffset = pUpStrip->m_arrPileOffsets.Last();
+			CPile* pLastPileInStrip = (CPile*)pUpStrip->m_arrPiles.Last();
+			int nLastPileWidth = 0;
+			if (pLastPileInStrip->m_pSrcPhrase->m_nSequNumber == m_pApp->m_nActiveSequNum)
+				nLastPileWidth = pLastPileInStrip->m_nWidth;
+			else
+				nLastPileWidth = pLastPileInStrip->m_nMinWidth;
+			pUpStrip->m_arrPileOffsets.Add(nLastPileLeadingEdgeOffset + nLastPileWidth + gap);
+		}
 		pUpStrip->m_arrPiles.Add(pPileToFlowUp); // this call has to come after the above lines
 		pUpStrip->m_nFree -= totalWidth;
 
@@ -2958,19 +3064,47 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 		pPileToFlowUp->m_nPile = (int)(pUpStrip->m_arrPiles.GetCount() - 1);
 
 		// the piles in the lower strip from which it flowed up have now shifted to an
-		// earlier position in the m_arrPiles array, and m_arrPileOffsets has been
-		// adjusted too; but at present each of those remaining piles still has their old
+		// earlier position in the m_arrPiles array, and m_arrPileOffsets needs to be
+		// adjusted too; and at present each of those remaining piles still has their old
 		// m_nPile index values unchanged - these are the index locations for their old
 		// locations in the strip - so now they have a 1-off error. We must now loop over
-		// these to reset their m_nPile values to agree with their new array locations
+		// these to reset their m_nPile values to agree with their new array locations, and
+		// update their offsets in m_arrPileOffsets; m_nFree has already been augmented above
 		int lastIndex = (int)(pFollStrip->m_arrPiles.GetCount() - 1);
 		if (lastIndex > -1)
 		{
 			int indx;
+			int nLastOffset = 0;
+			int nLastWidth = 20;
+			int newOffset = 0;
+			// wxArray does not have a function for changing the value at an index, we
+			// have to remove and insert
+			pFollStrip->m_arrPileOffsets.RemoveAt(0);
+			pFollStrip->m_arrPileOffsets.Insert(0,0);
 			for (indx = 0; indx <= lastIndex; indx++)
 			{
 				CPile* pPile = (CPile*)pFollStrip->m_arrPiles.Item(indx);
 				pPile->m_nPile = indx;
+				// now the offsets in m_arrPileOffsets have to be updated, and we've
+				// already done the first outside this loop
+				if (indx >= 1)
+				{
+					pFollStrip->m_arrPileOffsets.RemoveAt(indx);
+					newOffset = nLastOffset + nLastWidth + gap;
+					pFollStrip->m_arrPileOffsets.Insert(newOffset, indx);
+				}
+				// update the nLastWidth and nLastOffset values for next iteration of loop
+				bool bIsTheActivePile = 
+							m_pApp->m_nActiveSequNum == pPile->m_pSrcPhrase->m_nSequNumber;
+				if (bIsTheActivePile)
+				{
+					nLastWidth = pPile->m_nWidth;
+				}
+				else
+				{
+					nLastWidth = pPile->m_nMinWidth;
+				}
+				nLastOffset = newOffset;
 			}
 		}
         // check if the flow up has just emptied the "following" strip - if so, remove the
@@ -3015,14 +3149,86 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 // returning, and so we must be prepared for the count of strips in m_stripArray to change
 // dynamically in the code below - and particular care must be exercised near the
 // document's end.
-void CLayout::CleanUpTheLayoutFollowingTheEditArea(int nIndexOfStripToStartAt)
+void CLayout::CleanUpTheLayoutFromStripAt(int nIndexOfStripToStartAt, int nHowManyToDo)
 {
+	// Works on strip pairs, the first of the pair being at the strip index passed in as
+	// the first parameter. Call repetitively for each of several strips in a range of
+	// strips, if cleanup of more than a single pair is required - the function for doing
+	// that must take account of the possibility that cleanup will remove an empty strip
+	// if pile flow from the second of the pair to the first removes all piles from the
+	// second strip.
+	// The nHowManyToDo is required as a parameter because, for cleanup when
+	// RecalcLayout() is called, the active strip is not allowed to be higher than than
+	// middle of the client window, so we only clean up about half a window's worth, but
+	// when called in the context of Draw() in a scroll up or down, and an invalid strip
+	// is found, we'll call it to do a full window's worth of strips
 	bool bDeletedFollowingStrip;
-	int nLastStrip = m_stripArray.GetCount() - 1;
-	int nFixHowManyStrips = GetVisibleStrips();
-	int nLastStripToFix = nIndexOfStripToStartAt + nFixHowManyStrips - 1;
+	int nLastStrip = m_stripArray.GetCount() - 1; // index of last strip in the document
+
+	// check for proximity to the beginning of the document - we'll want to do a full
+	// window's worth of cleanup if the active location gets to be less than half the
+	// number of visible strips' distance from the doc's start; don't do the adjustment if
+	// the number of visible strips' value passed in is a full window's worth already
+	if (nHowManyToDo < GetNumVisibleStrips()) 
+	{
+		int numOfStripsInAHalfWindow = GetNumVisibleStrips()/2;
+		// when this function is called, the active strip will have been defined already, so
+		// we can safely look it up
+		CPile* activePilePtr = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+		CStrip* pActiveStrip = activePilePtr->GetStrip();
+		if (pActiveStrip == NULL)
+		{
+			// not expected, but allow for it if, perchance, we've unmerged near the doc
+			// start and the new active pile therefore doesn't have m_pOwningStrip set to a
+			// value other than NULL
+			nHowManyToDo = GetNumVisibleStrips(); // do a full window's worth, to be safe
+		}
+		else // we have a valid active strip's pointer
+		{
+			int nActiveStripIndex = pActiveStrip->GetStripIndex();
+			if (nActiveStripIndex <= numOfStripsInAHalfWindow)
+			{
+				// we are close to the document's start, and so we risk leaving an invalid
+				// strip visible if we use the passed in nHowManyToDo
+				nHowManyToDo = GetNumVisibleStrips(); // do a full window's worth
+			}
+		}
+	}
+	// new we can calculate the index for the first of the last strip pair to be worked on
+	int nLastStripToFix = nIndexOfStripToStartAt + nHowManyToDo - 1;
 	if (nLastStripToFix >= nLastStrip)
 		nLastStripToFix = nLastStrip - 1;
+#ifdef _OFFSETS_BUG
+	#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("\n ****** BEFORE ******     left margin = %d"),m_nCurLMargin);
+		int index;
+		wxString s;
+		wxString addSpaces = _T("    ");
+		wxString initialSpaces = _T("  ");
+		for (index = nIndexOfStripToStartAt; index <= nLastStripToFix; index++)
+		{
+			s = initialSpaces;
+			wxLogDebug(_T("Strip with index   %d"),index);
+			CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+			int lastPileIndex = pStrip->m_arrPiles.GetCount() - 1;
+			int indexPiles;
+			for (indexPiles = 0; indexPiles <= lastPileIndex; indexPiles++)
+			{
+				if (indexPiles != 0)
+					s += addSpaces;
+				CPile* pPile = (CPile*)pStrip->m_arrPiles.Item(indexPiles);
+				int offset = pStrip->m_arrPileOffsets.Item(indexPiles);
+				wxLogDebug(_T("%s index %d ,       Left() %d ,  %s  "), s, indexPiles, pPile->Left(), 
+							pPile->m_pSrcPhrase->m_srcPhrase );
+				wxLogDebug(_T("%s index %d , margn+offset %d ,  %s  , offset itself is %d"), s, indexPiles, 
+							m_nCurLMargin + offset, pPile->m_pSrcPhrase->m_srcPhrase, offset);
+			}
+		}
+	}
+	#endif
+#endif
+
 	int index;
 	bool bSuccessfulFlowOfASinglePileUpwards = FALSE;
 	for (index = nIndexOfStripToStartAt; index <= nLastStripToFix; index++)
@@ -3042,7 +3248,38 @@ void CLayout::CleanUpTheLayoutFollowingTheEditArea(int nIndexOfStripToStartAt)
 			}
 		} while (bSuccessfulFlowOfASinglePileUpwards && index <= nLastStripToFix);
 	}
-	//UpdateStripIndices(nIndexOfStripToStartAt);
+	//UpdateStripIndices(nIndexOfStripToStartAt); // removed, because we will do this 
+												  // internally and only when needed
+#ifdef _OFFSETS_BUG
+	#ifdef __WXDEBUG__
+	{
+		wxLogDebug(_T("\n ****** AFTER ******     left margin = %d"),m_nCurLMargin);
+		int index;
+		wxString s;
+		wxString addSpaces = _T("    ");
+		wxString initialSpaces = _T("  ");
+		for (index = nIndexOfStripToStartAt; index <= nLastStripToFix; index++)
+		{
+			s = initialSpaces;
+			wxLogDebug(_T("Strip with index   %d"),index);
+			CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+			int lastPileIndex = pStrip->m_arrPiles.GetCount() - 1;
+			int indexPiles;
+			for (indexPiles = 0; indexPiles <= lastPileIndex; indexPiles++)
+			{
+				if (indexPiles != 0)
+					s += addSpaces;
+				CPile* pPile = (CPile*)pStrip->m_arrPiles.Item(indexPiles);
+				int offset = pStrip->m_arrPileOffsets.Item(indexPiles);
+				wxLogDebug(_T("%s index %d ,       Left() %d ,  %s  "), s, indexPiles, pPile->Left(), 
+							pPile->m_pSrcPhrase->m_srcPhrase );
+				wxLogDebug(_T("%s index %d , margn+offset %d ,  %s  , offset itself is %d"), s, indexPiles, 
+							m_nCurLMargin + offset, pPile->m_pSrcPhrase->m_srcPhrase, offset);
+			}
+		}
+	}
+	#endif
+#endif
 }
 
 /* 

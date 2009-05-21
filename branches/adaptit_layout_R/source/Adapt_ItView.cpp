@@ -45196,7 +45196,7 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	}
 	pStartPile = GetPile(activeSequNum);
 	wxASSERT(pStartPile);
-	int numVisibleStrips = pLayout->GetVisibleStrips();
+	int numVisibleStrips = pLayout->GetNumVisibleStrips();
 	if (numVisibleStrips < 1)
 		numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
 	numVisibleStrips *= 2; // use twice as many - i.e two client rectangle's worth

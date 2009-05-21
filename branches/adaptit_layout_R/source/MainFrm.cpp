@@ -3331,7 +3331,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			//	return FALSE;
 			//if (idleCount % 1000 == 0)
 			//{
-				//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
+			//	event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 			//	idleCount = 0;
 			//}
 		}

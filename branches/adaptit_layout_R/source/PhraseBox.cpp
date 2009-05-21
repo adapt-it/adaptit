@@ -30,7 +30,7 @@
 #pragma hdrstop
 #endif
 
-#define _FIND_DELAY
+//#define _FIND_DELAY
 
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
@@ -2025,9 +2025,9 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("9. Start of JumpForward"));
-#endif
+	#ifdef _FIND_DELAY
+		wxLogDebug(_T("9. Start of JumpForward"));
+	#endif
 	// refactored 25Mar09
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItApp* pApp = pLayout->m_pApp;
@@ -2592,13 +2592,13 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		pView->RedrawEverything(pView->m_nActiveSequNum);
 		*/
 #ifdef _NEW_LAYOUT
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("10. Start of RecalcLayout in JumpForward"));
-#endif
+		#ifdef _FIND_DELAY
+			wxLogDebug(_T("10. Start of RecalcLayout in JumpForward"));
+		#endif
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("11. End of RecalcLayout in JumpForward"));
-#endif
+		#ifdef _FIND_DELAY
+			wxLogDebug(_T("11. End of RecalcLayout in JumpForward"));
+		#endif
 #else
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -2611,9 +2611,9 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 		pView->Invalidate(); // it should be okay in the refactored code 
 							 // (cf. Bill's comment above)
 	} // end Review mode (single src phrase move) block
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("12. End of JumpForward"));
-#endif
+	#ifdef _FIND_DELAY
+		wxLogDebug(_T("12. End of JumpForward"));
+	#endif
 }
 
 bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
@@ -4496,9 +4496,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 // the LookAhead function (such as when there was no match); otherwise, return FALSE so as to
 // be able to exit from the caller's loop
 {
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("1. Start of OnePass"));
-#endif
+	#ifdef _FIND_DELAY
+		wxLogDebug(_T("1. Start of OnePass"));
+	#endif
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CLayout* pLayout = GetLayout();
@@ -4539,13 +4539,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	}
 	else
 	{
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("2. Before MoveToNextPile"));
-#endif
+		#ifdef _FIND_DELAY
+			wxLogDebug(_T("2. Before MoveToNextPile"));
+		#endif
 		bSuccessful = MoveToNextPile(pView, pApp->m_pActivePile);
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("3. After MoveToNextPile"));
-#endif
+		#ifdef _FIND_DELAY
+			wxLogDebug(_T("3. After MoveToNextPile"));
+		#endif
 	}
 	if (!bSuccessful)
 	{
@@ -4601,13 +4601,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			pApp->m_targetPhrase.Empty();
 			pApp->m_nActiveSequNum = -1;
 #ifdef _NEW_LAYOUT
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("4. Before RecalcLayout"));
-#endif
+			#ifdef _FIND_DELAY
+				wxLogDebug(_T("4. Before RecalcLayout"));
+			#endif
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("5. After RecalcLayout"));
-#endif
+			#ifdef _FIND_DELAY
+				wxLogDebug(_T("5. After RecalcLayout"));
+			#endif
 #else
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -4629,13 +4629,13 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 	// if control gets here, all is well so far, so set up the main window
 	//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("6. Before ScrollIntoView"));
-#endif
+	#ifdef _FIND_DELAY
+		wxLogDebug(_T("6. Before ScrollIntoView"));
+	#endif
 	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("7. After ScrollIntoView"));
-#endif
+	#ifdef _FIND_DELAY
+		wxLogDebug(_T("7. After ScrollIntoView"));
+	#endif
 
 	/* //I think the rest, except for last few lines, is not required in the refactored layout code
 	//because the MoveToNextPile() call does it all (BEW 1Apr09)
@@ -4728,9 +4728,9 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	pLayout->m_docEditOperationType = relocate_box_op;
 	gbEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
-#ifdef _FIND_DELAY
-	wxLogDebug(_T("8. End of OnePass"));
-#endif
+	#ifdef _FIND_DELAY
+		wxLogDebug(_T("8. End of OnePass"));
+	#endif
 	return TRUE; // all was okay
 }
 
@@ -5048,12 +5048,20 @@ d:		SetFocus();
 	}
 	else if (event.GetKeyCode() == WXK_PRIOR)
 	{
+        // Note: an overload of CLayout::GetVisibleStripsRange() does the same job, so it
+        // could be used instead here and for the other instance in next code block - as
+        // these two calls are the only two calls of the view's GetVisibleStrips() function
+        // in the whole application ** TODO ** ??
 		pView->GetVisibleStrips(nCurrentStrip,nLastStrip);
 		nScrollCount = nLastStrip - nCurrentStrip;
 		goto a;
 	}
 	else if (event.GetKeyCode() == WXK_NEXT)
 	{
+        // Note: an overload of CLayout::GetVisibleStripsRange() does the same job, so it
+        // could be used instead here and for the other instance in above code block - as
+        // these two calls are the only two calls of the view's GetVisibleStrips() function
+        // in the whole application ** TODO ** ??
 		pView->GetVisibleStrips(nCurrentStrip,nLastStrip);
 		nScrollCount = nLastStrip - nCurrentStrip;
 		goto b;

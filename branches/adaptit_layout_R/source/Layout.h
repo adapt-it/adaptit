@@ -198,6 +198,7 @@ private:
 	int			m_nCurGapWidth;
 	int			m_nSaveLeading;
 	int			m_nSaveGap;
+	int			m_numVisibleStrips;
 
     // client size (width & height as a wxSize) based on Bill's calculation in the CMainFrame, and
     // then as a spin off, the document width (actually m_logicalDocSize.x) and we initialize
@@ -337,7 +338,8 @@ public:
 	CStrip*		GetStripByIndex(int index);
 	// get the number of visible strips plus an extra one if a non-integral number of
 	// strips fit the window
-	int			GetVisibleStrips();
+	int			GetNumVisibleStrips();
+	int			CalcNumVisibleStrips();
 	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
 	int			GetStripCount(); // return a count of how many strips are in the current layout
 
@@ -370,6 +372,8 @@ public:
     // visible strips are worked out according to where the top of the scrolled device
     // context is using the scrollbar thumb's position value.
 	void		GetVisibleStripsRange(wxDC* pDC, int& nFirstStrip, int& nLastStrip);
+	void		GetVisibleStripsRange(int& nFirstStrip, int& nLastStrip); // overloaded
+					// version has the wxClientDC calculations done internally
 
 	// calculate the range of strips marked with m_bValid = FALSE, but don't include the
 	// old active location in the range if it is more than nCountValueForTooFar strips
@@ -392,7 +396,7 @@ public:
 										int nStripWidth, int gap, int nFirstPileIndex, 
 										int nEndPileIndex, int nInitialStripCount);
 	bool		FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollowingStrip);
-	void		CleanUpTheLayoutFollowingTheEditArea(int nIndexOfStripToStartAt);	
+	void		CleanUpTheLayoutFromStripAt(int nIndexOfStripToStartAt, int nHowManyToDo);	
 
 	// redraw the current visible strip range 
 	void		Redraw(bool bFirstClear = TRUE);
