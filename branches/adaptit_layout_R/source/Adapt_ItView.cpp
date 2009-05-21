@@ -18324,6 +18324,14 @@ void CAdapt_ItView::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 			return;
 		}
 	}
+    // remove the placeholder - note, this will clobber the m_pActivePile pointer, and a
+    // new partner pile will not be created, so we have to provide a temporary valid
+    // m_pActivePile after this next call returns, so that our RecalcLayout() code which
+    // needs to find the active strip will find a pile in a strip at or about the right
+    // place in the document (so the layout gets set up right) -- what we need to ensure is
+    // that any access to CPile::m_pOwningStrip using the GetStrip() call, will not have an
+    // m_pOwningStrip value set to NULL (or to a non-NULL value in the debugger which then
+    // points at arbitrary memory)
 	RemoveNullSourcePhrase(pRemoveLocPile, nCount);
 
     // we don't do the next block at a deeper level because removing a retranslation which
@@ -18409,11 +18417,15 @@ void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCoun
 	int nStartingSequNum	= pPile->GetSrcPhrase()->m_nSequNumber;
 	SPList* pList			= pApp->m_pSourcePhrases;
 	SPList::Node* removePos = pList->Item(nStartingSequNum); // the position at
-															 // which we will do the removal
+													// which we will do the removal
 	SPList::Node* savePos = removePos; // we will alter removePos & need to restore it
 	wxASSERT(removePos != NULL);
-	int nActiveSequNum = pApp->m_nActiveSequNum; // save, so we can restore later on, since the
-										   // call to RecalcLayout will clobber all the pointers
+	int nActiveSequNum = pApp->m_nActiveSequNum; // save, so we can restore later on, 
+					// since the call to RecalcLayout will clobber some pointers
+
+    // we may be removing the m_pActivePile, so get parameters useful for setting up a
+    // temporary active pile for the RecalcLayout() call below
+	int nRemovedPileIndex = pRemoveLocPile->GetSrcPhrase()->m_nSequNumber;
 
     // get the preceding source phrase, if it exists, whether null or not - we may have to
     // transfer punctuation to it
@@ -18583,6 +18595,23 @@ void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCoun
 	if (!bNoneFollows)
 		UpdateSequNumbers(nStartingSequNum);
 
+	// for getting over the hump of the call below to RecalcLayout() we only need a temporary
+	// reasonably accurate active pile pointer set, and only if the removal was done at the
+	// active location - if it wasn't, then RecalcLayout() will set things up correctly
+	// without a failure
+	if (nRemovedPileIndex == nActiveSequNum)
+	{
+		// set a temporary one, we'll use the pile which is now at nRemovedPileIndex
+		// location, which typically is the one immediately following the placeholder's
+		// old location; but if deleted from the doc's end, we'll use the last valid
+		// document location
+		int nMaxDocIndex = pApp->GetMaxIndex();
+		if (nRemovedPileIndex > nMaxDocIndex)
+			pApp->m_pActivePile = GetPile(nMaxDocIndex);
+		else
+			pApp->m_pActivePile = GetPile(nRemovedPileIndex);
+	}
+	
     // in case the active location is going to be a retranslation, check and if so, advance
     // past it; but if at the end, then back up to a valid preceding location
 	CSourcePhrase* pSP = GetSrcPhrase(pApp->m_nActiveSequNum);
