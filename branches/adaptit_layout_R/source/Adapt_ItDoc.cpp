@@ -13121,7 +13121,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				}
 
 				// delete the original merged instance and tidy up
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // don't bother to delete its partner pile
 				pList->DeleteNode(pos);
 
 				// tell caller there was a failure on this rebuild attempt
@@ -13190,7 +13190,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 						if (posNew == NULL)
 						{
 							// no matching CSourcePhrase instance was found, so this old one can be deleted
-							DeleteSingleSrcPhrase(pSrcPhraseOld);
+							DeleteSingleSrcPhrase(pSrcPhraseOld, FALSE); // don't bother to delete its partner pile
 						}
 						else
 						{
@@ -13238,7 +13238,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				pList->Insert(pos,pMergedSrcPhr);
 
 				// and delete the old one, and then remove its list entry
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't bother to delete its partner pile
 				pList->DeleteNode(pos);
 
 				// store its gloss and adaptation entries in the appropriate KBs, provided it is appropriate
@@ -13355,7 +13355,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				SPList::Node* pos3;
 				pos3 = pList->Insert(pos,pSP); // insert before the original POSITION
 			}
-			DeleteSingleSrcPhrase(pSrcPhrase); // delete the old one
+			DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // delete old one, don't bother to delete partner pile
 			pList->DeleteNode(pos);
 
 			// the sourcephrases stored in pResultList are now managed by m_pSourcePhrases list, and
@@ -13393,7 +13393,8 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 		if (pASrcPhrase->m_bRetranslation)
 			ConditionallyDeleteSrcPhrase(pASrcPhrase,pList);
 		else
-			DeleteSingleSrcPhrase(pASrcPhrase);
+			DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means "don't delete its partner pile"
+				// as we'll let RecalcLayout() delete them all quickly en masse later
 	}
 	pResultList->Clear();
 	delete pResultList;
