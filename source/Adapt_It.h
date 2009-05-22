@@ -1270,7 +1270,6 @@ public:
 							// preparation of the XML form of the Adapt It document
 	wxString	buffer;
 	wxString	m_curChapter;
-	wxString	m_savePunctuation[2]; // TODO: Moved in MFC app vers 3 to PunctCorrespPage.h
 
 	MapWholeMkrToFilterStatus m_FilterStatusMap;// entries are a wholeMarker (ie. with backslash) as key
 												//  with either a "0" or "1" string as its associated value

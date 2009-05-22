@@ -1,3 +1,21 @@
+Version 4.1.5 update 31May2009:
+----------------------------------------------
+Feature changes and new features in 4.1.4
+----------------------------------------------
+
+----------------------------------------------
+Bug fixes in 4.1.4
+----------------------------------------------
+* Fixed a bug that was causing the application to think that 
+punctuation had changed whenever the user clicked on the OK 
+button of the Preferences dialog. The unnecessary processing 
+of the document for punctuation changes could cause a 
+noticeable delay after clicking OK in the Preferences dialog
+in long documents.
+* The automatic scrolling that Adapt It does to keep the 
+phrasebox within view during adaptation work should now do a 
+better job.
+
 Version 4.1.4 update 29Apr2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.4
