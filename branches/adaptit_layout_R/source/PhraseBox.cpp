@@ -832,6 +832,7 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
 	CPile* pNextEmptyPile = pView->GetNextEmptyPile(pCurPile);
+/*
 #ifdef _AUTO_INS_BUG
 	#ifdef __WXDEBUG__
 	{
@@ -848,6 +849,7 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 	}
 	#endif
 #endif
+*/
 	if (pNextEmptyPile == NULL)
 	{
 		// no more empty piles in the current document. We can just continue at this point
@@ -906,6 +908,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 	bool bAdaptationAvailable = FALSE;
 	CPile* pNewPile = pView->GetNextEmptyPile(pCurPile); // this call does not update the active
 														 // sequ number
+/*
 #ifdef _AUTO_INS_BUG
 	#ifdef __WXDEBUG__
 	{
@@ -922,6 +925,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 	}
 	#endif
 #endif
+*/
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
 	pApp->GetView()->OnButtonEnablePunctCopy(event);
@@ -991,7 +995,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 		pApp->m_pActivePile = pNewPile;
 		pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 		nCurrentSequNum = pApp->m_nActiveSequNum; // global, for use by auto-saving
-
+/*
 #ifdef _AUTO_INS_BUG
 	#ifdef __WXDEBUG__
 	{
@@ -1003,6 +1007,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 	}
 	#endif
 #endif
+*/
 		// refactored design: we want the old pile's strip to be marked as invalid and the
 		// strip index added to the CLayout::m_invalidStripArray
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
