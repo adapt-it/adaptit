@@ -30,7 +30,10 @@
 #pragma hdrstop
 #endif
 
+// defines for debugging purposes
 //#define _FIND_DELAY
+//#define _AUTO_INS_BUG
+
 
 #ifndef WX_PRECOMP
 // Include your minimal set of headers here, or wx.h
@@ -829,6 +832,22 @@ bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 	pView->RemoveFinalSpaces(pApp->m_pTargetBox,&pApp->m_targetPhrase);
 
 	CPile* pNextEmptyPile = pView->GetNextEmptyPile(pCurPile);
+#ifdef _AUTO_INS_BUG
+	#ifdef __WXDEBUG__
+	{
+		if (pNextEmptyPile == NULL)
+		{
+		wxLogDebug(_T("\n1. MoveToNextPile   pNextEmptyPile  is NULL") );
+		}
+		else
+		{
+		wxLogDebug(_T("\n1. MoveToNextPile   pNextEmptyPile %x   %s ,  sequNum %d ,  already mergedWords %d"),
+			pNextEmptyPile, pNextEmptyPile->GetSrcPhrase()->m_srcPhrase,
+			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber,pNextEmptyPile->GetSrcPhrase()->m_nSrcWords);
+		}
+	}
+	#endif
+#endif
 	if (pNextEmptyPile == NULL)
 	{
 		// no more empty piles in the current document. We can just continue at this point
@@ -887,6 +906,22 @@ b:	pApp->m_bSaveToKB = TRUE;
 	bool bAdaptationAvailable = FALSE;
 	CPile* pNewPile = pView->GetNextEmptyPile(pCurPile); // this call does not update the active
 														 // sequ number
+#ifdef _AUTO_INS_BUG
+	#ifdef __WXDEBUG__
+	{
+		if (pNewPile == NULL)
+		{
+		wxLogDebug(_T("\n1. MoveToNextPile  Line907 GetNextEmptyPile()  returned NULL") );
+		}
+		else
+		{
+		wxLogDebug(_T("2. MoveToNextPile  after GetNextEmptyPile() returned pNewPile %x   %s ,  sequNum %d ,  already mergedWords %d"),
+			pNewPile, pNewPile->GetSrcPhrase()->m_srcPhrase,
+			pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile->GetSrcPhrase()->m_nSrcWords);
+		}
+	}
+	#endif
+#endif
 	// if necessary restore default button image, and m_bCopySourcePunctuation to TRUE
 	wxCommandEvent event;
 	pApp->GetView()->OnButtonEnablePunctCopy(event);
@@ -957,6 +992,17 @@ b:	pApp->m_bSaveToKB = TRUE;
 		pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 		nCurrentSequNum = pApp->m_nActiveSequNum; // global, for use by auto-saving
 
+#ifdef _AUTO_INS_BUG
+	#ifdef __WXDEBUG__
+	{
+		{
+		wxLogDebug(_T("3. MoveToNextPile  before ResetPartnerPileWidth() pNewPile %x   %s ,  sequNum %d ,  already mergedWords %d"),
+			pNewPile, pNewPile->GetSrcPhrase()->m_srcPhrase,
+			pNewPile->GetSrcPhrase()->m_nSequNumber, pNewPile->GetSrcPhrase()->m_nSrcWords);
+		}
+	}
+	#endif
+#endif
 		// refactored design: we want the old pile's strip to be marked as invalid and the
 		// strip index added to the CLayout::m_invalidStripArray
 		pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
@@ -1900,7 +1946,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 			m_bAbandonable = bSaveFlag; // preserved the flag across the merge
 			pApp->bLookAheadMerge = FALSE; // restore static flag to OFF
 			gbMergeDone = TRUE;
-			//gbSuppressMergeInMoveToNextPile = TRUE; // removed 24Mar09
+			gbSuppressMergeInMoveToNextPile = TRUE;
 		}
 		else
 			pView->RemoveSelection(); // glossing, or adapting a single src word only

@@ -81,11 +81,11 @@
 #include "Pile.h"
 #include "Cell.h"
 #include "Layout.h"
+#include "PhraseBox.h"
 #include "Adapt_ItView.h"
 #include "AdaptitConstants.h"
 #include "RefString.h"
 #include "TargetUnit.h"
-#include "PhraseBox.h"
 #include "RetranslationDlg.h"
 #include "ChooseTranslation.h"
 #include "MainFrm.h"
@@ -13588,6 +13588,20 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // pFirstSrcPhrase (whether LTR or RTL layout, we always merge in logical order (ie.
     // order of ascending sequence numbers), and unmerge likewise, it is only the relative
     // order of the words in the text strings which are compiled which reverses for RTL)
+    // 
+	// BEW added 22May09. The new RecalcLayout() code for the keep_piles_keep_strips
+	// option relies, in the AdjustForUserEdits() function, on m_pActivePile pointing at a
+	// valid CPile instance; for a forwards selection, mergers are done to the active
+	// pile, and so m_pActivePile remains in existence; but for a leftwards selection, the
+	// mergers are done to an earlier pile than the one which was the active one, and then
+	// the merged CSourcePhrase instances are deleted - thereby making m_pActivePile point
+	// at freed memory. In the old way of doing the layout, this didn't matter because the
+	// piles were all recreated and m_pActivePile reset; but now that we retain piles and
+	// just tweak certain of the strips in the changed area of the document, we have to
+	// restore m_pActivePile before we call RecalcLayout() later below. It would be
+	// sufficient to set it to any valid pile near the active one, but we can do better
+	// than this hear, and set it to pFirstSrcPhrase after the merging loop below has
+	// finished, and then all will be well as that will be the new active pile anyway
 	int i;
 	for (i = 1; i < nCount; i++)
 	{
@@ -13625,9 +13639,18 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 	} // end of for loop which merges all the non-first to the first in the selection
 
+	// BEW added 22May09 -- see comment above the merge loop just above; here we must
+	// re-establish the m_pActivePile pointer, in case we did a leftwards merge
+	SPList::Node* aPosition = pSrcPhrases->Item(nSaveSequNum);
+	CSourcePhrase* aSrcPhrasePtr = aPosition->GetData();
+	wxASSERT(aSrcPhrasePtr);
+	int itsSequNumber = aSrcPhrasePtr->m_nSequNumber;
+	pApp->m_pActivePile = GetPile(itsSequNumber);
+	wxASSERT(pApp->m_pActivePile);
+
 	// Because later below we call DeletePartnerPile() on each of the non-first
 	// CSourcePhrase instances of the selection which have now been merged, and
-	// DeletePartnerPile() calls CLayout::DestroyPile() - freeing the memeory for those
+	// DeletePartnerPile() calls CLayout::DestroyPile() - freeing the memory for those
 	// ones, we can't call RemoveSelection() after that, because the latter assumes the
 	// cell pointers are still valid and they aren't. So here we just set the source text
 	// line's first CCell of the selection to have m_bSelected set to FALSE, and Clear()
@@ -13787,6 +13810,13 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // call at the end of RecalcLayout() will fail
 	//RemoveSelection();
 
+	// update the sequence numbers which follow the active sequ num
+	// BEW 22May09 moved this call to precede the recalculation of the layout, because it
+	// is safer to have all the m_nSequNumber members of the elements in m_pSourcePhrases
+	// list set correctly sequential before code in any other part of the app is called,
+	// particularly the view layout code
+	UpdateSequNumbers(pApp->m_nActiveSequNum);
+
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
@@ -13797,9 +13827,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// get a new (valid) active pile pointer, now that the layout is recalculated
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	wxASSERT(pApp->m_pActivePile != NULL);
-
-	// update the sequence numbers which follow the active sequ num
-	UpdateSequNumbers(pApp->m_nActiveSequNum);
 
 	// create the phraseBox at the active pile...
     // BEW added note 05OctO6: the RemakePhraseBox call uses the view class's members
