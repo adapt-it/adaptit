@@ -6992,7 +6992,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		// this modification, we don't need to update them from here after the CEditPreferencesDlg's
 		// ShowModal() call is made - as does the MFC version.
 	}
-	wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL); // turn idle processing back on
+	//wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL); // turn idle processing back on
 
 	// redraw, since all the pointers will be invalid
 	/* BEW removed 31Jan08 because the global's value cannot always be relied upon
@@ -7008,6 +7008,21 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 #else
 	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #endif
+	if (pApp->m_nActiveSequNum == -1)
+	{
+		pApp->m_pActivePile = NULL; // that ought to be safe in update handlers
+	}
+	else
+	{
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	}
+
+	// BEW 22May09 moved the next line down to here so that idle events won't come before
+	// the m_pActivePile has a chance to be reset to the valid active pile resulting from
+	// the shenanigans that go on in RecalcLayout()! Failure to do so can result in system
+	// housekekeping calling command update handlers before m_pActivePile points at a real
+	// pile, and that gives a flame & burn crash
+	wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL); // turn idle processing back on
 
 	int len;
 	// BEW modified 3Apr08, restore focus to the phrase box, except when in free translation
