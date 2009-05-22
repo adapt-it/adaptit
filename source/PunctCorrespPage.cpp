@@ -206,8 +206,8 @@ void CPunctCorrespPageCommon::DoInit()
 	// source punctuation list - and if he does, we will have to retokenize and possibly
 	// rebuild the document
 	// 
-	// whm corrected 22May09 to use m_punctuationBeforeEdit[0] and remove the remnants of pApp->m_savePunctuation[]
-	// Before this correction, DoPunctuationChanges() was always being called even when no changes were
+	// whm corrected 22May09 to use m_punctuationBeforeEdit[0] and remove the remnants of pApp->m_savePunctuation[].
+	// Before this correction, DoPunctuationChanges() was always being called in the OnOk() handler even when no changes were
 	// made to punctuation in Preferences.
 	m_punctuationBeforeEdit[0] = pApp->m_punctuation[0];
 
