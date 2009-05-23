@@ -14009,6 +14009,57 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( image );
         return bitmap;
     }
+    if (index == 8)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 32 8 1",
+        "a c #808080",
+        "b c #FFFF00",
+        "c c #00FFFF",
+        "d c #800000",
+        "e c #008080",
+        "f c #FF0000",
+        "g c #C0C0C0",
+        "h c #808000",
+        /* pixels */
+        "bbbfhbbbbfbbbbbbbbbbbbbbbbhbbbbb",
+        "bbhffhbbbfhbbbbbbbbbffhbbffhfdbb",
+        "bbfffhbfffhffffhfffhfffbbffdffhb",
+        "bbfdfdhfhfhhfhfhfhfdffhbbffhfdbb",
+        "bhffffhfhfhffhfhfhfdffhbbffhfdbb",
+        "bffhffhfffhffffhfffhhffbbffhffhb",
+        "bbhbbhbbhhbbhhhhfdhbbhhbbbhbbhhb",
+        "bbbbbbbbbbbbbbbbhhbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbahbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbaachbbbbb",
+        "bbbbaaaaabbbbbbbbbhfbbaccahbbbbb",
+        "haaaaaaeabbbbffffffffbaccahbbbbb",
+        "haaagggaabbbffhbbbhfbbacaahbbbbb",
+        "baaggaaaabbfhbbbabbbbbaaaabbbbbb",
+        "baaaaaaaabffbbhaeabbbhaaabbbbbbb",
+        "baaagaaaahfhbbaeaeabbbhbbbbbbbbb",
+        "baaaaeaaaafhbhaeeeabbbbbbbbbbbbb",
+        "baaaaaaaaaabbbaaeeabbbbbbbbbbbbb",
+        "bhaaaaggggaabbheeabgaeeeeeeeabbb",
+        "bbaaaggggggaaabbbbbgeeeeeeeeeabb",
+        "bbhagggggaaagabbbbbaeaaaaaaaeabb",
+        "bbbaaggaagaaahbbbbbaeeeeeeeeeabb",
+        "bbbbaagggaaabfbbbbbaeeeeeeeeeabb",
+        "bbbbbaaaaabfffbbbbbaeeeeeeeeegbb",
+        "bbbbbbaahbbhffffbbbgeeeeeeeeegbb",
+        "bbbbbbbbbbbbfbhffffaaeaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbaaaaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbahaaaahaaaabb",
+        "bbbbbbbbbbbbbbbbbbhaaaaaaahaaaab",
+        "bbbbbbbbbbbbbbbbbhhaaaaaaaaaaaab",
+        "bbbbbbbbbbbbbbbbbhhbbbbbbbbbhhbb",
+        "gggggggggggggggggggggggggggggggg"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
     return wxNullBitmap;
 }
 

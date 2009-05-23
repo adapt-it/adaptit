@@ -5782,11 +5782,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// on the menu to use the clover leaf shaped Command key symbol plus the appropriate key.
 
 
-	// Give the main frame an icon (frame icons and task bar icons use 16x16 icons)
+	// Give the main frame a 16x16 pixel icon (frame icons and task bar icons use 16x16 icons)
 	// This xpm format should work for all platforms. It embeds the icon resource inside
 	// the executable file, so no need to have to hunt for it from an external resource file.
 	/* XPM */ 
-	static const char * xpm_data[] = {
+	static const char * xpm_data16x16[] = {
 	"16 16 10 1",
 	" 	c None",
 	"!	c #FFFF00",
@@ -5814,8 +5814,66 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	"!!&!!%%%%%%%!!#!",
 	"!!!!!%%!!!%%!!#!",
 	"!!!!!!!!!!!!!###"};
-	wxIcon icon( xpm_data );
-	m_pMainFrame->SetIcon(icon); 
+	wxIcon icon16x16( xpm_data16x16 );
+
+	// Also give the main frame a 32x32 pixel icon (Alt+Tab uses a 32x32 pixel icon)
+	// This xpm format should work for all platforms. It embeds the icon resource inside
+	// the executable file, so no need to have to hunt for it from an external resource file.
+    /* XPM */
+        static const char *xpm_data32x32[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 32 8 1",
+        "a c #808080",
+        "b c #FFFF00",
+        "c c #00FFFF",
+        "d c #800000",
+        "e c #008080",
+        "f c #FF0000",
+        "g c #C0C0C0",
+        "h c #808000",
+        /* pixels */
+        "bbbfhbbbbfbbbbbbbbbbbbbbbbhbbbbb",
+        "bbhffhbbbfhbbbbbbbbbffhbbffhfdbb",
+        "bbfffhbfffhffffhfffhfffbbffdffhb",
+        "bbfdfdhfhfhhfhfhfhfdffhbbffhfdbb",
+        "bhffffhfhfhffhfhfhfdffhbbffhfdbb",
+        "bffhffhfffhffffhfffhhffbbffhffhb",
+        "bbhbbhbbhhbbhhhhfdhbbhhbbbhbbhhb",
+        "bbbbbbbbbbbbbbbbhhbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbahbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbaachbbbbb",
+        "bbbbaaaaabbbbbbbbbhfbbaccahbbbbb",
+        "haaaaaaeabbbbffffffffbaccahbbbbb",
+        "haaagggaabbbffhbbbhfbbacaahbbbbb",
+        "baaggaaaabbfhbbbabbbbbaaaabbbbbb",
+        "baaaaaaaabffbbhaeabbbhaaabbbbbbb",
+        "baaagaaaahfhbbaeaeabbbhbbbbbbbbb",
+        "baaaaeaaaafhbhaeeeabbbbbbbbbbbbb",
+        "baaaaaaaaaabbbaaeeabbbbbbbbbbbbb",
+        "bhaaaaggggaabbheeabgaeeeeeeeabbb",
+        "bbaaaggggggaaabbbbbgeeeeeeeeeabb",
+        "bbhagggggaaagabbbbbaeaaaaaaaeabb",
+        "bbbaaggaagaaahbbbbbaeeeeeeeeeabb",
+        "bbbbaagggaaabfbbbbbaeeeeeeeeeabb",
+        "bbbbbaaaaabfffbbbbbaeeeeeeeeegbb",
+        "bbbbbbaahbbhffffbbbgeeeeeeeeegbb",
+        "bbbbbbbbbbbbfbhffffaaeaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbaaaaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbahaaaahaaaabb",
+        "bbbbbbbbbbbbbbbbbbhaaaaaaahaaaab",
+        "bbbbbbbbbbbbbbbbbhhaaaaaaaaaaaab",
+        "bbbbbbbbbbbbbbbbbhhbbbbbbbbbhhbb",
+        "gggggggggggggggggggggggggggggggg"
+        };
+	wxIcon icon32x32( xpm_data32x32 );
+
+
+	// whm modification 22May09 to add multiple icons to the top level frame window using wxIconBundle
+	wxIconBundle iconBundle;
+	iconBundle.AddIcon( icon16x16 );
+	iconBundle.AddIcon( icon32x32 );
+
+	m_pMainFrame->SetIcons(iconBundle); //m_pMainFrame->SetIcon(icon); 
 	//m_pMainFrame->SetIcon(wxIcon(wxICON(adaptit)));	// "adaptit" is a resource name
 													// of an ICON defined in Adapt_It.rc
 	// Only allow one document at a time to be open
