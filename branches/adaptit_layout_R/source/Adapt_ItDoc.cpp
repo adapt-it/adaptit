@@ -4646,7 +4646,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList
 									pSublist->Erase(lastOne);
 
 									// delete the memory block to prevent a leak, update the count
-									DeleteSingleSrcPhrase(pTailSrcPhrase);
+									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete the partner pile
 									count--;
 								} // end of block for detecting the parsing of an endmarker
 							}
@@ -4769,7 +4769,8 @@ h:						bool bIsInitial = TRUE;
 									s += remainderStr;
 									remainderStr = s;
 									nWhich = 0;
-									DeleteSingleSrcPhrase(pSP); // don't leak memory
+									DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory; don't delete the 
+																	  // partner pile
 									pSublist->Clear();
 									break;
 								}
@@ -5662,7 +5663,7 @@ d:				if (!bAtEnd || bGotEndmarker)
 				filterCount++;
 				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
 				pos2 = pos2->GetNext();
-				DeleteSingleSrcPhrase(pSP); // don't leak memory
+				DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory, don't delete the partner pile
 				pList->DeleteNode(pos3);
 			}
 
@@ -12447,6 +12448,17 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 /// ReconstituteAfterPunctuationChange().
 /// Deletes the source phrase instances held in pList, but retains the empty list. It is
 /// called during the rebuilding of the document after a filtering or punctuation change.
+/// BEW added 23May09: since it is called only from the above two functions, and both of
+/// those when they return to the caller will have the view updated by a RecalcLayout()
+/// call with the enum parameter valoue of create_piles_create_strips, we do not need to
+/// have DeletePartnerPile() called when each of the DeleteSingleSrcPhrase(() calls are
+/// made in the loop below; therefore we specify the FALSE parameter for the call of the
+/// latter function in order to suppress deletion of the partner pile (as RecalcLayout()
+/// will do it much more efficiently, en masse, and speedily).
+/// 
+/// Note: if ever we use this function elsewhere, and need the partner pile deletion to
+/// work there, then we will need to alter the signature to become:
+/// (SPList*& pList, bool bDoPartnerPileDeletionAlso = TRUE) instead
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 {
@@ -12457,7 +12469,8 @@ void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 	{
 		pSrcPh = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		DeleteSingleSrcPhrase(pSrcPh);
+		DeleteSingleSrcPhrase(pSrcPh,FALSE); // no need to bother to delete the 
+											 // partner pile
 	}
 	pList->Clear();
 }
