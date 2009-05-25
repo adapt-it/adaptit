@@ -1048,6 +1048,25 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 	return TRUE;
 }
 
+void CLayout::CopyLogicalDocSizeFromApp()
+{
+	m_logicalDocSize = m_pApp->m_docSize; // when printing, both .x and .y must have
+					// been set before calling this function, so we call it in
+					// OnPreparePrinting, to hook up to the resized strip width
+					// and doc length for printing on paper, which RecalcLayout()
+					// will need to use when it rebuilds the strips; restore
+					// after printing by calling RestoreLogicalDocDizeFromSavedSize()
+					// in ~AIPrintout() before RecalcLayout() is called there		
+}
+
+void CLayout::RestoreLogicalDocSizeFromSavedSize()
+{
+	m_pApp->m_docSize = m_pApp->m_saveDocSize; // restore the normal doc size after 
+					// a printing operation, the latter has different strip width
+					// and document height; put this call in ~AIPrintout() before 
+					// RecalcLayout() is called there
+}
+
 // return TRUE if a layout was set up, or if no layout can yet be set up;
 // but return FALSE if a layout setup was attempted and failed (app must then abort)
 // 
@@ -1076,7 +1095,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// could be shown in the client area, setting the m_numVisibleStrips private member of
 	// the CLayout instance - other functions can then access it using
 	// GetNumVisibleStrips() and rely on the value returned
-	m_numVisibleStrips = CalcNumVisibleStrips();
+	if (!gbIsPrinting)
+	{
+		m_numVisibleStrips = CalcNumVisibleStrips();
+	}
 
 	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which
         // comprise the document, or a sublist copied from it, -- the CLayout instance will
@@ -1112,29 +1134,31 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// preserve selection parameters, so it can be preserved across the recalculation
 	m_pView->StoreSelection(m_pApp->m_selectionLine);
 
-	
-	// send the app the current size & position data, for saving to config file on closure
-	wxRect rectFrame;
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
-	wxASSERT(pFrame != NULL);
-	rectFrame = pFrame->GetRect(); // screen coords
-	rectFrame = NormalizeRect(rectFrame); // use our own from helpers.h
-	m_pApp->m_ptViewTopLeft.x = rectFrame.x;
-	m_pApp->m_ptViewTopLeft.y = rectFrame.y;
-	m_pApp->m_szView.SetWidth(rectFrame.GetWidth()); 
-	m_pApp->m_szView.SetHeight(rectFrame.GetHeight());
-	m_pApp->m_bZoomed = pFrame->IsMaximized();
+	wxRect rectFrame(0,0,0,0);
+	CMainFrame *pFrame = NULL;
+	if (!gbIsPrinting)
+	{
+		// send the app the current size & position data, for saving to config file on closure
+		pFrame = wxGetApp().GetMainFrame();
+		wxASSERT(pFrame != NULL);
+		rectFrame = pFrame->GetRect(); // screen coords
+		rectFrame = NormalizeRect(rectFrame); // use our own from helpers.h
+		m_pApp->m_ptViewTopLeft.x = rectFrame.x;
+		m_pApp->m_ptViewTopLeft.y = rectFrame.y;
+		m_pApp->m_szView.SetWidth(rectFrame.GetWidth()); 
+		m_pApp->m_szView.SetHeight(rectFrame.GetHeight());
+		m_pApp->m_bZoomed = pFrame->IsMaximized();
 
-	// initialize CLayout's m_logicalDocSize, and m_sizeClientWindow (except 
-	// m_logicalDocSize.y is initialized to 0 here, because it can't be set until the
-	// strips have been laid out - that is done below
-	SetClientWindowSizeAndLogicalDocWidth();
+		// initialize CLayout's m_logicalDocSize, and m_sizeClientWindow (except 
+		// m_logicalDocSize.y is initialized to 0 here, because it can't be set until the
+		// strips have been laid out - that is done below
+		SetClientWindowSizeAndLogicalDocWidth();
 
-	// set the pile height, and the strip height (the latter includes the free translation
-	// height when in free translation mode; the former is always just the height of the
-	// visible cells)
-	SetPileAndStripHeight();
-
+		// set the pile height, and the strip height (the latter includes the free translation
+		// height when in free translation mode; the former is always just the height of the
+		// visible cells)
+		SetPileAndStripHeight();
+	}
 	// scroll support...
 	// get a device context, and get the origin adjusted (gRectViewClient is ignored 
 	// when printing)
@@ -1317,78 +1341,83 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 #endif
 */
+
 	gbExpanding = FALSE; // has to be restored to default value
 
-	// the height of the document can now be calculated
-	SetLogicalDocHeight();
-	
-	// next line for debugging...
-	//wxSize theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
+	if (!gbIsPrinting)
+	{
+		// the height of the document can now be calculated
+		SetLogicalDocHeight();
 
-	// more scrolling support...
-	// whm: SetVirtualSize() is the equivalent of MFC's SetScrollSizes.
-	// SetVirtualSize() sets the virtual size of the window in pixels.
-	m_pApp->GetMainFrame()->canvas->SetVirtualSize(m_logicalDocSize);
+		// next line for debugging...
+		//wxSize theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
 
-	// inform the application of the document's logical size... -- the canvas
-	// class uses this m_docSize value for determining scroll bar parameters and whether
-	// horizontal and / or vertical scroll bars are needed
-	m_pApp->m_docSize = m_logicalDocSize;
+		// more scrolling support...
+		// whm: SetVirtualSize() is the equivalent of MFC's SetScrollSizes.
+		// SetVirtualSize() sets the virtual size of the window in pixels.
+		m_pApp->GetMainFrame()->canvas->SetVirtualSize(m_logicalDocSize);
 
+		// inform the application of the document's logical size... -- the canvas
+		// class uses this m_docSize value for determining scroll bar parameters and whether
+		// horizontal and / or vertical scroll bars are needed
+		m_pApp->m_docSize = m_logicalDocSize;
+	}
 	// next line for debugging...
 	//theVirtualSize = m_pApp->GetMainFrame()->canvas->GetVirtualSize();
 
-	// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
-	// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
-	// is evident that they are used to set the scrolling parameters within the scrolled
-	// view in the MFC app. We'll convert the values to the proper units and use
-	// SetScrollbars() to set the scrolling parameters.
-	//wxSize nSize = m_pageDev; // m_pageDev is "per page scroll size in device units"
-	//wxSize mSize = m_lineDev; // m_lineDev is "per line scroll size in device units"
-	// wx note: the m_lineDev value in MFC is equivalent to the first two parameters of
-	// wxScrollWindow's SetScrollbars (pixelsPerUnitX, and pixelsPerUnitY). Both MFC and
-	// WX values are in pixels.
-    // The m_pageDev value in MFC is set below as twice the height of a strip (including
-    // leading). In WX the height of a page of scrolled stuff should be determined
-    // automatically from the length of the document (in scroll units), divided by the
-    // height of the client view (also in scroll units).
-	// The parameters needed for SetScrollbars are:
-	int pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY;
-	int xPos, yPos; // xPos and yPos default to 0 if unspecified
-	bool noRefresh; // noRefresh defaults to FALSE if unspecified
-	// whm note: We allow our wxScrolledWindow to govern our scroll
-	// parameters based on the width and height of the virtual document
-	// 
-    // WX version: We only need to specify the length of the scrollbar in scroll
-    // steps/units. Before we can call SetScrollbars we must calculate the size of the
-    // document in scroll units, which is the size in pixels divided by the pixels per
-    // unit.
-	pFrame->canvas->GetScrollPixelsPerUnit(&pixelsPerUnitX,&pixelsPerUnitY);
-	noUnitsX = m_pApp->m_docSize.GetWidth() / pixelsPerUnitX;
-	noUnitsY = m_pApp->m_docSize.GetHeight() / pixelsPerUnitY;
-    // we need to specify xPos and yPos in the SetScrollbars call, otherwise it will cause
-    // the window to scroll to the zero position everytime RecalcLayout is called.
-    // We'll use GetViewStart instead of CalcUnscrolledPosition here since SetScrollbars
-    // below takes scroll units rather than pixels.
-	m_pApp->GetMainFrame()->canvas->GetViewStart(&xPos, &yPos); // gets xOrigin and yOrigin
-																// in scroll units
-	noRefresh = FALSE; // do a refresh
-    // Now call SetScrollbars - this is the only place where the scrolling parameters are
-    // established for our wxScrolledWindow (canvas). The scrolling parameters are reset
-    // everytime RecalcLayout is called. This is the only location where SetScrollbars() is
-    // called on the canvas.
-    
-    // whm IMPORTANT NOTE: We need to use the last position of the scrolled window here. If
-    // we don't include xPos and yPos here, the scrollbar immediately scrolls to the
-    // zero/initial position in the doc, which fouls up the calculations in other routines
-    // such as MoveToPrevPile.
-    m_pApp->GetMainFrame()->canvas->SetScrollbars(
-			pixelsPerUnitX,pixelsPerUnitY,	// number of pixels per "scroll step"
-        	noUnitsX,noUnitsY,				// sets the length of scrollbar in scroll steps, 
-											// i.e., the size of the virtual window
-    		xPos,yPos,						// sets initial position of scrollbars NEEDED!
-    		noRefresh);						// SetScrollPos called elsewhere
-  
+	if (!gbIsPrinting)
+	{
+		// The MFC identifiers m_pageDev and m_lineDev are internal members of CScrollView.
+		// I cannot find them anywhere in MFC docs, but looking at CScrollView's sources, it
+		// is evident that they are used to set the scrolling parameters within the scrolled
+		// view in the MFC app. We'll convert the values to the proper units and use
+		// SetScrollbars() to set the scrolling parameters.
+		//wxSize nSize = m_pageDev; // m_pageDev is "per page scroll size in device units"
+		//wxSize mSize = m_lineDev; // m_lineDev is "per line scroll size in device units"
+		// wx note: the m_lineDev value in MFC is equivalent to the first two parameters of
+		// wxScrollWindow's SetScrollbars (pixelsPerUnitX, and pixelsPerUnitY). Both MFC and
+		// WX values are in pixels.
+		// The m_pageDev value in MFC is set below as twice the height of a strip (including
+		// leading). In WX the height of a page of scrolled stuff should be determined
+		// automatically from the length of the document (in scroll units), divided by the
+		// height of the client view (also in scroll units).
+		// The parameters needed for SetScrollbars are:
+		int pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY;
+		int xPos, yPos; // xPos and yPos default to 0 if unspecified
+		bool noRefresh; // noRefresh defaults to FALSE if unspecified
+		// whm note: We allow our wxScrolledWindow to govern our scroll
+		// parameters based on the width and height of the virtual document
+		// 
+		// WX version: We only need to specify the length of the scrollbar in scroll
+		// steps/units. Before we can call SetScrollbars we must calculate the size of the
+		// document in scroll units, which is the size in pixels divided by the pixels per
+		// unit.
+		pFrame->canvas->GetScrollPixelsPerUnit(&pixelsPerUnitX,&pixelsPerUnitY);
+		noUnitsX = m_pApp->m_docSize.GetWidth() / pixelsPerUnitX;
+		noUnitsY = m_pApp->m_docSize.GetHeight() / pixelsPerUnitY;
+		// we need to specify xPos and yPos in the SetScrollbars call, otherwise it will cause
+		// the window to scroll to the zero position everytime RecalcLayout is called.
+		// We'll use GetViewStart instead of CalcUnscrolledPosition here since SetScrollbars
+		// below takes scroll units rather than pixels.
+		m_pApp->GetMainFrame()->canvas->GetViewStart(&xPos, &yPos); // gets xOrigin and yOrigin
+																	// in scroll units
+		noRefresh = FALSE; // do a refresh
+		// Now call SetScrollbars - this is the only place where the scrolling parameters are
+		// established for our wxScrolledWindow (canvas). The scrolling parameters are reset
+		// everytime RecalcLayout is called. This is the only location where SetScrollbars() is
+		// called on the canvas.
+	    
+		// whm IMPORTANT NOTE: We need to use the last position of the scrolled window here. If
+		// we don't include xPos and yPos here, the scrollbar immediately scrolls to the
+		// zero/initial position in the doc, which fouls up the calculations in other routines
+		// such as MoveToPrevPile.
+		m_pApp->GetMainFrame()->canvas->SetScrollbars(
+				pixelsPerUnitX,pixelsPerUnitY,	// number of pixels per "scroll step"
+        		noUnitsX,noUnitsY,				// sets the length of scrollbar in scroll steps, 
+												// i.e., the size of the virtual window
+    			xPos,yPos,						// sets initial position of scrollbars NEEDED!
+    			noRefresh);						// SetScrollPos called elsewhere
+	}
 
 	// restore the selection, if there was one
 	m_pView->RestoreSelection();

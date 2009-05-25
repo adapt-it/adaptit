@@ -317,6 +317,12 @@ public:
 	void		SetLogicalDocHeight();	// set m_logicalDocSize.y (call after strips are built)
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
+	void		CopyLogicalDocSizeFromApp(); // copy the CAdapt_ItApp:m_docSize wxSize value to
+						// wxSize m_logicalDocSize in CLayout, for use while printing
+	void		RestoreLogicalDocSizeFromSavedSize(); // copy the wxSize value saved in the
+						// CAdapt_ItApp:m_saveDocSize member, back to m_logicalDocSize here
+						// in CLayout, for use again in the view refreshes, after printing
+
 
 	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
 	PileList* GetPileList();

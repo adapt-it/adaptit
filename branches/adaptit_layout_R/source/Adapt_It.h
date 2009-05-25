@@ -1272,6 +1272,10 @@ public:
 	// store doc size parameters
 	wxSize		m_docSize;	// stores the virtual doc size (in pixels)
 	wxSize		m_saveDocSize; // used for restoring original doc size across a printing operation
+	int			m_nAIPrintout_Destructor_ReentrancyCount; // ~AIPrintout() is entered twice in closing
+	// off a Print Preview and parameter cleanup done there is fouling
+	// things, so I'll count times reentered and have the function exit immediately if the
+	// count gets over 1; the count is initialized to 1 in the AIPrintout() constructor
 	SPList*		m_pSourcePhrases;
 	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized) text data on the
 							// heap; and still does so while parsing source text, but from late versions 2

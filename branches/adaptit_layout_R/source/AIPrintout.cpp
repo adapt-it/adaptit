@@ -144,86 +144,136 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// See code:#print_flow for the order of calling of this AIPrintout constructor.
 	
-	// whm: to avoid problems with calls to the View's Draw() method we should freeze the canvas here at
-	// the beginning of the print preview routine, and unfreeze it in the AIPrintout destructor after printing
-	// ends. For non-preview printing it is not necessary to freeze the canvas.
+    // whm: to avoid problems with calls to the View's Draw() method we should freeze the
+    // canvas here at the beginning of the print preview routine, and unfreeze it in the
+    // AIPrintout destructor after printing ends. For non-preview printing it is not
+    // necessary to freeze the canvas.
 	pApp->GetMainFrame()->canvas->Freeze();
 
 	// in the refactored design, not all strips may be fully filled, so since printing is
 	// likely to print one or more incomplete strips, the best way to prevent that is to
 	// do a fill recalc of the layout (but leave piles untouched) before printing, so that
 	// all strips are properly filled
+	pApp->m_nSaveActiveSequNum = pApp->m_nActiveSequNum;
+/* 
+    // this call of RecalcLayout is pointless, we need to first set up the printing page's
+    // width and height, and the scaling, and then call RecalcLayout() - all of that is
+    // done in OnPreparePinting()
 	CLayout* pLayout = pApp->m_pLayout;
 #ifdef _NEW_LAYOUT
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+	//pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-	pApp->m_saveDocSize = pApp->m_docSize; // store original size
+*/
+	pApp->m_saveDocSize = pApp->m_docSize; // store original size (can dispense with this
+			// here if we wish, because OnPreparePrinting() will make same call)
+	// the following, defined in the app class, is a kluge to prevent problems which would
+	// happen due to the ~AIPrintout() destructor being called twice after a Print
+	// Preview, so I'm counting times reentered, and only letting the function do any work
+	// on the first time entered
+	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called when the AIPrintout object is about to be destroyed. The main clean up code for restoring
-/// the document to its previous state it had before printing is executed here in the destructor.
-/// The cleanup involves: Calling RestoreOriginalList() after printing a selection or range, and 
-/// RemoveSelection() when printing a selection or range, but not previewing; resetting some global
-/// printing flags (including gbIsPrinting to FALSE); calling the View's RestoreIndices(), 
-/// ClearPagesList(), and RecalcLayout(); the canvas' ScrollIntoView(), etc., and thaws out the canvas
-/// which was frozen in the corresponding constructor.
+/// Called when the AIPrintout object is about to be destroyed. The main clean up code for
+/// restoring the document to its previous state it had before printing is executed here in
+/// the destructor. The cleanup involves: Calling RestoreOriginalList() after printing a
+/// selection or range, and RemoveSelection() when printing a selection or range, but not
+/// previewing; resetting some global printing flags (including gbIsPrinting to FALSE);
+/// calling the View's RestoreIndices(), ClearPagesList(), and RecalcLayout(); the canvas'
+/// ScrollIntoView(), etc., and thaws out the canvas which was frozen in the corresponding
+/// constructor.
+/// BEW 25May09: For some reason known only to wxWidgets, the function is called twice
+/// when closing a Print Preview; and setting the active sequence number to the saved
+/// value on the app, and then setting the save app value to -1 is bad news unless we do
+/// something about it, because the RecalcLayout() the second time round will muck up the
+/// active location, since the active sequence number gets wrongly reset to -1 on the
+/// second call! So, I'll try a global to count the number of times reentered, and for the
+/// second or later reenters, just exist immediately without doing anything. Crude, but it
+/// will have to do. A pity the cleanup is done in the destructor, but I've not got the
+/// time to try figure out why Bill put it so late. 
 ////////////////////////////////////////////////////////////////////////////////////////////
 AIPrintout::~AIPrintout()
 {
 	// refactored 6Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
-	pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum; // restore value of sequ num at active location
 
-	// Note: The code below cleans up the indices and flags after a print and/or print preview
-	// operation. It could not go in OnEndPrinting because that gets called earlier and more often in
-	// the wx version (especially when doing print preview).
+    // Note: The code below cleans up the indices and flags after a print and/or print
+    // preview operation. It could not go in OnEndPrinting because that gets called earlier
+    // and more often in the wx version (especially when doing print preview).
 	CAdapt_ItView* pView = pApp->GetView();
 
-	// restore original doc size
-	pApp->m_docSize = pApp->m_saveDocSize;
-
-	// if we were printing a selection, restore the original state first (but don't restore the
-	// selection), then do tidy up of everything else & get a new layout calculated; likewise if
-	// we were printing a chapter & verse range
-	if (gbPrintingSelection  || gbPrintingRange)
+	if (pApp->m_nAIPrintout_Destructor_ReentrancyCount == 1) 
 	{
-		pView->RestoreOriginalList(pApp->m_pSaveList, pApp->m_pSourcePhrases); // ignore return value,
-														// either we aborted, or all was well
-		// we want any selection retained if we have been doing a print preview, but we want the
-		// selection removed if we have been printing
-		if (!gbIsBeingPreviewed && gbPrintingSelection)
+		// so the the stuff in this block only when we enter this function the first time
+
+		// restore original doc size
+		pApp->m_docSize = pApp->m_saveDocSize;
+		// and put that value back into CLayout::m_logicalDocSize
+		pApp->m_pLayout->RestoreLogicalDocSizeFromSavedSize();
+
+		// if we were printing a selection, restore the original state first (but don't restore the
+		// selection), then do tidy up of everything else & get a new layout calculated; likewise if
+		// we were printing a chapter & verse range
+		if (gbPrintingSelection  || gbPrintingRange)
 		{
-			pView->RemoveSelection();
+			pView->RestoreOriginalList(pApp->m_pSaveList, pApp->m_pSourcePhrases); // ignore return value,
+															// either we aborted, or all was well
+			// we want any selection retained if we have been doing a print preview, but we want the
+			// selection removed if we have been printing
+			if (!gbIsBeingPreviewed && gbPrintingSelection)
+			{
+				pView->RemoveSelection();
+			}
+
+			gbPrintingSelection = FALSE;
+			gbPrintingRange = FALSE;
+
+			// restore defaults for the checkboxes
+			gbSuppressPrecedingHeadingInRange = FALSE;
+			gbIncludeFollowingHeadingInRange = FALSE;
 		}
 
-		gbPrintingSelection = FALSE;
-		gbPrintingRange = FALSE;
+		// clean up
+		//pView->RestoreIndices();
+		pView->ClearPagesList();
+		gbIsPrinting = FALSE;
+		// wx version: I think the All Pages button gets enabled
 
-		// restore defaults for the checkboxes
-		gbSuppressPrecedingHeadingInRange = FALSE;
-		gbIncludeFollowingHeadingInRange = FALSE;
-	}
-
-	// clean up
-	//pView->RestoreIndices();
-	pView->ClearPagesList();
-	gbIsPrinting = FALSE;
-	// wx version: I think the All Pages button gets enabled
-
-	// layout again for the screen, get an updated pointer to the active location, restore the 
-	// phrase box, scroll, invalidate window to restore pre-printing appearance (if we had been
-	// printing a selection, it will get restored now because the globals will have been preserved)
-	pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum;
+		// layout again for the screen, get an updated pointer to the active location, restore
+		// the phrase box, scroll, invalidate window to restore pre-printing appearance (if we
+		// had been printing a selection, it will get restored now because the globals will
+		// have been preserved)
+		pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum;
+		// get a temporary m_pActivePile pointer
+		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 #ifdef _NEW_LAYOUT
-	pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		//pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); 
+														// this one gives a crash
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles); // no
+														// crash
+		//pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles); //
+														//too slow!! and doesn't fix problems
 #else
-	pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+	#endif
+
+		pApp->m_nSaveActiveSequNum = -1; // **** NOTE ***** this can only be safely done once,
+            // after the above RecalcLayout() call, and if the function is reentered and we
+            // don't cause it to do nothing by the test put at the top, then RecalcLayout()
+            // gets called with an active sequence number of -1, which messes up the phrase
+            // box placement etc, hence the kluge of using
+            // m_nAIPrintout_Destructor_ReentrancyCount to prevent the repeat of the
+            // calculations in this block
+	} // block ends here so that a call to ScrollIntoView() is done for each time entered,
+	// otherwise, the scroll position gets lost for the second entrance, and a manual
+	// scroll is then required to make the active strip visible; but having the call done
+	// each time solves this problem
 
 	// recalculate the active pile & update location for phraseBox creation
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -245,12 +295,17 @@ AIPrintout::~AIPrintout()
 	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set by the above code,
 							 // so unfortunately the cursor will have to be manually put back in the
 							 // box
-	pApp->m_nSaveActiveSequNum = -1;
 	
 	// Code to thaw the canvas needs to go here in OnCloseWindow, because OnEndPrinting gets called
 	// prematurely by the framework as each preview page is about to be shown.
+	// (Also, now that BEW has added the m_nAIPrintout_Destructor_ReentrancyCount kluge,
+	// we must permit a balanced number of calls to Thaw(), although we permit the stuff
+	// in the block above to be done only once)
 	if (pApp->GetMainFrame()->canvas->IsFrozen())
 		pApp->GetMainFrame()->canvas->Thaw();
+
+	pApp->m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this function is
+						// entered, we do nothing in this block if it is is entered more than once
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -721,7 +776,7 @@ void AIPrintout::OnPreparePrinting()
 	GetPPIScreen(&ppiScreenX, &ppiScreenY); // usually 96 dpi but may differ on newer/future computers
 	int ppiPrinterX, ppiPrinterY;
 	GetPPIPrinter(&ppiPrinterX, &ppiPrinterY); // dependent on the printer
-    // Calculate the scale for the DC so that the printout represents the the screen scaling. The
+    // Calculate the scale for the DC so that the printout represents the screen scaling. The
     // printing sample has the following comment: "The text point size _should_ be the right size but in
     // fact is too small for some reason. This is a detail that will need to be addressed at some point
     // but can be fudged for the moment."
@@ -739,7 +794,12 @@ void AIPrintout::OnPreparePrinting()
 	// whm: m_docSize.x is normally the width of the main window client area in pixels. For printing we
 	// want this to be the size of the printable area within the page's margins. 
 	pApp->m_docSize.x = nPagePrintingWidthLU; 
-    // Note: the document's length m_docSize.y is determined after call to PaginateDoc() farther below.
+    // Note: the document's length m_docSize.y is determined after call to PaginateDoc() farther below,
+    // so just set the .y value to zero here - then call CopyLogicalDocSizeFromApp() to inform
+	// the CLayout::m_logicalDocSize member (used in RecalcLayout() of the different strip width
+	// to be used for populating the strips with piles for printing
+	pApp->m_docSize.y = 0;
+    pApp->m_pLayout->CopyLogicalDocSizeFromApp();
    
 	// whm Note: The MFC version uses the following gnPrintingWidth global in SetupRangePrintOp().
 	gnPrintingWidth = pApp->m_docSize.x;
@@ -765,7 +825,8 @@ void AIPrintout::OnPreparePrinting()
 		//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 		//gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
 #ifdef _NEW_LAYOUT
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		//pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -810,7 +871,8 @@ void AIPrintout::OnPreparePrinting()
         // that the SaveSelection() and RestoreSelection() calls in RecalcLayout() do nothing).
 		//pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 #ifdef _NEW_LAYOUT
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		//pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -824,7 +886,7 @@ void AIPrintout::OnPreparePrinting()
 
 	// do pagination
 	// 
-	// whm: In the following call to PaginateDoc, we use the current m_nStripCount stored on pBundle,
+	// whm: In the following call to PaginateDoc, we use the current document m_nStripCount,
 	// because the PaginateDoc() call here is done within OnPreparePrinting() which is called after the
 	// print dialog has been dismissed with OK, and thus we are paginating the actual doc to print and
 	// not merely simulating it for purposes of getting the pages edit box values for the print options
