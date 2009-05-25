@@ -20190,6 +20190,9 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_pTargetBox != NULL)
 		if (pApp->m_pTargetBox->IsShown())
 			pApp->m_pTargetBox->SetFocus();
+
+	// BEW added 20May09, next line required in order to get * shown
+	GetLayout()->Redraw();
 }
 
 void CAdapt_ItView::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
@@ -24694,7 +24697,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
-	// BEW added 20May09, next loine required in order to remove the selection
+	// BEW added 20May09, next line required in order to remove the selection
 	GetLayout()->Redraw();
 }
 

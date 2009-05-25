@@ -2070,6 +2070,24 @@ AIModalDialog::AIModalDialog( wxWindow *parent, const wxWindowID id, const wxStr
 			const wxPoint& pos, const wxSize& size, const long windowStyle ) :
 			wxDialog(parent, id, title, pos, size, windowStyle)
 {
+    // BEW added 25May09 to attempt to turn on key_down event handling... it wasn't working
+    // in the Choose Translation dialog, and so an ALT + right arrow key combination did
+    // not get trapped and so OnKeyDown() does not get entered.
+    // 
+    // Test turning off the default dialog style wxWS_EX_BLOCK_EVENTS
+	//long extraStyle = GetExtraStyle();
+	//extraStyle = extraStyle ^ wxWS_EX_BLOCK_EVENTS;
+	//SetExtraStyle(extraStyle);
+	// The abovetest did not fix the problem. GetExtraStyle() returned 0x0000000A, and in
+	// defs.h wxWS_EX_BLOCK_EVENTS is defined as 0x00000002, and the exclusive or did turn
+	// off blocking, but still EVT_KEY_DOWN was not trapped by CChooseTranslation dialog
+	// 
+	// Try oring wxWANTS_CHARS = 0x00040000
+	//long ordinaryStyle = GetWindowStyle();
+	//ordinaryStyle |= wxWANTS_CHARS; // 0x00040000
+	//SetWindowStyle(ordinaryStyle);
+	// The above 3 lines also had no effect. It appears that wxWidgets will not support
+	// the trapping of ALT + -> arrow key combination in dialogs
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

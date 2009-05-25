@@ -128,17 +128,19 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Choose Translation"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
-	// for the dialog. The first parameter is the parent which should normally be "this".
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
+    // This dialog function below is generated in wxDesigner, and defines the controls and
+    // sizers for the dialog. The first parameter is the parent which should normally be
+    // "this". The second and third parameters should both be TRUE to utilize the sizers
+    // and create the right size dialog.
 	pChooseTransSizer = ChooseTranslationDlgFunc(this, TRUE, TRUE);
-	// The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	
+    // The declaration is: ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool
+    // set_sizer );
+    
 	m_refCount = 0;
 	m_refCountStr.Empty();
 	m_refCountStr << m_refCount;
-	// wx version note: The parent of our dialogs is not the View, so we'll get the view elsewhere
+	// wx version note: The parent of our dialogs is not the View, so we'll get the 
+	// view elsewhere
 	m_bHideCancelAndSelectButton = FALSE;
 
 	m_pMyListBox = (CMyListBox*)FindWindowById(IDC_MYLISTBOX_TRANSLATIONS);
