@@ -69,8 +69,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 // event handler table
 BEGIN_EVENT_TABLE(CEditSourceTextDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEditSourceTextDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_COMMAND(IDC_EDIT_NEW_SOURCE,wxEVT_COMMAND_TEXT_ENTER,ReinterpretEnterKeyPress)
 END_EVENT_TABLE()
-
 
 CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Edit Source Text"),
@@ -122,6 +122,14 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
 {
 	
+}
+
+void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
+{
+
+	// now close off the dialog
+	OnOK(event);
+	EndModal(wxID_OK);
 }
 
 void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow

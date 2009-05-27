@@ -2219,7 +2219,14 @@ public:
 	void		SetCurrentSourcePhrase(CSourcePhrase *sp);
 	CSourcePhrase	*FindNextChapter(SPList *ol, CSourcePhrase *sp);
 	static wxString	ApplyDefaultDocFileExtension(wxString s);
-	void		DeleteSourcePhraseListContents(SPList *l);
+	void		DeleteSourcePhraseListContents(SPList *l); // deletes partner piles too, 
+			// one-by-one (inefficient, but doing an en masse deletion of the partner 
+			// piles would require having an overloaded CLayout::DestroyPiles(PileList* list)
+			// function which we don't yet have, and we'd need extra code in the 
+			// SplitDialog.cpp file in order to calculate the sublist list which corresponds
+			// to the one passed in to DeleteSoucePhraseListContents(); so I've been lazy and
+			// sacrificed some speed to avoid this, and just let the DeleteSingleSrcPhrase()
+			// call delete the partner pile each time through the internal loop
 	void		CascadeSourcePhraseListChange(bool DoFullScreenUpdate);// If DoFullScreenUpdate, the Phrase Box is moved.
 			// Otherwise, we update internal variables but don't redraw.  This is useful if you are going to make a 
 			// series of changes and want the state to be valid between each change but you don't want the screen 

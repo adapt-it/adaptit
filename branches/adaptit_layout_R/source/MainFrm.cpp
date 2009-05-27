@@ -740,7 +740,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 					// form the path to each of those remaining - these will be *.xml document files only
 					strDocPath = strFolderPath + gpApp->PathSeparator + strDocName; 
 
-					// clear the temporary list, gete ready for reading in the xml data and storing it in the list
+					// clear the temporary list, get ready for reading in the xml data and storing it in the list
 					DeleteSourcePhrases_ForSyncScrollReceive(pDoc, gpDocList); // also removes gpDocList's contents
 
 					// read in the XML data, forming CSourcePhrase instances and storing them in gpDocList (done
@@ -1038,7 +1038,9 @@ void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
 			{
 				pSrcPhrase = pos->GetData();
 				pos = pos->GetNext();
-				pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // ignore partner piles
+					// because this function works only on a temporary list of 
+					// CSourcePhrase instances and so there never are any partner piles
 			}
 			pList->Clear();
 		}

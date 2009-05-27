@@ -1297,6 +1297,15 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 #endif
 */
+	// the active pile needs to be set if using the keep_strips_keep_piles option, so if
+	// there is a positive m_nActiveSequNum value, use it to set a temporary m_pActivePile
+	if ((m_pApp->m_pActivePile == NULL && m_pApp->m_nActiveSequNum != -1 &&
+		selector != create_strips_and_piles) || 
+		(selector == keep_strips_keep_piles && m_pApp->m_nActiveSequNum != -1))
+	{
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+	}
+
 	// the loop which builds the strips & populates them with the piles
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles)
 	{

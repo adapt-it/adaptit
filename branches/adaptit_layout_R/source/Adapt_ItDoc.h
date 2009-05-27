@@ -156,8 +156,10 @@ public:
 	// end of partner pile functions
 	
 	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);
-	void			DeleteSourcePhrases();
-	void			DeleteSourcePhrases(SPList* pList);
+	void			DeleteSourcePhrases(); // deletes all the CSourcePhrase instances,in m_pSourcePhrases,
+										   // but does not delete each partner pile (use DestroyPiles()
+										   // defined in CLayout for that)
+	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
 	bool			DoFileSave(bool bShowWaitDlg);
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);

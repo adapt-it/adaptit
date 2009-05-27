@@ -20351,10 +20351,10 @@ void CAdapt_ItView::ClobberDocument()
     // EditRecord; and on doc closure and app closure, it likewise must be cleaned out
     // entirely (the deletion lists in it have content which persists only for the life of
     // the document currently open)
-	InitializeEditRecord(gEditRecord); // clears all except the deletion list, so do those next
-	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
+	InitializeEditRecord(gEditRecord); // clears all except the deletion list
+	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptations
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
-	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
+	gEditRecord.deletedFreeTranslationsList.Clear(); // remove stored deleted free translns
 
 	// save settings for restoration from config file
 	if (pApp->m_nActiveSequNum == -1)
@@ -20369,8 +20369,8 @@ void CAdapt_ItView::ClobberDocument()
 	pLayout->GetPileList()->Clear();
 	pLayout->GetInvalidStripArray()->Clear();
 	pLayout->DestroyStrips();
-	//pLayout->DestroyPiles(); // removed, DestroySingleSrcPhrase() in the DestroySourcePhrases()
-							   // call destroys the partner pile
+	pLayout->DestroyPiles(); // restored, DestroySourcePhrases() no longer destorys 
+							 // the partner piles
 	pApp->m_pActivePile = (CPile*)NULL;
 	pApp->m_pTargetBox->SetValue(_T("")); //pApp->m_targetBox.Destroy();
 	pApp->m_nActiveSequNum = -1;
@@ -34350,7 +34350,7 @@ bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum 
 // /                             various booleans reflecting the state of the edit process, etc
 // / \param      pAdaptList	<->	list for removed adadptations
 // / \param      pGlossList	<->	list for removed glosses
-// / \param      pFTList		<->	list for removed free translations
+// / \param      pFTList	<->	list for removed free translations
 // / \param      pNoteList	<->	list for removed notes
 // / \param      remAd		->	BOOL indicating whether to remove or retain adaptation 
 // /                             information
@@ -37384,6 +37384,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 												pRec->nFreeTrans_EndingSequNum, pTempList);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not 
 			// yet been modified)
 			if (gbVerticalEditInProgress)
@@ -37411,6 +37413,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 										pRec->nStartingSequNum, pRec->nEndingSequNum);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not 
 			// yet been modified)
 			if (gbVerticalEditInProgress)
@@ -37455,7 +37459,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 #endif
 		if (!bAllWasOK)
 		{
-            // something went wrong, bail out (m_pSourcePhrases list contents have not yet
+ 			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
+           // something went wrong, bail out (m_pSourcePhrases list contents have not yet
             // been modified)
 			if (gbVerticalEditInProgress)
 			{
@@ -37467,8 +37473,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 				wxExit();
 		}
 
-		// clear out the contents of the temporary list
+		// clear out the contents of the temporary list & delete the list itself
 		pDoc->DeleteSourcePhrases(pTempList);
+		delete pTempList;
 #ifdef _DEBUG
 		testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		ct = 0;
@@ -37795,7 +37802,6 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pAdaptList;
 	}
 	if (pGlossList->GetCount() > 0)
 	{
@@ -37808,7 +37814,6 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pGlossList;
 	}
 	if (pFTList->GetCount() > 0)
 	{
@@ -37821,7 +37826,6 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pFTList;
 	}
 	if (pNoteList->GetCount() > 0)
 	{
@@ -37834,8 +37838,14 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pNoteList;
 	}
+
+	// don't leak memory, delete the local lists now their contents have been inserted at
+	// the top of the respective persistent lists
+	delete pNoteList;
+	delete pFTList;
+	delete pGlossList;
+	delete pAdaptList;
 
     // We are now ready to accumulate the editable text from the editable span, and append
     // any endmarkers stored in the document at the first CSourcePhrase instance of the

@@ -3550,14 +3550,14 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
 /// list.
 // //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
+void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso)
 {
-	// BEW added 21Apr08 to pass in a pointer to the list which is to be deleted (overload of
-	// the version which has no input parameters and internally assumes the list is m_pSourcePhrases)
-	// This new version is required so that in the refactored Edit Source Text functionality we can
-	// delete the deep-copied sublists using this function; making m_pSourcePhrases the default and
-	// having just the one function would be an option, but it forces me to make m_pSourcePhrases a
-	// static class function which I don't want to do, but it would work okay that way too)
+    // BEW added 21Apr08 to pass in a pointer to the list which is to be deleted (overload
+    // of the version which has no input parameters and internally assumes the list is
+    // m_pSourcePhrases) This new version is required so that in the refactored Edit Source
+    // Text functionality we can delete the deep-copied sublists using this function.
+	// BEW modified 27May09, to take the bool bDoPartnerPileDeletionAlso parameter,
+	// defaulting to FALSE because the deep copied sublists never have partner piles
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//wxASSERT(pApp != NULL);
 	if (pList != NULL)
@@ -3571,15 +3571,16 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
 #ifdef _DEBUG
-				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
+				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),
+				//pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
 #endif
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase, bDoPartnerPileDeletionAlso); // default
+					// for the boolean passed in to DeleteSourcePhrases() is FALSE
 			}
 			pList->Clear(); 
 		}
 	}
 }
-
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing
@@ -3602,7 +3603,12 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // FALSE is the
+					// value for bDoPartnerPileDeletionAlso, because it is
+					// more efficient to delete them later en masse with a call
+					// to CLayout::DestroyPiles(), rather than one by one, as
+					// the  one by one way involves a search to find the
+					// partner, so it is slower
 			}
 			pApp->m_pSourcePhrases->Clear(); 
 		}
@@ -3753,7 +3759,15 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 
 		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
 		pPile->SetStrip(NULL);
-		//pPiles->Erase(posPile); // remove the entry from m_pileList
+
+		// if destroying the CPile instance pointed at by app's m_pActivePile, set the
+		// latter to NULL as well (otherwise, in the debugger it would have the value
+		// 0xfeeefeee which is useless for pile ptr != NULL tests as it gives a spurious
+		// positive result
+		if (pLayout->m_pApp->m_nActiveSequNum != -1 && pLayout->m_pApp->m_pActivePile == pPile)
+		{
+			pLayout->m_pApp->m_pActivePile = NULL;
+		}
 		pLayout->DestroyPile(pPile,pLayout->GetPileList()); // destroy the pile, & remove 
 					// its node from m_pileList, because bool param, bRemoveFromListToo, is
 					// default TRUE
@@ -10421,8 +10435,10 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
 	// delete the source phrases
-	DeleteSourcePhrases(); // this deletes the partner piles by calling DeletePartnerPile()
-						   // on each one in the m_pileList list in CLayout
+	DeleteSourcePhrases(); // this does not delete the partner piles as 
+		// the internal DeleteSingleSrcPhrase() has the 2nd param FALSE so
+		// that it does not call DeletePartnerPile() -- so delete those
+		// separately below en masse with the DestroyPiles() call
 
 	// the strips, piles and cells have to be destroyed to make way for the new ones
 	CAdapt_ItView* pView = (CAdapt_ItView*)NULL;
@@ -10432,7 +10448,7 @@ bool CAdapt_ItDoc::DeleteContents()
 	{
 		CLayout* pLayout = GetLayout();
 		pLayout->DestroyStrips();
-		//pLayout->DestroyPiles(); // not needed here, DeleteSourcePhrases() deletes them
+		pLayout->DestroyPiles(); // destroy these en masse
 		pLayout->GetPileList()->Clear();
 		pLayout->GetInvalidStripArray()->Clear();
 

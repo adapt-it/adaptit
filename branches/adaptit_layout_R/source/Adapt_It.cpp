@@ -20522,7 +20522,12 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 		{
 			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			pos = pos->GetNext();
-			pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
+			pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // Note, it would be more efficient
+			// to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
+			// a call such as DestroyPiles(PileList* piles) -- but we don't have such a
+			// function defined in AI yet, and the sublist corresponding to the sublist l
+			// passed in above, would have to be calculated -- all of which could be done,
+			// but the returns are diminished, so I'll not bother
 		}
 		l->Clear();
 	}
