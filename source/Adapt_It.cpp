@@ -85,6 +85,7 @@
 
 #include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
 #include <wx/filepicker.h> // for wxDirPickerCtrl
+#include <wx/log.h> // for wxLogStream
 
 // Other includes
 #include "Adapt_It.h"
@@ -131,27 +132,29 @@
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
 #endif // wxUSE_WXHTML_HELP
 
-// The following include by David A. Jones is described in an article on The Code Project
-// called "Memory Leak Detection". It generates better memory leak detection reporting.
-// Note: This header and how it works are found on: http://www.codeproject.com/cpp/MemLeakDetect.asp
-// Its code is not compiled into the program in release versions, but vld.h need only be included
-// when memory leaks are detected by the debugger's Output report, and it is not obvious what is
-// the cause of the leak from the report.
-// Steps I did to make this work with VC 7.1 (and again for VC 8.0):
-// 1. copied vld.dll to c:\WINDOWS\System32
-// 2. copied vld.ini to c:\WINDOWS
-// 3. copied vld.lib to Visual C++ installation's Lib subdirectory
-// 4. copied vld.h to Visual C++ installation's Include subdirectory
-// 5. copied dbghelp.dll to the directory where the executable you are debugging resides (...\Debug)
-// 6. downloaded a copy of msvcrtd.dll from the web and also put it into ...\Debug
-// 7. the following #include to include vld.h
-// Note: The VLD code is beta so we have to deal with a couple problems, but it still works.
-// The Microsoft Development Environment may issue a couple debug messages that read:
-// "Unhandled exception at 0x7c901230 (NTDLL.DLL) in Adapt_It.exe: User breakpoint."
-// Just click "Continue" to pass through these exceptions, then look at the reports in the
-// debug output and click on the first line of the stack trace which should be the line of
-// code were the variable was allocated on the heap that was never deleted.
-// If "memory leaks detected" and source of leak is unclear, uncomment the following include
+// The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
+// under the LGPL. The vld.h header usage is described in an article on The Code 
+// Project called "Memory Leak Detection". It generates better memory leak detection 
+// reporting under Visual Studio.
+// 
+// Note: The Visual Leak Detector (vld) and how it works are found at:
+// http://www.codeproject.com/KB/applications/visualleakdetector.aspx 
+// Note: Downloads from codeproject.com now require you set up a user account with password. 
+// Its code is not compiled into the program in release versions, but vld.h need only be 
+// included when memory leaks are detected by the debugger's Output report, and it is not 
+// obvious what is the cause of the leak from the report.
+// 
+// Steps I did to make this work with VC 8.0:
+// 1. copied vld.h and vldapi.h to the Visual Studio's VC include folder at:
+//    C:\Program Files\Microsoft Visual Studio 8\VC\include 
+// 2. copied vld.lib, vldmt.lib, and vldmtdll.lib to the Visual Studio's VC lib folder at:
+//    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
+// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
+//    debug builds.
+// 
+// If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
+// uncomment the following include, recompile, run and exit the program for a more
+// detailed report of the memory leaks:
 //#include "vld.h"
 
 /// This global is defined in TransferMarkersDlg.cpp.
@@ -5464,9 +5467,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// the parameter -xo determines which toolbar and commandbar is used in the main frame.
 	static const wxCmdLineEntryDesc cmdLineDesc[] = 
 	{
-		//{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Command Line operation not implemented!"), 
-		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP  },
-		//{ wxCMD_LINE_NONE }
+		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
+		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
@@ -5479,8 +5483,39 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
 	// OnFileNew() to initiate the doc/view creation process at program startup.
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
+
 	if (m_pParser->Parse())
-	 return false; // check this!!
+	 return false; // returns false if commandline help (-h or -help) is used or if there is an error parsing the commandline
+	// Note: returning here creates memory leaks, but it is not too serious since the
+	// program is terminating anyway.
+
+	/*
+	if (m_pParser->Found(_T("v")))
+	{
+		// command-line -v or -version option was specified, so report the version number as standard
+		// output.
+		wxString strVersionNumber;
+		strVersionNumber.Empty();
+		strVersionNumber << VERSION_MAJOR_PART;
+		strVersionNumber += _T(".");
+		strVersionNumber << VERSION_MINOR_PART;
+		strVersionNumber += _T(".");
+		strVersionNumber << VERSION_BUILD_PART;
+		// whm Note: This version reporting switch need not be implemented unless there is a specific
+		// need for it such as a script that needs to check the version of Adapt It for use in some
+		// routine that is designed to verify that a certain version is installed, such as Alistair
+		// Imrie's bootstrap routine (he however is checking the version number by inspecting the first
+		// line in the Adapt It changes.txt file).
+        // TODO: In order to use wxLogStream the wxWidgets library must be compiled with
+        // wxUSE_STD_IOSTREAM set to 1 (default is 0) in setup.h. This will be necessary to actually
+        // output to the std::cout standard output.
+		
+		//wxLog *logger = new wxLogStream(&std::cout);
+		//wxLog::SetActiveTarget(logger);
+		//cout << strVersionNumber;
+		return false;
+	}
+	*/
 
 	if (m_pParser->Found(_T("xo")))
 	{
