@@ -126,31 +126,21 @@ CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
 
 void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
 {
-
 	// now close off the dialog, updating the data -- I've had to use wxWidgets protected
 	// functions from dialog.h and dlgcmn.cpp from the widgets source code to be able to
-	// intercept things and intervene in the way I want
+	// get the validation and data transfer done. A nice thing wxWidgets does is if the
+	// wxTE_PROCESS_ENTER style is used for the wxTextCtrl, then wxWidgets itself blocks
+	// any newline or carriage return from being entered into the data string, and so no
+	// manual intervention is needed here in order to remove such characters. We just need
+	// the calls below. (Actually, OnOK(event) appears to do nothing and could be omitted)
 	OnOK(event);
-
-	bool bTransferredData = TRUE;
-	bool bValidated = Validate();
-	if (bValidated)
-	{
-		bTransferredData = TransferDataFromWindow();
-
-		// intervene to remove the newline
-		if (bTransferredData)
-		{
-			// do my intervention code here   *** TODO ***
-			
-			 
-			
-		}
-	}
-	EndModal(wxID_OK); // we'll unilaterally end, even if the transfer didn't happen
-	//AcceptAndClose(); // <- this works, but we need to intervene between its call of
-	//Validate() and TransferDataFromWindow(), so I've pulled these calls out and used
-	//them above
+	EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
+	AcceptAndClose();  // calls Validate() and TransferDataFromWindow(), each of which
+					   // returns a boolean, and the data transfer is done if validation
+					   // succeeds
+	// uncomment out the following line if confirmation in a debugger is required that
+	// m_stringNewSourceText has no \r nor \n in it
+	wxString str = m_strNewSourceText;
 }
 
 void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
