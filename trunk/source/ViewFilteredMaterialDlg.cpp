@@ -74,6 +74,7 @@ BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxDialog)
 	EVT_LISTBOX(IDC_LIST_MARKER, CViewFilteredMaterialDlg::OnLbnSelchangeListMarker)
 	EVT_LISTBOX(IDC_LIST_MARKER_END, CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd)
 	EVT_TEXT(IDC_EDIT_MARKER_TEXT, CViewFilteredMaterialDlg::OnEnChangeEditMarkerText)
+	EVT_TEXT_ENTER(IDC_EDIT_MARKER_TEXT,ReinterpretEnterKeyPress)
 #ifdef _UNICODE
 	EVT_BUTTON(IDC_BUTTON_SWITCH_ENCODING, CViewFilteredMaterialDlg::OnButtonSwitchEncoding)
 #endif
@@ -115,6 +116,22 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 CViewFilteredMaterialDlg::~CViewFilteredMaterialDlg() // destructor
 {
 	
+}
+
+void CViewFilteredMaterialDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
+{
+	// now update the data and invoke OnOK() on the dialog.
+	// 
+	// A nice thing wxWidgets does is if the wxTE_PROCESS_ENTER style is used for the wxTextCtrl, then
+	// wxWidgets itself blocks any newline or carriage return from being entered into the data string,
+	// and so no manual intervention is needed here in order to remove such characters. We just need the
+	// calls below.
+	// Here we can't call TransferDataFromWindow() because no validator was setup due to having to deal
+	// with different wxArrayString elements that can appear in the edit box.
+	// Since this is a modeless dialog we don't call EndModal() here, but instead we simply call the 
+	// OnOK() handler, which conveniently also handles the transfer of data from the edit box to the
+	// appropriate array element, then closes/hides the dialog.
+	OnOK(event);
 }
 
 #ifdef _UNICODE

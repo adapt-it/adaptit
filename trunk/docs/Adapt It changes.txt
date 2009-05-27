@@ -1,11 +1,19 @@
 Version 4.1.5 update 31May2009:
 ----------------------------------------------
-Feature changes and new features in 4.1.4
+Feature changes and new features in 4.1.5
 ----------------------------------------------
 
 ----------------------------------------------
-Bug fixes in 4.1.4
+Bug fixes in 4.1.5
 ----------------------------------------------
+* Fixed the behavior of the View Filtered Material dialog 
+so that it now allows editing of the text associated with
+the marker that is selected. The dialog also closes when 
+the user presses the Enter key, effectively pressing the
+"Save Changes" button.
+* Fixed the behavior of the Edit Source Text dialog so that
+it now closes when the user presses the Enter key instead of
+entering a newline in the dialog's edit box.
 * Fixed a bug that was causing the application to think that 
 punctuation had changed whenever the user clicked on the OK 
 button of the Preferences dialog. The unnecessary processing 
