@@ -127,9 +127,30 @@ CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
 void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
 {
 
-	// now close off the dialog
+	// now close off the dialog, updating the data -- I've had to use wxWidgets protected
+	// functions from dialog.h and dlgcmn.cpp from the widgets source code to be able to
+	// intercept things and intervene in the way I want
 	OnOK(event);
-	EndModal(wxID_OK);
+
+	bool bTransferredData = TRUE;
+	bool bValidated = Validate();
+	if (bValidated)
+	{
+		bTransferredData = TransferDataFromWindow();
+
+		// intervene to remove the newline
+		if (bTransferredData)
+		{
+			// do my intervention code here   *** TODO ***
+			
+			 
+			
+		}
+	}
+	EndModal(wxID_OK); // we'll unilaterally end, even if the transfer didn't happen
+	//AcceptAndClose(); // <- this works, but we need to intervene between its call of
+	//Validate() and TransferDataFromWindow(), so I've pulled these calls out and used
+	//them above
 }
 
 void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
