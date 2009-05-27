@@ -14,6 +14,7 @@ the user presses the Enter key, effectively pressing the
 * Fixed the behavior of the Edit Source Text dialog so that
 it now closes when the user presses the Enter key instead of
 entering a newline in the dialog's edit box.
+* Fixed some memory leaks in the Edit Source Text routines.
 * Fixed a bug that was causing the application to think that 
 punctuation had changed whenever the user clicked on the OK 
 button of the Preferences dialog. The unnecessary processing 

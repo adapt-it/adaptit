@@ -34936,6 +34936,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 													pRec->nFreeTrans_EndingSequNum, pTempList);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not yet been modified)
 			if (gbVerticalEditInProgress)
 			{
@@ -34959,6 +34961,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 										pRec->nStartingSequNum, pRec->nEndingSequNum);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not yet been modified)
 			if (gbVerticalEditInProgress)
 			{
@@ -34998,6 +35002,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 #endif
 		if (!bAllWasOK)
 		{
+ 			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not yet been modified)
 			if (gbVerticalEditInProgress)
 			{
@@ -35008,8 +35014,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the gbVerticalEditIn
 				wxExit();
 		}
 
-		// clear out the contents of the temporary list
+		// clear out the contents of the temporary list & delete the list itself
 		pDoc->DeleteSourcePhrases(pTempList);
+		delete pTempList;
 #ifdef _DEBUG
 		testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		ct = 0;
@@ -35298,7 +35305,6 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pAdaptList;
 	}
 	if (pGlossList->GetCount() > 0)
 	{
@@ -35311,7 +35317,6 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pGlossList;
 	}
 	if (pFTList->GetCount() > 0)
 	{
@@ -35324,7 +35329,6 @@ bailout:	pAdaptList->Clear();
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			goto bailout;
 		}
-		delete pFTList;
 	}
 	if (pNoteList->GetCount() > 0)
 	{
@@ -35339,6 +35343,13 @@ bailout:	pAdaptList->Clear();
 		}
 		delete pNoteList;
 	}
+
+	// don't leak memory, delete the local lists now their contents have been inserted at
+	// the top of the respective persistent lists
+	delete pNoteList;
+	delete pFTList;
+	delete pGlossList;
+	delete pAdaptList;
 
 	// We are now ready to accumulate the editable text from the editable span, and append any endmarkers
 	// stored in the document at the first CSourcePhrase instance of the context following the editable
