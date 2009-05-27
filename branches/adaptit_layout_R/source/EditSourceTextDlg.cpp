@@ -140,7 +140,7 @@ void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
 					   // succeeds
 	// uncomment out the following line if confirmation in a debugger is required that
 	// m_stringNewSourceText has no \r nor \n in it
-	wxString str = m_strNewSourceText;
+	//wxString str = m_strNewSourceText;
 }
 
 void CEditSourceTextDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
