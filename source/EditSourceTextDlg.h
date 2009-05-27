@@ -54,6 +54,7 @@ public:
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	void ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	virtual void OnCancel(wxCommandEvent& WXUNUSED(event));
 

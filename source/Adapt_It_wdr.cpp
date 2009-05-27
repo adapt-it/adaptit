@@ -3716,7 +3716,7 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_MARKER_TEXT, wxT(""), wxDefaultPosition, wxSize(450,100), wxTE_MULTILINE|wxTE_READONLY );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_MARKER_TEXT, wxT(""), wxDefaultPosition, wxSize(450,100), wxTE_MULTILINE|wxTE_PROCESS_ENTER );
     item11->SetToolTip( _("This is the text associated with the marker selected at left (it can be changed)") );
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4154,7 +4154,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->SetDefault();
     item16->SetToolTip( _("Click OK when you are finished editing the source text ") );
     item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
@@ -4169,7 +4169,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_PROCESS_ENTER );
     item18->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
     item12->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
