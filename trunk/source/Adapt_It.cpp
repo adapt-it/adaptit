@@ -87,6 +87,31 @@
 #include <wx/filepicker.h> // for wxDirPickerCtrl
 #include <wx/log.h> // for wxLogStream
 
+// The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
+// under the LGPL. The vld.h header usage is described in an article on The Code 
+// Project called "Memory Leak Detection". It generates better memory leak detection 
+// reporting under Visual Studio.
+// 
+// Note: The Visual Leak Detector (vld) and how it works are found at:
+// http://www.codeproject.com/KB/applications/visualleakdetector.aspx 
+// Note: Downloads from codeproject.com now require you set up a user account with password. 
+// Its code is not compiled into the program in release versions, but vld.h need only be 
+// included when memory leaks are detected by the debugger's Output report, and it is not 
+// obvious what is the cause of the leak from the report.
+// 
+// Steps I did to make this work with VC 8.0:
+// 1. copied vld.h and vldapi.h to the Visual Studio's VC include folder at:
+//    C:\Program Files\Microsoft Visual Studio 8\VC\include 
+// 2. copied vld.lib, vldmt.lib, and vldmtdll.lib to the Visual Studio's VC lib folder at:
+//    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
+// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
+//    debug builds.
+// 
+// If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
+// uncomment the following include, recompile, run and exit the program for a more
+// detailed report of the memory leaks:
+//#include "vld.h"
+
 // Other includes
 #include "Adapt_It.h"
 #include "MainFrm.h"
@@ -131,31 +156,6 @@
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
 #endif // wxUSE_WXHTML_HELP
-
-// The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
-// under the LGPL. The vld.h header usage is described in an article on The Code 
-// Project called "Memory Leak Detection". It generates better memory leak detection 
-// reporting under Visual Studio.
-// 
-// Note: The Visual Leak Detector (vld) and how it works are found at:
-// http://www.codeproject.com/KB/applications/visualleakdetector.aspx 
-// Note: Downloads from codeproject.com now require you set up a user account with password. 
-// Its code is not compiled into the program in release versions, but vld.h need only be 
-// included when memory leaks are detected by the debugger's Output report, and it is not 
-// obvious what is the cause of the leak from the report.
-// 
-// Steps I did to make this work with VC 8.0:
-// 1. copied vld.h and vldapi.h to the Visual Studio's VC include folder at:
-//    C:\Program Files\Microsoft Visual Studio 8\VC\include 
-// 2. copied vld.lib, vldmt.lib, and vldmtdll.lib to the Visual Studio's VC lib folder at:
-//    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
-// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
-//    debug builds.
-// 
-// If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
-// uncomment the following include, recompile, run and exit the program for a more
-// detailed report of the memory leaks:
-//#include "vld.h"
 
 /// This global is defined in TransferMarkersDlg.cpp.
 extern bool gbPropagationNeeded;	

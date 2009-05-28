@@ -140,6 +140,7 @@ void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event
 	TransferDataFromWindow();
 	// Call the EndModal(event) handler which automatically closes the dialog
 	EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
+
 	// uncomment out the following line if confirmation in a debugger is required that
 	// m_stringNewSourceText has no \r nor \n in it
 	//wxString str = m_strNewSourceText;
