@@ -3022,6 +3022,9 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	CLayout* pLayout = GetLayout();
+	//CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
+	CAdapt_ItView* pView = pLayout->m_pView;
+	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	//wxLogDebug(_T("OnChar() %d called from PhraseBox"),event.GetKeyCode());
 	// wx version note: In MFC this OnChar() function is NOT called for system key events,
@@ -3038,9 +3041,6 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 
 	m_bMergeWasDone = FALSE; //bool bMergeWasDone = FALSE;
 	gbEnterTyped = FALSE;
-	//CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
-	CAdapt_ItView* pView = pLayout->m_pView;
-	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
 	// whm Note: The following code for handling the WXK_BACK key is ok to leave here in
 	// the OnChar() handler, because it is placed before the Skip() call (the OnChar() base
@@ -5228,6 +5228,37 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			s = GetValue();
 			pApp->m_targetPhrase = s; // otherwise, deletions using <DEL> key are not recorded
 		}
+	}
+
+	// if the user wants to edit source text by a CTRL + Q shortcut from within the 
+	// phrase box, trap for it here
+#ifdef _UNICODE
+	if (event.ControlDown() && (wxChar)event.GetUnicodeKey() == (wxChar)0x0011L) // for 'Q' key
+#else
+	if (event.ControlDown() && (char)event.GetRawKeyCode() == (char)0x11) // for 'Q' key
+#endif
+	{
+		// set up a minimal selection, if there is not one already
+		if (pApp->m_selectionLine == -1 && pApp->m_selection.IsEmpty())
+		{
+			// there is no selection defined, so set up the active pile's source text as
+			// the current selection (but no need to set m_bSelected to TRUE in the CCell
+			// because this programmatically defined selection will never become visible
+			pApp->m_selectionLine = 0;
+			wxASSERT(pApp->m_pActivePile != NULL);
+			CCell* pActiveCell = pApp->m_pActivePile->GetCell(0);
+			pApp->m_pAnchor = pActiveCell;
+			pApp->m_selection.Append(pActiveCell);
+		}
+
+		// call the hander for Edit Source Text command. When done, it will drop into
+		// vertical edit mode automatically if that mode is required
+		wxCommandEvent dummyEvent;
+		pView->OnEditSourceText(dummyEvent);
+
+		// don't Skip(), swallow this event and let the Edit Source Text and vertical edit
+		// process reestablish the view
+		return;
 	}
 	event.Skip(); // allow processing of the keystroke event to continue
 }

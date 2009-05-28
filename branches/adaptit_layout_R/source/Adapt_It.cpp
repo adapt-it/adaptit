@@ -98,7 +98,7 @@
 //                                 C:\Program Files\Microsoft Visual Studio 8\VC\lib
 // 3. (Optional) dbghelp.dll can be copied to the directory where the executable you
 //      are debugging resides (...\Debug)
-// 7. the following #include to include vld.h
+// 4. the following #include to include vld.h
 // Note: The VLD code is beta so we have to deal with a couple problems, but it still works.
 // The Microsoft Development Environment may issue a couple debug messages that read:
 // "Unhandled exception at 0x7c901230 (NTDLL.DLL) in Adapt_It.exe: User breakpoint." Just

@@ -718,7 +718,9 @@ protected:
 	void OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event);
 	void OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditSourceText(wxUpdateUIEvent& event);
-	void OnEditSourceText(wxCommandEvent& WXUNUSED(event));
+public:
+	void OnEditSourceText(wxCommandEvent& WXUNUSED(event)); // called in OnChar() of PhraseBox.cpp
+protected:
 	void OnButtonNoAdapt(wxCommandEvent& event);
 	void OnUpdateFileExportSource(wxUpdateUIEvent& event);
 	void OnFileExportSource(wxCommandEvent& WXUNUSED(event));
