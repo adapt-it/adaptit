@@ -37386,6 +37386,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
 			delete pTempList;
+			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not 
 			// yet been modified)
 			if (gbVerticalEditInProgress)
@@ -37415,6 +37416,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		{
 			pDoc->DeleteSourcePhrases(pTempList);
 			delete pTempList;
+			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not 
 			// yet been modified)
 			if (gbVerticalEditInProgress)
@@ -37461,7 +37463,8 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 		{
  			pDoc->DeleteSourcePhrases(pTempList);
 			delete pTempList;
-           // something went wrong, bail out (m_pSourcePhrases list contents have not yet
+ 			pTempList = NULL;
+          // something went wrong, bail out (m_pSourcePhrases list contents have not yet
             // been modified)
 			if (gbVerticalEditInProgress)
 			{
@@ -37473,9 +37476,6 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 				wxExit();
 		}
 
-		// clear out the contents of the temporary list & delete the list itself
-		pDoc->DeleteSourcePhrases(pTempList);
-		delete pTempList;
 #ifdef _DEBUG
 		testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		ct = 0;
@@ -37517,6 +37517,10 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			pRec->nBackTrans_EndingSequNum, bBackTransPresent, bCollectedFromTargetText);
 	if (!bAllWasOK)
 	{
+		// clear out the contents of the temporary list & delete the list itself
+		pDoc->DeleteSourcePhrases(pTempList);
+		delete pTempList;
+		pTempList = NULL;
 		// something went wrong, bail out (m_pSourcePhrases list contents have not yet 
 		// been modified)
 		if (gbVerticalEditInProgress)
@@ -37545,6 +37549,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 								pRec->nBackTrans_EndingSequNum, pTempList);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
+			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not yet 
 			// been modified)
 			if (gbVerticalEditInProgress)
@@ -37584,6 +37591,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 						nLatestAlreadyPresent);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
+			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not 
 			// yet been modified)
 			if (gbVerticalEditInProgress)
@@ -37606,6 +37616,9 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 						nLatestAlreadyPresent);
 		if (!bAllWasOK)
 		{
+			pDoc->DeleteSourcePhrases(pTempList);
+			delete pTempList;
+			pTempList = NULL;
 			// something went wrong, bail out (m_pSourcePhrases list contents have not 
 			// yet been modified)
 			if (gbVerticalEditInProgress)
@@ -37617,9 +37630,6 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			else
 				wxExit();
 		}
-
-		// clear out the contents of the temporary list
-		pDoc->DeleteSourcePhrases(pTempList);
 	} // end of block for test (bBackTransPresent == TRUE)
 	else
 	{
@@ -37641,6 +37651,11 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 														pRec->nCancelSpan_EndingSequNum);
 	int ii = 1; // a do-nothing statement for a break point for the TRACE macros	
 	*/
+	// clear out the contents of the temporary list & delete the list itself
+	pDoc->DeleteSourcePhrases(pTempList);
+	delete pTempList;
+	pTempList = NULL;
+
     // Up to now, the CAdapt_ItDoc class's m_pSourcePhrases list which defines the document
     // contents has not been altered in any way. We are now about to do modifications of
     // the information in the CSourcePhrase instances in the (deep copied) modifications

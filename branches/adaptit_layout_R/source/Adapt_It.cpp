@@ -85,6 +85,30 @@
 
 #include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
 
+// The following include by David A. Jones is described in an article on The Code Project
+// called "Memory Leak Detection". It generates better memory leak detection reporting.
+// Note: This header and how it works are found on:
+// http://www.codeproject.com/cpp/MemLeakDetect.asp Its code is not compiled into the
+// program in release versions, but vld.h need only be included when memory leaks are
+// detected by the debugger's Output report, and it is not obvious what is the cause of the
+// leak from the report.
+// Steps to make "Visual Leak Detection" work with VC 7.1 (and again for VC 8.0):
+// 1. Copy vld.h and vldapi.h  to C:\Program Files\Microsoft Visual Studio 8\VC\include
+// 2. Copy vld.lib vldmt.lib and vldmtdll.lib to 
+//                                 C:\Program Files\Microsoft Visual Studio 8\VC\lib
+// 3. (Optional) dbghelp.dll can be copied to the directory where the executable you
+//      are debugging resides (...\Debug)
+// 7. the following #include to include vld.h
+// Note: The VLD code is beta so we have to deal with a couple problems, but it still works.
+// The Microsoft Development Environment may issue a couple debug messages that read:
+// "Unhandled exception at 0x7c901230 (NTDLL.DLL) in Adapt_It.exe: User breakpoint." Just
+// click "Continue" to pass through these exceptions, then look at the reports in the debug
+// output and click on the first line of the stack trace which should be the line of code
+// were the variable was allocated on the heap that was never deleted.
+// If "memory leaks detected" and source of leak is unclear, uncomment the following include
+//#include "vld.h"
+
+
 // Other includes
 #include "Adapt_It.h"
 #include "MainFrm.h"
@@ -129,29 +153,6 @@
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
 #endif // wxUSE_WXHTML_HELP
-
-// The following include by David A. Jones is described in an article on The Code Project
-// called "Memory Leak Detection". It generates better memory leak detection reporting.
-// Note: This header and how it works are found on: http://www.codeproject.com/cpp/MemLeakDetect.asp
-// Its code is not compiled into the program in release versions, but vld.h need only be included
-// when memory leaks are detected by the debugger's Output report, and it is not obvious what is
-// the cause of the leak from the report.
-// Steps I did to make this work with VC 7.1 (and again for VC 8.0):
-// 1. copied vld.dll to c:\WINDOWS\System32
-// 2. copied vld.ini to c:\WINDOWS
-// 3. copied vld.lib to Visual C++ installation's Lib subdirectory
-// 4. copied vld.h to Visual C++ installation's Include subdirectory
-// 5. copied dbghelp.dll to the directory where the executable you are debugging resides (...\Debug)
-// 6. downloaded a copy of msvcrtd.dll from the web and also put it into ...\Debug
-// 7. the following #include to include vld.h
-// Note: The VLD code is beta so we have to deal with a couple problems, but it still works.
-// The Microsoft Development Environment may issue a couple debug messages that read:
-// "Unhandled exception at 0x7c901230 (NTDLL.DLL) in Adapt_It.exe: User breakpoint."
-// Just click "Continue" to pass through these exceptions, then look at the reports in the
-// debug output and click on the first line of the stack trace which should be the line of
-// code were the variable was allocated on the heap that was never deleted.
-// If "memory leaks detected" and source of leak is unclear, uncomment the following include
-//#include "vld.h"
 
 /// This global is defined in TransferMarkersDlg.cpp.
 extern bool gbPropagationNeeded;	

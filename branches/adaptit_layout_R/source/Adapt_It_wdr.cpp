@@ -4035,7 +4035,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_OLD_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_READONLY|wxVSCROLL|wxGROW );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_OLD_SOURCE_TEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxGROW );
     item8->SetToolTip( _("This is the original source text you selected  - it is read only") );
     item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 

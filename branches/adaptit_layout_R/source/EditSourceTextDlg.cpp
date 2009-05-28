@@ -69,7 +69,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 // event handler table
 BEGIN_EVENT_TABLE(CEditSourceTextDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEditSourceTextDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
-	EVT_COMMAND(IDC_EDIT_NEW_SOURCE,wxEVT_COMMAND_TEXT_ENTER,ReinterpretEnterKeyPress)
+	EVT_TEXT_ENTER(IDC_EDIT_NEW_SOURCE,ReinterpretEnterKeyPress)
+	//EVT_COMMAND(IDC_EDIT_NEW_SOURCE,wxEVT_COMMAND_TEXT_ENTER,ReinterpretEnterKeyPress)
 END_EVENT_TABLE()
 
 CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
@@ -124,20 +125,22 @@ CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
 	
 }
 
-void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
+void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event))
 {
-	// now close off the dialog, updating the data -- I've had to use wxWidgets protected
-	// functions from dialog.h and dlgcmn.cpp from the widgets source code to be able to
-	// get the validation and data transfer done. A nice thing wxWidgets does is if the
-	// wxTE_PROCESS_ENTER style is used for the wxTextCtrl, then wxWidgets itself blocks
-	// any newline or carriage return from being entered into the data string, and so no
-	// manual intervention is needed here in order to remove such characters. We just need
-	// the calls below. (Actually, OnOK(event) appears to do nothing and could be omitted)
-	OnOK(event);
-	EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
-	AcceptAndClose();  // calls Validate() and TransferDataFromWindow(), each of which
-					   // returns a boolean, and the data transfer is done if validation
-					   // succeeds
+	// now close off the dialog, updating the data
+	// 
+    // A nice thing wxWidgets does is if the wxTE_PROCESS_ENTER style is used for the
+    // wxTextCtrl, then wxWidgets itself blocks any newline or carriage return from being
+    // entered into the data string, and so no manual intervention is needed here in order
+    // to remove such characters. We just need the calls below.
+    // Call TransferDataFromWindow() which updates the m_stringNewSourceText associated
+    // with this window by the SetValidator(wxGenericValidator(&m_strOldSourceText)) call
+    // in the constructor above.
+    TransferDataFromWindow();
+	
+   // Call the EndModal(event) handler which automatically closes the dialog
+    EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
+
 	// uncomment out the following line if confirmation in a debugger is required that
 	// m_stringNewSourceText has no \r nor \n in it
 	//wxString str = m_strNewSourceText;
