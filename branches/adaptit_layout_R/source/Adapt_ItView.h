@@ -212,6 +212,7 @@ public:
 	void		DoStartupWizardOnLaunch();
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCaller drawFTCaller);
 	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect); // BEW 9Feb09, a copy is now in CCell
+	void		EditSourceText(wxCommandEvent& event);
 	void		ExtendSelectionForFind(CCell* pAnchorCell, int nCount);
 	bool		ExtendSelectionLeft();
 	bool		ExtendSelectionRight();
@@ -718,9 +719,7 @@ protected:
 	void OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event);
 	void OnButtonEarlierTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditSourceText(wxUpdateUIEvent& event);
-public:
-	void OnEditSourceText(wxCommandEvent& WXUNUSED(event)); // called in OnChar() of PhraseBox.cpp
-protected:
+	void OnEditSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnButtonNoAdapt(wxCommandEvent& event);
 	void OnUpdateFileExportSource(wxUpdateUIEvent& event);
 	void OnFileExportSource(wxCommandEvent& WXUNUSED(event));

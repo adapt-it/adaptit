@@ -5254,7 +5254,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 		// call the hander for Edit Source Text command. When done, it will drop into
 		// vertical edit mode automatically if that mode is required
 		wxCommandEvent dummyEvent;
-		pView->OnEditSourceText(dummyEvent);
+		pView->EditSourceText(dummyEvent);
 
 		// don't Skip(), swallow this event and let the Edit Source Text and vertical edit
 		// process reestablish the view

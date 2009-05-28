@@ -37089,6 +37089,12 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	Invalidate();
 }
 
+// accessor
+void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
+{
+	OnEditSourceText(event);
+}
+
 // BEW updated, 11Apr08++ to remove modalities, show filtered info with selected text,
 // extend selection if necessary to accomodate editing within or overlapping a
 // retranslation, handle endmarkers of the USFM standard adequately, and remove the child
