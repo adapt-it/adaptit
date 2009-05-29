@@ -4803,7 +4803,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		OnSysKeyUp(event);
 		return;
 	}
-
+/* No, Bill says to just use the accelerator mechanism, and he's right!
 	// if the user wants to edit source text by a CTRL + Q shortcut from within the 
 	// phrase box, trap for it here
 #ifdef _UNICODE
@@ -4834,6 +4834,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		// process reestablish the view
 		return;
 	}
+*/
 	// version 1.4.2 and onwards, we want a right or left arrow used to remove the
 	// phrasebox's selection to be considered a typed character, so that if a subsequent
 	// selection and merge is done then the first target word will not get lost; and so
