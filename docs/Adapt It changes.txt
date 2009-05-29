@@ -2,7 +2,15 @@ Version 4.1.5 update 31May2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.5
 ----------------------------------------------
-
+* A user can now edit the source text word/phrase at the
+current location of the phrasebox without having to select
+the source text word/phrase at that location. This
+provides a more convenient way to change the spelling of
+a source text word/phrase when the phrasebox is at that
+location. Editing the source text in this manner can be
+initiated via the Ctrl+Q hot key (Command-Shift-E on the 
+Mac), or via the Edit Source Text... selection on the Edit
+menu.
 ----------------------------------------------
 Bug fixes in 4.1.5
 ----------------------------------------------
