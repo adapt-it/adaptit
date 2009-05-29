@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxDialog)
 	EVT_LISTBOX(IDC_LIST_MARKER, CViewFilteredMaterialDlg::OnLbnSelchangeListMarker)
 	EVT_LISTBOX(IDC_LIST_MARKER_END, CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd)
 	EVT_TEXT(IDC_EDIT_MARKER_TEXT, CViewFilteredMaterialDlg::OnEnChangeEditMarkerText)
-	EVT_TEXT_ENTER(IDC_EDIT_MARKER_TEXT,ReinterpretEnterKeyPress)
+	EVT_TEXT_ENTER(IDC_EDIT_MARKER_TEXT,CViewFilteredMaterialDlg::ReinterpretEnterKeyPress)
 #ifdef _UNICODE
 	EVT_BUTTON(IDC_BUTTON_SWITCH_ENCODING, CViewFilteredMaterialDlg::OnButtonSwitchEncoding)
 #endif
