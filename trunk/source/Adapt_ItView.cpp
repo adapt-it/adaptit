@@ -30739,10 +30739,10 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 	// enable only if some source text is selected
 	// if (!gbIsGlossing && (m_selectionLine > -1 && m_selectionLine < 2)) // the old constraint
 	// the new constraint also allows source text editing when glossing mode is turned on
-	if (gpApp->m_selectionLine > -1 && gpApp->m_selectionLine < 2)
-		event.Enable(TRUE);
-	else
-		event.Enable(FALSE);	
+	//if (gpApp->m_selectionLine > -1 && gpApp->m_selectionLine < 2)
+	event.Enable(TRUE);
+	//else
+	//	event.Enable(FALSE);	
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
@@ -34690,7 +34690,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	bool bUserCancelled = FALSE;
 
 	CAdapt_ItDoc* pDoc = GetDocument();
-	//CAdapt_ItApp* pApp = pDoc->GetApp();
+	CAdapt_ItApp* pApp = pDoc->GetApp();
 	//SPList* pList = new SPList; // list of the selected CSourcePhrase objects; the selection will get // unused
 								  // programmatically extended (in either or both direction) if the
 								  // user's selection overlaps or is within a retranslation
@@ -34744,6 +34744,23 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	// text was unchanged (other than punctuation changes) in the edit; we won't build that functionality
 	// for the legacy MFC versions however --- ( may or may not happen, I may do it differently if I decide
 	// to do it)
+
+    
+	// Jim Henderson requested that CTRL + Q be able to invoke the handler without a
+	// selection and just use the active location -- so made the OnUpdateEditSourceText()
+	// handler not check for a selection, and need to check here for no selection and
+	// provide a one-pile one at the active location
+	if (pApp->m_selectionLine == -1 && pApp->m_selection.IsEmpty())
+	{
+		// there is no selection defined, so set up the active pile's source text as
+		// the current selection (but no need to set m_bSelected to TRUE in the CCell
+		// because this programmatically defined selection will never become visible
+		pApp->m_selectionLine = 0;
+		wxASSERT(pApp->m_pActivePile != NULL);
+		CCell* pActiveCell = pApp->m_pActivePile->m_pCell[1]; //GetCell(0); // TODO: Update with refactored GetCell(0)
+		pApp->m_pAnchor = pActiveCell;
+		pApp->m_selection.Append(pActiveCell);
+	}
 
 	CPile* pPile; // to be used as a scratch value
 	CCellList::Node* pos = gpApp->m_selection.GetFirst(); //POSITION pos = m_selection.GetHeadPosition();
