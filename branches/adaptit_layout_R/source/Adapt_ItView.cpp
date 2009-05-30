@@ -32987,6 +32987,7 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 	*/
+	event.Enable(TRUE);
 }
 
 //*******************************************************************************************

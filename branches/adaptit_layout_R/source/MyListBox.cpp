@@ -68,14 +68,13 @@ CMyListBox::CMyListBox() // constructor
 {
 	
 }
-/* "later" stuff from Bill - comment out for now
 CMyListBox::CMyListBox(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 		const wxSize& size, int n, const wxString choices[], long style) // constructor
 		: wxListBox(parent, id, pos, size, n, choices, style)
 {
 	
 }
-*/
+
 CMyListBox::~CMyListBox() // destructor
 {
 	
@@ -116,6 +115,7 @@ void CMyListBox::OnSysKeyUp(wxKeyEvent& event)
 	// Note: The special list box selection behaviors are implemented in OnSysKeyDown() below since we
 	// want those behaviors to replace the default wxListBox native behaviors on all platforms.
 }
+
 /* this is "later" stuff from Bill - so comment it out
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
