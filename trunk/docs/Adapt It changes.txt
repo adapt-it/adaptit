@@ -29,12 +29,12 @@ button of the Preferences dialog. The unnecessary processing
 of the document for punctuation changes could cause a 
 noticeable delay after clicking OK in the Preferences dialog
 in long documents.
-* The automatic scrolling that Adapt It does to keep the 
-phrasebox within view during adaptation work should now do a 
-better job.
+* The automatic scrolling that Adapt It does during 
+adaptation work should now do a better job of keeping the 
+phrasebox within view.
 * Using ALT+TAB on Windows to change between running 
-applications now displays the Adapt It icon in the list of
-icon choices.
+applications should now display the Adapt It icon in the list 
+of icon choices.
 
 Version 4.1.4 update 29Apr2009:
 ----------------------------------------------
