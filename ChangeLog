@@ -1,115 +1,380 @@
+Version 4.1.5 update 31May2009:
+----------------------------------------------
+Feature changes and new features in 4.1.5
+----------------------------------------------
+* A user can now edit the source text word/phrase at the
+current location of the phrasebox without having to select
+the source text word/phrase at that location. This
+provides a more convenient way to change the spelling of
+a source text word/phrase when the phrasebox is at that
+location. Editing the source text in this manner can be
+initiated via the Ctrl+Q hot key (Command-Shift-E on the 
+Mac), or via the Edit Source Text... selection on the Edit
+menu.
+----------------------------------------------
+Bug fixes in 4.1.5
+----------------------------------------------
+* Fixed the behavior of the View Filtered Material dialog 
+so that it now allows editing of the text associated with
+the marker that is selected. The dialog also closes when 
+the user presses the Enter key, effectively pressing the
+"Save Changes" button.
+* Fixed the behavior of the Edit Source Text dialog so that
+it now closes when the user presses the Enter key instead of
+entering a newline in the dialog's edit box.
+* Fixed some memory leaks in the Edit Source Text routines.
+* Fixed a bug that was causing the application to think that 
+punctuation had changed whenever the user clicked on the OK 
+button of the Preferences dialog. The unnecessary processing 
+of the document for punctuation changes could cause a 
+noticeable delay after clicking OK in the Preferences dialog
+in long documents.
+* The automatic scrolling that Adapt It does during 
+adaptation work should now do a better job of keeping the 
+phrasebox within view.
+* Using ALT+TAB on Windows to change between running 
+applications should now display the Adapt It icon in the list 
+of icon choices.
+
 Version 4.1.4 update 29Apr2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.4
 ----------------------------------------------
-* Adapt It now can process an -xo command-line option. The -xo command-line option was specifically designed to make Adapt It's interface work better on an OLPC XO machine running the BALSA distribution of Ubuntu Linux (Intrepid). The -xo option causes Adapt It to use a toolbar with larger (but fewer) buttons; a mode bar that spans two lines instead of a single line under the toolbar; and a few dialogs adjusted for better layout. The -xo option is not restricted to use on the OLPC XO; it can be added to the command-line on most systems by right-clicking on a menu item, shortcut, or launcher icon that is normally used to start Adapt It, and choosing "Properties" from the popup menu. Find the Command or Target field that invokes Adapt It, and add a space followed by the -xo option to the launching command.
-* Updates the AI_USFM.xml USFM/style control file to coordinate with UBS USFM 2.208.
+* Adapt It now can process an -xo command-line option. The -xo 
+command-line option was specifically designed to make Adapt It's 
+interface work better on an OLPC XO machine running the BALSA 
+distribution of Ubuntu Linux (Intrepid). The -xo option causes 
+Adapt It to use a toolbar with larger (but fewer) buttons; a mode 
+bar that spans two lines instead of a single line under the 
+toolbar; and a few dialogs adjusted for better layout. The -xo 
+option is not restricted to use on the OLPC XO; it can be added 
+to the command-line on most systems by right-clicking on a menu 
+item, shortcut, or launcher icon that is normally used to start 
+Adapt It, and choosing "Properties" from the popup menu. Find 
+the Command or Target field that invokes Adapt It, and add a 
+space followed by the -xo option to the launching command.
+* Updates the AI_USFM.xml USFM/style control file to coordinate 
+with UBS USFM 2.208.
 ----------------------------------------------
 Bug fixes in 4.1.4
 ----------------------------------------------
-* Fixed a bug that was displaying the wrong target phrase (usually a previous one) when the "Place medial punctuation" dialog appears during adaptation.
-* Fixed a bug that was allowing final punctuation to enter the Knowledgebase and be stored in adapted documents. If a user's current knowledge base has wrongly admitted items with punctuation into fields that should not contain punctuation, the user can fix the problem by doing the following: 
+* Fixed a bug that was displaying the wrong target phrase 
+(usually a previous one) when the "Place medial punctuation" 
+dialog appears during adaptation.
+* Fixed a bug that was allowing final punctuation to enter the 
+Knowledgebase and be stored in adapted documents. If a user's 
+current knowledge base has wrongly admitted items with 
+punctuation into fields that should not contain punctuation, 
+the user can fix the problem by doing the following: 
    (1) run Adapt It, 
-   (2) Choose the project but cancel out at the Document page of the wizard so that no document is opened (or select File > Close if a document was opened), and 
-   (3) run the File > Restore Knowledgebase... command, selecting all documents that should be used for rebuilding the KB.
-   (4) If Restore Knowledgebase... command discovered any wrongly stored punctuation in the KB and adaptation documents, the user is notified and an error log called KBRestoreErrorLog.txt is saved in the project folder.
-The rebuilt KB will no longer contain any final punctuation. If any of the documents used to restore the KB contained incorrectly stored punctuation, that punctuation is removed from the appropriate fields of those documents and the documents are re-saved. 
-* Adapt It's position and size on the desktop is now preserved more consistently, between sessions. Also, if Adapt It's frame was maximized on last use, it starts the new session maximized, even when last used on a desktop spread across a second monitor with Adapt It on either monitor.
-* Changed the Adapt It Help Topics to display the "Using Adapt It" HTML page as its starting page instead of the Glossary page. Also fixed a number of reported dead links in the HTML Help files.
+   (2) Choose the project but cancel out at the Document page 
+       of the wizard so that no document is opened (or select 
+       File > Close if a document was opened), and 
+   (3) run the File > Restore Knowledgebase... command, 
+       selecting all documents that should be used for 
+       rebuilding the KB.
+   (4) If Restore Knowledgebase... command discovered any 
+       wrongly stored punctuation in the KB and adaptation 
+       documents, the user is notified and an error log called 
+       KBRestoreErrorLog.txt is saved in the project folder.
+The rebuilt KB will no longer contain any final punctuation. 
+If any of the documents used to restore the KB contained 
+incorrectly stored punctuation, that punctuation is removed 
+from the appropriate fields of those documents and the 
+documents are re-saved. 
+* Adapt It's position and size on the desktop is now 
+preserved more consistently, between sessions. Also, if 
+Adapt It's frame was maximized on last use, it starts the new 
+session maximized, even when last used on a desktop spread 
+across a second monitor with Adapt It on either monitor.
+* Changed the Adapt It Help Topics to display the 
+"Using Adapt It" HTML page as its starting page instead of 
+the Glossary page. Also fixed a number of reported dead links 
+in the HTML Help files.
 
 Mac version:
-* Fixed a number of issues in the new Mac version. Note: Although the Mac version is newly released, its version numbers are assigned to be concurrent with the version numbers for Windows and Linux versions.
+* Fixed a number of issues in the new Mac version. Note: 
+Although the Mac version is newly released, its version 
+numbers are assigned to be concurrent with the version 
+numbers for Windows and Linux versions.
 
 Linux version:
-* Adapt It can now be configured for a better layout of its interface when running on a computer with high dpi resolution screen (like the OLPC XO). When Adapt It is invoked with the -xo command-line option, Adapt It substitutes a toolbar with double sized buttons/images, and spreads the check box and other items in the mode bar over two rows of controls so they won't disappear off the right end of the main window. Some other dialogs have also been adjusted to layout better on these high dpi resolution screens.
+* Adapt It can now be configured for a better layout of its 
+interface when running on a computer with high dpi 
+resolution screen (like the OLPC XO). When Adapt It is 
+invoked with the -xo command-line option, Adapt It 
+substitutes a toolbar with double sized buttons/images, and 
+spreads the check box and other items in the mode bar over 
+two rows of controls so they won't disappear off the right 
+end of the main window. Some other dialogs have also been 
+adjusted to layout better on these high dpi resolution 
+screens.
 
 Version 4.1.2 update 24Mar2009:
 ----------------------------------------------
 Bug fixes in 4.1.2
 ----------------------------------------------
-* Fixed a crash in the Linux version that could happen when a text was adapted fully to the end of the document. The message "The End. Providing..." would appear to flicker and then a few seconds afterward the application would hang/crash (or the crash might happen if the Step Up button was clicked while at the end of the document).
-* Fixed the action of the checkbox in the Case tab of the Preferences dialog that reads "Check here if you want Adapt It to automatically distinguish between upper case and lower case letters". Previously checking this checkbox might fail to take effect until the second time it was checked.
-* Also adjusted the problem of the Case tab in Preferences not sizing properly when the list boxes have data in them (hiding some buttons at bottom).
-* Fixed Ctrl+O hot key on Linux version, and assigned Ctrl+Shift+O hot key to invoke Start Working... wizard on Linux version.
+* Fixed a crash in the Linux version that could happen 
+when a text was adapted fully to the end of the document. 
+The message "The End. Providing..." would appear to flicker 
+and then a few seconds afterward the application would 
+hang/crash (or the crash might happen if the Step Up 
+button was clicked while at the end of the document).
+* Fixed the action of the checkbox in the Case tab of the 
+Preferences dialog that reads "Check here if you want 
+Adapt It to automatically distinguish between upper case 
+and lower case letters". Previously checking this checkbox 
+might fail to take effect until the second time it was 
+checked.
+* Also adjusted the problem of the Case tab in Preferences 
+not sizing properly when the list boxes have data in them 
+(hiding some buttons at bottom).
+* Fixed Ctrl+O hot key on Linux version, and assigned 
+Ctrl+Shift+O hot key to invoke Start Working... wizard on 
+Linux version.
 ----------------------------------------------
 Feature changes and new features in 4.1.2
 ----------------------------------------------
-* Added Menu short cut keys for the Advanced and Layout menus.
-* Focus now moves to the New Translation edit box of the Choose Translation dialog if the last Translation in the list box is removed.
-* Navigation text now displays "end fn" to mark the last source word of a footnote.
+* Added Menu short cut keys for the Advanced and Layout 
+menus.
+* Focus now moves to the New Translation edit box of the 
+Choose Translation dialog if the last Translation in the 
+list box is removed.
+* Navigation text now displays "end fn" to mark the last 
+source word of a footnote.
 
 Version 4.1.1 update 28Feb2009:
 ----------------------------------------------
 Bug fixes in 4.1.1
 ----------------------------------------------
-* Fixed a bug in the KB Editor that was causing a program crash when removing an existing translation string from the list of translations for a given source phrase.
-* Changed the layout of buttons in some dialogs to allow configuration of OK and Cancel buttons to reverse their relative positions as required for the Mac port. This change has minimal impact on the Windows and Linux versions.
-* Choose Translation dialog now has a short-cut key for jumping to the "New Translation" edit box, and implements cyclical up/down arrow key selection (for Windows and Mac - Linux implementation is only partial)
-* Macintosh pre-release version: Fixes a number of Mac look-and-feel issues and source text selection issues.
+* Fixed a bug in the KB Editor that was causing a program 
+crash when removing an existing translation string from 
+the list of translations for a given source phrase.
+* Changed the layout of buttons in some dialogs to allow 
+configuration of OK and Cancel buttons to reverse their 
+relative positions as required for the Mac port. This 
+change has minimal impact on the Windows and Linux 
+versions.
+* Choose Translation dialog now has a short-cut key for 
+jumping to the "New Translation" edit box, and implements 
+cyclical up/down arrow key selection (for Windows and 
+Mac - Linux implementation is only partial)
+* Macintosh pre-release version: Fixes a number of Mac 
+look-and-feel issues and source text selection issues.
 
 Version 4.1.0 update 31Jan2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.0
 ----------------------------------------------
-* Sil Converters is now implemented in the Windows port. SIL Converters must first be installed on the computer to enable Adapt It's Tools Menu and Advanced Menu items related to SIL Converters. See SIL Converters documentation for more information.
-* The TU elements in the Knowledge Base XML files are now sorted. Some users requested this change to make Subversion backups more efficient.
-* The Knowledge Base Editor now shows only the "All Gloss Words Or Phrases" tab while Glossing is active.
-* Previously, the Knowledge Base Editor would not show a source phrase entry in its lists if the source phrase reference count was only 1 before the phrase box is placed at that location. In such cases, to examine a source phrase whose reference count was 1, the user had to first move the phrase box to a different location and select the source word/phrase desired for lookup, before invoking the KB Editor. Now, the source phrase appearing in the phrase box will be looked up, and found in the KB Editor even if its reference count was 1 before the KB Editor was invoked.
-* The Knowledge Base Editor now automatically looks up the source phrase at the current location of the phrase box, unless the user has selected a different source phrase at another location in the text at the time the Knowledge Base Editor is invoked.
-* The "Check Knowledge Base" selection was removed from the File menu. It was not really needed and only served to make project loading take longer.
-* Added "Please wait..." dialog for project loading at the project page. The saving of KBs was optimized for speed resulting in shorter wait times when opening a project with very large KBs.
-* Change the Restore Knowledge Base functionality so that it avoids trying to set the adaptations to their punctuation-containing forms. This prevents any punctuation-placement dialogs from opening during the restore operation - a useful thing to do because such dialogs have no useful purpose during restoration of the knowledge base.
-* In the event of an error loading an XML adaptation document, the name of the file being loaded now appears in the title bar of the message box.
-* The Adapt It Reference.doc includes a more complete description of the enhanced Edit Source Text process and Adapt It's "vertical editing" process that assists in the process.
+* Sil Converters is now implemented in the Windows port. 
+SIL Converters must first be installed on the computer to 
+enable Adapt It's Tools Menu and Advanced Menu items 
+related to SIL Converters. See SIL Converters 
+documentation for more information.
+* The TU elements in the Knowledge Base XML files are now 
+sorted. Some users requested this change to make 
+Subversion backups more efficient.
+* The Knowledge Base Editor now shows only the "All Gloss 
+Words Or Phrases" tab while Glossing is active.
+* Previously, the Knowledge Base Editor would not show a 
+source phrase entry in its lists if the source phrase 
+reference count was only 1 before the phrase box is 
+placed at that location. In such cases, to examine a 
+source phrase whose reference count was 1, the user had to 
+first move the phrase box to a different location and 
+select the source word/phrase desired for lookup, before 
+invoking the KB Editor. Now, the source phrase appearing 
+in the phrase box will be looked up, and found in the KB 
+Editor even if its reference count was 1 before the KB 
+Editor was invoked.
+* The Knowledge Base Editor now automatically looks up 
+the source phrase at the current location of the phrase 
+box, unless the user has selected a different source 
+phrase at another location in the text at the time the 
+Knowledge Base Editor is invoked.
+* The "Check Knowledge Base" selection was removed from 
+the File menu. It was not really needed and only served 
+to make project loading take longer.
+* Added "Please wait..." dialog for project loading at 
+the project page. The saving of KBs was optimized for 
+speed resulting in shorter wait times when opening a 
+project with very large KBs.
+* Change the Restore Knowledge Base functionality so 
+that it avoids trying to set the adaptations to their 
+punctuation-containing forms. This prevents any 
+punctuation-placement dialogs from opening during the 
+restore operation - a useful thing to do because such 
+dialogs have no useful purpose during restoration of 
+the knowledge base.
+* In the event of an error loading an XML adaptation 
+document, the name of the file being loaded now appears 
+in the title bar of the message box.
+* The Adapt It Reference.doc includes a more complete 
+description of the enhanced Edit Source Text process 
+and Adapt It's "vertical editing" process that assists 
+in the process.
 ----------------------------------------------
 Bug fixes in 4.1.0
 ----------------------------------------------
-* The Go To... dialog and many other dialogs now default to the OK button when the user presses Enter.
-* Fixes the problem of pegging the CPU usage at near 100% while Adapt It is running. Now Adapt It should use less than 1% when the application is running but sitting in an idle state.
-* Fixes a problem in which the View Filtered Material dialog would not size properly if the list of standard format markers had many markers in it.
-* Fixes a possible spurious error message that can appear when the WX version reads a legacy project configuration file and the user sets up Auto Capitalization in the Case page of the Preferences dialog.
-* Fixes incorrect double-click behavior of the "Translations..." listbox in the Choose Translation dialog. Before the fix a double-click might result in the wrong list item being entered, or the dialog closing with nothing happening.
-* Fixes incorrect behavior of the "Accept <no adaptation> for this item" button and the "Ignore it, I will fix it later" button in the "Inconsistency Found" dialog which can pop up in the event of an inconsistency during a Consistency Check... selection (from the Edit menu). The bug was causing these two buttons to be the same as pressing the dialog's "Cancel" button.
-* Fixes a bug in vertical editing that resulted in the Choose Translation dialog appearing twice, the first time with none of the controls initialized, the second time with initialization done twice and so the list box had the entries doubled.
-* Fixes the following bug: in vertical edit, with glosses being done before adaptations, the phrase box was not programmatically returned to the start of the editable span in the adaptations line.
-* Ubuntu Intrepid: Fixed the program hang/crash problem that occurred when opening the Help Topics item on the Help menu in the Linux port under Ubuntu Intrepid.
-* Fixed another bug in the Knowledge Base Editor where look ups of source phrases composed of two or more merged words could sometimes result in duplicate entries in the Source Phrase list box.
-* Fixes a bug in opening the Knowledge Base Editor from a source text selection, the item highlighted in the dialog's Source Phrase list might turn out to be the first item in the list, rather than the one the user selected in the main window.
-* Fixes the following bug: if the user inserted a placeholder before a word or phrase where standard format markers were stored, and later did a source text standard format export, then the SF markers at that location would not be included in the exported data.
-* Fixes a bug in the KB Export function that failed to insert end-of-line characters into the exported KB file (Unicode version only - the ANSI version did not have the problem).
-* Fixes the following bug: if the user selected source text which begins with an SF marker, such as \q for 'poetry', and in the Edit Source Text dialog removes all the selection but just leaves the \q marker in the box, the final result is that there is a white space gap in the text where the marker is stored (an underlying storage element with no content except the marker). What the user expects is that the marker will attach to the first word following the former selection - and that is now what happens.
-* Fixes the following bug introduced at version 4: if the source text contained two or more words in a merger and there was punctuation medially within the phrase, if the user did a File / Restore Knowledge Base operation, when the Place Phrase-Medial Punctuation dialog came up, the target text shown in the dialog was not the correct text, it was just whatever contents the phrase box had when the restore operation was invoked.
+* The Go To... dialog and many other dialogs now 
+default to the OK button when the user presses Enter.
+* Fixes the problem of pegging the CPU usage at near 
+100% while Adapt It is running. Now Adapt It should 
+use less than 1% when the application is running but 
+sitting in an idle state.
+* Fixes a problem in which the View Filtered Material 
+dialog would not size properly if the list of 
+standard format markers had many markers in it.
+* Fixes a possible spurious error message that can 
+appear when the WX version reads a legacy project 
+configuration file and the user sets up Auto 
+Capitalization in the Case page of the Preferences 
+dialog.
+* Fixes incorrect double-click behavior of the 
+"Translations..." listbox in the Choose Translation 
+dialog. Before the fix a double-click might result in 
+the wrong list item being entered, or the dialog 
+closing with nothing happening.
+* Fixes incorrect behavior of the "Accept 
+<no adaptation> for this item" button and the "Ignore 
+it, I will fix it later" button in the "Inconsistency 
+Found" dialog which can pop up in the event of an 
+inconsistency during a Consistency Check... selection 
+(from the Edit menu). The bug was causing these two 
+buttons to be the same as pressing the dialog's "Cancel" 
+button.
+* Fixes a bug in vertical editing that resulted in the 
+Choose Translation dialog appearing twice, the first 
+time with none of the controls initialized, the second 
+time with initialization done twice and so the list 
+box had the entries doubled.
+* Fixes the following bug: in vertical edit, with 
+glosses being done before adaptations, the phrase box 
+was not programmatically returned to the start of the 
+editable span in the adaptations line.
+* Ubuntu Intrepid: Fixed the program hang/crash 
+problem that occurred when opening the Help Topics 
+item on the Help menu in the Linux port under Ubuntu 
+Intrepid.
+* Fixed another bug in the Knowledge Base Editor where 
+look ups of source phrases composed of two or more 
+merged words could sometimes result in duplicate 
+entries in the Source Phrase list box.
+* Fixes a bug in opening the Knowledge Base Editor 
+from a source text selection, the item highlighted in 
+the dialog's Source Phrase list might turn out to be 
+the first item in the list, rather than the one the 
+user selected in the main window.
+* Fixes the following bug: if the user inserted a 
+placeholder before a word or phrase where standard 
+format markers were stored, and later did a source text 
+standard format export, then the SF markers at that 
+location would not be included in the exported data.
+* Fixes a bug in the KB Export function that failed to 
+insert end-of-line characters into the exported KB file 
+(Unicode version only - the ANSI version did not have 
+the problem).
+* Fixes the following bug: if the user selected source 
+text which begins with an SF marker, such as \q for 
+'poetry', and in the Edit Source Text dialog removes 
+all the selection but just leaves the \q marker in the 
+box, the final result is that there is a white space 
+gap in the text where the marker is stored (an 
+underlying storage element with no content except the 
+marker). What the user expects is that the marker will 
+attach to the first word following the former selection 
+- and that is now what happens.
+* Fixes the following bug introduced at version 4: if 
+the source text contained two or more words in a merger 
+and there was punctuation medially within the phrase, 
+if the user did a File / Restore Knowledge Base 
+operation, when the Place Phrase-Medial Punctuation 
+dialog came up, the target text shown in the dialog was 
+not the correct text, it was just whatever contents the 
+phrase box had when the restore operation was invoked.
 
 Version 4.0.4 update 13Dec2008:
 
-* Better detection of the default documents working directory's actual location. For example, if on a Windows system, the user has "moved" the location of the "My Documents" folder (on Windows XP) or the "Documents" folder (on Vista), by right clicking on the default folder, selecting "Properties" and the "Move..." button and selects a new "destination" for "My Documents" (or "Documents"), this version should detect more acurately the change of location for these system folders, and establish/look for its "Adapt It (Unicode) Work" folder in that new location.
-* Fixes a long-standing bug in the Mac version that prevented scrolling from working correctly. This bug fix will allow the Mac port to move forward toward a release in early 2009.
+* Better detection of the default documents working 
+directory's actual location. For example, if on a Windows 
+system, the user has "moved" the location of the 
+"My Documents" folder (on Windows XP) or the "Documents" 
+folder (on Vista), by right clicking on the default folder, 
+selecting "Properties" and the "Move..." button and selects 
+a new "destination" for "My Documents" (or "Documents"), 
+this version should detect more acurately the change of 
+location for these system folders, and establish/look for 
+its "Adapt It (Unicode) Work" folder in that new location.
+* Fixes a long-standing bug in the Mac version that 
+prevented scrolling from working correctly. This bug fix 
+will allow the Mac port to move forward toward a release 
+in early 2009.
 * Documentation files edited and updated.
 
 Version 4.0.3 update 26Nov2008:
 
-* About dialog now displays the date of the current release as well as the current version number.
+* About dialog now displays the date of the current release 
+as well as the current version number.
 * Documentation files edited and updated.
 
 Version 4.0.2 update 22Nov2008:
 
-* Source Text Editing ("vertical editing") is more fully implemented and should be more robust.
-* Fixes a program hang that would happen if the computer's system language was set to something other than English and not a language that has an existing localization. This was reported by a user whose system language was set to Dutch, and the Default choice in the Choose Interface Language... dialog wrongly showed Dutch as the default first choice. But Dutch does not infact exist as an interface language choice, so the program encountered problems resulting in a program hang.
-* Fixes a number of problems that can occur if a project configuration file refers to a font name that does not exist on the current local machine (which might happen when migrating data to a different computer or platform). When the configuration file is read in, Adapt It will substitute a system font for any unknown font referred to in the project configuration file and notify the user of the action taken. The user would then need to insure that the appropriate font was installed, and/or select the appropriate font from the Fonts tab of the Preferences... dialog from the Edit menu.
-* Fixes the bottleneck that was causing the KBEditor to take too much time to populate the key string list box when there are many hundreds or thousands of entries in the list box.
-* Updates the AI_USFM.xml style control file to reflect the new USFM 2.2 changes made by UBS on 17Oct2008.
+* Source Text Editing ("vertical editing") is more fully 
+implemented and should be more robust.
+* Fixes a program hang that would happen if the computer's 
+system language was set to something other than English and 
+not a language that has an existing localization. This was 
+reported by a user whose system language was set to Dutch, 
+and the Default choice in the Choose Interface Language... 
+dialog wrongly showed Dutch as the default first choice. 
+But Dutch does not infact exist as an interface language 
+choice, so the program encountered problems resulting in a 
+program hang.
+* Fixes a number of problems that can occur if a project 
+configuration file refers to a font name that does not 
+exist on the current local machine (which might happen when 
+migrating data to a different computer or platform). When 
+the configuration file is read in, Adapt It will substitute 
+a system font for any unknown font referred to in the 
+project configuration file and notify the user of the 
+action taken. The user would then need to insure that the 
+appropriate font was installed, and/or select the 
+appropriate font from the Fonts tab of the Preferences... 
+dialog from the Edit menu.
+* Fixes the bottleneck that was causing the KBEditor to 
+take too much time to populate the key string list box 
+when there are many hundreds or thousands of entries in 
+the list box.
+* Updates the AI_USFM.xml style control file to reflect 
+the new USFM 2.2 changes made by UBS on 17Oct2008.
 
 Version 4.0.1 update 28Oct2008:
 
-* Fixes a potential crash problem in the source text editing's vertical edit process. 
-* Adds sanity checks to insure that valid selections are made in a number of list box controls. 
-* Makes adjustments to the sizers in a number of the larger dialogs and the wizard to better fit on the smaller 800 x 600 pixel screens being used on the new generation of mini notebook computers. 
+* Fixes a potential crash problem in the source text 
+editing's vertical edit process. 
+* Adds sanity checks to insure that valid selections are 
+made in a number of list box controls. 
+* Makes adjustments to the sizers in a number of the 
+larger dialogs and the wizard to better fit on the 
+smaller 800 x 600 pixel screens being used on the new 
+generation of mini notebook computers. 
 * Updates the documentation for version 4. 
-* Makes a few changes to the localization files. This is the first version advertised to the user community.
+* Makes a few changes to the localization files. This is 
+the first version advertised to the user community.
 
 New WX Version 4.0.0 initial release 16Oct2008:
 
-Adapt It WX is an entirely new version of Adapt It based on the wxWidgets Cross-Platform GUI Library. This new version of Adapt It is no longer dependent on Microsoft's MFC programming framework, nor does it utilize the .NET Framework, but is now independent of Microsoft's proprietary technologies in order to become a truly cross-platform application. See the "Known Issues and Limitations.txt" file for information on how this cross-platform version differs from previous legacy versions.
+Adapt It WX is an entirely new version of Adapt It based 
+on the wxWidgets Cross-Platform GUI Library. This new 
+version of Adapt It is no longer dependent on Microsoft's 
+MFC programming framework, nor does it utilize the .NET 
+Framework, but is now independent of Microsoft's 
+proprietary technologies in order to become a truly 
+cross-platform application. See the "Known Issues and 
+Limitations.txt" file for information on how this 
+cross-platform version differs from previous legacy 
+versions.
 
-(See the legacy version 3.6.4 for changes prior to this new release of Adapt It WX)
+(See the legacy version 3.6.4 for changes prior to this 
+new release of Adapt It WX)
 
