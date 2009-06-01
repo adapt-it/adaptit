@@ -37088,7 +37088,9 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	GetLayout()->m_docEditOperationType = vert_edit_exit_op;
-	Invalidate();
+	// Invalidate(); // do this in the caller, OnCustomEventEndVerticalEdit() which is the
+					 // only place in the application where RestoreBoxOnFinishVerticalMode()
+					 // is called
 }
 
 // accessor

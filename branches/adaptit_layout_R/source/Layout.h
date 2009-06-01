@@ -360,6 +360,9 @@ public:
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
+	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
+									int nStripWidth); // doesn't change the pile composition,
+											// just lays them out, ensuring  proper spacing
 	void		RecalcPileWidths(PileList* pPiles);
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 

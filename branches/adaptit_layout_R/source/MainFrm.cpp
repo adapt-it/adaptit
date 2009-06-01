@@ -5239,7 +5239,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	EditRecord* pRec = &gEditRecord;
-	//bool bAllsWell = TRUE;
+	CLayout* pLayout = gpApp->m_pLayout;
 	
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -5322,6 +5322,15 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		gEntryPoint = noEntryPoint;
 		gEditStep = noEditStep;
 		gbEditingSourceAndDocNotYetChanged = TRUE;
+
+		// ensure the active strip is layout out with correct pile locations, do this
+		// even if we have scrolled and the active strip won't be drawn (needed because in
+		// some situations after a vertical edit, the pile locations aren't updated correctly)
+		int nActiveStripIndex = (pView->GetPile(gpApp->m_nActiveSequNum))->GetStripIndex();
+		pLayout->RelayoutActiveStrip(pView->GetPile(gpApp->m_nActiveSequNum), nActiveStripIndex, 
+			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
+
+		pView->Invalidate(); // get the layout drawn
 	}
 	return;
 }

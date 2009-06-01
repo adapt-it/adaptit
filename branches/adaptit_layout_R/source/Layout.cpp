@@ -1463,6 +1463,77 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	return TRUE;
 }
 
+// At the end of the vertical edit process, the phrase box may not be at the final active
+// pile when the function OnCustomEventEndVerticalEdit() is called, but the movement of
+// the phrase box into the gray area has updated the m_targetStr member of the
+// CSourcePhrase instance at that pre-final active location, but the m_nMinWidth value of
+// the CSourcePhrase will not have been updated - and if the target (or gloss) text in it
+// is longer than the length of the source text, then the active strip won't have the
+// correct pile offsets for all piles - the one at the pre-final active location will be
+// wrong; so we call the document function ResetPartnerPileWidth on each CSourcePhrase
+// instance in the active strip to ensure the values are uptodate when Draw() is called -
+// the following function does this. 
+// The function currently is called only at the end of the OnCustomEventEndVerticalEdit()
+// function, immediately prior to the Invalidate() call. However it is quite safe for
+// calling at any other location where a user-editing operation's handler returns with the
+// active strip not with all piles in it correctly updated for width - provided the app's
+// m_nActiveSequNum value and the m_pActivePile value are set correctly prior to calling
+// it.
+void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
+								  int nStripWidth)
+{
+	wxASSERT(pActivePile != NULL);
+	if (nActiveStripIndex < 0)
+		return;
+	CStrip* pActiveStrip = NULL;
+	pActiveStrip = (CStrip*)m_stripArray.Item(nActiveStripIndex);
+	wxASSERT(pActiveStrip);
+
+	// we will lay them out again, so we clear m_arrPileOffsets and recalculate the
+	// offsets using the pile pointers in m_arrPiles
+	int count = pActiveStrip->m_arrPiles.GetCount();
+	pActiveStrip->m_arrPileOffsets.Clear();
+	int width = 0;
+	int index = 0;
+	int offset = 0;
+	pActiveStrip->m_nFree = nStripWidth;
+	int nextOffset;
+	// first CPile instance is always at offset 0 in the strip
+	CPile* pPile = (CPile*)pActiveStrip->m_arrPiles.Item(index);
+	m_pDoc->ResetPartnerPileWidth(pPile->GetSrcPhrase()); // assumes m_nActiveSequNum
+			// has been set correctly prior to RelayoutActiveStrip() being called
+	if (pPile == pActivePile)
+	{
+		width = pPile->m_nWidth;
+	}
+	else
+	{
+		width = pPile->m_nMinWidth;
+	}
+	nextOffset = width + gap;
+	pActiveStrip->m_arrPileOffsets.Add(offset);
+	pActiveStrip->m_nFree -= width;
+	// now do the rest of them
+	for (index = 1; index < count; index++)
+	{
+		pPile = (CPile*)pActiveStrip->m_arrPiles.Item(index);
+		m_pDoc->ResetPartnerPileWidth(pPile->GetSrcPhrase()); // assumes
+			// m_nActiveSequNum has been set correctly prior to RelayoutActiveStrip()
+			// being called
+		if (pPile == pActivePile)
+		{
+			width = pPile->m_nWidth;
+		}
+		else
+		{
+			width = pPile->m_nMinWidth;
+		}
+		pActiveStrip->m_nFree -= gap + width;
+		pActiveStrip->m_arrPileOffsets.Add(nextOffset);
+		nextOffset += width + gap;
+	}
+}
+
 wxArrayInt* CLayout::GetInvalidStripArray()
 {
 	return &m_invalidStripArray;
@@ -1516,7 +1587,6 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 	}
 #endif
 */
-    // layout is built, we should call Shrink()
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
 	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
@@ -1538,6 +1608,7 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles 
 		nStripIndex++;
 	}
+    // layout is built, we should call Shrink() to reclaim memory space unused
 	m_stripArray.Shrink();
 #endif
 }
@@ -2967,6 +3038,8 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	}
 	// additional cleanup may be required
 	int nActiveStripIndex = (m_pView->GetPile(m_pApp->m_nActiveSequNum))->GetStripIndex();
+
+	// do any required flow up of piles from strips below the active one
 	if (nActiveStripIndex != -1 && (nActiveStripIndex < (int)m_stripArray.GetCount() - 2))
 	{
         // start at the active strip and flow piles from lower strips up, filling strips,
