@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 // uncomment out next line in order to turn on wxLogDebug calls in ScrollIntoView()
-#define DEBUG_ScrollIntoView
+//#define DEBUG_ScrollIntoView
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItCanvas.h"
