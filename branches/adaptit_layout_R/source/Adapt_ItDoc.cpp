@@ -120,6 +120,12 @@ static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
 
 #endif
 
+/// This global is defined in Adapt_ItView.cpp. 
+extern int	gnBeginInsertionsSequNum;	
+
+/// This global is defined in Adapt_ItView.cpp. 
+extern int	gnEndInsertionsSequNum;	
+
 /// This global boolean informs the Doc's BackupDocument() function whether a split or 
 /// join operation is in progress. If gbDoingSplitOrJoin is TRUE BackupDocument() exits 
 /// immediately without performing any backup operations. Split operations especially 
@@ -331,6 +337,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 {
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
+
+	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
 
  	// get a pointer to the view
 	CAdapt_ItView* pAdView = (CAdapt_ItView*) pApp->GetView();
@@ -3092,6 +3101,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// remove the assert which assumed that there would always be a backslash in the
 	// lpszPathName string, and replace it with a test on curPos instead (when doing a
 	// consistency check, the full path is not passed in)
+
+	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
 
 	wxString thePath = filename;
 	wxString extension = thePath.Right(4);

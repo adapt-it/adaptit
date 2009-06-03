@@ -327,10 +327,36 @@ void CLayout::Draw(wxDC* pDC)
 		}
 	}
 
+	// in case the ccount of the inventory of strips has changed because a strip was
+	// cleared and removed, check for this possibility and reset the nLastStripIndex if it
+	// no longer references an element in the array
+	int newLastIndex = m_stripArray.GetCount() - 1;
+	if (nLastStripIndex > newLastIndex)
+	{
+        // NECESSARY! Here's how to induce a crash if this test and resetting of
+        // nLastStripIndex was not done. Have several words of an unadapted phrase to be
+        // merged at the end of the document, in such a way that a couple of the source
+        // words are at the end of the penultimate strip and the final few words are at the
+        // beginning of the final strip - and the final strip should have not a full
+        // inventory of piles - but few enough for the new merger to later fit within it.
+        // Get the box at the first of the words, make the merger. The app will make the
+        // merger, it will be too long for the penultimate strip and be thrown down to an
+        // inserted strip as the latter's only pile (and the strip count increases by one)
+        // but the pile flow up mechanism results in the last strip's piles flowing up, and
+        // they all fit, so the last strip becomes empty and gets removed. The
+        // nLastStripIndex set externally to that process then references a strip which no
+        // longer exists, and the app would crash when the m_stripArray is asked for a
+        // CStrip* which now no longer exists. The following line fixes the problem if ever
+        // it arises.
+		nLastStripIndex = newLastIndex;
+	}
+
 	// draw the visible strips (includes an extra one, where possible)
+	CStrip* aTempStripPtr = NULL;
 	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
 	{
-		((CStrip*)m_stripArray.Item(i))->Draw(pDC);
+		aTempStripPtr = (CStrip*)m_stripArray.Item(i); // do it as two code lines
+		aTempStripPtr->Draw(pDC);			// so we can have a breakpoint on the second
 	}
 
 	// get the phrase box placed in the active location and made visible, and suitably
@@ -1532,6 +1558,42 @@ void CLayout::RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int
 		pActiveStrip->m_arrPileOffsets.Add(nextOffset);
 		nextOffset += width + gap;
 	}
+}
+
+// Returns TRUE if background highlighting of a range of auto-insertions is currently in
+// effect, FALSE if that is not so or background highlighting is turned off
+// Parameters:
+//    nStripCount          <-  returns a count of how many consecutive strips (the last
+//                             one could be the active strip, and usually is) are shown
+//                             highlighted
+//    bActivePileIsInLast  <-  returns TRUE if the active pile is within the strip with
+//                             index nLast, FALSE it it is not (ie. first pile in next strip)
+bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast)
+{
+	if (gnBeginInsertionsSequNum == -1 || gnEndInsertionsSequNum == -1 ||
+		m_pApp->m_bSuppressTargetHighlighting)
+	{
+		return FALSE;
+	}
+	CPile* pFirstPile = m_pView->GetPile(gnBeginInsertionsSequNum);
+	wxASSERT(pFirstPile);
+	CPile* pLastPile = m_pView->GetPile(gnEndInsertionsSequNum);
+	wxASSERT(pLastPile);
+	int nFirst = pFirstPile->GetStripIndex();
+	int nLast = pLastPile->GetStripIndex();
+	nStripCount = nLast - nFirst + 1;
+	// in case m_pActivePile is currently unset, do it this way
+	bActivePileIsInLast = FALSE; // appropriate if box is hidden when beyond the doc end
+	if (m_pApp->m_nActiveSequNum != -1)
+	{
+		CPile* pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
+		int nActiveStrip = pActivePile->GetStripIndex();
+		wxASSERT(nActiveStrip >= 0 && nActiveStrip <= 256000); // unlikely to have docs
+			// bigger than about 256000 strips, but garbage values are likely to be larger
+		if (nActiveStrip == nLast)
+			bActivePileIsInLast = TRUE;
+	}
+	return TRUE;
 }
 
 wxArrayInt* CLayout::GetInvalidStripArray()

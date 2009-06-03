@@ -367,6 +367,8 @@ public:
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
+	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW 
+						// added 3June09, in support of a smarter ScrollIntoView() function
 	
     // get the range of visible strips in the viscinity of the active location; pass in the
     // sequNum value, and return indices for the first and last visible strips (the last
