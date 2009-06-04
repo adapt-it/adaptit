@@ -45,8 +45,8 @@
 #include <wx/wizard.h>
 #include <wx/colordlg.h>
 #include "ViewPage.h"
-
 #include "Adapt_It.h"
+#include "Layout.h"
 
 /// This global is defined in Adapt_ItView.cpp.
 extern short gnExpandBox;
@@ -95,8 +95,8 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	m_pEditMultiplier = (wxTextCtrl*)FindWindowById(IDC_EDIT_MULTIPLIER);
 	m_pEditDlgFontSize = (wxTextCtrl*)FindWindowById(IDC_EDIT_DIALOGFONTSIZE);
 
-	m_pCheckSupressFirst = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_FIRST);
-	m_pCheckSupressLast = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_LAST);
+	//m_pCheckSupressFirst = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_FIRST);
+	//m_pCheckSupressLast = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_LAST);
 	m_pCheckWelcomeVisible = (wxCheckBox*)FindWindowById(IDC_CHECK_WELCOME_VISIBLE);
 	m_pCheckHighlightAutoInsertedTrans = (wxCheckBox*)FindWindowById(IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS);
 }
@@ -189,28 +189,42 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	*/
 	pApp->m_nFollowingContext = 40; // arbitrary const value, we no longer use it
 
+	// BEW added 4Jun09; various lines and tests for refactored view layout support
+	CLayout* pLayout = pApp->m_pLayout;
+	pLayout->m_bViewParamsChanged = FALSE; // start by assuming the user made no changes
+
 	strTemp = m_pEditLeading->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != pApp->m_curLeading)
+		pLayout->m_bViewParamsChanged = TRUE;
 	pApp->m_curLeading = nVal;
 
 	strTemp = m_pEditGapWidth->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != pApp->m_curGapWidth)
+		pLayout->m_bViewParamsChanged = TRUE;
 	pApp->m_curGapWidth = nVal;
 
 	strTemp = m_pEditLeftMargin->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != pApp->m_curLMargin)
+		pLayout->m_bViewParamsChanged = TRUE;
 	pApp->m_curLMargin = nVal;
 
 	strTemp = m_pEditMultiplier->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != gnExpandBox)
+		pLayout->m_bViewParamsChanged = TRUE;
 	gnExpandBox = nVal;
 
 	strTemp = m_pEditDlgFontSize->GetValue();
 	nVal = wxAtoi(strTemp);
 	pApp->m_dialogFontSize = nVal;
 
-	pApp->m_bSuppressFirst = m_pCheckSupressFirst->GetValue();
-	pApp->m_bSuppressLast = m_pCheckSupressLast->GetValue();
+	pApp->m_bSuppressFirst = TRUE; // retain these because the config file expects
+	pApp->m_bSuppressLast = TRUE; // them, but we won't use these values any more
+	//pApp->m_bSuppressFirst = m_pCheckSupressFirst->GetValue();
+	//pApp->m_bSuppressLast = m_pCheckSupressLast->GetValue();
 	pApp->m_bSuppressWelcome = !m_pCheckWelcomeVisible->GetValue();
 	pApp->m_bSuppressTargetHighlighting = !m_pCheckHighlightAutoInsertedTrans->GetValue();
 	pApp->m_AutoInsertionsHighlightColor = tempAutoInsertionsHighlightColor;
@@ -231,8 +245,8 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	tempLMargin = pApp->m_curLMargin;
 	tempMultiplier = gnExpandBox;
 	tempDlgFontSize = pApp->m_dialogFontSize; // added missed initialization
-	tempSuppressFirst = pApp->m_bSuppressFirst;
-	tempSuppressLast = pApp->m_bSuppressLast;
+	//tempSuppressFirst = pApp->m_bSuppressFirst;
+	//tempSuppressLast = pApp->m_bSuppressLast;
 	tempMakeWelcomeVisible = !pApp->m_bSuppressWelcome;
 	tempUseStartupWizardOnLaunch = pApp->m_bUseStartupWizardOnLaunch; // always remains true since version 3
 	tempHighlightAutoInsertions = !pApp->m_bSuppressTargetHighlighting;
@@ -275,8 +289,9 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	strTemp << tempDlgFontSize;
 	m_pEditDlgFontSize->SetValue(strTemp);
 
-	m_pCheckSupressFirst->SetValue(tempSuppressFirst);
-	m_pCheckSupressLast->SetValue(tempSuppressLast);
+	// next two are no longer used, BEW 4Jun09
+	//m_pCheckSupressFirst->SetValue(tempSuppressFirst);
+	//m_pCheckSupressLast->SetValue(tempSuppressLast);
 	m_pCheckWelcomeVisible->SetValue(tempMakeWelcomeVisible);
 	m_pCheckHighlightAutoInsertedTrans->SetValue(tempHighlightAutoInsertions);
 

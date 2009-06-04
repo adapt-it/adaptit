@@ -55,8 +55,8 @@ public:
 	wxTextCtrl* m_pEditLeftMargin;
 	wxTextCtrl* m_pEditMultiplier;
 	wxTextCtrl* m_pEditDlgFontSize;
-	wxCheckBox* m_pCheckSupressFirst;
-	wxCheckBox* m_pCheckSupressLast;
+	//wxCheckBox* m_pCheckSupressFirst;
+	//wxCheckBox* m_pCheckSupressLast;
 	wxCheckBox* m_pCheckWelcomeVisible;
 	wxCheckBox* m_pCheckHighlightAutoInsertedTrans;
 	int		tempMaxToDisplay;

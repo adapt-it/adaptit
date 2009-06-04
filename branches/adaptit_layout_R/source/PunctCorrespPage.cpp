@@ -47,6 +47,7 @@
 #include <wx/wizard.h>
 
 #include "Adapt_It.h"
+#include "Layout.h"
 #include "PunctCorrespPage.h"
 #include "FontPage.h"
 #include "CaseEquivPage.h"
@@ -179,6 +180,7 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 
 void CPunctCorrespPageCommon::DoInit()
 {
+	gpApp->m_pLayout->m_bPunctuationChanged = FALSE;
 
 #ifndef _UNICODE // ANSI version
 	// Hide the "Show U+nnnn" button for ANSI version

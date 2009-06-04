@@ -2100,57 +2100,49 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item26 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_FIRST, _("Do not show an extra source line (without punctuation)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetToolTip( _("Unselect this box if you want to see two source text lines, one with punctuation and one without punctuation") );
-    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
-
     item4->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_LAST, _("Do not show an extra target line (without punctuation)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->SetToolTip( _("Unselect this box if you want to see two target lines, one with punctuation and one without punctuation") );
-    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );
+    item4->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
+    wxCheckBox *item30 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item32 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item32->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
-    item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    item4->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item31, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
+    item4->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
+    wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item35 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
-    item34->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item34->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item34 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item36 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
-    item34->Add( item36, 0, wxALIGN_CENTER|wxALL, 0 );
+    item4->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item35 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item37 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item37, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 

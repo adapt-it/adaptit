@@ -60,6 +60,7 @@
 #include "USFMPage.h"
 #include "PunctCorrespPage.h"
 #include "Adapt_It.h"
+#include "Layout.h"
 
 // This global is defined in Adapt_It.cpp.
 //extern wxWizard* pStartWorkingWizard;
@@ -950,6 +951,7 @@ void CCaseEquivPagePrefs::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	//InitDialog() is not virtual, no call needed to a base class
 
 	casePgCommon.DoInit();
+	gpApp->m_pLayout->m_bCaseEquivalencesChanged = FALSE; // initialize
 }
 
 
@@ -1108,6 +1110,8 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 		gbNoGlossCaseEquivalents = TRUE;
 	else
 		gbNoGlossCaseEquivalents = FALSE;
+
+	gpApp->m_pLayout->m_bCaseEquivalencesChanged = TRUE;
 }
 
 void CCaseEquivPagePrefs::OnBnClickedSrcCopyToGloss(wxCommandEvent& WXUNUSED(event))

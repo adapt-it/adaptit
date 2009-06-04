@@ -147,6 +147,25 @@ public:
 	bool				m_bDrawAtActiveLocation;
 	int					m_curBoxWidth;
 
+	// booleans that track what kind of changes were made within the Preferences dialog -
+	// these govern which parameters we pass to RecalcLayout() - whether to keep or create
+	// piles, recalc pile widths, call SetupLayoutParameters(), keep or create strips, etc
+	// There is nothing to be gained by making these private
+	bool				m_bViewParamsChanged; // we care only about leading, margin, gap
+											  // and the phrase box slop multiplier; so
+											  // update layout settings & recreate strips
+	bool				m_bUSFMChanged; // if changed, full rebuilding
+										// of the layout should be done
+	bool				m_bFilteringChanged; // if changed, full rebuilding
+											 // of the layout should be done
+	bool				m_bPunctuationChanged; // if changed, full rebuilding
+											   // of the layout should be done
+	bool				m_bCaseEquivalencesChanged; // if changed, recalc pile widths
+													// and recreate the strips
+	bool				m_bFontInfoChanged; // if changed, update layout settings, recalc
+											// pile widths, recreate strips
+
+
 //public:
 private:
 	PileList			m_pileList;

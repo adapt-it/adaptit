@@ -8004,11 +8004,15 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 
 				// for refactored layout support - there best way to be sure all is well
 				// is to completely regenerate the layout, including m_pileList
-#ifdef _NEW_LAYOUT
-				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-#else
-				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
-#endif
+				// 4Jun09 BEW commented out, we will use the layout param,
+				// m_bPunctuationChanged being TRUE to invoke the RecalcLayout() call on
+				// return from view's OnEditPreferences() handler, instead. It happens
+				// later on.
+//#ifdef _NEW_LAYOUT
+//				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+//#else
+//				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+//#endif
 				// for refactored layout code, the following suffices because m_nActiveSequNum
 				// remains within the document and was used in the RecalcLayout(TRUE) call above
 				CSourcePhrase* pSrcPhrase = NULL;
@@ -8036,6 +8040,8 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				// change the indices, so we must exit here with the indices we want to have used when
 				// the view is set up again.
 				*/
+				m_pLayout->m_bPunctuationChanged = TRUE;
+
 			}
 		}
 	}
@@ -8301,6 +8307,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 		{
 			// No Reparse the Document called for
 		}
+		m_pLayout->m_bFilteringChanged = TRUE;
 	}
 
 	// Now check for changes in the Project's list of filter markers
@@ -8519,6 +8526,7 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 		{
 			// No Reparse of the Document called for
 		}
+		m_pLayout->m_bUSFMChanged = TRUE;
 	}
 
 	// can use this return value to signal the caller if RetokenizeText() has a problem

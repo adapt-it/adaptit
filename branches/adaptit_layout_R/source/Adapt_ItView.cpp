@@ -29541,12 +29541,16 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 	// redraw everything -- RecalcLayout uses the m_bRTL_LAYOUT flag in the CreateStrip() function
 	// RedrawEverything(pApp->m_nActiveSequNum);
-#ifdef _NEW_LAYOUT
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+
+// BEW changed 4June09: a Redraw() call should be all we need here, not RecalcLayout()
+//#ifdef _NEW_LAYOUT
+//	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+//#else
+//	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+//#endif
+//	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+
+	GetLayout()->Redraw(); // yep, works nicely
 
 	// restore focus to the targetBox, if it is visible
 	if (pApp->m_pTargetBox != NULL)

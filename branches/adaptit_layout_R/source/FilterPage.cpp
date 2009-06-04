@@ -1501,6 +1501,7 @@ void CFilterPagePrefs::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//InitDialog() is not virtual, no call needed to a base class
 
 	filterPgCommon.DoInit();
+	gpApp->m_pLayout->m_bFilteringChanged = FALSE; // initialize
 }
 
 void CFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
