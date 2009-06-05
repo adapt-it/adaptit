@@ -1,3 +1,13 @@
+Version 4.1.6 update 30Jun2009:
+----------------------------------------------
+Feature changes and new features in 4.1.6
+----------------------------------------------
+----------------------------------------------
+Bug fixes in 4.1.6
+----------------------------------------------
+* Fixed a bug that might prevent a font color change from
+being registered correctly.
+
 Version 4.1.5 update 31May2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.5

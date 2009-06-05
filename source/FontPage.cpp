@@ -268,6 +268,8 @@ void CFontPageCommon::DoButtonNavTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempNavTextColor = colorData.GetColour();
+		// whm added 5Jun09 to keep tempNavTextColor and tempNavFontData in sync
+		tempNavFontData.SetColour(tempNavTextColor);
 	}	
 }
 
@@ -295,6 +297,8 @@ void CFontPageCommon::DoButtonSourceTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempSourceColor = colorData.GetColour();
+		// whm added 5Jun09 to keep tempSourceColor and tempSrcFontData in sync
+		tempSrcFontData.SetColour(tempSourceColor);
 	}	
 }
 
@@ -321,6 +325,8 @@ void CFontPageCommon::DoButtonTargetTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempTargetColor = colorData.GetColour();
+		// whm added 5Jun09 to keep tempTargetColor and tempSrcFontData in sync
+		tempTgtFontData.SetColour(tempTargetColor);
 	}	
 }
 
