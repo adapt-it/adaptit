@@ -325,7 +325,7 @@ void CFontPageCommon::DoButtonTargetTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempTargetColor = colorData.GetColour();
-		// whm added 5Jun09 to keep tempTargetColor and tempSrcFontData in sync
+		// whm added 5Jun09 to keep tempTargetColor and tempTgtFontData in sync
 		tempTgtFontData.SetColour(tempTargetColor);
 	}	
 }
