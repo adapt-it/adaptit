@@ -1712,7 +1712,18 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strHostOS.Trim(TRUE);
 	strHostOS = _T(' ') + strHostOS;
 	wxStaticText* pStaticHostOS = (wxStaticText*)FindWindowById(ID_STATIC_HOST_OS);
+	wxASSERT(pStaticHostOS != NULL);
 	pStaticHostOS->SetLabel(strHostOS);
+	wxStaticText* pStaticWxVersionUsed = (wxStaticText*)FindWindowById(ID_STATIC_WX_VERSION_USED);
+	wxASSERT(pStaticWxVersionUsed != NULL);
+	wxString versionStr;
+	versionStr.Empty();
+	versionStr << wxMAJOR_VERSION;
+	versionStr << _T(".");
+	versionStr << wxMINOR_VERSION;
+	versionStr << _T(".");
+	versionStr << wxRELEASE_NUMBER;
+	pStaticWxVersionUsed->SetLabel(versionStr);
 	
 	wxString strUILanguage;
 	// Fetch the UI language info from the global currLocalizationInfo struct
