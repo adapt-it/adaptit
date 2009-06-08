@@ -7003,11 +7003,15 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	// *** TODO **** we may want to be smarter here so that we don't create piles and
 	// strips again unnecessarily - eg. if user changes the colour of text only, no
 	// recalculation of the layout would be needed
-#ifdef _NEW_LAYOUT
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
-#else
-	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
-#endif
+	// BEW 5Jun09, removed the RecalcLayout() call here, in favour of using the
+	// DoRecalcLayoutAfterPreferencesDlg() function, which makes a more intelligent
+	// decision about which particular kind of RecalcLayout() call to make
+//#ifdef _NEW_LAYOUT
+//	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+//#else
+//	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+//#endif
+	GetLayout()->DoRecalcLayoutAfterPreferencesDlg(); // smart RecalcLayout() calls
 	if (pApp->m_nActiveSequNum == -1)
 	{
 		pApp->m_pActivePile = NULL; // that ought to be safe in update handlers
@@ -7054,6 +7058,18 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 		}
 	}
+
+    // it's not necessary to clear these flags here, as they get cleared automatically in
+    // the CEditPreferences::InitDialog() function, which is called when the Preferences
+    // dialog is first opened. However, it is good defensive practice not to leave them set
+    // until then
+	CLayout* pLayout = pApp->m_pLayout;
+	pLayout->m_bViewParamsChanged = FALSE;
+	pLayout->m_bUSFMChanged = FALSE;
+	pLayout->m_bFilteringChanged = FALSE;
+	pLayout->m_bPunctuationChanged = FALSE;
+	pLayout->m_bCaseEquivalencesChanged = FALSE;
+	pLayout->m_bFontInfoChanged = FALSE;
 }
 
 void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
@@ -40685,23 +40701,30 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		pAdvancedMenu->Check(TRUE);
 		gbEnableGlossing = TRUE;
 
-		// show the mode bar checkbox when glossing is allowed to be visible - user can then
-		// choose either to do glossing, or to do adapting
+		// show the mode bar checkbox when glossing is allowed to be visible - user can
+		// then choose either to do glossing, or to do adapting
 		pCheckboxIsGlossing->Show(TRUE);
 	}
 
     // BEW added 4May09 recalculate the pile widths (just m_nMinWidth members), and the
-    // pile and strip heights
-	CLayout* pLayout = GetLayout();
-	pLayout->RecalcPileWidths(pLayout->GetPileList());
+    // pile and strip heights; BEW 5Jun09 - this RecalcPileWidths() call is now in
+    // RecalcLayout, invoked with the create_strips_update_pile_widths parameter passed in
+	//CLayout* pLayout = GetLayout();
+	//pLayout->RecalcPileWidths(pLayout->GetPileList());
 
 	// redraw the layout etc.
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	CLayout* pLayout = GetLayout();
+	pLayout->Redraw();
+	// BEW changed 6Jun09, CalcPileWidth() now always uses widest of 3 cells, so pile widths
+	// now will not change with toggling back and forth to glossing mode, and so we only
+	// need a Redraw() now, rather than a RecalcLayout() call which is expensive if all
+	// strips and piles' widths too have to be recalculated
+//#ifdef _NEW_LAYOUT
+//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_update_pile_widths);
+//#else
+//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+//#endif
+//	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 

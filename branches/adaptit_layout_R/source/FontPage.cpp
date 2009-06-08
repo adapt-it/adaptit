@@ -216,9 +216,15 @@ void CFontPageCommon::DoInit()
 
 	// here on entry to InitDialog, the temp color values should be the same as those held
 	// in the font data objects on the app
-	wxASSERT(tempSourceColor == gpApp->m_pSrcFontData->GetColour());
-	wxASSERT(tempTargetColor == gpApp->m_pTgtFontData->GetColour());
-	wxASSERT(tempNavTextColor == gpApp->m_pNavFontData->GetColour());
+    // BEW 5Jun09, created local colour variables here in order to see the values when
+    // debugging; I was getting an assert trip if I changed the navText color & reentered
+    // Preferences, the assert 6 lines down tripped
+	wxColour srcCol = gpApp->m_pSrcFontData->GetColour();
+	wxColour tgtCol = gpApp->m_pTgtFontData->GetColour();
+	wxColour navCol = gpApp->m_pNavFontData->GetColour();
+	wxASSERT(tempSourceColor == srcCol);
+	wxASSERT(tempTargetColor == tgtCol);
+	wxASSERT(tempNavTextColor == navCol);
 
 	tempSpecialTextColor = gpApp->m_specialTextColor;
 	tempReTranslnTextColor = gpApp->m_reTranslnTextColor;

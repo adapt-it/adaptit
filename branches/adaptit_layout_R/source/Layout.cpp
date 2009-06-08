@@ -1132,7 +1132,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
         // CSourcePhrase instances, and each of piles will contain a pointer to the
         // sourcePhrase it is associated with
 	
-	if (selector == create_strips_and_piles || selector == create_strips_keep_piles)
+	if (selector == create_strips_and_piles || selector == create_strips_keep_piles ||
+		selector == create_strips_update_pile_widths)
 	{
 		// any existing strips have to be destroyed before the new are build. Note: if we
 		// support both modes of strip support (ie. tweaking versus destroy and rebuild all)
@@ -1261,6 +1262,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			return FALSE;
 		}
 	}
+	else if (selector == create_strips_update_pile_widths)
+	{
+		RecalcPileWidths(&m_pileList);
+	}
 
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
@@ -1286,7 +1291,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
 		// current active location
-		if (selector == create_strips_keep_piles || selector == keep_strips_keep_piles)
+		if (selector == create_strips_keep_piles || selector == keep_strips_keep_piles
+			|| selector == create_strips_update_pile_widths)
 		{
             // these three lines ensure that the active pile's width is based on the
             // CLayout::m_curBoxWidth value that was stored there by any adjustment to the
@@ -1327,13 +1333,15 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// there is a positive m_nActiveSequNum value, use it to set a temporary m_pActivePile
 	if ((m_pApp->m_pActivePile == NULL && m_pApp->m_nActiveSequNum != -1 &&
 		selector != create_strips_and_piles) || 
-		(selector == keep_strips_keep_piles && m_pApp->m_nActiveSequNum != -1))
+		(selector == keep_strips_keep_piles && m_pApp->m_nActiveSequNum != -1) ||
+		(selector == create_strips_update_pile_widths && m_pApp->m_nActiveSequNum != -1))
 	{
 		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	}
 
 	// the loop which builds the strips & populates them with the piles
-	if (selector == create_strips_and_piles || selector == create_strips_keep_piles)
+	if (selector == create_strips_and_piles || selector == create_strips_keep_piles
+		|| selector == create_strips_update_pile_widths)
 	{
 		CreateStrips(nStripWidth, gap);
 	}
@@ -1487,6 +1495,32 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 	return TRUE;
+}
+
+void CLayout::DoRecalcLayoutAfterPreferencesDlg()
+{
+	// do whatever kind of RecalcLayout is appropriate given whatever editing the user did
+	// within the Preferences pages
+	if (m_bUSFMChanged || m_bFilteringChanged || m_bPunctuationChanged)
+	{
+		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
+		return;
+	}
+	else if (m_bFontInfoChanged || m_bCaseEquivalencesChanged)
+	{
+		SetLayoutParameters();
+		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_update_pile_widths);
+		return;
+	}
+	else if (m_bViewParamsChanged)
+	{
+		SetLayoutParameters();
+	}
+	RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
+	// the flags will be cleared at the end of the view's OnEditPreferences() handler, and
+	// also at the start of CEditPreferencesDlg::InitDialog(), and individually in various
+	// handlers closer to the actual choice or non-choice of a given possible editing
+	// change 
 }
 
 // At the end of the vertical edit process, the phrase box may not be at the final active

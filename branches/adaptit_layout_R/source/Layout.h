@@ -52,11 +52,11 @@ class CPile;
 class CFont;
 class CAdapt_ItCanvas;
 
-#define	nJumpDistanceForUserEditsSpanDetermination 80 // how far to jump in either 
+//#define	nJumpDistanceForUserEditsSpanDetermination 80 // how far to jump in either 
 			// direction from the current m_nActiveSequNum value to scan forward and back
 			// to determine the beginning and end locations for the user edit operations
 			// changes to the m_pileList contents
-#define	nBigJumpDistance 300 // for use when user may have clicked some visible but far
+//#define	nBigJumpDistance 300 // for use when user may have clicked some visible but far
 			// from the active location (eg. as when inserting a placeholder when reading
 			// back through his work & finding an error a long way from active location)
 
@@ -116,7 +116,8 @@ typedef enum doc_edit_op {
 typedef enum layout_selector {
 	create_strips_and_piles,
 	create_strips_keep_piles,
-	keep_strips_keep_piles
+	keep_strips_keep_piles,
+	create_strips_update_pile_widths
 };
 
 /// The CLayout class manages the layout of the document. It's private members pull
@@ -382,6 +383,7 @@ public:
 	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
 									int nStripWidth); // doesn't change the pile composition,
 											// just lays them out, ensuring  proper spacing
+	void		DoRecalcLayoutAfterPreferencesDlg();
 	void		RecalcPileWidths(PileList* pPiles);
 	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 

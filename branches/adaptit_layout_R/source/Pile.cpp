@@ -408,6 +408,37 @@ int CPile::CalcPileWidth()
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
 	aDC.SetFont(*m_pLayout->m_pSrcFont); // works, now we are friends
+	aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
+	pileWidth = extent.x; // can assume >= to key's width, as differ only by possible punctuation
+	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
+	{
+		//aDC.SetFont(*m_pLayout->GetTgtFont());
+		aDC.SetFont(*m_pLayout->m_pTgtFont);
+		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
+		if (extent.x > pileWidth)
+		{
+			pileWidth = extent.x;
+		}
+	}
+	if (!m_pSrcPhrase->m_gloss.IsEmpty())
+	{
+		if (gbGlossingUsesNavFont)
+			//aDC.SetFont(*m_pLayout->GetNavTextFont());
+			aDC.SetFont(*m_pLayout->m_pNavTextFont);
+		else
+			//aDC.SetFont(*m_pLayout->GetTgtFont());
+			aDC.SetFont(*m_pLayout->m_pTgtFont);
+		aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
+		if (extent.x > pileWidth)
+		{
+			pileWidth = extent.x;
+		}
+	}
+	/* 
+	// older version, BEW removed 6Jun09, because we want all cell's always used, so that
+	// we can switch from glossing mode to adaptation mode and to showing target text only
+	// and back again without having to relayout the piles in strips, but just call
+	// Redraw() so the new code above just sets the width to the widest of the 3 strings
 	if (!gbShowTargetOnly)
 	{
 		aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
@@ -444,6 +475,7 @@ int CPile::CalcPileWidth()
 			}
 		}
 	}
+	*/
 	return pileWidth;
 }
 
