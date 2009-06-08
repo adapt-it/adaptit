@@ -473,10 +473,6 @@ void CDocPage::OnSetActive()
 	pModeMsg->SetLabel(m_staticModeStr);
 	pFolderMsg->SetLabel(m_staticFolderStr);
 
-	// whm added below for wx version: Since label lengths can change call the docPage's sizer's Layout() 
-	// method to resize the dialog if necessary
-	pDocPageSizer->Layout();
-
 	// generate a CStringList of all the possible adaption documents
 	wxArrayString possibleAdaptions; //CStringList possibleAdaptions;
 	wxString strNewDoc;
@@ -587,6 +583,11 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 	}
 
 	m_pListBox->SetFocus(); // whm added 11Aug08 otherwise the read only text ctrl at top gets focus and shows blinking cursor in it
+
+	// whm added below for wx version: Since label lengths can change call the docPage's sizer's Layout() 
+	// method to resize the dialog if necessary
+	// whm 8 Jun 09 moved here from above since the hiding of the pChangeFixedSpaceToRegular control can affect layout
+	pDocPageSizer->Layout();
 
 	//return CPropertyPage::OnSetActive();
 }
