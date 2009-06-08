@@ -1691,6 +1691,13 @@ public:
 
 	// file i/o and directory structures
 	wxString		m_workFolderPath;		// "C:\My Documents\Adapt It Work" or the Win 2000 equiv path
+
+	// whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf <path>
+	// command-line option)
+	wxString		m_wf_forced_workFolderPath; // any path following a -wf command-line option
+	wxString		m_newdoc_forced_newDocPath; // any path following a -newdoc command-line option
+	wxString		m_exports_forced_exportsPath; // any path following a -exports command-line option
+
 	wxString		m_theWorkFolder;		// "Adapt It Work"
 	wxString		m_localPathPrefix;		// the part of the workfolder path before the m_theWorkFolder part
 	wxString		m_adaptionsFolder;		// "Adaptations" folder

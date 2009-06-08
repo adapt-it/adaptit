@@ -4771,6 +4771,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// initialize the directory paths
 	m_workFolderPath = _T("");
+	m_wf_forced_workFolderPath = _T(""); // whm added 5Jun09
+	m_newdoc_forced_newDocPath = _T(""); // whm added 5Jun09
+	m_exports_forced_exportsPath = _T(""); // whm added 5Jun09
 	m_localPathPrefix = _T("");
 
 	// The following use the _T() macro as they shouldn't be translated/localized
@@ -5475,6 +5478,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, _T("newdocs"), _T("newdocumentspath"), _T("Lock new documents path to this path"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, _T("exports"), _T("exporteddocumentspath"), _T("Lock exported documents path to this path"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_NONE }
 	};
 
@@ -5525,12 +5532,25 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxString wfPathStr;
 	if (m_pParser->Found(_T("wf"), &wfPathStr))
 	{
-		if (::wxDirExists(wfPathStr))
-		{
-			// the -wf parameter represents a path that exists as a folder, so use it as the forced
-			// work folder path
-			// TODO: up to here !!!
-		}
+		// The -wf command-line parameter represents a path that the user wants to become the work
+		// folder path, so use it as the forced work folder path.
+		m_wf_forced_workFolderPath = wfPathStr;
+	}
+
+	wxString newdocPathStr;
+	if (m_pParser->Found(_T("newdocs"), &newdocPathStr))
+	{
+        // The -newdoc command-line parameter represents a path that the user wants to be locked in as
+        // the only path for finding new documents to adapt, so use it as the forced new documents path.
+		m_newdoc_forced_newDocPath = newdocPathStr;
+	}
+
+	wxString exportPathStr;
+	if (m_pParser->Found(_T("exports"), &exportPathStr))
+	{
+        // The -newdoc command-line parameter represents a path that the user wants to be locked in as
+        // the only path for finding new documents to adapt, so use it as the forced new documents path.
+		m_exports_forced_exportsPath = exportPathStr;
 	}
 
 	// Change the registry key to something appropriate
@@ -10418,14 +10438,13 @@ void CAdapt_ItApp::DoFileOpen()
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::EnsureWorkFolderPresent()
 {
-	// TODO: Modify this rouitine to implement the ability of the user to specify a non-default
-	// location for a work folder. The non-default location then needs to be recorded in the
-	// m_pConfig instance of the wxConfig class (stored in the Registry on a Windows system, but
-	// in a hidden file on Linux and the Mac).
-	// Note: This function is significantly changed from the MFC version because of
-	// cross-platform differences in directory structures and file handling.
-	// I haven't tried to represent what other changes Bruce made to the MFC version in his file 
-	// sent 15Mar04. He basically initialized rStrLocalizedMyDocsName then assigned dirPath to it.
+    // whm 5Jun09 modified this rouitine to implement the ability of the user to specify a non-default
+    // location for a work folder as supplied from a -wf <path> command-line option.
+    // 
+    // Note: This function is significantly changed from the MFC version because of cross-platform
+    // differences in directory structures and file handling. I haven't tried to represent what other
+    // changes Bruce made to the MFC version in his file sent 15Mar04. He basically initialized
+    // rStrLocalizedMyDocsName then assigned dirPath to it.
 	wxString stdDocsDir = _T("");
 	wxString dirPath = _T("");
 	wxString workFolderPath = _T("");
@@ -10440,9 +10459,10 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// changes/moves the location of his "Documents" folder (on Vista) or "My Documents" folder (on
 	// 2000/XP) to a non-default drive or folder location.
 	// 
-	// TODO: We also want to accommodate the power-user who may want to set up a work folder
-	// path in a non-default location. Some possibilities for accommodating a power user's desire to use
-	// a non-default location for his work folder:
+	// We also want to accommodate the power-user who may want to set up a work folder
+	// path in a non-default location. 
+	// Some possibilities for accommodating a power user's desire to use a non-default location for 
+	// his work folder:
 	// 1. Provide a Browse button on the Project page that would allow the user to select a different
 	// path for the project folder. There could also be a "Restore Default Path" button next to it on
 	// the Project page. This makes it easy to change (or too easy - could get naive users in trouble?).
@@ -10453,10 +10473,10 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// a non-default work folder location. For example, the default Target string that calls the
 	// executable on Windows is something like this:
 	//    "C:\Program Files\Adapt It WX\Adapt_It.exe"
-	// A power user could add the -p command-line followed by the work folder path so that the whole
+	// A power user could add the -wf command-line followed by the work folder path so that the whole
 	// Target edit box would look like this:
-	//    "C:\Program Files\Adapt It WX\Adapt_It.exe" -p "E:\Adapt It\Data"
-	// The -p switch means that the following string is a path to the work folder (in the above example
+	//    "C:\Program Files\Adapt It WX\Adapt_It.exe" -wf "E:\Adapt It\Data"
+	// The -wf switch means that the following string is a path to the work folder (in the above example
 	// the work folder is at E:\Adapt It\Data). Option 2 would be difficult for all but power users to do,
 	// but that may help prevent naive users from accidentally misplacing their data.
 	// At any rate, providing a way to set up a work folder path in a non-default location is a feature
@@ -10465,6 +10485,8 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// In case 1 (and possible also case 2) we could save the indicated non-default path as a key-value
 	// pair in the m_pConfig settings. The key value could be something like "user_defined_work_folder_path"
 	// with the data being the string representing the path to the non-default location.
+	// whm Note 5Jun09: I am initially providing the -wf <path> command-line option (2 above). This
+	// option could eventually be supplemented with other options including option 1 above.
 	
 	// whm Note: I first used the wxWidgets ::wxGetHomeDir() function to determine the users home
 	// directory and then augment it to include "Documents" or "My Documents" folder (if Windows). The
@@ -10492,7 +10514,24 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	::wxSetWorkingDirectory(stdDocsDir);
 	dirPath = ::wxGetCwd();
 	m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe which gets called subsequently in OnInit().
-	workFolderPath = dirPath + PathSeparator + workFolder;
+
+	// whm modified 5Jun09 to use m_wf_forced_workFolderPath if it was defined on the command-line
+	if (!m_wf_forced_workFolderPath.IsEmpty())
+	{
+		// Insure that the user supplied work folder path does not end with a path separator character.
+		if (m_wf_forced_workFolderPath.GetChar(m_wf_forced_workFolderPath.Length() -1) == PathSeparator)
+		{
+			m_wf_forced_workFolderPath.RemoveLast(); // remove the PathSeparator char at the end of the path string
+		}
+		workFolderPath = m_wf_forced_workFolderPath;
+		// When we force the local path we need to also change m_localPathPrefix, and set the working
+		// directory to it (setting the working dir is done near the end of EnsureWorkFolderPresent below)
+		m_localPathPrefix = m_wf_forced_workFolderPath;
+	}
+	else
+	{
+		workFolderPath = dirPath + PathSeparator + workFolder;
+	}
 
 	if (!::wxDirExists(workFolderPath))
 	{
@@ -18241,7 +18280,17 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	// szCurKBPath = _("KnowledgeBasePath");
 	// szCurKBBackupPath = _("KBBackupPath");
 	
-	wxString localPath = m_localPathPrefix + PathSeparator + m_theWorkFolder;
+    // whm modified 5Jun09. If the user is forcing the work folder to be what s/he wants then we won't
+    // suffix the forced path with m_theWorkFolder ("Adapt It <Unicode> Work").
+	wxString localPath;
+	if (m_wf_forced_workFolderPath.IsEmpty())
+	{
+		localPath = m_localPathPrefix + PathSeparator + m_theWorkFolder;
+	}
+	else
+	{
+		localPath = m_localPathPrefix;
+	}
 	wxString tab = _T('\t');
 	wxString fileLine;
 	// scan the in-memory file line-by-line and process those needing path updates
