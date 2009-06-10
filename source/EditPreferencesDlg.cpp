@@ -301,7 +301,7 @@ void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 			// Remove Punctuation page from Edit Preferences notebook when Glossing box is checked
 			if (pNotebook->GetPageText(4) == _("Punctuation"))
 			{
-				wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar\nand will now be removed."),_T(""),wxICON_INFORMATION); 
+				wxMessageBox(_("Note: The Edit Preferences \"Punctuation\" Tab is not available\nwhen the Glossing box is checked on the control bar."),_T(""),wxICON_INFORMATION); 
 				pNotebook->RemovePage(4);
 			}
 		}
