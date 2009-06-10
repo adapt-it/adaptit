@@ -2,6 +2,46 @@ Version 4.1.6 update 30Jun2009:
 ----------------------------------------------
 Feature changes and new features in 4.1.6
 ----------------------------------------------
+* Adapt It now can process an -wf <path> command-line option, 
+where <path> is the path to a folder to be used as Adapt It's
+work folder. When this command-line option is used the <path>
+will be used instead of Adapt It's default work folder which
+has traditionally been called "Adapt It (Unicode) Work". The 
+<path> following the -wf option can be on a different drive/
+volume or even a network path. This option can be added to 
+the command-line on most systems by right-clicking on a menu 
+item, shortcut, or launcher icon that is normally used to start 
+Adapt It, and choosing "Properties" from the popup menu. Find 
+the Command or Target field that invokes Adapt It, and add a 
+space followed by the -xo followed by another space and the
+desired path. For example, the Command/Target field might look
+like this (on a Windows Start Menu item for Adapt It WX):
+
+"C:\Program Files\Adapt It WX\Adapt_It.exe" -wf "e:\My Data"
+
+in which case the project file(s) created by Adapt It would
+be located in the "My Data" folder on the e: drive volume.
+Note: paths containing spaces must be enclosed in quote marks.
+If no -wf <path> command-line argument is supplied Adapt It 
+reverts completely back to its classic behavior of creating 
+an "Adapt It (Unicode) Work" folder in the user's 
+"(My) Documents" folder (or whatever path and folder name 
+the OS reports is currently being used for documents by the 
+user), and using that folder as its work folder.
+
+If an administrator sets Adapt It up to use a custom work 
+folder (using -wf <path>) AFTER data is already created at 
+the default "Adapt It (Unicode) Work" folder location, 
+Adapt It currently simply doesn't find the previously 
+existing classic work folder, and will instead create/use 
+what is specified in the -wf <path> command-line option. An 
+administrator who sets up the custom work folder can at the 
+same time, copy or move all of the projects from a previously 
+existing "Adapt It (Unicode) Work" folder to the new custom 
+work folder and Adapt It will just "see" them there at the 
+custom specified <path> and all other previous program 
+behaviors do not change.
+
 ----------------------------------------------
 Bug fixes in 4.1.6
 ----------------------------------------------
