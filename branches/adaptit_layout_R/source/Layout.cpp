@@ -541,6 +541,19 @@ wxColour CLayout::GetNavTextColor()
 {
 	return m_navTextColor;
 }
+
+wxColour CLayout::GetSpecialTextColor()
+{
+	return m_pApp->m_specialTextColor; // CLayout does not yet store a copy
+									   // of m_specialTextColor
+}
+
+wxColour CLayout::GetRetranslationTextColor()
+{
+	return m_pApp->m_reTranslnTextColor; // CLayout does not yet store a copy
+									   // of m_reTranslnTextColor
+}
+
 /* use CCell::GetColor(), syntax wxColour* pColor = pCell->GetColor();
 wxColour CLayout::GetCurColor()
 {

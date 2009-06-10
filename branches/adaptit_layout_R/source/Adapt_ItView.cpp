@@ -7011,7 +7011,8 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 //#else
 //	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
 //#endif
-	GetLayout()->DoRecalcLayoutAfterPreferencesDlg(); // smart RecalcLayout() calls
+	CLayout* pLayout = GetLayout();
+	pLayout->DoRecalcLayoutAfterPreferencesDlg(); // inside are smart RecalcLayout() calls
 	if (pApp->m_nActiveSequNum == -1)
 	{
 		pApp->m_pActivePile = NULL; // that ought to be safe in update handlers
@@ -7019,6 +7020,17 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	else
 	{
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	}
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+	// BEW added 10Jun09, support phrase box matching of the text colour chosen
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 	}
 
 	// BEW 22May09 moved the next line down to here so that idle events won't come before
@@ -7063,7 +7075,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
     // the CEditPreferences::InitDialog() function, which is called when the Preferences
     // dialog is first opened. However, it is good defensive practice not to leave them set
     // until then
-	CLayout* pLayout = pApp->m_pLayout;
+	//CLayout* pLayout = pApp->m_pLayout;
 	pLayout->m_bViewParamsChanged = FALSE;
 	pLayout->m_bUSFMChanged = FALSE;
 	pLayout->m_bFilteringChanged = FALSE;
@@ -40590,6 +40602,16 @@ void CAdapt_ItView::ToggleSeeGlossesMode()
 			pCheckboxIsGlossing->Show(TRUE);
 		}
 	}
+	// BEW added 10Jun09, support phrase box matching of the text colour chosen
+	CLayout* pLayout = GetLayout();
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+	}
 }
 
 void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
@@ -40714,6 +40736,16 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 
 	// redraw the layout etc.
 	CLayout* pLayout = GetLayout();
+
+	// BEW added 10Jun09, support phrase box matching of the text colour chosen
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+	}
 	pLayout->Redraw();
 	// BEW changed 6Jun09, CalcPileWidth() now always uses widest of 3 cells, so pile widths
 	// now will not change with toggling back and forth to glossing mode, and so we only
@@ -40938,11 +40970,23 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
     // pile out wrong) 
     // RedrawEverything(nSaveSequNum);
 	CLayout* pLayout = GetLayout();
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
+
+	// BEW added 10Jun09, support phrase box matching of the text colour chosen
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+	}
+
+	pLayout->Redraw();
+//#ifdef _NEW_LAYOUT
+//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+//#else
+//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+//#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 
@@ -40981,11 +41025,23 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 	// redraw everything with the other Font and directionality setting
 	//RedrawEverything(pApp->m_nActiveSequNum);
 	CLayout* pLayout = GetLayout();
-#ifdef _NEW_LAYOUT
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-#else
-	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
+
+	// BEW added 10Jun09, support phrase box matching of the text colour chosen
+	if (gbIsGlossing && gbGlossingUsesNavFont)
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+	}
+	else
+	{
+		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+	}
+
+	pLayout->Redraw();
+//#ifdef _NEW_LAYOUT
+//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+//#else
+//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+//#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	// restore focus to the targetBox, if it is visible
@@ -41750,6 +41806,7 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 	wxMenuItem * pAdvancedMenuFTMode = pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 	wxASSERT(pAdvancedMenuFTMode != NULL);
 	gbSuppressSetup = FALSE; // setdefault value
+	CLayout* pLayout = GetLayout();
 
     // determine if the document is unstructured or not -- we'll need this set or cleared
     // as appropriate because in free translation mode the user may elect to end sections
@@ -41770,6 +41827,9 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
         // before the gpCurFreeTransSectionPileArray contents are invalidated by the
         // RecalcLayout() call within ComposeBarGuts() below
 		StoreFreeTranslationOnLeaving();
+
+		// ensure the phrase box location is in the visible area // hmm, it had no effect
+		//GetLayout()->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 	}
 	else
 	{
@@ -41894,7 +41954,7 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
 		if (pApp->m_pTargetBox->IsShown() && pApp->m_pTargetBox->GetHandle() != NULL)
 			pApp->m_pTargetBox->SetEditable(FALSE);
-		pApp->GetMainFrame()->canvas->ScrollIntoView(
+		pLayout->m_pCanvas->ScrollIntoView(
 									pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
 
   		// whm 4Apr09 moved this SetFocus below ScrollIntoView since ScrollIntoView seems to remove the
@@ -42026,6 +42086,13 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 			bAllsWell = PopulateRemovalsComboBox(glossesStep, &gEditRecord);
 		else
 			bAllsWell = PopulateRemovalsComboBox(adaptationsStep, &gEditRecord);
+
+        // BEW added 10Jun09; do a recalc of the layout, set active pile pointer, and
+        // scroll into view - otherwise these are not done and box can be off-window
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases,keep_strips_keep_piles);
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+		Invalidate();
 	}
 }
 

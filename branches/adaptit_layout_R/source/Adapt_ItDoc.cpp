@@ -770,6 +770,16 @@ bool CAdapt_ItDoc::OnNewDocument()
 				}
 			}
 
+			// BEW added 10Jun09, support phrase box matching of the text colour chosen
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+			{
+				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+			}
+			else
+			{
+				pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+			}
+
 			// set initial location of the targetBox
 			pApp->m_targetPhrase = pAdView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
 			translation = pApp->m_targetPhrase;
@@ -3420,6 +3430,16 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			} while (pNewPile->GetSrcPhrase()->m_bRetranslation);
 			pApp->m_pActivePile = pNewPile;
 			pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
+		}
+
+		// BEW added 10Jun09, support phrase box matching of the text colour chosen
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+		}
+		else
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 		}
 
 		//pView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2); // selector = 2, because we

@@ -262,10 +262,24 @@ int CCell::GetCellIndex()
 
 wxColour CCell::GetColor()
 {
+	CSourcePhrase* pSrcPhrase = m_pOwningPile->m_pSrcPhrase;
 	switch (m_nCell)
 	{
 	case 0:
-		return m_pLayout->m_srcColor;
+		{
+			if (pSrcPhrase->m_bSpecialText)
+			{
+				return m_pLayout->GetSpecialTextColor();
+			}
+			else if (pSrcPhrase->m_bRetranslation)
+			{
+				return m_pLayout->GetRetranslationTextColor();
+			}
+			else
+			{
+				return m_pLayout->m_srcColor;
+			}
+		}
 	case 1:
 		if (gbIsGlossing)
 			return m_pLayout->m_navTextColor;

@@ -303,6 +303,8 @@ public:
 	wxColour	GetSrcColor();
 	wxColour	GetTgtColor();
 	wxColour	GetNavTextColor();
+	wxColour	GetSpecialTextColor();
+	wxColour	GetRetranslationTextColor();
 	//wxColour	GetCurColor(); // for the phrase box text // no, use CCell's GetColor()
 
 	// setters and getters for source, target and navText heights (from TEXTMETRICS), the 
