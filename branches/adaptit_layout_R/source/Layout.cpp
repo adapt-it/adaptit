@@ -842,6 +842,25 @@ void CLayout::DestroyStrip(int index)
 	// the two wxArrayInt arrays - so Clear() these and then delete the strip
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
 #ifdef _ALT_LAYOUT_
+	pStrip->m_arrPileIndices.Clear();
+	pStrip->m_arrPileOffsets.Clear();
+#else
+	pStrip->m_arrPiles.Clear();
+	pStrip->m_arrPileOffsets.Clear();
+#endif
+ 	delete pStrip;
+	// don't try to delete CCell array, because the cell objects are managed 
+    // by the persistent pile pointers in the CLayout array m_pPiles, and the 
+    // strip does not own these
+}
+
+/* the time-consuming tests should not be needed so I've removed them in the above version
+void CLayout::DestroyStrip(int index)
+{
+	// CStrip now does not store pointers, so the only memory it owns are the blocks for
+	// the two wxArrayInt arrays - so Clear() these and then delete the strip
+	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
+#ifdef _ALT_LAYOUT_
 	if (!pStrip->m_arrPileIndices.IsEmpty())
 	{
 		pStrip->m_arrPileIndices.Clear();
@@ -855,7 +874,7 @@ void CLayout::DestroyStrip(int index)
 	{
 		pStrip->m_arrPiles.Clear();
 	}
-	if (!pStrip->m_arrPiles.IsEmpty())
+	if (!pStrip->m_arrPileOffsets.IsEmpty())
 	{
 		pStrip->m_arrPiles.Clear();
 	}
@@ -865,6 +884,7 @@ void CLayout::DestroyStrip(int index)
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
     // strip does not own these
 }
+*/
 
 void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 {
