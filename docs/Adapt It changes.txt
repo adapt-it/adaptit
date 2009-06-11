@@ -47,6 +47,12 @@ Bug fixes in 4.1.6
 ----------------------------------------------
 * Fixed a bug that might prevent a font color change from
 being registered correctly.
+* Fixed a bug that prevented a selection in the Auto-Saving 
+tab of Preferences, from being remembered between sessions.
+This involved the check box that gives the option to:
+"Turn OFF periodic automatic saving of the document and 
+knowledge base". Now the application will remember the 
+check box selection.  
 
 Version 4.1.5 update 31May2009:
 ----------------------------------------------
