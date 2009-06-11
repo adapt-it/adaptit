@@ -134,6 +134,12 @@ void CAutoSavingPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 
 	// initialize our local temp variables from those on the App
 	tempNoAutoSave = pApp->m_bNoAutoSave;
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in InitDialog() of AutoSavingPage.cpp; tempNoAutoSave was set to TRUE and value transferred to checkbox control"));
+	#endif
+#endif
 	tempKBMinutes = pApp->m_timeSettings.m_tsKB.GetMinutes();
 	tempMinutes = pApp->m_timeSettings.m_tsDoc.GetMinutes();
 	tempMoves = pApp->m_nMoves;
@@ -251,7 +257,22 @@ void CAutoSavingPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	// Transfer values from controls to vars and save new values back on the App
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in OnOK() of AutoSavingPage.cpp; checkbox has value %d"), (int)m_pCheckNoAutoSave->IsChecked());
+	#endif
+#endif
 	pApp->m_bNoAutoSave = m_pCheckNoAutoSave->IsChecked();
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+	if (pApp->m_bNoAutoSave)
+		wxLogDebug(_T("m_bNoAutoSave  in OnOK() of AutoSavingPage.cpp; value saved to m_pNoAutoSave in Adapt_It.cpp was TRUE"));
+	else
+		wxLogDebug(_T("m_bNoAutoSave  in OnOK() of AutoSavingPage.cpp; value saved to m_pNoAutoSave in Adapt_It.cpp was FALSE"));
+	#endif
+#endif
 	pApp->m_bIsDocTimeButton = m_pRadioByMinutes->GetValue();
 
 	int nVal;

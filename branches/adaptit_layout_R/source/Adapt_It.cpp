@@ -4723,6 +4723,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bAutoBackupKB = TRUE;
 	m_bNoAutoSave = TRUE;
 
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in OnInit()  is set TRUE"));
+	#endif
+#endif
+
 	m_ptViewTopLeft.x = 20;
 	m_ptViewTopLeft.y = 20;
 	m_szView.x = 640;
@@ -12326,6 +12333,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szNoAutoSaveFlag << tab << number;
 	pf->AddLine(data);
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+	if (m_bNoAutoSave)
+		wxLogDebug(_T("m_bNoAutoSave  in WriteBasicSettingsConfiguration()  was just set to TRUE"));
+	else
+		wxLogDebug(_T("m_bNoAutoSave  in WriteBasicSettingsConfiguration()  was just set to FALSE"));
+	#endif
+#endif
 
 	data.Empty();
 	data << szTS_DOC_MINS << tab << m_timeSettings.m_tsDoc.GetMinutes();
@@ -13625,12 +13641,35 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szNoAutoSaveFlag)
 		{
 			num = wxAtoi(strValue);
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration()  was just read in as %d"), num);
+	#endif
+#endif
 			if (!(num == 0 || num == 1))
+			{
 				num = 0; // auto save
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration()  BAD VALUE, so set to FALSE"));
+	#endif
+#endif
+			}
 			if (num == 1)
 				m_bNoAutoSave = TRUE;
 			else
 				m_bNoAutoSave = FALSE;
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+	if (num == 1)
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration() (after test) was set to TRUE"));
+	else
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration() (after test) was set to FALSE"));
+	#endif
+#endif
 		}
 		else if (name == szSpecialTextColor)
 		{
@@ -13703,13 +13742,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// returns
 		}
 
-		// Ursula Wiesemann (Brazil) was having bizarre values of 3000 for xTopLeft and yTopLeft,
-		// and bad values (e.g 160 by 24) for cxWZize and cyWSize, respectively. I cannot find any
-		// reason for these - unless rogue code is overwriting memory. So I'll check for rogue
-		// values on read of the basic config file, and on writing the basic config file, and
-		// substitute safe ones when values for the top left would place the main window to the right
-		// or below the point near the bottom right of the screen, or too narrow or high a window size
-		// etc. (Bill Martin got, one time, -32000 values for top left in Unicode app!)
+        // Ursula Wiesemann (Brazil) was having bizarre values of 3000 for xTopLeft and
+        // yTopLeft, and bad values (e.g 160 by 24) for cxWZize and cyWSize, respectively.
+        // I cannot find any reason for these - unless rogue code is overwriting memory. So
+        // I'll check for rogue values on read of the basic config file, and on writing the
+        // basic config file, and substitute safe ones when values for the top left would
+        // place the main window to the right or below the point near the bottom right of
+        // the screen, or too narrow or high a window size etc. (Bill Martin got, one time,
+        // -32000 values for top left in Unicode app!)
 
 		else if (name == szTopLeftX)
 		{
@@ -14036,8 +14076,14 @@ void CAdapt_ItApp::SetDefaults()
 
 	m_bUseStartupWizardOnLaunch = TRUE;
 	m_bAutoBackupKB = TRUE;
-	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in App's constructor as default)
-	
+	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in App's constructor as default)	
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in SetDefaults() was set to TRUE"));
+	#endif
+#endif
+
 	m_ptViewTopLeft.x = 20;
 	m_ptViewTopLeft.y = 20;
 	m_szView.x = 640;
