@@ -274,7 +274,6 @@ void CLayout::InitializeCLayout()
 	//m_pStrips = NULL;
 	m_stripArray.Clear();
 	m_invalidStripArray.Clear();
-	m_bDrawAtActiveLocation = TRUE;
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
 
@@ -831,7 +830,6 @@ int CLayout::GetGapWidth()
 // forth
 void CLayout::SetLayoutParameters()
 {
-	InitializeCLayout(); // sets the app, doc, view, canvas & frame pointers
 	m_pApp->UpdateTextHeights(m_pView);
 	SetSrcFont(m_pApp);
 	SetTgtFont(m_pApp);
@@ -889,7 +887,7 @@ void CLayout::DestroyStrip(int index)
 	}
 	if (!pStrip->m_arrPileOffsets.IsEmpty())
 	{
-		pStrip->m_arrPiles.Clear();
+		pStrip->m_arrPileOffsets.Clear();
 	}
 #endif
  	delete pStrip;
@@ -1548,6 +1546,8 @@ void CLayout::DoRecalcLayoutAfterPreferencesDlg()
 	else if (m_bViewParamsChanged)
 	{
 		SetLayoutParameters();
+		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
+		return;
 	}
 	RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
 	// the flags will be cleared at the end of the view's OnEditPreferences() handler, and
@@ -1819,8 +1819,8 @@ int CLayout::CalcNumVisibleStrips()
 	canvasSize = m_pApp->GetMainFrame()->GetCanvasClientSize();
 	clientHeight = canvasSize.GetHeight(); // see lines 2425-2435 of 
 			// Adapt_ItCanvas.cpp and then lines 2454-56 for stuff below
-	int nVisStrips = clientHeight / m_nStripHeight;
-	int partStrip = clientHeight % m_nStripHeight; // modulo
+	int nVisStrips = clientHeight / (m_nStripHeight + m_nCurLeading);
+	int partStrip = clientHeight % (m_nStripHeight + m_nCurLeading); // modulo
 	if (partStrip > 0)
 		nVisStrips++;
 	return nVisStrips; // how many strips can appear in the client area

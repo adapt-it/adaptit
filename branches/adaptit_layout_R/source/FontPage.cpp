@@ -1175,8 +1175,9 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		pAdView->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // fix the menu, if necessary
 		// Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
 
-		// if we've entered this block, just assume changes were made
-		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
+		// if we've entered this block, any changes made should not affect pile widths,
+		// nor strip populations, therefore m_bFontInfoChanged should not be set TRUE here
+		//gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	}
 	// enable complex rendering
 	// whm note for wx version: Right-to-left reading is handled automatically in Uniscribe and

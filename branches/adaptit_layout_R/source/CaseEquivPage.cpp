@@ -1111,7 +1111,16 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 	else
 		gbNoGlossCaseEquivalents = FALSE;
 
-	gpApp->m_pLayout->m_bCaseEquivalencesChanged = TRUE;
+	// In the code above, there does not seem to be any easy way to detect whether or not
+	// the user has made a change to the case equivalences; so we'll assume the following
+	// flag is to be set FALSE. The outcome of this is that the RecalcLayout() call will,
+	// if no other pile-width-changing preferences were changed, be the one for
+	// keep_strips_keep_piles -- which should be safe because auto-capitalization is only
+	// doing what the user would have done manually himself, and even if not, an upper
+	// versus lower case change should alter the width of the pile by less than the size
+	// of the inter-pile gap, and therefore we do not expect any visual overlap of piles
+	// as a result of setting this flag FALSE
+	gpApp->m_pLayout->m_bCaseEquivalencesChanged = FALSE;
 }
 
 void CCaseEquivPagePrefs::OnBnClickedSrcCopyToGloss(wxCommandEvent& WXUNUSED(event))

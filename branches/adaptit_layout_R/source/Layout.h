@@ -145,7 +145,6 @@ public:
 
 	doc_edit_op			m_docEditOperationType; // set in user doc edit handler functions
 												// and used by PlacePhraseBoxInLayout() 
-	bool				m_bDrawAtActiveLocation;
 	int					m_curBoxWidth;
 
 	// booleans that track what kind of changes were made within the Preferences dialog -
@@ -233,8 +232,6 @@ private:
     // client window's width (and height) -- Bill sets it using that function at the end of
     // RecalcLayout(), so the CLayout setup of the strips should end with the same.
 
-	// ////////////////// PRIVATE HELPER FUNCTIONS ////////////////////////
-	void		InitializeCLayout();
 
 
 public:
@@ -249,6 +246,7 @@ public:
 	CAdapt_ItCanvas*	GetCanvas();
 	CAdapt_ItDoc*		GetDoc();
 	CMainFrame*			GetMainFrame(CAdapt_ItApp* pApp);
+	void		InitializeCLayout(); // called only once, in view class's OnInitialUpdate()
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
 									   // to whatever is currently set within the app, doc and
 									   // view classes; that is, it hooks up CLayout to the

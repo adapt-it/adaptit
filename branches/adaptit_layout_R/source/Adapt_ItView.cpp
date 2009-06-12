@@ -1955,6 +1955,8 @@ void CAdapt_ItView::OnInitialUpdate()
 	*/
 	// refactored version: try the following here
 	CLayout* pLayout = pApp->m_pLayout;
+	pLayout->InitializeCLayout(); // sets the app, doc, view, canvas & frame pointers, 
+								  // and clears m_stripArray
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
 	/*

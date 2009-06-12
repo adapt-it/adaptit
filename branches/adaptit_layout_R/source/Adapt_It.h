@@ -23,7 +23,7 @@
 
 // for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...
 // comment out when the wxLogDebug() calls are no longer needed
-#define Test_m_bNoAutoSave
+//#define Test_m_bNoAutoSave
 
 // ///////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
