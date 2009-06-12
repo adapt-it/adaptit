@@ -37120,8 +37120,9 @@ void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 12June09
 
-	GetLayout()->m_docEditOperationType = vert_edit_exit_op;
+	pLayout->m_docEditOperationType = vert_edit_exit_op;
 	// Invalidate(); // do this in the caller, OnCustomEventEndVerticalEdit() which is the
 					 // only place in the application where RestoreBoxOnFinishVerticalMode()
 					 // is called
@@ -40748,17 +40749,19 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	{
 		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 	}
-	pLayout->Redraw();
+	// pLayout->Redraw(); // BEW removed 12June09, it gives a mess if, after showing
+	// glosses, the user switches See Glosses off and then changes the active pile
 	// BEW changed 6Jun09, CalcPileWidth() now always uses widest of 3 cells, so pile widths
 	// now will not change with toggling back and forth to glossing mode, and so we only
 	// need a Redraw() now, rather than a RecalcLayout() call which is expensive if all
 	// strips and piles' widths too have to be recalculated
-//#ifdef _NEW_LAYOUT
-//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_update_pile_widths);
-//#else
-//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-//#endif
-//	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 
@@ -40983,13 +40986,14 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 	}
 
-	pLayout->Redraw();
-//#ifdef _NEW_LAYOUT
-//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-//#else
-//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-//#endif
+	//pLayout->Redraw(); // BEW removed 12Jun09, it's not sufficient for all circumstances
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 	pApp->m_pTargetBox->m_bAbandonable = FALSE; // we assume the new contents are wanted
 
 	// restore focus to the targetBox, if it is visible
@@ -41019,7 +41023,8 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 	}
 	else
 	{
-		// toggle the checkmark to ON, and recalc the layout with strip-wrap on
+		// toggle the checkmark to ON, and recalc the layout with glossing using the
+		// navText font
 		pAdvancedGlossingUsesNavFont->Check(TRUE);
 		gbGlossingUsesNavFont = TRUE;
 	}
@@ -41031,20 +41036,38 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 	// BEW added 10Jun09, support phrase box matching of the text colour chosen
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
+        // set the colour to the navText's colour, and also set its size to that of the
+        // target text's font (the user may have navText smaller in the view in order to
+        // keep it unobtrusive, but we don't want it unobtrusive in the phrase box!)
 		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+		/*
+		// BEW 12Jun09, regretably the next 3 lines are not enough to do the job, because
+		// the navText height setting is still unchanged and if I increase that, it will
+		// increase it in the navigation text whiteboard area too, and that throws even
+		// more stuff out of kilter. *** TODO *** someday -- a proper solution would be to
+		// define a further dedicated m_pNavTextAtTgtSizeFont wxFont object, and in
+		// CLayout have a bool m_bGlossingUsesNavTextFontAtTargetSize member, which is
+		// TRUE when glossing and user has chosen the Glossing Uses Nav Text Font menu
+		// item, and which is FALSE when that menu item is off; and have the layout code
+		// use whichever wxFont member is appropriate given the context
+		int pointSize = 12;
+		pointSize = pApp->m_pTargetFont->GetPointSize();
+		pApp->m_pNavTextFont->SetPointSize(pointSize);
+		*/
 	}
 	else
 	{
 		pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 	}
 
-	pLayout->Redraw();
-//#ifdef _NEW_LAYOUT
-//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
-//#else
-//	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-//#endif
+	//pLayout->Redraw(); // BEW removed 12June09, not suitable for all situations
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_update_pile_widths);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 	// restore focus to the targetBox, if it is visible
 	if (pApp->m_pTargetBox != NULL)

@@ -1549,7 +1549,14 @@ void CLayout::DoRecalcLayoutAfterPreferencesDlg()
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
 		return;
 	}
-	RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
+    //RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles); colours may have been
+    //changed - get the CCell instances able to access new colour choices (these calls are
+    //also embedded in the SetLayoutParameters()s calls in the blocks above, but we only
+    //need the colour ones here)
+	SetSrcColor(m_pApp);
+	SetTgtColor(m_pApp);
+	SetNavTextColor(m_pApp);
+	Redraw();
 	// the flags will be cleared at the end of the view's OnEditPreferences() handler, and
 	// also at the start of CEditPreferencesDlg::InitDialog(), and individually in various
 	// handlers closer to the actual choice or non-choice of a given possible editing
