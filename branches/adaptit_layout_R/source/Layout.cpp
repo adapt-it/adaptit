@@ -1531,7 +1531,18 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 void CLayout::DoRecalcLayoutAfterPreferencesDlg()
 {
 	// do whatever kind of RecalcLayout is appropriate given whatever editing the user did
-	// within the Preferences pages
+	// within the Preferences pages; it is possible that the user may have changed
+	// settings in more than one page, for example, a font colour and perhaps a change of
+	// punctuation, and so we have to ensure we cover such possibilities by calling
+	// SetLayoutParameters() before whichever of the RecalcLayout() calls we make, and
+	// especially before a Redraw() call, because without the colours being updated within
+	// CLayout, any user colour changes won't appear in the view unless SetSrcColor(), etc
+	// are called before Redraw() - and SetLayoutParameters() contains those color calls.
+	// Note: the order of the blocks is important here: the most severe changes are tested
+	// for first, then the lesser changes next, the minor changes to the layout last, and
+	// anything not covered by those won't change the strips' pile populations and so a
+	// Redraw() is done for those (eg. colour changes).
+	SetLayoutParameters();
 	if (m_bUSFMChanged || m_bFilteringChanged || m_bPunctuationChanged)
 	{
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_and_piles);
@@ -1539,23 +1550,14 @@ void CLayout::DoRecalcLayoutAfterPreferencesDlg()
 	}
 	else if (m_bFontInfoChanged || m_bCaseEquivalencesChanged)
 	{
-		SetLayoutParameters();
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_update_pile_widths);
 		return;
 	}
 	else if (m_bViewParamsChanged)
 	{
-		SetLayoutParameters();
 		RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
 		return;
 	}
-    //RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles); colours may have been
-    //changed - get the CCell instances able to access new colour choices (these calls are
-    //also embedded in the SetLayoutParameters()s calls in the blocks above, but we only
-    //need the colour ones here)
-	SetSrcColor(m_pApp);
-	SetTgtColor(m_pApp);
-	SetNavTextColor(m_pApp);
 	Redraw();
 	// the flags will be cleared at the end of the view's OnEditPreferences() handler, and
 	// also at the start of CEditPreferencesDlg::InitDialog(), and individually in various
