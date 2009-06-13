@@ -82,7 +82,6 @@ protected:
 	void OnSetfocusEditTypeNew(wxFocusEvent& event);
 	void OnButtonNoAdaptation(wxCommandEvent& WXUNUSED(event));
 	void OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event));
-
 private:
 	// class attributes
 

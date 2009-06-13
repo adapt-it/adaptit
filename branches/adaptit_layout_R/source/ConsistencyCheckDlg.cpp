@@ -295,6 +295,21 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 						// the dialog is dismissed with OnOK() 
 	gbIgnoreIt = FALSE;
 
+	// BEW added 13Jun09, a temporary workaround to compensate for the fact that if the
+	// user clicks in the m_pEditCtrlNew wxTextCtrl in order to give it input focus, it
+	// gets the focus but the handler for OnSetfocusEditTypeNew() does not get called and
+	// so the radio button IDC_RADIO_TYPE_NEW is not checked, and the code which relies on
+	// nCheck being non-zero in order to set m_finalAdaptation will jump that assignment
+	// statement. So as a workaround until someone fixes the problem better, we'll
+	// unilaterally check for a non-zero string in the control, and assign that if we find
+	// one.
+	TransferDataFromWindow();
+	if (!m_newStr.IsEmpty())
+	{
+		m_finalAdaptation = m_newStr;
+	}
+	/* BEW 13Jun09 temporarily removed until we get a better solution for the above problem
+
 	// see if the type new radio button is checked, & if so use the
 	// string in the edit box to its right
 	wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
@@ -304,6 +319,8 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 	{
 		m_finalAdaptation = m_newStr;
 	}
+	*/
+
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -342,6 +359,10 @@ void CConsistencyCheckDlg::OnRadioAcceptCurrent(wxCommandEvent& WXUNUSED(event))
 
 void CConsistencyCheckDlg::OnRadioTypeNew(wxCommandEvent& WXUNUSED(event)) 
 {
+	// BEW added 13Jun09, clicking the radio button should put the input focus in the
+	// wxTextCtrl to its immediate right
+	m_pEditCtrlNew->SetFocus();
+
 	m_newStr = _T("");
 	TransferDataToWindow();
 }
@@ -387,6 +408,11 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 
 void CConsistencyCheckDlg::OnSetfocusEditTypeNew(wxFocusEvent& event) 
 {
+	// in my refactored version, this function is never entered, nor is it in Bill's
+	// legacy WX version!!
+	//::wxBell();
+	//::wxBell();
+	//::wxBell();
 	// wx note: we could also do this using wxWindow::FindFocus()
 	if (event.GetEventObject() == m_pEditCtrlNew)
 	{
