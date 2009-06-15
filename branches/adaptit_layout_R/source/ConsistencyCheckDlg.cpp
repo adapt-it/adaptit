@@ -408,12 +408,6 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 
 void CConsistencyCheckDlg::OnSetfocusEditTypeNew(wxFocusEvent& event) 
 {
-	// in my refactored version, this function is never entered, nor is it in Bill's
-	// legacy WX version!!
-	//::wxBell();
-	//::wxBell();
-	//::wxBell();
-	// wx note: we could also do this using wxWindow::FindFocus()
 	if (event.GetEventObject() == m_pEditCtrlNew)
 	{
 		if (event.GetEventType() == wxEVT_SET_FOCUS)

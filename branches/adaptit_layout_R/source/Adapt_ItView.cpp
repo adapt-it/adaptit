@@ -25284,10 +25284,11 @@ void CAdapt_ItView::Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase)
 	// jump to here
 	int nNewSequNum = pNewSrcPhrase->m_nSequNumber;
 	pApp->m_pActivePile = GetPile(nNewSequNum);
-	pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
+	//pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum); // called too early
 	CCell* pCell = pApp->m_pActivePile->GetCell(1); // the cell where the phraseBox is to be
 	pApp->m_targetPhrase = pNewSrcPhrase->m_adaption; // make it look normal, don't use m_targetStr here
 	PlacePhraseBox(pCell,2);
+	pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
 
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();

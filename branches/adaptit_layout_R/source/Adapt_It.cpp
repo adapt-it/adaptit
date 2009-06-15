@@ -2087,8 +2087,8 @@ AIModalDialog::AIModalDialog( wxWindow *parent, const wxWindowID id, const wxStr
 	//long ordinaryStyle = GetWindowStyle();
 	//ordinaryStyle |= wxWANTS_CHARS; // 0x00040000
 	//SetWindowStyle(ordinaryStyle);
-	// The above 3 lines also had no effect. It appears that wxWidgets will not support
-	// the trapping of ALT + -> arrow key combination in dialogs
+	// The above 3 lines also had no effect. ... Later, it turned out Bill had subclassed
+	// the dialog's class and not told me, added the needed code and all was well.
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -20276,6 +20276,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	// CSourcePhrase instance (after removal of the book ID one) in the doc to be joined, to its m_markers member's start
 	CAdapt_ItDoc *d = GetDocument();
 	CAdapt_ItView *v = GetView();
+	CLayout* pLayout = m_pLayout;
 
 	// get the current document's count of CSourcePhrase instances, so we can later locate the
 	// active location to the first instance at the join location
@@ -20347,34 +20348,56 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	}
 	// Jonathan's code continues here...
 	//m_pSourcePhrases->Append(ol);
-	// wx doesn't have a wxList method for appending one list onto another list, so we'll do it
-	// manually
+    // wx doesn't have a wxList method for appending one list onto another list, so we'll
+    // do it manually
+    // BEW 15Jun09; in the refactored view design, each CSourcePhrase instande in the list
+	// should have a partner pile in the m_pileList in CLayout, and just appending
+	// CSourcePhrase instances in the loop below will not be enough. Moreover the Jump()
+	// call at the end of the block below has a PlacePhraseBox() call, with RecalcLayout()
+	// using the option keep_strips_keep_piles, but there won't have been any strips yet
+	// for the CSourcePhrases which we append just below. So, we have to get a set of
+	// valid partner piles, and do a RecalcLayout() call here with the option
+	// create_strips_and_piles in order for the rest of the code to work right in the
+	// refactored design
 	SPList::Node* node = ol->GetFirst();
 	while (node)
 	{
 		m_pSourcePhrases->Append(node->GetData());
 		node = node->GetNext();
 	}
+	// now do the adjustments for our refactored view design
+	d->UpdateSequNumbers(0); // even though it's done in next block, next block is called
+							 // only for the last set of appends, and we need it here 
+							 // each time
+	pLayout->RecalcLayout(m_pSourcePhrases,create_strips_and_piles); // this call destroys
+							// the smaller set of current piles and builds all from scratch
+							// and then the strips based on them - this ensures that a later
+							// ScrollIntoView() call, which will use CPile::m_pOwningStrip
+							// will always succeed for whatever CPile instance is used
 	if (IsLastAppendUsingThisMethodRightNow) 
 	{
 		// get all the sequence numbers into correct sequence
 		d->UpdateSequNumbers(0);
 
-		/* refactored 22Mar09 - removed, no bundles to have to worry about, but phr box located same place
+		/* // refactored 22Mar09 - removed, no bundles to have to worry about, 
+		// but phr box located same place
 		// BEW modified 07Nov05
-		// the document may now be longer than a bundle can display, in fact it may have been that way
-		// before the append operation, so we have to ensure we get the indices correct for the currently
-		// allowed bundle size, and that we locate the bundle somewhere safely - until we decide otherwise
-		// we will locate it at the last join point -- that is, the active location (ie phrase box) will
-		// be at the first sourcephrase instance of the just appended document, so that the its preceding
-		// context will show the end of the document to which we just appended; the end of the bundle
-		// may or may not reach to the end of the combined document (typically it won't) depending on how big
-		// these document files happened to be in relation to the bundle size currently in effect
+        // the document may now be longer than a bundle can display, in fact it may have
+        // been that way before the append operation, so we have to ensure we get the
+        // indices correct for the currently allowed bundle size, and that we locate the
+        // bundle somewhere safely - until we decide otherwise we will locate it at the
+        // last join point -- that is, the active location (ie phrase box) will be at the
+        // first sourcephrase instance of the just appended document, so that the its
+        // preceding context will show the end of the document to which we just appended;
+        // the end of the bundle may or may not reach to the end of the combined document
+        // (typically it won't) depending on how big these document files happened to be in
+        // relation to the bundle size currently in effect
 		int nFirstIndex = nOldCount - m_nPrecedingContext;
 		if (nFirstIndex < 0) nFirstIndex = 0; // ensure a valid index
 		m_nActiveSequNum = SetBundleIndices(m_pSourcePhrases, nFirstIndex);
 		CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
-		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; else to a safe location
+		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; 
+								   // else to a safe location
 		*/
 		int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just joined doc part
 		if (anActiveSequNum <= GetMaxIndex())
@@ -20624,6 +20647,10 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 	if (m_upperIndex >= m_endIndex)
 		m_upperIndex = m_endIndex - wxMin(m_nFollowingContext,(m_endIndex - m_beginIndex)/10);
 	*/
+
+	// The GetCurrentSourcePhrase() call below gets the one at the m_nActiveSequNum value,
+	// so the only value which can be safely set here is to set it to zero
+	m_nActiveSequNum = 0;
 
 	if (DoFullScreenUpdate) {
 		v->Jump(this, GetCurrentSourcePhrase());

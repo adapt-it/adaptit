@@ -254,7 +254,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	if (FirstFileName.IsEmpty()) 
 	{
 		// IDS_SUPPLY_NAME_FOR_SPLIT
-		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_WARNING); //TellUser();
+		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_INFORMATION); //TellUser();
 		return;
 	}
 	FirstFileName = CAdapt_ItApp::ApplyDefaultDocFileExtension(FirstFileName);
@@ -654,7 +654,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	if (FileNameBase.IsEmpty()) 
 	{
 		// IDS_SUPPLY_FILENAME_BASE
-		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_WARNING); //TellUser();
+		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_INFORMATION); //TellUser();
 		return;
 	}
 
