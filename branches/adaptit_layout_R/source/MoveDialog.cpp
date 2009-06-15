@@ -133,7 +133,7 @@ void CMoveDialog::OnBnClickedMoveNow(wxCommandEvent& WXUNUSED(event))
 
 	if (pSourceFolderDocumentListBox->GetSelection() == -1)
 	{
-		wxMessageBox(_("Please select the file you wish to move."),_T(""), wxICON_ERROR); //IDS_SELECT_MOVE_FILE
+		wxMessageBox(_("Please select the file you wish to move."),_T(""), wxICON_WARNING); //IDS_SELECT_MOVE_FILE
 		return;
 	}
 
@@ -209,7 +209,7 @@ void CMoveDialog::OnBnClickedButtonRenameDoc(wxCommandEvent& WXUNUSED(event))
 
 	if (pSourceFolderDocumentListBox->GetSelection() == -1) 
 	{
-		wxMessageBox(_("Please select the file you wish to rename."),_T(""),wxICON_ERROR); //IDS_SELECT_FILE_TO_RENAME
+		wxMessageBox(_("Please select the file you wish to rename."),_T(""),wxICON_WARNING); //IDS_SELECT_FILE_TO_RENAME
 		return;
 	}
 	if (bFromBookFolder) 
