@@ -82,7 +82,7 @@ BEGIN_EVENT_TABLE(CConsistencyCheckDlg, AIModalDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_ACCEPT_CURRENT, CConsistencyCheckDlg::OnRadioAcceptCurrent)
 	EVT_RADIOBUTTON(IDC_RADIO_TYPE_NEW, CConsistencyCheckDlg::OnRadioTypeNew)
 	EVT_LISTBOX(IDC_LIST_TRANSLATIONS, CConsistencyCheckDlg::OnSelchangeListTranslations)
-	EVT_SET_FOCUS(CConsistencyCheckDlg::OnSetfocusEditTypeNew)
+	EVT_TEXT(IDC_EDIT_TYPE_NEW, CConsistencyCheckDlg::OnUpdateEditTypeNew)
 	EVT_BUTTON(IDC_NOTHING, CConsistencyCheckDlg::OnButtonNoAdaptation)
 	EVT_BUTTON(IDC_BUTTON_IGNORE_IT, CConsistencyCheckDlg::OnButtonIgnoreIt)
 END_EVENT_TABLE()
@@ -127,6 +127,13 @@ CConsistencyCheckDlg::CConsistencyCheckDlg(wxWindow* parent) // dialog construct
 	wxASSERT(m_pEditCtrlKey != NULL);
 	m_pEditCtrlKey->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
 
+	m_pRadioSelectFromList = (wxRadioButton*)FindWindowById(IDC_RADIO_LIST_SELECT);
+	wxASSERT(m_pRadioSelectFromList != NULL);
+	m_pRadioAcceptCurrent = (wxRadioButton*)FindWindowById(IDC_RADIO_ACCEPT_CURRENT);
+	wxASSERT(m_pRadioAcceptCurrent != NULL);
+	m_pRadioTypeNewOne = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
+	wxASSERT(m_pRadioTypeNewOne != NULL);
+
 	// use wxValidator for simple dialog data transfer
 	m_pEditCtrlChVerse->SetValidator(wxGenericValidator(&m_chVerse));
 	m_pEditCtrlNew->SetValidator(wxGenericValidator(&m_newStr));
@@ -146,6 +153,8 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	wxString s;
 	s = _("<no adaptation>"); //IDS_NO_ADAPTATION that is, "<no adaptation>" 
 	gbIgnoreIt = FALSE; // default
+
+	m_bRadioButtonAction = FALSE;
 
 	// first, use the current source and target language fonts for the list box
 	// and edit boxes (in case there are special characters)
@@ -218,9 +227,9 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	else
 	{
 		// the listBox will be empty, so disable the top of the 3 radio buttons
-		wxRadioButton* pButton = (wxRadioButton*)FindWindowById(IDC_RADIO_LIST_SELECT);
-		wxASSERT(pButton != NULL);
-		pButton->Enable(FALSE);
+		wxASSERT(m_pRadioSelectFromList != NULL);
+		m_pRadioSelectFromList->Enable(FALSE);
+
 	}
 
 	// work out where to place the dialog window
@@ -278,10 +287,9 @@ void CConsistencyCheckDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Ini
 	{
 		// no list box content, so first radio button will be disabled, so make the
 		// default button in this case be the second one - ie. to accept the existing transl'n
-		wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_ACCEPT_CURRENT);
-		wxASSERT(pRadio != NULL);
+		wxASSERT(m_pRadioAcceptCurrent != NULL);
 		m_finalAdaptation = m_adaptationStr;
-		pRadio->SetValue(TRUE);
+		m_pRadioAcceptCurrent->SetValue(TRUE);
 	}
 
 }
@@ -301,9 +309,8 @@ void CConsistencyCheckDlg::OnOK(wxCommandEvent& event)
 
 	// see if the type new radio button is checked, & if so use the
 	// string in the edit box to its right
-	wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
-	wxASSERT(pRadio != NULL);
-	int nChecked = pRadio->GetValue();
+	wxASSERT(m_pRadioTypeNewOne != NULL);
+	int nChecked = m_pRadioTypeNewOne->GetValue();
 	if (nChecked)
 	{
 		m_finalAdaptation = m_newStr;
@@ -337,17 +344,47 @@ void CConsistencyCheckDlg::OnRadioListSelect(wxCommandEvent& WXUNUSED(event))
 	if (str == s)
 		str = _T(""); // restore null string
 	m_finalAdaptation = str;
+	
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pRadioSelectFromList != NULL);
+	m_pRadioSelectFromList->SetValue(TRUE);
+	wxASSERT(m_pRadioAcceptCurrent != NULL);
+	m_pRadioAcceptCurrent->SetValue(FALSE);
+	wxASSERT(m_pRadioTypeNewOne != NULL);
+	m_pRadioTypeNewOne->SetValue(FALSE);
 }
 
 void CConsistencyCheckDlg::OnRadioAcceptCurrent(wxCommandEvent& WXUNUSED(event)) 
 {
 	m_finalAdaptation = m_adaptationStr;
+	
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pRadioSelectFromList != NULL);
+	m_pRadioSelectFromList->SetValue(FALSE);
+	wxASSERT(m_pRadioAcceptCurrent != NULL);
+	m_pRadioAcceptCurrent->SetValue(TRUE);
+	wxASSERT(m_pRadioTypeNewOne != NULL);
+	m_pRadioTypeNewOne->SetValue(FALSE);
 }
 
 void CConsistencyCheckDlg::OnRadioTypeNew(wxCommandEvent& WXUNUSED(event)) 
 {
 	m_newStr = _T("");
+	m_bRadioButtonAction = TRUE;
+	
+	// also make the relevant radio button be turned on
+	wxASSERT(m_pRadioSelectFromList != NULL);
+	m_pRadioSelectFromList->SetValue(FALSE);
+	wxASSERT(m_pRadioAcceptCurrent != NULL);
+	m_pRadioAcceptCurrent->SetValue(FALSE);
+	wxASSERT(m_pRadioTypeNewOne != NULL);
+	m_pRadioTypeNewOne->SetValue(TRUE);
+	
 	TransferDataToWindow();
+
+    // BEW added 13Jun09, clicking the radio button should put the input focus in the wxTextCtrl to its
+    // immediate right
+	m_pEditCtrlNew->SetFocus();
 }
 
 void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event)) 
@@ -375,40 +412,79 @@ void CConsistencyCheckDlg::OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(
 	m_finalAdaptation = str;
 
 	// also make the relevant radio button be turned on
-	wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_LIST_SELECT);
-	wxASSERT(pRadio != NULL);
-	pRadio->SetValue(TRUE);
-	wxRadioButton* pRadio2 = (wxRadioButton*)FindWindowById(IDC_RADIO_ACCEPT_CURRENT);
-	wxASSERT(pRadio2 != NULL);
-	pRadio2->SetValue(FALSE);
-	pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
-	wxASSERT(pRadio != NULL);
-	pRadio->SetValue(FALSE);
+	wxASSERT(m_pRadioSelectFromList != NULL);
+	m_pRadioSelectFromList->SetValue(TRUE);
+	wxASSERT(m_pRadioAcceptCurrent != NULL);
+	m_pRadioAcceptCurrent->SetValue(FALSE);
+	wxASSERT(m_pRadioTypeNewOne != NULL);
+	m_pRadioTypeNewOne->SetValue(FALSE);
 
 	TransferDataToWindow();
 }
 
 
-void CConsistencyCheckDlg::OnSetfocusEditTypeNew(wxFocusEvent& event) 
+void CConsistencyCheckDlg::OnUpdateEditTypeNew(wxCommandEvent& event)
 {
-	// wx note: we could also do this using wxWindow::FindFocus()
-	if (event.GetEventObject() == m_pEditCtrlNew)
+	// whm 13Jun09 added this OnUpdateEditTypeNew() handler, which is tripped whenever the user types
+	// something in the IDC_EDIT_TYPE_NEW wxTextCtrl. It mainly insures that the "Type a new one:"
+	// radio button is selected as soon as the user starts to type in the edit box. 
+    // 
+	// Make the relevant radio button be turned on, but only if something has been typed into the edit
+	// box. If the user deleted everything from the edit box, 
+	if (m_bRadioButtonAction || m_pEditCtrlNew->GetValue().Length() > 0)
 	{
-		if (event.GetEventType() == wxEVT_SET_FOCUS)
+		// The edit control has something in it so insure the "Type a new one:" radio button is
+		// selected and other radio buttons are not selected.
+		wxASSERT(m_pRadioSelectFromList != NULL);
+		if (m_pRadioSelectFromList->GetValue() != FALSE)
+			m_pRadioSelectFromList->SetValue(FALSE);
+		wxASSERT(m_pRadioAcceptCurrent != NULL);
+		if (m_pRadioAcceptCurrent->GetValue() != FALSE)
+			m_pRadioAcceptCurrent->SetValue(FALSE);
+		wxASSERT(m_pRadioTypeNewOne != NULL);
+		if (m_pRadioTypeNewOne->GetValue() != TRUE)
+			m_pRadioTypeNewOne->SetValue(TRUE);
+		m_bRadioButtonAction = FALSE;
+	}
+	else
+	{
+		// The edit control is now empty, so select one of the other radio buttons appropriate to the
+		// initial default condition of the data/lists
+		if (m_bFoundTgtUnit)
 		{
-			// make the relevant radio button be turned on
-			wxRadioButton* pRadio1 = (wxRadioButton*)FindWindowById(IDC_RADIO_LIST_SELECT);
-			wxASSERT(pRadio1 != NULL);
-			pRadio1->SetValue(FALSE);
-			wxRadioButton* pRadio2 = (wxRadioButton*)FindWindowById(IDC_RADIO_ACCEPT_CURRENT);
-			wxASSERT(pRadio2 != NULL);
-			pRadio2->SetValue(FALSE);
-			wxRadioButton* pRadio = (wxRadioButton*)FindWindowById(IDC_RADIO_TYPE_NEW);
-			wxASSERT(pRadio != NULL);
-			pRadio->SetValue(TRUE);
-			TransferDataToWindow();
+			//wxCommandEvent levent;
+			//OnSelchangeListTranslations(levent); // selects top radio button, un-selects bottom two
+			wxASSERT(m_pRadioSelectFromList != NULL);
+			if (m_pRadioSelectFromList->GetValue() != TRUE)
+				m_pRadioSelectFromList->SetValue(TRUE);
+			wxASSERT(m_pRadioAcceptCurrent != NULL);
+			if (m_pRadioAcceptCurrent->GetValue() != FALSE)
+				m_pRadioAcceptCurrent->SetValue(FALSE);
+			wxASSERT(m_pRadioTypeNewOne != NULL);
+			if (m_pRadioTypeNewOne->GetValue() != FALSE)
+				m_pRadioTypeNewOne->SetValue(FALSE);
+		}
+		else
+		{
+            // No list box content, so insure that the default button in this case is the second one -
+            // i.e., to accept the existing translation.
+			wxASSERT(m_pRadioSelectFromList != NULL);
+			if (m_pRadioSelectFromList->GetValue() != FALSE)
+				m_pRadioSelectFromList->SetValue(FALSE);
+			wxASSERT(m_pRadioAcceptCurrent != NULL);
+			if (m_pRadioAcceptCurrent->GetValue() != TRUE)
+				m_pRadioAcceptCurrent->SetValue(TRUE);
+			wxASSERT(m_pRadioTypeNewOne != NULL);
+			if (m_pRadioTypeNewOne->GetValue() != FALSE)
+				m_pRadioTypeNewOne->SetValue(FALSE);
 		}
 	}
+
+	TransferDataFromWindow();
+
+	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
+	// otherwise strange behavior may occur.
+	event.Skip();
 }
 
 void CConsistencyCheckDlg::OnButtonNoAdaptation(wxCommandEvent& WXUNUSED(event)) 
