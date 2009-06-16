@@ -58,12 +58,16 @@ public:
 	wxTextCtrl*	m_pEditCtrlNew;
 	wxTextCtrl*	m_pEditCtrlAdaptation;
 	wxTextCtrl*	m_pEditCtrlKey;
+	wxRadioButton* m_pRadioSelectFromList;
+	wxRadioButton* m_pRadioAcceptCurrent;
+	wxRadioButton* m_pRadioTypeNewOne;
 	wxString	m_keyStr;
 	wxString	m_adaptationStr; // adaptation, or the gloss when glossing is ON
 	wxString	m_newStr;
 	bool		m_bDoAutoFix;
 	wxString	m_chVerse;
 	bool			m_bFoundTgtUnit;
+	bool			m_bRadioButtonAction;
 	CTargetUnit*	m_pTgtUnit;
 	CAdapt_ItApp*	m_pApp;
 	CKB*			m_pKBCopy;
@@ -79,7 +83,7 @@ protected:
 	void OnRadioAcceptCurrent(wxCommandEvent& WXUNUSED(event));
 	void OnRadioTypeNew(wxCommandEvent& WXUNUSED(event));
 	void OnSelchangeListTranslations(wxCommandEvent& WXUNUSED(event));
-	void OnSetfocusEditTypeNew(wxFocusEvent& event);
+	void OnUpdateEditTypeNew(wxCommandEvent& event);
 	void OnButtonNoAdaptation(wxCommandEvent& WXUNUSED(event));
 	void OnButtonIgnoreIt(wxCommandEvent& WXUNUSED(event));
 

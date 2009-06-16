@@ -3973,7 +3973,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_LIST_SELECT, _("Select from the list on the left, to replace what is above."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_LIST_SELECT, _("Select from the &list on the left, to replace what is above."), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("Select this button to use a selected item in the list at left to replace the word/phrase above") );
     item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -3981,7 +3981,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item24 = new wxRadioButton( parent, IDC_RADIO_ACCEPT_CURRENT, _("Accept what is above (entering it into the knowledge base)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item24 = new wxRadioButton( parent, IDC_RADIO_ACCEPT_CURRENT, _("&Accept what is above (entering it into the knowledge base)"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Select this button to accept the word/phrase above as a translation or gloss for the phrase at upper left") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -3989,7 +3989,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item26 = new wxRadioButton( parent, IDC_RADIO_TYPE_NEW, _("Type a new one:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item26 = new wxRadioButton( parent, IDC_RADIO_TYPE_NEW, _("Type a &new one:"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->SetToolTip( _("If the word/phrase above is not suitable, you can type a new one in the box at right") );
     item25->Add( item26, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
@@ -4005,13 +4005,13 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item30 = new wxButton( parent, IDC_NOTHING, _("Accept <no adaptation> for this item"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item30 = new wxButton( parent, IDC_NOTHING, _("Accept <n&o adaptation> for this item"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->SetToolTip( _("Use <no adaptation> for this item") );
     item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item29->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item31 = new wxButton( parent, IDC_BUTTON_IGNORE_IT, _("Ignore it, I will fix it later"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item31 = new wxButton( parent, IDC_BUTTON_IGNORE_IT, _("&Ignore it, I will fix it later"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->SetToolTip( _("Click this button to ignore this inconsistency and correct it manually after the consistency check is complete") );
     item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -4606,7 +4606,7 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, IDC_LIST_ACCEPTED, wxDefaultPosition, wxSize(-1,150), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, IDC_LIST_ACCEPTED, wxDefaultPosition, wxSize(180,150), 0, strs6, wxLB_SINGLE );
     item6->SetToolTip( _("Document files listed here will be appended to the open document starting from the top and working down") );
     item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4641,7 +4641,7 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(-1,150), 0, strs13, wxLB_SINGLE );
+    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(180,150), 0, strs13, wxLB_SINGLE );
     item13->SetToolTip( _("Document files listed here will not be joined to the open document") );
     item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
