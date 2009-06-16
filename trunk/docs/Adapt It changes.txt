@@ -52,7 +52,10 @@ tab of Preferences, from being remembered between sessions.
 This involved the check box that gives the option to:
 "Turn OFF periodic automatic saving of the document and 
 knowledge base". Now the application will remember the 
-check box selection.  
+check box selection.
+* The Unicode version now detects when a non-Unicode input
+text is used, and attempts to determine its encoding when
+converting to Unicode. 
 
 Version 4.1.5 update 31May2009:
 ----------------------------------------------
