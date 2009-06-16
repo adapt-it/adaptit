@@ -90,6 +90,10 @@
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
 
+// forward declarations for functions called in tellenc.cpp
+void init_utf8_char_table();
+const char* tellenc(const char* const buffer, const size_t len);
+
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
 
@@ -5778,9 +5782,74 @@ static QByteArray detectEncoding(const QByteArray& text)
 					//detector->setText(pbyteBuff,strlen(pbyteBuff));
 					//const CharsetMatch* match = detector->detect(status);
 					
-
 					// whm: I think it is safest to just try using the default system encoding
-					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+					//gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+					
+					// The following source code is used by permission. It is taken and adapted
+					// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
+					// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
+
+					//char buffer[TELLENC_BUFFER_SIZE];
+					//size_t len;
+					//len = fread(buffer, 1, sizeof buffer, fp);
+					//fclose(fp);
+
+					init_utf8_char_table();
+					const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar));
+					if (!(enc) || strcmp(enc, "unknown") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+					}
+					else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+					}
+					else if (strcmp(enc, "windows-1252") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
+					}
+					else if (strcmp(enc, "ascii") == 0)
+					{
+						// File was all pure ASCII characters, so assume same as Latin1
+						gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+					}
+					else if (strcmp(enc, "utf-8") == 0) // Only valid UTF-8 sequences
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
+					}
+					else if (strcmp(enc, "utf-16") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+					}
+					else if (strcmp(enc, "utf-16le") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
+					}
+					else if (strcmp(enc, "ucs-4") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_UTF32; //
+					}
+					else if (strcmp(enc, "ucs-4le") == 0)
+					{
+						 gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE; //
+					}
+					else if (strcmp(enc, "binary") == 0)
+					{
+						// A binary file - probably not a valid input file such as a MS Word doc
+						// TODO: Notify user and abort the loading of the file
+					}
+					else if (strcmp(enc, "gb2312") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
+					}
+					else if (strcmp(enc, "cp437") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
+					}
+					else if (strcmp(enc, "big5") == 0)
+					{
+						gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
+					}
 
 					// MFC code below:
 					// try to use the IMultiLanguage2 interface (see ATL stuff) to find out 

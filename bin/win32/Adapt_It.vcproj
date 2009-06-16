@@ -702,6 +702,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\tellenc.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\Text.cpp"
 				>
 			</File>
