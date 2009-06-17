@@ -5657,6 +5657,9 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 		pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
 		*fileTitle = fileDlg.GetFilename(); // just the file name
 
+		wxFileName fn(pathName);
+		wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
+
 		// get a CFile and check length of file
 		// Since the wxWidgets version doesn't use exceptions, we'll
 		// make use of the Open() method which will return false if
@@ -5674,6 +5677,12 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 		// file is now open, so find its logical length (always in bytes)
 		nLength = file.Length(); // MFC has GetLength()
 
+		// whm Design Note: There is no real need to separate the reading of the file into Unicode and
+		// non-Unicode versions. In both cases we could use a pointer to wxChar to point to our byte
+		// buffer, since in in Unicode mode we use char* and in ANSI mode, wxChar resolves to just
+		// char* anyway. We could then read the file into the byte buffer and use tellenc only once
+		// before handling the results with _UNICODE conditional compiles.
+
 #ifndef _UNICODE // ANSI version, no unicode support 
 
 		// create the required buffer and then read in the file (no conversions needed)
@@ -5683,8 +5692,88 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 		wxUint32 numRead = file.Read(pBuf,(wxUint32)nLength);
 		pBuf[numRead] = '\0'; // add terminating null
 		nLength += 1; // allow for terminating null (sets m_nInputFileLength in the caller)
+		
+		// The following source code is used by permission. It is taken and adapted
+		// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
+		// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
+
+		init_utf8_char_table();
+		const char* enc = tellenc(pBuf, numRead - 1); // don't include null char at buffer end
+		if (!(enc) || strcmp(enc, "unknown") == 0)
+		{
+			gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+		}
+		else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
+		{
+			gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+		}
+		else if (strcmp(enc, "windows-1252") == 0)
+		{
+			gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
+		}
+		else if (strcmp(enc, "ascii") == 0)
+		{
+			// File was all pure ASCII characters, so assume same as Latin1
+			gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+		}
+		else if (strcmp(enc, "utf-8") == 0
+			|| strcmp(enc, "utf-16") == 0
+			|| strcmp(enc, "utf-16le") == 0
+			|| strcmp(enc, "ucs-4") == 0
+			|| strcmp(enc, "ucs-4le") == 0)
+		{
+            // The file is a type of Unicode, which is an error since this is the ANSI build. Notify
+            // user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
+            // file.
+			wxString strMessage = _("The file you selected for input is a Unicode file.");
+			strMessage += _T("\n");
+			strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
+			strMessage += _T("\n");
+			strMessage += _("You should install and use the Unicode version of Adapt It to process Unicode text files.");
+			wxString strMessage2;
+			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+			strMessage2 += _T("\n");
+			strMessage2 += strMessage;
+			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
+			return FALSE;
+		}
+		else if (strcmp(enc, "binary") == 0)
+		{
+			// A binary file - probably not a valid input file such as a MS Word doc.
+			// Notify user that Adapt It cannot read binary input files, and abort the loading of the file.
+			wxString strMessage = _("The file you selected for input appears to be a binary file.");
+			if (fnExtensionOnly.MakeUpper() == _T("DOC"))
+			{
+				strMessage += _T("\n");
+				strMessage += _("Adapt It cannot use Microsoft Word Document (doc) files as input files.");
+			}
+			strMessage += _T("\n");
+			strMessage += _("Adapt It input files must be plain text files.");
+			wxString strMessage2;
+			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+			strMessage2 += _T("\n");
+			strMessage2 += strMessage;
+			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+			gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
+			return FALSE;
+		}
+		else if (strcmp(enc, "gb2312") == 0)
+		{
+			gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
+		}
+		else if (strcmp(enc, "cp437") == 0)
+		{
+			gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
+		}
+		else if (strcmp(enc, "big5") == 0)
+		{
+			gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
+		}
+		
 		*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
 							// buffer is destroyed
+		
 		free((void*)pBuf);
 
 #else	// Unicode version supports ASCII, ANSI (but may not be rendered right when converted 
@@ -5737,65 +5826,23 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 					// the app is mucking up the source data conversion, so the user wants
 					// to force UTF8 encoding to be used
 					gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-			}	
-		#ifdef __WIN32__
+				}	
 				else
 				{
-/*
-#ifdef HAVE_ICU
-#include <unicode/ucsdet.h>
-#endif // HAVE_ICU
-
-static QByteArray detectEncoding(const QByteArray& text)
-{
-    Q_UNUSED(text);
-    QByteArray encoding;
-#ifdef HAVE_ICU
-    UErrorCode status = U_ZERO_ERROR;
-    UCharsetDetector* detector = ucsdet_open(&status);
-    if (detector && !U_FAILURE(status))
-    {
-        ucsdet_setText(detector, text.constData(), text.length(), &status);
-        if (!U_FAILURE(status))
-        {
-            const UCharsetMatch* match = ucsdet_detect(detector, &status);
-            if (match && !U_FAILURE(status))
-                encoding = ucsdet_getName(match, &status);
-        }
-    }
-
-
-    if (U_FAILURE(status)) {
-        qWarning("detectEncoding() failed: %s", u_errorName(status));
-    }
-
-    ucsdet_close(detector);
-#endif // HAVE_ICU
-    return encoding;
-}
-*/
-					// The following is from IBM's International Components for Unicode (icu) under the LGPL
-					// which we use since MS' IMultiLangauge2 interface (STL stuff) is not cross-platform.
-					//UErrorCode status;
-					//CharsetDetector* detector;
-					//detector = new CharsetDetector(status);
-					//detector->setText(pbyteBuff,strlen(pbyteBuff));
-					//const CharsetMatch* match = detector->detect(status);
-					
-					// whm: I think it is safest to just try using the default system encoding
-					//gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+                    // The MFC version uses Microsoft's IMultiLanguage2 interface to detect whether the
+                    // file buffer contains UTF-8, UTF-16 or some form of 8-bit encoding (using
+                    // GetACP()), but Microsoft's stuff is not cross-platform, nor open source.
+                    // 
+                    // One possibility for encoding detection is to use IBM's International Components
+                    // for Unicode (icu) under the LGPL. This is a very large, bulky library of tools
+                    // and would considerably inflate the size of Adapt It's distribution.
 					
 					// The following source code is used by permission. It is taken and adapted
 					// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
 					// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
 
-					//char buffer[TELLENC_BUFFER_SIZE];
-					//size_t len;
-					//len = fread(buffer, 1, sizeof buffer, fp);
-					//fclose(fp);
-
 					init_utf8_char_table();
-					const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar));
+					const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
 					if (!(enc) || strcmp(enc, "unknown") == 0)
 					{
 						gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
@@ -5827,16 +5874,31 @@ static QByteArray detectEncoding(const QByteArray& text)
 					}
 					else if (strcmp(enc, "ucs-4") == 0)
 					{
-						gpApp->m_srcEncoding = wxFONTENCODING_UTF32; //
+						gpApp->m_srcEncoding = wxFONTENCODING_UTF32;
 					}
 					else if (strcmp(enc, "ucs-4le") == 0)
 					{
-						 gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE; //
+						 gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE;
 					}
 					else if (strcmp(enc, "binary") == 0)
 					{
-						// A binary file - probably not a valid input file such as a MS Word doc
-						// TODO: Notify user and abort the loading of the file
+						// A binary file - probably not a valid input file such as a MS Word doc.
+						// Notify user that Adapt It cannot read binary input files, and abort the loading of the file
+						wxString strMessage = _("The file you selected for input appears to be a binary file.");
+						if (fnExtensionOnly.MakeUpper() == _T("DOC"))
+						{
+							strMessage += _T("\n");
+							strMessage += _("Adapt It cannot use Microsoft Word Document (doc) files as input files.");
+						}
+						strMessage += _T("\n");
+						strMessage += _("Adapt It input files must be plain text files.");
+						wxString strMessage2;
+						strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+						strMessage2 += _T("\n");
+						strMessage2 += strMessage;
+						wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+						gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
+						return FALSE;
 					}
 					else if (strcmp(enc, "gb2312") == 0)
 					{
@@ -5875,7 +5937,6 @@ static QByteArray detectEncoding(const QByteArray& text)
 					//	}
 					//}
 				}
-		#endif
 			}
 		}
 
@@ -5895,12 +5956,12 @@ static QByteArray detectEncoding(const QByteArray& text)
 
 		wxString tempSelectedFullPath = fileDlg.GetPath();
 
-		//// Since we used wxWidget's file dialog, wxWidgets' doc/view
-		//// assumes that this file is the one to add to its wxFileHistory (MRU)
-		//// list. However, it is not what we want since it is not a document 
-		//// file. Hence we need to remove it from the file history.
+		// Since we used wxWidget's file dialog, wxWidgets' doc/view
+		// assumes that this file is the one to add to its wxFileHistory (MRU)
+		// list. However, it is not what we want since it is not a document 
+		// file. Hence we need to remove it from the file history.
 		//wxFileHistory* fileHistory = gpApp->m_pDocManager->GetFileHistory();
-		//// Check we don't already have this file
+		// Check we don't already have this file
 		//for (int i = 0; i < (int)fileHistory->GetHistoryFilesCount(); i++)
 		//{
 		//	wxString temp = fileHistory->GetHistoryFile(i); // for debug tracing only
