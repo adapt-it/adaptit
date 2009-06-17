@@ -1,7 +1,26 @@
-Version 4.1.6 update 30Jun2009:
+Version 5.0.0 update 31July2009:
 ----------------------------------------------
-Feature changes and new features in 4.1.6
+Feature changes and new features in 5.0.0
 ----------------------------------------------
+* Adapt It's display and interface has eliminated the "bundle"
+concept and now handles whole files as a unit.
+* Scrolling can now accomplished from beginning to the end of
+a large document without the need to "Step Up" or "Step Down"
+through the document.
+* The performance while adapting long (book-length) documents 
+has been improved.
+* The "Step Up" and "Step Down" toolbar buttons now act to
+move through a document chapter-by-chapter.
+* The phrase box is now positioned more intelligently on the
+display and the display's automatic scrolling is more helpful
+in keeping automatically inserted adaptations in view.
+* Find and Replace functions have been revised and improved
+and the display no longer displays separate pairs of source 
+and target text lines (punctuated and non-punctuated) during 
+Find and Replace operations.
+* [TODO: Bruce fill in other features done in refactoring]
+*
+*
 * Adapt It now can process an -wf <path> command-line option, 
 where <path> is the path to a folder to be used as Adapt It's
 work folder. When this command-line option is used the <path>
@@ -41,9 +60,14 @@ existing "Adapt It (Unicode) Work" folder to the new custom
 work folder and Adapt It will just "see" them there at the 
 custom specified <path> and all other previous program 
 behaviors do not change.
+* Adapt It now detects if a user of the Regular (non-Unicode)
+version tries to input a new text for adaptation which is a 
+Unicode encoded file, and aborts the input and informs the
+user that the Unicode version of Adapt It must be used to
+input and process Unicode files.
 
 ----------------------------------------------
-Bug fixes in 4.1.6
+Bug fixes in 5.0.0
 ----------------------------------------------
 * Fixed a bug that might prevent a font color change from
 being registered correctly.
@@ -53,9 +77,24 @@ This involved the check box that gives the option to:
 "Turn OFF periodic automatic saving of the document and 
 knowledge base". Now the application will remember the 
 check box selection.
-* The Unicode version now detects when a non-Unicode input
-text is used, and attempts to determine its encoding when
-converting to Unicode. 
+* The Unicode version now detects when the user attempts to
+input a non-Unicode text ias a new source text. Adapt It
+attempts to determine its encoding and convert the input
+file to Unicode. As in the legacy version of Adapt It, the
+conversion may not work completely if the text contains 
+glyphs from a hacked 8-bit font that utilize point values 
+above 127. 
+* Fixed the ALT+RightArrow hot key when in the Choose
+Translation dialog so that it now executes a "Cancel and
+Select" operation in which the dialog closes and Adapt It
+extends the selection one pile to the right.
+* Fixed the operation of the radio buttons and edit box
+next to the middle radio button in the Consistency Check
+Dialog. Clicking in the edit box now automatically 
+selects the associated radio button. Also, if the user
+clicks in the edit box and starts typing the associated
+radio button gets automatically selected if it wasn't
+selected already.
 
 Version 4.1.5 update 31May2009:
 ----------------------------------------------
