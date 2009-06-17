@@ -5009,7 +5009,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_FIND, _("Search in the lines which retain punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_FIND, _("Search, retaining target text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Search lines that include punctuation") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -5208,7 +5208,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_REPLACE, _("Search in the lines which retain punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_REPLACE, _("Search, retaining target text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Search lines that include punctuation") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 

@@ -13292,7 +13292,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				pMergedSrcPhr->m_targetStr = targetStr;
 				pMergedSrcPhr->m_gloss = gloss;
 				adaption = targetStr;
-				pView->RemovePunctuation(this,&adaption,1 /* use target punctuation */);
+				pView->RemovePunctuation(this,&adaption,from_target_text);
 				pMergedSrcPhr->m_adaption = adaption;
 
 				// now insert our rebuilt merged sourcephrase preceding the old one

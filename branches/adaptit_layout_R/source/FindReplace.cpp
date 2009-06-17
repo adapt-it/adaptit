@@ -279,7 +279,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	wxASSERT(m_pSpecialSearches != NULL);
 	m_pSpecialSearches->Hide();
 
-	// if glossing is ON, the "Search in the lines which retain punctuation" and
+	// if glossing is ON, the "Search, retaining target text's punctuation" and
 	// "Allow the search to occur in the text spanning multiple piles" have to be
 	// hidden; since merging is not permitted and only the gloss line can be accessed
 	// as the 'target'
@@ -636,6 +636,7 @@ void CFindDlg::DoFindNext()
 	{
 		m_nCount = 0; // none matched
 		gbFound = FALSE;
+		pView->FindNextHasLanded(gpApp->m_nActiveSequNum,FALSE); // show old active location
 
 		Update();
 		::wxBell();
@@ -970,7 +971,8 @@ void CFindDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	Destroy();
 
 	gbFindIsCurrent = FALSE;
-
+	gbJustReplaced = FALSE; // clear to default value 
+/* remove this convoluted mess, the cleanup should be the same whether replaced or not
 	if (gbJustReplaced)
 	{
 		// we have cancelled just after a replacement, so we expect the phrase box to exist
@@ -1042,115 +1044,8 @@ a:			CCell* pCell = 0;
 					// if all else fails, go to the start
 					gpApp->m_nActiveSequNum = 0;
 				}
-				pPile = pView->GetPile(gpApp->m_nActiveSequNum);
-			}
-
-			// preserve enough information to be able to recreate the appropriate selection
-			// since placing the phrase box will clobber the current selection
-			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-			int nCount = 0;
-			if (!gpApp->m_selection.IsEmpty())
-			{
-				nCount = gpApp->m_selection.GetCount();
-				wxASSERT(nCount >0);
-			}
-			int nSaveSelSequNum = pSrcPhrase->m_nSequNumber; // if in a retrans, 
-										// selection will not be where phrase box ends up
-
-            // pPile is what we will use for the active pile, so set everything up there,
-            // provided it is not in a retranslation - if it is, place the box preceding
-            // it, if possible; but if glossing is ON, we can have the box within a
-            // retranslation in which case ignore the block of code
-			CPile* pSavePile = pPile;
-			if (!gbIsGlossing)
-			{
-				while (pSrcPhrase->m_bRetranslation)
-				{
-					pPile = pView->GetPrevPile(pPile);
-					if (pPile == NULL)
-					{
-						// if we get to the start, try again, going the other way
-						pPile = pSavePile;
-						while (pSrcPhrase->m_bRetranslation)
-						{
-							pPile = pView->GetNextPile(pPile);
-							wxASSERT(pPile != NULL); // we'll assume this will never fail
-							pSrcPhrase = pPile->GetSrcPhrase();
-						}
-						break;
-					}
-					pSrcPhrase = pPile->GetSrcPhrase();
-				}
-			}
-			pSrcPhrase = pPile->GetSrcPhrase();
-			gpApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
-			gpApp->m_pActivePile = pPile;
-			//pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box
-			pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
-			//gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
-
-			// scroll into view, just in case (but shouldn't be needed)
-			gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);
-
-			// place the phrase box
-			gbJustCancelled = TRUE;
-			pView->PlacePhraseBox(pCell,2);
-
-			// get a new active pile pointer, the PlacePhraseBox call did a recal 
-			// of the layout
-			gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-			wxASSERT(gpApp->m_pActivePile != NULL);
-
-            // get a new pointer to the pile at the start of the selection, since the
-            // recalc also clobbered the old one
-			CPile* pSelPile = pView->GetPile(nSaveSelSequNum);
-			wxASSERT(pSelPile != NULL);
-
-			pView->Invalidate(); // get window redrawn
-
-			// restore focus to the targetBox
-			if (gpApp->m_pTargetBox != NULL)
-			{
-				if (gpApp->m_pTargetBox->IsShown())
-				{
-					gpApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
-					gpApp->m_pTargetBox->SetFocus();
-				}
-			}
-
-			// recreate the selection to be in line 1, hence ignoring boundary flags
-			//CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
-			CCell* pAnchorCell = pSelPile->GetCell(0); // top cell, ie. line 1
-            // whm 21Sep08 modified if test below: I added && pAnchorCell != NULL to avoid
-            // crash if user switches from 4-line to 2-line (using toolbar buttons) then
-            // cancels out. pAnchorCell can be null in such cases, and both MFC and wx
-            // applications can crash in such situations.
-			if (nCount > 0 && pAnchorCell != NULL)
-			{
-				gpApp->m_pAnchor = pAnchorCell;
-				CCellList* pSelection = &gpApp->m_selection;
-				wxASSERT(pSelection->IsEmpty());
-				gpApp->m_selectionLine = 0;
-				wxClientDC aDC(gpApp->GetMainFrame()->canvas); // make a device context
-
-				// then do the new selection, start with the anchor cell
-
-				aDC.SetBackgroundMode(gpApp->m_backgroundMode);
-				aDC.SetTextBackground(wxColour(255,255,0)); // yellow
-				pAnchorCell->DrawCell(&aDC, gpApp->m_pLayout->GetSrcColor());
-				gpApp->m_bSelectByArrowKey = FALSE;
-				pAnchorCell->SetSelected(TRUE);
-
-				// preserve record of the selection
-				pSelection->Append(pAnchorCell);
-
-				// extend the selection to the right, if more than one pile is involved
-				if (nCount > 1)
-				{
-					// extend the selection (shouldn't be called when glossing is ON
-					// because we inhibit matching across piles in that circumstance)
-					pView->ExtendSelectionForFind(pAnchorCell,nCount);
-				}
+				gbJustCancelled = TRUE;
+				pView->FindNextHasLanded(gpApp->m_nActiveSequNum);
 			}
 		//}
 		//else
@@ -1166,6 +1061,28 @@ a:			CCell* pCell = 0;
 		//	}
 		//}
 	}
+*/
+	// no selection, so find another way to define active location 
+	// & place the phrase box
+	int nCurSequNum = gpApp->m_nActiveSequNum;
+	if (nCurSequNum == -1)
+	{
+		nCurSequNum = gpApp->GetMaxIndex(); // make active loc the last 
+											// src phrase in the doc
+		gpApp->m_nActiveSequNum = nCurSequNum;
+	}
+	else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->GetMaxIndex())
+	{
+		gpApp->m_nActiveSequNum = nCurSequNum;
+	}
+	else
+	{
+		// if all else fails, go to the start
+		gpApp->m_nActiveSequNum = 0;
+	}
+	gbJustCancelled = TRUE;
+	pView->FindNextHasLanded(gpApp->m_nActiveSequNum, FALSE); // FALSE means
+			// "don't suppress the extension of the selection, (if relevant)"
 
 	gbFindOrReplaceCurrent = FALSE; // turn it back off
 
@@ -1221,6 +1138,8 @@ BEGIN_EVENT_TABLE(CReplaceDlg, wxDialog)
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_ONLY_REPLACE, CReplaceDlg::OnRadioSrcOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_TGT_ONLY_REPLACE, CReplaceDlg::OnRadioTgtOnly)
 	EVT_RADIOBUTTON(IDC_RADIO_SRC_AND_TGT_REPLACE, CReplaceDlg::OnRadioSrcAndTgt)
+	EVT_CHECKBOX(IDC_CHECK_SPAN_SRC_PHRASES_REPLACE, CReplaceDlg::OnSpanCheckBoxChanged)
+	EVT_UPDATE_UI(IDC_REPLACE_ALL_BUTTON, CReplaceDlg::UpdateReplaceAllButton)
 END_EVENT_TABLE()
 
 CReplaceDlg::CReplaceDlg()
@@ -1349,7 +1268,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	m_pRadioSrcTextOnly->Enable(FALSE);
 
 
-	// if glossing is ON, the "Search in the lines which retain punctuation" and
+	// if glossing is ON, the "Search, retaining target text punctuation" and
 	// "Allow the search to occur in the text spanning multiple piles" have to be
 	// hidden; since merging is not permitted and only the gloss line can be accessed
 	// as the 'target'
@@ -1625,9 +1544,50 @@ void CReplaceDlg::DoFindNext()
 		
 		wxASSERT(m_pButtonReplaceAll != NULL);
 		m_pButtonReplaceAll->Enable(FALSE);
+		pView->FindNextHasLanded(gpApp->m_nActiveSequNum,FALSE); // show old active location
 		
 		Update();
 		::wxBell();
+	}
+}
+
+void CReplaceDlg::OnSpanCheckBoxChanged(wxCommandEvent& WXUNUSED(event))
+{
+	bool bCheckboxValue = m_pCheckSpanSrcPhrases->GetValue();
+	if (bCheckboxValue)
+	{
+		// the user has requested matching be attempted across multiple piles, so in order
+		// to ensure the user can see and adjust what is done before the next Find Next is
+		// done, we suppress the Replace All option by disabling the button for it,
+		// because Replace All, in order to work, must do an OnFindNext() after each
+		// OnReplace() has been done. Note: we don't place with the gbReplaceAllIsCurrent
+		// flag, it is unnecessary to do so because it is set only in the Replace All
+		// button's handler, so disabling the button suffices.
+		m_bSpanSrcPhrases = TRUE;
+		m_pCheckSpanSrcPhrases->SetValue(TRUE);
+		m_pButtonReplaceAll->Enable(FALSE);
+	}
+	else
+	{
+		// the user has just unchecked the box for matching across piles, so re-enable the
+		// Replace All button
+		m_bSpanSrcPhrases = FALSE;
+		m_pCheckSpanSrcPhrases->SetValue(FALSE);
+		m_pButtonReplaceAll->Enable();
+	}
+}
+
+void CReplaceDlg::UpdateReplaceAllButton(wxUpdateUIEvent& event)
+{
+	if (m_bSpanSrcPhrases)
+	{
+		// keep the Replace All button disabled
+		event.Enable(FALSE);
+	}
+	else
+	{
+		// keep the Replace All button enabled
+		event.Enable(TRUE);
 	}
 }
 
@@ -1740,15 +1700,31 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 		return;
 	}
 	
-	// let everyone know that a replace was just done (this will have put phrase box at
-	// the active location in order to make the replacement, so the view state will not
-	// be the same if OnCancel is called next, cf. if the latter was called after a
-	// Find which matched something & user did not replace - in the latter case the phrase
-	// box will have been destroyed and the view will only show a selection at the active loc.
+    // let everyone know that a replace was just done (this will have put phrase box at the
+    // active location in order to make the replacement, so the view state will not be the
+    // same if OnCancel is called next, cf. if the latter was called after a Find which
+    // matched something & user did not replace - in the latter case the phrase box will
+    // have been destroyed and the view will only show a selection at the active loc.
 	gbJustReplaced = TRUE;
 
-	// a replace must be followed by an attempt to find next match, so do it
-	OnFindNext(event);
+    // BEW changed 17Jun09, because having an automatic OnFindNext() call after a
+    // replacment means that the user gets no chance to see and verify that what has
+    // happened is actually what he wanted to happen. We aren't dealing with connected
+    // text, so the protocols for that scenario don't apply here; the discrete
+    // CSourcePhrase break up of the original text, and the need to ensure that
+    // associations between source & target going into the KB are valid associations,
+    // requires that the user be able to make a visual check and press Find Next button
+    // again only after he's satisfied and/or fixed it up to be as he wants after the
+    // replacement has been made; however, a Replace All button press (we allow it only if
+    // not matching across multiple piles) must be allowed to work - so we allow it in that
+    // circumstance
+    // 
+	// a replace must be followed by an attempt to find next match, so do it (see comment
+	// above)
+	if (gbReplaceAllIsCurrent)
+	{
+		OnFindNext(event);
+	}
 }
 
 void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event) 

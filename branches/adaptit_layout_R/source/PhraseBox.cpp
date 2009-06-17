@@ -497,7 +497,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 		// for version 1.4.0 and onwards, we have to permit the construction of the punctuated 
 		// target string; for auto caps support, we may have to change to UC here too
 		wxString str1 = pApp->m_targetPhrase;
-		pView->RemovePunctuation(pDoc,&str1,from_target_text); // 1 means "from target text"
+		pView->RemovePunctuation(pDoc,&str1,from_target_text);
 		if (gbAutoCaps)
 		{
 			bool bNoError = pView->SetCaseParameters(pSP->m_key);
@@ -596,7 +596,7 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	if (!gbIsGlossing)
 	{
 		pView->MakeLineFourString(pOldActiveSrcPhrase, pApp->m_targetPhrase);
-		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text); //  1 means "from tgt"
+		pView->RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 	}
 	if (gbIsGlossing)
 	{

@@ -3243,7 +3243,7 @@ bool CAdapt_ItView::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targ
 			pApp->m_pActivePile->GetSrcPhrase()->m_adaption = targetPhrase;
 		// re-express the punctuation
 		MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
-		RemovePunctuation(pDoc, &targetPhrase, 1); // from the target text
+		RemovePunctuation(pDoc, &targetPhrase, from_target_text);
 
 		// the store will fail if the user edited the entry out of the KB, as the latter
 		// cannot know which srcPhrases will be affected, so these will still have their
@@ -3527,6 +3527,140 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSou
 		pActivePile->SetPhraseBoxGapWidth(); // also sets CLayout::m_curBoxWidth to same value
 											 // that it sets in the active pile's m_nWidth member
 	} // end of block for lookup, merger, and failure to find a KB entry
+}
+
+// Returns nothing. 
+// This function is called when a match has been made for a Find button click, also when
+// no match is possible or user cancels out of the Find operation. The idea is to place
+// the phrase box at the start of the match (the user may have stipulated that the match
+// be for more than one word and across piles), and the source text selected there, and
+// the PlacePhraseBox() call made, followed by ScrollIntoView() in order to give the user
+// all options for what to do next. If several words were selected at the take off
+// location, then the match should be for the same number of words at the landing location
+// and the selection is set up accordingly as possible. A complication is when the matched
+// text is within a retranslation - in this circumstance we select the matched text as
+// before, but the active location is moved to be "safe" which in this circumstance means
+// immediately before the retranslation. In the case of matching source text, the
+// selection is normal yellow background. In the case of matching target text, we'll do
+// similarly and no try to be smart, and just select all of the phrase box contents - even
+// if only part of the text was matched.
+void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSelectionExtension)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CPile* pPile = NULL;
+	if (nLandingLocSequNum == -1)
+	{
+		// should never be called with a value of -1 passed in, but if so, just do nothing
+		return; 
+	}
+	pPile = GetPile(nLandingLocSequNum);
+
+	// preserve enough information to be able to recreate the appropriate selection
+	// since placing the phrase box will clobber the earlier selection at last landing
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	int nCount = 0;
+	if (!pApp->m_selection.IsEmpty())
+	{
+		nCount = pApp->m_selection.GetCount();
+		wxASSERT(nCount > 0);
+	}
+	int nSaveSelSequNum = pSrcPhrase->m_nSequNumber; // if in a retrans, 
+								// selection will not be where phrase box ends up
+
+    // pPile is what we will use for the active pile, so set everything up there,
+    // provided it is not in a retranslation - if it is, place the box preceding
+    // it, if possible; but if glossing is ON, we can have the box within a
+    // retranslation in which case ignore the block of code
+	CPile* pSavePile = pPile;
+	if (!gbIsGlossing)
+	{
+		while (pSrcPhrase->m_bRetranslation)
+		{
+			pPile = GetPrevPile(pPile);
+			if (pPile == NULL)
+			{
+				// if we get to the start, try again, going the other way
+				pPile = pSavePile;
+				while (pSrcPhrase->m_bRetranslation)
+				{
+					pPile = GetNextPile(pPile);
+					wxASSERT(pPile != NULL); // we'll assume this will never fail
+					pSrcPhrase = pPile->GetSrcPhrase();
+				}
+				break;
+			}
+			pSrcPhrase = pPile->GetSrcPhrase();
+		}
+	}
+	pSrcPhrase = pPile->GetSrcPhrase();
+	pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber; // what we finally will use
+	pApp->m_pActivePile = pPile;
+	CCell* pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
+
+	// place the phrase box
+	PlacePhraseBox(pCell,2);
+
+	// get a new active pile pointer, the PlacePhraseBox call did a recal 
+	// of the layout
+	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	wxASSERT(pApp->m_pActivePile != NULL);
+
+	// scroll into view, just in case (but shouldn't be needed) BEW 16Jun09
+	// moved this to be after the recalc of the layout, pointless to do it before
+	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+
+    // get a new pointer to the pile at the start of the selection, since the
+	// recalc also clobbered the old one -- this selection could possibly be removed from
+	// the active location if the original landing place was in a retranslation, if it
+	// wasn't in a retranslation, it should be starting from the active location
+	CPile* pSelPile = GetPile(nSaveSelSequNum);
+	wxASSERT(pSelPile != NULL);
+
+	Invalidate(); // get the view window redrawn, and the phrase box
+
+	// restore focus to the targetBox
+	if (pApp->m_pTargetBox != NULL)
+	{
+		if (pApp->m_pTargetBox->IsShown())
+		{
+			pApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
+			pApp->m_pTargetBox->SetFocus();
+		}
+	}
+
+	// recreate the selection to be in top line; we suppress this in places where another
+	// external function called after this one returns will do this job for us
+	if (!bSuppressSelectionExtension)
+	{
+		CCell* pAnchorCell = pSelPile->GetCell(0);
+		if (nCount > 0 && pAnchorCell != NULL)
+		{
+			pApp->m_pAnchor = pAnchorCell;
+			CCellList* pSelection = &pApp->m_selection;
+			wxASSERT(pSelection->IsEmpty());
+			pApp->m_selectionLine = 0;
+			wxClientDC aDC(pApp->GetMainFrame()->canvas); // make a device context
+
+			// then do the new selection, start with the anchor cell
+
+			aDC.SetBackgroundMode(pApp->m_backgroundMode);
+			aDC.SetTextBackground(wxColour(255,255,0)); // yellow
+			pAnchorCell->DrawCell(&aDC, pApp->m_pLayout->GetSrcColor());
+			pApp->m_bSelectByArrowKey = FALSE;
+			pAnchorCell->SetSelected(TRUE);
+
+			// preserve record of the selection
+			pSelection->Append(pAnchorCell);
+
+			// extend the selection to the right, if more than one pile is involved
+			if (nCount > 1)
+			{
+				// extend the selection (shouldn't be called when glossing is ON
+				// because we inhibit matching across piles in that circumstance)
+				ExtendSelectionForFind(pAnchorCell,nCount);
+			}
+		}
+	}
 }
 
 // PlacePhraseBox() selector values: used for inhibiting one or both of two blocks of code.
@@ -4277,7 +4411,7 @@ void CAdapt_ItView::PlacePhraseBox(const CCell *pCell, int selector)
 					pApp->m_pActivePile->m_pSrcPhrase->m_adaption = pApp->m_targetPhrase;
 					MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);	// punctuation is
 																									// re-expressed
-					RemovePunctuation(pDoc,&pApp->m_targetPhrase, 1); // from the target text
+					RemovePunctuation(pDoc,&pApp->m_targetPhrase, from_target_text); // from the target text
 
 					// the store will fail if the user edited the entry out of the KB, as the latter
 					// cannot know which srcPhrases will be affected, so these will still have their
@@ -13243,7 +13377,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			if (!pApp->m_pTargetBox->m_bAbandonable || !gbByCopyOnly)
 			{
 				MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
-				RemovePunctuation(pDoc, &pApp->m_targetPhrase, 1); // 1 means "from target text"
+				RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
 
                 // the store will fail if the user edited the entry out of the KB, as the
                 // latter cannot know which srcPhrases will be affected, so these will
@@ -13354,7 +13488,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// set the global strings, in case they are wanted (eg. in a Find & Replace they may be used)
 	gOldConcatStr = strOldAdaptation;
 	gOldConcatStrNoPunct = strOldAdaptation;
-	RemovePunctuation(pDoc, &gOldConcatStrNoPunct, 1); // 1 means "from target text"
+	RemovePunctuation(pDoc, &gOldConcatStrNoPunct, from_target_text);
 
 	// check for a retranslation in the selection, and abort the merge operation if there is one
 	if (IsRetranslationInSelection(pList))
@@ -17302,7 +17436,7 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 
 			// we are about to leave the current phrase box location, so we must try to store
 			// what is now in the box, if the relevant flags allow it
-			RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text); // 1 means "from target text"
+			RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bool bOK;
 			bOK = StoreText(pApp->m_pKB, pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
@@ -17486,7 +17620,7 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 
 			// we are about to leave the current phrase box location, so we must try to store
 			// what is now in the box, if the relevant flags allow it
-			RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text); // 1 means "from target text"
+			RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bool bOK;
 			bOK = StoreText(pApp->m_pKB, pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
@@ -20138,8 +20272,8 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 			wxString strCurAdaption = pSrcPhrase->m_adaption;
 			wxString strKey(strCurKey);
 			wxString strAdaption(strCurAdaption);
-			RemovePunctuation(pDoc,&strKey,0); // 0 means "from source text"
-			RemovePunctuation(pDoc,&strAdaption,1); // 1 means "from target text"
+			RemovePunctuation(pDoc,&strKey,from_source_text);
+			RemovePunctuation(pDoc,&strAdaption,from_target_text);
 			if (strKey != strCurKey)
 				bKeyHasPunct = TRUE;
 			if (strAdaption != strCurAdaption)
@@ -21246,12 +21380,12 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 					{
 						if (!gbIsGlossing)
 						{
-							RemovePunctuation(pDoc,&tempStr,1 /*from tgt*/); // don't want
-							// punctuation in adaptation KB
-							// if autocapitalization is ON, we could have an upper case source, but
-							// the user may have typed lower case for fixing the gloss or adaptation,
-							// but this is okay - the store will work right, so don't need anything
-							// here except the call to store it
+							RemovePunctuation(pDoc,&tempStr,from_target_text); // we don't want
+								// punctuation in adaptation KB if autocapitalization is ON, we
+								// could have an upper case source, but the user may have typed
+								// lower case for fixing the gloss or adaptation, but this is
+								// okay - the store will work right, so don't need anything
+								// here except the call to store it
 							StoreText(pKB,pSrcPhrase,tempStr);
 						}
 						// do the gbIsGlossing case when no punct is to be removed, in next block
@@ -21338,7 +21472,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 								wxString str = pAFRecord->finalAdaptation;
 								// make a copy and remove punctuation from it
 								wxString str_nopunct = str;
-								RemovePunctuation(pDoc,&str_nopunct,from_target_text); // 1 means from tgt
+								RemovePunctuation(pDoc,&str_nopunct,from_target_text);
 								// use the punctuation-less string to get the initial charact and
 								// its upper case equivalent if it exists
 								bool bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE means
@@ -21509,7 +21643,7 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 						// if the adaptation is null, then assume user wants it that way and so store
 						// an empty string; but if user wants the inconsistency ignored, then skip
 						wxString tempStr = dlg.m_finalAdaptation; // remove punctuation from this one
-						RemovePunctuation(pDoc,&tempStr,from_target_text); // 1 = removing from tgt text
+						RemovePunctuation(pDoc,&tempStr,from_target_text);
 						if (gbIgnoreIt)
 						{
 							// if the user hit the "Ignore it, I will fix it later" button,
@@ -21572,8 +21706,7 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 									// if Auto Caps is on, gloss text can be auto 
 									// capitalized too... check it out
 									wxString str_nopunct = finalStr;
-									RemovePunctuation(pDoc,&str_nopunct,from_target_text); // 1 means
-															// "from the target text"
+									RemovePunctuation(pDoc,&str_nopunct,from_target_text);
 									bool bNoError = SetCaseParameters(str_nopunct,FALSE); // FALSE
 															// means "using target punct list"
 									wxString strInitialPunct = SpanIncluding(finalStr,pApp->m_punctuation[1]);
@@ -22247,10 +22380,8 @@ void CAdapt_ItView::BuildRetranslationSourcePhraseInstances(SPList* pRetransList
 			// copy the text across (these "source phrases" actually contain target text in the
 			// attributes which otherwise would hold source text, due to the use of TokenizeText
 			// for parsing what the user typed)
-			pSrcPhrase->m_targetStr = pIncompleteSrcPhrase->m_srcPhrase; // the text with
-																		  // punctuation
-			RemovePunctuation(pDoc,&pIncompleteSrcPhrase->m_key,from_target_text); // 1 means "from target text",
-										// make the call to ensure there is no punctuation in it
+			pSrcPhrase->m_targetStr = pIncompleteSrcPhrase->m_srcPhrase; //with punctuation
+			RemovePunctuation(pDoc,&pIncompleteSrcPhrase->m_key,from_target_text);
 			pSrcPhrase->m_adaption = pIncompleteSrcPhrase->m_key;
             // copy over any punctuation (but don't touch markers - if user typed any, just
             // ignore them) the punctuation is, of course, already on the m_targetStr
@@ -22850,7 +22981,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		// the active location is not within the retranslation section, so update before
 		// throwing it all out
 		MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-		RemovePunctuation(pDoc,&pApp->m_targetPhrase,1 /*from tgt*/);
+		RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
@@ -23582,7 +23713,7 @@ h:				wxMessageBox(_(
             // the active location is not within the retranslation section, so update
             // before throwing it all out
 			MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-			RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text); // 1 means "from target text"
+			RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 			if (!pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
 				gbInhibitLine4StrCall = TRUE;
@@ -26302,6 +26433,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 	}
 	else
 	{
+		// not a special search, just a normal one
 		bool bFound;
 		bool bInSrc = TRUE;
 
@@ -26356,6 +26488,8 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		else
 		{
 			// found a matching string, in the srcPhrase with sequ num nSequNum
+			FindNextHasLanded(nSequNum); // bSuppressSelectionExtention is default TRUE
+										 // because SelectFoundSrcPhrases() will do the job
 			SelectFoundSrcPhrases(nSequNum,nCount,bIncludePunct,bInSrc);
 			return TRUE;
 		}
@@ -27300,7 +27434,7 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		srcCopy = src; // for caseless matching
 		//searchCopy; // for caseless searching in it // ??? same in MFC
 		srcNoPunct = src; // make a copy from which we can remove punctuation
-		RemovePunctuation(pDoc,&srcNoPunct,0 /*from src*/);
+		RemovePunctuation(pDoc,&srcNoPunct,from_source_text);
 		if (bIgnoreCase)
 		{
 			srcCopy.MakeLower();
@@ -27533,12 +27667,11 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		// do the search, confining attempts to match the text within
 		// a single CSourcePhrase instance
 c:		nFound = -1; // assume not found
-		tgtCopy = tgt; // for caseless matching (tgt would contain search string for finding
-					   // within glosses if glossing is ON)
-		//searchCopy; // for caseless searching in it // ??? same in MFC
+		tgtCopy = tgt; // for caseless matching (tgt would contain search string
+					   // for finding within glosses if glossing is ON)
 		tgtNoPunct = tgt; // make a copy from which we can remove punctuation
 		if (!gbIsGlossing)
-			RemovePunctuation(pDoc,&tgtNoPunct,1 /*from tgt*/);
+			RemovePunctuation(pDoc,&tgtNoPunct,from_target_text);
 		if (bIgnoreCase)
 		{
 			tgtCopy.MakeLower();
@@ -28039,10 +28172,10 @@ e:		while (pos != NULL)
 		tgtCopy = tgt;
 		//searchStr; // ??? same in MFC
 		srcNoPunct = src; // make a copy from which we can remove punctuation
-		RemovePunctuation(pDoc,&srcNoPunct,0 /*from src*/); // independent of gbIsGlossing
+		RemovePunctuation(pDoc,&srcNoPunct,from_source_text); // independent of gbIsGlossing
 		wxString tgtNoPunct = tgt; // make a copy from which we can remove punctuation
 		if (!gbIsGlossing)
-			RemovePunctuation(pDoc,&tgtNoPunct,1 /*from tgt*/);
+			RemovePunctuation(pDoc,&tgtNoPunct,from_target_text);
 		if (bIgnoreCase)
 		{
 			srcCopy.MakeLower();
@@ -28371,7 +28504,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 
 	wxString tgtNoPunct = tgt;
 	if (!gbIsGlossing)
-		RemovePunctuation(pDoc,&tgtNoPunct,1 /*from tgt*/);
+		RemovePunctuation(pDoc,&tgtNoPunct,from_target_text);
 	wxString oldTgtNoPunct;
 	oldTgtNoPunct.Empty();
 	wxString oldTgt;
@@ -36937,11 +37070,9 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
 				}
 				else // is adapting
 				{
-					//pApp->m_pActivePile->m_pSrcPhrase->m_adaption = pApp->m_targetPhrase;
-					//
 					MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase); // punctuation is 
 																								  // re-expressed
-					RemovePunctuation(pDoc,&pApp->m_targetPhrase, 1 /*from tgt*/);
+					RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
 					// see above for why we do this
 					CRefString* pRefStr = GetRefString(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
