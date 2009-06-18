@@ -38470,11 +38470,15 @@ bailout:	pAdaptList->Clear();
         // than one, we just assume the user got them right - he can edit again if he
         // didn't).
 
-
 		gpFollSrcPhrase = NULL; // a global CSourcePhrase*
-		int nFollowingSequNum = pRec->nEndingSequNum + 1;
-		SPList::Node* posFoll = pSrcPhrases->Item(nFollowingSequNum); // returns NULL if 
-																	  // out of bounds
+		int nFollowingSequNum = pRec->nEndingSequNum + 1; // could be beyond end of doc!
+		SPList::Node* posFoll = NULL; // use this value if beyond end of doc
+		int maxIndex = pSrcPhrases->GetCount() - 1;
+		if (nFollowingSequNum <= maxIndex)
+		{
+			// we are in range, so a following CSourcePhrase instance exists, else use NULL
+			posFoll = pSrcPhrases->Item(nFollowingSequNum);
+		}
 		if (posFoll != NULL)
 		{
 			// we are not at the end of the document, so there is following context
@@ -38519,18 +38523,22 @@ bailout:	pAdaptList->Clear();
 		// uses it internally
 
 		// now get the preceding CSourcePhrase's pointer (ie. preceding the editable span),
-		// it could be NULL
+		// it could be NULL if we edited right at the start of the doc
 		gpPrecSrcPhrase = NULL; // a global CSourcePhrase*
-		int nPrecedingSequNum = pRec->nStartingSequNum - 1;
-		SPList::Node* posPrec = pSrcPhrases->Item(nPrecedingSequNum); // returns NULL 
-																	  // if out of bounds
+		int nPrecedingSequNum = pRec->nStartingSequNum - 1; // could be -ve!
+		SPList::Node* posPrec = NULL; // the value if there is no preceding context
+		if (nPrecedingSequNum >= 0)
+		{
+			// there is preceding context, so set the iterator
+			posPrec = pSrcPhrases->Item(nPrecedingSequNum);
+		}
 		if (posPrec != NULL)
 		{
-			// we are not at the start of the document, so there is preceding context
+			// we are not at the start of the document, and there is preceding context
 			gpPrecSrcPhrase = posPrec->GetData();
 		}
 		// note, we must set gpPrecSrcPhrase because our later DoMarkerHousekeeping() call
-		// uses it internally
+		// uses it internally; but it is left NULL if there is no preceding context
 
         // the first document modification is to remove any final endmarkers from the first
         // CSourcePhrase instance, if any are actually there, of the following context --

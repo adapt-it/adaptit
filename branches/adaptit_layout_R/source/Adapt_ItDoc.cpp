@@ -3831,6 +3831,12 @@ void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
 /// should be called immediately after a newly created CSourcePhrase has just been inserted
 /// into the app's m_pSourcePhrases list - so that the so that the strip where the changes
 /// happened can be marked as "invalid".
+/// Note: take care when CSourcePhrase(s) are appended to the end of the m_pSourcePhrases
+/// list, because Creating the partner piles cannot handle discontinuities in the sequence
+/// of piles in PileList. So, iterate from left to right over the new pSrcPhrase at the
+/// list end, so that each CreatePartnerPile call is creating the CPile instance which is
+/// next to be appended to PileList. We test for non-compliance with this rule and abort
+/// the application if it happens, because to continue would inevitably lead to an app crash.
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 {
@@ -3842,45 +3848,76 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 	CPile* aPilePtr = NULL;
 	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
 	PileList* pPiles = pLayout->GetPileList();
-	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond  
-												   // the end of m_pileList
-	CPile* pNewPile = GetLayout()->CreatePile(pSrcPhrase); // initializes, sets m_nWidth 
-														   // and m_nMinWidth etc
-	if (posPile != NULL)
+
+	// if the pSrcPhrase is one added to the end of the document, there won't be any
+	// existing pile pointers in the PileList with indices that large, so check for this
+	// because an Item(index) call with an index out of range will crash the app, it
+	// doesn't return a NULL which is what I erroneously though would happen
+	PileList::Node* posPile = NULL;
+	int lastPileIndex = pLayout->GetPileList()->GetCount() - 1;
+	bool bAppending = FALSE;
+	if (index > lastPileIndex + 1)
 	{
-		// inserting or appending a new partner pile's pointer in the CLayout::m_pileList
-		// does not get it also inserted in the CLayout::m_stripArray, and so the laid out
-		// strips don't know of it. However, we can work out which strip it would be
-		// inserted within, or thereabouts, and mark that strip as invalid and put its
-		// index into CLayout::m_invalidStripArray. The inventory of invalid strips does
-		// not have to be 100% reliable - they are approximate indicators where the layout
-		// needs to be tweaked, which is all we need
-		// Therefore, use the current pPile pointer in the m_pileList at index, and find
-		// which strip that one is in, even though it is not the newly created CPile
+		// we've skipped a pile somehow, this is a fatal error, tell developer and abort
+		wxMessageBox(_T(
+		"Ouch! CreatePartnerPile() has skipped a pSrcPhrase added to doc end, or they creations are not being done in left to right sequence. Must abort now."),
+		_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+		wxExit();
+	}
+	else if (index == lastPileIndex + 1)
+	{
+		// we are creating the CPile instance which is due to be appended next tp PileList
+		bAppending = TRUE;
+	}
+	else
+	{
+		// if control gets here with bAppending still FALSE, then an insertion is required
+		posPile = pPiles->Item(index);
+	}
+	CPile* pNewPile = pLayout->CreatePile(pSrcPhrase); // creates a detached CPile
+					// instance, initializes it, sets m_nWidth and m_nMinWidth etc
+	if (!bAppending)
+	{
+        // we are inserting a new partner pile's pointer in the CLayout::m_pileList does
+        // not get it also inserted in the CLayout::m_stripArray, and so the laid out
+        // strips don't know of it. However, we can work out which strip it would be
+        // inserted within, or thereabouts, and mark that strip as invalid and put its
+        // index into CLayout::m_invalidStripArray. The inventory of invalid strips does
+        // not have to be 100% reliable - they are approximate indicators where the layout
+        // needs to be tweaked, which is all we need for the RecalcLayout() call later on.
+        // Therefore, use the current pPile pointer in the m_pileList at index, and find
+        // which strip that one is in, even though it is not the newly created CPile
 		aPosition = pPiles->Item(index);
 		aPilePtr = aPosition->GetData();
+		if (aPilePtr != NULL)
+			MarkStripInvalid(aPilePtr); // use aPilePtr to have a good shot at which strip
+                // will receive the newly created pile, and mark it as invalid, and save
+                // its index in CLayout::m_invalidStripArray; nothing is done if
+                // aPilePtr->m_pOwningStrip is NULL
 
         // the indexed location is within the unaugmented CLayout::m_pileList; therefore an
         // insert operation is required; the index posPile value determined by index is the
         // place where the insertion must be done
 		posPile = pPiles->Insert(posPile, pNewPile);
-
 	}
 	else
 	{
-		// determine a nearby pile pointer which already exists, to get at the relevant strip, 
-		// or one nearby...
-		aPosition = pPiles->GetLast();
+		// appending, (see comment in block above for more details), so just mark the last
+		// strip in m_stripArray as invalid, don't call MarkStripInvalid()
+		aPosition = pPiles->GetLast(); // the one after which we will append the new one
 		aPilePtr = aPosition->GetData();
-
-		// posPile returned as NULL implies the CSourcePhrase was appended to the app's
-		// m_pSourcePhrases list; so append the newly created CPile to m_pileList
-		posPile = pPiles->Append(pNewPile); // do this after preceding 2 lines
+		if (aPilePtr != NULL)
+		{
+			// do this manually... just mark the last strip as the invalid one, etc
+			CStrip* pLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
+			pLastStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
+			int nStripIndex = pLastStrip->GetStripIndex();
+			pLayout->GetInvalidStripArray()->Add(nStripIndex); 
+		}
+		// now do the append
+		posPile = pPiles->Append(pNewPile); // do this only after aPilePtr is calculated
 	}
-	if (aPosition != NULL && aPilePtr != NULL)
-		MarkStripInvalid(aPilePtr); // use aPilePtr to have a good shot at which strip will
-									// receive the newly created pile, and mark it as invalid,
-									// and save its index in CLayout::m_invalidStripArray
 }
 
 // return the index in m_pSourcePhrases for the passed in pSrcPhrase
@@ -3946,17 +3983,29 @@ void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
 {
 	CLayout* pLayout = GetLayout();
 	// we can mark a strip invalid only provided it exists; so if calling this in
-	// RecalcLayout() after the strips were destroyed, and beforer they are rebuilt, we'd
+	// RecalcLayout() after the strips were destroyed, and before they are rebuilt, we'd
 	// be trying to access freed memory if we went ahead here without a test for strips
 	// being in existence - so return if the m_stripArray has no contents currently
 	if (pLayout->GetStripArray()->IsEmpty())
 		return;
-	// if control gets to here, there are CStrip pointers stored in m_stripArray, so go
-	// ahead and mark the owning strip invalid
+	// pChangedPile has to have a valid m_pOwningStrip (ie. a non-zero value), which may
+	// not be the case for a set of newly created piles at the end of the document, so for
+	// end-of-document scenarios we will code the caller to just assume the last of the
+	// current strips and not call MarkStripInvalid() at all; but just in case one sneaks
+	// through, test here and if it has a zero m_pOwningStrip value then exit without
+	// doing anything (unfortunately we can't assume it will always be at the doc end)
+	if (pChangedPile->GetStrip() == NULL)
+	{
+		// it's a newly created pile not yet within the current set of strips, so its
+		// m_pOwningStrip member returned was NULL, we shouldn't have called this
+		// function for this pChangedPile pointer, but since we did, we can only return
+		// without doing anything
+		return;
+	}
+    // if control gets to here, there are CStrip pointers stored in m_stripArray, and there
+    // is an owning strip defined, so go ahead and mark the owning strip invalid
 	wxArrayInt* pInvalidStripArray = pLayout->GetInvalidStripArray();
 	CStrip* pStrip = pChangedPile->GetStrip();
-	if (pStrip == NULL)
-		return; 
 	pStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
 	int nStripIndex = pStrip->GetStripIndex();
 	pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
