@@ -17159,9 +17159,9 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, wxFo
 			::wxBell(); 
 			wxASSERT(FALSE);
 		}
-		CBString tempBuff(pbyteBuff);
-		pBuf = gpApp->Convert8to16(tempBuff);
-		//pBuf = wxString::FromAscii(pbyteBuff); 
+		// The wxCSConv class converts between any character sets and Unicode.
+		wxCSConv conv(eEncoding); // construct a converter for eEncoding
+		pBuf = wxString(pbyteBuff, conv); // convert the pbyteBuff buffer
 		break;
 		}
 	};
