@@ -964,55 +964,6 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
-wxSizer *ProgressDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    item0->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item2 = new wxStaticText( parent, IDC_STATIC_XOFY, _("1 of 1"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item3 = new wxStaticText( parent, IDC_STATIC_FILENAME, _("File: "), wxDefaultPosition, wxSize(160,-1), wxALIGN_CENTRE );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item4 = new wxStaticText( parent, IDC_STATIC_TOTAL, _("Total words and phrases: "), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
-
-    item5->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxGauge *item6 = new wxGauge( parent, IDC_PROGRESS_PHRASES, 100, wxDefaultPosition, wxSize(390,-1), wxGA_SMOOTH|wxGA_PROGRESSBAR );
-    item6->SetToolTip( _("Adapt It is working, please wait...") );
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 50, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
 wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );

@@ -821,7 +821,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			{
 				// other failures, just warn and close the wizard
 				// IDS_NO_OUTPUT_FILE
-				wxMessageBox(_("Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"), _T(""),wxICON_INFORMATION);
+				// whm modified 18Jun09 The Doc's GetNewFile() function now returns an enum so that
+				// OnNewDocument() reports the specific error, therefore, no additional error needs to
+				// be reported here.
+				//wxMessageBox(_("Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"), _T(""),wxICON_INFORMATION);
 				gbDoingInitialSetup = FALSE;
 				return; //return CPropertyPage::OnWizardFinish();
 			}

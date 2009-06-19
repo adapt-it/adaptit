@@ -642,10 +642,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\ProgressDlg.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\ProjectPage.cpp"
 				>
 			</File>
@@ -992,10 +988,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\PrintOptionsDlg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\ProgressDlg.h"
 				>
 			</File>
 			<File
