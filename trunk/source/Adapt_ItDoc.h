@@ -161,8 +161,7 @@ public:
 											// the project configuration file to the project's directory
 	//wxString		GetFileName(const wxString fullPath); // not used in wx version
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
-	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
-					wxString* fileTitle);
+	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
 	void			GetProjectConfiguration(wxString sourceFolderPath);
 	wxString		GetUnFilteredMarkers(wxString& src);
 	wxString		GetWholeMarker(wxChar *pChar);

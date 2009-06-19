@@ -82,7 +82,7 @@
 #include "Pile.h"
 #include "Cell.h"
 #include "RefString.h"
-#include "ProgressDlg.h" // formerly called RestoreKBProgress.h
+//#include "ProgressDlg.h" // removed in svn revision #562
 #include "WaitDlg.h"
 #include "XML.h"
 #include "MoveDialog.h"
@@ -347,6 +347,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 
 	// the above may have failed, so if so use m_workFolderPath as the folder, 
 	// or even the C: drive top level, so we can proceed to the file dialog safely
+	// whm Note: TODO: The following block needs to be made cross-platform friendly
 	if (!bOK)
 	{
 		pApp->m_lastSourceFileFolder = dirPath;
@@ -441,317 +442,33 @@ bool CAdapt_ItDoc::OnNewDocument()
 		wxString filter = _T("*.*");
 		wxString fileTitle = _T(""); // stores name (minus extension) of user's chosen source file
 
-		// get the file, and it's length (which includes null termination byte/s)
-		
-		if (GetNewFile(pApp->m_pBuffer,pApp->m_nInputFileLength,
-			_("Input Text File For Adaptation"), // IDS_INPUT_FILE_ADAPT
-			filter,&fileTitle))
+		// The following wxFileDialog part was originally in GetNewFile(), but moved here 19Jun09 to
+		// consolidate file error message processing.
+		wxString defaultDir;
+		if (gpApp->m_lastSourceFileFolder.IsEmpty())
 		{
-			// Check if it has an \id line. If it does, get the 3-letter book code. If a valid code
-			// is present, check that it is a match for the currently active book folder. If it isn't
-			// tell the user and abort the <New Document> operation, leaving control in the Document
-			// page of the wizard for a new attempt with a different source text file, or a change of 
-			// book folder to be done and the same file reattempted after that. If it is a matching
-			// book code, continue with setting up the new document.
-			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-			{
-				// do the test only if Book Mode is turned on
-				wxString strIDMarker = _T("\\id");
-				int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
-				if ( pos != -1)
-				{
-					// the marker is in the file, so we need to go ahead with the check, but first
-					// work out what the current book folder is and then what its associated code is
-					wxString aBookCode = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->bookCode;
-					wxString seeNameStr = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->seeName;
-					gbMismatchedBookCode = FALSE;
-
-					// get the code by advancing over the white space after the \id marker, and then taking
-					// the next 3 characters as the code
-					const wxChar* pStr = gpApp->m_pBuffer->GetData();
-					wxChar* ptr = (wxChar*)pStr;
-					ptr += pos;
-					ptr += 4; // advance beyond \id and whatever white space character is next
-					while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
-					{
-						// advance over any additional space, newline, carriage return or tab
-						ptr++;
-					}
-					wxString theCode(ptr,3);	// make a 3-letter code, but it may be rubbish as we can't be
-												// sure there is actually a valid one there
-
-					// test to see if the string contains a valid 3-letter code
-					bool bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, theCode);
-					if (bMatchedBookCode)
-					{
-						// it matches one of the 67 codes known to Adapt It, so we need to check if it
-						// is the correct code for the active folder; if it's not, tell the user and
-						// go back to the Documents page of the wizard; if it is, just let processing 
-						// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
-						if (theCode != aBookCode)
-						{
-							// the codes are different, so the document does not belong in the active folder
-							wxString aTitle;
-							// IDS_INVALID_DATA_BOX_TITLE
-							aTitle = _("Invalid Data For Current Book Folder");
-							wxString msg1;
-							// IDS_WRONG_THREELETTER_CODE_A
-							msg1 = msg1.Format(_("The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"),theCode.c_str(),seeNameStr.c_str());
-							wxString msg2;
-							//IDS_WRONG_THREELETTER_CODE_B
-							msg2 = _("\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code.");
-							msg1 += msg2; // concatenate the messages
-							wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
-							gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
-
-							return FALSE; // returns to OnWizardFinish() in DocPage.cpp
-						}
-					}
-					else
-					{
-						// not a known code, so we'll assume we accessed random text after the \id marker,
-						// and so we just let processing proceed & the user can live with whatever happens
-						;
-					}
-				}
-				else
-				{
-					// if the \id marker is not in the source text file, then it is up to the user
-					// to keep the wrong data from being stored in the current book folder, so all
-					// we can do for that situation is to let processing proceed
-					;
-				}
-			}
-
-			// get a suitable output filename for use with the auto-save feature
-			wxString strUserTyped;
-			COutputFilenameDlg dlg(GetDocumentWindow());
-			dlg.Centre();
-			dlg.m_strFilename = fileTitle;
-			if (dlg.ShowModal() == wxID_OK)
-			{
-				// get the filename
-				strUserTyped = dlg.m_strFilename;
-				
-				// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
-				// with bad characters in it.
-				// abort the operation if user gave no explicit or bad output filename
-				if (strUserTyped.IsEmpty())
-				{
-					// warn user to specify a non-null document name with valid chars
-					// IDS_EMPTY_OUTPUT_FILENAME
-					if (strUserTyped.IsEmpty())
-						wxMessageBox(_("Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."), _T(""), wxICON_INFORMATION);
-
-
-					// reinitialize everything
-					//if (pApp->m_targetBox.GetHandle() != NULL)
-					//	pApp->m_targetBox.Destroy(); // MFC uses DestroyWindow()
-					pApp->m_pTargetBox->SetValue(_T(""));
-					delete pApp->m_pBuffer;
-					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-					pApp->m_curOutputFilename = _T("");
-					pApp->m_curOutputPath = _T("");
-					pApp->m_curOutputBackupFilename = _T("");
-					pApp->m_altOutputBackupFilename = _T("");
-					pAdView->Invalidate(); // our own
-					return FALSE;
-				}
-
-				// remove any extension user may have typed -- we'll keep control ourselves
-				SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
-											// returned as the last parameter in the signature
-
-				// BEW changed 06Aug06, and again 15Aug05
-				if (gpApp->m_bSaveAsXML) // always true in the wx version
-				{
-					// for XML output
-					pApp->m_curOutputFilename = strUserTyped + _T(".xml");
-					pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
-					// also make the alternate name be defined, in case DoFileSave() needs it
-					pApp->m_altOutputBackupFilename = strUserTyped + _T(".BAK");
-				}
-				//else
-				//{
-				//	// legacy (binary) versions
-				//	m_curOutputFilename = strUserTyped + _T(".adt");
-				//	m_curOutputBackupFilename = strUserTyped + _T(".BAK");
-				//	// also make the alternate name be defined, in case DoFileSave() needs it
-				//	m_altOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
-				//}
-			}
-			else
-			{
-				// user cancelled, so cancel the New... command too
-				// IDS_NO_OUTPUT_FILENAME
-				wxMessageBox(_("Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."), _T(""), wxICON_INFORMATION);
-
-				// reinitialize everything
-				//if (pApp->m_targetBox.GetHandle() != NULL)
-				//	pApp->m_targetBox.Destroy(); // MFC has DestroyWindow()
-				pApp->m_pTargetBox->SetValue(_T(""));
-				delete pApp->m_pBuffer;
-				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-				pApp->m_curOutputFilename = _T("");
-				pApp->m_curOutputPath = _T("");
-				pApp->m_curOutputBackupFilename = _T("");
-				pAdView->Invalidate();
-				return FALSE;
-			}
-
-			// BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
-			// the window title
-			// Set the document's path to reflect user input; the destination folder will
-			// depend on whether book mode is ON or OFF; likewise for backups if turned on
-			if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-			{
-				pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
-					+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-												 // config files
-			}
-			else
-			{
-				pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
-					+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
-												 // config files
-			}
-
-			SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
-			Modify(FALSE);
-
-			// remove any optional hyphens in the source text for use by Ventura Publisher
-			// (skips over any <-> sequences, and gives new m_pBuffer contents & new 
-			// m_nInputFileLength value)
-			RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
-
-			// whm wx version: moved the following OverwriteUSFMFixedSpaces and 
-			// OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
-			// if user requires, change USFM fixed spaces (marked by the !$ two-character sequence) to a
-			// pair of spaces - this does not change the length of the data in the buffer
-			if (gpApp->m_bChangeFixedSpaceToRegularSpace)
-				OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
-
-			// Change USFM discretionary line breaks // to a pair of spaces. We do this unconditionally
-			// because these types of breaks are not likely to be located in the same place if allowed
-			// to pass through to the target text, and are usually placed in the translation in the 
-			// final typesetting stage. This does not change the length of the data in the buffer.
-			OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
-
-#ifndef __WXMSW__
-#ifndef _UNICODE
-			// whm added 12Apr2007
-			OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
-#endif
-#endif
-			// parse the input file
-			int nHowMany;
-			nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,(int)pApp->m_nInputFileLength);
-
-			// Get any unknown markers stored in the m_markers member of the Doc's source phrases
-			// whm ammended 29May06: Bruce desired that the filter status of unk markers be preserved
-			// for new documents created within the same project within the same session, so I've
-			// changed the last parameter of GetUnknownMarkersFromDoc from setAllUnfiltered to
-			// useCurrentUnkMkrFilterStatus.
-			GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, &gpApp->m_filterFlagsUnkMkrs, 
-									gpApp->m_currentUnknownMarkersStr, useCurrentUnkMkrFilterStatus);
-
-#ifdef _Trace_UnknownMarkers
-			TRACE0("In OnNewDocument AFTER GetUnknownMarkersFromDoc (setAllUnfiltered) call:\n");
-			TRACE1(" Doc's unk mrs from arrays  = %s\n", GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
-			TRACE1(" m_currentUnknownMarkersStr = %s\n", m_currentUnknownMarkersStr);
-#endif
-
-			// calculate the layout in the view
-			int srcCount;
-			srcCount = pApp->m_pSourcePhrases->GetCount(); // unused
-			if (pApp->m_pSourcePhrases->IsEmpty())
-			{
-				// IDS_NO_SOURCE_DATA
-				wxMessageBox(_("Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."), _T(""), wxICON_EXCLAMATION);
-
-				// restore everything
-				//if (pApp->m_targetBox.GetHandle() != 0)
-				//	pApp->m_targetBox.Destroy();
-				pApp->m_pTargetBox->SetValue(_T(""));
-				delete pApp->m_pBuffer;
-				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
-				pAdView->Invalidate();
-				return FALSE;
-			}
-
-			// update the text heights, in case an earlier project used different settings
-			pApp->UpdateTextHeights(pAdView);
-
-			pAdView->CalcInitialIndices();
-			pAdView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle); //pAdView->RecalcLayout(m_pSourcePhrases,0,pAdView->m_pBundle);
-
-			// mark document as modified
-			Modify(TRUE); // SetModifiedFlag(TRUE);
-
-			// show the initial phraseBox - place it at the first empty target slot
-			pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0]; // first pile
-			pApp->m_nActiveSequNum = 0;
-			bool bTestForKBEntry = FALSE;
-			CKB* pKB;
-			if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
-							  // but I will code for safety, since it can be handled okay
-			{
-				bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry;
-				pKB = pApp->m_pGlossingKB;
-			}
-			else
-			{
-				bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry;
-				pKB = pApp->m_pKB;
-			}
-			if (bTestForKBEntry)
-			{
-				// it's not an empty slot, so search for the first empty one & do it there; but if
-				// there are no empty ones, then revert to the first pile
-				CPile* pPile = pApp->m_pActivePile;
-				pPile = pAdView->GetNextEmptyPile(pPile);
-				if (pPile == NULL)
-				{
-					// there was none, so we must place the box at the first pile
-					pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-					pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2]);
-					pAdView->Invalidate();
-					pApp->m_nActiveSequNum = 0;
-					gnOldSequNum = -1; // no previous location exists yet
-					// get rid of the stored rebuilt source text, leave a space there instead
-					if (pApp->m_pBuffer)
-						*pApp->m_pBuffer = _T(' ');
-					return TRUE;
-				}
-				else
-				{
-					pApp->m_pActivePile = pPile;
-					pApp->m_nActiveSequNum = pPile->m_pSrcPhrase->m_nSequNumber;
-				}
-			}
-
-			// set initial location of the targetBox
-			pApp->m_targetPhrase = 
-				pAdView->CopySourceKey(pApp->m_pActivePile->m_pSrcPhrase,FALSE);
-			translation = pApp->m_targetPhrase;
-			pApp->m_pTargetBox->m_bAbandonable = TRUE;
-			pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-			pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-			pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2);
-
-			// save old sequ number in case required for toolbar's Back button - in this case 
-			// there is no earlier location, so set it to -1
-			gnOldSequNum = -1;
-
-			// set the initial global position variable
-			// BEW removed 31Jan08 because value cannot always be relied upon
-			//gLastSrcPhrasePos = pApp->m_pSourcePhrases->Item(pApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber);
+			defaultDir = gpApp->m_workFolderPath;
 		}
 		else
 		{
+			defaultDir = gpApp->m_lastSourceFileFolder;
+		}
+
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Input Text File For Adaptation"),
+			defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
+			_T(""),		// default filename
+			filter,
+			wxOPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		fileDlg.Centre();
+		// open as modal dialog
+		int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
+		if (returnValue == wxID_CANCEL)
+		{
 			// user cancelled, so cancel the New... command
 			// IDS_USER_CANCELLED
-			wxMessageBox(_("You should not cancel the dialog. Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_("Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."), _T(""), wxICON_INFORMATION);
 
 			// check if there was a document current, and if so, reinitialize everything
 			if (pAdView != 0)
@@ -765,7 +482,406 @@ bool CAdapt_ItDoc::OnNewDocument()
 			}
 			return FALSE;
 		}
-	}
+		else // must be wxID_OK 
+		{
+			wxString pathName;
+			pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
+			fileTitle = fileDlg.GetFilename(); // just the file name
+
+			wxFileName fn(pathName);
+			wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
+
+
+
+			// get the file, and it's length (which includes null termination byte/s)		
+			// whm modified 18Jun09 GetNewFile() now returns an enum getNewFileState (see Adapt_It.h)
+			// which more specifically reports the success or error state encountered in getting the file
+			// for input. It now uses a switch() structure.
+			switch(GetNewFile(pApp->m_pBuffer,pApp->m_nInputFileLength,pathName))
+			{
+			case getNewFile_success:
+			{
+				wxString tempSelectedFullPath = fileDlg.GetPath();
+
+				// Since we used wxWidget's file dialog, wxWidgets' doc/view
+				// assumes that this file is the one to add to its wxFileHistory (MRU)
+				// list. However, it is not what we want since it is not a document 
+				// file. Hence we need to remove it from the file history.
+				//wxFileHistory* fileHistory = gpApp->m_pDocManager->GetFileHistory();
+				// Check we don't already have this file
+				//for (int i = 0; i < (int)fileHistory->GetHistoryFilesCount(); i++)
+				//{
+				//	wxString temp = fileHistory->GetHistoryFile(i); // for debug tracing only
+				//	if ( fileHistory->GetHistoryFile(i) == tempSelectedFullPath )
+				//	{
+				//		// we found it, so remove it
+				//		gpApp->m_pDocManager->RemoveFileFromHistory (i);
+				//		break;
+				//	}
+				//}
+
+				// wxFileDialog.GetPath() returns the full path with directory and filename. We
+				// only want the path part, so we also call ::wxPathOnly() on the full path to
+				// get only the directory part.
+				gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
+		
+				// Check if it has an \id line. If it does, get the 3-letter book code. If a valid code
+				// is present, check that it is a match for the currently active book folder. If it isn't
+				// tell the user and abort the <New Document> operation, leaving control in the Document
+				// page of the wizard for a new attempt with a different source text file, or a change of 
+				// book folder to be done and the same file reattempted after that. If it is a matching
+				// book code, continue with setting up the new document.
+				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+				{
+					// do the test only if Book Mode is turned on
+					wxString strIDMarker = _T("\\id");
+					int pos = (*gpApp->m_pBuffer).Find(strIDMarker);
+					if ( pos != -1)
+					{
+						// the marker is in the file, so we need to go ahead with the check, but first
+						// work out what the current book folder is and then what its associated code is
+						wxString aBookCode = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->bookCode;
+						wxString seeNameStr = ((BookNamePair*)(*gpApp->m_pBibleBooks)[gpApp->m_nBookIndex])->seeName;
+						gbMismatchedBookCode = FALSE;
+
+						// get the code by advancing over the white space after the \id marker, and then taking
+						// the next 3 characters as the code
+						const wxChar* pStr = gpApp->m_pBuffer->GetData();
+						wxChar* ptr = (wxChar*)pStr;
+						ptr += pos;
+						ptr += 4; // advance beyond \id and whatever white space character is next
+						while (*ptr == _T(' ') || *ptr == _T('\n') || *ptr == _T('\r') || *ptr == _T('\t'))
+						{
+							// advance over any additional space, newline, carriage return or tab
+							ptr++;
+						}
+						wxString theCode(ptr,3);	// make a 3-letter code, but it may be rubbish as we can't be
+													// sure there is actually a valid one there
+
+						// test to see if the string contains a valid 3-letter code
+						bool bMatchedBookCode = CheckBibleBookCode(gpApp->m_pBibleBooks, theCode);
+						if (bMatchedBookCode)
+						{
+							// it matches one of the 67 codes known to Adapt It, so we need to check if it
+							// is the correct code for the active folder; if it's not, tell the user and
+							// go back to the Documents page of the wizard; if it is, just let processing 
+							// continue (the Title of a message box is just "Adapt It", only Palm OS permits naming)
+							if (theCode != aBookCode)
+							{
+								// the codes are different, so the document does not belong in the active folder
+								wxString aTitle;
+								// IDS_INVALID_DATA_BOX_TITLE
+								aTitle = _("Invalid Data For Current Book Folder");
+								wxString msg1;
+								// IDS_WRONG_THREELETTER_CODE_A
+								msg1 = msg1.Format(_("The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"),theCode.c_str(),seeNameStr.c_str());
+								wxString msg2;
+								//IDS_WRONG_THREELETTER_CODE_B
+								msg2 = _("\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code.");
+								msg1 += msg2; // concatenate the messages
+								wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
+								gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
+
+								return FALSE; // returns to OnWizardFinish() in DocPage.cpp
+							}
+						}
+						else
+						{
+							// not a known code, so we'll assume we accessed random text after the \id marker,
+							// and so we just let processing proceed & the user can live with whatever happens
+							;
+						}
+					}
+					else
+					{
+						// if the \id marker is not in the source text file, then it is up to the user
+						// to keep the wrong data from being stored in the current book folder, so all
+						// we can do for that situation is to let processing proceed
+						;
+					}
+				}
+
+				// get a suitable output filename for use with the auto-save feature
+				wxString strUserTyped;
+				COutputFilenameDlg dlg(GetDocumentWindow());
+				dlg.Centre();
+				dlg.m_strFilename = fileTitle;
+				if (dlg.ShowModal() == wxID_OK)
+				{
+					// get the filename
+					strUserTyped = dlg.m_strFilename;
+					
+					// The COutputFilenameDlg::OnOK() handler checks for duplicate file name or a file name
+					// with bad characters in it.
+					// abort the operation if user gave no explicit or bad output filename
+					if (strUserTyped.IsEmpty())
+					{
+						// warn user to specify a non-null document name with valid chars
+						// IDS_EMPTY_OUTPUT_FILENAME
+						if (strUserTyped.IsEmpty())
+							wxMessageBox(_("Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."), _T(""), wxICON_INFORMATION);
+
+
+						// reinitialize everything
+						//if (pApp->m_targetBox.GetHandle() != NULL)
+						//	pApp->m_targetBox.Destroy(); // MFC uses DestroyWindow()
+						pApp->m_pTargetBox->SetValue(_T(""));
+						delete pApp->m_pBuffer;
+						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+						pApp->m_curOutputFilename = _T("");
+						pApp->m_curOutputPath = _T("");
+						pApp->m_curOutputBackupFilename = _T("");
+						pApp->m_altOutputBackupFilename = _T("");
+						pAdView->Invalidate(); // our own
+						return FALSE;
+					}
+
+					// remove any extension user may have typed -- we'll keep control ourselves
+					SetDocumentWindowTitle(strUserTyped, strUserTyped); // extensionless name is 
+												// returned as the last parameter in the signature
+
+					// BEW changed 06Aug06, and again 15Aug05
+					if (gpApp->m_bSaveAsXML) // always true in the wx version
+					{
+						// for XML output
+						pApp->m_curOutputFilename = strUserTyped + _T(".xml");
+						pApp->m_curOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+						// also make the alternate name be defined, in case DoFileSave() needs it
+						pApp->m_altOutputBackupFilename = strUserTyped + _T(".BAK");
+					}
+					//else
+					//{
+					//	// legacy (binary) versions
+					//	m_curOutputFilename = strUserTyped + _T(".adt");
+					//	m_curOutputBackupFilename = strUserTyped + _T(".BAK");
+					//	// also make the alternate name be defined, in case DoFileSave() needs it
+					//	m_altOutputBackupFilename = strUserTyped + _T(".BAK") + _T(".xml");
+					//}
+				}
+				else
+				{
+					// user cancelled, so cancel the New... command too
+					// IDS_NO_OUTPUT_FILENAME
+					wxMessageBox(_("Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."), _T(""), wxICON_INFORMATION);
+
+					// reinitialize everything
+					//if (pApp->m_targetBox.GetHandle() != NULL)
+					//	pApp->m_targetBox.Destroy(); // MFC has DestroyWindow()
+					pApp->m_pTargetBox->SetValue(_T(""));
+					delete pApp->m_pBuffer;
+					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pApp->m_curOutputFilename = _T("");
+					pApp->m_curOutputPath = _T("");
+					pApp->m_curOutputBackupFilename = _T("");
+					pAdView->Invalidate();
+					return FALSE;
+				}
+
+				// BEW modified 11Nov05, because the SetDocumentWindowTitle() call now updates
+				// the window title
+				// Set the document's path to reflect user input; the destination folder will
+				// depend on whether book mode is ON or OFF; likewise for backups if turned on
+				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+				{
+					pApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + pApp->PathSeparator 
+						+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
+													 // config files
+				}
+				else
+				{
+					pApp->m_curOutputPath = pApp->m_curAdaptionsPath + pApp->PathSeparator 
+						+ pApp->m_curOutputFilename; // to send to the app when saving m_lastDocPath to
+													 // config files
+				}
+
+				SetFilename(pApp->m_curOutputPath,TRUE);// TRUE notify all views
+				Modify(FALSE);
+
+				// remove any optional hyphens in the source text for use by Ventura Publisher
+				// (skips over any <-> sequences, and gives new m_pBuffer contents & new 
+				// m_nInputFileLength value)
+				RemoveVenturaOptionalHyphens(pApp->m_pBuffer);
+
+				// whm wx version: moved the following OverwriteUSFMFixedSpaces and 
+				// OverwriteUSFMDiscretionaryLineBreaks calls here from within TokenizeText
+				// if user requires, change USFM fixed spaces (marked by the !$ two-character sequence) to a
+				// pair of spaces - this does not change the length of the data in the buffer
+				if (gpApp->m_bChangeFixedSpaceToRegularSpace)
+					OverwriteUSFMFixedSpaces(pApp->m_pBuffer);
+
+				// Change USFM discretionary line breaks // to a pair of spaces. We do this unconditionally
+				// because these types of breaks are not likely to be located in the same place if allowed
+				// to pass through to the target text, and are usually placed in the translation in the 
+				// final typesetting stage. This does not change the length of the data in the buffer.
+				OverwriteUSFMDiscretionaryLineBreaks(pApp->m_pBuffer);
+
+	#ifndef __WXMSW__
+	#ifndef _UNICODE
+				// whm added 12Apr2007
+				OverwriteSmartQuotesWithRegularQuotes(pApp->m_pBuffer);
+	#endif
+	#endif
+				// parse the input file
+				int nHowMany;
+				nHowMany = TokenizeText(0,pApp->m_pSourcePhrases,*pApp->m_pBuffer,(int)pApp->m_nInputFileLength);
+
+				// Get any unknown markers stored in the m_markers member of the Doc's source phrases
+				// whm ammended 29May06: Bruce desired that the filter status of unk markers be preserved
+				// for new documents created within the same project within the same session, so I've
+				// changed the last parameter of GetUnknownMarkersFromDoc from setAllUnfiltered to
+				// useCurrentUnkMkrFilterStatus.
+				GetUnknownMarkersFromDoc(gpApp->gCurrentSfmSet, &gpApp->m_unknownMarkers, &gpApp->m_filterFlagsUnkMkrs, 
+										gpApp->m_currentUnknownMarkersStr, useCurrentUnkMkrFilterStatus);
+
+	#ifdef _Trace_UnknownMarkers
+				TRACE0("In OnNewDocument AFTER GetUnknownMarkersFromDoc (setAllUnfiltered) call:\n");
+				TRACE1(" Doc's unk mrs from arrays  = %s\n", GetUnknownMarkerStrFromArrays(&m_unknownMarkers, &m_filterFlagsUnkMkrs));
+				TRACE1(" m_currentUnknownMarkersStr = %s\n", m_currentUnknownMarkersStr);
+	#endif
+
+				// calculate the layout in the view
+				int srcCount;
+				srcCount = pApp->m_pSourcePhrases->GetCount(); // unused
+				if (pApp->m_pSourcePhrases->IsEmpty())
+				{
+					// IDS_NO_SOURCE_DATA
+					wxMessageBox(_("Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."), _T(""), wxICON_EXCLAMATION);
+
+					// restore everything
+					//if (pApp->m_targetBox.GetHandle() != 0)
+					//	pApp->m_targetBox.Destroy();
+					pApp->m_pTargetBox->SetValue(_T(""));
+					delete pApp->m_pBuffer;
+					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
+					pAdView->Invalidate();
+					return FALSE;
+				}
+
+				// update the text heights, in case an earlier project used different settings
+				pApp->UpdateTextHeights(pAdView);
+
+				pAdView->CalcInitialIndices();
+				pAdView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle); //pAdView->RecalcLayout(m_pSourcePhrases,0,pAdView->m_pBundle);
+
+				// mark document as modified
+				Modify(TRUE); // SetModifiedFlag(TRUE);
+
+				// show the initial phraseBox - place it at the first empty target slot
+				pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0]; // first pile
+				pApp->m_nActiveSequNum = 0;
+				bool bTestForKBEntry = FALSE;
+				CKB* pKB;
+				if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
+								  // but I will code for safety, since it can be handled okay
+				{
+					bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry;
+					pKB = pApp->m_pGlossingKB;
+				}
+				else
+				{
+					bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry;
+					pKB = pApp->m_pKB;
+				}
+				if (bTestForKBEntry)
+				{
+					// it's not an empty slot, so search for the first empty one & do it there; but if
+					// there are no empty ones, then revert to the first pile
+					CPile* pPile = pApp->m_pActivePile;
+					pPile = pAdView->GetNextEmptyPile(pPile);
+					if (pPile == NULL)
+					{
+						// there was none, so we must place the box at the first pile
+						pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+						pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2]);
+						pAdView->Invalidate();
+						pApp->m_nActiveSequNum = 0;
+						gnOldSequNum = -1; // no previous location exists yet
+						// get rid of the stored rebuilt source text, leave a space there instead
+						if (pApp->m_pBuffer)
+							*pApp->m_pBuffer = _T(' ');
+						return TRUE;
+					}
+					else
+					{
+						pApp->m_pActivePile = pPile;
+						pApp->m_nActiveSequNum = pPile->m_pSrcPhrase->m_nSequNumber;
+					}
+				}
+
+				// set initial location of the targetBox
+				pApp->m_targetPhrase = 
+					pAdView->CopySourceKey(pApp->m_pActivePile->m_pSrcPhrase,FALSE);
+				translation = pApp->m_targetPhrase;
+				pApp->m_pTargetBox->m_bAbandonable = TRUE;
+				pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+				pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
+				pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2);
+
+				// save old sequ number in case required for toolbar's Back button - in this case 
+				// there is no earlier location, so set it to -1
+				gnOldSequNum = -1;
+
+				// set the initial global position variable
+				// BEW removed 31Jan08 because value cannot always be relied upon
+				//gLastSrcPhrasePos = pApp->m_pSourcePhrases->Item(pApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber);
+				break;
+			}// end of case getNewFile_success
+			case getNewFile_error_at_open:
+			{
+				wxString strMessage;
+				strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
+				wxMessageBox(strMessage,_T(""), wxICON_ERROR);
+				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+				break;
+			}
+			case getNewFile_error_opening_binary:
+			{
+				// A binary file - probably not a valid input file such as a MS Word doc.
+				// Notify user that Adapt It cannot read binary input files, and abort the loading of the file.
+				wxString strMessage = _("The file you selected for input appears to be a binary file.");
+				if (fnExtensionOnly.MakeUpper() == _T("DOC"))
+				{
+					strMessage += _T("\n");
+					strMessage += _("Adapt It cannot use Microsoft Word Document (doc) files as input files.");
+				}
+				strMessage += _T("\n");
+				strMessage += _("Adapt It input files must be plain text files.");
+				wxString strMessage2;
+				strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+				strMessage2 += _T("\n");
+				strMessage2 += strMessage;
+				wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath; // MFC mistakenly had m_theWorkFolder in its "catch" block
+				break;
+			}
+			case getNewFile_error_no_data_read:
+			{
+				// we got no data, so this constitutes a read failure
+				wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
+				break;
+			}
+			case getNewFile_error_unicode_in_ansi:
+			{
+				// The file is a type of Unicode, which is an error since this is the ANSI build. Notify
+				// user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
+				// file.
+				wxString strMessage = _("The file you selected for input is a Unicode file.");
+				strMessage += _T("\n");
+				strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
+				strMessage += _T("\n");
+				strMessage += _("You should install and use the Unicode version of Adapt It to process Unicode text files.");
+				wxString strMessage2;
+				strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
+				strMessage2 += _T("\n");
+				strMessage2 += strMessage;
+				wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
+				gpApp->m_lastSourceFileFolder = gpApp->m_workFolderPath;
+				break;
+			}
+			}// end of switch()
+		} // end of else wxID_OK
+	}// end of if (bKBReady)
+	
 	// get rid of the stored rebuilt source text, leave a space there instead (the value of
 	// m_nInputFileLength can be left unchanged)
 	if (pApp->m_pBuffer)
@@ -5584,31 +5700,35 @@ void CAdapt_ItDoc::SetFilename(const wxString& filename, bool notifyViews)
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if the file was opened and read successfully, FALSE otherwise.
+/// \return		enum getNewFileState indicating success or error state when reading the file.
 /// \param		pstrBuffer	<- a wxString which receives the text file once loaded
 /// \param		nLength		<- the length of the loaded text file
-/// \param		titleID		-> currently unused
-/// \param		filter		-> the filter specifications for the file open dialog
-/// \param		fileTitle	<- pointer to the file name selected by the user in the file dialog 
+/// \param		pathName	-> path and name of the file to read into pstrBuffer
 /// \remarks
 /// Called from: the Doc's OnNewDocument().
 /// Opens and reads a standard format input file into our wxString buffer pstrBuffer which 
 /// is used by the caller to tokenize and build the in-memory data structures used by the 
-/// View to present the data to the user. It also remembers where the input file came from 
-/// by storing its path in m_lastSourceFileFolder.
+/// View to present the data to the user. Note: the pstrBuffer is null-terminated.
 // //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
-					wxString* fileTitle)
+enum getNewFileState CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName)
 {
-	// Bruce's Note on GetNewFileBaseFunct()
-	// BEW changed 8Apr06: to remove alloca()-dependence for UTF-8 conversion...
-	// Note: the legacy (ie. pre 3.0.9 version) form of this function used Bob Eaton's conversion
-	// macros defined in SHConv.h. But since ATL 7.0 has introduced 'safe' heap buffer versions of
-	// conversion macros, these will be used here. (If Adapt_It.cpp's Conver8to16(), Convert16to8(),
-	// DoInputConversion() and ConvertAndWrite() are likewise changed to the safe macros, then SHConv.h
-	// could be eliminated from the app's code entirely. And, of course, whatever the export 
-	// functionalities use has to be checked and changed too...)
-	// whm note: I've implemented this here below, but will need modifications when _UNICODE compiled
+    // Bruce's Note on GetNewFileBaseFunct():
+    // BEW changed 8Apr06: to remove alloca()-dependence for UTF-8 conversion... Note: the legacy (ie.
+    // pre 3.0.9 version) form of this function used Bob Eaton's conversion macros defined in SHConv.h.
+    // But since ATL 7.0 has introduced 'safe' heap buffer versions of conversion macros, these will be
+    // used here. (If Adapt_It.cpp's Conver8to16(), Convert16to8(), DoInputConversion() and
+    // ConvertAndWrite() are likewise changed to the safe macros, then SHConv.h could be eliminated from
+    // the app's code entirely. And, of course, whatever the export functionalities use has to be
+    // checked and changed too...)
+    // 
+    // whm revised 19Jun09 to simplify (via returning an enum value) and move error messages and
+    // presentation of the standard file dialog back to the caller OnNewDocument. The tellenc.cpp
+    // encoding detection algorithm was also incorporated to detect encodings, detect when an input file
+    // is actually a binary file (i.e., Word documents are binary); detect when the Regular version
+    // attempts to load a Unicode input file; and detect and properly handle when the user inputs a file
+    // with 8-bit encoding into the Unicode version (converting it as much as possible - similarly to
+    // what the legacy MFC app did). The revision also eliminates some memory leaks that would happen if
+    // the routine returned prematurely with an error.
 
 	// wxWidgets Notes: 
 	// 1. See MFC code for version 2.4.0 where Bruce needed to monkey
@@ -5624,362 +5744,254 @@ bool CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString
 	//    It also remembers where the input file came from by storing its
 	//    path in m_lastSourceFileFolder.
 
-	// set the default folder to be shown in the dialog (::SetCurrentDirectory call
-	// in the caller does not do it)
-
-	wxString defaultDir;
-	if (gpApp->m_lastSourceFileFolder.IsEmpty())
+	// get a CFile and check length of file
+	// Since the wxWidgets version doesn't use exceptions, we'll
+	// make use of the Open() method which will return false if
+	// there was a problem opening the file.
+	wxFile file;
+	if (!file.Open(pathName, wxFile::read))
 	{
-		defaultDir = gpApp->m_workFolderPath;
-	}
-	else
-	{
-		defaultDir = gpApp->m_lastSourceFileFolder;
+		return getNewFile_error_at_open;
 	}
 
-	wxFileDialog fileDlg(
-		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
-		_("Input Text File For Adaptation"),
-		defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
-		_T(""),		// default filename
-		filter,
-		wxOPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
-	fileDlg.Centre();
-	// open as modal dialog
-	int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
-	if (returnValue == wxID_CANCEL)
-	{
-		return FALSE;
-	}
-	else // must be wxID_OK 
-	{
-		wxString pathName;
-		pathName = fileDlg.GetPath(); //MFC's GetPathName() and wxFileDialog.GetPath both get whole dir + file name.
-		*fileTitle = fileDlg.GetFilename(); // just the file name
+	// file is now open, so find its logical length (always in bytes)
+	nLength = file.Length(); // MFC has GetLength()
 
-		wxFileName fn(pathName);
-		wxString fnExtensionOnly = fn.GetExt(); // GetExt() returns the extension NOT including the dot
-
-		// get a CFile and check length of file
-		// Since the wxWidgets version doesn't use exceptions, we'll
-		// make use of the Open() method which will return false if
-		// there was a problem opening the file.
-		wxFile file;
-		if (!file.Open(pathName, wxFile::read))
-		{
-			wxString strMessage;
-			strMessage = strMessage.Format(_("Error opening file %s."),pathName.c_str());
-			wxMessageBox(strMessage,_T(""), wxICON_ERROR);
-			gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
-			return FALSE;
-		}
-
-		// file is now open, so find its logical length (always in bytes)
-		nLength = file.Length(); // MFC has GetLength()
-
-		// whm Design Note: There is no real need to separate the reading of the file into Unicode and
-		// non-Unicode versions. In both cases we could use a pointer to wxChar to point to our byte
-		// buffer, since in in Unicode mode we use char* and in ANSI mode, wxChar resolves to just
-		// char* anyway. We could then read the file into the byte buffer and use tellenc only once
-		// before handling the results with _UNICODE conditional compiles.
+	// whm Design Note: There is no real need to separate the reading of the file into Unicode and
+	// non-Unicode versions. In both cases we could use a pointer to wxChar to point to our byte
+	// buffer, since in in Unicode mode we use char* and in ANSI mode, wxChar resolves to just
+	// char* anyway. We could then read the file into the byte buffer and use tellenc only once
+	// before handling the results with _UNICODE conditional compiles.
 
 #ifndef _UNICODE // ANSI version, no unicode support 
 
-		// create the required buffer and then read in the file (no conversions needed)
-		// BEW changed 8Apr06; use malloc to remove the limitation of the finite stack size
-		wxChar* pBuf = (wxChar*)malloc(nLength + 1); // allow for terminating null byte 
-		memset(pBuf,0,nLength + 1);
-		wxUint32 numRead = file.Read(pBuf,(wxUint32)nLength);
-		pBuf[numRead] = '\0'; // add terminating null
-		nLength += 1; // allow for terminating null (sets m_nInputFileLength in the caller)
-		
-		// The following source code is used by permission. It is taken and adapted
-		// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
-		// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
+	// create the required buffer and then read in the file (no conversions needed)
+	// BEW changed 8Apr06; use malloc to remove the limitation of the finite stack size
+	wxChar* pBuf = (wxChar*)malloc(nLength + 1); // allow for terminating null byte 
+	memset(pBuf,0,nLength + 1);
+	wxUint32 numRead = file.Read(pBuf,(wxUint32)nLength);
+	pBuf[numRead] = '\0'; // add terminating null
+	nLength += 1; // allow for terminating null (sets m_nInputFileLength in the caller)
+	
+	// The following source code is used by permission. It is taken and adapted
+	// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
+	// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
 
-		init_utf8_char_table();
-		const char* enc = tellenc(pBuf, numRead - 1); // don't include null char at buffer end
-		if (!(enc) || strcmp(enc, "unknown") == 0)
-		{
-			gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
-		}
-		else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
-		{
-			gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-		}
-		else if (strcmp(enc, "windows-1252") == 0)
-		{
-			gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
-		}
-		else if (strcmp(enc, "ascii") == 0)
-		{
-			// File was all pure ASCII characters, so assume same as Latin1
-			gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-		}
-		else if (strcmp(enc, "utf-8") == 0
-			|| strcmp(enc, "utf-16") == 0
-			|| strcmp(enc, "utf-16le") == 0
-			|| strcmp(enc, "ucs-4") == 0
-			|| strcmp(enc, "ucs-4le") == 0)
-		{
-            // The file is a type of Unicode, which is an error since this is the ANSI build. Notify
-            // user that Adapt It Regular cannot read Unicode input files, and abort the loading of the
-            // file.
-			wxString strMessage = _("The file you selected for input is a Unicode file.");
-			strMessage += _T("\n");
-			strMessage += _("This Regular version of Adapt It cannot process Unicode text files.");
-			strMessage += _T("\n");
-			strMessage += _("You should install and use the Unicode version of Adapt It to process Unicode text files.");
-			wxString strMessage2;
-			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-			strMessage2 += _T("\n");
-			strMessage2 += strMessage;
-			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-			gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
-			return FALSE;
-		}
-		else if (strcmp(enc, "binary") == 0)
-		{
-			// A binary file - probably not a valid input file such as a MS Word doc.
-			// Notify user that Adapt It cannot read binary input files, and abort the loading of the file.
-			wxString strMessage = _("The file you selected for input appears to be a binary file.");
-			if (fnExtensionOnly.MakeUpper() == _T("DOC"))
-			{
-				strMessage += _T("\n");
-				strMessage += _("Adapt It cannot use Microsoft Word Document (doc) files as input files.");
-			}
-			strMessage += _T("\n");
-			strMessage += _("Adapt It input files must be plain text files.");
-			wxString strMessage2;
-			strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-			strMessage2 += _T("\n");
-			strMessage2 += strMessage;
-			wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-			gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
-			return FALSE;
-		}
-		else if (strcmp(enc, "gb2312") == 0)
-		{
-			gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
-		}
-		else if (strcmp(enc, "cp437") == 0)
-		{
-			gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
-		}
-		else if (strcmp(enc, "big5") == 0)
-		{
-			gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
-		}
-		
-		*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
-							// buffer is destroyed
-		
+	init_utf8_char_table();
+	const char* enc = tellenc(pBuf, numRead - 1); // don't include null char at buffer end
+	if (!(enc) || strcmp(enc, "unknown") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
+	}
+	else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+	}
+	else if (strcmp(enc, "windows-1252") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
+	}
+	else if (strcmp(enc, "ascii") == 0)
+	{
+		// File was all pure ASCII characters, so assume same as Latin1
+		gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+	}
+	else if (strcmp(enc, "utf-8") == 0
+		|| strcmp(enc, "utf-16") == 0
+		|| strcmp(enc, "utf-16le") == 0
+		|| strcmp(enc, "ucs-4") == 0
+		|| strcmp(enc, "ucs-4le") == 0)
+	{
 		free((void*)pBuf);
+		return getNewFile_error_unicode_in_ansi;
+	}
+	else if (strcmp(enc, "binary") == 0)
+	{
+		free((void*)pBuf);
+		return getNewFile_error_opening_binary;
+	}
+	else if (strcmp(enc, "gb2312") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
+	}
+	else if (strcmp(enc, "cp437") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
+	}
+	else if (strcmp(enc, "big5") == 0)
+	{
+		gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
+	}
+	
+	*pstrBuffer = pBuf; // copy to the caller's CString (on the heap) before malloc
+						// buffer is destroyed
+	
+	free((void*)pBuf);
 
 #else	// Unicode version supports ASCII, ANSI (but may not be rendered right when converted 
-		// using CP_ACP), UTF-8, and UTF-16 input (code taken from Bob Eaton's modifications to 
-		// AsyncLoadRichEdit.cpp for Carla Studio) We use a temporary buffer allocated on the 
-		// stack for input, and the conversion macros (which allocated another temp buffer on 
-		// the stack), to end up with UTF-16 for interal string encoding
-		// BEW changed 8Apr06, requested by Geoffrey Hunt, to remove the file size limitation
-		// caused by using the legacy macros, which use alloca() to do the conversions in a
-		// stack buffer; the VS 2003 macros are size-safe, and use malloc for long strings.
-		wxUint32 nNumRead;
-		bool bHasBOM = FALSE;
+	// using CP_ACP), UTF-8, and UTF-16 input (code taken from Bob Eaton's modifications to 
+	// AsyncLoadRichEdit.cpp for Carla Studio) We use a temporary buffer allocated on the 
+	// stack for input, and the conversion macros (which allocated another temp buffer on 
+	// the stack), to end up with UTF-16 for interal string encoding
+	// BEW changed 8Apr06, requested by Geoffrey Hunt, to remove the file size limitation
+	// caused by using the legacy macros, which use alloca() to do the conversions in a
+	// stack buffer; the VS 2003 macros are size-safe, and use malloc for long strings.
+	wxUint32 nNumRead;
+	bool bHasBOM = FALSE;
 
-		wxUint32 nBuffLen = (wxUint32)nLength + sizeof(wxChar);
-		char* pbyteBuff = (char*)malloc(nBuffLen);
+	wxUint32 nBuffLen = (wxUint32)nLength + sizeof(wxChar);
+	char* pbyteBuff = (char*)malloc(nBuffLen);
 
-		memset(pbyteBuff,0,nBuffLen);
-		nNumRead = file.Read(pbyteBuff,nLength);
-		nLength = nNumRead + sizeof(wxChar);
+	memset(pbyteBuff,0,nBuffLen);
+	nNumRead = file.Read(pbyteBuff,nLength);
+	nLength = nNumRead + sizeof(wxChar);
 
-		// now we have to find out what kind of encoding the data is in, and set the 
-		// encoding and we convert to UTF-16 in the DoInputConversion() function
-		if (nNumRead <= 0)
+	// now we have to find out what kind of encoding the data is in, and set the 
+	// encoding and we convert to UTF-16 in the DoInputConversion() function
+	if (nNumRead <= 0)
+	{
+		// free the original read in (const) char data's chunk
+		free((void*)pbyteBuff);
+		return getNewFile_error_no_data_read;
+	}
+	// check for UTF-16 first; we allow it, but don't expect it (and we assume it would
+	// have a BOM)
+	if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
+	{
+		// it's UTF-16
+		gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+		bHasBOM = TRUE;
+	}
+	else
+	{
+		// see if it is UTF-8, whether with or without a BOM; if so,
+		if (!memcmp(pbyteBuff,szBOM,nBOMLen))
 		{
-			// we got no data, so this constitutes a read failure
-			wxMessageBox(_("File read error: no data was read in"),_T(""),wxICON_ERROR);
-			return FALSE;
-		}
-		// check for UTF-16 first; we allow it, but don't expect it (and we assume it would
-		// have a BOM)
-		if (!memcmp(pbyteBuff,szU16BOM,nU16BOMLen))
-		{
-			// it's UTF-16
-			gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+			// the UTF-8 BOM is present
+			gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
 			bHasBOM = TRUE;
 		}
 		else
 		{
-			// see if it is UTF-8, whether with or without a BOM; if so,
-			if (!memcmp(pbyteBuff,szBOM,nBOMLen))
+			if (gbForceUTF8)
 			{
-				// the UTF-8 BOM is present
+				// the app is mucking up the source data conversion, so the user wants
+				// to force UTF8 encoding to be used
 				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-				bHasBOM = TRUE;
-			}
+			}	
 			else
 			{
-				if (gbForceUTF8)
-				{
-					// the app is mucking up the source data conversion, so the user wants
-					// to force UTF8 encoding to be used
-					gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-				}	
-				else
-				{
-                    // The MFC version uses Microsoft's IMultiLanguage2 interface to detect whether the
-                    // file buffer contains UTF-8, UTF-16 or some form of 8-bit encoding (using
-                    // GetACP()), but Microsoft's stuff is not cross-platform, nor open source.
-                    // 
-                    // One possibility for encoding detection is to use IBM's International Components
-                    // for Unicode (icu) under the LGPL. This is a very large, bulky library of tools
-                    // and would considerably inflate the size of Adapt It's distribution.
-					
-					// The following source code is used by permission. It is taken and adapted
-					// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
-					// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
+                // The MFC version uses Microsoft's IMultiLanguage2 interface to detect whether the
+                // file buffer contains UTF-8, UTF-16 or some form of 8-bit encoding (using
+                // GetACP()), but Microsoft's stuff is not cross-platform, nor open source.
+                // 
+                // One possibility for encoding detection is to use IBM's International Components
+                // for Unicode (icu) under the LGPL. This is a very large, bulky library of tools
+                // and would considerably inflate the size of Adapt It's distribution.
+				
+				// The following source code is used by permission. It is taken and adapted
+				// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
+				// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
 
-					init_utf8_char_table();
-					const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
-					if (!(enc) || strcmp(enc, "unknown") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
-					}
-					else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-					}
-					else if (strcmp(enc, "windows-1252") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
-					}
-					else if (strcmp(enc, "ascii") == 0)
-					{
-						// File was all pure ASCII characters, so assume same as Latin1
-						gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
-					}
-					else if (strcmp(enc, "utf-8") == 0) // Only valid UTF-8 sequences
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-					}
-					else if (strcmp(enc, "utf-16") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
-					}
-					else if (strcmp(enc, "utf-16le") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
-					}
-					else if (strcmp(enc, "ucs-4") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_UTF32;
-					}
-					else if (strcmp(enc, "ucs-4le") == 0)
-					{
-						 gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE;
-					}
-					else if (strcmp(enc, "binary") == 0)
-					{
-						// A binary file - probably not a valid input file such as a MS Word doc.
-						// Notify user that Adapt It cannot read binary input files, and abort the loading of the file
-						wxString strMessage = _("The file you selected for input appears to be a binary file.");
-						if (fnExtensionOnly.MakeUpper() == _T("DOC"))
-						{
-							strMessage += _T("\n");
-							strMessage += _("Adapt It cannot use Microsoft Word Document (doc) files as input files.");
-						}
-						strMessage += _T("\n");
-						strMessage += _("Adapt It input files must be plain text files.");
-						wxString strMessage2;
-						strMessage2 = strMessage2.Format(_("Error opening file %s."),pathName.c_str());
-						strMessage2 += _T("\n");
-						strMessage2 += strMessage;
-						wxMessageBox(strMessage2,_T(""), wxICON_ERROR);
-						gpApp->m_lastSourceFileFolder = gpApp->m_theWorkFolder;
-						return FALSE;
-					}
-					else if (strcmp(enc, "gb2312") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
-					}
-					else if (strcmp(enc, "cp437") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
-					}
-					else if (strcmp(enc, "big5") == 0)
-					{
-						gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
-					}
-
-					// MFC code below:
-					// try to use the IMultiLanguage2 interface (see ATL stuff) to find out 
-					// what it is
-					//MyML2Ptr pML2;
-					//if (!!pML2) // if not bad
-					//{
-					//	switch(pML2.WhichEncoding(pbyteBuff,(INT)nLength))
-					//	{
-					//	case CP_UTF8:
-					//		// it has at least some UTF8
-					//		gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
-					//		break;
-					//	case CP_UTF16:
-					//		// it has at least some UTF16
-					//		gpApp->m_srcEncoding = eUTF16;
-					//		break;
-					//	default:
-					//		// it's neither, so probably ANSI, LATIN1, ASCII, or MBCS etc
-					//		// (ie. a legacy encoding) since there is no safe conversion, 
-					//		// we'll use the system codepage and convert using CA2TEX
-					//		gpApp->m_srcEncoding = GetACP();
-					//	}
-					//}
+				init_utf8_char_table();
+				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
+				if (!(enc) || strcmp(enc, "unknown") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
 				}
+				else if (strcmp(enc, "latin1") == 0) // "latin1" is a subset of "windows-1252"
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+				}
+				else if (strcmp(enc, "windows-1252") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_CP1252; // Microsoft analogue of ISO8859-1 "WinLatin1"
+				}
+				else if (strcmp(enc, "ascii") == 0)
+				{
+					// File was all pure ASCII characters, so assume same as Latin1
+					gpApp->m_srcEncoding = wxFONTENCODING_ISO8859_1; // West European (Latin1)
+				}
+				else if (strcmp(enc, "utf-8") == 0) // Only valid UTF-8 sequences
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
+				}
+				else if (strcmp(enc, "utf-16") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_UTF16;
+				}
+				else if (strcmp(enc, "utf-16le") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_UTF16LE; // UTF-16 big and little endian are both handled by wxFONTENCODING_UTF16
+				}
+				else if (strcmp(enc, "ucs-4") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_UTF32;
+				}
+				else if (strcmp(enc, "ucs-4le") == 0)
+				{
+					 gpApp->m_srcEncoding = wxFONTENCODING_UTF32LE;
+				}
+				else if (strcmp(enc, "binary") == 0)
+				{
+					// free the original read in (const) char data's chunk
+					free((void*)pbyteBuff);
+					return getNewFile_error_opening_binary;
+				}
+				else if (strcmp(enc, "gb2312") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_GB2312; // same as wxFONTENCODING_CP936 Simplified Chinese
+				}
+				else if (strcmp(enc, "cp437") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_CP437; // original MS-DOS codepage
+				}
+				else if (strcmp(enc, "big5") == 0)
+				{
+					gpApp->m_srcEncoding = wxFONTENCODING_BIG5; // same as wxFONTENCODING_CP950 Traditional Chinese
+				}
+
+				// MFC code below:
+				// try to use the IMultiLanguage2 interface (see ATL stuff) to find out 
+				// what it is
+				//MyML2Ptr pML2;
+				//if (!!pML2) // if not bad
+				//{
+				//	switch(pML2.WhichEncoding(pbyteBuff,(INT)nLength))
+				//	{
+				//	case CP_UTF8:
+				//		// it has at least some UTF8
+				//		gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
+				//		break;
+				//	case CP_UTF16:
+				//		// it has at least some UTF16
+				//		gpApp->m_srcEncoding = eUTF16;
+				//		break;
+				//	default:
+				//		// it's neither, so probably ANSI, LATIN1, ASCII, or MBCS etc
+				//		// (ie. a legacy encoding) since there is no safe conversion, 
+				//		// we'll use the system codepage and convert using CA2TEX
+				//		gpApp->m_srcEncoding = GetACP();
+				//	}
+				//}
 			}
 		}
+	}
 
-		// do the converting and transfer the converted data to pstrBuffer (which then 
-		// persists while doc lives)
-		gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
+	// do the converting and transfer the converted data to pstrBuffer (which then 
+	// persists while doc lives)
+	gpApp->DoInputConversion(*pstrBuffer,pbyteBuff,gpApp->m_srcEncoding,bHasBOM);
 
-		// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
-		// the count)
-		nLength = pstrBuffer->Length() + 1; // # of UTF16 characters + null character 
-												// (2 bytes)
-		// free the original read in (const) char data's chunk
-		free((void*)pbyteBuff);
+	// update nLength (ie. m_nInputFileLength in the caller, include terminating null in
+	// the count)
+	nLength = pstrBuffer->Length() + 1; // # of UTF16 characters + null character 
+											// (2 bytes)
+	// free the original read in (const) char data's chunk
+	free((void*)pbyteBuff);
 
 #endif
-		file.Close();
-
-		wxString tempSelectedFullPath = fileDlg.GetPath();
-
-		// Since we used wxWidget's file dialog, wxWidgets' doc/view
-		// assumes that this file is the one to add to its wxFileHistory (MRU)
-		// list. However, it is not what we want since it is not a document 
-		// file. Hence we need to remove it from the file history.
-		//wxFileHistory* fileHistory = gpApp->m_pDocManager->GetFileHistory();
-		// Check we don't already have this file
-		//for (int i = 0; i < (int)fileHistory->GetHistoryFilesCount(); i++)
-		//{
-		//	wxString temp = fileHistory->GetHistoryFile(i); // for debug tracing only
-		//	if ( fileHistory->GetHistoryFile(i) == tempSelectedFullPath )
-		//	{
-		//		// we found it, so remove it
-		//		gpApp->m_pDocManager->RemoveFileFromHistory (i);
-		//		break;
-		//	}
-		//}
-
-
-		// wxFileDialog.GetPath() returns the full path with directory and filename. We
-		// only want the path part, so we also call ::wxPathOnly() on the full path to
-		// get only the directory part.
-		gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
-	}
-	return TRUE;
+	file.Close();
+	return getNewFile_success;
 }
 
 

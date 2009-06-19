@@ -276,6 +276,16 @@ struct FreeTrElement
 	wxRect subRect;
 };
 
+/// An enum for return error-state from GetNewFile()
+enum getNewFileState
+{
+	getNewFile_success,
+	getNewFile_error_at_open,
+	getNewFile_error_opening_binary,
+	getNewFile_error_no_data_read,
+	getNewFile_error_unicode_in_ansi
+};
+
 /// An enum for specifying the selection extension direction, either right or left.
 enum extendSelDir
 {

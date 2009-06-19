@@ -96,7 +96,7 @@
 #include "PlaceInternalPunct.h"
 #include "KBEditor.h"
 #include "ConsistencyCheckDlg.h"
-#include "ProgressDlg.h" // formerly called RestoreKBProgress.h
+//#include "ProgressDlg.h" // removed in svn revision #562
 #include "GoToDlg.h"
 //#include "PrintingDlg.h"
 #include "WaitDlg.h" 

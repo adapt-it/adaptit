@@ -137,7 +137,7 @@
 #include "CCTabbedDialog.h"
 #include "WhichFilesDlg.h" // renamed from original "RestoreKBDlg.h"
 #include "SourcePhrase.h"
-#include "ProgressDlg.h" // formerly called RestoreKBProgress.h
+//#include "ProgressDlg.h" // removed in svn revision #562
 #include "Pile.h"
 #include "TransformToGlossesDlg.h"
 #include "EarlierTranslationDlg.h"

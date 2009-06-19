@@ -180,8 +180,9 @@ static freq_analysis_data_t freq_analysis_data[] = {
 static size_t nul_count_byte[2];
 static size_t nul_count_word[2];
 
-static bool is_binary = false;
-static bool is_valid_utf8 = true;
+// whm 19Jun09 removed and made is_binary a non-static bool in tellenc2 below
+//static bool is_binary = false; 
+//static bool is_valid_utf8 = true;
 static bool is_valid_latin1 = true;
 
 bool verbose = false;
@@ -307,6 +308,16 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
     map<uint16_t, size_t> mp_dbyte_char_cnt;
     size_t dbyte_cnt = 0;
     size_t dbyte_hihi_cnt = 0;
+	
+    // whm 19Jun09 changed is_binary and is_valid_utf8 from being a static variables to local non-static
+    // variables. They are only used here within tellenc2 and should be re-initialized for each call of
+    // tellenc2, otherwise they may falsely mark a valid input file as binary or invalid utf8 if the
+    // previous attempt to input a file set their values to their non-default state. The is_valid_latin1
+    // boolean is left static (above) because it is used in tellenc and tellenc2, but it is
+    // re-initialized again here to true for the same reasons.
+	bool is_binary = false;
+	bool is_valid_utf8 = true;
+	is_valid_latin1 = true;
 
     if (len >= 4) {
         if (const char* result = check_ucs_bom(buffer)) {
