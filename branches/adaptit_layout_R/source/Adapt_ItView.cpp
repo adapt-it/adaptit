@@ -9434,6 +9434,12 @@ void CAdapt_ItView::RemoveFilterWrappersButLeaveContent(wxString& str)
 // / of CSourcePhrase instances within a list.
 // / The nHowMany value can be zero, if it is, the function is just being used to insert a range
 // / of CSourcePhrase instances within a list, preceding the nStartAt instance's location.
+// / BEW added to, 19Jun09. If some replacements are to be done at the doc end (eg. after
+// / an edit which removed some words, and it goes belly up and the code tries to restore
+// / original doc, calling this function) then nStartAt will be just beyond the current
+// / end of the document. The older code did not test for this and then the Item(nStartAt)
+// / produced a crash. The fix is to test for this bounds error, and send control to a
+// / block of code which merely appends the replacements, rather than trying to do insertions.
 //*********************************************************************************************
 bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
@@ -9456,17 +9462,42 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	CSourcePhrase* pSrcPhrase = NULL;
 	CSourcePhrase* pReplaceSrcPhrase = NULL;
 	CSourcePhrase* pDeepCopiedSrcPhrase = NULL;
-	posMaster = pMasterList->Item(nStartAt); //posMaster = pMasterList->FindIndex(nStartAt);
-	if (posMaster == NULL)
+
+	int maxIndex = pApp->GetMaxIndex();
+	if (nStartAt > maxIndex)
 	{
-		// whm note: I don't think this error needs to be translated for localization
-		// an unexpected exception, so inform the caller & advise the user of the error
-		error = _T(
+		// just append the replacements
+		posReplace = pReplacementsList->Item(nReplaceStartAt);
+		int anIndex;
+		SPList::Node* pos2 = NULL;
+		int endAt = nReplaceStartAt + nReplaceCount -1;
+		for (anIndex = nReplaceStartAt; anIndex <= endAt; anIndex++)
+		{
+			pReplaceSrcPhrase = posReplace->GetData();
+			posReplace = posReplace->GetNext();
+			pDeepCopiedSrcPhrase = new CSourcePhrase(*pReplaceSrcPhrase);
+			pDeepCopiedSrcPhrase->DeepCopy(); // make the deep copy
+			wxASSERT(pDeepCopiedSrcPhrase != NULL);
+			// add each deep copy to the end of the master list
+			pos2 = pMasterList->Append(pDeepCopiedSrcPhrase); 
+			pDoc->CreatePartnerPile(pDeepCopiedSrcPhrase);
+		}
+		return TRUE;
+	}
+	else
+	{
+		posMaster = pMasterList->Item(nStartAt); //posMaster = pMasterList->FindIndex(nStartAt);
+		if (posMaster == NULL)
+		{
+			// whm note: I don't think this error needs to be translated for localization
+			// an unexpected exception, so inform the caller & advise the user of the error
+			error = _T(
 "FindIndex() failed in helper function ReplaceCSourcePhrasesInSpan(), posMaster value is NULL. ");
-		error += _T("Abandoning current operation.");
-		error += _T(" (If restoring document's original state, it is not properly restored.");
-		wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
-		return FALSE;
+			error += _T("Abandoning current operation.");
+			error += _T(" (If restoring document's original state, it is not properly restored.");
+			wxMessageBox(error, _T(""), wxICON_EXCLAMATION);
+			return FALSE;
+		}
 	}
 	posReplace = pReplacementsList->Item(nReplaceStartAt);
 	if (posMaster == NULL)
@@ -9641,15 +9672,24 @@ bool CAdapt_ItView::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool b
 {
 	// BEW created 29May08
 	wxString errStr;
-	if (nStartLoc < 0 || nStartLoc >= (int)pList->GetCount())
+	// BEW changed 19Jun09, because of the possibility of editing resulting in the loss of
+	// data from the end of the document, we need to be smarter than just check for bounds
+	// errors using pre-edit index values, instead, we will test and adjust to get the
+	// closest valid location and search from there
+	int count = (int)pList->GetCount();
+	if (nStartLoc < 0)
+		nStartLoc = 0;
+	if (nStartLoc >= count)
 	{
+		nStartLoc = count - 1;
+	}
+	//{
 		// bounds error, starting location is not within the list (hard coded English
 		// error messages will suffice because we don't expect to ever see them)
-		errStr = _T("Bounds error in helper function FindNote(). The current operation will be abandoned.");
-		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
-		return FALSE;
-	}
-	//int aSequNum = -1; // unused
+	//	errStr = _T("Bounds error in helper function FindNote(). The current operation will be abandoned.");
+	//	wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+	//	return FALSE;
+	//}
 	CSourcePhrase* pSrcPhrase = NULL;
 	wxString strSFM = _T("\\note");
 	SPList::Node* pos = pList->Item(nStartLoc); // POSITION pos = pList->FindIndex(nStartLoc);
@@ -9821,7 +9861,17 @@ bool CAdapt_ItView::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 //*******************************************************************************************
 bool CAdapt_ItView::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 {
-	// BEW added 30May08 in support of the source text editing step of the vertical editing process
+    // BEW added 30May08 in support of the source text editing step of the vertical editing
+    // process
+    // BEW changed 19Jun09, because editing may have removed some of doc's end, including
+	// one or more notes, and we can't just take the note's old sequence number and assume
+	// that still corresponds to a position within the edited document; so I think the
+	// thing to do is to test for nNoteSN beyond doc end, and just return FALSE - the
+	// caller should not call IsNoteStoredHere if nNoteSN is beyond the doc end, but we
+	// better allow for it and code defensively
+	int maxIndex = pSrcPhrases->GetCount() -1;
+	if (nNoteSN > maxIndex)
+		return FALSE; // beyond document's end, so certainly can't store a note there!!
 	SPList::Node* pos = pSrcPhrases->Item(nNoteSN); //POSITION pos = pSrcPhrases->FindIndex(nNoteSN);
 	wxString strSFM = _T("\\note");
 	CSourcePhrase* pSrcPhrase = pos->GetData();
@@ -9932,10 +9982,16 @@ bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 	// instances where the list index stays in synch with the stored m_nSequNumber
 	// value in each CSourcePhrase instance of the list, for this function to work
 	// right
-	//CAdapt_ItView* pView = pApp->GetView();
+	// BEW changed 19Jun09, the caller should refrain from calling this if nLocationSN is
+	// beyond the end of the document (ie. the user's editing resulted in the end of the
+	// document being removed, and a note or so, and so we must assume those are not
+	// wanted), but because this might get called in such a circumstance, we should code
+	// defensively and return FALSE so that bailout can be done instead
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
+	if (nLocationSN > pApp->GetMaxIndex())
+		return FALSE;
 	bool bHasNote = IsNoteStoredHere(pSrcPhrases, nLocationSN);
 	if (bHasNote)
 	{
@@ -9948,14 +10004,6 @@ bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 	else
 	{
 		// there is no Note at that location, so go ahead and create it there
-		//if (nLocationSN > pApp->m_maxIndex)
-		if (nLocationSN > pApp->GetMaxIndex())
-		{
-			// bounds error
-			wxString errStr = _T("Bounds error for text nLocationSN > pView->m_maxIndex in CreateNoteAtLocation.");
-			wxMessageBox(errStr, _T(""), wxICON_WARNING);
-			return FALSE;
-		}
 		CSourcePhrase* pToSrcPhrase = NULL;
 		SPList::Node* pos = pSrcPhrases->Item(nLocationSN); //POSITION pos = pSrcPhrases->FindIndex(nLocationSN);
 		wxASSERT(pos != NULL);
@@ -35410,27 +35458,52 @@ void CAdapt_ItView::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 	// first check the editable span
 	int nStartAt = pRec->nStartingSequNum;
 	int nEndAt = nStartAt + pRec->nNewSpanCount - 1;
+    // BEW added 19Jun09, (this error is also in Bill's code base, but it will be merged to
+    // this code base for next release so I've not informed him) the span may not exist, if
+    // at the end of the document we deleted the source text and the phrase box was located
+    // within the deleted section, so check and skip this span if it has gone
+	int maxIndex = pApp->GetMaxIndex();
+	bool bDoEditSpanCheck = TRUE;
+    if (nStartAt > maxIndex)
+	{
+		// old active location is now beyond the end of the document (note: document end
+		// and active location have been re-calculated in OnEditSourceText() already prior
+		// to CheckAndFixNoteFlagInSpans() having been called - the active location will
+		// have been set to the last existing CSourcePhrase in the doc), so we have to
+		// skip this edit span check
+		bDoEditSpanCheck = FALSE;
+	}
+	else if (nEndAt >= nStartAt && nEndAt > maxIndex)
+	{
+		// the span to be checked starts off within the document, but its end is now
+		// beyond the document's end, so shorten it to end at the document's end
+		nEndAt = maxIndex;
+	}
 	wxString mkr = _T("\\note");
 	CSourcePhrase* pSrcPhrase = NULL;
 	int offset = -1;
-	SPList::Node* pos = pSrcPhrases->Item(nStartAt); // POSITION pos = pSrcPhrases->FindIndex(nStartAt);
-	wxASSERT(pos != NULL);
-	while (pos != NULL)
+	SPList::Node* pos = NULL;
+	if (bDoEditSpanCheck)
 	{
-		pSrcPhrase = pos->GetData();
-		pos = pos->GetNext();
-		wxASSERT(pSrcPhrase != NULL);
-		offset = pSrcPhrase->m_markers.Find(mkr);
-		if (offset != -1)
+		pos = pSrcPhrases->Item(nStartAt); // POSITION pos = pSrcPhrases->FindIndex(nStartAt);
+		wxASSERT(pos != NULL);
+		while (pos != NULL)
 		{
-			// there is a note stored here
-			pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged in case
-										   // in case the user edited a typo SF
-										   // resulting in a Note which got filtered
+			pSrcPhrase = pos->GetData();
+			pos = pos->GetNext();
+			wxASSERT(pSrcPhrase != NULL);
+			offset = pSrcPhrase->m_markers.Find(mkr);
+			if (offset != -1)
+			{
+				// there is a note stored here
+				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged in case
+											   // in case the user edited a typo SF
+											   // resulting in a Note which got filtered
+			}
+			// break out of the loop once we've checked the last in the span
+			if (pSrcPhrase->m_nSequNumber >= nEndAt)
+				break; 
 		}
-		// break out of the loop once we've checked the last in the span
-		if (pSrcPhrase->m_nSequNumber >= nEndAt)
-			break; 
 	}
 	// next check 5 or as many CSourcePhrase instances there are in the
 	// follNotesMoveSpanList and precNotesMoveSpanList (5 because we can't
@@ -35441,7 +35514,7 @@ void CAdapt_ItView::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 	int nNextEndAt;
 	int delta = 0;
 	// don't do it if the following context does not exist
-	if (nNextStartAt < pApp->GetMaxIndex())
+	if (nNextStartAt < maxIndex)
 	{
 		delta = wxMin(5,pRec->arrNotesSequNumbers.GetCount());
 		if (delta < 5) delta = 5;
@@ -35473,7 +35546,7 @@ void CAdapt_ItView::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 	nNextEndAt = nStartAt - 1;
 	delta = 0;
 	// don't do it if the preceding context does not exist
-	if (nNextEndAt < 0)
+	if (nNextEndAt > 0)
 	{
 		delta = wxMin(5,pRec->arrNotesSequNumbers.GetCount());
 		if (delta < 5) delta = 5;
@@ -36410,7 +36483,13 @@ en:	;
 		// should not be any Notes already present at these locations, but we'll check and if there
 		// is, we've an error state which must cause the vertical edit process to be abandoned and the
 		// earlier doc state rebuilt
+		// BEW added 19Jun09, if end of doc edited away, including one or more notes,
+		// we'll assume they are unwanted and can be abandoned; so test for index values
+		// beyond the doc end, and if so, just continue to next iteration without
+		// recreating the note
 		aNoteSN = arrUnsqueezedLocations[index]; // get the next note's location
+		if (aNoteSN > pApp->GetMaxIndex())
+			continue;
 		strNoteText = pRec->storedNotesList.Item(index); //strNoteText = pRec->storedNotesList.GetNext(pos); // get the next note's text
 		if (IsNoteStoredHere(pSrcPhrases, aNoteSN))
 		{
@@ -36778,19 +36857,30 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 	// get the phrase box restored, and set up the m_targetStr member of 
 	// source phrase at that location
 	wxString str3;
-	pApp->m_nActiveSequNum = pRec->nSaveActiveSequNum;
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	if (pRec->nSaveActiveSequNum != -1)
+	{
+		pApp->m_nActiveSequNum = pRec->nSaveActiveSequNum;
+		if (pApp->m_nActiveSequNum > pApp->GetMaxIndex())
+			pApp->m_nActiveSequNum = pApp->GetMaxIndex();
+	}
+	else
+	{
+		// assume it is -1 because data was chopped off the end of the doc, so set active
+		// sn to the last current sequence number, to give RecalcLayout() a chance
+		pApp->m_nActiveSequNum = pApp->GetMaxIndex();
+	}
+	
+    // BEW changed 19Jun09, the refactored code may well be able to restore correctly, let
+    // it try - all we want to do here is make the old active sequ number and old box
+    // contents be reestablished, and set a spurious active pile, even though wrong it
+    // should make RecalcLayout() able to succeed
+	pApp->m_pActivePile = GetPile(0);
 	if (pApp->m_pActivePile != NULL)
 	{
 		//CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 		str3 = pRec->oldPhraseBoxText;
 		pApp->m_targetPhrase = str3;
 		pApp->m_pTargetBox->SetValue(str3);
-		//nStart = 0;
-		//nEnd = -1;
-        // at this point, the sourcephrase's m_bHasKBEntry flag will be the default (FALSE)
-        // value, so we do not need to do any KB adjustments (such as calling GetRefString
-        // and then RemoveRefString)
 	}
 	else
 	{
@@ -36800,6 +36890,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 		_T(""), wxICON_EXCLAMATION);
 		wxExit();
 	}
+
 	// remove selection
 	RemoveSelection();
 
