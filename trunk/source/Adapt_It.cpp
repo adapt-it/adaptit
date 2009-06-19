@@ -5377,7 +5377,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// !!! testing only below
 
-
 #if wxCHECK_VERSION(2, 7, 0)
 	wxString resourcesDir; //,localizedResourcesDir;
 	wxString dataDir, localDataDir, documentsDir;
@@ -5395,7 +5394,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetDataDir() = %s"),dataDir.c_str());
 	localDataDir = stdPaths.GetLocalDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetLocalDataDir() = %s"),localDataDir.c_str());
+#ifdef __WXMAC__
+	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program crash when 
+	// compiled for Mac OS X 10.3 Panther, so I'm using the older ::wxGetHomeDir() function for the Mac
+	// which should return the same directory string on the Mac that wxStandardPaths::GetDocumentsDir() 
+	// does.
+	documentsDir = ::wxGetHomeDir();
+#else
 	documentsDir = stdPaths.GetDocumentsDir();
+#endif
 	wxLogDebug(_T("The wxStandardPaths::GetDocumentsDir() = %s"),documentsDir.c_str());
 	userConfigDir = stdPaths.GetUserConfigDir();
 	wxLogDebug(_T("The wxStandardPaths::GetUserConfigDir() = %s"),userConfigDir.c_str());
@@ -10497,7 +10504,15 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 
 	// Get the "documents" directory for the current system/platform. 
 	wxStandardPaths stdPaths;
+#ifdef __WXMAC__
+	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program crash when 
+	// compiled for Mac OS X 10.3 Panther, so I'm using the older ::wxGetHomeDir() function for the Mac
+	// which should return the same directory string on the Mac that wxStandardPaths::GetDocumentsDir() 
+	// does.
+	stdDocsDir = ::wxGetHomeDir();
+#else
 	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since wxWidgets version 2.7.0
+#endif
 	// Typically the "documents" directory depends on the system:
     // Unix: ~/(the home directory, i.e., /home/<username>/)
     // Windows (earlier and Vista): C:\Documents and Settings\username\Documents
@@ -18227,7 +18242,16 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	// For Windows: C:\Documents and Settings\<UserName>
 	// For Linux: /usr/home
 	wxStandardPaths stdPaths;
-	wxString homeDir = stdPaths.GetDocumentsDir(); //wxString homeDir = ::wxGetHomeDir();
+	wxString homeDir;
+#ifdef __WXMAC__
+	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program crash when 
+	// compiled for Mac OS X 10.3 Panther, so I'm using the older ::wxGetHomeDir() function for the Mac
+	// which should return the same directory string on the Mac that wxStandardPaths::GetDocumentsDir() 
+	// does.
+	homeDir = ::wxGetHomeDir();
+#else
+	homeDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since wxWidgets version 2.7.0
+#endif
 	// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 	wxString configPath = folderPath + PathSeparator + configFName;
 	wxString localPathPrefix = m_localPathPrefix; // m_localPathPrefix was set in EnsureWorkFolderPresent.
