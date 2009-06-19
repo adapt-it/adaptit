@@ -69,7 +69,6 @@
 		C8F82E8E0F3F9CAB007579B8 /* PlaceInternalPunct.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E1B0F3F9CAB007579B8 /* PlaceInternalPunct.cpp */; };
 		C8F82E8F0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E1D0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp */; };
 		C8F82E900F3F9CAB007579B8 /* PrintOptionsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E1F0F3F9CAB007579B8 /* PrintOptionsDlg.cpp */; };
-		C8F82E910F3F9CAB007579B8 /* ProgressDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E210F3F9CAB007579B8 /* ProgressDlg.cpp */; };
 		C8F82E920F3F9CAB007579B8 /* ProjectPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E230F3F9CAB007579B8 /* ProjectPage.cpp */; };
 		C8F82E930F3F9CAB007579B8 /* PunctCorrespPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E250F3F9CAB007579B8 /* PunctCorrespPage.cpp */; };
 		C8F82E940F3F9CAB007579B8 /* RefString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E270F3F9CAB007579B8 /* RefString.cpp */; };
@@ -231,8 +230,6 @@
 		C8F82E1E0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PlaceRetranslationInternalMarkers.h; path = ../../source/PlaceRetranslationInternalMarkers.h; sourceTree = SOURCE_ROOT; };
 		C8F82E1F0F3F9CAB007579B8 /* PrintOptionsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PrintOptionsDlg.cpp; path = ../../source/PrintOptionsDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E200F3F9CAB007579B8 /* PrintOptionsDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PrintOptionsDlg.h; path = ../../source/PrintOptionsDlg.h; sourceTree = SOURCE_ROOT; };
-		C8F82E210F3F9CAB007579B8 /* ProgressDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ProgressDlg.cpp; path = ../../source/ProgressDlg.cpp; sourceTree = SOURCE_ROOT; };
-		C8F82E220F3F9CAB007579B8 /* ProgressDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProgressDlg.h; path = ../../source/ProgressDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82E230F3F9CAB007579B8 /* ProjectPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = ProjectPage.cpp; path = ../../source/ProjectPage.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E240F3F9CAB007579B8 /* ProjectPage.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ProjectPage.h; path = ../../source/ProjectPage.h; sourceTree = SOURCE_ROOT; };
 		C8F82E250F3F9CAB007579B8 /* PunctCorrespPage.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = PunctCorrespPage.cpp; path = ../../source/PunctCorrespPage.cpp; sourceTree = SOURCE_ROOT; };
@@ -449,8 +446,6 @@
 				C8F82E1E0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.h */,
 				C8F82E1F0F3F9CAB007579B8 /* PrintOptionsDlg.cpp */,
 				C8F82E200F3F9CAB007579B8 /* PrintOptionsDlg.h */,
-				C8F82E210F3F9CAB007579B8 /* ProgressDlg.cpp */,
-				C8F82E220F3F9CAB007579B8 /* ProgressDlg.h */,
 				C8F82E230F3F9CAB007579B8 /* ProjectPage.cpp */,
 				C8F82E240F3F9CAB007579B8 /* ProjectPage.h */,
 				C8F82E250F3F9CAB007579B8 /* PunctCorrespPage.cpp */,
@@ -697,7 +692,6 @@
 				C8F82E8E0F3F9CAB007579B8 /* PlaceInternalPunct.cpp in Sources */,
 				C8F82E8F0F3F9CAB007579B8 /* PlaceRetranslationInternalMarkers.cpp in Sources */,
 				C8F82E900F3F9CAB007579B8 /* PrintOptionsDlg.cpp in Sources */,
-				C8F82E910F3F9CAB007579B8 /* ProgressDlg.cpp in Sources */,
 				C8F82E920F3F9CAB007579B8 /* ProjectPage.cpp in Sources */,
 				C8F82E930F3F9CAB007579B8 /* PunctCorrespPage.cpp in Sources */,
 				C8F82E940F3F9CAB007579B8 /* RefString.cpp in Sources */,
