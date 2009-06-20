@@ -20,7 +20,7 @@
       <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/adaptit</mainprogram>
+      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs/>
@@ -86,7 +86,7 @@
       </default>
       <UnicodeDebug>
         <envvars/>
-        <configargs>--with-wx-config=../../../../../wxGTK-2.8.9/buildgtkud/wx-config</configargs>
+        <configargs>--with-wx-config=../../../../../wxGTK-2.8.10/buildgtkud/wx-config</configargs>
         <builddir>UnicodeDebug</builddir>
         <topsourcedir/>
         <cppflags/>
@@ -103,7 +103,7 @@
       </UnicodeDebug>
       <Unicode>
         <envvars/>
-        <configargs>--with-wx-config=../../../../../wxGTK-2.8.9/buildgtku/wx-config</configargs>
+        <configargs>--with-wx-config=../../../../../wxGTK-2.8.10/buildgtku/wx-config</configargs>
         <builddir>Unicode</builddir>
         <topsourcedir/>
         <cppflags/>
@@ -218,7 +218,7 @@
       <root>/usr/share/qt3</root>
       <includestyle>3</includestyle>
       <designerintegration>EmbeddedKDevDesigner</designerintegration>
-      <qmake>/usr/bin/qmake</qmake>
+      <qmake></qmake>
       <designer></designer>
       <designerpluginpaths/>
     </qt>
