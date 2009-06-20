@@ -2462,23 +2462,27 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	//}
 	//else
 	//{
-		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
+			mainFrameClientSize.x, finalHeightOfCanvas);
 	//}
 #else
-		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+		// arguments: top left x and y coords of canvas within client area, then
+		// width and height of canvas
+		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
+						mainFrameClientSize.x, finalHeightOfCanvas); 
 #endif
 	
-	// whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine
-	// BEW added 05Mar06: Bill Martin reported (email 3 March) that if user is in free translation mode,
-	// and uses either the Shorten of Lengthen buttons (these set gbSuppressSetup to TRUE in the beginning
-	// of their handlers, to suppress resetting up of the section for the change in the layout), and then
-	// he resizes the window, the app will crash (invalid pile pointer usually). The easiest solution is
-	// just to allow the section to be reset - this loses the effect of the shortening or lengthening, but
-	// that can easily be done again by hitting the relevant button(s) after the resized layout is redrawn.
-	// Note: gpApp may not be initialized yet in the App's OnInit(), so we'll get a pointer to the app
-	// here:
+    // whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine BEW
+    // added 05Mar06: Bill Martin reported (email 3 March) that if user is in free
+    // translation mode, and uses either the Shorten of Lengthen buttons (these set
+    // gbSuppressSetup to TRUE in the beginning of their handlers, to suppress resetting up
+    // of the section for the change in the layout), and then he resizes the window, the
+    // app will crash (invalid pile pointer usually). The easiest solution is just to allow
+    // the section to be reset - this loses the effect of the shortening or lengthening,
+    // but that can easily be done again by hitting the relevant button(s) after the
+    // resized layout is redrawn. 
+    // Note: gpApp may not be initialized yet in the App's OnInit(), so we'll get a pointer
+    // to the app here:
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	if (pApp->m_bFreeTranslationMode)
 	{
@@ -2492,7 +2496,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
 #ifdef _NEW_LAYOUT
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
