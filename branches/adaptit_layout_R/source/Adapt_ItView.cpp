@@ -39618,6 +39618,7 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), i
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+	GetLayout()->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 20Jun09
 	Invalidate();
 }
 

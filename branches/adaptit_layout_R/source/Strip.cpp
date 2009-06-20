@@ -735,7 +735,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	}
 #endif
 */
-	if (pileIndex >= nEndPileIndex)
+	if (pileIndex > nEndPileIndex)
 	{
 		// we've just placed the last pile to be placed, so return numPlaced and set m_bValid
 		// to TRUE, and let the caller work out if it should instead by set to FALSE
@@ -764,7 +764,7 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 	}
 #endif
 */
-	m_bValid = TRUE;
+		m_bValid = TRUE;
 		return numPlaced;
 	}
 	nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;

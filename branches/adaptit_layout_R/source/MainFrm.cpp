@@ -2165,6 +2165,7 @@ wxSize CMainFrame::GetCanvasClientSize()
 	canvasSize.x = frameClientSize.x; // canvas always fills width of frame's client size
 	// the height of the canvas is reduced by the height of the controlBar; and also the
 	// height of the composeBar (if visible).
+	// BEW modified for vertical edit bars to be taken into account also
 	if (m_pComposeBar->IsShown())
 	{
 		canvasSize.y = frameClientSize.y - m_controlBarHeight - m_composeBarHeight;
@@ -2172,6 +2173,18 @@ wxSize CMainFrame::GetCanvasClientSize()
 	else
 	{
 		canvasSize.y = frameClientSize.y - m_controlBarHeight;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		// vertical edit is on currently
+		if (m_pRemovalsBar->IsShown())
+		{
+			canvasSize.y -= m_removalsBarHeight;
+		}
+		if (m_pVertEditBar->IsShown())
+		{
+			canvasSize.y -= m_vertEditBarHeight;
+		}
 	}
 	return canvasSize;
 }

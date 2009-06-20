@@ -3448,7 +3448,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				}
 
 				// scroll, if necessary
-				//pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+				pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 				/* removed 30Mar09, these two lines should no longer be needed
 				// recreate the phraseBox again (this is a kludge, as the preceding scroll 

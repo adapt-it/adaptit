@@ -17,6 +17,8 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 
 */
 
+//#define _OFFSETS_BUG
+
 // for debugging support
 // comment out the following when the document does not have 13 strips
 // (more can be handled, up to 26 - but only data for 13, and in a few places, some more,
@@ -59,8 +61,6 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 // Include your minimal set of headers here, or wx.h
 #include <wx/wx.h>
 #endif
-
-//#define _OFFSETS_BUG
 
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
