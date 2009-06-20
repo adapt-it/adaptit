@@ -844,6 +844,11 @@ bool CAdapt_ItDoc::OnNewDocument()
 					strMessage += _T("\n");
 					strMessage += _("Adapt It cannot use Microsoft Word Document (doc) files as input files.");
 				}
+				else if (fnExtensionOnly.MakeUpper() == _T("ODT"))
+				{
+					strMessage += _T("\n");
+					strMessage += _("Adapt It cannot use OpenOffice's Open Document Text (odt) files as input files.");
+				}
 				strMessage += _T("\n");
 				strMessage += _("Adapt It input files must be plain text files.");
 				wxString strMessage2;
