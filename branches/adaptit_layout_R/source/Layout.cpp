@@ -2600,11 +2600,19 @@ bool CLayout::GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidS
 // containing the offsets from the strip's boundary (left for LTR text, right for RTL
 // text), but it does not alter any of the other strip members except to reset the m_nFree
 // member to the nStripWidth value ready for pile points to be added later
+// BEW changed 20Jun09, adding content to the doc end using Edit Source Text command can
+// result in a strip index which is higher than the (now possibly reduced) strip count
+// less one, and so we have to test for this to avoid a crash due to a bounds error
 int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth)
 {
 	int nCount = 0;
 	int index;
 	CStrip* pStrip = NULL;
+	int maxStripIndex = m_stripArray.GetCount() - 1;
+	if (nLastStrip > maxStripIndex)
+		nLastStrip = maxStripIndex;
+	if (nLastStrip < nFirstStrip)
+		return 0;
 	for (index = nFirstStrip; index <= nLastStrip; index++)
 	{
 		pStrip = (CStrip*)m_stripArray.Item(index);
@@ -3092,6 +3100,24 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	// DebugIndexMismatch(111, 2);
 	int nHowManyStrips = 
 		   EmptyTheInvalidStrips(nIndexWhereEditsStart, nIndexWhereEditsEnd, nStripWidth);
+	// adding text in Edit Source Text can result in the above passed in indices referring
+	// to a range of strips which now now longer exist, or exist only in part, and
+	// internal tests may have reduced the span - so we must test the nHowManyStrips value
+	// and compare with nIndexWhereEditsStart and nIndexWhereEditsEnd in order to adjust
+	// the latter to reflect the actual number of strips emptied
+	int nExpectedCount = nIndexWhereEditsEnd - nIndexWhereEditsStart + 1;
+	int maxIndex = m_stripArray.GetCount() - 1;
+	if (nHowManyStrips == 0)
+	{
+		// best we can do is start and end at the last actually existing strip
+		nIndexWhereEditsStart = maxIndex;
+		nIndexWhereEditsEnd = maxIndex;
+	}
+	else if (nHowManyStrips < nExpectedCount)
+	{
+		// adjust the nIndexWhereEditsEnd value only
+		nIndexWhereEditsEnd = nIndexWhereEditsStart + nHowManyStrips - 1;
+	}
 
 #ifdef _13STRIPS_DOC
 	#ifdef __WXDEBUG__
