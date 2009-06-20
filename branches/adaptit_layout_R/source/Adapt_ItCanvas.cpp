@@ -2445,35 +2445,16 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		else
 		{
 			// the logical document is longer than the view window, so the scroll bar will
-			// be active (the Scroll call takes scroll units)
+			// be active (the Scroll call takes scroll units) Note: see the comment about
+			// the kluge done in CLayout::SetLogicalDocHeight(), the comment is within
+			// that function - it prevents the last strip, when box is in it and mode is
+			// vertical editing, from being below the bottom of the view window.
+			// Increasing the y value in the Scroll() call below doesn't do what we want.
 			if (bForceRepositioningToDocEnd)
 			{
 				// active location is at or near doc end, so scroll to the end; allow for
 				// granularity of yPixelsPerUnit, add 1 more
-				if (gbVerticalEditInProgress)
-				{
-                    // BEW added reluctantly 20Jun09, a kluge to compensate, because even
-                    // though we are trying to put the view window at the scroll limit, it
-                    // doesn't get set there without the extra + 3 value, in vertical edit
-                    // mode (only need 0 or + 1 when it is not in vertical edit mode -- and
-                    // that can legitimately be attributed to yPixelsPerUnit granularity
-                    // effects) - instead the window's bottom is about 50 pixels up from
-                    // the document bottom and the scroll car isn't at the end of the range
-                    // so that a further manual scroll down is needed in order to see the
-                    // last strip where the box is. This kluge removes the need for the
-                    // manual scroll, but I've no idea why Scroll() refuses to put the view
-                    // window at the scroll limit - perhaps it has to do with an
-                    // accumulation of granularity errors, but that strikes me as unlikely.
-                    // (The vertical edit mode's extra bars are used in the calculation of
-                    // the vertical height of the view window, so that should not be the
-                    // problem.) I've tried most of one day to find a way to do it "right"
-                    // with logic, without success, so the kluge will have to do!
-					Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 3);
-				}
-				else
-				{
-					Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 1);
-				}
+				Scroll(0, (virtDocSize.y - nWindowDepth) / yPixelsPerUnit + 1);
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Scroll forced to doc end"));
 #endif

@@ -797,7 +797,17 @@ void CLayout::SetLogicalDocHeight()
 	{
 		int nStripCount = m_stripArray.GetCount();
 		nDocHeight = (GetCurLeading() + GetStripHeight()) * nStripCount;
-		nDocHeight += 40; // pixels for some white space at document's bottom
+		// BEW kluge 20Jun09. Bill already had a 40 pixel (2 scroll units) of white space
+		// added to the bottom of the logical doc here, but attempts in vertical edit mode
+		// to scroll the view window to the bottom of the doc always don't go far enough,
+		// by about 50 pixels. So since we've already got a Bill kluge here, I might as
+		// well add a Bruce kluge too, and increase the white space at bottom to 120
+		// pixels, and then when the box is in the last strip, the last strip isn't below
+		// the bottom of the view window for an unknown reason...
+		if (gbVerticalEditInProgress)
+			nDocHeight += 120; // a larger value is needed for vertical edit mode
+		else
+			nDocHeight += 40; // 40 pixels for some white space at document's bottom
 	}
 	m_logicalDocSize.SetHeight(nDocHeight);
 }
@@ -1651,6 +1661,17 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 	{
 		return FALSE;
 	}
+	// insertions done in adaptation mode or glossing mode at the end of a document on
+	// words appended in the source text edit can result in gnBeginInsertionsSequNum
+	// getting a value beyond doc's max index when box goes forward out of the editing
+	// span, and this has to be tested for so as to protect against a crash due to a
+	// bounds error in the SPList.
+	int maxIndex = m_pApp->GetMaxIndex();
+	if (gnBeginInsertionsSequNum > maxIndex)
+		gnBeginInsertionsSequNum = maxIndex;
+	if (gnEndInsertionsSequNum > gnBeginInsertionsSequNum)
+		gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
+	// now calculate the range
 	CPile* pFirstPile = m_pView->GetPile(gnBeginInsertionsSequNum);
 	wxASSERT(pFirstPile);
 	CPile* pLastPile = m_pView->GetPile(gnEndInsertionsSequNum);
