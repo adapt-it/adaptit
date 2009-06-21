@@ -20578,7 +20578,6 @@ void CAdapt_ItView::ClobberDocument()
     // document object
 	pDoc->Modify(FALSE); // MFC has SetModifiedFlag(FALSE)
 	pDoc->DeleteSourcePhrases();
-	pLayout->GetPileList()->Clear();
 	pLayout->GetInvalidStripArray()->Clear();
 	pLayout->DestroyStrips();
 	pLayout->DestroyPiles(); // restored, DestroySourcePhrases() no longer destorys 
