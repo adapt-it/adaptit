@@ -2781,10 +2781,9 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 }
 
 // FixBox() is the core function for supporting box expansion and contraction in various
-// situations, especially when typing into the box; this version needs to be smarter when
-// the refactored layout code is fully implemented - but currently if it detects that
-// adjustment to the layout is required, it calls CLayout::RecalcLayout() to destroy and
-// recreate the document's strips, without making any changes to the piles. FixBox() is
+// situations, especially when typing into the box; this version detects when
+// adjustment to the layout is required, it calls CLayout::RecalcLayout() to tweak the
+// strips at the active location - that is with input parameter keep_strips_keep_piles. FixBox() is
 // currently called only in the following CPhraseBox functions: OnPhraseBoxChanged() with
 // selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
 // OnEditUndo() with selector 1 passed in.
@@ -2964,13 +2963,18 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 		gbExpanding = FALSE;
 
-		/* for now, just update the whole screen & don't worry about flicker - fix later  **** TODO ****
-		if (bWholeScreenUpdate)
-		{
-			pView->Invalidate();
-		}
-		*/
+		// support clipping
+		if (!bUpdateOfLayoutNeeded)
+			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+		
 	} // end bResult == TRUE block
+	else
+	{
+		// no reason to change box size, so we should be able to support clipping
+		// (provided no scroll is happening - but that is deal with elsewhere, search for
+		// SetScrollingFlag() to find where)
+		pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+	}
 	if (nSelector < 2)
 		pApp->m_targetPhrase = thePhrase; // update the string storage on the view 
 			// (do it here rather than before the resizing code else selection bounds are wrong)
@@ -4919,6 +4923,8 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	if (event.GetKeyCode() == WXK_UP)
 	{
 a:		int xPixelsPerUnit,yPixelsPerUnit;
+		pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
+
 		//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 		pLayout->m_pCanvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 		wxPoint scrollPos;
@@ -5020,6 +5026,8 @@ c:		SetFocus();
 		// down arrow was pressed, so scroll down a strip, provided we are not at the end of
 		// the bundle
 b:		wxPoint scrollPos;
+		pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
+
 		int xPixelsPerUnit,yPixelsPerUnit;
 		//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 		pLayout->m_pCanvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);

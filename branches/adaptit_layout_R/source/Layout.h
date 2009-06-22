@@ -180,6 +180,8 @@ private:
 	int			m_nClipRectLeft;
 	int			m_nClipRectWidth;
 	int			m_nClipRectHeight;
+	bool		m_bAllowClipping; // default is FALSE
+	bool		m_bScrolling; // TRUE when scrolling is happening
 
     // use the following to suppress phrasebox being made visible in the middle of
     // procedures when strips have to be updated but we've not yet got to the final layout
@@ -267,14 +269,25 @@ public:
 	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
 	void		SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible);
 
-	// getters for clipping rectangle
+	// getters & setters for clipping and clipping rectangle (if we do clipping, the view
+	// is clipped to the active strip - but only when this makes sense, such as when the
+	// phrase box is not resized by a character typed by the user, and scrolling is not
+	// happening)
+	void		SetAllowClippingFlag(bool bAllow);
+	bool		GetAllowClippingFlag();
+	void		SetScrollingFlag(bool bIsScrolling);
+	bool		GetScrollingFlag();
+	void		CalcClipRectangle(CStrip* pActiveStrip, wxDC* pDC,
+				int& top, int& left, int& width, int& height); // always, the active strip only
+	void		SetClipRectangle(CStrip* pActiveStrip, wxDC* pDC);
 	wxRect		GetClipRect();
-
-	// setters for clipping rectangle
+	void		ClearClipRect(); // don't confuse with device context's DestroyClippingRegion()
+	/* don't need these
 	void		SetClipRectTop(int nTop);
 	void		SetClipRectLeft(int nLeft);
 	void		SetClipRectWidth(int nWidth);
 	void		SetClipRectHeight(int nHeight);
+	*/
 
 	// setters and getters for font pointers
 	void		SetSrcFont(CAdapt_ItApp* pApp);

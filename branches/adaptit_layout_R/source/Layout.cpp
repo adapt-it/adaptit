@@ -276,6 +276,8 @@ void CLayout::InitializeCLayout()
 	m_invalidStripArray.Clear();
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
+	m_bAllowClipping = FALSE; // default is FALSE
+	m_bScrolling = FALSE; // TRUE when scrolling is happening
 
     // can add more basic initializations above here - but only stuff that makes
     // the session-persistent m_pLayout pointer on the app class have the basic info it
@@ -288,9 +290,72 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
 }
 
+void CLayout::SetAllowClippingFlag(bool bAllow)
+{
+	if (bAllow)
+		m_bAllowClipping = TRUE;
+	else
+		m_bAllowClipping = FALSE;
+}
+
+bool CLayout::GetAllowClippingFlag()
+{
+	if (m_bAllowClipping)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+void CLayout::SetScrollingFlag(bool bIsScrolling)
+{
+	if (bIsScrolling)
+		m_bScrolling = TRUE;
+	else
+		m_bScrolling = FALSE;
+}
+
+bool CLayout::GetScrollingFlag()
+{
+	if (m_bScrolling)
+		return TRUE;
+	else
+		return FALSE;
+}
+
 void CLayout::Draw(wxDC* pDC)
 {
-    // drawing is done based on the top of the first strip of a visible range of strips
+	// BEW 22Jun09 - moved the placement of the phrase box to top of Draw() so as to
+	// support clipping - the internal FixBox() call sets or clears m_bAllowClipping,
+	// which has to have its value correctly defined before the strips are drawn
+	//
+ 	// get the phrase box placed in the active location and made visible, and suitably
+	// prepared - unless it should not be made visible (eg. when updating the layout
+	// in the middle of a procedure, before the final update is done at a later time)
+	if (!m_bLayoutWithoutVisiblePhraseBox)
+	{
+		// work out its location and resize (if necessary) and draw it
+		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+	}
+	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
+
+	// m_AllowClipping will have been set TRUE, or left with its default value of FALSE
+	// in the FixBox() call within the above PlacePhraseBoxInLayout() call, so if not
+	// currently scrolling, we can set up the active strip as the clip rectangle for this
+	// Draw() operation, to reduce flicker; for ease of debugging, I'll set up local
+	// booleans here and set each before using them in a test
+	bool bCanClip = GetAllowClippingFlag();
+	bool bCurrentlyScrolling = GetScrollingFlag();
+	if (bCanClip && !bCurrentlyScrolling && m_pApp->m_nActiveSequNum != -1)
+	{
+		if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->m_pOwningStrip != NULL)
+		{
+			CStrip* pActiveStrip = m_pApp->m_pActivePile->m_pOwningStrip;
+			SetClipRectangle(pActiveStrip,pDC);
+			pDC->SetClippingRegion(GetClipRect());
+		}
+	}
+
+   // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
     // caller has to set the active location first --typically its done by code in the
     // AdjustForUserEdits() function called within RecalcLayout(), but if rebuilding the
@@ -358,6 +423,7 @@ void CLayout::Draw(wxDC* pDC)
 		aTempStripPtr->Draw(pDC);			// so we can have a breakpoint on the second
 	}
 
+	/* moved to top of function body, as clipping needs bool which is set herein
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
 	// in the middle of a procedure, before the final update is done at a later time)
@@ -367,8 +433,16 @@ void CLayout::Draw(wxDC* pDC)
 		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
 	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
-
+	*/
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
+
+    // initialize the clipping support flags, and clear the clip rectangle in both the
+    // device context, and the one for the active strip in CLayout
+	SetAllowClippingFlag(FALSE); // only when not scrolling and not resizing the phrase
+								 // box can we clip
+	SetScrollingFlag(FALSE);
+	pDC->DestroyClippingRegion(); // makes it become full-window drawing again
+	ClearClipRect();
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -444,20 +518,60 @@ CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
 	CMainFrame* pFrame = pApp->GetMainFrame();
 	if (pFrame == NULL)
 	{
-		wxMessageBox(_T("Error: failed to get m_pMainFrame pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxMessageBox(_T("Error: failed to get m_pMainFrame pointer in CLayout"),
+		_T(""), wxICON_ERROR);
 		wxASSERT(FALSE);
 	}
 	return pFrame;
 }
 
 
-// Clipping support 
+// Clipping support
+void CLayout::CalcClipRectangle(CStrip* pActiveStrip,  wxDC* pDC,
+								int& top, int& left, int& width, int& height)
+{
+	if (pActiveStrip == NULL)
+	{
+		// no clip rectangle can be defined, so return zero values
+		top = 0;
+		left = 0;
+		width = 0;
+		height = 0;
+		return;
+	}
+	// the active strip exists, to make the clip rectangle be the client area occupied by
+	// the strip rectangle (which might be wider than the actual piles in it)
+	wxRect stripRect = pActiveStrip->GetStripRect_CellsOnly();
+	// the stripRect is in logical coordinates, we need to convert to device coordinates
+	top = (int)pDC->LogicalToDeviceY(stripRect.GetTop()); 
+	left = (int)pDC->LogicalToDeviceX(stripRect.GetLeft()); 
+	width = (int)pDC->LogicalToDeviceXRel(stripRect.GetWidth()); 
+	height = (int)pDC->LogicalToDeviceY(stripRect.GetHeight()); 
+}
+
+void CLayout::SetClipRectangle(CStrip* pActiveStrip, wxDC* pDC)
+{
+	CalcClipRectangle(pActiveStrip, pDC, m_nClipRectTop, m_nClipRectLeft, 
+									m_nClipRectWidth, m_nClipRectHeight);  
+}
+
+
 wxRect CLayout::GetClipRect()
 {
 	wxRect rect(m_nClipRectLeft,m_nClipRectTop,m_nClipRectWidth,m_nClipRectHeight);
 	return rect;
 }
 
+void CLayout::ClearClipRect()
+{
+	m_nClipRectTop = 0;
+	m_nClipRectLeft = 0;
+	m_nClipRectWidth = 0;
+	m_nClipRectHeight = 0;
+}
+
+
+/* don't need these
 void CLayout::SetClipRectTop(int nTop)
 {
 	m_nClipRectTop = nTop;
@@ -477,6 +591,7 @@ void CLayout::SetClipRectHeight(int nHeight)
 {
 	m_nClipRectHeight = nHeight;
 }
+*/
 
 // accessors for font pointers
 void CLayout::SetSrcFont(CAdapt_ItApp* pApp)

@@ -2156,6 +2156,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 		return; // do nothing if the phrase box is hidden because we are at doc end
 	}
 	CLayout* pLayout = pApp->m_pLayout;
+
+	// disable clipping, but note below - if we determine that no scroll is needed we will
+	// turn the flag off so that clipping becomes possible (provided the CLayout bool
+	// m_bAllowScrolling is also TRUE)
+	pLayout->SetScrollingFlag(TRUE);  // turned off at the end of Draw()
+
 	bool debugDisableScrollIntoView = FALSE; // set TRUE to disable ScrollIntoView
 	if (!debugDisableScrollIntoView)
 	{
@@ -2231,7 +2237,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
         // document to the beginning of the leading for the active strip (the new value was
         // determined by a prior call to RecalcLayout)
 		int yDistFromDocStartToStripTopLeading = 
-										pPile->GetPileRect().GetTop() - pApp->m_curLeading;		
+										pPile->GetPileRect().GetTop() - pApp->m_curLeading;	
 #ifdef DEBUG_ScrollIntoView
 			wxLogDebug(_T("Pixels to top of active strip %d  , nBoundForPrecedingContextStrips %d strips, Default nPrecedingContextDepth %d pixels"), 
 						yDistFromDocStartToStripTopLeading, nBoundForPrecedingContextStrips, nPrecedingContextDepth);
@@ -2464,7 +2470,19 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
                 // normal situation: active strip is either near the doc top (and remember
                 // that the needed ajustment for the value of desiredViewTop has been made
                 // already), or it is somewhere in the document and not near either end
-				Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
+ // ** TODO **                
+				// next lines didn't work as expected, long jumps to remote hole had a
+				// scroll and the box way off screen. I have to find a way to inhibit only
+				// when a scroll isn't required -- I think old_desiredTop is always going
+				// to be equal to desiredViewTop, so that was no help
+                //if (old_desiredTop == desiredViewTop)
+				//{
+					// no scroll is needed, so clipping is potentially possible (provided
+					// m_bAllowClipping is also TRUE)
+				//	pLayout->SetScrollingFlag(FALSE);
+				//}
+				//else
+					Scroll(0,desiredViewTop / yPixelsPerUnit); // Scroll takes scroll units not pixels
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Typical scroll, scroll car set to yDist of  %d pixels"),desiredViewTop);
 		int newXPos,current_yDistFromDocStartToViewTop;
@@ -2486,7 +2504,8 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	wxPoint scrollPos;
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
-	
+	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
+
     // MFC's GetScrollPosition() "gets the location in the document to which the upper left
     // corner of the view has been scrolled. It returns values in logical units." wx note:
     // The wx docs only say of GetScrollPos(), that it "Returns the built-in scrollbar
@@ -2620,6 +2639,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	wxPoint scrollPos; 
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
+	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 	
     // MFC's GetScrollPosition() "gets the location in the document to which the upper left
     // corner of the view has been scrolled. It returns values in logical units."
