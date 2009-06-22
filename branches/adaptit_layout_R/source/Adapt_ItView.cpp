@@ -42235,6 +42235,7 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 					}
 				#endif
 				pFrame->m_pComposeBarEditBox->SetFocus();
+
 			}
 
 		// get any removed free translations in gEditRecord into the GUI list

@@ -1505,7 +1505,27 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 
 	// restore the selection, if there was one
 	m_pView->RestoreSelection();
-	
+
+#ifndef _NEW_LAYOUT
+	// BEW removed 22Jun09...
+    // In our refactored view design, _NEW_LAYOUT should be #defined; if it isn't the strip
+    // building protocol of destroying and rebuild the strips at each layout recalculation
+    // comes into force - and that is expensive if the document is large. The new design,
+    // for _NEW_LAYOUT defined, instead tweaks the strips and piles at the edit location -
+    // and this design has the phrase box drawn after that, as the last step in the Draw()
+    // function for the CLayout. That means that the phrase box will by default always be
+    // given the input focus - which is a problem if the use has entered free translation
+    // mode, because in that mode the focus should be in the compose bar's wxTextCtrl, not
+    // the phrase box. Therefore, the Draw() function at the very end tests for
+    // m_bFreeTranslationMode being TRUE, and when so, it puts the input focus in the
+    // compose bar's edit box. Because this newer way of handling the phrase box only
+    // happens when _NEW_LAYOUT is #defined, there is no point in placing the focus in the
+    // compose bar's edit box here within RecalcLayout when _NEW_LAYOUT is
+    // #defined, because the later call of Draw() will put the focus back into the phrase
+    // box, only to reenter immediately after, if free translation is ON, a block which
+    // puts it on the edit box in the compose bar. So the code here below is pointless,
+    // except when _NEW_LAYOUT is not #defined.
+
 	// if free translation mode is turned on, get the current section
 	// delimited and made visible - but only when not currently printing
 	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
@@ -1515,11 +1535,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			m_pView->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
 		}
 
-		CMainFrame* pFrame;
-		pFrame = m_pApp->GetMainFrame();
-		wxASSERT(pFrame);
+		//CMainFrame* pFrame;
+		//pFrame = m_pApp->GetMainFrame();
+		//wxASSERT(pFrame);
+		//wxTextCtrl* pEdit = (wxTextCtrl*)
+		//					pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxTextCtrl* pEdit = (wxTextCtrl*)
-							pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		pEdit->SetFocus();
 		if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
 		{
@@ -1534,6 +1556,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			}
 		}
 	}
+#endif
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 	return TRUE;
 }
@@ -2554,6 +2577,26 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 	{
 		// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
 		m_pApp->m_pTargetBox->SetModify(FALSE); 
+	}
+
+	// if free translating, put focus in the compose bar's wxTextCtrl
+	if (m_pApp->m_bFreeTranslationMode)
+	{
+		wxTextCtrl* pEdit = (wxTextCtrl*)
+							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		pEdit->SetFocus();
+		if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
+		{
+			pEdit->SetSelection(-1,-1); // -1, -1 selects it all
+		}
+		else
+		{
+			int len = pEdit->GetValue().Length(); 
+			if (len > 0)
+			{
+				pEdit->SetSelection(len,len);
+			}
+		}
 	}
 }
 
