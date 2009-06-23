@@ -2962,18 +2962,20 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
 
 		gbExpanding = FALSE;
-
+#ifdef Test_Clipping
 		// support clipping
 		if (!bUpdateOfLayoutNeeded)
 			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
-		
+#endif		
 	} // end bResult == TRUE block
 	else
 	{
+#ifdef Test_Clipping
 		// no reason to change box size, so we should be able to support clipping
 		// (provided no scroll is happening - but that is deal with elsewhere, search for
 		// SetScrollingFlag() to find where)
 		pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+#endif
 	}
 	if (nSelector < 2)
 		pApp->m_targetPhrase = thePhrase; // update the string storage on the view 
@@ -4923,8 +4925,9 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	if (event.GetKeyCode() == WXK_UP)
 	{
 a:		int xPixelsPerUnit,yPixelsPerUnit;
+#ifdef Test_Clipping
 		pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
-
+#endif
 		//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 		pLayout->m_pCanvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 		wxPoint scrollPos;
@@ -5026,8 +5029,9 @@ c:		SetFocus();
 		// down arrow was pressed, so scroll down a strip, provided we are not at the end of
 		// the bundle
 b:		wxPoint scrollPos;
+#ifdef Test_Clipping
 		pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
-
+#endif
 		int xPixelsPerUnit,yPixelsPerUnit;
 		//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 		pLayout->m_pCanvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);

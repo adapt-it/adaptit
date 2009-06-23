@@ -276,9 +276,10 @@ void CLayout::InitializeCLayout()
 	m_invalidStripArray.Clear();
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
+#ifdef Test_Clipping
 	m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
-
+#endif
     // can add more basic initializations above here - but only stuff that makes
     // the session-persistent m_pLayout pointer on the app class have the basic info it
     // needs, other document-related initializations can be done in SetupLayout()
@@ -289,7 +290,7 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 {
 	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
 }
-
+#ifdef Test_Clipping
 void CLayout::SetAllowClippingFlag(bool bAllow)
 {
 	if (bAllow)
@@ -321,6 +322,7 @@ bool CLayout::GetScrollingFlag()
 	else
 		return FALSE;
 }
+#endif
 
 void CLayout::Draw(wxDC* pDC)
 {
@@ -338,6 +340,7 @@ void CLayout::Draw(wxDC* pDC)
 	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 
+#ifdef Test_Clipping
 	// m_AllowClipping will have been set TRUE, or left with its default value of FALSE
 	// in the FixBox() call within the above PlacePhraseBoxInLayout() call, so if not
 	// currently scrolling, we can set up the active strip as the clip rectangle for this
@@ -350,10 +353,13 @@ void CLayout::Draw(wxDC* pDC)
 		if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->m_pOwningStrip != NULL)
 		{
 			CStrip* pActiveStrip = m_pApp->m_pActivePile->m_pOwningStrip;
-			SetClipRectangle(pActiveStrip,pDC);
-			pDC->SetClippingRegion(GetClipRect());
+			SetClipRectangle(pActiveStrip);
+			pDC->DestroyClippingRegion();
+			wxRect r = GetClipRect();
+			pDC->SetClippingRegion(r);
 		}
 	}
+#endif
 
    // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
@@ -436,6 +442,22 @@ void CLayout::Draw(wxDC* pDC)
 	*/
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
 
+#ifdef Test_Clipping
+	if (bCanClip && !bCurrentlyScrolling && m_pApp->m_nActiveSequNum != -1)
+	{
+		if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->m_pOwningStrip != NULL)
+		{
+			wxCoord x,y,width,height;
+			pDC->GetClippingBox(&x,&y,&width,&height);
+			// put a box around the strip to verify we've set a clip rectangle in wxDC,
+			// remove later
+			pDC->DrawLine(x,y,x+width-1,y);
+			pDC->DrawLine(x+width-1,y,x+width-1,y+height-1);
+			pDC->DrawLine(x+width-1,y+height-1,x,y+height-1);
+			pDC->DrawLine(x,y+height-1,x,y);
+
+		}
+	}
     // initialize the clipping support flags, and clear the clip rectangle in both the
     // device context, and the one for the active strip in CLayout
 	SetAllowClippingFlag(FALSE); // only when not scrolling and not resizing the phrase
@@ -443,6 +465,8 @@ void CLayout::Draw(wxDC* pDC)
 	SetScrollingFlag(FALSE);
 	pDC->DestroyClippingRegion(); // makes it become full-window drawing again
 	ClearClipRect();
+#endif
+	pDC->DestroyClippingRegion(); // full-window drawing
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -525,9 +549,9 @@ CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
 	return pFrame;
 }
 
-
+#ifdef Test_Clipping
 // Clipping support
-void CLayout::CalcClipRectangle(CStrip* pActiveStrip,  wxDC* pDC,
+void CLayout::CalcClipRectangle(CStrip* pActiveStrip,
 								int& top, int& left, int& width, int& height)
 {
 	if (pActiveStrip == NULL)
@@ -542,16 +566,20 @@ void CLayout::CalcClipRectangle(CStrip* pActiveStrip,  wxDC* pDC,
 	// the active strip exists, to make the clip rectangle be the client area occupied by
 	// the strip rectangle (which might be wider than the actual piles in it)
 	wxRect stripRect = pActiveStrip->GetStripRect_CellsOnly();
-	// the stripRect is in logical coordinates, we need to convert to device coordinates
-	top = (int)pDC->LogicalToDeviceY(stripRect.GetTop()); 
-	left = (int)pDC->LogicalToDeviceX(stripRect.GetLeft()); 
-	width = (int)pDC->LogicalToDeviceXRel(stripRect.GetWidth()); 
-	height = (int)pDC->LogicalToDeviceY(stripRect.GetHeight()); 
+	// the stripRect is in logical coordinates (that's what wxWidgets expects), so the
+	// LogicalToDeviceX() etc calls are one within wxDC's DoSetClippingRegion() function;
+	// wxWidgets has an error here, right and bottom lie outside the rect, so augment by 1
+	top = stripRect.GetTop();
+	left = stripRect.GetLeft(); 
+	width = stripRect.GetWidth(); 
+	height = stripRect.GetHeight();
+	width += 1;
+	height += 1;
 }
 
-void CLayout::SetClipRectangle(CStrip* pActiveStrip, wxDC* pDC)
+void CLayout::SetClipRectangle(CStrip* pActiveStrip)
 {
-	CalcClipRectangle(pActiveStrip, pDC, m_nClipRectTop, m_nClipRectLeft, 
+	CalcClipRectangle(pActiveStrip, m_nClipRectTop, m_nClipRectLeft, 
 									m_nClipRectWidth, m_nClipRectHeight);  
 }
 
@@ -592,6 +620,7 @@ void CLayout::SetClipRectHeight(int nHeight)
 	m_nClipRectHeight = nHeight;
 }
 */
+#endif
 
 // accessors for font pointers
 void CLayout::SetSrcFont(CAdapt_ItApp* pApp)

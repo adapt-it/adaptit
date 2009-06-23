@@ -52,6 +52,8 @@ class CPile;
 class CFont;
 class CAdapt_ItCanvas;
 
+//#define Test_Clipping
+
 //#define	nJumpDistanceForUserEditsSpanDetermination 80 // how far to jump in either 
 			// direction from the current m_nActiveSequNum value to scan forward and back
 			// to determine the beginning and end locations for the user edit operations
@@ -174,6 +176,7 @@ private:
 	enum layout_selector	m_lastLayoutSelector; // RecalcLayout() sets it, Draw() uses it
 
 private:
+#ifdef Test_Clipping
 	// four ints define the clip rectange top, left, width & height for erasure 
 	// prior to draw (window client coordinates, (0,0) is client top left)
 	int			m_nClipRectTop;
@@ -182,7 +185,7 @@ private:
 	int			m_nClipRectHeight;
 	bool		m_bAllowClipping; // default is FALSE
 	bool		m_bScrolling; // TRUE when scrolling is happening
-
+#endif
     // use the following to suppress phrasebox being made visible in the middle of
     // procedures when strips have to be updated but we've not yet got to the final layout
     bool		m_bLayoutWithoutVisiblePhraseBox;
@@ -268,7 +271,7 @@ public:
 
 	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
 	void		SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible);
-
+#ifdef Test_Clipping
 	// getters & setters for clipping and clipping rectangle (if we do clipping, the view
 	// is clipped to the active strip - but only when this makes sense, such as when the
 	// phrase box is not resized by a character typed by the user, and scrolling is not
@@ -277,9 +280,9 @@ public:
 	bool		GetAllowClippingFlag();
 	void		SetScrollingFlag(bool bIsScrolling);
 	bool		GetScrollingFlag();
-	void		CalcClipRectangle(CStrip* pActiveStrip, wxDC* pDC,
+	void		CalcClipRectangle(CStrip* pActiveStrip,
 				int& top, int& left, int& width, int& height); // always, the active strip only
-	void		SetClipRectangle(CStrip* pActiveStrip, wxDC* pDC);
+	void		SetClipRectangle(CStrip* pActiveStrip);
 	wxRect		GetClipRect();
 	void		ClearClipRect(); // don't confuse with device context's DestroyClippingRegion()
 	/* don't need these
@@ -288,7 +291,7 @@ public:
 	void		SetClipRectWidth(int nWidth);
 	void		SetClipRectHeight(int nHeight);
 	*/
-
+#endif
 	// setters and getters for font pointers
 	void		SetSrcFont(CAdapt_ItApp* pApp);
 	void		SetTgtFont(CAdapt_ItApp* pApp);

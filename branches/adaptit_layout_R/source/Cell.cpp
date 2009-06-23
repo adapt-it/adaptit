@@ -469,7 +469,8 @@ void CCell::Draw(wxDC* pDC)
     // next call should not be needed now, the paint issue on wxMac had a different source,
     // but keep it for the present as it should be called before setting any clip region
     // later in the code
-	pDC->DestroyClippingRegion();
+	//pDC->DestroyClippingRegion(); // BEW removed 23Jun09, it was destroying the clip rect
+									// before it could be used for reducing flicker
 
 	pDC->SetBrush(*wxTRANSPARENT_BRUSH); // SetBackgroundMode() requires a valid brush 
         // on wxGTK ( a transparent brush results in nothing being visible - code below
