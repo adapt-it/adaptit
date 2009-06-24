@@ -2157,7 +2157,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 	}
 	CLayout* pLayout = pApp->m_pLayout;
 
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 	// disable clipping, but note below - if we determine that no scroll is needed we will
 	// turn the flag off so that clipping becomes possible (provided the CLayout bool
 	// m_bAllowScrolling is also TRUE)
@@ -2401,7 +2401,7 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 #ifdef DEBUG_ScrollIntoView
 		wxLogDebug(_T("Initial desiredViewTop = %d"),desiredViewTop);
 #endif
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 		int old_desiredTop = desiredViewTop; // for anti-flicker support
 #endif
 		// make a sanity check on the above value
@@ -2474,12 +2474,12 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
                 // normal situation: active strip is either near the doc top (and remember
                 // that the needed ajustment for the value of desiredViewTop has been made
                 // already), or it is somewhere in the document and not near either end
-#ifdef Test_Clipping
- 				wxLogDebug(_T("allow clipping flag is %s, old_desiredTop  %d, desiredViewTop  %d  Test is %s , Clipped? %s"),
-				pLayout->GetAllowClippingFlag() ? _T("TRUE") : _T("FALSE"),
-				old_desiredTop,desiredViewTop, 
-				old_desiredTop == desiredViewTop ? _T("TRUE") : _T("FALSE"),
-				pLayout->GetAllowClippingFlag() && !pLayout->GetScrollingFlag() != TRUE ? _T("YES") : _T("NO"));
+#ifdef Do_Clipping
+// 				wxLogDebug(_T("allow clipping flag is %s, old_desiredTop  %d, desiredViewTop  %d  Test is %s , Clipped? %s"),
+//				pLayout->GetAllowClippingFlag() ? _T("TRUE") : _T("FALSE"),
+//				old_desiredTop,desiredViewTop, 
+//				old_desiredTop == desiredViewTop ? _T("TRUE") : _T("FALSE"),
+//				pLayout->GetAllowClippingFlag() && !pLayout->GetScrollingFlag() != TRUE ? _T("YES") : _T("NO"));
 				if (old_desiredTop == desiredViewTop)
 				{
 					// no scroll is needed, so clipping is potentially possible (provided
@@ -2509,7 +2509,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	wxPoint scrollPos;
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif
     // MFC's GetScrollPosition() "gets the location in the document to which the upper left
@@ -2645,7 +2645,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	wxPoint scrollPos; 
 	int xPixelsPerUnit,yPixelsPerUnit;
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif	
     // MFC's GetScrollPosition() "gets the location in the document to which the upper left

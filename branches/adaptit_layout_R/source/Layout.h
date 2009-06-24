@@ -52,7 +52,7 @@ class CPile;
 class CFont;
 class CAdapt_ItCanvas;
 
-//#define Test_Clipping
+#define Do_Clipping
 
 //#define	nJumpDistanceForUserEditsSpanDetermination 80 // how far to jump in either 
 			// direction from the current m_nActiveSequNum value to scan forward and back
@@ -153,20 +153,19 @@ public:
 	// these govern which parameters we pass to RecalcLayout() - whether to keep or create
 	// piles, recalc pile widths, call SetupLayoutParameters(), keep or create strips, etc
 	// There is nothing to be gained by making these private
-	bool				m_bViewParamsChanged; // we care only about leading, margin, gap
+	bool		m_bViewParamsChanged; // we care only about leading, margin, gap
 											  // and the phrase box slop multiplier; so
 											  // update layout settings & recreate strips
-	bool				m_bUSFMChanged; // if changed, full rebuilding
-										// of the layout should be done
-	bool				m_bFilteringChanged; // if changed, full rebuilding
-											 // of the layout should be done
-	bool				m_bPunctuationChanged; // if changed, full rebuilding
-											   // of the layout should be done
-	bool				m_bCaseEquivalencesChanged; // if changed, recalc pile widths
-													// and recreate the strips
-	bool				m_bFontInfoChanged; // if changed, update layout settings, recalc
-											// pile widths, recreate strips
-
+	bool		m_bUSFMChanged; // if changed, full rebuilding
+								// of the layout should be done
+	bool		m_bFilteringChanged; // if changed, full rebuilding
+									 // of the layout should be done
+	bool		m_bPunctuationChanged; // if changed, full rebuilding
+									   // of the layout should be done
+	bool		m_bCaseEquivalencesChanged; // if changed, recalc pile widths
+											// and recreate the strips
+	bool		m_bFontInfoChanged; // if changed, update layout settings, recalc
+									// pile widths, recreate strips
 
 //public:
 private:
@@ -176,7 +175,7 @@ private:
 	enum layout_selector	m_lastLayoutSelector; // RecalcLayout() sets it, Draw() uses it
 
 private:
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 	// four ints define the clip rectange top, left, width & height for erasure 
 	// prior to draw (window client coordinates, (0,0) is client top left)
 	int			m_nClipRectTop;
@@ -185,6 +184,7 @@ private:
 	int			m_nClipRectHeight;
 	bool		m_bAllowClipping; // default is FALSE
 	bool		m_bScrolling; // TRUE when scrolling is happening
+	bool		m_bDoFullWindowDraw;	
 #endif
     // use the following to suppress phrasebox being made visible in the middle of
     // procedures when strips have to be updated but we've not yet got to the final layout
@@ -271,18 +271,20 @@ public:
 
 	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
 	void		SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible);
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 	// getters & setters for clipping and clipping rectangle (if we do clipping, the view
 	// is clipped to the active strip - but only when this makes sense, such as when the
 	// phrase box is not resized by a character typed by the user, and scrolling is not
 	// happening)
 	void		SetAllowClippingFlag(bool bAllow);
 	bool		GetAllowClippingFlag();
+	void		SetFullWindowDrawFlag(bool bFullWndDraw);
+	bool		GetFullWindowDrawFlag();
 	void		SetScrollingFlag(bool bIsScrolling);
 	bool		GetScrollingFlag();
-	void		CalcClipRectangle(CStrip* pActiveStrip,
-				int& top, int& left, int& width, int& height); // always, the active strip only
-	void		SetClipRectangle(CStrip* pActiveStrip);
+	void		CalcClipRectangle(CPile* pActivePile,
+				int& top, int& left, int& width, int& height); // always, the active pile only
+	void		SetClipRectangle(CPile* pActivePile);
 	wxRect		GetClipRect();
 	void		ClearClipRect(); // don't confuse with device context's DestroyClippingRegion()
 	/* don't need these
@@ -384,6 +386,7 @@ public:
 	int			CalcNumVisibleStrips();
 	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
 	int			GetStripCount(); // return a count of how many strips are in the current layout
+	bool		GetBoxVisibilityFlag();
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
 	// support of user edit actions...

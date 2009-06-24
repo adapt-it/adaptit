@@ -2962,7 +2962,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
 
 		gbExpanding = FALSE;
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 		// support clipping
 		if (!bUpdateOfLayoutNeeded)
 			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
@@ -2970,7 +2970,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	} // end bResult == TRUE block
 	else
 	{
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 		// no reason to change box size, so we should be able to support clipping
 		// (provided no scroll is happening - but that is deal with elsewhere, search for
 		// SetScrollingFlag() to find where)
@@ -3044,6 +3044,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		event.Skip(); // to allow OnKeyUp() to handle the event
 		return;
 	}
+				
+#ifdef Do_Clipping
+	wxLogDebug(_T("In OnChar), ** KEY TYPED **"));
+#endif
 
 	m_bMergeWasDone = FALSE; //bool bMergeWasDone = FALSE;
 	gbEnterTyped = FALSE;
@@ -3255,6 +3259,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		pApp->GetMainFrame()->PrepareDC(dC); // wxWidgets' drawing.cpp sample also calls 
 											 // PrepareDC on the owning frame
 		pLayout->m_docEditOperationType = no_edit_op;
+#ifdef Do_Clipping
+		wxLogDebug(_T("In OnChar(), no merge, Invalidate() about to be called; m_bFullWindowDraw is %s"),
+			GetLayout()->GetFullWindowDrawFlag() ? _T("TRUE") : _T("FALSE"));
+#endif
 		pView->Invalidate();
 	}
 
@@ -4925,7 +4933,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	if (event.GetKeyCode() == WXK_UP)
 	{
 a:		int xPixelsPerUnit,yPixelsPerUnit;
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 		pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif
 		//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
@@ -5029,7 +5037,7 @@ c:		SetFocus();
 		// down arrow was pressed, so scroll down a strip, provided we are not at the end of
 		// the bundle
 b:		wxPoint scrollPos;
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 		pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif
 		int xPixelsPerUnit,yPixelsPerUnit;

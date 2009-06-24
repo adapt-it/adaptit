@@ -276,9 +276,10 @@ void CLayout::InitializeCLayout()
 	m_invalidStripArray.Clear();
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 	m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
+	m_bDoFullWindowDraw = FALSE; 
 #endif
     // can add more basic initializations above here - but only stuff that makes
     // the session-persistent m_pLayout pointer on the app class have the basic info it
@@ -290,7 +291,7 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 {
 	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
 }
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 void CLayout::SetAllowClippingFlag(bool bAllow)
 {
 	if (bAllow)
@@ -301,10 +302,7 @@ void CLayout::SetAllowClippingFlag(bool bAllow)
 
 bool CLayout::GetAllowClippingFlag()
 {
-	if (m_bAllowClipping)
-		return TRUE;
-	else
-		return FALSE;
+	return m_bAllowClipping;
 }
 
 void CLayout::SetScrollingFlag(bool bIsScrolling)
@@ -317,20 +315,18 @@ void CLayout::SetScrollingFlag(bool bIsScrolling)
 
 bool CLayout::GetScrollingFlag()
 {
-	if (m_bScrolling)
-		return TRUE;
-	else
-		return FALSE;
+	return m_bScrolling;
 }
 #endif
 
 void CLayout::Draw(wxDC* pDC)
 {
-	// BEW 22Jun09 - moved the placement of the phrase box to top of Draw() so as to
-	// support clipping - the internal FixBox() call sets or clears m_bAllowClipping,
-	// which has to have its value correctly defined before the strips are drawn
-	//
- 	// get the phrase box placed in the active location and made visible, and suitably
+    // BEW 23Jun09 - tried moving the placement of the phrase box to Invalidate() so as to
+    // support clipping, but that was too early in the flow of events, and the box was not
+    // uptodate and the last character typed was not "seen", so I had to move it back here.
+    // Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is called
+
+	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
 	// in the middle of a procedure, before the final update is done at a later time)
 	if (!m_bLayoutWithoutVisiblePhraseBox)
@@ -340,26 +336,67 @@ void CLayout::Draw(wxDC* pDC)
 	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 
-#ifdef Test_Clipping
+#ifdef Do_Clipping
+
 	// m_AllowClipping will have been set TRUE, or left with its default value of FALSE
-	// in the FixBox() call within the above PlacePhraseBoxInLayout() call, so if not
-	// currently scrolling, we can set up the active strip as the clip rectangle for this
-	// Draw() operation, to reduce flicker; for ease of debugging, I'll set up local
-	// booleans here and set each before using them in a test
+	// in the FixBox() call within the OnPhraseBoxChanged() function call, the latter
+	// will not have occurred until after an initial Refresh() is done. 
+	// So here we must work out if clipping is able to be done -- it can be if the
+	// phrase box size won't change and the view is not currently being scrolled.
+	// I'll set up local booleans here - more convenient when stepping for debugging
 	bool bCanClip = GetAllowClippingFlag();
-	bool bCurrentlyScrolling = GetScrollingFlag();
-	if (bCanClip && !bCurrentlyScrolling && m_pApp->m_nActiveSequNum != -1)
+	bool bCurrentlyScrolling =  GetScrollingFlag();
+	bool bFullWindowDraw = GetFullWindowDrawFlag();
+	if (!bCurrentlyScrolling && !bFullWindowDraw)
 	{
-		if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->m_pOwningStrip != NULL)
+		// only enter this block if not scrolling and no full window draw is wanted
+		if (bCanClip && m_pApp->m_nActiveSequNum != -1)
 		{
-			CStrip* pActiveStrip = m_pApp->m_pActivePile->m_pOwningStrip;
-			SetClipRectangle(pActiveStrip);
-			pDC->DestroyClippingRegion();
-			wxRect r = GetClipRect();
-			pDC->SetClippingRegion(r);
+			if (m_pApp->m_pActivePile != NULL)
+			{
+				wxASSERT(m_pApp->m_pActivePile != NULL);
+				SetClipRectangle(m_pApp->m_pActivePile);
+				wxRect r = GetClipRect();
+
+				// set the clip rectangle again, and then go on to draw the piles - nothing
+				// much will be drawn of course, as we have clipped to just the active
+				// pile (note: it will have been set in Invalidate(), so essentially
+				// wxWidgets will intersect the rectangle with iself, which is
+				// harmless and doesn't change the size of the clipping area
+				//pDC->SetClippingRegion(r); // r has to be in logical coords <- calling
+											 //this erases the view window so it's no help
+				wxLogDebug(_T("In DRAW(), in bCanClip TRUE block -- do we ever come here?"));
+			}
+			else // no active pile, can only happen when phrase box is past doc end
+			{
+				// no clipping this time, refresh whole client area... Invalidate()
+				// will have called Refresh() with no parameters already, so just have
+				// the strips drawn as the whole window has been erased by now
+				wxLogDebug(_T("First entry to DRAW(), at doc end, no active pile... just draw strips"));
+				;
+			}
+		}
+		else // the m_bAllowClipping flag is FALSE, so box was resized or a layout recalc done
+		{
+            // no clipping this time, refresh of whole client area is required - and we
+            // are in the first entracy to Draw(), so we have to destroy the clip
+            // region, call Refresh() for a full window Draw(), and set to TRUE the
+            // m_bDoSecondRefresh flag so that we don't renter this section of the code
+            // the second time round, but just jump straight to the drawing of the
+            // strips
+			wxLogDebug(_T("In DRAW(), bCanClip is FALSE block ** (just draw strips anyway) **"));
 		}
 	}
+	else // currently the app is scrolling, or a full window draw was requested
+	{
+		// scrolling is happening, Invalidate() will have called Refresh() with no
+		// parameters to have the clip region reset to the whole view window, and the
+		// erase of the window will have been done by now, so just have the strips drawn
+		wxLogDebug(_T("In DRAW(), at Scrolling block, or Full Window Draw was requested"));
+		;
+	}
 #endif
+
 
    // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
@@ -397,7 +434,7 @@ void CLayout::Draw(wxDC* pDC)
 		}
 	}
 
-	// in case the ccount of the inventory of strips has changed because a strip was
+	// in case the count of the inventory of strips has changed because a strip was
 	// cleared and removed, check for this possibility and reset the nLastStripIndex if it
 	// no longer references an element in the array
 	int newLastIndex = m_stripArray.GetCount() - 1;
@@ -442,31 +479,21 @@ void CLayout::Draw(wxDC* pDC)
 	*/
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
 
-#ifdef Test_Clipping
-	if (bCanClip && !bCurrentlyScrolling && m_pApp->m_nActiveSequNum != -1)
-	{
-		if (m_pApp->m_pActivePile != NULL && m_pApp->m_pActivePile->m_pOwningStrip != NULL)
-		{
-			wxCoord x,y,width,height;
-			pDC->GetClippingBox(&x,&y,&width,&height);
-			// put a box around the strip to verify we've set a clip rectangle in wxDC,
-			// remove later
-			pDC->DrawLine(x,y,x+width-1,y);
-			pDC->DrawLine(x+width-1,y,x+width-1,y+height-1);
-			pDC->DrawLine(x+width-1,y+height-1,x,y+height-1);
-			pDC->DrawLine(x,y+height-1,x,y);
-
-		}
-	}
+#ifdef Do_Clipping
+	wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s"), 
+				m_bScrolling ? _T("TRUE") : _T("FALSE"), 
+				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
     // initialize the clipping support flags, and clear the clip rectangle in both the
     // device context, and the one for the active strip in CLayout
 	SetAllowClippingFlag(FALSE); // only when not scrolling and not resizing the phrase
 								 // box can we clip
 	SetScrollingFlag(FALSE);
+	SetFullWindowDrawFlag(FALSE);
 	pDC->DestroyClippingRegion(); // makes it become full-window drawing again
 	ClearClipRect();
+#else
+	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
-	pDC->DestroyClippingRegion(); // full-window drawing
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -490,6 +517,7 @@ void CLayout::Redraw(bool bFirstClear)
 	}
 	Draw(pDC);  // the CLayout::Draw() which first works out which strips need to be drawn
 				// based on the active location (default param bool bAtActiveLocation is TRUE)
+	SetFullWindowDrawFlag(TRUE);
 }
 
 CAdapt_ItApp* CLayout::GetApp()
@@ -549,12 +577,12 @@ CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
 	return pFrame;
 }
 
-#ifdef Test_Clipping
+#ifdef Do_Clipping
 // Clipping support
-void CLayout::CalcClipRectangle(CStrip* pActiveStrip,
+void CLayout::CalcClipRectangle(CPile* pActivePile,
 								int& top, int& left, int& width, int& height)
 {
-	if (pActiveStrip == NULL)
+	if (pActivePile == NULL)
 	{
 		// no clip rectangle can be defined, so return zero values
 		top = 0;
@@ -563,23 +591,24 @@ void CLayout::CalcClipRectangle(CStrip* pActiveStrip,
 		height = 0;
 		return;
 	}
-	// the active strip exists, to make the clip rectangle be the client area occupied by
-	// the strip rectangle (which might be wider than the actual piles in it)
-	wxRect stripRect = pActiveStrip->GetStripRect_CellsOnly();
-	// the stripRect is in logical coordinates (that's what wxWidgets expects), so the
-	// LogicalToDeviceX() etc calls are one within wxDC's DoSetClippingRegion() function;
-	// wxWidgets has an error here, right and bottom lie outside the rect, so augment by 1
-	top = stripRect.GetTop();
-	left = stripRect.GetLeft(); 
-	width = stripRect.GetWidth(); 
-	height = stripRect.GetHeight();
+	// the active pile exists, to make the clip rectangle be the client area occupied by
+	// the pile's rectangle
+	wxRect pileRect = pActivePile->GetPileRect();
+    // the pileRect is in logical coordinates (that's what wxWidgets expects), so the
+    // LogicalToDeviceX() etc calls should be done by widgets - assume so until proven
+    // otherwise; wxWidgets has an error here, right and bottom lie outside the rect, so
+    // augment by 1
+	top = pileRect.GetTop();
+	left = pileRect.GetLeft(); 
+	width = pileRect.GetWidth(); 
+	height = pileRect.GetHeight();
 	width += 1;
 	height += 1;
 }
 
-void CLayout::SetClipRectangle(CStrip* pActiveStrip)
+void CLayout::SetClipRectangle(CPile* pActivePile)
 {
-	CalcClipRectangle(pActiveStrip, m_nClipRectTop, m_nClipRectLeft, 
+	CalcClipRectangle(pActivePile, m_nClipRectTop, m_nClipRectLeft, 
 									m_nClipRectWidth, m_nClipRectHeight);  
 }
 
@@ -598,6 +627,18 @@ void CLayout::ClearClipRect()
 	m_nClipRectHeight = 0;
 }
 
+void CLayout::SetFullWindowDrawFlag(bool bFullWndDraw)
+{
+	if (bFullWndDraw)
+		m_bDoFullWindowDraw = TRUE;
+	else
+		m_bDoFullWindowDraw = FALSE;
+}
+
+bool CLayout::GetFullWindowDrawFlag()
+{
+	return m_bDoFullWindowDraw;
+}
 
 /* don't need these
 void CLayout::SetClipRectTop(int nTop)
@@ -621,6 +662,11 @@ void CLayout::SetClipRectHeight(int nHeight)
 }
 */
 #endif
+
+bool CLayout::GetBoxVisibilityFlag()
+{
+	return m_bLayoutWithoutVisiblePhraseBox;
+}
 
 // accessors for font pointers
 void CLayout::SetSrcFont(CAdapt_ItApp* pApp)
@@ -1306,6 +1352,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// could be shown in the client area, setting the m_numVisibleStrips private member of
 	// the CLayout instance - other functions can then access it using
 	// GetNumVisibleStrips() and rely on the value returned
+	SetFullWindowDrawFlag(TRUE);
 	if (!gbIsPrinting)
 	{
 		m_numVisibleStrips = CalcNumVisibleStrips();
@@ -1339,6 +1386,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			// a message to us developers is needed here, in case we get the design wrong
 			//wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
 			//			_T(""), wxICON_WARNING);
+			SetFullWindowDrawFlag(FALSE);
 			return TRUE;
 		}
 	}

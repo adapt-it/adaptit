@@ -50133,7 +50133,55 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 	// The wxWindow class has Refresh(), so we'll get the window associated with
 	// the current View and refresh it.
 
+#ifdef Do_Clipping
+	CLayout* pLayout = GetLayout();
+	// if scrolling, of the phrase box is beyond the document's end, we don't try to clip
+	// because full window repainting is needed for the view; but if either is not the
+	// case, then just clip to the active pile's rectangle as the default, and let the
+	// subsequent Draw() call, which calls the function for placing the phrase box in the
+	// layout, work out if a full window draw is really what is needed - if that is the
+	// case, Draw() will call Refresh() on the canvas a second time and Draw() will be
+	// reentered, but this will not lead to an infinite loop because a boolean
+	// m_bDoSecondRefresh is maintained in CLayout, and it acts within Draw()'s code block
+	// to limit reentrancy to once only. (It's default value is FALSE, after view update
+	// has happened.)
+	bool bCurrentlyScrolling =  pLayout->GetScrollingFlag();
+	bool bDoFullWindowDraw = pLayout->GetFullWindowDrawFlag();
+
+	wxLogDebug(_T("Invalidate(),  bFullWindowDraw is %s"), 
+				bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
+
+	if (bCurrentlyScrolling || bDoFullWindowDraw || 
+		(pApp->m_nActiveSequNum == -1 || pApp->m_pActivePile == NULL))
+	{
+		// no clipping this time, either scrolling or full window draw wanted
+		pApp->GetMainFrame()->canvas->Refresh();
+		wxLogDebug(_T("Invalidate(), either scrolling, or full window draw wanted, or post end of doc"));
+	}
+	else
+	{
+		if (pApp->m_pActivePile != NULL)
+		{
+			pLayout->SetClipRectangle(pApp->m_pActivePile);
+			wxRect r = pLayout->GetClipRect();
+
+			// we clip to update only the innards of the phrase box control
+			pLayout->m_pMainFrame->canvas->Refresh(TRUE,&r);
+			wxLogDebug(_T("Invalidate(), CLIPPED to pile rectangle"));
+		}
+		else
+		{
+			// no clipping this time, refresh whole client area (control should never
+			// enter this block)
+			pApp->GetMainFrame()->canvas->Refresh();
+			wxLogDebug(_T("Invalidate(), the block we never expect to enter ***!!!!***"));
+		}
+	}
+#else
+	// no clipping support, refresh whole client area every time 
+	// RecalcLayout() is called
 	pApp->GetMainFrame()->canvas->Refresh();
+#endif
 }
 
 void CAdapt_ItView::InvalidateRect(wxRect& rect) // for MFC compatibility
