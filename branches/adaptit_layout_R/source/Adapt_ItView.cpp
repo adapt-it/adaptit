@@ -50135,16 +50135,9 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 
 #ifdef Do_Clipping
 	CLayout* pLayout = GetLayout();
-	// if scrolling, of the phrase box is beyond the document's end, we don't try to clip
-	// because full window repainting is needed for the view; but if either is not the
-	// case, then just clip to the active pile's rectangle as the default, and let the
-	// subsequent Draw() call, which calls the function for placing the phrase box in the
-	// layout, work out if a full window draw is really what is needed - if that is the
-	// case, Draw() will call Refresh() on the canvas a second time and Draw() will be
-	// reentered, but this will not lead to an infinite loop because a boolean
-	// m_bDoSecondRefresh is maintained in CLayout, and it acts within Draw()'s code block
-	// to limit reentrancy to once only. (It's default value is FALSE, after view update
-	// has happened.)
+	// if scrolling, or the phrase box is beyond the document's end, or a full window draw
+	// was requested by RecalcLayout() or Redraw(), then do it; otherise assume the user
+	// is typing or deleting in the phrase box and clip to the active pile's rectangle
 	bool bCurrentlyScrolling =  pLayout->GetScrollingFlag();
 	bool bDoFullWindowDraw = pLayout->GetFullWindowDrawFlag();
 

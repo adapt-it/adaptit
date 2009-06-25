@@ -182,7 +182,7 @@ private:
 	int			m_nClipRectLeft;
 	int			m_nClipRectWidth;
 	int			m_nClipRectHeight;
-	bool		m_bAllowClipping; // default is FALSE
+	//bool		m_bAllowClipping; // default is FALSE <- don't need this one
 	bool		m_bScrolling; // TRUE when scrolling is happening
 	bool		m_bDoFullWindowDraw;	
 #endif
@@ -276,8 +276,8 @@ public:
 	// is clipped to the active strip - but only when this makes sense, such as when the
 	// phrase box is not resized by a character typed by the user, and scrolling is not
 	// happening)
-	void		SetAllowClippingFlag(bool bAllow);
-	bool		GetAllowClippingFlag();
+	//void		SetAllowClippingFlag(bool bAllow); // <- uneeded
+	//bool		GetAllowClippingFlag(); // <- uneeded
 	void		SetFullWindowDrawFlag(bool bFullWndDraw);
 	bool		GetFullWindowDrawFlag();
 	void		SetScrollingFlag(bool bIsScrolling);

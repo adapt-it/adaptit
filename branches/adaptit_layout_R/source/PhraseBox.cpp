@@ -2962,20 +2962,20 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
 
 		gbExpanding = FALSE;
-#ifdef Do_Clipping
-		// support clipping
-		if (!bUpdateOfLayoutNeeded)
-			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
-#endif		
+//#ifdef Do_Clipping
+//		// support clipping
+//		if (!bUpdateOfLayoutNeeded)
+//			pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+//#endif		
 	} // end bResult == TRUE block
 	else
 	{
-#ifdef Do_Clipping
-		// no reason to change box size, so we should be able to support clipping
-		// (provided no scroll is happening - but that is deal with elsewhere, search for
-		// SetScrollingFlag() to find where)
-		pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
-#endif
+//#ifdef Do_Clipping
+//		// no reason to change box size, so we should be able to support clipping
+//		// (provided no scroll is happening - but that is deal with elsewhere, search for
+//		// SetScrollingFlag() to find where)
+//		pLayout->SetAllowClippingFlag(TRUE); // flag is turned off again at end of Draw()
+//#endif
 	}
 	if (nSelector < 2)
 		pApp->m_targetPhrase = thePhrase; // update the string storage on the view 

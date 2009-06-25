@@ -277,7 +277,7 @@ void CLayout::InitializeCLayout()
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
 #ifdef Do_Clipping
-	m_bAllowClipping = FALSE; // default is FALSE
+	//m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
 	m_bDoFullWindowDraw = FALSE; 
 #endif
@@ -292,6 +292,7 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
 }
 #ifdef Do_Clipping
+/* don't need these two
 void CLayout::SetAllowClippingFlag(bool bAllow)
 {
 	if (bAllow)
@@ -304,7 +305,7 @@ bool CLayout::GetAllowClippingFlag()
 {
 	return m_bAllowClipping;
 }
-
+*/
 void CLayout::SetScrollingFlag(bool bIsScrolling)
 {
 	if (bIsScrolling)
@@ -324,7 +325,8 @@ void CLayout::Draw(wxDC* pDC)
     // BEW 23Jun09 - tried moving the placement of the phrase box to Invalidate() so as to
     // support clipping, but that was too early in the flow of events, and the box was not
     // uptodate and the last character typed was not "seen", so I had to move it back here.
-    // Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is called
+	// Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is
+	// called - yes, that turned out to be the way to do it! See CAdapt_ItView::Invalidate()
 
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
@@ -336,7 +338,8 @@ void CLayout::Draw(wxDC* pDC)
 	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 
-#ifdef Do_Clipping
+	/* BEW 25Jun09, turns out none of this next bit is needed for support of clipping
+	#ifdef Do_Clipping
 
 	// m_AllowClipping will have been set TRUE, or left with its default value of FALSE
 	// in the FixBox() call within the OnPhraseBoxChanged() function call, the latter
@@ -395,10 +398,10 @@ void CLayout::Draw(wxDC* pDC)
 		wxLogDebug(_T("In DRAW(), at Scrolling block, or Full Window Draw was requested"));
 		;
 	}
-#endif
+	#endif
+	*/
 
-
-   // drawing is done based on the top of the first strip of a visible range of strips
+    // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
     // caller has to set the active location first --typically its done by code in the
     // AdjustForUserEdits() function called within RecalcLayout(), but if rebuilding the
@@ -480,16 +483,16 @@ void CLayout::Draw(wxDC* pDC)
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
 
 #ifdef Do_Clipping
-	wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s"), 
+	wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s and the latter is now about to be cleared to default FALSE"), 
 				m_bScrolling ? _T("TRUE") : _T("FALSE"), 
 				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
     // initialize the clipping support flags, and clear the clip rectangle in both the
     // device context, and the one for the active strip in CLayout
-	SetAllowClippingFlag(FALSE); // only when not scrolling and not resizing the phrase
-								 // box can we clip
+	//SetAllowClippingFlag(FALSE); // <- uneeded
 	SetScrollingFlag(FALSE);
 	SetFullWindowDrawFlag(FALSE);
-	pDC->DestroyClippingRegion(); // makes it become full-window drawing again
+	pDC->DestroyClippingRegion(); // makes it default to full-window drawing again
+				// (Invalidate() is where a clip rectangle will be set, if wanted)
 	ClearClipRect();
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
