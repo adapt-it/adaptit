@@ -180,6 +180,9 @@ extern int gnBoxCursorOffset;
 /// This global is defined in PhraseBox.cpp
 extern bool gbExpanding;
 
+/// This global is defined in PhraseBox.cpp
+extern bool	gbContracting;
+
 //static int nDebugIndex = 0;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
@@ -327,7 +330,13 @@ void CLayout::Draw(wxDC* pDC)
     // uptodate and the last character typed was not "seen", so I had to move it back here.
 	// Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is
 	// called - yes, that turned out to be the way to do it! See CAdapt_ItView::Invalidate()
-
+#ifdef Do_Clipping
+	// temporary code for debugging
+	wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
+	wxLogDebug(_T("Draw() START: bFullWindowDraw is %s  and m_nCurBoxWidth  %d  and currBoxSize.x  %d"),
+				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE"),
+				m_curBoxWidth, sizePhraseBox.x);
+#endif
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
 	// in the middle of a procedure, before the final update is done at a later time)
@@ -1395,7 +1404,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 
 	// preserve selection parameters, so it can be preserved across the recalculation
-	m_pView->StoreSelection(m_pApp->m_selectionLine);
+	// m_pView->StoreSelection(m_pApp->m_selectionLine); BEW 25Jun09, can't do this anymore
 
 	wxRect rectFrame(0,0,0,0);
 	CMainFrame *pFrame = NULL;
@@ -1539,7 +1548,19 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
-			m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+			if (gbContracting)
+			{
+				// phrase box is meant to contract for this recalculation, so suppress the
+				// size calculation internally for the active location because it would be
+				// larger than the contracted width we want
+				m_pDoc->ResetPartnerPileWidth(pSrcPhrase,TRUE); // TRUE is the boolean
+														// bNoActiveLocationCalculation
+			}
+			else // not contracting, could be expanding or no size change
+			{
+				// allow the active location gap calculation to be done
+				m_pDoc->ResetPartnerPileWidth(pSrcPhrase);
+			}
 		}
 	}
 	else // control is past the end of the document
@@ -1550,6 +1571,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 		gbExpanding = FALSE; // has to be restored to default value
 		// m_pView->RestoreSelection(); // there won't be a selection in this circumstance
 	}
+	gbContracting = FALSE; // restore default value
 /*
 #ifdef __WXDEBUG__
 	{
@@ -1602,6 +1624,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			// with the input parameter create_strips_keep_piles, and will have already
 			// done the layout recalculation by destroying and recreating all the strips,
 			// and so we've nothing to do here except return immediately
+			gbContracting = FALSE;
 			return TRUE;
 		}
 	}
@@ -1622,6 +1645,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 */
 
 	gbExpanding = FALSE; // has to be restored to default value
+	gbContracting = FALSE; // restore default value (also done above)
 
 	if (!gbIsPrinting)
 	{
@@ -1699,7 +1723,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 
 	// restore the selection, if there was one
-	m_pView->RestoreSelection();
+	//m_pView->RestoreSelection(); // 25Jun09 can't do this anymore
 
 #ifndef _NEW_LAYOUT
 	// BEW removed 22Jun09...

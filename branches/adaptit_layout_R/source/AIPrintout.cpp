@@ -846,7 +846,15 @@ void AIPrintout::OnPreparePrinting()
 
 		// Store the selection parameters, so we can later restore it (in case we are here because
 		// of a Print Preview command - we must allow user to go from there to a print directly).
-		pView->StoreSelection(pApp->m_selectionLine);
+		//pView->StoreSelection(pApp->m_selectionLine); // BEW removed 25Jun09, because
+		//the previous gbPrintingSelection = TRUE; line meant that no storage of the
+		//selection was done in StoreSelection() here anyway, and moreover, there is no
+		//matching RestoreSelection() except the one which was in RecalcLayout() which
+		//likewise would not do anything because gbPrintingSelection is TRUE; and since
+		//for other reasons the refactored layout needs not to store selections across a
+		//RecalcLayout() call (it gives a crash as old pointers are left hanging) we
+		//should remove it here too - and the functions themselves, they are used nowhere
+		//else
 
 		CCellList::Node* pos = pApp->m_selection.GetFirst();
 		CCell* pCell = pos->GetData();

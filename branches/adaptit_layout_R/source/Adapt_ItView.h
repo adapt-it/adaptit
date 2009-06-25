@@ -383,7 +383,8 @@ public:
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
 					enum EditBoxContents editBoxContents, const wxString& mkrStr); //moved to public
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
-	void		StoreSelection(int nSelectionLine);
+	//void		StoreSelection(int nSelectionLine); // BEW removed 25Jun09, we don't
+													//store or restore selections now
 	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, 
 										bool bSupportNoAdaptationButton = FALSE);
 	bool		StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
@@ -413,8 +414,8 @@ public:
 	void		RemoveEarlierSelForShortening(wxClientDC* pDC, CCell* pEndCell);
 	void		RemoveFollowingAnchor(wxClientDC* pDC, CCell* pAnchor); // moved to public
 	void		RemoveLaterSelForShortening(wxClientDC* pDC, CCell* pEndCell);
-	void		RestoreSelection();
-	
+	//void		RestoreSelection(); // BEW removed 25Jun09, we don't store or restore
+									//selections now
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
 	void		InvalidateRect(wxRect& rect); // our own for wxWidgets (see cpp file notes)
 	

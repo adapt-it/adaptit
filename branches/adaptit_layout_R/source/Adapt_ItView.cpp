@@ -5485,6 +5485,7 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 // / phrase in gnSelectionStartSequNum, and the sequence number of the ending source phrase in
 // / gnSelectionEndSequNum.
 // *********************************************************************************************
+/* we no longer store or restore selections - it's not compatible with how we do the layout now
 void CAdapt_ItView::StoreSelection(int nSelectionLine)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5523,13 +5524,14 @@ void CAdapt_ItView::StoreSelection(int nSelectionLine)
 	//wxLogTrace("StoreSel: count = %d m_bRespectBoundaries %d\n",pApp->m_selection.GetCount(),
 	//		pApp->m_bRespectBoundaries);
 }
-
+*/
 //**********************************************************************************************
 // / \return     nothing
 // / \remarks
 // / Called from: the View's RecalcLayout(). Restores data that was stored by the StoreSelection()
 // / function. Data is restored from the global variables on the App. 
 //**********************************************************************************************
+/* we no longer store or restore selections, it's not compatible with the new layout code
 void CAdapt_ItView::RestoreSelection()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5597,7 +5599,7 @@ void CAdapt_ItView::RestoreSelection()
 		pApp->m_pAnchor = pCell;
 	}
 }
-
+*/
 //***********************************************************************************************
 // / \return     the m_chapterVerse member of pSrcPhrase
 // / \param      pSrcPhrase   -> the source phrase whose m_chapterVerse member is to be retrieved
@@ -13131,6 +13133,7 @@ void CAdapt_ItView::OnUpdateButtonMerge(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
+	//wxLogDebug(_T("OnUPDATEbuttonMERGE  m_selection.GetCount() is %d"), pApp->m_selection.GetCount());
 }
 
 //*******************************************************************************************
@@ -14500,6 +14503,18 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	{
 		pos = pApp->m_selection.GetFirst();
 		nCount = pApp->m_selection.GetCount();
+		// BEW added 25Jun09 to make it safe if the user selects more than one word
+		if (nCount > 1)
+		{
+			// it shouldn't be possible for control to come here, because the update
+			// handlers would detect a multipile selection and disable the Restore button,
+			// but just in case, ensure no harm is done if somehow this function is called
+			RemoveSelection();
+			wxMessageBox(_(
+			"To undo a merger using a selection, select only one pile."),
+			_T(""),wxICON_INFORMATION);
+			return;
+		}
 		wxASSERT(nCount == 1); // must only be one
 
 		CCell* pCell = (CCell*)pos->GetData();
@@ -14563,6 +14578,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 				}
 			}
 		}
+		RemoveSelection();
 	}
 	else // there is no current selection
 	{
@@ -14633,7 +14649,8 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 
 	// must ensure there is no selection & the selection globals are set to -1, otherwise
 	// RecalcLayout will fail
-	RemoveSelection();
+	//RemoveSelection(); // No! unmerge has clobbered the selection's pointers, don't
+	//call it
 
 	// recalculate the layout
 #ifdef _NEW_LAYOUT

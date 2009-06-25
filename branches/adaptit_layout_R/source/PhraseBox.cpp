@@ -111,6 +111,7 @@ bool gbMovingToPreviousPile = FALSE; // added for when user calls MoveToPrevPile
 	// dialog being put up an unwanted couple of times. So we'll use the gbMovingToPreviousPile being
 	// set to then set the gbInhibitLine4StrCall to TRUE, at start of ReDoPhraseBox( ), and turn it off at
 	// the end of that function. That should fix it.
+	
 
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -236,10 +237,18 @@ long gnEnd;
 long gnSaveStart; //int gnSaveStart; // these two are for implementing Undo() for a backspace operation
 long gnSaveEnd; //int gnSaveEnd; 
 
-bool			gbExpanding = FALSE; // set TRUE when an expansion of phrase box was just done
+bool		gbExpanding = FALSE; // set TRUE when an expansion of phrase box was just done
 					// (and used in view's CalcPileWidth to enable an extra pileWidth adjustment
 					// and therefore to disable this adjustment when the phrase box is contracting
 					// due to deleting some content - otherwise it won't contract)
+bool		gbContracting = FALSE; // BEW added 25Jun09, set to TRUE when a backspace 
+					// keypress has reduced the length of the phrase box's string to the
+					// point where a reduction in size is required. We need this in
+					// RecalcLayout() so that the ResetPartnerPileWidth() call at the 
+					// active pile, when contraction is needed, does not override the
+					// contraction value already given to m_curBoxWidth with a larger
+					// calculation (gbContracting is set TRUE only in FixBox(), cleared
+					// at the end of RecalcLayout())
 
 /// Contains the current sequence number of the active pile (m_nActiveSequNum) for use by auto-saving.
 int nCurrentSequNum;
@@ -2860,7 +2869,10 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
         // when potentially about to contract the box, generate TRUE if the horizontal
         // extent of the text in it is less than or equal to the current box width less 4
         // 'w' widths (if so, a contraction is required, if not, current size can stand)
-		bResult = textExtent.x <= currBoxSize.x - (4*charSize.x);
+		// BEW changed 25Jun05, the above criterion produced very frequent resizing; let's
+		// do it far less often...
+		//bResult = textExtent.x <= currBoxSize.x - (4*charSize.x); // the too-often way
+		bResult = textExtent.x < currBoxSize.x - (8*charSize.x);
 	}
 	bool bUpdateOfLayoutNeeded = FALSE;
 	if (bResult )
@@ -2908,10 +2920,22 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 
 				// we are trying to delete text in the phrase box by pressing backspace key
 				// shrink the box by 2 'w' widths if the space at end is >= 4 'w' widths
-				int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
+				// BEW changed 25Jun09, to have the box shrink done less often to reduce blinking,
+				// the new criterion will shrink the box by 7 'w' widths 
+				//int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
+				//pLayout->m_curBoxWidth = newWidth;
+				//pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
+				int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
 				pLayout->m_curBoxWidth = newWidth;
 				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
-				
+				gbContracting = TRUE; // RecalcLayout() will override m_curBoxWidth if we leave this
+									  // flag FALSE; setting it makes the ResetPartnerPileWidth()
+									  // call within RecalcLayout() not do an active pile
+									  // gap width calculation that otherwise sets the box
+									  // width too wide and the backspaces then done contract
+									  // the width of the phrase box as much as expected (the
+									  // RecalcLayout() call clears gbContracting after
+									  // using it)
 				bUpdateOfLayoutNeeded = TRUE;
 			} // end block for nSelector == 2 case
 			else
