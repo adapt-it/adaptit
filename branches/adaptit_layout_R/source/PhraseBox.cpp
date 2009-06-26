@@ -2921,11 +2921,11 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				// we are trying to delete text in the phrase box by pressing backspace key
 				// shrink the box by 2 'w' widths if the space at end is >= 4 'w' widths
 				// BEW changed 25Jun09, to have the box shrink done less often to reduce blinking,
-				// the new criterion will shrink the box by 7 'w' widths 
+				// the new criterion will shrink the box by 7 'w' widths -- no make it
+				// just 5 w widths (26Jun09)
 				//int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
-				//pLayout->m_curBoxWidth = newWidth;
-				//pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
-				int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
+				//int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
+				int newWidth = pLayout->m_curBoxWidth - 5 * charSize.x;
 				pLayout->m_curBoxWidth = newWidth;
 				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
 				gbContracting = TRUE; // RecalcLayout() will override m_curBoxWidth if we leave this
