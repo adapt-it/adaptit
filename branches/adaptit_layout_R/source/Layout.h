@@ -67,7 +67,7 @@ class PileList;
 // location is to put the the relevant operatation enum value immediately before
 // the Invalidate() call at the end of the function handling each particular
 // sub-operation
-typedef enum doc_edit_op {
+enum doc_edit_op {
 	no_edit_op, // a "do nothing" case
 	default_op, // assumes a ResizeBox() call is required
 	char_typed_op,
@@ -115,7 +115,7 @@ typedef enum doc_edit_op {
 	invalid_op_enum_value // this one must always be last
 };
 
-typedef enum layout_selector {
+enum layout_selector {
 	create_strips_and_piles,
 	create_strips_keep_piles,
 	keep_strips_keep_piles,
