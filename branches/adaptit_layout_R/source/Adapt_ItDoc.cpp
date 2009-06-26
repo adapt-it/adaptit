@@ -3495,7 +3495,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	}
 	// Note: Tests of the MFC version show that OnInitialUpdate() should not be
 	// called at all from OnOpenDocument()
-
 	return TRUE;
 }
 

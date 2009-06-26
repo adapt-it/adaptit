@@ -17346,6 +17346,16 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter() // this one is public
 		pInsertLocPile = pApp->m_pActivePile;
 		nSequNum = pApp->GetMaxIndex();
 	}
+	else
+	{
+		// the 'next' pile is not beyond the document's end, so make it the insert
+		// location
+		CPile* pPile = GetNextPile(pInsertLocPile);
+		wxASSERT(pPile != NULL);
+		pInsertLocPile = pPile;
+		pApp->m_pActivePile = pInsertLocPile; // ensure it is up to date
+		nSequNum++; // make the sequence number agree
+	}
 
 	InsertNullSourcePhrase(pDoc,pApp,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never for
 	// Retransln if we inserted a dummy, now get rid of it and clear the global flag
@@ -17553,28 +17563,17 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			pInsertLocPile = pApp->m_pActivePile;
 			nSequNum = pApp->GetMaxIndex();
 		}
-		/* removed 13Apr09 because there are no bundles now
 		else
 		{
-            // we are not out of the woods yet; the selection end, or the active location
-            // if no selection, may be at the very end of the bundle, so a call to
-            // GetNextPile() would return null in that case, and we would crash - so we
-            // must check for an advance, do it if needed, and then get the next pile etc.
+			// the 'next' pile is not beyond the document's end, so make it the insert
+			// location
 			CPile* pPile = GetNextPile(pInsertLocPile);
-			if (pPile == 0)
-			{
-				pInsertLocPile = AdvanceBundle(nSequNum); // calls RecalcLayout(), so need to
-														// reset active pile ptr
-			}
-			else
-			{
-				pInsertLocPile = pPile;
-			}
+			wxASSERT(pPile != NULL);
+			pInsertLocPile = pPile;
 			pApp->m_pActivePile = pInsertLocPile; // ensure it is up to date
-			nSequNum++;
+			nSequNum++; // make the sequence number agree
 		}
-		*/
-
+		
 		InsertNullSourcePhrase(pDoc,pApp,pInsertLocPile,nCount,TRUE,FALSE,FALSE); // here, never
 																				  // for Retransln
 		// if we inserted a dummy, now get rid of it and clear the global flag
@@ -17619,7 +17618,7 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		CPile* pPile = GetPile(nSequNum);
 		Jump(pApp,pPile->GetSrcPhrase());
 	}
-	else // not inserting after the selection's end or active loction, but before
+	else // not inserting after the selection's end or active location, but before
 	{
 		// first save old sequ num for active location
 		gnOldSequNum = pApp->m_nActiveSequNum;
