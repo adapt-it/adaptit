@@ -5251,7 +5251,7 @@ void CAdapt_ItView::ClearPagesList()
 	}
 }
 /* removed 6Apr09 for refactored layout design
-//*****************************************************************************************
+// *****************************************************************************************
 // / \return     nothing
 // / \param      nNewMaxIndex      -> used to initialize the App's m_endIndex and 
 //                                    m_upperIndex values at the start of printing
@@ -5262,7 +5262,7 @@ void CAdapt_ItView::ClearPagesList()
 // / printing variables to default values, at the beginning of the printing operation. At
 // / the end of printing operations (in AIPrintout's destructor), RestoreIndices() is called
 // / to reset those indices using the values saved by SaveAndSetIndices().
-//******************************************************************************************
+// ******************************************************************************************
 void CAdapt_ItView::SaveAndSetIndices(int nNewMaxIndex)
 {
 	// save current values
@@ -5280,7 +5280,7 @@ void CAdapt_ItView::SaveAndSetIndices(int nNewMaxIndex)
 	pApp->m_upperIndex = nNewMaxIndex;
 }
 
-//******************************************************************************************
+// ******************************************************************************************
 // / \return     nothing
 // / \remarks
 // / Called from: the View's RestoreOriginalList() and from within the AIPrintout's
@@ -5289,7 +5289,7 @@ void CAdapt_ItView::SaveAndSetIndices(int nNewMaxIndex)
 // / current document, and initialized certain printing variables to default values.
 // / RestoreIndices() restores the values that were saved by SaveAndSetIndices() so that the
 // / document can be put back into the state it was in before the printing operation.
-//******************************************************************************************
+// ******************************************************************************************
 void CAdapt_ItView::RestoreIndices()
 {
 	pApp->m_beginIndex = pApp->m_saveBeginIndex;
@@ -5300,7 +5300,7 @@ void CAdapt_ItView::RestoreIndices()
 	pApp->m_maxIndex = pApp->m_saveMaxIndex;
 }
 
-//****************************************************************************************
+// ****************************************************************************************
 // / \return     nothing
 // / \remarks
 // / Called from: the View's OnPrint() top level menu handler when File | Print is invoked
@@ -5309,7 +5309,7 @@ void CAdapt_ItView::RestoreIndices()
 // / the beginning of the printing operation. At the end of printing operations (in
 // / AIPrintout's destructor), RestoreIndicesFromRange() is called to reset those indices
 // / using the values saved by SaveIndicesForRange().
-//****************************************************************************************
+// ****************************************************************************************
 void CAdapt_ItView::SaveIndicesForRange()
 {
 	// save current values
@@ -5321,7 +5321,7 @@ void CAdapt_ItView::SaveIndicesForRange()
 	pApp->m_saveRangeMaxIndex = pApp->m_maxIndex;
 }
 
-//****************************************************************************************
+// ****************************************************************************************
 // / \return     nothing
 // / \remarks
 // / Called from: the View's RestoreOriginalList() at the end of a print or print preview operation (in
@@ -5329,7 +5329,7 @@ void CAdapt_ItView::SaveIndicesForRange()
 // / saved a copy of certain indices associated with printing a range of the current document. 
 // / RestoreIndicesFromRange() restores the values that were saved by SaveIndicesForRange() so that the 
 // / document can be put back into the state it was in before the printing operation.
-//****************************************************************************************
+// ****************************************************************************************
 void CAdapt_ItView::RestoreIndicesFromRange()
 {
 	pApp->m_beginIndex = pApp->m_saveRangeBeginIndex;
@@ -7514,7 +7514,7 @@ void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 // According to the wxWidgets developers, the "Print Setup..." menu selection is obsolete since
 // Windows 95. Users are expecte to do any necessary print setup from the main print dialog.
 /*
-//******************************************************************************************
+// ******************************************************************************************
 // / \return		nothing
 // / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
 // /                         to be displayed
@@ -7523,7 +7523,7 @@ void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 // / the menu is displayed.
 // / Disables the "Print Setup" item on the File menu if Vertical Editing is in progress.
 // / Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
-//******************************************************************************************
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateFilePrintSetup(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -7629,7 +7629,7 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 	return nStripCount; // return our nStripCount
 }
 /* old code
-//******************************************************************************************
+// ******************************************************************************************
 // / \return     the number of Strips determined to compose the current layout (in simulation)
 // / \param      pSrcPhrases   -> the list of source phrases of the current document
 // / \param      sizeTotal     -> the layout size consisting of the nPagePrintingWidthLU and
@@ -7642,7 +7642,7 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 // / to the degree that it determines the number of Strips that will be needed and returns 
 // / that number for simulating a printed layout. This number is then used as input to 
 // / PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
-//******************************************************************************************
+// ******************************************************************************************
 int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize sizeTotal,
 											 const int nBeginSN, const int nEndSN)
 {
@@ -7828,7 +7828,7 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 	nLastSequNumber = nextNumber;
 }
 /* old code
-//**********************************************************************************************
+// **********************************************************************************************
 // / \return     the vertical offset (a new nVertOffset) of the strip that was created
 // / \param      pDC                 -> the display context for strip creation
 // / \param      pSrcList            -> the list of source phrases from which strips are composed
@@ -7844,7 +7844,7 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 // / simulations functions are used to provide the data the PaginateDoc needs to determine the range of
 // / pages that could be printed in order to populate the Pages from: and Pages to: edit boxes in the
 // / Print Options dialog.
-//************************************************************************************************
+// ************************************************************************************************
 int CAdapt_ItView::CreateStrip_SimulateOnly(wxClientDC *pDC, SPList* pSrcList, int nVertOffset,
 										int nPagePrintWidthLU, int &nLastSequNumber, int nEndIndex)
 // whm Note: CreateStrip returns positive offsets even when printing, and in the wx version we always
@@ -8043,7 +8043,7 @@ b:		;
 */
 
 /*
-//***********************************************************************************************
+// ***********************************************************************************************
 // / \return     nothing
 // / \param      pSrcPhrases   -> the list of source phrases of the current document
 // / \param      nFirstStrip   -> the strip at which to start recalculations (usually 0)
@@ -8065,7 +8065,7 @@ b:		;
 // / in print preview or actual printing). RecalcLayout calls CreateStrip() to continue the process of
 // / creating each successively smaller part of the Bundle, Strip, Pile, Cell, and Text hierarchy making
 // / up the view. See also RecalcLayout_SimulateOnly(). See notes in function.
-//*************************************************************************************************
+// *************************************************************************************************
 void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBundle* pBundle)
 {
 	// whm Note: RecalcLayout does the following things:
@@ -32479,7 +32479,7 @@ bool CAdapt_ItView::IsFreeTranslationInSelection(SPList* pList)
 }
 
 /* deprecated 11Apr08
-//*******************************************************************************************
+// *******************************************************************************************
 // / \return		nothing
 // / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
 // /                         to be displayed
@@ -32488,7 +32488,7 @@ bool CAdapt_ItView::IsFreeTranslationInSelection(SPList* pList)
 // / and before the menu is displayed. The "Edit Source Text..." item on the Edit menu is
 // / disabled if the application is in Free Translation mode, or there is no source text
 // / selected, otherwise the menu item is enabled.
-//*******************************************************************************************
+// *******************************************************************************************
 void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -49763,8 +49763,8 @@ void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
 //****************************************************************************************
 wxString CAdapt_ItView::DoSilConvert(const wxString& str)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
 #ifdef USE_SIL_CONVERTERS
+	CAdapt_ItApp* pApp = &wxGetApp();
 	// whm added 30Dec08 for SIL Converters support
 	typedef int (wxSTDCALL *wxECInitConverterType)(const wxChar*,int,int);
 	wxECInitConverterType pfnECInitializeConverterAorW = (wxECInitConverterType)NULL;
@@ -49856,13 +49856,13 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(ev
 //****************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
 #ifdef USE_SIL_CONVERTERS
+	CAdapt_ItApp* pApp = &wxGetApp();
 	// toggle the mode on or off
     // whm 15Aug06 added && !pApp->m_strSilEncConverterName.IsEmpty() condition to disable
     // the menu item unless a SIL converter is loaded

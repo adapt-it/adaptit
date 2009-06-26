@@ -142,7 +142,7 @@ extern EditStep gEditStep;
 extern EditRecord gEditRecord;
 
 /// A local pointer to the global gEditRecord defined in Adapt_It.cpp
-static EditRecord* pRec = &gEditRecord;
+//static EditRecord* pRec = &gEditRecord; // whm removed because it is unused and to eliminate g++ warning
 
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpGreenWedgePile;
