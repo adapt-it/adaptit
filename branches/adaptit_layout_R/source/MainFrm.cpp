@@ -83,6 +83,7 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "SourcePhrase.h"
+#include "Layout.h"
 #include "MainFrm.h"
 #include "helpers.h"
 #include "AdaptitConstants.h"

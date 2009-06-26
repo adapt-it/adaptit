@@ -26,7 +26,7 @@
     #pragma interface "Adapt_ItView.h"
 #endif
 
-#include "PhraseBox.h"
+//#include "PhraseBox.h"
 //#include "consistentChanger.h"
 //#include "FindReplace.h"
 #include "SourcePhrase.h"
@@ -46,10 +46,8 @@ class CCell;
 class CRefString;
 class CKB;
 class MapKeyStringToTgtUnit;
-//class CLayout;
-#include "Layout.h"
-//class CProgressDlg;
-//class CEarlierTranslationDlg;
+class CLayout;
+class PileList;
 
 // WX: The following identifiers are for the three toggled buttons which are
 // dynamically swapped into the Toolbar when user clicks the appropriate
@@ -73,16 +71,6 @@ WX_DECLARE_LIST(AutoFixRecord, AFList); // see list definition macro in .cpp fil
 /// a list of pointers to wxString objects
 WX_DECLARE_LIST(wxString, WordList); // see list definition macro in .cpp file
 
-typedef enum box_cursor {
-	select_all,
-	cursor_at_text_end,
-	cursor_at_offset
-};
-			//
-typedef enum removeFrom {
-	from_source_text,
-	from_target_text
-};						
 // ////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItView class is the most complex class in the application. 
 /// It controls every aspect of how the data is presented to the user, 

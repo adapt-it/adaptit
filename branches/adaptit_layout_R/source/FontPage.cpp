@@ -64,6 +64,7 @@
 #include "PunctCorrespPage.h"
 #include "AdaptitConstants.h" // for MIN_FONT_SIZE and MAX_FONT_SIZE
 #include "SetEncodingDlg.h"
+#include "Pile.h"
 #include "Layout.h"
 
 /// This global is defined in Adapt_It.cpp.

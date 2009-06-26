@@ -58,6 +58,7 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "Strip.h"
+#include "Layout.h"
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
 

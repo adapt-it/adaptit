@@ -51,6 +51,7 @@
 #include "Pile.h"
 #include "Strip.h"
 #include "SourcePhrase.h"
+#include "Layout.h"
 #include "Adapt_ItDoc.h"
 #include "MainFrm.h" // whm added 24Jul06
 #include "Adapt_ItCanvas.h" // whm added 24Jul06

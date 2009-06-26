@@ -60,6 +60,7 @@
 #include "USFMPage.h"
 #include "PunctCorrespPage.h"
 #include "Adapt_It.h"
+#include "Pile.h"
 #include "Layout.h"
 
 // This global is defined in Adapt_It.cpp.

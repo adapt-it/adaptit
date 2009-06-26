@@ -46,6 +46,7 @@
 #include <wx/colordlg.h>
 #include "ViewPage.h"
 #include "Adapt_It.h"
+#include "Pile.h"
 #include "Layout.h"
 
 /// This global is defined in Adapt_ItView.cpp.

@@ -47,6 +47,7 @@
 #include <wx/wizard.h>
 
 #include "Adapt_It.h"
+#include "Pile.h"
 #include "Layout.h"
 #include "PunctCorrespPage.h"
 #include "FontPage.h"
@@ -54,7 +55,6 @@
 #include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h" 
-#include "Pile.h"
 #include "helpers.h"
 
 // This global is defined in Adapt_It.cpp.

@@ -66,6 +66,7 @@
 #include "USFMPage.h"
 #include "FilterPage.h"
 #include "helpers.h"
+#include "Pile.h"
 #include "Layout.h"
 
 //extern wxChar gSFescapechar;

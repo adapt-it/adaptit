@@ -59,6 +59,7 @@
 #include "StartWorkingWizard.h"
 //#include "SourceBundle.h"
 #include "Pile.h"
+#include "Layout.h"
 #include "WhichBook.h"
 #include "helpers.h"
 

@@ -162,6 +162,8 @@ class wxPropertySheetDialog;
 
 // forward references for refactored view layout support
 class CLayout;
+class CSourcePhrase;
+class SPList;
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x could find
 // them but the g++ 4.x linker can't find them even though XML.h is included above, so I've moved them
@@ -788,6 +790,17 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the whole sfm marker (with bac
                     wxStringHash,
                     wxStringEqual,
                     MapWholeMkrToFilterStatus ); // the name of the map class declared by this macro
+
+enum box_cursor {
+	select_all,
+	cursor_at_text_end,
+	cursor_at_offset
+};
+
+enum removeFrom {
+	from_source_text,
+	from_target_text
+};
 
 // The following enums and struct were added by Bruce 12Sep08 for support of Vertical Editing. They
 // were located in the global space of CAdapt_ItView.h in the MFC version.

@@ -46,6 +46,7 @@
 #include <wx/wizard.h>
 
 #include "Adapt_It.h"
+#include "Pile.h"
 #include "Layout.h"
 #include "USFMPage.h"
 

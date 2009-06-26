@@ -44,13 +44,13 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // forward references
-#include "Strip.h"
 class CAdapt_ItDoc;
 class CSourceBundle;
-//class CStrip;
 class CPile;
 class CFont;
 class CAdapt_ItCanvas;
+class CLayout;
+class PileList;
 
 #define Do_Clipping
 

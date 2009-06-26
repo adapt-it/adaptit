@@ -25,9 +25,6 @@
     #pragma interface "Adapt_ItDoc.h"
 #endif
 
-#include "SourcePhrase.h" // needed for enum TextType
-#include "Pile.h" // needed for PileList symbol
-
 // Forward declarations
 class wxDataOutputStream;
 class wxDataInputStream;
