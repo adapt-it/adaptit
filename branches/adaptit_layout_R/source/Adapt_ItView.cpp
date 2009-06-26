@@ -33526,14 +33526,14 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 // / \return		TRUE if it appears likely the free translation section was created with
 // /             the "Define Sections By"radio button "Verse" turned ON, FALSE if the other
 // /             radio button "Punctuation" was the one more likely to have been ON
-// / \param      pSrcPhrases					->	pointer to m_pSrcPhrases defined on 
+// / \param      pSrcPhrases				->	pointer to m_pSrcPhrases defined on 
 // /                                             CAdapt_ItDoc class
 // / \param      nStartingFreeTransSequNum	->	start of the free translation found at the
 // /                                             start of the free translation span, or if 
 // /                                             there was no free translation there, then
 // /                                             it is the same as the nStartingSN value 
 // /                                             of gEditRecord
-// / \param      nEndingFreeTransSequNum		->	bounding sequence number beyond which we 
+// / \param      nEndingFreeTransSequNum	->	bounding sequence number beyond which we 
 // /                                             don't scan further (it is not necessarily 
 // /                                             the end of a free translation section, as 
 // /                                             the end of the first free translation 
@@ -33761,8 +33761,8 @@ bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPh
 
 //******************************************************************************************
 // / \return		TRUE if there was no error; FALSE if there was an error
-// / \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
-// / \param      nStartingSN		->	reference to the sequence number for the first pile 
+// / \param      pScrPhrases	->	pointer to m_pSrcPhrases list defined on the App
+// / \param      nStartingSN	->	reference to the sequence number for the first pile 
 // /                                 in the span which is to have its source text shown to 
 // /                                 the user (this could be more than the user's original 
 // /                                 selection, if extension was done because of the presence
@@ -33773,7 +33773,7 @@ bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPh
 // /                                             at the start of the above span, or if there
 // /                                             were no free translation there, then it is
 // /                                             the same as the nStartingSN value
-// / \param      nEndingFreeTransSequNum		<- ref to the end of any free translation found at 
+// / \param      nEndingFreeTransSequNum	<- ref to the end of any free translation found at 
 // /                                             the end of the above span, or if there were
 // /                                             no free translation there, then it is the
 // /                                             same as the nEndingSN value
@@ -44554,6 +44554,35 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 				}
 			}
 		} // end of loop
+
+		// attempt to set the appropriate radio button, "Punctuation" or "Verse" based
+		// section choice, by analysis of the section determined by the above loop
+		if (gpCurFreeTransSectionPileArray->GetCount() > 0)
+		{
+			SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+			CSourcePhrase* pFirstSPhr = ((CPile*)gpCurFreeTransSectionPileArray->Item(0))->GetSrcPhrase();
+			CSourcePhrase* pLastSPhr = ((CPile*)gpCurFreeTransSectionPileArray->Last())->GetSrcPhrase();
+			bool bFreeTransPresent = TRUE;		
+			bool bProbablyVerse = GetLikelyValueOfFreeTranslationSectioningFlag(pSrcPhrases,
+				pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber, bFreeTransPresent);
+			pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
+
+			// now set the radio buttons
+			wxRadioButton* pRadioButton = (wxRadioButton*)
+				pApp->GetMainFrame()->m_pComposeBar->FindWindowById(IDC_RADIO_PUNCT_SECTION);
+			// set the value
+			if (pApp->m_bDefineFreeTransByPunctuation)
+				pRadioButton->SetValue(TRUE);
+			else
+				pRadioButton->SetValue(FALSE);
+			pRadioButton = (wxRadioButton*)
+				pApp->GetMainFrame()->m_pComposeBar->FindWindowById(IDC_RADIO_VERSE_SECTION);
+			// set the value
+			if (!pApp->m_bDefineFreeTransByPunctuation)
+				pRadioButton->SetValue(TRUE);
+			else
+				pRadioButton->SetValue(FALSE);
+			}
 	}
 	else
 	{
@@ -50158,15 +50187,16 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 	bool bCurrentlyScrolling =  pLayout->GetScrollingFlag();
 	bool bDoFullWindowDraw = pLayout->GetFullWindowDrawFlag();
 
-	wxLogDebug(_T("Invalidate(),  bFullWindowDraw is %s"), 
-				bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
+	//wxLogDebug(_T("Invalidate(),  bFullWindowDraw is %s"), 
+	//			bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
 
 	if (bCurrentlyScrolling || bDoFullWindowDraw || 
-		(pApp->m_nActiveSequNum == -1 || pApp->m_pActivePile == NULL))
+		(pApp->m_nActiveSequNum == -1 || pApp->m_pActivePile == NULL) ||
+		pApp->m_bFreeTranslationMode)
 	{
 		// no clipping this time, either scrolling or full window draw wanted
 		pApp->GetMainFrame()->canvas->Refresh();
-		wxLogDebug(_T("Invalidate(), either scrolling, or full window draw wanted, or post end of doc"));
+		//wxLogDebug(_T("Invalidate(), either scrolling, or full window draw wanted, or post end of doc"));
 	}
 	else
 	{
@@ -50177,7 +50207,7 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 
 			// we clip to update only the innards of the phrase box control
 			pLayout->m_pMainFrame->canvas->Refresh(TRUE,&r);
-			wxLogDebug(_T("Invalidate(), CLIPPED to pile rectangle"));
+			//wxLogDebug(_T("Invalidate(), CLIPPED to pile rectangle"));
 		}
 		else
 		{

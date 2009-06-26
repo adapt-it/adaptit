@@ -3070,7 +3070,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	}
 				
 #ifdef Do_Clipping
-	wxLogDebug(_T("In OnChar), ** KEY TYPED **"));
+	//wxLogDebug(_T("In OnChar), ** KEY TYPED **"));
 #endif
 
 	m_bMergeWasDone = FALSE; //bool bMergeWasDone = FALSE;
@@ -3284,8 +3284,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 											 // PrepareDC on the owning frame
 		pLayout->m_docEditOperationType = no_edit_op;
 #ifdef Do_Clipping
-		wxLogDebug(_T("In OnChar(), no merge, Invalidate() about to be called; m_bFullWindowDraw is %s"),
-			GetLayout()->GetFullWindowDrawFlag() ? _T("TRUE") : _T("FALSE"));
+		//wxLogDebug(_T("In OnChar(), no merge, Invalidate() about to be called; m_bFullWindowDraw is %s"),
+		//	GetLayout()->GetFullWindowDrawFlag() ? _T("TRUE") : _T("FALSE"));
 #endif
 		pView->Invalidate();
 	}

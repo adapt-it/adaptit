@@ -332,10 +332,10 @@ void CLayout::Draw(wxDC* pDC)
 	// called - yes, that turned out to be the way to do it! See CAdapt_ItView::Invalidate()
 #ifdef Do_Clipping
 	// temporary code for debugging
-	wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
-	wxLogDebug(_T("Draw() START: bFullWindowDraw is %s  and m_nCurBoxWidth  %d  and currBoxSize.x  %d"),
-				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE"),
-				m_curBoxWidth, sizePhraseBox.x);
+	//wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
+	//wxLogDebug(_T("Draw() START: bFullWindowDraw is %s  and m_nCurBoxWidth  %d  and currBoxSize.x  %d"),
+	//			m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE"),
+	//			m_curBoxWidth, sizePhraseBox.x);
 #endif
 	// get the phrase box placed in the active location and made visible, and suitably
 	// prepared - unless it should not be made visible (eg. when updating the layout
@@ -346,69 +346,6 @@ void CLayout::Draw(wxDC* pDC)
 		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
 	}
 	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
-
-	/* BEW 25Jun09, turns out none of this next bit is needed for support of clipping
-	#ifdef Do_Clipping
-
-	// m_AllowClipping will have been set TRUE, or left with its default value of FALSE
-	// in the FixBox() call within the OnPhraseBoxChanged() function call, the latter
-	// will not have occurred until after an initial Refresh() is done. 
-	// So here we must work out if clipping is able to be done -- it can be if the
-	// phrase box size won't change and the view is not currently being scrolled.
-	// I'll set up local booleans here - more convenient when stepping for debugging
-	bool bCanClip = GetAllowClippingFlag();
-	bool bCurrentlyScrolling =  GetScrollingFlag();
-	bool bFullWindowDraw = GetFullWindowDrawFlag();
-	if (!bCurrentlyScrolling && !bFullWindowDraw)
-	{
-		// only enter this block if not scrolling and no full window draw is wanted
-		if (bCanClip && m_pApp->m_nActiveSequNum != -1)
-		{
-			if (m_pApp->m_pActivePile != NULL)
-			{
-				wxASSERT(m_pApp->m_pActivePile != NULL);
-				SetClipRectangle(m_pApp->m_pActivePile);
-				wxRect r = GetClipRect();
-
-				// set the clip rectangle again, and then go on to draw the piles - nothing
-				// much will be drawn of course, as we have clipped to just the active
-				// pile (note: it will have been set in Invalidate(), so essentially
-				// wxWidgets will intersect the rectangle with iself, which is
-				// harmless and doesn't change the size of the clipping area
-				//pDC->SetClippingRegion(r); // r has to be in logical coords <- calling
-											 //this erases the view window so it's no help
-				wxLogDebug(_T("In DRAW(), in bCanClip TRUE block -- do we ever come here?"));
-			}
-			else // no active pile, can only happen when phrase box is past doc end
-			{
-				// no clipping this time, refresh whole client area... Invalidate()
-				// will have called Refresh() with no parameters already, so just have
-				// the strips drawn as the whole window has been erased by now
-				wxLogDebug(_T("First entry to DRAW(), at doc end, no active pile... just draw strips"));
-				;
-			}
-		}
-		else // the m_bAllowClipping flag is FALSE, so box was resized or a layout recalc done
-		{
-            // no clipping this time, refresh of whole client area is required - and we
-            // are in the first entracy to Draw(), so we have to destroy the clip
-            // region, call Refresh() for a full window Draw(), and set to TRUE the
-            // m_bDoSecondRefresh flag so that we don't renter this section of the code
-            // the second time round, but just jump straight to the drawing of the
-            // strips
-			wxLogDebug(_T("In DRAW(), bCanClip is FALSE block ** (just draw strips anyway) **"));
-		}
-	}
-	else // currently the app is scrolling, or a full window draw was requested
-	{
-		// scrolling is happening, Invalidate() will have called Refresh() with no
-		// parameters to have the clip region reset to the whole view window, and the
-		// erase of the window will have been done by now, so just have the strips drawn
-		wxLogDebug(_T("In DRAW(), at Scrolling block, or Full Window Draw was requested"));
-		;
-	}
-	#endif
-	*/
 
     // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
@@ -478,10 +415,10 @@ void CLayout::Draw(wxDC* pDC)
 		aTempStripPtr->Draw(pDC);			// so we can have a breakpoint on the second
 	}
 
-	/* moved to top of function body, as clipping needs bool which is set herein
-	// get the phrase box placed in the active location and made visible, and suitably
-	// prepared - unless it should not be made visible (eg. when updating the layout
-	// in the middle of a procedure, before the final update is done at a later time)
+	/* 
+	// moved next lines to top of function body, thinking that it was needed for support of
+	// clipping, but that turned out not to be required, but I left it at the start as
+	// there is no harm in it - but it could equally well be back here instead
 	if (!m_bLayoutWithoutVisiblePhraseBox)
 	{
 		// work out its location and resize (if necessary) and draw it
@@ -492,9 +429,9 @@ void CLayout::Draw(wxDC* pDC)
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
 
 #ifdef Do_Clipping
-	wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s and the latter is now about to be cleared to default FALSE"), 
-				m_bScrolling ? _T("TRUE") : _T("FALSE"), 
-				m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
+	//wxLogDebug(_T("Strips Drawn: bScrolling is %s  bFullWindowDraw is %s and the latter is now about to be cleared to default FALSE"), 
+	//			m_bScrolling ? _T("TRUE") : _T("FALSE"), 
+	//			m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
     // initialize the clipping support flags, and clear the clip rectangle in both the
     // device context, and the one for the active strip in CLayout
 	//SetAllowClippingFlag(FALSE); // <- uneeded
@@ -1725,26 +1662,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// restore the selection, if there was one
 	//m_pView->RestoreSelection(); // 25Jun09 can't do this anymore
 
-#ifndef _NEW_LAYOUT
-	// BEW removed 22Jun09...
-    // In our refactored view design, _NEW_LAYOUT should be #defined; if it isn't the strip
-    // building protocol of destroying and rebuild the strips at each layout recalculation
-    // comes into force - and that is expensive if the document is large. The new design,
-    // for _NEW_LAYOUT defined, instead tweaks the strips and piles at the edit location -
-    // and this design has the phrase box drawn after that, as the last step in the Draw()
-    // function for the CLayout. That means that the phrase box will by default always be
-    // given the input focus - which is a problem if the use has entered free translation
-    // mode, because in that mode the focus should be in the compose bar's wxTextCtrl, not
-    // the phrase box. Therefore, the Draw() function at the very end tests for
-    // m_bFreeTranslationMode being TRUE, and when so, it puts the input focus in the
-    // compose bar's edit box. Because this newer way of handling the phrase box only
-    // happens when _NEW_LAYOUT is #defined, there is no point in placing the focus in the
-    // compose bar's edit box here within RecalcLayout when _NEW_LAYOUT is
-    // #defined, because the later call of Draw() will put the focus back into the phrase
-    // box, only to reenter immediately after, if free translation is ON, a block which
-    // puts it on the edit box in the compose bar. So the code here below is pointless,
-    // except when _NEW_LAYOUT is not #defined.
-
 	// if free translation mode is turned on, get the current section
 	// delimited and made visible - but only when not currently printing
 	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
@@ -1775,7 +1692,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			}
 		}
 	}
-#endif
 	m_lastLayoutSelector = selector; // inform Draw() about what we did here
 	return TRUE;
 }
