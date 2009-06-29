@@ -413,17 +413,6 @@ void CLayout::Draw(wxDC* pDC)
 		aTempStripPtr->Draw(pDC);			// so we can have a breakpoint on the second
 	}
 
-	/* 
-	// moved next lines to top of function body, thinking that it was needed for support of
-	// clipping, but that turned out not to be required, but I left it at the start as
-	// there is no harm in it - but it could equally well be back here instead
-	if (!m_bLayoutWithoutVisiblePhraseBox)
-	{
-		// work out its location and resize (if necessary) and draw it
-		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
-	}
-	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
-	*/
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
 
 #ifdef Do_Clipping
@@ -468,19 +457,6 @@ void CLayout::Redraw(bool bFirstClear)
 	}
 	Draw(pDC);  // the CLayout::Draw() which first works out which strips need to be drawn
 				// based on the active location (default param bool bAtActiveLocation is TRUE)
-
-	// BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, and also to Invalidate() in
-	// the view class, to avoid generating a paint event from within Draw() which lead to
-	// an infinite loop...
-	// get the phrase box placed in the active location and made visible, and suitably
-	// prepared - unless it should not be made visible (eg. when updating the layout
-	// in the middle of a procedure, before the final update is done at a later time)
-	if (!m_bLayoutWithoutVisiblePhraseBox)
-	{
-		// work out its location and resize (if necessary) and draw it
-		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
-	}
-	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 
 	SetFullWindowDrawFlag(TRUE);
 }
@@ -640,8 +616,352 @@ void CLayout::PlaceBox()
 	//if (!pLayout->GetBoxVisibilityFlag())
 	if (!m_bLayoutWithoutVisiblePhraseBox)
 	{
+		int nActiveSequNum = m_pApp->m_nActiveSequNum;
+
 		// work out its location and resize (if necessary) and draw it
-		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+		if (nActiveSequNum == -1)
+		{
+			return; // do no phrase box placement if it is hidden, as at doc end
+		}
+		bool bSetModify = FALSE; // initialize, governs what is done with the wxEdit 
+								 // control's dirty flag
+		bool bSetTextColor = FALSE; // initialize, governs whether or not we reset 
+									// the box's text colour
+		
+		// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there 
+		// the phrase box is to be located
+		wxPoint ptPhraseBoxTopLeft;
+		CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile 
+								// instead; but this will work even if we have forgotten to
+								// update it in the edit operation's handler
+		pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
+
+		// get the pile width at the active location, using the value in
+		// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
+		int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
+		//int phraseBoxWidth = m_curBoxWidth; // I was going to use this, but I think the best
+		//design is to only use the value stored in CLayout::m_curBoxWidth for the brief
+		//interval within the execution of FixBox() when a box expansion happens (and
+		//immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
+		//then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
+		//will use that stored value when gbExpanding == TRUE to test for largest of
+		//m_curBoxWidth and a value based on text extent plus slop, and use the larger -
+		//setting result in m_nWidth, so the ResizeBox() calls here in PlacePhraseBoxInLayout()
+		//should always expect m_nWidth for the active pile will have been correctly set, and
+		//so always use that for the width to pass in to the ResizeBox() call below.
+
+		// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
+		// range specification get set by the SetupCursorGlobals() calls in the switch below
+
+		// handle any operation specific parameter settings
+		//* this stuff may not be needed now that I've had to put PlaceBox() all over the app
+		enum doc_edit_op opType = m_docEditOperationType;
+		switch(opType)
+		{
+		case default_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				bSetModify = TRUE;
+				break;
+			}
+		case cancel_op:
+			{
+
+				break;
+			}
+		case char_typed_op:
+			{
+				// don't interfere with the m_nStartChar and m_nEndChar values, just set
+				// modify flag
+				bSetModify = TRUE;
+				break;
+			}
+		case target_box_paste_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
+				bSetModify = FALSE;
+				break;
+			}
+		case relocate_box_op:
+			{
+				bSetModify = FALSE;
+				bSetTextColor = TRUE;
+				break;
+			}
+		case merge_op:
+			{
+
+				break;
+			}
+		case unmerge_op:
+			{
+
+				break;
+			}
+		case retranslate_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				bSetModify = FALSE;
+				break;
+			}
+		case remove_retranslation_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				bSetModify = FALSE;
+				break;
+			}
+		case edit_retranslation_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				bSetModify = FALSE;
+				break;
+			}
+		case insert_placeholder_op:
+			{
+
+				break;
+			}
+		case remove_placeholder_op:
+			{ 
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				break;
+			}
+		case consistency_check_op:
+			{
+				m_pView->RemoveSelection();
+				break;
+			}
+		case split_op:
+			{
+
+				break;
+			}
+		case join_op:
+			{
+
+				break;
+			}
+		case move_op:
+			{
+
+				break;
+			}
+		case on_button_no_adaptation_op:
+			{
+				m_pApp->m_nStartChar = 0;
+				m_pApp->m_nEndChar = 0;
+				bSetModify = TRUE;
+				break;
+			}
+		case edit_source_text_op:
+			{
+
+				break;
+			}
+		case free_trans_op:
+			{
+
+				break;
+			}
+		case end_free_trans_op:
+			{
+
+				break;
+			}
+		case retokenize_text_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_text_end);
+				bSetModify = FALSE;
+				break;
+			}
+		case collect_back_translations_op:
+			{
+
+				break;
+			}
+		case vert_edit_enter_adaptions_op:
+			{
+
+				break;
+			}
+		case vert_edit_exit_adaptions_op:
+			{
+
+				break;
+			}
+		case vert_edit_enter_glosses_op:
+			{
+
+				break;
+			}
+		case vert_edit_exit_glosses_op:
+			{
+
+				break;
+			}
+		case vert_edit_enter_free_trans_op:
+			{
+
+				break;
+			}
+		case vert_edit_exit_free_trans_op:
+			{
+
+				break;
+			}
+		case vert_edit_cancel_op:
+			{
+
+				break;
+			}
+		case vert_edit_end_now_op:
+			{
+
+				break;
+			}
+		case vert_edit_previous_step_op:
+			{
+
+				break;
+			}
+		case vert_edit_exit_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				bSetModify = FALSE;
+				break;
+			}
+		case vert_edit_bailout_op:
+			{
+				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
+				bSetModify = FALSE;
+				break;
+			}
+		case exit_preferences_op:
+			{
+
+				break;
+			}
+		case change_punctuation_op:
+			{
+
+				break;
+			}
+		case change_filtered_markers_only_op:
+			{
+
+				break;
+			}
+		case change_sfm_set_only_op:
+			{
+
+				break;
+			}
+		case change_sfm_set_and_filtered_markers_op:
+			{
+
+				break;
+			}
+		case open_document_op:
+			{
+
+				break;
+			}
+		case new_document_op:
+			{
+
+				break;
+			}
+		case close_document_op:
+			{
+
+				break;
+			}
+		case enter_LTR_layout_op:
+			{
+
+				break;
+			}
+		case enter_RTL_layout_op:
+			{
+
+				break;
+			}
+		default: // do the same as default_op	
+		case no_edit_op:
+			{
+				// do nothing additional
+				break;
+			}
+		}
+		//*/
+		// reset m_docEditOperationType to an invalid value, so that if not explicitly set by
+		// the user's editing operation, or programmatic operation, the default: case will
+		// fall through to the no_edit_op case, which does nothing
+		m_docEditOperationType = invalid_op_enum_value; // an invalid value
+	/* not needed?
+		// do any required auto capitalization...
+		// if auto capitalization is on, determine the source text's case properties
+		bool bNoError = TRUE;
+		if (gbAutoCaps)
+		{
+			bNoError = m_pView->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
+		}
+		// now set the m_targetPhrase contents accordingly
+		if (gbAutoCaps)
+		{
+			if (bNoError && gbSourceIsUpperCase)
+			{
+				// in the next call, FALSE is the value for param bool bIsSrcText
+				bNoError = m_pView->SetCaseParameters(m_pApp->m_targetPhrase,FALSE);
+				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				{
+					// change to upper case initial letter
+					m_pApp->m_targetPhrase.SetChar(0,gcharNonSrcUC);
+				}
+			}
+		}
+	*/
+		// wx Note: we don't destroy the target box, just set its text to null
+		m_pApp->m_pTargetBox->ChangeValue(_T(""));
+
+		// make the phrase box size adjustments, set the colour of its text, tell it where it
+		// is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
+		// causes it to be visible again; CPhraseBox has a color variable & uses reflected
+		// notification
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+		{
+			m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetNavTextHeight(), 
+						m_pApp->m_targetPhrase, m_pApp->m_nStartChar, m_pApp->m_nEndChar, 
+						pActivePile);
+			m_pApp->m_pTargetBox->m_textColor = GetNavTextColor(); //was pApp->m_navTextColor;
+		}
+		else
+		{
+			m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetTgtTextHeight(), 
+						m_pApp->m_targetPhrase, m_pApp->m_nStartChar, m_pApp->m_nEndChar, 
+						pActivePile);
+			m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
+		}
+
+		// set the color - CPhraseBox has a color variable & uses reflected notification
+		if (bSetTextColor)
+		{
+			if (gbIsGlossing && gbGlossingUsesNavFont)
+				m_pApp->m_pTargetBox->m_textColor = GetNavTextColor();
+			else
+				m_pApp->m_pTargetBox->m_textColor = GetTgtColor();
+		}
+		// handle the dirty flag
+		if (bSetModify)
+		{
+			// calls our own SetModify(TRUE)(see Phrasebox.cpp)
+			m_pApp->m_pTargetBox->SetModify(TRUE); 
+		}
+		else
+		{
+			// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
+			m_pApp->m_pTargetBox->SetModify(FALSE); 
+		}
 	}
 	//pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
@@ -2403,356 +2723,12 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 		}
 	}
 }
-
+/* BEW removed 30Jun09
 void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 {
-	// Call this function in CLayout::Draw() after strips are drawn
-	if (nActiveSequNum == -1)
-	{
-		return; // do no phrase box placement if it is hidden, as at doc end
-	}
-	bool bSetModify = FALSE; // initialize, governs what is done with the wxEdit 
-							 // control's dirty flag
-	bool bSetTextColor = FALSE; // initialize, governs whether or not we reset 
-								// the box's text colour
+	// ... former content here moved to PlaceBox()...
 	
-	// obtain the TopLeft coordinate of the active pile's m_pCell[1] cell, there 
-	// the phrase box is to be located
-	wxPoint ptPhraseBoxTopLeft;
-	CPile* pActivePile = GetPile(nActiveSequNum); // could use view's m_pActivePile 
-                            // instead; but this will work even if we have forgotten to
-                            // update it in the edit operation's handler
-	pActivePile->GetCell(1)->TopLeft(ptPhraseBoxTopLeft);
-
-	// get the pile width at the active location, using the value in
-	// CLayout::m_curBoxWidth put there by RecalcLayout() or AdjustForUserEdits() or FixBox()
-	int phraseBoxWidth = pActivePile->GetPhraseBoxGapWidth(); // returns CPile::m_nWidth
-    //int phraseBoxWidth = m_curBoxWidth; // I was going to use this, but I think the best
-    //design is to only use the value stored in CLayout::m_curBoxWidth for the brief
-    //interval within the execution of FixBox() when a box expansion happens (and
-    //immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
-    //then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
-    //will use that stored value when gbExpanding == TRUE to test for largest of
-    //m_curBoxWidth and a value based on text extent plus slop, and use the larger -
-    //setting result in m_nWidth, so the ResizeBox() calls here in PlacePhraseBoxInLayout()
-    //should always expect m_nWidth for the active pile will have been correctly set, and
-    //so always use that for the width to pass in to the ResizeBox() call below.
-
-	// Note: the m_nStartChar and m_nEndChar app members, for cursor placement or text selection
-	// range specification get set by the SetupCursorGlobals() calls in the switch below
-
-	// handle any operation specific parameter settings
-	//* this stuff may not be needed now that I've had to put PlaceBox() all over the app
-	enum doc_edit_op opType = m_docEditOperationType;
-	switch(opType)
-	{
-	case default_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			bSetModify = TRUE;
-			break;
-		}
-	case cancel_op:
-		{
-
-			break;
-		}
-	case char_typed_op:
-		{
-			// don't interfere with the m_nStartChar and m_nEndChar values, just set
-			// modify flag
-			bSetModify = TRUE;
-			break;
-		}
-	case target_box_paste_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_offset, gnBoxCursorOffset);
-			bSetModify = FALSE;
-			break;
-		}
-	case relocate_box_op:
-		{
-			bSetModify = FALSE;
-			bSetTextColor = TRUE;
-			break;
-		}
-	case merge_op:
-		{
-
-			break;
-		}
-	case unmerge_op:
-		{
-
-			break;
-		}
-	case retranslate_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			bSetModify = FALSE;
-			break;
-		}
-	case remove_retranslation_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			bSetModify = FALSE;
-			break;
-		}
-	case edit_retranslation_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			bSetModify = FALSE;
-			break;
-		}
-	case insert_placeholder_op:
-		{
-
-			break;
-		}
-	case remove_placeholder_op:
-		{ 
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			break;
-		}
-	case consistency_check_op:
-		{
-			m_pView->RemoveSelection();
-			break;
-		}
-	case split_op:
-		{
-
-			break;
-		}
-	case join_op:
-		{
-
-			break;
-		}
-	case move_op:
-		{
-
-			break;
-		}
-	case on_button_no_adaptation_op:
-		{
-			m_pApp->m_nStartChar = 0;
-			m_pApp->m_nEndChar = 0;
-			bSetModify = TRUE;
-			break;
-		}
-	case edit_source_text_op:
-		{
-
-			break;
-		}
-	case free_trans_op:
-		{
-
-			break;
-		}
-	case end_free_trans_op:
-		{
-
-			break;
-		}
-	case retokenize_text_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_text_end);
-			bSetModify = FALSE;
-			break;
-		}
-	case collect_back_translations_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_adaptions_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_glosses_op:
-		{
-
-			break;
-		}
-	case vert_edit_enter_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_free_trans_op:
-		{
-
-			break;
-		}
-	case vert_edit_cancel_op:
-		{
-
-			break;
-		}
-	case vert_edit_end_now_op:
-		{
-
-			break;
-		}
-	case vert_edit_previous_step_op:
-		{
-
-			break;
-		}
-	case vert_edit_exit_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			bSetModify = FALSE;
-			break;
-		}
-	case vert_edit_bailout_op:
-		{
-			SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
-			bSetModify = FALSE;
-			break;
-		}
-	case exit_preferences_op:
-		{
-
-			break;
-		}
-	case change_punctuation_op:
-		{
-
-			break;
-		}
-	case change_filtered_markers_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_only_op:
-		{
-
-			break;
-		}
-	case change_sfm_set_and_filtered_markers_op:
-		{
-
-			break;
-		}
-	case open_document_op:
-		{
-
-			break;
-		}
-	case new_document_op:
-		{
-
-			break;
-		}
-	case close_document_op:
-		{
-
-			break;
-		}
-	case enter_LTR_layout_op:
-		{
-
-			break;
-		}
-	case enter_RTL_layout_op:
-		{
-
-			break;
-		}
-	default: // do the same as default_op	
-	case no_edit_op:
-		{
-			// do nothing additional
-			break;
-		}
-	}
-	//*/
-	// reset m_docEditOperationType to an invalid value, so that if not explicitly set by
-	// the user's editing operation, or programmatic operation, the default: case will
-	// fall through to the no_edit_op case, which does nothing
-	m_docEditOperationType = invalid_op_enum_value; // an invalid value
-/* not needed?
-	// do any required auto capitalization...
-	// if auto capitalization is on, determine the source text's case properties
-	bool bNoError = TRUE;
-	if (gbAutoCaps)
-	{
-		bNoError = m_pView->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
-	}
-	// now set the m_targetPhrase contents accordingly
-	if (gbAutoCaps)
-	{
-		if (bNoError && gbSourceIsUpperCase)
-		{
-			// in the next call, FALSE is the value for param bool bIsSrcText
-			bNoError = m_pView->SetCaseParameters(m_pApp->m_targetPhrase,FALSE);
-			if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-			{
-				// change to upper case initial letter
-				m_pApp->m_targetPhrase.SetChar(0,gcharNonSrcUC);
-			}
-		}
-	}
-*/
-	// wx Note: we don't destroy the target box, just set its text to null
-	m_pApp->m_pTargetBox->ChangeValue(_T(""));
-
-    // make the phrase box size adjustments, set the colour of its text, tell it where it
-    // is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and
-    // causes it to be visible again; CPhraseBox has a color variable & uses reflected
-    // notification
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-	{
-		m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetNavTextHeight(), 
-					m_pApp->m_targetPhrase, m_pApp->m_nStartChar, m_pApp->m_nEndChar, 
-					pActivePile);
-		m_pApp->m_pTargetBox->m_textColor = GetNavTextColor(); //was pApp->m_navTextColor;
-	}
-	else
-	{
-		m_pView->ResizeBox(&ptPhraseBoxTopLeft, phraseBoxWidth, GetTgtTextHeight(), 
-					m_pApp->m_targetPhrase, m_pApp->m_nStartChar, m_pApp->m_nEndChar, 
-					pActivePile);
-		m_pApp->m_pTargetBox->m_textColor = GetTgtColor(); // was pApp->m_targetColor;
-	}
-
-	// set the color - CPhraseBox has a color variable & uses reflected notification
-	if (bSetTextColor)
-	{
-		if (gbIsGlossing && gbGlossingUsesNavFont)
-			m_pApp->m_pTargetBox->m_textColor = GetNavTextColor();
-		else
-			m_pApp->m_pTargetBox->m_textColor = GetTgtColor();
-	}
-	// handle the dirty flag
-	if (bSetModify)
-	{
-		// calls our own SetModify(TRUE)(see Phrasebox.cpp)
-		m_pApp->m_pTargetBox->SetModify(TRUE); 
-	}
-	else
-	{
-		// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
-		m_pApp->m_pTargetBox->SetModify(FALSE); 
-	}
-
 	// if free translating, put focus in the compose bar's wxTextCtrl
-	/* may not need this now that PlaceBox() is all over the app
 	if (m_pApp->m_bFreeTranslationMode)
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)
@@ -2771,9 +2747,8 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 			}
 		}
 	}
-	*/
 }
-
+*/
 // Detect if the user's edit area is not adequately defined, in which case reenter
 // RecalcLayout() to rebuild the doc by destroying and recreating all strips and return
 // FALSE to the caller so that it can return FALSE to the original RecalcLayout() call so

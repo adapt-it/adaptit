@@ -404,8 +404,9 @@ public:
 											// just lays them out, ensuring  proper spacing
 	void		DoRecalcLayoutAfterPreferencesDlg();
 	void		RecalcPileWidths(PileList* pPiles);
-	void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09
-	void		PlaceBox(); // call this after Invalidate() and after Redraw()
+	//void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09, removed 30Jun09
+	void		PlaceBox(); // call this after Invalidate() and after Redraw(); contents of 
+							// PlacePhraseBoxInLayout() moved into here, and the latter removed
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 
 							int nBoxCursorOffset = 0); // BEW added 7Apr09
 	bool		GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInLast);// BEW 
