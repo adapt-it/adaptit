@@ -1099,6 +1099,7 @@ x:						CCell* pCell = 0;
 						// scroll into view, just in case (but shouldn't be needed)
 						ScrollIntoView(pApp->m_nActiveSequNum);
 						pView->Invalidate(); // get window redrawn
+						pLayout->PlaceBox();
 
 						// restore focus to the targetBox
 						if (pApp->m_pTargetBox != NULL)
@@ -1916,7 +1917,7 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
 			_T(""), wxICON_EXCLAMATION);
 			pView->RemoveSelection();
-			Refresh(); //Invalidate();
+			Refresh(); //Invalidate();  but no phrase box redraw here
 			goto a;
 		}
 

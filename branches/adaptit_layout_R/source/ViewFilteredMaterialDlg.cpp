@@ -47,6 +47,7 @@
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "Pile.h"
+#include "Layout.h"
 #include "helpers.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -853,6 +854,7 @@ a:		CAdapt_ItView* pView = gpApp->GetView();
 	gpApp->m_pViewFilteredMaterialDlg = NULL;
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 	
 	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
 }
@@ -872,6 +874,7 @@ void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pViewFilteredMaterialDlg = NULL; // allow the Note dialog to be opened
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnCancel(event); //don't call base class because we are modeless
 

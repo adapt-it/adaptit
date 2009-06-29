@@ -828,6 +828,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 		}
 		gbMismatchedBookCode = FALSE; // ensure it is off before exitting
 		pView->Invalidate();
+		pApp->m_pLayout->PlaceBox();
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 		CMainFrame *pFrame = (CMainFrame*)pView->GetFrame();
 		pFrame->Raise();

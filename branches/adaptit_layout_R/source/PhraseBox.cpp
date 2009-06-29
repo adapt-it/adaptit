@@ -1242,6 +1242,7 @@ b:	pApp->m_bSaveToKB = TRUE;
             // than the source font then changes along the line throw words off screen and
             // they get missed and eventually app crashes because active pile pointer will
             // get set to NULL
+		pLayout->PlaceBox();
 
 		if (bWantSelect)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
@@ -1732,6 +1733,7 @@ b:	pApp->m_bSaveToKB = TRUE;
             // than the source font then changes along the line throw words off screen and
             // they get missed and eventually app crashes because active pile pointer will
             // get set to NULL
+		pLayout->PlaceBox();
 
 		if (bWantSelect)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
@@ -1997,6 +1999,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 
 		// make what we've done visible
 		pView->Invalidate();
+		pLayout->PlaceBox();
 
 		// put up a dialog for user to choose translation from a list box, or type new one
 		// (note: for auto capitalization; ChooseTranslation (which calls the CChoseTranslation
@@ -2177,6 +2180,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				gnEndInsertionsSequNum = -1;
 				//pView->Invalidate(); // remove highlight before MessageBox call below
 				pLayout->Redraw(); // remove highlight before MessageBox call below
+				pLayout->PlaceBox();
 
 				// tell the user EOF has been reached
 				// IDS_AT_END
@@ -2203,6 +2207,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				pApp->m_pActivePile = NULL; // can use this as a flag for at-EOF condition too
 
 				pView->Invalidate();
+				pLayout->PlaceBox();
 				
 				translation.Empty(); // clear the static string storage for the 
                     // translation save the phrase box's text, in case user hits SHIFT+END
@@ -2260,6 +2265,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				gnEndInsertionsSequNum = -1;
 				//pView->Invalidate(); // remove highlight before MessageBox call below
 				pLayout->Redraw(); // remove highlight before MessageBox call below
+				pLayout->PlaceBox();
 
                 // we have come to the end of the file's data and can't move further so
                 // just tell the user there is no more data to adapt in this file.
@@ -2427,6 +2433,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// refresh the view
 			pLayout->m_docEditOperationType = relocate_box_op;
 			pView->Invalidate(); // BEW added 25Mar09, see comment about Refresh 10 lines above
+			pLayout->PlaceBox();
 
 		} // end of block for test for m_bSingleStep == TRUE
 		else // auto-inserting -- sets flags and returns, allowing the idle handler to call OnePass()
@@ -2575,6 +2582,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// get the view redrawn
 			pLayout->m_docEditOperationType = no_edit_op;
 			pView->Invalidate();
+			pLayout->PlaceBox();
 			return;
 		} // end of block for test !bSuccessful
 		else
@@ -2671,6 +2679,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 
 		pView->Invalidate(); // it should be okay in the refactored code 
 							 // (cf. Bill's comment above)
+		pLayout->PlaceBox();
 	} // end Review mode (single src phrase move) block
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("12. End of JumpForward"));
@@ -3416,7 +3425,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 			{
 				JumpForward(pView);
 			} // end keyState >= 0 block
-			pView->Invalidate(); // added 30Mar09, this should be enough for removing the 
+			//pView->Invalidate(); // added 30Mar09, this should be enough for removing the 
 								 // ReDoPhraseBox() calls
 		} // end case 13: block
 		return;
@@ -3504,7 +3513,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 				// a phrase
 				gSaveTargetPhrase = pApp->m_targetPhrase;
 
-				pView->Invalidate(); // added 30Mar09, this should be enough for removing the 
+				//pView->Invalidate(); // added 30Mar09, this should be enough for removing the 
 									 // ReDoPhraseBox() calls
 				Thaw();
 				return;
@@ -3981,6 +3990,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		// BEW note 30Mar09: later we may set clipping.... in the meantime 
 		// just invalidate the lot
 		pView->Invalidate();
+		pLayout->PlaceBox();
 
 		if (bNeedModify)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
@@ -4319,7 +4329,8 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 		//pView->Invalidate();
 
 		// BEW note 30Mar09: later we may set clipping here or somewhere
-		pView->Invalidate(); // I think this call is needed, but it might not be *** TODO **** check if needed
+		pView->Invalidate(); // I think this call is needed
+		GetLayout()->PlaceBox();
 
 		if (bNeedModify)
 			SetModify(TRUE); // our own SetModify(); calls MarkDirty()
@@ -4665,6 +4676,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			// remove highlight before MessageBox call below
 			//pView->Invalidate();
 			pLayout->Redraw(); // bFirstClear is default TRUE
+			pLayout->PlaceBox();
 
 			// tell the user EOF has been reached
 			gbCameToEnd = TRUE;
@@ -4714,6 +4726,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 		gSaveTargetPhrase = pApp->m_targetPhrase;
 		pApp->m_bAutoInsert = FALSE; // ensure we halt for user to type translation
 		pView->Invalidate(); // added 1Apr09, since we return at next line
+		pLayout->PlaceBox();
 		return FALSE; // must have been a null string, or at EOF;
 	}
 
@@ -4818,6 +4831,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 	pLayout->m_docEditOperationType = relocate_box_op;
 	gbEnterTyped = TRUE; // keep it continuing to use the faster GetSrcPhras BuildPhrases()
 	pView->Invalidate(); // added 1Apr09, since we return at next line
+	pLayout->PlaceBox();
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("8. End of OnePass"));
 	#endif
@@ -5625,6 +5639,7 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 
 		// make what we've done visible
 		pView->Invalidate();
+		pLayout->PlaceBox();
 
 		/* old code
 		//pApp->m_curBoxWidth = 2; // make very small so it doesn't push the next 

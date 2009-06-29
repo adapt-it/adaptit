@@ -1931,6 +1931,7 @@ a:			CCell* pCell = 0;
 			wxASSERT(pSelPile != NULL);
 
 			pView->Invalidate(); // get window redrawn
+			gpApp->m_pLayout->PlaceBox();
 
 			// restore focus to the targetBox
 			if (gpApp->m_pTargetBox != NULL)

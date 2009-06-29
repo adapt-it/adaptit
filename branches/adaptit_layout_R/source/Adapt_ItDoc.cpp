@@ -574,6 +574,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					pApp->m_curOutputBackupFilename = _T("");
 					pApp->m_altOutputBackupFilename = _T("");
 					pAdView->Invalidate(); // our own
+					GetLayout()->PlaceBox();
 					return FALSE;
 				}
 
@@ -615,6 +616,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->m_curOutputPath = _T("");
 				pApp->m_curOutputBackupFilename = _T("");
 				pAdView->Invalidate();
+				GetLayout()->PlaceBox();
 				return FALSE;
 			}
 
@@ -695,6 +697,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pAdView->Invalidate();
+				GetLayout()->PlaceBox();
 				return FALSE;
 			}
 
@@ -756,6 +759,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					//pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2]);
 					pAdView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 					pAdView->Invalidate();
+					GetLayout()->PlaceBox();
 					pApp->m_nActiveSequNum = 0;
 					gnOldSequNum = -1; // no previous location exists yet
 					// get rid of the stored rebuilt source text, leave a space there instead
@@ -816,6 +820,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pAdView->Invalidate();
+				GetLayout()->PlaceBox();
 			}
 			return FALSE;
 		}
@@ -4392,9 +4397,16 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList
 	// was removed earlier or when the bar is recreated below
 	UpdateSequNumbers(0); // get the numbers updated, as a precaution
 	//pView->RecalcLayout(pList,0,gpApp->m_pBundle);
-	GetLayout()->Redraw();
+	// GetLayout()->Redraw(); <- BEW 30Jun09, gives vertical registry error on draw for
+	// phrase box, so use RecalcLayout() instead
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 	//GetLayout()->RecalcLayout(); // reform the strips, but not the m_pileList
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+	GetLayout()->PlaceBox();
 
 	// put up a progress indicator
 	int nOldTotal = pList->GetCount();

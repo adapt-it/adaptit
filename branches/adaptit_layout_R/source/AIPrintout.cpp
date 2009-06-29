@@ -291,6 +291,7 @@ AIPrintout::~AIPrintout()
 	}
    	
 	pView->Invalidate();
+	pApp->m_pLayout->PlaceBox();
 	wxWindow* pWnd;
 	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set by the above code,
 							 // so unfortunately the cursor will have to be manually put back in the

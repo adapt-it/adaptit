@@ -1709,7 +1709,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	s.Empty();
 	s << pApp->m_nCurDelay; //s = buf;
 	pDelayBox->ChangeValue(s); // MFC has SetWindowText()
-	pControlBar->Refresh(); // MFC has Invalidate()
+	pControlBar->Refresh(); // MFC has Invalidate(), we'll no attempt phrase box drawing here
 
 	// MFC code below:
 	// add the extra menu if it is the Unicode version
@@ -1986,8 +1986,10 @@ void CAdapt_ItView::OnInitialUpdate()
 	}
 
 	Invalidate(); // our own
+	pLayout->PlaceBox();
 
 // Is the following necessary? Code from docvwmdi sample came commented out
+/* BEW 30Jun09, I don't think this is needed
 #ifdef __WXMSW__
   if (pApp->GetMainFrame()->canvas)
     pApp->GetMainFrame()->canvas->Refresh();
@@ -1999,6 +2001,7 @@ void CAdapt_ItView::OnInitialUpdate()
       OnDraw(& dc);
     }
 #endif
+*/
 }
 
 bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of wxView
@@ -2360,6 +2363,7 @@ void CAdapt_ItView::DoTargetBoxPaste(CPile* pPile)
 	// make the layout adjustments get done and then the draw and showing of the 
 	// relocated phrase box
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 /* pre-refactor code
@@ -3617,6 +3621,7 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 	wxASSERT(pSelPile != NULL);
 
 	Invalidate(); // get the view window redrawn, and the phrase box
+	GetLayout()->PlaceBox();
 
 	// restore focus to the targetBox
 	if (pApp->m_pTargetBox != NULL)
@@ -4178,6 +4183,7 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
 //#endif
 	Invalidate();
+	pLayout->PlaceBox();
 }
 
 /* old code
@@ -7220,6 +7226,11 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 	pLayout->m_bPunctuationChanged = FALSE;
 	pLayout->m_bCaseEquivalencesChanged = FALSE;
 	pLayout->m_bFontInfoChanged = FALSE;
+
+	// BEW 30Jun09, added Invalidate() and PlaceBox() here, not sure but I think they
+	// might be needed
+	Invalidate();
+	pLayout->PlaceBox();
 }
 
 void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
@@ -11874,6 +11885,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 	OnButtonEnablePunctCopy(event);
 
 	Invalidate(); // get the layout redrawn and the phrase box too
+	GetLayout()->PlaceBox();
 
 	// if we are in free translation mode, we want the focus to be in the Compose Bar's edit box
 	// after the move has been done
@@ -12236,6 +12248,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 	OnButtonEnablePunctCopy(event);
 
 	Invalidate();
+	GetLayout()->PlaceBox();
 
 	// if we are in free translation mode, we want the focus to be in the Compose Bar's edit box
 	// after the move has been done
@@ -12555,6 +12568,8 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	OnButtonEnablePunctCopy(event);
 
 	Invalidate();
+	GetLayout()->PlaceBox();
+
 	// if we are in free translation mode, we want the focus to be in the Compose Bar's edit box
 	// after the move has been done
 	if (pApp->m_bFreeTranslationMode && pEdit != NULL) // whm added && pEdit != NULL
@@ -12881,6 +12896,8 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	OnButtonEnablePunctCopy(event);
 
 	Invalidate();
+	GetLayout()->PlaceBox();
+
     // if we are in free translation mode, we want the focus to be in the Compose Bar's
     // edit box after the move has been done
 	if (pApp->m_bFreeTranslationMode && pEdit != NULL) // whm added && pEdit != NULL
@@ -13390,6 +13407,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			}
 			gbMergeSucceeded = FALSE;
 			Invalidate(); // get a redraw done, and the phrase box reshown
+			GetLayout()->PlaceBox();
 			return;
 		}
 		
@@ -13562,6 +13580,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
+		GetLayout()->PlaceBox();
 		return;
 	}
 
@@ -13587,6 +13606,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
+		GetLayout()->PlaceBox();
 		return;
 	}
 
@@ -13614,6 +13634,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
+		GetLayout()->PlaceBox();
 		return;
 	}
 
@@ -13638,6 +13659,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
+		GetLayout()->PlaceBox();
 		return;
 	}
 
@@ -14101,6 +14123,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	Invalidate();
+	GetLayout()->PlaceBox();
 	gbMergeSucceeded = TRUE;
 }
 
@@ -14746,6 +14769,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 	//RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 bool CAdapt_ItView::ExtendSelectionRight()
@@ -14768,6 +14792,7 @@ bool CAdapt_ItView::ExtendSelectionRight()
 	{
 		RemoveSelection();
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 	// restore flag (and button)
 	if (bSaveFlag == FALSE)
@@ -14970,6 +14995,7 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 	{
 		RemoveSelection();
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 	// restore flag (and button)
 	if (bSaveFlag == FALSE)
@@ -17190,6 +17216,7 @@ void CAdapt_ItView::InsertNullSrcPhraseBefore() // this one is public, and defau
 			_T(""), wxICON_EXCLAMATION);
 			RemoveSelection();
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return;
 		}
 	}
@@ -17282,6 +17309,7 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter() // this one is public
 			_T(""), wxICON_EXCLAMATION);
 			RemoveSelection();
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return;
 		}
 	}
@@ -17499,6 +17527,7 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 							wxICON_EXCLAMATION);
 				RemoveSelection();
 				Invalidate();
+				GetLayout()->PlaceBox();
 				return;
 			}
 		}
@@ -17672,6 +17701,7 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 							_T(""), wxICON_EXCLAMATION);
 				RemoveSelection();
 				Invalidate();
+				GetLayout()->PlaceBox();
 				return;
 			}
 		}
@@ -18525,6 +18555,7 @@ m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 	gbInsertingWithinFootnote = FALSE; // make sure it is off (default) before exiting
 }
@@ -18729,6 +18760,7 @@ void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCoun
 			if (pApp->m_selectionLine != -1)
 				RemoveSelection();
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return;
 		}
 	}
@@ -18981,6 +19013,7 @@ b:		pApp->m_pActivePile = pNewPile;
 	// scroll into view, just in case a lot were inserted
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 //*****************************************************************************************
@@ -19953,6 +19986,7 @@ ed:		if (bCancelled)
 		translation.Empty(); // clear the globals
 		curKey.Empty();
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 }
 
@@ -20421,6 +20455,7 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 20May09, next line required in order to get * shown
 	GetLayout()->Redraw();
+	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
 }
 
 void CAdapt_ItView::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
@@ -20603,6 +20638,7 @@ void CAdapt_ItView::ClobberDocument()
 	pApp->m_nActiveSequNum = -1;
 	pApp->m_selectionLine = -1;
 	Invalidate(); // our own
+	GetLayout()->PlaceBox();
 
 	gbDoingInitialSetup = TRUE; // MFC note: Needed because the phrase box will not 
         //exist after the close is done, so if a <New Document> command is issued, then
@@ -21625,6 +21661,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 					//ReDoPhraseBox(pCell); // CLayout::Draw() now handles showing the box
 					GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 					Invalidate(); // get the layout drawn
+					GetLayout()->PlaceBox();
 
 					// get the chapter and verse
 					wxString chVerse = GetChapterAndVerse(pSrcPhrase);
@@ -22977,6 +23014,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		gnStart = pApp->m_nStartChar;
 		gnEnd = pApp->m_nEndChar;
 		Invalidate();
+		GetLayout()->PlaceBox();
 		return;
 	}
 
@@ -22997,6 +23035,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		gnStart = pApp->m_nStartChar;
 		gnEnd = pApp->m_nEndChar;
 		Invalidate();
+		GetLayout()->PlaceBox();
 		return;
 	}
 
@@ -23483,6 +23522,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		// remove selection and update the display
 		RemoveSelection();
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 
 	// define the operation type, so PlacePhraseBoxInLayout() can do its job correctly
@@ -23698,6 +23738,7 @@ h:				wxMessageBox(_(
 				RemoveSelection();
 				delete pList;
 				Invalidate();
+				GetLayout()->PlaceBox();
 				return;
 			}
 		}
@@ -24426,6 +24467,7 @@ h:				wxMessageBox(_(
 		// remove selection and update the display
 		RemoveSelection();
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 
 	// define the operation type, so PlacePhraseBoxInLayout() can do its job correctly
@@ -24479,6 +24521,7 @@ h:				wxMessageBox(_(
 				RemoveSelection();
 				delete pList;
 				Invalidate();
+				GetLayout()->PlaceBox();
 				return;
 			}
 		}
@@ -24760,6 +24803,7 @@ h:				wxMessageBox(_(
 	*/
 
 	Invalidate();
+	GetLayout()->PlaceBox();
 
 	// define the operation type, so PlacePhraseBoxInLayout() can do its job correctly
 	GetLayout()->m_docEditOperationType = remove_retranslation_op;
@@ -24923,6 +24967,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 
 	// BEW added 20May09, next line required in order to remove the selection
 	GetLayout()->Redraw();
+	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
 }
 
 bool CAdapt_ItView::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
@@ -25487,6 +25532,7 @@ void CAdapt_ItView::Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase)
 	// update status bar with project name
 	pApp->RefreshStatusBarInfo();
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 //*****************************************************************************************
@@ -25601,6 +25647,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 
 	gbUserWantsSelection = FALSE; // appropriate place to turn it back off
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
@@ -26485,6 +26532,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			gnRetransEndSequNum = -1;
 			::wxBell(); // alert user there was no match
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return FALSE;
 		}
 		else
@@ -26546,6 +26594,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			gnRetransEndSequNum = -1;
 			::wxBell(); // alert user there was no match
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return FALSE;
 		}
 		else
@@ -28692,6 +28741,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			gnOldSequNum = pApp->m_nActiveSequNum;
 
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return TRUE;
 		}
 		else if (!gbIsGlossing &&
@@ -28767,6 +28817,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			gnOldSequNum = pApp->m_nActiveSequNum;
 
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return TRUE;
 		}
 		else // normal srcPhrase, or if glossing it could be a null one or retranslation as
@@ -28852,6 +28903,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 			gnOldSequNum = pApp->m_nActiveSequNum;
 
 			Invalidate();
+			GetLayout()->PlaceBox();
 			return TRUE;
 		}
 	}
@@ -28965,6 +29017,7 @@ bool CAdapt_ItView::DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& 
 		}
 
 		Invalidate();
+		GetLayout()->PlaceBox();
 
 		// clear the globals
 		gbMatchedRetranslation = FALSE;
@@ -29777,13 +29830,15 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 //#endif
 //	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
+	Invalidate();
 	GetLayout()->Redraw(); // yep, works nicely
-
+	GetLayout()->PlaceBox();
+/* BEW 30Jun09, the above PlaceBox() call should be enough
 	// restore focus to the targetBox, if it is visible
 	if (pApp->m_pTargetBox != NULL)
 		if (pApp->m_pTargetBox->IsShown())
 			pApp->m_pTargetBox->SetFocus();
-	Invalidate();
+*/
 }
 
 void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
@@ -30026,6 +30081,7 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 #endif
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 }
 
@@ -30365,6 +30421,7 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 #endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -30698,6 +30755,7 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 				}
 				Invalidate();
+				GetLayout()->PlaceBox();
 			}
 		}
 	}
@@ -30823,6 +30881,7 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 #endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -30945,6 +31004,7 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 				}
 				Invalidate();
+				GetLayout()->PlaceBox();
 			}
 		}
 	}
@@ -31017,6 +31077,7 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		}
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 }
 
@@ -31416,6 +31477,7 @@ a:		pCell = GetNextCell(pCell,cellIndex);
 			pFrame->canvas->ReleaseMouse(); //ReleaseCapture(); // assume no failure
 			pApp->m_pAnchor = NULL;
 			Invalidate();  // UpdateWindow() doesn't work, need the delayed update
+			GetLayout()->PlaceBox();
 			gbHaltedAtBoundary = FALSE;
 			return;
 		}
@@ -31460,6 +31522,7 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 			pFrame->canvas->ReleaseMouse(); //ReleaseCapture(); // assume no failure
 			pApp->m_pAnchor = NULL;
 			Invalidate(); // UpdateWindow() doesn't work, need the delayed update
+			GetLayout()->PlaceBox();
 			gbHaltedAtBoundary = FALSE;
 			return;
 		}
@@ -32428,6 +32491,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 
 	GetLayout()->m_docEditOperationType = on_button_no_adaptation_op;
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 // whm added 14Aug06 as a temporary measure to prevent editing of source text when
@@ -36991,6 +37055,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 	// get the restored layout and phrase box redrawn
 	pApp->m_pTargetBox->SetFocus();
 	Invalidate();
+	GetLayout()->PlaceBox();
 	InitializeEditRecord(*pRec);
 }
 
@@ -39119,6 +39184,7 @@ bailout:	pAdaptList->Clear();
 			wxASSERT(pSrcPhrase != NULL);
 			*/
 			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 
 		// prepare for next step, eg, combobox etc
@@ -39635,6 +39701,7 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), i
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	GetLayout()->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum); // BEW added 20Jun09
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 //***************************************************************************************
@@ -41017,6 +41084,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		if (pApp->m_pTargetBox->IsShown()) 
 			pApp->m_pTargetBox->SetFocus();
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode
@@ -41248,6 +41316,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 		if (pApp->m_pTargetBox->IsShown())
 			pApp->m_pTargetBox->SetFocus();
 	Invalidate();
+	GetLayout()->PlaceBox();
 }
 
 void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event))
@@ -41316,11 +41385,14 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 	pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
+	Invalidate();
+	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
+/* BEW 30Jun09, the above call should do it adequately
 	// restore focus to the targetBox, if it is visible
 	if (pApp->m_pTargetBox != NULL)
 		if (pApp->m_pTargetBox->IsShown())
 			pApp->m_pTargetBox->SetFocus();
-	Invalidate();
+*/
 }
 
 //****************************************************************************************
@@ -42366,6 +42438,7 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 }
 
@@ -43360,7 +43433,8 @@ c:					if (pPile->GetSrcPhrase()->m_bHasFreeTrans)
 			// make sure we can see the phrase box
 			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 			Invalidate();
-			pEdit->SetFocus();
+			GetLayout()->PlaceBox();
+			pEdit->SetFocus(); // put focus back into compose bar's text control
 		}
 	}
 }
@@ -43533,7 +43607,8 @@ void CAdapt_ItView::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			// make sure we can see the phrase box
 			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum); // MFC commented out
 			Invalidate(); // gets the view redrawn & phrase box shown
-			pEdit->SetFocus();
+			GetLayout()->PlaceBox();
+			pEdit->SetFocus(); // put focus back into the compose bar's edit control
 
 			// if there is text in the pEdit box, put the cursor after it
 			wxString editedText;
@@ -43729,7 +43804,8 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						pApp->GetMainFrame()->canvas->ScrollIntoView(
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						Invalidate();
-						pEdit->SetFocus();
+						GetLayout()->PlaceBox();
+						pEdit->SetFocus(); // put focus back into compose bar's edit control
 						return;
 					}
                     // Criteria for halting scanning and establishing the anchor for a free
@@ -43784,7 +43860,8 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						pApp->GetMainFrame()->canvas->ScrollIntoView(
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						Invalidate();
-						pEdit->SetFocus();
+						GetLayout()->PlaceBox();
+						pEdit->SetFocus(); // put focus back into the compose bar's edit control
 						return;
 					}
 					// Criteria for halting scanning and establishing the anchor for a 
@@ -43922,7 +43999,8 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			#endif
 
 			Invalidate(); // gets the view redrawn
-			pEdit->SetFocus();
+			GetLayout()->PlaceBox();
+			pEdit->SetFocus(); // put focus back into compose bar's edit control
 
 			// if there is text in the pEdit box, put the cursor after it
 			wxString editStr;
@@ -44073,7 +44151,8 @@ void CAdapt_ItView::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event
 				pPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
 			}
 			Invalidate(); // cause redraw, and so a call to SetupCurrentFreeTransSection()
-			pEdit->SetFocus();
+			GetLayout()->PlaceBox();
+			pEdit->SetFocus(); // put focus in compose bar's edit control
 			pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
 		}
 	}
@@ -44227,6 +44306,7 @@ void CAdapt_ItView::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the window updated
 			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -44345,6 +44425,7 @@ void CAdapt_ItView::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the window updated
 			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -46678,6 +46759,7 @@ void CAdapt_ItView::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXU
 		} // end block for non-empty m_markers
 	} // end while loop
 	Invalidate();
+	GetLayout()->PlaceBox();
 
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
@@ -46800,6 +46882,7 @@ void CAdapt_ItView::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
     // safely use the one variable for the same purpose in the two functionalities)
 	pApp->m_nSequNumBeingViewed = nSequNum;
 	Invalidate();
+	GetLayout()->PlaceBox();
 
 	// open the dialog so the user can type in a note
 	wxASSERT(pApp->m_pNoteDlg == NULL);
@@ -47071,7 +47154,7 @@ void CAdapt_ItView::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 		}
 
 		// delete them all
-		DeleteAllNotes(); // calls Invalidate() internally
+		DeleteAllNotes(); // calls Invalidate() and PlaceBox() internally
 		GetDocument()->Modify(TRUE);
 	}
 }
@@ -47691,6 +47774,7 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	OnButtonEnablePunctCopy(event);
 
 	Invalidate(); // get Draw() done & phrase box shown
+	GetLayout()->PlaceBox();
 
 	// now put up the note dialog at the m_nSequNumBeingViewed location
 	wxASSERT(pApp->m_pNoteDlg == NULL);
@@ -47933,6 +48017,7 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	wxCommandEvent event;
 	OnButtonEnablePunctCopy(event);
 	Invalidate();
+	GetLayout()->PlaceBox();
 
 	// now put up the note dialog at the m_nSequNumBeingViewed location
 	wxASSERT(pApp->m_pNoteDlg == NULL);
@@ -48054,6 +48139,7 @@ void CAdapt_ItView::DeleteAllNotes()
 		}
 	}
 	Invalidate(); // get the view redrawn, so the note icons disappear too
+	GetLayout()->PlaceBox();
 }
 
 void CAdapt_ItView::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
@@ -48147,6 +48233,7 @@ a:			wxMessageBox(_T(
 			// there is no note there yet
 			MoveNote(pSrcPhrase,pTgtSrcPhrase);
 			Invalidate();
+			GetLayout()->PlaceBox();
 
             // BEW added 19Dec07: establish a selection at the new location in case the
             // user wishes to use accelerator key combination in order to move the note
@@ -48414,6 +48501,7 @@ a:			wxMessageBox(_T(
 			// there is no note there yet
 			MoveNote(pSrcPhrase,pTgtSrcPhrase);
 			Invalidate();
+			GetLayout()->PlaceBox();
 
             // BEW added 19Dec07: establish a selection at the new location in case the
             // user wishes to use accelerator key combination in order to move the note
@@ -48692,6 +48780,7 @@ void CAdapt_ItView::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(e
 		;
 	}
 	Invalidate(); // get the view updated (so new icons (green wedges) get drawn)
+	GetLayout()->PlaceBox();
 }
 
 /**********************************************************************
@@ -49310,6 +49399,7 @@ void CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXU
 		} // end block for non-empty m_markers
 	} // end while loop
 	Invalidate();
+	GetLayout()->PlaceBox();
 
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
@@ -50120,6 +50210,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 			}
 		}
 		Invalidate();
+		GetLayout()->PlaceBox();
 	}
 
 	// give bad values to the state-recording variables to ensure the Undo Last Copy
@@ -50213,7 +50304,7 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 			// no clipping this time, refresh whole client area (control should never
 			// enter this block)
 			pApp->GetMainFrame()->canvas->Refresh();
-			wxLogDebug(_T("Invalidate(), the block we never expect to enter ***!!!!***"));
+			//wxLogDebug(_T("Invalidate(), the block we never expect to enter ***!!!!***"));
 		}
 	}
 #else
@@ -50221,19 +50312,6 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 	// RecalcLayout() is called
 	pApp->GetMainFrame()->canvas->Refresh();
 #endif
-
-	// BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, and also to Invalidate() in
-	// the view class, to avoid generating a paint event from within Draw() which lead to
-	// an infinite loop...
-	// get the phrase box placed in the active location and made visible, and suitably
-	// prepared - unless it should not be made visible (eg. when updating the layout
-	// in the middle of a procedure, before the final update is done at a later time)
-	if (!pLayout->GetBoxVisibilityFlag())
-	{
-		// work out its location and resize (if necessary) and draw it
-		pLayout->PlacePhraseBoxInLayout(pApp->m_nActiveSequNum);
-	}
-	pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 }
 /*
 // BEW removed 30Jun09, InvalidateRect() was used only in the LayoutStrip() function which

@@ -628,6 +628,25 @@ void CLayout::SetClipRectHeight(int nHeight)
 */
 #endif
 
+void CLayout::PlaceBox()
+{
+    // BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, to avoid generating a paint
+	// event from within Draw() which lead to an infinite loop; we need to call PlaceBox()
+	// after Invalidate() calls, and after Redraw() calls
+	
+	// get the phrase box placed in the active location and made visible, and suitably
+	// prepared - unless it should not be made visible (eg. when updating the layout
+	// in the middle of a procedure, before the final update is done at a later time)
+	//if (!pLayout->GetBoxVisibilityFlag())
+	if (!m_bLayoutWithoutVisiblePhraseBox)
+	{
+		// work out its location and resize (if necessary) and draw it
+		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+	}
+	//pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
+	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
+}
+
 bool CLayout::GetBoxVisibilityFlag()
 {
 	return m_bLayoutWithoutVisiblePhraseBox;
@@ -2423,6 +2442,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 	// range specification get set by the SetupCursorGlobals() calls in the switch below
 
 	// handle any operation specific parameter settings
+	//* this stuff may not be needed now that I've had to put PlaceBox() all over the app
 	enum doc_edit_op opType = m_docEditOperationType;
 	switch(opType)
 	{
@@ -2661,11 +2681,12 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 			break;
 		}
 	}
+	//*/
 	// reset m_docEditOperationType to an invalid value, so that if not explicitly set by
 	// the user's editing operation, or programmatic operation, the default: case will
 	// fall through to the no_edit_op case, which does nothing
 	m_docEditOperationType = invalid_op_enum_value; // an invalid value
-
+/* not needed?
 	// do any required auto capitalization...
 	// if auto capitalization is on, determine the source text's case properties
 	bool bNoError = TRUE;
@@ -2687,7 +2708,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 			}
 		}
 	}
-
+*/
 	// wx Note: we don't destroy the target box, just set its text to null
 	m_pApp->m_pTargetBox->ChangeValue(_T(""));
 
@@ -2731,6 +2752,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 	}
 
 	// if free translating, put focus in the compose bar's wxTextCtrl
+	/* may not need this now that PlaceBox() is all over the app
 	if (m_pApp->m_bFreeTranslationMode)
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)
@@ -2749,6 +2771,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 			}
 		}
 	}
+	*/
 }
 
 // Detect if the user's edit area is not adequately defined, in which case reenter

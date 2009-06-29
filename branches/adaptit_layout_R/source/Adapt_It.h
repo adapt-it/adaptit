@@ -62,7 +62,7 @@
                       // never kept & tweaked; if #defined, piles & strips are retained &
                       // tweaked where necessary to update after user editing -- our final
                       // design requires this #define be set
-#define BLINKING_BUG // BEW Jun27 2009, trying to find why RTL Gilaki doc goes into infinite
+//#define BLINKING_BUG // BEW Jun27 2009, trying to find why RTL Gilaki doc goes into infinite
 					 // loop when drawing using CLayout::Draw()
 
 //#define _UNICODE 

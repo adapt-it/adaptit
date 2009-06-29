@@ -808,6 +808,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 									// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
 									pView->ClobberDocument();
 									pView->Invalidate(); // force immediate update (user sees white client area)
+									gpApp->m_pLayout->PlaceBox();
 								}
 
 								// also, remove the gpDocList contents, we'll use OnOpenDocument to set up the document
@@ -2514,6 +2515,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	if (pView && !pLayout->GetPileList()->IsEmpty())
 	{
 		pView->Invalidate();
+		gpApp->m_pLayout->PlaceBox();
 	}
 }
 
@@ -5350,6 +5352,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
 
 		pView->Invalidate(); // get the layout drawn
+		pLayout->PlaceBox();
 	}
 	return;
 }
@@ -6004,5 +6007,6 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
         // could be different length than what was there before, and hence move piles about
         // or even cause the following strips to have different pile content. But to avoid
         // flicker we need to make use of clipping region soon. BEW)
+	pLayout->PlaceBox();
 }
 
