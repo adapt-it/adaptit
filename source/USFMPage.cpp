@@ -46,6 +46,8 @@
 #include <wx/wizard.h>
 
 #include "Adapt_It.h"
+#include "Pile.h"
+#include "Layout.h"
 #include "USFMPage.h"
 
 #include "Adapt_ItView.h"
@@ -1263,6 +1265,9 @@ void CUSFMPageWiz::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	//InitDialog() is not virtual, no call needed to a base class
 
 	usfmPgCommon.DoInit();
+	gpApp->m_pLayout->m_bUSFMChanged = FALSE; // initialize
+
+
 }
 
 void CUSFMPageWiz::OnBnClickedRadioUseUbsSetOnlyDoc(wxCommandEvent& event)

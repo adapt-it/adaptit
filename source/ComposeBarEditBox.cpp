@@ -65,7 +65,6 @@ END_EVENT_TABLE()
 // the following constructor is never executed (see constructor in ComposeBarEditBox.h)
 CComposeBarEditBox::CComposeBarEditBox() // constructor
 {
-
 }
 
 CComposeBarEditBox::~CComposeBarEditBox() // destructor
@@ -91,7 +90,6 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 	if (!event.AltDown())
 		event.Skip();
 	// The actual text characters typed in the compose bar's edit box go through here
-	
 }
 
 void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
@@ -115,15 +113,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// real-time edits of free translation.
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
-			pView->DrawFreeTranslations(&dc, gpApp->m_pBundle, call_from_edit);
-			// whm 4Apr09 note on problem of free translations in main window not being cleared for
-			// deletes or other edits the result in a shorter version: We need both Refresh and Update 
-			// here to force the edit updates to happen in the main window. Note, however, that we must
-			// not have Refresh and Update in the View's OnDraw after DrawFreeTranslations is called
-			// because there they cause the OnDraw() function to be called repeatedly in a continuous
-			// loop resulting in flicker on Windows and program hang on Mac.
-			pView->canvas->Refresh();
-			pView->canvas->Update();
+			pView->DrawFreeTranslations(&dc, gpApp->m_pLayout, call_from_edit);
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
 		}

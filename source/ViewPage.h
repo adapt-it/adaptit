@@ -47,16 +47,16 @@ public:
 
 	// the following pointers to dialog controls are associated with the actual
 	// controls created in Adapt_It_wdr.cpp (via wxDesigner)
-	wxTextCtrl* m_pEditMaxSrcWordsDisplayed;
-	wxTextCtrl*	m_pEditMinPrecContext;
-	wxTextCtrl* m_pEditMinFollContext;
+	//wxTextCtrl* m_pEditMaxSrcWordsDisplayed; // refactored 26Apr09 - next 3 not needed
+	//wxTextCtrl*	m_pEditMinPrecContext;
+	//wxTextCtrl* m_pEditMinFollContext;
 	wxTextCtrl* m_pEditLeading;
 	wxTextCtrl* m_pEditGapWidth;
 	wxTextCtrl* m_pEditLeftMargin;
 	wxTextCtrl* m_pEditMultiplier;
 	wxTextCtrl* m_pEditDlgFontSize;
-	wxCheckBox* m_pCheckSupressFirst;
-	wxCheckBox* m_pCheckSupressLast;
+	//wxCheckBox* m_pCheckSupressFirst;
+	//wxCheckBox* m_pCheckSupressLast;
 	wxCheckBox* m_pCheckWelcomeVisible;
 	wxCheckBox* m_pCheckHighlightAutoInsertedTrans;
 	int		tempMaxToDisplay;

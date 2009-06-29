@@ -65,8 +65,6 @@ CChooseConsistencyCheckTypeDlg::CChooseConsistencyCheckTypeDlg(wxWindow* parent)
 	// size dialog.
 	ChooseConsistencyCheckTypeDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ChooseConsistencyCheckTypeDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 }
 
 CChooseConsistencyCheckTypeDlg::~CChooseConsistencyCheckTypeDlg() // destructor

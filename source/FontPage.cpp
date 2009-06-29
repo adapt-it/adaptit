@@ -64,6 +64,8 @@
 #include "PunctCorrespPage.h"
 #include "AdaptitConstants.h" // for MIN_FONT_SIZE and MAX_FONT_SIZE
 #include "SetEncodingDlg.h"
+#include "Pile.h"
+#include "Layout.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -173,6 +175,8 @@ void CFontPageCommon::DoSetDataAndPointers()
 // the following are common functions - used by the CFontPageWiz class and the CFontPagePrefs class
 void CFontPageCommon::DoInit()
 {
+	gpApp->m_pLayout->m_bFontInfoChanged = FALSE;
+
 	// Load font page member data into text controls
 	// the following font page text controls had their SetEditable to FALSE and
 	// their validators set in the constructor above.
@@ -213,9 +217,15 @@ void CFontPageCommon::DoInit()
 
 	// here on entry to InitDialog, the temp color values should be the same as those held
 	// in the font data objects on the app
-	wxASSERT(tempSourceColor == gpApp->m_pSrcFontData->GetColour());
-	wxASSERT(tempTargetColor == gpApp->m_pTgtFontData->GetColour());
-	wxASSERT(tempNavTextColor == gpApp->m_pNavFontData->GetColour());
+    // BEW 5Jun09, created local colour variables here in order to see the values when
+    // debugging; I was getting an assert trip if I changed the navText color & reentered
+    // Preferences, the assert 6 lines down tripped
+	wxColour srcCol = gpApp->m_pSrcFontData->GetColour();
+	wxColour tgtCol = gpApp->m_pTgtFontData->GetColour();
+	wxColour navCol = gpApp->m_pNavFontData->GetColour();
+	wxASSERT(tempSourceColor == srcCol);
+	wxASSERT(tempTargetColor == tgtCol);
+	wxASSERT(tempNavTextColor == navCol);
 
 	tempSpecialTextColor = gpApp->m_specialTextColor;
 	tempReTranslnTextColor = gpApp->m_reTranslnTextColor;
@@ -268,8 +278,9 @@ void CFontPageCommon::DoButtonNavTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempNavTextColor = colorData.GetColour();
-		// whm added 5Jun09 to keep tempNavTextColor and tempNavFontData in sync
-		tempNavFontData.SetColour(tempNavTextColor);
+
+        // whm added 5Jun09 to keep tempNavTextColor and tempNavFontData in sync
+        tempNavFontData.SetColour(tempNavTextColor);
 	}	
 }
 
@@ -297,8 +308,9 @@ void CFontPageCommon::DoButtonSourceTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempSourceColor = colorData.GetColour();
-		// whm added 5Jun09 to keep tempSourceColor and tempSrcFontData in sync
-		tempSrcFontData.SetColour(tempSourceColor);
+
+        // whm added 5Jun09 to keep tempSourceColor and tempSrcFontData in sync
+        tempSrcFontData.SetColour(tempSourceColor);
 	}	
 }
 
@@ -325,8 +337,9 @@ void CFontPageCommon::DoButtonTargetTextColor(wxWindow* parent)
 	{
 		colorData = colorDlg.GetColourData();
 		tempTargetColor = colorData.GetColour();
-		// whm added 5Jun09 to keep tempTargetColor and tempTgtFontData in sync
-		tempTgtFontData.SetColour(tempTargetColor);
+
+        // whm added 5Jun09 to keep tempTargetColor and tempSrcFontData in sync
+        tempTgtFontData.SetColour(tempTargetColor);
 	}	
 }
 
@@ -1036,18 +1049,21 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 		// source font encoding changed via the Set/View Encoding dialog
 		gpApp->m_srcEncoding = fontPgCommon.tempSrcFontEncoding; // set the value on the app
 		gpApp->m_pSourceFont->SetEncoding(fontPgCommon.tempSrcFontEncoding);
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	}
 	if (fontPgCommon.saveTgtFontEncoding != fontPgCommon.tempTgtFontEncoding)
 	{
 		// source font encoding changed via the Set/View Encoding dialog
 		gpApp->m_tgtEncoding = fontPgCommon.tempTgtFontEncoding; // set the value on the app
 		gpApp->m_pTargetFont->SetEncoding(fontPgCommon.tempTgtFontEncoding);
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	}
 	if (fontPgCommon.saveNavFontEncoding != fontPgCommon.tempNavFontEncoding)
 	{
 		// source font encoding changed via the Set/View Encoding dialog
 		gpApp->m_navtextFontEncoding = fontPgCommon.tempNavFontEncoding; // set the value on the app
 		gpApp->m_pNavTextFont->SetEncoding(fontPgCommon.tempNavFontEncoding);
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	}
 
 	// Retrieve values from the controls and set the corresponding font members
@@ -1060,22 +1076,45 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	wxString strTemp;
 	strTemp = fontPgCommon.pSrcFontSizeBox->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != gpApp->m_pSourceFont->GetPointSize())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pSourceFont->SetPointSize(nVal);
 
 	strTemp = fontPgCommon.pTgtFontSizeBox->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != gpApp->m_pTargetFont->GetPointSize())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pTargetFont->SetPointSize(nVal);
 
 	strTemp = fontPgCommon.pNavFontSizeBox->GetValue();
 	nVal = wxAtoi(strTemp);
+	if (nVal != gpApp->m_pNavTextFont->GetPointSize())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pNavTextFont->SetPointSize(nVal);
 
+	if (fontPgCommon.tempSourceFontStyle != gpApp->m_pSourceFont->GetStyle())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pSourceFont->SetStyle(fontPgCommon.tempSourceFontStyle);
+
+	if (fontPgCommon.tempTargetFontStyle != gpApp->m_pTargetFont->GetStyle())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pTargetFont->SetStyle(fontPgCommon.tempTargetFontStyle);
+
+	if (fontPgCommon.tempNavTextFontStyle != gpApp->m_pNavTextFont->GetStyle())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pNavTextFont->SetStyle(fontPgCommon.tempNavTextFontStyle);
 	
+
+	if (fontPgCommon.tempSourceFontWeight != gpApp->m_pSourceFont->GetWeight())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pSourceFont->SetWeight(fontPgCommon.tempSourceFontWeight);
+
+	if (fontPgCommon.tempTargetFontWeight != gpApp->m_pTargetFont->GetWeight())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pTargetFont->SetWeight(fontPgCommon.tempTargetFontWeight);
+
+	if (fontPgCommon.tempNavTextFontWeight != gpApp->m_pNavTextFont->GetWeight())
+		gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	gpApp->m_pNavTextFont->SetWeight(fontPgCommon.tempNavTextFontWeight);
 
 	// Insure that the colors for the 3 main fonts and the
@@ -1136,6 +1175,10 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 
 		pAdView->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // fix the menu, if necessary
 		// Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
+
+		// if we've entered this block, any changes made should not affect pile widths,
+		// nor strip populations, therefore m_bFontInfoChanged should not be set TRUE here
+		//gpApp->m_pLayout->m_bFontInfoChanged = TRUE;
 	}
 	// enable complex rendering
 	// whm note for wx version: Right-to-left reading is handled automatically in Uniscribe and

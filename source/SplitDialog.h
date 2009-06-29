@@ -95,8 +95,6 @@ public:
 	wxListBox* pFileList;
 	wxStaticText* pFileListLabel;
 	wxStaticText* pSplittingWait;
-	wxStaticText* pFileName1Label;
-	wxStaticText* pFileName2Label;
 
 	void OnBnClickedButtonNextChapter(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedButtonSplitNow(wxCommandEvent& WXUNUSED(event));
@@ -104,6 +102,9 @@ public:
 	void OnBnClickedRadioChapterSfmarker(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRadioDivideIntoChapters(wxCommandEvent& WXUNUSED(event));
 	void RadioButtonsChanged();
+	wxStaticText FileName1Label;
+	wxStaticText FileName2Label;
+	wxButton LocateNextChapter;
 	bool SplitAtPhraseBox_IsChecked();
 	bool SplitAtNextChapter_IsChecked();
 	bool SplitIntoChapters_IsChecked();

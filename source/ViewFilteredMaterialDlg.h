@@ -83,7 +83,6 @@ public:
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void ReinterpretEnterKeyPress(wxCommandEvent& event);
 	void OnOK(wxCommandEvent& WXUNUSED(event));
 	void OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED(event));
 	void OnLbnSelchangeListMarkerEnd(wxCommandEvent& event);

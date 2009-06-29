@@ -9,10 +9,10 @@
     <ignoreparts/>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
     <versioncontrol/>
     <projectname>AdaptIt</projectname>
-    <defaultencoding/>
+    <defaultencoding></defaultencoding>
   </general>
   <kdevautoproject>
     <general>
@@ -20,27 +20,18 @@
       <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug</mainprogram>
+      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/adaptit</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs/>
+      <programargs></programargs>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
       <envvars/>
-      <globaldebugarguments/>
+      <globaldebugarguments></globaldebugarguments>
       <globalcwd>./</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
-      <runarguments>
-        <adaptit/>
-      </runarguments>
-      <debugarguments>
-        <adaptit/>
-      </debugarguments>
-      <cwd>
-        <adaptit>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/./</adaptit>
-      </cwd>
     </run>
     <configurations>
       <optimized>
@@ -88,22 +79,22 @@
         <envvars/>
         <configargs>--with-wx-config=../../../../../wxGTK-2.8.10/buildgtkud/wx-config</configargs>
         <builddir>UnicodeDebug</builddir>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
+        <topsourcedir></topsourcedir>
+        <cppflags></cppflags>
+        <ldflags></ldflags>
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevpgf77options</f77compiler>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <cxxflags/>
-        <f77flags/>
+        <ccompilerbinary></ccompilerbinary>
+        <cxxcompilerbinary></cxxcompilerbinary>
+        <f77compilerbinary></f77compilerbinary>
+        <cflags></cflags>
+        <cxxflags></cxxflags>
+        <f77flags></f77flags>
       </UnicodeDebug>
       <Unicode>
         <envvars/>
-        <configargs>--with-wx-config=../../../../../wxGTK-2.8.10/buildgtku/wx-config</configargs>
+        <configargs>--with-wx-config=../../../../../wxGTK-2.8.9/buildgtku/wx-config</configargs>
         <builddir>Unicode</builddir>
         <topsourcedir/>
         <cppflags/>
@@ -126,7 +117,7 @@
       </envvars>
       <abortonerror>false</abortonerror>
       <runmultiplejobs>true</runmultiplejobs>
-      <numberofjobs>4</numberofjobs>
+      <numberofjobs>2</numberofjobs>
       <dontact>false</dontact>
       <makebin/>
       <prio>0</prio>
@@ -136,10 +127,10 @@
     <general>
       <dbgshell>libtool</dbgshell>
       <programargs/>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -252,7 +243,7 @@
       <resolveIncludePaths>true</resolveIncludePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>

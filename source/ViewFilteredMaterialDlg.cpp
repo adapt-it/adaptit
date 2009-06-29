@@ -47,6 +47,7 @@
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "Pile.h"
+#include "Layout.h"
 #include "helpers.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -74,7 +75,6 @@ BEGIN_EVENT_TABLE(CViewFilteredMaterialDlg, wxDialog)
 	EVT_LISTBOX(IDC_LIST_MARKER, CViewFilteredMaterialDlg::OnLbnSelchangeListMarker)
 	EVT_LISTBOX(IDC_LIST_MARKER_END, CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd)
 	EVT_TEXT(IDC_EDIT_MARKER_TEXT, CViewFilteredMaterialDlg::OnEnChangeEditMarkerText)
-	EVT_TEXT_ENTER(IDC_EDIT_MARKER_TEXT,CViewFilteredMaterialDlg::ReinterpretEnterKeyPress)
 #ifdef _UNICODE
 	EVT_BUTTON(IDC_BUTTON_SWITCH_ENCODING, CViewFilteredMaterialDlg::OnButtonSwitchEncoding)
 #endif
@@ -93,9 +93,6 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 	pViewFilteredMaterialDlgSizer = ViewFilteredMaterialDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
 	// get pointers for dialog's controls
 	pMarkers = (wxListBox*)FindWindowById(IDC_LIST_MARKER);
 	wxASSERT(pMarkers != NULL);
@@ -116,22 +113,6 @@ CViewFilteredMaterialDlg::CViewFilteredMaterialDlg(wxWindow* parent) // dialog c
 CViewFilteredMaterialDlg::~CViewFilteredMaterialDlg() // destructor
 {
 	
-}
-
-void CViewFilteredMaterialDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
-{
-	// now update the data and invoke OnOK() on the dialog.
-	// 
-	// A nice thing wxWidgets does is if the wxTE_PROCESS_ENTER style is used for the wxTextCtrl, then
-	// wxWidgets itself blocks any newline or carriage return from being entered into the data string,
-	// and so no manual intervention is needed here in order to remove such characters. We just need the
-	// call below.
-	// Here we can't call TransferDataFromWindow() because no validator was setup due to having to deal
-	// with different wxArrayString elements that can appear in the edit box.
-	// Since this is a modeless dialog we don't call EndModal() here, but instead we simply call the 
-	// OnOK() handler, which conveniently also handles the manual transfer of data from the edit box 
-	// to the appropriate array element, then closes/hides the dialog.
-	OnOK(event);
 }
 
 #ifdef _UNICODE
@@ -503,9 +484,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 
 	// Change the text in the CEdit to correspond to the marker clicked on in the Marker list box
 	tempStr = assocTextArrayBeforeEdit.Item(indexIntoAllMkrSelection);
-	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-	// event, which now deprecated SetValue() generates.
-	pMkrTextEdit->ChangeValue(tempStr);
+	pMkrTextEdit->SetValue(tempStr);
 
 	// Look up the marker description of first item in the bareMarkerArray and place the description
 	// in the static text to the right of the "Marker Description:"
@@ -616,9 +595,7 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	wxString tempStr;
 	indexIntoAllMkrSelection = markerLBIndexIntoAllMkrList.Item(newMkrSelection);
 	tempStr = assocTextArrayAfterEdit.Item(indexIntoAllMkrSelection);
-	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-	// event, which now deprecated SetValue() generates.
-	pMkrTextEdit->ChangeValue(tempStr);
+	pMkrTextEdit->SetValue(tempStr);
 
 	// Look up the marker description of selected item in the bareMarkerArray 
 	// and place the description in the static text to the right of the 
@@ -877,6 +854,7 @@ a:		CAdapt_ItView* pView = gpApp->GetView();
 	gpApp->m_pViewFilteredMaterialDlg = NULL;
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 	
 	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
 }
@@ -896,6 +874,7 @@ void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pViewFilteredMaterialDlg = NULL; // allow the Note dialog to be opened
 	gpGreenWedgePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnCancel(event); //don't call base class because we are modeless
 
@@ -974,9 +953,7 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 	// (if it doesn't have an end marker, there will be a space there - so we delete that instead)
 	pMarkers->Delete(currentMkrSelection); //int nNewCount = pMarkers->DeleteString(currentMkrSelection);
 	int nNewCount = pMarkers->GetCount(); // added since wxListBox::Delete doesn't return a new count value
-	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-	// event, which now deprecated SetValue() generates.
-	pMkrTextEdit->ChangeValue(_T(""));
+	pMkrTextEdit->SetValue(_T(""));
 	pEndMarkers->Delete(currentMkrSelection);
 
 	// now do the needed deletions in the various lists and arrays, so that the class's
@@ -1050,9 +1027,7 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// change the text in the CEdit to correspond to the marker chosen by the
 		// indexIntoAllMkrSelection value
 		wxString tempStr = assocTextArrayAfterEdit.Item(indexIntoAllMkrSelection);
-		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-		// event, which now deprecated SetValue() generates.
-		pMkrTextEdit->ChangeValue(tempStr);
+		pMkrTextEdit->SetValue(tempStr);
 
 		// look up the marker description and place it in the static text
 		GetAndShowMarkerDescription(indexIntoAllMkrSelection);

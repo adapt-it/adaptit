@@ -4,8 +4,8 @@
 Filename:		AI_USFM.xml
 Author: 		Bill Martin
 Date Created:	15 January 2005
-Last Updated:	28 April 2009, by Bill Martin
-USFM version:	2.208 as published in usfm.sty by UBS 21 April, 2009
+Last Updated:	28 October 2008, by Bill Martin
+USFM version:	2.2 as published in usfm.sty by UBS 17 October, 2008
 				(bill_martin@sil.org, bruce_waters@sil.org)
 Description:	This file contains the style definitions and
 				attributes for the standard format markers
@@ -453,18 +453,6 @@ marker attribute definitions below.  -->
 	styleName="rem - File - Remark"
 	fontSize="9" color="16711680"
 	basedOn="_notes_base" nextStyle="rem"
-	>
-</SFM>
-<SFM marker="sts"
-	description="Status of this file"
-	usfm="1"
-	filter="1" userCanSetFilter="1"
-	special="1" bdryOnLast="1"
-	inform="1" navigationText="comment"
-	textType="note"
-	styleName="rem - File - Status"
-	fontSize="9" color="16711680"
-	basedOn="_notes_base" nextStyle="sts"
 	>
 </SFM>
 <SFM marker="restore"
@@ -2152,7 +2140,7 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 </SFM>
 	<!-- Use to mark OT quotes in NT, or any other quoted text -->
 <SFM marker="nd" endMarker="nd*"
-	description="For name of deity (basic)"
+	description="For name of diety (basic)"
 	usfm="1"
 	inLine="1"
 	textType="none"
@@ -2431,7 +2419,6 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	fontSize="20"
 	bold="1"
 	justification="center"
-	spaceAbove="8" spaceBelow="4"
 	basedOn="imt" nextStyle="ie"
 	>
 </SFM>
@@ -2442,11 +2429,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
-	styleName="imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1"
+	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 1"
 	fontSize="20"
 	bold="1"
 	justification="center"
-	spaceAbove="8" spaceBelow="4"
 	basedOn="imt" nextStyle="ie"
 	>
 </SFM>
@@ -2457,11 +2443,10 @@ keepTogether and keepWithNext attributes should be set to "1". -->
 	special="1" bdryOnLast="1"
 	inform="1" navigationText="intro major title at end"
 	textType="noType" wrap="1"
-	styleName="imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2"
+	styleName="imte - Introduction - [Uncommon] Major Title at Introduction End Level 2"
 	fontSize="16"
 	italic="1"
 	justification="center"
-	spaceAbove="8" spaceBelow="4"
 	basedOn="imt" nextStyle="ie"
 	>
 </SFM>

@@ -70,8 +70,8 @@ extern CAdapt_ItApp* gpApp; // if we want to access it fast
 BEGIN_EVENT_TABLE(CEditSourceTextDlg, AIModalDialog)
 	EVT_INIT_DIALOG(CEditSourceTextDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_TEXT_ENTER(IDC_EDIT_NEW_SOURCE,CEditSourceTextDlg::ReinterpretEnterKeyPress)
+	//EVT_COMMAND(IDC_EDIT_NEW_SOURCE,wxEVT_COMMAND_TEXT_ENTER,CEditSourceTextDlg::ReinterpretEnterKeyPress)
 END_EVENT_TABLE()
-
 
 CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Edit Source Text"),
@@ -87,8 +87,6 @@ CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	EditSourceTextDlgFunc(this, TRUE, TRUE);
 	// The declaration is: EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 	
 	// Need pointers for the following:
 	// ID_TEXTCTRL_EDIT_SOURCE_AS_STATIC1 
@@ -129,17 +127,19 @@ CEditSourceTextDlg::~CEditSourceTextDlg() // destructor
 
 void CEditSourceTextDlg::ReinterpretEnterKeyPress(wxCommandEvent& WXUNUSED(event))
 {
-    // now update the data and close off the dialog.
-    // 
-    // A nice thing wxWidgets does is if the wxTE_PROCESS_ENTER style is used for the wxTextCtrl, then
-    // wxWidgets itself blocks any newline or carriage return from being entered into the data string,
-    // and so no manual intervention is needed here in order to remove such characters. We just need the
-    // calls below.
-	// Call TransferDataFromWindow() which updates the m_stringNewSourceText associated with this
-	// window by the SetValidator(wxGenericValidator(&m_strOldSourceText)) call in the constructor above.
-	TransferDataFromWindow();
-	// Call the EndModal(event) handler which automatically closes the dialog
-	EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
+	// now close off the dialog, updating the data
+	// 
+    // A nice thing wxWidgets does is if the wxTE_PROCESS_ENTER style is used for the
+    // wxTextCtrl, then wxWidgets itself blocks any newline or carriage return from being
+    // entered into the data string, and so no manual intervention is needed here in order
+    // to remove such characters. We just need the calls below.
+    // Call TransferDataFromWindow() which updates the m_stringNewSourceText associated
+    // with this window by the SetValidator(wxGenericValidator(&m_strOldSourceText)) call
+    // in the constructor above.
+    TransferDataFromWindow();
+	
+   // Call the EndModal(event) handler which automatically closes the dialog
+    EndModal(wxID_OK); // we'll unilaterally end (gets the dialog dismissed)
 
 	// uncomment out the following line if confirmation in a debugger is required that
 	// m_stringNewSourceText has no \r nor \n in it

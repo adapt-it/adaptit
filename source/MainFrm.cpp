@@ -5,7 +5,8 @@
 /// \date_created	05 January 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General Public
+///                 License (see license directory)
 /// \description	This is the implementation for the CMainFrame class.
 /// The CMainFrame class defines Adapt It's basic interface, including its menu bar, 
 /// tool bar, control bar, compose bar, and status bar. 
@@ -82,6 +83,7 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "SourcePhrase.h"
+#include "Layout.h"
 #include "MainFrm.h"
 #include "helpers.h"
 #include "AdaptitConstants.h"
@@ -635,7 +637,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 												gnMatchedSequNumber,gpApp->m_nActiveSequNum,nFinish);
 							CPile* pPile = pView->GetPile(gnMatchedSequNumber);
 							gpApp->m_pActivePile = pPile;
-							CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+							CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 							pView->Jump(gpApp,pSrcPhrase); // jump there
 						}
 					} // end block for trying to find a matching scripture reference in the open document
@@ -739,7 +741,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 					// form the path to each of those remaining - these will be *.xml document files only
 					strDocPath = strFolderPath + gpApp->PathSeparator + strDocName; 
 
-					// clear the temporary list, gete ready for reading in the xml data and storing it in the list
+					// clear the temporary list, get ready for reading in the xml data and storing it in the list
 					DeleteSourcePhrases_ForSyncScrollReceive(pDoc, gpDocList); // also removes gpDocList's contents
 
 					// read in the XML data, forming CSourcePhrase instances and storing them in gpDocList (done
@@ -806,6 +808,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 									// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
 									pView->ClobberDocument();
 									pView->Invalidate(); // force immediate update (user sees white client area)
+									gpApp->m_pLayout->PlaceBox();
 								}
 
 								// also, remove the gpDocList contents, we'll use OnOpenDocument to set up the document
@@ -852,7 +855,9 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 								if (!bOK)
 								{
 									// IDS_LOAD_DOC_FAILURE
-									wxMessageBox(_("Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"), _T(""), wxICON_ERROR);
+									wxMessageBox(_(
+"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
+									_T(""), wxICON_ERROR);
 									// whm TODO: Should the app actually stop here ???
 									wxExit(); //AfxAbort();
 								}
@@ -863,12 +868,16 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 								CPile* pPile = pView->GetPile(gpApp->nLastActiveSequNum);
 								wxASSERT(pPile != NULL);
 								int nFinish = 1;
+								// initialize m_nActiveSequNum to the nLastActiveSequNum value
+								gpApp->m_nActiveSequNum = gpApp->nLastActiveSequNum;
 								bool bSetSafely;
 								bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
 													gpApp->nLastActiveSequNum,gpApp->m_nActiveSequNum,nFinish);
+								// m_nActiveSequNum might have been changed by the
+								// preceding call, so reset the active pile
 								pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 								gpApp->m_pActivePile = pPile;
-								CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+								CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 								pView->Jump(gpApp,pSrcPhrase); // jump there
 								return TRUE; // don't continue in the loop any longer
 							}
@@ -1031,7 +1040,9 @@ void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
 			{
 				pSrcPhrase = pos->GetData();
 				pos = pos->GetNext();
-				pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // ignore partner piles
+					// because this function works only on a temporary list of 
+					// CSourcePhrase instances and so there never are any partner piles
 			}
 			pList->Clear();
 		}
@@ -1124,8 +1135,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
 //#endif
 
-	//m_bUsingHighResDPIScreen = FALSE;
-
 	// these dummy ID values are placeholders for unused entries in the accelerator below 
 	// that are not implemented in the wx version
 	int dummyID1 = -1;
@@ -1136,10 +1145,6 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//int dummyID6 = -1;
 
     // Accelerators
-	// ASSIGN THE ACCELERATOR HOT KEYS REQUIRED FOR THE DIFFERENT PLATFORMS
-	// See also the the App's OnInit() where menu adjustments are made to
-	// coordinate with these accelerator/hot key assignments.
-	// 
 	// Note: The wx docs say, "On Windows, menu or button commands are supported, on GTK (Linux)
 	// only menu commands are supported. Therefore, for those below which are accelerators for
 	// toolbar buttons, probably won't work on Linux. There would probably need to be a (hidden?)
@@ -1151,16 +1156,8 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// off accelerators when the item associated with them is disabled. The wx behavior mandates
 	// that we put code within the handlers (similar to what is already in the Update UI handlers)
 	// to prevent them from executing if the user types the accelerator key combination.
-	// 
-	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
-    wxAcceleratorEntry entries[37]; //[43];
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-1 is reserved for View as Icons, so we'll use Command-Shift-1 on Mac to
-	// avoid the reserved key.
-    entries[0].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '1', ID_ALIGNMENT);
-#else
+    wxAcceleratorEntry entries[35]; //[43];
     entries[0].Set(wxACCEL_CTRL, (int) '1', ID_ALIGNMENT);
-#endif
     entries[1].Set(wxACCEL_ALT, WXK_RETURN, dummyID1); //ID_ALTENTER);
     entries[2].Set(wxACCEL_CTRL, (int) 'L', ID_BUTTON_CHOOSE_TRANSLATION); // whm checked OK
     entries[3].Set(wxACCEL_CTRL, (int) 'E', ID_BUTTON_EDIT_RETRANSLATION); // whm checked OK
@@ -1174,72 +1171,27 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     entries[11].Set(wxACCEL_CTRL, WXK_INSERT, wxID_COPY); // standard wxWidgets ID
     entries[12].Set(wxACCEL_SHIFT, WXK_DELETE, wxID_CUT); // standard wxWidgets ID
     entries[13].Set(wxACCEL_CTRL, (int) 'X', wxID_CUT); // standard wxWidgets ID // whm checked OK
-#ifdef __WXMAC__
-    // whm Note: On Mac Command-2 is reserved for View as List, so we'll use Command-Shift-2 on Mac
-    // to avoid the reserved key.
-    entries[14].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
-#else
     entries[14].Set(wxACCEL_CTRL, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
-#endif
-#ifdef __WXMAC__
-    // whm Note: On Mac Command-3 is reserved for View as Columns, so we'll use Command-Shift-3 on Mac
-    // to avoid the reserved key.
-    entries[15].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
-#else
     entries[15].Set(wxACCEL_CTRL, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
-#endif
     entries[16].Set(wxACCEL_CTRL, (int) 'V', wxID_PASTE); // standard wxWidgets ID
     entries[17].Set(wxACCEL_SHIFT, WXK_INSERT, wxID_PASTE); // standard wxWidgets ID
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-Q is reserved for Quitting the Application. We'll use Command-Shift-E
-	// as a compromise for Editing the Source text.
-    entries[18].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'E', ID_EDIT_SOURCE_TEXT); // whm checked OK
-#else
     entries[18].Set(wxACCEL_CTRL, (int) 'Q', ID_EDIT_SOURCE_TEXT); // whm checked OK
-#endif
     entries[19].Set(wxACCEL_ALT, WXK_BACK, wxID_UNDO); // standard wxWidgets ID
     entries[20].Set(wxACCEL_CTRL, (int) 'Z', wxID_UNDO); // standard wxWidgets ID
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-J is reserved for Scrolling/Jumping to a selection, whereas Command-W
-	// is normally used for hiding/closing the active window
-    entries[21].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_CLOSEKB); // whm checked OK - close project
-#else
     entries[21].Set(wxACCEL_CTRL, (int) 'J', ID_FILE_CLOSEKB); // whm checked OK - close project
-#endif
     entries[22].Set(wxACCEL_CTRL, (int) 'N', wxID_NEW); // standard wxWidgets ID // whm checked OK
     entries[23].Set(wxACCEL_CTRL, (int) 'O', wxID_OPEN); // standard wxWidgets ID // whm checked OK
     entries[24].Set(wxACCEL_CTRL, (int) 'P', wxID_PRINT); // standard wxWidgets ID // whm checked OK
     entries[25].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE); // standard wxWidgets ID // whm checked OK
-#if defined (__WXMAC__) || defined (__WXGTK__)
-	// whm Note: On Mac Command-W is reserved for closing the active window (equivalent to the close
-	// command), so as a compromise we'll assign Command-Shift-O for Opening the start up wizard.
-    entries[26].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'O', ID_FILE_STARTUP_WIZARD); // whm checked OK
-#else
     entries[26].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_STARTUP_WIZARD); // whm checked OK
-#endif
     entries[27].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND); // standard wxWidgets ID // whm checked OK
-	entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // On Mac Command-G is Find Next but this is close enough
+    entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // whm checked OK
     entries[29].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP); // standard wxWidgets ID // whm checked OK
     entries[30].Set(wxACCEL_NORMAL, WXK_F6, dummyID3); //ID_NEXT_PANE);
     entries[31].Set(wxACCEL_SHIFT, WXK_F6, dummyID4); //ID_PREV_PANE);
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-H is reserved for hiding/closing the active window, whereas Command F
-	// is used to open a combined Find and Find & Replace dialog. As a compromise we'll use
-	// Command-Shift-F for opening the Replace dialog.
-	entries[32].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'F', wxID_REPLACE); // standard wxWidgets ID // Mac: Command-Shift-F
-#else
     entries[32].Set(wxACCEL_CTRL, (int) 'H', wxID_REPLACE); // standard wxWidgets ID // whm checked OK
-#endif
     entries[33].Set(wxACCEL_CTRL, (int) 'K', ID_TOOLS_KB_EDITOR); // whm checked OK
     entries[34].Set(wxACCEL_CTRL, WXK_RETURN, dummyID5); //ID_TRIGGER_NIKB); // CTRL+Enter is Transliterate Mode TODO: check
-#ifdef __WXMAC__
-	// whm Note: On Mac Command-Q is reserved for quitting the application, so we add an extra
-	// accelerator here for it (the Edit Source Text on Mac was changed to Ctrl-Shift-E above and
-	// Ctrl-Q remains defined above on Windows and Linux for Edit Source Text).
-	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT);
-	// whm Note: On Mac both Command-Shift-/ is the usual hot key for getting app help
-    entries[36].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '/', wxID_HELP);
-#endif
     
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
     //entries[36].Set(wxACCEL_ALT, (int) 'L', IDC_BUTTON_LENGTHEN); // added to get compose bar button to work
@@ -1305,46 +1257,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxToolBar* toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
 	wxASSERT(toolBar != NULL);
 	m_pToolBar = toolBar;
-
-	// Determine the screen dpi to see if we are running on a 200dpi OLPC XO type screen.
-	// If so, we use the alternate AIToolBar32x30Func which has double sized toolbar bitmaps for better
-	// readability on the 200dpi screens.
-	// whm Note 14Apr09: The XO machine running under Intrepid actually reports 100.0 DPI!
-	// Therefore this test won't distinguish an XO from any other "normal" screen computer,
-	// so we try using wxPlatformInfo::GetArchName()
-	wxString archName,OSSystemID,hostName;
-	wxPlatformInfo platInfo;
-	archName = platInfo.GetArchName(); // returns "32 bit" on Windows
-	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
-	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
-
-	//wxSize displaySizeInPixels;
-	//displaySizeInPixels = wxGetDisplaySize();
-	//wxSize displaySizeInMM;
-	//displaySizeInMM = wxGetDisplaySizeMM();
-	//wxSize displaySizeInInches;
-	//displaySizeInInches.x = displaySizeInMM.x / 25.4;
-	//displaySizeInInches.y = displaySizeInMM.y / 25.4;
-	//float screenDPI;
-	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
-	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
-
-	if (gpApp->m_bExecutingOnXO) //if (screenDPI > 150.0)
-	{
-		//m_bUsingHighResDPIScreen = TRUE;
-		toolBar->SetToolBitmapSize(wxSize(32,30));
-		AIToolBar32x30Func( toolBar );
-		//wxString msg;
-		//msg = msg.Format(_T("High Resolution Screen detected at %4.1f DPI - using alternate Toolbar and ControlBar."),screenDPI);
-		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
-	}
-	else
-	{
-		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
-		//wxString msg;
-		//msg = msg.Format(_T("Screen Resolution detected at %4.1f DPI."),screenDPI);
-		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
-	}
+	AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
 	SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
 	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
@@ -1382,17 +1295,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// controlbar), and the row of controls laid out in wxHORIZONTAL 
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
-	
-	if (gpApp->m_bExecutingOnXO) //if (m_bUsingHighResDPIScreen)
-	{
-		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
-		// better fit in main frame
-		ControlBar2LineFunc( controlBar, TRUE, TRUE );
-	}
-	else
-	{
-		ControlBarFunc( controlBar, TRUE, TRUE );
-	}
+	ControlBarFunc( controlBar, TRUE, TRUE );
 
 	// Note: We are creating a controlBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the controlBar's
@@ -1712,18 +1615,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strHostOS.Trim(TRUE);
 	strHostOS = _T(' ') + strHostOS;
 	wxStaticText* pStaticHostOS = (wxStaticText*)FindWindowById(ID_STATIC_HOST_OS);
-	wxASSERT(pStaticHostOS != NULL);
 	pStaticHostOS->SetLabel(strHostOS);
-	wxStaticText* pStaticWxVersionUsed = (wxStaticText*)FindWindowById(ID_STATIC_WX_VERSION_USED);
-	wxASSERT(pStaticWxVersionUsed != NULL);
-	wxString versionStr;
-	versionStr.Empty();
-	versionStr << wxMAJOR_VERSION;
-	versionStr << _T(".");
-	versionStr << wxMINOR_VERSION;
-	versionStr << _T(".");
-	versionStr << wxRELEASE_NUMBER;
-	pStaticWxVersionUsed->SetLabel(versionStr);
 	
 	wxString strUILanguage;
 	// Fetch the UI language info from the global currLocalizationInfo struct
@@ -1743,13 +1635,6 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		pStatic->SetLabel(tempStr);
 	}
 
-	if (!pApp->m_pLocale->GetCanonicalName().IsEmpty())
-	{
-		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_CANONICAL_LOCALE_NAME);
-		tempStr = pApp->m_pLocale->GetCanonicalName();
-		tempStr = _T(' ') + tempStr;
-		pStatic->SetLabel(tempStr);
-	}
 	if (!pApp->m_pLocale->GetSysName().IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_LOCALE_NAME);
@@ -1757,27 +1642,25 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		// GetSysName() returns the following:
 		// On wxMSW: English_United States.1252
 		// On Ubuntu: en_US.UTF-8
-		// On Mac OS X: C
-#ifdef __WXMAC__
-		// GetSysName() on wxMac always returns "C", so we'll unilaterally change this to "MacOSX"
-		tempStr = pApp->m_pLocale->GetCanonicalName() + _T(".") + _T("MacOSX");
-#endif
+		// On Mac OS X: C // TODO: check this!!
 		tempStr = _T(' ') + tempStr;
 		pStatic->SetLabel(tempStr);
 	}
 
+	if (!pApp->m_pLocale->GetCanonicalName().IsEmpty())
+	{
+		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_CANONICAL_LOCALE_NAME);
+		tempStr = pApp->m_pLocale->GetCanonicalName();
+		tempStr = _T(' ') + tempStr;
+		pStatic->SetLabel(tempStr);
+	}
 	if (!pApp->m_systemEncodingName.IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_ENCODING_NAME);
 		tempStr = pApp->m_systemEncodingName; //m_systemEncodingName is assigned by calling wxLocale::GetSystemEncodingName() in the App's OnInit()
 		// Windows: m_systemEncodingName = "windows-1252"
 		//  Ubuntu: m_systemEncodingName = "UTF-8"
-		//     Mac: m_systemEncodingName = "MacRoman" [See App's OnInit() where GetSystemEncodingName()
-		//             is called. There we set this value to a Mac... encoding value]
-		// Note: On Mac OS X, the default encoding depends on your chosen primary language 
-		// (System Preferences, International pane, Languages tab, list of languages).
-		// On a typical Western-European language Mac OS X config, the default encoding will be MacRoman.
-
+		//     Mac: m_systemEncodingName = <blank>
 		tempStr.Trim(FALSE);
 		tempStr.Trim(TRUE);
 		tempStr = _T(' ') + tempStr;
@@ -1999,20 +1882,20 @@ void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 {
-	//wxMenuBar* pMenuBar = this->GetMenuBar();
-	//wxASSERT(pMenuBar != NULL);
-	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
-	//wxASSERT(pUseToolTips != NULL);
+	wxMenuBar* pMenuBar = this->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
+	wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
+	wxASSERT(pUseToolTips != NULL);
 	if (gpApp->m_bUseToolTips)
 	{
 		wxToolTip::Enable(FALSE);
-		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,FALSE); //pUseToolTips->Check(FALSE);
+		pUseToolTips->Check(FALSE);
 		gpApp->m_bUseToolTips = FALSE;
 	}
 	else
 	{
 		wxToolTip::Enable(TRUE);
-		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,TRUE); //pUseToolTips->Check(TRUE);
+		pUseToolTips->Check(TRUE);
 		gpApp->m_bUseToolTips = TRUE;
 	}
 	
@@ -2284,6 +2167,7 @@ wxSize CMainFrame::GetCanvasClientSize()
 	canvasSize.x = frameClientSize.x; // canvas always fills width of frame's client size
 	// the height of the canvas is reduced by the height of the controlBar; and also the
 	// height of the composeBar (if visible).
+	// BEW modified for vertical edit bars to be taken into account also
 	if (m_pComposeBar->IsShown())
 	{
 		canvasSize.y = frameClientSize.y - m_controlBarHeight - m_composeBarHeight;
@@ -2291,6 +2175,18 @@ wxSize CMainFrame::GetCanvasClientSize()
 	else
 	{
 		canvasSize.y = frameClientSize.y - m_controlBarHeight;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		// vertical edit is on currently
+		if (m_pRemovalsBar->IsShown())
+		{
+			canvasSize.y -= m_removalsBarHeight;
+		}
+		if (m_pVertEditBar->IsShown())
+		{
+			canvasSize.y -= m_vertEditBarHeight;
+		}
 	}
 	return canvasSize;
 }
@@ -2568,23 +2464,27 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	//}
 	//else
 	//{
-		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
+			mainFrameClientSize.x, finalHeightOfCanvas);
 	//}
 #else
-		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+		// arguments: top left x and y coords of canvas within client area, then
+		// width and height of canvas
+		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
+						mainFrameClientSize.x, finalHeightOfCanvas); 
 #endif
 	
-	// whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine
-	// BEW added 05Mar06: Bill Martin reported (email 3 March) that if user is in free translation mode,
-	// and uses either the Shorten of Lengthen buttons (these set gbSuppressSetup to TRUE in the beginning
-	// of their handlers, to suppress resetting up of the section for the change in the layout), and then
-	// he resizes the window, the app will crash (invalid pile pointer usually). The easiest solution is
-	// just to allow the section to be reset - this loses the effect of the shortening or lengthening, but
-	// that can easily be done again by hitting the relevant button(s) after the resized layout is redrawn.
-	// Note: gpApp may not be initialized yet in the App's OnInit(), so we'll get a pointer to the app
-	// here:
+    // whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine BEW
+    // added 05Mar06: Bill Martin reported (email 3 March) that if user is in free
+    // translation mode, and uses either the Shorten of Lengthen buttons (these set
+    // gbSuppressSetup to TRUE in the beginning of their handlers, to suppress resetting up
+    // of the section for the change in the layout), and then he resizes the window, the
+    // app will crash (invalid pile pointer usually). The easiest solution is just to allow
+    // the section to be reset - this loses the effect of the shortening or lengthening,
+    // but that can easily be done again by hitting the relevant button(s) after the
+    // resized layout is redrawn. 
+    // Note: gpApp may not be initialized yet in the App's OnInit(), so we'll get a pointer
+    // to the app here:
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	if (pApp->m_bFreeTranslationMode)
 	{
@@ -2592,10 +2492,18 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	}
 
 	// need to initiate a recalc of the layout with new m_docSize value, since strip-wrap is on
+	// BEW added 6May09 -- but only provided the pile list is not currently empty!!
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
-	if (pView)
-		pView->RedrawEverything(pApp->m_nActiveSequNum);
-
+	CLayout* pLayout = pView->GetLayout();
+	if (pView && !pLayout->GetPileList()->IsEmpty())
+	{
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	}
 	// code below was in docview sample
     // FIXME: On wxX11, we need the MDI frame to process this
     // event, but on other platforms this should not
@@ -2604,6 +2512,11 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     event.Skip();
 #endif
 
+	if (pView && !pLayout->GetPileList()->IsEmpty())
+	{
+		pView->Invalidate();
+		gpApp->m_pLayout->PlaceBox();
+	}
 }
 
 void CMainFrame::RecreateToolBar()
@@ -2894,7 +2807,7 @@ void CMainFrame::ComposeBarGuts()
 			{
 				// when commencing free translation mode, show any pre-existing content selected
 				// also clear the starting and ending character indices for the box contents
-				gnStart = -1;
+				gnStart = 0;
 				gnEnd = -1;
 				pEdit->SetSelection(gnStart,gnEnd); // no scroll
 			}
@@ -3037,7 +2950,6 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 		if (pApp->m_pTargetBox != NULL)
 			if (pApp->m_pTargetBox->IsShown()) 
 				pApp->m_pTargetBox->SetFocus();
-		wxLogDebug(_T("CMainFrame::OnActivate() called."));
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -3180,7 +3092,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		if (gbAutoCaps && pApp->m_pActivePile != NULL) // whm added && pApp->m_pActivePile != NULL
 		{
 			wxString str;
-			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->m_pSrcPhrase;
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 			wxASSERT(pSrcPhrase != NULL);
 			bool bNoError = pView->SetCaseParameters(pSrcPhrase->m_key);
 			if (bNoError && gbSourceIsUpperCase)
@@ -3214,7 +3126,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 						{
 							str.SetChar(0,gcharNonSrcUC);
-							pApp->m_pTargetBox->SetValue(str); //pView->m_targetBox.SetWindowText(str);
+							pApp->m_pTargetBox->ChangeValue(str); //pView->m_targetBox.SetWindowText(str);
 							pApp->m_pTargetBox->Refresh(); //;pView->m_targetBox.Invalidate();
 							pApp->m_targetPhrase = str;
 
@@ -3328,10 +3240,11 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			{
 				pApp->m_pTargetBox->SetFocus();
 				pApp->m_nEndChar = -1;
-				pApp->m_nStartChar = -1;
+				//pApp->m_nStartChar = 0;
+				pApp->m_nStartChar = -1; //BEW changed 19Jun09
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 				pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
-				gnStart = -1;
+				gnStart = 0;
 				gnEnd = -1;
 			}
 
@@ -3390,10 +3303,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	//case 9:
 		if (gbCameToEnd)
 		{
-			gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version was repeatedly calling wxMessageBox causing crash
 			// IDS_AT_END
 			wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."), 
 				_T(""), wxICON_INFORMATION);
+			gbCameToEnd = FALSE;
 		}
 	//	return TRUE; // enable  next OnIdle call
 	//case 5:
@@ -3441,7 +3354,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			//	return FALSE;
 			//if (idleCount % 1000 == 0)
 			//{
-				//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
+			//	event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 			//	idleCount = 0;
 			//}
 		}
@@ -3965,9 +3878,7 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						wxASSERT(pEdit != NULL);
 						if (pEdit != 0)
 						{
-							// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-							// event, which now deprecated SetValue() generates.
-							pEdit->ChangeValue(_T("")); // clear the box
+							pEdit->SetValue(_T("")); // clear the box
 						}
 					}
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
@@ -4366,9 +4277,7 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 						wxASSERT(pEdit != NULL);
 						if (pEdit != 0)
 						{
-							// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-							// event, which now deprecated SetValue() generates.
-							pEdit->ChangeValue(_T("")); // clear the box
+							pEdit->SetValue(_T("")); // clear the box
 						}
 					}
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
@@ -5351,7 +5260,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	EditRecord* pRec = &gEditRecord;
-	//bool bAllsWell = TRUE;
+	CLayout* pLayout = gpApp->m_pLayout;
 	
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -5434,6 +5343,16 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		gEntryPoint = noEntryPoint;
 		gEditStep = noEditStep;
 		gbEditingSourceAndDocNotYetChanged = TRUE;
+
+		// ensure the active strip is layout out with correct pile locations, do this
+		// even if we have scrolled and the active strip won't be drawn (needed because in
+		// some situations after a vertical edit, the pile locations aren't updated correctly)
+		int nActiveStripIndex = (pView->GetPile(gpApp->m_nActiveSequNum))->GetStripIndex();
+		pLayout->RelayoutActiveStrip(pView->GetPile(gpApp->m_nActiveSequNum), nActiveStripIndex, 
+			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
+
+		pView->Invalidate(); // get the layout drawn
+		pLayout->PlaceBox();
 	}
 	return;
 }
@@ -5502,9 +5421,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				{
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep; // unneeded, but it documents where we are
-					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-					// event, which now deprecated SetValue() generates.
-					pEdit->ChangeValue(_T("")); // clear the box
+					pEdit->SetValue(_T("")); // clear the box
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
 						pRec->nFreeTrans_EndingSequNum != -1)
@@ -5724,9 +5641,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep;
 					//pEdit->SetWindowText(_T("")); // clear the box
-					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-					// event, which now deprecated SetValue() generates.
-					pEdit->ChangeValue(_T("")); // clear the box
+					pEdit->SetValue(_T("")); // clear the box
 					
 					// now restore the free translation span to what it was at last entry to
 					// freeTranslationsStep ie. as it was at the end of adaptationsStep
@@ -5974,19 +5889,23 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	int nIndex = m_pRemovalsBarComboBox->GetSelection(); //MFC has GetCurSel() which equates to the wxComboBox's base class wxControlWithItems::GetSelection()
+	int nIndex = m_pRemovalsBarComboBox->GetSelection(); //MFC has GetCurSel() which 
+			// equates to the wxComboBox's base class wxControlWithItems::GetSelection()
 	wxString theText;
-	// whm: MFC's CComboBox::GetLBText() "Gets a string from the list box of a combo box." nIndex
-	// contains the zero-based index of the list-box string to be copied. The second parameter points
-	// to a CString that receives the string. In 
+    // whm: MFC's CComboBox::GetLBText() "Gets a string from the list box of a combo box."
+    // nIndex contains the zero-based index of the list-box string to be copied. The second
+    // parameter points to a CString that receives the string. In
 	theText = m_pRemovalsBarComboBox->GetString(nIndex); //m_pRemovalsBarComboBox->GetLBText(nIndex,theText);
 	wxASSERT(!theText.IsEmpty());
 
-	// store the active srcPhrase's m_nSrcWords member's value for use in the test in OnUpdateButtonUndoLastCopy()
-	// and other "state-recording" information, for use by the same update handler
-	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords; // the merge state at active location
+    // store the active srcPhrase's m_nSrcWords member's value for use in the test in
+    // OnUpdateButtonUndoLastCopy() and other "state-recording" information, for use by the
+    // same update handler
+	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords; // the 
+														// merge state at active location
 	gbWasGlossingMode = gbIsGlossing; // whether glossing or adapting when the copy is done
-	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free translation mode is on at that time
+	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free 
+													// translation mode is on at that time
 
 //	gReplacementLocation_SequNum = pApp->m_nActiveSequNum;
 	gnWasSequNum = pApp->m_nActiveSequNum;
@@ -5999,25 +5918,26 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	{
 		wxASSERT(m_pComposeBar != NULL);
 		//wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
-		CComposeBarEditBox* pEdit = (CComposeBarEditBox*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		CComposeBarEditBox* pEdit = (CComposeBarEditBox*)
+										m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
-		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-		// event, which now deprecated SetValue() generates.
-		pEdit->ChangeValue(_T("")); // SetValue() is OK to use here
-        // whm Note: SetValue() automatically (and by design) resets the dirty flag to FALSE when
-        // called, because it is primarily designed to establish the initial value of an edit control.
-        // Often when the initial value of a text control is programatically set, we don't want it
-        // marked as "dirty". It should be marked dirty when the user changes something. But, our
-        // ComposeBarEditBox is designed to echo the compose bar's contents and is does that by checking
-        // for changes in the compose bar's contents (the dirty flag). Therefore, calling SetValue()
-        // won't do what we want because SetValue automatically resets the dirty flag to FALSE; Instead,
-        // we need to call one of the other wxTextCtrl methods that sets the dirty flag to TRUE. We
-        // could use Append(), WriteText() or even just use the << operator to insert text into the
-        // control. I'll use the WriteText() method, which not only sets the dirty flag to TRUE, it also
-        // leaves the insertion point at the end of the inserted text. Using WriteText() also has the
-        // benefit of setting the insertion point at the end of the inserted text - so we don't need to
-        // call SetSelection() to do so.
+		pEdit->SetValue(_T("")); // SetValue() is OK to use here
+        // whm Note: SetValue() automatically (and by design) resets the dirty flag to
+        // FALSE when called, because it is primarily designed to establish the initial
+        // value of an edit control. Often when the initial value of a text control is
+        // programatically set, we don't want it marked as "dirty". It should be marked
+        // dirty when the user changes something. But, our ComposeBarEditBox is designed to
+        // echo the compose bar's contents and is does that by checking for changes in the
+        // compose bar's contents (the dirty flag). Therefore, calling SetValue() won't do
+        // what we want because SetValue automatically resets the dirty flag to FALSE;
+        // Instead, we need to call one of the other wxTextCtrl methods that sets the dirty
+        // flag to TRUE. We could use Append(), WriteText() or even just use the <<
+        // operator to insert text into the control. I'll use the WriteText() method, which
+        // not only sets the dirty flag to TRUE, it also leaves the insertion point at the
+        // end of the inserted text. Using WriteText() also has the benefit of setting the
+        // insertion point at the end of the inserted text - so we don't need to call
+        // SetSelection() to do so.
 		pEdit->WriteText(theText); //pEdit->SetValue(theText);
 		//long len = theText.Len();
 		//pEdit->SetSelection(len,len); // not needed because WriteText() does this for us
@@ -6034,7 +5954,8 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = pView->SetCaseParameters(pApp->m_pActivePile->m_pSrcPhrase->m_key); // bIsSrcText is TRUE
+		bNoError = pView->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key); 
+																// bIsSrcText is TRUE
 		if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 		{
 			bNoError = pView->SetCaseParameters(theText,FALSE); // testing the non-source text
@@ -6049,16 +5970,21 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 
 
 	// the box may be bigger because of the text, so do a recalc of the layout
-	pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
+	CLayout* pLayout = pApp->m_pLayout;
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
-	// if a phrase jumps back on to the line due to the recalc of the layout, then the
-	// current location for the box will end up too far right, so we must find out where the
-	// active pile now is and reset m_ptCurBoxLocation before calling CreateBox, so
-	// recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
+    // if a phrase jumps back on to the line due to the recalc of the layout, then the
+    // current location for the box will end up too far right, so we must find out where
+    // the active pile now is and reset m_ptCurBoxLocation before calling CreateBox, so
+    // recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	wxASSERT(pApp->m_pActivePile != NULL);
-	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
-	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+	//pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
+	//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	// do a scroll if needed
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -6066,7 +5992,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	// place cursor at end of the inserted text
 	int length = theText.Length();
 	pApp->m_nEndChar = pApp->m_nStartChar = length;
-	pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
+	//pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase); // Draw() does it now
 
 	// restore focus and make non-abandonable
 	if (pApp->m_pTargetBox != NULL) // should always be the case
@@ -6077,9 +6003,10 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
-	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text could be different
-						 // length than what was there before, and hence move piles about or even
-						 // cause the following strips to have different pile content. But to
-						 // avoid flicker we need to make use of clipping region soon. BEW)
+	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text 
+        // could be different length than what was there before, and hence move piles about
+        // or even cause the following strips to have different pile content. But to avoid
+        // flicker we need to make use of clipping region soon. BEW)
+	pLayout->PlaceBox();
 }
 

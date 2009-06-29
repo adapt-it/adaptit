@@ -5,4 +5,3 @@
 .bat
 _errorlog.txt
 Exclude.txt
-mac_excl.lst

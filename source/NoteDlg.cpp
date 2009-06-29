@@ -46,6 +46,8 @@
 
 #include <wx/tokenzr.h>
 #include "Adapt_It.h"
+#include "Pile.h"
+#include "Layout.h"
 #include "NoteDlg.h"
 #include "Adapt_ItView.h"
 #include "helpers.h"
@@ -94,9 +96,6 @@ CNoteDlg::CNoteDlg(wxWindow* parent) // dialog constructor
 	NoteDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
-	bool bOK;
-	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
-
 	pEditNote = (wxTextCtrl*)FindWindowById(IDC_EDIT_NOTE); // whm moved here to constructor
 	wxASSERT(pEditNote != NULL);
 
@@ -250,10 +249,8 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	}
 
 	// wx note: we need to initialize dialog data since we aren't using UpdateData(FASLE) above
-	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-	// event, which now deprecated SetValue() generates.
-	pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
-	pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
+	pEditNote->SetValue(m_strNote); // whm added 4Jul06
+	pEditSearch->SetValue(m_searchStr); // whm added 4Jul06
 
 	int len = m_strNote.Length();
 	bool bSearchBoxHasFocus = FALSE; // BEW added 6Mar08
@@ -291,9 +288,7 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		m_searchStr = gSearchStr;
 
 		// get the search string text visible
-		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-		// event, which now deprecated SetValue() generates.
-		pEditSearch->ChangeValue(m_searchStr);
+		pEditSearch->SetValue(m_searchStr);
 
 		// BEW added 6Mar08 so that user can give successive Enter keypresses to
 		// step through several Notes without clobbering the matched text each time
@@ -447,6 +442,7 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 	pView->RemoveSelection(); // in case one was used to indicate the note location
 	pView->Invalidate(); // so the note icon and green wedge show for the new note
+	gpApp->m_pLayout->PlaceBox();
 	
 	//OnOK(); // MFC commented out the base class call
 	//wxDialog::OnOK(event); // not virtual in wxDialog
@@ -466,6 +462,7 @@ a:	Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
 }
@@ -525,13 +522,15 @@ void CNoteDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 		pView->InsertFilteredMaterial(mkr,endMkr,m_strNote,pSrcPhrase,m_noteOffset,bInsertContentOnly);
 	}
 	pView->RemoveSelection(); // in case one was used to indicate the note location
-	pView->Invalidate(); // so the note icon and green wedge show for the new note
+	//pView->Invalidate(); // so the note icon and green wedge show for the new note
+	gpApp->m_pLayout->Redraw(); // better than calling Invalidate() here, see previous line
 
 
 	Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnCancel(event); //don't call base class because we are modeless
 }
@@ -560,10 +559,8 @@ void CNoteDlg::OnBnClickedDeleteBtn(wxCommandEvent& event)
 	m_strNote.Empty();
 	if (gpApp->m_pNoteDlg != NULL)
 	{
-		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-		// event, which now deprecated SetValue() generates.
-		pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
-		pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
+		pEditNote->SetValue(m_strNote); // whm added 4Jul06
+		pEditSearch->SetValue(m_searchStr); // whm added 4Jul06
 	}
 	OnOK(event); //OnBnClickedOk(event);
 }

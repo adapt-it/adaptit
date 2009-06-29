@@ -77,22 +77,22 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	FilterPage.$(OBJEXT) FindReplace.$(OBJEXT) FontPage.$(OBJEXT) \
 	GoToDlg.$(OBJEXT) JoinDialog.$(OBJEXT) KB.$(OBJEXT) \
 	KBEditor.$(OBJEXT) KBPage.$(OBJEXT) LanguagesPage.$(OBJEXT) \
-	ListDocumentsInOtherFolderDialog.$(OBJEXT) MainFrm.$(OBJEXT) \
-	MoveDialog.$(OBJEXT) Mover.$(OBJEXT) MyListBox.$(OBJEXT) \
-	NoteDlg.$(OBJEXT) OpenExistingProjectDlg.$(OBJEXT) \
-	OutputFilenameDlg.$(OBJEXT) PhraseBox.$(OBJEXT) Pile.$(OBJEXT) \
+	Layout.$(OBJEXT) ListDocumentsInOtherFolderDialog.$(OBJEXT) \
+	MainFrm.$(OBJEXT) MoveDialog.$(OBJEXT) Mover.$(OBJEXT) \
+	MyListBox.$(OBJEXT) NoteDlg.$(OBJEXT) \
+	OpenExistingProjectDlg.$(OBJEXT) OutputFilenameDlg.$(OBJEXT) \
+	PhraseBox.$(OBJEXT) Pile.$(OBJEXT) \
 	PlaceInternalMarkers.$(OBJEXT) PlaceInternalPunct.$(OBJEXT) \
 	PlaceRetranslationInternalMarkers.$(OBJEXT) \
-	PrintOptionsDlg.$(OBJEXT) ProjectPage.$(OBJEXT) \
-	PunctCorrespPage.$(OBJEXT) RefString.$(OBJEXT) \
-	RetranslationDlg.$(OBJEXT) SetDelay.$(OBJEXT) \
-	SetEncodingDlg.$(OBJEXT) SilConverterSelectDlg.$(OBJEXT) \
-	SourceBundle.$(OBJEXT) SourcePhrase.$(OBJEXT) \
+	PrintOptionsDlg.$(OBJEXT) ProgressDlg.$(OBJEXT) \
+	ProjectPage.$(OBJEXT) PunctCorrespPage.$(OBJEXT) \
+	RefString.$(OBJEXT) RetranslationDlg.$(OBJEXT) \
+	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
+	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
 	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) Strip.$(OBJEXT) \
-	TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) Text.$(OBJEXT) \
-	TransformToGlossesDlg.$(OBJEXT) USFMPage.$(OBJEXT) \
-	UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
+	TargetUnit.$(OBJEXT) TransformToGlossesDlg.$(OBJEXT) \
+	USFMPage.$(OBJEXT) UnitsDlg.$(OBJEXT) UnitsPage.$(OBJEXT) \
 	UnpackWarningDlg.$(OBJEXT) ViewFilteredMaterialDlg.$(OBJEXT) \
 	ViewPage.$(OBJEXT) WaitDlg.$(OBJEXT) Welcome.$(OBJEXT) \
 	WhichBook.$(OBJEXT) WhichFilesDlg.$(OBJEXT) XML.$(OBJEXT) \
@@ -287,30 +287,32 @@ top_srcdir = @top_srcdir@
 noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
-	../../source/AutoSavingPage.h ../../source/BString.h ../../source/CCModule.h \
-	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
+	../../source/AutoSavingPage.h ../../source/BString.h \
+	../../source/CCModule.h ../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
 	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ChooseConsistencyCheckTypeDlg.h \
 	../../source/ChooseLanguageDlg.h ../../source/ChooseTranslation.h ../../source/CollectBacktranslations.h \
 	../../source/ComposeBarEditBox.h ../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
-	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
-	../../source/EditSourceTextDlg.h ../../source/ExportFunctions.h ../../source/ExportInterlinearDlg.h \
-	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h ../../source/FilterPage.h \
-	../../source/FindReplace.h ../../source/FontPage.h ../../source/GoToDlg.h \
-	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBPage.h \
-	../../source/LanguagesPage.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
-	../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h ../../source/NoteDlg.h \
-	../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h ../../source/PhraseBox.h \
-	../../source/Pile.h ../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
-	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
-	../../source/PunctCorrespPage.h ../../source/RefString.h ../../source/RetranslationDlg.h \
-	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
-	../../source/SourceBundle.h ../../source/SourcePhrase.h ../../source/SplitDialog.h \
+	../../source/DocPage.h \
+	../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h ../../source/EditSourceTextDlg.h \
+	../../source/ExportFunctions.h ../../source/ExportInterlinearDlg.h ../../source/ExportOptionsDlg.h \
+	../../source/ExportSaveAsDlg.h ../../source/FilterPage.h ../../source/FindReplace.h \
+	../../source/FontPage.h ../../source/GoToDlg.h ../../source/JoinDialog.h ../../source/KB.h \
+	../../source/KBEditor.h ../../source/KBPage.h ../../source/LanguagesPage.h ../../source/Layout.h \
+	../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h ../../source/MoveDialog.h ../../source/Mover.h \
+	../../source/MyListBox.h ../../source/NoteDlg.h ../../source/OpenExistingProjectDlg.h \
+	../../source/OutputFilenameDlg.h ../../source/PhraseBox.h ../../source/Pile.h \
+	../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
+	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProgressDlg.h \
+	../../source/ProjectPage.h ../../source/PunctCorrespPage.h ../../source/RefString.h \
+	../../source/RetranslationDlg.h ../../source/SetDelay.h ../../source/SetEncodingDlg.h \
+	../../source/SilConverterSelectDlg.h \
+	../../source/SourcePhrase.h ../../source/SplitDialog.h \
 	../../source/Stack.h ../../source/StartWorkingWizard.h ../../source/Strip.h \
-	../../source/TargetUnit.h ../../source/Text.h ../../source/TransformToGlossesDlg.h \
-	../../source/USFMPage.h ../../source/UnitsDlg.h ../../source/UnitsPage.h \
-	../../source/UnpackWarningDlg.h ../../source/ViewFilteredMaterialDlg.h ../../source/ViewPage.h \
-	../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
-	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h
+	../../source/TargetUnit.h \
+	../../source/TransformToGlossesDlg.h ../../source/USFMPage.h ../../source/UnitsDlg.h \
+	../../source/UnitsPage.h ../../source/UnpackWarningDlg.h ../../source/ViewFilteredMaterialDlg.h \
+	../../source/ViewPage.h ../../source/WaitDlg.h ../../source/Welcome.h ../../source/WhichBook.h \
+	../../source/WhichFilesDlg.h ../../source/XML.h ../../source/XMLErrorDlg.h ../../source/helpers.h 
 
 
 # Localization data
@@ -330,32 +332,33 @@ htmlhelp_DATA = adaptit.htb
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
 	../../source/Adapt_It_wdr.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
-	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp \
-	../../source/CCTableNameDlg.cpp ../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
-	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/ChooseTranslation.cpp \
-	../../source/CollectBacktranslations.cpp ../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp \
-	../../source/ConsistentChanger.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
-	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/ExportFunctions.cpp \
-	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
-	../../source/FilterPage.cpp ../../source/FindReplace.cpp ../../source/FontPage.cpp \
-	../../source/GoToDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
-	../../source/KBEditor.cpp ../../source/KBPage.cpp ../../source/LanguagesPage.cpp \
-	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
-	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NoteDlg.cpp \
-	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp ../../source/PhraseBox.cpp \
-	../../source/Pile.cpp ../../source/PlaceInternalMarkers.cpp \
-	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
-	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
-	../../source/RefString.cpp ../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp \
-	../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp ../../source/SourceBundle.cpp \
-	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp ../../source/Stack.cpp \
-	../../source/StartWorkingWizard.cpp ../../source/Strip.cpp ../../source/TargetUnit.cpp \
-	../../source/tellenc.cpp ../../source/Text.cpp ../../source/TransformToGlossesDlg.cpp \
-	../../source/USFMPage.cpp ../../source/UnitsDlg.cpp ../../source/UnitsPage.cpp \
-	../../source/UnpackWarningDlg.cpp ../../source/ViewFilteredMaterialDlg.cpp ../../source/ViewPage.cpp \
-	../../source/WaitDlg.cpp ../../source/Welcome.cpp ../../source/WhichBook.cpp \
-	../../source/WhichFilesDlg.cpp ../../source/XML.cpp ../../source/XMLErrorDlg.cpp \
-	../../source/helpers.cpp
+	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp ../../source/CCTableNameDlg.cpp \
+	../../source/CaseEquivPage.cpp ../../source/Cell.cpp ../../source/ChooseConsistencyCheckTypeDlg.cpp \
+	../../source/ChooseLanguageDlg.cpp ../../source/ChooseTranslation.cpp ../../source/CollectBacktranslations.cpp \
+	../../source/ComposeBarEditBox.cpp ../../source/ConsistencyCheckDlg.cpp ../../source/ConsistentChanger.cpp \
+	../../source/DocPage.cpp \
+	../../source/EarlierTranslationDlg.cpp ../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp \
+	../../source/ExportFunctions.cpp ../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp \
+	../../source/ExportSaveAsDlg.cpp ../../source/FilterPage.cpp ../../source/FindReplace.cpp \
+	../../source/FontPage.cpp ../../source/GoToDlg.cpp ../../source/JoinDialog.cpp \
+	../../source/KB.cpp ../../source/KBEditor.cpp ../../source/KBPage.cpp \
+	../../source/LanguagesPage.cpp ../../source/Layout.cpp ../../source/ListDocumentsInOtherFolderDialog.cpp \
+	../../source/MainFrm.cpp ../../source/MoveDialog.cpp ../../source/Mover.cpp \
+	../../source/MyListBox.cpp ../../source/NoteDlg.cpp ../../source/OpenExistingProjectDlg.cpp \
+	../../source/OutputFilenameDlg.cpp ../../source/PhraseBox.cpp ../../source/Pile.cpp \
+	../../source/PlaceInternalMarkers.cpp ../../source/PlaceInternalPunct.cpp \
+	../../source/PlaceRetranslationInternalMarkers.cpp ../../source/PrintOptionsDlg.cpp ../../source/ProgressDlg.cpp \
+	../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp ../../source/RefString.cpp \
+	../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp ../../source/SetEncodingDlg.cpp \
+	../../source/SilConverterSelectDlg.cpp \
+	../../source/SourcePhrase.cpp ../../source/SplitDialog.cpp \
+	../../source/Stack.cpp ../../source/StartWorkingWizard.cpp ../../source/Strip.cpp \
+	../../source/TargetUnit.cpp \
+	../../source/TransformToGlossesDlg.cpp ../../source/USFMPage.cpp ../../source/UnitsDlg.cpp \
+	../../source/UnitsPage.cpp ../../source/UnpackWarningDlg.cpp \
+	../../source/ViewFilteredMaterialDlg.cpp ../../source/ViewPage.cpp ../../source/WaitDlg.cpp \
+	../../source/Welcome.cpp ../../source/WhichBook.cpp ../../source/WhichFilesDlg.cpp \
+	../../source/XML.cpp ../../source/XMLErrorDlg.cpp ../../source/helpers.cpp
 
 adaptit_LDFLAGS = $(WX_LIBS) 
 all: all-recursive
@@ -471,6 +474,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBEditor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KBPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LanguagesPage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Layout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ListDocumentsInOtherFolderDialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MainFrm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MoveDialog.Po@am__quote@
@@ -485,6 +489,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlaceInternalPunct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PlaceRetranslationInternalMarkers.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PrintOptionsDlg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ProgressDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ProjectPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PunctCorrespPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RefString.Po@am__quote@
@@ -492,14 +497,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetDelay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetEncodingDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SilConverterSelectDlg.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SourceBundle.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SourcePhrase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SplitDialog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Stack.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StartWorkingWizard.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Strip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TargetUnit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Text.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TransformToGlossesDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/USFMPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UnitsDlg.Po@am__quote@
@@ -514,7 +517,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XML.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/XMLErrorDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helpers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tellenc.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1069,6 +1071,20 @@ LanguagesPage.obj: ../../source/LanguagesPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LanguagesPage.obj `if test -f '../../source/LanguagesPage.cpp'; then $(CYGPATH_W) '../../source/LanguagesPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/LanguagesPage.cpp'; fi`
 
+Layout.o: ../../source/Layout.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Layout.o -MD -MP -MF $(DEPDIR)/Layout.Tpo -c -o Layout.o `test -f '../../source/Layout.cpp' || echo '$(srcdir)/'`../../source/Layout.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/Layout.Tpo $(DEPDIR)/Layout.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Layout.cpp' object='Layout.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Layout.o `test -f '../../source/Layout.cpp' || echo '$(srcdir)/'`../../source/Layout.cpp
+
+Layout.obj: ../../source/Layout.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Layout.obj -MD -MP -MF $(DEPDIR)/Layout.Tpo -c -o Layout.obj `if test -f '../../source/Layout.cpp'; then $(CYGPATH_W) '../../source/Layout.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Layout.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/Layout.Tpo $(DEPDIR)/Layout.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Layout.cpp' object='Layout.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Layout.obj `if test -f '../../source/Layout.cpp'; then $(CYGPATH_W) '../../source/Layout.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Layout.cpp'; fi`
+
 ListDocumentsInOtherFolderDialog.o: ../../source/ListDocumentsInOtherFolderDialog.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ListDocumentsInOtherFolderDialog.o -MD -MP -MF $(DEPDIR)/ListDocumentsInOtherFolderDialog.Tpo -c -o ListDocumentsInOtherFolderDialog.o `test -f '../../source/ListDocumentsInOtherFolderDialog.cpp' || echo '$(srcdir)/'`../../source/ListDocumentsInOtherFolderDialog.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ListDocumentsInOtherFolderDialog.Tpo $(DEPDIR)/ListDocumentsInOtherFolderDialog.Po
@@ -1265,6 +1281,20 @@ PrintOptionsDlg.obj: ../../source/PrintOptionsDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PrintOptionsDlg.obj `if test -f '../../source/PrintOptionsDlg.cpp'; then $(CYGPATH_W) '../../source/PrintOptionsDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/PrintOptionsDlg.cpp'; fi`
 
+ProgressDlg.o: ../../source/ProgressDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ProgressDlg.o -MD -MP -MF $(DEPDIR)/ProgressDlg.Tpo -c -o ProgressDlg.o `test -f '../../source/ProgressDlg.cpp' || echo '$(srcdir)/'`../../source/ProgressDlg.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ProgressDlg.Tpo $(DEPDIR)/ProgressDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ProgressDlg.cpp' object='ProgressDlg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ProgressDlg.o `test -f '../../source/ProgressDlg.cpp' || echo '$(srcdir)/'`../../source/ProgressDlg.cpp
+
+ProgressDlg.obj: ../../source/ProgressDlg.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ProgressDlg.obj -MD -MP -MF $(DEPDIR)/ProgressDlg.Tpo -c -o ProgressDlg.obj `if test -f '../../source/ProgressDlg.cpp'; then $(CYGPATH_W) '../../source/ProgressDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ProgressDlg.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ProgressDlg.Tpo $(DEPDIR)/ProgressDlg.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ProgressDlg.cpp' object='ProgressDlg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ProgressDlg.obj `if test -f '../../source/ProgressDlg.cpp'; then $(CYGPATH_W) '../../source/ProgressDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ProgressDlg.cpp'; fi`
+
 ProjectPage.o: ../../source/ProjectPage.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ProjectPage.o -MD -MP -MF $(DEPDIR)/ProjectPage.Tpo -c -o ProjectPage.o `test -f '../../source/ProjectPage.cpp' || echo '$(srcdir)/'`../../source/ProjectPage.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ProjectPage.Tpo $(DEPDIR)/ProjectPage.Po
@@ -1363,20 +1393,6 @@ SilConverterSelectDlg.obj: ../../source/SilConverterSelectDlg.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SilConverterSelectDlg.obj `if test -f '../../source/SilConverterSelectDlg.cpp'; then $(CYGPATH_W) '../../source/SilConverterSelectDlg.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/SilConverterSelectDlg.cpp'; fi`
 
-SourceBundle.o: ../../source/SourceBundle.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SourceBundle.o -MD -MP -MF $(DEPDIR)/SourceBundle.Tpo -c -o SourceBundle.o `test -f '../../source/SourceBundle.cpp' || echo '$(srcdir)/'`../../source/SourceBundle.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/SourceBundle.Tpo $(DEPDIR)/SourceBundle.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/SourceBundle.cpp' object='SourceBundle.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SourceBundle.o `test -f '../../source/SourceBundle.cpp' || echo '$(srcdir)/'`../../source/SourceBundle.cpp
-
-SourceBundle.obj: ../../source/SourceBundle.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SourceBundle.obj -MD -MP -MF $(DEPDIR)/SourceBundle.Tpo -c -o SourceBundle.obj `if test -f '../../source/SourceBundle.cpp'; then $(CYGPATH_W) '../../source/SourceBundle.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/SourceBundle.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/SourceBundle.Tpo $(DEPDIR)/SourceBundle.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/SourceBundle.cpp' object='SourceBundle.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o SourceBundle.obj `if test -f '../../source/SourceBundle.cpp'; then $(CYGPATH_W) '../../source/SourceBundle.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/SourceBundle.cpp'; fi`
-
 SourcePhrase.o: ../../source/SourcePhrase.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT SourcePhrase.o -MD -MP -MF $(DEPDIR)/SourcePhrase.Tpo -c -o SourcePhrase.o `test -f '../../source/SourcePhrase.cpp' || echo '$(srcdir)/'`../../source/SourcePhrase.cpp
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/SourcePhrase.Tpo $(DEPDIR)/SourcePhrase.Po
@@ -1460,34 +1476,6 @@ TargetUnit.obj: ../../source/TargetUnit.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/TargetUnit.cpp' object='TargetUnit.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TargetUnit.obj `if test -f '../../source/TargetUnit.cpp'; then $(CYGPATH_W) '../../source/TargetUnit.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/TargetUnit.cpp'; fi`
-
-tellenc.o: ../../source/tellenc.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tellenc.o -MD -MP -MF $(DEPDIR)/tellenc.Tpo -c -o tellenc.o `test -f '../../source/tellenc.cpp' || echo '$(srcdir)/'`../../source/tellenc.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/tellenc.Tpo $(DEPDIR)/tellenc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/tellenc.cpp' object='tellenc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tellenc.o `test -f '../../source/tellenc.cpp' || echo '$(srcdir)/'`../../source/tellenc.cpp
-
-tellenc.obj: ../../source/tellenc.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT tellenc.obj -MD -MP -MF $(DEPDIR)/tellenc.Tpo -c -o tellenc.obj `if test -f '../../source/tellenc.cpp'; then $(CYGPATH_W) '../../source/tellenc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/tellenc.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/tellenc.Tpo $(DEPDIR)/tellenc.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/tellenc.cpp' object='tellenc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o tellenc.obj `if test -f '../../source/tellenc.cpp'; then $(CYGPATH_W) '../../source/tellenc.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/tellenc.cpp'; fi`
-
-Text.o: ../../source/Text.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Text.o -MD -MP -MF $(DEPDIR)/Text.Tpo -c -o Text.o `test -f '../../source/Text.cpp' || echo '$(srcdir)/'`../../source/Text.cpp
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/Text.Tpo $(DEPDIR)/Text.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Text.cpp' object='Text.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Text.o `test -f '../../source/Text.cpp' || echo '$(srcdir)/'`../../source/Text.cpp
-
-Text.obj: ../../source/Text.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Text.obj -MD -MP -MF $(DEPDIR)/Text.Tpo -c -o Text.obj `if test -f '../../source/Text.cpp'; then $(CYGPATH_W) '../../source/Text.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Text.cpp'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/Text.Tpo $(DEPDIR)/Text.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Text.cpp' object='Text.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Text.obj `if test -f '../../source/Text.cpp'; then $(CYGPATH_W) '../../source/Text.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Text.cpp'; fi`
 
 TransformToGlossesDlg.o: ../../source/TransformToGlossesDlg.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TransformToGlossesDlg.o -MD -MP -MF $(DEPDIR)/TransformToGlossesDlg.Tpo -c -o TransformToGlossesDlg.o `test -f '../../source/TransformToGlossesDlg.cpp' || echo '$(srcdir)/'`../../source/TransformToGlossesDlg.cpp
