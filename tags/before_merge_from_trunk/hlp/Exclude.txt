@@ -1,0 +1,7 @@
+\.svn\
+.chm
+.htb
+.zip
+.bat
+_errorlog.txt
+Exclude.txt

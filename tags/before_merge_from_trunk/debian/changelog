@@ -1,0 +1,36 @@
+adaptit (4.1.0-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 31 Jan 2009 14:00:00 -0500
+
+adaptit (4.0.4-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 13 Dec 2008 17:00:00 -0500
+
+adaptit (4.0.3-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Mon, 26 Nov 2008 20:00:00 -0500
+
+adaptit (4.0.2-1) unstable; urgency=low
+
+  * Pull in updates
+
+ -- Bill Martin <adaptitbill@gmail.com>  Sat, 22 Nov 2008 18:00:00 -0500
+
+adaptit (4.0.1-1) unstable; urgency=low
+
+  * Split packaging adaptit and adaptit-docs
+
+ -- Joel Martin <joel@martintribe.org>  Wed, 29 Oct 2008 21:30:00 -0500
+
+adaptit (4.0.0-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Joel Maritn <joel@martintribe.org>  Wed, 10 Sep 2008 17:14:23 -0500
+
