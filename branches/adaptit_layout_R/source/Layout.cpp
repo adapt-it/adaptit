@@ -138,9 +138,6 @@ extern bool gbVerticalEditInProgress;
 /// This global is defined in Adapt_ItView.cpp.
 extern EditStep gEditStep;
 
-/// This global is defined in Adapt_ItView.cpp.
-extern EditRecord gEditRecord;
-
 /// A local pointer to the global gEditRecord defined in Adapt_It.cpp
 //static EditRecord* pRec = &gEditRecord; // whm removed because it is unused and to eliminate g++ warning
 
