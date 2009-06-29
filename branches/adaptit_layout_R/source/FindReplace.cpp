@@ -470,7 +470,7 @@ void CFindDlg::DoFindNext()
 		// now we can get rid of the phrase box till wanted again
 		// wx version just hides the phrase box
 		gpApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow();
-		gpApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it 
+		gpApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str since it 
 											   // won't get recreated
 		gpApp->m_targetPhrase = _T("");
 
@@ -1376,7 +1376,7 @@ void CReplaceDlg::DoFindNext()
 		// now we can get rid of the phrase box till wanted again
 		// wx version just hides the phrase box
 		gpApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow()
-		gpApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it 
+		gpApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str since it 
 											   // won't get recreated
 		gpApp->m_targetPhrase = _T("");
 

@@ -177,9 +177,15 @@ void CStrip::Draw(wxDC* pDC)
 	}
 	int i;
 	int nPileCount = m_arrPiles.GetCount();
+	CPile* aPilePtr = NULL;
 	for (i = 0; i < nPileCount; i++)
 	{
-		((CPile*)m_arrPiles[i])->Draw(pDC);
+		aPilePtr = ((CPile*)m_arrPiles[i]);
+		aPilePtr->Draw(pDC);
+#ifdef BLINKING_BUG
+		wxLogDebug(_T("CStrip::Draw() AFTER drawing CPile %d  having Src Text %s "), i, 
+			aPilePtr->m_pSrcPhrase->m_srcPhrase );
+#endif
 	}
 }
 #endif

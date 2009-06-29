@@ -62,6 +62,7 @@
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
 
+
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
 
@@ -1693,7 +1694,7 @@ t:	if (pCell == NULL)
 					// of the clicked free translation section
 					wxString tempStr;
 					tempStr.Empty();
-					pEditCompose->SetValue(tempStr); // clear the box
+					pEditCompose->ChangeValue(tempStr); // clear the box
 
 					pApp->m_nActiveSequNum = pile->GetSrcPhrase()->m_nSequNumber;
 					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);

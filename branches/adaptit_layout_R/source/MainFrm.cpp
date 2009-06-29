@@ -3124,7 +3124,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 						{
 							str.SetChar(0,gcharNonSrcUC);
-							pApp->m_pTargetBox->SetValue(str); //pView->m_targetBox.SetWindowText(str);
+							pApp->m_pTargetBox->ChangeValue(str); //pView->m_targetBox.SetWindowText(str);
 							pApp->m_pTargetBox->Refresh(); //;pView->m_targetBox.Invalidate();
 							pApp->m_targetPhrase = str;
 

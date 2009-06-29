@@ -1708,7 +1708,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	//wxSnprintf(buf, 34, "%d", pApp->m_nCurDelay);
 	s.Empty();
 	s << pApp->m_nCurDelay; //s = buf;
-	pDelayBox->SetValue(s); // MFC has SetWindowText()
+	pDelayBox->ChangeValue(s); // MFC has SetWindowText()
 	pControlBar->Refresh(); // MFC has Invalidate()
 
 	// MFC code below:
@@ -2046,9 +2046,9 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 	// take place, you should create and send a wxNavigationKeyEvent in response to 
 	// the key events for Tab and Shift-Tab.
 	// wxTAB_TRAVERSAL - Use this to enable tab traversal for non-dialog windows (not needed for phrasebox).
-	pApp->m_pTargetBox->SetValue(_T(""));
+	pApp->m_pTargetBox->ChangeValue(_T(""));
 	// hide and disable the target box until input is expected
-	pApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow(); SetValue(_T("")) is called above
+	pApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow(); ChangeValue(_T("")) is called above
 	pApp->m_pTargetBox->Enable(FALSE);
 
 	// Old note: Since wxView's OnUpdate() doesn't seem to be automatically
@@ -2812,7 +2812,7 @@ bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 					CPile* pPile = GetPile(lastSequNum);
 					pApp->m_targetPhrase.Empty();
 					nActiveSequNum = lastSequNum;
-					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pTargetBox->ChangeValue(_T(""));
 					pApp->m_targetPhrase = pPile->GetSrcPhrase()->m_adaption;
 					pApp->m_pActivePile = pPile;
 					return FALSE; // Note: of 9 calls in the app, only 2 actually use this returned
@@ -7015,7 +7015,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 #endif // for _RTL_FLAGS
 
 	//pApp->m_targetBox.SetWindowText(text);
-	pApp->m_pTargetBox->SetValue(text);
+	pApp->m_pTargetBox->ChangeValue(text);
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 		//pApp->m_pTargetBox->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,*pApp->m_pNavTextFont));
 		pApp->m_pTargetBox->SetFont(*pApp->m_pNavTextFont);
@@ -11629,7 +11629,7 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr);
 	}
 	gnOldSequNum = pApp->m_nActiveSequNum; // save old location
 	/* BEW removed 31Jan08 because the global's value is not always reliable
@@ -12017,7 +12017,7 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr);
 	}
 
 	// BEW added 28Sep05, to fix the following bug. It the globals below are not here reset,
@@ -12379,7 +12379,7 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr);
 	}
 
 	bool bOK;
@@ -12702,7 +12702,7 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr);
 	}
 
 	bool bOK;
@@ -14556,7 +14556,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 				int nFormerStrip = pActivePile->GetStripIndex();
 				pDoc->ResetPartnerPileWidth(pActivePile->GetSrcPhrase()); // mark the
 																// active strip invalid
-				pApp->m_pTargetBox->SetValue(_T("")); // we don't want the former active 
+				pApp->m_pTargetBox->ChangeValue(_T("")); // we don't want the former active 
 										// pile's text to be carried to the selected pile
 				int nCurStripIndex = pStartingPile->GetStripIndex();
 				if (nCurStripIndex != nFormerStrip)
@@ -15858,7 +15858,7 @@ void CAdapt_ItView::RemoveFinalSpaces(CPhraseBox* pBox, wxString* pStr)
 				  //right; but the creation & setting of str below fixes it
 	{
 		wxString str = *pStr;
-		pBox->SetValue(str);
+		pBox->ChangeValue(str);
 	}
 
 }
@@ -16693,7 +16693,7 @@ void CAdapt_ItView::OnClearContentsButton(wxCommandEvent& WXUNUSED(event))
 		wxTextCtrl* pEdit = (wxTextCtrl*)pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			pEdit->SetValue(_T(""));
+			pEdit->ChangeValue(_T(""));
 			pEdit->SetFocus();
 		}
 	}
@@ -17438,7 +17438,7 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		pApp->m_targetPhrase.Empty();
 		if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown())
 		{
-			pApp->m_pTargetBox->SetValue(_T(""));
+			pApp->m_pTargetBox->ChangeValue(_T(""));
 		}
 	}
 
@@ -19933,7 +19933,7 @@ ed:		if (bCancelled)
 
 		// use the translation global variable to set the phrase box to the chosen adaptation
 		pApp->m_targetPhrase = translation;
-		pApp->m_pTargetBox->SetValue(translation);
+		pApp->m_pTargetBox->ChangeValue(translation);
 		PlacePhraseBox(pApp->m_pActivePile->GetCell(1), 1); // selector = 1 inhibits the saving to KB
 													  // since there was no click to a new location
 		gbEmptyAdaptationChosen = FALSE; // ensure its safely defused!
@@ -20599,7 +20599,7 @@ void CAdapt_ItView::ClobberDocument()
 	pLayout->DestroyPiles(); // restored, DestroySourcePhrases() no longer destorys 
 							 // the partner piles
 	pApp->m_pActivePile = (CPile*)NULL;
-	pApp->m_pTargetBox->SetValue(_T("")); //pApp->m_targetBox.Destroy();
+	pApp->m_pTargetBox->ChangeValue(_T("")); //pApp->m_targetBox.Destroy();
 	pApp->m_nActiveSequNum = -1;
 	pApp->m_selectionLine = -1;
 	Invalidate(); // our own
@@ -20615,7 +20615,7 @@ void CAdapt_ItView::ClobberDocument()
     // calls to ClobberDocument()
 
 	// hide and disable the target box until input is expected
-	pApp->m_pTargetBox->Hide(); // whm note: SetValue(_T("")) is called above
+	pApp->m_pTargetBox->Hide(); // whm note: ChangeValue(_T("")) is called above
 	pApp->m_pTargetBox->Enable(FALSE);
 }
 
@@ -21834,7 +21834,7 @@ y:						;
 		pApp->m_pTargetBox->Hide(); //MFC calls DestroyWindow(); // this prevents
                 // DoFileSave() trying to store to kb with a source phrase with
                 // m_bHasKBEntry flag TRUE, which would cause an assert to trip
-		pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str
+		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
 											  // since it won't get recreated
 		bool bSavedOK = pDoc->DoFileSave(TRUE); // TRUE - show wait/progress dialog
 		if (!bSavedOK)
@@ -23082,7 +23082,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 	pApp->m_targetPhrase.Empty();
 	if (pApp->m_pTargetBox != NULL)
 	{
-		pApp->m_pTargetBox->SetValue(pApp->m_targetPhrase);
+		pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 	}
 
     // determine the value for the active sequ number on exit, so we will know where to
@@ -23455,7 +23455,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 
 		pApp->m_targetPhrase = str3; // the Phrase Box can have punctuation as well as text
-		pApp->m_pTargetBox->SetValue(str3);
+		pApp->m_pTargetBox->ChangeValue(str3);
 		gnStart = 0;
 		gnEnd = -1;
 
@@ -23820,7 +23820,7 @@ h:				wxMessageBox(_(
 	pApp->m_targetPhrase.Empty();
 	if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown())
 	{
-		pApp->m_pTargetBox->SetValue(pApp->m_targetPhrase); // clear it
+		pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase); // clear it
 	}
 
 	// we have to accumulate now the text comprising the current retranslation, since we won't
@@ -24396,7 +24396,7 @@ h:				wxMessageBox(_(
 		pApp->m_targetPhrase = str3;
 		if (pApp->m_pTargetBox != NULL)
 		{
-			pApp->m_pTargetBox->SetValue(str3);
+			pApp->m_pTargetBox->ChangeValue(str3);
 		}
 
         // layout again, so that the targetBox won't encroach on the next cell's adaption
@@ -24608,7 +24608,7 @@ h:				wxMessageBox(_(
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			pEdit->SetValue(strAdapt);
+			pEdit->ChangeValue(strAdapt);
 		}
 	}
 
@@ -26445,7 +26445,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 
 			// now get rid of the phrase box, until we need it again
 			pApp->m_pTargetBox->Hide(); //MFC version calls DestroyWindow();
-			pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it won't get recreated
+			pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str since it won't get recreated
 			//pApp->m_pTargetBox->m_hWnd = NULL;
 			pApp->m_targetPhrase.Empty(); // the box will move on, so this old location is now invalid
 		}
@@ -32365,7 +32365,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	}
 
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
-	pApp->m_pTargetBox->SetValue(_T("")); // clear out the box too
+	pApp->m_pTargetBox->ChangeValue(_T("")); // clear out the box too
 	if (gbIsGlossing)
 		pApp->m_pActivePile->GetSrcPhrase()->m_gloss.Empty(); // clear this one when glossing
 	else
@@ -36895,7 +36895,7 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 		//CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 		str3 = pRec->oldPhraseBoxText;
 		pApp->m_targetPhrase = str3;
-		pApp->m_pTargetBox->SetValue(str3);
+		pApp->m_pTargetBox->ChangeValue(str3);
 	}
 	else
 	{
@@ -37113,7 +37113,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnF
                         // clearing it will do the trick -- it makes the store operation do
                         // no store
 						pApp->m_targetPhrase.Empty();
-						pApp->m_pTargetBox->SetValue(_T(""));
+						pApp->m_pTargetBox->ChangeValue(_T(""));
 					}
 				}
 
@@ -38220,7 +38220,7 @@ bailout:	pAdaptList->Clear();
 									// elsewhere after editing
 	if (pApp->m_pTargetBox != NULL)
 	{
-		pApp->m_pTargetBox->SetValue(pApp->m_targetPhrase);
+		pApp->m_pTargetBox->ChangeValue(pApp->m_targetPhrase);
 	}
 
     // need to clobber the selection now, so the selection globals will be set to -1, etc,
@@ -39594,7 +39594,7 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 	//}
 	wxTextCtrl* pMsgBox = (wxTextCtrl*)pBar->FindWindowById(IDC_EDIT_MSG_TEXT);
 	wxASSERT(pMsgBox != NULL);
-	pMsgBox->SetValue(messageText);
+	pMsgBox->ChangeValue(messageText);
 }
 
 // use the following when placing the phrase box in vertical editing moode's steps
@@ -42890,7 +42890,7 @@ void CAdapt_ItView::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFir
 				wxString tempStr;
 				tempStr.Empty(); //FreeTranslationStr.Empty();
 				// whm changed 24Aug06 - update edit box with updated string
-				pEdit->SetValue(tempStr);
+				pEdit->ChangeValue(tempStr);
 				pPileArray->RemoveAt(0); // first is dealt with
 
                 // do a reality check on m_markers - I noticed that the test document had
@@ -44056,7 +44056,7 @@ void CAdapt_ItView::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event
 			// clear the Compose Bar's edit box
 			// whm 24Aug06 modified below
 			tempStr.Empty();
-			pEdit->SetValue(tempStr);
+			pEdit->ChangeValue(tempStr);
 
             // clear the bool members on the source phrases in the array, but leave the
             // array elements themselves since they correctly define this section's extent
@@ -44216,7 +44216,7 @@ void CAdapt_ItView::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 					// do the composition from the section's target text
 					//gFreeTranslationStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
 					tempStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
-					pEdit->SetValue(tempStr); // show it in the ComposeBar's edit box
+					pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 				}
 			}
 
@@ -44334,7 +44334,7 @@ void CAdapt_ItView::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 					// do the composition from the section's target text or glossing text
 					//gFreeTranslationStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
 					tempStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
-					pEdit->SetValue(tempStr); // show it in the ComposeBar's edit box
+					pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 				}
 			}
 
@@ -44512,7 +44512,7 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 		tempStr = GetExistingMarkerContent(theMkr, theEndMkr, 
 										pApp->m_pActivePile->GetSrcPhrase(),
 										gnOffsetInMarkersStr, gnLengthInMarkersStr);
-		pEdit->SetValue(tempStr);	// show it in the ComposeBar's edit box, but don't
+		pEdit->ChangeValue(tempStr);	// show it in the ComposeBar's edit box, but don't
 						// have it selected - too easy for user to mistakenly lose it
 
         // now collect the array of piles in this section - since it's a predefined
@@ -44702,7 +44702,7 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 			{
 				// do the composition from the section's target text, or glossing text
 				tempStr = ComposeDefaultFreeTranslation(gpCurFreeTransSectionPileArray);
-				pEdit->SetValue(tempStr); // show it in the ComposeBar's edit box
+				pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 			}
 		}
 	}
@@ -50059,7 +50059,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 			gbWasFreeTranslationMode = FALSE;
 			return;
 		}
-		pTextBox->SetValue(theText); // change the string in the wxTextCtrl in the compose bar
+		pTextBox->ChangeValue(theText); // change the string in the wxTextCtrl in the compose bar
 		long len = theText.Len();
 		pTextBox->SetSelection(len,len);
 		pTextBox->SetFocus();
@@ -50070,7 +50070,7 @@ void CAdapt_ItView::OnButtonUndoLastCopy(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		pApp->m_pTargetBox->SetValue(_T("")); // clear current box contents
+		pApp->m_pTargetBox->ChangeValue(_T("")); // clear current box contents
 
 		// if auto capitalization is on, determine the source text's case propertiess
 		bool bNoError = TRUE;
@@ -50221,8 +50221,23 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 	// RecalcLayout() is called
 	pApp->GetMainFrame()->canvas->Refresh();
 #endif
-}
 
+	// BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, and also to Invalidate() in
+	// the view class, to avoid generating a paint event from within Draw() which lead to
+	// an infinite loop...
+	// get the phrase box placed in the active location and made visible, and suitably
+	// prepared - unless it should not be made visible (eg. when updating the layout
+	// in the middle of a procedure, before the final update is done at a later time)
+	if (!pLayout->GetBoxVisibilityFlag())
+	{
+		// work out its location and resize (if necessary) and draw it
+		pLayout->PlacePhraseBoxInLayout(pApp->m_nActiveSequNum);
+	}
+	pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
+}
+/*
+// BEW removed 30Jun09, InvalidateRect() was used only in the LayoutStrip() function which
+// is deprecated as of the refactored view code changes
 void CAdapt_ItView::InvalidateRect(wxRect& rect) // for MFC compatibility
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -50233,7 +50248,7 @@ void CAdapt_ItView::InvalidateRect(wxRect& rect) // for MFC compatibility
 
 	pApp->GetMainFrame()->canvas->RefreshRect(rect);
 }
-
+*/
 // Routines below are now incorporated into Edit|Preferences
 //void CAdapt_ItView::DoEditPunctCorresp()
 //void CAdapt_ItView::OnEditPunctCorresp()

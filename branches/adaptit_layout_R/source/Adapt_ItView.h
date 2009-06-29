@@ -405,7 +405,8 @@ public:
 	//void		RestoreSelection(); // BEW removed 25Jun09, we don't store or restore
 									//selections now
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
-	void		InvalidateRect(wxRect& rect); // our own for wxWidgets (see cpp file notes)
+	// BEW removed on 30Jun09, unused now because we no longer call LayoutStrip()
+	//void		InvalidateRect(wxRect& rect); // our own for wxWidgets (see cpp file notes)
 	
 // helper functions (protected)
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing

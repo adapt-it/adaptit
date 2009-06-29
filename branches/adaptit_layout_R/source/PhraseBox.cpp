@@ -1158,7 +1158,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 
 		// initialize the phrase box too, so it doesn't carry the old string to the next 
 		// pile's cell
-		SetValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
+		ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
 
 		// if we merged and moved, we have to update pNewPile, because we have done a 
 		// RecalcLayout in the LookAhead() function; it's possible to return from
@@ -1646,7 +1646,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 
 		// initialize the phrase box too, so it doesn't carry the old string to the next 
 		// pile's cell
-		SetValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
+		ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
 
 		// if we merged and moved, we have to update pNewPile, because we have done a 
 		// RecalcLayout in the LookAhead() function; it's possible to return from
@@ -1971,7 +1971,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 		if (GetHandle() != NULL) // This won't happen in wx version since we don't destroy the targetbox window
 		{
 			// wx version note: we do the following elsewhere when we hide the m_pTargetBox
-			SetValue(_T(""));
+			ChangeValue(_T(""));
 			pApp->m_targetPhrase = _T("");
 		}
 
@@ -2196,7 +2196,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				//pApp->m_nActiveSequNum = pApp->m_curIndex = -1;
 				pApp->m_nActiveSequNum = -1;
 				pApp->m_pTargetBox->Hide(); // MFC version calls DestroyWindow()
-				pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str 
+				pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str 
 													  // since it won't get recreated
 				//if (!gbBundleChanged)
 				//	pView->LayoutStrip(pApp->m_pSourcePhrases, nOldStripIndex, pApp->m_pBundle);
@@ -2538,7 +2538,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				}
 				// we are at EOF, so set up safe end conditions
 				pApp->m_pTargetBox->Hide(); // whm added 12Sep04 
-				pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null 
+				pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null 
 											// str since it won't get recreated
 				pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
 				pApp->m_targetPhrase.Empty();
@@ -3931,7 +3931,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 
         // initialize the phrase box too, so it doesn't carry an old string to the next
         // pile's cell
-		SetValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
+		ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
 
         // get an adjusted pile pointer for the new active location, and we want the
         // pile's strip to be marked as invalid and the strip index added to the
@@ -4243,7 +4243,7 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 				}
 			}
 		}
-		SetValue(pApp->m_targetPhrase); // initialize the phrase box too, so it doesn't
+		ChangeValue(pApp->m_targetPhrase); // initialize the phrase box too, so it doesn't
 										// carry an old string to the next pile's cell
 
 		// get the new active pile
@@ -4515,7 +4515,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				if (pApp->m_pTargetBox != NULL 
 					&& (pApp->m_pTargetBox->IsShown()))
 				{
-					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pTargetBox->ChangeValue(_T(""));
 				}
 			}
 
@@ -4686,7 +4686,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			// we are at EOF, so set up safe end conditions
 			// wxWidgets version Hides the target box rather than destroying it
 			pApp->m_pTargetBox->Hide(); // whm added 12Sep04 // MFC version calls DestroyWindow
-			pApp->m_pTargetBox->SetValue(_T("")); // need to set it to null str since it won't get recreated
+			pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str since it won't get recreated
 			pApp->m_pTargetBox->Enable(FALSE); // whm added 12Sep04
 			pApp->m_targetPhrase.Empty();
 			pApp->m_nActiveSequNum = -1;
@@ -5607,7 +5607,7 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 
 		// next code is taken from end of MoveToNextPile()
 		// initialize the phrase box to be empty, so as not to confuse the user
-		SetValue(_T(""));
+		ChangeValue(_T(""));
 		pApp->m_targetPhrase = _T("");
 
 		// recalculate the layout
@@ -5733,7 +5733,7 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			FixBox(pView,thePhrase,bWasMadeDirty,textExtent,1); // selector = 1 for using
 																// thePhrase's extent
 			// restore the box contents
-			SetValue(thePhrase);
+			ChangeValue(thePhrase);
 			m_backspaceUndoStr.Empty(); // clear, so it can't be mistakenly undone again
 
 			// fix the cursor location

@@ -330,6 +330,10 @@ void CLayout::Draw(wxDC* pDC)
     // uptodate and the last character typed was not "seen", so I had to move it back here.
 	// Now I'll try a m_bDoFullWindowDraw flag set when Redraw() or RecalcLayout() is
 	// called - yes, that turned out to be the way to do it! See CAdapt_ItView::Invalidate()
+	// BEW 30Jun09 it turns out that handling the phrase box here generates a paint event
+	// from within Draw() which then results in Draw() going into an infinite loop - so
+	// I'm moving the PlacePhraseBoxInLayout() call and the test which precedes it out of
+	// here - probably into the end of Invalidate(), and the end of Redraw() too.
 #ifdef Do_Clipping
 	// temporary code for debugging
 	//wxSize sizePhraseBox = m_pApp->m_pTargetBox->GetClientSize(); //  pixels
@@ -337,16 +341,6 @@ void CLayout::Draw(wxDC* pDC)
 	//			m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE"),
 	//			m_curBoxWidth, sizePhraseBox.x);
 #endif
-	// get the phrase box placed in the active location and made visible, and suitably
-	// prepared - unless it should not be made visible (eg. when updating the layout
-	// in the middle of a procedure, before the final update is done at a later time)
-	if (!m_bLayoutWithoutVisiblePhraseBox)
-	{
-		// work out its location and resize (if necessary) and draw it
-		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
-	}
-	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
-
     // drawing is done based on the top of the first strip of a visible range of strips
     // determined by the scroll car position; to have drawing include the phrase box, a
     // caller has to set the active location first --typically its done by code in the
@@ -412,6 +406,10 @@ void CLayout::Draw(wxDC* pDC)
 	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
 	{
 		aTempStripPtr = (CStrip*)m_stripArray.Item(i); // do it as two code lines
+#ifdef BLINKING_BUG
+		wxLogDebug(_T("Draw() BEFORE drawing strip %d  having  %d  piles"), i, 
+				aTempStripPtr->m_arrPiles.GetCount() );
+#endif
 		aTempStripPtr->Draw(pDC);			// so we can have a breakpoint on the second
 	}
 
@@ -443,6 +441,10 @@ void CLayout::Draw(wxDC* pDC)
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
+#ifdef BLINKING_BUG
+		wxLogDebug(_T("Draw() Exiting (all's well this time)"));
+#endif
+
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
@@ -466,6 +468,20 @@ void CLayout::Redraw(bool bFirstClear)
 	}
 	Draw(pDC);  // the CLayout::Draw() which first works out which strips need to be drawn
 				// based on the active location (default param bool bAtActiveLocation is TRUE)
+
+	// BEW 30Jun09, moved PlacePhraseBoxInLayout() to here, and also to Invalidate() in
+	// the view class, to avoid generating a paint event from within Draw() which lead to
+	// an infinite loop...
+	// get the phrase box placed in the active location and made visible, and suitably
+	// prepared - unless it should not be made visible (eg. when updating the layout
+	// in the middle of a procedure, before the final update is done at a later time)
+	if (!m_bLayoutWithoutVisiblePhraseBox)
+	{
+		// work out its location and resize (if necessary) and draw it
+		PlacePhraseBoxInLayout(m_pApp->m_nActiveSequNum);
+	}
+	SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
+
 	SetFullWindowDrawFlag(TRUE);
 }
 
@@ -2673,7 +2689,7 @@ void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
 	}
 
 	// wx Note: we don't destroy the target box, just set its text to null
-	m_pApp->m_pTargetBox->SetValue(_T(""));
+	m_pApp->m_pTargetBox->ChangeValue(_T(""));
 
     // make the phrase box size adjustments, set the colour of its text, tell it where it
     // is to be drawn. ResizeBox doesn't recreate the box; it just calls SetSize() and

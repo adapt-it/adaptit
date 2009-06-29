@@ -566,7 +566,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 					// reinitialize everything
 					//if (pApp->m_targetBox.GetHandle() != NULL)
 					//	pApp->m_targetBox.Destroy(); // MFC uses DestroyWindow()
-					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pTargetBox->ChangeValue(_T(""));
 					delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 					pApp->m_curOutputFilename = _T("");
@@ -608,7 +608,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// reinitialize everything
 				//if (pApp->m_targetBox.GetHandle() != NULL)
 				//	pApp->m_targetBox.Destroy(); // MFC has DestroyWindow()
-				pApp->m_pTargetBox->SetValue(_T(""));
+				pApp->m_pTargetBox->ChangeValue(_T(""));
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pApp->m_curOutputFilename = _T("");
@@ -691,7 +691,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// restore everything
 				//if (pApp->m_targetBox.GetHandle() != 0)
 				//	pApp->m_targetBox.Destroy();
-				pApp->m_pTargetBox->SetValue(_T(""));
+				pApp->m_pTargetBox->ChangeValue(_T(""));
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pAdView->Invalidate();
@@ -812,7 +812,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 			{
 				//if (pApp->m_targetBox.GetHandle() != 0)
 				//	pApp->m_targetBox.Destroy();
-				pApp->m_pTargetBox->SetValue(_T(""));
+				pApp->m_pTargetBox->ChangeValue(_T(""));
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pAdView->Invalidate();
@@ -10534,7 +10534,7 @@ bool CAdapt_ItDoc::DeleteContents()
 
 		if (pApp->m_pTargetBox != NULL)
 		{
-			pApp->m_pTargetBox->SetValue(_T(""));
+			pApp->m_pTargetBox->ChangeValue(_T(""));
 			//pApp->m_targetBox.Destroy(); // we don't destroy the targetBox in the wx version
 		}
 
