@@ -150,84 +150,99 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item26 = new wxStaticText( parent, ID_TEXT, _("wxWidgets is a cross-platform GUI library"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
-
     wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item28 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetDefault();
+    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("Built with wxWidgets version"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_STATIC_WX_VERSION_USED, _("2.x.x"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item4->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item4, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 0 );
 
-    wxStaticLine *item29 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticLine *item30 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item31 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item33 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
-    item33->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Language and Locale Information:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE );
+    item34->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
+    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item31->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxFlexGridSizer *item34 = new wxFlexGridSizer( 2, 0, 0 );
+    wxFlexGridSizer *item35 = new wxFlexGridSizer( 2, 0, 0 );
 
-    wxStaticText *item35 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item35, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("Active User Interface Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item36, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item36 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item36, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item37 = new wxStaticText( parent, ID_STATIC_UI_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item37 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item37, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item38 = new wxStaticText( parent, ID_TEXT, _("Host Operating System:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item38, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item38 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item38, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item39 = new wxStaticText( parent, ID_STATIC_HOST_OS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item39, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item39 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item39, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item40 = new wxStaticText( parent, ID_TEXT, _("System Default Language:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item40, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item40 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item41 = new wxStaticText( parent, ID_STATIC_SYS_LANGUAGE, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item41, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item42 = new wxStaticText( parent, ID_TEXT, _("System Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item42, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item42 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item42, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item43 = new wxStaticText( parent, ID_STATIC_SYS_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item43 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item44 = new wxStaticText( parent, ID_TEXT, _("Canonical Locale Name:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item44, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item44 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item44, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item45 = new wxStaticText( parent, ID_STATIC_CANONICAL_LOCALE_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item45, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item45 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item46 = new wxStaticText( parent, ID_TEXT, _("System Encoding:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item46, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item46 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item47 = new wxStaticText( parent, ID_STATIC_SYS_ENCODING_NAME, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item47, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item47 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item47, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item48 = new wxStaticText( parent, ID_TEXT, _("System Layout Direction:  "), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item48, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item48 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item48, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticText *item49 = new wxStaticText( parent, ID_STATIC_SYSTEM_LAYOUT_DIR, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item49, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+    item32->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item30->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item31->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item0->Add( item30, 0, wxALIGN_CENTER, 5 );
+    item0->Add( item31, 0, wxALIGN_CENTER, 5 );
+
+    wxStaticLine *item50 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item50, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item51 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item52 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item52->SetDefault();
+    item51->Add( item52, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item51->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item51, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     if (set_sizer)
     {
@@ -472,7 +487,7 @@ wxSizer *OpenExistingProjectDlgFunc( wxWindow *parent, bool call_fit, bool set_s
     item6->SetToolTip( _("Click Cancel to stop accessing another project") );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -586,7 +601,7 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Your documents will be stored in files in a folder named \"<source name> to <target name> adaptations\"."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT, _("Documents will be stored in a folder named \"<source name> to <target name> adaptations\"."), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -597,6 +612,8 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item4->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -644,11 +661,11 @@ wxSizer *LanguagesPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item2->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item2->Add( 20, 10, 0, wxALIGN_CENTER, 0 );
+    item2->Add( 20, 30, 0, wxALIGN_CENTER, 0 );
 
     wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NL, _("Check the box below only if the standard format markers in the source language input data always start on new lines"), wxDefaultPosition, wxSize(-1,40), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item21 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_NL, _("Check the box below only if the standard format markers in the source language input data always start on new lines"), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item20->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxCheckBox *item22 = new wxCheckBox( parent, IDC_CHECK_SFM_AFTER_NEWLINES, _("Recognise standard format markers only following newlines"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -895,7 +912,7 @@ wxSizer *FontsPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item56 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item57 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_FONTPAGE, _("The font for navigation text is used for displaying file and folder names, standard format marker names. The navigation text font is also used for chapter, verse, project and document names. Glossing can be displayed in either the target text's font (default), or the navigation text's font."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item57 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_FONTPAGE, _("The font for navigation text is used for displaying file and folder names, standard format marker names. The navigation text font is also used for chapter, verse, project and document names. Glossing can be displayed in either the target text's font (default), or the navigation text's font."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item56->Add( item57, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item56, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
@@ -947,55 +964,6 @@ wxSizer *WaitDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
-wxSizer *ProgressDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
-{
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
-
-    item0->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
-
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
-
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item2 = new wxStaticText( parent, IDC_STATIC_XOFY, _("1 of 1"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item3 = new wxStaticText( parent, IDC_STATIC_FILENAME, _("File: "), wxDefaultPosition, wxSize(160,-1), wxALIGN_CENTRE );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxStaticText *item4 = new wxStaticText( parent, IDC_STATIC_TOTAL, _("Total words and phrases: "), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
-
-    item5->Add( 5, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxGauge *item6 = new wxGauge( parent, IDC_PROGRESS_PHRASES, 100, wxDefaultPosition, wxSize(390,-1), wxGA_SMOOTH|wxGA_PROGRESSBAR );
-    item6->SetToolTip( _("Adapt It is working, please wait...") );
-    item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item5->Add( 50, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item0->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
-
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
-    
-    return item0;
-}
-
 wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
@@ -1029,7 +997,7 @@ wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
-    item9->Add( 20, 40, 0, wxALIGN_CENTER|wxALL, 0 );
+    item9->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBitmapButton *item10 = new wxBitmapButton( parent, IDC_BUTTON_REJECT, WhichFilesBitmapsFunc( 0 ), wxDefaultPosition, wxDefaultSize );
     item10->SetToolTip( _("Move to the unused list") );
@@ -1041,38 +1009,42 @@ wxSizer *WhichFilesDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->SetToolTip( _("Move to the used list") );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item12 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->SetDefault();
-    item12->SetToolTip( _("Click OK to proceed") );
-    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item9->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item13 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item13->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
-    item9->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
-
     item4->Add( item9, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
-    wxString *strs15 = (wxString*) NULL;
-    wxListBox *item15 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(240,250), 0, strs15, wxLB_SINGLE|wxLB_HSCROLL );
-    item15->SetToolTip( _("Document files listed here will not be used") );
-    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxString *strs13 = (wxString*) NULL;
+    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(240,250), 0, strs13, wxLB_SINGLE|wxLB_HSCROLL );
+    item13->SetToolTip( _("Document files listed here will not be used") );
+    item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item15 = new wxStaticText( parent, ID_TEXT, _("None of these document files will be used"), wxDefaultPosition, wxDefaultSize, 0 );
+    item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item4->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+
+    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("None of these document files will be used"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item17 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetDefault();
+    item17->SetToolTip( _("Click OK to proceed") );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item14, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
+    item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item1->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxButton *item18 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->SetToolTip( _("Click Cancel to stop the process and return to what you were doing") );
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -1152,18 +1124,18 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
-    wxCheckBox *item6 = new wxCheckBox( parent, ID_CHECK_SOURCE_USES_CAPS, _("Check here if the source text contains both capital letters (upper case) and small letters (lower case)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item6 = new wxCheckBox( parent, ID_CHECK_SOURCE_USES_CAPS, _("Check here if the source text contains both upper case and lower case"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->SetToolTip( _("Check this box if the source text uses capitalization") );
     item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECK_USE_AUTO_CAPS, _("Check here if you want Adapt It to automatically distinguish between upper case and lower case letters"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item7 = new wxCheckBox( parent, ID_CHECK_USE_AUTO_CAPS, _("Check here if you want Adapt It to automatically distinguish between upper and lower case"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetToolTip( _("Check this box to Use Automatic Capitalization") );
     item5->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item9 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_CASE_PAGE_STATIC_TEXT, _("In the edit boxes type the lower case to upper case character equivalences for the source and target languages. (If you intend to do glossing, do it also for the glossing language). Do not type spaces. Type the equivalences as a series of two-character lines; each line is a lower case character followed by its upper case equivalent. (If using Adapt It Unicode, then for equivalences between any pair of composed characters, type just the lower case base character followed by the upper case base character.) For languages which read from right to left, type the lower case character first, and then the upper case equivalent next (that is, at its left)."), wxDefaultPosition, wxSize(-1,90), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item8->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item8->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item5->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -1184,15 +1156,15 @@ wxSizer *CaseEquivDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item13 = new wxStaticText( parent, ID_TEXT_GL, _("Gloss Language"), wxDefaultPosition, wxDefaultSize, 0 );
     item10->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_CENTRE );
+    wxTextCtrl *item14 = new wxTextCtrl( parent, IDC_EDIT_SRC_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_CENTRE );
     item14->SetToolTip( _("Edit Source text lower case - upper case pairs here") );
     item10->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_EDIT_TGT_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_CENTRE );
+    wxTextCtrl *item15 = new wxTextCtrl( parent, IDC_EDIT_TGT_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_CENTRE );
     item15->SetToolTip( _("Edit Target text lower case - upper case pairs here") );
     item10->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_GLOSS_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_CENTRE );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_GLOSS_CASE_EQUIVALENCES, wxT(""), wxDefaultPosition, wxSize(-1,100), wxTE_MULTILINE|wxTE_CENTRE );
     item16->SetToolTip( _("Edit Gloss text lower case - upper case pairs here") );
     item10->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -1554,7 +1526,7 @@ wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, _("Units") );
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
@@ -1572,7 +1544,7 @@ wxSizer *UnitsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item6 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item7 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->SetDefault();
@@ -1618,7 +1590,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item6->SetToolTip( _("Source text as translated previously") );
     item5->Add( item6, 1, wxGROW|wxALL, 0 );
 
-    item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item3->Add( item5, 1, wxALIGN_CENTER, 5 );
 
     item3->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -1628,10 +1600,8 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
-
-    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, _("Translations which are currently in the knowledge base:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxStaticBox *item9 = new wxStaticBox( parent, -1, _("Translations which are currently in the knowledge base:") );
+    wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1655,7 +1625,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item15->SetToolTip( _("Approximate number of times this source text has been adapted") );
     item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1673,53 +1643,59 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item20->SetToolTip( _("Remove the selected translation from the knowledge base") );
     item17->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item21 = new wxButton( parent, IDC_BUTTON_CANCEL_ASK, _("Do &Not Ask Again"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->SetToolTip( _("Click this button if you do not want the Choose Translation dialog to appear again for the above source text") );
-    item17->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item22 = new wxBoxSizer( wxVERTICAL );
+    wxButton *item22 = new wxButton( parent, IDC_BUTTON_CANCEL_ASK, _("Do &Not Ask Again"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->SetToolTip( _("Click this button if you do not want the Choose Translation dialog to appear again for the above source text") );
+    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item23 = new wxButton( parent, IDC_BUTTON_CANCEL_AND_SELECT, _("Cancel and &Select"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->SetToolTip( _("Cancel this dialog and extend selection one word to the right") );
-    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+    item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item24 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->SetDefault();
-    item22->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item25 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item16->Add( item22, 0, wxALIGN_CENTER|wxALL, 0 );
+    item16->Add( item21, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     item12->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item25 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetDefault();
+    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item24->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item26 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item12->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item7->Add( item12, 0, wxGROW|wxALL, 0 );
 
     item1->Add( item7, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item28 = new wxStaticText( parent, ID_TEXT, _("New Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticText *item29 = new wxStaticText( parent, ID_TEXT, _("&New Translation:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item29 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item30 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item30 = new wxTextCtrl( parent, IDC_EDIT_NEW_TRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
-    item30->SetToolTip( _("Type a new translation here if the translation you want is not in the list") );
-    item29->Add( item30, 1, wxGROW|wxALL, 0 );
+    wxTextCtrl *item31 = new wxTextCtrl( parent, IDC_EDIT_NEW_TRANSLATION, wxT(""), wxDefaultPosition, wxSize(-1,40), 0 );
+    item31->SetToolTip( _("Type a new translation here if the translation you want is not in the list") );
+    item30->Add( item31, 1, wxGROW|wxALL, 0 );
 
-    item27->Add( item29, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item28->Add( item30, 1, wxALIGN_CENTER, 5 );
 
-    item27->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 5, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item26->Add( item27, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+    item27->Add( item28, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    item1->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item1->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -1786,27 +1762,33 @@ wxSizer *RetranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item14->SetToolTip( _("Click to toggle the display between source and target texts") );
     item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetDefault();
-    item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item16 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item12->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetDefault();
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
+    item15->Add( 5, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxALIGN_CENTER, 5 );
+
+    item12->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item9->Add( item12, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 0 );
 
     item1->Add( item9, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticText *item17 = new wxStaticText( parent, IDC_STATIC_TGT, _("  Source language's text for the following context (including punctuation, if any):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item18 = new wxStaticText( parent, IDC_STATIC_TGT, _("  Source language's text for the following context (including punctuation, if any):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( item18, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item19 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
-    item19->SetToolTip( _("This is the following context") );
-    item18->Add( item19, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxTextCtrl *item20 = new wxTextCtrl( parent, IDC_EDIT_FOLLCONTEXT, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY );
+    item20->SetToolTip( _("This is the following context") );
+    item19->Add( item20, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item1->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item19, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
@@ -1943,7 +1925,7 @@ wxSizer *BackupsAndKBPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE, _("If the source or target language names stored in the knowledge base become corrupted (check the basic configuration file), you can fix the problem by typing correct names in the boxes below."), wxDefaultPosition, wxSize(80,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_BACKUPS_AND_KB_PAGE, _("If the source or target language names stored in the knowledge base become corrupted (check the basic configuration file), you can fix the problem by typing correct names in the boxes below."), wxDefaultPosition, wxSize(80,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item7->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -2049,9 +2031,9 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_GAP_WIDTH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
     item12->SetToolTip( _("Higher numbers create more horizontal spacing between piles") );
-    item11->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item11->Add( item12, 0, wxGROW|wxALL, 0 );
 
-    item4->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item11, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -2064,9 +2046,9 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_LEFTMARGIN, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
     item16->SetToolTip( _("Higher numbers increase the blank space in the left margin while adapting") );
-    item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item15->Add( item16, 0, wxGROW|wxALL, 0 );
 
-    item4->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item15, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -2079,9 +2061,9 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxTextCtrl *item20 = new wxTextCtrl( parent, IDC_EDIT_MULTIPLIER, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
     item20->SetToolTip( _("Try higher number (15 or more) if Keyman doesn't interpret special characters properly") );
-    item19->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item19->Add( item20, 0, wxGROW|wxALL, 0 );
 
-    item4->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item19, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -2096,53 +2078,37 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item24->SetToolTip( _("Higher numbers show larger font size in some dialogs") );
     item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item23, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
+    wxCheckBox *item26 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
     item4->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item27, 0, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
-    item4->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
+    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item28 = new wxBoxSizer( wxVERTICAL );
+    item28->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item30 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxCheckBox *item30 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
-    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item4->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    item4->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item33->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item34 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
-    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item4->Add( item32, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item35 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item31, 0, wxGROW|wxALL, 0 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
@@ -2207,7 +2173,7 @@ wxSizer *AutoSavingPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_AUTOSAVE, _("Remember, the knowledge base is automatically saved immediately after each document save is done, irrespective of the settings you make below. And manual saves may be done at any time, using the appropriate menu commands."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_TEXTCTRL_AS_STATIC_AUTOSAVE, _("Remember, the knowledge base is automatically saved immediately after each document save is done, irrespective of the settings you make below. And manual saves may be done at any time, using the appropriate menu commands."), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item3->Add( item4, 0, wxGROW|wxALL, 0 );
 
     item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -3042,7 +3008,7 @@ wxSizer *NoteDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item18->SetToolTip( _("Click OK to close the note dialog") );
     item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item17->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+    item17->Add( 40, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxButton *item19 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item19->SetToolTip( _("Click Cancel to close the note dialog without making any changes") );
@@ -3158,7 +3124,9 @@ wxSizer *SetDelayDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item1->Add( item9, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item12 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->SetDefault();
@@ -3169,9 +3137,7 @@ wxSizer *SetDelayDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item13->SetToolTip( _("Click this button to Cancel any changes") );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -3386,7 +3352,9 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxButton *item15 = new wxButton( parent, IDC_BUTTON_EXPORT_FILTER_OPTIONS, _("Export &Filter/Options"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
-    item11->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item11->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item11->Add( 400, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item2->Add( item11, 2, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -3407,7 +3375,7 @@ wxSizer *ExportSaveAsDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item16->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item16, 0, wxALIGN_CENTER|wxALL, 0 );
+    item2->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -3572,26 +3540,26 @@ wxSizer *ExportInterlinearDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item36 = new wxBoxSizer( wxHORIZONTAL );
 
-    item36->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item37 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item37->SetDefault();
-    item37->SetToolTip( _("Click OK to continue the interlinear export process (a file dialog will appear next)") );
+    wxButton *item37 = new wxButton( parent, IDC_BUTTON_RTF_EXPORT_FILTER_OPTIONS, _("Export &Filter/Options"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
     item36->Add( item37, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item36->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+    item36->Add( 30, 10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item38 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->SetToolTip( _("Click Cancel to stop the interlinear export process and close the dialog") );
+    wxButton *item38 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->SetDefault();
+    item38->SetToolTip( _("Click OK to continue the interlinear export process (a file dialog will appear next)") );
     item36->Add( item38, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item36->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item39 = new wxButton( parent, IDC_BUTTON_RTF_EXPORT_FILTER_OPTIONS, _("Export &Filter/Options"), wxDefaultPosition, wxDefaultSize, 0 );
-    item39->SetToolTip( _("Click this button if you want to filter some markers/text from the export or change the way back translations, free translations and notes are formatted") );
+    wxButton *item39 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetToolTip( _("Click Cancel to stop the interlinear export process and close the dialog") );
     item36->Add( item39, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item0->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+    item36->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item36, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -3607,38 +3575,40 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 {
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Select a marker on the left to see its associated text material that was filtered out (editable below)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item1 = new wxStaticText( parent, ID_TEXT, _("Select a marker on the left to see its associated text"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
 
-    wxFlexGridSizer *item4 = new wxFlexGridSizer( 4, 0, 0, 0 );
+    wxFlexGridSizer *item4 = new wxFlexGridSizer( 3, 0, 0 );
+    item4->AddGrowableCol( 0 );
     item4->AddGrowableCol( 1 );
+    item4->AddGrowableCol( 2 );
     item4->AddGrowableRow( 1 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("&Marker:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item5, 0, wxALIGN_CENTER, 5 );
 
-    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Associated &text material:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, _("Associated &text material (editable below):"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item6, 0, wxALIGN_CENTER_VERTICAL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("End Marker:"), wxDefaultPosition, wxDefaultSize, 0 );
     item4->Add( item7, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
     wxString *strs9 = (wxString*) NULL;
     wxListBox *item9 = new wxListBox( parent, IDC_LIST_MARKER, wxDefaultPosition, wxSize(80,80), 0, strs9, wxLB_SINGLE );
     item9->SetToolTip( _("This is a list of filtered markers at this location") );
-    item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item8->Add( item9, 1, wxGROW|wxALL, 0 );
 
     item4->Add( item8, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_MARKER_TEXT, wxT(""), wxDefaultPosition, wxSize(450,100), wxTE_MULTILINE );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, IDC_EDIT_MARKER_TEXT, wxT(""), wxDefaultPosition, wxSize(450,100), wxTE_MULTILINE|wxTE_READONLY );
     item11->SetToolTip( _("This is the text associated with the marker selected at left (it can be changed)") );
     item10->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -3658,12 +3628,12 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
 
     item4->Add( item10, 1, wxGROW|wxALL, 0 );
 
-    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
     wxString *strs16 = (wxString*) NULL;
     wxListBox *item16 = new wxListBox( parent, IDC_LIST_MARKER_END, wxDefaultPosition, wxSize(80,80), 0, strs16, wxLB_SINGLE );
     item16->SetToolTip( _("This list contains any end markers associated with the marker in the list at far left") );
-    item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item15->Add( item16, 1, wxGROW|wxALL, 0 );
 
     item4->Add( item15, 1, wxGROW|wxALL, 5 );
 
@@ -3674,23 +3644,43 @@ wxSizer *ViewFilteredMaterialDlgFunc( wxWindow *parent, bool call_fit, bool set_
     item18->SetToolTip( _("This is a description of the marker selected in the Marker list box (at upper left)") );
     item4->Add( item18, 1, wxGROW|wxALL, 5 );
 
-    wxButton *item19 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->SetDefault();
-    item19->SetToolTip( _("Click OK to save any edits and close the dialog") );
-    item4->Add( item19, 0, wxALIGN_CENTER, 5 );
+    item4->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("Marker Status:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item4->Add( item20, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxStaticText *item19 = new wxStaticText( parent, ID_TEXT, _("Marker Status:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item21 = new wxStaticText( parent, IDC_STATIC_MARKER_STATUS, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
     item21->SetToolTip( _("This tells if the text of the Marker can be available for adaptation (see Filtering tab in Edit Preferences)") );
-    item4->Add( item21, 1, wxGROW|wxALL, 5 );
+    item20->Add( item21, 1, wxGROW|wxALL, 5 );
 
-    wxButton *item22 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item22->SetToolTip( _("Click Cancel to discard any edits and close the dialog") );
-    item4->Add( item22, 0, wxALIGN_CENTER, 5 );
+    item4->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item4->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item3->Add( item4, 1, wxGROW, 0 );
+
+    wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item24 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->SetDefault();
+    item24->SetToolTip( _("Click OK to save any edits and close the dialog") );
+    item23->Add( item24, 0, wxALIGN_CENTER, 5 );
+
+    item23->Add( 20, 5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item25 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->SetToolTip( _("Click Cancel to discard any edits and close the dialog") );
+    item23->Add( item25, 0, wxALIGN_CENTER, 5 );
+
+    item23->Add( 80, 10, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item22, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item3, 1, wxGROW, 0 );
 
@@ -3758,23 +3748,23 @@ wxSizer *GoToDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item14 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->SetDefault();
-    item14->SetToolTip( _("Click OK to go to the chapter and verse indicated above") );
+    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT, _("Only the chapter value is used if the verse is zero."), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item15 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->SetToolTip( _("Click Cancel to close the dialog without going to another location in the document") );
-    item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+    wxButton *item16 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->SetDefault();
+    item16->SetToolTip( _("Click OK to go to the chapter and verse indicated above") );
+    item15->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Only the chapter value is used if the verse is zero."), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item17 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item17->SetToolTip( _("Click Cancel to close the dialog without going to another location in the document") );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
+    item2->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
@@ -3865,7 +3855,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_LIST_SELECT, _("Select from the list on the left, to replace what is above."), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item22 = new wxRadioButton( parent, IDC_RADIO_LIST_SELECT, _("Select from the &list on the left, to replace what is above."), wxDefaultPosition, wxDefaultSize, 0 );
     item22->SetToolTip( _("Select this button to use a selected item in the list at left to replace the word/phrase above") );
     item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -3873,7 +3863,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item24 = new wxRadioButton( parent, IDC_RADIO_ACCEPT_CURRENT, _("Accept what is above (entering it into the knowledge base)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item24 = new wxRadioButton( parent, IDC_RADIO_ACCEPT_CURRENT, _("&Accept what is above (entering it into the knowledge base)"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Select this button to accept the word/phrase above as a translation or gloss for the phrase at upper left") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -3881,7 +3871,7 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxRadioButton *item26 = new wxRadioButton( parent, IDC_RADIO_TYPE_NEW, _("Type a new one:"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxRadioButton *item26 = new wxRadioButton( parent, IDC_RADIO_TYPE_NEW, _("Type a &new one:"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->SetToolTip( _("If the word/phrase above is not suitable, you can type a new one in the box at right") );
     item25->Add( item26, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
@@ -3897,42 +3887,46 @@ wxSizer *ConsistencyCheckDlgFunc( wxWindow *parent, bool call_fit, bool set_size
 
     wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item30 = new wxButton( parent, IDC_NOTHING, _("Accept <no adaptation> for this item"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item30 = new wxButton( parent, IDC_NOTHING, _("Accept <n&o adaptation> for this item"), wxDefaultPosition, wxDefaultSize, 0 );
     item30->SetToolTip( _("Use <no adaptation> for this item") );
     item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item29->Add( 10, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item31 = new wxButton( parent, IDC_BUTTON_IGNORE_IT, _("Ignore it, I will fix it later"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item31 = new wxButton( parent, IDC_BUTTON_IGNORE_IT, _("&Ignore it, I will fix it later"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->SetToolTip( _("Click this button to ignore this inconsistency and correct it manually after the consistency check is complete") );
     item29->Add( item31, 0, wxALIGN_CENTER|wxALL, 0 );
 
     item19->Add( item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
-    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item32 = new wxBoxSizer( wxVERTICAL );
 
-    wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
-    item33->SetToolTip( _("Check this box if you want to fix other later occurring inconsistencies the same way") );
-    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
 
-    item32->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxCheckBox *item34 = new wxCheckBox( parent, IDC_CHECK_DO_SAME, _("Auto-fix later instances the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->SetToolTip( _("Check this box if you want to fix other later occurring inconsistencies the same way") );
+    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
+    item33->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    wxButton *item35 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->SetDefault();
-    item35->SetToolTip( _("Click OK to continue with the consistency check") );
-    item34->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item36 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
-    item34->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item36 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetDefault();
+    item36->SetToolTip( _("Click OK to continue with the consistency check") );
+    item35->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item32->Add( item34, 0, wxALIGN_CENTER|wxALL, 0 );
+    wxButton *item37 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item37->SetToolTip( _("Click Cancel to stop consistency checking and close the dialog") );
+    item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item19->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item33->Add( item35, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item3->Add( item19, 1, wxGROW|wxALL, 0 );
+    item32->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item19->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item3->Add( item19, 1, wxALIGN_BOTTOM|wxALL, 0 );
 
     item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4494,7 +4488,7 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs6 = (wxString*) NULL;
-    wxListBox *item6 = new wxListBox( parent, IDC_LIST_ACCEPTED, wxDefaultPosition, wxSize(-1,150), 0, strs6, wxLB_SINGLE );
+    wxListBox *item6 = new wxListBox( parent, IDC_LIST_ACCEPTED, wxDefaultPosition, wxSize(180,150), 0, strs6, wxLB_SINGLE );
     item6->SetToolTip( _("Document files listed here will be appended to the open document starting from the top and working down") );
     item5->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4529,7 +4523,7 @@ wxSizer *JoinDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs13 = (wxString*) NULL;
-    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(-1,150), 0, strs13, wxLB_SINGLE );
+    wxListBox *item13 = new wxListBox( parent, IDC_LIST_REJECTED, wxDefaultPosition, wxSize(180,150), 0, strs13, wxLB_SINGLE );
     item13->SetToolTip( _("Document files listed here will not be joined to the open document") );
     item12->Add( item13, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -4822,7 +4816,9 @@ wxSizer *CCTableEditDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxButton *item5 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item3, 1, wxALIGN_CENTER|wxALL, 5 );
+    item3->Add( 60, 20, 0, wxALIGN_CENTER, 5 );
+
+    item0->Add( item3, 1, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( 640, 5, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -6583,6 +6579,80 @@ wxSizer *DoublePunctTabPageFunc( wxWindow *parent, bool call_fit, bool set_sizer
     return item0;
 }
 
+wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticLine *item1 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    item2->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
+
+    wxRadioButton *item3 = new wxRadioButton( parent, IDC_RADIO_DRAFTING, _("Drafting "), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
+    item3->SetValue( TRUE );
+    item3->SetToolTip( _("Use Drafting mode for initial drafting of your translation") );
+    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxRadioButton *item4 = new wxRadioButton( parent, IDC_RADIO_REVIEWING, _("Reviewing "), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->SetToolTip( _("Use Reviewing mode to review your translation phrase by phrase without jumping ahead") );
+    item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item5 = new wxCheckBox( parent, IDC_CHECK_SINGLE_STEP, _("Automatic "), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->SetValue( TRUE );
+    item5->SetToolTip( _("When Automatic is selected, Adapt It looks up translations in the KB and enters them automatically without stopping") );
+    item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item6 = new wxCheckBox( parent, IDC_CHECK_KB_SAVE, _("Save To Knowledge Base "), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->SetToolTip( _("Uncheck this box only to prevent Adapt It from storing anything in the KB for this particular word or phrase") );
+    item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item7 = new wxStaticText( parent, IDC_STATIC, _(" Delay "), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->SetToolTip( _("To slow down automatic insertions of adaptations, enter a number from 1 to 300 here") );
+    item2->Add( item7, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_DELAY, wxT("0"), wxDefaultPosition, wxSize(35,-1), wxTE_READONLY|wxTE_CENTRE | wxSUNKEN_BORDER );
+    item8->SetToolTip( wxT("Indicates hundredths of a second delay between automatically inserted adaptations") );
+    item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item2, 0, wxGROW|wxALL, 0 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    item9->Add( 5, 5, 0, wxALIGN_CENTER, 5 );
+
+    wxCheckBox *item10 = new wxCheckBox( parent, IDC_CHECK_FORCE_ASK, _("Force Choice For This Item "), wxDefaultPosition, wxDefaultSize, 0 );
+    item10->SetToolTip( _("Check this box to show the Choose Translation Dialog even if there is only one adaptation for this source word or phrase") );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item9->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxButton *item11 = new wxButton( parent, IDC_BUTTON_NO_ADAPT, _("<no adaptation>"), wxDefaultPosition, wxDefaultSize, 0 );
+    item11->SetToolTip( _("Press this button to store an \"empty translation\" for this particular word or phrase in the KB") );
+    item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item9->Add( 10, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxCheckBox *item12 = new wxCheckBox( parent, IDC_CHECK_ISGLOSSING, _("Glossing"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->SetToolTip( _("Select to toggle glossing mode on and off") );
+    item9->Add( item12, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item0->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
+    item0->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -6690,14 +6760,14 @@ wxMenuBar *AIMenuBarFunc()
     item5->AppendSeparator();
     item5->Append( ID_ADVANCED_SENDSYNCHRONIZEDSCROLLINGMESSAGES, _("Send Synchronized Scrolling Messages"), _("Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"), wxITEM_CHECK );
     item5->Append( ID_ADVANCED_RECEIVESYNCHRONIZEDSCROLLINGMESSAGES, _("Receive Synchronized Scrolling Messages"), _("Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"), wxITEM_CHECK );
-    item0->Append( item5, _("Advanced") );
+    item0->Append( item5, _("&Advanced") );
     
     wxMenu* item6 = new wxMenu;
     item6->Append( ID_ALIGNMENT, _("Layout Window Right To Left\tCtrl-1"), _("Layout text in window from right to left") );
-    item0->Append( item6, _("Layout") );
+    item0->Append( item6, _("&Layout") );
     
     wxMenu* item7 = new wxMenu;
-    item7->Append( wxID_HELP, _("&Help Topics"), _("List Help topics") );
+    item7->Append( wxID_HELP, _("&Help Topics\tShift-Ctrl-/"), _("List Help topics") );
     item7->Append( ID_ONLINE_HELP, _("Online Help (Requires Internet Access)"), _("Get Adapt It Help from the Internet in your browser") );
     item7->Append( ID_USER_FORUM, _("User Forum (Requires Internet Access)"), wxT("") );
     item7->AppendSeparator();
@@ -6713,7 +6783,7 @@ wxMenuBar *AIMenuBarFunc()
 
 void AIToolBarFunc( wxToolBar *parent )
 {
-    parent->SetMargins( 1, 1 );
+    parent->SetMargins( 0, 0 );
     
     parent->AddTool( wxID_NEW, wxT(""), AIToolBarBitmapsUnToggledFunc( 0 ), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document") );
     parent->EnableTool( wxID_NEW, FALSE );
@@ -6766,6 +6836,58 @@ void AIToolBarFunc( wxToolBar *parent )
     parent->AddTool( ID_BUTTON_EARLIER_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggledFunc( 25 ), wxNullBitmap, wxITEM_NORMAL, _("View Translation or Glosses Elsewhere in the Document"), _("View  translation or glosses elsewhere in the document; locate them by chapter and verse") );
     parent->AddTool( ID_BUTTON_NO_PUNCT_COPY, wxT(""), AIToolBarBitmapsUnToggledFunc( 27 ), wxNullBitmap, wxITEM_NORMAL, _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily") );
     parent->AddTool( wxID_HELP, wxT(""), AIToolBarBitmapsUnToggledFunc( 26 ), wxNullBitmap, wxITEM_NORMAL, _("Display Help Topics"), _("Display Adapt It program help topics") );
+    parent->AddSeparator();
+    
+    parent->Realize();
+}
+
+void AIToolBar32x30Func( wxToolBar *parent )
+{
+    parent->SetMargins( 0, 0 );
+    
+    parent->AddTool( wxID_NEW, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 0 ), wxNullBitmap, wxITEM_NORMAL, _("New"), _("Create a new document") );
+    parent->EnableTool( wxID_NEW, FALSE );
+    parent->AddTool( wxID_OPEN, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 1 ), wxNullBitmap, wxITEM_NORMAL, _("Open"), _("Open an existing document") );
+    parent->EnableTool( wxID_OPEN, FALSE );
+    parent->AddTool( wxID_SAVE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 2 ), wxNullBitmap, wxITEM_NORMAL, _("Save"), _("Save the active document") );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_CREATE_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 28 ), wxNullBitmap, wxITEM_NORMAL, _("Open a Note dialog"), _("Create a note dialog and open it for typing") );
+    parent->AddTool( ID_BUTTON_PREV_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 29 ), wxNullBitmap, wxITEM_NORMAL, _("Jump to the previous Note"), _("Go back and open the previous note") );
+    parent->AddTool( ID_BUTTON_NEXT_NOTE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 30 ), wxNullBitmap, wxITEM_NORMAL, _("Jump to the next Note"), _("Go forward and open the next note") );
+    parent->AddTool( ID_BUTTON_DELETE_ALL_NOTES, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 31 ), wxNullBitmap, wxITEM_NORMAL, _("Delete All Notes"), _("Delete all the notes currently in the document") );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_RESPECTING_BDRY, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 9 ), wxNullBitmap, wxITEM_NORMAL, _("Ignore  Boundaries"), _("Ignore boundaries when making selections") );
+    parent->AddTool( ID_BUTTON_SHOWING_PUNCT, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 10 ), wxNullBitmap, wxITEM_NORMAL, _("Hide Punctuation"), _("Don't show punctuation with the text") );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_TO_END, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 11 ), wxNullBitmap, wxITEM_NORMAL, _("Advance to End"), _("Advance to the end of the data") );
+    parent->AddTool( ID_BUTTON_TO_START, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 12 ), wxNullBitmap, wxITEM_NORMAL, _("Back to Start"), _("Go back to the start of the data") );
+    parent->EnableTool( ID_BUTTON_TO_START, FALSE );
+    parent->AddTool( ID_BUTTON_STEP_DOWN, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 13 ), wxNullBitmap, wxITEM_NORMAL, _("Move Down One Step"), _("Move the bundle down one step towards the bottom of the file") );
+    parent->AddTool( ID_BUTTON_STEP_UP, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 14 ), wxNullBitmap, wxITEM_NORMAL, _("Move Up One Step"), _("Move bundle back up one step towards the start of the file") );
+    parent->EnableTool( ID_BUTTON_STEP_UP, FALSE );
+    parent->AddTool( ID_BUTTON_BACK, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 15 ), wxNullBitmap, wxITEM_NORMAL, _("Jump Back"), _("Jump back to the last active location") );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_MERGE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 16 ), wxNullBitmap, wxITEM_NORMAL, _("Make A Phrase"), _("Merge selected words into a phrase") );
+    parent->EnableTool( ID_BUTTON_MERGE, FALSE );
+    parent->AddTool( ID_BUTTON_RESTORE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 17 ), wxNullBitmap, wxITEM_NORMAL, _("Unmake A Phrase"), _("Restore selected phrase to a sequence of word objects") );
+    parent->EnableTool( ID_BUTTON_RESTORE, FALSE );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 18 ), wxNullBitmap, wxITEM_NORMAL, _("Do A Retranslation"), _("The selected section is a retranslation, not an adaptation") );
+    parent->EnableTool( ID_BUTTON_RETRANSLATION, FALSE );
+    parent->AddTool( ID_BUTTON_EDIT_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 19 ), wxNullBitmap, wxITEM_NORMAL, _("Edit A Retranslation"), _("Edit the retranslation at the selection or at the active location") );
+    parent->EnableTool( ID_BUTTON_EDIT_RETRANSLATION, FALSE );
+    parent->AddTool( ID_REMOVE_RETRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 20 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Retranslation"), _("Remove the whole of the retranslation") );
+    parent->EnableTool( ID_REMOVE_RETRANSLATION, FALSE );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_NULL_SRC, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 21 ), wxNullBitmap, wxITEM_NORMAL, _("Insert A Placeholder"), _("Insert a placeholder into the source language text") );
+    parent->EnableTool( ID_BUTTON_NULL_SRC, FALSE );
+    parent->AddTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 22 ), wxNullBitmap, wxITEM_NORMAL, _("Remove A Placeholder"), _("Remove the placeholder and its adaptation text") );
+    parent->EnableTool( ID_BUTTON_REMOVE_NULL_SRCPHRASE, FALSE );
+    parent->AddSeparator();
+    parent->AddTool( ID_BUTTON_CHOOSE_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 23 ), wxNullBitmap, wxITEM_NORMAL, _("Show The Choose Translation Dialog"), _("Force the Choose Translation dialog to be shown") );
+    parent->AddTool( ID_SHOWING_ALL, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap, wxITEM_NORMAL, _("Show Target Text Only"), _("Show target text only") );
+    parent->AddTool( ID_BUTTON_EARLIER_TRANSLATION, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 25 ), wxNullBitmap, wxITEM_NORMAL, _("View Translation or Glosses Elsewhere in the Document"), _("View  translation or glosses elsewhere in the document; locate them by chapter and verse") );
+    parent->AddTool( ID_BUTTON_NO_PUNCT_COPY, wxT(""), AIToolBarBitmapsUnToggled32x30Func( 27 ), wxNullBitmap, wxITEM_NORMAL, _("No Punctuation Copy"), _("Suppress the copying of source text punctuation temporarily") );
     parent->AddSeparator();
     
     parent->Realize();
@@ -13779,6 +13901,57 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( image );
         return bitmap;
     }
+    if (index == 8)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 32 8 1",
+        "a c #808080",
+        "b c #FFFF00",
+        "c c #00FFFF",
+        "d c #800000",
+        "e c #008080",
+        "f c #FF0000",
+        "g c #C0C0C0",
+        "h c #808000",
+        /* pixels */
+        "bbbfhbbbbfbbbbbbbbbbbbbbbbhbbbbb",
+        "bbhffhbbbfhbbbbbbbbbffhbbffhfdbb",
+        "bbfffhbfffhffffhfffhfffbbffdffhb",
+        "bbfdfdhfhfhhfhfhfhfdffhbbffhfdbb",
+        "bhffffhfhfhffhfhfhfdffhbbffhfdbb",
+        "bffhffhfffhffffhfffhhffbbffhffhb",
+        "bbhbbhbbhhbbhhhhfdhbbhhbbbhbbhhb",
+        "bbbbbbbbbbbbbbbbhhbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbahbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbaachbbbbb",
+        "bbbbaaaaabbbbbbbbbhfbbaccahbbbbb",
+        "haaaaaaeabbbbffffffffbaccahbbbbb",
+        "haaagggaabbbffhbbbhfbbacaahbbbbb",
+        "baaggaaaabbfhbbbabbbbbaaaabbbbbb",
+        "baaaaaaaabffbbhaeabbbhaaabbbbbbb",
+        "baaagaaaahfhbbaeaeabbbhbbbbbbbbb",
+        "baaaaeaaaafhbhaeeeabbbbbbbbbbbbb",
+        "baaaaaaaaaabbbaaeeabbbbbbbbbbbbb",
+        "bhaaaaggggaabbheeabgaeeeeeeeabbb",
+        "bbaaaggggggaaabbbbbgeeeeeeeeeabb",
+        "bbhagggggaaagabbbbbaeaaaaaaaeabb",
+        "bbbaaggaagaaahbbbbbaeeeeeeeeeabb",
+        "bbbbaagggaaabfbbbbbaeeeeeeeeeabb",
+        "bbbbbaaaaabfffbbbbbaeeeeeeeeegbb",
+        "bbbbbbaahbbhffffbbbgeeeeeeeeegbb",
+        "bbbbbbbbbbbbfbhffffaaeaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbaaaaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbahaaaahaaaabb",
+        "bbbbbbbbbbbbbbbbbbhaaaaaaahaaaab",
+        "bbbbbbbbbbbbbbbbbhhaaaaaaaaaaaab",
+        "bbbbbbbbbbbbbbbbbhhbbbbbbbbbhhbb",
+        "gggggggggggggggggggggggggggggggg"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
     return wxNullBitmap;
 }
 
@@ -13790,13 +13963,12 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         /* XPM */
         static const char *xpm_data[] = {
         /* columns rows colors chars-per-pixel */
-        "16 15 6 1",
+        "16 15 5 1",
         "a c Black",
         "b c #808080",
         "c c #008000",
         "d c #FFFF00",
         "e c #00FFFF",
-        "f c #808000",
         /* pixels */
         "eeeeeeeeeeeeeeee",
         "eeeeeeeeeeeeeeee",
@@ -13807,7 +13979,7 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         "eeeeeeeeeeeeeeee",
         "cccccccbdbcccccc",
         "ccccccbdddbccccc",
-        "cccccbddaddbccfc",
+        "cccccbddaddbcccc",
         "ccccbdddddddbccc",
         "cccbddddaddddbcc",
         "ccbdddddddddddbc",
@@ -14005,6 +14177,1698 @@ wxBitmap WhichFilesBitmapsFunc( size_t index )
         "aaaaaccccaaaaaaaaaaaaaaaaaaaaaaa",
         "aaaaaccccaaaaaaaaaaaaaaaaaaaaaaa",
         "aaaaaaccaaaaaaaaaaaaaaaaaaaaaaaa"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    return wxNullBitmap;
+}
+
+wxBitmap AIToolBarBitmapsToggled32x30Func( size_t index )
+{
+    if ((index == 0) ||
+        (index == ID_BUTTON_IGNORING_BDRY))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 5 1",
+        "a c Black",
+        "b c #808080",
+        "c c #008000",
+        "d c #FFFF00",
+        "e c #00FFFF",
+        /* pixels */
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "ccccccccccccccbbddbbcccccccccccc",
+        "ccccccccccccccbbddbbcccccccccccc",
+        "ccccccccccccbbddddddbbcccccccccc",
+        "ccccccccccccbbddddddbbcccccccccc",
+        "ccccccccccbbddddaaddddbbcccccccc",
+        "ccccccccccbbddddaaddddbbcccccccc",
+        "ccccccccbbddddddddddddddbbcccccc",
+        "ccccccccbbddddddddddddddbbcccccc",
+        "ccccccbbddddddddaaddddddddbbcccc",
+        "ccccccbbddddddddaaddddddddbbcccc",
+        "ccccbbddddddddddddddddddddddbbcc",
+        "ccccbbddddddddddddddddddddddbbcc",
+        "ccbbddddddddddddaaddddddddddddbb",
+        "ccbbddddddddddddaaddddddddddddbb",
+        "bbddddddddddddddaadddddddddddddd",
+        "bbddddddddddddddaadddddddddddddd"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 1) ||
+        (index == ID_BUTTON_HIDING_PUNCT))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "d c #FF00FF",
+        "e c #FFFF00",
+        "f c #FF0000",
+        /* pixels */
+        "aaffddaaffffddaaccffffddaaffaadd",
+        "aaffddaaffffddaaccffffddaaffaadd",
+        "aaffddaaffffddaaccffffddccffaadd",
+        "aaffddaaffffddaaccffffddccffaadd",
+        "aaffddccffffddaaccffffddaaffaadd",
+        "aaffddccffffddaaccffffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "ccffddaaffffddaabbaaffddaaffaadd",
+        "ccffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaabbaaffddaaffaadd",
+        "aaffddaaffffddaaeeaaffddaaffaadd",
+        "aaffddaaffffddaaeeaaffddaaffaadd",
+        "aaffddaaffffddaaeeaaffddaaffaadd",
+        "aaffddaaffffddaaeeaaffddaaffaadd",
+        "aaffddaaffffaaeeeeaaffddaaffaadd",
+        "aaffddaaffffaaeeeeaaffddaaffaadd",
+        "aaffddaaffffaaeeeeaaffddaaffaadd",
+        "aaffddaaffffaaeeeeaaffddaaffaadd",
+        "aaffddaaaacceeeeeeeeaaaaccffaadd",
+        "aaffddaaaacceeeeeeeeaaaaccffaadd",
+        "aaaacceeeeeeeeeeeeeeeeeeeeaaccaa",
+        "aaaacceeeeeeeeeeeeeeeeeeeeaaccaa"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 2) ||
+        (index == ID_SHOWING_TGT))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 3 1",
+        "  c None",
+        "b c #FF0000",
+        "c c #0000FF",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "  cccc  ccbb  cc  ccbbcc  ccbb  ",
+        "  cccc  ccbb  cc  ccbbcc  ccbb  ",
+        "                                ",
+        "                                ",
+        "  cc  ccbbccbb  cccc  ccbbcc  cc",
+        "  cc  ccbbccbb  cccc  ccbbcc  cc",
+        "                                ",
+        "                                ",
+        "  cccc  ccbbcc  cc  cc  cc  ccbb",
+        "  cccc  ccbbcc  cc  cc  cc  ccbb",
+        "                                ",
+        "                                ",
+        "  cc  cccc  cc  ccbbcc  cc  cc  ",
+        "  cc  cccc  cc  ccbbcc  cc  cc  ",
+        "                                ",
+        "                                ",
+        "  bbccbbcc  cccc  cc  ccbbcc  cc",
+        "  bbccbbcc  cccc  cc  ccbbcc  cc",
+        "                                ",
+        "                                ",
+        "  cccc  cccc  ccbbcc  cc  cc  cc",
+        "  cccc  cccc  ccbbcc  cc  cc  cc",
+        "                                ",
+        "                                ",
+        "  cc  cc  ccbbbbcc  cc  ccbb  cc",
+        "  cc  cc  ccbbbbcc  cc  ccbb  cc",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 3) ||
+        (index == ID_BUTTON_ENABLE_PUNCT_COPY))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c Black",
+        "c c #FFFF00",
+        "d c #FF0000",
+        /* pixels */
+        "            aadddd              ",
+        "            aadddd              ",
+        "        dddddddddddddddd        ",
+        "        dddddddddddddddd        ",
+        "    ddddddddddaaccdddddddddd    ",
+        "    ddddddddddaaccdddddddddd    ",
+        "    ddddccccaaaaccccdddddddd    ",
+        "    ddddccccaaaaccccdddddddd    ",
+        "  ddddccccccaaaaccddddddccdddd  ",
+        "  ddddccccccaaaaccddddddccdddd  ",
+        "  ddddaaaaccaaaaddddddccccdddd  ",
+        "  ddddaaaaccaaaaddddddccccdddd  ",
+        "ddddccaaaaccaaddddddccccccccdddd",
+        "ddddccaaaaccaaddddddccccccccdddd",
+        "ddddccccccccddddddaaaaccccccdddd",
+        "ddddccccccccddddddaaaaccccccdddd",
+        "  ddddccccddddaaccaaaaccccdddd  ",
+        "  ddddccccddddaaccaaaaccccdddd  ",
+        "  ddddccddddddaaccccaaccccdddd  ",
+        "  ddddccddddddaaccccaaccccdddd  ",
+        "    ddddddddccccccaaccccdddd    ",
+        "    ddddddddccccccaaccccdddd    ",
+        "    ddddddccaaaaccccccdddddd    ",
+        "    ddddddccaaaaccccccdddddd    ",
+        "      ddddddddaaccdddddddd      ",
+        "      ddddddddaaccdddddddd      ",
+        "          dddddddddddd          ",
+        "          dddddddddddd          ",
+        "              dddd              ",
+        "              dddd              "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    return wxNullBitmap;
+}
+
+wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
+{
+    if (index == 0)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 3 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "      aaaaaaaaaaaaaaaa          ",
+        "      aaaaaaaaaaaaaaaa          ",
+        "      aabbbbbbbbbbbbaaaa        ",
+        "      aabbbbbbbbbbbbaaaa        ",
+        "      aabbbbbbbbbbbbaabbaa      ",
+        "      aabbbbbbbbbbbbaabbaa      ",
+        "      aabbbbbbbbbbbbaaaaaaaa    ",
+        "      aabbbbbbbbbbbbaaaaaaaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aaaaaaaaaaaaaaaaaaaaaa    ",
+        "      aaaaaaaaaaaaaaaaaaaaaa    ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 1)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 5 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #FFFF00",
+        "e c #808000",
+        /* pixels */
+        "                    aaaaaa      ",
+        "                    aaaaaa      ",
+        "                  aa      aa  aa",
+        "                  aa      aa  aa",
+        "                            aaaa",
+        "                            aaaa",
+        "    aaaaaa                aaaaaa",
+        "    aaaaaa                aaaaaa",
+        "  aabbddbbaaaaaaaaaaaaaa        ",
+        "  aabbddbbaaaaaaaaaaaaaa        ",
+        "  aaddbbddbbddbbddbbddaa        ",
+        "  aaddbbddbbddbbddbbddaa        ",
+        "  aabbddbbddbbddbbddbbaa        ",
+        "  aabbddbbddbbddbbddbbaa        ",
+        "  aaddbbddbbaaaaaaaaaaaaaaaaaaaa",
+        "  aaddbbddbbaaaaaaaaaaaaaaaaaaaa",
+        "  aabbddbbaaeeeeeeeeeeeeeeeeeeaa",
+        "  aabbddbbaaeeeeeeeeeeeeeeeeeeaa",
+        "  aaddbbaaeeeeeeeeeeeeeeeeeeaa  ",
+        "  aaddbbaaeeeeeeeeeeeeeeeeeeaa  ",
+        "  aabbaaeeeeeeeeeeeeeeeeeeaa    ",
+        "  aabbaaeeeeeeeeeeeeeeeeeeaa    ",
+        "  aaaaeeeeeeeeeeeeeeeeeeaa      ",
+        "  aaaaeeeeeeeeeeeeeeeeeeaa      ",
+        "  aaaaaaaaaaaaaaaaaaaaaa        ",
+        "  aaaaaaaaaaaaaaaaaaaaaa        ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 2)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 3 1",
+        "  c None",
+        "a c Black",
+        "c c #808000",
+        /* pixels */
+        "  aaaaaaaaaaaaaaaaaaaaaaaaaaaa  ",
+        "  aaaaaaaaaaaaaaaaaaaaaaaaaaaa  ",
+        "  aaccaa                aa  aa  ",
+        "  aaccaa                aa  aa  ",
+        "  aaccaa                aaaaaa  ",
+        "  aaccaa                aaaaaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccaa                aaccaa  ",
+        "  aaccccaaaaaaaaaaaaaaaaccccaa  ",
+        "  aaccccaaaaaaaaaaaaaaaaccccaa  ",
+        "  aaccccccccccccccccccccccccaa  ",
+        "  aaccccccccccccccccccccccccaa  ",
+        "  aaccccaaaaaaaaaaaaaaaaaaccaa  ",
+        "  aaccccaaaaaaaaaaaaaaaaaaccaa  ",
+        "  aaccccaaaaaaaaaaaa    aaccaa  ",
+        "  aaccccaaaaaaaaaaaa    aaccaa  ",
+        "  aaccccaaaaaaaaaaaa    aaccaa  ",
+        "  aaccccaaaaaaaaaaaa    aaccaa  ",
+        "  aaccccaaaaaaaaaaaa    aaccaa  ",
+        "  aaccccaaaaaaaaaaaa    aaccaa  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaaaa  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaaaa  ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 3)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 3 1",
+        "  c None",
+        "a c Black",
+        "c c #000080",
+        /* pixels */
+        "          aa      aa            ",
+        "          aa      aa            ",
+        "          aa      aa            ",
+        "          aa      aa            ",
+        "          aa      aa            ",
+        "          aa      aa            ",
+        "          aaaa  aaaa            ",
+        "          aaaa  aaaa            ",
+        "            aa  aa              ",
+        "            aa  aa              ",
+        "            aaaaaa              ",
+        "            aaaaaa              ",
+        "              aa                ",
+        "              aa                ",
+        "            ccaacc              ",
+        "            ccaacc              ",
+        "            cc  cccccc          ",
+        "            cc  cccccc          ",
+        "        cccccc  cc    cc        ",
+        "        cccccc  cc    cc        ",
+        "      cc    cc  cc    cc        ",
+        "      cc    cc  cc    cc        ",
+        "      cc    cc  cc    cc        ",
+        "      cc    cc  cc    cc        ",
+        "      cc    cc    cccc          ",
+        "      cc    cc    cccc          ",
+        "        cccc                    ",
+        "        cccc                    ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 4)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #000080",
+        /* pixels */
+        "  aaaaaaaaaaaa                  ",
+        "  aaaaaaaaaaaa                  ",
+        "  aabbbbbbbbaaaa                ",
+        "  aabbbbbbbbaaaa                ",
+        "  aabbbbbbbbaabbaa              ",
+        "  aabbbbbbbbaabbaa              ",
+        "  aabbaaaabbaadddddddddddd      ",
+        "  aabbaaaabbaadddddddddddd      ",
+        "  aabbbbbbbbbbddbbbbbbbbdddd    ",
+        "  aabbbbbbbbbbddbbbbbbbbdddd    ",
+        "  aabbaaaaaaaaddbbbbbbbbddbbdd  ",
+        "  aabbaaaaaaaaddbbbbbbbbddbbdd  ",
+        "  aabbbbbbbbbbddbbaaaabbdddddddd",
+        "  aabbbbbbbbbbddbbaaaabbdddddddd",
+        "  aabbaaaaaaaaddbbbbbbbbbbbbbbdd",
+        "  aabbaaaaaaaaddbbbbbbbbbbbbbbdd",
+        "  aabbbbbbbbbbddbbaaaaaaaaaabbdd",
+        "  aabbbbbbbbbbddbbaaaaaaaaaabbdd",
+        "  aaaaaaaaaaaaddbbbbbbbbbbbbbbdd",
+        "  aaaaaaaaaaaaddbbbbbbbbbbbbbbdd",
+        "              ddbbaaaaaaaaaabbdd",
+        "              ddbbaaaaaaaaaabbdd",
+        "              ddbbbbbbbbbbbbbbdd",
+        "              ddbbbbbbbbbbbbbbdd",
+        "              dddddddddddddddddd",
+        "              dddddddddddddddddd",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 5)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 7 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "e c #000080",
+        "f c #FFFF00",
+        "g c #808000",
+        /* pixels */
+        "            aaaaaaaa            ",
+        "            aaaaaaaa            ",
+        "    aaaaaaaaaaffffaaaaaaaaaa    ",
+        "    aaaaaaaaaaffffaaaaaaaaaa    ",
+        "  aaccggccaaffaaaaffaaggccggaa  ",
+        "  aaccggccaaffaaaaffaaggccggaa  ",
+        "  aaggccaa            aaggccaa  ",
+        "  aaggccaa            aaggccaa  ",
+        "  aaccggaaaaaaaaaaaaaaaaccggaa  ",
+        "  aaccggaaaaaaaaaaaaaaaaccggaa  ",
+        "  aaggccggccggccggccggccggccaa  ",
+        "  aaggccggccggccggccggccggccaa  ",
+        "  aaccggccggcceeeeeeeeeeeeeeaa  ",
+        "  aaccggccggcceeeeeeeeeeeeeeaa  ",
+        "  aaggccggccggeebbbbbbbbbbeeee  ",
+        "  aaggccggccggeebbbbbbbbbbeeee  ",
+        "  aaccggccggcceebbbbbbbbbbeebbee",
+        "  aaccggccggcceebbbbbbbbbbeebbee",
+        "  aaggccggccggeebbeeeeeebbeeeeee",
+        "  aaggccggccggeebbeeeeeebbeeeeee",
+        "  aaccggccggcceebbbbbbbbbbbbbbee",
+        "  aaccggccggcceebbbbbbbbbbbbbbee",
+        "  aaggccggccggeebbeeeeeeeeeebbee",
+        "  aaggccggccggeebbeeeeeeeeeebbee",
+        "    aaaaaaaaaaeebbbbbbbbbbbbbbee",
+        "    aaaaaaaaaaeebbbbbbbbbbbbbbee",
+        "              eeeeeeeeeeeeeeeeee",
+        "              eeeeeeeeeeeeeeeeee",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 6)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "e c #FFFF00",
+        "f c #C0C0C0",
+        /* pixels */
+        "          aaaaaaaaaaaaaaaaaa    ",
+        "          aaaaaaaaaaaaaaaaaa    ",
+        "        aabbbbbbbbbbbbbbbbaa    ",
+        "        aabbbbbbbbbbbbbbbbaa    ",
+        "        aabbaaaaaaaaaabbaa      ",
+        "        aabbaaaaaaaaaabbaa      ",
+        "      aabbbbbbbbbbbbbbbbaa      ",
+        "      aabbbbbbbbbbbbbbbbaa      ",
+        "      aabbaaaaaaaaaabbaaaaaaaa  ",
+        "      aabbaaaaaaaaaabbaaaaaaaa  ",
+        "    aabbbbbbbbbbbbbbbbaaffaaffaa",
+        "    aabbbbbbbbbbbbbbbbaaffaaffaa",
+        "  aaaaaaaaaaaaaaaaaaaaffaaffaaaa",
+        "  aaaaaaaaaaaaaaaaaaaaffaaffaaaa",
+        "aaffffffffffffffffffffaaffaaffaa",
+        "aaffffffffffffffffffffaaffaaffaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaffffaa",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaffffaa",
+        "aaffffffffffffccccccffffaaffaa  ",
+        "aaffffffffffffccccccffffaaffaa  ",
+        "aaffffffffffffeeeeeeffffaaaaaa  ",
+        "aaffffffffffffeeeeeeffffaaaaaa  ",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaffaa  ",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaffaa  ",
+        "  aaffffffffffffffffffaaffaa    ",
+        "  aaffffffffffffffffffaaffaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaa      ",
+        "    aaaaaaaaaaaaaaaaaaaaaa      ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 7)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #008000",
+        "e c #000080",
+        "f c #FF0000",
+        /* pixels */
+        "  cccccc    cccccc        cccc  ",
+        "  cccccc    cccccc        cccc  ",
+        "cc      cc  cc    cc    cccc  cc",
+        "cc      cc  cc    cc    cccc  cc",
+        "cc          cc    cc    cc      ",
+        "cc          cc    cc    cc      ",
+        "  cccccc    cccccc      cc      ",
+        "  cccccc    cccccc      cc      ",
+        "      cc    cc    cc    cc      ",
+        "      cc    cc    cc    cc      ",
+        "cc    cc    cc    cc    cccc  cc",
+        "cc    cc    cc    cc    cccc  cc",
+        "cccccc      cc    cc      cccc  ",
+        "cccccc      cc    cc      cccc  ",
+        "  aabb                  aaaa    ",
+        "  aabb                  aaaa    ",
+        "aaaabb                aabb  aabb",
+        "aaaabb                aabb  aabb",
+        "  aabb    ee      eebb        aa",
+        "  aabb    ee      eebb        aa",
+        "  aabb  eeffbb    ffeebb      aa",
+        "  aabb  eeffbb    ffeebb      aa",
+        "  aabbeeffffffffffffffee    aabb",
+        "  aabbeeffffffffffffffee    aabb",
+        "  aabb  eeffbb    ffee    aabb  ",
+        "  aabb  eeffbb    ffee    aabb  ",
+        "  aabb    eebb    ee    aabb    ",
+        "  aabb    eebb    ee    aabb    ",
+        "aaaaaabb              aaaaaaaaaa",
+        "aaaaaabb              aaaaaaaaaa"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 8)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #008000",
+        "e c #000080",
+        "f c #FF0000",
+        /* pixels */
+        "cccccccccc    cccc    cccccccccc",
+        "cccccccccc    cccc    cccccccccc",
+        "    cc      cc    cc      cc    ",
+        "    cc      cc    cc      cc    ",
+        "    cc      cc            cc    ",
+        "    cc      cc            cc    ",
+        "    cc      cc            cc    ",
+        "    cc      cc            cc    ",
+        "    cc      cc  cccccc    cc    ",
+        "    cc      cc  cccccc    cc    ",
+        "    cc      cc    cc      cc    ",
+        "    cc      cc    cc      cc    ",
+        "    cc        cccc        cc    ",
+        "    cc        cccc        cc    ",
+        "  aabb                  aaaabb  ",
+        "  aabb                  aaaabb  ",
+        "aaaabb                aabb  aabb",
+        "aaaabb                aabb  aabb",
+        "  aabb    eebb    eebb        aa",
+        "  aabb    eebb    eebb        aa",
+        "  aabb  eeffbb    ffeebb      aa",
+        "  aabb  eeffbb    ffeebb      aa",
+        "  aabbeeffffffffffffffeebb  aabb",
+        "  aabbeeffffffffffffffeebb  aabb",
+        "  aabb  eeffbb    ffee    aabb  ",
+        "  aabb  eeffbb    ffee    aabb  ",
+        "  aabb    eebb    ee    aabb    ",
+        "  aabb    eebb    ee    aabb    ",
+        "aaaaaabb              aaaaaaaaaa",
+        "aaaaaabb              aaaaaaaaaa"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 9) ||
+        (index == ID_BUTTON_RESPECTING_BDRY))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 7 1",
+        "a c Black",
+        "b c #808080",
+        "c c #008000",
+        "d c #FFFF00",
+        "e c #00FFFF",
+        "f c #808000",
+        "g c #800080",
+        /* pixels */
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "eeaaeeeeeeeeeeeeaaeeeeeeeeeeaaee",
+        "eeaaeeeeeeeeeeeeaaeeeeeeeeeeaaee",
+        "aaffaaeeeeeeeeaaffaaeeeeeeaaffaa",
+        "aaffaaeeeeeeeeaaffaaeeeeeeaaffaa",
+        "aaffaaaaaaaaaaaaffaaaaaaaaaaffaa",
+        "aaffaaaaaaaaaaaaffaaaaaaaaaaffaa",
+        "aaffaaeeeeeeeeaaffaaeeeeeeaaffaa",
+        "aaffaaeeeeeeeeaaffaaeeeeeeaaffaa",
+        "aaffaaaaaaaaaaaaffaaaaaaaaaaffaa",
+        "aaffaaaaaaaaaaaaffaaaaaaaaaaffaa",
+        "aaffaaeeeeeeeeaaffaaeeeeeeaaffaa",
+        "aaffaaeeeeeeeeaaffaaeeeeeeaaffaa",
+        "aaffaaaaaaaaaaaaffaaaaaaaaaaffaa",
+        "aaffaaaaaaaaaaaaffaaaaaaaaaaffaa",
+        "aaffaaccccbbddaaffaaddbbccaaffaa",
+        "aaffaaccccbbddaaffaaddbbccaaffaa",
+        "aaggaaccbbddddaaggaaddddbcaaggaa",
+        "aaggaaccbbddddaaggaaddddbcaaggaa",
+        "ccccccbbddddddddddddddddddccccaa",
+        "ccccccbbddddddddddddddddddccccaa",
+        "ccccbbddddddddddaaddddddddddbbcc",
+        "ccccbbddddddddddaaddddddddddbbcc",
+        "ccbbddddddddddddddddddddddddddbb",
+        "ccbbddddddddddddddddddddddddddbb",
+        "bbddddddddddddddaadddddddddddddd",
+        "bbddddddddddddddaadddddddddddddd"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 10) ||
+        (index == ID_BUTTON_SHOWING_PUNCT))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 8 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "e c #FFFF00",
+        "f c #FF0000",
+        "g c #C0C0C0",
+        "h c #808000",
+        /* pixels */
+        "ffffccffccffffccccffccffccffccff",
+        "ffffccffccffffccccffccffccffccff",
+        "ffffccffccffffccffffccffccffffcc",
+        "ffffccffccffffccffffccffccffffcc",
+        "ffccffffccffccbbccffccffffccffcc",
+        "ffccffffccffccbbccffccffffccffcc",
+        "ffccffccffffccbbccffffccffccffff",
+        "ffccffccffffccbbccffffccffccffff",
+        "ffccffccffccbbbbbbccffccffffccff",
+        "ffccffccffccbbbbbbccffccffffccff",
+        "hhffccffccbbggaaaabbccffccffffhh",
+        "hhffccffccbbggaaaabbccffccffffhh",
+        "aaaaffccbbbbggaaaabbbbccffhhaaaa",
+        "aaaaffccbbbbggaaaabbbbccffhhaaaa",
+        "ccaaa bbbbbbggaaaabbbbbbhhaaaaff",
+        "ccaaa bbbbbbggaaaabbbbbbhhaaaaff",
+        "ccffccbbbbbbggaaaabbbbccffccffff",
+        "ccffccbbbbbbggaaaabbbbccffccffff",
+        "ffccffccbbbbggaaaabbbbccffccffcc",
+        "ffccffccbbbbggaaaabbbbccffccffcc",
+        "ffccffcceeeeggaaaaeeeeccffccffcc",
+        "ffccffcceeeeggaaaaeeeeccffccffcc",
+        "ffccffcceeeeggaaaaeeeeccffccffcc",
+        "ffccffcceeeeggaaaaeeeeccffccffcc",
+        "ffccffcceeeeeeeeeeeeeeeeccccffcc",
+        "ffccffcceeeeeeeeeeeeeeeeccccffcc",
+        "ffccffcceeeeggaaaaeeeeeeeeccffcc",
+        "ffccffcceeeeggaaaaeeeeeeeeccffcc",
+        "cccccceeeeeeggaaaaeeeeeeeeeecccc",
+        "cccccceeeeeeggaaaaeeeeeeeeeecccc"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 11)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #800000",
+        "e c #008080",
+        "f c #800080",
+        /* pixels */
+        "ddddddddbb                      ",
+        "ddddddddbb                      ",
+        "ddbbbbbb      aaaaaabb          ",
+        "ddbbbbbb      aaaaaabb          ",
+        "ddddddbb    aaeeeeeeaabb        ",
+        "ddddddbb    aaeeeeeeaabb        ",
+        "ddbbbb      aaeeeeeeaabb        ",
+        "ddbbbb      aaeeeeeeaabb        ",
+        "dddddddd    aaeeeeeeaabb        ",
+        "dddddddd    aaeeeeeeaabb        ",
+        "  bbbbbbbb  aaeeeeeeaabb        ",
+        "  bbbbbbbb  aaeeeeeeaabb        ",
+        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
+        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
+        "        aaeeeeeeeeeeeeeeaabb    ",
+        "        aaeeeeeeeeeeeeeeaabb    ",
+        "          aaeeeeeeeeeeaabb      ",
+        "          aaeeeeeeeeeeaabb      ",
+        "            aaeeeeeeaabb        ",
+        "            aaeeeeeeaabb        ",
+        "              aaeeaabb          ",
+        "              aaeeaabb          ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
+        "  aaffffffffffffffffffffffffaabb",
+        "  aaffffffffffffffffffffffffaabb",
+        "  aaffffffffffffffffffffffffaabb",
+        "  aaffffffffffffffffffffffffaabb",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabbbb",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabbbb"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 12)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #800000",
+        "e c #008080",
+        "f c #800080",
+        /* pixels */
+        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
+        "  aaffffffffffffffffffffffffaabb",
+        "  aaffffffffffffffffffffffffaabb",
+        "  aaffffffffffffffffffffffffaabb",
+        "  aaffffffffffffffffffffffffaabb",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
+        "              aaeeaabbbbbbbbbb  ",
+        "              aaeeaabbbbbbbbbb  ",
+        "            aaeeeeeeaabb        ",
+        "            aaeeeeeeaabb        ",
+        "          aaeeeeeeeeeeaabb      ",
+        "          aaeeeeeeeeeeaabb      ",
+        "        aaeeeeeeeeeeeeeeaabb    ",
+        "        aaeeeeeeeeeeeeeeaabb    ",
+        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
+        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
+        "            aaeeeeeeaabbbbbbbb  ",
+        "            aaeeeeeeaabbbbbbbb  ",
+        "    ddddddbbaaeeeeeeaabb        ",
+        "    ddddddbbaaeeeeeeaabb        ",
+        "  ddbbbbbbbbaaeeeeeeaabb        ",
+        "  ddbbbbbbbbaaeeeeeeaabb        ",
+        "    ddddbb  aaeeeeeeaabb        ",
+        "    ddddbb  aaeeeeeeaabb        ",
+        "      bbddbb  aaaaaabb          ",
+        "      bbddbb  aaaaaabb          ",
+        "  ddddddbb      bbbbbb          ",
+        "  ddddddbb      bbbbbb          "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 13)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 5 1",
+        "  c None",
+        "a c Black",
+        "b c #808080",
+        "d c #FFFF00",
+        "e c #800000",
+        /* pixels */
+        "                            ee  ",
+        "                            ee  ",
+        "          aaaa            eeee  ",
+        "          aaaa            eeee  ",
+        "dd        aabbaa            ee  ",
+        "dd        aabbaa            ee  ",
+        "aaeeaa      aabbaa          ee  ",
+        "aaeeaa      aabbaa          ee  ",
+        "eeeeaa        aabbaa      eeeeee",
+        "eeeeaa        aabbaa      eeeeee",
+        "eeeeaa          aabbaa          ",
+        "eeeeaa          aabbaa          ",
+        "eeaadddddd        aabbaa  aa    ",
+        "eeaadddddd        aabbaa  aa    ",
+        "aaddddddaaeeaa      aabbaaaa    ",
+        "aaddddddaaeeaa      aabbaaaa    ",
+        "ddddddaaeeeeaa        aabbaa    ",
+        "ddddddaaeeeeaa        aabbaa    ",
+        "ddddaaeeeeeeaa      aaaaaaaa    ",
+        "ddddaaeeeeeeaa      aaaaaaaa    ",
+        "ddaaeeeeeeaadddddd              ",
+        "ddaaeeeeeeaadddddd              ",
+        "aaeeeeeeaaddddddaaeeaa          ",
+        "aaeeeeeeaaddddddaaeeaa          ",
+        "eeeeeeaaddddddaaeeeeaa          ",
+        "eeeeeeaaddddddaaeeeeaa          ",
+        "eeeeaaddddddaaeeeeeeaa          ",
+        "eeeeaaddddddaaeeeeeeaa          ",
+        "eeaaddddddaaeeeeeeaadddddddd    ",
+        "eeaaddddddaaeeeeeeaadddddddd    "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 14)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #808080",
+        "d c #FFFF00",
+        "e c #800000",
+        "f c #C0C0C0",
+        /* pixels */
+        "    ee                          ",
+        "    ee                          ",
+        "  eeee        aaaaaaaa          ",
+        "  eeee        aaaaaaaa          ",
+        "    ee          aabbaa        dd",
+        "    ee          aabbaa        dd",
+        "    ee        aabbaaaa    aaeeaa",
+        "    ee        aabbaaaa    aaeeaa",
+        "  eeeeee    aabbaaffaa    aaeeee",
+        "  eeeeee    aabbaaffaa    aaeeee",
+        "          aabbaa          aaeeee",
+        "          aabbaa          aaeeee",
+        "        aabbaa        ddddddaaee",
+        "        aabbaa        ddddddaaee",
+        "      aabbaa      aaeeaaddddddaa",
+        "      aabbaa      aaeeaaddddddaa",
+        "    aabbaa        aaeeeeaadddddd",
+        "    aabbaa        aaeeeeaadddddd",
+        "    aaaa          aaeeeeeeaadddd",
+        "    aaaa          aaeeeeeeaadddd",
+        "              ddddddaaeeeeeeaadd",
+        "              ddddddaaeeeeeeaadd",
+        "          aaeeaaddddddaaeeeeeeaa",
+        "          aaeeaaddddddaaeeeeeeaa",
+        "          aaeeeeaaddddddaaeeeeee",
+        "          aaeeeeaaddddddaaeeeeee",
+        "          aaeeeeeeaaddddddaaeeee",
+        "          aaeeeeeeaaddddddaaeeee",
+        "    ddddddddaaeeeeeeaaddddddaaee",
+        "    ddddddddaaeeeeeeaaddddddaaee"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 15)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "b c #FFFF00",
+        "c c #00FFFF",
+        "d c #008080",
+        /* pixels */
+        "              ddcc              ",
+        "              ddcc              ",
+        "            ddddcc              ",
+        "            ddddcc              ",
+        "          ddddddcc              ",
+        "          ddddddcc              ",
+        "        dddddddddddddddddddddddd",
+        "        dddddddddddddddddddddddd",
+        "      ddddddddddbbbbbbbbdddddddd",
+        "      ddddddddddbbbbbbbbdddddddd",
+        "    ddddddddddddbbddddddbbdddddd",
+        "    ddddddddddddbbddddddbbdddddd",
+        "  ddddddddddddddbbddddddbbdddddd",
+        "  ddddddddddddddbbddddddbbdddddd",
+        "ddddddddddddddddbbbbbbbbdddddddd",
+        "ddddddddddddddddbbbbbbbbdddddddd",
+        "  ddddddddddddddbbddddddbbdddddd",
+        "  ddddddddddddddbbddddddbbdddddd",
+        "    ddddddddddddbbddddddbbdddddd",
+        "    ddddddddddddbbddddddbbdddddd",
+        "      ddddddddddbbbbbbbbdddddddd",
+        "      ddddddddddbbbbbbbbdddddddd",
+        "        dddddddddddddddddddddddd",
+        "        dddddddddddddddddddddddd",
+        "          ddddddcccccccccccccccc",
+        "          ddddddcccccccccccccccc",
+        "            ddddcc              ",
+        "            ddddcc              ",
+        "              ddcc              ",
+        "              ddcc              "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 16)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #FFFF00",
+        "e c #FF0000",
+        "f c #800080",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "                                ",
+        "                                ",
+        "      aabb      aabb      aabb  ",
+        "      aabb      aabb      aabb  ",
+        "      aabb      aabb      aabb  ",
+        "      aabb      aabb      aabb  ",
+        "        aabb    aabb    aabb    ",
+        "        aabb    aabb    aabb    ",
+        "      aaaaaa  aaaaaa  aaaaaa    ",
+        "      aaaaaa  aaaaaa  aaaaaa    ",
+        "        aabb    aabb    aabb    ",
+        "        aabb    aabb    aabb    ",
+        "bbbbbb      bbbbbbbbbbbb      bb",
+        "bbbbbb      bbbbbbbbbbbb      bb",
+        "eeeedd    ffffffffffffbb    eeee",
+        "eeeedd    ffffffffffffbb    eeee",
+        "eeeedd    ffffffffffffbb    eeee",
+        "eeeedd    ffffffffffffbb    eeee",
+        "eeeedd    ffffffffffffbb    eeee",
+        "eeeedd    ffffffffffffbb    eeee",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 17)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 6 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #FFFF00",
+        "e c #FF0000",
+        "f c #800080",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "                                ",
+        "                                ",
+        "    aabb      aabb        aabb  ",
+        "    aabb      aabb        aabb  ",
+        "  aaaaaa    aaaaaa      aaaaaa  ",
+        "  aaaaaa    aaaaaa      aaaaaa  ",
+        "    aabb      aabb        aabb  ",
+        "    aabb      aabb        aabb  ",
+        "    aabb      aabb        aabb  ",
+        "    aabb      aabb        aabb  ",
+        "    aabb      aabb        aabb  ",
+        "    aabb      aabb        aabb  ",
+        "      aabb    aabb      aa      ",
+        "      aabb    aabb      aa      ",
+        "bbbbbb  aabbbbbbaabbaaaa    bbbb",
+        "bbbbbb  aabbbbbbaabbaaaa    bbbb",
+        "eeeedd    ffffffffffbb    eeeeee",
+        "eeeedd    ffffffffffbb    eeeeee",
+        "eeeedd    ffffffffffbb    eeeeee",
+        "eeeedd    ffffffffffbb    eeeeee",
+        "eeeedd    ffffffffffbb    eeeeee",
+        "eeeedd    ffffffffffbb    eeeeee"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 18)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 7 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #FFFF00",
+        "e c #00FFFF",
+        "f c #008080",
+        "g c #FF0000",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "ddggggggddggggggddggggggddgggggg",
+        "ddggggggddggggggddggggggddgggggg",
+        "ddggggggddggggggddggggggddgggggg",
+        "ddggggggddggggggddggggggddgggggg",
+        "ddggggggddggggggddggggggddgggggg",
+        "ddggggggddggggggddggggggddgggggg",
+        "eeggggggeeggggggeeggggggeegggggg",
+        "eeggggggeeggggggeeggggggeegggggg",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "aabbaaaabb    aaaabb  aabbaabbaa",
+        "aabbaaaabb    aaaabb  aabbaabbaa",
+        "aaaabb  aabbaabb  aabbaabbaabbaa",
+        "aaaabb  aabbaabb  aabbaabbaabbaa",
+        "aabb    aabbaaaaaabb  aabbaabbaa",
+        "aabb    aabbaaaaaabb  aabbaabbaa",
+        "aabb    aabbaabbbbbb  aabbaabbaa",
+        "aabb    aabbaabbbbbb  aabbaabbaa",
+        "aabb    aabb  aaaaaabb  aabbaabb",
+        "aabb    aabb  aaaaaabb  aabbaabb",
+        "                                ",
+        "                                ",
+        "ffffffff    ffffffff    ffffffff",
+        "ffffffff    ffffffff    ffffffff"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 19)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #008080",
+        /* pixels */
+        "                  aabbaabbaabb  ",
+        "                  aabbaabbaabb  ",
+        "    bbbb    bbbbbbaabbbb  aabbbb",
+        "    bbbb    bbbbbbaabbbb  aabbbb",
+        "  aaaabb    aaaabbaabbaabbaaaaaa",
+        "  aaaabb    aaaabbaabbaabbaaaaaa",
+        "aabbbbaabbaabb  aaaabbaabbaabb  ",
+        "aabbbbaabbaabb  aaaabbaabbaabb  ",
+        "aaaaaabb  aabb    aabbaabbaabb  ",
+        "aaaaaabb  aabb    aabbaabbaabb  ",
+        "aabbbbbb  aabb    aabbaabbaabb  ",
+        "aabbbbbb  aabb    aabbaabbaabb  ",
+        "  aaaaaabb  aaaaaabb  aabb  aabb",
+        "  aaaaaabb  aaaaaabb  aabb  aabb",
+        "bb  bbbb      bbbbbb  bbbbbbbbbb",
+        "bb  bbbb      bbbbbb  bbbbbbbbbb",
+        "aabbaaaabbbb  aaaabb  aabbaabbaa",
+        "aabbaaaabbbb  aaaabb  aabbaabbaa",
+        "aaaabb  aabbaabbbbaabbaabbaabbaa",
+        "aaaabb  aabbaabbbbaabbaabbaabbaa",
+        "aabb    aabbaaaaaa    aabbaabbaa",
+        "aabb    aabbaaaaaa    aabbaabbaa",
+        "aabb    aabbaabbbbbbbbaabbaabbaa",
+        "aabb    aabbaabbbbbbbbaabbaabbaa",
+        "aabb    aabb  aaaaaabb  aabbaabb",
+        "aabb    aabb  aaaaaabb  aabbaabb",
+        "                                ",
+        "                                ",
+        "dddddddd    dddddddd    dddddddd",
+        "dddddddd    dddddddd    dddddddd"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 20)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 9 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #008000",
+        "d c #FF00FF",
+        "f c #FFFF00",
+        "g c #FF0000",
+        "h c #0000FF",
+        "i c #C0C0C0",
+        /* pixels */
+        "    ddhhhh            ddhhhh    ",
+        "    ddhhhh            ddhhhh    ",
+        "      ddhhhh        ddhhhh      ",
+        "      ddhhhh        ddhhhh      ",
+        "ffggggggddhhhh    ddhhhhffgggggg",
+        "ffggggggddhhhh    ddhhhhffgggggg",
+        "ffggggggffddhhhhddhhhhggffgggggg",
+        "ffggggggffddhhhhddhhhhggffgggggg",
+        "ffggggggffggddhhhhhhggggffgggggg",
+        "ffggggggffggddhhhhhhggggffgggggg",
+        "ffggggggffggddhhhhhhggggffgggggg",
+        "ffggggggffggddhhhhhhggggffgggggg",
+        "          ddhhhhddhhhh          ",
+        "          ddhhhhddhhhh          ",
+        "    bbbbddhhhhbbbbddhhhh        ",
+        "    bbbbddhhhhbbbbddhhhh        ",
+        "aabbaaaahhhhiiaaaabbddhhhhaabbaa",
+        "aabbaaaahhhhiiaaaabbddhhhhaabbaa",
+        "aaaaddhhhhbbaabbbbaabbaahhhhbbaa",
+        "aaaaddhhhhbbaabbbbaabbaahhhhbbaa",
+        "aaddhhhhaabbaaaaaa    aaddhhhhaa",
+        "aaddhhhhaabbaaaaaa    aaddhhhhaa",
+        "aahhhh  aabbaabbbbbbbbaabbaahhhh",
+        "aahhhh  aabbaabbbbbbbbaabbaahhhh",
+        "hhhh    aabbbbaaaaaabb  aaaaaahh",
+        "hhhh    aabbbbaaaaaabb  aaaaaahh",
+        "hh                            dd",
+        "hh                            dd",
+        "cccccccc    cccccccc    cccccccc",
+        "cccccccc    cccccccc    cccccccc"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 21)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 8 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #FFFF00",
+        "e c #00FFFF",
+        "f c #008080",
+        "g c #FF0000",
+        "h c #808000",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "      aaaa    aaaa    aaaa      ",
+        "      aaaa    aaaa    aaaa      ",
+        "      aaaa    aaaa    aaaa      ",
+        "      aaaa    aaaa    aaaa      ",
+        "                                ",
+        "                                ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "            ffffffffbb          ",
+        "      eeee  ffffffff  eeee      ",
+        "      eeee  ffffffff  eeee      ",
+        "bbbbbbbbhhffffffffffffffbb  bbbb",
+        "bbbbbbbbhhffffffffffffffbb  bbbb",
+        "ggggggdd  hhffffffffffbb  gggggg",
+        "ggggggdd  hhffffffffffbb  gggggg",
+        "ggggggdd    hhffffffbb    gggggg",
+        "ggggggdd    hhffffffbb    gggggg",
+        "ggggggdd      hhffbb      gggggg",
+        "ggggggdd      hhffbb      gggggg",
+        "                bb              ",
+        "                bb              "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 22)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 9 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "d c #008000",
+        "f c #FFFF00",
+        "g c #800000",
+        "h c #FF0000",
+        "i c #C0C0C0",
+        /* pixels */
+        "                                ",
+        "                                ",
+        "hhhhff  aaaa  aaaa  aaaa  hhhhhh",
+        "hhhhff  aaaa  aaaa  aaaa  hhhhhh",
+        "hhhhff  aaaa  aaaa  aaaa  hhhhhh",
+        "hhhhff  aaaa  aaaa  aaaa  hhhhhh",
+        "hhhhff                    hhhhhh",
+        "hhhhff                    hhhhhh",
+        "            aaggggggggbb        ",
+        "            aaggggggggbb        ",
+        "              aaggggbb          ",
+        "              aaggggbb          ",
+        "                aabb            ",
+        "                aabb            ",
+        "    aabbaabbaaiicciiaaccaaccaa  ",
+        "    aabbaabbaaiicciiaaccaaccaa  ",
+        "    cciibbaabbaaiiaaiiaaiiaacc  ",
+        "    cciibbaabbaaiiaaiiaaiiaacc  ",
+        "    aabbaabbiibbaaiiddiiaaiiaa  ",
+        "    aabbaabbiibbaaiiddiiaaiiaa  ",
+        "      aabbaabbaaiiaaiiaaiiaa    ",
+        "      aabbaabbaaiiaaiiaaiiaa    ",
+        "      aaiibbaabbiiiiaaiiccaa    ",
+        "      aaiibbaabbiiiiaaiiccaa    ",
+        "      ccbbaabbaabbaaiiaaiicc    ",
+        "      ccbbaabbaabbaaiiaaiicc    ",
+        "      aaccbbccbbaabbcciiccaa    ",
+        "      aaccbbccbbaabbcciiccaa    ",
+        "        aaccccaaccaaccccaa      ",
+        "        aaccccaaccaaccccaa      "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 23)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 12 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "d c #FF00FF",
+        "f c #FFFF00",
+        "g c #00FFFF",
+        "h c #800000",
+        "i c #0000FF",
+        "j c #C0C0C0",
+        "k c #808000",
+        "l c #800080",
+        /* pixels */
+        "ddddddddkk                      ",
+        "ddddddddkk                      ",
+        "ddddddddkk        aaaaaaaaaaaaaa",
+        "ddddddddkk        aaaaaaaaaaaaaa",
+        "ddddddddkk        aaffffffffffff",
+        "ddddddddkk        aaffffffffffff",
+        "ddddddddll    ll  aaffiiffffiiff",
+        "ddddddddll    ll  aaffiiffffiiff",
+        "ddddddhhllllll    aaffiiffiiffii",
+        "ddddddhhllllll    aaffiiffiiffii",
+        "ddddhhcc          aaffffffffffff",
+        "ddddhhcc          aaffffffffffff",
+        "cchhccbbaa        aaffffffffffff",
+        "cchhccbbaa        aaffffffffffff",
+        "hhkkbbbbggii      aaffiiffiiffff",
+        "hhkkbbbbggii      aaffiiffiiffff",
+        "hhkkbbbbggii      aaffffiiffiiii",
+        "hhkkbbbbggii      aaffffiiffiiii",
+        "ddhhccbbaa        aaffffffffffff",
+        "ddhhccbbaa        aaffffffffffff",
+        "ddcchhccjj        aaffiiffffiiff",
+        "ddcchhccjj        aaffiiffffiiff",
+        "ddddcchhllll      aaffffiiffiiii",
+        "ddddcchhllll      aaffffiiffiiii",
+        "ddddddddhh  ll    aaffffffffffff",
+        "ddddddddhh  ll    aaffffffffffff",
+        "ddddddddkk        aaaaaaaaaaaaaa",
+        "ddddddddkk        aaaaaaaaaaaaaa",
+        "ddddddddkk                      ",
+        "ddddddddkk                      "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 24) ||
+        (index == ID_SHOWING_ALL))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c #FFFFFF",
+        "b c #FF00FF",
+        "d c #0000FF",
+        /* pixels */
+        "ddddddaaddddddddaaddddddaadddddd",
+        "ddddddaaddddddddaaddddddaadddddd",
+        "                                ",
+        "                                ",
+        "bbbbbbaabbbbbbbbaabbbbbbaabbbbbb",
+        "bbbbbbaabbbbbbbbaabbbbbbaabbbbbb",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "ddddaaddddddddaaddddddddddaadddd",
+        "ddddaaddddddddaaddddddddddaadddd",
+        "                                ",
+        "                                ",
+        "bbbbaabbbbbbbbaabbbbbbbbbbaabbbb",
+        "bbbbaabbbbbbbbaabbbbbbbbbbaabbbb",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "ddddaaddddddddaaddddddaadddddddd",
+        "ddddaaddddddddaaddddddaadddddddd",
+        "                                ",
+        "                                ",
+        "bbbbaabbbbbbbbaabbbbbbaabbbbbbbb",
+        "bbbbaabbbbbbbbaabbbbbbaabbbbbbbb"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 25)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 9 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #808080",
+        "d c #008000",
+        "e c #FF00FF",
+        "g c #00FFFF",
+        "h c #C0C0C0",
+        "i c #800080",
+        /* pixels */
+        "                    iiiiiiiiii  ",
+        "                    iiiiiiiiii  ",
+        "                  iiggggggggggii",
+        "                  iiggggggggggii",
+        "        cccceeeecciiddggddggddii",
+        "        cccceeeecciiddggddggddii",
+        "  cc  cceeeeeeeeeeeeeeggggggggii",
+        "  cc  cceeeeeeeeeeeeeeggggggggii",
+        "  cceeeeeeee    eeeeeeeeddggddii",
+        "  cceeeeeeee    eeeeeeeeddggddii",
+        "  cceeeeee        iiggeeggggggii",
+        "  cceeeeee        iiggeeggggggii",
+        "  cceeeeee        iiiiiiiiiiiiii",
+        "  cceeeeee        iiiiiiiiiiiiii",
+        "  cccccccccc      iiccccccccccii",
+        "  cccccccccc      iiccccccccccii",
+        "bbbbbbbbbbbbbb    iicccciiiiiiii",
+        "bbbbbbbbbbbbbb    iicccciiiiiiii",
+        "ccaaccaaaaccbb    iiccccccccccii",
+        "ccaaccaaaaccbb    iiccccccccccii",
+        "cchhhhhhhhccbb    iiiiiiiiiiiiii",
+        "cchhhhhhhhccbb    iiiiiiiiiiiiii",
+        "ccaaaaccaaccbb    iiii      iiii",
+        "ccaaaaccaaccbb    iiii      iiii",
+        "cchhhhhhhhccbb                  ",
+        "cchhhhhhhhccbb                  ",
+        "ccaaccaaaaccbb                  ",
+        "ccaaccaaaaccbb                  ",
+        "cc        ccbb                  ",
+        "cc        ccbb                  "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 26)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 3 1",
+        "  c None",
+        "a c Black",
+        "c c #FFFF00",
+        /* pixels */
+        "          aaaaaaaaaaaa          ",
+        "          aaaaaaaaaaaa          ",
+        "        aaccccccccccaaaa        ",
+        "        aaccccccccccaaaa        ",
+        "      aaccccaaaaaaccccaaaa      ",
+        "      aaccccaaaaaaccccaaaa      ",
+        "      aaccaaaa    aaccaaaa      ",
+        "      aaccaaaa    aaccaaaa      ",
+        "      aaccaaaa  aaccccaaaa      ",
+        "      aaccaaaa  aaccccaaaa      ",
+        "        aaaa  aaccccaaaa        ",
+        "        aaaa  aaccccaaaa        ",
+        "            aaccccaaaa          ",
+        "            aaccccaaaa          ",
+        "            aaccaaaa            ",
+        "            aaccaaaa            ",
+        "            aaccaaaa            ",
+        "            aaccaaaa            ",
+        "            aaccaaaa            ",
+        "            aaccaaaa            ",
+        "              aaaa              ",
+        "              aaaa              ",
+        "            aaccccaaaa          ",
+        "            aaccccaaaa          ",
+        "            aaccccaaaa          ",
+        "            aaccccaaaa          ",
+        "              aaaaaa            ",
+        "              aaaaaa            ",
+        "                                ",
+        "                                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 27) ||
+        (index == ID_BUTTON_NO_PUNCT_COPY))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 2 1",
+        "a c Black",
+        "b c #00FF00",
+        /* pixels */
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbaaaabbbbbbbbbbaaaabbbb",
+        "bbbbbbbbbbaaaabbbbbbbbbbaaaabbbb",
+        "bbaaaabbbbaaaabbbbbbaaaaaaaaaabb",
+        "bbaaaabbbbaaaabbbbbbaaaaaaaaaabb",
+        "bbaaaabbbbaaaabbbbbbaaaabbaaaaaa",
+        "bbaaaabbbbaaaabbbbbbaaaabbaaaaaa",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbaaaaaa",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbaaaa",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbaaaa",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbaaaa",
+        "bbbbbbbbbbaaaabbbbaaaabbbbaaaaaa",
+        "bbbbbbbbbbaaaabbbbaaaabbbbaaaaaa",
+        "bbbbbbbbbbaaaabbbbaaaabbbbaaaabb",
+        "bbbbbbbbbbaaaabbbbaaaabbbbaaaabb",
+        "bbbbbbbbbbbbbbbbbbbbaabbaaaabbbb",
+        "bbbbbbbbbbbbbbbbbbbbaabbaaaabbbb",
+        "bbbbbbbbbbaaaabbbbaabbbbaaaabbbb",
+        "bbbbbbbbbbaaaabbbbaabbbbaaaabbbb",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbaaaabbbbbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbaaaabbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbaaaabbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbaaaabbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbaaaabbbb"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 28)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #0000FF",
+        /* pixels */
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "  aabbbbaabbbbbbaabbbbbbaabbaa  ",
+        "  aabbbbaabbbbbbaabbbbbbaabbaa  ",
+        "aabbbbbbaabbbbbbaabbbbbbaabbbbaa",
+        "aabbbbbbaabbbbbbaabbbbbbaabbbbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "aabbbbbbbbbbbbddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbddbbbbbbbbbbbbbbaa",
+        "aabbddddbbbbbbddbbddbbbbbbddbbaa",
+        "aabbddddbbbbbbddbbddbbbbbbddbbaa",
+        "aabbbbbbddbbbbddddbbddbbddbbddaa",
+        "aabbbbbbddbbbbddddbbddbbddbbddaa",
+        "aabbddbbddbbbbddbbbbddbbddbbbbaa",
+        "aabbddbbddbbbbddbbbbddbbddbbbbaa",
+        "aabbddbbddbbbbddddbbddbbddbbddaa",
+        "aabbddbbddbbbbddddbbddbbddbbddaa",
+        "aabbbbddddddbbddbbddbbbbbbddbbaa",
+        "aabbbbddddddbbddbbddbbbbbbddbbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbaa",
+        "  aabbbbbbbbbbbbbbbbbbbbbbbbaa  ",
+        "  aabbbbbbbbbbbbbbbbbbbbbbbbaa  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 29)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #008080",
+        /* pixels */
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "  aabbbbaabbbbbbaabbbbbbaabbaa  ",
+        "  aabbbbaabbbbbbaabbbbbbaabbaa  ",
+        "aabbbbbbaabbbbbbaabbbbbbaabbbbaa",
+        "aabbbbbbaabbbbbbaabbbbbbaabbbbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbddddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbddddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbddddddddddddddbbbbbbaa",
+        "aabbbbbbbbddddddddddddddbbbbbbaa",
+        "aabbbbbbddddddddddddddddbbbbbbaa",
+        "aabbbbbbddddddddddddddddbbbbbbaa",
+        "aabbbbbbbbddddddddddddddbbbbbbaa",
+        "aabbbbbbbbddddddddddddddbbbbbbaa",
+        "aabbbbbbbbbbddddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbddddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbddbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbddbbbbbbbbbbbbbbaa",
+        "  aabbbbbbbbbbbbbbbbbbbbbbbbaabb",
+        "  aabbbbbbbbbbbbbbbbbbbbbbbbaabb",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 30)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "  c None",
+        "a c Black",
+        "b c #FFFFFF",
+        "d c #008080",
+        /* pixels */
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "  aabbbbaabbbbbbaabbbbbbaabbaa  ",
+        "  aabbbbaabbbbbbaabbbbbbaabbaa  ",
+        "aabbbbbbaabbbbbbaabbbbbbaabbbbaa",
+        "aabbbbbbaabbbbbbaabbbbbbaabbbbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbaaaaaabbaaaaaabbaaaaaabbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbbbbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddddbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddddbbbbbbbbbbaa",
+        "aabbbbbbddddddddddddddbbbbbbbbaa",
+        "aabbbbbbddddddddddddddbbbbbbbbaa",
+        "aabbbbbbddddddddddddddddbbbbbbaa",
+        "aabbbbbbddddddddddddddddbbbbbbaa",
+        "aabbbbbbddddddddddddddbbbbbbbbaa",
+        "aabbbbbbddddddddddddddbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddddbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddddbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddbbbbbbbbbbbbaa",
+        "aabbbbbbbbbbbbbbddbbbbbbbbbbbbaa",
+        "  aabbbbbbbbbbbbbbbbbbbbbbbbaa  ",
+        "  aabbbbbbbbbbbbbbbbbbbbbbbbaa  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaa    "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if (index == 31)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 30 4 1",
+        "a c Black",
+        "b c #FFFFFF",
+        "c c #FF0000",
+        "d c #0000FF",
+        /* pixels */
+        "ccccaaaaaaaaaaaaaaaaaaaaaacccccc",
+        "ccccaaaaaaaaaaaaaaaaaaaaaacccccc",
+        "ccccccbbaabbbbbbaabbbbbbcccccccc",
+        "ccccccbbaabbbbbbaabbbbbbcccccccc",
+        "ccccccccaabbbbbbaabbbbccccccccaa",
+        "ccccccccaabbbbbbaabbbbccccccccaa",
+        "ccccccccaaaabbaaaaccccccccccbbaa",
+        "ccccccccaaaabbaaaaccccccccccbbaa",
+        "aabbccccaaaabbaaaaccccccccaabbaa",
+        "aabbccccaaaabbaaaaccccccccaabbaa",
+        "aabbbbccccccccbbccccccbbbbbbbbbb",
+        "aabbbbccccccccbbccccccbbbbbbbbbb",
+        "aabbbbbbccccccccccccbbbbbbbbbbaa",
+        "aabbbbbbccccccccccccbbbbbbbbbbaa",
+        "aabbddddbbccccccccddbbbbbbddbbaa",
+        "aabbddddbbccccccccddbbbbbbddbbaa",
+        "aabbbbccccccccccccccddbbddbbddaa",
+        "aabbbbccccccccccccccddbbddbbddaa",
+        "aabbddccddccccccccccccccddbbbbaa",
+        "aabbddccddccccccccccccccddbbbbaa",
+        "aabbccccccccbbddccccccccddbbddaa",
+        "aabbccccccccbbddccccccccddbbddaa",
+        "aaccccccccddbbddbbddccccccddbbaa",
+        "aaccccccccddbbddbbddccccccddbbaa",
+        "ccccccccbbbbbbbbbbbbbbccccccccaa",
+        "ccccccccbbbbbbbbbbbbbbccccccccaa",
+        "ccccccbbbbbbbbbbbbbbbbbbcccccccc",
+        "ccccccbbbbbbbbbbbbbbbbbbcccccccc",
+        "ccccccaaaaaaaaaaaaaaaaaaaaaacccc",
+        "ccccccaaaaaaaaaaaaaaaaaaaaaacccc"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;

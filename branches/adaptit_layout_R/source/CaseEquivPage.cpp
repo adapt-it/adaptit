@@ -804,18 +804,6 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		casePgCommon.m_strGlossEquivalences = casePgCommon.m_pEditGlossEquivalences->GetValue();
 		bool bGood = TRUE;
 
-		// if the user turned on automatic capitalization in this dialog, then make sure the
-		// menu item of that name is ticked (or unticked if off)
-		if (gbAutoCaps)
-		{
-			gbAutoCaps = FALSE;
-		}
-		else
-		{
-			gbAutoCaps = TRUE;
-		}
-		gpApp->OnToolsAutoCapitalization(event); // TODO: check if this is needed ???
-	
 		// build the source case strings
 		bGood = casePgCommon.BuildUcLcStrings(casePgCommon.m_strSrcEquivalences, gpApp->m_srcLowerCaseChars, 
 																		gpApp->m_srcUpperCaseChars);
@@ -879,6 +867,24 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		else
 			gbNoGlossCaseEquivalents = FALSE;
 		
+		// whm added 12Mar09. 
+		// Make sure the "Use Automatic Capitalization" menu item on the Tools menu agrees with the
+		// checkbox item in this case page that reads, "Check here if you want Adapt It to
+		// automatically distinguist between upper case and lower case letters."
+		
+		// if the user turned on automatic capitalization in this dialog, then make sure the
+		// menu item of that name is ticked (or unticked if off)
+		if (gbAutoCaps)
+		{
+			gbAutoCaps = FALSE;
+		}
+		else
+		{
+			gbAutoCaps = TRUE;
+		}
+		gpApp->OnToolsAutoCapitalization(event);
+	
+
 		// Movement through wizard pages is sequential - the next page is the usfmPageWiz.
 		// The pUsfmPageWiz's InitDialog need to be called here just before going to it
 		wxInitDialogEvent idevent;
@@ -1034,18 +1040,6 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 	casePgCommon.m_strGlossEquivalences = casePgCommon.m_pEditGlossEquivalences->GetValue();
 	bool bGood = TRUE;
 
-	// if the user turned on automatic capitalization in this dialog, then make sure the
-	// menu item of that name is ticked (or unticked if off)
-	if (gbAutoCaps)
-	{
-		gbAutoCaps = FALSE;
-	}
-	else
-	{
-		gbAutoCaps = TRUE;
-	}
-	gpApp->OnToolsAutoCapitalization(event); // TODO: check if this is needed ???
-	
 	// build the source case strings
 	bGood = casePgCommon.BuildUcLcStrings(casePgCommon.m_strSrcEquivalences, gpApp->m_srcLowerCaseChars, 
 																	gpApp->m_srcUpperCaseChars);
@@ -1112,16 +1106,22 @@ void CCaseEquivPagePrefs::OnOK(wxCommandEvent& event)
 	else
 		gbNoGlossCaseEquivalents = FALSE;
 
-	// In the code above, there does not seem to be any easy way to detect whether or not
-	// the user has made a change to the case equivalences; so we'll assume the following
-	// flag is to be set FALSE. The outcome of this is that the RecalcLayout() call will,
-	// if no other pile-width-changing preferences were changed, be the one for
-	// keep_strips_keep_piles -- which should be safe because auto-capitalization is only
-	// doing what the user would have done manually himself, and even if not, an upper
-	// versus lower case change should alter the width of the pile by less than the size
-	// of the inter-pile gap, and therefore we do not expect any visual overlap of piles
-	// as a result of setting this flag FALSE
-	gpApp->m_pLayout->m_bCaseEquivalencesChanged = FALSE;
+	// whm added 12Mar09. 
+	// Make sure the "Use Automatic Capitalization" menu item on the Tools menu agrees with the
+	// checkbox item in this case page that reads, "Check here if you want Adapt It to
+	// automatically distinguist between upper case and lower case letters."
+	
+	// if the user turned on automatic capitalization in this dialog, then make sure the
+	// menu item of that name is ticked (or unticked if off)
+	if (gbAutoCaps)
+	{
+		gbAutoCaps = FALSE;
+	}
+	else
+	{
+		gbAutoCaps = TRUE;
+	}
+	gpApp->OnToolsAutoCapitalization(event);
 }
 
 void CCaseEquivPagePrefs::OnBnClickedSrcCopyToGloss(wxCommandEvent& WXUNUSED(event))

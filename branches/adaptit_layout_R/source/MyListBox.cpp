@@ -54,17 +54,20 @@
 #include "MyListBox.h"
 #include "ChooseTranslation.h"
 
+/// This global is defined in Adapt_It.cpp.
+extern CAdapt_ItApp* gpApp; // if we want to access it fast
+
 // IMPLEMENT_CLASS(CMyListBox, wxBaseMyListBox)
 IMPLEMENT_DYNAMIC_CLASS(CMyListBox, wxListBox)
 
 // event handler table
 BEGIN_EVENT_TABLE(CMyListBox, wxListBox)
 	EVT_KEY_UP(CMyListBox::OnSysKeyUp)
-//	EVT_KEY_DOWN(CMyListBox::OnSysKeyDown)
-//	EVT_CHAR(CMyListBox::OnChar)
+	EVT_KEY_DOWN(CMyListBox::OnSysKeyDown)
+	EVT_CHAR(CMyListBox::OnChar)
 END_EVENT_TABLE()
 
-CMyListBox::CMyListBox() // constructor
+CMyListBox::CMyListBox() // default constructor
 {
 	
 }
@@ -116,7 +119,6 @@ void CMyListBox::OnSysKeyUp(wxKeyEvent& event)
 	// want those behaviors to replace the default wxListBox native behaviors on all platforms.
 }
 
-/* this is "later" stuff from Bill - so comment it out
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxKeyEvent that is generated before a key is released by the  
@@ -138,28 +140,26 @@ void CMyListBox::OnSysKeyUp(wxKeyEvent& event)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CMyListBox::OnSysKeyDown(wxKeyEvent& event) 
 {
-    // Note: This OnSysKeyDown() handler is activated BEFORE the default wxListBox gets key
-    // down events. Therefore, any special behaviors that are to replace the default
-    // wxListBox behaviors should call "return" after their implementation rather than
-    // allowing control to pass through the event.Skip() call at the end of the function.
-    CAdapt_ItApp* pApp = &wxGetApp(); 
-    // The native Windows and Mac list box has the characteristic that when more than one
-    // item is in a list box, if the user types a key the selected item will change to an
-    // item that starts with the letter the user typed (while the list box is in focus).
-    // wxGTK's native list box, however, doesn't appear to be implemented to behave
-    // similarly. Wolfgang Stradner asked if we could implement a circular list selection
-    // with the up and down arrow keys (he was using Linux/wxGTK). Implement cycling of
-    // list box item selection for up an down arrow key
+	// Note: This OnSysKeyDown() handler is activated BEFORE the default wxListBox gets key down
+	// events. Therefore, any special behaviors that are to replace the default wxListBox behaviors
+	// should call "return" after their implementation rather than allowing control to pass through the
+	// event.Skip() call at the end of the function.
+	// 
+	// The native Windows and Mac list box has the characteristic that when more than one item is in a
+	// list box, if the user types a key the selected item will change to an item that starts with the
+	// letter the user typed (while the list box is in focus). wxGTK's native list box, however, doesn't
+	// appear to be implemented to behave similarly. Wolfgang Stradner asked if we could implement a
+	// circular list selection with the up and down arrow keys (he was using Linux/wxGTK).
+	// Implement cycling of list box item selection for up an down arrow key
 	if (this->GetCount() > 1)
 	{
-        // Make all ports have same selection behavior for up and down arrow keys to cycle
-        // around the list so that a down arrow press when last item is selected selects
-        // the first item in list, and an up arrow press when first item is selected
-        // selects the last item in list.
+		// Make all ports have same selection behavior for up and down arrow keys to cycle around the
+		// list so that a down arrow press when last item is selected selects the first item in list,
+		// and an up arrow press when first item is selected selects the last item in list.
 		if (event.GetKeyCode() == WXK_UP && this->GetSelection() == 0)
 		{
-            // List box has more than one item; first item is selected and user has pressed
-            // the up arrow key, so recycle down to select the last item in the list.
+			// List box has more than one item; first item is selected and user has pressed the up
+			// arrow key, so recycle down to select the last item in the list.
 			this->Deselect(this->GetSelection()); // 
 			this->SetSelection(this->GetCount() -1);
 			this->SetFocus();
@@ -167,45 +167,39 @@ void CMyListBox::OnSysKeyDown(wxKeyEvent& event)
 		}
 		if (event.GetKeyCode() == WXK_DOWN && this->GetSelection() == (int)this->GetCount()-1)
 		{
-            // List box has more than one item; the last item is selected and user has
-            // pressed the down arrow key, so recycle up to select the first item in the
-            // list.
+			// List box has more than one item; the last item is selected and user has pressed the down
+			// arrow key, so recycle up to select the first item in the list.
 			this->Deselect(this->GetSelection());
 			this->SetSelection(0);
 			this->SetFocus();
 			return; // don't call Skip() to pass on the key event to be handled by wxListBox base class
 		}
 
-        // Make all ports have same selection behavior for key press jumping to items whose
-        // string values start with the char that was typed. Windows has this behavior
-        // natively in its list boxes, the Mac only partially, and Linux/wxGTK does not
-        // have these behaviors at all without the implementation below.
+		// Make all ports have same selection behavior for key press jumping to items whose string
+		// values start with the char that was typed. Windows has this behavior natively in its list
+		// boxes, the Mac only partially, and Linux/wxGTK does not have these behaviors at all without
+		// the implementation below.
 		if (!event.HasModifiers() && this->GetCount() > 1)
 		{
-            // Enable automatic search and select when user types letter keys on focused
-            // list box. When more than one item is in list box, try to select a list item
-            // that starts with the character typed. This behavior is native to Windows and
-            // Mac list boxes, but apparently is not a native behavior for wxGTK, so we'll
-            // implement it here for wxGTK.
+			// Enable automatic search and select when user types letter keys on focused list box.
+			// When more than one item is in list box, try to select a list item that starts with the
+			// character typed. This behavior is native to Windows and Mac list boxes, but apparently is
+			// not a native behavior for wxGTK, so we'll implement it here for wxGTK.
 #ifdef _UNICODE
 			wxChar searchCh = event.GetUnicodeKey();
 #else
-			wxChar searchCh = event.GetKeyCode(); // will be upper case but FindListBoxItem()
-												  // below uses caseInsensitive search
+			wxChar searchCh = event.GetKeyCode(); // will be upper case but FindListBoxItem() below uses caseInsensitive search
 #endif
 			wxString searchStr = searchCh;
 			int nFound = -1;
-            // Search from the current selection position (using the FindListBoxItem()
-            // override function
-			nFound = pApp->FindListBoxItem(this,searchStr,caseInsensitive, subString,
-												fromCurrentSelPosCyclingBack);
+			// Search from the current selection position (using the FindListBoxItem() override function
+			nFound = gpApp->FindListBoxItem(this,searchStr,caseInsensitive, subString ,fromCurrentSelPosCyclingBack);
 			if (nFound != -1)
 			{
 				this->Deselect(this->GetSelection());
 				this->SetSelection(nFound);
 				this->SetFocus();
-				return; // don't call Skip() to pass on the key event to be handled by 
-						// wxListBox base class
+				return; // don't call Skip() to pass on the key event to be handled by wxListBox base class
 			}
 		}
 	}
@@ -219,4 +213,3 @@ void CMyListBox::OnChar(wxKeyEvent& event)
 	//ch = event.GetKeyCode();
 	event.Skip();
 }
-*/

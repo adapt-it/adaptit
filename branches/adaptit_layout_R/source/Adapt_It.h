@@ -3,7 +3,7 @@
 /// \file			Adapt_It.h
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	28 January 2009
+/// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public 
 ///                 License (see license directory)
@@ -46,12 +46,12 @@
 
 // ******************************* my #defines *********************************************
 
-#define VERSION_MAJOR_PART 4
-#define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 1
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases
-#define VERSION_DATE_DAY 4
-#define VERSION_DATE_MONTH 2
+#define VERSION_MAJOR_PART 5
+#define VERSION_MINOR_PART 0
+#define VERSION_BUILD_PART 0
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 11
+#define VERSION_DATE_MONTH 7
 #define VERSION_DATE_YEAR 2009
 
 //#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
@@ -301,6 +301,16 @@ struct FreeTrElement
 	wxRect subRect;
 };
 
+/// An enum for return error-state from GetNewFile()
+enum getNewFileState
+{
+	getNewFile_success,
+	getNewFile_error_at_open,
+	getNewFile_error_opening_binary,
+	getNewFile_error_no_data_read,
+	getNewFile_error_unicode_in_ansi
+};
+
 /// An enum for specifying the selection extension direction, either right or left.
 enum extendSelDir
 {
@@ -341,6 +351,13 @@ enum SearchStrLengthType
 {
 	subString,
 	exactString
+};
+
+enum StartFromType
+{
+	fromFirstListPos,
+	fromCurrentSelPosToListEnd,
+	fromCurrentSelPosCyclingBack
 };
 
 /// A struct for specifying time settings. Struct members include: m_tsDoc, m_tsKB, m_tLastDocSave, and m_tLastKBSave.
@@ -1304,7 +1321,6 @@ public:
 							// preparation of the XML form of the Adapt It document
 	wxString	buffer;
 	wxString	m_curChapter;
-	//wxString	m_savePunctuation[2]; // TODO: Moved in MFC app vers 3 to PunctCorrespPage.h
 
 	MapWholeMkrToFilterStatus m_FilterStatusMap;// entries are a wholeMarker (ie. with backslash) as key
 												//  with either a "0" or "1" string as its associated value
@@ -1431,6 +1447,8 @@ public:
 
 	int m_nTooltipDelay;	// amount in milliseconds of time tooltips display before disappearing 
 							// if m_bUseToolTips is TRUE the default time is 20000 (20 seconds)
+
+	bool m_bExecutingOnXO;  // TRUE if command-line switch -xo is used, FALSE otherwise
 
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
@@ -1735,6 +1753,13 @@ public:
 
 	// file i/o and directory structures
 	wxString		m_workFolderPath;		// "C:\My Documents\Adapt It Work" or the Win 2000 equiv path
+
+	// whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf <path>
+	// command-line option)
+	wxString		m_wf_forced_workFolderPath; // any path following a -wf command-line option
+	wxString		m_newdoc_forced_newDocPath; // any path following a -newdoc command-line option
+	wxString		m_exports_forced_exportsPath; // any path following a -exports command-line option
+
 	wxString		m_theWorkFolder;		// "Adapt It Work"
 	wxString		m_localPathPrefix;		// the part of the workfolder path before the m_theWorkFolder part
 	wxString		m_adaptionsFolder;		// "Adaptations" folder
@@ -2033,6 +2058,8 @@ public:
 	
 	void OnFileChangeFolder(wxCommandEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
+	void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
+	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 	
 	// According to the wxWidgets developers, the "Print Setup..." menu selection is obsolete since
 	// Windows 95. Users are expecte to do any necessary print setup from the main print dialog.
@@ -2094,6 +2121,7 @@ public:
 	bool	LocalizationFilesExist(); 
 	// Functions that let the user select/change Adapt It's interface language
 	bool	ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface);
+	bool	ReverseOkCancelButtonsForMac(wxDialog* dialog);
 
 	bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
 	wxString GetDefaultPathForLocalizationSubDirectories();
@@ -2134,6 +2162,9 @@ public:
 	int		FindArrayString(const wxString& findStr, wxArrayString* strArray);
 	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
 							enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType);
+	int		FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
+							enum SearchCaseType searchType, enum SearchStrLengthType searchStrLenType, 
+							enum StartFromType startFromType);
 	void	FormatMarkerAndDescriptionsStringArray(wxClientDC* pDC, wxArrayString* MkrAndDescrArray, int minNumSpaces, wxArrayInt* pUserCanSetFilterFlags);
 	bool	GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView, CPhraseBox*& pBox);
 	MapSfmToUSFMAnalysisStruct* GetCurSfmMap(enum SfmSet sfmSet);

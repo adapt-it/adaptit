@@ -244,7 +244,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 		exportFilename.Remove(len-3,3); //exportFilename.Delete(len-3,3); // remove the adt or xml extension
 		exportFilename += _T("rtf"); // make it a *.rtf file type
 		DefaultExt = _T("rtf");
-		filter = _("Exported Adapt It RTF Documents (*.rtf)|*rtf|All Files (*.*)|*.*||"); //IDS_EXPORT_RTF_FILTER
+		filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||"); //IDS_EXPORT_RTF_FILTER
 		bRTFOutput = TRUE;
 	}
 
@@ -748,7 +748,7 @@ void DoExportInterlinearRTF()
 
 	// get a file dialog
 	wxString filter;
-	filter = _("Exported Adapt It RTF Documents (*.rtf)|*rtf|All Files (*.*)|*.*||"); //IDS_EXPORT_RTF_FILTER use the RTF export filter
+	filter = _("Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||"); //IDS_EXPORT_RTF_FILTER use the RTF export filter
 	wxFileDialog fileDlg(
 		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 		_("Filename For Exported Interlinear Document"),

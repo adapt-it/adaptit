@@ -39,7 +39,7 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
-#include <wx/tooltip.h> // for wxGenericValidator
+#include <wx/tooltip.h> // for wxToolTip
 
 #include "Adapt_It.h"
 #include "ChooseTranslation.h"
@@ -173,6 +173,9 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
     pContSizerOfLB->Add(m_pMyListBox, 1, wxGROW|wxALL, 0);
     m_pMyListBox->SetFocus();
 
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_refCount = 0;
 	m_refCountStr.Empty();
 	m_refCountStr << m_refCount;
@@ -184,12 +187,15 @@ CChooseTranslation::CChooseTranslation(wxWindow* parent) // dialog constructor
 
 	m_pSourcePhraseBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_MATCHED_SOURCE);
 	m_pSourcePhraseBox->SetBackgroundColour(gpApp->sysColorBtnFace);
+	m_pSourcePhraseBox->Enable(FALSE); // it is readonly and should not receive focus on Tab
 
 	m_pNewTranslationBox = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_TRANSLATION);
 
 	m_pEditReferences = (wxTextCtrl*)FindWindowById(IDC_EDIT_REFERENCES);
 	m_pEditReferences->SetValidator(wxGenericValidator(&m_refCountStr));
 	m_pEditReferences->SetBackgroundColour(gpApp->sysColorBtnFace);
+	m_pEditReferences->Enable(FALSE); // it is readonly and should not receive focus on Tab
+
 
 	// Note: We don't need to set up any SetValidators for data transfer 
 	// in this class since all assignment of values is done in OnOK()
@@ -690,7 +696,12 @@ a:	int nPreviousReferences = pRefString->m_refCount;
 	}
 	TransferDataToWindow();
 	gbCallerIsRemoveButton = FALSE; // reestablish the safe default
-	m_pMyListBox->SetFocus();
+	// If the last translation was removed set focus to the New Translation edit box, otherwise to the
+	// Translations list box. (requested by Wolfgang Stradner).
+	if (nItems == 0)
+		m_pNewTranslationBox->SetFocus();
+	else
+		m_pMyListBox->SetFocus();
 }
 
 void CChooseTranslation::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow

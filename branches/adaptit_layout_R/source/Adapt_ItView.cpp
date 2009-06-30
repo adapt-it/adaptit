@@ -93,7 +93,7 @@
 #include "PlaceInternalPunct.h"
 #include "KBEditor.h"
 #include "ConsistencyCheckDlg.h"
-#include "ProgressDlg.h" // formerly called RestoreKBProgress.h
+//#include "ProgressDlg.h" // removed in svn revision #562
 #include "GoToDlg.h"
 //#include "PrintingDlg.h"
 #include "WaitDlg.h" 
@@ -1381,6 +1381,13 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 	{
 		//const wxString nullStr = _T("");
 		DrawFreeTranslations(pDC, pApp->m_pBundle, call_from_ondraw);
+		// whm 4Apr09 note on problem of free translations in main window not being cleared for
+		// deletes or other edits the result in a shorter version: Having both Refresh and Update 
+		// here causes bad flicker indicating that OnDraw is being continuously invoked when those 
+		// calls are made. See note in ComposeBarEditBox::OnEditBoxChanged() where Refresh and Update
+		// do need to be called to make deleting edits effective.
+		//canvas->Refresh();
+		//canvas->Update();
 	}
 
 	//m_targetBox.Invalidate(); // Bruce's MFC Note 20Dec07: ensure a box draw is done later than any paint of the layout
@@ -1968,7 +1975,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	}
 	*/
 	pApp->m_targetPhrase = saveText;
-	gnStart = 0;
+	gnStart = -1;
 	gnEnd = -1;
 	pApp->m_nStartChar = gnStart;
 	pApp->m_nEndChar = gnEnd;
@@ -1978,7 +1985,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	// do it again
 	if (pApp->m_pTargetBox != NULL)
 	{
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 		pApp->m_nStartChar = gnStart;
 		pApp->m_nEndChar = gnEnd;
@@ -11104,7 +11111,7 @@ void CAdapt_ItView::ReDoPhraseBox(const CCell *pCell)
 	int width = strWidth + gnExpandBox*charWidth;
 	pApp->m_nCurPileMinWidth = width <= pApp->m_nCurPileMinWidth ? pApp->m_nCurPileMinWidth : width;
 	pApp->m_curBoxWidth = pApp->m_nCurPileMinWidth;
-	pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+	pApp->m_nStartChar = -1; pApp->m_nEndChar = -1; // MFC had m_nStartChar = 0 for select all
 
 	// we must destroy the edit box's window, if not, an assert is tripped in Wincore.cpp,
 	// since it expects a null handle
@@ -12922,7 +12929,7 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 		// whm 24Aug06 modified below to eliminate gFreeTranslationStr global
 		wxString tempStr;
 		tempStr.Empty();
-		pEdit->SetValue(tempStr);
+		pEdit->ChangeValue(tempStr); //pEdit->SetValue(tempStr); // whm changed 1Apr09 to ChangeValue()
 	}
 	// BEW removed 31Jan01 because the global's value is not always reliable
 	//gLastSrcPhrasePos = 0; // ensure we use the safe but longer algorithm to find new position
@@ -14850,6 +14857,10 @@ bool CAdapt_ItView::ExtendSelectionRight()
 					pApp->m_selectionLine = -1;
 					pApp->m_pAnchor = NULL;
 					pApp->m_selection.Clear();
+					// TODO 30Jun09 Check if below is still needed
+					gnSelectionLine = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionStartSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionEndSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
 				}
 			}
 			else
@@ -14863,6 +14874,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 								// handler that tests the status of m_selectionLine != -1
 				return FALSE;
 			}
+#ifdef __WXMAC__
+			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+#endif
 			return TRUE;
 		}
 
@@ -14973,6 +14987,9 @@ bool CAdapt_ItView::ExtendSelectionRight()
 			return FALSE;
 		}
 	}
+#ifdef __WXMAC__
+	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+#endif
 	return TRUE;
 }
 
@@ -15053,6 +15070,10 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 					pApp->m_selectionLine = -1;
 					pApp->m_pAnchor = NULL;
 					pApp->m_selection.Clear();
+					// TODO 30Jun09 Check if below is still needed
+					gnSelectionLine = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionStartSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
+					gnSelectionEndSequNum = -1; // whm added 21Feb09 to get global back in sync with reality
 				}
 			}
 			else // pPrevCell is NULL
@@ -15062,6 +15083,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
                 _T(""), wxICON_INFORMATION);
 				return FALSE;
 			}
+#ifdef __WXMAC__
+			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+#endif
 			return TRUE;
 		}
 		// find the leftmost cell of the selection
@@ -15181,6 +15205,9 @@ bool CAdapt_ItView::ExtendSelectionLeft()
 			return FALSE;
 		}
 	}
+#ifdef __WXMAC__
+	pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+#endif
 	return TRUE;
 }
 
@@ -16736,7 +16763,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 		if (pEdit != 0)
 		{
 			pEdit->SetSelection(-1,-1);
-			gnStart = 0;
+			gnStart = -1;
 			gnEnd = -1;
 			pEdit->SetFocus();
 		}
@@ -20176,7 +20203,7 @@ void CAdapt_ItView::RedrawEverything(int nActiveSequNum)
 			pApp->m_nCurPileMinWidth = pApp->m_curBoxWidth; // update this too, so box can be shorter
 												// if necessary
 			pApp->m_targetPhrase.Empty();
-			pApp->m_nStartChar = 0;
+			pApp->m_nStartChar = -1; // MFC had 0
 			pApp->m_nEndChar = -1;
 			pApp->m_curIndex = pApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
 
@@ -20198,7 +20225,7 @@ void CAdapt_ItView::RedrawEverything(int nActiveSequNum)
 			}
 		}
 
-		pApp->m_nStartChar = 0;
+		pApp->m_nStartChar = -1; // MFC had 0
 		int len = pApp->m_pTargetBox->GetLineLength(0);// line number zero for our phrasebox
 		pApp->m_nEndChar = len;
 		pApp->m_pTargetBox->SetSelection(pApp->m_nEndChar,pApp->m_nEndChar); // put cursor at end // MFC SetSel
@@ -20297,9 +20324,10 @@ void CAdapt_ItView::OnUpdateButtonToggleTargetLines(wxUpdateUIEvent& event)
 }
 */
 
-void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
+void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr)
 // Modified for support of glossing KB as well as adapting KB. The caller must send the
 // correct KB pointer in the first parameter.
+// whm modified 27Apr09 to report errors of punctuation existing in documents discovered during KB Restore
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -20370,26 +20398,52 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase)
 			wxString strCurAdaption = pSrcPhrase->m_adaption;
 			wxString strKey(strCurKey);
 			wxString strAdaption(strCurAdaption);
-			RemovePunctuation(pDoc,&strKey,from_source_text);
-			RemovePunctuation(pDoc,&strAdaption,from_target_text);
+			if (!pSrcPhrase->m_bNullSourcePhrase)
+			{
+				// Don't remove "..." (in source phrase only) which represents a null source phrase (placeholder)
+				RemovePunctuation(pDoc,&strKey,from_source_text);
+			}
+			if (!pSrcPhrase->m_bNotInKB)
+			{
+				// Don't remove "<Not In KB>" (in target text only)
+				RemovePunctuation(pDoc,&strAdaption,from_target_text);
+			}
 			if (strKey != strCurKey)
 				bKeyHasPunct = TRUE;
 			if (strAdaption != strCurAdaption)
 				bAdaptionHasPunct = TRUE;
-			// Here is where Bill can put code for a log file, to report where fixes were made
+			// Construct an errorStr for a log file, to report where fixes were made. This errorStr is
+			// passed back to the caller DoKBRestore() where log file is written out to disk.
 			if (bKeyHasPunct || bAdaptionHasPunct)
 			{
 				// initialize the log file's entry here
-				;
+				// whm note: For each given document used in the KB Restore where a correction was
+				// made, the following string is added (in the caller) to introduce the change in the
+				// log file:
+				//errorStr = _T("During the KB Restore, a correction involving punctuation was made to the KB and the following document:\n   %s\n   Punctuation was removed (see below) which had been wrongly stored by a previous version of Adapt It.");
 				if (bKeyHasPunct)
 				{
 					// compose a substring for log file
-					; 
+					errorStr += _T("\n      ");
+					errorStr += _T("\"");
+					errorStr += strCurKey;
+					errorStr += _T("\"");
+					errorStr += _T(" was changed to ");
+					errorStr += _T("\"");
+					errorStr += strKey;
+					errorStr += _T("\"");
 				}
 				if (bAdaptionHasPunct)
 				{
 					// extend or begin a substring for log file
-					; 
+					errorStr += _T("\n      ");
+					errorStr += _T("\"");
+					errorStr += strCurAdaption;
+					errorStr += _T("\"");
+					errorStr += _T(" was changed to ");
+					errorStr += _T("\"");
+					errorStr += strAdaption;
+					errorStr += _T("\"");
 				}
 				// finalize the entry here, and add it to the log file
 				;
@@ -23495,7 +23549,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 
 		pApp->m_targetPhrase = str3; // the Phrase Box can have punctuation as well as text
 		pApp->m_pTargetBox->ChangeValue(str3);
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 
 		// layout again, so that the targetBox won't encroach on the next cell's adaption text 
@@ -24461,7 +24515,7 @@ h:				wxMessageBox(_(
 		// next two are handled now in PlacePhraseBoxInLayout()
 		//pApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
 		//pApp->m_pTargetBox->SetFocus();
-		gnStart = 0;
+		gnStart = -1;
 		gnEnd = -1;
 
 		// remove selection and update the display
@@ -29166,7 +29220,7 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 
 	// get a file dialog
 	wxString filter;
-	filter = _("Adapt It Reports (*.txt)|*txt||"); //IDS_REPORT_FILTER
+	filter = _("Adapt It Reports (*.txt)|*.txt||"); //IDS_REPORT_FILTER
 	wxFileDialog fileDlg(
 		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 		_("Filename For Retranslation Report"),
@@ -29806,7 +29860,11 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_RTL_LAYOUT
+#ifdef __WXMAC__
+		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+#else
 		pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+#endif
 	}
 	else
 	{
@@ -29816,7 +29874,11 @@ void CAdapt_ItView::OnAlignment(wxCommandEvent& WXUNUSED(event))
 
 		// change text of the menu item
 		//IDS_LTR_LAYOUT
+#ifdef __WXMAC__
+		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-Shift-1"));
+#else
 		pLayoutMenuAlignment->SetText(_("Layout Window Left To Right\tCtrl-1"));
+#endif
 	}
 
 	// redraw everything -- RecalcLayout uses the m_bRTL_LAYOUT flag in the CreateStrip() function
@@ -29863,7 +29925,11 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 		gbRTL_Layout = TRUE; // do the global too
 
 		// change text of the menu item ready for next time user accesses it
+#ifdef __WXMAC__
+		menuItem = _("Layout Window Left To Right\tCtrl-Shift-1"); //menuItem.Format(IDS_LTR_LAYOUT);
+#else
 		menuItem = _("Layout Window Left To Right\tCtrl-1"); //menuItem.Format(IDS_LTR_LAYOUT);
+#endif
 		pLayoutMenuAlignment->SetText(menuItem);
 	}
 	else
@@ -29875,7 +29941,11 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 			gbRTL_Layout = FALSE; // do the global too
 
 			// change text of the menu item ready for next time user accesses it
+#ifdef __WXMAC__
+			menuItem = _("Layout Window Right To Left\tCtrl-Shift-1"); //IDS_RTL_LAYOUT
+#else
 			menuItem = _("Layout Window Right To Left\tCtrl-1"); //IDS_RTL_LAYOUT
+#endif
 			pLayoutMenuAlignment->SetText(menuItem);
 		}
 		else
@@ -30221,11 +30291,22 @@ void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXU
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
-				AIToolBarBitmapsToggledFunc( 0 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Stop Selection At Boundaries"),
-				_("Respect boundaries when selecting"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 0 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Stop Selection At Boundaries"),
+					_("Respect boundaries when selecting"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_IGNORING_BDRY, _T(""),
+					AIToolBarBitmapsToggledFunc( 0 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Stop Selection At Boundaries"),
+					_("Respect boundaries when selecting"));
+			}
 			// whm Note: Now, the ignoring bdry button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Respect Boundaries.
 			// must call Realize() after adding a new button
@@ -30285,11 +30366,22 @@ void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXU
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 9 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Ignore Boundaries"),
-				_("Ignore boundaries when making selections"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 9 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Ignore Boundaries"),
+					_("Ignore boundaries when making selections"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_RESPECTING_BDRY, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 9 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Ignore Boundaries"),
+					_("Ignore boundaries when making selections"));
+			}
 			// whm Note: Now, the respecting bdry button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Ignore Boundaries.
 			// must call Realize() after adding a new button
@@ -30393,11 +30485,22 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
-				AIToolBarBitmapsToggledFunc( 1 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Show Punctuation"),
-				_("Show text with punctuation"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 1 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Punctuation"),
+					_("Show text with punctuation"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_HIDING_PUNCT, _T(""),
+					AIToolBarBitmapsToggledFunc( 1 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Punctuation"),
+					_("Show text with punctuation"));
+			}
 			// whm Note: Now, the hiding punct button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Show Punctuation.
 			// must call Realize() after adding a new button
@@ -30522,11 +30625,22 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event)) // 
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 27 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("No Punctuation Copy"),
-				_("Suppress the copying of source text punctuation temporarily"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 27 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("No Punctuation Copy"),
+					_("Suppress the copying of source text punctuation temporarily"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_NO_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 27 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("No Punctuation Copy"),
+					_("Suppress the copying of source text punctuation temporarily"));
+			}
 			// must call Realize() after adding a new button
 			pToolBar->Realize();
 		}
@@ -30618,11 +30732,22 @@ void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
-				AIToolBarBitmapsToggledFunc( 3 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Enable Punctuation Copy"),
-				_("Re-enable automatic copying of source text punctuation"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 3 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Enable Punctuation Copy"),
+					_("Re-enable automatic copying of source text punctuation"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_ENABLE_PUNCT_COPY, _T(""),
+					AIToolBarBitmapsToggledFunc( 3 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Enable Punctuation Copy"),
+					_("Re-enable automatic copying of source text punctuation"));
+			}
 			// must call Realize() after adding a new button
 			pToolBar->Realize();
 		}
@@ -30723,11 +30848,22 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 10 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Hide Punctuation"),
-				_("Don't show punctuation with the text"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 10 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Hide Punctuation"),
+					_("Don't show punctuation with the text"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_BUTTON_SHOWING_PUNCT, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 10 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Hide Punctuation"),
+					_("Don't show punctuation with the text"));
+			}
 			// whm Note: Now, the showing punct button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Hide Punctuation.
 			// must call Realize() after adding a new button
@@ -30862,11 +30998,22 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
-				AIToolBarBitmapsToggledFunc( 2 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Show normal view"),
-				_("Show Source And Target Text"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
+					AIToolBarBitmapsToggled32x30Func( 2 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show normal view"),
+					_("Show Source And Target Text"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_TGT, _T(""),
+					AIToolBarBitmapsToggledFunc( 2 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show normal view"),
+					_("Show Source And Target Text"));
+			}
 			// whm Note: Now, the showing tgt only button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Show Source and
 			// Target Text.
@@ -30980,11 +31127,22 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 		{
 			// Note: In InsertTool, 1st parameter is position of button, zero based, count includes spacers
 			// In AIToolBarBitmapsUnToggledFunc parameter is index of bitmap, zero based (no spacers in count)
-			pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
-				AIToolBarBitmapsUnToggledFunc( 24 ), wxNullBitmap,
-				wxITEM_CHECK,
-				_("Show Target Text Only"),
-				_("Show target text only"));
+			if (pApp->m_bExecutingOnXO) //if (pFrame->m_bUsingHighResDPIScreen)
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
+					AIToolBarBitmapsUnToggled32x30Func( 24 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Target Text Only"),
+					_("Show target text only"));
+			}
+			else
+			{
+				pToolBar->InsertTool(toolPos, ID_SHOWING_ALL, _T(""),
+					AIToolBarBitmapsUnToggledFunc( 24 ), wxNullBitmap,
+					wxITEM_CHECK,
+					_("Show Target Text Only"),
+					_("Show target text only"));
+			}
 			// whm Note: Now, the showing all button is showing on the toolbar. Remember: The tooltip
 			// and help text tell what clicking on this hiding button would do, i.e., Show Target Text
 			// Only.
@@ -31554,7 +31712,14 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 			goto b;
 	}
 	CMainFrame *pFrame = pApp->GetMainFrame();
+#ifdef __WXMAC__
+	// Mac needs this to eliminate shadow printing of values displaced on lower part of screen - due to
+	// double buffering?
+	pFrame->SendSizeEvent(); // whm added 21Feb09 This causes more flicker during drag
+#else
+	// Windows and Linux seem to only require Update()
 	pFrame->canvas->Update(); 
+#endif
 }
 
 void CAdapt_ItView::SelectAnchorOnly()
@@ -31600,7 +31765,14 @@ void CAdapt_ItView::SelectAnchorOnly()
 	pList->Insert(pAnchor);
 	wxASSERT(pList->GetCount() == 1); // should only be one left in the list
 	CMainFrame *pFrame = pApp->GetMainFrame();
-	pFrame->canvas->Update();
+#ifdef __WXMAC__
+	// Mac needs this to eliminate shadow printing of values displaced on lower part of screen - due to
+	// double buffering?
+	pFrame->SendSizeEvent(); // whm added 21Feb09 This causes more flicker during drag
+#else
+	// Windows and Linux seem to only require Update()
+	pFrame->canvas->Update(); 
+#endif
 }
 
 bool CAdapt_ItView::IsTypeDifferent(CCell* pAnchor, CCell* pCurrent)
@@ -32473,7 +32645,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 
 	/* removed, CLayout::Draw() now does this
 	// recalc the box
-	pApp->m_nStartChar = 0;
+	pApp->m_nStartChar = 0; // whm Note: ResizeBox call below also sets gnStart and gnEnd to 0 from these values
 	pApp->m_nEndChar = 0;
 	//pApp->m_targetBox.Destroy(); //m_targetBox.DestroyWindow();
 	pApp->m_pTargetBox->SetValue(_T(""));
@@ -42894,7 +43066,7 @@ void CAdapt_ItView::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFir
 	if (pBar != NULL && pBar->IsShown())
 	{
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
-		if (pEdit != 0)
+		if (pEdit != 0 && pPileArray->GetCount() > 0) // whm added second condition 1Apr09 because wxMac gets here on frame size event and pPileArray has 0 items
 		{
             // get the box's current contents & remove spaces at end or start (one will be
             // added by the InsertFilteredMaterial() call, at the end of the string,
@@ -46520,6 +46692,9 @@ b:	if (!bSectionIntersects)
 			{
 				pDC->DrawText(s,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
 			}
+			// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations because it
+			// triggers a run-on condition endlessly calling the View's OnDraw.
+			//Invalidate();
 		}
 
 		subStrings.Clear(); // clear the array ready for the next iteration

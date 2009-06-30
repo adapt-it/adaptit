@@ -171,6 +171,7 @@ public:
 											// the project configuration file to the project's directory
 	//wxString		GetFileName(const wxString fullPath); // not used in wx version
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
+	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
 	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
 					wxString* fileTitle);

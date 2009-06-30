@@ -258,7 +258,7 @@ public:
 	void		JumpBackwardToNote_CoreCode(int nJumpOffSequNum);
 	void		JumpForwardToNote_CoreCode(int nJumpOffSequNum);
 	//void		LayoutStrip(SPList* pSrcPhrases, int nStripIndex, CSourceBundle* pBundle); //removed 7Apr09
-	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase);
+	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr);
 	//void		MakeAllPilesNonCurrent(CSourceBundle* pBundle); // moved here from protected
 	void		MakeAllPilesNonCurrent(CLayout* pLayout); // moved here from protected
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray); // BEW added 2Jul05
@@ -358,7 +358,6 @@ public:
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
-	void		SetAdaptationOrGloss(bool bIsGlossing, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase); 
 	bool		SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
 	void		SetupCurrentFreeTransSection(int activeSequNum); // BEW added 24Jun05 for free translation support
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,

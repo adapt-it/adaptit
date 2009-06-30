@@ -20,7 +20,7 @@
       <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/adaptit</mainprogram>
+      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
       <programargs></programargs>
@@ -32,6 +32,15 @@
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
+      <runarguments>
+        <adaptit/>
+      </runarguments>
+      <debugarguments>
+        <adaptit/>
+      </debugarguments>
+      <cwd>
+        <adaptit>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/./</adaptit>
+      </cwd>
     </run>
     <configurations>
       <optimized>
@@ -94,7 +103,7 @@
       </UnicodeDebug>
       <Unicode>
         <envvars/>
-        <configargs>--with-wx-config=../../../../../wxGTK-2.8.9/buildgtku/wx-config</configargs>
+        <configargs>--with-wx-config=../../../../../wxGTK-2.8.10/buildgtku/wx-config</configargs>
         <builddir>Unicode</builddir>
         <topsourcedir/>
         <cppflags/>
@@ -117,7 +126,7 @@
       </envvars>
       <abortonerror>false</abortonerror>
       <runmultiplejobs>true</runmultiplejobs>
-      <numberofjobs>2</numberofjobs>
+      <numberofjobs>4</numberofjobs>
       <dontact>false</dontact>
       <makebin/>
       <prio>0</prio>

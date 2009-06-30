@@ -958,7 +958,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
-						pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
+						pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
 						pApp->m_pTargetBox->SetFocus();
 					}
 				}
@@ -1006,7 +1006,7 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
+							pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
 							pApp->m_pTargetBox->SetFocus();
 						}
 					}
@@ -1106,7 +1106,7 @@ x:						CCell* pCell = 0;
 						{
 							if (pApp->m_pTargetBox->IsShown())
 							{
-								pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
+								pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
 								pApp->m_pTargetBox->SetFocus();
 							}
 						}
@@ -1238,6 +1238,7 @@ x:						CCell* pCell = 0;
 		CaptureMouse(); //on Win32, SetCapture() is called via CaptureMouse() 
 						// and DoCaptureMouse() in wxWidget sources wincmn.cpp 
 						// and window.cpp
+		wxLogDebug(_T("CaptureMouse."));
 	}
 
 t:	if (pCell == NULL)
@@ -1572,6 +1573,9 @@ t:	if (pCell == NULL)
 				} // end block for a "same line" click which means extension of selection can 
 				  // be done
 			} // end block for extending a selection
+#ifdef __WXMAC__
+			pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+#endif
 		} // end of block for a click with SHIFT key down - for extending selection
 		else
 		{
@@ -1983,6 +1987,9 @@ a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
     // CaptureMouse() so we'll check first to make sure canvas has captured the mouse
 	if (HasCapture()) // whm added if (HasCapture()) because wx asserts if ReleaseMouse 
 	{				  // is called without capture
+#ifdef __WXMAC__
+		pApp->GetMainFrame()->SendSizeEvent(); // this is needed for wxMAC to paint the highlighted source correctly
+#endif
 		ReleaseMouse(); // assume no failure
 	}
 	gbHaltedAtBoundary = FALSE; // ensure it is cleared
@@ -2233,9 +2240,9 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 #endif
 		int nBoundForPrecedingContextStrips = nVisStrips - 3;
 		int nPrecedingContextDepth = numTopHalfStrips * nStripHeight; // nStripHeight
-				// includes the leading; the value calculated here is the default, it may
-				// may be changed by the code a little further below where auto-insertions
-				// are taken into account when the box has halted
+		// includes the leading; the value calculated here is the default, it may
+		// may be changed by the code a little further below where auto-insertions
+		// are taken into account when the box has halted
 
         // Get the required y-coord of the top of the phrase box's strip where the "strip"
         // includes its preceding leading -- that is, the distance from the start of the

@@ -135,6 +135,9 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	pFindDlgSizer = FindDlgFunc(this, TRUE, TRUE);
 	// The declaration is: FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_marker = -1;
 	m_srcStr = _T("");
 	m_replaceStr = _T("");
@@ -1161,6 +1164,9 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	pReplaceDlgSizer = ReplaceDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
 
 	//m_marker = -1;
 	m_srcStr = _T("");

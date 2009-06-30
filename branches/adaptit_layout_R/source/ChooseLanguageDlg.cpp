@@ -74,7 +74,10 @@ CChooseLanguageDlg::CChooseLanguageDlg(wxWindow* parent) // dialog constructor
 	// size dialog.
 	ChooseLanguageDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
-	//
+	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	wxColor backgrndColor = this->GetBackgroundColour();
 	
 	pListBox = (wxListBox*)FindWindowById(ID_LIST_UI_LANGUAGES);
@@ -431,6 +434,15 @@ void CChooseLanguageDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitD
 		}
 	}
 	// update the static text showing the short and full language names of the selected item
+	
+	// whm added the following sanity check 10Feb09 after report from Patrick Rietveld of a crash due
+	// to a residual Dutch entry getting into his registry before Adapt It WX knew how to handle
+	// situations in which the system language is other than English (i.e., Dutch), but there is no
+	// localization available for that language. In such cases we may not have a valid selection on
+	// wxListBox, but ListBoxPassesSanityCheck() below fixes the situation.
+	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pListBox))
+		return;
+
 	int nSel;
 	nSel = pListBox->GetSelection();
 	wxASSERT(nSel != -1);

@@ -474,10 +474,6 @@ void CDocPage::OnSetActive()
 	pModeMsg->SetLabel(m_staticModeStr);
 	pFolderMsg->SetLabel(m_staticFolderStr);
 
-	// whm added below for wx version: Since label lengths can change call the docPage's sizer's Layout() 
-	// method to resize the dialog if necessary
-	pDocPageSizer->Layout();
-
 	// generate a CStringList of all the possible adaption documents
 	wxArrayString possibleAdaptions; //CStringList possibleAdaptions;
 	wxString strNewDoc;
@@ -589,6 +585,11 @@ m:				index = m_pListBox->FindString(lastOpenedDoc);
 
 	m_pListBox->SetFocus(); // whm added 11Aug08 otherwise the read only text ctrl at top gets focus and shows blinking cursor in it
 
+	// whm added below for wx version: Since label lengths can change call the docPage's sizer's Layout() 
+	// method to resize the dialog if necessary
+	// whm 8 Jun 09 moved here from above since the hiding of the pChangeFixedSpaceToRegular control can affect layout
+	pDocPageSizer->Layout();
+
 	//return CPropertyPage::OnSetActive();
 }
 // event handling functions
@@ -698,6 +699,16 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	CAdapt_ItView* pView = pApp->GetView();
 
 	// send the app the current size & position data, for saving to config on closure
+	// 
+	// whm modification 14Apr09. I've commented out the assigning of frame position, size, and zoom
+	// characteristics below, because these should not be changed here at the time the docPage calls
+	// OnWizardFinish(). Instead, the main frame around any new or existing document should retain its dimensions
+	// as previously established by reading the basic config file or (if no config file has yet been
+	// saved) by the defaults set in OnInit(). The problem with having these set here is that, when our
+	// CMainFrame instance is created in the App's OnInit(), it is created an arbitrary size before the
+	// basic config file is read - and hence the position and size detection below will be wrong and
+	// obliterate any values that were already established.
+	/*
 	wxRect rectFrame;
 	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 	rectFrame = pFrame->GetRect(); // screen coords
@@ -708,6 +719,7 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 	pApp->m_szView.SetWidth(rectFrame.GetWidth());
 	pApp->m_szView.SetHeight(rectFrame.GetHeight());
 	pApp->m_bZoomed = pFrame->IsMaximized(); //pFrame->IsZoomed();
+	*/
 	
 	#ifdef _RTL_FLAGS // whm added23Mar07
 		// We've just defined a new project (via previous wizard pages), or we've loaded 
@@ -819,9 +831,10 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 			{
 				// other failures, just warn and close the wizard
 				// IDS_NO_OUTPUT_FILE
-				wxMessageBox(_(
-"Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"),
-				_T(""),wxICON_INFORMATION);
+				// whm modified 18Jun09 The Doc's GetNewFile() function now returns an enum so that
+				// OnNewDocument() reports the specific error, therefore, no additional error needs to
+				// be reported here.
+				//wxMessageBox(_("Sorry, opening the new document failed. Perhaps you cancelled the output filename dialog, or maybe the source text file is open in another application?"), _T(""),wxICON_INFORMATION);
 				gbDoingInitialSetup = FALSE;
 				return; //return CPropertyPage::OnWizardFinish();
 			}

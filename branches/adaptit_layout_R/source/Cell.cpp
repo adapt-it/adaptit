@@ -928,3 +928,4 @@ wxString* CCell::GetCellText()
 	}
 	return m_pPhrase;
 }
+

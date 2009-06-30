@@ -1135,6 +1135,8 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	m_bShowScrollData = FALSE;// does not show scroll parameters and client size in status bar
 //#endif
 
+	//m_bUsingHighResDPIScreen = FALSE;
+
 	// these dummy ID values are placeholders for unused entries in the accelerator below 
 	// that are not implemented in the wx version
 	int dummyID1 = -1;
@@ -1145,6 +1147,10 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	//int dummyID6 = -1;
 
     // Accelerators
+	// ASSIGN THE ACCELERATOR HOT KEYS REQUIRED FOR THE DIFFERENT PLATFORMS
+	// See also the the App's OnInit() where menu adjustments are made to
+	// coordinate with these accelerator/hot key assignments.
+	// 
 	// Note: The wx docs say, "On Windows, menu or button commands are supported, on GTK (Linux)
 	// only menu commands are supported. Therefore, for those below which are accelerators for
 	// toolbar buttons, probably won't work on Linux. There would probably need to be a (hidden?)
@@ -1156,8 +1162,16 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// off accelerators when the item associated with them is disabled. The wx behavior mandates
 	// that we put code within the handlers (similar to what is already in the Update UI handlers)
 	// to prevent them from executing if the user types the accelerator key combination.
-    wxAcceleratorEntry entries[35]; //[43];
+	// 
+	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
+    wxAcceleratorEntry entries[37]; //[43];
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-1 is reserved for View as Icons, so we'll use Command-Shift-1 on Mac to
+	// avoid the reserved key.
+    entries[0].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '1', ID_ALIGNMENT);
+#else
     entries[0].Set(wxACCEL_CTRL, (int) '1', ID_ALIGNMENT);
+#endif
     entries[1].Set(wxACCEL_ALT, WXK_RETURN, dummyID1); //ID_ALTENTER);
     entries[2].Set(wxACCEL_CTRL, (int) 'L', ID_BUTTON_CHOOSE_TRANSLATION); // whm checked OK
     entries[3].Set(wxACCEL_CTRL, (int) 'E', ID_BUTTON_EDIT_RETRANSLATION); // whm checked OK
@@ -1171,27 +1185,72 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
     entries[11].Set(wxACCEL_CTRL, WXK_INSERT, wxID_COPY); // standard wxWidgets ID
     entries[12].Set(wxACCEL_SHIFT, WXK_DELETE, wxID_CUT); // standard wxWidgets ID
     entries[13].Set(wxACCEL_CTRL, (int) 'X', wxID_CUT); // standard wxWidgets ID // whm checked OK
+#ifdef __WXMAC__
+    // whm Note: On Mac Command-2 is reserved for View as List, so we'll use Command-Shift-2 on Mac
+    // to avoid the reserved key.
+    entries[14].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
+#else
     entries[14].Set(wxACCEL_CTRL, (int) '2', ID_EDIT_MOVE_NOTE_BACKWARD); // whm checked OK
+#endif
+#ifdef __WXMAC__
+    // whm Note: On Mac Command-3 is reserved for View as Columns, so we'll use Command-Shift-3 on Mac
+    // to avoid the reserved key.
+    entries[15].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
+#else
     entries[15].Set(wxACCEL_CTRL, (int) '3', ID_EDIT_MOVE_NOTE_FORWARD); // whm checked OK
+#endif
     entries[16].Set(wxACCEL_CTRL, (int) 'V', wxID_PASTE); // standard wxWidgets ID
     entries[17].Set(wxACCEL_SHIFT, WXK_INSERT, wxID_PASTE); // standard wxWidgets ID
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-Q is reserved for Quitting the Application. We'll use Command-Shift-E
+	// as a compromise for Editing the Source text.
+    entries[18].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'E', ID_EDIT_SOURCE_TEXT); // whm checked OK
+#else
     entries[18].Set(wxACCEL_CTRL, (int) 'Q', ID_EDIT_SOURCE_TEXT); // whm checked OK
+#endif
     entries[19].Set(wxACCEL_ALT, WXK_BACK, wxID_UNDO); // standard wxWidgets ID
     entries[20].Set(wxACCEL_CTRL, (int) 'Z', wxID_UNDO); // standard wxWidgets ID
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-J is reserved for Scrolling/Jumping to a selection, whereas Command-W
+	// is normally used for hiding/closing the active window
+    entries[21].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_CLOSEKB); // whm checked OK - close project
+#else
     entries[21].Set(wxACCEL_CTRL, (int) 'J', ID_FILE_CLOSEKB); // whm checked OK - close project
+#endif
     entries[22].Set(wxACCEL_CTRL, (int) 'N', wxID_NEW); // standard wxWidgets ID // whm checked OK
     entries[23].Set(wxACCEL_CTRL, (int) 'O', wxID_OPEN); // standard wxWidgets ID // whm checked OK
     entries[24].Set(wxACCEL_CTRL, (int) 'P', wxID_PRINT); // standard wxWidgets ID // whm checked OK
     entries[25].Set(wxACCEL_CTRL, (int) 'S', wxID_SAVE); // standard wxWidgets ID // whm checked OK
+#if defined (__WXMAC__) || defined (__WXGTK__)
+	// whm Note: On Mac Command-W is reserved for closing the active window (equivalent to the close
+	// command), so as a compromise we'll assign Command-Shift-O for Opening the start up wizard.
+    entries[26].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'O', ID_FILE_STARTUP_WIZARD); // whm checked OK
+#else
     entries[26].Set(wxACCEL_CTRL, (int) 'W', ID_FILE_STARTUP_WIZARD); // whm checked OK
+#endif
     entries[27].Set(wxACCEL_CTRL, (int) 'F', wxID_FIND); // standard wxWidgets ID // whm checked OK
-    entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // whm checked OK
+	entries[28].Set(wxACCEL_CTRL, (int) 'G', ID_GO_TO); // On Mac Command-G is Find Next but this is close enough
     entries[29].Set(wxACCEL_NORMAL, WXK_F1, wxID_HELP); // standard wxWidgets ID // whm checked OK
     entries[30].Set(wxACCEL_NORMAL, WXK_F6, dummyID3); //ID_NEXT_PANE);
     entries[31].Set(wxACCEL_SHIFT, WXK_F6, dummyID4); //ID_PREV_PANE);
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-H is reserved for hiding/closing the active window, whereas Command F
+	// is used to open a combined Find and Find & Replace dialog. As a compromise we'll use
+	// Command-Shift-F for opening the Replace dialog.
+	entries[32].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) 'F', wxID_REPLACE); // standard wxWidgets ID // Mac: Command-Shift-F
+#else
     entries[32].Set(wxACCEL_CTRL, (int) 'H', wxID_REPLACE); // standard wxWidgets ID // whm checked OK
+#endif
     entries[33].Set(wxACCEL_CTRL, (int) 'K', ID_TOOLS_KB_EDITOR); // whm checked OK
     entries[34].Set(wxACCEL_CTRL, WXK_RETURN, dummyID5); //ID_TRIGGER_NIKB); // CTRL+Enter is Transliterate Mode TODO: check
+#ifdef __WXMAC__
+	// whm Note: On Mac Command-Q is reserved for quitting the application, so we add an extra
+	// accelerator here for it (the Edit Source Text on Mac was changed to Ctrl-Shift-E above and
+	// Ctrl-Q remains defined above on Windows and Linux for Edit Source Text).
+	entries[35].Set(wxACCEL_CTRL, (int) 'Q', wxID_EXIT);
+	// whm Note: On Mac both Command-Shift-/ is the usual hot key for getting app help
+    entries[36].Set(wxACCEL_CTRL | wxACCEL_SHIFT, (int) '/', wxID_HELP);
+#endif
     
 	//entries[35].Set(wxACCEL_ALT, (int) 'S', IDC_BUTTON_SHORTEN); // added to get compose bar button to work
     //entries[36].Set(wxACCEL_ALT, (int) 'L', IDC_BUTTON_LENGTHEN); // added to get compose bar button to work
@@ -1257,7 +1316,46 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	wxToolBar* toolBar = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize, style);
 	wxASSERT(toolBar != NULL);
 	m_pToolBar = toolBar;
-	AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+
+	// Determine the screen dpi to see if we are running on a 200dpi OLPC XO type screen.
+	// If so, we use the alternate AIToolBar32x30Func which has double sized toolbar bitmaps for better
+	// readability on the 200dpi screens.
+	// whm Note 14Apr09: The XO machine running under Intrepid actually reports 100.0 DPI!
+	// Therefore this test won't distinguish an XO from any other "normal" screen computer,
+	// so we try using wxPlatformInfo::GetArchName()
+	wxString archName,OSSystemID,hostName;
+	wxPlatformInfo platInfo;
+	archName = platInfo.GetArchName(); // returns "32 bit" on Windows
+	OSSystemID = platInfo.GetOperatingSystemIdName(); // returns "Microsoft Windows NT" on Windows
+	hostName = ::wxGetHostName(); // "BILLDELL" on my desktop
+
+	//wxSize displaySizeInPixels;
+	//displaySizeInPixels = wxGetDisplaySize();
+	//wxSize displaySizeInMM;
+	//displaySizeInMM = wxGetDisplaySizeMM();
+	//wxSize displaySizeInInches;
+	//displaySizeInInches.x = displaySizeInMM.x / 25.4;
+	//displaySizeInInches.y = displaySizeInMM.y / 25.4;
+	//float screenDPI;
+	//screenDPI = sqrt(float(displaySizeInPixels.x * displaySizeInPixels.x) + float(displaySizeInPixels.y * displaySizeInPixels.y)) 
+	//	/ sqrt(float(displaySizeInInches.x * displaySizeInInches.x) + float(displaySizeInInches.y * displaySizeInInches.y));
+
+	if (gpApp->m_bExecutingOnXO) //if (screenDPI > 150.0)
+	{
+		//m_bUsingHighResDPIScreen = TRUE;
+		toolBar->SetToolBitmapSize(wxSize(32,30));
+		AIToolBar32x30Func( toolBar );
+		//wxString msg;
+		//msg = msg.Format(_T("High Resolution Screen detected at %4.1f DPI - using alternate Toolbar and ControlBar."),screenDPI);
+		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	}
+	else
+	{
+		AIToolBarFunc( toolBar ); // this calls toolBar->Realize(), but we want the frame to be parent
+		//wxString msg;
+		//msg = msg.Format(_T("Screen Resolution detected at %4.1f DPI."),screenDPI);
+		//wxMessageBox(msg,_T(""),wxICON_INFORMATION);
+	}
 	SetToolBar(toolBar);
 	// Notes on SetToolBar(): WX Docs say,
 	// "SetToolBar() associates a toolbar with the frame. When a toolbar has been created with 
@@ -1295,7 +1393,17 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// controlbar), and the row of controls laid out in wxHORIZONTAL 
 	// alignment within an embedded horizontal box sizer, below the line
 	// within the vertical box sizer
-	ControlBarFunc( controlBar, TRUE, TRUE );
+	
+	if (gpApp->m_bExecutingOnXO) //if (m_bUsingHighResDPIScreen)
+	{
+		// We're running on a high res screen - probably a OLPC XO, so use the 2 line control bar for
+		// better fit in main frame
+		ControlBar2LineFunc( controlBar, TRUE, TRUE );
+	}
+	else
+	{
+		ControlBarFunc( controlBar, TRUE, TRUE );
+	}
 
 	// Note: We are creating a controlBar which the doc/view framework knows
 	// nothing about. The mainFrameSizer below takes care of the controlBar's
@@ -1615,7 +1723,18 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strHostOS.Trim(TRUE);
 	strHostOS = _T(' ') + strHostOS;
 	wxStaticText* pStaticHostOS = (wxStaticText*)FindWindowById(ID_STATIC_HOST_OS);
+	wxASSERT(pStaticHostOS != NULL);
 	pStaticHostOS->SetLabel(strHostOS);
+	wxStaticText* pStaticWxVersionUsed = (wxStaticText*)FindWindowById(ID_STATIC_WX_VERSION_USED);
+	wxASSERT(pStaticWxVersionUsed != NULL);
+	wxString versionStr;
+	versionStr.Empty();
+	versionStr << wxMAJOR_VERSION;
+	versionStr << _T(".");
+	versionStr << wxMINOR_VERSION;
+	versionStr << _T(".");
+	versionStr << wxRELEASE_NUMBER;
+	pStaticWxVersionUsed->SetLabel(versionStr);
 	
 	wxString strUILanguage;
 	// Fetch the UI language info from the global currLocalizationInfo struct
@@ -1635,18 +1754,6 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		pStatic->SetLabel(tempStr);
 	}
 
-	if (!pApp->m_pLocale->GetSysName().IsEmpty())
-	{
-		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_LOCALE_NAME);
-		tempStr = pApp->m_pLocale->GetSysName();
-		// GetSysName() returns the following:
-		// On wxMSW: English_United States.1252
-		// On Ubuntu: en_US.UTF-8
-		// On Mac OS X: C // TODO: check this!!
-		tempStr = _T(' ') + tempStr;
-		pStatic->SetLabel(tempStr);
-	}
-
 	if (!pApp->m_pLocale->GetCanonicalName().IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_CANONICAL_LOCALE_NAME);
@@ -1654,13 +1761,34 @@ AboutDlg::AboutDlg(wxWindow *parent)
 		tempStr = _T(' ') + tempStr;
 		pStatic->SetLabel(tempStr);
 	}
+	if (!pApp->m_pLocale->GetSysName().IsEmpty())
+	{
+		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_LOCALE_NAME);
+		tempStr = pApp->m_pLocale->GetSysName();
+		// GetSysName() returns the following:
+		// On wxMSW: English_United States.1252
+		// On Ubuntu: en_US.UTF-8
+		// On Mac OS X: C
+#ifdef __WXMAC__
+		// GetSysName() on wxMac always returns "C", so we'll unilaterally change this to "MacOSX"
+		tempStr = pApp->m_pLocale->GetCanonicalName() + _T(".") + _T("MacOSX");
+#endif
+		tempStr = _T(' ') + tempStr;
+		pStatic->SetLabel(tempStr);
+	}
+
 	if (!pApp->m_systemEncodingName.IsEmpty())
 	{
 		wxStaticText* pStatic = (wxStaticText*)FindWindowById(ID_STATIC_SYS_ENCODING_NAME);
 		tempStr = pApp->m_systemEncodingName; //m_systemEncodingName is assigned by calling wxLocale::GetSystemEncodingName() in the App's OnInit()
 		// Windows: m_systemEncodingName = "windows-1252"
 		//  Ubuntu: m_systemEncodingName = "UTF-8"
-		//     Mac: m_systemEncodingName = <blank>
+		//     Mac: m_systemEncodingName = "MacRoman" [See App's OnInit() where GetSystemEncodingName()
+		//             is called. There we set this value to a Mac... encoding value]
+		// Note: On Mac OS X, the default encoding depends on your chosen primary language 
+		// (System Preferences, International pane, Languages tab, list of languages).
+		// On a typical Western-European language Mac OS X config, the default encoding will be MacRoman.
+
 		tempStr.Trim(FALSE);
 		tempStr.Trim(TRUE);
 		tempStr = _T(' ') + tempStr;
@@ -1882,20 +2010,20 @@ void CMainFrame::OnUserForum(wxCommandEvent& WXUNUSED(event))
 
 void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 {
-	wxMenuBar* pMenuBar = this->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
-	wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
-	wxASSERT(pUseToolTips != NULL);
+	//wxMenuBar* pMenuBar = this->GetMenuBar();
+	//wxASSERT(pMenuBar != NULL);
+	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
+	//wxASSERT(pUseToolTips != NULL);
 	if (gpApp->m_bUseToolTips)
 	{
 		wxToolTip::Enable(FALSE);
-		pUseToolTips->Check(FALSE);
+		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,FALSE); //pUseToolTips->Check(FALSE);
 		gpApp->m_bUseToolTips = FALSE;
 	}
 	else
 	{
 		wxToolTip::Enable(TRUE);
-		pUseToolTips->Check(TRUE);
+		GetMenuBar()->Check(ID_HELP_USE_TOOLTIPS,TRUE); //pUseToolTips->Check(TRUE);
 		gpApp->m_bUseToolTips = TRUE;
 	}
 	
@@ -2807,7 +2935,7 @@ void CMainFrame::ComposeBarGuts()
 			{
 				// when commencing free translation mode, show any pre-existing content selected
 				// also clear the starting and ending character indices for the box contents
-				gnStart = 0;
+				gnStart = -1;
 				gnEnd = -1;
 				pEdit->SetSelection(gnStart,gnEnd); // no scroll
 			}
@@ -2950,6 +3078,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 		if (pApp->m_pTargetBox != NULL)
 			if (pApp->m_pTargetBox->IsShown()) 
 				pApp->m_pTargetBox->SetFocus();
+		wxLogDebug(_T("CMainFrame::OnActivate() called."));
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
@@ -3240,11 +3369,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			{
 				pApp->m_pTargetBox->SetFocus();
 				pApp->m_nEndChar = -1;
-				//pApp->m_nStartChar = 0;
-				pApp->m_nStartChar = -1; //BEW changed 19Jun09
+				pApp->m_nStartChar = -1;
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 				pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
-				gnStart = 0;
+				gnStart = -1;
 				gnEnd = -1;
 			}
 
@@ -3303,10 +3431,10 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 	//case 9:
 		if (gbCameToEnd)
 		{
+			gbCameToEnd = FALSE; // whm moved this above wxMessageBox because Linux version was repeatedly calling wxMessageBox causing crash
 			// IDS_AT_END
 			wxMessageBox(_("The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."), 
 				_T(""), wxICON_INFORMATION);
-			gbCameToEnd = FALSE;
 		}
 	//	return TRUE; // enable  next OnIdle call
 	//case 5:
@@ -3878,7 +4006,9 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 						wxASSERT(pEdit != NULL);
 						if (pEdit != 0)
 						{
-							pEdit->SetValue(_T("")); // clear the box
+							// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+							// event, which now deprecated SetValue() generates.
+							pEdit->ChangeValue(_T("")); // clear the box
 						}
 					}
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
@@ -4277,7 +4407,9 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 						wxASSERT(pEdit != NULL);
 						if (pEdit != 0)
 						{
-							pEdit->SetValue(_T("")); // clear the box
+							// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+							// event, which now deprecated SetValue() generates.
+							pEdit->ChangeValue(_T("")); // clear the box
 						}
 					}
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
@@ -5421,7 +5553,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 				{
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep; // unneeded, but it documents where we are
-					pEdit->SetValue(_T("")); // clear the box
+					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+					// event, which now deprecated SetValue() generates.
+					pEdit->ChangeValue(_T("")); // clear the box
 					// now restore the free translation span to what it was at last entry to freeTranslationsStep
 					if (pRec->bFreeTranslationStepEntered && pRec->nFreeTranslationStep_SpanCount > 0 &&
 						pRec->nFreeTrans_EndingSequNum != -1)
@@ -5641,7 +5775,9 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 					// entry point was at an earlier step
 					gEditStep = freeTranslationsStep;
 					//pEdit->SetWindowText(_T("")); // clear the box
-					pEdit->SetValue(_T("")); // clear the box
+					// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+					// event, which now deprecated SetValue() generates.
+					pEdit->ChangeValue(_T("")); // clear the box
 					
 					// now restore the free translation span to what it was at last entry to
 					// freeTranslationsStep ie. as it was at the end of adaptationsStep
@@ -5922,7 +6058,9 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 										m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
-		pEdit->SetValue(_T("")); // SetValue() is OK to use here
+		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
+		// event, which now deprecated SetValue() generates.
+		pEdit->ChangeValue(_T("")); // SetValue() is OK to use here
         // whm Note: SetValue() automatically (and by design) resets the dirty flag to
         // FALSE when called, because it is primarily designed to establish the initial
         // value of an edit control. Often when the initial value of a text control is

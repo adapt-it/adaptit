@@ -28,7 +28,7 @@
 class CMyListBox : public wxListBox
 {
 public:
-	CMyListBox(void); // constructor
+	CMyListBox();
 	CMyListBox(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, 
 		const wxSize& size = wxDefaultSize, int n = 0, const wxString choices[] = NULL, 
 		long style = 0); //CMyListBox(void); // constructor
@@ -37,8 +37,8 @@ public:
 
 protected:
 	void OnSysKeyUp(wxKeyEvent& event);
-//	void OnSysKeyDown(wxKeyEvent& event);
-//	void OnChar(wxKeyEvent& event);
+	void OnSysKeyDown(wxKeyEvent& event);
+	void OnChar(wxKeyEvent& event);
 
 private:
 	// class attributes

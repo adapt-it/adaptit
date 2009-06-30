@@ -65,6 +65,9 @@ CCollectBacktranslations::CCollectBacktranslations(wxWindow* parent) // dialog c
 	CollectBackTranslationsDlgFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	bool bOK;
+	bOK = gpApp->ReverseOkCancelButtonsForMac(this);
+
 	m_bUseAdaptations = FALSE;
 	m_bUseGlosses = FALSE;
 

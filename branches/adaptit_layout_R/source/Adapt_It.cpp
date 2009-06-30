@@ -3,7 +3,7 @@
 /// \file			Adapt_It.cpp
 /// \author			Bill Martin
 /// \date_created	05 January 2004
-/// \date_revised	28 January 2009
+/// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public 
 ///                 License (see license directory)
@@ -68,6 +68,7 @@
 #include <wx/busyinfo.h>
 #include <wx/propdlg.h> // for wxPropertySheetDialog
 #include <wx/stdpaths.h> // for GetResourcesDir and GetLocalizedResourcesDir
+#include <wx/tooltip.h>
 
 // the next are for wxHtmlHelpController
 #include <wx/filesys.h>
@@ -84,30 +85,33 @@
 #include <wx/display.h> // for wxDisplay
 
 #include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
+#include <wx/filepicker.h> // for wxDirPickerCtrl
+#include <wx/log.h> // for wxLogStream
 
-// The following include by David A. Jones is described in an article on The Code Project
-// called "Memory Leak Detection". It generates better memory leak detection reporting.
-// Note: This header and how it works are found on:
-// http://www.codeproject.com/cpp/MemLeakDetect.asp Its code is not compiled into the
-// program in release versions, but vld.h need only be included when memory leaks are
-// detected by the debugger's Output report, and it is not obvious what is the cause of the
-// leak from the report.
-// Steps to make "Visual Leak Detection" work with VC 7.1 (and again for VC 8.0):
-// 1. Copy vld.h and vldapi.h  to C:\Program Files\Microsoft Visual Studio 8\VC\include
-// 2. Copy vld.lib vldmt.lib and vldmtdll.lib to 
-//                                 C:\Program Files\Microsoft Visual Studio 8\VC\lib
-// 3. (Optional) dbghelp.dll can be copied to the directory where the executable you
-//      are debugging resides (...\Debug)
-// 4. the following #include to include vld.h
-// Note: The VLD code is beta so we have to deal with a couple problems, but it still works.
-// The Microsoft Development Environment may issue a couple debug messages that read:
-// "Unhandled exception at 0x7c901230 (NTDLL.DLL) in Adapt_It.exe: User breakpoint." Just
-// click "Continue" to pass through these exceptions, then look at the reports in the debug
-// output and click on the first line of the stack trace which should be the line of code
-// were the variable was allocated on the heap that was never deleted.
-// If "memory leaks detected" and source of leak is unclear, uncomment the following include
+// The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
+// under the LGPL. The vld.h header usage is described in an article on The Code 
+// Project called "Memory Leak Detection". It generates better memory leak detection 
+// reporting under Visual Studio.
+// 
+// Note: The Visual Leak Detector (vld) and how it works are found at:
+// http://www.codeproject.com/KB/applications/visualleakdetector.aspx 
+// Note: Downloads from codeproject.com now require you set up a user account with password. 
+// Its code is not compiled into the program in release versions, but vld.h need only be 
+// included when memory leaks are detected by the debugger's Output report, and it is not 
+// obvious what is the cause of the leak from the report.
+// 
+// Steps I did to make this work with VC 8.0:
+// 1. copied vld.h and vldapi.h to the Visual Studio's VC include folder at:
+//    C:\Program Files\Microsoft Visual Studio 8\VC\include 
+// 2. copied vld.lib, vldmt.lib, and vldmtdll.lib to the Visual Studio's VC lib folder at:
+//    C:\Program Files\Microsoft Visual Studio 8\VC\lib 
+// 3. Uncomment the #include "vld.h" at the end of this comment to include vld.h in 
+//    debug builds.
+// 
+// If Visual Studio reports "memory leaks detected" and the source of leak is unclear, 
+// uncomment the following include, recompile, run and exit the program for a more
+// detailed report of the memory leaks:
 //#include "vld.h"
-
 
 // Other includes
 #include "Adapt_It.h"
@@ -133,7 +137,7 @@
 #include "CCTabbedDialog.h"
 #include "WhichFilesDlg.h" // renamed from original "RestoreKBDlg.h"
 #include "SourcePhrase.h"
-#include "ProgressDlg.h" // formerly called RestoreKBProgress.h
+//#include "ProgressDlg.h" // removed in svn revision #562
 #include "Pile.h"
 #include "TransformToGlossesDlg.h"
 #include "EarlierTranslationDlg.h"
@@ -833,15 +837,6 @@ wxString dummyFinish = _("< &Back"); // the wxstd.mo file doesn't seem to have t
 
 // support for USFM and SFM Filtering
 
-/// The actual count of default Unit-style strings contained in the defaultSFM string array. The field values
-/// are delimited by ':' characters. This number can be obtained automatically by uncommenting the 
-/// #define Output_Default_Style_Strings line at the beginning of XML.h file (see instructions in
-/// documentation for the defaultSFM[] string array). The number is automatically produced as the last line of 
-/// string output written to AI_USFM_full.txt file when Output_Default_Style_Strings is defined in XML.h.
-const int gnDefaultSFMs = 282;	// get this number from last line of string output written to AI_USFM_full.txt 
-								// (see note below). It is the count the actual number of strings contained
-								// in the defaultSFM string array below!
-
 /// An array of wxStrings which, when parsed by ParseAndFillStruct(), is used as default standard
 /// format marker style definitions if, for some reason, the program cannot find the AI_USFM.xml
 /// control file. 
@@ -851,14 +846,14 @@ const int gnDefaultSFMs = 282;	// get this number from last line of string outpu
 /// 2. Copy the current AI_USFM_full.xml file from the project's xml folder to the "Adapt It Work"
 /// folder (this file which contains the full style information and from which the AI_USFM.xml file for
 /// distribution to users is produced via the UsfmXml.cct and UsfmXmlTidy.cct changes operations).
-/// While the Output_Default_Strings define is active, running the Adapt It program up through the
+/// While the Output_Default_Strings define is active, running the Adapt It program (Debug) up through the
 /// appearance of the Start Working Wizard causes the routines in XML.cpp to read the full
 /// AI_USFM_full.xml file (instead of AI_USFM.xml) and produce the temporary AI_USFM_full.txt file
 /// which simply contains the Unix-format default strings ready to paste into the code block below.
 /// 3. Copy the strings from the AI_USFM_full.txt file and paste them here for recompilation. Note 
-/// that the last line of the file contains the number of usfm strings and should be manually pasted 
-/// to the value of const gnDefaultSFMs above. Also, Remember to remove the last comma from the 
-/// last string item once it is pasted into this array initialization list.
+/// that the last line of the file contains the number of usfm strings which should be equivalent to
+/// the calculation of gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString) below. Also, Remember to 
+/// remove the last comma from the last string item once it is pasted into this array initialization list.
 /// 4. Comment out the #define Output_Default_Style_Strings line at the beginning of XML.h file so that
 /// the application won't continue to produce the temporary AI_USFM_full.txt file in the work folder,
 /// but will instead revert back to using the normal (abbreviated) AI_USFM.xml file on program startup.
@@ -871,6 +866,7 @@ _T("h1::Running header text:1::1:1::1:1:1:hdr:10::h1 - File - Header:0:12:::::::
 _T("h2::Running header text, left side of page:1::1:1::1:1:1:hdr-left:10::h2 - File - Left Header:0:12:::::::0::::::h1:h2:::"),
 _T("h3::Running header text, right side of page:1::1:1::1:1:1:hdr-rght:10::h3 - File - Right Header:0:12:::::::2::::::h1:h3:::"),
 _T("rem::Comments and remarks:1::1:1::1:1:1:comment:34::rem - File - Remark:0:9:16711680::::::3::::::_notes_base:rem:::"),
+_T("sts::Status of this file:1::1:1::1:1:1:comment:34::rem - File - Status:0:9:16711680::::::3::::::_notes_base:sts:::"),
 _T("restore::Project restore information:1::1::::1:::34::restore - File - Restore Information:0:12:16711680::::::3::::::__normal:restore:::"),
 _T("lit::For a comment or note inserted for liturgical use:1::1:1::1:1:1:lit-note:34::lit - Special Text - Liturgical note:0:12:::1::::2::::::p:lit:1:1:"),
 _T("nt::Note::1:1:1::1:1:1:note:34::nt - Note:0:9:16711680::::::3::::::_notes_base:nt:::"),
@@ -987,7 +983,7 @@ _T("fv:fv*:A verse number within the footnote text:1::::1:1::::9::fv...fv* - Foo
 _T("fm:fm*:An additional footnote marker location for a previous footnote:1::::1:1::::9::fm - Footnote - Additional Caller to Previous Note:1:10::::::1:3::::::::::"),
 _T("F::Footnote (end)::1:::::1:::1::F - Footnote end PNG:1:10:::::::3::::::::::"),
 _T("qt:qt*:For Old Testament quoted text appearing in the New Testament (basic):1::::1::1:1:Quotation:1::qt...qt* - Special Text - Quoted Text - OT in NT:1:12::1:::::3::::::::::"),
-_T("nd:nd*:For name of diety (basic):1::::1:::::6::nd...nd* - Special Text - Name of Deity:1:12::::1:::3::::::::::"),
+_T("nd:nd*:For name of deity (basic):1::::1:::::6::nd...nd* - Special Text - Name of Deity:1:12::::1:::3::::::::::"),
 _T("tl:tl*:For transliterated words:1::::1:::::6::tl...tl* - Special Text - Transliterated Word:1:12::1:::::3::::::::::"),
 _T("dc:dc*:Deuterocanonical/LXX additions or insertions in the Protocanonical text:1::::1:::::6::dc...dc* - Special Text - Deuterocanonical/LXX Additions:1:12::1:::::3::::::::::"),
 _T("bk:bk*:For the quoted name of a book:1::::1:::::6::bk...bk* - Special Text - Quoted book title:1:12::1:::::3::::::::::"),
@@ -1010,9 +1006,9 @@ _T("imt1::Introduction major title, level 1 (if multiple levels):1:::1::1:1:1:in
 _T("imt2::Introduction major title, level 2:1:::1::1:1:1:intro major title L2:0:1:imt2 - Introduction - Major Title Level 2:0:13::1:::::1:6:3::::imt1:ip:1:1:"),
 _T("imt3::Introduction major title, level 3:1:::1::1:1:1:intro major title L3:0:1:imt3 - Introduction - Major Title Level 3:0:12:::1::::1:2:2::::imt2:ip:1:1:"),
 _T("imt4::Introduction major title, level 4 (usually within parenthesis):1:::1::1:1:1:intro major title L4:0:1:imt4 - Introduction - Major Title Level 4:0:12::1:::::1:2:2::::imt3:ip:1:1:"),
-_T("imte::Introduction major title at introduction end, level 1 (if single level):1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1::::::imt:ie:::"),
-_T("imte1::Introduction major title at introduction end, level 1 (if multiple levels):1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1::::::imt:ie:::"),
-_T("imte2::Introduction major title at introduction end, level 2:1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 2:0:16::1:::::1::::::imt:ie:::"),
+_T("imte::Introduction major title at introduction end, level 1 (if single level):1:::1::1:1:1:intro major title at end:0:1:imte - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
+_T("imte1::Introduction major title at introduction end, level 1 (if multiple levels):1:::1::1:1:1:intro major title at end:0:1:imte1 - Introduction - [Uncommon] Major Title at Introduction End Level 1:0:20:::1::::1:8:4::::imt:ie:::"),
+_T("imte2::Introduction major title at introduction end, level 2:1:::1::1:1:1:intro major title at end:0:1:imte2 - Introduction - [Uncommon] Major Title at Introduction End Level 2:0:16::1:::::1:8:4::::imt:ie:::"),
 _T("is::Introduction section heading, level 1 (if single level) (basic):1:1::1::1:1:1:intro sect head:0:1:is - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::s:ip:1:1:"),
 _T("is1::Introduction section heading, level 1 (if multiple levels):1:::1::1:1:1:intro sect head L1:0:1:is1 - Introduction - Section Heading Level 1:0:12:::1::::1:8:4::::is:ip:1:1:"),
 _T("is2::Introduction section heading, level 2:1:::1::1:1:1:intro sect head L2:0:1:is2 - Introduction - Section Heading Level 2:0:12:::1::::1:8:4::::is1:ip:1:1:"),
@@ -1147,6 +1143,14 @@ _T("_unknown_para_style::Unknown Paragraph Style Marker:1:1:1:::::::0::Unknown P
 _T("_unknown_char_style::Unknown Character Style Marker:1:1:1:::::::0::Unknown Char Style Marker:1:12:255::::::3::::::::::"),
 _T("_hidden_note::Hidden Note:1:1:1:::::::0::Hidden Note:10:10:8388608:1:::::3:2::::.3:p:_hidden_note:::")
 };
+
+/// The actual count of default Unix-style strings contained in the defaultSFM string array. 
+/// This number is calculated dynamically here, but is also calculated by uncommenting the 
+/// #define Output_Default_Style_Strings line at the beginning of XML.h file (see instructions 
+/// in documentation for the defaultSFM[] string array). The number is automatically produced 
+/// as the last line of string output written to AI_USFM_full.txt file when 
+/// Output_Default_Style_Strings is defined in XML.h.
+const int gnDefaultSFMs = sizeof(defaultSFM)/sizeof(wxString); // In version 4.1.3 gnDefaultSFMs is 283
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2264,6 +2268,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_ADVANCED_TRANSFORM_ADAPTATIONS_INTO_GLOSSES, CAdapt_ItApp::OnUpdateAdvancedTransformAdaptationsIntoGlosses)
 	EVT_MENU(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnAdvancedBookMode)
 	EVT_UPDATE_UI(ID_ADVANCED_BOOKMODE, CAdapt_ItApp::OnUpdateAdvancedBookMode)
+	//EVT_MENU(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation)
+	//EVT_UPDATE_UI(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation)
 	//OnAdvancedDelay  is in the View
 	//OnUpdateAdvancedDelay  is in the View
 
@@ -3259,11 +3265,19 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default localizationFilePath for the Mac.
-	// There does not appear to be a wxStandardPaths method which gives us the path for locating the
-	// <lang> localization subdirectories so we'll just hard code it for the Mac.
-	// Note: The actual full path and name on the Mac for a given <lang> is: 
-	// "Adapt It.app/Contents/Resources/locale/<lang>/LC_MESSAGES/Adapt It.mo"
-	localizationFilePath += appName + _T(".app/Contents/Resources/locale"); // the path separator is added by the caller
+	// 
+	// Make path to the Resources folder be a combination of the path to the executable modified by
+	// the relative path from the executable to the Resources/locale folder. The path to the executable
+	// during UnicodeDebug on my MacBook is this:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt It"
+	// where the last "Adapt It" represents the actual executable file's name. From the MacOS folder (where
+	// the executable resides) to the Resources folder requires the path augmented by:
+	// "/../Resources/locale". The combined path to find the help file would then be:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
+	// It/../Resources/locale" which is programmatically represented by:
+	localizationFilePath = m_appInstallPathOnly + _T("/../Resources/locale"); // the path separator is added by the caller
+	//wxFileName fn(localizationFilePath);
+	//localizationFilePath = fn.Normalize();
 	pathToLocalizationFolders = localizationFilePath;
 #endif
 
@@ -3290,6 +3304,8 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	}
 #endif
 	wxLogDebug(_T("pathToLocalizationFolders = %s"),pathToLocalizationFolders.c_str());
+	wxFileName fn(pathToLocalizationFolders);
+	fn.Normalize();
 	return pathToLocalizationFolders;
 }
 
@@ -3340,6 +3356,8 @@ wxString CAdapt_ItApp::GetDefaultPathForXMLControlFiles()
 	pathToXMLFolders = m_appInstallPathOnly;
 #endif
 	wxLogDebug(_T("pathToXMLFolders = %s"),pathToXMLFolders.c_str());
+	wxFileName fn(pathToXMLFolders);
+	fn.Normalize();
 	return pathToXMLFolders;
 }
 
@@ -3379,7 +3397,29 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 #ifdef __WXMAC__
 	// On the Mac appName is "Adapt It"
 	// Set a suitable default path for the Html Help files on the Mac.
-	pathToHtmlHelpFiles += appName + _T(".app/Contents/SharedSupport"); // the path separator is added by the caller
+	//pathToHtmlHelpFiles += appName + _T(".app/Contents/SharedSupport"); // the path separator is added by the caller
+	//
+	// whm modified 17Feb09 to determine the help file path as a relative adjustment to the absolute
+	// path to the actual executable that is running. 
+	// 
+	// On the Mac, the .htb help file is in the dmg bundle in a different part of the directory tree from
+	// the Adapt It executable. The executable is in <bundle>/Contents/MacOS/ folder but the .htb help file 
+	// is in the <bundle>/Contents/SharedSupport/ folder. The relative help path from executable to
+	// help file then is: "../SharedSupport". The double dot backs up the tree from the MacOS folder to
+	// the Contents folder, and then goes into the SharedSupport folder.
+	// 
+	// Make path to the SharedSupport folder be a combination of the path to the executable modified by
+	// the relative path from the executable to the SharedSupport folder. The path to the executable
+	// during UnicodeDebug on my MacBook is this:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt It"
+	// where the last "Adapt It" represents the actual executable file's name. From the MacOS folder (where
+	// the executable resides) to the SharedSupport folder requires the path augmented by:
+	// "/../SharedSupport". The combined path to find the help file would then be:
+	// "/Users/wmartin/subversion/adaptit/bin/mac/build/UnicodeDebug/Adapt It.app/Contents/MacOS/Adapt
+	// It/../SharedSupport" which is programmatically represented by:
+	pathToHtmlHelpFiles = m_appInstallPathOnly + _T("/../SharedSupport"); // the path separator is added by the caller
+	//wxFileName fn(pathToHtmlHelpFiles);
+	//pathToHtmlHelpFiles = fn.Normalize();
 #endif
 
 #ifdef __WXGTK__
@@ -3393,6 +3433,8 @@ wxString CAdapt_ItApp::GetDefaultPathForHelpFiles()
 	pathToHtmlHelpFiles = m_appInstallPathOnly;
 #endif
 	wxLogDebug(_T("pathToHtmlHelpFiles = %s m_htbHelpFileName = %s"),pathToHtmlHelpFiles.c_str(),m_htbHelpFileName.c_str());
+	wxFileName fn(pathToHtmlHelpFiles);
+	fn.Normalize();
 	return pathToHtmlHelpFiles;
 }
 
@@ -4402,6 +4444,88 @@ bool CAdapt_ItApp::ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterfac
 	return bChangeMade;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if reversal succeeded, FALSE otherwise
+/// \param      pDialog -> pointer to the dialog whose OK and Cancel buttons are to be swapped
+/// \remarks
+/// Called from: Nearly all dialogs having OK and Cancel buttons. 
+/// Reverses the positions of the OK and Cancel buttons within their created dialogs. This is 
+/// accomplished by switching the button's ids and labels. The change is only made for the
+/// wxMac port. wxDesigner positioned the dialog's OK and Cancel buttons assuming the style
+/// of dialogs for Windows which have OK button on the left and Cancel button on the right.
+/// For the proper "look and feel" on a Mac, this order should be reversed to Cancel on 
+/// the left and OK on the right. The dialog assumes that the dialog has already been created
+/// from a function designed by wxDesigner, and that it contains a wxButton with the wxID_OK
+/// identifier and another button with the wxID_CANCEL identifier which were both created as
+/// child windows within a wxBoxSizer created as wxHORIZONTAL. Sets the new OK button as the
+/// default button that is selected when user hits Enter.
+////////////////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItApp::ReverseOkCancelButtonsForMac(wxDialog* pDialog)
+{
+	wxASSERT(pDialog != NULL);
+	wxButton* pOKButton = (wxButton*)pDialog->FindWindow(wxID_OK); // FindWindow finds a child of pDialog
+	if (pOKButton == NULL)
+		return FALSE;
+	wxButton* pCancelButton = (wxButton*)pDialog->FindWindow(wxID_CANCEL); // FindWindow finds a child of pDialog
+	if (pCancelButton == NULL)
+		return FALSE;
+
+#ifdef __WXMAC__ // Chande to #ifndef to test the swapping on Windows or Linux
+	// Get pointers to the containing sizer of the two buttons
+	wxBoxSizer* pContSizerOfOK = (wxBoxSizer*)pOKButton->GetContainingSizer();
+	wxASSERT(pContSizerOfOK != NULL);
+	wxBoxSizer* pContSizerOfCancel = (wxBoxSizer*)pCancelButton->GetContainingSizer();
+	wxASSERT(pContSizerOfCancel != NULL);
+	wxASSERT(pContSizerOfOK == pContSizerOfCancel);
+	// Don't proceed if the buttons don't have the same containing sizer
+	if (pContSizerOfOK == NULL || pContSizerOfCancel == NULL || pContSizerOfOK != pContSizerOfCancel)
+		return FALSE;
+
+	wxASSERT(pDialog->GetAffirmativeId() == wxID_OK);
+	wxASSERT(pDialog->GetEscapeId() == wxID_ANY);
+	// Don't proceed if the buttons don't operate in their expected default way
+	if (pDialog->GetAffirmativeId() != wxID_OK || pDialog->GetEscapeId() != wxID_ANY)
+		return FALSE;
+
+	// we only swap buttons if their containing sizer is of wxHORIZONTAL orientation.
+	if (pContSizerOfOK->GetOrientation() == wxHORIZONTAL)
+	{
+		wxString btnOKStr,btnCancelStr;
+		btnOKStr = pOKButton->GetLabel();
+		btnCancelStr = pCancelButton->GetLabel();
+		
+		// reverse the button IDs
+		pOKButton->SetId(wxID_CANCEL);
+		pCancelButton->SetId(wxID_OK);
+
+		// reverse the button labels
+		pOKButton->SetLabel(btnCancelStr);
+		pCancelButton->SetLabel(btnOKStr);
+
+		// reverse the button tooltips
+		wxString ttOKStr;
+		wxString ttCancelStr;
+		wxToolTip* pOkToolTip = pOKButton->GetToolTip();
+		if (pOkToolTip != NULL)
+		{
+			ttOKStr = pOkToolTip->GetTip();
+			pCancelButton->SetToolTip(ttOKStr);
+		}
+		wxToolTip* pCancelToolTip = pCancelButton->GetToolTip();
+		if (pCancelToolTip != NULL)
+		{
+			ttCancelStr = pCancelToolTip->GetTip();
+			pOKButton->SetToolTip(ttCancelStr);
+		}
+		pCancelButton->SetDefault();
+		return TRUE;
+	}
+#endif
+	return FALSE;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
@@ -4671,6 +4795,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// initialize the directory paths
 	m_workFolderPath = _T("");
+	m_wf_forced_workFolderPath = _T(""); // whm added 5Jun09
+	m_newdoc_forced_newDocPath = _T(""); // whm added 5Jun09
+	m_exports_forced_exportsPath = _T(""); // whm added 5Jun09
 	m_localPathPrefix = _T("");
 
 	// The following use the _T() macro as they shouldn't be translated/localized
@@ -4711,6 +4838,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_kbExportPath = _T("");
 	m_rtfExportPath = _T("");
 	m_retransReportPath = _T("");
+
+	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by use of command-line parameter -xo
 
 	m_bSuppressWelcome = FALSE;
 	m_bSuppressTargetHighlighting = FALSE;
@@ -5014,7 +5143,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
 	gbPrintFooter = TRUE;
-	gnStart = 0;
+	gnStart = -1;
 	gnEnd = -1;
 	
 	gbIgnoreScriptureReference_Receive = TRUE;
@@ -5286,7 +5415,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// !!! testing only below
 
-
 #if wxCHECK_VERSION(2, 7, 0)
 	wxString resourcesDir; //,localizedResourcesDir;
 	wxString dataDir, localDataDir, documentsDir;
@@ -5304,7 +5432,15 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxLogDebug(_T("The wxStandardPaths::GetDataDir() = %s"),dataDir.c_str());
 	localDataDir = stdPaths.GetLocalDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetLocalDataDir() = %s"),localDataDir.c_str());
+#ifdef __WXMAC__
+	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program crash when 
+	// compiled for Mac OS X 10.3 Panther, so I'm using the older ::wxGetHomeDir() function for the Mac
+	// which should return the same directory string on the Mac that wxStandardPaths::GetDocumentsDir() 
+	// does.
+	documentsDir = ::wxGetHomeDir();
+#else
 	documentsDir = stdPaths.GetDocumentsDir();
+#endif
 	wxLogDebug(_T("The wxStandardPaths::GetDocumentsDir() = %s"),documentsDir.c_str());
 	userConfigDir = stdPaths.GetUserConfigDir();
 	wxLogDebug(_T("The wxStandardPaths::GetUserConfigDir() = %s"),userConfigDir.c_str());
@@ -5373,6 +5509,95 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nMoves = 100; // initial default, save every 100 phrase box moves
 	m_bIsDocTimeButton = TRUE; // initial default, save according to time interval, not moves
 
+	// whm moved/changed 13Apr09 Command-line processing implemented in wx version and moved earlier in
+	// OnInit() to this location after most variable initializations and just before the application
+	// wxConfig processing. The command line processing must be done before CMainFrame is created since
+	// the parameter -xo determines which toolbar and commandbar is used in the main frame.
+	static const wxCmdLineEntryDesc cmdLineDesc[] = 
+	{
+		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+		//{ wxCMD_LINE_SWITCH, _T("v"), _T("version"), _T("Report application version number"),
+		//	wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, _T("xo"), _T("olpc"), _T("Adjust GUI elements for OLPC XO Screen Resolution"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, _T("wf"), _T("workfolder"), _T("Use alternate path for work folder"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, _T("newdocs"), _T("newdocumentspath"), _T("Lock new documents path to this path"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_OPTION, _T("exports"), _T("exporteddocumentspath"), _T("Lock exported documents path to this path"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_NONE }
+	};
+
+	// Note: In the MFC version, InitiInstance() sets up CCommandLineInfo cmdInfo.
+	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
+	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
+	// OnFileNew() to initiate the doc/view creation process at program startup.
+	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
+
+	if (m_pParser->Parse())
+	 return false; // returns false if commandline help (-h or -help) is used or if there is an error parsing the commandline
+	// Note: returning here creates memory leaks, but it is not too serious since the
+	// program is terminating anyway.
+
+	/*
+	if (m_pParser->Found(_T("v")))
+	{
+		// command-line -v or -version option was specified, so report the version number as standard
+		// output.
+		wxString strVersionNumber;
+		strVersionNumber.Empty();
+		strVersionNumber << VERSION_MAJOR_PART;
+		strVersionNumber += _T(".");
+		strVersionNumber << VERSION_MINOR_PART;
+		strVersionNumber += _T(".");
+		strVersionNumber << VERSION_BUILD_PART;
+		// whm Note: This version reporting switch need not be implemented unless there is a specific
+		// need for it such as a script that needs to check the version of Adapt It for use in some
+		// routine that is designed to verify that a certain version is installed, such as Alistair
+		// Imrie's bootstrap routine (he however is checking the version number by inspecting the first
+		// line in the Adapt It changes.txt file).
+        // TODO: In order to use wxLogStream the wxWidgets library must be compiled with
+        // wxUSE_STD_IOSTREAM set to 1 (default is 0) in setup.h. This will be necessary to actually
+        // output to the std::cout standard output.
+		
+		//wxLog *logger = new wxLogStream(&std::cout);
+		//wxLog::SetActiveTarget(logger);
+		//cout << strVersionNumber;
+		return false;
+	}
+	*/
+
+	if (m_pParser->Found(_T("xo")))
+	{
+		m_bExecutingOnXO = TRUE;
+	}
+
+	wxString wfPathStr;
+	if (m_pParser->Found(_T("wf"), &wfPathStr))
+	{
+		// The -wf command-line parameter represents a path that the user wants to become the work
+		// folder path, so use it as the forced work folder path.
+		m_wf_forced_workFolderPath = wfPathStr;
+	}
+
+	wxString newdocPathStr;
+	if (m_pParser->Found(_T("newdocs"), &newdocPathStr))
+	{
+        // The -newdoc command-line parameter represents a path that the user wants to be locked in as
+        // the only path for finding new documents to adapt, so use it as the forced new documents path.
+		m_newdoc_forced_newDocPath = newdocPathStr;
+	}
+
+	wxString exportPathStr;
+	if (m_pParser->Found(_T("exports"), &exportPathStr))
+	{
+        // The -newdoc command-line parameter represents a path that the user wants to be locked in as
+        // the only path for finding new documents to adapt, so use it as the forced new documents path.
+		m_exports_forced_exportsPath = exportPathStr;
+	}
+
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
 	// wxConfig (below) stores the key "Adapt_It_WX" in HKEY_USERS "Software" 
@@ -5433,18 +5658,66 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_systemEncodingName = wxLocale::GetSystemEncodingName();	// Windows: m_systemEncodingName = "windows-1252"
 																//  Ubuntu: m_systemEncodingName = "UTF-8"
 																//     Mac: m_systemEncodingName = ???
+#ifdef __WXMAC__
+	switch (m_systemEncoding)
+	{
+	    case wxFONTENCODING_MACROMAN: m_systemEncodingName = _T("MacRoman"); break; //47-77  the standard mac encodings [47-86]
+		case wxFONTENCODING_MACJAPANESE: m_systemEncodingName = _T("MacJapanese"); break; //48
+	    case wxFONTENCODING_MACCHINESETRAD: m_systemEncodingName = _T("MacChineseTrad"); break; //49
+		case wxFONTENCODING_MACKOREAN: m_systemEncodingName = _T("MacKorean"); break; //50
+		case wxFONTENCODING_MACARABIC: m_systemEncodingName = _T("MacArabic"); break; //51
+		case wxFONTENCODING_MACHEBREW: m_systemEncodingName = _T("MacHebrew"); break; //52
+		case wxFONTENCODING_MACGREEK: m_systemEncodingName = _T("MacGreek"); break; //53
+		case wxFONTENCODING_MACCYRILLIC: m_systemEncodingName = _T("MacCyrillic"); break; //54
+		case wxFONTENCODING_MACDEVANAGARI: m_systemEncodingName = _T("MacDevanagari"); break; //55
+		case wxFONTENCODING_MACGURMUKHI: m_systemEncodingName = _T("MacGurmukhi"); break; //56
+		case wxFONTENCODING_MACGUJARATI: m_systemEncodingName = _T("MacGujarati"); break; //57
+		case wxFONTENCODING_MACORIYA: m_systemEncodingName = _T("MacOriya"); break; //58
+		case wxFONTENCODING_MACBENGALI: m_systemEncodingName = _T("MacBengali"); break; //59
+		case wxFONTENCODING_MACTAMIL: m_systemEncodingName = _T("MacTamil"); break; //60
+		case wxFONTENCODING_MACTELUGU: m_systemEncodingName = _T("MacTelugu"); break; //61
+		case wxFONTENCODING_MACKANNADA: m_systemEncodingName = _T("MacKannada"); break; //62
+		case wxFONTENCODING_MACMALAJALAM: m_systemEncodingName = _T("MacMalajalam"); break; //63
+		case wxFONTENCODING_MACSINHALESE: m_systemEncodingName = _T("MacSinhalese"); break; //64
+		case wxFONTENCODING_MACBURMESE: m_systemEncodingName = _T("MacBurmese"); break; //65
+		case wxFONTENCODING_MACKHMER: m_systemEncodingName = _T("MacKhmer"); break; //66
+		case wxFONTENCODING_MACTHAI: m_systemEncodingName = _T("MacThai"); break; //67
+		case wxFONTENCODING_MACLAOTIAN: m_systemEncodingName = _T("MacLaotian"); break; //68
+		case wxFONTENCODING_MACGEORGIAN: m_systemEncodingName = _T("MacGeorgian"); break; //69
+		case wxFONTENCODING_MACARMENIAN: m_systemEncodingName = _T("MacArmenian"); break; //70
+		case wxFONTENCODING_MACCHINESESIMP: m_systemEncodingName = _T("MacChineseSimp"); break; //71
+		case wxFONTENCODING_MACTIBETAN: m_systemEncodingName = _T("MacTibetan"); break; //72
+		case wxFONTENCODING_MACMONGOLIAN: m_systemEncodingName = _T("MacMongolian"); break; //73
+		case wxFONTENCODING_MACETHIOPIC: m_systemEncodingName = _T("MacEthiopic"); break; //74
+		case wxFONTENCODING_MACCENTRALEUR: m_systemEncodingName = _T("MacCentralEur"); break; //75
+		case wxFONTENCODING_MACVIATNAMESE: m_systemEncodingName = _T("MacViatnamese"); break; //76
+		case wxFONTENCODING_MACARABICEXT: m_systemEncodingName = _T("MacArabicExt"); break; //77
+		case wxFONTENCODING_MACSYMBOL: m_systemEncodingName = _T("MacSymbol"); break; //78
+		case wxFONTENCODING_MACDINGBATS: m_systemEncodingName = _T("MacDingbats"); break; //79
+		case wxFONTENCODING_MACTURKISH: m_systemEncodingName = _T("MacTurkish"); break; //80
+		case wxFONTENCODING_MACCROATIAN: m_systemEncodingName = _T("MacCroatian"); break; //81
+		case wxFONTENCODING_MACICELANDIC: m_systemEncodingName = _T("MacIcelandic"); break; //82
+		case wxFONTENCODING_MACROMANIAN: m_systemEncodingName = _T("MacRomanian"); break; //83
+		case wxFONTENCODING_MACCELTIC: m_systemEncodingName = _T("MacCeltic"); break; //84
+		case wxFONTENCODING_MACGAELIC: m_systemEncodingName = _T("MacGaelic"); break; //85
+		case wxFONTENCODING_MACKEYBOARD: m_systemEncodingName = _T("MacKeyboard"); break; //86
+	default: m_systemEncodingName = _T("MACROMAN");
+	}
+#endif
+	wxLogDebug(_T("m_systemEncodingName = %s wxFONTENCODING enum value = %d"),m_systemEncodingName.c_str(),(int)m_systemEncoding);
+
 	m_systemLanguage = wxLocale::GetSystemLanguage();			// Windows: m_systemLanguage = 58
 																//  Ubuntu: m_systemLanguage = 58
 																//     Mac: m_systemLanguage = 58
 	m_languageInfo = wxLocale::GetLanguageInfo(m_systemLanguage);
-	//wxLogDebug("m_languageInfo->Description = %s",m_languageInfo->Description.c_str()); // "English (U.S.)"
-	//wxLogDebug("m_languageInfo->CanonicalName = %s",m_languageInfo->CanonicalName.c_str()); // "en_US"
-	//wxLogDebug("m_languageInfo->Language = %d",m_languageInfo->Language); // 58 (both Windows and Ubuntu)
-//#ifdef __WIN32__
-//	wxLogDebug("m_languageInfo->WinLang = %d",m_languageInfo->WinLang); // Windows: 9
-//	wxLogDebug("m_languageInfo->WinSublang = %d",m_languageInfo->WinSublang); // Windows: 1
-//#endif
-//	wxLogDebug("m_languageInfo->LayoutDirection = %d",m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
+	wxLogDebug(_T("m_languageInfo->Description = %s"),m_languageInfo->Description.c_str()); // "English (U.S.)"
+	wxLogDebug(_T("m_languageInfo->CanonicalName = %s"),m_languageInfo->CanonicalName.c_str()); // "en_US"
+	wxLogDebug(_T("m_languageInfo->Language = %d"),m_languageInfo->Language); // 58 (both Windows and Ubuntu)
+#ifdef __WIN32__
+	wxLogDebug(_T("m_languageInfo->WinLang = %d"),m_languageInfo->WinLang); // Windows: 9
+	wxLogDebug(_T("m_languageInfo->WinSublang = %d"),m_languageInfo->WinSublang); // Windows: 1
+#endif
+	wxLogDebug(_T("m_languageInfo->LayoutDirection = %d"),m_languageInfo->LayoutDirection); //wxLayout_LeftToRight (both)
 	
 	wxASSERT(!m_appInstallPathOnly.IsEmpty()); //wxASSERT(!m_setupFolder.IsEmpty());
 
@@ -5609,11 +5882,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// on the menu to use the clover leaf shaped Command key symbol plus the appropriate key.
 
 
-	// Give the main frame an icon (frame icons and task bar icons use 16x16 icons)
+	// Give the main frame a 16x16 pixel icon (frame icons and task bar icons use 16x16 icons)
 	// This xpm format should work for all platforms. It embeds the icon resource inside
 	// the executable file, so no need to have to hunt for it from an external resource file.
 	/* XPM */ 
-	static const char * xpm_data[] = {
+	static const char * xpm_data16x16[] = {
 	"16 16 10 1",
 	" 	c None",
 	"!	c #FFFF00",
@@ -5641,8 +5914,66 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	"!!&!!%%%%%%%!!#!",
 	"!!!!!%%!!!%%!!#!",
 	"!!!!!!!!!!!!!###"};
-	wxIcon icon( xpm_data );
-	m_pMainFrame->SetIcon(icon); 
+	wxIcon icon16x16( xpm_data16x16 );
+
+	// Also give the main frame a 32x32 pixel icon (Alt+Tab uses a 32x32 pixel icon)
+	// This xpm format should work for all platforms. It embeds the icon resource inside
+	// the executable file, so no need to have to hunt for it from an external resource file.
+    /* XPM */
+        static const char *xpm_data32x32[] = {
+        /* columns rows colors chars-per-pixel */
+        "32 32 8 1",
+        "a c #808080",
+        "b c #FFFF00",
+        "c c #00FFFF",
+        "d c #800000",
+        "e c #008080",
+        "f c #FF0000",
+        "g c #C0C0C0",
+        "h c #808000",
+        /* pixels */
+        "bbbfhbbbbfbbbbbbbbbbbbbbbbhbbbbb",
+        "bbhffhbbbfhbbbbbbbbbffhbbffhfdbb",
+        "bbfffhbfffhffffhfffhfffbbffdffhb",
+        "bbfdfdhfhfhhfhfhfhfdffhbbffhfdbb",
+        "bhffffhfhfhffhfhfhfdffhbbffhfdbb",
+        "bffhffhfffhffffhfffhhffbbffhffhb",
+        "bbhbbhbbhhbbhhhhfdhbbhhbbbhbbhhb",
+        "bbbbbbbbbbbbbbbbhhbbbbbbbbbbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbahbbbbb",
+        "bbbbbbbbbbbbbbbbbbbbbbbaachbbbbb",
+        "bbbbaaaaabbbbbbbbbhfbbaccahbbbbb",
+        "haaaaaaeabbbbffffffffbaccahbbbbb",
+        "haaagggaabbbffhbbbhfbbacaahbbbbb",
+        "baaggaaaabbfhbbbabbbbbaaaabbbbbb",
+        "baaaaaaaabffbbhaeabbbhaaabbbbbbb",
+        "baaagaaaahfhbbaeaeabbbhbbbbbbbbb",
+        "baaaaeaaaafhbhaeeeabbbbbbbbbbbbb",
+        "baaaaaaaaaabbbaaeeabbbbbbbbbbbbb",
+        "bhaaaaggggaabbheeabgaeeeeeeeabbb",
+        "bbaaaggggggaaabbbbbgeeeeeeeeeabb",
+        "bbhagggggaaagabbbbbaeaaaaaaaeabb",
+        "bbbaaggaagaaahbbbbbaeeeeeeeeeabb",
+        "bbbbaagggaaabfbbbbbaeeeeeeeeeabb",
+        "bbbbbaaaaabfffbbbbbaeeeeeeeeegbb",
+        "bbbbbbaahbbhffffbbbgeeeeeeeeegbb",
+        "bbbbbbbbbbbbfbhffffaaeaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbaaaaaaaaaaabb",
+        "bbbbbbbbbbbbbbbbbbbahaaaahaaaabb",
+        "bbbbbbbbbbbbbbbbbbhaaaaaaahaaaab",
+        "bbbbbbbbbbbbbbbbbhhaaaaaaaaaaaab",
+        "bbbbbbbbbbbbbbbbbhhbbbbbbbbbhhbb",
+        "gggggggggggggggggggggggggggggggg"
+        };
+	wxIcon icon32x32( xpm_data32x32 );
+
+
+	// whm modification 22May09 to add multiple icons to the top level frame window using wxIconBundle
+	wxIconBundle iconBundle;
+	iconBundle.AddIcon( icon16x16 );
+	iconBundle.AddIcon( icon32x32 );
+
+	m_pMainFrame->SetIcons(iconBundle); //m_pMainFrame->SetIcon(icon); 
 	//m_pMainFrame->SetIcon(wxIcon(wxICON(adaptit)));	// "adaptit" is a resource name
 													// of an ICON defined in Adapt_It.rc
 	// Only allow one document at a time to be open
@@ -5660,6 +5991,87 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// This must come after Main Menu is created and FileHistoryUseMenu call
 	m_pDocManager->FileHistoryLoad(*m_pConfig); // Load the File History (MRU) list from *m_pConfig
 
+	// MAKE SOME MENU HOT KEY ADJUSTMENTS REQUIRED FOR THE DIFFERENT PLATFORMS
+	// See also the CMainFrame::CMainFrame constructor where accelerator key assignments are made to
+	// coordinate with these menu hot key adjustments.
+#if defined (__WXMAC__) || defined (__WXGTK__)
+	// whm Added 11Feb09: We have to adjust the menu access keys for the wxMac port to keep them from
+	// conflicting with the customary Mac access keys and accelerator keys. The accelerator keys are
+	// created during the creation of the CMainFrame above, so we can make adjustments here.
+
+	// File | Start Working...
+	// On Mac and Ubuntu Linux (Gnome/Gtk), Command-W is reserved for Closing the Active Window, so 
+	// we've defined the accelerator key on Mac for "Start Working..." as Command-Shift-O, and on Linux
+	// as Ctrl-Shift-O, to avoid the conflict.
+	pFileMenu->SetLabel(ID_FILE_STARTUP_WIZARD,_("Start Working...\tCtrl-Shift-O")); // Windows & Linux have the default Ctrl-W
+#endif
+	
+#ifdef __WXMAC__
+	// File | Close Project
+	// On Mac, Command-J is reserved for Scroll/Jump to a Selection on the Mac. We've used it on
+	// Windows/Linux for Close Project, but the comperable hot key to close the active window for Mac 
+	// is Command-W.
+	// Note: On Linux/wxGTK, Ctrl-W is automatically assigned to the File | Close (wxID_CLOSE) menu item.
+	pFileMenu->SetLabel(ID_FILE_CLOSEKB,_("Close Project\tCtrl-W")); // Windows and Linux have the default Ctrl-J
+    
+	// File | Exit
+	// On Mac, Command-Q is reserved for Quitting the Application on the Mac. We've used it on
+	// Windows/Linux for Edit menu's Edit Source Text..., so for Quitting the application we'll 
+	// assign a Ctrl-Q as hot key to associate with the Exit menu command here.
+    wxMenuItem* pFileExitItem;
+	pFileExitItem = pFileMenu->FindItem(wxID_EXIT);
+	wxASSERT(pFileExitItem != NULL);
+	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
+	
+	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(1);
+	wxASSERT(pEditMenu != NULL);
+	
+	// Edit | Edit Source Text
+	// On Mac, the hot key command to quit the application is Command-Q and we have set a Ctrl-Q accelerator
+	// key to be associated with wxID_Exit, so we've set the menu to use Ctrl-Shift-E for it here.
+    pEditMenu->SetLabel(ID_EDIT_SOURCE_TEXT,_("Edit Source Text...\tCtrl-Shift-E"));
+	
+	// Edit | Move Note Backward
+    // On Mac, the hot key command to View as List is Command-2 and we have set a Ctrl-Shift-2
+    // accelerator key to be associated with Edit | Move Note Backward, so we've set the menu to
+    // use Ctrl-Shift-2 for it here.
+    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_BACKWARD,_("Move Note Backward\tCtrl-Shift-2"));
+	
+	// Edit | Move Note Forward
+    // On Mac, the hot key command to View as Columns is Command-3 and we have set a Ctrl-Shift-3
+    // accelerator key to be associated with Edit | Move Note Forward, so we've set the menu to
+    // use Ctrl-Shift-3 for it here.
+    pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
+	
+	wxMenu* pToolsMenu = m_pMainFrame->GetMenuBar()->GetMenu(3);
+	wxASSERT(pToolsMenu != NULL);
+	
+	// Tools | Find and Replace
+	// On Mac, the hot key command to Hide the Active Window (close) is Command-H, and we have set a
+	// Ctrl-Shift-F accelerator key to be associated with Edit | Find and Replace, so we've set the
+	// menu to use Ctrl-Shift-F for it here.
+	pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
+
+	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(5);
+	wxASSERT(pLayoutMenu != NULL);
+	
+	// Layout | Layout Window Right To Left
+	// On Mac, the hot key command to View as Icons is Command-1, and we have set a Ctrl-Shift-1
+	// accelerator key to be associated with Layout | Layout Window Right To Left, so we've set the
+	// menu to use Ctrl-Shift-1 for it here.
+	pLayoutMenu->SetLabel(ID_ALIGNMENT,_("Layout Window Right To Left\tCtrl-Shift-1"));
+
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
+	wxASSERT(pHelpTopicsMenu != NULL);
+	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tCtrl-Shift-/"));
+
+#else
+	wxMenuItem* pHelpTopicsMenu = (wxMenuItem*)m_pMainFrame->GetMenuBar()->FindItem(wxID_HELP); // use FindItem() for wxMenuItem
+	wxASSERT(pHelpTopicsMenu != NULL);
+	pHelpTopicsMenu->SetItemLabel(_("Help Topics\tF1"));
+
+#endif
+
 	// The following commands probably have equivalents in wxWidgets' wxMimeTypesManager.
 	// However, the wx version does not use serialized .adt type data files. I don't think it 
 	// would necessarily be a good thing for users to be able to open AI documents by double 
@@ -5672,34 +6084,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//EnableShellOpen();
 	//RegisterShellFileTypes(TRUE);
 
+	// In the MFC version the following command-line parsing code was
+	// located here:
 	// Parse command line for standard shell commands, DDE, file open
 	//CCommandLineInfo cmdInfo;
 	//ParseCommandLine(cmdInfo);
-	// wx version Note: The wx docs on wxApp::OnInit() say, "Notice that if you want 
-	// to use the command line processing provided by wxWidgets you have to call the base class 
-	// version in the derived class OnInit()."
-	static const wxCmdLineEntryDesc cmdLineDesc[] = 
-	{
-		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Command Line operation not implemented!"), 
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP  },
-		{ wxCMD_LINE_NONE }
-	};
-
-   // Note: In the MFC version, InitiInstance() sets up CCommandLineInfo cmdInfo.
-   // InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
-   // statement which switches on CCommandLineInfo::FileNew, and calls the app's
-   // OnFileNew() to initiate the doc/view creation process at program startup.
-   m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
-   if (m_pParser->Parse())
-     return false;
-
-	// TODO: The command line parser above is not fully implemented.
-	// As far as I know Adapt It has no need for command line arguments nor any need
-	// to parse them, so I'm not going to implement this even though wxWidgets has
-	// a sophisticated wxCmdLineParser class. The one thing that ParseCommandLine()
-	// does in the MFC version is to start the application with a new View as though 
-    // File|New were executed giving the app access to valid pView and pDoc pointers.
-    // We provide the equivalent below where we call OnFileNew() directly.
+	// In the wx version, however, command-line processing is actually implemented but the code was
+	// moved earlier in this OnInit() function (see above).
+	
+    // The one thing that ParseCommandLine() does in the MFC version is to start the application with a
+    // new View as though File|New were executed giving the app access to valid pView and pDoc pointers.
+    // We provide the equivalent below where we call OnFileNew() directly (which is done below in this OnInit).
 
 	// for richer memory leak dumps
     // whm - wxWidgets has its own memory leak facilities built into its library
@@ -5734,12 +6129,50 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 								// a prior call to SetBackgroundMode(m_backgroundMode), in which the
 								// m_backgroundMode = wxSOLID.
 
-	// BEW added 06Mar06 code to MFC version to get the desktop's rectangle size and check for
-	// spurious overwriting of the coords of the window location (that has happened on some rare
-	// occasions). Bruce first created an off-screen temporary static control window to get a
-	// valid CWnd*, but there is a simpler way in wxWidgets which I'm using here.
+    // BEW added 06Mar06 code to MFC version to get the desktop's rectangle size and check for spurious
+    // overwriting of the coords of the window location (that has happened on some rare occasions).
+    // 
+    // whm Note: In MFC version Bruce first created an off-screen temporary static control window to get
+    // a valid CWnd*, but there is a simpler way in wxWidgets by using wxGetClientDisplayRect() which
+    // I'm using here. According to wx docs, the wxGetClientDisplayRect() function "returns the
+    // dimensions of the work area on the display. On Windows this means the area not covered by the
+    // taskbar, etc. Other platforms are currently defaulting to the whole display until a way is found
+    // to provide this infor for all windows managers, etc."
 	wxRect desktopWndRect = wxGetClientDisplayRect();
-	// once set, these two points should not change while the app runs
+    // MFC Note: "once set, these two points should not change while the app runs"
+    // 
+    // whm Note: If the user changes the screen resolution during program execution then desktopWndRect
+    // could change. Also the MFC checks do not work when more than one monitor are connected to the
+    // user's computer, especially when the application position might have been on a second monitor.
+    // Therefore we need to check for multiple monitor setup, and determine the boundaries for valid
+	// main frame positions in such configurations. Checking for multiple monitors can be done with the
+	// wxDisplay class.
+	int numMonitors;
+	numMonitors = wxDisplay::GetCount();
+	if (numMonitors > 1)
+	{
+		// assume two monitors
+		wxDisplay displayOne(0);
+		wxDisplay displayTwo(1);
+		wxRect dispOneRect = displayOne.GetClientArea(); // x=0, y=0, width=1920, height=1140 // doesn't include taskbar on Windows
+		wxRect dispTwoRect = displayTwo.GetClientArea(); // x=1920, y=0, width=1920, height=1200
+		if (dispTwoRect.x > 0 || dispOneRect.x > 0)
+		{
+            // The second or first monitor's x coordinate is positive (instead of 0), therefore we can
+            // assume that the desktop is extended from one display monitor onto the other
+			int maxDispRectX, maxDispRectY;
+			maxDispRectX = dispOneRect.GetWidth() + dispTwoRect.GetWidth();
+			maxDispRectY = wxMin(dispOneRect.GetHeight(),dispTwoRect.GetHeight()); // account for task bar's presence
+			// set the adjusted width and height of combined desktop display rect
+			desktopWndRect.SetWidth(maxDispRectX);
+			desktopWndRect.SetHeight(maxDispRectY);
+		}
+	}
+	wxLogDebug(_T("desktopWndRect.x = %d, desktopWndRect.y = %d, desktopWndRect.width = %d, desktopWndRect.height = %d"),
+		desktopWndRect.x,desktopWndRect.y,desktopWndRect.GetWidth(),desktopWndRect.GetHeight());
+    // 
+    // The wndTopLeft and wndBotRight point coordinates below are used within the App's
+    // GetBasicSettingsConfiguration() function
 	wndTopLeft = wxPoint(desktopWndRect.GetLeft(),desktopWndRect.GetTop());
 	wndBotRight = wxPoint(desktopWndRect.GetRight(),desktopWndRect.GetBottom());
 
@@ -5812,15 +6245,37 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_tableFolderPath[1] = m_defaultTablePath;
 		m_tableFolderPath[2] = m_defaultTablePath;
 		m_tableFolderPath[3] = m_defaultTablePath;
+
+        // whm added 14Apr09. The basic config file contains position and size information for the main
+        // frame and that information has now been read from the config file, so here is where we should
+        // update the position and size of the CMainFrame instance before other routines such as
+        // RecalcLayout will use it, or change the App's values which store the current main frame's
+        // metrics.
+        // 
+        // The wndBotRight and wndTopLeft coordinate points determined by the above call to the
+        // wxGetClientDisplayRect() function are used in GetBasicSettingsConfiguration() to insure that
+        // the m_ptViewTopLeft.x and m_ptViewTopLeft.y and m_szView.x and m_szView.y values are within
+		// range of the current desktop. If the read-in values were not within range they were adjusted
+		// to fall within the coordinates of the current desktop. Therefore, these values should be
+		// "safe" to use in our SetSize() call on the main frame below, which is called first to
+		// establish any non-zoomed window size, before re-establishing any zoomed state.
+		
+		m_pMainFrame->SetSize(gpApp->m_ptViewTopLeft.x,
+											gpApp->m_ptViewTopLeft.y,
+											gpApp->m_szView.x,
+											gpApp->m_szView.y,
+											wxSIZE_AUTO);
+		if (gpApp->m_bZoomed)
+		{
+			m_pMainFrame->Maximize(TRUE);
+		}
 	}
 
-	// TODO: Before implementing the ProcessShellCommand() below go back and do 
-	// the ParseCommandLine() above.
-	// Dispatch commands specified on the command line
+	// MFC: Dispatch commands specified on the command line
 	//if (!ProcessShellCommand(cmdInfo))
 	//	return FALSE;
 
-	// For all intents and purposes, MFC's ProcessShellCommand() functions within
+	// whm Note: For all intents and purposes, MFC's ProcessShellCommand() functions within
 	// Adapt It to simply initiate a call to the App's OnFileNew() method in order
 	// to create a doc/view as a stand-in at program startup.
 	// We can do the same in the wx version by also calling the App's OnFileNew()
@@ -5850,7 +6305,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// coupled with Adapt It's design in which initializations are scattered
 	// over many code locations make for a real messy conversion process.
 	//
-	// In the MFC version, OnInitialUpdat() is "called by the framework after the 
+	// In the MFC version, OnInitialUpdate() is "called by the framework after the 
 	// view is first attached to the document, but before the view is initially 
 	// displayed." To get that equivalency here in the wxWidgets version, I 
 	// determined by tracing through the MFC code exactly when OnInitialUpdate() 
@@ -6027,7 +6482,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// note: default display is LTR so menu item should read what clicking it should make the layout become
 	// after clicking. The menu text may be changed to appropriate value upon reading reading a project
 	// config file (the change is made in ???).
+#ifdef __WXMAC__
+	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-Shift-1"));
+#else
 	pLayoutMenuAlignment->SetText(_("Layout Window Right To Left\tCtrl-1"));
+#endif
+
 #endif 
 
 	// insure that the Use Tooltips menu item in the Help menu is checked or unchecked according to the
@@ -6280,6 +6740,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 	}
 
+	wxLogDebug(_T("gnDefaultSFMs has %d strings in array."),gnDefaultSFMs);
 	if (bWorkStyleFileExists)
 	{
 		// parse the file, and set up the three CMapStringToOb maps containing 
@@ -6306,7 +6767,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// m_pUsfmStylesMap, m_pPngStylesMap, and m_pUsfmAndPngStylesMap 
 		// pointers are already created but as yet have no content
 		wxLogDebug(_T("AI_USFM.xml not found in work folder - using internal styles via SetupDefaultStylesMap."));
-		SetupDefaultStylesMap(); // hard coded for 267 default usfm styles
+		SetupDefaultStylesMap(); // hard coded for 282 default usfm styles
 	}
 
     // Initialise the help system. We do it here because our m_setupFolder was determined above
@@ -10018,14 +10479,13 @@ void CAdapt_ItApp::DoFileOpen()
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::EnsureWorkFolderPresent()
 {
-	// TODO: Modify this rouitine to implement the ability of the user to specify a non-default
-	// location for a work folder. The non-default location then needs to be recorded in the
-	// m_pConfig instance of the wxConfig class (stored in the Registry on a Windows system, but
-	// in a hidden file on Linux and the Mac).
-	// Note: This function is significantly changed from the MFC version because of
-	// cross-platform differences in directory structures and file handling.
-	// I haven't tried to represent what other changes Bruce made to the MFC version in his file 
-	// sent 15Mar04. He basically initialized rStrLocalizedMyDocsName then assigned dirPath to it.
+    // whm 5Jun09 modified this rouitine to implement the ability of the user to specify a non-default
+    // location for a work folder as supplied from a -wf <path> command-line option.
+    // 
+    // Note: This function is significantly changed from the MFC version because of cross-platform
+    // differences in directory structures and file handling. I haven't tried to represent what other
+    // changes Bruce made to the MFC version in his file sent 15Mar04. He basically initialized
+    // rStrLocalizedMyDocsName then assigned dirPath to it.
 	wxString stdDocsDir = _T("");
 	wxString dirPath = _T("");
 	wxString workFolderPath = _T("");
@@ -10040,9 +10500,10 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// changes/moves the location of his "Documents" folder (on Vista) or "My Documents" folder (on
 	// 2000/XP) to a non-default drive or folder location.
 	// 
-	// TODO: We also want to accommodate the power-user who may want to set up a work folder
-	// path in a non-default location. Some possibilities for accommodating a power user's desire to use
-	// a non-default location for his work folder:
+	// We also want to accommodate the power-user who may want to set up a work folder
+	// path in a non-default location. 
+	// Some possibilities for accommodating a power user's desire to use a non-default location for 
+	// his work folder:
 	// 1. Provide a Browse button on the Project page that would allow the user to select a different
 	// path for the project folder. There could also be a "Restore Default Path" button next to it on
 	// the Project page. This makes it easy to change (or too easy - could get naive users in trouble?).
@@ -10053,10 +10514,10 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// a non-default work folder location. For example, the default Target string that calls the
 	// executable on Windows is something like this:
 	//    "C:\Program Files\Adapt It WX\Adapt_It.exe"
-	// A power user could add the -p command-line followed by the work folder path so that the whole
+	// A power user could add the -wf command-line followed by the work folder path so that the whole
 	// Target edit box would look like this:
-	//    "C:\Program Files\Adapt It WX\Adapt_It.exe" -p "E:\Adapt It\Data"
-	// The -p switch means that the following string is a path to the work folder (in the above example
+	//    "C:\Program Files\Adapt It WX\Adapt_It.exe" -wf "E:\Adapt It\Data"
+	// The -wf switch means that the following string is a path to the work folder (in the above example
 	// the work folder is at E:\Adapt It\Data). Option 2 would be difficult for all but power users to do,
 	// but that may help prevent naive users from accidentally misplacing their data.
 	// At any rate, providing a way to set up a work folder path in a non-default location is a feature
@@ -10065,6 +10526,8 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// In case 1 (and possible also case 2) we could save the indicated non-default path as a key-value
 	// pair in the m_pConfig settings. The key value could be something like "user_defined_work_folder_path"
 	// with the data being the string representing the path to the non-default location.
+	// whm Note 5Jun09: I am initially providing the -wf <path> command-line option (2 above). This
+	// option could eventually be supplemented with other options including option 1 above.
 	
 	// whm Note: I first used the wxWidgets ::wxGetHomeDir() function to determine the users home
 	// directory and then augment it to include "Documents" or "My Documents" folder (if Windows). The
@@ -10075,12 +10538,20 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 
 	// Get the "documents" directory for the current system/platform. 
 	wxStandardPaths stdPaths;
+#ifdef __WXMAC__
+	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program crash when 
+	// compiled for Mac OS X 10.3 Panther, so I'm using the older ::wxGetHomeDir() function for the Mac
+	// which should return the same directory string on the Mac that wxStandardPaths::GetDocumentsDir() 
+	// does.
+	stdDocsDir = ::wxGetHomeDir();
+#else
 	stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since wxWidgets version 2.7.0
+#endif
 	// Typically the "documents" directory depends on the system:
-    // Unix: ~ (the home directory )
+    // Unix: ~/(the home directory, i.e., /home/<username>/)
     // Windows (earlier and Vista): C:\Documents and Settings\username\Documents
     // Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-    // Mac: ~/Documents 
+    // Mac: ~/(the home directory, i.e., /Users/<username>/ 
 
 	// whm note: In the cross-platform version we never refer to a specific "Documents" or "My Documents" folder
 	// and so we do not need to localize the name of the folder that is returned by the
@@ -10092,7 +10563,24 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	::wxSetWorkingDirectory(stdDocsDir);
 	dirPath = ::wxGetCwd();
 	m_localPathPrefix = dirPath; // m_localPathPrefix used in MakeForeignBasicConfigFileSafe which gets called subsequently in OnInit().
-	workFolderPath = dirPath + PathSeparator + workFolder;
+
+	// whm modified 5Jun09 to use m_wf_forced_workFolderPath if it was defined on the command-line
+	if (!m_wf_forced_workFolderPath.IsEmpty())
+	{
+		// Insure that the user supplied work folder path does not end with a path separator character.
+		if (m_wf_forced_workFolderPath.GetChar(m_wf_forced_workFolderPath.Length() -1) == PathSeparator)
+		{
+			m_wf_forced_workFolderPath.RemoveLast(); // remove the PathSeparator char at the end of the path string
+		}
+		workFolderPath = m_wf_forced_workFolderPath;
+		// When we force the local path we need to also change m_localPathPrefix, and set the working
+		// directory to it (setting the working dir is done near the end of EnsureWorkFolderPresent below)
+		m_localPathPrefix = m_wf_forced_workFolderPath;
+	}
+	else
+	{
+		workFolderPath = dirPath + PathSeparator + workFolder;
+	}
 
 	if (!::wxDirExists(workFolderPath))
 	{
@@ -11763,7 +12251,30 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 	CAdapt_ItView* pView = GetView();
 	wxASSERT(pDoc);
 	wxASSERT(pView);
+
+	// variables below added by whm 27Apr09 for reporting errors in docs used for KB restore
+	bool bAnyDocChanged;
+	bAnyDocChanged = FALSE;
+	wxArrayString errors; // for use by KBRestoreErrorLog file
+	wxArrayString docIntros; // for use by KBRestoreErrorLog file
+	wxString errorStr;
+	wxString logName = _T("KBRestoreErrorLog.txt");
 	
+    // The error is not likely to have happend much, and the document text itself was not
+    // changed, so an English message in the log file should suffice.
+    errors.Clear();
+	wxDateTime theTime = wxDateTime::Now();
+	wxString dateTime = theTime.Format(_T("%a, %b %d, %H:%M, %Y")).c_str();
+    wxString logFileTime;
+	logFileTime = logFileTime.Format(_T("This is the %s file - created %s."),logName.c_str(),dateTime.c_str());
+	errors.Add(logFileTime);
+	errors.Add(_T("\n\nDuring the KB Restore operation, punctuation errors were found and corrected in the KB,"));
+	errors.Add(_T("\nand changes were made to the punctuation stored in one or more documents used to restore the KB."));
+	errors.Add(_T("\nPlease Note the Following:")); 
+	errors.Add(_T("\n* You should no longer notice any punctuation in KB entries when viewed with the KB Editor.")); 
+	errors.Add(_T("\n* With punctuation purged from the KB Adapt It should handle punctuation in your documents as you expect.")); 
+	errors.Add(_T("\n* You may wish to open the document(s) below in Adapt It and check the punctuation for the items listed.")); 
+	errors.Add(_T("\n\n   In the following document(s) punctuation was removed from non-punctuation fields (see below):")); 
 	// iterate over the document files
 	int i;
 	for (i=0; i < nCount; i++)
@@ -11780,6 +12291,13 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 		// so we can do this like MFC has it.
 		pDoc->SetFilename(newName,TRUE); // here TRUE means "notify the views" whereas
 		// in the MFC version TRUE meant "add to MRU list"
+		
+		// Prepare an intro string for this document in case it has errors.
+		errors.Add(_T("\n   ----------------------------------------"));
+		// which had been wrongly stored there by a previous version of Adapt
+		wxString docStr;
+		docStr = docStr.Format(_T("\n   %s:"),newName.c_str());
+		errors.Add(docStr);
 
 		nTotal = m_pSourcePhrases->GetCount();
 		wxASSERT(nTotal > 0);
@@ -11817,6 +12335,7 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 		SPList* pPhrases = m_pSourcePhrases;
 		SPList::Node* pos1 = pPhrases->GetFirst();
 		int counter = 0;
+		bool bThisDocChanged = FALSE;
 		while (pos1 != NULL)
 		{
 			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos1->GetData();
@@ -11824,7 +12343,14 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 			counter++;
 
 			// update the glossing or adapting KB for this source phrase
-			pView->RedoStorage(pKB,pSrcPhrase);
+			pView->RedoStorage(pKB,pSrcPhrase,errorStr);
+			if (!errorStr.IsEmpty())
+			{
+				// an error was detected (punctuation in non-punctuation field of doc)
+				bThisDocChanged = TRUE;
+				errors.Add(errorStr);
+				errorStr.Empty(); // for next iteration
+			}
 
 #ifdef __WXMSW__
 			// update the progress bar every 20th iteration
@@ -11834,6 +12360,18 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 				progDlg.Update(counter,msgDisplayed);
 			}
 #endif
+		}
+		// whm added 27Apr09 to save any changes made by RedoStorage above
+		if (bThisDocChanged)
+		{
+			bAnyDocChanged = TRUE;
+			// Save the current document before proceeding
+			wxCommandEvent evt;
+			pDoc->OnFileSave(evt);
+		}
+		else
+		{
+			errors.Add(_T("\n      * No changes were made in this file! *"));
 		}
 
 		GetView()->ClobberDocument();
@@ -11861,6 +12399,32 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 									wxICON_INFORMATION);
 		}
 	}
+	if (bAnyDocChanged)
+	{
+		// The wxArrayString errors contains all the text to be written to the log file
+		errors.Add(_T("\n\nEnd of log."));
+		// Write out errors to external log file.
+		bool bOK;
+		bOK = ::wxSetWorkingDirectory(m_curProjectPath);
+		// Note: Since we want a text file output, we'll use wxTextOutputStream which
+		// writes text files as a stream on DOS, Windows, Macintosh and Unix in their native 
+		// formats (concerning their line endings)
+		wxFileOutputStream output(logName);
+		wxTextOutputStream cout(output);
+
+		// Write out the contents of the errors array dumping it to the wxTextOutputStream.
+		int ct;
+		for (ct = 0; ct < (int)errors.GetCount(); ct++)
+		{
+			// The wxArrayString errors contains the boiler text composed above plus the individual errorStr strings received from
+			// RedoStorage().
+			cout << errors.Item(ct);
+		}
+		wxString msg;
+		msg = msg.Format(_("Adapt It changed the punctuation in one or more of your documents.\nSee the %s file in your project folder for more information on what was changed."),logName.c_str());
+		wxMessageBox(msg,_T(""), wxICON_INFORMATION);
+	}
+	errors.Clear(); // clear the array
 
 }
 
@@ -13754,7 +14318,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTopLeftX)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < -6 || num > wndBotRight.x - 5) // -4 is maximized window's x value
 			{
 				bAdjusted = TRUE; // it's too far left or right
@@ -13765,7 +14331,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szTopLeftY)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < -6 || num > wndBotRight.y - 5) // -4 is maximized window's y value
 			{
 				bAdjusted = TRUE; // it's too far up or down
@@ -13776,7 +14344,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szWSizeCX)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < 200 || num > wndBotRight.x - wndTopLeft.x)
 			{
 				bAdjusted = TRUE; // it's too narrow or too wide
@@ -13787,7 +14357,9 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szWSizeCY)
 		{
 			num = wxAtoi(strValue);
-			// TODO: the test below needs to be checked in WX version
+			// whm Note: The wndBotRight and wndTopLeft coordinate points are determined in the App's OnInit() 
+			// by a call to the wxGetClientDisplayRect() function adjusted for any extended desktop
+			// support over dual monitors.
 			if (num < 200 || num > wndBotRight.y - wndTopLeft.y)
 			{
 				bAdjusted = TRUE; // it's too short or too long
@@ -16686,7 +17258,7 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, wxFo
 		break;
 		}
 	//case eAnsi:
-	default: // same as wxFONTENCODING_UTF8 above
+	default: // Unknown encoding - assume it is probably ASCII and convert it as best as possible
 		{
 		if (bHasBOM)
 		{
@@ -16695,8 +17267,9 @@ void CAdapt_ItApp::DoInputConversion(wxString& pBuf, const char* pbyteBuff, wxFo
 			::wxBell(); 
 			wxASSERT(FALSE);
 		}
-		CBString tempBuff(pbyteBuff);
-		pBuf = gpApp->Convert8to16(tempBuff);
+		// The wxCSConv class converts between any character sets and Unicode.
+		wxCSConv conv(eEncoding); // construct a converter for eEncoding
+		pBuf = wxString(pbyteBuff, conv); // convert the pbyteBuff buffer
 		break;
 		}
 	};
@@ -17762,7 +18335,16 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	// For Windows: C:\Documents and Settings\<UserName>
 	// For Linux: /usr/home
 	wxStandardPaths stdPaths;
-	wxString homeDir = stdPaths.GetDocumentsDir(); //wxString homeDir = ::wxGetHomeDir();
+	wxString homeDir;
+#ifdef __WXMAC__
+	// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program crash when 
+	// compiled for Mac OS X 10.3 Panther, so I'm using the older ::wxGetHomeDir() function for the Mac
+	// which should return the same directory string on the Mac that wxStandardPaths::GetDocumentsDir() 
+	// does.
+	homeDir = ::wxGetHomeDir();
+#else
+	homeDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function is new since wxWidgets version 2.7.0
+#endif
 	// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
 	wxString configPath = folderPath + PathSeparator + configFName;
 	wxString localPathPrefix = m_localPathPrefix; // m_localPathPrefix was set in EnsureWorkFolderPresent.
@@ -17815,7 +18397,17 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	// szCurKBPath = _("KnowledgeBasePath");
 	// szCurKBBackupPath = _("KBBackupPath");
 	
-	wxString localPath = m_localPathPrefix + PathSeparator + m_theWorkFolder;
+    // whm modified 5Jun09. If the user is forcing the work folder to be what s/he wants then we won't
+    // suffix the forced path with m_theWorkFolder ("Adapt It <Unicode> Work").
+	wxString localPath;
+	if (m_wf_forced_workFolderPath.IsEmpty())
+	{
+		localPath = m_localPathPrefix + PathSeparator + m_theWorkFolder;
+	}
+	else
+	{
+		localPath = m_localPathPrefix;
+	}
 	wxString tab = _T('\t');
 	wxString fileLine;
 	// scan the in-memory file line-by-line and process those needing path updates
@@ -18213,6 +18805,137 @@ void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event)
 
 	// enable if a project is active & the disable flag is not set
 	if ((m_bKBReady || m_bGlossingKBReady) && !m_bDisableBookMode)
+	{
+		event.Enable(TRUE); 
+	}
+	else
+	{
+		event.Enable(FALSE);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   -> the wxCommandEvent that is generated when the associated menu item is
+///                         selected
+/// \remarks
+/// Called from: The Event Table of the CAdapt_ItApp class in response to a "Change Location of 
+/// Adapt It Work Folder" command on the Advanced menu. This handler presents the user with a
+/// wxDirPickerCtrl control which allows the user to navigate to and select a desired folder which
+/// is to be used as the new default work folder on the current machine. If a folder is selected
+/// (the wxDirPickerCtrl insures that only an existing directory can be selected), Adapt It saves
+/// the path to this folder in its m_pConfig (registry/hidden settings file), and continues to 
+/// use this path for its work folder from session to session (until the user changes it again). 
+/// If no work folder (containing projects) are in the new location, it offers to copy the work 
+/// folder and projects from the previous location to the new location, and invokes the Start 
+/// Working Wizard automatically which allows the user to select a project from the new location.
+/// If a work folder and one or more projects already exist at the new location, Adapt It simply
+/// invokes the Start Working Wizard allowing the user to select a project from that new 
+/// location.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event) 
+{
+	// TODO: In order to activate this feature handler the following must first be done:
+	// 1. Using wxDesigner add a menu item between "Storing Documents in Book Folders"
+	//    and "Free Translation Mode". Make the ID name be "ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION".
+	//    Make the Label: "Change Location of Adapt It Work Folder...".
+	//    Make the Help text: "Change location of the Adapt It (Unicode) Work folder and projects 
+	//    in the work folder"
+	// 2. Using wxDesigner, add a Menu separator after the menu item, so that the item has a Menu
+	//    separator both before and after it.
+	// 3. Uncomment the two event table macro lines at the beginning of this Adapt_it.cpp source file:
+	//	  EVT_MENU(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnAdvancedChangeWorkFolderLocation)
+	//	  EVT_UPDATE_UI(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation)
+	// 4. Comment out the 4 lines including the wxMessageBox() and return calls below.
+	// 5. Remove the commented out block below.
+    // implementation of the "Change Location of Adapt It Work Folder..." command on Advanced menu
+    int junk;
+	junk = event.GetInt(); // to avoid warning
+	wxMessageBox(_T("Sorry, this menu item is not yet implemented in this version of Adapt It.\nIt is being developed for a future version update."),_T(""),wxICON_INFORMATION);
+	return;
+/*
+	//CAdapt_ItView* pView = GetView();
+	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	wxASSERT(pFrame != NULL);
+	wxMenuBar* pMenuBar = pFrame->GetMenuBar(); 
+	wxASSERT(pMenuBar != NULL);
+	wxMenuItem * pAdvancedMenuItem = pMenuBar->FindItem(ID_ADVANCED_CHANGE_WORK_FOLDER_LOCATION);
+	wxASSERT(pAdvancedMenuItem != NULL);
+
+	wxString workFolderPath = _T("");
+	wxString workFolder;
+	workFolder = m_theWorkFolder; // always "Adapt It Work" or "Adapt It Unicode Work"
+	
+	wxString newPath;
+	long style = wxDIRP_DIR_MUST_EXIST;
+	wxDirPickerCtrl* dpDlg;
+	dpDlg = new wxDirPickerCtrl(pFrame, -1, m_workFolderPath, _T(""), wxDefaultPosition, wxDefaultSize, style);
+	//if (dpDlg.ShowModal() == wxID_OK)
+	//{
+	newPath = dpDlg->GetPath();
+	//}
+
+	workFolderPath = newPath + PathSeparator + workFolder;
+	if (!::wxDirExists(workFolderPath))
+	{
+		// "Adapt It (Unicode) Work" does not yet exist at the newPath, so offer
+		// to move the world folder from its previous location to the newPath
+		wxString msg = msg.Format(_("There is no %s folder yet in the location you chose.\nDo you want to move that folder from its current location to the location you just chose?"),m_theWorkFolder.c_str());
+		int result = wxMessageBox(msg,_(""), wxYES_NO | wxICON_INFORMATION);
+		if (result == wxYES)
+		{
+			// User wants the old work folder moved to the new location
+			// TODO: move old work folder to the new location
+		}
+		else if (result == wxNO)
+		{
+			// User doesn't want the old work folder moved to the new location
+			// so we call EnsureWorkFolderPresent() to create a work folder, then we
+			// call up the Start Working Wizard (which will only have <New Project>
+			// in its list.
+			EnsureWorkFolderPresent();
+			// Go ahead and call up the Start Working wizard (called below).
+		}
+		else
+		{
+			// user cancelled?
+			// return before modifying m_workFolderPath and saving the new path in m_pConfig
+			return;
+		}
+	}
+
+	// If/When we get here a workFolderPath exists at the current work directory, so
+	// set the current working directory and the App's m_workFolderPath member.
+	::wxSetWorkingDirectory(workFolderPath);
+	m_workFolderPath = workFolderPath;
+
+	// TODO: save m_workFolderPath in m_pConfig
+
+
+	// Call the Startup Wizard which will allow the user to get to work immediately
+	bool bSuccess = DoStartWorkingWizard(event);
+	if (!bSuccess)
+	{
+		wxMessageBox(_("The Startup Wizard failed to open. Use the File menu's Open command to open a document."),
+				_T(""), wxICON_EXCLAMATION);
+	}
+	*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// The "Change Location of Adapt It Work Folder..." menu item on the Advanced menu is enabled only
+/// when there is no project currently open.
+////////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& event) 
+{
+	// enable only if no project is active
+	if (!(m_bKBReady || m_bGlossingKBReady))
 	{
 		event.Enable(TRUE); 
 	}
@@ -21334,6 +22057,141 @@ int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr,
 				// we found an item whose chars match exactly
 				bFound = TRUE;
 				return ct;
+			}
+		}
+	}
+	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     an int representing the index of the list box item if found, otherwise -1
+/// \param      pListBox         -> a pointer to the list box being searched
+/// \param      searchStr        <- a wxString representing the string being searched for
+/// \param      searchCaseType   -> a SearchCaseType which can be caseSensitive or caseInsensitive
+/// \param      searchStrLenType <- a SearchStrLengthType which can be subString or exactString
+/// \param      startFromType    -> a StartFromType which can be fromFirstListPos, fromCurrentSelPosToListEnd,
+///                                 or fromCurrentSelPosCyclingBack
+/// \remarks
+/// Called from: CMyListBox::OnSysKeyUp(wxKeyEvent& event).
+/// This function is an override of the function of the same name but has a startFromType
+/// parameter added to the function signature to further indicate the scope of a list box
+/// search for an item. Hence, this function enables searches for successive list items that 
+/// match the list criteria. It is designed to emulate for wxGTK and wxMAC the list box behavior 
+/// that exists in wxMSW and wxMac native list boxes. As such it would ordinarily be called from
+/// within a #if defined(__WXGTK__) && defined(_UNICODE) conditional compilation block.
+/// Finds the index of an item in pListBox that matches the searchStr and the case and and/or
+/// substring type. Returns the index of the item if found, or -1 if not found. This function
+/// adds more search options and search criteria than what is available in the standard wxListBox
+/// which can do case sensitive or insensitive searches but cannot do substring searches with its 
+/// FindString() method. In this function, if the startFromType is fromCurrentSelPosToListEnd, it 
+/// will start searching using parameter search criteria from the current selection + 1 to the 
+/// end of the list, and will return an index number if an item is found, or -1 (not found) if 
+/// the searchStr could not be found according to the other parameter criteria. If the startFromType
+/// is fromCurrentSelPosCyclingBack, it will start searching as per the fromCurrentSelPosToListEnd,
+/// but if it reaches the end of the list and has not found an item matching search criteria, it
+/// will cycle back and search also from the top of the list to the current selection.
+/// Care needs to be taken when using functions like FindListBoxItem on list boxes that may 
+/// contain hundreds or thousands of items. Since the find operation is a simple brute force 
+/// search through each item, the time taken can be considerable for list boxes that may contain 
+/// very large numbers of items.
+////////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::FindListBoxItem(wxListBox* pListBox, wxString searchStr, 
+		enum SearchCaseType searchCaseType, enum SearchStrLengthType searchStrLenType, 
+		enum StartFromType startFromType)
+{
+	// FindListBoxItem searches for searchStr in pListBox and returns the zero-based
+	// index of a found item, or -1 if not found. If searchType is caseSensitive, it will
+	// return the index of the first exact (case sensitive) match found; if searchCaseType is
+	// caseInsensitive, it will return the index of the first match found that may differ
+	// in case; if searchStrLenType is subString, it will return the index of the first item
+	// with a matching substring; if startFromType is currentSelPos, it will only search for
+	// list items below the currently selected item in the list, or if none are found below
+	// the item, but an item is found preceding the currently selected item, it will cycle
+	// to that item.
+	int ct, nStartIndex, nEndIndex, nCurrSel, nTotLBItems;
+	bool bFound = FALSE;
+	wxString caseKeyStr = searchStr;
+	nCurrSel = pListBox->GetSelection();
+	nTotLBItems = (int)pListBox->GetCount();
+	if (searchCaseType == caseInsensitive)
+		caseKeyStr.UpperCase();
+	nStartIndex = 0; // the default starting point case which is fromFirstListPos
+	nEndIndex = nTotLBItems - 1; // the default ending point is index of last item in list
+	
+	// handle the special cases where starting index is from current selection index
+	if (startFromType == fromCurrentSelPosToListEnd || startFromType == fromCurrentSelPosCyclingBack)
+	{
+		// Set starting index at next index below the current selection position.
+		nStartIndex = nCurrSel + 1; // start searching with next item below current selection
+		// But first do some sanity checks.
+		if (nCurrSel == -1 || nStartIndex >= nTotLBItems)
+		{
+			// no valid selection is current so cannot search
+			return -1; 
+		}
+	}
+	// Search from starting index through end of list
+	wxString srcStr;
+	for (ct = nStartIndex; ct <= nEndIndex; ct++) // use <= here
+	{
+		srcStr = pListBox->GetString(ct);
+		if (searchCaseType == caseInsensitive)
+			srcStr.UpperCase();
+		if (searchStrLenType == subString)
+		{
+			// If needed we could here further modify FindListBoxItem to allow
+			// for a substring at any location in the string, not just initially
+			// It would require an additional enum parameter SubStrType {initialOnly, anywhere}
+			if (srcStr.Find(caseKeyStr) == 0)
+			{
+				// we found an item whose beginning chars match 
+				bFound = TRUE;
+				return ct;
+			}
+		}
+		else
+		{
+			// searchStrLenType == exactString
+			if (srcStr == caseKeyStr)
+			{
+				// we found an item whose chars match exactly
+				bFound = TRUE;
+				return ct;
+			}
+		}
+	}
+	// For the possible cycle back bFound == FALSE case, search again from index 0 to current selection
+	if (startFromType == fromCurrentSelPosCyclingBack && bFound == FALSE)
+	{
+		nStartIndex = 0; // the default starting point case which is fromFirstListPos
+		nEndIndex = nCurrSel; // the default ending point is index of last item in list
+		wxString srcStr;
+		for (ct = nStartIndex; ct <= nEndIndex; ct++) // use <= here
+		{
+			srcStr = pListBox->GetString(ct);
+			if (searchCaseType == caseInsensitive)
+				srcStr.UpperCase();
+			if (searchStrLenType == subString)
+			{
+				// If needed we could here further modify FindListBoxItem to allow
+				// for a substring at any location in the string, not just initially
+				// It would require an additional enum parameter SubStrType {initialOnly, anywhere}
+				if (srcStr.Find(caseKeyStr) == 0)
+				{
+					// we found an item whose beginning chars match 
+					bFound = TRUE;
+					return ct;
+				}
+			}
+			else
+			{
+				// searchStrLenType == exactString
+				if (srcStr == caseKeyStr)
+				{
+					// we found an item whose chars match exactly
+					bFound = TRUE;
+					return ct;
+				}
 			}
 		}
 	}
