@@ -25,14 +25,13 @@
     #pragma interface "Adapt_ItDoc.h"
 #endif
 
-#include "SourcePhrase.h" // needed for enum TextType
-
 // Forward declarations
 class wxDataOutputStream;
 class wxDataInputStream;
 class wxFile;
 class CAdapt_ItApp;
 class CAdapt_ItDoc;
+class CLayout;
 
 
 // If we need another list based on CSourcePhrase, we don't declare it
@@ -144,9 +143,20 @@ public:
 	void			AdjustSequNumbers(int nValueForFirst, SPList* pList);
 	wxString&		AppendFilteredItem(wxString& dest,wxString& src);
 	wxString&		AppendItem(wxString& dest,wxString& src, const wxChar* ptr, int itemLen);
-	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase);
-	void			DeleteSourcePhrases();
-	void			DeleteSourcePhrases(SPList* pList);
+
+	// partner pile functions (for refactored layout support)
+	void			CreatePartnerPile(CSourcePhrase* pSrcPhrase); // added 13Mar09
+	void			DeletePartnerPile(CSourcePhrase* pSrcPhrase); // added 12Mar09
+	void			MarkStripInvalid(CPile* pChangedPile); // added 29Apr09, adds strip index to m_invalidStripArray
+	void			ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase, 
+							bool bNoActiveLocationCalculation = FALSE); // added 13Mar09, changed 29Apr09
+	// end of partner pile functions
+	
+	void			DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso = TRUE);
+	void			DeleteSourcePhrases(); // deletes all the CSourcePhrase instances,in m_pSourcePhrases,
+										   // but does not delete each partner pile (use DestroyPiles()
+										   // defined in CLayout for that)
+	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
 	bool			DoFileSave(bool bShowWaitDlg);
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
@@ -162,6 +172,10 @@ public:
 	//wxString		GetFileName(const wxString fullPath); // not used in wx version
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
+	CLayout*		GetLayout(); // view class also has its own member function of the same name
+	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
+					wxString* fileTitle);
+	CPile*			GetPile(const int nSequNum);
 	void			GetProjectConfiguration(wxString sourceFolderPath);
 	wxString		GetUnFilteredMarkers(wxString& src);
 	wxString		GetWholeMarker(wxChar *pChar);
@@ -178,6 +192,7 @@ public:
 	bool			IsEnd(wxChar* pChar);
 	bool			IsWhiteSpace(wxChar *pChar);
 	int				ParseNumber(wxChar* pChar);
+	int				IndexOf(CSourcePhrase* pSrcPhrase); // BEW added 17Mar09
 	bool			IsVerseMarker(wxChar* pChar, int& nCount);
 	bool			IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd);
 	bool			IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd);

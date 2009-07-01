@@ -5,17 +5,25 @@
 /// \date_created	05 January 2004
 /// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the header file for the CAdapt_ItApp class and the AIModalDialog class. 
-/// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
-/// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
-/// this source file's global space. The AIModalDialog class provides Adapt It with a modal dialog
-/// base class which turns off Idle and UIUpdate processing while the dialog is being shown.
-/// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support for the document/view framework.
+/// \license		The Common Public License or The GNU Lesser General Public 
+///                 License (see license directory)
+/// \description This is the header file for the CAdapt_ItApp class and the AIModalDialog
+/// class.  
+/// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
+/// Adapt It's global enums, structs and variables are declared either as members of the
+/// CAdapt_ItApp class or in this source file's global space. The AIModalDialog class
+/// provides Adapt It with a modal dialog base class which turns off Idle and UIUpdate
+/// processing while the dialog is being shown.
+/// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support 
+///                 for the document/view framework.
 /// The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 #ifndef Adapt_It_h
 #define Adapt_It_h
+
+// for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...
+// comment out when the wxLogDebug() calls are no longer needed
+//#define Test_m_bNoAutoSave
 
 // ///////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
@@ -38,13 +46,24 @@
 
 // ******************************* my #defines *********************************************
 
-#define VERSION_MAJOR_PART 4
-#define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 5
+#define VERSION_MAJOR_PART 5
+#define VERSION_MINOR_PART 0
+#define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 31
-#define VERSION_DATE_MONTH 5
+#define VERSION_DATE_DAY 11
+#define VERSION_DATE_MONTH 7
 #define VERSION_DATE_YEAR 2009
+
+//#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
+                       // strips, indices used instead; if not defined, CPile* copies are
+					   // in strips -- our final design requires the CPile pointers to be
+					   // stored in the strips
+#define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
+                      // never kept & tweaked; if #defined, piles & strips are retained &
+                      // tweaked where necessary to update after user editing -- our final
+                      // design requires this #define be set
+//#define BLINKING_BUG // BEW Jun27 2009, trying to find why RTL Gilaki doc goes into infinite
+					 // loop when drawing using CLayout::Draw()
 
 //#define _UNICODE 
 // whm Notes: The MFC version uses _NONROMAN everywhere instead of _UNICODE. For MFC, the 
@@ -144,6 +163,10 @@ class wxHtmlHelpController;
 class CConsistentChanger;
 class wxPropertySheetDialog;
 
+// forward references for refactored view layout support
+class CLayout;
+class CSourcePhrase;
+class SPList;
 
 // The following constants were originally declared in the global space of XML.h. G++ 3.x could find
 // them but the g++ 4.x linker can't find them even though XML.h is included above, so I've moved them
@@ -265,6 +288,8 @@ WX_DECLARE_LIST(PageOffsets, POList); // see list definition macro in .cpp file
 /// wxList declaration and partial implementation of the CCellList class being
 /// a list of pointers to CCell objects
 WX_DECLARE_LIST(CCell, CCellList); // see list definition macro in .cpp file
+
+
 
 // globals
 
@@ -786,6 +811,17 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the whole sfm marker (with bac
                     wxStringEqual,
                     MapWholeMkrToFilterStatus ); // the name of the map class declared by this macro
 
+enum box_cursor {
+	select_all,
+	cursor_at_text_end,
+	cursor_at_offset
+};
+
+enum removeFrom {
+	from_source_text,
+	from_target_text
+};
+
 // The following enums and struct were added by Bruce 12Sep08 for support of Vertical Editing. They
 // were located in the global space of CAdapt_ItView.h in the MFC version.
 
@@ -1011,7 +1047,7 @@ typedef struct
 	int nPropagationSpan_EndingSequNum; // the index for the last CSourcePhrase in the following context which was
 				// affected by the propagation process
 	wxArrayInt arrNotesSequNumbers; //CArray<int,int> arrNotesSequNumbers; // preserve old location of each removed note in the editable subspan
-	int nOldMaxIndex;  // the view class's m_maxIndex value just before the edit was initiated
+	//int nOldMaxIndex;  // the view class's m_maxIndex value just before the edit was initiated
 	int nOldSpanCount; // the original (after any extension) editable span's number of CSourcePhrase instances
 	int	nNewSpanCount; // the final number of CSourcePhrase instances in the editable span after the user has
 					   // completed his editing of the source text (or whatever the edit did, eg. removal of
@@ -1272,6 +1308,11 @@ public:
 
 	// store doc size parameters
 	wxSize		m_docSize;	// stores the virtual doc size (in pixels)
+	wxSize		m_saveDocSize; // used for restoring original doc size across a printing operation
+	int			m_nAIPrintout_Destructor_ReentrancyCount; // ~AIPrintout() is entered twice in closing
+	// off a Print Preview and parameter cleanup done there is fouling
+	// things, so I'll count times reentered and have the function exit immediately if the
+	// count gets over 1; the count is initialized to 1 in the AIPrintout() constructor
 	SPList*		m_pSourcePhrases;
 	wxString*	m_pBuffer;  // in legacy versions was used to store source (untokenized) text data on the
 							// heap; and still does so while parsing source text, but from late versions 2
@@ -1327,7 +1368,7 @@ public:
 	// for use in tokenizing retranslations
 	//wxString buffer; moved here from the View, however, it wasn't used anywhere in the View
 	static bool bLookAheadMerge; // TRUE when merging a matched multiword phrase
-	CSourceBundle* m_pBundle; // whm moved to the App from the View
+	//CSourceBundle* m_pBundle; // whm moved to the App from the View // removed 18Mar09
 	CPile* m_pActivePile;	// where the phrase box is to be located // whm moved to the App from the View
 	CCell* m_pAnchor;		// anchor element for the selection // whm moved to the App from the View
 	int m_selectionLine;	// index of line which has the selection (0 to 3, -1 
@@ -1335,8 +1376,11 @@ public:
 	int m_nActiveSequNum;	// sequence number of the srcPhrase at the active 
 							// pile location
 	bool m_bSelectByArrowKey; // TRUE when user is using ALT + arrow key to extend sel'n
-	bool m_bSuppressLast;	 // suppress last target text line of display when TRUE
-	bool m_bSuppressFirst;	 // suppress first source text line of display when TRUE
+	//next two cannot be removed for refactored layout, because they are needed for
+	//backwards compatibility of the config files; retain them, but make no use of them
+	//except to put TRUE values in the config files - initialize those in the app's OnInit()
+	bool m_bSuppressLast;	// deprecated: (suppress last target text line of display when TRUE)
+	bool m_bSuppressFirst;	// deprecated: (suppress first source text line of display when TRUE)
 	bool m_bDrafting; // suggested by Bill Martin: a Drafting versus Review mode choice;
 								 // with the single-step versus automatic insertion choices 
 								 // possible only in drafting mode, while in review mode 
@@ -1408,36 +1452,41 @@ public:
 
 	// The following weren't initialized in the view's constructor but moved here from the
 	// View for safety.
-	int				m_nMaxToDisplay; // max # of words/phrases to display at one time
-	int				m_nPrecedingContext; // minimum # of words/phrases in preceding context
-	int				m_nFollowingContext; // ditto, for following context
-	int				m_curPileHeight;	 // pile height value to be used in RecalcLayout()
+	int				m_nMaxToDisplay; // max # of words/phrases to display at one time (this has to
+									 // be retrained in our refactoring for backwards compatibility
+									 // with configuration files - formerly this was bundle's count 
+									 // of sourcephrases, but we'll now save the m_pSourcePhrases count
+	// next two retained for backwards compatibility of config files, but we make no use
+	// of them - just output values 30 & 40 every time, respectively, to basic config file
+	int			m_nPrecedingContext; // minimum # of words/phrases in preceding context
+	int			m_nFollowingContext; // ditto, for following context
+	//int			m_curPileHeight;	 // pile height value to be used in RecalcLayout()
 	int				m_curLeading;		 // between-strips leading value
 	int				m_curLMargin;		 // if user wants a left margin, he can set this
 	int				m_curGapWidth;		 // inter-pile gap, measured in pixels (follows a pile)
-	int				m_beginIndex; // start of the displayed CSourcePhrase instances in this group
-	int				m_endIndex;	// end of the displayed CSourcePhrase instances in this group
-	int				m_curIndex; // current location
-	int				m_upperIndex; // upper index for context end, move up if 
+	//int			m_beginIndex; // start of the displayed CSourcePhrase instances in this group
+	//int			m_endIndex;	// end of the displayed CSourcePhrase instances in this group
+	//int			m_curIndex; // current location
+	//int			m_upperIndex; // upper index for context end, move up if 
 								  // m_upperIndex = m_endIndex
-	int				m_lowerIndex; // lower index for context end, move down if 
+	//int			m_lowerIndex; // lower index for context end, move down if 
 								  // m_lowerIndex = m_beginIndex
-	int				m_maxIndex;  // index of last CSourcePhrase instance in the list
+	//int			m_maxIndex;  // index of last CSourcePhrase instance in the list
 	// for saving these across layout for printing, since print layout can go from start 
 	// to end of document rather than just a bundle; use the next set for selection printing
-	int				m_saveBeginIndex;
-	int				m_saveEndIndex;
-	int				m_saveCurIndex;
-	int				m_saveLowerIndex;
-	int				m_saveUpperIndex;
-	int				m_saveMaxIndex;
+	//int			m_saveBeginIndex;
+	//int			m_saveEndIndex;
+	//int			m_saveCurIndex;
+	//int			m_saveLowerIndex;
+	//int			m_saveUpperIndex;
+	//int			m_saveMaxIndex;
 	// use the following set for a print of a chapter/verse range
-	int				m_saveRangeBeginIndex;
-	int				m_saveRangeEndIndex;
-	int				m_saveRangeCurIndex;
-	int				m_saveRangeLowerIndex;
-	int				m_saveRangeUpperIndex;
-	int				m_saveRangeMaxIndex;
+	//int			m_saveRangeBeginIndex;
+	//int			m_saveRangeEndIndex;
+	//int			m_saveRangeCurIndex;
+	//int			m_saveRangeLowerIndex;
+	//int			m_saveRangeUpperIndex;
+	//int			m_saveRangeMaxIndex;
 
 	// from TEXTMETRICs, heights of source & target text lines & the editbox
 	int				m_nSrcHeight;	// line height for source language text
@@ -1454,6 +1503,9 @@ public:
 	wxSize			m_szView;
 
 	CCellList		m_selection;		// list of selected CCell instances - MFC uses CPtrList
+
+	// BEW added 10Feb09 for refactored view layout support
+	CLayout* m_pLayout;	
 
 	// values for members of printing support structures
 	
@@ -1502,9 +1554,9 @@ public:
 	// View, and will simply be shown, hidden, moved, and/or resized where necessary.
 	CPhraseBox*		m_pTargetBox; //CPhraseBox		m_targetBox;
 
-	wxPoint			m_ptCurBoxLocation; // location of top left of m_targetBox (logical coords)
+//	wxPoint			m_ptCurBoxLocation; // location of top left of m_targetBox (logical coords)
 	wxString		m_targetPhrase; // the text currently in the m_targetBox
-	int				m_curBoxWidth; // current m_targetBox width
+//	int				m_curBoxWidth; // current m_targetBox width
 	long			m_nStartChar; // start of selection in the target box
 	long			m_nEndChar; // end of selection in the target box
 	// //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2084,7 +2136,7 @@ public:
 	void	RemoveUserDefinedLanguageInfoStringFromConfig(const wxString shortName, const wxString fullName);
 	void	ChangeUILanguage();
 	int		GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid, wxArrayString keyArray);
-
+	int		GetMaxIndex(); // BEW added 21Mar09
 	void	UpdateFontInfoStruct(wxFont* font, fontInfo& fInfo);
 	int		GetOptimumDlgEditBoxHeight(int pointSize);
 	int		GetOptimumDlgFontSize(int pointSize);
@@ -2131,11 +2183,11 @@ public:
 	bool	IsDirectoryWithin(wxString& dir, wxArrayPtrVoid*& pBooks);
 	
 	// the following ones were added by BEW to complete JF's implementation of Split, Join and Move functionalities
-	bool	IsValidBookID(wxString& id);
+	bool		IsValidBookID(wxString& id);
 	wxString	GetBookIDFromDoc();
 	wxString	GetBookID(); // this one handles both book mode on or off
 	void		AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id);
-	int		SetBundleIndices(SPList* pList, int nFirstSequNumInBundle); // for Joining documents, returns active loc'n
+	//int		SetBundleIndices(SPList* pList, int nFirstSequNumInBundle); // for Joining documents, returns active loc'n
 
 	//void	KBIntegrityCheck(); // whm 16Jan09 Removed
 	bool	LoadKB();
@@ -2218,7 +2270,14 @@ public:
 	void		SetCurrentSourcePhrase(CSourcePhrase *sp);
 	CSourcePhrase	*FindNextChapter(SPList *ol, CSourcePhrase *sp);
 	static wxString	ApplyDefaultDocFileExtension(wxString s);
-	void		DeleteSourcePhraseListContents(SPList *l);
+	void		DeleteSourcePhraseListContents(SPList *l); // deletes partner piles too, 
+			// one-by-one (inefficient, but doing an en masse deletion of the partner 
+			// piles would require having an overloaded CLayout::DestroyPiles(PileList* list)
+			// function which we don't yet have, and we'd need extra code in the 
+			// SplitDialog.cpp file in order to calculate the sublist list which corresponds
+			// to the one passed in to DeleteSoucePhraseListContents(); so I've been lazy and
+			// sacrificed some speed to avoid this, and just let the DeleteSingleSrcPhrase()
+			// call delete the partner pile each time through the internal loop
 	void		CascadeSourcePhraseListChange(bool DoFullScreenUpdate);// If DoFullScreenUpdate, the Phrase Box is moved.
 			// Otherwise, we update internal variables but don't redraw.  This is useful if you are going to make a 
 			// series of changes and want the state to be valid between each change but you don't want the screen 

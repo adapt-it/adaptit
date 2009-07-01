@@ -303,10 +303,10 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		CCellList::Node* cpos = gpApp->m_selection.GetFirst();
 		CCell* pCell = cpos->GetData();
 		int nBeginSN,nEndSN;
-		nBeginSN = pCell->m_pPile->m_pSrcPhrase->m_nSequNumber;
+		nBeginSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 		cpos = gpApp->m_selection.GetLast();
 		pCell = cpos->GetData();
-		nEndSN = pCell->m_pPile->m_pSrcPhrase->m_nSequNumber;
+		nEndSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 		
         // We want to simulate the recalc (creation of strips) based on only the selected source
         // phrases, so rather than calling GetSublist() [which modifies the App's m_pSourcePhrases list]

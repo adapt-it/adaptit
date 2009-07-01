@@ -47,13 +47,14 @@
 #include <wx/wizard.h>
 
 #include "Adapt_It.h"
+#include "Pile.h"
+#include "Layout.h"
 #include "PunctCorrespPage.h"
 #include "FontPage.h"
 #include "CaseEquivPage.h"
 #include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
 #include "Adapt_ItView.h" 
-#include "Pile.h"
 #include "helpers.h"
 
 // This global is defined in Adapt_It.cpp.
@@ -179,6 +180,7 @@ void CPunctCorrespPageCommon::DoSetDataAndPointers()
 
 void CPunctCorrespPageCommon::DoInit()
 {
+	gpApp->m_pLayout->m_bPunctuationChanged = FALSE;
 
 #ifndef _UNICODE // ANSI version
 	// Hide the "Show U+nnnn" button for ANSI version
@@ -220,8 +222,8 @@ void CPunctCorrespPageCommon::DoInit()
 	else
 	{
 		// we are somewhere in the midst of the data, so a pile will be active
-		activeSequNum = pApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
-		pApp->m_curIndex = activeSequNum;
+		activeSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+		//pApp->m_curIndex = activeSequNum;
 
 		// remove any current selection, as we can't be sure of any pointers
 		// depending on what user may choose to alter

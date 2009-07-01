@@ -5,14 +5,15 @@
 /// \date_created	05 January 2004
 /// \date_revised	29 April 2009
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file for the CAdapt_ItApp class and the AIModalDialog class. 
-/// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
-/// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
-/// this source file's global space. The AIModalDialog class provides Adapt It with a modal dialog
-/// base class which turns off Idle and UIUpdate processing while the dialog is being shown.
-/// \derivation		The CAdapt_ItApp class is derived from wxApp, and inherits its support for the document/view framework.
-/// The AIModalDialog class is derived from wxDialog.
+/// \license		The Common Public License or The GNU Lesser General Public 
+///                 License (see license directory)
+/// \description This is the implementation file for the CAdapt_ItApp class and the AIModalDialog
+/// class. The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of
+/// Adapt It's global enums, structs and variables are declared either as members of the
+/// CAdapt_ItApp class or in this source file's global space. The AIModalDialog class provides
+/// Adapt It with a modal dialog base class which turns off Idle and UIUpdate processing while the
+/// dialog is being shown. \derivation The CAdapt_ItApp class is derived from wxApp, and inherits
+/// its support for the document/view framework. The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in Adapt_It.cpp (in order of importance): (search for "TODO")
 // 1. Determine what to do about wxWidgets page setup dialog margins only 
@@ -115,7 +116,6 @@
 // Other includes
 #include "Adapt_It.h"
 #include "MainFrm.h"
-#include "Text.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
 #include "AdaptitConstants.h"
@@ -143,7 +143,7 @@
 #include "EarlierTranslationDlg.h"
 #include "Cell.h"
 #include "WhichBook.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "BString.h"
 #include "XML.h"
 #include "NoteDlg.h"
@@ -152,6 +152,7 @@
 #include "AIPrintout.h"
 #include "ConsistentChanger.h"
 #include "ChooseLanguageDlg.h"
+#include "Layout.h"
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -206,6 +207,7 @@ WX_DEFINE_LIST(CCellList);
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called KPlusCList.
 WX_DEFINE_LIST(KPlusCList);
+
 
 /// Length of the byte-order-mark (BOM) which consists of the three bytes 0xEF, 0xBB and 0xBF
 /// in UTF-8 encoding.
@@ -453,7 +455,9 @@ bool gbSfmOnlyAfterNewlines = FALSE;
 wxChar gSFescapechar = _T('\\');	// the standard format escape char, default is backslash
 									
 /// TRUE while there is no m_targetBox created, during setup of the view. It is used to
-/// prevent premature merges.
+/// prevent premature merges, and at 6May09, also to suppress the interpretation of a null
+/// active pile pointer being due to having reached the doc end (because at initial launch
+/// we can have a null active pile due to the sequence number starting with value -1)
 bool gbDoingInitialSetup = FALSE;
 
 /// A global pointer to the application instance.
@@ -2071,6 +2075,24 @@ AIModalDialog::AIModalDialog( wxWindow *parent, const wxWindowID id, const wxStr
 			const wxPoint& pos, const wxSize& size, const long windowStyle ) :
 			wxDialog(parent, id, title, pos, size, windowStyle)
 {
+    // BEW added 25May09 to attempt to turn on key_down event handling... it wasn't working
+    // in the Choose Translation dialog, and so an ALT + right arrow key combination did
+    // not get trapped and so OnKeyDown() does not get entered.
+    // 
+    // Test turning off the default dialog style wxWS_EX_BLOCK_EVENTS
+	//long extraStyle = GetExtraStyle();
+	//extraStyle = extraStyle ^ wxWS_EX_BLOCK_EVENTS;
+	//SetExtraStyle(extraStyle);
+	// The abovetest did not fix the problem. GetExtraStyle() returned 0x0000000A, and in
+	// defs.h wxWS_EX_BLOCK_EVENTS is defined as 0x00000002, and the exclusive or did turn
+	// off blocking, but still EVT_KEY_DOWN was not trapped by CChooseTranslation dialog
+	// 
+	// Try oring wxWANTS_CHARS = 0x00040000
+	//long ordinaryStyle = GetWindowStyle();
+	//ordinaryStyle |= wxWANTS_CHARS; // 0x00040000
+	//SetWindowStyle(ordinaryStyle);
+	// The above 3 lines also had no effect. ... Later, it turned out Bill had subclassed
+	// the dialog's class and not told me, added the needed code and all was well.
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -2432,159 +2454,161 @@ wxString szColor = _T("Color");
 /// "SourceLanguageName". This value is written in the "Settings" part
 /// of the basic configuration file and in the "ProjectSettings" part
 /// of the project configuration file. Adapt It stores this path
-/// in the App's m_sourceName global variable.
+/// in the App's m_sourceName member  variable.
 wxString szSourceLanguageName = _T("SourceLanguageName"); // stored in the App's m_sourceName
 
 /// The label that identifies the following string as the project's 
 /// "TargetLanguageName". This value is written in the "Settings" part
 /// of the basic configuration file and in the "ProjectSettings" part
 /// of the project configuration file. Adapt It stores this path
-/// in the App's m_targetName global variable.
+/// in the App's m_targetName member  variable.
 wxString szTargetLanguageName = _T("TargetLanguageName"); // stored in the App's m_targetName
 
 /// The label that identifies the following string as the project's 
 /// "TargetLanguageName". This value is written in the "Settings" part
 /// of the basic configuration file. After validating this path to 
 /// insure its validity on the local machine, Adapt It stores this path
-/// in the App's m_workFolderPath global variable.
+/// in the App's m_workFolderPath member  variable.
 wxString szAdaptitPath = _T("AdaptItPath"); // stored in the App's m_workFolderPath
 
 /// The label that identifies the following string as the project's 
 /// "ProjectName". This value is written in the "Settings" part
 /// of the basic configuration file. Adapt It stores this name in
-/// the App's m_curProjectName global variable.
+/// the App's m_curProjectName member  variable.
 wxString szCurProjectName = _T("ProjectName"); // stored in the App's m_curProjectName
 
 /// The label that identifies the following string as the project's 
 /// "ProjectFolderPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curProjectPath global variable.
+/// the App's m_curProjectPath member  variable.
 wxString szCurLanguagesPath = _T("ProjectFolderPath"); // stored in the App's m_curProjectPath
 
 /// The label that identifies the following string as the project's 
 /// "DocumentsFolderPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curAdaptionsPath global variable.
+/// the App's m_curAdaptionsPath member  variable.
 wxString szCurAdaptionsPath = _T("DocumentsFolderPath"); // stored in the App's m_curAdaptionsPath
 
 /// The label that identifies the following string as the project's 
 /// "KnowledgeBaseName". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this name in
-/// the App's m_curKBName global variable.
+/// the App's m_curKBName member  variable.
 wxString szCurKBName = _T("KnowledgeBaseName"); // stored in the App's m_curKBName
 
 /// The label that identifies the following string as the project's 
 /// "KnowledgeBasePath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curKBName global variable.
+/// the App's m_curKBName member  variable.
 wxString szCurKBPath = _T("KnowledgeBasePath"); // stored in the App's m_curKBName
 
 /// The label that identifies the following string as the project's 
 /// "KBBackupPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_curKBBackupPath global variable.
+/// the App's m_curKBBackupPath member  variable.
 wxString szCurKBBackupPath = _T("KBBackupPath"); // stored in the App's m_curKBBackupPath
 
 /// The label that identifies the following string as the project's 
 /// "LastNewDocumentFolder". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_lastSourceFileFolder global variable.
+/// the App's m_lastSourceFileFolder member  variable.
 wxString szLastSourceFileFolder = _T("LastNewDocumentFolder"); // stored in the App's m_lastSourceFileFolder
 
 /// The label that identifies the following string as the project's 
 /// "LastSourceTextExportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_lastSrcExportPath global variable.
+/// the App's m_lastSrcExportPath member  variable.
 wxString szLastSourceExportPath = _T("LastSourceTextExportPath"); // stored in the App's m_lastSrcExportPath
 
 /// The label that identifies the following string as the project's 
 /// "KB_ExportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_kbExportPath global variable.
+/// the App's m_kbExportPath member  variable.
 wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_kbExportPath
 
 /// The label that identifies the following string as the project's 
 /// "RetranslationReportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_retransReportPath global variable.
+/// the App's m_retransReportPath member  variable.
 wxString szRetranslationReportPath = _T("RetranslationReportPath"); // stored in the App's m_retransReportPath
 
 /// The label that identifies the following string as the project's 
 /// "RTFExportPath". This value is written in the "ProjectSettings" 
 /// part of the project configuration file. Adapt It stores this path in
-/// the App's m_rtfExportPath global variable.
+/// the App's m_rtfExportPath member  variable.
 wxString szRTFExportPath = _T("RTFExportPath"); // stored in the App's m_rtfExportPath
 
 // the following ones relate to view parameters
 
-/// The label that identifies the following string encoded number as the application's 
-/// "MaxToDisplay". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_nMaxToDisplay global variable.
+// The label that identifies the following string encoded number as the application's 
+// "MaxToDisplay". This value is written in the "Settings" part of the basic configuration 
+// file. Adapt It stores this value in the App's m_nMaxToDisplay member  variable.
+// BEW retained 21Mar09, but now it stores doc count of CSourcePhrase instances, no use
+// made of it though - for backwards compatibility of config files
 wxString szMaxToDisplay = _T("MaxToDisplay"); // stored in the App's m_nMaxToDisplay
 
 /// The label that identifies the following string encoded number as the application's 
 /// "MinPrecedingContext". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_nPrecedingContext global variable.
+/// file. Adapt It stores this path in the App's m_nPrecedingContext member  variable.
 wxString szMinPrecContext = _T("MinPrecedingContext"); // stored in the App's m_nPrecedingContext
 
 /// The label that identifies the following string encoded number as the application's 
 /// "MinFollowingContext". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_nFollowingContext global variable.
+/// file. Adapt It stores this path in the App's m_nFollowingContext member  variable.
 wxString szMinFollContext = _T("MinFollowingContext"); // stored in the App's m_nFollowingContext
 
 /// The label that identifies the following string encoded number as the application's 
 /// "Leading". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_curLeading global variable.
+/// file. Adapt It stores this path in the App's m_curLeading member  variable.
 wxString szLeading = _T("Leading"); // stored in the App's m_curLeading
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LeftMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_curLMargin global variable.
+/// file. Adapt It stores this path in the App's m_curLMargin member  variable.
 wxString szLeftMargin = _T("LeftMargin"); // stored in the App's m_curLMargin
 
 /// The label that identifies the following string encoded number as the application's 
 /// "InterpileGapWidth". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_curGapWidth global variable.
+/// file. Adapt It stores this path in the App's m_curGapWidth member  variable.
 wxString szGapWidth = _T("InterpileGapWidth"); // stored in the App's m_curGapWidth
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressFirstLine". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressFirst global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressFirst member  variable.
 wxString szSuppressFirst = _T("SuppressFirstLine"); // stored in the App's m_bSuppressFirst
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressLastLine". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressLast global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressLast member  variable.
 wxString szSuppressLast = _T("SuppressLastLine"); // stored in the App's m_bSuppressLast
 
 /// The label that identifies the following string encoded number as the application's 
 /// "HidePunctuationFlag". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bHidePunctuation global variable.
+/// file. Adapt It stores this path in the App's m_bHidePunctuation member  variable.
 wxString szHidePunctuation = _T("HidePunctuationFlag"); // stored in the App's m_bHidePunctuation
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SpecialTextColor". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_specialTextColor global variable.
+/// file. Adapt It stores this path in the App's m_specialTextColor member  variable.
 wxString szSpecialTextColor = _T("SpecialTextColor"); // stored in the App's m_specialTextColor
 
 /// The label that identifies the following string encoded number as the application's 
 /// "RetranslationTextColor". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_reTranslnTextColor global variable.
+/// file. Adapt It stores this path in the App's m_reTranslnTextColor member  variable.
 wxString szReTranslnTextColor = _T("RetranslationTextColor"); // stored in the App's m_reTranslnTextColor
 
 /// The label that identifies the following string encoded number as the application's 
 /// "PhraseBoxExpansionMultiplier". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's gnExpandBox global variable.
+/// file. Adapt It stores this path in the App's gnExpandBox member  variable.
 wxString szPhraseBoxExpansionMultiplier = _T("PhraseBoxExpansionMultiplier"); // stored in the App's gnExpandBox
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TooNearEndMultiplier". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's gnNearEndFactor global variable.
+/// file. Adapt It stores this path in the App's gnNearEndFactor member  variable.
 wxString szTooNearEndMultiplier = _T("TooNearEndMultiplier"); // stored in the App's gnNearEndFactor
 
 /// The label that identifies the following string encoded number as the application's
 /// "LegacyCopyForPhraseBox". This value is written in the "ProjectSettings" part of the project
-/// configuration file. Adapt It stores this path in the App's gbLegacySourceTextCopy global variable.
+/// configuration file. Adapt It stores this path in the App's gbLegacySourceTextCopy member  variable.
 wxString szLegacyCopyForPhraseBox = _T("LegacyCopyForPhraseBox");
 
 // Next two were for old punct, for when source & target are not differentiated
@@ -2667,34 +2691,34 @@ wxString szTwoPunctPairsTgt = _T("PunctuationTwoCharacterPairsTargetSet(ditto)")
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressWelcome". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressWelcome global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressWelcome member  variable.
 wxString szSuppressWelcome = _T("SuppressWelcome"); // stored in the App's m_bSuppressWelcome
 
 /// The label that identifies the following string encoded number as the application's 
 /// "SuppressTargetHighlighting". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bSuppressTargetHighlighting global variable.
+/// file. Adapt It stores this path in the App's m_bSuppressTargetHighlighting member  variable.
 wxString szSuppressTargetHighlighting = _T("SuppressTargetHighlighting"); // stored in the App's m_bSuppressTargetHighlighting
 
 /// The label that identifies the following string encoded number as the application's 
 /// "AutoInsertionsHighlightColor". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_AutoInsertionsHighlightColor global variable.
+/// file. Adapt It stores this path in the App's m_AutoInsertionsHighlightColor member  variable.
 /// Adapt It uses the WxColour2Int() and Int2wxColour() helper functions to convert between the integer
 /// and wx color enum symbols.
 wxString szAutoInsertionsHighlightColor = _T("AutoInsertionsHighlightColor"); // stored in the App's m_AutoInsertionsHighlightColor
 
 /// The label that identifies the following string encoded number as the application's 
 /// "UseStartupWizardOnLaunch". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bUseStartupWizardOnLaunch global variable.
+/// file. Adapt It stores this path in the App's m_bUseStartupWizardOnLaunch member  variable.
 wxString szUseStartupWizardOnLaunch = _T("UseStartupWizardOnLaunch"); // stored in the App's m_bUseStartupWizardOnLaunch
 
 /// The label that identifies the following string encoded number as the application's 
 /// "BackupKnowledgeBase(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bAutoBackupKB global variable.
+/// file. Adapt It stores this path in the App's m_bAutoBackupKB member  variable.
 wxString szBackupKBFlag = _T("BackupKnowledgeBase(Boolean)"); // stored in the App's m_bAutoBackupKB
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TimeSpanForDocument - minutes". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_timeSettings global variable.
+/// file. Adapt It stores this path in the App's m_timeSettings member  variable.
 wxString szTS_DOC_MINS = _T("TimeSpanForDocument - minutes"); // stored in the App's m_timeSettings
 
 /// The label that identifies the following string encoded number as the application's 
@@ -2704,7 +2728,7 @@ wxString szTS_DOC_SECS = _T("TimeSpanForDocument - seconds");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TimeSpanForKB - minutes". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_timeSettings global variable.
+/// file. Adapt It stores this path in the App's m_timeSettings member  variable.
 wxString szTS_KB_MINS = _T("TimeSpanForKB - minutes"); // stored in the App's m_timeSettings
 
 /// The label that identifies the following string encoded number as the application's 
@@ -2714,29 +2738,29 @@ wxString szTS_KB_SECS = _T("TimeSpanForKB - seconds");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "NoAutoSaveFlag(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bNoAutoSave global variable.
+/// file. Adapt It stores this path in the App's m_bNoAutoSave member  variable.
 wxString szNoAutoSaveFlag = _T("NoAutoSaveFlag(Boolean)"); // stored in the App's m_bNoAutoSave
 
 /// The label that identifies the following string encoded number as the application's 
 /// "DocumentTimeSpanButtonIsON(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bIsDocTimeButton global variable.
+/// file. Adapt It stores this path in the App's m_bIsDocTimeButton member  variable.
 wxString szIsDocTimeButtonFlag = _T("DocumentTimeSpanButtonIsON(Boolean)"); // stored in the App's m_bIsDocTimeButton
 
 /// The label that identifies the following string encoded number as the application's 
 /// "PhraseBoxMovesForSave". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_nMoves global variable.
+/// file. Adapt It stores this value in the App's m_nMoves member  variable.
 wxString szPhraseBoxMoves = _T("PhraseBoxMovesForSave"); // stored in the App's m_nMoves
 
 /// The label that identifies the following string encoded number as the application's 
 /// "ColorOfNavigationText". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_navTextColor global variable.
+/// file. Adapt It stores this path in the App's m_navTextColor member  variable.
 /// Adapt It uses the WxColour2Int() and Int2wxColour() helper functions to convert between the integer
 /// and wx color enum symbols.
 wxString szNavTextColor = _T("ColorOfNavigationText"); // stored in the App's m_navTextColor
 
 /// The label that identifies the following string as the application's 
 /// "DefaultCCTablePath". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_defaultTablePath global variable.
+/// file. Adapt It stores this path in the App's m_defaultTablePath member  variable.
 wxString szDefaultTablePath = _T("DefaultCCTablePath"); // stored in the App's m_defaultTablePath
 
 /// The label that identifies the following string encoded number as the application's 
@@ -2746,108 +2770,108 @@ wxString szFitFlag = _T("FitWithinWindowFlag(Boolean)"); // a relic, unused as o
 
 /// The label that identifies the following string encoded number as the application's 
 /// "MarkersWrapStripsFlag(Boolean)". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bMarkerWrapsStrip global variable.
+/// file. Adapt It stores this path in the App's m_bMarkerWrapsStrip member  variable.
 wxString szMarkerWrapsFlag = _T("MarkersWrapStripsFlag(Boolean)"); // stored in the App's m_bMarkerWrapsStrip
 
 /// The label that identifies the following string encoded number as the application's 
 /// "BackupDocumentFlag". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_bBackupDocument global variable.
+/// file. Adapt It stores this path in the App's m_bBackupDocument member variable.
 wxString szBackupDocument = _T("BackupDocumentFlag"); // stored in the App's m_bBackupDocument
 
 // window position and size
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TopLeftX". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_ptViewTopLeft.x global variable.
+/// file. Adapt It stores this value in the App's m_ptViewTopLeft.x member variable.
 wxString szTopLeftX = _T("TopLeftX");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TopLeftY". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_ptViewTopLeft.y global variable.
+/// file. Adapt It stores this value in the App's m_ptViewTopLeft.y member variable.
 wxString szTopLeftY = _T("TopLeftY");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "WinSizeCX". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_szView.x global variable.
+/// file. Adapt It stores this value in the App's m_szView.x member variable.
 wxString szWSizeCX = _T("WinSizeCX");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "WinSizeCY". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_szView.y global variable.
+/// file. Adapt It stores this value in the App's m_szView.y member variable.
 wxString szWSizeCY = _T("WinSizeCY");
 
 // restoring earlier doc location
 
 /// The label that identifies the following string as the application's 
 /// "LastDocumentPath". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_lastDocPath global variable.
+/// file. Adapt It stores this path in the App's m_lastDocPath member variable.
 wxString szLastDocPath = _T("LastDocumentPath");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LastActiveSequenceNumber". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's nLastActiveSequNum global variable.
+/// file. Adapt It stores this value in the App's nLastActiveSequNum member variable.
 wxString szLastActiveSequNum = _T("LastActiveSequenceNumber");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "IsMainWindowMaximized". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bZoomed global variable.
+/// file. Adapt It stores this value in the App's m_bZoomed member variable.
 wxString szZoomed = _T("IsMainWindowMaximized");
 
 /// The label that identifies the following string as the application's 
 /// "LastExportPath". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_lastExportPath global variable.
+/// file. Adapt It stores this path in the App's m_lastExportPath member variable.
 wxString szLastExportPath = _T("LastExportPath");
 
 // print margins, etc
 
 /// The label that identifies the following string encoded number as the application's 
 /// "UseInchesForMeasuring". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bIsInches global variable.
+/// file. Adapt It stores this value in the App's m_bIsInches member variable.
 wxString szLoEnglishFlag = _T("UseInchesForMeasuring");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "UsePortraitOrientation". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bIsPortraitOrientation global variable.
+/// file. Adapt It stores this value in the App's m_bIsPortraitOrientation member variable.
 wxString szUsePortraitOrientation = _T("UsePortraitOrientation");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "TopPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginTop and m_marginTopMM global variable.
+/// file. Adapt It stores this value in the App's m_marginTop and m_marginTopMM member  variable.
 wxString szMarginTop = _T("TopPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "BottomPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginBottom and m_marginBottomMM global variable.
+/// file. Adapt It stores this value in the App's m_marginBottom and m_marginBottomMM member  variable.
 wxString szMarginBottom = _T("BottomPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LeftPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginLeft and m_marginLeftMM global variable.
+/// file. Adapt It stores this value in the App's m_marginLeft and m_marginLeftMM member  variable.
 wxString szMarginLeft = _T("LeftPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "RightPrintMargin". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_marginRight and m_marginRightMM global variable.
+/// file. Adapt It stores this value in the App's m_marginRight and m_marginRightMM member  variable.
 wxString szMarginRight = _T("RightPrintMargin");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LastUsedPageWidth". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_pageWidth and m_pageWidthMM global variable.
+/// file. Adapt It stores this value in the App's m_pageWidth and m_pageWidthMM member  variable.
 wxString szLastPageWidth = _T("LastUsedPageWidth");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "LastUsedPageLength". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_pageLength and m_pageLengthMM global variable.
+/// file. Adapt It stores this value in the App's m_pageLength and m_pageLengthMM member  variable.
 wxString szLastPageLength = _T("LastUsedPageLength");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "PaperSizeCode". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_paperSizeCode global variable.
+/// file. Adapt It stores this value in the App's m_paperSizeCode member  variable.
 wxString szPaperSizeCode = _T("PaperSizeCode");
 
 /// The label that identifies the following string encoded number as the application's 
 /// "RTL_Layout". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_bRTL_Layout global variable.
+/// file. Adapt It stores this value in the App's m_bRTL_Layout member  variable.
 wxString szRTL_Layout = _T("RTL_Layout");
 
 // support for user-assignable SFM escape char
@@ -2858,24 +2882,24 @@ wxString szRTL_Layout = _T("RTL_Layout");
 wxString szSFMescapechar = _T("SFMescapeChar");
 
 /// The label that identifies the following string encoded number as the application's 
-/// "SFMafterNewlines". Adapt It stores this value in the App's gbSfmOnlyAfterNewlines global variable.
+/// "SFMafterNewlines". Adapt It stores this value in the App's gbSfmOnlyAfterNewlines member  variable.
 wxString szSFMafterNewlines = _T("SFMafterNewlines");
 
 #ifdef _RTL_FLAGS
 // NR version support
 
 /// The label that identifies the following string encoded number as the application's 
-/// "SourceIsRTL". Adapt It stores this value in the App's m_bSrcRTL global variable.
+/// "SourceIsRTL". Adapt It stores this value in the App's m_bSrcRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLSource = _T("SourceIsRTL");
 
 /// The label that identifies the following string encoded number as the application's 
-/// "TargetIsRTL". Adapt It stores this value in the App's m_bTgtRTL global variable.
+/// "TargetIsRTL". Adapt It stores this value in the App's m_bTgtRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLTarget = _T("TargetIsRTL");
 
 /// The label that identifies the following string encoded number as the application's 
-/// "NavTextIsRTL". Adapt It stores this value in the App's m_bNavTextRTL global variable.
+/// "NavTextIsRTL". Adapt It stores this value in the App's m_bNavTextRTL member  variable.
 /// The label is used only for the Unicode version.
 wxString szRTLNavText = _T("NavTextIsRTL");
 #endif
@@ -2884,27 +2908,27 @@ wxString szRTLNavText = _T("NavTextIsRTL");
 
 /// The label that identifies the following string as the application's 
 /// "LowerCaseSourceLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_srcLowerCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_srcLowerCaseChars global  variable.
 wxString szLowerCaseSourceChars = _T("LowerCaseSourceLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "UpperCaseSourceLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_srcUpperCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_srcUpperCaseChars global  variable.
 wxString szUpperCaseSourceChars = _T("UpperCaseSourceLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "LowerCaseTargetLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this path in the App's m_tgtLowerCaseChars global variable.
+/// file. Adapt It stores this path in the App's m_tgtLowerCaseChars global  variable.
 wxString szLowerCaseTargetChars = _T("LowerCaseTargetLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "UpperCaseTargetLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_tgtUpperCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_tgtUpperCaseChars global  variable.
 wxString szUpperCaseTargetChars = _T("UpperCaseTargetLanguageChars");
 
 /// The label that identifies the following string as the application's 
 /// "LowerCaseGlossLanguageChars". This value is written in the "Settings" part of the basic configuration 
-/// file. Adapt It stores this value in the App's m_glossLowerCaseChars global variable.
+/// file. Adapt It stores this value in the App's m_glossLowerCaseChars global  variable.
 wxString szLowerCaseGlossChars = _T("LowerCaseGlossLanguageChars");
 
 /// The label that identifies the following string as the application's 
@@ -4828,6 +4852,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_bAutoBackupKB = TRUE;
 	m_bNoAutoSave = TRUE;
 
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in OnInit()  is set TRUE"));
+	#endif
+#endif
+
 	m_ptViewTopLeft.x = 20;
 	m_ptViewTopLeft.y = 20;
 	m_szView.x = 640;
@@ -5067,7 +5098,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pNoteDlg = (CNoteDlg*)NULL; // needed in wx version 
 	m_pViewFilteredMaterialDlg = (CViewFilteredMaterialDlg*)NULL; // needed in wx version
 
-	m_pBundle = (CSourceBundle*)NULL;
+	//m_pBundle = (CSourceBundle*)NULL;
 	m_pActivePile = (CPile*)NULL; // start with null, in case user invokes Allow Glossing in the Advanced
 						  // menu after launching and only a project is open but not a document
 	m_pAnchor = (CCell*)NULL;
@@ -5075,10 +5106,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_nActiveSequNum = -1; // negative until set after a file is read in and laid out
 
 	m_bSelectByArrowKey = FALSE;
+    // BEW comment 17Apr09: the next two are deprecated but retained and set TRUE, but the
+    // values are never used, they cannot be eliminated (well, not easily) because they are
+    // needed for backwards compatibility of the config files
 	m_bSuppressLast = TRUE; // default, very first time launched; thereafter uses config file 
-							// stored value
+							// stored value (which now will never be anything but TRUE)
 	m_bSuppressFirst = TRUE; // default, very first time launched; thereafter uses config file 
-							 // stored value
+							 // stored value (which now will never be anything but TRUE)
 	// default modes
 	m_bDrafting = TRUE;
 	m_bSingleStep = FALSE; // default was TRUE before version 1.1.0
@@ -5116,6 +5150,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbIgnoreScriptureReference_Send = TRUE;
 	gbLegacySourceTextCopy = TRUE; // default is legacy behaviour, to copy the source text (unless
 								   // the project config file establishes the FALSE value instead)
+								   
+	// The following initializations are for refactored view layout support
+	m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
+
 	// Variable initializations above moved here from the View
 	// /////////////////////////////////////////////////////////////////////
 	/*
@@ -6815,6 +6853,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedMFCinitialization = TRUE;
 
 	// **** test code fragments here ****
+	 
+	/*
+	int sizeofCStrip = sizeof(CStrip); // 48 bytes
+	int sizeofCPile = sizeof(CPile); // 48 bytes
+	int sizeofCCell = sizeof(CCell); // 28 bytes
+	int sizeofCSourcePhrase = sizeof(CSourcePhrase); // 96 bytes
+	int sizeofwxNode = sizeof(wxNode); // 24 bytes
+	int sizeofwxString = sizeof(wxString); // 4 bytes
+	int sizeofwxArrayInt = sizeof(wxArrayInt); // 12 bytes & its 16 int initial buffer is 4*16 = 64
+	int sizeofwxArrayPtrVoid = sizeof(wxArrayPtrVoid); // 12 bytes
+	int sizeofCLayout = sizeof(CLayout); // 252 bytes
+	*/
 
 /*
 	// This test compared with the same code under MFC shows that
@@ -7108,6 +7158,16 @@ void CAdapt_ItApp::Terminate()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+/// \return   the maximum index for the CSourcePhrases in the m_pSourcePhrases list  
+/// \remarks
+/// created 21Mar09 to replace the now deprecated m_maxIndex app member
+////////////////////////////////////////////////////////////////////////////////////////////
+int CAdapt_ItApp::GetMaxIndex()
+{
+	return m_pSourcePhrases->GetCount() - 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     always zero (0)
 /// \remarks
 /// Called from: the wxApp object just before it exits and returns control back to the system.
@@ -7164,6 +7224,7 @@ int CAdapt_ItApp::OnExit(void)
 
 
 	// delete the CSourceBundle instance
+	/*
 	if (m_pBundle != 0)
 	{
 		// old data still exists, so get rid of it
@@ -7171,6 +7232,7 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pBundle;
 		m_pBundle = (CSourceBundle*)NULL;
 	}
+	*/
 	// Code above transferred here from MFC View::PostNcDestroy() which is
 	// called just before MFC's ExitInstance(), which in turn calls Terminate(). 
 
@@ -7342,6 +7404,17 @@ int CAdapt_ItApp::OnExit(void)
 	{
 		delete m_pLocale;
 		m_pLocale = (wxLocale*)NULL;
+	}
+
+	if (m_pLayout)
+	{
+		// add code here to ensure the CLayout's lists are cleared before deleting it,
+		// we don't want to leak memory
+		m_pLayout->DestroyStrips(); // destroys each strip and the memory involved with their m_arrPiles
+						 // m_arrPileOffsets arrays (these are both wxArrayInt arrays)
+		m_pLayout->DestroyPiles();	// destroys each pile in m_pLayout's m_pPiles lists, and the CCell 
+						// instances that each pile owns
+		delete m_pLayout;
 	}
 
 	return 0;
@@ -8381,7 +8454,8 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				// that the active location's KB entry has already been removed (or its count
 				// decremented) and so a re-store is appropriate now -- because the box location may
 				// end up elsewhere depending on the results of the rebuild process.)
-				pView->StoreBeforeProceeding(m_pActivePile->m_pSrcPhrase);// ignore returned BOOL
+				//pView->StoreBeforeProceeding(m_pActivePile->m_pSrcPhrase);// ignore returned BOOL
+				pView->StoreBeforeProceeding(m_pActivePile->GetSrcPhrase());// ignore returned BOOL
 
 				wxString strSavePhraseBox = m_targetPhrase;
 				// now do the reparse - the functions which effect the reconstitution of the doc when 
@@ -8391,65 +8465,27 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 				int nNewSrcPhraseCount = pDoc->RetokenizeText(TRUE,	// TRUE = punctuation only changing here
 															FALSE,	// bFilterChange FALSE = no filter changes here
 															FALSE);	// bSfmSetChange FALSE = no sfm set change here
-				m_maxIndex = nNewSrcPhraseCount - 1; // update
+				//int maxIndex = nNewSrcPhraseCount - 1; // update
 
 				// set up some safe indices, since the counts could be quite different than before
 				difference = nNewSrcPhraseCount - nOldCount; // could even be negative, but unlikely
-				// try expand sufficiently to encompass the active location within the lengthened
-				// bundle, assuming it actually is lengthened (it won't be if difference is zero)
-				m_endIndex = wxMin(gpApp->m_maxIndex,m_endIndex + difference);
-				// if difference was huge, we may need to further reduce the value
-				m_endIndex = wxMin(m_endIndex,m_beginIndex + m_nMaxToDisplay);
-				m_upperIndex -= m_nFollowingContext;
-				if (m_upperIndex < 0)
-					m_upperIndex = m_endIndex;
 
-				// Unfortunately, we can't ensure the viability of the saved phrase box contents - there are
-				// several scenarios that force us to abandon its contents - some are for filtering changes
-				// and so will be dealt with in DoUsfmFilterChanges(), but the one which concerns us for 
-				// punctuation changes is the following:
-				//		So many extra source phrases were produced that the updated active location got
-				//		pushed so far to the right that it is greater than m_beginIndex + m_nMaxToDisplay. 
-				// If the latter obtains, then we'll have to find a new safe phrase box location within the
-				// current bundle bounds - which also means we have to check for retranslations and avoid those;
-				// and we should remove the KB entry for the active location and set the sourcephrase's
-				// m_bHasKBEntry (or if glossing, m_bHasGlossingKBEntry) to FALSE so that the next move of the
-				// phrase box will resave correctly.
+				// for refactored layout support - there best way to be sure all is well
+				// is to completely regenerate the layout, including m_pileList
+				// 4Jun09 BEW commented out, we will use the layout param,
+				// m_bPunctuationChanged being TRUE to invoke the RecalcLayout() call on
+				// return from view's OnEditPreferences() handler, instead. It happens
+				// later on.
+//#ifdef _NEW_LAYOUT
+//				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+//#else
+//				m_pLayout->RecalcLayout(m_pSourcePhrases, create_strips_and_piles);
+//#endif
+				// for refactored layout code, the following suffices because m_nActiveSequNum
+				// remains within the document and was used in the RecalcLayout(TRUE) call above
 				CSourcePhrase* pSrcPhrase = NULL;
-				// remember, the layout is invalid and not yet recalculated, so we can't use pile pointers
-				// in the adjustments being made below
-				if (m_nActiveSequNum > m_endIndex)
-				{
-					// We must calculate a new save box location - try put it near the end of the bundle.
-					// Clear the box if it currently exists.
-					if (m_pTargetBox->GetHandle() != NULL)
-					{
-						m_pTargetBox->m_bAbandonable = TRUE;
-						m_pTargetBox->SetValue(_T(""));
-					}
-					// Empty the view's m_targetPhrase member of any text currently in it
-					m_targetPhrase.Empty();
-
-					// Set an arbitrary active location -- there is no way to be smart about doing this
-					// (just allow a little context to appear to its right)
-					m_nActiveSequNum = m_endIndex - m_nFollowingContext - 1;
-					if (m_nActiveSequNum < 0) 
-						m_nActiveSequNum = 0;
-
-					// GetSavePhraseBoxLocationUsingList calculates a safe location, sets the view's
-					// m_nActiveSequNumber member to that value, and calculates and sets m_targetPhrase
-					// to agree with what will be the new phrase box location; we could ignore the
-					// return value, but we won't.
-					int nNewSequNum;
-					nNewSequNum = GetSafePhraseBoxLocationUsingList(pView);
-				}
-				else
-				{
-					// the updated active location is still within the adjusted bundle, so just use
-					// that value
-					m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
-					pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
-				}
+				m_targetPhrase = strSavePhraseBox; // restore the phrase box contents
+				pSrcPhrase = pView->GetSrcPhrase(m_nActiveSequNum);
 				wxASSERT(pSrcPhrase);
 
 				// remove the KB or GlossingKB entry for this location, depending on the mode
@@ -8466,9 +8502,14 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon, 
 												pSrcPhrase->m_key,pSrcPhrase->m_adaption);
 					pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 				}
+				/* //in refactored layout code, this comment is probably irrelevant because there probably
+				// won't be any RedrawEverything() function anymore...
 				// Note: RedrawEverything() is called at end of OnEditPreferences() - the latter doesn't
 				// change the indices, so we must exit here with the indices we want to have used when
 				// the view is set up again.
+				*/
+				m_pLayout->m_bPunctuationChanged = TRUE;
+
 			}
 		}
 	}
@@ -8512,7 +8553,7 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 			while (pNextSrcPhrase->m_bRetranslation) 
 			{
 				++nNextSequNum;
-				if (nNextSequNum > m_maxIndex)
+				if (nNextSequNum > GetMaxIndex())
 				{
 					// there is nowhere where there is no retranslation
 					// so go to the start & just too bad - put the box
@@ -8520,7 +8561,6 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 					// will not die.
 					{
 						nNextSequNum = 0;
-						pView->CalcInitialIndices();
 						pNextSrcPhrase = pView->GetSrcPhrase(nNextSequNum);
 						break;
 					}
@@ -8546,18 +8586,6 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 			pSrcPhrase = pPrevSrcPhrase;
 			m_nActiveSequNum = pPrevSrcPhrase->m_nSequNumber;
 		}
-	}
-
-	// all of the above fiddling might have given us a final sourcephrase location
-	// which has gone outside the bundle's current bounds. If this is the case,
-	// then adjust the bundle to agree with the location we've chosen - that is,
-	// adjust the indices so the active location falls within them; but don't do
-	// so if it is already within them
-	if (m_nActiveSequNum < m_beginIndex ||
-		m_nActiveSequNum > m_endIndex)
-	{
-		// adjustment is needed
-		pView->CalcIndicesForAdvance(m_nActiveSequNum);
 	}
 
 	// set m_targetPhrase
@@ -8709,8 +8737,9 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 			else
 			{
 				// we are somewhere in the midst of the data, so a pile will be active
-				activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
-				gpApp->m_curIndex = activeSequNum;
+				//activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
+				activeSequNum = gpApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+				//gpApp->m_curIndex = activeSequNum; // removed 22Mar09
 
 				// remove any current selection, as we can't be sure of any pointers
 				// depending on what user may choose to alter
@@ -8732,8 +8761,12 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 			int nNewSrcPhraseCount = pDoc->RetokenizeText(FALSE, // FALSE = punctuation not changed here
 															bFilterChangeInDoc, 
 															FALSE); // FALSE = sfm set change not flagged here
+			/* removed 22Mar09, and put a dummy line to use nNewSrcPhraseCount to avoid a compiler warning
 			gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update (this is cosmetic, actually we have to have
 														// updated this index progressively as we retokenized)
+			*/
+			nNewSrcPhraseCount = nNewSrcPhraseCount; // avoid compiler warning
+
 			gpApp->m_targetPhrase = strSavePhraseBox;
 
 			// Note: RedrawEverything() is called at end of OnEditPreferences()
@@ -8742,6 +8775,7 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon, enu
 		{
 			// No Reparse the Document called for
 		}
+		m_pLayout->m_bFilteringChanged = TRUE;
 	}
 
 	// Now check for changes in the Project's list of filter markers
@@ -8912,18 +8946,17 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 #endif
 
 			// Reparse the Document
-			// code below copied and adapted from CAdapt_ItView::OnEditPunctCorresp()
-			int activeSequNum;
-			if (gpApp->m_nActiveSequNum < 0)
+			if (m_nActiveSequNum < 0)
 			{
 				// must not have data yet, or we are at EOF and so no pile is currently active
-				activeSequNum = -1;
+				// so do nothing here
+				;
 			}
 			else
 			{
-				// we are somewhere in the midst of the data, so a pile will be active
-				activeSequNum = gpApp->m_pActivePile->m_pSrcPhrase->m_nSequNumber;
-				gpApp->m_curIndex = activeSequNum;
+				// phrase box is visible somewhere in the data, so a pile will be active
+				m_nActiveSequNum = m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+				//gpApp->m_curIndex = activeSequNum;
 
 				// remove any current selection, as we can't be sure of any pointers
 				// depending on what user may choose to alter
@@ -8944,7 +8977,8 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 			TRACE1("   Doc's m_filterMarkersBeforeEdit = %s\n",pDoc->m_filterMarkersBeforeEdit);
 #endif
 
-			gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update
+			//gpApp->m_maxIndex = nNewSrcPhraseCount - 1; // update
+			nNewSrcPhraseCount = nNewSrcPhraseCount; // avoids a compile warning (we don't use this value)
 
 			// version 3 always rebuilds the doc, so we need to unconditionally restore the phrasebox contents...
 			// (The box contents will generally be correct and the location unchanged, except if the SFM set
@@ -8960,6 +8994,7 @@ bool CAdapt_ItApp::DoUsfmSetChanges(CUSFMPageCommon* pUsfmPageCommon, CFilterPag
 		{
 			// No Reparse of the Document called for
 		}
+		m_pLayout->m_bUSFMChanged = TRUE;
 	}
 
 	// can use this return value to signal the caller if RetokenizeText() has a problem
@@ -8989,7 +9024,6 @@ void CAdapt_ItApp::UpdateTextHeights(CAdapt_ItView* WXUNUSED(pAdView))
 	wxASSERT(m_pSourceFont != NULL);
 	wxFont SaveFont = dC.GetFont();
 	dC.SetFont(*m_pSourceFont);
-
 	m_nSrcHeight = dC.GetCharHeight();
 
 	// whm note: The following is Bob Eaton's modification to detect if the font is a symbol
@@ -12652,6 +12686,12 @@ void CAdapt_ItApp::WriteFontConfiguration(const fontInfo fi, wxTextFile* pf)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 {
+    // BEW refactored 22Mar09, for compatibility with earlier settings file - write this
+    // out for the m_nMaxToDisplay value, which is not needed any more
+	m_nMaxToDisplay = GetMaxIndex() + 1;
+	int dummyValue1 = 10; // for removed m_nPrecedingContext;
+	int dummyValue2 = 10; // for removed m_nFollowingContext;
+
 	// wx version combines ANSI and UNICODE parts in common to simplify this function
 	wxString data = _T("");
 	wxString tab = _T("\t");
@@ -12767,11 +12807,13 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szMinPrecContext << tab << m_nPrecedingContext;
+	//data << szMinPrecContext << tab << m_nPrecedingContext;
+	data << szMinPrecContext << tab << dummyValue1;
 	pf->AddLine(data);
 
 	data.Empty();
-	data << szMinFollContext << tab << m_nFollowingContext;
+	//data << szMinFollContext << tab << m_nFollowingContext;
+	data << szMinFollContext << tab << dummyValue2;
 	pf->AddLine(data);
 
 	data.Empty();
@@ -12855,6 +12897,15 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szNoAutoSaveFlag << tab << number;
 	pf->AddLine(data);
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+	if (m_bNoAutoSave)
+		wxLogDebug(_T("m_bNoAutoSave  in WriteBasicSettingsConfiguration()  was just set to TRUE"));
+	else
+		wxLogDebug(_T("m_bNoAutoSave  in WriteBasicSettingsConfiguration()  was just set to FALSE"));
+	#endif
+#endif
 
 	data.Empty();
 	data << szTS_DOC_MINS << tab << m_timeSettings.m_tsDoc.GetMinutes();
@@ -14035,23 +14086,34 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szMaxToDisplay)
 		{
 			num = wxAtoi(strValue);
-			if (num <= 80 || num > 4000)
-				num = 300;
+            // refactored 22Mar09, we don't use this anymore (and is now used just to save
+            // count of doc pSrcPhrase instances - though we make to use of that value
+            // anywhere, it's just for backwards compatibility of the config files)
+			//if (num <= 80 || num > 4000) 
+			//	num = 300;
 			m_nMaxToDisplay = num;
 		}
 		else if (name == szMinPrecContext)
 		{
 			num = wxAtoi(strValue);
+			/* refactored 22Mar09 - no longer needed, but retain in config file
 			if (num <= 10 || num > 80)
 				num = 50;
 			m_nPrecedingContext = num;
+			*/
+			int dummyvalue = num; // don't use it any more
+			dummyvalue = dummyvalue; // avoid compiler warning
 		}
 		else if (name == szMinFollContext)
 		{
 			num = wxAtoi(strValue);
+			/* 
 			if (num <= 10 || num > 60)
 				num = 30;
 			m_nFollowingContext = num;
+			*/
+			int dummyvalue = num; // don't use it any more
+			dummyvalue = dummyvalue; // avoid compiler warning
 		}
 		else if (name == szLeading)
 		{
@@ -14143,12 +14205,35 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szNoAutoSaveFlag)
 		{
 			num = wxAtoi(strValue);
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration()  was just read in as %d"), num);
+	#endif
+#endif
 			if (!(num == 0 || num == 1))
+			{
 				num = 0; // auto save
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration()  BAD VALUE, so set to FALSE"));
+	#endif
+#endif
+			}
 			if (num == 1)
 				m_bNoAutoSave = TRUE;
 			else
 				m_bNoAutoSave = FALSE;
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+	if (num == 1)
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration() (after test) was set to TRUE"));
+	else
+		wxLogDebug(_T("m_bNoAutoSave  in GetBasicSettingsConfiguration() (after test) was set to FALSE"));
+	#endif
+#endif
 		}
 		else if (name == szSpecialTextColor)
 		{
@@ -14221,13 +14306,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// returns
 		}
 
-		// Ursula Wiesemann (Brazil) was having bizarre values of 3000 for xTopLeft and yTopLeft,
-		// and bad values (e.g 160 by 24) for cxWZize and cyWSize, respectively. I cannot find any
-		// reason for these - unless rogue code is overwriting memory. So I'll check for rogue
-		// values on read of the basic config file, and on writing the basic config file, and
-		// substitute safe ones when values for the top left would place the main window to the right
-		// or below the point near the bottom right of the screen, or too narrow or high a window size
-		// etc. (Bill Martin got, one time, -32000 values for top left in Unicode app!)
+        // Ursula Wiesemann (Brazil) was having bizarre values of 3000 for xTopLeft and
+        // yTopLeft, and bad values (e.g 160 by 24) for cxWZize and cyWSize, respectively.
+        // I cannot find any reason for these - unless rogue code is overwriting memory. So
+        // I'll check for rogue values on read of the basic config file, and on writing the
+        // basic config file, and substitute safe ones when values for the top left would
+        // place the main window to the right or below the point near the bottom right of
+        // the screen, or too narrow or high a window size etc. (Bill Martin got, one time,
+        // -32000 values for top left in Unicode app!)
 
 		else if (name == szTopLeftX)
 		{
@@ -14547,9 +14633,10 @@ void CAdapt_ItApp::SetDefaults()
 	InitializePunctuation();
 
 	// TODO: Should some/all of the following be put in Adapt_ItConstants.h ???
-	m_nMaxToDisplay = 300;
-	m_nPrecedingContext = 50;
-	m_nFollowingContext = 30;
+	//m_nMaxToDisplay = 300; // 22Mar09, no longer used, but retained for backwards 
+							 // compatibility of config file
+	//m_nPrecedingContext = 50;
+	//m_nFollowingContext = 30;
 	m_curLeading = 32;
 	m_curLMargin = 16;// whm changed default to 16 for better visibility of any notes icon at left margin
 	m_curGapWidth = 16;
@@ -14561,8 +14648,14 @@ void CAdapt_ItApp::SetDefaults()
 
 	m_bUseStartupWizardOnLaunch = TRUE;
 	m_bAutoBackupKB = TRUE;
-	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in App's constructor as default)
-	
+	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in App's constructor as default)	
+#ifdef Test_m_bNoAutoSave
+	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
+	#ifdef __WXDEBUG__
+		wxLogDebug(_T("m_bNoAutoSave  in SetDefaults() was set to TRUE"));
+	#endif
+#endif
+
 	m_ptViewTopLeft.x = 20;
 	m_ptViewTopLeft.y = 20;
 	m_szView.x = 640;
@@ -18520,7 +18613,8 @@ void CAdapt_ItApp::OnFileChangeFolder(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	//if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	if (pKB != NULL && m_pLayout->GetStripArray()->GetCount() > 0)
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument
@@ -18604,7 +18698,8 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 		pKB = gpApp->m_pGlossingKB;
 	else
 		pKB = gpApp->m_pKB;
-	if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	//if (pKB != NULL && gpApp->m_pBundle->m_nStripCount > 0)
+	if (pKB != NULL && m_pLayout->GetStripArray()->GetCount() > 0)
 	{
 		// doc is open, so close it first
 		pDoc->OnFileClose(event); // my version, which does not call OnCloseDocument
@@ -20521,7 +20616,8 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	if (gpApp->m_pTargetBox != NULL)
 	{
 		// whm added test for m_pActivePile == NULL
-		if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->m_pSrcPhrase == NULL 
+		//if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->m_pSrcPhrase == NULL 
+		if (gpApp->m_pActivePile == NULL || gpApp->m_pActivePile->GetSrcPhrase() == NULL 
 			|| gpApp->m_nActiveSequNum < 0
 			|| gpApp->m_pTargetBox->IsShown())
 			bDocIsThere = FALSE;
@@ -20532,7 +20628,8 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	if (bDocIsThere)
 	{
 		gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum); // ensure a valid pointer (BEW added 28Jun05)
-		wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->m_pSrcPhrase);
+		//wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->m_pSrcPhrase);
+		wxString chVerse = pView->GetChapterAndVerse(gpApp->m_pActivePile->GetSrcPhrase());
 		if (!chVerse.IsEmpty())
 		{
 			message += _T("  ") + chVerse;
@@ -20902,6 +20999,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	// CSourcePhrase instance (after removal of the book ID one) in the doc to be joined, to its m_markers member's start
 	CAdapt_ItDoc *d = GetDocument();
 	CAdapt_ItView *v = GetView();
+	CLayout* pLayout = m_pLayout;
 
 	// get the current document's count of CSourcePhrase instances, so we can later locate the
 	// active location to the first instance at the join location
@@ -20973,31 +21071,67 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	}
 	// Jonathan's code continues here...
 	//m_pSourcePhrases->Append(ol);
-	// wx doesn't have a wxList method for appending one list onto another list, so we'll do it
-	// manually
+    // wx doesn't have a wxList method for appending one list onto another list, so we'll
+    // do it manually
+    // BEW 15Jun09; in the refactored view design, each CSourcePhrase instande in the list
+	// should have a partner pile in the m_pileList in CLayout, and just appending
+	// CSourcePhrase instances in the loop below will not be enough. Moreover the Jump()
+	// call at the end of the block below has a PlacePhraseBox() call, with RecalcLayout()
+	// using the option keep_strips_keep_piles, but there won't have been any strips yet
+	// for the CSourcePhrases which we append just below. So, we have to get a set of
+	// valid partner piles, and do a RecalcLayout() call here with the option
+	// create_strips_and_piles in order for the rest of the code to work right in the
+	// refactored design
 	SPList::Node* node = ol->GetFirst();
 	while (node)
 	{
 		m_pSourcePhrases->Append(node->GetData());
 		node = node->GetNext();
 	}
+	// now do the adjustments for our refactored view design
+	d->UpdateSequNumbers(0); // even though it's done in next block, next block is called
+							 // only for the last set of appends, and we need it here 
+							 // each time
+	pLayout->RecalcLayout(m_pSourcePhrases,create_strips_and_piles); // this call destroys
+							// the smaller set of current piles and builds all from scratch
+							// and then the strips based on them - this ensures that a later
+							// ScrollIntoView() call, which will use CPile::m_pOwningStrip
+							// will always succeed for whatever CPile instance is used
 	if (IsLastAppendUsingThisMethodRightNow) 
 	{
 		// get all the sequence numbers into correct sequence
 		d->UpdateSequNumbers(0);
 
+		/* // refactored 22Mar09 - removed, no bundles to have to worry about, 
+		// but phr box located same place
 		// BEW modified 07Nov05
-		// the document may now be longer than a bundle can display, in fact it may have been that way
-		// before the append operation, so we have to ensure we get the indices correct for the currently
-		// allowed bundle size, and that we locate the bundle somewhere safely - until we decide otherwise
-		// we will locate it at the last join point -- that is, the active location (ie phrase box) will
-		// be at the first sourcephrase instance of the just appended document, so that the its preceding
-		// context will show the end of the document to which we just appended; the end of the bundle
-		// may or may not reach to the end of the combined document (typically it won't) depending on how big
-		// these document files happened to be in relation to the bundle size currently in effect
+        // the document may now be longer than a bundle can display, in fact it may have
+        // been that way before the append operation, so we have to ensure we get the
+        // indices correct for the currently allowed bundle size, and that we locate the
+        // bundle somewhere safely - until we decide otherwise we will locate it at the
+        // last join point -- that is, the active location (ie phrase box) will be at the
+        // first sourcephrase instance of the just appended document, so that the its
+        // preceding context will show the end of the document to which we just appended;
+        // the end of the bundle may or may not reach to the end of the combined document
+        // (typically it won't) depending on how big these document files happened to be in
+        // relation to the bundle size currently in effect
 		int nFirstIndex = nOldCount - m_nPrecedingContext;
 		if (nFirstIndex < 0) nFirstIndex = 0; // ensure a valid index
 		m_nActiveSequNum = SetBundleIndices(m_pSourcePhrases, nFirstIndex);
+		CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
+		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; 
+								   // else to a safe location
+		*/
+		int anActiveSequNum = nOldCount; // the first CSourcePhrase of the just joined doc part
+		if (anActiveSequNum <= GetMaxIndex())
+		{
+			// it's within the document span
+			m_nActiveSequNum = anActiveSequNum;
+		}
+		else
+		{
+			m_nActiveSequNum = GetMaxIndex();
+		}
 		CSourcePhrase* pSrcPhrase = v->GetSrcPhrase(m_nActiveSequNum);
 		v->Jump(this, pSrcPhrase); // Jump to the last join point, if possible; else to a safe location
 	}
@@ -21020,11 +21154,15 @@ SPList *CAdapt_ItApp::GetSourcePhraseList()
 /// \remarks
 /// Called from: the App's CascadeSourcePhraseListChange(), and 
 /// CSplitDialog::GoToNextChapter_Interactive().
-/// Simply calls GetSourcePhraseByIndex() for the m_curIndex.
+/// Simply calls GetSourcePhraseByIndex() passing in the view's m_nActiveSequNum
+/// remarks:
+/// A similar function on the view class is GetSourcePhrase(int nSequNum)
 ////////////////////////////////////////////////////////////////////////////////////////////
 CSourcePhrase *CAdapt_ItApp::GetCurrentSourcePhrase()
 {
-	return GetSourcePhraseByIndex(m_curIndex);
+	// refactored 22Mar09: to be based on view's m_nActiveSequNum rather than bundle's m_curIndex
+	// because the latter has been removed
+	return GetSourcePhraseByIndex(m_nActiveSequNum); // was GetSourcePhraseByIndex(m_curIndex);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -21044,6 +21182,7 @@ CSourcePhrase *CAdapt_ItApp::GetCurrentSourcePhrase()
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCurrentSourcePhrase(CSourcePhrase *sp)
 {
+	// refactored 22Mar09 - no change needed
 	// BEW modified 02Nov05, to prevent a copy of the source text word at the new
 	// box location being copied to m_targetPhrase when there is no adaptation (or
 	// gloss if gloss mode is currently on) already available for that location
@@ -21184,7 +21323,12 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 		{
 			CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			pos = pos->GetNext();
-			pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
+			pDoc->DeleteSingleSrcPhrase(pSrcPhrase); // Note, it would be more efficient
+			// to use (pSrcPhrase,FALSE) and then destroy the partner piles enmasse with
+			// a call such as DestroyPiles(PileList* piles) -- but we don't have such a
+			// function defined in AI yet, and the sublist corresponding to the sublist l
+			// passed in above, would have to be calculated -- all of which could be done,
+			// but the returns are diminished, so I'll not bother
 		}
 		l->Clear();
 	}
@@ -21203,10 +21347,12 @@ void CAdapt_ItApp::DeleteSourcePhraseListContents(SPList *l)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 {
-	CAdapt_ItDoc *d = GetDocument();
+	// refactored 22Mar09  -- all the index stuff is now unneeded, so just do the Jump
 	CAdapt_ItView *v = GetView();
-
+	CAdapt_ItDoc *d = GetDocument();
 	d->UpdateSequNumbers(0);
+
+	/*
 	m_maxIndex = m_pSourcePhrases->GetCount() - 1;
 	if (m_curIndex >= m_maxIndex) {
 		m_curIndex = 0;
@@ -21223,6 +21369,11 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 		m_lowerIndex = m_beginIndex;
 	if (m_upperIndex >= m_endIndex)
 		m_upperIndex = m_endIndex - wxMin(m_nFollowingContext,(m_endIndex - m_beginIndex)/10);
+	*/
+
+	// The GetCurrentSourcePhrase() call below gets the one at the m_nActiveSequNum value,
+	// so the only value which can be safely set here is to set it to zero
+	m_nActiveSequNum = 0;
 
 	if (DoFullScreenUpdate) {
 		v->Jump(this, GetCurrentSourcePhrase());
@@ -21240,22 +21391,25 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
 /// Gets a pointer to the source phrase instance at Index in m_pSourcePhrases.
 /// whm: Does not do any error checking so it assumes that Index is a valid index into the list,
 /// i.e., within the list.
+/// Jonathan build this function, it does exactly the same as the
+/// CAdapt_ItView::GetSourcePhrase(int nSequNum) function - but the latter checks pointer
+/// validity in the debug build as well, Jonathan's doesn't
 ////////////////////////////////////////////////////////////////////////////////////////////
 CSourcePhrase *CAdapt_ItApp::GetSourcePhraseByIndex(int Index)
 {
+	// refactored 22Mar09 - no change needed
 	SPList *ol = m_pSourcePhrases;
 	SPList::Node* node = ol->Item(Index);
 	return (CSourcePhrase*)node->GetData();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      Index   -> an int representing the index of the source phrase to Jump to
-/// \remarks
-/// Called from: CSplitDialog::SplitAtPhraseBoxLocation_Interactive().
-/// Calls the View's Jump() method to jump to the source phrase instance at Index in m_pSourcePhrases.
-/// whm: Does not do any error checking so it assumes that Index is a valid index into the list,
-/// i.e., within the list.
+/// \return nothing \param Index -> an int representing the index of the source phrase to
+/// Jump to \remarks Called from: CSplitDialog::SplitAtPhraseBoxLocation_Interactive().
+/// Calls the View's Jump() method to jump to the source phrase instance at Index in
+/// m_pSourcePhrases. 
+/// whm: *** TODO someday *** Does not do any error checking so it assumes that Index is a
+/// valid index into the list, i.e., within the list.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetCurrentSourcePhraseByIndex(int Index)
 {
@@ -21388,26 +21542,28 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 	// insert this instance at the start of the document
 	SPList::Node* pos = pSrcPhrasesList->GetFirst(); //POSITION pos = pSrcPhrasesList->GetHeadPosition();
 	pos = pSrcPhrasesList->Insert(pos,pSrcPhrase);
+	pDoc->CreatePartnerPile(pSrcPhrase);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
-/// \return     the index for the active location
-/// \param      pList                   -> the SPList for the document
-/// \param      nFirstSequNumInBundle   -> an int representing the first sequence number of the needed 
-///                                         bundle
-/// \remarks
-/// Called from: the App's AppendSourcePhrasesToCurrentDoc().
-/// SetBundleIndices takes a pointer to the m_pSourcePhrases list in the document, and an index
-/// to the CSourcePhrase instance in that list which is to be the first one of the bundle needed
-/// to be computed after a Join operation (since the join may have created a document bigger than
-/// a single bundle, even if not so previously), and returns the index for the active location
-/// (which typically is m_nPrecedingContext sourcephase instances further along than the 
-/// nFirstSequNumInBundle value). The caller can then do a GetSrcPhrase() call on the list using the
-/// returned index to get the active CSourcePhrase instance there, and then Jump() can be used
-/// to set up a correctly laid out bundle with the phrase box at the desired location. For the
-/// phrase box to be at the last join location, the caller should do a little simple arithmetic to
-/// work out the correct nFirstSequNumInBundle value to produce the wanted result.
-////////////////////////////////////////////////////////////////////////////////////////////
+/* BEW removed 21Mar09
+// //////////////////////////////////////////////////////////////////////////////////////////
+// / \return     the index for the active location
+// / \param      pList                   -> the SPList for the document
+// / \param      nFirstSequNumInBundle   -> an int representing the first sequence number of the needed 
+// /                                         bundle
+// / \remarks
+// / Called from: the App's AppendSourcePhrasesToCurrentDoc().
+// / SetBundleIndices takes a pointer to the m_pSourcePhrases list in the document, and an index
+// / to the CSourcePhrase instance in that list which is to be the first one of the bundle needed
+// / to be computed after a Join operation (since the join may have created a document bigger than
+// / a single bundle, even if not so previously), and returns the index for the active location
+// / (which typically is m_nPrecedingContext sourcephase instances further along than the 
+// / nFirstSequNumInBundle value). The caller can then do a GetSrcPhrase() call on the list using the
+// / returned index to get the active CSourcePhrase instance there, and then Jump() can be used
+// / to set up a correctly laid out bundle with the phrase box at the desired location. For the
+// / phrase box to be at the last join location, the caller should do a little simple arithmetic to
+// / work out the correct nFirstSequNumInBundle value to produce the wanted result.
+// //////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::SetBundleIndices(SPList* pList, int nFirstSequNumInBundle)
 {
 	CAdapt_ItView *v = GetView();
@@ -21439,6 +21595,7 @@ int CAdapt_ItApp::SetBundleIndices(SPList* pList, int nFirstSequNumInBundle)
 	}
 	return nActiveLoc;
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

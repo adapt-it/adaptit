@@ -5,7 +5,8 @@
 /// \date_created	05 January 2004
 /// \date_revised	15 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
-/// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
+/// \license		The Common Public License or The GNU Lesser General Public
+///                 License (see license directory)
 /// \description	This is the implementation for the CMainFrame class.
 /// The CMainFrame class defines Adapt It's basic interface, including its menu bar, 
 /// tool bar, control bar, compose bar, and status bar. 
@@ -82,6 +83,7 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "SourcePhrase.h"
+#include "Layout.h"
 #include "MainFrm.h"
 #include "helpers.h"
 #include "AdaptitConstants.h"
@@ -635,7 +637,7 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 												gnMatchedSequNumber,gpApp->m_nActiveSequNum,nFinish);
 							CPile* pPile = pView->GetPile(gnMatchedSequNumber);
 							gpApp->m_pActivePile = pPile;
-							CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+							CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 							pView->Jump(gpApp,pSrcPhrase); // jump there
 						}
 					} // end block for trying to find a matching scripture reference in the open document
@@ -739,7 +741,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 					// form the path to each of those remaining - these will be *.xml document files only
 					strDocPath = strFolderPath + gpApp->PathSeparator + strDocName; 
 
-					// clear the temporary list, gete ready for reading in the xml data and storing it in the list
+					// clear the temporary list, get ready for reading in the xml data and storing it in the list
 					DeleteSourcePhrases_ForSyncScrollReceive(pDoc, gpDocList); // also removes gpDocList's contents
 
 					// read in the XML data, forming CSourcePhrase instances and storing them in gpDocList (done
@@ -806,6 +808,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 									// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
 									pView->ClobberDocument();
 									pView->Invalidate(); // force immediate update (user sees white client area)
+									gpApp->m_pLayout->PlaceBox();
 								}
 
 								// also, remove the gpDocList contents, we'll use OnOpenDocument to set up the document
@@ -852,7 +855,9 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 								if (!bOK)
 								{
 									// IDS_LOAD_DOC_FAILURE
-									wxMessageBox(_("Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"), _T(""), wxICON_ERROR);
+									wxMessageBox(_(
+"Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"),
+									_T(""), wxICON_ERROR);
 									// whm TODO: Should the app actually stop here ???
 									wxExit(); //AfxAbort();
 								}
@@ -863,12 +868,16 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 								CPile* pPile = pView->GetPile(gpApp->nLastActiveSequNum);
 								wxASSERT(pPile != NULL);
 								int nFinish = 1;
+								// initialize m_nActiveSequNum to the nLastActiveSequNum value
+								gpApp->m_nActiveSequNum = gpApp->nLastActiveSequNum;
 								bool bSetSafely;
 								bSetSafely = pView->SetActivePilePointerSafely(gpApp,gpApp->m_pSourcePhrases,
 													gpApp->nLastActiveSequNum,gpApp->m_nActiveSequNum,nFinish);
+								// m_nActiveSequNum might have been changed by the
+								// preceding call, so reset the active pile
 								pPile = pView->GetPile(gpApp->m_nActiveSequNum);
 								gpApp->m_pActivePile = pPile;
-								CSourcePhrase* pSrcPhrase = pPile->m_pSrcPhrase;
+								CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 								pView->Jump(gpApp,pSrcPhrase); // jump there
 								return TRUE; // don't continue in the loop any longer
 							}
@@ -1031,7 +1040,9 @@ void DeleteSourcePhrases_ForSyncScrollReceive(CAdapt_ItDoc* pDoc, SPList* pList)
 			{
 				pSrcPhrase = pos->GetData();
 				pos = pos->GetNext();
-				pDoc->DeleteSingleSrcPhrase(pSrcPhrase);
+				pDoc->DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // ignore partner piles
+					// because this function works only on a temporary list of 
+					// CSourcePhrase instances and so there never are any partner piles
 			}
 			pList->Clear();
 		}
@@ -2284,6 +2295,7 @@ wxSize CMainFrame::GetCanvasClientSize()
 	canvasSize.x = frameClientSize.x; // canvas always fills width of frame's client size
 	// the height of the canvas is reduced by the height of the controlBar; and also the
 	// height of the composeBar (if visible).
+	// BEW modified for vertical edit bars to be taken into account also
 	if (m_pComposeBar->IsShown())
 	{
 		canvasSize.y = frameClientSize.y - m_controlBarHeight - m_composeBarHeight;
@@ -2291,6 +2303,18 @@ wxSize CMainFrame::GetCanvasClientSize()
 	else
 	{
 		canvasSize.y = frameClientSize.y - m_controlBarHeight;
+	}
+	if (gbVerticalEditInProgress)
+	{
+		// vertical edit is on currently
+		if (m_pRemovalsBar->IsShown())
+		{
+			canvasSize.y -= m_removalsBarHeight;
+		}
+		if (m_pVertEditBar->IsShown())
+		{
+			canvasSize.y -= m_vertEditBarHeight;
+		}
 	}
 	return canvasSize;
 }
@@ -2568,23 +2592,27 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	//}
 	//else
 	//{
-		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+		splitter->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
+			mainFrameClientSize.x, finalHeightOfCanvas);
 	//}
 #else
-		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize, // top left x and y coords of canvas within client area
-			mainFrameClientSize.x, finalHeightOfCanvas); // width and height of canvas
+		// arguments: top left x and y coords of canvas within client area, then
+		// width and height of canvas
+		canvas->SetSize(0, VertDisplacementFromReportedMainFrameClientSize,
+						mainFrameClientSize.x, finalHeightOfCanvas); 
 #endif
 	
-	// whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine
-	// BEW added 05Mar06: Bill Martin reported (email 3 March) that if user is in free translation mode,
-	// and uses either the Shorten of Lengthen buttons (these set gbSuppressSetup to TRUE in the beginning
-	// of their handlers, to suppress resetting up of the section for the change in the layout), and then
-	// he resizes the window, the app will crash (invalid pile pointer usually). The easiest solution is
-	// just to allow the section to be reset - this loses the effect of the shortening or lengthening, but
-	// that can easily be done again by hitting the relevant button(s) after the resized layout is redrawn.
-	// Note: gpApp may not be initialized yet in the App's OnInit(), so we'll get a pointer to the app
-	// here:
+    // whm Note: The remainder of OnSize() is taken from MFC's View::OnSize() routine BEW
+    // added 05Mar06: Bill Martin reported (email 3 March) that if user is in free
+    // translation mode, and uses either the Shorten of Lengthen buttons (these set
+    // gbSuppressSetup to TRUE in the beginning of their handlers, to suppress resetting up
+    // of the section for the change in the layout), and then he resizes the window, the
+    // app will crash (invalid pile pointer usually). The easiest solution is just to allow
+    // the section to be reset - this loses the effect of the shortening or lengthening,
+    // but that can easily be done again by hitting the relevant button(s) after the
+    // resized layout is redrawn. 
+    // Note: gpApp may not be initialized yet in the App's OnInit(), so we'll get a pointer
+    // to the app here:
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	if (pApp->m_bFreeTranslationMode)
 	{
@@ -2592,10 +2620,18 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	}
 
 	// need to initiate a recalc of the layout with new m_docSize value, since strip-wrap is on
+	// BEW added 6May09 -- but only provided the pile list is not currently empty!!
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
-	if (pView)
-		pView->RedrawEverything(pApp->m_nActiveSequNum);
-
+	CLayout* pLayout = pView->GetLayout();
+	if (pView && !pLayout->GetPileList()->IsEmpty())
+	{
+#ifdef _NEW_LAYOUT
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#else
+		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+	}
 	// code below was in docview sample
     // FIXME: On wxX11, we need the MDI frame to process this
     // event, but on other platforms this should not
@@ -2604,6 +2640,11 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
     event.Skip();
 #endif
 
+	if (pView && !pLayout->GetPileList()->IsEmpty())
+	{
+		pView->Invalidate();
+		gpApp->m_pLayout->PlaceBox();
+	}
 }
 
 void CMainFrame::RecreateToolBar()
@@ -3180,7 +3221,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 		if (gbAutoCaps && pApp->m_pActivePile != NULL) // whm added && pApp->m_pActivePile != NULL
 		{
 			wxString str;
-			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->m_pSrcPhrase;
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 			wxASSERT(pSrcPhrase != NULL);
 			bool bNoError = pView->SetCaseParameters(pSrcPhrase->m_key);
 			if (bNoError && gbSourceIsUpperCase)
@@ -3214,7 +3255,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
 						{
 							str.SetChar(0,gcharNonSrcUC);
-							pApp->m_pTargetBox->SetValue(str); //pView->m_targetBox.SetWindowText(str);
+							pApp->m_pTargetBox->ChangeValue(str); //pView->m_targetBox.SetWindowText(str);
 							pApp->m_pTargetBox->Refresh(); //;pView->m_targetBox.Invalidate();
 							pApp->m_targetPhrase = str;
 
@@ -3441,7 +3482,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 			//	return FALSE;
 			//if (idleCount % 1000 == 0)
 			//{
-				//event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
+			//	event.RequestMore(); // whm removed 2Jan09 TODO: do we need a call to wxWakeUpIdle elsewhere?
 			//	idleCount = 0;
 			//}
 		}
@@ -5351,7 +5392,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	EditRecord* pRec = &gEditRecord;
-	//bool bAllsWell = TRUE;
+	CLayout* pLayout = gpApp->m_pLayout;
 	
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -5434,6 +5475,16 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		gEntryPoint = noEntryPoint;
 		gEditStep = noEditStep;
 		gbEditingSourceAndDocNotYetChanged = TRUE;
+
+		// ensure the active strip is layout out with correct pile locations, do this
+		// even if we have scrolled and the active strip won't be drawn (needed because in
+		// some situations after a vertical edit, the pile locations aren't updated correctly)
+		int nActiveStripIndex = (pView->GetPile(gpApp->m_nActiveSequNum))->GetStripIndex();
+		pLayout->RelayoutActiveStrip(pView->GetPile(gpApp->m_nActiveSequNum), nActiveStripIndex, 
+			pLayout->GetGapWidth(), pLayout->GetLogicalDocSize().x);
+
+		pView->Invalidate(); // get the layout drawn
+		pLayout->PlaceBox();
 	}
 	return;
 }
@@ -5974,19 +6025,23 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
-	int nIndex = m_pRemovalsBarComboBox->GetSelection(); //MFC has GetCurSel() which equates to the wxComboBox's base class wxControlWithItems::GetSelection()
+	int nIndex = m_pRemovalsBarComboBox->GetSelection(); //MFC has GetCurSel() which 
+			// equates to the wxComboBox's base class wxControlWithItems::GetSelection()
 	wxString theText;
-	// whm: MFC's CComboBox::GetLBText() "Gets a string from the list box of a combo box." nIndex
-	// contains the zero-based index of the list-box string to be copied. The second parameter points
-	// to a CString that receives the string. In 
+    // whm: MFC's CComboBox::GetLBText() "Gets a string from the list box of a combo box."
+    // nIndex contains the zero-based index of the list-box string to be copied. The second
+    // parameter points to a CString that receives the string. In
 	theText = m_pRemovalsBarComboBox->GetString(nIndex); //m_pRemovalsBarComboBox->GetLBText(nIndex,theText);
 	wxASSERT(!theText.IsEmpty());
 
-	// store the active srcPhrase's m_nSrcWords member's value for use in the test in OnUpdateButtonUndoLastCopy()
-	// and other "state-recording" information, for use by the same update handler
-	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords; // the merge state at active location
+    // store the active srcPhrase's m_nSrcWords member's value for use in the test in
+    // OnUpdateButtonUndoLastCopy() and other "state-recording" information, for use by the
+    // same update handler
+	gnWasNumWordsInSourcePhrase = gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords; // the 
+														// merge state at active location
 	gbWasGlossingMode = gbIsGlossing; // whether glossing or adapting when the copy is done
-	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free translation mode is on at that time
+	gbWasFreeTranslationMode = gpApp->m_bFreeTranslationMode; // whether or not free 
+													// translation mode is on at that time
 
 //	gReplacementLocation_SequNum = pApp->m_nActiveSequNum;
 	gnWasSequNum = pApp->m_nActiveSequNum;
@@ -5999,25 +6054,28 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	{
 		wxASSERT(m_pComposeBar != NULL);
 		//wxTextCtrl* pEdit = (wxTextCtrl*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
-		CComposeBarEditBox* pEdit = (CComposeBarEditBox*)m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+		CComposeBarEditBox* pEdit = (CComposeBarEditBox*)
+										m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxASSERT(pEdit != NULL);
 		gOldEditBoxTextStr = pEdit->GetValue(); // in case Undo Last Copy button is clicked
 		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
 		// event, which now deprecated SetValue() generates.
 		pEdit->ChangeValue(_T("")); // SetValue() is OK to use here
-        // whm Note: SetValue() automatically (and by design) resets the dirty flag to FALSE when
-        // called, because it is primarily designed to establish the initial value of an edit control.
-        // Often when the initial value of a text control is programatically set, we don't want it
-        // marked as "dirty". It should be marked dirty when the user changes something. But, our
-        // ComposeBarEditBox is designed to echo the compose bar's contents and is does that by checking
-        // for changes in the compose bar's contents (the dirty flag). Therefore, calling SetValue()
-        // won't do what we want because SetValue automatically resets the dirty flag to FALSE; Instead,
-        // we need to call one of the other wxTextCtrl methods that sets the dirty flag to TRUE. We
-        // could use Append(), WriteText() or even just use the << operator to insert text into the
-        // control. I'll use the WriteText() method, which not only sets the dirty flag to TRUE, it also
-        // leaves the insertion point at the end of the inserted text. Using WriteText() also has the
-        // benefit of setting the insertion point at the end of the inserted text - so we don't need to
-        // call SetSelection() to do so.
+        // whm Note: SetValue() automatically (and by design) resets the dirty flag to
+        // FALSE when called, because it is primarily designed to establish the initial
+        // value of an edit control. Often when the initial value of a text control is
+        // programatically set, we don't want it marked as "dirty". It should be marked
+        // dirty when the user changes something. But, our ComposeBarEditBox is designed to
+        // echo the compose bar's contents and is does that by checking for changes in the
+        // compose bar's contents (the dirty flag). Therefore, calling SetValue() won't do
+        // what we want because SetValue automatically resets the dirty flag to FALSE;
+        // Instead, we need to call one of the other wxTextCtrl methods that sets the dirty
+        // flag to TRUE. We could use Append(), WriteText() or even just use the <<
+        // operator to insert text into the control. I'll use the WriteText() method, which
+        // not only sets the dirty flag to TRUE, it also leaves the insertion point at the
+        // end of the inserted text. Using WriteText() also has the benefit of setting the
+        // insertion point at the end of the inserted text - so we don't need to call
+        // SetSelection() to do so.
 		pEdit->WriteText(theText); //pEdit->SetValue(theText);
 		//long len = theText.Len();
 		//pEdit->SetSelection(len,len); // not needed because WriteText() does this for us
@@ -6034,7 +6092,8 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	bool bNoError = TRUE;
 	if (gbAutoCaps)
 	{
-		bNoError = pView->SetCaseParameters(pApp->m_pActivePile->m_pSrcPhrase->m_key); // bIsSrcText is TRUE
+		bNoError = pView->SetCaseParameters(pApp->m_pActivePile->GetSrcPhrase()->m_key); 
+																// bIsSrcText is TRUE
 		if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 		{
 			bNoError = pView->SetCaseParameters(theText,FALSE); // testing the non-source text
@@ -6049,16 +6108,21 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 
 
 	// the box may be bigger because of the text, so do a recalc of the layout
-	pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
+	CLayout* pLayout = pApp->m_pLayout;
+#ifdef _NEW_LAYOUT
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
 
-	// if a phrase jumps back on to the line due to the recalc of the layout, then the
-	// current location for the box will end up too far right, so we must find out where the
-	// active pile now is and reset m_ptCurBoxLocation before calling CreateBox, so
-	// recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
+    // if a phrase jumps back on to the line due to the recalc of the layout, then the
+    // current location for the box will end up too far right, so we must find out where
+    // the active pile now is and reset m_ptCurBoxLocation before calling CreateBox, so
+    // recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	wxASSERT(pApp->m_pActivePile != NULL);
-	pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
-	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+	//pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
+	//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	// do a scroll if needed
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -6066,7 +6130,7 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	// place cursor at end of the inserted text
 	int length = theText.Length();
 	pApp->m_nEndChar = pApp->m_nStartChar = length;
-	pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
+	//pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase); // Draw() does it now
 
 	// restore focus and make non-abandonable
 	if (pApp->m_pTargetBox != NULL) // should always be the case
@@ -6077,9 +6141,10 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 	}
-	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text could be different
-						 // length than what was there before, and hence move piles about or even
-						 // cause the following strips to have different pile content. But to
-						 // avoid flicker we need to make use of clipping region soon. BEW)
+	pView->Invalidate(); // whm: Why call Invalidate here? (Because the text 
+        // could be different length than what was there before, and hence move piles about
+        // or even cause the following strips to have different pile content. But to avoid
+        // flicker we need to make use of clipping region soon. BEW)
+	pLayout->PlaceBox();
 }
 

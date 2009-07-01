@@ -38,6 +38,7 @@
 ../../source/KBEditor.cpp
 ../../source/KBPage.cpp
 ../../source/LanguagesPage.cpp
+../../source/Layout.cpp
 ../../source/ListDocumentsInOtherFolderDialog.cpp
 ../../source/MainFrm.cpp
 ../../source/MoveDialog.cpp
@@ -60,14 +61,12 @@
 ../../source/SetDelay.cpp
 ../../source/SetEncodingDlg.cpp
 ../../source/SilConverterSelectDlg.cpp
-../../source/SourceBundle.cpp
 ../../source/SourcePhrase.cpp
 ../../source/SplitDialog.cpp
 ../../source/Stack.cpp
 ../../source/StartWorkingWizard.cpp
 ../../source/Strip.cpp
 ../../source/TargetUnit.cpp
-../../source/Text.cpp
 ../../source/TransformToGlossesDlg.cpp
 ../../source/USFMPage.cpp
 ../../source/UnitsDlg.cpp

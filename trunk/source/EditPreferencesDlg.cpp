@@ -66,6 +66,8 @@
 #include "USFMPage.h"
 #include "FilterPage.h"
 #include "helpers.h"
+#include "Pile.h"
+#include "Layout.h"
 
 //extern wxChar gSFescapechar;
 //extern bool gbSfmOnlyAfterNewlines;
@@ -79,6 +81,8 @@ extern CFilterPagePrefs* pFilterPageInPrefs; // set the App's pointer to the fil
 /// This global is defined in Adapt_It.cpp.
 extern CUSFMPagePrefs* pUSFMPageInPrefs; // set the App's pointer to the filterPage
 
+/// This global is defined in Adapt_ItView.cpp.
+extern CAdapt_ItApp* gpApp;
 
 // For temporary emulation of MFC's Logfont structs. These
 // may disappear if/when we remove Logfont member values from
@@ -272,6 +276,20 @@ CEditPreferencesDlg::~CEditPreferencesDlg(void)
 
 void CEditPreferencesDlg::InitDialog(wxInitDialogEvent& event)
 {
+    // clear the booleans for tracking whether or not the user changes any of the
+    // preferences settings; we also clear each one individually at the individual page -
+    // because only doing that will catch the situation where the user may visit the same
+    // page more than once and edit each time and after the final edit he's restored the
+    // original state and so no change has been done; but no harm done to have them all
+    // cleared together here for documentation's purposes
+	CLayout* pLayout = gpApp->m_pLayout;
+	pLayout->m_bViewParamsChanged = FALSE;
+	pLayout->m_bUSFMChanged = FALSE;
+	pLayout->m_bFilteringChanged = FALSE;
+	pLayout->m_bPunctuationChanged = FALSE;
+	pLayout->m_bCaseEquivalencesChanged = FALSE;
+	pLayout->m_bFontInfoChanged = FALSE;
+
 	m_bDismissDialog = TRUE;
 
 	// Initialize each page of the notebook; each page's InitDialog() is not called when
@@ -424,36 +442,39 @@ void CEditPreferencesDlg::OnOK(wxCommandEvent& event)
 	// Validate viewPage data
 	int intTemp;
 	subStr = _("Sorry, the %s value must be between %d and %d.\nPlease type a value within that range.");
-	strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 60 || intTemp > 4000)
-	{
-		msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
-		return;
-	}
-	strTemp = viewPage->m_pEditMinPrecContext->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 20 || intTemp > 80)
-	{
-		msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMinPrecContext->SetFocus();
-		return;
-	}
-	strTemp = viewPage->m_pEditMinFollContext->GetValue();
-	intTemp = wxAtoi(strTemp);
-	if (intTemp < 20 || intTemp > 60)
-	{
-		msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
-		pNotebook->SetSelection(2);
-		wxMessageBox(msg, _T(""), wxICON_INFORMATION);
-		viewPage->m_pEditMinFollContext->SetFocus();
-		return;
-	}
+	// refactored 26Apr09 - this item is no longer needed
+	//strTemp = viewPage->m_pEditMaxSrcWordsDisplayed->GetValue();
+	//intTemp = wxAtoi(strTemp);
+	//if (intTemp < 60 || intTemp > 4000)
+	//{
+	//	msg = msg.Format(subStr,_("maximum number of source words"),60,4000);
+	//	pNotebook->SetSelection(2);
+	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	//	viewPage->m_pEditMaxSrcWordsDisplayed->SetFocus();
+	//	return;
+	//}
+	// refactored 26Apr09 - this item is no longer needed
+	//strTemp = viewPage->m_pEditMinPrecContext->GetValue();
+	//intTemp = wxAtoi(strTemp);
+	//if (intTemp < 20 || intTemp > 80)
+	//{
+	//	msg = msg.Format(subStr,_("minimum number of words in the preceding context"),20,80);
+	//	pNotebook->SetSelection(2);
+	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	//	viewPage->m_pEditMinPrecContext->SetFocus();
+	//	return;
+	//}
+	// refactored 26Apr09 - this item is no longer needed
+	//strTemp = viewPage->m_pEditMinFollContext->GetValue();
+	//intTemp = wxAtoi(strTemp);
+	//if (intTemp < 20 || intTemp > 60)
+	//{
+	//	msg = msg.Format(subStr,_("minimum number of words in the following context"),20,60);
+	//	pNotebook->SetSelection(2);
+	//	wxMessageBox(msg, _T(""), wxICON_INFORMATION);
+	//	viewPage->m_pEditMinFollContext->SetFocus();
+	//	return;
+	//}
 	strTemp = viewPage->m_pEditLeading->GetValue();
 	intTemp = wxAtoi(strTemp);
 	if (intTemp < 14 || intTemp > 80)

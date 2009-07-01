@@ -72,7 +72,6 @@ BEGIN_EVENT_TABLE(CEditSourceTextDlg, AIModalDialog)
 	EVT_TEXT_ENTER(IDC_EDIT_NEW_SOURCE,CEditSourceTextDlg::ReinterpretEnterKeyPress)
 END_EVENT_TABLE()
 
-
 CEditSourceTextDlg::CEditSourceTextDlg(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Edit Source Text"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)

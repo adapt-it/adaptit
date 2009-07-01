@@ -68,7 +68,6 @@
 
 // Other includes uncomment as implemented
 #include "Adapt_It.h"
-#include "Adapt_ItDoc.h"
 #include "OutputFilenameDlg.h"
 #include "helpers.h"
 #include "MainFrm.h"
@@ -77,10 +76,11 @@
 #include "AdaptitConstants.h"
 #include "TargetUnit.h"
 #include "Adapt_ItView.h"
-#include "SourceBundle.h"
+//#include "SourceBundle.h"
 #include "Strip.h"
-#include "Pile.h"
+#include "Pile.h" // must precede the include for the document
 #include "Cell.h"
+#include "Adapt_ItDoc.h"
 #include "RefString.h"
 //#include "ProgressDlg.h" // removed in svn revision #562
 #include "WaitDlg.h"
@@ -89,6 +89,7 @@
 #include "SplitDialog.h"
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
+#include "Layout.h"
 
 // forward declarations for functions called in tellenc.cpp
 void init_utf8_char_table();
@@ -125,6 +126,12 @@ static wxUint8 szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF}; // MFC uses BYTE
 static wxUint8 szU16BOM[nU16BOMLen] = {0xFF, 0xFE}; // MFC uses BYTE
 
 #endif
+
+/// This global is defined in Adapt_ItView.cpp. 
+extern int	gnBeginInsertionsSequNum;	
+
+/// This global is defined in Adapt_ItView.cpp. 
+extern int	gnEndInsertionsSequNum;	
 
 /// This global boolean informs the Doc's BackupDocument() function whether a split or 
 /// join operation is in progress. If gbDoingSplitOrJoin is TRUE BackupDocument() exits 
@@ -335,8 +342,32 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 bool CAdapt_ItDoc::OnNewDocument()
 // ammended for support of glossing or adapting
 {
+	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
 
+	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
+
+ 	// get a pointer to the view
+	CAdapt_ItView* pAdView = (CAdapt_ItView*) pApp->GetView();
+	wxASSERT(pAdView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+
+	// BEW comment 6May -- this OnInitialUpdate() call contains a RecalcLayout() call,
+	// which has the boolean bRecreatePileListAlso set TRUE, so piles are destroyed and
+	// recreated - quite unnecessarily, and worse than that, a view OnSize() call is made
+	// and that has RecalcLayout() in it too - with the boolean FALSE, and that call
+	// happens BETWEEN the piles having been destroyed and before they are recreated (I've
+	// not checked how this happens, it just does) - so there is an immediate crash. It
+	// should be possible to have this call of OnInitialUpdate() done further up in
+	// OnNewDocument(), and to have it do nothing at all with the layout - do the layout
+	// stuff here in OnNewDocument() only... (moved here from end of function)
+	// 
+	// whm added OnInitialUpdate here, since in WX the doc/view framework doesn't call it 
+	// automatically we need to call it manually here. MFC calls its OnInitialUpdate()
+	// method sometime after exiting its OnNewDocument() and before showing the View. See
+	// Notes at OnInitialUpdate() for more info.
+	pAdView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't 
+								// automatically call it
 	// ensure that the current work folder is the project one for default
 	wxString dirPath = pApp->m_workFolderPath;
 	bool bOK;
@@ -421,10 +452,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 		pApp->m_pSourcePhrases = new SPList;
 	wxASSERT(pApp->m_pSourcePhrases != NULL);
 
-	// get a pointer to the view
-	CAdapt_ItView* pAdView = (CAdapt_ItView*) pApp->GetView();
-	wxASSERT(pAdView->IsKindOf(CLASSINFO(CAdapt_ItView)));
-
 
 	bool bKBReady = FALSE;
 	if (gbIsGlossing)
@@ -438,7 +465,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 		pApp->m_pBuffer = new wxString; // on the heap, because this could be a large block of source text
 		wxASSERT(pApp->m_pBuffer != NULL);
 		pApp->m_nInputFileLength = 0;
-
 		wxString filter = _T("*.*");
 		wxString fileTitle = _T(""); // stores name (minus extension) of user's chosen source file
 
@@ -468,7 +494,9 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
 			// user cancelled, so cancel the New... command
 			// IDS_USER_CANCELLED
-			wxMessageBox(_("Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."), _T(""), wxICON_INFORMATION);
+			wxMessageBox(_(
+"Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."),
+			_T(""), wxICON_INFORMATION);
 
 			// check if there was a document current, and if so, reinitialize everything
 			if (pAdView != 0)
@@ -479,6 +507,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pAdView->Invalidate();
+				GetLayout()->PlaceBox();
 			}
 			return FALSE;
 		}
@@ -502,23 +531,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 			case getNewFile_success:
 			{
 				wxString tempSelectedFullPath = fileDlg.GetPath();
-
-				// Since we used wxWidget's file dialog, wxWidgets' doc/view
-				// assumes that this file is the one to add to its wxFileHistory (MRU)
-				// list. However, it is not what we want since it is not a document 
-				// file. Hence we need to remove it from the file history.
-				//wxFileHistory* fileHistory = gpApp->m_pDocManager->GetFileHistory();
-				// Check we don't already have this file
-				//for (int i = 0; i < (int)fileHistory->GetHistoryFilesCount(); i++)
-				//{
-				//	wxString temp = fileHistory->GetHistoryFile(i); // for debug tracing only
-				//	if ( fileHistory->GetHistoryFile(i) == tempSelectedFullPath )
-				//	{
-				//		// we found it, so remove it
-				//		gpApp->m_pDocManager->RemoveFileFromHistory (i);
-				//		break;
-				//	}
-				//}
 
 				// wxFileDialog.GetPath() returns the full path with directory and filename. We
 				// only want the path part, so we also call ::wxPathOnly() on the full path to
@@ -574,10 +586,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 								aTitle = _("Invalid Data For Current Book Folder");
 								wxString msg1;
 								// IDS_WRONG_THREELETTER_CODE_A
-								msg1 = msg1.Format(_("The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"),theCode.c_str(),seeNameStr.c_str());
+								msg1 = msg1.Format(_(
+"The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \ncode required for storing the document in the currently active %s book folder.\n"),
+												theCode.c_str(),seeNameStr.c_str());
 								wxString msg2;
 								//IDS_WRONG_THREELETTER_CODE_B
-								msg2 = _("\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code.");
+								msg2 = _(
+"\nChange to the correct book folder and try again, or try inputting a different source text file \nwhich contains the correct code.");
 								msg1 += msg2; // concatenate the messages
 								wxMessageBox(msg1,aTitle, wxICON_WARNING); // I want a title on this other than "Adapt It"
 								gbMismatchedBookCode = TRUE;// tell the caller about the mismatch
@@ -619,13 +634,15 @@ bool CAdapt_ItDoc::OnNewDocument()
 						// warn user to specify a non-null document name with valid chars
 						// IDS_EMPTY_OUTPUT_FILENAME
 						if (strUserTyped.IsEmpty())
-							wxMessageBox(_("Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."), _T(""), wxICON_INFORMATION);
+							wxMessageBox(_(
+"Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."),
+										_T(""),wxICON_INFORMATION);
 
 
 						// reinitialize everything
 						//if (pApp->m_targetBox.GetHandle() != NULL)
 						//	pApp->m_targetBox.Destroy(); // MFC uses DestroyWindow()
-						pApp->m_pTargetBox->SetValue(_T(""));
+						pApp->m_pTargetBox->ChangeValue(_T(""));
 						delete pApp->m_pBuffer;
 						pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 						pApp->m_curOutputFilename = _T("");
@@ -633,6 +650,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 						pApp->m_curOutputBackupFilename = _T("");
 						pApp->m_altOutputBackupFilename = _T("");
 						pAdView->Invalidate(); // our own
+						GetLayout()->PlaceBox();
 						return FALSE;
 					}
 
@@ -662,18 +680,21 @@ bool CAdapt_ItDoc::OnNewDocument()
 				{
 					// user cancelled, so cancel the New... command too
 					// IDS_NO_OUTPUT_FILENAME
-					wxMessageBox(_("Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."), _T(""), wxICON_INFORMATION);
+					wxMessageBox(_(
+"Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."),
+								_T(""), wxICON_INFORMATION);
 
 					// reinitialize everything
 					//if (pApp->m_targetBox.GetHandle() != NULL)
 					//	pApp->m_targetBox.Destroy(); // MFC has DestroyWindow()
-					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pTargetBox->ChangeValue(_T(""));
 					delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 					pApp->m_curOutputFilename = _T("");
 					pApp->m_curOutputPath = _T("");
 					pApp->m_curOutputBackupFilename = _T("");
 					pAdView->Invalidate();
+					GetLayout()->PlaceBox();
 					return FALSE;
 				}
 
@@ -745,41 +766,64 @@ bool CAdapt_ItDoc::OnNewDocument()
 				if (pApp->m_pSourcePhrases->IsEmpty())
 				{
 					// IDS_NO_SOURCE_DATA
-					wxMessageBox(_("Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."), _T(""), wxICON_EXCLAMATION);
+					wxMessageBox(_(
+"Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."),
+								_T(""), wxICON_EXCLAMATION);
 
 					// restore everything
 					//if (pApp->m_targetBox.GetHandle() != 0)
 					//	pApp->m_targetBox.Destroy();
-					pApp->m_pTargetBox->SetValue(_T(""));
+					pApp->m_pTargetBox->ChangeValue(_T(""));
 					delete pApp->m_pBuffer;
 					pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 					pAdView->Invalidate();
+					GetLayout()->PlaceBox();
 					return FALSE;
 				}
 
+				/*
 				// update the text heights, in case an earlier project used different settings
 				pApp->UpdateTextHeights(pAdView);
-
 				pAdView->CalcInitialIndices();
 				pAdView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle); //pAdView->RecalcLayout(m_pSourcePhrases,0,pAdView->m_pBundle);
+				*/
+				// try this for the refactored layout design....
+				CLayout* pLayout = GetLayout();
+				pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
+											// and other setters
+#ifdef _NEW_LAYOUT
+				bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+				bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+				if (!bIsOK)
+				{
+					// unlikely to fail, so just have something for the developer here
+					wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnNewDocument()"),_T(""), wxICON_STOP);
+					wxASSERT(FALSE);
+					wxExit();
+				}
 
 				// mark document as modified
 				Modify(TRUE); // SetModifiedFlag(TRUE);
 
 				// show the initial phraseBox - place it at the first empty target slot
-				pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0]; // first pile
+				// pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0]; // first pile
+				pApp->m_pActivePile = GetPile(0);
+
 				pApp->m_nActiveSequNum = 0;
 				bool bTestForKBEntry = FALSE;
 				CKB* pKB;
 				if (gbIsGlossing) // should not be allowed to be TRUE when OnNewDocument is called,
 								  // but I will code for safety, since it can be handled okay
 				{
-					bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry;
+					//bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry;
+					bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry;
 					pKB = pApp->m_pGlossingKB;
 				}
 				else
 				{
-					bTestForKBEntry = pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry;
+					bTestForKBEntry = pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry;
 					pKB = pApp->m_pKB;
 				}
 				if (bTestForKBEntry)
@@ -792,7 +836,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 					{
 						// there was none, so we must place the box at the first pile
 						pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-						pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2]);
+						//pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2]);
+						pAdView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1));
 						pAdView->Invalidate();
 						pApp->m_nActiveSequNum = 0;
 						gnOldSequNum = -1; // no previous location exists yet
@@ -804,18 +849,29 @@ bool CAdapt_ItDoc::OnNewDocument()
 					else
 					{
 						pApp->m_pActivePile = pPile;
-						pApp->m_nActiveSequNum = pPile->m_pSrcPhrase->m_nSequNumber;
+						pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 					}
 				}
 
+				// BEW added 10Jun09, support phrase box matching of the text colour chosen
+				if (gbIsGlossing && gbGlossingUsesNavFont)
+				{
+					pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+				}
+				else
+				{
+					pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+				}
+
 				// set initial location of the targetBox
-				pApp->m_targetPhrase = 
-					pAdView->CopySourceKey(pApp->m_pActivePile->m_pSrcPhrase,FALSE);
+				pApp->m_targetPhrase = pAdView->CopySourceKey(pApp->m_pActivePile->GetSrcPhrase(),FALSE);
 				translation = pApp->m_targetPhrase;
-				pApp->m_pTargetBox->m_bAbandonable = TRUE;
-				pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+				//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
+				//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->GetCell(1)->GetTopLeft(); // removed
+				// because now we will calculate the location from the layout dynamically from
+				// within the PlacePhraseBox() call
 				pApp->m_pTargetBox->m_textColor = pApp->m_targetColor;
-				pAdView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2);
+				pAdView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // internally calls RecalcLayout()
 
 				// save old sequ number in case required for toolbar's Back button - in this case 
 				// there is no earlier location, so set it to -1
@@ -917,12 +973,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
-
-	// whm added OnInitialUpdate here, since in WX the doc/view framework doesn't call it 
-	// automatically we need to call it manually here. MFC calls its OnInitialUpdate()
-	// method sometime after exiting its OnNewDocument() and before showing the View. See
-	// Notes at OnInitialUpdate() for more info.
-	pAdView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't automatically call it
 
 	return TRUE;
 }
@@ -2427,6 +2477,7 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 // //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 {
+	// refactored 9Mar09
 	wxFile f; // create a CFile instance with default constructor
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2477,11 +2528,11 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 		{
 			if (!gbIsGlossing)
 			{
-				pView->MakeLineFourString(pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
-				pView->RemovePunctuation(this,&pApp->m_targetPhrase,1 ); //1 = from tgt
+				pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
-			gbInhibitLine4StrCall = TRUE; // BEW removed 27Jan09, and the one 3 lines down
-			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->m_pSrcPhrase,pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = TRUE;
+			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 			gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
 			{
@@ -2494,9 +2545,9 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 			else
 			{
 				if (gbIsGlossing)
-					pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
 				else
-					pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = TRUE;
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
 			}
 		}
 	}
@@ -2605,6 +2656,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 						wxPD_REMAINING_TIME
 						| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 						);
+
 #else
 		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
 		// notification on wxGTK and wxMAC
@@ -2706,24 +2758,24 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 				if (!bNoStore)
 				{
 					pRefString = pView->GetRefString(pView->GetKB(), 1,
-											pApp->m_pActivePile->m_pSrcPhrase->m_key,
-											pApp->m_pActivePile->m_pSrcPhrase->m_gloss);
-					pView->RemoveRefString(pRefString,pApp->m_pActivePile->m_pSrcPhrase, 1);
+											pApp->m_pActivePile->GetSrcPhrase()->m_key,
+											pApp->m_pActivePile->GetSrcPhrase()->m_gloss);
+					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(), 1);
 				}
-				pApp->m_pActivePile->m_pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 			}
 			else
 			{
 				if (!bNoStore)
 				{
 					pRefString = pView->GetRefString(pView->GetKB(),
-											pApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords,
-											pApp->m_pActivePile->m_pSrcPhrase->m_key,
-											pApp->m_pActivePile->m_pSrcPhrase->m_adaption);
-					pView->RemoveRefString(pRefString,pApp->m_pActivePile->m_pSrcPhrase,
-											pApp->m_pActivePile->m_pSrcPhrase->m_nSrcWords);
+											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+											pApp->m_pActivePile->GetSrcPhrase()->m_key,
+											pApp->m_pActivePile->GetSrcPhrase()->m_adaption);
+					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(),
+											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords);
 				}
-				pApp->m_pActivePile->m_pSrcPhrase->m_bHasKBEntry = FALSE;
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 			}
 		}
 	}
@@ -3164,6 +3216,7 @@ bool CAdapt_ItDoc::OnSaveModified() // note MFC name for this function is just S
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) 
 {
+	// refactored 10Mar09
 	// whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use the legacy 
 	// version's  OnOpenDocument() serialization facilities, and can thus avoid the black box problems 
 	// it caused.
@@ -3190,6 +3243,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// remove the assert which assumed that there would always be a backslash in the
 	// lpszPathName string, and replace it with a test on curPos instead (when doing a
 	// consistency check, the full path is not passed in)
+
+	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
+	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
 
 	wxString thePath = filename;
 	wxString extension = thePath.Right(4);
@@ -3366,6 +3422,10 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// be different w.r.t. extensions from what the user actually used when opening the doc
 	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = pApp->GetView();
+//#ifdef __WXDEBUG__
+//	wxLogDebug(_T("OnOpenDocument at %d ,  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
+//#endif
+	/*
 	if (pApp->m_pBundle == NULL)
 	{
 		// no CSourceBundle instance yet, so create one & initialize it
@@ -3377,7 +3437,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		// initial value for count of strips in the bundle
 		pApp->m_pBundle->m_nStripCount = 0;
 	}
-
+	*/
 	int width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X);
 	if (pApp->m_docSize.GetWidth() < 100 || pApp->m_docSize.GetWidth() > width)
 	{
@@ -3386,6 +3446,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		pApp->GetMainFrame()->canvas->SetVirtualSize(pApp->m_docSize);
 	}
 
+	/*
 	// update the text heights, in case an earlier project used different settings
 	pApp->UpdateTextHeights(pView);
 
@@ -3393,15 +3454,37 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	pView->CalcInitialIndices();
 	pApp->m_nActiveSequNum = 0;
 	pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
+	*/
+	// refactored version: try the following here
+	CLayout* pLayout = GetLayout();
+	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
+									// and other setters
+#ifdef _NEW_LAYOUT
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
+	if (!bIsOK)
+	{
+		// unlikely to fail, so just have something for the developer here
+		wxMessageBox(_T("Error. RecalcLayout(TRUE) failed in OnOpenDocument()"),
+		_T(""),wxICON_STOP);
+		wxASSERT(FALSE);
+		wxExit();
+	}
+
 	if (pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		// nothing to show
 		// IDS_NO_DATA
-		wxMessageBox(_("Sorry, there is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),_T(""), wxICON_EXCLAMATION);
+		wxMessageBox(_(
+"There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."),
+		_T(""), wxICON_EXCLAMATION);
 		return FALSE;
 	}
-	pApp->m_pActivePile = pApp->m_pBundle->m_pStrip[0]->m_pPile[0];
-
+	pApp->m_pActivePile = GetPile(0); // a safe default for starters....
+	pApp->m_nActiveSequNum = 0; // and this is it's sequ num; use these values 
+								// unless changed below
 	// BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion lists,
 	// because each document, on opening it, it must start with a truly empty EditRecord; and
 	// on doc closure and app closure, it likewise must be cleaned out entirely (the deletion
@@ -3410,7 +3493,6 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	gEditRecord.deletedAdaptationsList.Clear(); // remove any stored deleted adaptation strings
 	gEditRecord.deletedGlossesList.Clear(); // remove any stored deleted gloss strings
 	gEditRecord.deletedFreeTranslationsList.Clear(); // remove any stored deleted free translations
-
 
 	// if we get here by having chosen a document file from the Recent_File_List, then it is
 	// possible to in that way to choose a file from a different project; so the app will crash
@@ -3459,6 +3541,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		gbViaMostRecentFileList = FALSE; // clear it to default setting
 	}
 
+	gbDoingInitialSetup = FALSE; // turn it back off, the pApp->m_targetBox now exists, etc
+
 	// place the phrase box, but inhibit placement on first pile if doing a consistency check,
 	// because otherwise whatever adaptation is in the KB for the first word/phrase gets removed
 	// unconditionally from the KB when that is NOT what we want to occur!
@@ -3466,7 +3550,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	{
 		// ensure its not a retranslation - if it is, move the active location to first 
 		// non-retranslation pile
-		if (pApp->m_pActivePile->m_pSrcPhrase->m_bRetranslation)
+		if (pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// it is a retranslation, so move active location
 			CPile* pNewPile;
@@ -3475,12 +3559,23 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 				pNewPile = pView->GetNextPile(pOldPile);
 				wxASSERT(pNewPile);
 				pOldPile = pNewPile;
-			} while (pNewPile->m_pSrcPhrase->m_bRetranslation);
+			} while (pNewPile->GetSrcPhrase()->m_bRetranslation);
 			pApp->m_pActivePile = pNewPile;
-			pApp->m_nActiveSequNum = pNewPile->m_pSrcPhrase->m_nSequNumber;
+			pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 		}
 
-		pView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2); // selector = 2, because we
+		// BEW added 10Jun09, support phrase box matching of the text colour chosen
+		if (gbIsGlossing && gbGlossingUsesNavFont)
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetNavTextColor());
+		}
+		else
+		{
+			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
+		}
+
+		//pView->PlacePhraseBox(pApp->m_pActivePile->m_pCell[2],2); // selector = 2, because we
+		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // selector = 2, because we
 			// were not at any previous location, so inhibit the initial StoreText call,
 			// but enable the removal from KB storage of the adaptation text (see comments under
 			// the PlacePhraseBox function header, for an explanation of selector values)
@@ -3531,11 +3626,36 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
 	// Note: Tests of the MFC version show that OnInitialUpdate() should not be
-	// called at all from OnOpenDocument().
-
+	// called at all from OnOpenDocument()
 	return TRUE;
 }
 
+CLayout* CAdapt_ItDoc::GetLayout()
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	return pApp->m_pLayout;
+}
+
+// return the CPile* at the passed in index, or NULL if the index is out of bounds;
+// the pile list is at CLayout::m_pileList.
+// CAdapt_ItView also has a member function of the same name
+CPile* CAdapt_ItDoc::GetPile(const int nSequNum)
+{
+	// refactored 10Mar09, for new view layout design (no bundles)
+	CLayout* pLayout = GetLayout();
+	wxASSERT(pLayout != NULL);
+	PileList* pPiles = pLayout->GetPileList();
+	int nCount = pPiles->GetCount();
+	if (nSequNum < 0 || nSequNum >= nCount)
+	{
+		// bounds error, so return NULL
+		return (CPile*)NULL;
+	}
+	PileList::Node* pos = pPiles->Item(nSequNum); // relies on parallelism of m_pSourcePhrases 
+												  // and m_pileList lists
+	wxASSERT(pos != NULL);
+	return pos->GetData();
+}
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the current document has been modified; FALSE otherwise
@@ -3593,14 +3713,14 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
 /// list.
 // //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
+void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso)
 {
-	// BEW added 21Apr08 to pass in a pointer to the list which is to be deleted (overload of
-	// the version which has no input parameters and internally assumes the list is m_pSourcePhrases)
-	// This new version is required so that in the refactored Edit Source Text functionality we can
-	// delete the deep-copied sublists using this function; making m_pSourcePhrases the default and
-	// having just the one function would be an option, but it forces me to make m_pSourcePhrases a
-	// static class function which I don't want to do, but it would work okay that way too)
+    // BEW added 21Apr08 to pass in a pointer to the list which is to be deleted (overload
+    // of the version which has no input parameters and internally assumes the list is
+    // m_pSourcePhrases) This new version is required so that in the refactored Edit Source
+    // Text functionality we can delete the deep-copied sublists using this function.
+	// BEW modified 27May09, to take the bool bDoPartnerPileDeletionAlso parameter,
+	// defaulting to FALSE because the deep copied sublists never have partner piles
 	//CAdapt_ItApp* pApp = &wxGetApp();
 	//wxASSERT(pApp != NULL);
 	if (pList != NULL)
@@ -3614,15 +3734,16 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList)
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
 #ifdef _DEBUG
-				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
+				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),
+				//pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
 #endif
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase, bDoPartnerPileDeletionAlso); // default
+					// for the boolean passed in to DeleteSourcePhrases() is FALSE
 			}
 			pList->Clear(); 
 		}
 	}
 }
-
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing
@@ -3645,7 +3766,12 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // FALSE is the
+					// value for bDoPartnerPileDeletionAlso, because it is
+					// more efficient to delete them later en masse with a call
+					// to CLayout::DestroyPiles(), rather than one by one, as
+					// the  one by one way involves a search to find the
+					// partner, so it is slower
 			}
 			pApp->m_pSourcePhrases->Clear(); 
 		}
@@ -3656,17 +3782,34 @@ void CAdapt_ItDoc::DeleteSourcePhrases()
 /// \return nothing
 /// \param		pSrcPhrase -> the source phrase to be deleted
 /// \remarks
+/// Deletes the passed in CSourcePhrase instance, and if the bDoPartnerPileDeletionAlso bool value
+/// is TRUE (its default value), then the partner pile in the CLayout::m_pileList list which
+/// points at it is also deleted. Pass FALSE for this boolean if the CSourcePhrase being destroyed
+/// is a temporary one in a list other than m_pSourcePhrases.
+/// 
 /// Called from: the App's DoTransformationsToGlosses(), DeleteSourcePhraseListContents(),
 /// the Doc's DeleteSourcePhrases(), ConditionallyDeleteSrcPhrase(), 
 /// ReconstituteOneAfterPunctuationChange(), ReconstituteOneAfterFilteringChange(),
-/// DeleteListContentsOnly(), the CMainFrame's DeleteSourcePhrases_ForSyncScrollReceive().
+/// DeleteListContentsOnly(), ReconstituteAfterPunctuationChange(), the View's 
+/// ReplaceCSourcePHrasesInSpan(), TransportWidowedEndmarkersToFollowingContext(), 
+/// TransferCOmpletedSrcPhrases(), and CMainFrame's DeleteSourcePhrases_ForSyncScrollReceive().
+/// 
 /// Clears and deletes any m_pMedialMarkers, m_pMedialPuncts and m_pSavedWords before deleting
 /// pSrcPhrase itself.
 // //////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase)
+void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, bool bDoPartnerPileDeletionAlso)
 {
+	// refactored 12Mar09
 	if (pSrcPhrase == NULL)
 		return;
+
+	// if requested delete the CPile instance in CLayout::m_pileList which points to this pSrcPhrase
+	if (bDoPartnerPileDeletionAlso)
+	{
+		// this call is safe to make even if there is no partner pile, or if a matching pointer is
+		// not in the list
+		DeletePartnerPile(pSrcPhrase); // marks its strip as invalid as well
+	}
 
 	if (pSrcPhrase->m_pMedialMarkers != NULL)
 	{
@@ -3720,6 +3863,287 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase)
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param		pSrcPhrase -> the source phrase that was deleted
+/// \remarks
+/// Created 12Mar09 for layout refactoring. The m_pileList's CPile instances point to
+/// CSourcePhrase instances and deleting a CSourcePhrase from the doc's m_pSourcePhrases
+/// list usually needs to also have the CPile instance which points to it also deleted from
+/// the corresponding place in the m_pileList. That task is done here. Called from
+/// DeleteSingleSrcPhrase(), the latter having a bool parameter,
+/// bDoPartnerPileDeletionAlso, which defaults to TRUE, and when FALSE is passed in this
+/// function will not be called. (E.g. when the source phrase belongs to a temporary list
+/// and so has no partner pile)
+/// Note: the deletion will be done for some particular pSrcPhrase in the app's
+/// m_pSourcePhrases list, and we want to have at least an approximate idea of the index
+/// of which strip the copy of the pile pointer was in, because when we tweak the layout
+/// we will want to know which strips to concentrate our efforts on. Therefore before we
+/// do the deletion, we work out which strip the pile belongs to, mark it as invalid, and
+/// store its index in CLayout::m_invalidStripArry. Later, our strip tweaking code will
+/// use this information to make a speedy tweak of the layout before drawing is done (but
+/// the information is not used whenever RecalcLayout() does a full rebuild of the
+/// document's strips)
+// //////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::DeletePartnerPile(CSourcePhrase* pSrcPhrase)
+{
+	// refactored 4May09
+	CLayout* pLayout = GetLayout();
+	PileList* pPiles = pLayout->GetPileList();
+	if (pPiles->IsEmpty())
+		return;
+	PileList::Node* posPile = pPiles->GetFirst();
+	wxASSERT(posPile!= NULL);
+	CPile* pPile = NULL;
+	while (posPile != NULL)
+	{
+		pPile = posPile->GetData();
+		if (pSrcPhrase == pPile->GetSrcPhrase())
+		{
+			// we have found the partner pile, so break out
+			break;
+		}
+		posPile = posPile->GetNext(); // go to next Node*
+	} // end of while loop with test: posPile != NULL
+	if (posPile == NULL)
+	{
+		return; // we didn't find a partner pile, so just return;
+	}
+	else
+	{
+		// found the partner pile in CLayout::m_pileList, so delete it...
+ 		
+		// get the CPile* instance currently at index, from it we can determine which strip
+        // the deletion will take place from (even if we get this a bit wrong, it won't
+        // matter)
+		pPile = posPile->GetData();
+		wxASSERT(pPile != NULL);
+		MarkStripInvalid(pPile); // sets CStrip::m_bValid to FALSE, and adds the 
+								 // strip index to CLayout::m_invalidStripArray
+
+		// now go ahead and get rid ot the partner pile for the passed in pSrcPhrase
+		pPile->SetStrip(NULL);
+
+		// if destroying the CPile instance pointed at by app's m_pActivePile, set the
+		// latter to NULL as well (otherwise, in the debugger it would have the value
+		// 0xfeeefeee which is useless for pile ptr != NULL tests as it gives a spurious
+		// positive result
+		if (pLayout->m_pApp->m_nActiveSequNum != -1 && pLayout->m_pApp->m_pActivePile == pPile)
+		{
+			pLayout->m_pApp->m_pActivePile = NULL;
+		}
+		pLayout->DestroyPile(pPile,pLayout->GetPileList()); // destroy the pile, & remove 
+					// its node from m_pileList, because bool param, bRemoveFromListToo, is
+					// default TRUE
+		pPile = NULL;
+	}
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param		pSrcPhrase -> the source phrase that was created and inserted in the 
+///                           application's m_pSourcePhrases list
+/// \remarks
+/// Created 13Mar09 for layout refactoring. The m_pileList's CPile instances point to
+/// CSourcePhrase instances and creating a new CSourcePhrase for the doc's m_pSourcePhrases
+/// list always needs to have the CPile instance which points to it also created,
+/// initialized and inserted into the corresponding place in the m_pileList. That task is
+/// done here.
+/// 
+/// Called from various places. It is not made a part of the CSourcePhrase creation process
+/// for a good reason. Quite often CSourcePhrase instances are created and are only
+/// temporary - such as those deep copied to be saved in various local lists during the
+/// vertical edit process, and in quite a few other contexts as well. Also, when documents
+/// are loaded from disk and very many CSourcePhrase instances are created in that process,
+/// it is more efficient to not create CPile instances as part of that process, but rather
+/// to create them all in a loop after the document has been loaded. For example, the
+/// current code creates new CSourcePhrases on the heap in about 30 places in the app's
+/// code, but only about 25% of those instances require a CPile partner created for the
+/// CLayout::m_pileList; therefore we call CreatePartnerPile() only when needed, and it
+/// should be called immediately after a newly created CSourcePhrase has just been inserted
+/// into the app's m_pSourcePhrases list - so that the so that the strip where the changes
+/// happened can be marked as "invalid".
+/// Note: take care when CSourcePhrase(s) are appended to the end of the m_pSourcePhrases
+/// list, because Creating the partner piles cannot handle discontinuities in the sequence
+/// of piles in PileList. So, iterate from left to right over the new pSrcPhrase at the
+/// list end, so that each CreatePartnerPile call is creating the CPile instance which is
+/// next to be appended to PileList. We test for non-compliance with this rule and abort
+/// the application if it happens, because to continue would inevitably lead to an app crash.
+// //////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
+{
+	// refactor 13Mar09
+	CLayout* pLayout = GetLayout();
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed
+									 // in pSrcPhrase
+	PileList::Node* aPosition = NULL;
+	CPile* aPilePtr = NULL;
+	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
+	PileList* pPiles = pLayout->GetPileList();
+
+	// if the pSrcPhrase is one added to the end of the document, there won't be any
+	// existing pile pointers in the PileList with indices that large, so check for this
+	// because an Item(index) call with an index out of range will crash the app, it
+	// doesn't return a NULL which is what I erroneously though would happen
+	PileList::Node* posPile = NULL;
+	int lastPileIndex = pLayout->GetPileList()->GetCount() - 1;
+	bool bAppending = FALSE;
+	if (index > lastPileIndex + 1)
+	{
+		// we've skipped a pile somehow, this is a fatal error, tell developer and abort
+		wxMessageBox(_T(
+		"Ouch! CreatePartnerPile() has skipped a pSrcPhrase added to doc end, or they creations are not being done in left to right sequence. Must abort now."),
+		_T(""), wxICON_ERROR);
+		wxASSERT(FALSE);
+		wxExit();
+	}
+	else if (index == lastPileIndex + 1)
+	{
+		// we are creating the CPile instance which is due to be appended next tp PileList
+		bAppending = TRUE;
+	}
+	else
+	{
+		// if control gets here with bAppending still FALSE, then an insertion is required
+		posPile = pPiles->Item(index);
+	}
+	CPile* pNewPile = pLayout->CreatePile(pSrcPhrase); // creates a detached CPile
+					// instance, initializes it, sets m_nWidth and m_nMinWidth etc
+	if (!bAppending)
+	{
+        // we are inserting a new partner pile's pointer in the CLayout::m_pileList does
+        // not get it also inserted in the CLayout::m_stripArray, and so the laid out
+        // strips don't know of it. However, we can work out which strip it would be
+        // inserted within, or thereabouts, and mark that strip as invalid and put its
+        // index into CLayout::m_invalidStripArray. The inventory of invalid strips does
+        // not have to be 100% reliable - they are approximate indicators where the layout
+        // needs to be tweaked, which is all we need for the RecalcLayout() call later on.
+        // Therefore, use the current pPile pointer in the m_pileList at index, and find
+        // which strip that one is in, even though it is not the newly created CPile
+		aPosition = pPiles->Item(index);
+		aPilePtr = aPosition->GetData();
+		if (aPilePtr != NULL)
+			MarkStripInvalid(aPilePtr); // use aPilePtr to have a good shot at which strip
+                // will receive the newly created pile, and mark it as invalid, and save
+                // its index in CLayout::m_invalidStripArray; nothing is done if
+                // aPilePtr->m_pOwningStrip is NULL
+
+        // the indexed location is within the unaugmented CLayout::m_pileList; therefore an
+        // insert operation is required; the index posPile value determined by index is the
+        // place where the insertion must be done
+		posPile = pPiles->Insert(posPile, pNewPile);
+	}
+	else
+	{
+		// appending, (see comment in block above for more details), so just mark the last
+		// strip in m_stripArray as invalid, don't call MarkStripInvalid()
+		aPosition = pPiles->GetLast(); // the one after which we will append the new one
+		aPilePtr = aPosition->GetData();
+		if (aPilePtr != NULL)
+		{
+			// do this manually... just mark the last strip as the invalid one, etc
+			CStrip* pLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
+			pLastStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
+			int nStripIndex = pLastStrip->GetStripIndex();
+			pLayout->GetInvalidStripArray()->Add(nStripIndex); 
+		}
+		// now do the append
+		posPile = pPiles->Append(pNewPile); // do this only after aPilePtr is calculated
+	}
+}
+
+// return the index in m_pSourcePhrases for the passed in pSrcPhrase
+int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
+{
+	wxASSERT(pSrcPhrase != NULL);
+	return GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); 
+}
+
+void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,
+										   bool bNoActiveLocationCalculation)
+{//*
+	// refactored 13Mar09 & some more on 27Apr09
+	int index = IndexOf(pSrcPhrase); // the index in m_pSourcePhrases for the passed in 
+									 // pSrcPhrase, in the app's m_pSourcePhrases list
+	wxASSERT(index != wxNOT_FOUND); // it must return a valid index!
+	PileList* pPiles = GetLayout()->GetPileList();
+	PileList::Node* posPile = pPiles->Item(index); // returns NULL if index lies beyond 
+												   // the end of m_pileList
+	if (posPile != NULL)
+	{
+		CPile* pPile = posPile->GetData();
+		wxASSERT(pPile != NULL);
+		pPile->SetMinWidth(); // set m_nMinWidth - it's the maximum extent of the src, 
+							  // adapt or gloss text
+
+        // if it is at the active location, then the width needs to be wider -
+        // SetPhraseBoxGapWidth() in CPile does that, and sets m_nWidth in the partner pile
+        // instance (but if not at the active location, the default value m_nMinWidth will
+        // apply)
+		if (!bNoActiveLocationCalculation)
+		{
+            // EXPLANATION FOR THE ABOVE TEST: we need the capacity to have the phrase box
+            // be at the active location, but not have the gap width left in the layout be
+            // wide enough to accomodate the box - this situation happens in
+            // PlacePhraseBox() when we want a box width calculation for the pile which is
+            // being left behind (and which at the point when the pile's width is being
+            // calculated it is still the active pile, but later in the function when the
+            // clicked pile is instituted as the new active location, the gap will have to
+            // be based on what is at that new location, not the old one; hence setting the
+            // bNoActiveLocationCalculation parameter TRUE just for such a situation
+            // prevents the unwanted large gap calculation at the old location
+			pPile->SetPhraseBoxGapWidth();
+		}
+
+		// mark the strip invalid and put the parent strip's index into 
+		// CLayout::m_invalidStripArray
+		MarkStripInvalid(pPile);
+	}
+	else
+	{
+		// if it is null, this is a catastrophic error, and we must terminate the application;
+		// or in DEBUG mode, give the developer a chance to look at the call stack
+		wxMessageBox(_T(
+		"Ouch! ResetPartnerPileWidth() was unable to find the partner pile. Must abort now."),
+		_T(""), wxICON_EXCLAMATION);
+		wxASSERT(FALSE);
+		wxExit();
+	}//*/
+}
+
+void CAdapt_ItDoc::MarkStripInvalid(CPile* pChangedPile)
+{
+	CLayout* pLayout = GetLayout();
+	// we can mark a strip invalid only provided it exists; so if calling this in
+	// RecalcLayout() after the strips were destroyed, and before they are rebuilt, we'd
+	// be trying to access freed memory if we went ahead here without a test for strips
+	// being in existence - so return if the m_stripArray has no contents currently
+	if (pLayout->GetStripArray()->IsEmpty())
+		return;
+	// pChangedPile has to have a valid m_pOwningStrip (ie. a non-zero value), which may
+	// not be the case for a set of newly created piles at the end of the document, so for
+	// end-of-document scenarios we will code the caller to just assume the last of the
+	// current strips and not call MarkStripInvalid() at all; but just in case one sneaks
+	// through, test here and if it has a zero m_pOwningStrip value then exit without
+	// doing anything (unfortunately we can't assume it will always be at the doc end)
+	if (pChangedPile->GetStrip() == NULL)
+	{
+		// it's a newly created pile not yet within the current set of strips, so its
+		// m_pOwningStrip member returned was NULL, we shouldn't have called this
+		// function for this pChangedPile pointer, but since we did, we can only return
+		// without doing anything
+		return;
+	}
+    // if control gets to here, there are CStrip pointers stored in m_stripArray, and there
+    // is an owning strip defined, so go ahead and mark the owning strip invalid
+	wxArrayInt* pInvalidStripArray = pLayout->GetInvalidStripArray();
+	CStrip* pStrip = pChangedPile->GetStrip();
+	pStrip->SetValidityFlag(FALSE); // makes m_bValid be FALSE
+	int nStripIndex = pStrip->GetStripIndex();
+	pInvalidStripArray->Add(nStripIndex); // this array makes it easy to quickly compute 
+										  // which strips are invalid
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////
 /// \return nothing
 /// \param		pSrcPhrase -> the source phrase to be deleted
 /// \param		pOtherList -> another list of source phrases
@@ -3734,6 +4158,10 @@ void CAdapt_ItDoc::DeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase)
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList)
 {
+	// refactored 12Mar09 - nothing was done here because it can be called only in
+	// ReconstituteAdfterPunctuationChange() - and only then provided a merger could not be
+	// reconstituted -- and so because all partner piles will need to be recreated anyway,
+	//  just dealing with a few is pointless; code in that function will handle all instead
 	if (pSrcPhrase == NULL)
 		return;
 
@@ -3960,7 +4388,7 @@ b:			pSrcPhrase->m_gloss = gloss;
 			if (bHasTargetContent)
 			{
 				adaption = targetStr;
-				pView->RemovePunctuation(this,&adaption,1); // 1 = from tgt
+				pView->RemovePunctuation(this,&adaption,from_target_text); // 1 = from tgt
 				pSrcPhrase->m_adaption = adaption;
 
 				// update the KBs (both glossing and adapting KBs) provided it is appropriate to do so
@@ -4086,6 +4514,7 @@ b:			pSrcPhrase->m_gloss = gloss;
 // //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList*& pList, wxString& fixesStr)
 {
+	// refactored 18Mar09
 	// BEW added 18May05
 	// Filtering has changed
 	bool bSuccessful = TRUE;
@@ -4094,8 +4523,17 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList
 	// Recalc the layout in case the view does some painting when the progress 
 	// was removed earlier or when the bar is recreated below
 	UpdateSequNumbers(0); // get the numbers updated, as a precaution
-	pView->RecalcLayout(pList,0,gpApp->m_pBundle);
+	//pView->RecalcLayout(pList,0,gpApp->m_pBundle);
+	// GetLayout()->Redraw(); <- BEW 30Jun09, gives vertical registry error on draw for
+	// phrase box, so use RecalcLayout() instead
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+	GetLayout()->RecalcLayout(gpApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+	//GetLayout()->RecalcLayout(); // reform the strips, but not the m_pileList
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+	GetLayout()->PlaceBox();
 
 	// put up a progress indicator
 	int nOldTotal = pList->GetCount();
@@ -4441,7 +4879,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, SPList
 									pSublist->Erase(lastOne);
 
 									// delete the memory block to prevent a leak, update the count
-									DeleteSingleSrcPhrase(pTailSrcPhrase);
+									DeleteSingleSrcPhrase(pTailSrcPhrase,FALSE); // don't delete the partner pile
 									count--;
 								} // end of block for detecting the parsing of an endmarker
 							}
@@ -4564,7 +5002,8 @@ h:						bool bIsInitial = TRUE;
 									s += remainderStr;
 									remainderStr = s;
 									nWhich = 0;
-									DeleteSingleSrcPhrase(pSP); // don't leak memory
+									DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory; don't delete the 
+																	  // partner pile
 									pSublist->Clear();
 									break;
 								}
@@ -4730,6 +5169,8 @@ h:						bool bIsInitial = TRUE;
 						offset = 0;
 						offsetNextSection = 0;
 						UpdateSequNumbers(0); // get all the sequence numbers in correct order
+
+						/* refactored 22Mar09 -- the following should not now be needed
 						// fix up the indices, the list is now longer
 						int numElements = pList->GetCount();
 						gpApp->m_maxIndex = numElements - 1; // update, since our list is now longer
@@ -4740,6 +5181,7 @@ h:						bool bIsInitial = TRUE;
 							if (gpApp->m_upperIndex < 1)
 								gpApp->m_upperIndex = gpApp->m_endIndex;
 						}
+						*/
 					}
 					else
 					{
@@ -4789,6 +5231,7 @@ h:						bool bIsInitial = TRUE;
 		// unfiltered, so the updated phrase box location (ie. which sequence number it is)
 		// might now be out of the current bundle's bounds. Check for this, and if that is
 		// the case then adjust the bundle first before recalculating the layout
+		/* should not be required in the refactored design
 		if (gpApp->m_nActiveSequNum < gpApp->m_beginIndex ||
 			gpApp->m_nActiveSequNum > gpApp->m_endIndex)
 		{
@@ -4797,6 +5240,7 @@ h:						bool bIsInitial = TRUE;
 		}
 		pView->RecalcLayout(pList,0,gpApp->m_pBundle);
 		gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+		*/
 
 		// reinitialize the progress window for the filtering loop
 		nOldTotal = pList->GetCount();
@@ -5452,7 +5896,7 @@ d:				if (!bAtEnd || bGotEndmarker)
 				filterCount++;
 				CSourcePhrase* pSP = (CSourcePhrase*)pos2->GetData();
 				pos2 = pos2->GetNext();
-				DeleteSingleSrcPhrase(pSP); // don't leak memory
+				DeleteSingleSrcPhrase(pSP,FALSE); // don't leak memory, don't delete the partner pile
 				pList->DeleteNode(pos3);
 			}
 
@@ -5560,6 +6004,7 @@ d:				if (!bAtEnd || bGotEndmarker)
 #endif
 		} // end of loop for scanning contents of successive pSrcPhrase instances
 
+		/* refactored 22Mar09 - now bundle concept removed, simpler syntax needed
 		// update view's indices, locate the phrase box about the middle of the bundle,
 		// but if the bundle contains the whole document, don't bother - but instead just
 		// set the bundle's indices to safe values and leave the box wherever it happens 
@@ -5591,6 +6036,13 @@ d:				if (!bAtEnd || bGotEndmarker)
 			if (gpApp->m_lowerIndex > gpApp->m_upperIndex)
 				gpApp->m_lowerIndex = gpApp->m_beginIndex;
 		}
+		*/
+		// prepare for update of view... locate the phrase box approximately where it was,
+		// but if that is not a valid location then put it at the end of the doc
+		int numElements = pList->GetCount();
+		if (gpApp->m_nActiveSequNum > gpApp->GetMaxIndex())
+			gpApp->m_nActiveSequNum = numElements - 1;
+
 	} // end of block for bIsFilteringRequired == TRUE
 
 	// since we now have valid indices for the potential active location, we can check it is a safe location
@@ -5606,13 +6058,18 @@ d:				if (!bAtEnd || bGotEndmarker)
 		gpApp->GetSafePhraseBoxLocationUsingList(pView);
 	}
 
+	/*
+	// in the refactored layout, there won't be a DestroyWindow() call, and so there should be no
+	// need for this RecalcLayout() call here - we just need a final one for end of the
+	// reconstitute function's caller which is doc's RetokenizeText() function
+	
 	// get a valid layout so window painting won't crash due to bad pointers in the bundle due to
 	// the rebuilding; even though the phrase box is not recreated yet, we need a valid layout because
 	// the following DestroyWindow() call for the progress window will cause the view to repaint the
 	// part that was underneath the progress window, and for that not to crash we need a valid layout
 	pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-
+	*/
 	// remove the progress window, clear out the sublist from memory
 	// wx version note: Since the progress dialog is modeless we do not need to destroy
 	// or otherwise end its modeless state; it will be destroyed when 
@@ -6789,9 +7246,7 @@ m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 && pPunc
 					// two bytes long, so setting numChars to the pointer difference will
 					// double the correct value; we have to therefore divide by sizeof(wxChar)
 					// to get numChars right in regular and unicode apps
-					//int numChars = (int)(pPunctEnd - pPunctStart) / sizeof(wxChar); //bad
 					int numChars = (int)((wxUint32)pPunctEnd - (wxUint32)pPunctStart) / (wxUint32)sizeof(wxChar);
-
 					wxString finals(pPunctStart,numChars);
 					followPunct = finals;
 				}
@@ -10241,7 +10696,8 @@ bool CAdapt_ItDoc::AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLast
 /// calls OnCloseDocument() which in turn would foul up the KB structures because OnCloseDocument() 
 /// calls EraseKB(), etc. Instead the wx version just calls DeleteContents() explicitly where needed.
 // //////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::DeleteContents() 
+bool CAdapt_ItDoc::DeleteContents()
+// refactored 10Mar09
 // This is an override of the doc/view method
 // MFC docs say: "Called by the framework to delete the document's data 
 // without destroying the CDocument object itself. It is called just 
@@ -10262,7 +10718,10 @@ bool CAdapt_ItDoc::DeleteContents()
 	}
 
 	// delete the source phrases
-	DeleteSourcePhrases();
+	DeleteSourcePhrases(); // this does not delete the partner piles as 
+		// the internal DeleteSingleSrcPhrase() has the 2nd param FALSE so
+		// that it does not call DeletePartnerPile() -- so delete those
+		// separately below en masse with the DestroyPiles() call
 
 	// the strips, piles and cells have to be destroyed to make way for the new ones
 	CAdapt_ItView* pView = (CAdapt_ItView*)NULL;
@@ -10270,13 +10729,15 @@ bool CAdapt_ItDoc::DeleteContents()
 	wxASSERT(pApp != NULL);
 	if (pView != NULL)
 	{
-		CSourceBundle* pBundle = pApp->m_pBundle; 
-		if (pBundle != NULL && pBundle->m_nStripCount > 0)
-			pBundle->DestroyStrips(0); //destroy from index = 0
+		CLayout* pLayout = GetLayout();
+		pLayout->DestroyStrips();
+		pLayout->DestroyPiles(); // destroy these en masse
+		pLayout->GetPileList()->Clear();
+		pLayout->GetInvalidStripArray()->Clear();
 
 		if (pApp->m_pTargetBox != NULL)
 		{
-			pApp->m_pTargetBox->SetValue(_T(""));
+			pApp->m_pTargetBox->ChangeValue(_T(""));
 			//pApp->m_targetBox.Destroy(); // we don't destroy the targetBox in the wx version
 		}
 
@@ -10858,6 +11319,9 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
         }
     }
 
+	/* note Bill's comment at the end - it implies we don't need this RecalcLayout() call in the
+	   // refactored application
+	   
 	// get a valid layout so window painting won't crash due to bad pointers in the bundle due to
 	// the rebuilding; even though the phrase box is not recreated yet, we need a valid layout because
 	// the following DestroyWindow() call for the progress window will cause the view to repaint the
@@ -10872,6 +11336,7 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	// wx version note: Since the progress dialog is modeless we do not need to destroy
 	// or otherwise end its modeless state; it will be destroyed when RetokenizeText goes
 	// out of scope
+	*/ 
 
 	if (bChangedSfmSet)
     {
@@ -10979,11 +11444,14 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 	// make sure everything is correctly numbered in sequence; shouldn't be necessary, but no harm done
 	UpdateSequNumbers(0);
 
+	/* in the refactored layout design, this RecalcLayout call should not be needed, just need the
+	   // one which followed the bNeedMessage == TRUE block
+	   
 	// get a valid layout so window painting won't crash due to bad pointers in the bundle due to
 	// the rebuilding
 	pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
 	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
-
+	*/
 	// warn the user if he needs to do some visual checking etc.
 	if (bNeedMessage)
 	{
@@ -11045,9 +11513,16 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		wxMessageBox(fixesStr, _T(""), wxICON_INFORMATION);
 	}
 
-	pView->RecalcLayout(gpApp->m_pSourcePhrases,0,gpApp->m_pBundle);
-	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+	// this is where we need to have the layout updated. We will do the whole lot, that is,
+	// destroy and recreate both piles and strips
+#ifdef _NEW_LAYOUT
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#else
+	GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles);
+#endif
 
+	gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+	GetLayout()->m_docEditOperationType = retokenize_text_op;
 	return count;
 }
 
@@ -11183,7 +11658,7 @@ void CAdapt_ItDoc::ReconstituteDoc(SPList* pOldList, SPList* pNewList, int nHowM
 				// member
 				pNewSP->m_targetStr = pOldSP->m_targetStr;
 				pNewSP->m_adaption = pOldSP->m_targetStr;
-				pView->RemovePunctuation(this,&pNewSP->m_adaption,1); // from tgt
+				pView->RemovePunctuation(this,&pNewSP->m_adaption,from_target_text); // from tgt
 			}
 
 			// update position values
@@ -11289,14 +11764,14 @@ a:						pPrevSrcPhrase = pView->GetPrevSrcPhrase(posNew,posPrev);
 					// copy the translation but don't put in KB
 					pNewNullSrcPhrase->m_targetStr = pOldSP->m_targetStr;
 					pNewNullSrcPhrase->m_adaption = pOldSP->m_targetStr;
-					pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,1); // from tgt
+					pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,from_target_text); // from tgt
 				}
 				else
 				{
 					// it's a normal (ie. non null) retranslation source phrase
 					pNewSP->m_targetStr = pOldSP->m_targetStr;
 					pNewSP->m_adaption = pOldSP->m_targetStr;
-					pView->RemovePunctuation(this,&pNewSP->m_adaption,1); // from tgt
+					pView->RemovePunctuation(this,&pNewSP->m_adaption,from_target_text); // from tgt
 
 					// fix the flags appropriate for a retranslation src phrase
 					pNewSP->m_bRetranslation = TRUE;
@@ -11347,7 +11822,7 @@ a:						pPrevSrcPhrase = pView->GetPrevSrcPhrase(posNew,posPrev);
 				// m_adaption
 				pNewNullSrcPhrase->m_targetStr = pOldSP->m_targetStr;
 				pNewNullSrcPhrase->m_adaption = pOldSP->m_targetStr;
-				pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,1); // from tgt
+				pView->RemovePunctuation(this,&pNewNullSrcPhrase->m_adaption,from_target_text); // from tgt
 
 				// copy anything non-empty from pOldSP, such as m_inform, etc. in case transfers
 				// have been done (this could copy wrong punctuation, or lack new punctuation, 
@@ -11437,7 +11912,7 @@ a:						pPrevSrcPhrase = pView->GetPrevSrcPhrase(posNew,posPrev);
 					// m_adaption member
 					pNewSP->m_targetStr = pOldSP->m_targetStr;
 					pNewSP->m_adaption = pOldSP->m_targetStr;
-					pView->RemovePunctuation(this,&pNewSP->m_adaption,1); // from tgt
+					pView->RemovePunctuation(this,&pNewSP->m_adaption,from_target_text); // from tgt
 				}
 
 				// make adjustments, if transfers are required. We do this by checking to see if
@@ -12272,6 +12747,17 @@ wxString CAdapt_ItDoc::RedoNavigationText(CSourcePhrase* pSrcPhrase)
 /// ReconstituteAfterPunctuationChange().
 /// Deletes the source phrase instances held in pList, but retains the empty list. It is
 /// called during the rebuilding of the document after a filtering or punctuation change.
+/// BEW added 23May09: since it is called only from the above two functions, and both of
+/// those when they return to the caller will have the view updated by a RecalcLayout()
+/// call with the enum parameter valoue of create_piles_create_strips, we do not need to
+/// have DeletePartnerPile() called when each of the DeleteSingleSrcPhrase(() calls are
+/// made in the loop below; therefore we specify the FALSE parameter for the call of the
+/// latter function in order to suppress deletion of the partner pile (as RecalcLayout()
+/// will do it much more efficiently, en masse, and speedily).
+/// 
+/// Note: if ever we use this function elsewhere, and need the partner pile deletion to
+/// work there, then we will need to alter the signature to become:
+/// (SPList*& pList, bool bDoPartnerPileDeletionAlso = TRUE) instead
 // //////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 {
@@ -12282,7 +12768,8 @@ void CAdapt_ItDoc::DeleteListContentsOnly(SPList*& pList)
 	{
 		pSrcPh = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		DeleteSingleSrcPhrase(pSrcPh);
+		DeleteSingleSrcPhrase(pSrcPh,FALSE); // no need to bother to delete the 
+											 // partner pile
 	}
 	pList->Clear();
 }
@@ -12946,7 +13433,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				}
 
 				// delete the original merged instance and tidy up
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase,FALSE); // don't bother to delete its partner pile
 				pList->DeleteNode(pos);
 
 				// tell caller there was a failure on this rebuild attempt
@@ -13015,7 +13502,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 						if (posNew == NULL)
 						{
 							// no matching CSourcePhrase instance was found, so this old one can be deleted
-							DeleteSingleSrcPhrase(pSrcPhraseOld);
+							DeleteSingleSrcPhrase(pSrcPhraseOld, FALSE); // don't bother to delete its partner pile
 						}
 						else
 						{
@@ -13056,14 +13543,14 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				pMergedSrcPhr->m_targetStr = targetStr;
 				pMergedSrcPhr->m_gloss = gloss;
 				adaption = targetStr;
-				pView->RemovePunctuation(this,&adaption,1 /* use target punctuation */);
+				pView->RemovePunctuation(this,&adaption,from_target_text);
 				pMergedSrcPhr->m_adaption = adaption;
 
 				// now insert our rebuilt merged sourcephrase preceding the old one
 				pList->Insert(pos,pMergedSrcPhr);
 
 				// and delete the old one, and then remove its list entry
-				DeleteSingleSrcPhrase(pSrcPhrase);
+				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // don't bother to delete its partner pile
 				pList->DeleteNode(pos);
 
 				// store its gloss and adaptation entries in the appropriate KBs, provided it is appropriate
@@ -13180,7 +13667,7 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 				SPList::Node* pos3;
 				pos3 = pList->Insert(pos,pSP); // insert before the original POSITION
 			}
-			DeleteSingleSrcPhrase(pSrcPhrase); // delete the old one
+			DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // delete old one, don't bother to delete partner pile
 			pList->DeleteNode(pos);
 
 			// the sourcephrases stored in pResultList are now managed by m_pSourcePhrases list, and
@@ -13218,7 +13705,8 @@ bool CAdapt_ItDoc::ReconstituteAfterPunctuationChange(CAdapt_ItView* pView, SPLi
 		if (pASrcPhrase->m_bRetranslation)
 			ConditionallyDeleteSrcPhrase(pASrcPhrase,pList);
 		else
-			DeleteSingleSrcPhrase(pASrcPhrase);
+			DeleteSingleSrcPhrase(pASrcPhrase,FALSE); // FALSE means "don't delete its partner pile"
+				// as we'll let RecalcLayout() delete them all quickly en masse later
 	}
 	pResultList->Clear();
 	delete pResultList;
@@ -13853,7 +14341,9 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 	}
 	// enable if there is a KB ready (even if only a stub), and the document loaded, and
 	// documents are to be saved as XML is turned on; and glossing mode is turned off
-	if (gpApp->m_pBundle->m_nStripCount > 0 && gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
+	//if (gpApp->m_pBundle->m_nStripCount > 0 && gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
+	if (gpApp->m_pLayout->GetStripArray()->GetCount() > 0 &&
+		gpApp->m_bKBReady && gpApp->m_bSaveAsXML && !gbIsGlossing)
 	{
 		event.Enable(TRUE);
 	}
