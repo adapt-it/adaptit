@@ -254,7 +254,7 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	if (FirstFileName.IsEmpty()) 
 	{
 		// IDS_SUPPLY_NAME_FOR_SPLIT
-		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_WARNING); //TellUser();
+		wxMessageBox(_("Please supply a suitable name for the split-off document part."),_T(""),wxICON_INFORMATION); //TellUser();
 		return;
 	}
 	FirstFileName = CAdapt_ItApp::ApplyDefaultDocFileExtension(FirstFileName);
@@ -352,7 +352,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// Do the actual split.
 	pView->canvas->Freeze();
 	SPList *SourcePhrases2 = gpApp->m_pSourcePhrases;
-	SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_curIndex);
+	//SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_curIndex);
+	SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_nActiveSequNum); // refactored 26Apr09
 
 	// BEW added test 02Nov05, to check the user actually advanced the phrasebox from the
 	// starting position in the document - if he didn't and he invoked the split, the SourcePhrases1
@@ -458,6 +459,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 void CSplitDialog::MoveFinalEndmarkersToEndOfLastChapter(SPList* WXUNUSED(pDocSrcPhrases), SPList::Node*& pos,
 							ChList* pChaptersList, enum SfmSet currSfmSet)
 {
+	// BEW refactor 13Mar09; nothing to be done, as this is called to append a CSourcePhrase to a
+	// split off chapter document which is not loaded in to the view, so it has no partner piles
 	SPList::Node* pos2 = pos;
 
 	// obtain the m_markers member content
@@ -557,9 +560,11 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	// for a non-empty m_chapterVerse and when it finds the first such, extract the chapter number
 	// and set the Number member of Chapter() at that time.
 	bool bCountedChapter = TRUE;
+	SPList::Node* save_pos = NULL;
 	p = SourcePhrases->GetFirst();
 	while (p) {
 		sp = (CSourcePhrase*)p->GetData();
+		save_pos = p; // for use in the MoveFinalEndmarkersToEndOfLastChapter() call
 		p = p->GetNext();
 		if (sp->GetStartsNewChapter()) 
 		{
@@ -571,7 +576,15 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				c = new Chapter();
 				c->Number = 0; // will get set later
 				c->SourcePhrases = new SPList();
-				rv->Append(c);
+				rv->Append(c); // append the pointer to the chapter object to the end of the list of chapters
+
+				if (rv->GetCount() >= 2)
+				{
+					// move any final endmarkers to an appended CSourcePhrase at the end of the previous
+					// chapter's content; if done, the CSourcePhrase to append is created in
+					// internally in the call of MoveFinalEndmarkersToEndOfLastChapter()
+					MoveFinalEndmarkersToEndOfLastChapter(SourcePhrases, save_pos, rv, gpApp->gCurrentSfmSet);
+				}
 			}
 
 			// the second and subsequent lists of sourcephrases won't yet have an \id line with the book
@@ -604,6 +617,7 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 		}
 		// put the chapter's CSourcePhrase instances into the sublist
 		c->SourcePhrases->Append(sp);
+
 	}
 
 	// Assign filenames.
@@ -640,7 +654,7 @@ void CSplitDialog::SplitIntoChapters_Interactive()
 	if (FileNameBase.IsEmpty()) 
 	{
 		// IDS_SUPPLY_FILENAME_BASE
-		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_WARNING); //TellUser();
+		wxMessageBox(_("Please supply the file name base."),_T(""),wxICON_INFORMATION); //TellUser();
 		return;
 	}
 

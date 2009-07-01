@@ -67,12 +67,10 @@ BEGIN_EVENT_TABLE(CMyListBox, wxListBox)
 	EVT_CHAR(CMyListBox::OnChar)
 END_EVENT_TABLE()
 
-
 CMyListBox::CMyListBox() // default constructor
 {
 	
 }
-
 CMyListBox::CMyListBox(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
 		const wxSize& size, int n, const wxString choices[], long style) // constructor
 		: wxListBox(parent, id, pos, size, n, choices, style)
@@ -86,7 +84,6 @@ CMyListBox::~CMyListBox() // destructor
 }
 
 // event handling functions
-
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -102,7 +99,6 @@ CMyListBox::~CMyListBox() // destructor
 void CMyListBox::OnSysKeyUp(wxKeyEvent& event) 
 {
 	// Note: This OnSysKeyUp() handler is activated AFTER the default wxListBox gets key up events.
-	// 
 	CChooseTranslation* pParent = (CChooseTranslation*)GetParent();
 	wxASSERT(pParent);
 

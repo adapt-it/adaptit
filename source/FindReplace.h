@@ -200,6 +200,8 @@ protected:
 	void OnRadioSrcOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioTgtOnly(wxCommandEvent& WXUNUSED(event));
 	void OnRadioSrcAndTgt(wxCommandEvent& WXUNUSED(event));
+	void OnSpanCheckBoxChanged(wxCommandEvent& WXUNUSED(event));
+	void UpdateReplaceAllButton(wxUpdateUIEvent& event);
 private:
     DECLARE_DYNAMIC_CLASS( CReplaceDlg )
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

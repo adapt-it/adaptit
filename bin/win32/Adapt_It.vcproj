@@ -262,7 +262,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="wxmsw28ud_adv.lib wxmsw28ud_html.lib wxmsw28ud_core.lib wxbase28ud.lib wxtiffd.lib wxjpegd.lib wxpngd.lib wxzlibd.lib wxregexud.lib wxexpatd.lib winmm.lib comctl32.lib rpcrt4.lib wsock32.lib oleacc.lib odbc32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_Unicode.exe"
-				Version="4.1.5"
+				Version="5.0.0"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(WXWIN)\lib&quot;;&quot;$(WXWIN)contrib\lib&quot;;&quot;$(WXWIN)\lib\vc_lib&quot;;..\..\source\"
@@ -586,6 +586,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Layout.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ListDocumentsInOtherFolderDialog.cpp"
 				>
 			</File>
@@ -670,10 +674,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\SourceBundle.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\SourcePhrase.cpp"
 				>
 			</File>
@@ -699,10 +699,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\tellenc.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Text.cpp"
 				>
 			</File>
 			<File
@@ -935,6 +931,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Layout.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\ListDocumentsInOtherFolderDialog.h"
 				>
 			</File>
@@ -1019,10 +1019,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\SourceBundle.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\SourcePhrase.h"
 				>
 			</File>
@@ -1044,10 +1040,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\TargetUnit.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Text.h"
 				>
 			</File>
 			<File

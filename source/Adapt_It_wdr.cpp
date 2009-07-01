@@ -2007,177 +2007,108 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item6 = new wxStaticText( parent, STATIC_TEXT_V1, _("Maximum source words (or phrases) displayed at one time (60 to 4000)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item6 = new wxStaticText( parent, STATIC_TEXT_V4, _("Vertical gap between multi-line text strips (in pixels, min 14, max 80)"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_MAX_DISPLAYED, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item8->SetToolTip( _("Higher numbers show more in each \"step\" but may slow Adapt It down") );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, IDC_EDIT_LEADING, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item8->SetToolTip( _("Higher numbers create more vertical spacing between strips") );
     item7->Add( item8, 0, wxGROW|wxALL, 0 );
 
     item4->Add( item7, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item10 = new wxStaticText( parent, STATIC_TEXT_V2, _("Minimum words (or phrases) in the preceding context (min 20, max 80)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item10 = new wxStaticText( parent, STATIC_TEXT_V5, _("Width of the inter-pile gap (in pixels, min 16, max 40)"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_MIN_PREC_CONTEXT, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item12->SetToolTip( _("Higher numbers show more preceding context before step down is required") );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, IDC_EDIT_GAP_WIDTH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item12->SetToolTip( _("Higher numbers create more horizontal spacing between piles") );
     item11->Add( item12, 0, wxGROW|wxALL, 0 );
 
     item4->Add( item11, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item14 = new wxStaticText( parent, STATIC_TEXT_V3, _("Minimum words (or phrases) in the following context (min 20, max 60)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item14 = new wxStaticText( parent, STATIC_TEXT_V6, _("Left margin (in pixels, min 16, max 40)"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_MIN_FOLL_CONTEXT, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item16->SetToolTip( _("Higher numbers show more preceding context before step up is required") );
+    wxTextCtrl *item16 = new wxTextCtrl( parent, IDC_EDIT_LEFTMARGIN, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item16->SetToolTip( _("Higher numbers increase the blank space in the left margin while adapting") );
     item15->Add( item16, 0, wxGROW|wxALL, 0 );
 
     item4->Add( item15, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item17 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item18 = new wxStaticText( parent, STATIC_TEXT_V4, _("Vertical gap between multi-line text strips (in pixels, min 14, max 80)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item18 = new wxStaticText( parent, STATIC_TEXT_V7, _("Phrase Box white space slop and expansion multiplier (min 5, max 30)"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item20 = new wxTextCtrl( parent, IDC_EDIT_LEADING, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item20->SetToolTip( _("Higher numbers create more vertical spacing between strips") );
+    wxTextCtrl *item20 = new wxTextCtrl( parent, IDC_EDIT_MULTIPLIER, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item20->SetToolTip( _("Try higher number (15 or more) if Keyman doesn't interpret special characters properly") );
     item19->Add( item20, 0, wxGROW|wxALL, 0 );
 
     item4->Add( item19, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item22 = new wxStaticText( parent, STATIC_TEXT_V5, _("Width of the inter-pile gap (in pixels, min 16, max 40)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Font size for dialogs  (min 10, max 24)"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item24 = new wxTextCtrl( parent, IDC_EDIT_GAP_WIDTH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item24->SetToolTip( _("Higher numbers create more horizontal spacing between piles") );
+    wxTextCtrl *item24 = new wxTextCtrl( parent, IDC_EDIT_DIALOGFONTSIZE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
+    item24->SetToolTip( _("Higher numbers show larger font size in some dialogs") );
     item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    item4->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item23, 0, wxGROW|wxALL, 0 );
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticText *item26 = new wxStaticText( parent, STATIC_TEXT_V6, _("Left margin (in pixels, min 16, max 40)"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item26 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
     item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item25, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item28 = new wxTextCtrl( parent, IDC_EDIT_LEFTMARGIN, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item28->SetToolTip( _("Higher numbers increase the blank space in the left margin while adapting") );
-    item27->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item27, 0, wxGROW|wxALL, 0 );
 
-    item4->Add( item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
+    wxCheckBox *item29 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
+    item29->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
+    item28->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item30 = new wxStaticText( parent, STATIC_TEXT_V7, _("Phrase Box white space slop and expansion multiplier (min 5, max 30)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    item28->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
 
-    item4->Add( item29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    wxButton *item30 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
+    item28->Add( item30, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item4->Add( item28, 0, wxALIGN_CENTER|wxALL, 0 );
 
     wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    wxTextCtrl *item32 = new wxTextCtrl( parent, IDC_EDIT_MULTIPLIER, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item32->SetToolTip( _("Try higher number (15 or more) if Keyman doesn't interpret special characters properly") );
-    item31->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item4->Add( item31, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item33 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxStaticText *item34 = new wxStaticText( parent, ID_TEXT, _("Font size for dialogs  (min 10, max 24)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item33->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item4->Add( item33, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item35 = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *item36 = new wxTextCtrl( parent, IDC_EDIT_DIALOGFONTSIZE, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE );
-    item36->SetToolTip( _("Higher numbers show larger font size in some dialogs") );
-    item35->Add( item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    item4->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item37 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxCheckBox *item38 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_FIRST, _("Do not show an extra source line (without punctuation)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item38->SetToolTip( _("Unselect this box if you want to see two source text lines, one with punctuation and one without punctuation") );
-    item37->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item4->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item39 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item40 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxCheckBox *item41 = new wxCheckBox( parent, IDC_CHECK_SUPPRESS_LAST, _("Do not show an extra target line (without punctuation)"), wxDefaultPosition, wxDefaultSize, 0 );
-    item41->SetToolTip( _("Unselect this box if you want to see two target lines, one with punctuation and one without punctuation") );
-    item40->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item4->Add( item40, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item42 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item42, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item43 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxCheckBox *item44 = new wxCheckBox( parent, IDC_CHECK_WELCOME_VISIBLE, _("Make the Welcome window visible on startup"), wxDefaultPosition, wxDefaultSize, 0 );
-    item44->SetToolTip( _("When checked, the Welcome screen becomes visible on startup") );
-    item43->Add( item44, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item4->Add( item43, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item45 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item45, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
-
-    wxBoxSizer *item46 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxCheckBox *item47 = new wxCheckBox( parent, IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS, _("Highlight automatically inserted translations"), wxDefaultPosition, wxDefaultSize, 0 );
-    item47->SetToolTip( _("Unselect this checkbox if you do not want background color to highlight automatically inserted translations") );
-    item46->Add( item47, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item46->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxButton *item48 = new wxButton( parent, IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, _("Choose Highlight Color..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item48->SetToolTip( _("Click to choose a different background highlight color for automatically inserted translations") );
-    item46->Add( item48, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    item4->Add( item46, 0, wxALIGN_CENTER|wxALL, 0 );
-
-    wxBoxSizer *item49 = new wxBoxSizer( wxVERTICAL );
-
-    item4->Add( item49, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+    item4->Add( item31, 0, wxGROW|wxALL, 0 );
 
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
@@ -4130,7 +4061,7 @@ wxSizer *EditSourceTextDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer 
 
     item12->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_PROCESS_ENTER );
+    wxTextCtrl *item18 = new wxTextCtrl( parent, IDC_EDIT_NEW_SOURCE, wxT(""), wxDefaultPosition, wxSize(-1,70), wxTE_MULTILINE|wxTE_PROCESS_ENTER|wxVSCROLL );
     item18->SetToolTip( _("This is the source text you selected to edit - make your changes here") );
     item12->Add( item18, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -5074,7 +5005,7 @@ wxSizer *FindDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item23->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_FIND, _("Search in the lines which retain punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_FIND, _("Search, retaining target text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Search lines that include punctuation") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -5273,7 +5204,7 @@ wxSizer *ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_REPLACE, _("Search in the lines which retain punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxCheckBox *item24 = new wxCheckBox( parent, IDC_CHECK_INCLUDE_PUNCT_REPLACE, _("Search, retaining target text's punctuation"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->SetToolTip( _("Search lines that include punctuation") );
     item23->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 

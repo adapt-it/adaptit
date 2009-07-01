@@ -73,6 +73,8 @@
 #include "DocPage.h"
 #include "StartWorkingWizard.h"
 #include "helpers.h"
+#include "Pile.h"
+#include "Layout.h"
 
 #if !wxUSE_CHECKLISTBOX
     #error "This program can't be built without wxUSE_CHECKLISTBOX set to 1"
@@ -1501,6 +1503,7 @@ void CFilterPagePrefs::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	//InitDialog() is not virtual, no call needed to a base class
 
 	filterPgCommon.DoInit();
+	gpApp->m_pLayout->m_bFilteringChanged = FALSE; // initialize
 }
 
 void CFilterPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))

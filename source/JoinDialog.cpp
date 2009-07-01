@@ -196,7 +196,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 
 	if (pAcceptedFiles->GetCount() == 0) 
 	{
-		wxMessageBox(_("There are no files listed for joining to the current document."),_T(""),wxICON_ERROR); //TellUser(IDS_NONE_FOR_JOINING);
+		wxMessageBox(_("There are no files listed for joining to the current document."),_T(""),wxICON_WARNING); //TellUser(IDS_NONE_FOR_JOINING);
 		gbDoingSplitOrJoin = FALSE; // restore default
 		return;
 	}
@@ -244,7 +244,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	{
 		if (!IsValidFileName(MergeFileName)) 
 		{
-			wxMessageBox(_("The new file name you supplied contains characters that are not permitted in a file name. Please edit the file name."),_T(""),wxICON_ERROR); //TellUser(IDS_BAD_FNAME_FOR_JOIN);
+			wxMessageBox(_("The new file name you supplied contains characters that are not permitted in a file name. Please edit the file name."),_T(""),wxICON_WARNING); //TellUser(IDS_BAD_FNAME_FOR_JOIN);
 			this->pJoiningWait->Show(FALSE);
 			gbDoingSplitOrJoin = FALSE; // restore default
 			return;
@@ -268,7 +268,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			}
 			if (CantOverwrite) 
 			{
-				wxMessageBox(_("The resulting document's file name must be unique or must be the same as one of the input files."),_T(""),wxICON_ERROR); //TellUser(IDS_UNIQUE_OR_SAME_FOR_JOIN);
+				wxMessageBox(_("The resulting document's file name must be unique or must be the same as one of the input files."),_T(""),wxICON_WARNING); //TellUser(IDS_UNIQUE_OR_SAME_FOR_JOIN);
 				this->pJoiningWait->Show(FALSE);
 				gbDoingSplitOrJoin = FALSE; // restore default
 				return;
@@ -298,7 +298,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 			wxString msg;
 			//IDS_MISMATCHED_BOOK_IDS
 			msg = msg.Format(_("The book ID in the document with filename %s does not match the book ID for the currently open document."),FileName.c_str());
-			wxMessageBox(msg,_T(""),wxICON_ERROR);
+			wxMessageBox(msg,_T(""),wxICON_WARNING);
 			break;
 		}
 		ol->Clear();
@@ -373,9 +373,9 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	this->pJoiningWait->Show(FALSE);
 
 	if (bNoIDMismatch)
-		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_ERROR);// IDS_JOIN_SUCCESSFUL
+		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION);// IDS_JOIN_SUCCESSFUL
 	else
-		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_ERROR); //IDS_BAD_JOIN_FROM_MISMATCH
+		wxMessageBox(_("Joining documents exited prematurely because of a mismatched book ID code."),_T(""),wxICON_WARNING); //IDS_BAD_JOIN_FROM_MISMATCH
 
 	gpApp->RefreshStatusBarInfo();
 	gbDoingSplitOrJoin = FALSE; // restore default so document backups can happen again
@@ -589,7 +589,7 @@ void CJoinDialog::MoveSelectedItems(wxListBox& From, wxListBox& To)
 
 	if (From.GetSelection() == -1) 
 	{
-		wxMessageBox(_("Nothing selected."),_T(""),wxICON_ERROR);
+		wxMessageBox(_("Nothing selected."),_T(""),wxICON_WARNING);
 	}
 	for (i = 0; i < (int)From.GetCount(); ++i) 
 	{

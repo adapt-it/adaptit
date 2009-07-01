@@ -46,6 +46,8 @@
 
 #include <wx/tokenzr.h>
 #include "Adapt_It.h"
+#include "Pile.h"
+#include "Layout.h"
 #include "NoteDlg.h"
 #include "Adapt_ItView.h"
 #include "helpers.h"
@@ -447,6 +449,7 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	}
 	pView->RemoveSelection(); // in case one was used to indicate the note location
 	pView->Invalidate(); // so the note icon and green wedge show for the new note
+	gpApp->m_pLayout->PlaceBox();
 	
 	//OnOK(); // MFC commented out the base class call
 	//wxDialog::OnOK(event); // not virtual in wxDialog
@@ -466,6 +469,7 @@ a:	Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnOK(event); // we are running modeless so don't call the base method
 }
@@ -525,13 +529,15 @@ void CNoteDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 		pView->InsertFilteredMaterial(mkr,endMkr,m_strNote,pSrcPhrase,m_noteOffset,bInsertContentOnly);
 	}
 	pView->RemoveSelection(); // in case one was used to indicate the note location
-	pView->Invalidate(); // so the note icon and green wedge show for the new note
+	//pView->Invalidate(); // so the note icon and green wedge show for the new note
+	gpApp->m_pLayout->Redraw(); // better than calling Invalidate() here, see previous line
 
 
 	Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
+	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnCancel(event); //don't call base class because we are modeless
 }
