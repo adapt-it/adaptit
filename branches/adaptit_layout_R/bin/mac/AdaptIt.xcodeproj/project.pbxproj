@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7D22945E0FE9C0EA00D49638 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
+		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
 		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
 		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
@@ -76,14 +77,12 @@
 		C8F82E960F3F9CAB007579B8 /* SetDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E2B0F3F9CAB007579B8 /* SetDelay.cpp */; };
 		C8F82E970F3F9CAB007579B8 /* SetEncodingDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E2D0F3F9CAB007579B8 /* SetEncodingDlg.cpp */; };
 		C8F82E980F3F9CAB007579B8 /* SilConverterSelectDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E2F0F3F9CAB007579B8 /* SilConverterSelectDlg.cpp */; };
-		C8F82E990F3F9CAB007579B8 /* SourceBundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E310F3F9CAB007579B8 /* SourceBundle.cpp */; };
 		C8F82E9A0F3F9CAB007579B8 /* SourcePhrase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E330F3F9CAB007579B8 /* SourcePhrase.cpp */; };
 		C8F82E9B0F3F9CAB007579B8 /* SplitDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E350F3F9CAB007579B8 /* SplitDialog.cpp */; };
 		C8F82E9C0F3F9CAB007579B8 /* Stack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E370F3F9CAB007579B8 /* Stack.cpp */; };
 		C8F82E9D0F3F9CAB007579B8 /* StartWorkingWizard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E390F3F9CAB007579B8 /* StartWorkingWizard.cpp */; };
 		C8F82E9E0F3F9CAB007579B8 /* Strip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E3B0F3F9CAB007579B8 /* Strip.cpp */; };
 		C8F82E9F0F3F9CAB007579B8 /* TargetUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */; };
-		C8F82EA00F3F9CAB007579B8 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E3F0F3F9CAB007579B8 /* Text.cpp */; };
 		C8F82EA10F3F9CAB007579B8 /* TransformToGlossesDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E410F3F9CAB007579B8 /* TransformToGlossesDlg.cpp */; };
 		C8F82EA20F3F9CAB007579B8 /* UnitsDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */; };
 		C8F82EA30F3F9CAB007579B8 /* UnitsPage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82E450F3F9CAB007579B8 /* UnitsPage.cpp */; };
@@ -111,6 +110,8 @@
 		4A9504C8FFE6A3BC11CA0CBA /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		4A9504CAFFE6A41611CA0CBA /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
+		7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Layout.cpp; path = ../../source/Layout.cpp; sourceTree = SOURCE_ROOT; };
+		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
 		7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_CPLv05.txt; sourceTree = "<group>"; };
 		7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_GPLv2.txt; sourceTree = "<group>"; };
 		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
@@ -244,8 +245,6 @@
 		C8F82E2E0F3F9CAB007579B8 /* SetEncodingDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SetEncodingDlg.h; path = ../../source/SetEncodingDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82E2F0F3F9CAB007579B8 /* SilConverterSelectDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SilConverterSelectDlg.cpp; path = ../../source/SilConverterSelectDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E300F3F9CAB007579B8 /* SilConverterSelectDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SilConverterSelectDlg.h; path = ../../source/SilConverterSelectDlg.h; sourceTree = SOURCE_ROOT; };
-		C8F82E310F3F9CAB007579B8 /* SourceBundle.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SourceBundle.cpp; path = ../../source/SourceBundle.cpp; sourceTree = SOURCE_ROOT; };
-		C8F82E320F3F9CAB007579B8 /* SourceBundle.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SourceBundle.h; path = ../../source/SourceBundle.h; sourceTree = SOURCE_ROOT; };
 		C8F82E330F3F9CAB007579B8 /* SourcePhrase.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SourcePhrase.cpp; path = ../../source/SourcePhrase.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E340F3F9CAB007579B8 /* SourcePhrase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SourcePhrase.h; path = ../../source/SourcePhrase.h; sourceTree = SOURCE_ROOT; };
 		C8F82E350F3F9CAB007579B8 /* SplitDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SplitDialog.cpp; path = ../../source/SplitDialog.cpp; sourceTree = SOURCE_ROOT; };
@@ -258,8 +257,6 @@
 		C8F82E3C0F3F9CAB007579B8 /* Strip.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Strip.h; path = ../../source/Strip.h; sourceTree = SOURCE_ROOT; };
 		C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = TargetUnit.cpp; path = ../../source/TargetUnit.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TargetUnit.h; path = ../../source/TargetUnit.h; sourceTree = SOURCE_ROOT; };
-		C8F82E3F0F3F9CAB007579B8 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Text.cpp; path = ../../source/Text.cpp; sourceTree = SOURCE_ROOT; };
-		C8F82E400F3F9CAB007579B8 /* Text.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Text.h; path = ../../source/Text.h; sourceTree = SOURCE_ROOT; };
 		C8F82E410F3F9CAB007579B8 /* TransformToGlossesDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = TransformToGlossesDlg.cpp; path = ../../source/TransformToGlossesDlg.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82E420F3F9CAB007579B8 /* TransformToGlossesDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TransformToGlossesDlg.h; path = ../../source/TransformToGlossesDlg.h; sourceTree = SOURCE_ROOT; };
 		C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = UnitsDlg.cpp; path = ../../source/UnitsDlg.cpp; sourceTree = SOURCE_ROOT; };
@@ -336,6 +333,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */,
+				7D5D920C0FFBB9E6005E7ED3 /* Layout.h */,
 				7D22945D0FE9C0EA00D49638 /* tellenc.cpp */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
 				C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */,
@@ -460,8 +459,6 @@
 				C8F82E2E0F3F9CAB007579B8 /* SetEncodingDlg.h */,
 				C8F82E2F0F3F9CAB007579B8 /* SilConverterSelectDlg.cpp */,
 				C8F82E300F3F9CAB007579B8 /* SilConverterSelectDlg.h */,
-				C8F82E310F3F9CAB007579B8 /* SourceBundle.cpp */,
-				C8F82E320F3F9CAB007579B8 /* SourceBundle.h */,
 				C8F82E330F3F9CAB007579B8 /* SourcePhrase.cpp */,
 				C8F82E340F3F9CAB007579B8 /* SourcePhrase.h */,
 				C8F82E350F3F9CAB007579B8 /* SplitDialog.cpp */,
@@ -474,8 +471,6 @@
 				C8F82E3C0F3F9CAB007579B8 /* Strip.h */,
 				C8F82E3D0F3F9CAB007579B8 /* TargetUnit.cpp */,
 				C8F82E3E0F3F9CAB007579B8 /* TargetUnit.h */,
-				C8F82E3F0F3F9CAB007579B8 /* Text.cpp */,
-				C8F82E400F3F9CAB007579B8 /* Text.h */,
 				C8F82E410F3F9CAB007579B8 /* TransformToGlossesDlg.cpp */,
 				C8F82E420F3F9CAB007579B8 /* TransformToGlossesDlg.h */,
 				C8F82E430F3F9CAB007579B8 /* UnitsDlg.cpp */,
@@ -699,14 +694,12 @@
 				C8F82E960F3F9CAB007579B8 /* SetDelay.cpp in Sources */,
 				C8F82E970F3F9CAB007579B8 /* SetEncodingDlg.cpp in Sources */,
 				C8F82E980F3F9CAB007579B8 /* SilConverterSelectDlg.cpp in Sources */,
-				C8F82E990F3F9CAB007579B8 /* SourceBundle.cpp in Sources */,
 				C8F82E9A0F3F9CAB007579B8 /* SourcePhrase.cpp in Sources */,
 				C8F82E9B0F3F9CAB007579B8 /* SplitDialog.cpp in Sources */,
 				C8F82E9C0F3F9CAB007579B8 /* Stack.cpp in Sources */,
 				C8F82E9D0F3F9CAB007579B8 /* StartWorkingWizard.cpp in Sources */,
 				C8F82E9E0F3F9CAB007579B8 /* Strip.cpp in Sources */,
 				C8F82E9F0F3F9CAB007579B8 /* TargetUnit.cpp in Sources */,
-				C8F82EA00F3F9CAB007579B8 /* Text.cpp in Sources */,
 				C8F82EA10F3F9CAB007579B8 /* TransformToGlossesDlg.cpp in Sources */,
 				C8F82EA20F3F9CAB007579B8 /* UnitsDlg.cpp in Sources */,
 				C8F82EA30F3F9CAB007579B8 /* UnitsPage.cpp in Sources */,
@@ -721,6 +714,7 @@
 				C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */,
 				C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */,
 				7D22945E0FE9C0EA00D49638 /* tellenc.cpp in Sources */,
+				7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
