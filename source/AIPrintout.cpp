@@ -45,7 +45,6 @@
 #include "Pile.h"
 #include "Cell.h"
 #include "MainFrm.h"
-#include "SourceBundle.h"
 //#include "SourceBundle.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
