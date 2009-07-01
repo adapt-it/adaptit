@@ -3971,7 +3971,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		pLayout->m_docEditOperationType = relocate_box_op;
 		
 		// recreate the phraseBox using the stored information
-		pApp->m_nStartChar = 0; pApp->m_nEndChar = -1;
+		pApp->m_nStartChar = -1; pApp->m_nEndChar = -1;
 
 		// fix the m_bSaveToKB flag, depending on whether or not srcPhrase is in kb
 		if (!gbIsGlossing && !pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry && 

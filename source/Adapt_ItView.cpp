@@ -4082,7 +4082,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 
 a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW change on 
 				// 28April05 to the code now in the DoGetSuitableText_ForPlacePhraseBox()
-	pApp->m_nStartChar = 0;
+	pApp->m_nStartChar = -1;
 	pApp->m_nEndChar = -1; // make sure the text is shown selected
 	if (gbAutoCaps)
 	{
