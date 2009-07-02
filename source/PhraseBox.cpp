@@ -676,6 +676,10 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 		// option, and since no adaptation is therefore to be retreived, it
 		// remains just to either copy the source word or nothing...
 		MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
+
+		// BEW added 1Jul09, the flag should be TRUE if nothing was found
+		pApp->m_pTargetBox->m_bAbandonable = TRUE;
+
 	}
 	else
 	{
@@ -731,6 +735,9 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 		{
 			// do a copy of the source (this never needs change of capitalization)
 			MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
+
+			// BEW added 1Jul09, the flag should be TRUE if nothing was found
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 		}
 	}
 }
@@ -811,6 +818,9 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 		else // did not get a translation, or a gloss when glossing is current
 		{
 			MakeCopyOrSetNothing(pApp, pView, pNewPile, bWantSelect);
+
+			// BEW added 1Jul09, the flag should be TRUE if nothing was found
+			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 		}
 
 		// is "Accept Defaults" turned on? If so, make processing continue
@@ -2938,16 +2948,35 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				//int newWidth = pLayout->m_curBoxWidth - 2 * charSize.x;
 				//int newWidth = pLayout->m_curBoxWidth - 7 * charSize.x;
 				int newWidth = pLayout->m_curBoxWidth - 5 * charSize.x;
-				pLayout->m_curBoxWidth = newWidth;
+				// we have to compare with a reasonable box width based on source text
+				// width to ensure we don't reduce the width below that (otherwise piles
+				// to the right will encroach over the end of the active location's source
+				// text)
+				wxString srcPhrase = pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
+				wxFont* pSrcFont = pApp->m_pSourceFont;
+				wxSize sourceExtent;
+				dC.SetFont(*pSrcFont);
+				dC.GetTextExtent(srcPhrase, &sourceExtent.x, &sourceExtent.y);
+				int minWidth = sourceExtent.x + gnExpandBox*charSize.x;
+				if (newWidth <= minWidth)
+				{
+					// we are contracting too much, so set to minWidth instead
+					pLayout->m_curBoxWidth = minWidth;
+					gbContracting = FALSE;
+				}
+				else
+				{
+					// newWidth is larger than minWidth, so we can do the full contraction
+					pLayout->m_curBoxWidth = newWidth;
+					gbContracting = TRUE;
+				}
 				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
-				gbContracting = TRUE; // RecalcLayout() will override m_curBoxWidth if we leave this
-									  // flag FALSE; setting it makes the ResetPartnerPileWidth()
-									  // call within RecalcLayout() not do an active pile
-									  // gap width calculation that otherwise sets the box
-									  // width too wide and the backspaces then done contract
-									  // the width of the phrase box as much as expected (the
-									  // RecalcLayout() call clears gbContracting after
-									  // using it)
+                // The gbContracting flag used above? RecalcLayout() will override
+                // m_curBoxWidth if we leave this flag FALSE; setting it makes the
+                // ResetPartnerPileWidth() call within RecalcLayout() not do an active pile
+                // gap width calculation that otherwise sets the box width too wide and the
+                // backspaces then done contract the width of the phrase box not as much as
+                // expected (the RecalcLayout() call clears gbContracting after using it)
 				bUpdateOfLayoutNeeded = TRUE;
 			} // end block for nSelector == 2 case
 			else
@@ -3643,8 +3672,22 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
             // whm Note: pApp->m_targetPhrase is updated in OnPhraseBoxChanged, so the wx
             // version uses the global below, rather than a value determined in OnChar(),
             // which would not be current.
-			FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2); // selector
-																	// = 2 for contracting
+ 			// BEW added test 1Jul09, because when a selection for a merge is current and
+			// the merge is done by user pressing Backspace key, without the suppression
+			// here FixBox() would be called and the box would be made shorter, resulting
+			// in the width of the box being significantly less than the width of the
+			// source text phrase from the merger, and that would potentially allow any
+			// following piles with short words to be displayed after the merger -
+			// overwriting the end of the source text; so in a merger where it is
+			// initiated by a <BS> key press, we suppress the FixBox() call
+			if (!gbMergeSucceeded)
+			{
+				FixBox(pView, pApp->m_targetPhrase, bWasMadeDirty, textExtent, 2);
+										// selector = 2 for "contracting" the box
+			}
+			gbMergeSucceeded = FALSE; // clear to default FALSE, otherwise backspacing
+									// to remove phrase box characters won't get the
+									// needed box resizes done
 		}
 	default:
 		;

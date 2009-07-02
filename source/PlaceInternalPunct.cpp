@@ -141,16 +141,13 @@ void CPlaceInternalPunct::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 
 	// set the source text edit box contents, and ditto for the target text box
 	m_srcPhrase = m_pSrcPhrase->m_srcPhrase;
-	m_tgtPhrase = gpApp->m_targetPhrase; // reinstated 21Apr09 (see note below). BEW removed 26Jan09: because phrase box does not
-	//move during a KB restoration process, and apps m_targetPhrase stays constant then, instead
-	//do it using the m_adaption string from the passed in CSourcePhrase pointer
-	// whm 21Apr09 at Bruce's request I reinstated the original code here. Bruce comments that
-	// "pApp->m_targetPhrase can be different from pSrcPhrase->m_targetStr when the Place Medial 
-	// Punctuation dialog is called -- because presumably pSrcPhrase->m_targetStr at that moment, 
-	// in most circumstances, will not have been update yet to the user's editing in the phrase 
-	// box which he may have done (because SetAdaptationOrGloss() will be called **after** 
-	// MakeLineFourString() and the latter puts up the Place... dialog)."
-	//m_tgtPhrase = m_pSrcPhrase->m_adaption;
+	m_tgtPhrase = gpApp->m_targetPhrase; // at the time the Place... dialog is shown, which 
+	// happens from within MakeLineFourString(), the CSourcePhrase memter m_targetStr
+	// will not have been updated yet, in fact, that updating is in progress -- and the
+	// only place where the current form of the target text string is to be found, is in
+	// the m_targetPhrase member on the application class. (MakeLineFourString() may also
+	// be called from within StoreText(), but for KB data insertions & updates, we
+	// suppress its call, so we don't have a need to set m_tgtPhrase here from m_targetStr ever)
 
 	m_psrcPhraseBox->SetValue(m_srcPhrase);
 	m_ptgtPhraseBox->SetValue(m_tgtPhrase);

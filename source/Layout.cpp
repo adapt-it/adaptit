@@ -431,6 +431,11 @@ void CLayout::Draw(wxDC* pDC)
 		wxLogDebug(_T("Draw() Exiting (all's well this time)"));
 #endif
 
+	// BEW added 1Jul09, to support suppressing multiple calls of MakeLineFourString()
+	// (and therefore the potential for multiple shows of the placement dialog for
+	// medial punctuation) at a single active location
+	m_pApp->m_nPlacePunctDlgCallNumber = 0; // clear to default value of zero
+	m_pApp->m_nCurSequNum_ForPlacementDialog = -1; // reset to default -1 "undefined" value
 }
 
 // the Redraw() member function can be used in many places where, in the legacy application,
