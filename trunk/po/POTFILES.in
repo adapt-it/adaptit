@@ -53,7 +53,6 @@
 ../../source/PlaceInternalPunct.cpp
 ../../source/PlaceRetranslationInternalMarkers.cpp
 ../../source/PrintOptionsDlg.cpp
-../../source/ProgressDlg.cpp
 ../../source/ProjectPage.cpp
 ../../source/PunctCorrespPage.cpp
 ../../source/RefString.cpp
