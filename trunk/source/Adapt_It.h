@@ -2293,6 +2293,11 @@ public:
 
 private:
 	void	EnsureWorkFolderPresent();
+public:
+	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
+	// dialog, at the once location, from being shown twice
+	int		m_nPlacePunctDlgCallNumber;
+	int		m_nCurSequNum_ForPlacementDialog;
 };
 
 DECLARE_APP(CAdapt_ItApp);

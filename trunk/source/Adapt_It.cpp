@@ -7140,6 +7140,11 @@ while (resToken != "")
 		wxLogDebug(_T("This wxScrolledWindow is double-buffered by the system."));
 #endif
 
+	// set these back to 0 and -1 when the phrase box location changes, after storage to
+	// the KB has been done
+	m_nPlacePunctDlgCallNumber = 0; // incrememted each time MakeLineFourString() is
+									// called from within StoreText()
+	m_nCurSequNum_ForPlacementDialog = -1; // -1 is default, it means "undefined"
 
 	m_bJustLaunched = TRUE;// set false in OnIdle call
     return TRUE;

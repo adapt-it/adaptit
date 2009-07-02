@@ -1716,7 +1716,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	s.Empty();
 	s << pApp->m_nCurDelay; //s = buf;
 	pDelayBox->ChangeValue(s); // MFC has SetWindowText()
-	pControlBar->Refresh(); // MFC has Invalidate(), we'll no attempt phrase box drawing here
+	pControlBar->Refresh(); // MFC has Invalidate(), we'll not attempt phrase box drawing here
 
 	// MFC code below:
 	// add the extra menu if it is the Unicode version
@@ -1992,8 +1992,9 @@ void CAdapt_ItView::OnInitialUpdate()
 		pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all // MFC uses SetSel
 	}
 
-	Invalidate(); // our own
-	pLayout->PlaceBox();
+	// BEW removed next two lines 2Jul09, too early for these calls, they aren't needed
+	//Invalidate(); // our own
+	//pLayout->PlaceBox();
 
 // Is the following necessary? Code from docvwmdi sample came commented out
 /* BEW 30Jun09, I don't think this is needed
@@ -20727,243 +20728,259 @@ void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targe
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
-	// BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about to
-	// leave a hole which may or may not have had punctuation there; the former m_targetStr is
-	// preserved in the global gStrSaveLineFourInReviewingMode, and the test for needing to
-	// do this restoration is that the global flag gbSavedLineFourInReviewingMode is TRUE, and
-	// we must clear the flag before returning
-	if (gbSavedLineFourInReviewingMode)
+	pApp->m_nPlacePunctDlgCallNumber++;
+	int theSequNum = pSrcPhrase->m_nSequNumber;
+    // BEW added 1Jul09, don't do the code in this function if the function has been called
+    // once before at this current active location
+	if ( !(theSequNum == pApp->m_nCurSequNum_ForPlacementDialog &&
+		  pApp->m_nPlacePunctDlgCallNumber > 1) )
 	{
-		// the flag will only be true when the location was a hole when the box landed there, so
-		// we can rely on m_targetPhrase being empty provided the user has not decided to edit
-		// the document by typing something. So we check for a still empty m_targetPhrase, and if
-		// so we restore m_targetStr to what it was before and return; but if the use has typed
-		// something then we abandon what we saved and we do a normal pass through the rest of
-		// this function
-		if (pApp->m_targetPhrase.IsEmpty())
+
+		// BEW added 19Dec07: bleed out the case when Reviewing mode is on and the box is about to
+		// leave a hole which may or may not have had punctuation there; the former m_targetStr is
+		// preserved in the global gStrSaveLineFourInReviewingMode, and the test for needing to
+		// do this restoration is that the global flag gbSavedLineFourInReviewingMode is TRUE, and
+		// we must clear the flag before returning
+		if (gbSavedLineFourInReviewingMode)
 		{
-			// it is still empty, so do the restoration etc.
-			pSrcPhrase->m_targetStr = gStrSaveLineFourInReviewingMode;
+			// the flag will only be true when the location was a hole when the box landed there, so
+			// we can rely on m_targetPhrase being empty provided the user has not decided to edit
+			// the document by typing something. So we check for a still empty m_targetPhrase, and if
+			// so we restore m_targetStr to what it was before and return; but if the use has typed
+			// something then we abandon what we saved and we do a normal pass through the rest of
+			// this function
+			if (pApp->m_targetPhrase.IsEmpty())
+			{
+				// it is still empty, so do the restoration etc.
+				pSrcPhrase->m_targetStr = gStrSaveLineFourInReviewingMode;
+				gStrSaveLineFourInReviewingMode.Empty();
+				gbSavedLineFourInReviewingMode = FALSE; // restore default value
+				return;
+			}
+			// user must have typed something, so clean up and control can fall thru to the rest
 			gStrSaveLineFourInReviewingMode.Empty();
 			gbSavedLineFourInReviewingMode = FALSE; // restore default value
-			return;
 		}
-		// user must have typed something, so clean up and control can fall thru to the rest
-		gStrSaveLineFourInReviewingMode.Empty();
-		gbSavedLineFourInReviewingMode = FALSE; // restore default value
-	}
 
-	wxString str = targetStr; // make a copy
-	wxArrayString remainderList;
-	wxString strCorresp;	// where we build target punctuation strings (from the punctuation 
-							// correspondences pairs) before inserting them into m_targetStr
-	strCorresp.Empty();
+		wxString str = targetStr; // make a copy
+		wxArrayString remainderList;
+		wxString strCorresp;	// where we build target punctuation strings (from the punctuation 
+								// correspondences pairs) before inserting them into m_targetStr
+		strCorresp.Empty();
 
-	// for auto-capitalization we will attempt to do any needed change to upper case, no matter
-	// what the punctuation behaviour is. If a lookup was done earlier, and a store not yet done,
-	// then the value of the gbMatchedKB_UCentry flag will also be valid here (if it is TRUE then
-	// we don't want a change to upper case done because the lookup was done with upper case
-	// source data - so we take the adaptation or gloss 'as is')
+		// for auto-capitalization we will attempt to do any needed change to upper case, no matter
+		// what the punctuation behaviour is. If a lookup was done earlier, and a store not yet done,
+		// then the value of the gbMatchedKB_UCentry flag will also be valid here (if it is TRUE then
+		// we don't want a change to upper case done because the lookup was done with upper case
+		// source data - so we take the adaptation or gloss 'as is')
 
-	// first find out what the key's case status is
-	bool bNoError = TRUE;
-	bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case done if possible
-	if (gbAutoCaps)
-	{
-		bNoError = SetCaseParameters(pSrcPhrase->m_key);
-		if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
+		// first find out what the key's case status is
+		bool bNoError = TRUE;
+		bool bWantChangeToUC = FALSE; // if TRUE, we want the change to upper case done if possible
+		if (gbAutoCaps)
 		{
-			bWantChangeToUC = TRUE;
-		}
-	}
-
-	// if it is <Not In KB> then suppress punctuation insertion - there is nothing supposed
-	// to be "there" anyway -- from version 1.4.0 and onwards, by Susanna Imrie's suggestion,
-	// we will allow a non-null adaptation for a <not in kb> entry; we just won't store it in
-	// the kb -- so just go on...
-
-	// we don't worry about internal punctuation in the target if the target is empty
-	// in fact, we don't want any punctuation if the target is empty
-	bool bEmptyTarget = FALSE;
-	if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
-	{
-		// check for any medial punctuation, if there is any, see if it is all in
-		// the targetStr already; if not, ask user for whatever is missing (if he wants
-		// he can then place the extra stuff, or ignore it). We assume that the
-		// phrase is not so long that the same punctuation will occur medially twice, if
-		// it does, our algorithm will not ensure each instance is there; so to be sure, the
-		// user should type what he wants in the Phrase Box in the first place.
-		if (pSrcPhrase->m_bHasInternalPunct)
-		{
-			wxString punct;
-			bool bFoundAll = TRUE;
-			wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might contain
-															  // a phrase or a word
-			int count = pList->GetCount();
-
-			for ( int n = 0; n < count; n++ )
+			bNoError = SetCaseParameters(pSrcPhrase->m_key);
+			if (bNoError && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
 			{
-				punct = pList->Item(n); // can be several punct characters in the
-											 // stored string
-				wxASSERT(!punct.IsEmpty());
-				strCorresp = GetConvertedPunct(punct); // uses PUNCTPAIRS and TWOPUNCTPAIRS
-													   // for converting
-
-				// the new syntax no longer checks if some are already typed, it just assumes
-				// none are
-				remainderList.Add(strCorresp);//remainderList.AddTail(strCorresp);
-				bFoundAll = FALSE;
-			}
-
-			if (!bFoundAll)
-			{
-				// put them all in interactively using a dialog (formerly, the dialog showed
-				// only the ones not typed)
-				gpRemainderList = &remainderList; // set the global so dialog can access it
-				CPlaceInternalPunct dlg(wxGetApp().GetMainFrame());
-				dlg.Centre();
-				dlg.m_pSrcPhrase = pSrcPhrase; // set the dialog's local member
-				dlg.ShowModal(); // display the dialog
-
-				// get the result, and fix the source phrase accordingly
-				str = dlg.m_tgtPhrase; // remember str could be a phrase, and so contain one
-									   // or more spaces
-				// anything left in the list can be thrown away now
-				gpRemainderList->Clear();
-				gpRemainderList = (wxArrayString*)NULL; // the remainderList will be destroyed when it goes out
-									    // of scope
-				strCorresp.Empty();
+				bWantChangeToUC = TRUE;
 			}
 		}
-	}
-	else
-	{
-		bEmptyTarget = TRUE;
-	}
 
-	// BEW addition 23March05, to allow detached punctuation to be reconstructed in the target text
-	// I do it here and not for the internal punctuation case above because it would make no sense to
-	// do the block of code above when the target is empty
-	bool bWantPrevCopy;
-	//int len; // unused
-	int punctLen;
-	if (bEmptyTarget) bEmptyTarget = FALSE;
+		// if it is <Not In KB> then suppress punctuation insertion - there is nothing supposed
+		// to be "there" anyway -- from version 1.4.0 and onwards, by Susanna Imrie's suggestion,
+		// we will allow a non-null adaptation for a <not in kb> entry; we just won't store it in
+		// the kb -- so just go on...
 
-	// BEW added 20 April 2005 to support the use of the new No Punctuation Copy button
-	if (!pApp->m_bCopySourcePunctuation)
-		goto a; // don't restore the TRUE value for this flag at the end of this function because
-				// the function can be called more than once while the phrase box is unmoved. Do
-				// the flag restoration to TRUE in code which moves the phrase box elsewhere
-
-    // preceding punctuation can be handled silently. If the user typed different
-    // punctuation, then the user's must override the original punctuation. The target text
-    // string might be a phrase and hence contain spaces, but space is a delimiter in
-    // m_punctSet from version 1.3.6 onwards, so we must be careful in the next code blocks
-    // - SpanIncluding() can still be used safely, because there will be nonpunctuation and
-    // nonspace characters prior to any spaces in the phrase; and similarly when reversed
-	bWantPrevCopy = FALSE;
-	punctLen = 0; // for auto caps support
-	if (!bEmptyTarget)
-	{
-		if (!pSrcPhrase->m_precPunct.IsEmpty())
+		// we don't worry about internal punctuation in the target if the target is empty
+		// in fact, we don't want any punctuation if the target is empty
+		bool bEmptyTarget = FALSE;
+		if (!str.IsEmpty() && pApp->m_bCopySourcePunctuation)
 		{
-			// span using target lang's punctuation - wxWidgets version SpanIncluding() in helpers.h
-			wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]); // span using target
+			// check for any medial punctuation, if there is any, see if it is all in
+			// the targetStr already; if not, ask user for whatever is missing (if he wants
+			// he can then place the extra stuff, or ignore it). We assume that the
+			// phrase is not so long that the same punctuation will occur medially twice, if
+			// it does, our algorithm will not ensure each instance is there; so to be sure, the
+			// user should type what he wants in the Phrase Box in the first place.
+			if (pSrcPhrase->m_bHasInternalPunct)
+			{
+				wxString punct;
+				bool bFoundAll = TRUE;
+				wxArrayString* pList = pSrcPhrase->m_pMedialPuncts; // the CSourcePhrase might contain
+																  // a phrase or a word
+				int count = pList->GetCount();
 
-			if (strInitialPunct.IsEmpty())
-			{
-				// there was no initial punctuation typed, so silently copy original's to the
-				// target later on (not here, in case it mucks up the check for following punct)
-				bWantPrevCopy = TRUE;
-			}
-			else
-			{
-				// let the punctuation typed by the user stand unchanged, but for auto caps ON
-				// get the case change done if it is required
-				punctLen = strInitialPunct.Length();
-			}
-
-			if (bWantChangeToUC)
-			{
-				// check first that the change to upper case is possible
-				wxString noInitialPunctStr = str.Mid(punctLen);
-				bNoError = SetCaseParameters(noInitialPunctStr,FALSE);
-				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+				for ( int n = 0; n < count; n++ )
 				{
-					// do the change to upper case
-					str.SetChar(punctLen,gcharNonSrcUC);
+					punct = pList->Item(n); // can be several punct characters in the
+												 // stored string
+					wxASSERT(!punct.IsEmpty());
+					strCorresp = GetConvertedPunct(punct); // uses PUNCTPAIRS and TWOPUNCTPAIRS
+														   // for converting
+
+					// the new syntax no longer checks if some are already typed, it just assumes
+					// none are
+					remainderList.Add(strCorresp);//remainderList.AddTail(strCorresp);
+					bFoundAll = FALSE;
+				}
+
+				if (!bFoundAll)
+				{
+					// put them all in interactively using a dialog (formerly, the dialog showed
+					// only the ones not typed)
+					gpRemainderList = &remainderList; // set the global so dialog can access it
+					CPlaceInternalPunct dlg(wxGetApp().GetMainFrame());
+					dlg.Centre();
+					dlg.m_pSrcPhrase = pSrcPhrase; // set the dialog's local member
+					dlg.ShowModal(); // display the dialog
+
+					// get the result, and fix the source phrase accordingly
+					str = dlg.m_tgtPhrase; // remember str could be a phrase, and so contain one
+										   // or more spaces
+					// anything left in the list can be thrown away now
+					gpRemainderList->Clear();
+					gpRemainderList = (wxArrayString*)NULL; // the remainderList will be destroyed when it goes out
+											// of scope
+					strCorresp.Empty();
 				}
 			}
 		}
-		// if the word or phrase in the source had no preceding punctuation, then
-		// MakeLineFourString will do nothing, so that if the user elects to explicitly type
-		// some preceding punctuation, it will be accepted unconditionally
-
-		// ditto, for following punctuation
-		if (!pSrcPhrase->m_follPunct.IsEmpty())
+		else
 		{
-			wxString reverse = str;
-			reverse = MakeReverse(reverse); // my version of MakeReverse() in helpers.h
+			bEmptyTarget = TRUE;
+		}
 
-			wxString strFollPunct = SpanIncluding(reverse,pApp->m_punctuation[1]); // span using
-													// target lang's punctuation - see helpers.h
-			if (strFollPunct.IsEmpty())
+		// BEW addition 23March05, to allow detached punctuation to be reconstructed in the target text
+		// I do it here and not for the internal punctuation case above because it would make no sense to
+		// do the block of code above when the target is empty
+		bool bWantPrevCopy;
+		//int len; // unused
+		int punctLen;
+		if (bEmptyTarget) bEmptyTarget = FALSE;
+
+		// BEW added 20 April 2005 to support the use of the new No Punctuation Copy button
+		if (!pApp->m_bCopySourcePunctuation)
+			goto a; // don't restore the TRUE value for this flag at the end of this function because
+					// the function can be called more than once while the phrase box is unmoved. Do
+					// the flag restoration to TRUE in code which moves the phrase box elsewhere
+
+		// preceding punctuation can be handled silently. If the user typed different
+		// punctuation, then the user's must override the original punctuation. The target text
+		// string might be a phrase and hence contain spaces, but space is a delimiter in
+		// m_punctSet from version 1.3.6 onwards, so we must be careful in the next code blocks
+		// - SpanIncluding() can still be used safely, because there will be nonpunctuation and
+		// nonspace characters prior to any spaces in the phrase; and similarly when reversed
+		bWantPrevCopy = FALSE;
+		punctLen = 0; // for auto caps support
+		if (!bEmptyTarget)
+		{
+			if (!pSrcPhrase->m_precPunct.IsEmpty())
 			{
-				// there was no final punctuation typed, so silently copy original's to the target
-				wxString tgtFollPunct;
-				tgtFollPunct.Empty();
-				tgtFollPunct = GetConvertedPunct(pSrcPhrase->m_follPunct);
+				// span using target lang's punctuation - wxWidgets version SpanIncluding() in helpers.h
+				wxString strInitialPunct = SpanIncluding(str, pApp->m_punctuation[1]); // span using target
 
-				// references in the text like 10:27 give this algorithm problems; the first time
-				// the phrasebox is accessed, :27 gets appended to 10, resulting in 10:27 as the
-				// target text - correctly; but if the user backtracks to that CSourcePhrase instance
-				// later on (by any means), then MakeLineFourString will be called at least two more
-				// times, and the next time round the passed in text would be 10:27 to which a
-				// further :27 gets added, producing 10:27:27 and then the caller would call
-				// RemovePunctuation( ) which is coded in such a way that this "word" would result
-				// in 1027 being saved to the KB and the final :27 retained as following punctuation,
-				// and that gets added producing 1027:27 - and so it goes on, next we'd get
-				// 102727:27, and so on ad infinitum. To break this sequence of errors, we need to
-				// do a test for "following punctuation" strings which have already been added
-				// to the word, such as "10". So we use the reversed string and also reverse
-				// tgtFollPunct and check if the latter is the initial string already - if so,
-				// we assume nothing more needs to be done.
-				wxString reverseFollPunct = tgtFollPunct;
-				reverseFollPunct = MakeReverse(reverseFollPunct);
-				int nFind = reverse.Find(reverseFollPunct);
-				if (nFind == 0)
+				if (strInitialPunct.IsEmpty())
 				{
-					// we have a situation where it looks like the 'following punctuation' has
-					// already been added so we'll do nothing
-					;
+					// there was no initial punctuation typed, so silently copy original's to the
+					// target later on (not here, in case it mucks up the check for following punct)
+					bWantPrevCopy = TRUE;
 				}
 				else
 				{
-					// looks like it has not been added yet, so do so
-					str += tgtFollPunct;
+					// let the punctuation typed by the user stand unchanged, but for auto caps ON
+					// get the case change done if it is required
+					punctLen = strInitialPunct.Length();
+				}
+
+				if (bWantChangeToUC)
+				{
+					// check first that the change to upper case is possible
+					wxString noInitialPunctStr = str.Mid(punctLen);
+					bNoError = SetCaseParameters(noInitialPunctStr,FALSE);
+					if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+					{
+						// do the change to upper case
+						str.SetChar(punctLen,gcharNonSrcUC);
+					}
 				}
 			}
-			else
+			// if the word or phrase in the source had no preceding punctuation, then
+			// MakeLineFourString will do nothing, so that if the user elects to explicitly type
+			// some preceding punctuation, it will be accepted unconditionally
+
+			// ditto, for following punctuation
+			if (!pSrcPhrase->m_follPunct.IsEmpty())
 			{
-				; // do nothing, let the punctuation typed by the user stand unchanged
+				wxString reverse = str;
+				reverse = MakeReverse(reverse); // my version of MakeReverse() in helpers.h
+
+				wxString strFollPunct = SpanIncluding(reverse,pApp->m_punctuation[1]); // span using
+														// target lang's punctuation - see helpers.h
+				if (strFollPunct.IsEmpty())
+				{
+					// there was no final punctuation typed, so silently copy original's to the target
+					wxString tgtFollPunct;
+					tgtFollPunct.Empty();
+					tgtFollPunct = GetConvertedPunct(pSrcPhrase->m_follPunct);
+
+					// references in the text like 10:27 give this algorithm problems; the first time
+					// the phrasebox is accessed, :27 gets appended to 10, resulting in 10:27 as the
+					// target text - correctly; but if the user backtracks to that CSourcePhrase instance
+					// later on (by any means), then MakeLineFourString will be called at least two more
+					// times, and the next time round the passed in text would be 10:27 to which a
+					// further :27 gets added, producing 10:27:27 and then the caller would call
+					// RemovePunctuation( ) which is coded in such a way that this "word" would result
+					// in 1027 being saved to the KB and the final :27 retained as following punctuation,
+					// and that gets added producing 1027:27 - and so it goes on, next we'd get
+					// 102727:27, and so on ad infinitum. To break this sequence of errors, we need to
+					// do a test for "following punctuation" strings which have already been added
+					// to the word, such as "10". So we use the reversed string and also reverse
+					// tgtFollPunct and check if the latter is the initial string already - if so,
+					// we assume nothing more needs to be done.
+					wxString reverseFollPunct = tgtFollPunct;
+					reverseFollPunct = MakeReverse(reverseFollPunct);
+					int nFind = reverse.Find(reverseFollPunct);
+					if (nFind == 0)
+					{
+						// we have a situation where it looks like the 'following punctuation' has
+						// already been added so we'll do nothing
+						;
+					}
+					else
+					{
+						// looks like it has not been added yet, so do so
+						str += tgtFollPunct;
+					}
+				}
+				else
+				{
+					; // do nothing, let the punctuation typed by the user stand unchanged
+				}
+			}
+			// if the word or phrase in the source had no following punctuation, then
+			// MakeLineFourString will do nothing, so that if the user elects to explicitly type
+			// some following punctuation, it will be accepted unconditionally
+
+			// add the preceding punctuation, if any
+			if (bWantPrevCopy)
+			{
+				wxString tgtPrecPunct;
+				tgtPrecPunct.Empty();
+				tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
+				str = tgtPrecPunct + str;
 			}
 		}
-		// if the word or phrase in the source had no following punctuation, then
-		// MakeLineFourString will do nothing, so that if the user elects to explicitly type
-		// some following punctuation, it will be accepted unconditionally
 
-		// add the preceding punctuation, if any
-		if (bWantPrevCopy)
-		{
-			wxString tgtPrecPunct;
-			tgtPrecPunct.Empty();
-			tgtPrecPunct = GetConvertedPunct(pSrcPhrase->m_precPunct);
-			str = tgtPrecPunct + str;
-		}
+		// now add the final form of the target string to the source phrase
+a:		pSrcPhrase->m_targetStr = str;
 	}
-
-	// now add the final form of the target string to the source phrase
-a:	pSrcPhrase->m_targetStr = str;
+    // store the sequence number on the app class, so that if we reenter while at the same
+    // sequence number, the test at the top of the function can detect this and if the
+    // m_nPlacePunctDlgCallNumber value has just been incremented to be 2 or higher, we
+    // will skip the code contained in this function; the m_nPlacePunctDlgCallNumber value
+    // is reset to 0 at the end of CLayout::Draw(), and at the same place the
+    // m_nCurSequNum_ForPlacementDialog is reset to default -1
+	pApp->m_nCurSequNum_ForPlacementDialog = theSequNum;
 }
 
 wxString CAdapt_ItView::GetConvertedPunct(const wxString& rStr)
@@ -30889,9 +30906,9 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 					pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+					Invalidate();
+					GetLayout()->PlaceBox();
 				}
-				Invalidate();
-				GetLayout()->PlaceBox();
 			}
 		}
 	}
@@ -31160,9 +31177,9 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 					pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 					pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+					Invalidate();
+					GetLayout()->PlaceBox();
 				}
-				Invalidate();
-				GetLayout()->PlaceBox();
 			}
 		}
 	}
@@ -31233,9 +31250,9 @@ void CAdapt_ItView::OnMarkerWrapsStrip(wxCommandEvent& WXUNUSED(event))
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 			pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+			Invalidate();
+			GetLayout()->PlaceBox();
 		}
-		Invalidate();
-		GetLayout()->PlaceBox();
 	}
 }
 
@@ -31584,12 +31601,15 @@ void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
 		return;
 
 	// are boundaries to be ignored?
-	bool bIgnoreBoundaries = !pApp->m_bRespectBoundaries; // if m_bRespectBoundaries is FALSE because
-					// user clicked the button, for a SHIFT select, SelectDragRange sometimes
-					// gets called, and if we unilaterally start with bIgnoreBoundaries as FALSE
-					// then it can result in a long selection being wrongly shortened to the
-					// loc'n of the first bounding srcPhrase
-	if (wxGetKeyState(WXK_CONTROL))
+    // if m_bRespectBoundaries is FALSE because user clicked the button, for a SHIFT
+    // select, SelectDragRange sometimes gets called, and if we unilaterally start with
+    // bIgnoreBoundaries as FALSE then it can result in a long selection being wrongly
+	// shortened to the loc'n of the first bounding srcPhrase when what would be wanted is
+	// the long selection should be honoured. So we test for either the control key down,
+	// or the Ignore Boundaries button having been clicked - if either or both is true,
+	// then we ignore boundaries
+	bool bIgnoreBoundaries = FALSE;
+	if (!pApp->m_bRespectBoundaries || wxGetKeyState(WXK_CONTROL))
 		bIgnoreBoundaries = TRUE;
 
 	if (pAnchor->GetCellIndex() != pCurrent->GetCellIndex())

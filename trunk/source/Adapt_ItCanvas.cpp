@@ -1373,7 +1373,7 @@ t:	if (pCell == NULL)
 
 									// if we have reached a boundary, then break out, 
 									// otherwise continue
-									if (pView->IsBoundaryCell(pCurCell))
+									if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
 									{
 										break;
 									}
@@ -1414,7 +1414,7 @@ t:	if (pCell == NULL)
 
 									// if we have reached a boundary, then break out, 
 									// otherwise continue
-									if (pView->IsBoundaryCell(pCurCell))
+									if (pView->IsBoundaryCell(pCurCell)&& pApp->m_bRespectBoundaries)
 									{
 										break;
 									}
@@ -1491,7 +1491,7 @@ t:	if (pCell == NULL)
 
 									// if it is a boundary then we must break out 
 									// of the loop
-									if (pApp->m_bRespectBoundaries)
+									if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
 									{
 										if (pView->IsBoundaryCell(pCurCell))
 											break;
@@ -1535,7 +1535,7 @@ t:	if (pCell == NULL)
 									pCurCell = pCurPile->GetCell(pApp->m_selectionLine);
 
 									// if it is a boundary then we must break out of the loop
-									if (pApp->m_bRespectBoundaries)
+									if (pApp->m_bRespectBoundaries && pApp->m_bRespectBoundaries)
 									{
 										if (pView->IsBoundaryCell(pCurCell))
 											break;
@@ -1730,7 +1730,31 @@ t:	if (pCell == NULL)
 						pView->SendScriptureReferenceFocusMessage(pApp->m_pSourcePhrases,pCell->GetPile()->GetSrcPhrase());
 					}
 
-					pView->PlacePhraseBox(pCell); // calls RecalcLayout()
+					// BEW changed 1Jul09, the use of the CPhraseBox::m_bAbandonable flag
+					// got lost in the port to wxWidgets, so it needs to be restored. We
+					// don't retain the box contents if m_bAbandonable is TRUE when the
+					// user clicks at some other location, nor do we store something in
+					// the KB based on whatever source text may have been copied to the
+					// location that is now being moved from. This lets the user click
+					// around the document in locations without any adaptation, examine
+					// what is there, and click to move the box elsewhere, without any
+					// copies of source text being stored to the KB (unless of course he
+					// clicks in the box or edits, etc). The PlacePhraseBox() call, for
+					// either situation, calls RecalcLayout()
+					if (pApp->m_pTargetBox->m_bAbandonable)
+					{
+						translation.Empty();
+						pApp->m_targetPhrase.Empty();
+						pApp->m_pTargetBox->ChangeValue(_T(""));
+						pView->PlacePhraseBox(pCell, 2); // selector = 2, meaning no store
+							// is done at the leaving location, but a removal from the KB
+							// will be done at the landing location
+					}
+					else
+					{
+						pView->PlacePhraseBox(pCell); // selector = default 0 (meaning
+							// KB access is done at both leaving and landing locations)
+					}
 					ScrollIntoView(pApp->m_nActiveSequNum);
 				}
 
