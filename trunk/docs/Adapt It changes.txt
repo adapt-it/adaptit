@@ -23,9 +23,9 @@ automatically advances to the next found text location that
 matches. That behaviour prevented the user from seeing what the 
 effect of the replacement was, and it took away the chance of
 doing further editing before doing the next Find. Now the Find
-button has to be pressed explicitly once the user is ready, each
-time after a replacement has been done. (Replace All works as
-it did earlier.)
+Next button has to be pressed explicitly once the user is ready, 
+each time after a replacement has been done. (Replace All works 
+as it did earlier.)
 * The toggle buttons for switching on/off two source text lines
 the display, and / or two target text lines, have been removed.
 * Use of the command bar button "Ignore Boundaries" has been
