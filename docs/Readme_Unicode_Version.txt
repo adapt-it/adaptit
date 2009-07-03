@@ -1,7 +1,7 @@
 =====================================================================
 Adapt It WX Unicode
 =====================================================================
-Version 4.1.5
+Version 5.0.0
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -21,10 +21,10 @@ Special Considerations for the Unicode Version:
 If you already have an Adapt It version (used for non-Unicode ANSI 
 encoded text), then Adapt It WX Unicode will not be installed into 
 the same "Adapt It" (version 2 or 3) directory or "Adapt It WX" 
-(version 4) directory in your "Program Files" folder, but instead, 
-it installs into an "Adapt It WX Unicode" directory within "Program 
-Files". On Windows platforms, the Adapt_It.exe executable is the 
-non-Unicode ANSI version, and the Adapt_It_Unicode.exe is the 
+(version 4 or 5) directory in your "Program Files" folder, but 
+instead, it installs into an "Adapt It WX Unicode" directory within 
+"Program Files". On Windows platforms, the Adapt_It.exe executable 
+is the non-Unicode ANSI version, and the Adapt_It_Unicode.exe is the 
 Unicode version. Only Unicode versions are available for Linux and
 the Macintosh. The Unicode version can also be used for Roman 
 scripts provided the input data files are encoded as Unicode, and 
@@ -41,7 +41,7 @@ are just starting with Adapt It WX Unicode, and your data is already
 in Unicode (either UTF-8 or UTF-16), you are ready to begin using 
 the application to do adaptation work immediately. If your legacy 
 encoding uses only standard characters known to your operating 
-system's codepage, then Adapt It WX Unicode will be able to 
+system's codepage, then Adapt It WX Unicode should be able to 
 correctly convert your legacy source language data to unicode when 
 you input it.
 
@@ -53,8 +53,7 @@ translated text or the source text to legacy encoding again. However,
 if your legacy encoding is a hacked ANSI encoding, the conversions 
 will not be done correctly. For the latter, it is preferable for you 
 to use the non-Unicode ANSI version, called Adapt It WX. It is 
-available from the same source, bruce_waters@sil.org, or 
-bill_martin@sil.org.
+available from the same source, at http://adapt-it.org/.
 
 Adapt It WX Unicode will only run reliably on Windows NT, 2000, XP, 
 or later systems. It will run on Windows 98 but the screen will show 
@@ -73,7 +72,7 @@ the word processor's native format - usually with a .doc or .odt
 extension. Adapt It also cannot accepts documents that have been saved 
 in rich text (.rtf) format as input source texts. A future version of 
 Adapt It may be able to accept some type of XML formatted document for 
-input as source text, but this current version 4.x does not accept 
+input as source text, but this current version 5.x does not accept 
 .xml format documents as input texts. Hence, this version of Adapt It 
 will not accept documents saved as Word 2003 XML documents as input
 texts.
@@ -290,7 +289,7 @@ in the Adapt It Start Menu group on Windows installations):
 ---------------------------------------------------------------------
 Localization:
 ---------------------------------------------------------------------
-Version 4 of Adapt It (Adapt It WX) introduces a flexible interface 
+Version 4 of Adapt It (Adapt It WX) introduced a flexible interface 
 and localization mechanism making it possible for the user to select 
 any interface language of choice from a list. Choosing an interface 
 language other than English can be done when Adapt It is first run, 
@@ -325,7 +324,7 @@ translators. They endeavour to respond quickly and effectively to
 email questions and/or bug reports. Usually if a bug can be 
 identified, a fix or work-around for a problem can be provided within
 24 hours. As the Adapt It user base grows and more users gain 
-experience using Adapt It, an Adapt It User Forum will provide an 
+experience using Adapt It, the Adapt It User Forum will provide an 
 increasing share of help for Adapt It users. Be sure to examine the 
 help documents and help system provided with Adapt It, as they can 
 be invaluable sources of information.

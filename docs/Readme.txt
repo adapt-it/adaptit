@@ -1,7 +1,7 @@
 =====================================================================
 Adapt It WX
 =====================================================================
-Version 4.1.5
+Version 5.0.0
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -25,7 +25,7 @@ the word processor's native format - usually with a .doc or .odt
 extension. Adapt It also cannot accepts documents that have been saved 
 in rich text (.rtf) format as input source texts. A future version of 
 Adapt It may be able to accept some type of XML formatted document for 
-input as source text, but this current version 4.x does not accept 
+input as source text, but this current version 5.x does not accept 
 .xml format documents as input texts. Hence, this version of Adapt It 
 will not accept documents saved as Word 2003 XML documents as input
 texts.
@@ -242,7 +242,7 @@ in the Adapt It Start Menu group on Windows installations):
 ---------------------------------------------------------------------
 Localization:
 ---------------------------------------------------------------------
-Version 4 of Adapt It (Adapt It WX) introduces a flexible interface 
+Version 4 of Adapt It (Adapt It WX) introduced a flexible interface 
 and localization mechanism making it possible for the user to select 
 any interface language of choice from a list. Choosing an interface 
 language other than English can be done when Adapt It is first run, 
@@ -277,7 +277,7 @@ translators. They endeavour to respond quickly and effectively to
 email questions and/or bug reports. Usually if a bug can be 
 identified, a fix or work-around for a problem can be provided within
 24 hours. As the Adapt It user base grows and more users gain 
-experience using Adapt It, an Adapt It User Forum will provide an 
+experience using Adapt It, the Adapt It User Forum will provide an 
 increasing share of help for Adapt It users. Be sure to examine the 
 help documents and help system provided with Adapt It, as they can 
 be invaluable sources of information.

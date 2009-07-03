@@ -1,4 +1,4 @@
-Limitations and known issues in the version 4.1.5 release 
+Limitations and known issues in the version 5.0.0 release 
 of Adapt It WX and Adapt It WX Unicode:
 
 Windows version:
@@ -15,12 +15,7 @@ when loaded into Open Office 3. They should format correctly
 with MS Word. Eventually the RTF exports will be reworked to 
 be compatible with Open Office 3.
 
-2. The layout of RTL text in the Adapt It WX Unicode version 
-has not been thoroughly tested and may have some layout 
-problems, especially on the non-Windows (Linux and/or 
-Macintosh) ports. Feedback welcome.
-
-3. Sync Scrolling should work on the Windows port, but has not 
+2. Sync Scrolling should work on the Windows port, but has not 
 been implemented on the non-Windows ports because the 
 mechanism that controls synchronized scrolling in application 
 such as TW and Paratext was designed with only the Windows 
@@ -31,7 +26,7 @@ Adapt It running on those ports to sync scroll with other
 applications capable of sync scrolling that run natively on 
 those other ports.
 
-4. Adapt It WX only uses the xml file format for its documents 
+3. Adapt It WX only uses the xml file format for its documents 
 and KB files. It will not recognize nor can it convert any 
 files that still use the legacy .adt (binary) format. If you 
 have any old .adt files produced by earlier legacy versions of 
@@ -41,7 +36,7 @@ them with the "Save Documents and KB as XML" menu item
 selected on the File menu. After they have been saved as XML, 
 Adapt It WX will be able to open and process them normally.
 
-5. Adapt It WX does not have a splitter window with ability to 
+4. Adapt It WX does not have a splitter window with ability to 
 split the main window horizontally into two separately scrolled 
 windows into the view. This would take a fair bit of work to 
 implement on the cross platform version, but could probably be 
