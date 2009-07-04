@@ -423,7 +423,8 @@ void CLayout::Draw(wxDC* pDC)
 	SetFullWindowDrawFlag(FALSE);
 	pDC->DestroyClippingRegion(); // makes it default to full-window drawing again
 				// (Invalidate() is where a clip rectangle will be set, if wanted)
-	ClearClipRect();
+	// BEW removed 3Jul09, a zero rectangle suffices for clipping for flicker suppression
+	//ClearClipRect();
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
@@ -441,7 +442,7 @@ void CLayout::Draw(wxDC* pDC)
 // the Redraw() member function can be used in many places where, in the legacy application,
 // the document is unchanged but the layout needs repainting (eg. a window temporarily covered
 // part of the canvas/view); the legacy app just called RecalcLayout() to recreate the bundle, but
-// now that bundles are removed, calling CLayout::RecalcLayout(FALSE) is potentially to costly,
+// now that bundles are removed, calling CLayout::RecalcLayout() is potentially too costly,
 // and unnecessary (since the strips piles and cells are okay already); so we just need to redraw
 // (we could call Invalidate() on the view, but with Redraw() we potentially have more control)
 // bFirstClear is default TRUE; if TRUE it causes aDC to paint the client area with background
@@ -522,6 +523,7 @@ CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
 
 #ifdef Do_Clipping
 // Clipping support
+/*
 void CLayout::CalcClipRectangle(CPile* pActivePile,
 								int& top, int& left, int& width, int& height)
 {
@@ -555,7 +557,6 @@ void CLayout::SetClipRectangle(CPile* pActivePile)
 									m_nClipRectWidth, m_nClipRectHeight);  
 }
 
-
 wxRect CLayout::GetClipRect()
 {
 	wxRect rect(m_nClipRectLeft,m_nClipRectTop,m_nClipRectWidth,m_nClipRectHeight);
@@ -569,7 +570,7 @@ void CLayout::ClearClipRect()
 	m_nClipRectWidth = 0;
 	m_nClipRectHeight = 0;
 }
-
+*/
 void CLayout::SetFullWindowDrawFlag(bool bFullWndDraw)
 {
 	if (bFullWndDraw)
@@ -963,6 +964,24 @@ void CLayout::PlaceBox()
 		{
 			// call our own SetModify(FALSE) which calls DiscardEdits() (see Phrasebox.cpp)
 			m_pApp->m_pTargetBox->SetModify(FALSE); 
+		}
+
+		// put focus in compose bar's edit box if in free translation mode
+		if (m_pApp->m_bFreeTranslationMode)
+		{
+			CMainFrame* pFrame = m_pApp->GetMainFrame();
+			wxASSERT(pFrame != NULL);
+			if (pFrame->m_pComposeBar != NULL)
+				if (pFrame->m_pComposeBar->IsShown())
+				{
+					wxTextCtrl* pComposeBox = (wxTextCtrl*)
+								pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+					wxString text;
+					text = pComposeBox->GetValue(); 
+					int len = text.Length();
+					pComposeBox->SetSelection(len,len);
+					pComposeBox->SetFocus();
+				}
 		}
 	}
 	//pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
@@ -2719,7 +2738,8 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 		}
 	default: // do this if a garbage value is passed in
 		{
-			m_pApp->m_nStartChar = 0;
+			//m_pApp->m_nStartChar = 0;
+			m_pApp->m_nStartChar = -1; // WX uses -1, not 0 as in MFC
 			m_pApp->m_nEndChar = -1;
 			break;
 		}

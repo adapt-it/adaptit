@@ -282,11 +282,14 @@ public:
 	bool		GetFullWindowDrawFlag();
 	void		SetScrollingFlag(bool bIsScrolling);
 	bool		GetScrollingFlag();
-	void		CalcClipRectangle(CPile* pActivePile,
-				int& top, int& left, int& width, int& height); // always, the active pile only
-	void		SetClipRectangle(CPile* pActivePile);
-	wxRect		GetClipRect();
-	void		ClearClipRect(); // don't confuse with device context's DestroyClippingRegion()
+	// BEW removed next three on 3July09, because a zero rectangle works fine for
+	// clipping, because drawing in the phrase box still works even when nothing can be
+	// drawn in the view
+	//void		CalcClipRectangle(CPile* pActivePile,
+	//			int& top, int& left, int& width, int& height); // always, the active pile only
+	//void		SetClipRectangle(CPile* pActivePile);
+	//wxRect	GetClipRect();
+	//void		ClearClipRect(); // don't confuse with device context's DestroyClippingRegion()
 	/* don't need these
 	void		SetClipRectTop(int nTop);
 	void		SetClipRectLeft(int nLeft);

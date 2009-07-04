@@ -732,12 +732,6 @@ extern bool		gbEnterTyped;			 // see CPhraseBox for explanation
 
 extern  wxString	gSaveTargetPhrase; // for use by the SHIFT+END shortcut for unmerging a phrase
 
-// / This global is defined in PhraseBox.cpp.
-extern  long	gnStart;
-
-// / This global is defined in PhraseBox.cpp.
-extern  long	gnEnd;
-
 extern	bool	gbExpanding; // see use in CalcPileWidth // defined in CPhraseBox // changed int to bool
 
 // / This global is defined in Adapt_It.cpp.
@@ -1926,90 +1920,19 @@ void CAdapt_ItView::OnInitialUpdate()
 
 	pApp->GetMainFrame()->canvas->SetVirtualSize(pApp->m_docSize); //SetScrollSizes(MM_TEXT, pDoc->m_docSize);
 
-	// make sure there is a CSourceBundle instance ready for use;
-	// MFC Note adds: "...and remember that OnInitInstance is called each time OnFileNew is called,
-	// so we have to ensure that old data is cleaned out first."
-	// whm Note: I think Bruce's "OnInitInstance" here is actually a reference to OnInitialUpdate.
-	// OnInitialUpdate is NOT called each time OnFileNew is called, but only once each time
-	// the app is launched. OnInitialUpdate is called by our OnInit() at program startup, and
-	// by the doc/view framework in response to File | New and when loading a doc from MRU.
-	/*
-	if (pApp->m_pBundle == NULL) // MFC had == 0
-	{
-		// No CSourceBundle instance yet, so create one & initialize it.
-		// Creation of a CSourceBundle also allocates pointers for its
-		// embedded CStrips, CPiles, CCells, and CText. These embedded
-		// CStrips, CPiles, CCells, and CText are themselves not yet
-		// dynamically created. Only CSourceBundle's constructor gets
-		// called below on the new CSourceBundle call, and it sets all
-		// 6,000 CStrip pointers to NULL.
-		//pApp->m_pBundle = new CSourceBundle(pDoc,this); // BEW deprecated 3Feb09
-		//pApp->m_pBundle = new CSourceBundle(this); // BEW deprecated 3Feb09
-		pApp->m_pBundle = new CSourceBundle();
-		wxASSERT(pApp->m_pBundle != NULL);
-
-		// initial value for count of strips in the bundle
-		pApp->m_pBundle->m_nStripCount = 0;
-
-		// add this in support of splitting the window (& must have SetScrollSizes
-		// called prior to this)
-		CalcInitialIndices();
-		pApp->UpdateTextHeights(this); // check this ???
-		RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
-
-		nSequNumForLastAutoSave = 0;
-	}
-	*/
 	// refactored version: try the following here
 	CLayout* pLayout = pApp->m_pLayout;
 	pLayout->InitializeCLayout(); // sets the app, doc, view, canvas & frame pointers, 
 								  // and clears m_stripArray
 	pLayout->SetLayoutParameters(); // calls InitializeCLayout() and UpdateTextHeights()
 									// and other setters
-	/*
-	bool bIsOK = pLayout->RecalcLayout(pApp->m_pSourcePhrases,TRUE); // TRUE means "create the m_pileList too"
-	if (!bIsOK)
-	{
-		wxMessageBox(_T("RecalcLayout returned FALSE in OnInitialUpdate() in view class"),_T(""), wxICON_ERROR);
-		wxASSERT(FALSE);
-	}
-	*/
 	pApp->m_targetPhrase = saveText;
-	gnStart = -1;
-	gnEnd = -1;
-	pApp->m_nStartChar = gnStart;
-	pApp->m_nEndChar = gnEnd;
-	//RedrawEverything(saveActiveSN); // first call of RedrawEverything in the View
-
-	// RedrawEverything clobbers the selection, we want initial text shown selected, so
-	// do it again
+	pApp->m_nStartChar = -1;
+	pApp->m_nEndChar = -1;
 	if (pApp->m_pTargetBox != NULL)
 	{
-		gnStart = -1;
-		gnEnd = -1;
-		pApp->m_nStartChar = gnStart;
-		pApp->m_nEndChar = gnEnd;
-		pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all // MFC uses SetSel
+		pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); // select it all
 	}
-
-	// BEW removed next two lines 2Jul09, too early for these calls, they aren't needed
-	//Invalidate(); // our own
-	//pLayout->PlaceBox();
-
-// Is the following necessary? Code from docvwmdi sample came commented out
-/* BEW 30Jun09, I don't think this is needed
-#ifdef __WXMSW__
-  if (pApp->GetMainFrame()->canvas)
-    pApp->GetMainFrame()->canvas->Refresh();
-#else
-  if (pApp->GetMainFrame()->canvas)
-    {
-      wxClientDC dc(pApp->GetMainFrame()->canvas);
-      dc.Clear();
-      OnDraw(& dc);
-    }
-#endif
-*/
 }
 
 bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of wxView
@@ -3883,8 +3806,6 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 						// earlier before returning
 						pApp->m_pTargetBox->SetFocus();
 						pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
-						gnStart = pApp->m_nStartChar;
-						gnEnd = pApp->m_nEndChar;
 						gSaveTargetPhrase = pApp->m_targetPhrase;
 						::wxBell(); // ring the bell to say that something wasn't right
 						pLayout->m_docEditOperationType = relocate_box_op;
@@ -6889,13 +6810,14 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 // app lives. When the target box should not be shown, it is now simply hidden, rather than
 // destroyed and reshown.
 void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int nHeight,
-							   wxString &text, int nStartChar, int nEndChar, CPile* pActivePile)
+				wxString &text, int nStartingChar, int nEndingChar, CPile* pActivePile)
 {
 	//refactored 7Apr09
 	#ifdef _Trace_Box_Loc_Wrong
 	if (pApp->m_nActiveSequNum >20)
 	{
-	TRACE3("\nCreateBox   pLoc {y= %d ,x= %d } sequ num = %d\n", pLoc->y, pLoc->x,pActivePile->m_pSrcPhrase->m_nSequNumber);
+	TRACE3("\nCreateBox   pLoc {y= %d ,x= %d } sequ num = %d\n", 
+		pLoc->y, pLoc->x,pActivePile->m_pSrcPhrase->m_nSequNumber);
 	}
 	#endif
 
@@ -6919,12 +6841,11 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	#ifdef _Trace_Box_Loc_Wrong
 	if (pApp->m_nActiveSequNum >20)
 	{
-	TRACE2("ResizeBox  rectBox topLeft { %d , %d } BEFORE OnPrepareDC & LPtoDP\n", rectBox.top, rectBox.left);
+	TRACE2("ResizeBox  rectBox topLeft { %d , %d } BEFORE OnPrepareDC & LPtoDP\n",
+			rectBox.top, rectBox.left);
 	}
 	#endif
 
-	int nStartingChar = nStartChar;
-	int nEndingChar = nEndChar;
 	/*{
 	#ifdef __WXDEBUG__
 		wxLogTrace("\nTrace 0 - Within ResizeBox - before OnPrepareDC call");
@@ -6942,10 +6863,11 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 
 	wxPoint ptrLoc = *pLoc;
 
-	// CalcScrolledPosition is the complement of CalcUnscrolledPosition; CalcScrolledPosition translates 
-	// logical coordinates to device ones.
+    // CalcScrolledPosition is the complement of CalcUnscrolledPosition;
+    // CalcScrolledPosition translates logical coordinates to device ones.
 	int newXPos,newYPos;
-	pApp->GetMainFrame()->canvas->CalcScrolledPosition(rectBox.x,rectBox.y,&newXPos,&newYPos);
+	pApp->GetMainFrame()->canvas->CalcScrolledPosition(
+								rectBox.x,rectBox.y,&newXPos,&newYPos);
 	rectBox.x = newXPos;
 	rectBox.y = newYPos;
 	// we leave the width and height the same
@@ -6990,20 +6912,17 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	pApp->m_pTargetBox->SetSize(rectBox.GetLeft(),rectBox.GetTop(),
 								rectBox.GetWidth(),rectBox.GetHeight());
 
-	// our NR version will use CEdit, not rich edit, so we need to enable it for complex script
-	// rendering add RTL support for NR version
-	// whm note: TODO: Shouldn't the following adjustment come before the SetSize call above???
-	// The MFC version also has it after the m_targetBox.Create(...,rectBox,...), but seems to
-	// me like the code below doesn't do anything to the size of the target box in its current
-	// position here and in the MFC version. The MFC legacy ResizeBox() routine which does a 
-	// similar thing, but the RTL Flags stuff there preceeds the SetWindowPos (wx equivalent 
-	// is SetSize).
+    // whm note: Shouldn't the following adjustment come before the SetSize call above???
+    // The MFC version also has it after the m_targetBox.Create(...,rectBox,...), but seems
+    // to me like the code below doesn't do anything to the size of the target box in its
+    // current position here and in the MFC version. The MFC legacy ResizeBox() routine
+    // which does a similar thing, but the RTL Flags stuff there preceeds the SetWindowPos
+    // (wx equivalent is SetSize).
 #ifdef _RTL_FLAGS
 	// adjust, otherwise box is a bit too small vertically
-	rectBox.SetHeight(rectBox.GetHeight() + 5); //rectBox.bottom += 5; // allow for the window borders
+	rectBox.SetHeight(rectBox.GetHeight() + 5); // allow for the window borders
 	if (gnVerticalBoxBloat > 0)
-		rectBox.SetHeight(rectBox.GetHeight() + gnVerticalBoxBloat); //rectBox.bottom += gnVerticalBoxBloat;
-																	 // allow for the leadings on the font
+		rectBox.SetHeight(rectBox.GetHeight() + gnVerticalBoxBloat); // allow for the leadings on the font
 	// enable complex rendering
 	// whm note for wx version: Right-to-left reading is handled automatically in Uniscribe and
 	// Pango, but they differ in how they handle Unicode text chars that are from the first 128
@@ -7028,14 +6947,11 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	}
 #endif // for _RTL_FLAGS
 
-	//pApp->m_targetBox.SetWindowText(text);
 	pApp->m_pTargetBox->ChangeValue(text);
 	if (gbIsGlossing && gbGlossingUsesNavFont)
-		//pApp->m_pTargetBox->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,*pApp->m_pNavTextFont));
 		pApp->m_pTargetBox->SetFont(*pApp->m_pNavTextFont);
 
 	else
-		//pApp->m_pTargetBox->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,*pApp->m_pTargetFont));
 		pApp->m_pTargetBox->SetFont(*pApp->m_pTargetFont);
 
 	// whm added following to show and enable the target box
@@ -7045,36 +6961,27 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	
 	// restore focus and cursor position or selection
 	pApp->m_pTargetBox->SetFocus();
-	pApp->m_pTargetBox->SetSelection(nStartingChar,nEndingChar); // TRUE = no scroll // MFC has SetSel and TRUE
-	gnStart = (int)nStartingChar;
-	gnEnd = (int)nEndingChar;
-	//pApp->m_pTargetBox->m_pActivePile = pActivePile;
+	pApp->m_pTargetBox->SetSelection(nStartingChar,nEndingChar);
+	pApp->m_nStartChar = (int)nStartingChar;
+	pApp->m_nEndChar = (int)nEndingChar;
 
 	if (pApp->m_bFreeTranslationMode)
 	{
-		// prevent clicks and editing being done in phrase box
+		// prevent clicks and editing from being done in the phrase box
 		// (do also in OnAdvancedFreeTranslationMode())
-		// wx version: by setting the targetbox with SetEditable(FALSE) instead of Enable(FALSE) we
-		// get to control the background color, keeping it pink in free trans mode
+        // wx version: by setting the targetbox with SetEditable(FALSE) instead of
+        // Enable(FALSE) we get to control the background color, keeping it pink in free
+        // trans mode
 		pApp->m_pTargetBox->SetEditable(FALSE); //pApp->m_pTargetBox->Enable(FALSE);
 		pApp->m_pTargetBox->SetBackgroundColour(pApp->m_freeTransCurrentSectionBackgroundColor);
 	}
 	else
 	{
-		// enable clicks and editing being to be done in phrase box
+		// enable clicks and editing to be done in the phrase box
 		// (do also in OnAdvancedFreeTranslationMode())
 		pApp->m_pTargetBox->SetEditable(TRUE); //pApp->m_pTargetBox->Enable(TRUE);
 		pApp->m_pTargetBox->SetBackgroundColour(wxColour(255,255,255)); // white
 	}
-
-	/* whm commented out because problem of invisible phrase box doesn't happen on the
-	// wx version.
-	// BEW added 20Dec07: in Review mode when box is resized to show on next line when
-	// box moves, it does not appear and doesn't appear for a for a few more Enter presses
-	m_targetBox.Invalidate(); // hopefully this will fix it - it did, but it didn't fix the
-							  // invisible box problem when user clicks on a hole in reviewing
-							  // mode and then uses Enter key to advance - the box remains invisible
-    */
 }
 
 void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
@@ -7202,7 +7109,8 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		if (pFrame->m_pComposeBar != NULL)
 			if (pFrame->m_pComposeBar->IsShown())
 			{
-				wxTextCtrl* pComposeBox = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
+				wxTextCtrl* pComposeBox = (wxTextCtrl*)
+							pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 				wxString text;
 				text = pComposeBox->GetValue(); 
 				len = text.Length();
@@ -7216,8 +7124,8 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->IsShown())
 		{
 			len = pApp->m_targetPhrase.Length();
-			gnStart = len;
-			gnEnd = len;
+			pApp->m_nStartChar = len;
+			pApp->m_nEndChar = len;
 			pApp->m_pTargetBox->SetSelection(len,len);
 			pApp->m_pTargetBox->SetFocus();
 		}
@@ -13410,8 +13318,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 			{
 				pApp->m_pTargetBox->SetFocus();
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar);
-				gnStart = pApp->m_nStartChar;
-				gnEnd = pApp->m_nEndChar;
 			}
 			gbMergeSucceeded = FALSE;
 			Invalidate(); // get a redraw done, and the phrase box reshown
@@ -13583,8 +13489,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		{
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); 
-			gnStart = pApp->m_nStartChar;
-			gnEnd = pApp->m_nEndChar;
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
@@ -13609,8 +13513,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		{
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-			gnStart = pApp->m_nStartChar;
-			gnEnd = pApp->m_nEndChar;
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
@@ -13637,8 +13539,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		{
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-			gnStart = pApp->m_nStartChar;
-			gnEnd = pApp->m_nEndChar;
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
@@ -13662,8 +13562,6 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		{
 			pApp->m_pTargetBox->SetFocus();
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); 
-			gnStart = pApp->m_nStartChar;
-			gnEnd = pApp->m_nEndChar;
 		}
 		gbMergeSucceeded = FALSE;
 		Invalidate();
@@ -16755,7 +16653,8 @@ void CAdapt_ItView::OnClearContentsButton(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 {
-	CMainFrame *pFrame = wxGetApp().GetMainFrame();
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CMainFrame *pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
 	wxPanel* pComposeBar = pFrame->m_pComposeBar;
 	if(pComposeBar != NULL && pComposeBar->IsShown())
@@ -16764,8 +16663,8 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 		if (pEdit != 0)
 		{
 			pEdit->SetSelection(-1,-1);
-			gnStart = -1;
-			gnEnd = -1;
+			pApp->m_nStartChar = -1;
+			pApp->m_nEndChar = -1;
 			pEdit->SetFocus();
 		}
 	}
@@ -18576,8 +18475,6 @@ m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
 		{
 			pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar, pApp->m_nEndChar); 
 		}
-		gnStart = pApp->m_nStartChar;
-		gnEnd = pApp->m_nEndChar;
 
 		// scroll into view, just in case a lot were inserted
 		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -23082,8 +22979,6 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		pList = (SPList*)NULL;
 		pApp->m_pTargetBox->SetFocus();
 		pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-		gnStart = pApp->m_nStartChar;
-		gnEnd = pApp->m_nEndChar;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		return;
@@ -23103,8 +22998,6 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		RemoveSelection();
 		pApp->m_pTargetBox->SetFocus();
 		pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-		gnStart = pApp->m_nStartChar;
-		gnEnd = pApp->m_nEndChar;
 		Invalidate();
 		GetLayout()->PlaceBox();
 		return;
@@ -23566,8 +23459,8 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 
 		pApp->m_targetPhrase = str3; // the Phrase Box can have punctuation as well as text
 		pApp->m_pTargetBox->ChangeValue(str3);
-		gnStart = -1;
-		gnEnd = -1;
+		pApp->m_nStartChar = -1;
+		pApp->m_nEndChar = -1;
 
 		// layout again, so that the targetBox won't encroach on the next cell's adaption text 
 		// (can't just layout the strip, because if the text is long then source phrases get pushed
@@ -24529,11 +24422,11 @@ h:				wxMessageBox(_(
 		//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 		//RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
 
-		// next two are handled now in PlacePhraseBoxInLayout()
+		// next two are handled now in PlaceBox()
 		//pApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
 		//pApp->m_pTargetBox->SetFocus();
-		gnStart = -1;
-		gnEnd = -1;
+		pApp->m_nStartChar = -1;
+		pApp->m_nEndChar = -1;
 
 		// remove selection and update the display
 		RemoveSelection();
@@ -25029,8 +24922,8 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		if (pApp->m_pTargetBox->IsShown())
 		{
 			int len = pApp->m_targetPhrase.Length();
-			gnStart = len;
-			gnEnd = len;
+			pApp->m_nStartChar = len;
+			pApp->m_nEndChar = len;
 			pApp->m_pTargetBox->SetSelection(len,len);
 			pApp->m_pTargetBox->SetFocus();
 		}
@@ -29250,8 +29143,8 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	if (fileDlg.ShowModal() != wxID_OK)
 	{
 		int length = pApp->m_targetPhrase.Length();
-		gnStart = length;
-		gnEnd = length;
+		pApp->m_nStartChar = length;
+		pApp->m_nEndChar = length;
 		pApp->m_pTargetBox->SetSelection(length,length);
 		pApp->m_pTargetBox->SetFocus();
 		// whm added 05Jan07 to restore the former current working directory for safety sake
@@ -29518,8 +29411,8 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	}
 
 	int length = pApp->m_targetPhrase.Length();
-	gnStart = length;
-	gnEnd = length;
+	pApp->m_nStartChar = length;
+	pApp->m_nEndChar = length;
 	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown())
 	{
 		pApp->m_pTargetBox->SetSelection(length,length);
@@ -32663,7 +32556,7 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	if (pApp->m_selection.GetCount() > 0)
 		pApp->m_selection.Clear();
 
-	/* removed, CLayout::Draw() now does this
+	/* removed, CLayout::PlaceBox() now does this
 	// recalc the box
 	pApp->m_nStartChar = 0; // whm Note: ResizeBox call below also sets gnStart and gnEnd to 0 from these values
 	pApp->m_nEndChar = 0;
@@ -50456,7 +50349,7 @@ bool CAdapt_ItView::OnClose(bool deleteWindow)
 //					// to be processed
 //}
 
-void CAdapt_ItView::Invalidate() // for MFC compatibility
+void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -50487,8 +50380,24 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility
 	{
 		if (pApp->m_pActivePile != NULL)
 		{
-			pLayout->SetClipRectangle(pApp->m_pActivePile);
-			wxRect r = pLayout->GetClipRect();
+			/* BEW changed 3Jul09, see comment below, a zero rectangle suffices for clipping
+			//pLayout->SetClipRectangle(pApp->m_pActivePile);
+			//wxRect r = pLayout->GetClipRect();
+
+            // debug test: halve the height, it appears to be too deep a rectangle because
+            // there is drawing (because we see flicker there) under the phrase box's width
+            // for two strips below the box -- test if this can be stopped? Yes, the strip
+            // below had no content, but the second did, and halving the height stopped the
+            // blink. However, it appears that the phrase box typing goes in and is visible
+            // regardless of how big the view's clip rectangle is, is that so? Yes indeed,
+            // so there is no point in wasting time on calculating the clip rectangle to be
+            // just the box's rectangle or the pile's rectangle, just make it a zero
+            // rectange so the Draw() of the view draws nothing, to save time.
+			//int height = r.GetHeight();
+			//r.SetHeight(height / 2);
+			*/
+			wxRect r;
+			r.SetTop(0); r.SetLeft(0); r.SetWidth(0); r.SetHeight(0);
 
 			// we clip to update only the innards of the phrase box control
 			pLayout->m_pMainFrame->canvas->Refresh(TRUE,&r);

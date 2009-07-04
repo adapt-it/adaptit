@@ -493,12 +493,6 @@ extern short gnExpandBox;  // see start of Adapt_ItView.cpp for explanation of t
 /// This global is defined in Adapt_ItView.cpp.
 extern short gnNearEndFactor; 
 
-/// This global is defined in PhraseBox.cpp.
-extern long gnStart; // int in MFC
-
-/// This global is defined in PhraseBox.cpp.
-extern long gnEnd; // int in MFC
-
 /// This global is defined in Adapt_ItView.cpp.
 extern	bool gbLegacySourceTextCopy; // defined in Adapt_ItView.cpp, to govern default phrase box text
 
@@ -5143,8 +5137,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gnSelectionStartSequNum = -1;
 	gnSelectionEndSequNum = -1;
 	gbPrintFooter = TRUE;
-	gnStart = -1;
-	gnEnd = -1;
 	
 	gbIgnoreScriptureReference_Receive = TRUE;
 	gbIgnoreScriptureReference_Send = TRUE;
@@ -11646,8 +11638,8 @@ void CAdapt_ItApp::OnToolsDefineCC(wxCommandEvent& WXUNUSED(event))
 	}
 
 	int len = pApp->m_targetPhrase.Length();
-	gnStart = len;
-	gnEnd = len;
+	m_nStartChar = len;
+	m_nEndChar = len;
 	pApp->m_pTargetBox->SetSelection(len,len);
 	pApp->m_pTargetBox->SetFocus();
 }
