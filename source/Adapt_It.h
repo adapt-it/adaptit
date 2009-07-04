@@ -65,6 +65,9 @@
 //#define BLINKING_BUG // BEW Jun27 2009, trying to find why RTL Gilaki doc goes into infinite
 					 // loop when drawing using CLayout::Draw()
 
+// uncomment to turn on wxLogDebug tracking of gnBeginInsertionsSequNum & gnEndInsertionsSequNum
+//#define Highlighting_Bug
+
 //#define _UNICODE 
 // whm Notes: The MFC version uses _NONROMAN everywhere instead of _UNICODE. For MFC, the 
 // _NONROMAN symbol gets defined in the VC 7.1 Preprocessor Definitions for UDebug Dual builds

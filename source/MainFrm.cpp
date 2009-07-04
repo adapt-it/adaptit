@@ -3070,7 +3070,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 		if (pApp->m_pTargetBox != NULL)
 			if (pApp->m_pTargetBox->IsShown()) 
 				pApp->m_pTargetBox->SetFocus();
-		wxLogDebug(_T("CMainFrame::OnActivate() called."));
+		//wxLogDebug(_T("CMainFrame::OnActivate() called."));
 	}
 	// The docs for wxActivateEvent say skip should be called somewhere in the handler,
 	// otherwise strange behavior may occur.
