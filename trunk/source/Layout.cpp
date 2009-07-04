@@ -2202,9 +2202,21 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 	// bounds error in the SPList.
 	int maxIndex = m_pApp->GetMaxIndex();
 	if (gnBeginInsertionsSequNum > maxIndex)
+	{
 		gnBeginInsertionsSequNum = maxIndex;
-	if (gnEndInsertionsSequNum > gnBeginInsertionsSequNum)
-		gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
+		gnEndInsertionsSequNum = maxIndex;
+		bActivePileIsInLast = FALSE;
+		nStripCount = 1;
+		return FALSE;
+	}
+	if (gnEndInsertionsSequNum > maxIndex)
+	{
+		// this is unlikely to happen, but just in case...
+		gnEndInsertionsSequNum = maxIndex;
+		bActivePileIsInLast = FALSE;
+		nStripCount = 1;
+		return FALSE;
+	}
 	// now calculate the range
 	CPile* pFirstPile = m_pView->GetPile(gnBeginInsertionsSequNum);
 	wxASSERT(pFirstPile);
@@ -2221,6 +2233,10 @@ bool CLayout::GetHighlightedStripsRange(int& nStripCount, bool& bActivePileIsInL
 		int nActiveStrip = pActivePile->GetStripIndex();
 		wxASSERT(nActiveStrip >= 0 && nActiveStrip <= 256000); // unlikely to have docs
 			// bigger than about 256000 strips, but garbage values are likely to be larger
+#ifdef Highlighting_Bug
+		wxLogDebug(_T("CLayout::GetHighlightedStripsRange(),first %d  last %d   End Pile is %d , %s"),
+			nFirst, nLast, gnEndInsertionsSequNum, pLastPile->GetSrcPhrase()->m_srcPhrase);
+#endif
 		if (nActiveStrip == nLast)
 			bActivePileIsInLast = TRUE;
 	}

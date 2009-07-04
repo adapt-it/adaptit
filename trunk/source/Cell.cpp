@@ -620,6 +620,11 @@ void CCell::Draw(wxDC* pDC)
 				// default text colors and most that the user might choose
 				pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
 				pDC->SetTextBackground(m_pLayout->m_pApp->m_AutoInsertionsHighlightColor); // light purple
+#ifdef Highlighting_Bug
+				wxLogDebug(_T("Cell::Draw(), *PURPLE* at %d  %s , Range begins at %d  Ends at %d"),
+					m_pOwningPile->m_pSrcPhrase->m_nSequNumber, m_pOwningPile->m_pSrcPhrase->m_srcPhrase,
+					gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+#endif
 			}
 		}
 	}

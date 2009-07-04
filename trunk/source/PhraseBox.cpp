@@ -441,6 +441,10 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 		// the phrasebox was located, so don't highlight target/gloss text
 		gnBeginInsertionsSequNum = -1;
 		gnEndInsertionsSequNum = -1;
+#ifdef Highlighting_Bug
+		wxLogDebug(_T("PhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation() reset to -1, empty pile %d  current pile plus one %d"),
+			pNextEmptyPile->GetSrcPhrase()->m_nSequNumber, pCurPile->GetSrcPhrase()->m_nSequNumber + 1);
+#endif
 	}
 
 	if (pNextEmptyPile->GetSrcPhrase()->m_bRetranslation)
@@ -1081,10 +1085,19 @@ b:	pApp->m_bSaveToKB = TRUE;
             // highlighting, etc.
 			if (gnBeginInsertionsSequNum >= 0)
 			{
+#ifdef Highlighting_Bug
+				wxLogDebug(_T("PhraseBox::MoveToNextPile(), incrementing %d  by one"),gnEndInsertionsSequNum);
+#endif
 				gnEndInsertionsSequNum++;
+#ifdef Highlighting_Bug
+				wxLogDebug(_T("PhraseBox::MoveToNextPile(), gnEndInsertionsSequNum is now %d  "),gnEndInsertionsSequNum);
+#endif
 			}
 			else
 			{
+#ifdef Highlighting_Bug
+				wxLogDebug(_T("PhraseBox::MoveToNextPile(), resetting end value to beginning which is %d "),gnBeginInsertionsSequNum);
+#endif
 				gnEndInsertionsSequNum = gnBeginInsertionsSequNum;
 			}
             // assign the translation text - but check it's not "<Not In KB>", if it is,
@@ -2066,6 +2079,10 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 		// was set one too large)
 		gnBeginInsertionsSequNum = pApp->m_nActiveSequNum + 1;
 		gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+#ifdef Highlighting_Bug
+		wxLogDebug(_T("PhraseBox::LookAhead(), starting values: begin %d  end  %d"),
+			gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+#endif
 	}
 	else // count == 1 case (ie. a unique adaptation, or a unique gloss when glossing)
 	{
@@ -2188,7 +2205,10 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 				// At the end, we'll reset the globals to turn off any highlight
 				gnBeginInsertionsSequNum = -1;
 				gnEndInsertionsSequNum = -1;
-				//pView->Invalidate(); // remove highlight before MessageBox call below
+#ifdef Highlighting_Bug
+				wxLogDebug(_T("PhraseBox::JumpForward(), failed to move to next pile, resetting to -1 from pile %d   %s "),
+					pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber, pApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase);
+#endif
 				pLayout->Redraw(); // remove highlight before MessageBox call below
 				pLayout->PlaceBox();
 
@@ -2466,6 +2486,10 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 			// phrase box has not yet got that far (because gnEndInsertionsSequNum
 			// was set one too large)
 			gnEndInsertionsSequNum = gnBeginInsertionsSequNum - 1;
+#ifdef Highlighting_Bug
+			wxLogDebug(_T("\nPhraseBox::JumpForward(), kickoff, begin at %d   (Smaller) end value starts at  %d "),
+				gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+#endif
 			pLayout->m_docEditOperationType = relocate_box_op;
 		}
 		// save the phrase box's text, in case user hits SHIFT+End to unmerge a
@@ -4709,6 +4733,10 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 			// At the end, we'll reset the globals to turn off any highlight
 			gnBeginInsertionsSequNum = -1;
 			gnEndInsertionsSequNum = -1;
+#ifdef Highlighting_Bug
+			wxLogDebug(_T("PhraseBox::OnePass(), -1 value set:  begin at %d  end  %d "),
+				gnBeginInsertionsSequNum, gnEndInsertionsSequNum);
+#endif
 			// remove highlight before MessageBox call below
 			//pView->Invalidate();
 			pLayout->Redraw(); // bFirstClear is default TRUE
