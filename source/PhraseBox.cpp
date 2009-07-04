@@ -229,13 +229,9 @@ bool gbUserCancelledChooseTranslationDlg = FALSE;
     // supplied for the adaptation first; used in MoveToImmedNextPile() and the TAB case
     // block of code in OnChar() to suppress warning message
 
-/// Cursor location - needed for up & down arrow & page up & down arrows, since its
-/// already wrong by the time the handlers are invoked, so it needs to be set by OnChar().
-long gnStart; 
-
-/// Cursor location - needed for up & down arrow & page up & down arrows, since its
-/// already wrong by the time the handlers are invoked, so it needs to be set by OnChar().
-long gnEnd;
+// Cursor location - needed for up & down arrow & page up & down arrows, since its
+// already wrong by the time the handlers are invoked, so it needs to be set by OnChar().
+//long gnEnd; // BEW removed 3Jul09
 
 long gnSaveStart; //int gnSaveStart; // these two are for implementing Undo() for a backspace operation
 long gnSaveEnd; //int gnSaveEnd; 
@@ -1223,7 +1219,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 		// recreate the phraseBox using the stored information
 		if (bWantSelect)
 		{
-			pApp->m_nStartChar = 0; 
+			//pApp->m_nStartChar = 0; 
+			pApp->m_nStartChar = -1; // wx uses -1, not 0 as in MFC
 			pApp->m_nEndChar = -1;
 		}
 		else
@@ -1714,7 +1711,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 		// recreate the phraseBox using the stored information
 		if (bWantSelect)
 		{
-			pApp->m_nStartChar = 0; 
+			//pApp->m_nStartChar = 0; 
+			pApp->m_nStartChar = -1; // WX uses -1, not 0 as in MFC
 			pApp->m_nEndChar = -1;
 		}
 		else
@@ -2755,18 +2753,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		if (!(gbMergeSucceeded && pApp->m_curDirection == left))
 		{
 			SetSelection(nStartChar,nEndChar);
-			gnStart = nStartChar;
-			gnEnd = nEndChar;
+			pApp->m_nStartChar = nStartChar;
+			pApp->m_nEndChar = nEndChar;
 		}
 
-		/* removed 26Mar09 because no use is made of currBoxSize variable
-		// always check text extent to see if box needs resizing
-		wxSize sizePhraseBox = GetClientSize(); // BEW added 25Mar09; it's in pixels
-		//wxSize currBoxSize(pApp->m_curBoxWidth,pApp->m_nTgtHeight);
-		wxSize currBoxSize(GetLayout()->m_curBoxWidth,sizePhraseBox.y); // note, this is better, because if
-		// glossing mode is on and glossing uses the navText font, the height
-		// might be different from the height of the target text font
-		*/
         // whm Note: Because of differences in the handling of events, in wxWidgets the
         // GetValue() call below retrieves the contents of the phrasebox after the
         // keystroke and so it includes the keyed character. OnChar() is processed before
@@ -2794,12 +2784,9 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 		// adjust box size
 		FixBox(pView, thePhrase, bWasMadeDirty, textExtent, 0); // selector = 0 for incrementing box extent
 
-		// set the globals for the cursor location, ie. set gnStart and gnEnd to whatever
-		// selection is in the phrase box; and update m_nStartChar & m_nEndChar ready for
-		// box display
-		GetSelection(&gnStart, &gnEnd);
-		pApp->m_nStartChar = gnStart;
-		pApp->m_nEndChar = gnEnd;
+		// set the globals for the cursor location, ie. m_nStartChar & m_nEndChar,
+		// ready for box display
+		GetSelection(&pApp->m_nStartChar, &pApp->m_nEndChar);
 
 		// save the phrase box's text, in case user hits SHIFT+END to unmerge a phrase
 		gSaveTargetPhrase = pApp->m_targetPhrase;
@@ -4412,8 +4399,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 
 			// select the lot
 			SetSelection(-1,-1);// -1,-1 selects all
-			gnStart = -1;
-			gnEnd = -1;
+			pApp->m_nStartChar = -1;
+			pApp->m_nEndChar = -1;
 
 			// set old sequ number in case required for toolbar's Back button - in this case
 			// it may have been a location which no longer exists because it was absorbed in
@@ -4481,8 +4468,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			}
 			SetFocus();
 			SetSelection(nStart,nEnd);
-			gnStart = nStart;
-			gnEnd = nEnd;
+			pApp->m_nStartChar = nStart;
+			pApp->m_nEndChar = nEnd;
 		}
 		else if (event.GetKeyCode() == WXK_LEFT)
 		{
@@ -4505,8 +4492,8 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			}
 			SetFocus();
 			SetSelection(nStart,nEnd);
-			gnStart = nStart;
-			gnEnd = nEnd;
+			pApp->m_nStartChar = nStart;
+			pApp->m_nEndChar = nEnd;
 		}
 		else if (event.GetKeyCode() == WXK_UP)
 		{
@@ -5004,7 +4991,6 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 
 	// user did not want to unmerge, so must want a scroll
 	// preserve cursor location (its already been moved by the time this function is entered)
-	// so I've done it with 2 globals, gnStart and gnEnd, and handlers for LButtonDown and Up etc.
 	int nScrollCount = 1;
 
 	// the code below for up arrow or down arrow assumes a one strip + leading scroll. If we 
@@ -5109,7 +5095,7 @@ a:		int xPixelsPerUnit,yPixelsPerUnit;
 
 		// restore cursor location when done
 c:		SetFocus();
-		SetSelection(gnStart,gnEnd);
+		SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		return;
 	}
 	else if (event.GetKeyCode() == WXK_DOWN)
@@ -5243,7 +5229,7 @@ b:		wxPoint scrollPos;
 		}
 		// restore cursor location when done
 d:		SetFocus();
-		SetSelection(gnStart,gnEnd);
+		SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		return;
 	}
 	else if (event.GetKeyCode() == WXK_PRIOR)
@@ -5570,30 +5556,31 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 		// don't call Skip() as we don't want the mouse click processed elsewhere
 		return;
 	}
-	// version 1.4.2 and onwards, we want a right or left arrow used to remove the
-	// phrasebox's selection to be considered a typed character, so that if a subsequent
-	// selection and merge is done then the first target word will not get lost; and so
-	// we add a block of code also to start of OnChar( ) to check for entry with both
-	// m_bAbandonable and m_bUserTypedSomething set TRUE, in which case we don't
-	// clear these flags (the older versions cleared the flags on entry to OnChar( ) )
+    // version 1.4.2 and onwards, we want a right or left arrow used to remove the
+    // phrasebox's selection to be considered a typed character, so that if a subsequent
+    // selection and merge is done then the first target word will not get lost; and so we
+    // add a block of code also to start of OnChar( ) to check for entry with both
+    // m_bAbandonable and m_bUserTypedSomething set TRUE, in which case we don't clear
+    // these flags (the older versions cleared the flags on entry to OnChar( ) )
 
-	// we use this flag cocktail elsewhere to test for these values of the three flags as
-	// the condition for telling the application to retain the phrase box's contents
-	// when user deselects target word, then makes a phrase and merges by typing
+    // we use this flag cocktail elsewhere to test for these values of the three flags as
+    // the condition for telling the application to retain the phrase box's contents when
+    // user deselects target word, then makes a phrase and merges by typing
 	m_bAbandonable = FALSE;
 	pApp->m_bUserTypedSomething = TRUE;
 	gbRetainBoxContents = TRUE;
 
-	event.Skip(); //CEdit::OnLButtonDown(nFlags, point);
-	GetSelection(&gnStart,&gnEnd);
+	event.Skip();
+	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
 void CPhraseBox::OnLButtonUp(wxMouseEvent& event) 
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	// This mouse event is only activated when user clicks mouse L button within
 	// the phrase box, not elsewhere on the screen
 	event.Skip(); //CEdit::OnLButtonDown(nFlags, point);
-	GetSelection(&gnStart,&gnEnd);
+	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
 bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
@@ -5813,14 +5800,14 @@ void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event))
 			// fix the cursor location
 			if (bRestoringAll)
 			{
-				gnStart = -1;
-				gnEnd = -1;
-				SetSelection(gnStart,gnEnd); // make it all be selected
+				pApp->m_nStartChar = -1;
+				pApp->m_nEndChar = -1;
+				SetSelection(pApp->m_nStartChar,pApp->m_nEndChar); // all selected
 			}
 			else
 			{
-				gnStart = gnEnd = gnSaveStart + undoLen;
-				SetSelection(gnStart,gnEnd);
+				pApp->m_nStartChar = pApp->m_nEndChar = (int)(gnSaveStart + undoLen);
+				SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 			}
 		}
 	}

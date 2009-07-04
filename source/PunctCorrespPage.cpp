@@ -69,13 +69,8 @@ extern CFontPageWiz* pFontPageWiz;
 /// This global is defined in Adapt_It.cpp.
 extern CCaseEquivPageWiz* pCaseEquivPageWiz;
 
-// This global is defined in PhraseBox.cpp.
-//extern long	gnStart;
-
-// This global is defined in PhraseBox.cpp.
-//extern long gnEnd;
-
-// the following are common functions - used by the CPunctCorrespPageWiz class and the CPunctCorrespPagePrefs class
+// the following are common functions - used by the CPunctCorrespPageWiz class 
+// and the CPunctCorrespPagePrefs class
 
 void CPunctCorrespPageCommon::DoSetDataAndPointers()
 {

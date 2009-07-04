@@ -144,12 +144,6 @@ extern bool		gbGlossingUsesNavFont;
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
-/// This global is defined in PhraseBox.cpp.
-extern  long	gnStart;
-
-/// This global is defined in PhraseBox.cpp.
-extern  long	gnEnd;
-
 extern  bool	gbFind;
 extern  bool	gbFindIsCurrent;
 extern  bool	gbJustReplaced;
@@ -2935,18 +2929,16 @@ void CMainFrame::ComposeBarGuts()
 			{
 				// when commencing free translation mode, show any pre-existing content selected
 				// also clear the starting and ending character indices for the box contents
-				gnStart = -1;
-				gnEnd = -1;
-				pEdit->SetSelection(gnStart,gnEnd); // no scroll
+				pEdit->SetSelection(-1,-1);
 			}
 			else
 			{
 				// BEW added 18Oct06, since focus doesn't get automatically put into compose bar's
 				// edit box when the bar was first opened...
 				// when not Free Translation mode, set the focus to the edit box and show all selected
-				pEdit->SetFocus();
 				pEdit->SetSelection(-1,-1); // -1,-1 selects all
 			}
+			pEdit->SetFocus();
 		}
 	}
 }
@@ -3372,8 +3364,6 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				pApp->m_nStartChar = -1;
 				pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 				pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
-				gnStart = -1;
-				gnEnd = -1;
 			}
 
 			// return FALSE;

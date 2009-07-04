@@ -75,12 +75,6 @@ extern EditRecord gEditRecord;
 /// This global is defined in FindReplace.cpp.
 extern bool gbReplaceAllIsCurrent;
 
-/// This global is defined in PhraseBox.cpp.
-extern long	gnStart;
-
-/// This global is defined in PhraseBox.cpp.
-extern long gnEnd;
-
 extern bool gbHaltedAtBoundary;
 
 /// This global is defined in Adapt_ItView.cpp.
@@ -958,7 +952,7 @@ u:					if (pPile->GetSrcPhrase()->m_bHasNote)
 				{
 					if (pApp->m_pTargetBox->IsShown())
 					{
-						pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
+						pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 						pApp->m_pTargetBox->SetFocus();
 					}
 				}
@@ -1006,7 +1000,7 @@ y:				; // I may put some code here later
 					{
 						if (pApp->m_pTargetBox->IsShown())
 						{
-							pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
+							pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 							pApp->m_pTargetBox->SetFocus();
 						}
 					}
@@ -1106,7 +1100,7 @@ x:						CCell* pCell = 0;
 						{
 							if (pApp->m_pTargetBox->IsShown())
 							{
-								pApp->m_pTargetBox->SetSelection(gnStart,gnEnd); // TODO: use m_nStartChar and m_nEndChar here
+								pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 								pApp->m_pTargetBox->SetFocus();
 							}
 						}
