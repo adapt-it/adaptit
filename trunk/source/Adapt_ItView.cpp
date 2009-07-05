@@ -31537,15 +31537,18 @@ a:		pCell = GetNextCell(pCell,cellIndex);
 
 		if (IsTypeDifferent(pApp->m_pAnchor,pCell))
 		{
+			CMainFrame *pFrame = pApp->GetMainFrame();
+			wxASSERT(pFrame != NULL);
+			if (pFrame->canvas->HasCapture())
+			{
+				pFrame->canvas->ReleaseMouse(); //ReleaseCapture(); // assume no failure
+			}
 			// IDS_DIFF_TEXT_TYPE
 			wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
 			_T(""), wxICON_INFORMATION);
 			RemoveSelection();
 			pApp->m_mouse.x = pApp->m_mouse.y = -1;
-			CMainFrame *pFrame = pApp->GetMainFrame();
-			wxASSERT(pFrame != NULL);
-			pFrame->canvas->ReleaseMouse(); //ReleaseCapture(); // assume no failure
 			pApp->m_pAnchor = NULL;
 			Invalidate();  // UpdateWindow() doesn't work, need the delayed update
 			GetLayout()->PlaceBox();
@@ -31582,15 +31585,18 @@ b:		pCell = GetPrevCell(pCell,cellIndex);
 
 		if (IsTypeDifferent(pApp->m_pAnchor,pCell))
 		{
+			CMainFrame *pFrame = pApp->GetMainFrame();
+			wxASSERT(pFrame != NULL);
+			if (pFrame->canvas->HasCapture())
+			{
+				pFrame->canvas->ReleaseMouse(); //ReleaseCapture(); // assume no failure
+			}
 			// IDS_DIFF_TEXT_TYPE
 			wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
 			_T(""), wxICON_INFORMATION);
 			RemoveSelection();
 			pApp->m_mouse.x = pApp->m_mouse.y = -1;
-			CMainFrame *pFrame = pApp->GetMainFrame();
-			wxASSERT(pFrame != NULL);
-			pFrame->canvas->ReleaseMouse(); //ReleaseCapture(); // assume no failure
 			pApp->m_pAnchor = NULL;
 			Invalidate(); // UpdateWindow() doesn't work, need the delayed update
 			GetLayout()->PlaceBox();
