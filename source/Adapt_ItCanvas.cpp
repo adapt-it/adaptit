@@ -1934,6 +1934,10 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
 
 		if (pView->IsTypeDifferent(pApp->m_pAnchor,pCell))
 		{
+			if (HasCapture())
+			{
+				ReleaseMouse();
+			}
 			// IDS_DIFF_TEXT_TYPE
 			wxMessageBox(_(
 "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."),
