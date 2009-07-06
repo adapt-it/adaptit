@@ -376,7 +376,7 @@ void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 	OnSelchangeListExistingTranslations(event);
 }
 
-// ///////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxCommandEvent that is generated when the contents of the 
 ///                         KB Dialog Editor's "Type Key To Be Found" edit box changes
@@ -386,7 +386,7 @@ void CKBEditor::OnDblclkListExistingTranslations(wxCommandEvent& event)
 /// immediately. If the string typed into the edit box is found the that found item is
 /// selected in the list and this handler calls OnSelchangeListSrcKeys(). If the string
 /// typed so far is not found as a substring of a list item, a beep is emitted.
-// ///////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event) 
 {
 	// assuming that another char was typed, find the nearest matching key in the list
@@ -412,7 +412,7 @@ void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
 	OnSelchangeListSrcKeys(event);
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxCommandEvent that is generated when the contents of the 
 ///                         KB Dialog Editor's "Edit or Add a Translation" edit box changes
@@ -420,7 +420,7 @@ void CKBEditor::OnUpdateEditSrcKey(wxCommandEvent& event)
 /// Called from: The wxCommandEvent mechanism when the contents of the KB Dialog Editor's
 /// "Edit or Add a Translation" edit box changes. This handler simply calls the CKBEditor's
 /// UpdateButtons() helper function whenever the edit box changes.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 void CKBEditor::OnUpdateEditOrAdd(wxCommandEvent& WXUNUSED(event)) 
 {
     // This OnUpdateEditOrAdd is called every time SetValue() is called which happens

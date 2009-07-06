@@ -1,28 +1,28 @@
-// ///////////////////////////////////////////////////////////////////////////
-// / \project		adaptit
-// / \file			Cell.cpp
-// / \author			Bill Martin
-// / \date_created	26 March 2004
-// / \date_revised	15 January 2008
-// / \copyright		2008 Bruce Waters, Bill Martin, SIL International
-// / \license		The Common Public License or The GNU Lesser General Public
-// /  License (see license directory)
-// / \description	This is the implementation file for the CCell class. 
-// / The CCell class represents the next smaller division of a CPile, there
-// / potentially being up to five CCells displaying vertically top to bottom
-// / within a CPile. The CCell has the smarts for drawing the text and changing
-// / background colour (eg. for selections) in its DrawCell() public function,
-// / and for handling free translation colouring, green wedges, navigation text
-// / etc. in its Draw() function. (CText removed 6Feb09)
-// / \derivation		The CCell class is derived from wxObject.
-// ///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/// \project		adaptit
+/// \file			Cell.cpp
+/// \author			Bill Martin
+/// \date_created	26 March 2004
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public License or The GNU Lesser General Public
+///  License (see license directory)
+/// \description	This is the implementation file for the CCell class. 
+/// The CCell class represents the next smaller division of a CPile, there
+/// potentially being up to five CCells displaying vertically top to bottom
+/// within a CPile. The CCell has the smarts for drawing the text and changing
+/// background colour (eg. for selections) in its DrawCell() public function,
+/// and for handling free translation colouring, green wedges, navigation text
+/// etc. in its Draw() function. (CText removed 6Feb09)
+/// \derivation		The CCell class is derived from wxObject.
+/////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items (in order of importance): (search for "TODO")
 // 1. NONE. Current with MFC version 3.10.0
 //
 // Unanswered questions: (search for "???")
 // 1.
 // 
-// ///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -60,53 +60,53 @@
 
 // globals for support of vertical editing
 
-// / A gray color used to mark the non-editable surrounding context when vertical
-// / editing of source text is in progress
+/// A gray color used to mark the non-editable surrounding context when vertical
+/// editing of source text is in progress
 wxColor gMidGray = wxColour(128,128,128); //COLORREF gMidGray = (COLORREF)RGB(128,128,128);
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern EditRecord gEditRecord;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern EditStep gEditStep;
 
-// / A local pointer to the global gEditRecord defined in Adapt_It.cpp
+/// A local pointer to the global gEditRecord defined in Adapt_It.cpp
 static EditRecord* pRec = &gEditRecord;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern CPile* gpGreenWedgePile;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern CPile* gpNotePile;
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 extern bool gbGlossingUsesNavFont;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
 extern bool gbIsPrinting;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern int gnBeginInsertionsSequNum;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern int gnEndInsertionsSequNum;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool	gbFindIsCurrent;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool gbShowTargetOnly;
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern wxRect grectViewClient;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an
@@ -127,7 +127,7 @@ extern wxRect grectViewClient;
 // function, since Adapt It MFC was designed to micromanage the layout direction itself in
 // the coding of text, cells, piles, strips, etc.
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp; // want to access it fast
 
 extern const wxChar* filterMkr;
@@ -177,9 +177,9 @@ extern EditRecord gEditRecord;
 // etc.
 
 
-// ////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-// ////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 
 IMPLEMENT_DYNAMIC_CLASS(CCell, wxObject)
 

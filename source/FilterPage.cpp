@@ -1294,7 +1294,7 @@ void CFilterPageCommon::DoBoxClickedIncludeOrFilterOutProj(int lbItemIndex)
 }
 
 
-// /////////////////// CFilterPageWiz /////////////////////////////////////////////////
+///////////////////// CFilterPageWiz /////////////////////////////////////////////////
 IMPLEMENT_DYNAMIC_CLASS( CFilterPageWiz, wxWizardPage )
 
 // event handler table
@@ -1453,7 +1453,7 @@ void CFilterPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 
 }
 
-// /////////////////////////////////// CFilterPagePrefs ///////////////////////////////////
+///////////////////////////////////// CFilterPagePrefs ///////////////////////////////////
 IMPLEMENT_DYNAMIC_CLASS( CFilterPagePrefs, wxPanel )
 
 // event handler table

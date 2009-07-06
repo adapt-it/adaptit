@@ -39,11 +39,11 @@
 // Adapt_It_wdr.h and Adapt_It_wdr.cpp files will change. Those 
 // changes will be automatically incorporated into the code base
 // via the following #include:
-// ///////////// The wxDesigner Generated resources ///////////
+/////////////// The wxDesigner Generated resources ///////////
 #include "Adapt_It_wdr.h"
-// ///////////// The wxDesigner Generated resources ///////////
+/////////////// The wxDesigner Generated resources ///////////
 
-// ///////////// String Table Resources for Translation ////////////
+/////////////// String Table Resources for Translation ////////////
 /* 
 // The string table resources listed below are all in one place to be 
 // handy during development since they show up in a "find in files" 
@@ -525,7 +525,7 @@
     IDS_UNPLACEABLE_NOTES   "Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %s"
     IDS_VERT_EDIT_FREE_TRANSLATIONS_MSG "Vertical Editing – free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."
 */
-// ///////////// String Table Resources for Translation ////////////
+/////////////// String Table Resources for Translation ////////////
 
 #endif /* __Adapt_It_Resources_H__ */
 

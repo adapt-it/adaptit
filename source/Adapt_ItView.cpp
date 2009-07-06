@@ -1,25 +1,25 @@
-//***************************************************************************************
-// / \project		adaptit
-// / \file			Adapt_ItView.cpp
-// / \author			Bill Martin
-// / \date_created	05 January 2004
-// / \date_revised	30 December 2008
-// / \copyright		2008 Bruce Waters, Bill Martin, SIL International
-// / \license		The Common Public License or The GNU Lesser General Public
-// /                 License (see license directory)
-// / \description	This is the implementation file for the CAdapt_ItView class. 
-// / The CAdapt_ItView class is the most
-// / complex class in the application. It controls every aspect of how the
-// / data is presented to the user, and most aspects of the user interface.
-// / The data for the view is held entirely in memory and is kept logically
-// / separate from and independent of the document class's persistent data
-// / structures. This schema is an implementation of the document/view
-// / framework.
-// / \derivation		The CAdapt_ItView class is derived from wxView.
-//**************************************************************************************
+// **************************************************************************************
+/// \project		adaptit
+/// \file			Adapt_ItView.cpp
+/// \author			Bill Martin
+/// \date_created	05 January 2004
+/// \date_revised	30 December 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public License or The GNU Lesser General Public
+///                 License (see license directory)
+/// \description	This is the implementation file for the CAdapt_ItView class. 
+/// The CAdapt_ItView class is the most
+/// complex class in the application. It controls every aspect of how the
+/// data is presented to the user, and most aspects of the user interface.
+/// The data for the view is held entirely in memory and is kept logically
+/// separate from and independent of the document class's persistent data
+/// structures. This schema is an implementation of the document/view
+/// framework.
+/// \derivation		The CAdapt_ItView class is derived from wxView.
+// *************************************************************************************
 // Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
 // 
-//***************************************************************************************
+// **************************************************************************************
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
@@ -119,7 +119,7 @@
 //#define max(a,b)            (((a) > (b)) ? (a) : (b))
 //#endif
 
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 bool gbLegacySourceTextCopy = FALSE; // BEW added 16July08 at Roland Fumey's request (see CViewPage.h & .cpp)
 
 //#define IDW_TARGET_EDITBOX 1001
@@ -138,17 +138,17 @@ extern const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW;
 extern bool gbSavedLineFourInReviewingMode;			// these two are defined in PhraseBox.cpp and are for support
 extern wxString gStrSaveLineFourInReviewingMode;	// of preserving a hole when phrase box lands and leaves while
 													// Reviewing mode is turned on (added 19Dec07)
-// / This global is defined in SplitDialog.cpp.
+/// This global is defined in SplitDialog.cpp.
 extern bool gbIsDocumentSplittingDialogActive; // see SplitDialog.cpp
 
-// / This global is defined in PhraseBox.cpp.
+/// This global is defined in PhraseBox.cpp.
 extern bool gbSuppressStoreForAltBackspaceKeypress;
 extern bool gbNoAdaptationRemovalRequested;
 
-// / This global is defined in MainFrm.cpp.
+/// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Receive;
 
-// / This global is defined in MainFrm.cpp.
+/// This global is defined in MainFrm.cpp.
 extern bool gbIgnoreScriptureReference_Send;
 
 // for support of scripture synchronizing messages (the sending side of it) -- the following string
@@ -158,20 +158,20 @@ extern bool gbIgnoreScriptureReference_Send;
 // verse) The view's member function SendScriptureReferenceFocusMessage() accesses this global string.
 wxString gOldChapVerseStr = _T(""); // the "chapter:verse" string used in the last broadcast message
 	
-// / This global is defined in Adapt_ItView.cpp.
+/// This global is defined in Adapt_ItView.cpp.
 extern bool gbLegacySourceTextCopy;	// default is legacy behaviour, to copy the source text (unless
 									// the project config file establishes the FALSE value instead)
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool gbFreeTranslationJustRemovedInVFMdialog;
 
 extern bool gbRetainBoxContents; // from version 1.4.2, see CPhraseBox for comments on its use whm added bool
 extern wxString ccErrorStr;	// used in CConsistentChanger
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool gbHasBookFolders; // TRUE when Adaptations folder is found to have Bible book
 
 // Used for inhibiting multiple accesses to MakeLineFourString when only one is needed.
@@ -183,74 +183,74 @@ extern bool gbMovingToPreviousPile;
 
 // extern declarations for free translation support (whm moved these to the app)
 
-// / This global is defined in Adapt_It.cpp. BEW removed 26Apr09
+/// This global is defined in Adapt_It.cpp. BEW removed 26Apr09
 //extern bool		gbBundleStartIteratingBack; // default FALSE, TRUE if pile pointer is NULL on GetPrevPile() call
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern int			gnOffsetInMarkersStr; // offset to current free translation string in pSrcPhrase->m_markers
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern int			gnLengthInMarkersStr; // free translation length, including final space if any, in pSrcPhrase->m_markers
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxArrayPtrVoid*	gpCurFreeTransSectionPileArray; // new creates on heap in InitInstance, and disposes in ExitInstance
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxArrayPtrVoid*	gpFreeTransArray; // new creates on heap in InitInstance, and disposes in ExitInstance
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern CPile*		gpFirstPile; // pointer to first pile in a free translation section
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern CPile*		gpLastPile; // pointer to last pile in the same section
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxString	gSpacelessTgtPunctuation; // contents of app's m_punctuation[1] string with spaces removed
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool		gbSuppressSetup;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool		gbSaveHilightingSetting;
 
 // for support of auto-capitalization
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbAutoCaps;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbSourceIsUpperCase;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbNonSourceIsUpperCase;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbMatchedKB_UCentry;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbNoSourceCaseEquivalents;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbNoTargetCaseEquivalents;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbNoGlossCaseEquivalents;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxChar gcharNonSrcLC;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxChar gcharNonSrcUC;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcLC;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxChar gcharSrcUC;
 
 bool	gbCallerIsRemoveButton = FALSE;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 //extern CAdapt_ItApp* gpApp;// for rapid access to the app class
 // use this to get rid of pApp...      CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 //
@@ -259,52 +259,52 @@ int	gnOldMaxIndex = 0;
 
 // next four are for version 2.0 which includes the option of a 3rd line for glossing
 
-// / When TRUE it indicates that the application is in the "See Glosses" mode. In the 
-// / "See Glosses" mode any existing glosses are visible in a separate glossing line in 
-// / the main window, but words and phrases entered into the phrasebox are not entered 
-// / into the glossing KB unless gbEnableGlossing is also TRUE.
+/// When TRUE it indicates that the application is in the "See Glosses" mode. In the 
+/// "See Glosses" mode any existing glosses are visible in a separate glossing line in 
+/// the main window, but words and phrases entered into the phrasebox are not entered 
+/// into the glossing KB unless gbEnableGlossing is also TRUE.
 bool	gbIsGlossing = FALSE; // when TRUE, the phrase box and its line have glossing text
 
-// / When TRUE the application is in true glossing mode. The phrasebox appears in the 
-// / main window's glossing line and contains glosses rather than normal adaptations. 
-// / The glosses entered or displayed in the phrasebox are stored in and retrieved from 
-// / the glossing KB.
+/// When TRUE the application is in true glossing mode. The phrasebox appears in the 
+/// main window's glossing line and contains glosses rather than normal adaptations. 
+/// The glosses entered or displayed in the phrasebox are stored in and retrieved from 
+/// the glossing KB.
 bool	gbEnableGlossing = FALSE; // TRUE makes Adapt It revert to Shoebox functionality only
 
-// / When TRUE the font used in glossing is the Navigation language font. Glossing uses 
-// / the Target font & settings by default, but if TRUE then it uses the Navigation language
-// / font & direction settings.
+/// When TRUE the font used in glossing is the Navigation language font. Glossing uses 
+/// the Target font & settings by default, but if TRUE then it uses the Navigation language
+/// font & direction settings.
 bool	gbGlossingUsesNavFont = FALSE; 
 
-// / Defaults to FALSE to allow things like 3:sg:Subj or 1.incl to be put into the glossing 
-// / KB 'as is'. When TRUE punctuation is stripped out before saving the gloss in the glossing
-// / KB; or, the stripping is done after the gloss has been saved
+/// Defaults to FALSE to allow things like 3:sg:Subj or 1.incl to be put into the glossing 
+/// KB 'as is'. When TRUE punctuation is stripped out before saving the gloss in the glossing
+/// KB; or, the stripping is done after the gloss has been saved
 bool	gbRemovePunctuationFromGlosses = FALSE; 
 
-// / This flag is used to indicate that the text being processed is unstructured, i.e.,
-// / not containing the standard format markers (such as verse and chapter) that would 
-// / otherwise make the document be structured. This global is used to restore paragraphing 
-// / in unstructured data, on export of source or target text.
+/// This flag is used to indicate that the text being processed is unstructured, i.e.,
+/// not containing the standard format markers (such as verse and chapter) that would 
+/// otherwise make the document be structured. This global is used to restore paragraphing 
+/// in unstructured data, on export of source or target text.
 bool	gbIsUnstructuredData = FALSE; 
 
-// / When no highlighting is wanted for insertions the value is -1, otherwise this global 
-// / holds the sequence number of the first pile where highlighted background of automatically 
-// / inserted target text is to be drawn (current active pile + 1).
+/// When no highlighting is wanted for insertions the value is -1, otherwise this global 
+/// holds the sequence number of the first pile where highlighted background of automatically 
+/// inserted target text is to be drawn (current active pile + 1).
 int	gnBeginInsertionsSequNum = -1;	
 
-// / When no highlighting is wanted for insertions the value is -1, otherwise this global holds the
-// / sequence number of the last pile where highlighted background of automatically inserted target text
-// / is to be drawn. The ending sequence number is the value for the pile of the phrasebox when it has
-// / halted (such as when a KB item can't be found for a match, or when the user uses the Cancel or
-// / Cancel and Select buttons in the Choose Translation dialog. Highlight on the cell with the ending
-// / value is not apparent as long at the phrase box is located there, but becomes visible if the phrase
-// / box is moved away. This also helps the user see where the stopping place was after moving away.)
+/// When no highlighting is wanted for insertions the value is -1, otherwise this global holds the
+/// sequence number of the last pile where highlighted background of automatically inserted target text
+/// is to be drawn. The ending sequence number is the value for the pile of the phrasebox when it has
+/// halted (such as when a KB item can't be found for a match, or when the user uses the Cancel or
+/// Cancel and Select buttons in the Choose Translation dialog. Highlight on the cell with the ending
+/// value is not apparent as long at the phrase box is located there, but becomes visible if the phrase
+/// box is moved away. This also helps the user see where the stopping place was after moving away.)
 int	gnEndInsertionsSequNum = -1;	
 
 // This global is defined in Adapt_It.cpp.
 //extern bool gbSfmOnlyAfterNewlines; // for handling the optional ignoring of sfms which are not line initial
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool gbDoingInitialSetup;
 
 // whm added 6Apr05 for support of export filtering of sfms and RTF output of the same
@@ -367,11 +367,11 @@ wxArrayString NavStrArray;
 extern bool gbRTLLayout; // defined in FontPage.cpp
 extern bool gbLTRLayout;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern int	gnVerticalBoxBloat; // see CAdapt_ItApp (bloats vertical dim'n of phrasebox for unicode version)
 
 // basic format integer for use in the DrawText() function (see CDC), since unicode will need
@@ -432,28 +432,28 @@ int gnNewCount; // count of the new srcphrases (after user finished editing the 
 												  // dialog to unconditionally force open a
 												  // subsequent Transfer Markers dialog
 
-// / A pointer to a sourcephrase immediately preceding the first one in a sublist of old source 
-// / phrase instances.
+/// A pointer to a sourcephrase immediately preceding the first one in a sublist of old source 
+/// phrase instances.
 CSourcePhrase* gpPrecSrcPhrase; 
 
-// / A pointer to a sourcephrase immediately following the ones in a sublist of source 
-// / phrase instances in which their m_srcPhrase attributes have new (edited) values, 
-// / or 0 if none; we need access to the following sourcephrase in case the user changes 
-// / markers and then the m_bFirstOfType flag on gpFollSrcPhrase would often need to be
-// / reset TRUE.
+/// A pointer to a sourcephrase immediately following the ones in a sublist of source 
+/// phrase instances in which their m_srcPhrase attributes have new (edited) values, 
+/// or 0 if none; we need access to the following sourcephrase in case the user changes 
+/// markers and then the m_bFirstOfType flag on gpFollSrcPhrase would often need to be
+/// reset TRUE.
 CSourcePhrase* gpFollSrcPhrase; 
 
 // This global was defined in TransferMarkersDlg.cpp in the legacy MFC app.
-// / This global is TRUE if the TextType needs to be propagated to sourcephrase instances 
-// / following the new sublist, after all housekeeping is done & propagation is done in 
-// / OnEditSourceText().
+/// This global is TRUE if the TextType needs to be propagated to sourcephrase instances 
+/// following the new sublist, after all housekeeping is done & propagation is done in 
+/// OnEditSourceText().
 bool gbPropagationNeeded; 
 
 // This global was defined in TransferMarkersDlg.cpp (now removed) in the legacy MFC app.
-// / Indicates the TextType to be propagated when the gbPropagationNeeded global is TRUE
+/// Indicates the TextType to be propagated when the gbPropagationNeeded global is TRUE
 TextType gPropagationType; // the TextType to be propagated
 
-// / This global is defined in Adapt_ItDoc.cpp.
+/// This global is defined in Adapt_ItDoc.cpp.
 extern bool		gbSpecialText;  // the special text boolean which will need to be propagated,
 								// if propagation is required
 
@@ -474,112 +474,112 @@ extern bool		gbSpecialText;  // the special text boolean which will need to be p
 // the original doc state when necessary given such a filtering or unfiltering has taken place; and
 // we want exceptions to cause restoration of the pre-edit document state, rather than application
 // death
-// / Tracks whether or not vertical editing is currently in effect, and it has to be TRUE for the
-// / drawing of gray text in preceding and following context of the span which is being updated during
-// / the vertical edit process
+/// Tracks whether or not vertical editing is currently in effect, and it has to be TRUE for the
+/// drawing of gray text in preceding and following context of the span which is being updated during
+/// the vertical edit process
 bool gbVerticalEditInProgress = FALSE; // TRUE while any stage of a vertical edit process is active
 
-// / During editing of the source text, up to a certain stage the native document structures are not
-// / modified, making it possible to abandon the source text edit without restoring anything in the
-// / document while this boolean remains TRUE; once it is FALSE the native structures have begun to
-// / be modified and a different source editing abandonment strategy is required (and implemented)
+/// During editing of the source text, up to a certain stage the native document structures are not
+/// modified, making it possible to abandon the source text edit without restoring anything in the
+/// document while this boolean remains TRUE; once it is FALSE the native structures have begun to
+/// be modified and a different source editing abandonment strategy is required (and implemented)
 bool gbEditingSourceAndDocNotYetChanged = TRUE; // programmatically cleared to FALSE when doc is changed
 
-// / This global enum tracks the entry point to the vertical editing process - there are five possible
-// / values noEntryPoint (0), sourceTextEntryPoint (1), adaptationsEntryPoint (2), glossesEntryPoint (3),
-// / freeTranslationsEntryPoint (4). Definition is in Adapt_ItView.h
+/// This global enum tracks the entry point to the vertical editing process - there are five possible
+/// values noEntryPoint (0), sourceTextEntryPoint (1), adaptationsEntryPoint (2), glossesEntryPoint (3),
+/// freeTranslationsEntryPoint (4). Definition is in Adapt_ItView.h
 EntryPoint	gEntryPoint = noEntryPoint;  // from an enum, the value can be one of 
 					// noEntryPoint (0), sourceTextEntryPoint (1), adaptationsEntryPoint (2),
 					// glossesEntryPoint (3), or freeTranslationsEntryPoint (4) (see Adapt_ItView.h)
 					
-// / This global enum tracks which step in the vertical editing process is currently in effect. These "steps"
-// / are names for various Adapt It modes which otherwise the user would need to manually turn on by menu
-// / commands, such as editing the source text, adapting mode, glossing mode, free translation mode, and
-// / collecting data from the adaptation or gloss line in order to store it as a filtered back translation;
-// / the default value is noEditStep which is the value in effect when vertical editing is not in progress
+/// This global enum tracks which step in the vertical editing process is currently in effect. These "steps"
+/// are names for various Adapt It modes which otherwise the user would need to manually turn on by menu
+/// commands, such as editing the source text, adapting mode, glossing mode, free translation mode, and
+/// collecting data from the adaptation or gloss line in order to store it as a filtered back translation;
+/// the default value is noEditStep which is the value in effect when vertical editing is not in progress
 EditStep gEditStep = noEditStep; // see Adapt_ItView.h
 
-// / Determines the relative order of the adaptationsStep and glossesStep during the vertical process, the
-// / default order is to do the adaptations step prior to the glossing step (the TRUE value); the value determines
-// / the program counter's path through the code both when stepping forwards through the vertical edit process
-// / and also when rolling back changes made at an earlier stage of the process
+/// Determines the relative order of the adaptationsStep and glossesStep during the vertical process, the
+/// default order is to do the adaptations step prior to the glossing step (the TRUE value); the value determines
+/// the program counter's path through the code both when stepping forwards through the vertical edit process
+/// and also when rolling back changes made at an earlier stage of the process
 bool gbAdaptBeforeGloss = TRUE; // TRUE (default) if adaptationsStep is to be done before glossesStep,
 						 // FALSE for the opposite order (value of this global stored in project 
 						 // configuration file)
 
-// / The EditRecord is a struct, one instance of which persists as long as the session is alive. It stores
-// / information about the vertical edit process which enables rollback and cancellation to be supported. Its
-// / members are returned to default values, and most lists emptied, when any one invocation of the vertical
-// / edit process is completed.
-// / EditRecord is defined in Adapt_It.h file, here the comments are removed
-// / to make reading the members easier
-// / typedef struct
-// / {
-// / 	bool			bGlossingModeOnEntry;
-// / 	bool			bSeeGlossesEnabledOnEntry;
-// / 	bool			bEditSpanHasAdaptations;
-// / 	bool			bEditSpanHasGlosses;
-// / 	bool			bEditSpanHasFreeTranslations;
-// / 	bool			bEditSpanHasBackTranslations;
-// / 	BOOL			bCollectedFromTargetText;
-// / 
-// / 	int				nSaveActiveSequNum;
-// / 	wxString		oldPhraseBoxText;
-// / 	TextType		nStartingTextType;
-// / 	TextType		nEndingTextType;
-// / 	wxArrayString		deletedAdaptationsList;
-// / 	wxArrayString		deletedGlossesList;
-// / 	wxArrayString		deletedFreeTranslationsList;
-// / 	wxArrayString		storedNotesList;
-// / 	int				nStartingSequNum;
-// / 	int				nEndingSequNum;
-// / 	int				nFreeTrans_StartingSequNum;
-// / 	int				nFreeTrans_EndingSequNum;
-// / 	int				nBackTrans_StartingSequNum;
-// / 	int				nBackTrans_EndingSequNum;
-// / 	int				nCancelSpan_StartingSequNum;
-// / 	int				nCancelSpan_EndingSequNum;
-// / 	SPList			cancelSpan_SrcPhraseList;
-// / 	SPList			modificationsSpan_SrcPhraseList;
-// / 	SPList			editableSpan_NewSrcPhraseList;
-// / 	SPList			propagationSpan_SrcPhraseList;
-// / 	int				nPropagationSpan_StartingSequNum;
-// / 	int				nPropagationSpan_EndingSequNum;
-// / 	wxArrayInt		arrNotesSequNumbers;
-// / 	CArray<int,int> arrNotesSequNumbers;
-// / 	int				nOldSpanCount;
-// / 	int				nNewSpanCount;
-// / 	wxString		strInitialEndmarkers; 
-// / 	wxString		strFinalEndmarkers;
-// / 	wxString		strNewFinalEndmarkers;
-// / 	bool			bSpecialText;
-// / 	SPList			follNotesMoveSpanList;
-// / 	SPList			precNotesMoveSpanList;
-// / 	bool			bTransferredFilterStuffFromCarrierSrcPhrase;
-// / 	bool			bDocEndPreventedTransfer;
-// / 	bool			bExtendedForFiltering;
-// / 	
-// / 	bool			bAdaptationStepEntered;
-// / 	SPList			adaptationStep_SrcPhraseList;
-// / 	int				nAdaptationStep_StartingSequNum;
-// / 	int				nAdaptationStep_EndingSequNum;
-// / 	int				nAdaptationStep_OldSpanCount;
-// / 	int				nAdaptationStep_NewSpanCount;
-// / 	int				nAdaptationStep_ExtrasFromUserEdits;
-// / 
-// / 	bool			bGlossStepEntered;
-// / 	SPList			glossStep_SrcPhraseList;
-// / 	int				nGlossStep_StartingSequNum;
-// / 	int				nGlossStep_EndingSequNum;
-// / 	int				nGlossStep_SpanCount;
-// / 
-// / 	bool			bFreeTranslationStepEntered;
-// / 	bool			bVerseBasedSection;
-// / 	SPList			freeTranslationStep_SrcPhraseList;
-// / 	int				nFreeTranslationStep_StartingSequNum;
-// / 	int				nFreeTranslationStep_EndingSequNum;
-// / 	int 			nFreeTranslationStep_SpanCount;
-// / } EditRecord;
+/// The EditRecord is a struct, one instance of which persists as long as the session is alive. It stores
+/// information about the vertical edit process which enables rollback and cancellation to be supported. Its
+/// members are returned to default values, and most lists emptied, when any one invocation of the vertical
+/// edit process is completed.
+/// EditRecord is defined in Adapt_It.h file, here the comments are removed
+/// to make reading the members easier
+/// typedef struct
+/// {
+/// 	bool			bGlossingModeOnEntry;
+/// 	bool			bSeeGlossesEnabledOnEntry;
+/// 	bool			bEditSpanHasAdaptations;
+/// 	bool			bEditSpanHasGlosses;
+/// 	bool			bEditSpanHasFreeTranslations;
+/// 	bool			bEditSpanHasBackTranslations;
+/// 	BOOL			bCollectedFromTargetText;
+/// 
+/// 	int				nSaveActiveSequNum;
+/// 	wxString		oldPhraseBoxText;
+/// 	TextType		nStartingTextType;
+/// 	TextType		nEndingTextType;
+/// 	wxArrayString		deletedAdaptationsList;
+/// 	wxArrayString		deletedGlossesList;
+/// 	wxArrayString		deletedFreeTranslationsList;
+/// 	wxArrayString		storedNotesList;
+/// 	int				nStartingSequNum;
+/// 	int				nEndingSequNum;
+/// 	int				nFreeTrans_StartingSequNum;
+/// 	int				nFreeTrans_EndingSequNum;
+/// 	int				nBackTrans_StartingSequNum;
+/// 	int				nBackTrans_EndingSequNum;
+/// 	int				nCancelSpan_StartingSequNum;
+/// 	int				nCancelSpan_EndingSequNum;
+/// 	SPList			cancelSpan_SrcPhraseList;
+/// 	SPList			modificationsSpan_SrcPhraseList;
+/// 	SPList			editableSpan_NewSrcPhraseList;
+/// 	SPList			propagationSpan_SrcPhraseList;
+/// 	int				nPropagationSpan_StartingSequNum;
+/// 	int				nPropagationSpan_EndingSequNum;
+/// 	wxArrayInt		arrNotesSequNumbers;
+/// 	CArray<int,int> arrNotesSequNumbers;
+/// 	int				nOldSpanCount;
+/// 	int				nNewSpanCount;
+/// 	wxString		strInitialEndmarkers; 
+/// 	wxString		strFinalEndmarkers;
+/// 	wxString		strNewFinalEndmarkers;
+/// 	bool			bSpecialText;
+/// 	SPList			follNotesMoveSpanList;
+/// 	SPList			precNotesMoveSpanList;
+/// 	bool			bTransferredFilterStuffFromCarrierSrcPhrase;
+/// 	bool			bDocEndPreventedTransfer;
+/// 	bool			bExtendedForFiltering;
+/// 	
+/// 	bool			bAdaptationStepEntered;
+/// 	SPList			adaptationStep_SrcPhraseList;
+/// 	int				nAdaptationStep_StartingSequNum;
+/// 	int				nAdaptationStep_EndingSequNum;
+/// 	int				nAdaptationStep_OldSpanCount;
+/// 	int				nAdaptationStep_NewSpanCount;
+/// 	int				nAdaptationStep_ExtrasFromUserEdits;
+/// 
+/// 	bool			bGlossStepEntered;
+/// 	SPList			glossStep_SrcPhraseList;
+/// 	int				nGlossStep_StartingSequNum;
+/// 	int				nGlossStep_EndingSequNum;
+/// 	int				nGlossStep_SpanCount;
+/// 
+/// 	bool			bFreeTranslationStepEntered;
+/// 	bool			bVerseBasedSection;
+/// 	SPList			freeTranslationStep_SrcPhraseList;
+/// 	int				nFreeTranslationStep_StartingSequNum;
+/// 	int				nFreeTranslationStep_EndingSequNum;
+/// 	int 			nFreeTranslationStep_SpanCount;
+/// } EditRecord;
 
 
 // The vertical editing process helps the user to edit/update dependent information, when editing information at
@@ -608,53 +608,53 @@ bool gbAdaptBeforeGloss = TRUE; // TRUE (default) if adaptationsStep is to be do
 // spans 2 and 3; span 4 begins, if at all, immediately after span 1 and it may overlap completely or partially
 // with instances in the end of spans 2 and 3.
 
-// / This define specifies the maximum number of etnries in the list of removed data types (whether adaptations,
-// / glosses, or free translations) removed programmatically because they have become invalid due to higher level
-// / changes during the vertical edit process. Once this limit is reached in any of the three lists, adding more
-// / removes drops a corresponding number of entries permanently off the bottom of that particular list
+/// This define specifies the maximum number of etnries in the list of removed data types (whether adaptations,
+/// glosses, or free translations) removed programmatically because they have become invalid due to higher level
+/// changes during the vertical edit process. Once this limit is reached in any of the three lists, adding more
+/// removes drops a corresponding number of entries permanently off the bottom of that particular list
 #define DELETIONS_LIST_MAX_ENTRIES 100
 
-// / The vertical edit process tries to determine whether free translation sections, when the user entered the
-// / free translations, were defined by punctuation locations, or verse boundaries (for either setting, SF markers
-// / also influence the outcome), so that the vertical edit process can use the same setting when the freeTranslationsStep
-// / is entered. An algorithm does this but it cannot do it 100% reliably, and if all the strong indicators are absent
-// / then it assumes that the 'verse boundaries" setting was in effect if it can count off at least this number of free 
-// / translation words within the current section being algorithmically checked
+/// The vertical edit process tries to determine whether free translation sections, when the user entered the
+/// free translations, were defined by punctuation locations, or verse boundaries (for either setting, SF markers
+/// also influence the outcome), so that the vertical edit process can use the same setting when the freeTranslationsStep
+/// is entered. An algorithm does this but it cannot do it 100% reliably, and if all the strong indicators are absent
+/// then it assumes that the 'verse boundaries" setting was in effect if it can count off at least this number of free 
+/// translation words within the current section being algorithmically checked
 #define NUM_WORDS_IMPLYING_VERSE_SECTIONING 15
 
-// / This global provides a persistent location during the current session for storage of vertical edit information
+/// This global provides a persistent location during the current session for storage of vertical edit information
 EditRecord gEditRecord; // store info pertinent to generalized editing with entry point for an
 								   // Edit Source Text request, in this global structure
 								   
-// / This global string variable stores the previous contents of the edit box (either the phrase box or the compose
-// / bar's edit box) when the user has just made a choice from the removals combobox's list which replaces the box's
-// / text. It enables the Undo Last Copy button to restore the box's previous contents provided further ducks line
-// / line up - see the next four global variables for details
+/// This global string variable stores the previous contents of the edit box (either the phrase box or the compose
+/// bar's edit box) when the user has just made a choice from the removals combobox's list which replaces the box's
+/// text. It enables the Undo Last Copy button to restore the box's previous contents provided further ducks line
+/// line up - see the next four global variables for details
 wxString gOldEditBoxTextStr; // a place to store the text replaced by the last copy from one of 
 							// the Removed combobox list's entries
 							
-// / This stores the sequence number at which the phrase box was located when the edit box's contents were replaced.
-// / The Undo Last Changes button will not undo the last change unless the phrase box has been placed back at this
-// / location by the user (the button is disabled until that happens)
+/// This stores the sequence number at which the phrase box was located when the edit box's contents were replaced.
+/// The Undo Last Changes button will not undo the last change unless the phrase box has been placed back at this
+/// location by the user (the button is disabled until that happens)
 int gnWasSequNum;
 //int gReplacementLocation_SequNum; // sequence number of the CSourcePhrase where the phrase box is when
 								  // the last insert into gOldEditBoxTextStr was done (for the Undo Last Copy
 								  // button to work, the active sequ num has to be the same as this value)
 
-// / This stores the the m_nSrcWords value when the edit box's contents were replaced. (Just the sequence number
-// / value being the same is not sufficient, because the user may subsequently have merged or unmerged at that
-// / location - so the merger state (in terms of number of source words) must be the same as a condition for the
-// / Undo Last Copy button to be enabled.)
+/// This stores the the m_nSrcWords value when the edit box's contents were replaced. (Just the sequence number
+/// value being the same is not sufficient, because the user may subsequently have merged or unmerged at that
+/// location - so the merger state (in terms of number of source words) must be the same as a condition for the
+/// Undo Last Copy button to be enabled.)
 int gnWasNumWordsInSourcePhrase;
 
-// / A further condition for enabling the Undo Last Copy button is that the mode must be the same as it was at
-// / the time the replacement was made; this global stores the earlier mode - the values of relevance are
-// / whether it was adapting or glossing mode, and so a boolean is suffient for those
+/// A further condition for enabling the Undo Last Copy button is that the mode must be the same as it was at
+/// the time the replacement was made; this global stores the earlier mode - the values of relevance are
+/// whether it was adapting or glossing mode, and so a boolean is suffient for those
 bool gbWasGlossingMode; // the mode at last insert, either glossing mode (TRUE) or adapting mode (FALSE)
 
-// / A final condition for enabling the Undo Last Copy button is that whether or not free translation mode was
-// / turned on at the time the replacement was made; this mode can be on or off concurrently with either of
-// / adapting or glossing modes, and so a further boolean is needed to store the earlier state's value
+/// A final condition for enabling the Undo Last Copy button is that whether or not free translation mode was
+/// turned on at the time the replacement was made; this mode can be on or off concurrently with either of
+/// adapting or glossing modes, and so a further boolean is needed to store the earlier state's value
 bool gbWasFreeTranslationMode; // TRUE if free translation mode was in effect at last insert, in which
 				// case gbWasGlossingMode value is ignored, the latter is used if gbWasFreeTranslationMode
 				// is FALSE
@@ -677,7 +677,7 @@ bool gbWasFreeTranslationMode; // TRUE if free translation mode was in effect at
 bool gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE;
 
 // BEW 7May08: end of vertical editing's globals, including those for the refactored code for src text editing
-//*******************************************************************************************************************
+// ******************************************************************************************************************
 
 bool			gbInsertingWithinFootnote = FALSE; // TRUE if inserting a null sourcephrase
 								// within a footnote; eg. if a retranslation is within a
@@ -693,25 +693,25 @@ extern bool		gbByCopyOnly;		  // see CPhraseBox for explanation of its function
 extern int		gnLastEarlierChapter; // preserve chapter and verse number used in last call of
 extern int		gnLastEarlierVerse;	  // View Earlier Translation dialog
 
-// / Multiply width of 'w' character this many times to get the slop at right-hand-side (RHS) of initial
-// / phrase box width, or the amount to expand the box by.
+/// Multiply width of 'w' character this many times to get the slop at right-hand-side (RHS) of initial
+/// phrase box width, or the amount to expand the box by.
 short			gnExpandBox = 8; 
 
-// / Use this multiplier to calculate when text gets too near the RHS of the phrase box, so that
-// / expansion becomes necessary - see the FixBox() function in CPhraseBox class.
+/// Use this multiplier to calculate when text gets too near the RHS of the phrase box, so that
+/// expansion becomes necessary - see the FixBox() function in CPhraseBox class.
 short			gnNearEndFactor = 3; 
 
 wxRect			grectViewClient;
 
-// / When TRUE the main window only displays the target text lines.
+/// When TRUE the main window only displays the target text lines.
 bool			gbShowTargetOnly = FALSE;
 
-// / Used to store the App's m_curLeading value when switching between views that only
-// / display the target language and those that display normal target lines.
+/// Used to store the App's m_curLeading value when switching between views that only
+/// display the target language and those that display normal target lines.
 int				gnSaveLeading = 4;
 
-// / Used to store the App's m_curGapWidth value when switching between views that only
-// / display the target language and those that display normal target lines.
+/// Used to store the App's m_curGapWidth value when switching between views that only
+/// display the target language and those that display normal target lines.
 int				gnSaveGap = 8;
 
 //bool			gbRebuildingDoc = TRUE; // unused
@@ -734,10 +734,10 @@ extern  wxString	gSaveTargetPhrase; // for use by the SHIFT+END shortcut for unm
 
 extern	bool	gbExpanding; // see use in CalcPileWidth // defined in CPhraseBox // changed int to bool
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern  int		nSequNumForLastAutoSave;
 
-// / This global is defined in Adapt_ItDoc.cpp.
+/// This global is defined in Adapt_ItDoc.cpp.
 extern	bool	bUserCancelled;
 
 extern  bool	gbJustCancelled; // set TRUE when Find or Find & Replace dialog window has just
@@ -763,8 +763,8 @@ SPList gSrcPhrases; // for list of CSourcePhrase instances in the retranslation
 // global pointer to the punctuation remainder list, for use by CPlaceInternalPunct
 wxArrayString* gpRemainderList = (wxArrayString*)NULL; // MFC uses CStringList*
 
-// / TRUE if a consistency check is in progress. Used to supress the placement of the 
-// / phrase box when documents are opened while performing a consistency check.
+/// TRUE if a consistency check is in progress. Used to supress the placement of the 
+/// phrase box when documents are opened while performing a consistency check.
 bool	gbConsistencyCheckCurrent = FALSE;
 
 // some globals for use in merging
@@ -796,16 +796,16 @@ bool	gbReplaceInRetranslation = FALSE;
 bool gbMatchedRetranslation = FALSE;
 int  gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 
-// / A global for saving a source phrase's old sequence number in case it is required 
-// / for the toolbar's Back button; or for saving the active location in a variety of
-// / command handlers. When there is no earlier location, it is set to -1, but you should
-// / never rely on it having the value -1 unless you know you've set -1 earlier
+/// A global for saving a source phrase's old sequence number in case it is required 
+/// for the toolbar's Back button; or for saving the active location in a variety of
+/// command handlers. When there is no earlier location, it is set to -1, but you should
+/// never rely on it having the value -1 unless you know you've set -1 earlier
 int gnOldSequNum = -1;
 
 // globals defined in CPhraseBox
 extern int			nWordsInPhrase;
 
-// / This global is defined in PhraseBox.cpp.
+/// This global is defined in PhraseBox.cpp.
 extern wxString		translation; // translation, for a matched source phrase key
 
 extern CTargetUnit*	pCurTargetUnit; // when valid, it is the matched CTargetUnit instance
@@ -819,7 +819,7 @@ bool	gbEmptyAdaptationChosen = FALSE;
 // (set in OnMouseMove())
 bool	gbHaltedAtBoundary = FALSE;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern wxPoint gptLastClick;
 
 // globals relevant to the printing process
@@ -829,13 +829,13 @@ bool	gbIsPrinting = FALSE; // TRUE when when OnPreparePrinting is called, cleare
 bool	gbPrintingRange = FALSE; // TRUE when the user wants to print a chapter/verse range
 int		gnCurPage = 0; // to make number of current page being printed accessible to CStrip's Draw()
 
-// / For preserving selection across a RecalcLayout() or LayoutStrip().
+/// For preserving selection across a RecalcLayout() or LayoutStrip().
 int		gnSelectionStartSequNum; 
 
-// / For preserving selection across a RecalcLayout() or LayoutStrip().
+/// For preserving selection across a RecalcLayout() or LayoutStrip().
 int		gnSelectionEndSequNum;
 
-// / Preserved value of m_selectionLine
+/// Preserved value of m_selectionLine
 int		gnSelectionLine;
 
 bool	gbIsBeingPreviewed = FALSE; // true while a print preview is being done
@@ -851,7 +851,7 @@ int		gnRangeEndSequNum;
 
 //extern	float englishToMetric;
 
-// / If TRUE print the footer, otherwise skip printing of footer
+/// If TRUE print the footer, otherwise skip printing of footer
 bool	gbPrintFooter = TRUE;
 
 int		gnTopGap = 100; // units of thousandths of an inch for this and next two
@@ -875,12 +875,12 @@ struct	AutoFixRecord
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-// / This macro together with the macro list declaration in the .h file
-// / complete the definition of a new safe pointer list class called AFList.
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called AFList.
 WX_DEFINE_LIST(AFList);
 
-// / This macro together with the macro list declaration in the .h file
-// / complete the definition of a new safe pointer list class called WordList.
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called WordList.
 WX_DEFINE_LIST(WordList);
 
 IMPLEMENT_DYNAMIC_CLASS(CAdapt_ItView, wxView)
@@ -1327,7 +1327,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 //	wxRect testRectViewClient = grectViewClient;
 //#endif
 
-	// // Here's sample code for alternative 2:
+	//// Here's sample code for alternative 2:
 	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
 	//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
 	//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
@@ -1705,7 +1705,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	wxASSERT(pDelayBox != NULL);
 	wxString s;
 	//wxChar buf[34];
-	// //_itot(pApp->m_nCurDelay,buf,10); // MFC had pApp but pApp was null so changed it to pApp->m_nCurDelay
+	////_itot(pApp->m_nCurDelay,buf,10); // MFC had pApp but pApp was null so changed it to pApp->m_nCurDelay
 	//wxSnprintf(buf, 34, "%d", pApp->m_nCurDelay);
 	s.Empty();
 	s << pApp->m_nCurDelay; //s = buf;
@@ -4869,16 +4869,16 @@ a:		wxClientDC aDC(pApp->GetMainFrame()->canvas);
 
 // OnPrepareDC() was moved to CAdapt_ItCanvas in the wx version
 
-//****************************************************************************************
-// / \return     nothing
-// / \param      event   -> unused
-// / \remarks
-// / Called from: The File -> Print menu selection. Note: This handler is not called when
-// / the "Print" button in the print preview dialog is pressed. This handler creates a
-// / printer object from the wxPrinter class, associates it with our wxPrintDialogData
-// / object (pPrintData), sets the print dialog title and invokes the print dialog by
-// / calling printer.Print().
-//****************************************************************************************
+// ***************************************************************************************
+/// \return     nothing
+/// \param      event   -> unused
+/// \remarks
+/// Called from: The File -> Print menu selection. Note: This handler is not called when
+/// the "Print" button in the print preview dialog is pressed. This handler creates a
+/// printer object from the wxPrinter class, associates it with our wxPrintDialogData
+/// object (pPrintData), sets the print dialog title and invokes the print dialog by
+/// calling printer.Print().
+// ***************************************************************************************
 void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event)) 
 {
 	// whm note: The code below is adapted from wxWidgets printing sample
@@ -4965,15 +4965,15 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 
 }
 
-//**************************************************************************************
-// / \return     nothing
-// / \param      event   -> unused
-// / \remarks
-// / Called from: The File -> Print Preview menu selection. This handler creates a preview
+// *************************************************************************************
+/// \return     nothing
+/// \param      event   -> unused
+/// \remarks
+/// Called from: The File -> Print Preview menu selection. This handler creates a preview
 // object from the / wxPrintPreview class, creates a frame object from the wxPreviewFrame
 // class, positions, sizes and / initializes the frame, and finally shows the print preview
 // frame in modal fashion.
-//**************************************************************************************
+// *************************************************************************************
 void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 {
 	// whm note: The code below is adapted from wxWidgets printing sample
@@ -5025,22 +5025,22 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 	// when the user exits/closes the preview window.
 }
 
-//***************************************************************************************
-// / \return     FALSE if the document is empty, otherwise TRUE
-// / \param      nTotalStripCount        -> total number of strips
-// / \param      nPagePrintingLength     -> the length of a printed page between top and 
+// **************************************************************************************
+/// \return     FALSE if the document is empty, otherwise TRUE
+/// \param      nTotalStripCount        -> total number of strips
+/// \param      nPagePrintingLength     -> the length of a printed page between top and 
 //                                          bottom margins expressed in logical units
-// / \param      paginationType          -> either NoSimulation or DoSimulation. 
-// /                                         NoSimulation stores top and bottom offsets in
-// /                                         the PageOffsets list; DoSimulation does not
-// /                                         store top and bottom offsets in the PageOffsets
-// /                                         list
-// / \remarks
-// / Called from: AIPrintout::OnPreparePrinting(), and the View's SetupRangePrintOp().
-// / Determines the number of strips that will fit on a page (using the current width
-// / between left and right margins), and stores the offsets and strip counts for each page
-// / in a list of pOffsets it stores in the App's list of PageOffsets.
-//****************************************************************************************
+/// \param      paginationType          -> either NoSimulation or DoSimulation. 
+///                                         NoSimulation stores top and bottom offsets in
+///                                         the PageOffsets list; DoSimulation does not
+///                                         store top and bottom offsets in the PageOffsets
+///                                         list
+/// \remarks
+/// Called from: AIPrintout::OnPreparePrinting(), and the View's SetupRangePrintOp().
+/// Determines the number of strips that will fit on a page (using the current width
+/// between left and right margins), and stores the offsets and strip counts for each page
+/// in a list of pOffsets it stores in the App's list of PageOffsets.
+// ***************************************************************************************
 bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength, 
 								enum PaginationType paginationType)
 {
@@ -5146,13 +5146,13 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 	return TRUE;
 }
 
-//***************************************************************************************
-// / \return     nothing
-// / \remarks
-// / Called from: The View's PaginateDoc() and AIPrintout's OnPreparePrinting() and its
-// / destructor. ClearPagesList() is a helper function which simply deletes the list of page
-// / offset structs from the POList called m_pagesList on the App.
-//****************************************************************************************
+// **************************************************************************************
+/// \return     nothing
+/// \remarks
+/// Called from: The View's PaginateDoc() and AIPrintout's OnPreparePrinting() and its
+/// destructor. ClearPagesList() is a helper function which simply deletes the list of page
+/// offset structs from the POList called m_pagesList on the App.
+// ***************************************************************************************
 void CAdapt_ItView::ClearPagesList()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5187,16 +5187,16 @@ void CAdapt_ItView::ClearPagesList()
 }
 /* removed 6Apr09 for refactored layout design
 // *****************************************************************************************
-// / \return     nothing
-// / \param      nNewMaxIndex      -> used to initialize the App's m_endIndex and 
+/// \return     nothing
+/// \param      nNewMaxIndex      -> used to initialize the App's m_endIndex and 
 //                                    m_upperIndex values at the start of printing
-// / \remarks
-// / Called from: the View's OnPrint() top level menu handler when File | Print is invoked
-// / by the user; and from the AIPrintout's OnPreparePrinting(). SaveAndSetIndices() saves a
-// / copy of certain indices associated with the current document, and initializes certain
-// / printing variables to default values, at the beginning of the printing operation. At
-// / the end of printing operations (in AIPrintout's destructor), RestoreIndices() is called
-// / to reset those indices using the values saved by SaveAndSetIndices().
+/// \remarks
+/// Called from: the View's OnPrint() top level menu handler when File | Print is invoked
+/// by the user; and from the AIPrintout's OnPreparePrinting(). SaveAndSetIndices() saves a
+/// copy of certain indices associated with the current document, and initializes certain
+/// printing variables to default values, at the beginning of the printing operation. At
+/// the end of printing operations (in AIPrintout's destructor), RestoreIndices() is called
+/// to reset those indices using the values saved by SaveAndSetIndices().
 // ******************************************************************************************
 void CAdapt_ItView::SaveAndSetIndices(int nNewMaxIndex)
 {
@@ -5216,14 +5216,14 @@ void CAdapt_ItView::SaveAndSetIndices(int nNewMaxIndex)
 }
 
 // ******************************************************************************************
-// / \return     nothing
-// / \remarks
-// / Called from: the View's RestoreOriginalList() and from within the AIPrintout's
-// / destructor at the end of a print or print preview operation. At the beginning of a
-// / print operation SaveAndSetIndices() saved a copy of certain indices associated with the
-// / current document, and initialized certain printing variables to default values.
-// / RestoreIndices() restores the values that were saved by SaveAndSetIndices() so that the
-// / document can be put back into the state it was in before the printing operation.
+/// \return     nothing
+/// \remarks
+/// Called from: the View's RestoreOriginalList() and from within the AIPrintout's
+/// destructor at the end of a print or print preview operation. At the beginning of a
+/// print operation SaveAndSetIndices() saved a copy of certain indices associated with the
+/// current document, and initialized certain printing variables to default values.
+/// RestoreIndices() restores the values that were saved by SaveAndSetIndices() so that the
+/// document can be put back into the state it was in before the printing operation.
 // ******************************************************************************************
 void CAdapt_ItView::RestoreIndices()
 {
@@ -5236,14 +5236,14 @@ void CAdapt_ItView::RestoreIndices()
 }
 
 // ****************************************************************************************
-// / \return     nothing
-// / \remarks
-// / Called from: the View's OnPrint() top level menu handler when File | Print is invoked
-// / by the user; and from the AIPrintout's OnPreparePrinting(). SaveIndicesForRange() saves
-// / a copy of certain indices associated with printing a range of the current document, at
-// / the beginning of the printing operation. At the end of printing operations (in
-// / AIPrintout's destructor), RestoreIndicesFromRange() is called to reset those indices
-// / using the values saved by SaveIndicesForRange().
+/// \return     nothing
+/// \remarks
+/// Called from: the View's OnPrint() top level menu handler when File | Print is invoked
+/// by the user; and from the AIPrintout's OnPreparePrinting(). SaveIndicesForRange() saves
+/// a copy of certain indices associated with printing a range of the current document, at
+/// the beginning of the printing operation. At the end of printing operations (in
+/// AIPrintout's destructor), RestoreIndicesFromRange() is called to reset those indices
+/// using the values saved by SaveIndicesForRange().
 // ****************************************************************************************
 void CAdapt_ItView::SaveIndicesForRange()
 {
@@ -5257,13 +5257,13 @@ void CAdapt_ItView::SaveIndicesForRange()
 }
 
 // ****************************************************************************************
-// / \return     nothing
-// / \remarks
-// / Called from: the View's RestoreOriginalList() at the end of a print or print preview operation (in
-// / AIPrintout's destructor). At the beginning of a print operation SaveIndicesForRange() 
-// / saved a copy of certain indices associated with printing a range of the current document. 
-// / RestoreIndicesFromRange() restores the values that were saved by SaveIndicesForRange() so that the 
-// / document can be put back into the state it was in before the printing operation.
+/// \return     nothing
+/// \remarks
+/// Called from: the View's RestoreOriginalList() at the end of a print or print preview operation (in
+/// AIPrintout's destructor). At the beginning of a print operation SaveIndicesForRange() 
+/// saved a copy of certain indices associated with printing a range of the current document. 
+/// RestoreIndicesFromRange() restores the values that were saved by SaveIndicesForRange() so that the 
+/// document can be put back into the state it was in before the printing operation.
 // ****************************************************************************************
 void CAdapt_ItView::RestoreIndicesFromRange()
 {
@@ -5275,22 +5275,22 @@ void CAdapt_ItView::RestoreIndicesFromRange()
 	pApp->m_maxIndex = pApp->m_saveRangeMaxIndex;
 }
 */
-//****************************************************************************************
-// / \return     always TRUE in the wx version (FALSE in the MFC version only if a memory 
+// ***************************************************************************************
+/// \return     always TRUE in the wx version (FALSE in the MFC version only if a memory 
 //               error occurrs)
-// / \param      pSaveList       <- a SPList to store all items originally in pOriginalList
-// / \param      pOriginalList   <- list of Source phrase items of which only a sublist remain
-// /                                 at the end of the GetSubList operation
-// / \param      nBeginSequNum   -> the first list item composing the intended sub list
-// / \param      nEndSequNum     -> the last item composing the intended sub list
-// / \remarks
-// / Called from: the View's SetupRangePrintOp() function and
-// / AIPrintout::OnPreparePrinting(). GetSublist() first removes any existing list items
-// / from pSaveList, then it copies all list items from pOriginalList into pSaveList; then
-// / removes all items from pOriginalList; and adds back to pOriginalList only those source
-// / phrases from pSaveList that are within the range nBeginSequNum to nEndSequNum. Finally
-// / GetSublist() updates the indices related to printing of sublists.
-//****************************************************************************************
+/// \param      pSaveList       <- a SPList to store all items originally in pOriginalList
+/// \param      pOriginalList   <- list of Source phrase items of which only a sublist remain
+///                                 at the end of the GetSubList operation
+/// \param      nBeginSequNum   -> the first list item composing the intended sub list
+/// \param      nEndSequNum     -> the last item composing the intended sub list
+/// \remarks
+/// Called from: the View's SetupRangePrintOp() function and
+/// AIPrintout::OnPreparePrinting(). GetSublist() first removes any existing list items
+/// from pSaveList, then it copies all list items from pOriginalList into pSaveList; then
+/// removes all items from pOriginalList; and adds back to pOriginalList only those source
+/// phrases from pSaveList that are within the range nBeginSequNum to nEndSequNum. Finally
+/// GetSublist() updates the indices related to printing of sublists.
+// ***************************************************************************************
 bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBeginSequNum,
 							   int nEndSequNum)
 {
@@ -5344,19 +5344,19 @@ bool CAdapt_ItView::GetSublist(SPList* pSaveList, SPList* pOriginalList, int nBe
 	return bOK;
 }
 
-//****************************************************************************************
-// / \return     always TRUE
-// / \param      pSaveList      -> the (full) list of source phrase items to be moved to
-// /                                pOriginalList
-// / \param      pOriginalList  <- the existing sublist which is to be abandoned and 
-// /                                replaced by the contents of pSaveList
-// / \remarks
-// / Called from: the AIPrintout's destructor. RestoreOriginalList() is called to restore
-// / the original contents of the document's m_pSourcePhrases, after printing the document.
-// / During the print operation, the original list from m_pSourcePhrases was stored/saved in
-// / pSaveList. RestoreOriginalList() also calls RestoreIndicesFromRange() if a range print
-// / was done, or RestoreIndices() for a non-range print operation.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return     always TRUE
+/// \param      pSaveList      -> the (full) list of source phrase items to be moved to
+///                                pOriginalList
+/// \param      pOriginalList  <- the existing sublist which is to be abandoned and 
+///                                replaced by the contents of pSaveList
+/// \remarks
+/// Called from: the AIPrintout's destructor. RestoreOriginalList() is called to restore
+/// the original contents of the document's m_pSourcePhrases, after printing the document.
+/// During the print operation, the original list from m_pSourcePhrases was stored/saved in
+/// pSaveList. RestoreOriginalList() also calls RestoreIndicesFromRange() if a range print
+/// was done, or RestoreIndices() for a non-range print operation.
+// ***************************************************************************************
 bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 // when called, pSaveList has the original (full) list, and pOriginalList has the sublist which 
 // we wish to abandon in the process of restoring the normal state
@@ -5411,14 +5411,14 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 }
 
 // ********************************************************************************************
-// / \return     nothing
-// / \param      nSelectionLine   -> an int representing the selected line
-// / \remarks
-// / Called from: the View's RecalcLayout() and AIPrintout::OnPreparePrinting if a selection 
-// / is current. Stores data concerning the selection in global variables on the App. In particular,
-// / the selection line is stored in gnSelectionLine, the sequence number of the starting source 
-// / phrase in gnSelectionStartSequNum, and the sequence number of the ending source phrase in
-// / gnSelectionEndSequNum.
+/// \return     nothing
+/// \param      nSelectionLine   -> an int representing the selected line
+/// \remarks
+/// Called from: the View's RecalcLayout() and AIPrintout::OnPreparePrinting if a selection 
+/// is current. Stores data concerning the selection in global variables on the App. In particular,
+/// the selection line is stored in gnSelectionLine, the sequence number of the starting source 
+/// phrase in gnSelectionStartSequNum, and the sequence number of the ending source phrase in
+/// gnSelectionEndSequNum.
 // *********************************************************************************************
 /* we no longer store or restore selections - it's not compatible with how we do the layout now
 void CAdapt_ItView::StoreSelection(int nSelectionLine)
@@ -5460,12 +5460,12 @@ void CAdapt_ItView::StoreSelection(int nSelectionLine)
 	//		pApp->m_bRespectBoundaries);
 }
 */
-//**********************************************************************************************
-// / \return     nothing
-// / \remarks
-// / Called from: the View's RecalcLayout(). Restores data that was stored by the StoreSelection()
-// / function. Data is restored from the global variables on the App. 
-//**********************************************************************************************
+// *********************************************************************************************
+/// \return     nothing
+/// \remarks
+/// Called from: the View's RecalcLayout(). Restores data that was stored by the StoreSelection()
+/// function. Data is restored from the global variables on the App. 
+// *********************************************************************************************
 /* we no longer store or restore selections, it's not compatible with the new layout code
 void CAdapt_ItView::RestoreSelection()
 {
@@ -5535,14 +5535,14 @@ void CAdapt_ItView::RestoreSelection()
 	}
 }
 */
-//***********************************************************************************************
-// / \return     the m_chapterVerse member of pSrcPhrase
-// / \param      pSrcPhrase   -> the source phrase whose m_chapterVerse member is to be retrieved
-// / \remarks
-// / Called from: the App's RefreshStatusBarInfo(), the Doc's ReconstituteAfterFilteringChange(),
-// / ReconstituteAfterPunctuationChange(), the View's DoConsistencyCheck() and OnEditSourceText().
-// / Gets and returns the m_chapterVerse member of pSrcPhrase.
-//***********************************************************************************************
+// **********************************************************************************************
+/// \return     the m_chapterVerse member of pSrcPhrase
+/// \param      pSrcPhrase   -> the source phrase whose m_chapterVerse member is to be retrieved
+/// \remarks
+/// Called from: the App's RefreshStatusBarInfo(), the Doc's ReconstituteAfterFilteringChange(),
+/// ReconstituteAfterPunctuationChange(), the View's DoConsistencyCheck() and OnEditSourceText().
+/// Gets and returns the m_chapterVerse member of pSrcPhrase.
+// **********************************************************************************************
 wxString CAdapt_ItView::GetChapterAndVerse(CSourcePhrase *pSrcPhrase)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5571,43 +5571,43 @@ wxString CAdapt_ItView::GetChapterAndVerse(CSourcePhrase *pSrcPhrase)
 	return str;
 }
 
-//********************************************************************************************************
-// / \return     TRUE if a valid c:v scripture reference substring has been constructed in strChapVerse, 
-// /             else FALSE
-// / \param      pList               -> a list of CSourcePhrase pointer instances (either the current document, 
-// /                                 or a list constructed from parsing in an XML document and storing 
-// /                                 in a temporary SPList)
-// / \param      pStartingSrcPhrase  -> pointer to the CSourcePhrase instance which defines the 
-// /                                 current location relative to which we wish to return the best possible 
-// /                                 (and nearest) ch:verse substring
-// / \param      strChapVerse        <- a scripture reference (minus the book code and following space) 
-// /                                 in the form "Chapter:Verse" for example "13:25"; or an empty string if  
-// /                                 the function fails
-// / \remarks
-// / Called from: the View's SendScriptureReferenceFocusMessage(). Gets the current verse's ch:v substring, 
-// / or at least tries to do the best possible job of it that it can. The pSrcPhrase defines a location (ie. 
-// / a given sequence number) in the passed in pList of CSourcePhrase instances (if looking in an active 
-// / document, pList will be pDoc->m_pSourcePhrases; but if scanning through a set of adaptation documents 
-// / stored on disk, pList will be a temporary SPList created for holding the list returned by parsing in 
-// / the XML (or *.adt) document file cryptically). First the function checks pSrcPhrase for a non-empty 
-// / m_chapterVerse member, if it finds it it puts it into strChapVerse and we are done. If not, then the 
-// / active location may be within a verse - so the function scans back in pList to find the nearst
-// / previous pSrcPhrase instance with a non-empty m_chapterVerse - returning that if it finds one; but if 
-// / pSrcPhrase is near the start of the document, there might be no previous such instance, so it then 
-// / scans forward from the passed in pSrcPhrase's location to get the nearest following non-empty 
-// / m_chapterVerse, and returns that. This algorithm means that we get a valid scripture reference substring 
-// / even if the active location is in something such as a subheading part of the adaptation document (ie. 
-// / information marked by \s). But if scanning both backwards and forwards yields no non-empty m_chapterVerse 
-// / member, we assume the document was not created from a (U)SFM marked plain text source text file, and 
-// / return FALSE so that the caller will block sending an invalid scripture reference focus message, or 
-// / responding to one by looking in the document being tested for the location to scroll to.
-// / Note: CSourcePhrase instances can store, in their m_chapterVerse member, a chapter followed by colon 
-// / followed by a verse range - something in the form "13:12-15", or even "13:12,15". When a substring 
-// / like this has been found. We do not return it 'as is', but rather extract the chapter number, colon, 
-// / and first verse of the range - the rest is not used in a scripture reference focus broadcast message, 
-// / so we never send it in one. The work of setting a valid "ch:verse" substring is done by the 
-// / MakeChapVerseStrForSynchronizedScroll() function defined in MainFrame.cpp.
-//***********************************************************************************************************
+// *******************************************************************************************************
+/// \return     TRUE if a valid c:v scripture reference substring has been constructed in strChapVerse, 
+///             else FALSE
+/// \param      pList               -> a list of CSourcePhrase pointer instances (either the current document, 
+///                                 or a list constructed from parsing in an XML document and storing 
+///                                 in a temporary SPList)
+/// \param      pStartingSrcPhrase  -> pointer to the CSourcePhrase instance which defines the 
+///                                 current location relative to which we wish to return the best possible 
+///                                 (and nearest) ch:verse substring
+/// \param      strChapVerse        <- a scripture reference (minus the book code and following space) 
+///                                 in the form "Chapter:Verse" for example "13:25"; or an empty string if  
+///                                 the function fails
+/// \remarks
+/// Called from: the View's SendScriptureReferenceFocusMessage(). Gets the current verse's ch:v substring, 
+/// or at least tries to do the best possible job of it that it can. The pSrcPhrase defines a location (ie. 
+/// a given sequence number) in the passed in pList of CSourcePhrase instances (if looking in an active 
+/// document, pList will be pDoc->m_pSourcePhrases; but if scanning through a set of adaptation documents 
+/// stored on disk, pList will be a temporary SPList created for holding the list returned by parsing in 
+/// the XML (or *.adt) document file cryptically). First the function checks pSrcPhrase for a non-empty 
+/// m_chapterVerse member, if it finds it it puts it into strChapVerse and we are done. If not, then the 
+/// active location may be within a verse - so the function scans back in pList to find the nearst
+/// previous pSrcPhrase instance with a non-empty m_chapterVerse - returning that if it finds one; but if 
+/// pSrcPhrase is near the start of the document, there might be no previous such instance, so it then 
+/// scans forward from the passed in pSrcPhrase's location to get the nearest following non-empty 
+/// m_chapterVerse, and returns that. This algorithm means that we get a valid scripture reference substring 
+/// even if the active location is in something such as a subheading part of the adaptation document (ie. 
+/// information marked by \s). But if scanning both backwards and forwards yields no non-empty m_chapterVerse 
+/// member, we assume the document was not created from a (U)SFM marked plain text source text file, and 
+/// return FALSE so that the caller will block sending an invalid scripture reference focus message, or 
+/// responding to one by looking in the document being tested for the location to scroll to.
+/// Note: CSourcePhrase instances can store, in their m_chapterVerse member, a chapter followed by colon 
+/// followed by a verse range - something in the form "13:12-15", or even "13:12,15". When a substring 
+/// like this has been found. We do not return it 'as is', but rather extract the chapter number, colon, 
+/// and first verse of the range - the rest is not used in a scripture reference focus broadcast message, 
+/// so we never send it in one. The work of setting a valid "ch:verse" substring is done by the 
+/// MakeChapVerseStrForSynchronizedScroll() function defined in MainFrame.cpp.
+// **********************************************************************************************************
 bool CAdapt_ItView::GetChapterAndVerse(SPList* pList, CSourcePhrase* pStartingSrcPhrase, wxString& strChapVerse)
 {
 	CSourcePhrase* pSrcPhrase = NULL;
@@ -5669,30 +5669,30 @@ bool CAdapt_ItView::GetChapterAndVerse(SPList* pList, CSourcePhrase* pStartingSr
 	}
 }
 
-//**********************************************************************************************
-// / \return     nothing
-// / \param      pList		->	a list of CSourcePhrase pointer instances (either the current
-// /                             document, or a list constructed from parsing in an XML document 
-// /                             and storing in a temporary SPList)
-// / \param      pSrcPhrase	->	pointer to the CSourcePhrase instance which defines the current 
-// /                             location
-// / \remarks
-// / Called from: the CPhraseBox::MoveToNextPile() function.
-// / This is the function which does the work of determining if a scripture reference focus message 
-// / needs to be sent, for the current location as defined by where pSrcPhrase happens to be in the 
-// / document's pList (the list could be pDoc->m_pSourcePhrases, or a tempory SPList pointer used 
-// / for checking a document not currently open). Internally, the function checks the global 
-// / CStrings: gOldChapVerseStr and gCurChapVerseStr, and if these are not different then a message 
-// / is not sent; but if they are, then the message will be sent provided the global bool 
-// / gbIgnoreScriptureReference_Send is FALSE (the function call needs to be wrapped by an 
-// / if (!gbIgnoreScriptureReference_Send) test -- because the GUI command sets or clears this 
-// / boolean). Also, internally the overloaded version of the GetChapterAndVerse() function, which 
-// / returns TRUE if successful and FALSE otherwise, is called - and if FALSE is returned then no 
-// / message is sent. If the current document has no (U)SFM markup, or no 3-letter book code at the 
-// / start of the pList entries, then the latter function will return FALSE and so no message will 
-// / ever be sent for a document file which is not built from a properly constituted and marked up 
-// / scripture text file.
-//************************************************************************************************
+// *********************************************************************************************
+/// \return     nothing
+/// \param      pList		->	a list of CSourcePhrase pointer instances (either the current
+///                             document, or a list constructed from parsing in an XML document 
+///                             and storing in a temporary SPList)
+/// \param      pSrcPhrase	->	pointer to the CSourcePhrase instance which defines the current 
+///                             location
+/// \remarks
+/// Called from: the CPhraseBox::MoveToNextPile() function.
+/// This is the function which does the work of determining if a scripture reference focus message 
+/// needs to be sent, for the current location as defined by where pSrcPhrase happens to be in the 
+/// document's pList (the list could be pDoc->m_pSourcePhrases, or a tempory SPList pointer used 
+/// for checking a document not currently open). Internally, the function checks the global 
+/// CStrings: gOldChapVerseStr and gCurChapVerseStr, and if these are not different then a message 
+/// is not sent; but if they are, then the message will be sent provided the global bool 
+/// gbIgnoreScriptureReference_Send is FALSE (the function call needs to be wrapped by an 
+/// if (!gbIgnoreScriptureReference_Send) test -- because the GUI command sets or clears this 
+/// boolean). Also, internally the overloaded version of the GetChapterAndVerse() function, which 
+/// returns TRUE if successful and FALSE otherwise, is called - and if FALSE is returned then no 
+/// message is sent. If the current document has no (U)SFM markup, or no 3-letter book code at the 
+/// start of the pList entries, then the latter function will return FALSE and so no message will 
+/// ever be sent for a document file which is not built from a properly constituted and marked up 
+/// scripture text file.
+// ***********************************************************************************************
 void CAdapt_ItView::SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase* pSrcPhrase)
 {
 	wxASSERT(pList != NULL);
@@ -5729,26 +5729,26 @@ void CAdapt_ItView::SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhr
 	gOldChapVerseStr = strChVerse;
 }
 
-//************************************************************************************************
-// / \return     TRUE if we have chapter:verse form, FALSE if the document has no chapters
-// / \param      s               <- a wxString representing the source phrase's m_chapterVerse member
-// / \param      nChapter        <- an int representing the chapter number
-// / \param      nVerse          <- an int representing the verse number (or 1st verse in a range); 0 if
-// /                                no verses are indicated
-// / \param      bHasChapters    <- a bool TRUE if chapter numbers are present FALSE otherwise
-// / \param      bIsVerseRange   <- a bool TRUE if there is a range of verses indicated, FALSE otherwise
-// / \param      nFinalVerse     <- an int representing the final verse in a range
-// / \remarks
-// / Called from: the View's SetupRangePrintOp().
-// / The usual form for s's contents is n:m where n is a chapter number, and m a verse number,
-// / and bIsVerseRange will be set to FALSE; - s is a reference to the source phrase's m_chapterVerse
-// / member. However, the contents could be just a verse number (eg. Book without chapters, such as
-// / 2John etc), or n:p-q (for a range of verses), or n:p,q (an alternative style for a range) so for
-// / the standard situation we set nChapter to n, nVerse to m, and return TRUE; but for a book with
-// / no chapters we return FALSE, and nVerse will have the verse number, or 0 if there are no verses;
-// / for the range possibilities nVerse will have p the first verse in the range, nFinalVerse will
-// / have q (the end verse in the range), and bIsVerseRange will be set to TRUE.
-//************************************************************************************************
+// ***********************************************************************************************
+/// \return     TRUE if we have chapter:verse form, FALSE if the document has no chapters
+/// \param      s               <- a wxString representing the source phrase's m_chapterVerse member
+/// \param      nChapter        <- an int representing the chapter number
+/// \param      nVerse          <- an int representing the verse number (or 1st verse in a range); 0 if
+///                                no verses are indicated
+/// \param      bHasChapters    <- a bool TRUE if chapter numbers are present FALSE otherwise
+/// \param      bIsVerseRange   <- a bool TRUE if there is a range of verses indicated, FALSE otherwise
+/// \param      nFinalVerse     <- an int representing the final verse in a range
+/// \remarks
+/// Called from: the View's SetupRangePrintOp().
+/// The usual form for s's contents is n:m where n is a chapter number, and m a verse number,
+/// and bIsVerseRange will be set to FALSE; - s is a reference to the source phrase's m_chapterVerse
+/// member. However, the contents could be just a verse number (eg. Book without chapters, such as
+/// 2John etc), or n:p-q (for a range of verses), or n:p,q (an alternative style for a range) so for
+/// the standard situation we set nChapter to n, nVerse to m, and return TRUE; but for a book with
+/// no chapters we return FALSE, and nVerse will have the verse number, or 0 if there are no verses;
+/// for the range possibilities nVerse will have p the first verse in the range, nFinalVerse will
+/// have q (the end verse in the range), and bIsVerseRange will be set to TRUE.
+// ***********************************************************************************************
 bool CAdapt_ItView::ExtractChapterAndVerse(wxString& s,int& nChapter,int& nVerse,bool& bHasChapters,
 										   bool& bIsVerseRange,int& nFinalVerse)
 {
@@ -5862,17 +5862,17 @@ a:		rightStr = tempStr.Mid(nCommaOffset + 1);
 	// return bHasChapters; // unreachable
 }
 
-//**********************************************************************************************
-// / \return     the source phrase's m_nSequNumber which has the start of a section heading
-// / \param      nStartingSequNum    -> an int representing the starting sequence number
-// / \param      startingPos         <- an SPList node representing the starting position in pList
-// / \param      pList               <- the source phrase list (not referenced directly, only via 
-// /                                    the startingPos node)
-// / \remarks
-// / Called from: the View's SetupRangePrintOp().
-// / Scans backwards from the starting position looking for a source phrase with a section head marker
-// / indicating that it is the start of a preceding section heading.
-//***********************************************************************************************
+// *********************************************************************************************
+/// \return     the source phrase's m_nSequNumber which has the start of a section heading
+/// \param      nStartingSequNum    -> an int representing the starting sequence number
+/// \param      startingPos         <- an SPList node representing the starting position in pList
+/// \param      pList               <- the source phrase list (not referenced directly, only via 
+///                                    the startingPos node)
+/// \remarks
+/// Called from: the View's SetupRangePrintOp().
+/// Scans backwards from the starting position looking for a source phrase with a section head marker
+/// indicating that it is the start of a preceding section heading.
+// **********************************************************************************************
 int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos,
 												   SPList* WXUNUSED(pList))
 {
@@ -5969,22 +5969,22 @@ int CAdapt_ItView::IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList:
 	return nOldSN;
 }
 
-//***************************************************************************************
-// / \return     FALSE if the range could not be determined or found, otherwise TRUE
-// / \param      nFromCh     -> an int representing the chapter at the beginning of the range
-// / \param      nFromV      -> an int representing the verse at the beginning of the range
-// / \param      nToCh       -> an int representing the chapter at the end of the range
-// / \param      nToV        -> an int representing the verse at the end of the range
-// / \param      pPrintData  -> (unused)
-// / \param      bSuppressPrecedingHeadingInRange  -> (unused)
-// / \param      bIncludeFollowingHeadingInRange   -> (unused)
-// / \remarks
-// / Called from: the View's OnPrint() high level handler after the standard print dialog's
-// / OK button has been pressed. Determines the sequence numbers for the indicated chapter
-// / and verse range and gets the appropriate sublist of source phrases making up that
-// / range. From this data it calls RecalcLayout to format the printout for the correct
-// / width, and PaginateDoc().
-//***************************************************************************************
+// **************************************************************************************
+/// \return     FALSE if the range could not be determined or found, otherwise TRUE
+/// \param      nFromCh     -> an int representing the chapter at the beginning of the range
+/// \param      nFromV      -> an int representing the verse at the beginning of the range
+/// \param      nToCh       -> an int representing the chapter at the end of the range
+/// \param      nToV        -> an int representing the verse at the end of the range
+/// \param      pPrintData  -> (unused)
+/// \param      bSuppressPrecedingHeadingInRange  -> (unused)
+/// \param      bIncludeFollowingHeadingInRange   -> (unused)
+/// \remarks
+/// Called from: the View's OnPrint() high level handler after the standard print dialog's
+/// OK button has been pressed. Determines the sequence numbers for the indicated chapter
+/// and verse range and gets the appropriate sublist of source phrases making up that
+/// range. From this data it calls RecalcLayout to format the printout for the correct
+/// width, and PaginateDoc().
+// **************************************************************************************
 bool CAdapt_ItView::SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh, 
 									  const int nToV, wxPrintData* WXUNUSED(pPrintData), 
 									  bool WXUNUSED(bSuppressPrecedingHeadingInRange), 
@@ -6623,15 +6623,15 @@ void CAdapt_ItView::GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPo
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Enables the "Units of Measurement..." item on the View menu. This menu item is always enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Enables the "Units of Measurement..." item on the View menu. This menu item is always enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateUnits(wxUpdateUIEvent& event)
 {
 	event.Enable(TRUE);
@@ -6649,19 +6649,19 @@ void CAdapt_ItView::OnUnits(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//*************************************************************************************
-// / \return     nothing
-// / \param      pDC     -> the display context (either print preview, or actual physical printer
-// / \param      fitRect -> the rectangle representing the area of the page enclosed by the page margins
-// / \param      logicalUnitsFactor -> represents the factor that must be multipled by any linear 
-// /             measurement such as the half inch (12.7mm) that a footer is displaced below fitRect's 
-// /             bottom margin, in order to convert that linear measurement into logical units for 
-// /             correct positioning in the different display contexts 
-// / \param      page -> the page currently being rendered
-// / \remarks
-// / Called from: AIPrintout::OnPrintPage(). Composes the text of the footer and draws it at the footer
-// / position of the rendered page.
-//*************************************************************************************
+// ************************************************************************************
+/// \return     nothing
+/// \param      pDC     -> the display context (either print preview, or actual physical printer
+/// \param      fitRect -> the rectangle representing the area of the page enclosed by the page margins
+/// \param      logicalUnitsFactor -> represents the factor that must be multipled by any linear 
+///             measurement such as the half inch (12.7mm) that a footer is displaced below fitRect's 
+///             bottom margin, in order to convert that linear measurement into logical units for 
+///             correct positioning in the different display contexts 
+/// \param      page -> the page currently being rendered
+/// \remarks
+/// Called from: AIPrintout::OnPrintPage(). Composes the text of the footer and draws it at the footer
+/// position of the rendered page.
+// ************************************************************************************
 void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFactor, int page)
 {
 	// whm Note: This function's signature has been revised for the wx version. The fitRect parameter
@@ -7186,16 +7186,16 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Enables the "Save Knowledge Base" item on the File menu if the appropriate KB is in a ready state,
-// / otherwise it disables the menu item.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Enables the "Save Knowledge Base" item on the File menu if the appropriate KB is in a ready state,
+/// otherwise it disables the menu item.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateFileSaveKB(wxUpdateUIEvent& event)
 // ammended for version 2.0
 {
@@ -7311,16 +7311,16 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_pCurrBookNamePair = NULL;
 }
 
-//*************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Disables the "Close Project" item on the File menu if Vertical Editing is in progress. Enables 
-// / the item if the KBs are in a ready state, otherwise it disables the menu item.
-//*************************************************************************************
+// ************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Disables the "Close Project" item on the File menu if Vertical Editing is in progress. Enables 
+/// the item if the KBs are in a ready state, otherwise it disables the menu item.
+// ************************************************************************************
 void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -7333,16 +7333,16 @@ void CAdapt_ItView::OnUpdateFileCloseKB(wxUpdateUIEvent& event)
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 
-//************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Disables the "New" item on the File menu if Vertical Editing is in progress. Enables the item if 
-// / the KB pointers are not NULL, and if the strip count is zero, otherwise it disables the menu item.
-//*************************************************************************************
+// ***********************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Disables the "New" item on the File menu if Vertical Editing is in progress. Enables the item if 
+/// the KB pointers are not NULL, and if the strip count is zero, otherwise it disables the menu item.
+// ************************************************************************************
 void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -7363,17 +7363,17 @@ void CAdapt_ItView::OnUpdateFileNew(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//**************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Disables the "Open..." item on the File menu if Vertical Editing is in progress. Enables the 
-// / item if the KB pointers are not NULL, and if the bundle's m_nStripCount is zero, otherwise 
-// / it disables the menu item.
-//**************************************************************************************
+// *************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Disables the "Open..." item on the File menu if Vertical Editing is in progress. Enables the 
+/// item if the KB pointers are not NULL, and if the bundle's m_nStripCount is zero, otherwise 
+/// it disables the menu item.
+// *************************************************************************************
 void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -7396,16 +7396,16 @@ void CAdapt_ItView::OnUpdateFileOpen(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Disables the "Print..." item on the File menu if Vertical Editing is in progress. Enables the 
-// / item if the KBs are in a ready state, otherwise it disables the menu item.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Disables the "Print..." item on the File menu if Vertical Editing is in progress. Enables the 
+/// item if the KBs are in a ready state, otherwise it disables the menu item.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateFilePrint(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -7417,16 +7417,16 @@ void CAdapt_ItView::OnUpdateFilePrint(wxUpdateUIEvent& event)
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Disables the "Print Preview" item on the File menu if Vertical Editing is in progress. 
-// / Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Disables the "Print Preview" item on the File menu if Vertical Editing is in progress. 
+/// Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -7442,14 +7442,14 @@ void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 // Windows 95. Users are expecte to do any necessary print setup from the main print dialog.
 /*
 // ******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / Disables the "Print Setup" item on the File menu if Vertical Editing is in progress.
-// / Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// Disables the "Print Setup" item on the File menu if Vertical Editing is in progress.
+/// Enables the item if the KBs are in a ready state, otherwise it disables the menu item.
 // ******************************************************************************************
 void CAdapt_ItView::OnUpdateFilePrintSetup(wxUpdateUIEvent& event)
 {
@@ -7499,20 +7499,20 @@ int CAdapt_ItView::SetPileHeight(const int curRows, const int srcHeight, const i
 }
 */
 
-//******************************************************************************************
-// / \return     the number of Strips determined to compose the current layout (in simulation)
-// / \param      pSrcPhrases   -> the list of source phrases of the current document
-// / \param      sizeTotal     -> the layout size consisting of the nPagePrintingWidthLU and
-// /                                 nPagePrintingLengthLU dimensions (logical units)
-// / \param      nBeginSN      -> the sequence number of the first source phrase in the layout
-// / \param      nEndSN        -> the sequence number of the last source phrase in the layout
-// / \remarks
-// / Called from: CPrintOptionsDlg::InitDialog().
-// / RecalcLayout_SimulateOnly() does not create any objects; it only calculates the layout
-// / to the degree that it determines the number of Strips that will be needed and returns 
-// / that number for simulating a printed layout. This number is then used as input to 
-// / PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
-//******************************************************************************************
+// *****************************************************************************************
+/// \return     the number of Strips determined to compose the current layout (in simulation)
+/// \param      pSrcPhrases   -> the list of source phrases of the current document
+/// \param      sizeTotal     -> the layout size consisting of the nPagePrintingWidthLU and
+///                                 nPagePrintingLengthLU dimensions (logical units)
+/// \param      nBeginSN      -> the sequence number of the first source phrase in the layout
+/// \param      nEndSN        -> the sequence number of the last source phrase in the layout
+/// \remarks
+/// Called from: CPrintOptionsDlg::InitDialog().
+/// RecalcLayout_SimulateOnly() does not create any objects; it only calculates the layout
+/// to the degree that it determines the number of Strips that will be needed and returns 
+/// that number for simulating a printed layout. This number is then used as input to 
+/// PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
+// *****************************************************************************************
 int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize sizeTotal,
 											 const int nBeginSN, const int nEndSN)
 {
@@ -7557,18 +7557,18 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 }
 /* old code
 // ******************************************************************************************
-// / \return     the number of Strips determined to compose the current layout (in simulation)
-// / \param      pSrcPhrases   -> the list of source phrases of the current document
-// / \param      sizeTotal     -> the layout size consisting of the nPagePrintingWidthLU and
-// /                                 nPagePrintingLengthLU dimensions (logical units)
-// / \param      nBeginSN      -> the sequence number of the first source phrase in the layout
-// / \param      nEndSN        -> the sequence number of the last source phrase in the layout
-// / \remarks
-// / Called from: CPrintOptionsDlg::InitDialog().
-// / RecalcLayout_SimulateOnly() does not create any objects; it only calculates the layout
-// / to the degree that it determines the number of Strips that will be needed and returns 
-// / that number for simulating a printed layout. This number is then used as input to 
-// / PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
+/// \return     the number of Strips determined to compose the current layout (in simulation)
+/// \param      pSrcPhrases   -> the list of source phrases of the current document
+/// \param      sizeTotal     -> the layout size consisting of the nPagePrintingWidthLU and
+///                                 nPagePrintingLengthLU dimensions (logical units)
+/// \param      nBeginSN      -> the sequence number of the first source phrase in the layout
+/// \param      nEndSN        -> the sequence number of the last source phrase in the layout
+/// \remarks
+/// Called from: CPrintOptionsDlg::InitDialog().
+/// RecalcLayout_SimulateOnly() does not create any objects; it only calculates the layout
+/// to the degree that it determines the number of Strips that will be needed and returns 
+/// that number for simulating a printed layout. This number is then used as input to 
+/// PaginateDoc() when it is called in the PrintOptionsDlg's InitDialog().
 // ******************************************************************************************
 int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize sizeTotal,
 											 const int nBeginSN, const int nEndSN)
@@ -7638,25 +7638,25 @@ int CAdapt_ItView::RecalcLayout_SimulateOnly(SPList *pSrcPhrases, const wxSize s
 }
 */
 
-//******************************************************************************************
-// / \return     nothing
-// / \param      pPiles              ->  the list of partner piles in CLayout::m_pileList (they
-// /                                     are partners to CSourcePhrase instances in m_pSourcePhrases)
-// / \param      nPagePrintWidthLU   ->  the page printing width in logical units
-// / \param      nLastSequNumber     <-> the sequence number (gets incremented by one and returned)
-// / \param      nEndIndex           ->  the sequence number upper limit (not necessarily
-// /                                     the end of the document)
-// / \remarks
-// / Called from: the View's RecalcLayout_SimulateOnly(). Relies on the fact that there is
-// / one CPile instance in m_pileList for every CSourcePhrase instance in m_pSourcePhrases
-// / list. CreateStrip_SimulateOnly() does similar, but minimal, calculations that the
-// / normal CreateStrip() does, but RecalcLayout_SimulateOnly() does not modify any of the
-// / document's variables or indices. It only simulates the creation of Strips for a
-// / document as a helper for RecalcLayout_SimulateOnly(). Both simulation functions are
-// / used to provide the data the PaginateDoc needs to determine the range of pages that
-// / could be printed in order to populate the Pages from: and Pages to: edit boxes in the
-// / Print Options dialog.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return     nothing
+/// \param      pPiles              ->  the list of partner piles in CLayout::m_pileList (they
+///                                     are partners to CSourcePhrase instances in m_pSourcePhrases)
+/// \param      nPagePrintWidthLU   ->  the page printing width in logical units
+/// \param      nLastSequNumber     <-> the sequence number (gets incremented by one and returned)
+/// \param      nEndIndex           ->  the sequence number upper limit (not necessarily
+///                                     the end of the document)
+/// \remarks
+/// Called from: the View's RecalcLayout_SimulateOnly(). Relies on the fact that there is
+/// one CPile instance in m_pileList for every CSourcePhrase instance in m_pSourcePhrases
+/// list. CreateStrip_SimulateOnly() does similar, but minimal, calculations that the
+/// normal CreateStrip() does, but RecalcLayout_SimulateOnly() does not modify any of the
+/// document's variables or indices. It only simulates the creation of Strips for a
+/// document as a helper for RecalcLayout_SimulateOnly(). Both simulation functions are
+/// used to provide the data the PaginateDoc needs to determine the range of pages that
+/// could be printed in order to populate the Pages from: and Pages to: edit boxes in the
+/// Print Options dialog.
+// ******************************************************************************************
 void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWidthLU, 
 											 int& nLastSequNumber, int nEndIndex)
 // we don't support WYSIWYG printing of the layout in free translation mode
@@ -7756,21 +7756,21 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 }
 /* old code
 // **********************************************************************************************
-// / \return     the vertical offset (a new nVertOffset) of the strip that was created
-// / \param      pDC                 -> the display context for strip creation
-// / \param      pSrcList            -> the list of source phrases from which strips are composed
-// / \param      nVertOffset         -> the starting vertical offset for the strip being created
-// / \param      nPagePrintWidthLU   -> the page printing width in logical units
-// / \param      nLastSequNumber     <- the sequence number (gets incremented by one and returned)
-// / \param      nEndIndex           -> the sequence number upper limit
-// / \remarks
-// / Called from: the View's RecalcLayout_SimulateOnly().
-// / CreateStrip_SimulateOnly() does the same calculations that the normal CreateStrip() does, but
-// / RecalcLayout_SimulateOnly() does not modify any of the document's variables or indices. It only
-// / simulates the creation of Strips for a document as a helper for RecalcLayout_SimulateOnly(). Both
-// / simulations functions are used to provide the data the PaginateDoc needs to determine the range of
-// / pages that could be printed in order to populate the Pages from: and Pages to: edit boxes in the
-// / Print Options dialog.
+/// \return     the vertical offset (a new nVertOffset) of the strip that was created
+/// \param      pDC                 -> the display context for strip creation
+/// \param      pSrcList            -> the list of source phrases from which strips are composed
+/// \param      nVertOffset         -> the starting vertical offset for the strip being created
+/// \param      nPagePrintWidthLU   -> the page printing width in logical units
+/// \param      nLastSequNumber     <- the sequence number (gets incremented by one and returned)
+/// \param      nEndIndex           -> the sequence number upper limit
+/// \remarks
+/// Called from: the View's RecalcLayout_SimulateOnly().
+/// CreateStrip_SimulateOnly() does the same calculations that the normal CreateStrip() does, but
+/// RecalcLayout_SimulateOnly() does not modify any of the document's variables or indices. It only
+/// simulates the creation of Strips for a document as a helper for RecalcLayout_SimulateOnly(). Both
+/// simulations functions are used to provide the data the PaginateDoc needs to determine the range of
+/// pages that could be printed in order to populate the Pages from: and Pages to: edit boxes in the
+/// Print Options dialog.
 // ************************************************************************************************
 int CAdapt_ItView::CreateStrip_SimulateOnly(wxClientDC *pDC, SPList* pSrcList, int nVertOffset,
 										int nPagePrintWidthLU, int &nLastSequNumber, int nEndIndex)
@@ -7971,27 +7971,27 @@ b:		;
 
 /*
 // ***********************************************************************************************
-// / \return     nothing
-// / \param      pSrcPhrases   -> the list of source phrases of the current document
-// / \param      nFirstStrip   -> the strip at which to start recalculations (usually 0)
-// / \param      pBundle       -> a pointer to the bundle
-// / \remarks
-// / Called from: the CAdapt_ItCanvas::OnLButtonDown(), the Doc's OnNewDocument(), OnOpenDocument(),
-// / ReconstituteAfterFilteringChange(), RetokenizeText(), the View's OnInitialUpdate(),
-// / SetupRangePrintOp(), DoTargetBoxPaste(), PlacePhraseBox(), ReDoPhraseBox(), AdvanceBundle(),
-// / RetreatBundle(), OnButtonToEnd(), OnButtonToStart(), RetreatBundleToStart(), OnButtonStepDown(),
-// / OnButtonStepUp(), OnButtonMerge(), OnButtonRestore(), InsertNullSrcPhraseAfter(),
-// / OnButtonNullSrc(), InsertNullSourcePhrase(), RemoveNullSourcePhrase(), RedrawEverything(),
-// / PadWithNullSourcePhrasesAtEnd(), OnButtonRetranslation(), OnButtonEditRetranslation(),
-// / OnRemoveRetranslation(), OnButtonNoAdapt(), OnEditSourceText(), PadOrShortenAtEnd(),
-// / JumpForwardToNote_CoreCode(), JumpBackwardToNote_CoreCode(), the ~AIPrintout() destructor,
-// / OnPreparePrinting(), CPhraseBox's JumpForward(), MoveToNextPile(), MoveToPrevPile(),
-// / MoveToImmedNextPile(), LookAhead(), LookUpSrcWord(), FixBox().
-// / Calculates and creates the layout of the view according to the current size of the client view (for
-// / layout on the screen), or according to the (logical unit) size of the display context (for layout
-// / in print preview or actual printing). RecalcLayout calls CreateStrip() to continue the process of
-// / creating each successively smaller part of the Bundle, Strip, Pile, Cell, and Text hierarchy making
-// / up the view. See also RecalcLayout_SimulateOnly(). See notes in function.
+/// \return     nothing
+/// \param      pSrcPhrases   -> the list of source phrases of the current document
+/// \param      nFirstStrip   -> the strip at which to start recalculations (usually 0)
+/// \param      pBundle       -> a pointer to the bundle
+/// \remarks
+/// Called from: the CAdapt_ItCanvas::OnLButtonDown(), the Doc's OnNewDocument(), OnOpenDocument(),
+/// ReconstituteAfterFilteringChange(), RetokenizeText(), the View's OnInitialUpdate(),
+/// SetupRangePrintOp(), DoTargetBoxPaste(), PlacePhraseBox(), ReDoPhraseBox(), AdvanceBundle(),
+/// RetreatBundle(), OnButtonToEnd(), OnButtonToStart(), RetreatBundleToStart(), OnButtonStepDown(),
+/// OnButtonStepUp(), OnButtonMerge(), OnButtonRestore(), InsertNullSrcPhraseAfter(),
+/// OnButtonNullSrc(), InsertNullSourcePhrase(), RemoveNullSourcePhrase(), RedrawEverything(),
+/// PadWithNullSourcePhrasesAtEnd(), OnButtonRetranslation(), OnButtonEditRetranslation(),
+/// OnRemoveRetranslation(), OnButtonNoAdapt(), OnEditSourceText(), PadOrShortenAtEnd(),
+/// JumpForwardToNote_CoreCode(), JumpBackwardToNote_CoreCode(), the ~AIPrintout() destructor,
+/// OnPreparePrinting(), CPhraseBox's JumpForward(), MoveToNextPile(), MoveToPrevPile(),
+/// MoveToImmedNextPile(), LookAhead(), LookUpSrcWord(), FixBox().
+/// Calculates and creates the layout of the view according to the current size of the client view (for
+/// layout on the screen), or according to the (logical unit) size of the display context (for layout
+/// in print preview or actual printing). RecalcLayout calls CreateStrip() to continue the process of
+/// creating each successively smaller part of the Bundle, Strip, Pile, Cell, and Text hierarchy making
+/// up the view. See also RecalcLayout_SimulateOnly(). See notes in function.
 // *************************************************************************************************
 void CAdapt_ItView::RecalcLayout(SPList *pSrcPhrases, int nFirstStrip, CSourceBundle* pBundle)
 {
@@ -8728,16 +8728,16 @@ void CAdapt_ItView::CalcInitialIndices()
 }
 */
 
-//****************************************************************************************
-// / \return     the pointer to the CCell instance the user clicked
-// / \param      pPoint        -> pointer to the wxPoint (logical coords) where the user clicked 
-// / \remarks
-// / 
-// / Interrogates the m_stripArray to termine which strip, pile and cell was clicked in;
-// / returning the cell's pointer; it is the caller's responsibility to convert the client
-// / coords for the click as returned from the event record, into a logical point, before
-// / passing the result to GetClickedCell()
-//****************************************************************************************
+// ***************************************************************************************
+/// \return     the pointer to the CCell instance the user clicked
+/// \param      pPoint        -> pointer to the wxPoint (logical coords) where the user clicked 
+/// \remarks
+/// 
+/// Interrogates the m_stripArray to termine which strip, pile and cell was clicked in;
+/// returning the cell's pointer; it is the caller's responsibility to convert the client
+/// coords for the click as returned from the event record, into a logical point, before
+/// passing the result to GetClickedCell()
+// ***************************************************************************************
 CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 {
 	// refactored 6Apr09
@@ -8879,20 +8879,20 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 }
 */
 
-//*****************************************************************************************
-// / \return     return NULL if the click was not in a strip or its leading area - it should
-// /             be impossible to return NULL though; otherwise return the CStrip pointer
-// / \param      pPoint        -> pointer to the wxPoint (logical coords) where the user clicked 
-// / \remarks
-// / 
-// / Interrogates the m_stripArray to termine which strip, or the leading just above it, the
-// / user clicked in - returning the strip's pointer; it is the caller's responsibility to
-// / convert the client coords for the click as returned from the event record, into a
-// / logical point, before passing the result to GetNearestStrip()
-// / The pStrip pointer passed back is the pointer to a CStrip instance, but we determine
-// / that the strip was clicked on if either it or the leading area was clicked on - since
-// / the note or wedge icons will be in the leading area.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return     return NULL if the click was not in a strip or its leading area - it should
+///             be impossible to return NULL though; otherwise return the CStrip pointer
+/// \param      pPoint        -> pointer to the wxPoint (logical coords) where the user clicked 
+/// \remarks
+/// 
+/// Interrogates the m_stripArray to termine which strip, or the leading just above it, the
+/// user clicked in - returning the strip's pointer; it is the caller's responsibility to
+/// convert the client coords for the click as returned from the event record, into a
+/// logical point, before passing the result to GetNearestStrip()
+/// The pStrip pointer passed back is the pointer to a CStrip instance, but we determine
+/// that the strip was clicked on if either it or the leading area was clicked on - since
+/// the note or wedge icons will be in the leading area.
+// ****************************************************************************************
 CStrip* CAdapt_ItView::GetNearestStrip(const wxPoint *pPoint)
 {
 	// refactored 6Apr09
@@ -9323,53 +9323,53 @@ void CAdapt_ItView::RemoveFilterWrappersButLeaveContent(wxString& str)
 }
 
 // ReplaceCSourcePhrasesInSpan was in Helpers.cpp in the legacy version.
-//*****************************************************************************************
-// / \return     TRUE if there were no errors, FALSE if there was an error. (Also, if either 
-// /             list is empty, nothing is done and the function returns FALSE.)
-// / \param      pMasterList        -> pointer to the list of CSourcePhrase pointers where the 
-// /                                   replacements are to be done (typically, the app's 
-// /                                   m_pSourcePhrases list)
-// / \param      nStartAt           -> the 0-based index into the pMasterList which is the first 
-// /                                   CSourcePhrase instance to be replaced (the originals 
-// /                                   are deleted, the replacments are inserted in the gap 
-// /                                   where they were located)
-// / \param      nHowMany           -> the 1-based count of how many consecutive CSourcePhrase 
-// /                                   pointers are to be removed from pMasterList to make way 
-// /                                   for the replacements; this value must not be zero
-// / \param      pReplacementsList  -> pointer to the list from which all or a subrange of 
-// /                                   replacement CSourcePhrase instances are to be inserted 
-// /                                   where the originals were removed from in pMasterList
-// / \param      nReplaceStartAt    -> 0-based index into pReplacementsList which locates the 
-// /                                   first CSourcePhrase instance which is to be inserted 
-// /                                   into pMasterList
-// / \param      nReplaceCount      -> 1-based count of how many consecutive CSourcePhrase 
-// /                                   pointers are to be inserted into pMasterList. 
-// /                                   (nReplaceCount can be less, equal, or greater than 
-// /                                   nHowMany.) Note: this value can be zero, in which
-// /                                   case no insertions are done, but the deletions are done
-// / \remarks
-// / Called from: the View's RestoreDocAfterSrcTextEditModifiedIt(), OnEditSourceText(),
-// / OnCustomEventAdaptationsEdit(), OnCustomEventGlossesEdit(), 
-// / This is a utility function for clearing out a span of CSourcePhrase instances from a list 
-// / and replacing them with a different span taken from some part (or the whole) of some other 
-// / list.
-// / The ones cleared out are deleted (their contents are lost), the ones inserted are then managed
-// / by the pMasterList, and usually that list is persistent, and the pReplacementsList is temporary,
-// / but neither assumption is necessary or assumed. The contents of pReplacementsList are not altered;
-// / so what actually are inserted are deep copies of the instances in pReplacementsList. The nHowMany
-// / and nReplaceCount parameters must not both be zero, if that is the case, it is an error. 
-// / 
-// / The nReplaceCount value can be zero, if it is, the function is just being used to delete a range
-// / of CSourcePhrase instances within a list.
-// / The nHowMany value can be zero, if it is, the function is just being used to insert a range
-// / of CSourcePhrase instances within a list, preceding the nStartAt instance's location.
-// / BEW added to, 19Jun09. If some replacements are to be done at the doc end (eg. after
-// / an edit which removed some words, and it goes belly up and the code tries to restore
-// / original doc, calling this function) then nStartAt will be just beyond the current
-// / end of the document. The older code did not test for this and then the Item(nStartAt)
-// / produced a crash. The fix is to test for this bounds error, and send control to a
-// / block of code which merely appends the replacements, rather than trying to do insertions.
-//*********************************************************************************************
+// ****************************************************************************************
+/// \return     TRUE if there were no errors, FALSE if there was an error. (Also, if either 
+///             list is empty, nothing is done and the function returns FALSE.)
+/// \param      pMasterList        -> pointer to the list of CSourcePhrase pointers where the 
+///                                   replacements are to be done (typically, the app's 
+///                                   m_pSourcePhrases list)
+/// \param      nStartAt           -> the 0-based index into the pMasterList which is the first 
+///                                   CSourcePhrase instance to be replaced (the originals 
+///                                   are deleted, the replacments are inserted in the gap 
+///                                   where they were located)
+/// \param      nHowMany           -> the 1-based count of how many consecutive CSourcePhrase 
+///                                   pointers are to be removed from pMasterList to make way 
+///                                   for the replacements; this value must not be zero
+/// \param      pReplacementsList  -> pointer to the list from which all or a subrange of 
+///                                   replacement CSourcePhrase instances are to be inserted 
+///                                   where the originals were removed from in pMasterList
+/// \param      nReplaceStartAt    -> 0-based index into pReplacementsList which locates the 
+///                                   first CSourcePhrase instance which is to be inserted 
+///                                   into pMasterList
+/// \param      nReplaceCount      -> 1-based count of how many consecutive CSourcePhrase 
+///                                   pointers are to be inserted into pMasterList. 
+///                                   (nReplaceCount can be less, equal, or greater than 
+///                                   nHowMany.) Note: this value can be zero, in which
+///                                   case no insertions are done, but the deletions are done
+/// \remarks
+/// Called from: the View's RestoreDocAfterSrcTextEditModifiedIt(), OnEditSourceText(),
+/// OnCustomEventAdaptationsEdit(), OnCustomEventGlossesEdit(), 
+/// This is a utility function for clearing out a span of CSourcePhrase instances from a list 
+/// and replacing them with a different span taken from some part (or the whole) of some other 
+/// list.
+/// The ones cleared out are deleted (their contents are lost), the ones inserted are then managed
+/// by the pMasterList, and usually that list is persistent, and the pReplacementsList is temporary,
+/// but neither assumption is necessary or assumed. The contents of pReplacementsList are not altered;
+/// so what actually are inserted are deep copies of the instances in pReplacementsList. The nHowMany
+/// and nReplaceCount parameters must not both be zero, if that is the case, it is an error. 
+/// 
+/// The nReplaceCount value can be zero, if it is, the function is just being used to delete a range
+/// of CSourcePhrase instances within a list.
+/// The nHowMany value can be zero, if it is, the function is just being used to insert a range
+/// of CSourcePhrase instances within a list, preceding the nStartAt instance's location.
+/// BEW added to, 19Jun09. If some replacements are to be done at the doc end (eg. after
+/// an edit which removed some words, and it goes belly up and the code tries to restore
+/// original doc, calling this function) then nStartAt will be just beyond the current
+/// end of the document. The older code did not test for this and then the Item(nStartAt)
+/// produced a crash. The fix is to test for this bounds error, and send control to a
+/// block of code which merely appends the replacements, rather than trying to do insertions.
+// ********************************************************************************************
 bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 					SPList* pReplacementsList, int nReplaceStartAt, int nReplaceCount)
 {
@@ -9579,24 +9579,24 @@ ins:	;
 	return TRUE;
 }
 
-//***********************************************************************************************
-// / \return     Return TRUE if there was no error, FALSE for an error (such as a bounds error) 
-// / \param      pList          -> pointer to a list of source phrases
-// / \param      nStartLoc      -> starting
-// / \param      nFoundAt       <- receives the index value of the next note found, or -1 if none found
-// / \param      bFindForwards  -> the direction in which to search for notes
-// / \remarks
-// / Called from: the View's RestoreNotesAfterSourceTextEdit().
-// / This function is used in the vertical edit process, when restoring removed notes after a source text
-// / edit. It finds the index value in pList at which the next Note is found, either forwards (or at the current
-// / location), or backwards, and return it in nFoundAt, or return -1 in nFoundAt if no note was found in
-// / the nominated direction. 
-// / Note: while typically used with pList set to the app's m_pSourcePhrases list, in which the
-// / list indices always match the stored m_nSequNumber value in each POSITION's CSourcePhrase instance,
-// / the function can be used for arbitrary sublists of CSourcePhrase instances because it returns the
-// / stored m_nSequNumber value for the found note in the CSourcePhrase which stores it, not the index
-// / value in pList at which that CSourcePhrase was located.
-//************************************************************************************************
+// **********************************************************************************************
+/// \return     Return TRUE if there was no error, FALSE for an error (such as a bounds error) 
+/// \param      pList          -> pointer to a list of source phrases
+/// \param      nStartLoc      -> starting
+/// \param      nFoundAt       <- receives the index value of the next note found, or -1 if none found
+/// \param      bFindForwards  -> the direction in which to search for notes
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// This function is used in the vertical edit process, when restoring removed notes after a source text
+/// edit. It finds the index value in pList at which the next Note is found, either forwards (or at the current
+/// location), or backwards, and return it in nFoundAt, or return -1 in nFoundAt if no note was found in
+/// the nominated direction. 
+/// Note: while typically used with pList set to the app's m_pSourcePhrases list, in which the
+/// list indices always match the stored m_nSequNumber value in each POSITION's CSourcePhrase instance,
+/// the function can be used for arbitrary sublists of CSourcePhrase instances because it returns the
+/// stored m_nSequNumber value for the found note in the CSourcePhrase which stores it, not the index
+/// value in pList at which that CSourcePhrase was located.
+// ***********************************************************************************************
 bool CAdapt_ItView::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards)
 {
 	// BEW created 29May08
@@ -9680,28 +9680,28 @@ bool CAdapt_ItView::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool b
 	return TRUE;
 }
 
-//*****************************************************************************************
-// / \return     TRUE if successful, FALSE if the move could not be done
-// / \param      pLocationsList  -> an array of consecutive sequence numbers where (squeezed) Notes will be 
-// /                                 reconstituted (because they would not fit in the new edit span)
-// / \param      nLeftBoundSN    -> enables us to detect when leftwards movement is no longer possible, 
-// /                                 and FALSE is returned
-// / \remarks
-// / Called from: the View's RestoreNotesAfterSourceTextEdit().
-// / Moves a note to the left one place.
-// / pLocationsList is an array of consecutive sequence numbers where (squeezed) Notes will be reconstituted
-// / (because they would not fit in the new edit span), and the caller has determined that the next consecutive
-// / location in the document would be a right bound (that is, a non-removed note already is there) and so the
-// / location about to be added to the squeezed array can't be used. In this circumstances, we need to call
-// / this function to move all the locations in the pLocationsList one place leftwards (ie. decrease the stored
-// / indices by one) in order to open a gap between the last stored index and the right bound location so that
-// / the next note location can be added as the gap location. This works, as often as necessary, unless the
-// / stored index values come to the left bound (which is either the start of the document, or an unremoved
-// / note's location lying to the left of the edit span). The nLeftBoundSN enables us to detect when leftwards
-// / movement is no longer possible, and FALSE is returned. A successful leftwards movement returns TRUE.
-// / (If all the locations between left and right bounds are used up and still there are notes to be placed,
-// / the caller will attempt to move the note which is the right bound to the right to create the needed gaps.)
-//*******************************************************************************************
+// ****************************************************************************************
+/// \return     TRUE if successful, FALSE if the move could not be done
+/// \param      pLocationsList  -> an array of consecutive sequence numbers where (squeezed) Notes will be 
+///                                 reconstituted (because they would not fit in the new edit span)
+/// \param      nLeftBoundSN    -> enables us to detect when leftwards movement is no longer possible, 
+///                                 and FALSE is returned
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// Moves a note to the left one place.
+/// pLocationsList is an array of consecutive sequence numbers where (squeezed) Notes will be reconstituted
+/// (because they would not fit in the new edit span), and the caller has determined that the next consecutive
+/// location in the document would be a right bound (that is, a non-removed note already is there) and so the
+/// location about to be added to the squeezed array can't be used. In this circumstances, we need to call
+/// this function to move all the locations in the pLocationsList one place leftwards (ie. decrease the stored
+/// indices by one) in order to open a gap between the last stored index and the right bound location so that
+/// the next note location can be added as the gap location. This works, as often as necessary, unless the
+/// stored index values come to the left bound (which is either the start of the document, or an unremoved
+/// note's location lying to the left of the edit span). The nLeftBoundSN enables us to detect when leftwards
+/// movement is no longer possible, and FALSE is returned. A successful leftwards movement returns TRUE.
+/// (If all the locations between left and right bounds are used up and still there are notes to be placed,
+/// the caller will attempt to move the note which is the right bound to the right to create the needed gaps.)
+// ******************************************************************************************
 bool CAdapt_ItView::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
 	// BEW added 30May08 in support of the source text editing step of the vertical editing process
@@ -9727,18 +9727,18 @@ bool CAdapt_ItView::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, i
 	return FALSE;
 }
 
-//******************************************************************************************
-// / \return     TRUE if successful, FALSE if the move could not be done
-// / \param      pSrcPhrases  -> the app's m_pSourcePhrases list
-// / \param      nNoteSN      -> the sequence number index for the CSourcePhrase which stores 
-// /                             the Note which we want to move rightwards to the next 
-// /                             CSourcePhrase
-// / \remarks
-// / Called from: the View's ShiftASeriesOfConsecutiveNotesRightwardsOnce().
-// / Moves a note to the right one place.
-// / The move can be done only if not at the end of the document, and provided the next 
-// / CSourcePhrase does not already store a different Note.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return     TRUE if successful, FALSE if the move could not be done
+/// \param      pSrcPhrases  -> the app's m_pSourcePhrases list
+/// \param      nNoteSN      -> the sequence number index for the CSourcePhrase which stores 
+///                             the Note which we want to move rightwards to the next 
+///                             CSourcePhrase
+/// \remarks
+/// Called from: the View's ShiftASeriesOfConsecutiveNotesRightwardsOnce().
+/// Moves a note to the right one place.
+/// The move can be done only if not at the end of the document, and provided the next 
+/// CSourcePhrase does not already store a different Note.
+// ******************************************************************************************
 bool CAdapt_ItView::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
 	// BEW added 30May08 in support of the source text editing step of the vertical editing process
@@ -9779,15 +9779,15 @@ bool CAdapt_ItView::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 	return TRUE;
 }
 
-//******************************************************************************************
-// / \return     TRUE if a note exists there, FALSE if not
-// / \param      pSrcPhrases  -> the app's m_pSourcePhrases list
-// / \param      nNoteSN      -> the sequence number index for the CSourcePhrase which we want 
-// /                             to know whether or not it stores a Note
-// / \remarks
-// / Called from: the View's RestoreNotesAfterSourceTextEdit().
-// / Determines is a Note is stored at nNoteSN location in the pSrcPhrases list.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return     TRUE if a note exists there, FALSE if not
+/// \param      pSrcPhrases  -> the app's m_pSourcePhrases list
+/// \param      nNoteSN      -> the sequence number index for the CSourcePhrase which we want 
+///                             to know whether or not it stores a Note
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// Determines is a Note is stored at nNoteSN location in the pSrcPhrases list.
+// ******************************************************************************************
 bool CAdapt_ItView::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 {
     // BEW added 30May08 in support of the source text editing step of the vertical editing
@@ -9816,19 +9816,19 @@ bool CAdapt_ItView::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 	return TRUE;
 }
 
-//*******************************************************************************************
-// / \return     TRUE if successful, FALSE if the moves could not be done
-// / \param      pSrcPhrases  -> the app's m_pSourcePhrases list
-// / \param      nFirstNoteSN -> the sequence number index for the CSourcePhrase which stores 
-// /                             the first Note of the consecutive series which we want to 
-// /                             move rightwards one location
-// / \remarks
-// / Called from: the View's RestoreNotesAfterSourceTextEdit().
-// / Moves a series of consecutive notes to the right during source text editing.
-// / The move can be done only if not at the end of the document, and provided there is a 
-// / CSourcePhrase without a Note after the consecutive series ends. The function can be 
-// / used even when the location passed in is the only one which has a stored Note.
-//*******************************************************************************************
+// ******************************************************************************************
+/// \return     TRUE if successful, FALSE if the moves could not be done
+/// \param      pSrcPhrases  -> the app's m_pSourcePhrases list
+/// \param      nFirstNoteSN -> the sequence number index for the CSourcePhrase which stores 
+///                             the first Note of the consecutive series which we want to 
+///                             move rightwards one location
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// Moves a series of consecutive notes to the right during source text editing.
+/// The move can be done only if not at the end of the document, and provided there is a 
+/// CSourcePhrase without a Note after the consecutive series ends. The function can be 
+/// used even when the location passed in is the only one which has a stored Note.
+// ******************************************************************************************
 bool CAdapt_ItView::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
 	// refactored 7Apr09 - only needed GetMaxIndex() call
@@ -9894,16 +9894,16 @@ bool CAdapt_ItView::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhr
 	return TRUE;
 }
 
-//****************************************************************************************
-// / \return     TRUE if the Note was successfully created and stored as filtered info, FALSE if there was failure
-// / \param      pSrcPhrases  -> the app's m_pSourcePhrases list
-// / \param      nLocationSN  -> the location where the note is to be created
-// / \param      strNote      -> the text of the note
-// / \remarks
-// / Called from: the View's RestoreNotesAfterSourceTextEdit().
-// / Creates a filtered note on the CSourcePhrase instance in pSrcPhrases which has location nLocationSN for
-// / the sequence number. It is the caller's responsibility to ensure there is no note already present there.
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return     TRUE if the Note was successfully created and stored as filtered info, FALSE if there was failure
+/// \param      pSrcPhrases  -> the app's m_pSourcePhrases list
+/// \param      nLocationSN  -> the location where the note is to be created
+/// \param      strNote      -> the text of the note
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// Creates a filtered note on the CSourcePhrase instance in pSrcPhrases which has location nLocationSN for
+/// the sequence number. It is the caller's responsibility to ensure there is no note already present there.
+// ****************************************************************************************
 bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
 	// refactored 7Apr09 - only needed GetMaxIndex() call
@@ -9948,52 +9948,52 @@ bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 }
 
 
-//********************************************************************************************
-// / \return     TRUE if all Notes were relocated, FALSE if not
-// / \param      nStartOfEditSpan -> 
-// / \param      nEditSpanCount   -> 
-// / \param      pUnsqueezedArr   <- 
-// / \param      pSqueezedArr     <- 
-// / \param      nRightBound      -> is used to make sure that when locating notes consecutively, 
-// /                                 we don't transgress the bound and so cause a note reordering
-// / \remarks
-// / Called from: the View's RestoreNotesAfterSourceTextEdit().
-// / This is sort of like a leftwards version of
-// / ShiftASeriesOfConsecutiveNotesRightwardsOnce() but with some important differences. 1.
-// / It doesn't relocate notes, it just decrements note locations stored in the passed in
-// / pLocationsList. 2. The locations it operates on are not necessarily consecutive,
-// / because this function is intended to work with the "unsqueezed" array (ie. as many note
-// / locations as possible kept the same as they were before the edit of source text was
-// / commenced), and the idea is to start with locations at the end of the array and try to
-// / create a gap by moving the last leftwards one location, creating a gap. This iterative
-// / decrementing of the final location index may eventually bump up against a previous
-// / note's location also stored in the array, and if that is the case, then both those
-// / locations get moved left one location, creating a gap. Ultimately, if there are enough
-// / removed Notes to be replaced, all the stored locations might have been closed up
-// / leftwards to be consecutive after the first one - if that happens, and more gaps are
-// / needed, then the whole lot are decremented by one, -- that process can happen only so
-// / long as the first index in the list is greater in value than the passed in
-// / nStartOfEditSpan index value. We won't move the locations to precede the final edit
-// / span, but if we get to the point where we still need gaps, we'll try relocating the
-// / remainder in the following context, and if necessary, they can be created by moving
-// / real notes in the following context rightwards. If not all could be relocated, we will
-// / return FALSE to the caller and with the pSqueezedArr still containing unlocated stored
-// / indices for the Notes unable to be relocated by this function. The caller can then try
-// / moving unremoved Notes rightwards to make more gaps, and if that can't get enough, the
-// / remainder of the Notes text's will be stored in the top of the removed free
-// / translations list. So, return TRUE if all were relocated, FALSE if not. A second
-// / scenario is that there are no entries in the "unsqueezed" array, so that all the
-// / entries are in the squeezed array, with unchanged values, put there by the caller. When
-// / this is the case, the function will relocate them consecutively from the start of the
-// / following context to the start of the edit span; because we want removals (which are
-// / all done from within the old edit span) to be reconstituted within the new bounds of
-// / the edit span after the user's edit is done. The nRightBound parameter is the location
-// / of the first unremoved note in the following context, or if there are none, then
-// / m_maxIndex (the location of the last CSourcePhrase in the document). The nRightBound
-// / value is used to make sure that when locating notes consecutively, we don't transgress
-// / the bound and so cause a note reordering. If we come to this bound, we'll return to the
-// / caller to let the above algorithm for placing the remainder do its job.
-//*****************************************************************************************************
+// *******************************************************************************************
+/// \return     TRUE if all Notes were relocated, FALSE if not
+/// \param      nStartOfEditSpan -> 
+/// \param      nEditSpanCount   -> 
+/// \param      pUnsqueezedArr   <- 
+/// \param      pSqueezedArr     <- 
+/// \param      nRightBound      -> is used to make sure that when locating notes consecutively, 
+///                                 we don't transgress the bound and so cause a note reordering
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// This is sort of like a leftwards version of
+/// ShiftASeriesOfConsecutiveNotesRightwardsOnce() but with some important differences. 1.
+/// It doesn't relocate notes, it just decrements note locations stored in the passed in
+/// pLocationsList. 2. The locations it operates on are not necessarily consecutive,
+/// because this function is intended to work with the "unsqueezed" array (ie. as many note
+/// locations as possible kept the same as they were before the edit of source text was
+/// commenced), and the idea is to start with locations at the end of the array and try to
+/// create a gap by moving the last leftwards one location, creating a gap. This iterative
+/// decrementing of the final location index may eventually bump up against a previous
+/// note's location also stored in the array, and if that is the case, then both those
+/// locations get moved left one location, creating a gap. Ultimately, if there are enough
+/// removed Notes to be replaced, all the stored locations might have been closed up
+/// leftwards to be consecutive after the first one - if that happens, and more gaps are
+/// needed, then the whole lot are decremented by one, -- that process can happen only so
+/// long as the first index in the list is greater in value than the passed in
+/// nStartOfEditSpan index value. We won't move the locations to precede the final edit
+/// span, but if we get to the point where we still need gaps, we'll try relocating the
+/// remainder in the following context, and if necessary, they can be created by moving
+/// real notes in the following context rightwards. If not all could be relocated, we will
+/// return FALSE to the caller and with the pSqueezedArr still containing unlocated stored
+/// indices for the Notes unable to be relocated by this function. The caller can then try
+/// moving unremoved Notes rightwards to make more gaps, and if that can't get enough, the
+/// remainder of the Notes text's will be stored in the top of the removed free
+/// translations list. So, return TRUE if all were relocated, FALSE if not. A second
+/// scenario is that there are no entries in the "unsqueezed" array, so that all the
+/// entries are in the squeezed array, with unchanged values, put there by the caller. When
+/// this is the case, the function will relocate them consecutively from the start of the
+/// following context to the start of the edit span; because we want removals (which are
+/// all done from within the old edit span) to be reconstituted within the new bounds of
+/// the edit span after the user's edit is done. The nRightBound parameter is the location
+/// of the first unremoved note in the following context, or if there are none, then
+/// m_maxIndex (the location of the last CSourcePhrase in the document). The nRightBound
+/// value is used to make sure that when locating notes consecutively, we don't transgress
+/// the bound and so cause a note reordering. If we come to this bound, we'll return to the
+/// caller to let the above algorithm for placing the remainder do its job.
+// ****************************************************************************************************
 bool CAdapt_ItView::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, int nEditSpanCount,
 				wxArrayInt* pUnsqueezedArr, wxArrayInt* pSqueezedArr, int WXUNUSED(nRightBound))
 {
@@ -11499,17 +11499,17 @@ CPile* CAdapt_ItView::RetreatBundle(int nSaveSequNum)
 }
 */
 
-//***************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / Disables the "Advance To End" toolbar item if Vertical Editing is in progress.
-// / If the m_pActivePile pointer is NULL or there are no source phrase in the m_pSourcePhrases list,
-// / this handler disables the "Advance To End" toolbar item and returns immediately.
-// / It enables the toolbar item if the App's m_endIndex is greater than zero but
-// / less than the count in m_pSourcephrases -1, otherwise it disables the toolbar item.
-//***************************************************************************************
+// **************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// Disables the "Advance To End" toolbar item if Vertical Editing is in progress.
+/// If the m_pActivePile pointer is NULL or there are no source phrase in the m_pSourcePhrases list,
+/// this handler disables the "Advance To End" toolbar item and returns immediately.
+/// It enables the toolbar item if the App's m_endIndex is greater than zero but
+/// less than the count in m_pSourcephrases -1, otherwise it disables the toolbar item.
+// **************************************************************************************
 void CAdapt_ItView::OnUpdateButtonToEnd(wxUpdateUIEvent& event)
 {
 	// refactored 7Apr09
@@ -11875,17 +11875,17 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	gbInhibitLine4StrCall = FALSE; // restore the default setting
 }
 
-//***************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If any of the following conditions are TRUE, this handler disables the "Back To Start" toolbar item 
-// / and returns immediately: Vertical Editing is in progress, the Document pointer is NULL, 
-// / the m_pActivePile pointer is NULL, or the count of source phrases in m_pSourcePhrases is zero. 
-// / It enables the toolbar item if the App's m_beginIndex and m_endIndex are both greater than zero, 
-// / otherwise it disables the toolbar item.
-//***************************************************************************************
+// **************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If any of the following conditions are TRUE, this handler disables the "Back To Start" toolbar item 
+/// and returns immediately: Vertical Editing is in progress, the Document pointer is NULL, 
+/// the m_pActivePile pointer is NULL, or the count of source phrases in m_pSourcePhrases is zero. 
+/// It enables the toolbar item if the App's m_beginIndex and m_endIndex are both greater than zero, 
+/// otherwise it disables the toolbar item.
+// **************************************************************************************
 void CAdapt_ItView::OnUpdateButtonToStart(wxUpdateUIEvent& event)
 {
 	// refactored 9Apr09
@@ -12192,18 +12192,18 @@ CPile* CAdapt_ItView::RetreatBundleToStart()
 }
 */
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If any of the following conditions are TRUE, this handler disables the "Move Down One Step" toolbar item 
-// / and returns immediately: Vertical Editing is in progress, the m_pActivePile pointer is NULL, 
-// / or the count of source phrases in m_pSourcePhrases is zero. 
-// / It enables the toolbar item if the App's m_endIndex is greater than zero and less than the count
-// / of source phrases in m_pSourcePhrases -1, otherwise it disables the toolbar item.
-// / otherwise it disables the toolbar item.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If any of the following conditions are TRUE, this handler disables the "Move Down One Step" toolbar item 
+/// and returns immediately: Vertical Editing is in progress, the m_pActivePile pointer is NULL, 
+/// or the count of source phrases in m_pSourcePhrases is zero. 
+/// It enables the toolbar item if the App's m_endIndex is greater than zero and less than the count
+/// of source phrases in m_pSourcePhrases -1, otherwise it disables the toolbar item.
+/// otherwise it disables the toolbar item.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonStepDown(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -12494,19 +12494,19 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If any of the following conditions are TRUE, this handler disables the "Move Up One Step" toolbar item 
-// / and returns immediately: Vertical Editing is in progress, the Document pointer is NULL, 
-// / the m_pActivePile pointer is NULL, or the count of source phrases in m_pSourcePhrases is zero. 
-// / It generally enables the toolbar button if the App's m_beginIndex and m_endIndex are both greater than zero, 
-// / otherwise it disables the toolbar item. It also enables the toolbar item in the special circumstance when 
-// / the phrasebox is past the end of the document (m_pActiveSequNum is -1 and the count of source phrases in 
-// / m_pSourcePhrases is greater than zero).
-//******************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If any of the following conditions are TRUE, this handler disables the "Move Up One Step" toolbar item 
+/// and returns immediately: Vertical Editing is in progress, the Document pointer is NULL, 
+/// the m_pActivePile pointer is NULL, or the count of source phrases in m_pSourcePhrases is zero. 
+/// It generally enables the toolbar button if the App's m_beginIndex and m_endIndex are both greater than zero, 
+/// otherwise it disables the toolbar item. It also enables the toolbar item in the special circumstance when 
+/// the phrasebox is past the end of the document (m_pActiveSequNum is -1 and the count of source phrases in 
+/// m_pSourcePhrases is greater than zero).
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonStepUp(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -13038,16 +13038,16 @@ a:	pApp->m_pActivePile = RetreatBundle(pApp->m_nActiveSequNum);
 }
 */
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If the application is in glossing mode, or it is showing only the target text, or the m_pActivePile 
-// / pointer is NULL, this handler disables the "Make A Phrase" toolbar item 
-// / and returns immediately. If there is an active selection (the App's m_selection list has more than 
-// / one item in its list), it enables the toolbar button, otherwise it disables the toolbar button. 
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If the application is in glossing mode, or it is showing only the target text, or the m_pActivePile 
+/// pointer is NULL, this handler disables the "Make A Phrase" toolbar item 
+/// and returns immediately. If there is an active selection (the App's m_selection list has more than 
+/// one item in its list), it enables the toolbar button, otherwise it disables the toolbar button. 
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonMerge(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -13069,18 +13069,18 @@ void CAdapt_ItView::OnUpdateButtonMerge(wxUpdateUIEvent& event)
 	//wxLogDebug(_T("OnUPDATEbuttonMERGE  m_selection.GetCount() is %d"), pApp->m_selection.GetCount());
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the App's m_pActivePile is NULL this handler disables the "Copy Source" item in the View menu
-// / and immediately returns.
-// / It enables the "Copy Source" item on the View menu if the number of source phrases in the
-// / m_pSourcePhrases list is greater than zero, otherwise it disables the menu item.
-//*******************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the App's m_pActivePile is NULL this handler disables the "Copy Source" item in the View menu
+/// and immediately returns.
+/// It enables the "Copy Source" item on the View menu if the number of source phrases in the
+/// m_pSourcePhrases list is greater than zero, otherwise it disables the menu item.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateCopySource(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -14324,19 +14324,19 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 	return nCount;
 }
 
-//********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If the application is in glossing mode, or it is showing only the target text, or the m_pActivePile 
-// / pointer is NULL, or the active pile's m_pSrcPhrase is NULL, this handler disables the "Unmake A 
-// / Phrase" toolbar item and returns immediately. 
-// / If the App's m_selectionLine is not -1, and the App's m_selection list has exactly one item in its
-// / list associated with a previous merger, or alternatively, if the App's m_selectioniLine is -1, and 
-// / the first item in in the active pile's m_selection is associated with a previous merger, it 
-// / enables the toolbar button, otherwise it disables the toolbar button. 
-//*********************************************************************************************
+// *******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If the application is in glossing mode, or it is showing only the target text, or the m_pActivePile 
+/// pointer is NULL, or the active pile's m_pSrcPhrase is NULL, this handler disables the "Unmake A 
+/// Phrase" toolbar item and returns immediately. 
+/// If the App's m_selectionLine is not -1, and the App's m_selection list has exactly one item in its
+/// list associated with a previous merger, or alternatively, if the App's m_selectioniLine is -1, and 
+/// the first item in in the active pile's m_selection is associated with a previous merger, it 
+/// enables the toolbar button, otherwise it disables the toolbar button. 
+// ********************************************************************************************
 void CAdapt_ItView::OnUpdateButtonRestore(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16191,16 +16191,16 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxSt
 	return TRUE;
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / It enables the "Change Interface Language..." item on the View menu. This menu item is always
-// / enabled unless Vertical Editing is in progress.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// It enables the "Change Interface Language..." item on the View menu. This menu item is always
+/// enabled unless Vertical Editing is in progress.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateChangeInterfaceLanguage(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -16218,20 +16218,20 @@ void CAdapt_ItView::OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event))
 	pApp->ChangeUILanguage();
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the application is doing a vertical edit, only showing the target language, or the Document 
-// / pointer is NULL, this handler disables the "Preferences..." item on the View menu and 
-// / immediately returns.
-// / It enables the "Preferences..." item on the View menu if a document is loaded (i.e., the count 
-// / of source phrases in m_pSourcePhrases list is greater than zero), otherwise it disables the 
-// / menu item.
-//********************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the application is doing a vertical edit, only showing the target language, or the Document 
+/// pointer is NULL, this handler disables the "Preferences..." item on the View menu and 
+/// immediately returns.
+/// It enables the "Preferences..." item on the View menu if a document is loaded (i.e., the count 
+/// of source phrases in m_pSourcePhrases list is greater than zero), otherwise it disables the 
+/// menu item.
+// *******************************************************************************************
 void CAdapt_ItView::OnUpdateEditPreferences(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -16314,18 +16314,18 @@ void CAdapt_ItView::OnCopySource(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
-//********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the application is in Free Translation Mode, this handler disables the "Use Consistent Changes" 
-// / item on the Tools menu and immediately returns.
-// / If one or more cc tables are loaded (i.e., the App's m_bTablesLoaded flag is TRUE), it enables the 
-// / "Use Consistent Changes" item on the Tools menu, otherwise it disables the menu item.
-//*********************************************************************************************
+// *******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the application is in Free Translation Mode, this handler disables the "Use Consistent Changes" 
+/// item on the Tools menu and immediately returns.
+/// If one or more cc tables are loaded (i.e., the App's m_bTablesLoaded flag is TRUE), it enables the 
+/// "Use Consistent Changes" item on the Tools menu, otherwise it disables the menu item.
+// ********************************************************************************************
 void CAdapt_ItView::OnUpdateUseConsistentChanges(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16342,19 +16342,19 @@ void CAdapt_ItView::OnUpdateUseConsistentChanges(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//**********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the application is in Free Translation Mode, this handler disables the "Use SIL Converter" 
-// / item on the Tools menu and immediately returns.
-// / If there is an SIL Converter table name configured (i.e., the App's m_strSilEncConverterName string
-// / is not empty), it enables the "Use SIL Converter" item on the Tools menu, otherwise it disables the 
-// / menu item.
-//***********************************************************************************************
+// *********************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the application is in Free Translation Mode, this handler disables the "Use SIL Converter" 
+/// item on the Tools menu and immediately returns.
+/// If there is an SIL Converter table name configured (i.e., the App's m_strSilEncConverterName string
+/// is not empty), it enables the "Use SIL Converter" item on the Tools menu, otherwise it disables the 
+/// menu item.
+// **********************************************************************************************
 void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16379,15 +16379,15 @@ void CAdapt_ItView::OnUpdateUseSilConverter(wxUpdateUIEvent& event)
 #endif
 }
 
-//*******************************************************************************************
-// / \return     nothing
-// / \param      event (unused) 
-// / \remarks
-// / Called from the Tools menu on selection of the "Use Consistent Changes" menu item. This handler
-// / toggles the check on the menu item and the value of the m_bUseConsistentChanges variable on the App.
-// / The "Use Consistent Changes" menu selection basically works as a switch to turn on or off any
-// / change tables the were previously loaded using the "Load Consistent Changes..." menu item.
-//********************************************************************************************
+// ******************************************************************************************
+/// \return     nothing
+/// \param      event (unused) 
+/// \remarks
+/// Called from the Tools menu on selection of the "Use Consistent Changes" menu item. This handler
+/// toggles the check on the menu item and the value of the m_bUseConsistentChanges variable on the App.
+/// The "Use Consistent Changes" menu selection basically works as a switch to turn on or off any
+/// change tables the were previously loaded using the "Load Consistent Changes..." menu item.
+// *******************************************************************************************
 void CAdapt_ItView::OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -16516,19 +16516,19 @@ void CAdapt_ItView::OnUseSilConverter(wxCommandEvent& WXUNUSED(event))
 			pApp->m_pTargetBox->SetFocus();
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If Vertical Editing is in progress, the "Accept Changes Without Stopping" item on the Tools menu
-// / is disabled and this handler returns immediately.
-// / If the application is not in Single Step Mode, but is set to Copy the Source text, and, either
-// / m_bUseConsistentChanges is TRUE or m_bUseSilConverter is TRUE, then this handler enables the 
-// / "Accept Changes Without Stopping" item on the Tools menu, otherwise it disables the menu item.
-//*********************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If Vertical Editing is in progress, the "Accept Changes Without Stopping" item on the Tools menu
+/// is disabled and this handler returns immediately.
+/// If the application is not in Single Step Mode, but is set to Copy the Source text, and, either
+/// m_bUseConsistentChanges is TRUE or m_bUseSilConverter is TRUE, then this handler enables the 
+/// "Accept Changes Without Stopping" item on the Tools menu, otherwise it disables the menu item.
+// ********************************************************************************************
 void CAdapt_ItView::OnUpdateAcceptChanges(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -16809,19 +16809,19 @@ void CAdapt_ItView::OnEditCopy(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the App's m_pActivePile is NULL this handler disables the "Copy" item in the Edit menu
-// / and immediately returns.
-// / It enables the "Copy" item on the Edit menu if there is a valid selection in either the
-// / composeBar's edit box, the targetBox, or a source phrase selection, otherwise it disables 
-// / the menu item.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the App's m_pActivePile is NULL this handler disables the "Copy" item in the Edit menu
+/// and immediately returns.
+/// It enables the "Copy" item on the Edit menu if there is a valid selection in either the
+/// composeBar's edit box, the targetBox, or a source phrase selection, otherwise it disables 
+/// the menu item.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateEditCopy(wxUpdateUIEvent& event)
 {
 	// whm: Removed the messages which would be issued endlessly if ever the errors happened in the
@@ -16924,19 +16924,19 @@ void CAdapt_ItView::OnEditPaste(wxCommandEvent& WXUNUSED(event))
 		}
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the App's main frame pointer is NULL, or the composeBar is NULL, or the composeBar's edit box is
-// / NULL, or both the composeBar and targetBox are not shown this handler disables the "Paste" item in the 
-// / Edit menu and immediately returns.
-// / It enables the "Paste" item on the Edit menu if either the composeBar's edit box is shown or the
-// / targetBox is shown, otherwise it disables the menu item.
-//*******************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the App's main frame pointer is NULL, or the composeBar is NULL, or the composeBar's edit box is
+/// NULL, or both the composeBar and targetBox are not shown this handler disables the "Paste" item in the 
+/// Edit menu and immediately returns.
+/// It enables the "Paste" item on the Edit menu if either the composeBar's edit box is shown or the
+/// targetBox is shown, otherwise it disables the menu item.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateEditPaste(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -17025,17 +17025,17 @@ void CAdapt_ItView::OnEditCut(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
-// / the menu is displayed.
-// / If the App's main frame is NULL, or the composeBar is NULL, or the composeBar's edit box is NULL, 
-// / or neither the composeBar nor targetBox have a selection, this handler disables the "Cut" item 
-// / in the Edit menu, otherwise it enables the "Cut" item on the Edit menu.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
+/// the menu is displayed.
+/// If the App's main frame is NULL, or the composeBar is NULL, or the composeBar's edit box is NULL, 
+/// or neither the composeBar nor targetBox have a selection, this handler disables the "Cut" item 
+/// in the Edit menu, otherwise it enables the "Cut" item on the Edit menu.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -17666,17 +17666,17 @@ void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Insert A Placeholder"
-// / toolbar item and returns immediately: The application is in glossing mode, the target
-// / text only is showing in the main window, the m_pActivePile pointer is NULL, or the
-// / application is in Free Translation mode. It enables the toolbar button if there is a
-// / valid selection or the targetBox is showing, and the targetBox is the window in focus.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Insert A Placeholder"
+/// toolbar item and returns immediately: The application is in glossing mode, the target
+/// text only is showing in the main window, the m_pActivePile pointer is NULL, or the
+/// application is in Free Translation mode. It enables the toolbar button if there is a
+/// valid selection or the targetBox is showing, and the targetBox is the window in focus.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateButtonNullSrc(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -18573,19 +18573,19 @@ void CAdapt_ItView::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Remove A Placeholder"
-// / toolbar item and returns immediately: The application is in glossing mode, the target
-// / text only is showing in the main window, the m_pActivePile pointer is NULL, or the
-// / application is in Free Translation mode. It enables the toolbar button if there is a
-// / selection which is on a null source phrase which is not a retranslation, or if the
-// / active pile is a null source phrase which is not a retranslation. The selection, if
-// / there is one, takes priority, if its pile is different from the active pile..
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Remove A Placeholder"
+/// toolbar item and returns immediately: The application is in glossing mode, the target
+/// text only is showing in the main window, the m_pActivePile pointer is NULL, or the
+/// application is in Free Translation mode. It enables the toolbar button if there is a
+/// selection which is on a null source phrase which is not a retranslation, or if the
+/// active pile is a null source phrase which is not a retranslation. The selection, if
+/// there is one, takes priority, if its pile is different from the active pile..
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -18941,18 +18941,18 @@ b:		pApp->m_pActivePile = pNewPile;
 	GetLayout()->PlaceBox();
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Do A Retranslation"
-// / toolbar item and returns immediately: The application is in glossing mode, the target
-// / text only is showing in the main window, the m_pActivePile pointer is NULL, or if there
-// / is a selection in which at least one source phrase already is part of a retranslation.
-// / Otherwise, it enables the toolbar button if there is a selection whose source phrases
-// / are not part of an existing retranslation.
-//******************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Do A Retranslation"
+/// toolbar item and returns immediately: The application is in glossing mode, the target
+/// text only is showing in the main window, the m_pActivePile pointer is NULL, or if there
+/// is a selection in which at least one source phrase already is part of a retranslation.
+/// Otherwise, it enables the toolbar button if there is a selection whose source phrases
+/// are not part of an existing retranslation.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -19117,18 +19117,18 @@ bool CAdapt_ItView::IsConstantType(SPList* pList)
 	return TRUE;
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Remove A
-// / Retranslation" toolbar item and returns immediately: The application is in glossing
-// / mode, the target text only is showing in the main window, the m_pActivePile pointer is
-// / NULL, or if the head or tail of the selection do not lie within the retranslation.
-// / Otherwise, it enables the toolbar button if there is a selection whose head and tail
-// / are part of an existing retranslation.
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Remove A
+/// Retranslation" toolbar item and returns immediately: The application is in glossing
+/// mode, the target text only is showing in the main window, the m_pActivePile pointer is
+/// NULL, or if the head or tail of the selection do not lie within the retranslation.
+/// Otherwise, it enables the toolbar button if there is a selection whose head and tail
+/// are part of an existing retranslation.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -19207,18 +19207,18 @@ void CAdapt_ItView::OnUpdateRemoveRetranslation(wxUpdateUIEvent& event)
 	event.Enable(FALSE);
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Edit A Retranslation"
-// / toolbar item and returns immediately: The application is in glossing mode, the target
-// / text only is showing in the main window, the m_pActivePile pointer is NULL, or if the
-// / head or tail of the selection do not lie within the retranslation. Otherwise, it
-// / enables the toolbar button if there is a selection whose head and tail are part of an
-// / existing retranslation.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Edit A Retranslation"
+/// toolbar item and returns immediately: The application is in glossing mode, the target
+/// text only is showing in the main window, the m_pActivePile pointer is NULL, or if the
+/// head or tail of the selection do not lie within the retranslation. Otherwise, it
+/// enables the toolbar button if there is a selection whose head and tail are part of an
+/// existing retranslation.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -19389,31 +19389,31 @@ CKB* CAdapt_ItView::GetKB()
 		return pApp->m_pKB;
 }
 
-//***************************************************************************************
-// / \return     a wxString representing a copy of the m_key member (which has punctuation 
-// /             stripped off) of pSrcPhrase after m_key has been modified by Consistent Changes
-// /             (if m_bUseConsistentChanges is TRUE) or by SIL Converters (if m_bUseSilConverter
-// /             if TRUE)
-// / \param      pSrcPhrase              -> the source phrase from which the m_key is copied
-// / \param      bUseConsistentChanges   -> flag indicating if Consistent Changes is required
-// / \remarks
-// / Called from: The CopySourceKey() function is called from the View's PlacePhraseBox(),
-// / OnButtonToEnd(), OnButtonToStart(), OnButtonStepDown(), OnButtonStepUp(),
-// / OnButtonMerge(), OnButtonRestore(), RestoreTargetBoxText(),
-// / JumpForwardToNote_CoreCode(), and JumpBackwardToNote_CoreCode(); and CSourcePhrase's
-// / MoveToNextPile(), MoveToPrevPile() and MoveToImmedNextPile(). CopySourceKey() is
-// / generally only called when the m_bCopySource flag is TRUE and when the m_targetPhrase
-// / is empty, because there is no matching translation available from the KB or no previous
-// / target phrase has been entered. CopySourceKey() returns the source word or phrase
-// / (possibly merged) in a pre-processed form which constitutes a first guess for what
-// / might be wanted as a target text in the phrase box. This guess starts as the m_key
-// / member of the CSourcePhrase object (which is the form without any punctuation).
-// / CopySourceKey() applies any necessary modifications as the result of Consistent Changes
-// / (if m_bUseConsistentChanges is TRUE) or any modifications made by SIL Converters (if
-// / m_bUseSilConverter if TRUE) before returning the final string to the caller. Thus,
-// / CopySourceKey() is the primary place where Consistent Changes and SIL Converter changes
-// / is done within the Adapt It application.
-//***************************************************************************************
+// **************************************************************************************
+/// \return     a wxString representing a copy of the m_key member (which has punctuation 
+///             stripped off) of pSrcPhrase after m_key has been modified by Consistent Changes
+///             (if m_bUseConsistentChanges is TRUE) or by SIL Converters (if m_bUseSilConverter
+///             if TRUE)
+/// \param      pSrcPhrase              -> the source phrase from which the m_key is copied
+/// \param      bUseConsistentChanges   -> flag indicating if Consistent Changes is required
+/// \remarks
+/// Called from: The CopySourceKey() function is called from the View's PlacePhraseBox(),
+/// OnButtonToEnd(), OnButtonToStart(), OnButtonStepDown(), OnButtonStepUp(),
+/// OnButtonMerge(), OnButtonRestore(), RestoreTargetBoxText(),
+/// JumpForwardToNote_CoreCode(), and JumpBackwardToNote_CoreCode(); and CSourcePhrase's
+/// MoveToNextPile(), MoveToPrevPile() and MoveToImmedNextPile(). CopySourceKey() is
+/// generally only called when the m_bCopySource flag is TRUE and when the m_targetPhrase
+/// is empty, because there is no matching translation available from the KB or no previous
+/// target phrase has been entered. CopySourceKey() returns the source word or phrase
+/// (possibly merged) in a pre-processed form which constitutes a first guess for what
+/// might be wanted as a target text in the phrase box. This guess starts as the m_key
+/// member of the CSourcePhrase object (which is the form without any punctuation).
+/// CopySourceKey() applies any necessary modifications as the result of Consistent Changes
+/// (if m_bUseConsistentChanges is TRUE) or any modifications made by SIL Converters (if
+/// m_bUseSilConverter if TRUE) before returning the final string to the caller. Thus,
+/// CopySourceKey() is the primary place where Consistent Changes and SIL Converter changes
+/// is done within the Adapt It application.
+// **************************************************************************************
 wxString CAdapt_ItView::CopySourceKey(CSourcePhrase *pSrcPhrase, bool bUseConsistentChanges)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -19514,19 +19514,19 @@ wxString CAdapt_ItView::CopySourcePhrase(CSourcePhrase *pSrcPhrase, bool bUseCon
 }
 */
 
-//******************************************************************************************
-// / \return     a wxString representing text after any Consistent Changes have been performed
-// /             on the text
-// / \param      str    -> the incoming string on which Consistent Changes is to be performed
-// / \remarks
-// / Called from: the View's CopySourceKey() and DoTargetBoxPaste().
-// / If str is not empty, DoConsistentChanges passes str through up to four successive Consistent
-// / Changes processes, once for each of up to four loaded changes tables. DoConsistentChanges()
-// / handles the initialization of an input and an output buffer for processing of changes by
-// / calling of up to four m_consistentChager instances on the buffers, employing the 
-// / utf8ProcessBuffer() method of CConsistentChanger. See the CConsistentChanger and CCModule 
-// / classes.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return     a wxString representing text after any Consistent Changes have been performed
+///             on the text
+/// \param      str    -> the incoming string on which Consistent Changes is to be performed
+/// \remarks
+/// Called from: the View's CopySourceKey() and DoTargetBoxPaste().
+/// If str is not empty, DoConsistentChanges passes str through up to four successive Consistent
+/// Changes processes, once for each of up to four loaded changes tables. DoConsistentChanges()
+/// handles the initialization of an input and an output buffer for processing of changes by
+/// calling of up to four m_consistentChager instances on the buffers, employing the 
+/// utf8ProcessBuffer() method of CConsistentChanger. See the CConsistentChanger and CCModule 
+/// classes.
+// ******************************************************************************************
 wxString CAdapt_ItView::DoConsistentChanges(wxString& str)
 // the DLL for the consistent changes code will need to handle unicode characters for the
 // Unicode version - make sure the appropriate changes are done
@@ -19915,17 +19915,17 @@ ed:		if (bCancelled)
 	}
 }
 
-//**************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Show the Choose
-// / Translation Dialog" toolbar item and returns immediately: The application is in Free
-// / Translation mode, the targetBox is NULL or is not shown, or the application is in
-// / glossing mode. Otherwise, it enables the toolbar button if the active pile is valid and
-// / the source phrase at that point does not have the m_bNotInKB flag set.
-//***************************************************************************************
+// *************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Show the Choose
+/// Translation Dialog" toolbar item and returns immediately: The application is in Free
+/// Translation mode, the targetBox is NULL or is not shown, or the application is in
+/// glossing mode. Otherwise, it enables the toolbar button if the active pile is valid and
+/// the source phrase at that point does not have the m_bNotInKB flag set.
+// **************************************************************************************
 void CAdapt_ItView::OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -21900,18 +21900,18 @@ y:						;
 	GetLayout()->m_docEditOperationType = consistency_check_op; // sets 0,-1 'select all'
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If the application is in Free Translation mode, or
-// / Vertical Editing is in progress, or it is only showing the target language text, or the
-// / active KB is not in a ready state, this handler disables the "Consistency Check..."
-// / item in the Edit menu, otherwise it enables the "Consistency Check..." item on the Edit
-// / menu.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the application is in Free Translation mode, or
+/// Vertical Editing is in progress, or it is only showing the target language text, or the
+/// active KB is not in a ready state, this handler disables the "Consistency Check..."
+/// item in the Edit menu, otherwise it enables the "Consistency Check..." item on the Edit
+/// menu.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
 {
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -24852,16 +24852,16 @@ void CAdapt_ItView::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. This handler disables the "Knowledge Base Editor..."
-// / item in the Tools menu if the appropriate KB is not in a ready state, otherwise it
-// / enables the "Knowledge Base Editor..." item on the Tools menu.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. This handler disables the "Knowledge Base Editor..."
+/// item in the Tools menu if the appropriate KB is not in a ready state, otherwise it
+/// enables the "Knowledge Base Editor..." item on the Tools menu.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateToolsKbEditor(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -25499,17 +25499,17 @@ void CAdapt_ItView::Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase)
 	GetLayout()->PlaceBox();
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If Vertical Editing is in progress, or the pointers
-// / to the KBs are NULL or the bundle's m_nStripCount is not greater than zero, this
-// / handler disables the "Go To..." item in the Edit menu, otherwise it enables the "Go
-// / To..." item on the Edit menu.
-//******************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If Vertical Editing is in progress, or the pointers
+/// to the KBs are NULL or the bundle's m_nStripCount is not greater than zero, this
+/// handler disables the "Go To..." item in the Edit menu, otherwise it enables the "Go
+/// To..." item on the Edit menu.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateGoTo(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -25969,18 +25969,18 @@ void CAdapt_ItView::OnFind(wxCommandEvent& event)
 }
 */
 
-//************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu
-// /                        is about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed.
-// / This handler disables the "Find..." item in the Tools menu if Vertical Editing is in
-// / progress, or if the application is in Free Translation mode, or if there are no source 
-// / phrases in the App's m_pSourcePhrases list. Otherwise it enables the "Find..." item on
-// / the Tools menu.
-//*************************************************************************************
+// ***********************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// This handler disables the "Find..." item in the Tools menu if Vertical Editing is in
+/// progress, or if the application is in Free Translation mode, or if there are no source 
+/// phrases in the App's m_pSourcePhrases list. Otherwise it enables the "Find..." item on
+/// the Tools menu.
+// ************************************************************************************
 void CAdapt_ItView::OnUpdateFind(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -26320,17 +26320,17 @@ void CAdapt_ItView::ToggleTargetLines()
 }
 */
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. This handler disables the "Find And Replace..." item
-// / in the Tools menu if Vertical Editing is in progress, or if the application is in Free
-// / Translation mode, or if there are no source phrases in the App's m_pSourcePhrases list.
-// / Otherwise it enables the "Find And Replace..." item on the Tools menu.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. This handler disables the "Find And Replace..." item
+/// in the Tools menu if Vertical Editing is in progress, or if the application is in Free
+/// Translation mode, or if there are no source phrases in the App's m_pSourcePhrases list.
+/// Otherwise it enables the "Find And Replace..." item on the Tools menu.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateReplace(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -29693,17 +29693,17 @@ a:				oldText += endText;
 	}
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. This handler disables the "Retranslation Report..."
-// / item in the Tools menu if Vertical Editing is in progress, or if the application is in
-// / glossing mode, or if the regular KB is not in a ready state. Otherwise it enables the
-// / "Retranslation Report..." item on the Tools menu.
-//*******************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. This handler disables the "Retranslation Report..."
+/// item in the Tools menu if Vertical Editing is in progress, or if the application is in
+/// glossing mode, or if the regular KB is not in a ready state. Otherwise it enables the
+/// "Retranslation Report..." item on the Tools menu.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateRetransReport(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -29727,15 +29727,15 @@ void CAdapt_ItView::OnUpdateRetransReport(wxUpdateUIEvent& event)
 	}
 }
 
-//***************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Layout Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. This handler always enables the "Layout Window Right
-// / To Left" (or "Layout Window Left To Right") item in the Layout menu.
-//****************************************************************************************
+// **************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Layout Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. This handler always enables the "Layout Window Right
+/// To Left" (or "Layout Window Left To Right") item in the Layout menu.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateAlignment(wxUpdateUIEvent& event)
 {
 	event.Enable(TRUE); // always enabled
@@ -29897,17 +29897,17 @@ void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
 	DoExportSrcOrTgt(bExportTarget,bForceUTF8Conversion);
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and
-// / before the menu is displayed.
-// / If Vertical Editing is in progress, or if the application is in glossing mode this handler 
-// / disables the "Export Translation Text..." item in the File menu, otherwise it enables the 
-// / "Export Translation Text..." item on the File menu.
-//********************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and
+/// before the menu is displayed.
+/// If Vertical Editing is in progress, or if the application is in glossing mode this handler 
+/// disables the "Export Translation Text..." item in the File menu, otherwise it enables the 
+/// "Export Translation Text..." item on the File menu.
+// *******************************************************************************************
 void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -30065,19 +30065,19 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Stop Selection At
-// / Boundaries" toolbar item and returns immediately: The application is in Free
-// / Translation mode, in glossing mode, is showing only the target language text, the
-// / active pile is NULL, or there are no source phrases in the m_pSourcePhrases list.
-// / Otherwise, it enables the toolbar button if the m_curIndex represents a valid location.
-// / Note: The "Stop Selection At Boundaries" toolbar button is the opposite state toggle of
-// / the "Ignore Boundaries" toolbar button.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Stop Selection At
+/// Boundaries" toolbar item and returns immediately: The application is in Free
+/// Translation mode, in glossing mode, is showing only the target language text, the
+/// active pile is NULL, or there are no source phrases in the m_pSourcePhrases list.
+/// Otherwise, it enables the toolbar button if the m_curIndex represents a valid location.
+/// Note: The "Stop Selection At Boundaries" toolbar button is the opposite state toggle of
+/// the "Ignore Boundaries" toolbar button.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateButtonRespectBdry(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30108,19 +30108,19 @@ void CAdapt_ItView::OnUpdateButtonRespectBdry(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Ignore Boundaries"
-// / toolbar item and returns immediately: The application is in Free Translation mode, in
-// / glossing mode, is showing only the target language text, the active pile is NULL, or
-// / there are no source phrases in the m_pSourcePhrases list. Otherwise, it enables the
-// / toolbar button if the m_curIndex represents a valid location. Note: The "Ignore
-// / Boundaries" toolbar button is the opposite state toggle of the "Stop Selection At
-// / Boundaries" toolbar button.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Ignore Boundaries"
+/// toolbar item and returns immediately: The application is in Free Translation mode, in
+/// glossing mode, is showing only the target language text, the active pile is NULL, or
+/// there are no source phrases in the m_pSourcePhrases list. Otherwise, it enables the
+/// toolbar button if the m_curIndex represents a valid location. Note: The "Ignore
+/// Boundaries" toolbar button is the opposite state toggle of the "Stop Selection At
+/// Boundaries" toolbar button.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30151,25 +30151,25 @@ void CAdapt_ItView::OnUpdateButtonIgnoreBdry(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the
-// /                         ID_BUTTON_RESPECTING_BDRY bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_BUTTON_RESPECTING_BDRY bitmap image (road with fence across it).
-// / Note: The Button image depicts what the current state of boundary respecting/ignoring
-// / is, but the tooltip and help text describe what clicking the button will accomplish. If
-// / m_bRespectBoundaries is TRUE, this handler insures that the ID_BUTTON_IGNORING_BDRY
-// / bitmap image is displayed in the Toolbar, and changes m_bRespectBoundaries to FALSE.
-// / The "Ignoring Boundaries" button (witn ID_BUTTON_IGNORING_BDRY image having a road
-// / ahead with no fence across it) is displayed on the toolBar after this handler finishes
-// / because it shows the user what state the respect/ignore boundaries functionality would
-// / be if the user were to press that toolbar button, i.e., the opposite of the current
-// / state. Note: The "Respecting Boundaries" toolbar button (having a fence across the
-// / road) is the opposite state toggle of the "Ignoring Boundaries" toolbar button . See
-// / also OnButtonFromIgnoringBdryToRespectingBdry().
-//******************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the
+///                         ID_BUTTON_RESPECTING_BDRY bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_BUTTON_RESPECTING_BDRY bitmap image (road with fence across it).
+/// Note: The Button image depicts what the current state of boundary respecting/ignoring
+/// is, but the tooltip and help text describe what clicking the button will accomplish. If
+/// m_bRespectBoundaries is TRUE, this handler insures that the ID_BUTTON_IGNORING_BDRY
+/// bitmap image is displayed in the Toolbar, and changes m_bRespectBoundaries to FALSE.
+/// The "Ignoring Boundaries" button (witn ID_BUTTON_IGNORING_BDRY image having a road
+/// ahead with no fence across it) is displayed on the toolBar after this handler finishes
+/// because it shows the user what state the respect/ignore boundaries functionality would
+/// be if the user were to press that toolbar button, i.e., the opposite of the current
+/// state. Note: The "Respecting Boundaries" toolbar button (having a fence across the
+/// road) is the opposite state toggle of the "Ignoring Boundaries" toolbar button . See
+/// also OnButtonFromIgnoringBdryToRespectingBdry().
+// *****************************************************************************************
 void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler was called OnButtonRespectBdry() in the MFC version. Since it is a toggle button
@@ -30225,26 +30225,26 @@ void CAdapt_ItView::OnButtonFromRespectingBdryToIgnoringBdry(wxCommandEvent& WXU
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the
-// /                         ID_BUTTON_IGNORING_BDRY bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_BUTTON_IGNORING_BDRY bitmap image (road with no fence across
-// / it). Note: The Button image depicts what the current state of boundary
-// / respecting/ignoring is, but the tooltip and help text describe what clicking the button
-// / will accomplish. If m_bRespectBoundaries is FALSE, this handler insures that the
-// / ID_BUTTON_RESPECTING_BDRY bitmap image is displayed in the Toolbar, and changes
-// / m_bRespectBoundaries to TRUE. The "Respecting Boundaries" button (witn
-// / ID_BUTTON_RESPECTING_BDRY image having a fence across the road) is displayed on the
-// / toolBar after this handler finishes because it shows the user what state the
-// / respect/ignore boundaries functionality would be if the user were to press that toolbar
-// / button, i.e., the opposite of the current state. Note: The "Ignoring Boundaries"
-// / toolbar button (road ahead with no fence across it) is the opposite state toggle of the
-// / "Respecting Boundaries" toolbar button . See also
-// / OnButtonFromRespectingBdryToIgnoringBdry().
-//******************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the
+///                         ID_BUTTON_IGNORING_BDRY bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_BUTTON_IGNORING_BDRY bitmap image (road with no fence across
+/// it). Note: The Button image depicts what the current state of boundary
+/// respecting/ignoring is, but the tooltip and help text describe what clicking the button
+/// will accomplish. If m_bRespectBoundaries is FALSE, this handler insures that the
+/// ID_BUTTON_RESPECTING_BDRY bitmap image is displayed in the Toolbar, and changes
+/// m_bRespectBoundaries to TRUE. The "Respecting Boundaries" button (witn
+/// ID_BUTTON_RESPECTING_BDRY image having a fence across the road) is displayed on the
+/// toolBar after this handler finishes because it shows the user what state the
+/// respect/ignore boundaries functionality would be if the user were to press that toolbar
+/// button, i.e., the opposite of the current state. Note: The "Ignoring Boundaries"
+/// toolbar button (road ahead with no fence across it) is the opposite state toggle of the
+/// "Respecting Boundaries" toolbar button . See also
+/// OnButtonFromRespectingBdryToIgnoringBdry().
+// *****************************************************************************************
 void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler was called OnButtonIgnoreBdry() in the MFC version. Since it is a toggle button
@@ -30300,18 +30300,18 @@ void CAdapt_ItView::OnButtonFromIgnoringBdryToRespectingBdry(wxCommandEvent& WXU
 	}
 }
 
-//********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Show Punctuation"
-// / toolbar item and returns immediately: The application is in Free Translation mode, in
-// / glossing mode, the active pile is NULL, or there are no source phrases in the
-// / m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-// / represents a valid location. Note: The "Show Punctuation" toolbar button is the
-// / opposite state toggle of the "Hide Punctuation" toolbar button.
-//********************************************************************************************
+// *******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Show Punctuation"
+/// toolbar item and returns immediately: The application is in Free Translation mode, in
+/// glossing mode, the active pile is NULL, or there are no source phrases in the
+/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
+/// represents a valid location. Note: The "Show Punctuation" toolbar button is the
+/// opposite state toggle of the "Hide Punctuation" toolbar button.
+// *******************************************************************************************
 void CAdapt_ItView::OnUpdateButtonShowPunct(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30346,24 +30346,24 @@ void CAdapt_ItView::OnUpdateButtonShowPunct(wxUpdateUIEvent& event)
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the
-// /                         ID_BUTTON_SHOWING_PUNCT bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_BUTTON_SHOWING_PUNCT bitmap image. Note: The Button image
-// / depicts what the current state of punctuation showing/hiding is, but the tooltip and
-// / help text describe what clicking the button will accomplish. If m_bHidePunctuation is
-// / FALSE, this handler insures that the ID_BUTTON_HIDING_PUNCT bitmap image is displayed
-// / in the Toolbar, and changes m_bHidePunctuation to TRUE. The "Hiding Punctuation" button
-// / (witn ID_BUTTON_HIDING_PUNCT image having curtains closed on stage) is displayed on the
-// / toolBar after this handler finishes because it shows the user what state the show/hide
-// / punctuation functionality would be if the user were to press that toolbar button, i.e.,
-// / the opposite of the current state. Note: The "Showing Punctuation" toolbar button
-// / (curtains drawn back revealing an exclamation point) is the opposite state toggle of
-// / the "Hiding Punctuation" toolbar button . See also OnButtonFromHidingToShowingPunct().
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the
+///                         ID_BUTTON_SHOWING_PUNCT bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_BUTTON_SHOWING_PUNCT bitmap image. Note: The Button image
+/// depicts what the current state of punctuation showing/hiding is, but the tooltip and
+/// help text describe what clicking the button will accomplish. If m_bHidePunctuation is
+/// FALSE, this handler insures that the ID_BUTTON_HIDING_PUNCT bitmap image is displayed
+/// in the Toolbar, and changes m_bHidePunctuation to TRUE. The "Hiding Punctuation" button
+/// (witn ID_BUTTON_HIDING_PUNCT image having curtains closed on stage) is displayed on the
+/// toolBar after this handler finishes because it shows the user what state the show/hide
+/// punctuation functionality would be if the user were to press that toolbar button, i.e.,
+/// the opposite of the current state. Note: The "Showing Punctuation" toolbar button
+/// (curtains drawn back revealing an exclamation point) is the opposite state toggle of
+/// the "Hiding Punctuation" toolbar button . See also OnButtonFromHidingToShowingPunct().
+// ****************************************************************************************
 void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler was called OnButtonShowPunct() in the MFC version. Since it is a toggle button
@@ -30439,20 +30439,20 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Enable Punctuation
-// / Copy" toolbar item (black punctuation characters on a green background) and returns
-// / immediately: The application is in Free Translation mode, in glossing mode, the active
-// / pile is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise,
-// / it enables the toolbar button if the m_curIndex represents a valid location. Note: The
-// / "Enable Punctuation Copy" toolbar button is the opposite state toggle of the "No
-// / Punctuation Copy" toolbar button (black punctuation with yellow background and a red
-// / circle and red diagonal bar).
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Enable Punctuation
+/// Copy" toolbar item (black punctuation characters on a green background) and returns
+/// immediately: The application is in Free Translation mode, in glossing mode, the active
+/// pile is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise,
+/// it enables the toolbar button if the m_curIndex represents a valid location. Note: The
+/// "Enable Punctuation Copy" toolbar button is the opposite state toggle of the "No
+/// Punctuation Copy" toolbar button (black punctuation with yellow background and a red
+/// circle and red diagonal bar).
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30482,26 +30482,26 @@ void CAdapt_ItView::OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the
-// /                         ID_BUTTON_ENABLE_PUNCT_COPY bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button associated
-// / with the ID_BUTTON_ENABLE_PUNCT_COPY bitmap image. The OnButtonEnablePunctCopy() handler is also 
-// / called directly from the View's OnInitialUpdate(), OnButtonToEnd(), OnButtonToStart(), 
-// / OnButtonStepDown(), OnButtonStepUp(), JumpForwardToNote_CoreCode(), JumpBackwardToNote_CoreCode(), 
-// / and from CPhraseBox's MoveToNextPile(), MoveToPrevPile(), MoveToImmedNextPile().
-// / If m_bCopySourcePunctuation is FALSE, this handler insures that the ID_BUTTON_NO_PUNCT_COPY 
-// / bitmap image is displayed in the Toolbar, and changes m_bCopySourcePunctuation to TRUE. The
-// / "No Punctuation Copy" button (witn ID_BUTTON_NO_PUNCT_COPY image having black punctuation 
-// / with yellow background and a red circle and red diagonal bar) is displayed on the toolBar after
-// / this handler finishes because it shows the user what state the punctuation copy functionality would
-// / be if the user were to press that toolbar button, i.e., the opposite of the current state.
-// / Note: The "Enable Punctuation Copy" toolbar button is the opposite state toggle of the
-// / "No Punctuation Copy" toolbar button (black punctuation with yellow background and a red circle
-// / and red diagonal bar). See also OnButtonNoPunctCopy().
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the
+///                         ID_BUTTON_ENABLE_PUNCT_COPY bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button associated
+/// with the ID_BUTTON_ENABLE_PUNCT_COPY bitmap image. The OnButtonEnablePunctCopy() handler is also 
+/// called directly from the View's OnInitialUpdate(), OnButtonToEnd(), OnButtonToStart(), 
+/// OnButtonStepDown(), OnButtonStepUp(), JumpForwardToNote_CoreCode(), JumpBackwardToNote_CoreCode(), 
+/// and from CPhraseBox's MoveToNextPile(), MoveToPrevPile(), MoveToImmedNextPile().
+/// If m_bCopySourcePunctuation is FALSE, this handler insures that the ID_BUTTON_NO_PUNCT_COPY 
+/// bitmap image is displayed in the Toolbar, and changes m_bCopySourcePunctuation to TRUE. The
+/// "No Punctuation Copy" button (witn ID_BUTTON_NO_PUNCT_COPY image having black punctuation 
+/// with yellow background and a red circle and red diagonal bar) is displayed on the toolBar after
+/// this handler finishes because it shows the user what state the punctuation copy functionality would
+/// be if the user were to press that toolbar button, i.e., the opposite of the current state.
+/// Note: The "Enable Punctuation Copy" toolbar button is the opposite state toggle of the
+/// "No Punctuation Copy" toolbar button (black punctuation with yellow background and a red circle
+/// and red diagonal bar). See also OnButtonNoPunctCopy().
+// *****************************************************************************************
 void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event)) // added in version 3
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30559,20 +30559,20 @@ void CAdapt_ItView::OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event)) // 
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "No Punctuation Copy"
-// / toolbar item (black punctuation with yellow background and a red circle and red
-// / diagonal bar) and returns immediately: The application is in Free Translation mode, in
-// / glossing mode, the active pile is NULL, or there are no source phrases in the
-// / m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-// / represents a valid location. Note: The "No Punctuation Copy" toolbar button is the
-// / opposite state toggle of the "Enable Punctuation Copy" toolbar button (black
-// / punctuation characters on a green background).
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "No Punctuation Copy"
+/// toolbar item (black punctuation with yellow background and a red circle and red
+/// diagonal bar) and returns immediately: The application is in Free Translation mode, in
+/// glossing mode, the active pile is NULL, or there are no source phrases in the
+/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
+/// represents a valid location. Note: The "No Punctuation Copy" toolbar button is the
+/// opposite state toggle of the "Enable Punctuation Copy" toolbar button (black
+/// punctuation characters on a green background).
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 {
  	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30602,23 +30602,23 @@ void CAdapt_ItView::OnUpdateButtonNoPunctCopy(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the
-// /                         ID_BUTTON_NO_PUNCT_COP bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_BUTTON_NO_PUNCT_COPY bitmap image. If m_bCopySourcePunctuation
-// / is TRUE, this handler insures that the ID_BUTTON_ENABLE_PUNCT_COPY bitmap image is
-// / displayed in the Toolbar, and changes m_bCopySourcePunctuation to FALSE. The "Enable
-// / Punctuation Copy" button (witn ID_BUTTON_ENABLE_PUNCT_COPY image having black
-// / punctuation with green background) is displayed on the toolBar after this handler
-// / finishes because it shows the user what state the punctuation copy functionality would
-// / be if the user were to press that toolbar button, i.e., the opposite of the current
-// / state. Note: The "No Punctuation Copy" toolbar button (black punctuation with yellow
-// / background and a red circle and red diagonal bar) is the opposite state toggle of the
-// / "Enable Punctuation Copy" toolbar button . See also OnUpdateButtonEnablePunctCopy().
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the
+///                         ID_BUTTON_NO_PUNCT_COP bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_BUTTON_NO_PUNCT_COPY bitmap image. If m_bCopySourcePunctuation
+/// is TRUE, this handler insures that the ID_BUTTON_ENABLE_PUNCT_COPY bitmap image is
+/// displayed in the Toolbar, and changes m_bCopySourcePunctuation to FALSE. The "Enable
+/// Punctuation Copy" button (witn ID_BUTTON_ENABLE_PUNCT_COPY image having black
+/// punctuation with green background) is displayed on the toolBar after this handler
+/// finishes because it shows the user what state the punctuation copy functionality would
+/// be if the user were to press that toolbar button, i.e., the opposite of the current
+/// state. Note: The "No Punctuation Copy" toolbar button (black punctuation with yellow
+/// background and a red circle and red diagonal bar) is the opposite state toggle of the
+/// "Enable Punctuation Copy" toolbar button . See also OnUpdateButtonEnablePunctCopy().
+// ***************************************************************************************
 void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30666,18 +30666,18 @@ void CAdapt_ItView::OnButtonNoPunctCopy(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Hide Punctuation"
-// / toolbar item and returns immediately: The application is in Free Translation mode, in
-// / glossing mode, the active pile is NULL, or there are no source phrases in the
-// / m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
-// / represents a valid location. Note: The "Hide Punctuation" toolbar button is the
-// / opposite state toggle of the "Show Punctuation" toolbar button.
-//****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Hide Punctuation"
+/// toolbar item and returns immediately: The application is in Free Translation mode, in
+/// glossing mode, the active pile is NULL, or there are no source phrases in the
+/// m_pSourcePhrases list. Otherwise, it enables the toolbar button if the m_curIndex
+/// represents a valid location. Note: The "Hide Punctuation" toolbar button is the
+/// opposite state toggle of the "Show Punctuation" toolbar button.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateButtonHidePunct(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30708,25 +30708,25 @@ void CAdapt_ItView::OnUpdateButtonHidePunct(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the
-// /                         ID_BUTTON_HIDING_PUNCT bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_BUTTON_HIDING_PUNCT bitmap image (image with curtains closed).
-// / Note: The Button image depicts what the current state of punctuation showing/hiding is,
-// / but the tooltip and help text describe what clicking the button will accomplish. If
-// / m_bHidePunctuation is TRUE, this handler insures that the ID_BUTTON_SHOWING_PUNCT
-// / bitmap image is displayed in the Toolbar, and changes m_bHidePunctuation to FALSE. The
-// / "Showing Punctuation" button (witn ID_BUTTON_SHOWING_PUNCT image having curtains drawn
-// / back revealing an exclamation point) is displayed on the toolBar after this handler
-// / finishes because it shows the user what state the show/hide punctuation functionality
-// / would be if the user were to press that toolbar button, i.e., the opposite of the
-// / current state. Note: The "Hiding Punctuation" toolbar button (curtains closed on stage)
-// / is the opposite state toggle of the "Showing Punctuation" toolbar button . See also
-// / OnButtonFromShowingToHidingPunct().
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the
+///                         ID_BUTTON_HIDING_PUNCT bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_BUTTON_HIDING_PUNCT bitmap image (image with curtains closed).
+/// Note: The Button image depicts what the current state of punctuation showing/hiding is,
+/// but the tooltip and help text describe what clicking the button will accomplish. If
+/// m_bHidePunctuation is TRUE, this handler insures that the ID_BUTTON_SHOWING_PUNCT
+/// bitmap image is displayed in the Toolbar, and changes m_bHidePunctuation to FALSE. The
+/// "Showing Punctuation" button (witn ID_BUTTON_SHOWING_PUNCT image having curtains drawn
+/// back revealing an exclamation point) is displayed on the toolBar after this handler
+/// finishes because it shows the user what state the show/hide punctuation functionality
+/// would be if the user were to press that toolbar button, i.e., the opposite of the
+/// current state. Note: The "Hiding Punctuation" toolbar button (curtains closed on stage)
+/// is the opposite state toggle of the "Showing Punctuation" toolbar button . See also
+/// OnButtonFromShowingToHidingPunct().
+// ***************************************************************************************
 void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler was called OnButtonHidePunct() in the MFC version. Since it is a toggle button
@@ -30807,18 +30807,18 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE, this handler disables the "Show Target Text Only"
-// / toolbar item and returns immediately: Vertical Editing is in progress, the active pile
-// / is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise, it
-// / enables the toolbar button if m_endIndex is within a valid range. Note: The "Show
-// / Target Text Only" toolbar button is the opposite state toggle of the "Show Source And
-// / Target Text" toolbar button.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE, this handler disables the "Show Target Text Only"
+/// toolbar item and returns immediately: Vertical Editing is in progress, the active pile
+/// is NULL, or there are no source phrases in the m_pSourcePhrases list. Otherwise, it
+/// enables the toolbar button if m_endIndex is within a valid range. Note: The "Show
+/// Target Text Only" toolbar button is the opposite state toggle of the "Show Source And
+/// Target Text" toolbar button.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateShowTgt(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -30849,24 +30849,24 @@ void CAdapt_ItView::OnUpdateShowTgt(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//***************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_ALL
-// /                         bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_SHOWING_ALL bitmap image. Note: The Button image depicts what
-// / the current state of showing-all/showing-target-only is, but the tooltip and help text
-// / describe what clicking the button will accomplish. If gbShowTargetOnly is FALSE, this
-// / handler insures that the ID_SHOWING_TGT bitmap image is displayed in the Toolbar, and
-// / changes gbShowTargetOnly to TRUE. The "Showing Source And Target Text" button (witn
-// / ID_SHOWING_ALL image having pairs of lines representing strips of source and target
-// / together) is displayed on the toolBar after this handler finishes because it shows the
-// / user what state the target text only functionality would be if the user were to press
-// / that toolbar button, i.e., the opposite of the current state. Note: The "Show Source
-// / And Target Text" toolbar button is the opposite state toggle of the "Show Target Text
-// / Only" toolbar button. See also OnFromShowingAllToShowingTargetOnly().
-//***************************************************************************************
+// **************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_ALL
+///                         bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_SHOWING_ALL bitmap image. Note: The Button image depicts what
+/// the current state of showing-all/showing-target-only is, but the tooltip and help text
+/// describe what clicking the button will accomplish. If gbShowTargetOnly is FALSE, this
+/// handler insures that the ID_SHOWING_TGT bitmap image is displayed in the Toolbar, and
+/// changes gbShowTargetOnly to TRUE. The "Showing Source And Target Text" button (witn
+/// ID_SHOWING_ALL image having pairs of lines representing strips of source and target
+/// together) is displayed on the toolBar after this handler finishes because it shows the
+/// user what state the target text only functionality would be if the user were to press
+/// that toolbar button, i.e., the opposite of the current state. Note: The "Show Source
+/// And Target Text" toolbar button is the opposite state toggle of the "Show Target Text
+/// Only" toolbar button. See also OnFromShowingAllToShowingTargetOnly().
+// **************************************************************************************
 void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler was called OnShowTgt() in the MFC version. Since it is a toggle button
@@ -30943,19 +30943,19 @@ void CAdapt_ItView::OnFromShowingAllToShowingTargetOnly(wxCommandEvent& WXUNUSED
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If any of the following conditions are TRUE, this handler disables the "Show Source And 
-// / Target Text" toolbar item (pairs of lines representing strips) and returns immediately: 
-// / Vertical Editing is in progress, the active pile is NULL, or there are no source phrases 
-// / in the m_pSourcePhrases list. Otherwise, it enables the toolbar button if m_endIndex is 
-// / within a valid range.
-// / Note: The "Show Source And Target Text" toolbar button is the opposite state toggle of the
-// / "Show Target Text Only" toolbar button.
-//*******************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If any of the following conditions are TRUE, this handler disables the "Show Source And 
+/// Target Text" toolbar item (pairs of lines representing strips) and returns immediately: 
+/// Vertical Editing is in progress, the active pile is NULL, or there are no source phrases 
+/// in the m_pSourcePhrases list. Otherwise, it enables the toolbar button if m_endIndex is 
+/// within a valid range.
+/// Note: The "Show Source And Target Text" toolbar button is the opposite state toggle of the
+/// "Show Target Text Only" toolbar button.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateShowAll(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -30981,26 +30981,26 @@ void CAdapt_ItView::OnUpdateShowAll(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_TGT
-// /                         bitmap image on the toolBar
-// / \remarks
-// / Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
-// / associated with the ID_SHOWING_TGT bitmap image. The
-// / OnFromShowingTargetOnlyToShowingAll() handler is also called directly from the View's
-// / OnInitialUpdate(), OnFind(), and OnReplace(). Note: The Button image depicts what the
-// / current state of showing-all/showing-target-only is, but the tooltip and help text
-// / describe what clicking the button will accomplish. If gbShowTargetOnly is TRUE, this
-// / handler insures that the ID_SHOWING_ALL bitmap image is displayed in the Toolbar, and
-// / changes gbShowTargetOnly to FALSE. The "Showing ALL" button (witn ID_SHOWING_ALL image
-// / having pairs of lines representing strips of source and target together) is displayed
-// / on the toolBar after this handler finishes because it shows the user what state the
-// / showing-all/showing-target-text-only functionality would be if the user were to press
-// / that toolbar button, i.e., the opposite of the current state. Note: The "Showing Target
-// / Text Only" toolbar button is the opposite state toggle of the "Showing All" toolbar
-// / button. See also OnFromShowingAllToShowingTargetOnly().
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent that is associated with the ID_SHOWING_TGT
+///                         bitmap image on the toolBar
+/// \remarks
+/// Called from: The wxCommandEvent mechanism when the user clicks on the toolBar button
+/// associated with the ID_SHOWING_TGT bitmap image. The
+/// OnFromShowingTargetOnlyToShowingAll() handler is also called directly from the View's
+/// OnInitialUpdate(), OnFind(), and OnReplace(). Note: The Button image depicts what the
+/// current state of showing-all/showing-target-only is, but the tooltip and help text
+/// describe what clicking the button will accomplish. If gbShowTargetOnly is TRUE, this
+/// handler insures that the ID_SHOWING_ALL bitmap image is displayed in the Toolbar, and
+/// changes gbShowTargetOnly to FALSE. The "Showing ALL" button (witn ID_SHOWING_ALL image
+/// having pairs of lines representing strips of source and target together) is displayed
+/// on the toolBar after this handler finishes because it shows the user what state the
+/// showing-all/showing-target-text-only functionality would be if the user were to press
+/// that toolbar button, i.e., the opposite of the current state. Note: The "Showing Target
+/// Text Only" toolbar button is the opposite state toggle of the "Showing All" toolbar
+/// button. See also OnFromShowingAllToShowingTargetOnly().
+// *****************************************************************************************
 void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED(event))
 {
 	// This handler was called OnShowAll() in the MFC version. Since it is a toggle button
@@ -31079,15 +31079,15 @@ void CAdapt_ItView::OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED
 }
 
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If the KB is in a ready state the "Wrap At Standard
-// / Format Markers" item on the View menu is enabled, otherwise the menu item is disabled.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the View Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the KB is in a ready state the "Wrap At Standard
+/// Format Markers" item on the View menu is enabled, otherwise the menu item is disabled.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateMarkerWrapsStrip(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -31204,16 +31204,16 @@ void CAdapt_ItView::ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNex
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If the appropriate KB is not in a ready state this
-// / handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
-// / enables the "Export Knowledge Base..." item on the File menu.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the appropriate KB is not in a ready state this
+/// handler disables the "Export Knowledge Base..." item in the File menu, otherwise it
+/// enables the "Export Knowledge Base..." item on the File menu.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateFileExportKb(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -31726,15 +31726,15 @@ bool CAdapt_ItView::IsTypeDifferent(CCell* pAnchor, CCell* pCurrent)
 //	CScrollView::OnCaptureChanged(pWnd);
 //}
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If the TargetBox is in focus this handler enables the
-// / Edit Undo menu item, otherwise it disables the menu item.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the TargetBox is in focus this handler enables the
+/// Edit Undo menu item, otherwise it disables the menu item.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateEditUndo(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -31768,16 +31768,16 @@ void CAdapt_ItView::OnEditUndo(wxCommandEvent& event)
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If the KBs are in a ready state this handler enables
-// / the "Import to Knowledge Base..." item on the File menu, otherwise it disables the menu
-// / item.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If the KBs are in a ready state this handler enables
+/// the "Import to Knowledge Base..." item on the File menu, otherwise it disables the menu
+/// item.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -32129,17 +32129,17 @@ bool CAdapt_ItView::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
 		return FALSE;
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If
-// / Vertical editing is in progress this handler disables the Back button and returns
-// / immediately. Otherwise, if there are source phrases in the App's m_pSourcePhrases list,
-// / if the App's m_endIndex is within a valid range, and if the global gnOldSequNum does
-// / not equal -1, this handler enables the toolBar's "Jump Back" button, otherwise it
-// / disables the toolBar button.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If
+/// Vertical editing is in progress this handler disables the Back button and returns
+/// immediately. Otherwise, if there are source phrases in the App's m_pSourcePhrases list,
+/// if the App's m_endIndex is within a valid range, and if the global gnOldSequNum does
+/// not equal -1, this handler enables the toolBar's "Jump Back" button, otherwise it
+/// disables the toolBar button.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonBack(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -32392,16 +32392,16 @@ wxSize CAdapt_ItView::GetPaperSize(short dmPaperSize)
 }
 */
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If the
-// / active pile pointer is NULL or there are no source phrases in the App's
-// / m_pSourcePhrases list, or the App's m_endIndex is not within a valid range, the
-// / toolBar's "View Translation or Glosses Elsewhere In The Document" button is disabled,
-// / otherwise it is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If the
+/// active pile pointer is NULL or there are no source phrases in the App's
+/// m_pSourcePhrases list, or the App's m_endIndex is not within a valid range, the
+/// toolBar's "View Translation or Glosses Elsewhere In The Document" button is disabled,
+/// otherwise it is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateButtonEarlierTranslation(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -32635,14 +32635,14 @@ bool CAdapt_ItView::IsFreeTranslationInSelection(SPList* pList)
 
 /* deprecated 11Apr08
 // *******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Edit Source Text..." item on the Edit menu is
-// / disabled if the application is in Free Translation mode, or there is no source text
-// / selected, otherwise the menu item is enabled.
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Edit Source Text..." item on the Edit menu is
+/// disabled if the application is in Free Translation mode, or there is no source text
+/// selected, otherwise the menu item is enabled.
 // *******************************************************************************************
 void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 {
@@ -33323,17 +33323,17 @@ b:		int nCurCount = nEndSequNum - nSaveSequNum + 1; // what the selection now nu
 }
 */
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Edit Source Text..." item on the Edit menu is
-// / disabled if any of the following conditions is TRUE: Vertical Editing is in progress,
-// / the m_pActivePile is NULL, the application is in Free Translation mode. Otherwise it is
-// / enabled only if some source text selected.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Edit Source Text..." item on the Edit menu is
+/// disabled if any of the following conditions is TRUE: Vertical Editing is in progress,
+/// the m_pActivePile is NULL, the application is in Free Translation mode. Otherwise it is
+/// enabled only if some source text selected.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event) 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -33376,32 +33376,32 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
-//*******************************************************************************************
-// / \return		TRUE if there were no internal errors; FALSE if something went belly up 
-// /             requiring the edit to be aborted (but the app continues, the document 
-// /             isn't changed)
-// / \param      pSrcPhrases		->	pointer to m_pSrcPhrases list defined on the App
-// / \param      nStartingSN		<->	(input)reference to the sequence number for the first pile 
-// /                                 in the user's selection; (output) the sequence number value 
-// /                                 for the first pile after any extension leftwards was done
-// / \param      nEndingSN		<->	(input)reference to the sequence number for the last pile 
-// /                                 in the user's selection; (output) the sequence number value 
-// /                                 for the last pile after any extension rightwards was done
-// / \param      bIsExtended		<-	reference to BOOL indicating whether extension was required 
-// /                                 and done (TRUE) or not required and not done (FALSE)
-// / \remarks
-// / Called from: The View's OnEditSourceText().
-// / Automatically extends the user's selection of the source text to be edited where
-// / necessary to include source text material (and filtered/hidden material) that should be
-// / dealt with when editing the source text. We save processing time by not bothering to
-// / actually use the m_selection list; extension only is required if we have a
-// / retranslation in or partly in the span of the user's manual selection, and we can
-// / easily test for that by looking at flag values on CSourcePhrase instances. The caller
-// / only needs to know what the final sequence numbers of the span for editing are.
-// / "Leftwards" in this function is to be interpretted as "to lower sequence numbers", & so
-// / if we are dealing with a right-to-left language data, it would be rightwards to the
-// / user.
-//********************************************************************************************
+// ******************************************************************************************
+/// \return		TRUE if there were no internal errors; FALSE if something went belly up 
+///             requiring the edit to be aborted (but the app continues, the document 
+///             isn't changed)
+/// \param      pSrcPhrases		->	pointer to m_pSrcPhrases list defined on the App
+/// \param      nStartingSN		<->	(input)reference to the sequence number for the first pile 
+///                                 in the user's selection; (output) the sequence number value 
+///                                 for the first pile after any extension leftwards was done
+/// \param      nEndingSN		<->	(input)reference to the sequence number for the last pile 
+///                                 in the user's selection; (output) the sequence number value 
+///                                 for the last pile after any extension rightwards was done
+/// \param      bIsExtended		<-	reference to BOOL indicating whether extension was required 
+///                                 and done (TRUE) or not required and not done (FALSE)
+/// \remarks
+/// Called from: The View's OnEditSourceText().
+/// Automatically extends the user's selection of the source text to be edited where
+/// necessary to include source text material (and filtered/hidden material) that should be
+/// dealt with when editing the source text. We save processing time by not bothering to
+/// actually use the m_selection list; extension only is required if we have a
+/// retranslation in or partly in the span of the user's manual selection, and we can
+/// easily test for that by looking at flag values on CSourcePhrase instances. The caller
+/// only needs to know what the final sequence numbers of the span for editing are.
+/// "Leftwards" in this function is to be interpretted as "to lower sequence numbers", & so
+/// if we are dealing with a right-to-left language data, it would be rightwards to the
+/// user.
+// *******************************************************************************************
 bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												  bool& bIsExtended)
 {
@@ -33554,21 +33554,21 @@ bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nSta
 	return TRUE; // no errors
 }
 
-//***************************************************************************************
-// / \return		TRUE if there was no error, FALSE if there was an error
-// / \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
-// / \param      nStartingSN		->	index into the pSrcPhrases list at which the span to
-// /                                 be investigated starts
-// / \param      nEndingSN		->	index at which the span ends
-// / \param      pbHasAdaptations <-	pointer to bool, returns TRUE if there is at least one
-// /                                 adaptation in the span, FALSE if there were none
-// / \remarks
-// / Called from: The View's OnEditSourceText(). Determines if there is at least one
-// / adaptation in the span of text determined by nStartingSN and nEndingSN. We check only
-// / as far as the end of the span, or till we find the first adaptation, whichever comes
-// / first. Used to set or clear the bEditSpanHasAdaptations flag in the global struct
-// / gEditRecord.
-//****************************************************************************************
+// **************************************************************************************
+/// \return		TRUE if there was no error, FALSE if there was an error
+/// \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
+/// \param      nStartingSN		->	index into the pSrcPhrases list at which the span to
+///                                 be investigated starts
+/// \param      nEndingSN		->	index at which the span ends
+/// \param      pbHasAdaptations <-	pointer to bool, returns TRUE if there is at least one
+///                                 adaptation in the span, FALSE if there were none
+/// \remarks
+/// Called from: The View's OnEditSourceText(). Determines if there is at least one
+/// adaptation in the span of text determined by nStartingSN and nEndingSN. We check only
+/// as far as the end of the span, or till we find the first adaptation, whichever comes
+/// first. Used to set or clear the bEditSpanHasAdaptations flag in the global struct
+/// gEditRecord.
+// ***************************************************************************************
 bool CAdapt_ItView::IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasAdaptations)
 {
@@ -33616,20 +33616,20 @@ bool CAdapt_ItView::IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& 
 	return TRUE;
 }
 
-//*************************************************************************************
-// / \return		TRUE if there was no error, FALSE if there was an error
-// / \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
-// / \param      nStartingSN		->	index into the pSrcPhrases list at which the span to
-// /                                 be investigated starts
-// / \param      nEndingSN		->	index at which the span ends
-// / \param      pbHasGlosses    <-	pointer to bool, returns TRUE if there is at least
-// /                                 one gloss in the span, FALSE if there were none
-// / \remarks
-// / Called from: The View's OnEditSourceText(). Determines if there is at least one gloss
-// / in the span of text determined by nStartingSN and nEndingSN. We check only as far as
-// / the end of the span, or till we find the first gloss, whichever comes first. Used to
-// / set or clear the bEditSpanHasGlosses flag in the global struct gEditRecord.
-//***************************************************************************************
+// ************************************************************************************
+/// \return		TRUE if there was no error, FALSE if there was an error
+/// \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
+/// \param      nStartingSN		->	index into the pSrcPhrases list at which the span to
+///                                 be investigated starts
+/// \param      nEndingSN		->	index at which the span ends
+/// \param      pbHasGlosses    <-	pointer to bool, returns TRUE if there is at least
+///                                 one gloss in the span, FALSE if there were none
+/// \remarks
+/// Called from: The View's OnEditSourceText(). Determines if there is at least one gloss
+/// in the span of text determined by nStartingSN and nEndingSN. We check only as far as
+/// the end of the span, or till we find the first gloss, whichever comes first. Used to
+/// set or clear the bEditSpanHasGlosses flag in the global struct gEditRecord.
+// **************************************************************************************
 bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasGlosses)
 {
@@ -33676,56 +33676,56 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 	return TRUE;
 }
 
-//****************************************************************************************
-// / \return		TRUE if it appears likely the free translation section was created with
-// /             the "Define Sections By"radio button "Verse" turned ON, FALSE if the other
-// /             radio button "Punctuation" was the one more likely to have been ON
-// / \param      pSrcPhrases				->	pointer to m_pSrcPhrases defined on 
-// /                                             CAdapt_ItDoc class
-// / \param      nStartingFreeTransSequNum	->	start of the free translation found at the
-// /                                             start of the free translation span, or if 
-// /                                             there was no free translation there, then
-// /                                             it is the same as the nStartingSN value 
-// /                                             of gEditRecord
-// / \param      nEndingFreeTransSequNum	->	bounding sequence number beyond which we 
-// /                                             don't scan further (it is not necessarily 
-// /                                             the end of a free translation section, as 
-// /                                             the end of the first free translation 
-// /                                             section, if one exists here, may occur
-// /                                             earlier, because this value may just be 
-// /                                             the nEndingSN value of gEditRecord
-// / \param      bFreeTransPresent			->	TRUE if there is at least one free 
-// /                                             translation section within the span defined
-// /                                             by the first two parameters (caller 
-// /                                             determines this), FALSE if not - and if
-// /                                             FALSE, then control immediately exits and
-// /                                             no scan is done and default FALSE is 
-// /                                             returned.
-// / \remarks
-// / Called from: The View's OnEditSourceText().
-// / When a free translation section is set up by the SetupCurrentFreeTranslationSection()
-// / call at the end of the RecalcLayout() call, the user will have had one of the radio
-// / buttons "Punctuation" or "Verse" turned on - the latter defines, usually, a longer
-// / section than the former. However which one it was is not recorded, and so in vertical
-// / edit mode, we want to get a "best guess" for what that setting was, (it is the
-// / application class's BOOL flag, m_bDefineFreeTransByPunctuation, default is TRUE),
-// / because we wish to restore that setting before entering the freeTranslationsStep of the
-// / vertical edit process. (Otherwise, the user would be annoyed that his earlier
-// / sectioning choice is not in effect. However, even if our algorithm gets it wrong, he
-// / can just click the relevant radio button after freeTranslationsStep is entered, and
-// / before he does any updating of his free translation, and the current section would then
-// / be resized) Unfortunately, we cannot reliably determine what the former setting was. We
-// / know 5 piles will be traversed and then the sectioning code starts looking for a
-// / terminating condition - punctuation, or significant SFM, or start of a new verse. If
-// / after 5 piles we come to a following punctuation character, and the section does not
-// / end there, we can be certain that m_bDefineFreeTransByPunctuation was originaly FALSE;
-// / if we come to the end of the section and the next pile contains pSrcPhrase with
-// / m_bVerse set TRUE, then it is likely that m_bDefineFreeTransByPunctuation was FALSE -
-// / but we can't be certain; or if there are lots of piles in the section (we mean "more
-// / than 15") we'll assume the flag was FALSE. Otherwise, we'll assume it was TRUE. (The
-// / value we return is the inverse of m_bDefineFreeTransByPunctuation value; i.e. if the
-// / latter was FALSE, meaning a verse-length section, then we return TRUE; and vise versa)
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		TRUE if it appears likely the free translation section was created with
+///             the "Define Sections By"radio button "Verse" turned ON, FALSE if the other
+///             radio button "Punctuation" was the one more likely to have been ON
+/// \param      pSrcPhrases				->	pointer to m_pSrcPhrases defined on 
+///                                             CAdapt_ItDoc class
+/// \param      nStartingFreeTransSequNum	->	start of the free translation found at the
+///                                             start of the free translation span, or if 
+///                                             there was no free translation there, then
+///                                             it is the same as the nStartingSN value 
+///                                             of gEditRecord
+/// \param      nEndingFreeTransSequNum	->	bounding sequence number beyond which we 
+///                                             don't scan further (it is not necessarily 
+///                                             the end of a free translation section, as 
+///                                             the end of the first free translation 
+///                                             section, if one exists here, may occur
+///                                             earlier, because this value may just be 
+///                                             the nEndingSN value of gEditRecord
+/// \param      bFreeTransPresent			->	TRUE if there is at least one free 
+///                                             translation section within the span defined
+///                                             by the first two parameters (caller 
+///                                             determines this), FALSE if not - and if
+///                                             FALSE, then control immediately exits and
+///                                             no scan is done and default FALSE is 
+///                                             returned.
+/// \remarks
+/// Called from: The View's OnEditSourceText().
+/// When a free translation section is set up by the SetupCurrentFreeTranslationSection()
+/// call at the end of the RecalcLayout() call, the user will have had one of the radio
+/// buttons "Punctuation" or "Verse" turned on - the latter defines, usually, a longer
+/// section than the former. However which one it was is not recorded, and so in vertical
+/// edit mode, we want to get a "best guess" for what that setting was, (it is the
+/// application class's BOOL flag, m_bDefineFreeTransByPunctuation, default is TRUE),
+/// because we wish to restore that setting before entering the freeTranslationsStep of the
+/// vertical edit process. (Otherwise, the user would be annoyed that his earlier
+/// sectioning choice is not in effect. However, even if our algorithm gets it wrong, he
+/// can just click the relevant radio button after freeTranslationsStep is entered, and
+/// before he does any updating of his free translation, and the current section would then
+/// be resized) Unfortunately, we cannot reliably determine what the former setting was. We
+/// know 5 piles will be traversed and then the sectioning code starts looking for a
+/// terminating condition - punctuation, or significant SFM, or start of a new verse. If
+/// after 5 piles we come to a following punctuation character, and the section does not
+/// end there, we can be certain that m_bDefineFreeTransByPunctuation was originaly FALSE;
+/// if we come to the end of the section and the next pile contains pSrcPhrase with
+/// m_bVerse set TRUE, then it is likely that m_bDefineFreeTransByPunctuation was FALSE -
+/// but we can't be certain; or if there are lots of piles in the section (we mean "more
+/// than 15") we'll assume the flag was FALSE. Otherwise, we'll assume it was TRUE. (The
+/// value we return is the inverse of m_bDefineFreeTransByPunctuation value; i.e. if the
+/// latter was FALSE, meaning a verse-length section, then we return TRUE; and vise versa)
+// ****************************************************************************************
 bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 				 int nStartingFreeTransSequNum, int nEndingFreeTransSequNum, bool bFreeTransPresent)
 {
@@ -33913,50 +33913,50 @@ bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPh
 				  // block because no test was conclusive, so return default;
 }
 
-//******************************************************************************************
-// / \return		TRUE if there was no error; FALSE if there was an error
-// / \param      pScrPhrases	->	pointer to m_pSrcPhrases list defined on the App
-// / \param      nStartingSN	->	reference to the sequence number for the first pile 
-// /                                 in the span which is to have its source text shown to 
-// /                                 the user (this could be more than the user's original 
-// /                                 selection, if extension was done because of the presence
-// /                                 of a retranslation or even more than one retranslation)
-// / \param      nEndingSN		->	reference to the sequence number for the last pile in
-// /                                 the span referred to by the preceding parameter's comment
-// / \param      nStartingFreeTransSequNum	<- ref to the start of any free translation found
-// /                                             at the start of the above span, or if there
-// /                                             were no free translation there, then it is
-// /                                             the same as the nStartingSN value
-// / \param      nEndingFreeTransSequNum	<- ref to the end of any free translation found at 
-// /                                             the end of the above span, or if there were
-// /                                             no free translation there, then it is the
-// /                                             same as the nEndingSN value
-// / \param      bFreeTransPresent			<-	return TRUE if at least one free translation
-// /                                             section is in or partly overlaps the passed
-// /                                             in span; FALSE if none were detected (a
-// /                                             \free .... \free* section with no content
-// /                                             would be regarded as a free translation
-// /                                             section and would cause TRUE to be
-// /                                             returned)
-// / \remarks
-// / Called from: The View's OnEditSourceText(). Gets the starting and ending sequence
-// / numbers of any free translation within the span. "Leftwards" in this function is to be
-// / interpretted as "to lower sequence numbers", & so if we are dealing with a
-// / right-to-left language data, it would be rightwards to the user. Free translations are
-// / defined over document 'sections', and there is no reason why we could assume that the
-// / boundaries of the user's selection for edit purposes would coincide with the start of a
-// / free translation section and the end of that or another free translation section. In
-// / general, if free translations are present then there is a real possibility that the one
-// / or more whole free translations defined over the user's selection will start earlier
-// / than his selection, and end later; but we can't be sure of that because the free
-// / translations might happen to end partway through the user's selection simply because
-// / he's not yet managed to free translation past that point yet. So this function works
-// / out the span of CSourcePhrase instances which have retranslations defined over them,
-// / and makes sure the span starts at the start of the free translation or the passed in
-// / nStartingSN value, whichever is lesser, and ends at the end of a whole free translation
-// / section at higher sequence number than nEndingSN, or at nEndingSN if there was no free
-// / translation at the end of the passed in span, whichever is the case.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		TRUE if there was no error; FALSE if there was an error
+/// \param      pScrPhrases	->	pointer to m_pSrcPhrases list defined on the App
+/// \param      nStartingSN	->	reference to the sequence number for the first pile 
+///                                 in the span which is to have its source text shown to 
+///                                 the user (this could be more than the user's original 
+///                                 selection, if extension was done because of the presence
+///                                 of a retranslation or even more than one retranslation)
+/// \param      nEndingSN		->	reference to the sequence number for the last pile in
+///                                 the span referred to by the preceding parameter's comment
+/// \param      nStartingFreeTransSequNum	<- ref to the start of any free translation found
+///                                             at the start of the above span, or if there
+///                                             were no free translation there, then it is
+///                                             the same as the nStartingSN value
+/// \param      nEndingFreeTransSequNum	<- ref to the end of any free translation found at 
+///                                             the end of the above span, or if there were
+///                                             no free translation there, then it is the
+///                                             same as the nEndingSN value
+/// \param      bFreeTransPresent			<-	return TRUE if at least one free translation
+///                                             section is in or partly overlaps the passed
+///                                             in span; FALSE if none were detected (a
+///                                             \free .... \free* section with no content
+///                                             would be regarded as a free translation
+///                                             section and would cause TRUE to be
+///                                             returned)
+/// \remarks
+/// Called from: The View's OnEditSourceText(). Gets the starting and ending sequence
+/// numbers of any free translation within the span. "Leftwards" in this function is to be
+/// interpretted as "to lower sequence numbers", & so if we are dealing with a
+/// right-to-left language data, it would be rightwards to the user. Free translations are
+/// defined over document 'sections', and there is no reason why we could assume that the
+/// boundaries of the user's selection for edit purposes would coincide with the start of a
+/// free translation section and the end of that or another free translation section. In
+/// general, if free translations are present then there is a real possibility that the one
+/// or more whole free translations defined over the user's selection will start earlier
+/// than his selection, and end later; but we can't be sure of that because the free
+/// translations might happen to end partway through the user's selection simply because
+/// he's not yet managed to free translation past that point yet. So this function works
+/// out the span of CSourcePhrase instances which have retranslations defined over them,
+/// and makes sure the span starts at the start of the free translation or the passed in
+/// nStartingSN value, whichever is lesser, and ends at the end of a whole free translation
+/// section at higher sequence number than nEndingSN, or at nEndingSN if there was no free
+/// translation at the end of the passed in span, whichever is the case.
+// *****************************************************************************************
 bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 				 int& nStartingFreeTransSequNum, int& nEndingFreeTransSequNum, bool& bFreeTransPresent)
 {
@@ -34087,124 +34087,124 @@ bool CAdapt_ItView::GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, in
 	return TRUE; // there was no error
 }
 
-//********************************************************************************************
-// / \return		TRUE if there was no error; FALSE if there was an error
-// / \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
-// / \param      nStartingSN		->	reference to the sequence number for the first pile in the 
-// /                                 span which is to have its source text shown to the user
-// /                                 (this could be more than the user's original selection,
-// /                                 if extension was done because of the presence of a
-// /                                 retranslation or even more than one retranslation)
-// / \param nEndingSN            -> reference to the sequence number for the last pile in the 
-// /                                span referred to by the preceding parameter's comment
-// / \param      nStartingFreeTransSequNum	-> 	ref to the start of any free translation found 
-// /                                             at the start of the above span, or if there
-// /                                             were no free translation there, then it is -1
-// / \param      nEndingFreeTransSequNum		-> 	ref to the end of any free translation found at
-// /                                             the end of the above span, or if there were 
-// /                                             no free translation there, then it is -1
-// / \param      nStartingBackTransSequNum	<- 	ref to the first back translation deemed to 
-// /                                             overlap or be within the passed in 
-// /                                             nStartingSequNum to nEndingSequNum span; 
-// /                                             return -1 if no back translation span was able 
-// /                                             to be defined for the passed in editable span
-// / \param      nEndingBackTransSequNum		<- 	ref to the last CSourcePhrase location in the 
-// /                                             final (or only) back translation section deemed 
-// /                                             to overlap the end of the passed in editable 
-// /                                             span given by nStartingSequNum to 
-// /                                             nEndingSequNum; return -1 if no back translation 
-// /                                             span was able to be defined for the passed in 
-// /                                             editable span
-// / \param      bHasBackTranslations		<- 	ref to BOOL to inform caller that the span has at 
-// /                                             least one collected back translation defined on 
-// /                                             it (even if the collected \bt marker's content 
-// /                                             was empty)
-// / \param	bCollectedFromTargetText	    <-	ref to BOOL to inform caller which line the 
-// /                                             original collection was done from, return TRUE if 
-// /                                             from the target text line, FALSE if from the 
-// /                                             glossing line
-// / \remarks
-// / Called from: The View's OnEditSourceText(). Gets the starting and ending sequence
-// / numbers of any back translation within the span. Note: parameters 2 to 7 reference
-// / members in the struct gEditRecord, and of those 2 to 5 should have been set already, or
-// / set to -1 if inapplicable, by previous function calls). "Leftwards" in this function is
-// / to be interpretted as "to lower sequence numbers", & so if we are dealing with a
-// / right-to-left language data, it would be rightwards to the user. The intent of this
-// / function is to define the start and end of a span in which there is one or more
-// / collected back translations overlapping any or all of the editable span defined by
-// / nStartingSN to nEndingSN values. This is tricky to do, because collection does not
-// / occur from CSourcePhrase instances which have certain TextTypes (footnote -- used for
-// / true footnotes and also for endnotes, crossReference, and markers with TextType of
-// / none), but such material could be selected wholely or in part by the user. These
-// / possibilities complicate the algorithm. Back translation markers (\bt or any marker
-// / starting with \bt) have to eventually be removed, and their contents thrown away, by
-// / another function which the caller calls. Members of gEditRecord are set by being passed
-// / in directly. In the algorithm described below, we speak of "halt locations" - these are
-// / the CSourcePhrase instances where the view class's HaltCurrentCollection() function
-// / returns; the function returns TRUE if a SF marker has been found which is of the kind
-// / deemed able to halt the collecting operation, FALSE if collecting should continue, and
-// / the function also returns, via its parameter list, whether or not the marker which
-// / halted collection was a \bt type of marker. Because HaltCurrentCollection() has all the
-// / smarts we need for the present function, we'll use it in the algorithms described below
-// / - so that the collection halting criteria are the same over all code for collecting
-// / back translations within the application. (Back translation sections don't have a
-// / terminating endmarker, and so it is not a simple matter to work out what the span of
-// / any \bt marker happens to be, and the CSourcePhrase instances in any such span have no
-// / flag indicating they belong to a \bt section, except that the first of them stores, in
-// / m_markers the filtered back translation itself.)
-// / 
-// / Note 1: nStartingBackTransSequNum value is not necessarily the same as the starting
-// / value of either the editable span nor any free translation span that was earlier
-// / defined. (The design also does not require the back translation span subsume the free
-// / translation span or the editable span - the ends of all these can be different.)
-// / 
-// / Note 2. gEditRecord preserves the span involved in back translation deletions, so if
-// / the user elects to have recollection done, we can then use the stored locations and the
-// / new length of the edited source text to work out the span over which the collection
-// / operation has to be automatically done.
-// / 
-// / To understand the algorithm used in GetEditSourceTextBackTranslationSpan(), it is best
-// / to break it up into 5 sequential sub-algorithms as follows:
-// / 
-// / 1. Determine the starting location (a sequence number) for the first \bt marker
-// / destined for removal
-// / 
-// / 2. Determine where to scan forward from - it will be the location found in 1. if a back
-// / translation was actually found by 1.'s algorithm, but if none was found, we start
-// / scanning at the start of the editable span
-// / 
-// / 3. Halt locations are examined wherever the back translation collect operation would
-// / have halted during the collection operation which defined the back translation spans
-// / found in the current document. At these halt locations nothing is done if no \bt or
-// / \bt-derived marker has yet been found, but if one has been found, then we check for
-// / presence of another \bt and remove it if we find one there and we are not at that point
-// / past the end of the editable span. Also we maintain a boolean flag,
-// / bHasBackTranslations which we set only if we find a \bt or \bt-derived marker at some
-// / point in all this, and its span does not halt before the start of the editable span,
-// / and that marker is not stored at some location after the editable span (because if it
-// / was, its back translation would remain valid no matter what editing the user did within
-// / the text shown to him for editing).
-// / 
-// / 4. Eventually scanning will come to the last CSourcePhrase instance in the editable
-// / span, here we must test whether the bHasBackTranslations flag has been set yet, and
-// / whether or not it is a halt location, and if it is a halt location, whether or not
-// / another \bt marker (or the first such marker if none was found up to that point) is
-// / stored there. Depending on the results of these tests, we either declare there is no
-// / collected backtranslation defined on any part of the editable span, or the span we are
-// / defining ends there, or it ends at a halt location further along which has to now be
-// / found.
-// / 
-// / 5. Find the final halt location if within 4. it could not be determined.
-// / 
-// / The appropriate value of bHasBackTranslations is then returned to the caller, where it
-// / is used to set or clear the gEditRecord member bEditSpanHasBackTranslations, and if the
-// / the latter is cleared, the caller will also reset the struct's
-// / nStartingBackTransSequNum and nEndingBackTransSequNum values to -1.
-// /
-// / History:
-// / 23Apr08, BEW added this function
-// / 26Oct08, BEW added code to return the correct bCollectedFromTargetText BOOL value
-//*******************************************************************************************
+// *******************************************************************************************
+/// \return		TRUE if there was no error; FALSE if there was an error
+/// \param      pScrPhrases		->	pointer to m_pSrcPhrases list defined on the App
+/// \param      nStartingSN		->	reference to the sequence number for the first pile in the 
+///                                 span which is to have its source text shown to the user
+///                                 (this could be more than the user's original selection,
+///                                 if extension was done because of the presence of a
+///                                 retranslation or even more than one retranslation)
+/// \param nEndingSN            -> reference to the sequence number for the last pile in the 
+///                                span referred to by the preceding parameter's comment
+/// \param      nStartingFreeTransSequNum	-> 	ref to the start of any free translation found 
+///                                             at the start of the above span, or if there
+///                                             were no free translation there, then it is -1
+/// \param      nEndingFreeTransSequNum		-> 	ref to the end of any free translation found at
+///                                             the end of the above span, or if there were 
+///                                             no free translation there, then it is -1
+/// \param      nStartingBackTransSequNum	<- 	ref to the first back translation deemed to 
+///                                             overlap or be within the passed in 
+///                                             nStartingSequNum to nEndingSequNum span; 
+///                                             return -1 if no back translation span was able 
+///                                             to be defined for the passed in editable span
+/// \param      nEndingBackTransSequNum		<- 	ref to the last CSourcePhrase location in the 
+///                                             final (or only) back translation section deemed 
+///                                             to overlap the end of the passed in editable 
+///                                             span given by nStartingSequNum to 
+///                                             nEndingSequNum; return -1 if no back translation 
+///                                             span was able to be defined for the passed in 
+///                                             editable span
+/// \param      bHasBackTranslations		<- 	ref to BOOL to inform caller that the span has at 
+///                                             least one collected back translation defined on 
+///                                             it (even if the collected \bt marker's content 
+///                                             was empty)
+/// \param	bCollectedFromTargetText	    <-	ref to BOOL to inform caller which line the 
+///                                             original collection was done from, return TRUE if 
+///                                             from the target text line, FALSE if from the 
+///                                             glossing line
+/// \remarks
+/// Called from: The View's OnEditSourceText(). Gets the starting and ending sequence
+/// numbers of any back translation within the span. Note: parameters 2 to 7 reference
+/// members in the struct gEditRecord, and of those 2 to 5 should have been set already, or
+/// set to -1 if inapplicable, by previous function calls). "Leftwards" in this function is
+/// to be interpretted as "to lower sequence numbers", & so if we are dealing with a
+/// right-to-left language data, it would be rightwards to the user. The intent of this
+/// function is to define the start and end of a span in which there is one or more
+/// collected back translations overlapping any or all of the editable span defined by
+/// nStartingSN to nEndingSN values. This is tricky to do, because collection does not
+/// occur from CSourcePhrase instances which have certain TextTypes (footnote -- used for
+/// true footnotes and also for endnotes, crossReference, and markers with TextType of
+/// none), but such material could be selected wholely or in part by the user. These
+/// possibilities complicate the algorithm. Back translation markers (\bt or any marker
+/// starting with \bt) have to eventually be removed, and their contents thrown away, by
+/// another function which the caller calls. Members of gEditRecord are set by being passed
+/// in directly. In the algorithm described below, we speak of "halt locations" - these are
+/// the CSourcePhrase instances where the view class's HaltCurrentCollection() function
+/// returns; the function returns TRUE if a SF marker has been found which is of the kind
+/// deemed able to halt the collecting operation, FALSE if collecting should continue, and
+/// the function also returns, via its parameter list, whether or not the marker which
+/// halted collection was a \bt type of marker. Because HaltCurrentCollection() has all the
+/// smarts we need for the present function, we'll use it in the algorithms described below
+/// - so that the collection halting criteria are the same over all code for collecting
+/// back translations within the application. (Back translation sections don't have a
+/// terminating endmarker, and so it is not a simple matter to work out what the span of
+/// any \bt marker happens to be, and the CSourcePhrase instances in any such span have no
+/// flag indicating they belong to a \bt section, except that the first of them stores, in
+/// m_markers the filtered back translation itself.)
+/// 
+/// Note 1: nStartingBackTransSequNum value is not necessarily the same as the starting
+/// value of either the editable span nor any free translation span that was earlier
+/// defined. (The design also does not require the back translation span subsume the free
+/// translation span or the editable span - the ends of all these can be different.)
+/// 
+/// Note 2. gEditRecord preserves the span involved in back translation deletions, so if
+/// the user elects to have recollection done, we can then use the stored locations and the
+/// new length of the edited source text to work out the span over which the collection
+/// operation has to be automatically done.
+/// 
+/// To understand the algorithm used in GetEditSourceTextBackTranslationSpan(), it is best
+/// to break it up into 5 sequential sub-algorithms as follows:
+/// 
+/// 1. Determine the starting location (a sequence number) for the first \bt marker
+/// destined for removal
+/// 
+/// 2. Determine where to scan forward from - it will be the location found in 1. if a back
+/// translation was actually found by 1.'s algorithm, but if none was found, we start
+/// scanning at the start of the editable span
+/// 
+/// 3. Halt locations are examined wherever the back translation collect operation would
+/// have halted during the collection operation which defined the back translation spans
+/// found in the current document. At these halt locations nothing is done if no \bt or
+/// \bt-derived marker has yet been found, but if one has been found, then we check for
+/// presence of another \bt and remove it if we find one there and we are not at that point
+/// past the end of the editable span. Also we maintain a boolean flag,
+/// bHasBackTranslations which we set only if we find a \bt or \bt-derived marker at some
+/// point in all this, and its span does not halt before the start of the editable span,
+/// and that marker is not stored at some location after the editable span (because if it
+/// was, its back translation would remain valid no matter what editing the user did within
+/// the text shown to him for editing).
+/// 
+/// 4. Eventually scanning will come to the last CSourcePhrase instance in the editable
+/// span, here we must test whether the bHasBackTranslations flag has been set yet, and
+/// whether or not it is a halt location, and if it is a halt location, whether or not
+/// another \bt marker (or the first such marker if none was found up to that point) is
+/// stored there. Depending on the results of these tests, we either declare there is no
+/// collected backtranslation defined on any part of the editable span, or the span we are
+/// defining ends there, or it ends at a halt location further along which has to now be
+/// found.
+/// 
+/// 5. Find the final halt location if within 4. it could not be determined.
+/// 
+/// The appropriate value of bHasBackTranslations is then returned to the caller, where it
+/// is used to set or clear the gEditRecord member bEditSpanHasBackTranslations, and if the
+/// the latter is cleared, the caller will also reset the struct's
+/// nStartingBackTransSequNum and nEndingBackTransSequNum values to -1.
+///
+/// History:
+/// 23Apr08, BEW added this function
+/// 26Oct08, BEW added code to return the correct bCollectedFromTargetText BOOL value
+// ******************************************************************************************
 bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, int& nStartingSN,
 	int& nEndingSN, int& WXUNUSED(nStartingFreeTransSequNum), int& WXUNUSED(nEndingFreeTransSequNum),
 	int& nStartingBackTransSequNum, int& nEndingBackTransSequNum, bool& bHasBackTranslations, 
@@ -34534,28 +34534,28 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(SPList* pSrcPhrases, in
 	return TRUE;
 }
 
-//***************************************************************************************
-// / \return     nothing
-// / \param      editRec  <- an enum of type EditRecord
-// / \remarks
-// / Called from: The Doc's OnNewDocument(), OnCloseDocument(), OnOpenDocument(), the View's
-// / ClobberDocument(), BailOutFromEditProcess(), OnEditSourceText(), and
-// / OnCustomEventEndVerticalEdit(). Initializes the gEditRecord global struct's members.
-// / The struct members must be initialized when the document is created or reopened for
-// / work, and also when closing down the document either using ClobberDocument()(which is
-// / called by the document class's OnFileClose() function) or the document class's
-// / OnCloseDocument() function; and when closing or opening or creating we also remove the
-// / constents of the three deletion lists in the caller after calling
-// / InitializeEditRecord(). Note: the deletedAdaptationsList, deletedGlossesList, and
-// / DeletedFreeTranslationsList members' contents persist for the life of the current
-// / document's RAM presence, and so those lists must empty when the doc is just created or
-// / launched and will generally be added to by the user's work, and will only lose their
-// / contents when the user or the application at exit time closes the document. Default
-// / values are FALSE for booleans, except for one which is better with TRUE as the default,
-// / and -1 for integers (meaning "unset"), for TextType the default is verse, and empty for
-// / lists (except the deletion lists, which are empty only at the point that the document
-// / has just been created or reopened, and emptied again when it is closed).
-//****************************************************************************************
+// **************************************************************************************
+/// \return     nothing
+/// \param      editRec  <- an enum of type EditRecord
+/// \remarks
+/// Called from: The Doc's OnNewDocument(), OnCloseDocument(), OnOpenDocument(), the View's
+/// ClobberDocument(), BailOutFromEditProcess(), OnEditSourceText(), and
+/// OnCustomEventEndVerticalEdit(). Initializes the gEditRecord global struct's members.
+/// The struct members must be initialized when the document is created or reopened for
+/// work, and also when closing down the document either using ClobberDocument()(which is
+/// called by the document class's OnFileClose() function) or the document class's
+/// OnCloseDocument() function; and when closing or opening or creating we also remove the
+/// constents of the three deletion lists in the caller after calling
+/// InitializeEditRecord(). Note: the deletedAdaptationsList, deletedGlossesList, and
+/// DeletedFreeTranslationsList members' contents persist for the life of the current
+/// document's RAM presence, and so those lists must empty when the doc is just created or
+/// launched and will generally be added to by the user's work, and will only lose their
+/// contents when the user or the application at exit time closes the document. Default
+/// values are FALSE for booleans, except for one which is better with TRUE as the default,
+/// and -1 for integers (meaning "unset"), for TextType the default is verse, and empty for
+/// lists (except the deletion lists, which are empty only at the point that the document
+/// has just been created or reopened, and emptied again when it is closed).
+// ***************************************************************************************
 void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 {
 	// BEW added 17Apr08
@@ -34644,29 +34644,29 @@ void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 	editRec.nFreeTranslationStep_SpanCount = -1;
 }
 
-//****************************************************************************************
-// / \return		TRUE if there was no error, FALSE if something went wrong
-// / \param      pSublist	->	pointer to a temporary ordered list of CString instances, 
-// /                             added in the caller by successive .Append() calls as a 
-// /                             scan is done from left to right over a span of CSourcePhrase 
-// /                             instances (typically, in the m_pSourcePhrases list in the 
-// /                             App class)
-// / \param      whichList	->	an enum which specifies the list to store in
-// / \param      pRec    	->	pointer to the global EditRecord struct, gEditRecord, which 
-// /                             contains amongst its members the various wxArrayString 
-// /                             instances into which the passed in string is inserted
-// / \remarks
-// / Called from: The View's RestoreNotesAfterSourceTextEdit(), and OnEditSourceText(). This
-// / is a helper function for storage of a passed in sublist (either removed adaptations,
-// / glosses, free translations, or notes) in the appropriate CStringList within
-// / gEditRecord. The sublist is inserted at the head, so that the first removal will be at
-// / the top of the final list, the second will be next, and so forth. The final list (the
-// / one in gEditRecord, a pointer to which is passed in as the last parameter) is kept to a
-// / maximum of DELETIONS_LIST_MAX_ENTRIES which is #defined to be 100 entries, adding extra
-// / ones which cause the limit to be exceeded causes the oldest extra entries to drop off
-// / the end of the list and be lost. Entries can persist, however, only for the life of the
-// / session.
-//******************************************************************************************
+// ***************************************************************************************
+/// \return		TRUE if there was no error, FALSE if something went wrong
+/// \param      pSublist	->	pointer to a temporary ordered list of CString instances, 
+///                             added in the caller by successive .Append() calls as a 
+///                             scan is done from left to right over a span of CSourcePhrase 
+///                             instances (typically, in the m_pSourcePhrases list in the 
+///                             App class)
+/// \param      whichList	->	an enum which specifies the list to store in
+/// \param      pRec    	->	pointer to the global EditRecord struct, gEditRecord, which 
+///                             contains amongst its members the various wxArrayString 
+///                             instances into which the passed in string is inserted
+/// \remarks
+/// Called from: The View's RestoreNotesAfterSourceTextEdit(), and OnEditSourceText(). This
+/// is a helper function for storage of a passed in sublist (either removed adaptations,
+/// glosses, free translations, or notes) in the appropriate CStringList within
+/// gEditRecord. The sublist is inserted at the head, so that the first removal will be at
+/// the top of the final list, the second will be next, and so forth. The final list (the
+/// one in gEditRecord, a pointer to which is passed in as the last parameter) is kept to a
+/// maximum of DELETIONS_LIST_MAX_ENTRIES which is #defined to be 100 entries, adding extra
+/// ones which cause the limit to be exceeded causes the oldest extra entries to drop off
+/// the end of the list and be lost. Entries can persist, however, only for the life of the
+/// session.
+// *****************************************************************************************
 bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec)
 {
 	// 29Apr08	function created as part of refactoring the Edit Source Text functionality
@@ -34721,67 +34721,67 @@ bool CAdapt_ItView::InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum 
 	return TRUE;
 }
 
-//*******************************************************************************************
-// / \return     TRUE if the removals were done successfully, or if there were no removals
-// /             needing to be done; FALSE if a removal attempt failed, or if no edit operation
-// /             is currently in effect
-// / \param      pSrcPhrase	->	pointer to the CSourcePhrase instance from which information 
-// /                             is to be removed
-// / \param      nSequNum	->	the sequence number in m_pSourcePhrases list in the document 
-// /                             for the pSrcPhrase passed in as first parameter (but it will 
-// /                             not be the index of the pointer in the caller's sublist 
-// /                             (the modifications list); rather the value is obtained from 
-// /                             the pSrcPhrase->m_nSequNumber member)
-// / \param      pRec		<->	pointer to the global EditRecord struct, gEditRecord, which 
-// /                             records spans, lists of CSourcePhrase instances, lists of 
-// /                             removed strings, starting and ending TextType values, and 
-// /                             various booleans reflecting the state of the edit process, etc
-// / \param      pAdaptList	<->	list for removed adadptations
-// / \param      pGlossList	<->	list for removed glosses
-// / \param      pFTList	<->	list for removed free translations
-// / \param      pNoteList	<->	list for removed notes
-// / \param      remAd		->	BOOL indicating whether to remove or retain adaptation 
-// /                             information
-// / \param      remGl		->	BOOLindicating whether to remove or retain gloss information
-// / \param      remNt		->	BOOL indicating whether to remove or retain note information
-// / \param      remFT		->	BOOL indicating whether to remove or retain free translation 
-// /                             information
-// / \param      remBT		->	BOOL indicating whether to remove or retain back translation 
-// /                             information
-// / \remarks
-// / Called from: the View's ScanSpanDoingRemovals().
-// / Information which is potentially large and/or invalidated by the edit process (eg.
-// / source text editing invalidates the adaptations, glosses, free translations and
-// / collected back translations within the span of the edit, and possibly notes stored in
-// / the span as well) is removed - collected back translations are abandoned (because they
-// / are easily recollected) but the other information types are preserved in lists - the
-// / persistence of the data in these lists depends on what is stored: notes are preserved
-// / only until, at the end of the edit, they are reconstituted in the document (at possibly
-// / different locations, but unchanged content), while free translations, glosses and
-// / adaptations are stored for the session, or until the document is closed, or until
-// / further information of the same type inserted in the list causes them to drop off the
-// / list's bottom - the max list length being given by #define DELETIONS_LIST_MAX_ENTRIES
-// / which has the value 100. What information is to be removed is controlled by a set of
-// / enum values, because we want to use this function eventually for all vertical editing,
-// / not just source text editing. The main reason for removing large information like
-// / notes, free translations and collected backtranslations is that these would otherwise
-// / be displayed in line in the span of source text being edited, and that would tend to
-// / make the source text difficult to find, and be a source of potential confusion or error
-// / to a user not expecting to see all filtered information suddenly made visible.
-// / 
-// / Note: adaptations glosses and notes are removed only from the editable span, any free
-// / translations are removed from a span which potentially is larger than the editable
-// / span, and back translations are removed from a span which could be considerably larger
-// / than that for back translations. Hence the gEditRecord must be checked, for each
-// / removal type, to ensure that the passed in pSrcPhrase has a m_nSequNumber value which
-// / lies within the span appropriate for whatever marker type's content is being removed,
-// / and if CSourcePhrase instance lies outside the appropriate range of sequence numbers,
-// / the marker and content are not removed. That member's value is passed in as the
-// / nSequNum parameter, and so that is the value which is tested for inclusion in the
-// / various kinds of subspan. (The caller does only a single scan across the modification's
-// / list's span, so all the required removals have to be done, per passed in pSrcPhrase, as
-// / necessary for each span type, in that one pass through the caller's list.)
-//******************************************************************************************
+// ******************************************************************************************
+/// \return     TRUE if the removals were done successfully, or if there were no removals
+///             needing to be done; FALSE if a removal attempt failed, or if no edit operation
+///             is currently in effect
+/// \param      pSrcPhrase	->	pointer to the CSourcePhrase instance from which information 
+///                             is to be removed
+/// \param      nSequNum	->	the sequence number in m_pSourcePhrases list in the document 
+///                             for the pSrcPhrase passed in as first parameter (but it will 
+///                             not be the index of the pointer in the caller's sublist 
+///                             (the modifications list); rather the value is obtained from 
+///                             the pSrcPhrase->m_nSequNumber member)
+/// \param      pRec		<->	pointer to the global EditRecord struct, gEditRecord, which 
+///                             records spans, lists of CSourcePhrase instances, lists of 
+///                             removed strings, starting and ending TextType values, and 
+///                             various booleans reflecting the state of the edit process, etc
+/// \param      pAdaptList	<->	list for removed adadptations
+/// \param      pGlossList	<->	list for removed glosses
+/// \param      pFTList	<->	list for removed free translations
+/// \param      pNoteList	<->	list for removed notes
+/// \param      remAd		->	BOOL indicating whether to remove or retain adaptation 
+///                             information
+/// \param      remGl		->	BOOLindicating whether to remove or retain gloss information
+/// \param      remNt		->	BOOL indicating whether to remove or retain note information
+/// \param      remFT		->	BOOL indicating whether to remove or retain free translation 
+///                             information
+/// \param      remBT		->	BOOL indicating whether to remove or retain back translation 
+///                             information
+/// \remarks
+/// Called from: the View's ScanSpanDoingRemovals().
+/// Information which is potentially large and/or invalidated by the edit process (eg.
+/// source text editing invalidates the adaptations, glosses, free translations and
+/// collected back translations within the span of the edit, and possibly notes stored in
+/// the span as well) is removed - collected back translations are abandoned (because they
+/// are easily recollected) but the other information types are preserved in lists - the
+/// persistence of the data in these lists depends on what is stored: notes are preserved
+/// only until, at the end of the edit, they are reconstituted in the document (at possibly
+/// different locations, but unchanged content), while free translations, glosses and
+/// adaptations are stored for the session, or until the document is closed, or until
+/// further information of the same type inserted in the list causes them to drop off the
+/// list's bottom - the max list length being given by #define DELETIONS_LIST_MAX_ENTRIES
+/// which has the value 100. What information is to be removed is controlled by a set of
+/// enum values, because we want to use this function eventually for all vertical editing,
+/// not just source text editing. The main reason for removing large information like
+/// notes, free translations and collected backtranslations is that these would otherwise
+/// be displayed in line in the span of source text being edited, and that would tend to
+/// make the source text difficult to find, and be a source of potential confusion or error
+/// to a user not expecting to see all filtered information suddenly made visible.
+/// 
+/// Note: adaptations glosses and notes are removed only from the editable span, any free
+/// translations are removed from a span which potentially is larger than the editable
+/// span, and back translations are removed from a span which could be considerably larger
+/// than that for back translations. Hence the gEditRecord must be checked, for each
+/// removal type, to ensure that the passed in pSrcPhrase has a m_nSequNumber value which
+/// lies within the span appropriate for whatever marker type's content is being removed,
+/// and if CSourcePhrase instance lies outside the appropriate range of sequence numbers,
+/// the marker and content are not removed. That member's value is passed in as the
+/// nSequNum parameter, and so that is the value which is tested for inclusion in the
+/// various kinds of subspan. (The caller does only a single scan across the modification's
+/// list's span, so all the required removals have to be done, per passed in pSrcPhrase, as
+/// necessary for each span type, in that one pass through the caller's list.)
+// *****************************************************************************************
 bool CAdapt_ItView::RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec, 
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,bool remFT, bool remBT)
@@ -35062,48 +35062,48 @@ f:	nOffset = -1;
 	return TRUE;
 }
 
-//***************************************************************************************
-// / \return     TRUE if the removals were done successfully, or if there were no removals
-// /             needing to be done; FALSE if a removal attempt failed, or if no edit 
-// /             operation is currently in effect
-// / \param      pSrcPhrase	->	pointer to the modifications list, a SPList, within 
-// /                             gEditRecord, where the modifiable deep copied 
-// /                             CSourcePhrase instances are stored temporarily (there are
-// /                             potentially many more instances in this list than belong 
-// /                             within the editable span, because of the possibility of 
-// /                             span expansion due to the presence of free and/or back 
-// /                             translations)
-// / \param      pRec		<->	pointer to the global EditRecord struct, gEditRecord, 
-// /                             which records edit spans, lists of CSourcePhrase instances, 
-// /                             lists of removed strings, starting and ending TextType 
-// /                             values, and various booleans reflecting the state of
-// /                             the edit process
-// / \param      pAdaptList	->	an empty list which is to receive any removed adaptations
-// / \param      pGlossList	->	an empty list which is to receive any removed glosses
-// / \param      pFTList		->	an empty list which is to receive any removed free translations
-// / \param      pNoteList	->	an empty list which is to receive any removed notes
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / Scans a span of Source Phrases and removes adaptations, glosses, free translations and
-// / notes storing them in lists for later processing and incorporation into the document
-// / after the user edits the source text. Iterating forward it starts from the end of the
-// / sublist, but removals are potentially done only from the CSourcePhrase instances which
-// / fall within the appropriate span. The internal function call,
-// / RemoveInformationDuringEdit(), has all the smarts needed so that it removes each
-// / information type only in the subspan appropriate for that type. Information removed is
-// / stored in lists, within gEditRecord, except that removed back translations are
-// / abandoned because they can be re-collected automatically (once the user indicates which
-// / line of the strips to collect from) at the end of the edit process. (While we could
-// / remove adaptations and glosses that are within the editable span, there is really no
-// / need because their parent CSourcePhrase instances will be recreated from the edited
-// / source text and will replace the older ones, so we will leave them in place in order to
-// / save processing time, and just put copies in the storage lists for these two types of
-// / information.)
-// / 
-// / Note: this function does nothing to the CSourcePhrase instances stored in the App
-// / class's m_pSourcePhrases list, so if there is an error herein, the document is still
-// / intact on return.
-//*****************************************************************************************
+// **************************************************************************************
+/// \return     TRUE if the removals were done successfully, or if there were no removals
+///             needing to be done; FALSE if a removal attempt failed, or if no edit 
+///             operation is currently in effect
+/// \param      pSrcPhrase	->	pointer to the modifications list, a SPList, within 
+///                             gEditRecord, where the modifiable deep copied 
+///                             CSourcePhrase instances are stored temporarily (there are
+///                             potentially many more instances in this list than belong 
+///                             within the editable span, because of the possibility of 
+///                             span expansion due to the presence of free and/or back 
+///                             translations)
+/// \param      pRec		<->	pointer to the global EditRecord struct, gEditRecord, 
+///                             which records edit spans, lists of CSourcePhrase instances, 
+///                             lists of removed strings, starting and ending TextType 
+///                             values, and various booleans reflecting the state of
+///                             the edit process
+/// \param      pAdaptList	->	an empty list which is to receive any removed adaptations
+/// \param      pGlossList	->	an empty list which is to receive any removed glosses
+/// \param      pFTList		->	an empty list which is to receive any removed free translations
+/// \param      pNoteList	->	an empty list which is to receive any removed notes
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// Scans a span of Source Phrases and removes adaptations, glosses, free translations and
+/// notes storing them in lists for later processing and incorporation into the document
+/// after the user edits the source text. Iterating forward it starts from the end of the
+/// sublist, but removals are potentially done only from the CSourcePhrase instances which
+/// fall within the appropriate span. The internal function call,
+/// RemoveInformationDuringEdit(), has all the smarts needed so that it removes each
+/// information type only in the subspan appropriate for that type. Information removed is
+/// stored in lists, within gEditRecord, except that removed back translations are
+/// abandoned because they can be re-collected automatically (once the user indicates which
+/// line of the strips to collect from) at the end of the edit process. (While we could
+/// remove adaptations and glosses that are within the editable span, there is really no
+/// need because their parent CSourcePhrase instances will be recreated from the edited
+/// source text and will replace the older ones, so we will leave them in place in order to
+/// save processing time, and just put copies in the storage lists for these two types of
+/// information.)
+/// 
+/// Note: this function does nothing to the CSourcePhrase instances stored in the App
+/// class's m_pSourcePhrases list, so if there is an error herein, the document is still
+/// intact on return.
+// ****************************************************************************************
 bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList,
 							wxArrayString* pFTList, wxArrayString* pNoteList)
@@ -35146,54 +35146,54 @@ bool CAdapt_ItView::ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 	return TRUE;
 }
 
-//********************************************************************************************
-// / \return     TRUE if the reconstruction was done successfully, FALSE if the 
-// /             reconstruction attempt failed, or if no edit operation is currently 
-// /             in effect
-// / \param      pSrcPhrase	->	pointer to the deep copied sublist of CSourcePhrase instances 
-// /                             found in modifications list, (but only that subspan of it 
-// /                             which is the editable span is actually used for the 
-// /                             reconstrution)
-// / \param      pRec		<->	pointer to the global EditRecord struct, gEditRecord,
-// /                             which records edit spans, lists of CSourcePhrase instances, 
-// /                             lists of removed strings, starting and ending TextType 
-// /                             values, and various booleans reflecting the state of the 
-// /                             edit process, etc.
-// / \param      nStartingSN	->	the sequence number value in pSrcPhrases where the editable span 
-// /                             commences (note: the CSourcePhrase's m_nSequNumber member has 
-// /                             to be examined, not the index for the list's elements, 
-// /                             because the list is a sublist copied from the document's list)
-// / \param      nEndingSN	->	the sequence number value in pSrcPhrases where the editable 
-// /                             span ends, including the CSourcePhrase instance at this index 
-// /                             value (& likewise, the index value we check is that in the 
-// /                             m_nSequNumber member)
-// / \param      strSource	<-	returns the accumulated editable source text, minus any 
-// /                             initial endmarkers and with any following context-initial 
-// /                             endmarkers appended
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / The span used for this scan is the editable span, but the sublist traversed in the scan 
-// / is potentially wider - depending on whether free translations and / or collected back 
-// / translations earlier caused the original editable span to be widened when forming the 
-// / modifications span, and it is the modifications span which is passed in. The editable 
-// / subspan will coincide with the user's selection, except if/when the user's selection 
-// / partly overlapped a retranslation - in the latter case, the span will have been 
-// / extended to include all of the retranslation; the result, whichever is the case, is what
-// / we are calling the "editable span", and this is the span of source text which the user 
-// / will see and which is available for editing.
-// / 
-// / Special attention must be given to (a) an initial endmarkers, and (b) any endmarkers 
-// / which commence the beginning of the following context. For (a) we must remove them from 
-// / the accumulated string (because, they do not belong with the editable text) and the 
-// / code can later restore them to their proper place once the edit of the source text is 
-// / done, but for (b) we must append any final endmarkers to the end of the editable string 
-// / which is to be shown to the user, because that is where they logically belong. Hence (a) 
-// / and / or (b) when, pertinent will help make the user's experience concordant with what 
-// / marker & endmarker delimitations he would expect to obtain. For instance, if he selects 
-// / a footnote in order to edit the whole of it, he'd expect to see \f at its start, and 
-// / \f* at its end - even though the \f* was stored outside of the editable span as far 
-// / as the original selection was concerned.
-//********************************************************************************************
+// *******************************************************************************************
+/// \return     TRUE if the reconstruction was done successfully, FALSE if the 
+///             reconstruction attempt failed, or if no edit operation is currently 
+///             in effect
+/// \param      pSrcPhrase	->	pointer to the deep copied sublist of CSourcePhrase instances 
+///                             found in modifications list, (but only that subspan of it 
+///                             which is the editable span is actually used for the 
+///                             reconstrution)
+/// \param      pRec		<->	pointer to the global EditRecord struct, gEditRecord,
+///                             which records edit spans, lists of CSourcePhrase instances, 
+///                             lists of removed strings, starting and ending TextType 
+///                             values, and various booleans reflecting the state of the 
+///                             edit process, etc.
+/// \param      nStartingSN	->	the sequence number value in pSrcPhrases where the editable span 
+///                             commences (note: the CSourcePhrase's m_nSequNumber member has 
+///                             to be examined, not the index for the list's elements, 
+///                             because the list is a sublist copied from the document's list)
+/// \param      nEndingSN	->	the sequence number value in pSrcPhrases where the editable 
+///                             span ends, including the CSourcePhrase instance at this index 
+///                             value (& likewise, the index value we check is that in the 
+///                             m_nSequNumber member)
+/// \param      strSource	<-	returns the accumulated editable source text, minus any 
+///                             initial endmarkers and with any following context-initial 
+///                             endmarkers appended
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// The span used for this scan is the editable span, but the sublist traversed in the scan 
+/// is potentially wider - depending on whether free translations and / or collected back 
+/// translations earlier caused the original editable span to be widened when forming the 
+/// modifications span, and it is the modifications span which is passed in. The editable 
+/// subspan will coincide with the user's selection, except if/when the user's selection 
+/// partly overlapped a retranslation - in the latter case, the span will have been 
+/// extended to include all of the retranslation; the result, whichever is the case, is what
+/// we are calling the "editable span", and this is the span of source text which the user 
+/// will see and which is available for editing.
+/// 
+/// Special attention must be given to (a) an initial endmarkers, and (b) any endmarkers 
+/// which commence the beginning of the following context. For (a) we must remove them from 
+/// the accumulated string (because, they do not belong with the editable text) and the 
+/// code can later restore them to their proper place once the edit of the source text is 
+/// done, but for (b) we must append any final endmarkers to the end of the editable string 
+/// which is to be shown to the user, because that is where they logically belong. Hence (a) 
+/// and / or (b) when, pertinent will help make the user's experience concordant with what 
+/// marker & endmarker delimitations he would expect to obtain. For instance, if he selects 
+/// a footnote in order to edit the whole of it, he'd expect to see \f at its start, and 
+/// \f* at its end - even though the \f* was stored outside of the editable span as far 
+/// as the original selection was concerned.
+// *******************************************************************************************
 bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, EditRecord* pRec,
 				int nStartingSN, int nEndingSN, wxString& strSource)
 {
@@ -35314,61 +35314,61 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, E
 	return TRUE;
 }
 
-//*******************************************************************************************
-// / \return     TRUE if one or more endmarkers were transferred, (and if they were then the 
-// /             carrier CSourcePhrase instance will have also been deleted from the end of 
-// /             the pNewSrcPhrases list). The caller will want to pass knowledge of these 
-// /             facts to the function which adjusts the TextType in the new section of source 
-// /             text, so that proper propagation of altered TextType can be done if the user 
-// /             has modified the markup. Or FALSE if no endmarkers were transferred.
-// / \param      pNewSrcPhrases	->	pointer to the SPList pointer in the EditRecord which 
-// /                                 holds the list of CSourcePhrase instances resulting from 
-// /                                 the parse of the new source text as edited by the user
-// / \param      pFollSrcPhrase	<->	pointer to the first CSourcePhrase instance in the context 
-// /                                 which follows the editable span of instances in 
-// /                                 m_pSourcePhrases list in the app; this is the instance 
-// /                                 whose m_markers member will receive any transferred 
-// /                                 endmarkers to the beginning of that member; pass in
-// /                                 NULL if there is no following context (because we are at 
-// /                                 the end of the document) - in such a circumstance no 
-// /                                 transfer can be done and the carrier CSourcePhrase in 
-// /                                 pNewSrcPhrases for the endmarkers, or now-filtered 
-// /                                 information, will have to be included in the document 
-// /                                 where it would continue to carry those markers or filtered 
-// /                                 info
-// / \param      pRec		    <->	pointer to the global EditRecord struct, gEditRecord, which
-// /                                 records edit spans, lists of CSourcePhrase instances, 
-// /                                 lists of removed strings, starting and ending TextType 
-// /                                 values, and various booleans reflecting the state of 
-// /                                 the edit process
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / This function does several jobs. (1) It detects if the new source text ends with one or
-// / more endmarkers, or with filtered information. Either will manifest in the new list of 
-// / CSourcePhrase instances as the final one in the list, with m_key empty, m_follPunct 
-// / empty, and m_markers containing just the one or more endmarkers and possibly a final 
-// / space, or, the \~FILTER and \~FILTER* wrapped filtered content. When there is one or 
-// / more such endmarkers, or filtered content, they have to be stored on the CSourcePhrase 
-// / which is first in the following context. So that transfer is done here. (2) Moving the 
-// / endmarkers leaves a CSourcePhrase instance whose only reason for existing was to carry 
-// / the endmarkers; so once they have gone, this carrier instance must be deleted. Same for
-// / filtered information. (3) Knowledge of what happened is passed back to the caller by 
-// / the returned BOOL parameter. (Note: we check for m_precPunct non-empty, because a 
-// / CSourcePhrase instance that results from a parse of endmarker followed by punctuation 
-// / will manifest as m_prevPunct carrying the punctuation and m_marker having the endmarker; 
-// / in such a circumstance, if we transferred the endmarker to the following CSourcePhrase 
-// / then we'd effect a bogus rearrangment of the linear order of the endmarker and the 
-// / punctuation. Hence we bleed that case out by testing and returning FALSE if there is 
-// / preceding punctuation. Only after that do we look at the m_follPunct and m_markers
-// / members.) (4) A fourth task is to store any final endmarkers, because they may be 
-// / different than what was there before, or there may have been none before but now there 
-// / are some present. In the case of now-filtered information, we don't need to store 
-// / that, as any Cancel or bailout operation will recover that information from stored 
-// / CSourcePhrase instances within the EditRecord. (5) A fifth task, but only when a 
-// / typo marker has been corrected, is to clear the m_bFirstOfType flag and clear 
-// / "?\mkr?" from the m_inform member, both done on the gpFollSrcPhrase which is first 
-// / in the following context.
-//******************************************************************************************
+// ******************************************************************************************
+/// \return     TRUE if one or more endmarkers were transferred, (and if they were then the 
+///             carrier CSourcePhrase instance will have also been deleted from the end of 
+///             the pNewSrcPhrases list). The caller will want to pass knowledge of these 
+///             facts to the function which adjusts the TextType in the new section of source 
+///             text, so that proper propagation of altered TextType can be done if the user 
+///             has modified the markup. Or FALSE if no endmarkers were transferred.
+/// \param      pNewSrcPhrases	->	pointer to the SPList pointer in the EditRecord which 
+///                                 holds the list of CSourcePhrase instances resulting from 
+///                                 the parse of the new source text as edited by the user
+/// \param      pFollSrcPhrase	<->	pointer to the first CSourcePhrase instance in the context 
+///                                 which follows the editable span of instances in 
+///                                 m_pSourcePhrases list in the app; this is the instance 
+///                                 whose m_markers member will receive any transferred 
+///                                 endmarkers to the beginning of that member; pass in
+///                                 NULL if there is no following context (because we are at 
+///                                 the end of the document) - in such a circumstance no 
+///                                 transfer can be done and the carrier CSourcePhrase in 
+///                                 pNewSrcPhrases for the endmarkers, or now-filtered 
+///                                 information, will have to be included in the document 
+///                                 where it would continue to carry those markers or filtered 
+///                                 info
+/// \param      pRec		    <->	pointer to the global EditRecord struct, gEditRecord, which
+///                                 records edit spans, lists of CSourcePhrase instances, 
+///                                 lists of removed strings, starting and ending TextType 
+///                                 values, and various booleans reflecting the state of 
+///                                 the edit process
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// This function does several jobs. (1) It detects if the new source text ends with one or
+/// more endmarkers, or with filtered information. Either will manifest in the new list of 
+/// CSourcePhrase instances as the final one in the list, with m_key empty, m_follPunct 
+/// empty, and m_markers containing just the one or more endmarkers and possibly a final 
+/// space, or, the \~FILTER and \~FILTER* wrapped filtered content. When there is one or 
+/// more such endmarkers, or filtered content, they have to be stored on the CSourcePhrase 
+/// which is first in the following context. So that transfer is done here. (2) Moving the 
+/// endmarkers leaves a CSourcePhrase instance whose only reason for existing was to carry 
+/// the endmarkers; so once they have gone, this carrier instance must be deleted. Same for
+/// filtered information. (3) Knowledge of what happened is passed back to the caller by 
+/// the returned BOOL parameter. (Note: we check for m_precPunct non-empty, because a 
+/// CSourcePhrase instance that results from a parse of endmarker followed by punctuation 
+/// will manifest as m_prevPunct carrying the punctuation and m_marker having the endmarker; 
+/// in such a circumstance, if we transferred the endmarker to the following CSourcePhrase 
+/// then we'd effect a bogus rearrangment of the linear order of the endmarker and the 
+/// punctuation. Hence we bleed that case out by testing and returning FALSE if there is 
+/// preceding punctuation. Only after that do we look at the m_follPunct and m_markers
+/// members.) (4) A fourth task is to store any final endmarkers, because they may be 
+/// different than what was there before, or there may have been none before but now there 
+/// are some present. In the case of now-filtered information, we don't need to store 
+/// that, as any Cancel or bailout operation will recover that information from stored 
+/// CSourcePhrase instances within the EditRecord. (5) A fifth task, but only when a 
+/// typo marker has been corrected, is to clear the m_bFirstOfType flag and clear 
+/// "?\mkr?" from the m_inform member, both done on the gpFollSrcPhrase which is first 
+/// in the following context.
+// *****************************************************************************************
 bool CAdapt_ItView::TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrcPhrases, 
 			CSourcePhrase* pFollSrcPhrase, EditRecord* pRec)
 {
@@ -35605,20 +35605,20 @@ bool CAdapt_ItView::TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrc
 	return FALSE;
 }
 
-//*******************************************************************************************
-// / \return     nothing
-// / \param      pSrcPhrases  -> the document's m_pSourcePhrases list of CSourcePhrase 
-// /                             instances
-// / \param      pRec         -> the EditRecord for the vertical edit process, which contains
-// /                             the indices for the start and end of the CSourcePhrase 
-// /                             instances in spans we want to check
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / Checks the editable text span, and the preceding and following moved notes span, to
-// / make sure that the m_bHasNote flag is set TRUE for every CSourcePhrase instance which
-// / contains a \note marker in its m_markers member. If the flag is not set and should be,
-// / it sets it.
-//*******************************************************************************************
+// ******************************************************************************************
+/// \return     nothing
+/// \param      pSrcPhrases  -> the document's m_pSourcePhrases list of CSourcePhrase 
+///                             instances
+/// \param      pRec         -> the EditRecord for the vertical edit process, which contains
+///                             the indices for the start and end of the CSourcePhrase 
+///                             instances in spans we want to check
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// Checks the editable text span, and the preceding and following moved notes span, to
+/// make sure that the m_bHasNote flag is set TRUE for every CSourcePhrase instance which
+/// contains a \note marker in its m_markers member. If the flag is not set and should be,
+/// it sets it.
+// ******************************************************************************************
 void CAdapt_ItView::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
 	//20June08 created by BEW
@@ -35746,41 +35746,41 @@ void CAdapt_ItView::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 	}
 }
 
-//***************************************************************************************
-// / \return     TRUE if there were no errors, FALSE if there was an error
-// / \param      pOriginalList        ->	 pointer to an CObList (short) list containing 
-// /                                      deep copies of a subspan of CSourcePhrase 
-// /                                      instances from the m_pSourcePhrases list in 
-// /                                      the app
-// / \param      pDestinationList     <-> pointer to the list which is potentially to have 
-// /                                      CSourcePhrase instances (their pointers, actually) 
-// /                                      inserted in it at the start, and possibly at the
-// /                                      end as well, in order to extend the original 
-// /                                      pDestinationList to comply with a desired wider 
-// /                                      span
-// / \param      nOldList_StartingSN  ->	the sequence number index which determines the 
-// /                                     starting sequence number value for the instances 
-// /                                     already in pDestination list at the time that that 
-// /                                     list is passed in
-// / \param      nOldList_EndingSN    ->	the sequence number index which determines the 
-// /                                     ending (inclusive) sequence number value for the 
-// /                                     instances already in pDestination list at the 
-// /                                     time that that list is passed in
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / The algorith is as follows. The pOriginalList (which is potentially wider than
-// / pDestinationList) is scanned from its beginning, and each pSrcPhrase's m_nSequNumber
-// / value is tested against the nOldList_StartingSN value; if the former is less than the
-// / latter, then that particular pSrcPhrase also needs to be put in the pDestinationList -
-// / so we make a deep copy and insert it; we iterate this until the m_nSequNumber value
-// / reaches nOldList_StartingSN and break out, because that pSrcPhrase instance is already
-// / in pDestinationList. Then we skip to the nOldList_EndingSN location, and when we find
-// / it, we test to see if any pSrcPhrase instances from the end of the pOriginalList follow
-// / that location -- that is, if their m_nSequNumber values are greater than
-// / nOldList_EndingSN. Any that are deep copied and appended to the pDestinationList.
-// / (Copies are inserted or appended, and so the caller must delete the deep copies in the
-// / pOriginalList, if appropriate, on return.)
-//*******************************************************************************************
+// **************************************************************************************
+/// \return     TRUE if there were no errors, FALSE if there was an error
+/// \param      pOriginalList        ->	 pointer to an CObList (short) list containing 
+///                                      deep copies of a subspan of CSourcePhrase 
+///                                      instances from the m_pSourcePhrases list in 
+///                                      the app
+/// \param      pDestinationList     <-> pointer to the list which is potentially to have 
+///                                      CSourcePhrase instances (their pointers, actually) 
+///                                      inserted in it at the start, and possibly at the
+///                                      end as well, in order to extend the original 
+///                                      pDestinationList to comply with a desired wider 
+///                                      span
+/// \param      nOldList_StartingSN  ->	the sequence number index which determines the 
+///                                     starting sequence number value for the instances 
+///                                     already in pDestination list at the time that that 
+///                                     list is passed in
+/// \param      nOldList_EndingSN    ->	the sequence number index which determines the 
+///                                     ending (inclusive) sequence number value for the 
+///                                     instances already in pDestination list at the 
+///                                     time that that list is passed in
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// The algorith is as follows. The pOriginalList (which is potentially wider than
+/// pDestinationList) is scanned from its beginning, and each pSrcPhrase's m_nSequNumber
+/// value is tested against the nOldList_StartingSN value; if the former is less than the
+/// latter, then that particular pSrcPhrase also needs to be put in the pDestinationList -
+/// so we make a deep copy and insert it; we iterate this until the m_nSequNumber value
+/// reaches nOldList_StartingSN and break out, because that pSrcPhrase instance is already
+/// in pDestinationList. Then we skip to the nOldList_EndingSN location, and when we find
+/// it, we test to see if any pSrcPhrase instances from the end of the pOriginalList follow
+/// that location -- that is, if their m_nSequNumber values are greater than
+/// nOldList_EndingSN. Any that are deep copied and appended to the pDestinationList.
+/// (Copies are inserted or appended, and so the caller must delete the deep copies in the
+/// pOriginalList, if appropriate, on return.)
+// ******************************************************************************************
 bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 												   int nOldList_StartingSN, int nOldList_EndingSN)
 {
@@ -35888,50 +35888,50 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList
 	return TRUE;
 }
 
-//******************************************************************************************
-// / \return     nothing
-// / \param      pSrcPhrases  ->	pointer to the m_pSourcePhrases list in the app 
-// / \param      pRec         ->	pointer to the EditRecord for the vertical edit process
-// / \remarks
-// / Called from: the View's BailOutFromEditProcess().
-// / This function restores the contents of pSrcPhrases list to what it was prior to
-// / the source text edit being attempted.
-// / 
-// / The passed in EditRecord, pRec, contains the information about the source text edit which
-// / has just been completed, and in particular it includes the CSourcePhrase instances
-// / in the cancel span, and the potentially overlapping (at the large sequence numbers end)
-// / propagation span. It also has the starting and ending sequence number values for each
-// / relevant span, and so it just requires some arithmetic, deletions and insertions in order
-// / to reconstitute the original document state, now that the document's underlying native
-// / structures have been modified.
-// / 
-// / There are four possible circumstances in which this function may be called.
-// / (1) After the edit source text dialog is dismissed by an OK button click, and the
-// / document has undergone modifications subsequent to that according to how the used edited
-// / the source text, but somewhere along the way in doing those modifications an exception
-// / was encountered.
-// / 
-// / (2) The user has progressed down somewhat in the vertical edit process, past the source
-// / text edit step, and has decided to backtrack all the way to the original document state.
-// / (This is unlikely, but must be allowed for. He's more likely though to just Cancel the
-// / whole process in order to get back to the original doc state.) For this to work, any
-// / changes to the number of source phrases made during the adaptations update step must be
-// / removed (eg. mergers, placeholder insertions, retranslations), so that the entry point for
-// / RestoreDocAfterSrcTextEditModifiedIt() is exactly as it was at the earlier end of the 
-// / source text edit step. (Other restoration functions will have been called prior to this
-// / function being entered, for whatever other steps were completed before the backtrack was
-// / initiated.)
-// / 
-// / (3) As in (2) the user has progessed down somewhere in the vertical edit process, then
-// / decides to cancel out of the whole process. Same caveat applies as in (2) about what the
-// / initial conditions must be prior to RestoreDocAfterSrcTextEditModifiedIt() being entered,
-// / and any completed lower steps having their restoration functions called first before
-// / RestoreDocAfterSrcTextEditModifiedIt() is entered.
-// / 
-// / (4) As in (2) or (3), but an exception in one of the processing steps lower than source
-// / text editing was encountered, so that the whole vertical edit must be abandoned - same
-// / caveats as for (2) and (3) apply here also.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return     nothing
+/// \param      pSrcPhrases  ->	pointer to the m_pSourcePhrases list in the app 
+/// \param      pRec         ->	pointer to the EditRecord for the vertical edit process
+/// \remarks
+/// Called from: the View's BailOutFromEditProcess().
+/// This function restores the contents of pSrcPhrases list to what it was prior to
+/// the source text edit being attempted.
+/// 
+/// The passed in EditRecord, pRec, contains the information about the source text edit which
+/// has just been completed, and in particular it includes the CSourcePhrase instances
+/// in the cancel span, and the potentially overlapping (at the large sequence numbers end)
+/// propagation span. It also has the starting and ending sequence number values for each
+/// relevant span, and so it just requires some arithmetic, deletions and insertions in order
+/// to reconstitute the original document state, now that the document's underlying native
+/// structures have been modified.
+/// 
+/// There are four possible circumstances in which this function may be called.
+/// (1) After the edit source text dialog is dismissed by an OK button click, and the
+/// document has undergone modifications subsequent to that according to how the used edited
+/// the source text, but somewhere along the way in doing those modifications an exception
+/// was encountered.
+/// 
+/// (2) The user has progressed down somewhat in the vertical edit process, past the source
+/// text edit step, and has decided to backtrack all the way to the original document state.
+/// (This is unlikely, but must be allowed for. He's more likely though to just Cancel the
+/// whole process in order to get back to the original doc state.) For this to work, any
+/// changes to the number of source phrases made during the adaptations update step must be
+/// removed (eg. mergers, placeholder insertions, retranslations), so that the entry point for
+/// RestoreDocAfterSrcTextEditModifiedIt() is exactly as it was at the earlier end of the 
+/// source text edit step. (Other restoration functions will have been called prior to this
+/// function being entered, for whatever other steps were completed before the backtrack was
+/// initiated.)
+/// 
+/// (3) As in (2) the user has progessed down somewhere in the vertical edit process, then
+/// decides to cancel out of the whole process. Same caveat applies as in (2) about what the
+/// initial conditions must be prior to RestoreDocAfterSrcTextEditModifiedIt() being entered,
+/// and any completed lower steps having their restoration functions called first before
+/// RestoreDocAfterSrcTextEditModifiedIt() is entered.
+/// 
+/// (4) As in (2) or (3), but an exception in one of the processing steps lower than source
+/// text editing was encountered, so that the whole vertical edit must be abandoned - same
+/// caveats as for (2) and (3) apply here also.
+// ******************************************************************************************
 void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec)
 {
 	//CAdapt_ItApp* pApp = &wxGetApp();
@@ -36135,35 +36135,35 @@ void CAdapt_ItView::RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, Ed
 	// has now been successfully restored
 }
 
-//*****************************************************************************************
-// / \return     TRUE if there were no errors, FALSE if there was an error
-// / \param      pSrcPhrases -> pointer to the document's m_pSourcePhrases list (the Note(s) 
-// /                             will be restored to instances of CSourcePhrase in this list)
-// / \param      pRec        -> pointer to the EditRecord for the vertical edit process
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / Restores notes to the source text after having been removed during source text editing.
-// / The passed in EditRecord contains the information about the source text edit which
-// / has just been completed, and it includes an array, arrNotesSequNumbers, which stores
-// / in normal order the sequence number indices for each Note that was removed from the
-// / original editable span (this span will have been extended beyond the user's selection
-// / to include all of any retranslation(s) it overlaps, but if there were no such overlaps
-// / then it was the same as the user's selection). The array is used to assist in relocating
-// / the removed notes. This is a difficult process because the user may have done a minor 
-// / edit, or a major one, or removed his entire selection from the document. The best the
-// / function can do is to try relocate the notes in approximately the same locations as much
-// / as possible; without reordering any, and within the bounds formed by unremoved notes in
-// / the preceding and following contexts, or the document's start or end. For an edit which
-// / results in the same number of CSourcePhrase instances in the final edit span, or more, 
-// / this is easy to do; when fewer instances result, some squeezing of note locations may
-// / be required, and possibly even relocating some notes, or all, in the following context -
-// / and if there is insufficient following context for that, left-shifting some or all in
-// / order to create empty locations for the unreplaceable ones to be replaced. The whole of
-// / this process is encapsulated in this function; unfortunately it isn't trivial to do, and
-// / if there are too many Notes to be replaced near the end of the document so that not all
-// / can be replaced, then the unreplaceable ones are simply lost - but the user is given a
-// / message saying so.
-//*******************************************************************************************
+// ****************************************************************************************
+/// \return     TRUE if there were no errors, FALSE if there was an error
+/// \param      pSrcPhrases -> pointer to the document's m_pSourcePhrases list (the Note(s) 
+///                             will be restored to instances of CSourcePhrase in this list)
+/// \param      pRec        -> pointer to the EditRecord for the vertical edit process
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// Restores notes to the source text after having been removed during source text editing.
+/// The passed in EditRecord contains the information about the source text edit which
+/// has just been completed, and it includes an array, arrNotesSequNumbers, which stores
+/// in normal order the sequence number indices for each Note that was removed from the
+/// original editable span (this span will have been extended beyond the user's selection
+/// to include all of any retranslation(s) it overlaps, but if there were no such overlaps
+/// then it was the same as the user's selection). The array is used to assist in relocating
+/// the removed notes. This is a difficult process because the user may have done a minor 
+/// edit, or a major one, or removed his entire selection from the document. The best the
+/// function can do is to try relocate the notes in approximately the same locations as much
+/// as possible; without reordering any, and within the bounds formed by unremoved notes in
+/// the preceding and following contexts, or the document's start or end. For an edit which
+/// results in the same number of CSourcePhrase instances in the final edit span, or more, 
+/// this is easy to do; when fewer instances result, some squeezing of note locations may
+/// be required, and possibly even relocating some notes, or all, in the following context -
+/// and if there is insufficient following context for that, left-shifting some or all in
+/// order to create empty locations for the unreplaceable ones to be replaced. The whole of
+/// this process is encapsulated in this function; unfortunately it isn't trivial to do, and
+/// if there are too many Notes to be replaced near the end of the document so that not all
+/// can be replaced, then the unreplaceable ones are simply lost - but the user is given a
+/// message saying so.
+// ******************************************************************************************
 bool CAdapt_ItView::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -36694,45 +36694,45 @@ en:	;
 	return TRUE;
 }
 
-//*****************************************************************************************
-// / \return     TRUE if there were no errors, FALSE if there was an error
-// / \param      pSrcPhrases -> pointer to the app's m_pSourcePhrases list, after the user's
-// /                            edit source text has been made to replace the original 
-// /                            selection and m_nSequNumber values in all CSourcePhrase 
-// /                            instances in pSrcPhrases have been made sequential from 0 
-// /                            at the list's start
-// / \param      pRec        -> pointer to the EditRecord for the vertical edit process
-// / \param      context     -> a WhichContextEnum enum value which is either precedingContext 
-// /                            (0) or followingContext (1)
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / The passed in EditRecord contains the information about the source text edit which has
-// / just been completed, and it includes an array, arrNotesSequNumbers, which stores in
-// / normal order the sequence number indices for each Note that was removed from the
-// / original editable span (this span will have been extended beyond the user's selection
-// / to include all of any retranslation(s) it overlaps, but if there were no such overlaps
-// / then it was the same as the user's selection). The array is used to assist in
-// / relocating the removed notes. GetMovedNotesSpan is called after the edited source text
-// / has been incorporated into the document list, but immediately prior to the attempt to
-// / recreate any temporarily removed Notes from the editable span (possibly extended, see
-// / previous paragraph). The Note restoration process, if there are many notes, or the user
-// / removed source text where Notes were stored, may need to move unremoved notes in the
-// / preceding context leftwards, or in the following context rightwards, in order to make
-// / gaps for placing the temporarily removed Notes. Any such Note movements would
-// / invalidate the Note placements in the cancel span, so that if the user asks for a
-// / Cancel, or there is an error requiring the original state of the document to be
-// / rebuilt, the Notes could end up duplicated in nearby locations, or worse. The solution
-// / to this connundrum is to work out the maximum number of possible moves that the
-// / algorithms for Note replacement might request in order to form gaps, at both preceding
-// / and following context (with respect to the edit span) and make deep copies of that many
-// / CSourcePhrase instances in one or the other context (depending on the passed in context
-// / value) prior to the Note restoration being initiated. If a Cancel or bail it is later
-// / requested, then the first thing to be done is to restore these preceding and following
-// / small contextual sublists, so that the pre-Note-moves state of the pSrcPhrases list is
-// / restored, and then the cancel span will be able to be used without error in the rest of
-// / the document restoration process. The EditRecord stores these two sublists in its
-// / follNotesMoveSpanList and precNotesMoveSpanList members.
-//*******************************************************************************************
+// ****************************************************************************************
+/// \return     TRUE if there were no errors, FALSE if there was an error
+/// \param      pSrcPhrases -> pointer to the app's m_pSourcePhrases list, after the user's
+///                            edit source text has been made to replace the original 
+///                            selection and m_nSequNumber values in all CSourcePhrase 
+///                            instances in pSrcPhrases have been made sequential from 0 
+///                            at the list's start
+/// \param      pRec        -> pointer to the EditRecord for the vertical edit process
+/// \param      context     -> a WhichContextEnum enum value which is either precedingContext 
+///                            (0) or followingContext (1)
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// The passed in EditRecord contains the information about the source text edit which has
+/// just been completed, and it includes an array, arrNotesSequNumbers, which stores in
+/// normal order the sequence number indices for each Note that was removed from the
+/// original editable span (this span will have been extended beyond the user's selection
+/// to include all of any retranslation(s) it overlaps, but if there were no such overlaps
+/// then it was the same as the user's selection). The array is used to assist in
+/// relocating the removed notes. GetMovedNotesSpan is called after the edited source text
+/// has been incorporated into the document list, but immediately prior to the attempt to
+/// recreate any temporarily removed Notes from the editable span (possibly extended, see
+/// previous paragraph). The Note restoration process, if there are many notes, or the user
+/// removed source text where Notes were stored, may need to move unremoved notes in the
+/// preceding context leftwards, or in the following context rightwards, in order to make
+/// gaps for placing the temporarily removed Notes. Any such Note movements would
+/// invalidate the Note placements in the cancel span, so that if the user asks for a
+/// Cancel, or there is an error requiring the original state of the document to be
+/// rebuilt, the Notes could end up duplicated in nearby locations, or worse. The solution
+/// to this connundrum is to work out the maximum number of possible moves that the
+/// algorithms for Note replacement might request in order to form gaps, at both preceding
+/// and following context (with respect to the edit span) and make deep copies of that many
+/// CSourcePhrase instances in one or the other context (depending on the passed in context
+/// value) prior to the Note restoration being initiated. If a Cancel or bail it is later
+/// requested, then the first thing to be done is to restore these preceding and following
+/// small contextual sublists, so that the pre-Note-moves state of the pSrcPhrases list is
+/// restored, and then the cancel span will be able to be used without error in the rest of
+/// the document restoration process. The EditRecord stores these two sublists in its
+/// follNotesMoveSpanList and precNotesMoveSpanList members.
+// ******************************************************************************************
 bool CAdapt_ItView::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -36857,66 +36857,66 @@ bool CAdapt_ItView::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, Whi
 	return TRUE;
 }
 
-//*****************************************************************************************
-// / \return     TRUE if there was no error, FALSE if some kind of exception or bad value 
-// /             happened
-// / \param      pRec           -> pointer to the EditRecord which has the info about bounds 
-// /                               and spans etc
-// / \param      pSrcPhrases    -> pointer to the document's m_pSourcePhrases member
-// / \param      strNewSource   -> reference to the current (post-edit) new source text which 
-// /                               we potentially will be appending additional words to from
-// /                               the following context to the current editable span (and 
-// /                               also, in parallel, extending the width of the editable 
-// /                               span, etc)
-// / \param      pMap           <- pointer to the document's map called m_FilterStatusMap, 
-// /                               which contains the "to-be-filtered" entries (probably 
-// /                               never more than one) which specify the particular SFM we 
-// /                               need to search for in order to determine where its 
-// /                               filterable content commences
-// / \param      bWasExtended   <- returns TRUE to the caller if the function actually 
-// /                               extended the editable span -- the caller may not need to
-// /                               know this, but just in case we give it the knowledge of
-// /                               whether or not pRec had its contents altered; returns
-// /                               FALSE if the editable span was not extended (and
-// /                               therefore no changes made to pRec's contents)
-// / \remarks
-// / Called from: the View's OnEditSourceText().
-// / The prototypical situation we have designed this function for is the following. \yy
-// / would be an "unknown" marker, because it is not a marker in any known SFM set, not the
-// / USFM set, not the 1998 PNG set. The document may contain ?\yy? in the navigation text
-// / where there is word1 word2 word3 word4 etc, and the user decides to edit \yy to, say,
-// / \r (a reference marker which is filterable by default). He then just selects word1 and
-// / does Edit / Edit Source Text, and in the dialog changes \yy to \r and clicks OK. The \r
-// / marker's content is, because it is a to-be-filtered marker, all supposed to be filtered
-// / out, but his word selection for the editable span was only word1, rather than word1
-// / word2 ... down to whatever word is last before the next SFM location (other than a
-// / 'none' TextType one which we want to ignore). Adapt It then just filters the \r and
-// / word1 as its content, and word2 word3 etc are left in the document as if they were
-// / sacred text to be adapted. What the user should have done was to include all the word1
-// / word2 word3 ... down to the end of the filterable content, in his original selection -
-// / then Adapt It would filter the whole word string out properly. The
-// / ExtendEditableSpanForFiltering() function, therefore, permits the user to do the
-// / obvious thing (ie. select just word1 where the bad marker is stored under the hood) and
-// / nevertheless get the whole of the bad marker's text contents filtered out, as if he'd
-// / really selected all of the words of that material. The way the function works is to
-// / scan rightwards from the end of the passed in editable span (pRec has that information)
-// / until the end of the marker's filterable contents is found, where it will halt. We use
-// / the HaltCurrentCollection() function to find the halt location, because it has the
-// / smarts about the SFM set currently in operation, and it ignores the markers which have
-// / their associated TextType with the value none. Each CSourcePhrase traversed without
-// / causing a halt yields a source text word or phrase to be appended to strNewSource, a
-// / deep copy of the CSourcePhrase is made and inserted in the appropriate spans - a very
-// / tricky process because we throw away any Notes, free translations and/or collected back
-// / translations which the user may have erroneously defined on that filterable material
-// / (though we'd expect he wouldn't have ever put such things there, and usually the bad
-// / marker would be edited long before he'd add such things to his document). Because of
-// / the complexity of what is to be done in this function, we'll just make the insertions
-// / of deep copied CSourcePhrase instances in the lists, and increment the "Ending"
-// / sequence numbers for the various spans to comply with the extension of the editable
-// / span. This should suffice, but if bailout of the vertical edit process happens then any
-// / notes, free translations or collected back translations defined on this extra material
-// / won't be recreated. The chances of that being a problem, however, are miniscule.
-//******************************************************************************************
+// ****************************************************************************************
+/// \return     TRUE if there was no error, FALSE if some kind of exception or bad value 
+///             happened
+/// \param      pRec           -> pointer to the EditRecord which has the info about bounds 
+///                               and spans etc
+/// \param      pSrcPhrases    -> pointer to the document's m_pSourcePhrases member
+/// \param      strNewSource   -> reference to the current (post-edit) new source text which 
+///                               we potentially will be appending additional words to from
+///                               the following context to the current editable span (and 
+///                               also, in parallel, extending the width of the editable 
+///                               span, etc)
+/// \param      pMap           <- pointer to the document's map called m_FilterStatusMap, 
+///                               which contains the "to-be-filtered" entries (probably 
+///                               never more than one) which specify the particular SFM we 
+///                               need to search for in order to determine where its 
+///                               filterable content commences
+/// \param      bWasExtended   <- returns TRUE to the caller if the function actually 
+///                               extended the editable span -- the caller may not need to
+///                               know this, but just in case we give it the knowledge of
+///                               whether or not pRec had its contents altered; returns
+///                               FALSE if the editable span was not extended (and
+///                               therefore no changes made to pRec's contents)
+/// \remarks
+/// Called from: the View's OnEditSourceText().
+/// The prototypical situation we have designed this function for is the following. \yy
+/// would be an "unknown" marker, because it is not a marker in any known SFM set, not the
+/// USFM set, not the 1998 PNG set. The document may contain ?\yy? in the navigation text
+/// where there is word1 word2 word3 word4 etc, and the user decides to edit \yy to, say,
+/// \r (a reference marker which is filterable by default). He then just selects word1 and
+/// does Edit / Edit Source Text, and in the dialog changes \yy to \r and clicks OK. The \r
+/// marker's content is, because it is a to-be-filtered marker, all supposed to be filtered
+/// out, but his word selection for the editable span was only word1, rather than word1
+/// word2 ... down to whatever word is last before the next SFM location (other than a
+/// 'none' TextType one which we want to ignore). Adapt It then just filters the \r and
+/// word1 as its content, and word2 word3 etc are left in the document as if they were
+/// sacred text to be adapted. What the user should have done was to include all the word1
+/// word2 word3 ... down to the end of the filterable content, in his original selection -
+/// then Adapt It would filter the whole word string out properly. The
+/// ExtendEditableSpanForFiltering() function, therefore, permits the user to do the
+/// obvious thing (ie. select just word1 where the bad marker is stored under the hood) and
+/// nevertheless get the whole of the bad marker's text contents filtered out, as if he'd
+/// really selected all of the words of that material. The way the function works is to
+/// scan rightwards from the end of the passed in editable span (pRec has that information)
+/// until the end of the marker's filterable contents is found, where it will halt. We use
+/// the HaltCurrentCollection() function to find the halt location, because it has the
+/// smarts about the SFM set currently in operation, and it ignores the markers which have
+/// their associated TextType with the value none. Each CSourcePhrase traversed without
+/// causing a halt yields a source text word or phrase to be appended to strNewSource, a
+/// deep copy of the CSourcePhrase is made and inserted in the appropriate spans - a very
+/// tricky process because we throw away any Notes, free translations and/or collected back
+/// translations which the user may have erroneously defined on that filterable material
+/// (though we'd expect he wouldn't have ever put such things there, and usually the bad
+/// marker would be edited long before he'd add such things to his document). Because of
+/// the complexity of what is to be done in this function, we'll just make the insertions
+/// of deep copied CSourcePhrase instances in the lists, and increment the "Ending"
+/// sequence numbers for the various spans to comply with the extension of the editable
+/// span. This should suffice, but if bailout of the vertical edit process happens then any
+/// notes, free translations or collected back translations defined on this extra material
+/// won't be recreated. The chances of that being a problem, however, are miniscule.
+// *****************************************************************************************
 bool CAdapt_ItView::ExtendEditableSpanForFiltering(EditRecord* pRec, SPList* pSrcPhrases, 
 							wxString& strNewSource, MapWholeMkrToFilterStatus* WXUNUSED(pMap), bool& bWasExtended)
 {
@@ -36985,16 +36985,16 @@ bool CAdapt_ItView::ExtendEditableSpanForFiltering(EditRecord* pRec, SPList* pSr
 	return TRUE;
 }
 
-//*****************************************************************************************
-// / \return     nothing
-// / \param      pSrcPhrases -> pointer to the app's m_pSourcePhrases list
-// / \param      pRec        -> pointer to the EditRecord for the vertical edit process
-// / \remarks
-// / Called from: the View's CopyCSourcePhrasesToExtendSpan(), and OnEditSourceText().
-// / Cancels out from the source text editing process. It clears the clearable parts of the
-// / EditRecord, rolls back through the lists of CSourcePhrases using the user's chosen order
-// / and ...
-//******************************************************************************************
+// ****************************************************************************************
+/// \return     nothing
+/// \param      pSrcPhrases -> pointer to the app's m_pSourcePhrases list
+/// \param      pRec        -> pointer to the EditRecord for the vertical edit process
+/// \remarks
+/// Called from: the View's CopyCSourcePhrasesToExtendSpan(), and OnEditSourceText().
+/// Cancels out from the source text editing process. It clears the clearable parts of the
+/// EditRecord, rolls back through the lists of CSourcePhrases using the user's chosen order
+/// and ...
+// *****************************************************************************************
 void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec)
 {
     // this must clear the clearable parts of the EditRecord, roll back through the lists
@@ -37150,31 +37150,31 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 	InitializeEditRecord(*pRec);
 }
 
-//***************************************************************************************
-// / \return     nothing
-// / \param      bOnlyWithinSpan       -> default TRUE; explicitly set to FALSE to cause a 
-// /                                      unilateral storage attempt regardless of whether 
-// /                                      or not the active location is within the span of
-// /                                      the adaptationsStep or glossesStep
-// / \param      bRestoreBoxOnFailure  -> default FALSE; set TRUE to have the application 
-// /                                      attempt to restore the phrase box when/if the 
-// /                                      vertical edit process fails
-// / \remarks
-// / Called from: the View's OnEditSourceText() and OnCustomEventEndVerticalEdit().
-// / StoreText() always attempts the store. DoConditionalStore() wraps the StoreText() call
-// / in a lot of tests, so that the store is only done when really wanted (eg, when the
-// / phrase box contents were not copied). Store is not wanted if contents were copied, &
-// / the user has not yet typed something nor clicked in the box, and the CPhraseBox class
-// / member m_bAbandonable is still TRUE, and the box text is non-empty). When those things
-// / don't obtain, we can be pretty certain the user has done some editing in the box and so
-// / we'd expect to save that work if the box contents are about to be cleared. The flags we
-// / need to look at are all globals (or, for the wxWidgets versions, they'd all be members
-// / of the app class), and so we don't need to pass anything in; nor return anything. The
-// / distinction between glossing and adapting modes is also handled internally too. And we
-// / make sure that if the user had earlier removed the relevant entry from the KB or
-// / glossing KB, whichever applies, then the store won't fail by having flags set on the
-// / document at that point which are incompatible with the KB contents after said removal.
-//****************************************************************************************
+// **************************************************************************************
+/// \return     nothing
+/// \param      bOnlyWithinSpan       -> default TRUE; explicitly set to FALSE to cause a 
+///                                      unilateral storage attempt regardless of whether 
+///                                      or not the active location is within the span of
+///                                      the adaptationsStep or glossesStep
+/// \param      bRestoreBoxOnFailure  -> default FALSE; set TRUE to have the application 
+///                                      attempt to restore the phrase box when/if the 
+///                                      vertical edit process fails
+/// \remarks
+/// Called from: the View's OnEditSourceText() and OnCustomEventEndVerticalEdit().
+/// StoreText() always attempts the store. DoConditionalStore() wraps the StoreText() call
+/// in a lot of tests, so that the store is only done when really wanted (eg, when the
+/// phrase box contents were not copied). Store is not wanted if contents were copied, &
+/// the user has not yet typed something nor clicked in the box, and the CPhraseBox class
+/// member m_bAbandonable is still TRUE, and the box text is non-empty). When those things
+/// don't obtain, we can be pretty certain the user has done some editing in the box and so
+/// we'd expect to save that work if the box contents are about to be cleared. The flags we
+/// need to look at are all globals (or, for the wxWidgets versions, they'd all be members
+/// of the app class), and so we don't need to pass anything in; nor return anything. The
+/// distinction between glossing and adapting modes is also handled internally too. And we
+/// make sure that if the user had earlier removed the relevant entry from the KB or
+/// glossing KB, whichever applies, then the store won't fail by having flags set on the
+/// document at that point which are incompatible with the KB contents after said removal.
+// ***************************************************************************************
 void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan, bool bRestoreBoxOnFailure)
 {
 	// Created 1Aug08 by BEW, for support of refactored Source Text Edit functionality, but could
@@ -39795,26 +39795,26 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), i
 	GetLayout()->PlaceBox();
 }
 
-//***************************************************************************************
-// / \return     TRUE if there was no error, FALSE if there was an error
-// / \param      pRec   ->   pointer to the EditRecord struct which stores the information 
-// /                         needed for recreating the one or more collected back
-// /                         translations pertinent to the editable span for the current
-// /                         vertical edit operation
-// / \remarks
-// / The last step in the vertical edit process is to restore any collected
-// / backtranslations, using the updated adaptation or gloss information resulting from
-// / earlier user-interactive steps in the vertical edit process. This restoration is done
-// / without intervention from the user being required. All the information pertinent to
-// / doing the restoration is passed in within the pRec parameter.
-// / 
-// / The function checks that a restoration is required. If it is, then information in the
-// / pRec parameter is used to set up a programmatically generated selection for the
-// / CSourcePhrase instances involved in the (limited) span of the recollection - because
-// / without a selection, the collection would be done over the whole document which would
-// / be overkill. The work of doing the recollection is then given to the
-// / DoCollectBacktranslations() function.
-//****************************************************************************************
+// **************************************************************************************
+/// \return     TRUE if there was no error, FALSE if there was an error
+/// \param      pRec   ->   pointer to the EditRecord struct which stores the information 
+///                         needed for recreating the one or more collected back
+///                         translations pertinent to the editable span for the current
+///                         vertical edit operation
+/// \remarks
+/// The last step in the vertical edit process is to restore any collected
+/// backtranslations, using the updated adaptation or gloss information resulting from
+/// earlier user-interactive steps in the vertical edit process. This restoration is done
+/// without intervention from the user being required. All the information pertinent to
+/// doing the restoration is passed in within the pRec parameter.
+/// 
+/// The function checks that a restoration is required. If it is, then information in the
+/// pRec parameter is used to set up a programmatically generated selection for the
+/// CSourcePhrase instances involved in the (limited) span of the recollection - because
+/// without a selection, the collection would be done over the whole document which would
+/// be overkill. The work of doing the recollection is then given to the
+/// DoCollectBacktranslations() function.
+// ***************************************************************************************
 bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* pRec, 
 														enum EntryPoint anEntryPoint)
 {
@@ -39889,45 +39889,45 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 	return TRUE;
 }
 
-//******************************************************************************************
-// / \return     TRUE if the end of the vertical edit step has been reached, so that an event 
-// /             for transitioning to the next vertical edit step has been posted (in other
-// /             words, a PostMessage() has been done); FALSE if the step end has not yet
-// /             been reached
-// / \param      nSequNum          -> the sequence number for the landing location that the 
-// /                                  phrase box would want to stop at
-// / \param      select            -> no matter where it is invoked from it will be one of the 
-// /                                  enum  values nextStep, previousStep, endNow, or 
-// /                                  cancelAllSteps
-// / \param      bForceTransition  -> default is FALSE; when FALSE the normal tests for landing 
-// /                                  the box in the gray area are done, to see if
-// /                                  transition to the next step is required; when TRUE,
-// /                                  the transition is done unilaterally
-// / \remarks
-// / Called from: the View's OnButtonRetranslation(), OnButtonEditRetranslation(),
-// / OnAdvanceButton(), OnNextButton(), OnButtonNextStep(), OnButtonPrevStep(),
-// / CPhraseBox::JumpForward(), CPhraseBox::MoveToNextPile().
-// / While vertical editing is in progress, this function checks for a landing location
-// / (using the passed in nSequNum value) to see if it lies beyond the end bound for the
-// / editable span for the current step; it so, then the appropriate custom event is posted
-// / to cause transition to the next step.
-// / As the user advances through the edit span, doing updates in either adaptationsStep,
-// / glossesStep or freeTranslationsStep, control will eventually get to the end of the span
-// / and the action for advancing to the next CSourcePhrase appropriate for that step will
-// / take the phrase box into the gray text area. When that happens, we want to suppress
-// / landing the phrase box in that context, and instead transition vertical edit mode to
-// / whatever editing step is logically next. This function therefore checks for a landing
-// / location (using the passed in nSequNum value) to see if it lies beyond the end bound
-// / for the editable span for the current step; it so, then the appropriate custom event is
-// / posted to cause transition to the next step. In some circumstandes it may be necessary
-// / or expedient to force the transition, so that can be done by passing in TRUE for the
-// / final parameter. Typical scenarios for that would be 1. that the end of the document
-// / was reached without finding a landing location; or 2. the function is invoked from the
-// / Vertical Edit control bar buttons - which force transition without checking if the
-// / active location is beyond the edit span or not; 3. bundle end has been reached in the
-// / search for a "hole" to jump to, in which case this really means we've moved into the
-// / gray area, so TRUE would be appropriate.
-//*******************************************************************************************
+// *****************************************************************************************
+/// \return     TRUE if the end of the vertical edit step has been reached, so that an event 
+///             for transitioning to the next vertical edit step has been posted (in other
+///             words, a PostMessage() has been done); FALSE if the step end has not yet
+///             been reached
+/// \param      nSequNum          -> the sequence number for the landing location that the 
+///                                  phrase box would want to stop at
+/// \param      select            -> no matter where it is invoked from it will be one of the 
+///                                  enum  values nextStep, previousStep, endNow, or 
+///                                  cancelAllSteps
+/// \param      bForceTransition  -> default is FALSE; when FALSE the normal tests for landing 
+///                                  the box in the gray area are done, to see if
+///                                  transition to the next step is required; when TRUE,
+///                                  the transition is done unilaterally
+/// \remarks
+/// Called from: the View's OnButtonRetranslation(), OnButtonEditRetranslation(),
+/// OnAdvanceButton(), OnNextButton(), OnButtonNextStep(), OnButtonPrevStep(),
+/// CPhraseBox::JumpForward(), CPhraseBox::MoveToNextPile().
+/// While vertical editing is in progress, this function checks for a landing location
+/// (using the passed in nSequNum value) to see if it lies beyond the end bound for the
+/// editable span for the current step; it so, then the appropriate custom event is posted
+/// to cause transition to the next step.
+/// As the user advances through the edit span, doing updates in either adaptationsStep,
+/// glossesStep or freeTranslationsStep, control will eventually get to the end of the span
+/// and the action for advancing to the next CSourcePhrase appropriate for that step will
+/// take the phrase box into the gray text area. When that happens, we want to suppress
+/// landing the phrase box in that context, and instead transition vertical edit mode to
+/// whatever editing step is logically next. This function therefore checks for a landing
+/// location (using the passed in nSequNum value) to see if it lies beyond the end bound
+/// for the editable span for the current step; it so, then the appropriate custom event is
+/// posted to cause transition to the next step. In some circumstandes it may be necessary
+/// or expedient to force the transition, so that can be done by passing in TRUE for the
+/// final parameter. Typical scenarios for that would be 1. that the end of the document
+/// was reached without finding a landing location; or 2. the function is invoked from the
+/// Vertical Edit control bar buttons - which force transition without checking if the
+/// active location is beyond the edit span or not; 3. bundle end has been reached in the
+/// search for a "hole" to jump to, in which case this really means we've moved into the
+/// gray area, so TRUE would be appropriate.
+// ******************************************************************************************
 bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, 
 							ActionSelector select, bool bForceTransition)
 {
@@ -40384,27 +40384,27 @@ void CAdapt_ItView::PadOrShortenAtEnd(SPList* pSrcPhrases,
 }
 */
 
-//*****************************************************************************************
-// / \return     nothing
-// / \param      pRec				-> pointer to the global EditRecode struct, gEditRecord
-// / \param      pNewSrcPhrasesList	-> a list of pointers to CSourcePhrase instances from 
-// /                                    parsing the user's edited source text
-// / \param      pSrcPhrases			-> pointer to the document' m_pSourcePhrases list being 
-// /                                    edited
-// / \param      nBeginAtSN			-> sequence number in m_pSourcePhrases list at which 
-// /                                    transfer begins (inclusive)
-// / \param      nFinishAtSN			-> sequence number in m_pSourcePhrases list at which 
-// /                                    transfer finishes (inclusive)
-// / \remarks
-// / Called from: 
-// / Remove the now unwanted original edited span of CSourcePhrase instances. Insert their
-// / replacements, (possibly zero), and tidy up various document parameters so that a
-// / recalculation of the layout can be done in the caller on return. An important step,
-// / done last, is to call the document function UpdateSequNumbers(0) to get all these
-// / numbers into consecutive order. (If the user has deleted the whole editable span, then
-// / nBeginAtSN and nFinishAtSN are the same and index the first CSourcePhrase instance of
-// / the context following the editable span.)
-//******************************************************************************************
+// ****************************************************************************************
+/// \return     nothing
+/// \param      pRec				-> pointer to the global EditRecode struct, gEditRecord
+/// \param      pNewSrcPhrasesList	-> a list of pointers to CSourcePhrase instances from 
+///                                    parsing the user's edited source text
+/// \param      pSrcPhrases			-> pointer to the document' m_pSourcePhrases list being 
+///                                    edited
+/// \param      nBeginAtSN			-> sequence number in m_pSourcePhrases list at which 
+///                                    transfer begins (inclusive)
+/// \param      nFinishAtSN			-> sequence number in m_pSourcePhrases list at which 
+///                                    transfer finishes (inclusive)
+/// \remarks
+/// Called from: 
+/// Remove the now unwanted original edited span of CSourcePhrase instances. Insert their
+/// replacements, (possibly zero), and tidy up various document parameters so that a
+/// recalculation of the layout can be done in the caller on return. An important step,
+/// done last, is to call the document function UpdateSequNumbers(0) to get all these
+/// numbers into consecutive order. (If the user has deleted the whole editable span, then
+/// nBeginAtSN and nFinishAtSN are the same and index the first CSourcePhrase instance of
+/// the context following the editable span.)
+// *****************************************************************************************
 void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 									SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN)
 {
@@ -40900,16 +40900,16 @@ void CAdapt_ItView::CheckForMarkers(SPList* pList,bool& bHasInitialMarker,
 	}
 }
 
-//*************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If there are no source phrases in the App's
-// / m_pSourcePhrases list this handler disables the "Export Source Text..." item on the
-// / File menu, otherwise it enables the "Export Source Text..." item on the File menu.
-//*************************************************************************************
+// ************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If there are no source phrases in the App's
+/// m_pSourcePhrases list this handler disables the "Export Source Text..." item on the
+/// File menu, otherwise it enables the "Export Source Text..." item on the File menu.
+// ************************************************************************************
 void CAdapt_ItView::OnUpdateFileExportSource(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -40933,15 +40933,15 @@ void CAdapt_ItView::OnFileExportSource(wxCommandEvent& WXUNUSED(event))
 	DoExportSrcOrTgt(bExportTarget,bForceUTF8Conversion);
 }
 
-//***************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
-// /                        is about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "See Glossing" item on the Advanced menu is
-// / enabled if the KBs are in a ready state, otherwise the menu item is disabled.
-//***************************************************************************************
+// **************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "See Glossing" item on the Advanced menu is
+/// enabled if the KBs are in a ready state, otherwise the menu item is disabled.
+// **************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -41486,16 +41486,16 @@ void CAdapt_ItView::OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event
 */
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
-// /                        is about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Glossing Uses Navigation Text's Font" item on
-// / the Advanced menu is enabled if the gbEnableGlossing global is TRUE, otherwise the menu
-// / item is disabled.
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Glossing Uses Navigation Text's Font" item on
+/// the Advanced menu is enabled if the gbEnableGlossing global is TRUE, otherwise the menu
+/// item is disabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont(wxUpdateUIEvent& event)
 {
 	if (gbEnableGlossing)
@@ -41760,17 +41760,17 @@ void CAdapt_ItView::OnFileExportToRtf(wxCommandEvent& WXUNUSED(event))
 	DoExportInterlinearRTF(); // now located in ExportFunctions.cpp and .h
 }
 
-//************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. If there are no source phrases in the App's
-// / m_pSourcePhrases list this handler disables the "Export Interlinear Text..." item on
-// / the File menu, otherwise it enables the "Export Interlinear Text..." item on the File
-// / menu.
-//*************************************************************************************
+// ***********************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If there are no source phrases in the App's
+/// m_pSourcePhrases list this handler disables the "Export Interlinear Text..." item on
+/// the File menu, otherwise it enables the "Export Interlinear Text..." item on the File
+/// menu.
+// ************************************************************************************
 void CAdapt_ItView::OnUpdateFileExportToRtf(wxUpdateUIEvent& event)
 {
 	// added by Bill Martin 1June2003
@@ -42201,16 +42201,16 @@ void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Delay..." item on the Advanced menu is disabled
-// / if the application is in Free Translation mode, but enabled if the KB is in a ready
-// / state.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Delay..." item on the Advanced menu is disabled
+/// if the application is in Free Translation mode, but enabled if the KB is in a ready
+/// state.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedDelay(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -42651,18 +42651,18 @@ void CAdapt_ItView::ToggleFreeTranslationMode()
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Free Translation Mode" item on the Advanced menu
-// / is disabled if the active pile pointer is NULL, or the application is only showing the
-// / target text, or there are no source phrases in the App's m_pSourcePhrases list. But, if
-// / m_curIndex is within a valid range and the composeBar was not already opened for
-// / another purpose (called from the View), the menu item is enabled.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Free Translation Mode" item on the Advanced menu
+/// is disabled if the active pile pointer is NULL, or the application is only showing the
+/// target text, or there are no source phrases in the App's m_pSourcePhrases list. But, if
+/// m_curIndex is within a valid range and the composeBar was not already opened for
+/// another purpose (called from the View), the menu item is enabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -42736,19 +42736,19 @@ void CAdapt_ItView::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event
 			pFrame->m_pComposeBarEditBox->SetFocus();
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Use Target Text As Default Free Translation"
-// / item on the Advanced menu is disabled if the application is not in Free Translation
-// / mode, or if the active pile pointer is NULL, or if there are no source phrases in the
-// / App's m_pSourcePhrases list. But, if m_curIndex is within a valid range and the
-// / composeBar was not already opened for another purpose (called from the View), the menu
-// / item is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Use Target Text As Default Free Translation"
+/// item on the Advanced menu is disabled if the application is not in Free Translation
+/// mode, or if the active pile pointer is NULL, or if there are no source phrases in the
+/// App's m_pSourcePhrases list. But, if m_curIndex is within a valid range and the
+/// composeBar was not already opened for another purpose (called from the View), the menu
+/// item is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -42813,19 +42813,19 @@ void CAdapt_ItView::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event)
 			pFrame->m_pComposeBarEditBox->SetFocus();
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Use Gloss Text As Default Free Translation" item
-// / on the Advanced menu is disabled if the application is not in Free Translation mode, or
-// / if the active pile pointer is NULL, or if there are no source phrases in the App's
-// / m_pSourcePhrases list. But, if m_curIndex is within a valid range and the composeBar
-// / was not already opened for another purpose (called from the View), the menu item is
-// / enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Use Gloss Text As Default Free Translation" item
+/// on the Advanced menu is disabled if the application is not in Free Translation mode, or
+/// if the active pile pointer is NULL, or if there are no source phrases in the App's
+/// m_pSourcePhrases list. But, if m_curIndex is within a valid range and the composeBar
+/// was not already opened for another purpose (called from the View), the menu item is
+/// enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -43530,16 +43530,16 @@ c:					if (pPile->GetSrcPhrase()->m_bHasFreeTrans)
 	}
 }
 
-//********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle mechanism
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation buttons
-// / are visible. The "Next >" button used for navigation in free translation mode is
-// / disabled if the application is not in Free Translation mode, or if the active pile
-// / pointer is NULL, or if the active sequence number is negative (-1), otherwise the
-// / button is enabled.
-//********************************************************************************************
+// *******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle mechanism
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation buttons
+/// are visible. The "Next >" button used for navigation in free translation mode is
+/// disabled if the application is not in Free Translation mode, or if the active pile
+/// pointer is NULL, or if the active sequence number is negative (-1), otherwise the
+/// button is enabled.
+// *******************************************************************************************
 void CAdapt_ItView::OnUpdateNextButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -43713,17 +43713,17 @@ void CAdapt_ItView::OnNextButton(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle 
-// /                        mechanism
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation buttons
-// / are visible. The "< Prev" button used for navigation in free translation mode is
-// / disabled if the application is not in Free Translation mode, or if the active pile
-// / pointer is NULL, or if the active sequence number is negative (-1), or if the pile
-// / previous to the active pile is NULL, otherwise the button is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle 
+///                        mechanism
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation buttons
+/// are visible. The "< Prev" button used for navigation in free translation mode is
+/// disabled if the application is not in Free Translation mode, or if the active pile
+/// pointer is NULL, or if the active sequence number is negative (-1), or if the pile
+/// previous to the active pile is NULL, otherwise the button is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdatePrevButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -44105,17 +44105,17 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//****************************************************************************************
-// / \return	nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the Update 
-// /                        Idle mechanism
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation
-// / buttons are visible. The "Remove" button used in free translation mode is disabled if
-// / the application is not in Free Translation mode, or if the active pile pointer is
-// / NULL, or if the active sequence number is negative (-1), or if the active pile does
-// / not own the free translation, otherwise the button is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return	nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update 
+///                        Idle mechanism
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the Free Translation navigation
+/// buttons are visible. The "Remove" button used in free translation mode is disabled if
+/// the application is not in Free Translation mode, or if the active pile pointer is
+/// NULL, or if the active sequence number is negative (-1), or if the active pile does
+/// not own the free translation, otherwise the button is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -44249,18 +44249,18 @@ void CAdapt_ItView::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event
 	}
 }
 
-//*******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle mechanism
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the free translation navigation buttons
-// / are visible. The "Lengthen" button used in free translation mode is disabled if the
-// / application is not in Free Translation mode, or if the active pile pointer is NULL, or
-// / if the active sequence number is negative (-1). But the button is enabled if it won't
-// / extend the next free translation segment past the end of a bundle or the doc, and if it
-// / won't extend beyond some significant marker, or encroach on an already defined free
-// / translation.
-//*******************************************************************************************
+// ******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle mechanism
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the free translation navigation buttons
+/// are visible. The "Lengthen" button used in free translation mode is disabled if the
+/// application is not in Free Translation mode, or if the active pile pointer is NULL, or
+/// if the active sequence number is negative (-1). But the button is enabled if it won't
+/// extend the next free translation segment past the end of a bundle or the doc, and if it
+/// won't extend beyond some significant marker, or encroach on an already defined free
+/// translation.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 {
 	//bool bOwnsFreeTranslation;
@@ -44402,16 +44402,16 @@ void CAdapt_ItView::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle mechanism
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the free translation navigation buttons
-// / are visible. The "Shorten" button used in free translation mode is disabled if the
-// / application is not in Free Translation mode, or if the active pile pointer is NULL, or
-// / if the active sequence number is negative (-1). But the button is enabled as long as
-// / there is at least one pile left.
-//********************************************************************************************
+// *******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle mechanism
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the free translation navigation buttons
+/// are visible. The "Shorten" button used in free translation mode is disabled if the
+/// application is not in Free Translation mode, or if the active pile pointer is NULL, or
+/// if the active sequence number is negative (-1). But the button is enabled as long as
+/// there is at least one pile left.
+// *******************************************************************************************
 void CAdapt_ItView::OnUpdateShortenButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -46740,16 +46740,16 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Remove Filtered Back Translations" item on the
-// / Advanced menu is disabled if there are no source phrases in the App's m_pSourcePhrases
-// / list, or the active KB pointer is NULL, otherwise the menu item is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Remove Filtered Back Translations" item on the
+/// Advanced menu is disabled if there are no source phrases in the App's m_pSourcePhrases
+/// list, or the active KB pointer is NULL, otherwise the menu item is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -46859,16 +46859,16 @@ void CAdapt_ItView::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXU
 	pDoc->Modify(TRUE);
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Remove Filtered Free Translations" item on the
-// / Advanced menu is disabled if there are no source phrases in the App's m_pSourcePhrases
-// / list, or the active KB pointer is NULL, otherwise the menu item is enabled. 
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Remove Filtered Free Translations" item on the
+/// Advanced menu is disabled if there are no source phrases in the App's m_pSourcePhrases
+/// list, or the active KB pointer is NULL, otherwise the menu item is enabled. 
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -46993,17 +46993,17 @@ void CAdapt_ItView::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 	pApp->m_pNoteDlg->Show(TRUE);
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE this handler disables the "Open A Note dialog"
-// / toolBar button: The application is only showing the target text, the active pile
-// / pointer is NULL, a Note dialog is already open (the m_pNoteDlg is not NULL), if there
-// / already is a note on the first source phrase of any selection, or if the targetBox is
-// / not shown. Otherwise the toolbar button is enabled.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE this handler disables the "Open A Note dialog"
+/// toolBar button: The application is only showing the target text, the active pile
+/// pointer is NULL, a Note dialog is already open (the m_pNoteDlg is not NULL), if there
+/// already is a note on the first source phrase of any selection, or if the targetBox is
+/// not shown. Otherwise the toolbar button is enabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -47090,18 +47090,18 @@ void CAdapt_ItView::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 	JumpBackwardToNote_CoreCode(nJumpOffSequNum);
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle 
-// /                        handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE this handler disables the "Jump To The Previous
-// / Note" toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump
-// / to), The application is only showing the target text, the application is in free
-// / translation mode, there is a selection current, or the targetBox is not being shown.
-// / Otherwise the toolbar button is enabled.
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle 
+///                        handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE this handler disables the "Jump To The Previous
+/// Note" toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump
+/// to), The application is only showing the target text, the application is in free
+/// translation mode, there is a selection current, or the targetBox is not being shown.
+/// Otherwise the toolbar button is enabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -47172,17 +47172,17 @@ void CAdapt_ItView::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 	JumpForwardToNote_CoreCode(nJumpOffSequNum);
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
-// / of the following conditions are TRUE this handler disables the "Jump To The Next Note"
-// / toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump to),
-// / The application is only showing the target text, the application is in free translation
-// / mode, there is a selection current, or the targetBox is not being shown. Otherwise the
-// / toolbar button is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled. If any
+/// of the following conditions are TRUE this handler disables the "Jump To The Next Note"
+/// toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump to),
+/// The application is only showing the target text, the application is in free translation
+/// mode, there is a selection current, or the targetBox is not being shown. Otherwise the
+/// toolbar button is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -47253,16 +47253,16 @@ void CAdapt_ItView::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
-// / If any of the following conditions are TRUE this handler disables the "Delete All Notes" 
-// / toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump to), 
-// / The application is only showing the target text, the active pile pointer is NULL. 
-// / Otherwise, if the targetBox is showing the toolbar button is enabled.
-//*****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism whenever idle processing is enabled.
+/// If any of the following conditions are TRUE this handler disables the "Delete All Notes" 
+/// toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump to), 
+/// The application is only showing the target text, the active pile pointer is NULL. 
+/// Otherwise, if the targetBox is showing the toolbar button is enabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -48377,19 +48377,19 @@ a:			wxMessageBox(_T(
 	}
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed. The "Move Note Forward" item on the Edit menu is
-// / disabled if any of the following conditions is TRUE: the application is showing only
-// / the target text, the active pile pointer is NULL, a Note dialog is currently open (must
-// / be closed first), the first source phrase of any selection already has a Note.
-// / Otherwise, if there is a Note at the active location and there is an eligible source
-// / phrase ahead to move to, the menu item is enabled, otherwise the menu item is disabled.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. The "Move Note Forward" item on the Edit menu is
+/// disabled if any of the following conditions is TRUE: the application is showing only
+/// the target text, the active pile pointer is NULL, a Note dialog is currently open (must
+/// be closed first), the first source phrase of any selection already has a Note.
+/// Otherwise, if there is a Note at the active location and there is an eligible source
+/// phrase ahead to move to, the menu item is enabled, otherwise the menu item is disabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -48645,20 +48645,20 @@ a:			wxMessageBox(_T(
 	}
 }
 
-//******************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
-// /                         to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed.
-// / The "Move Note Backward" item on the Edit menu is disabled if any of the following
-// / conditions is TRUE: the application is showing only the target text, the active pile
-// / pointer is NULL, a Note dialog is currently open (must be closed first), the first
-// / source phrase of any selection already has a Note. Otherwise, if there is a Note at the
-// / active location and there is an eligible source phrase previous to the current location
-// / to move to, the menu item is enabled, otherwise the menu item is disabled.
-//******************************************************************************************
+// *****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Edit Menu is about
+///                         to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// The "Move Note Backward" item on the Edit menu is disabled if any of the following
+/// conditions is TRUE: the application is showing only the target text, the active pile
+/// pointer is NULL, a Note dialog is currently open (must be closed first), the first
+/// source phrase of any selection already has a Note. Otherwise, if there is a Note at the
+/// active location and there is an eligible source phrase previous to the current location
+/// to move to, the menu item is enabled, otherwise the menu item is disabled.
+// *****************************************************************************************
 void CAdapt_ItView::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -48829,17 +48829,17 @@ void CAdapt_ItView::MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrc
 *
 *********************************************************************************************/
 
-//********************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed.
-// / The "Collect Back Translations..." item on the Edit menu is enabled if the applicable
-// / KB is not NULL and there are source phrases in the App's m_pSourcePhrases list,
-// / otherwise the menu item is disabled.
-//*******************************************************************************************
+// *******************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// The "Collect Back Translations..." item on the Edit menu is enabled if the applicable
+/// KB is not NULL and there are source phrases in the App's m_pSourcePhrases list,
+/// otherwise the menu item is disabled.
+// ******************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -49838,17 +49838,17 @@ bool CAdapt_ItView::MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxStrin
 	return FALSE;
 }
 
-//*****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed.
-// / The "SIL Converters..." item on the Edit menu is enabled on a Windows port if the
-// / ECDriver.dll is loaded and SIL Converters is installed on the local machine, otherwise
-// / the menu item is disabled.
-//*****************************************************************************************
+// ****************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Tools Menu is
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// The "SIL Converters..." item on the Edit menu is enabled on a Windows port if the
+/// ECDriver.dll is loaded and SIL Converters is installed on the local machine, otherwise
+/// the menu item is disabled.
+// ****************************************************************************************
 void CAdapt_ItView::OnUpdateSelectSilConverters(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -49928,23 +49928,23 @@ void CAdapt_ItView::OnSelectSilConverters(wxCommandEvent& event)
     }
 }
 
-//****************************************************************************************
-// / \return     a wxString representing the input str after it is modified by the action 
-// /             of the SIL Converter; or a null/empty str if str was initially empty or if 
-// /             the SILConverter could not be found
-// / \param      str     -> the wxString to be processed by an SIL Converter
-// / \remarks
-// / Called from: the View's CopySourceKey() and DoTargetBoxPaste() functions.
-// / Calls the configured SilConverter to pre-process the data and return the result to the
-// / caller. First, DoSilConvert() sets up a function pointer to use in accessing the
-// / appropriate form of the EncConverterInitializeConverter() function in the external
-// / ECDriver.dll. It calls that function and returns an empty string if the converter
-// / initialization fails, otherwise the function proceeds to set up a function pointer to
-// / use in accessing the appropriate form of the EncConverterConvertString() function in
-// / ECDriver.dll. If calls that function to process the input string str by the external
-// / SIL Converter; then returns the result. If the str input string was originally a null
-// / string, DoSilConvert() simply returns a null string.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return     a wxString representing the input str after it is modified by the action 
+///             of the SIL Converter; or a null/empty str if str was initially empty or if 
+///             the SILConverter could not be found
+/// \param      str     -> the wxString to be processed by an SIL Converter
+/// \remarks
+/// Called from: the View's CopySourceKey() and DoTargetBoxPaste() functions.
+/// Calls the configured SilConverter to pre-process the data and return the result to the
+/// caller. First, DoSilConvert() sets up a function pointer to use in accessing the
+/// appropriate form of the EncConverterInitializeConverter() function in the external
+/// ECDriver.dll. It calls that function and returns an empty string if the converter
+/// initialization fails, otherwise the function proceeds to set up a function pointer to
+/// use in accessing the appropriate form of the EncConverterConvertString() function in
+/// ECDriver.dll. If calls that function to process the input string str by the external
+/// SIL Converter; then returns the result. If the str input string was originally a null
+/// string, DoSilConvert() simply returns a null string.
+// ***************************************************************************************
 wxString CAdapt_ItView::DoSilConvert(const wxString& str)
 {
 #ifdef USE_SIL_CONVERTERS
@@ -50025,19 +50025,19 @@ void CAdapt_ItView::OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(ev
 			pApp->m_pTargetBox->SetFocus();
 }
 
-//****************************************************************************************
-// / \return		nothing
-// / \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-// /                        about to be displayed
-// / \remarks
-// / Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-// / and before the menu is displayed.
-// / The "Use Transliteration Mode" item on the Advanced menu is disabled if any of the
-// / following conditions are TRUE: the build/port does not support SIL Converters, the KB
-// / is not ready, there are no source phrases in the App's m_pSourcePhrases list, the
-// / application is in free translation mode or glossing mode. Otherwise, if the
-// / m_strSilEncConverterName string has a name loaded, the menu item is enabled.
-//****************************************************************************************
+// ***************************************************************************************
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
+///                        about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// The "Use Transliteration Mode" item on the Advanced menu is disabled if any of the
+/// following conditions are TRUE: the build/port does not support SIL Converters, the KB
+/// is not ready, there are no source phrases in the App's m_pSourcePhrases list, the
+/// application is in free translation mode or glossing mode. Otherwise, if the
+/// m_strSilEncConverterName string has a name loaded, the menu item is enabled.
+// ***************************************************************************************
 void CAdapt_ItView::OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)

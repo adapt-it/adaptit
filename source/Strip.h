@@ -1,19 +1,19 @@
-// ///////////////////////////////////////////////////////////////////////////
-// / \project		adaptit
-// / \file			Strip.h
-// / \author			Bill Martin
-// / \date_created	26 March 2004
-// / \date_revised	15 January 2008
-// / \copyright		2008 Bruce Waters, Bill Martin, SIL International
-// / \license		The Common Public License or The GNU Lesser General Public
-// /  License (see license directory)
-// / \description	This is the header file for the CStrip class. 
-// / The CStrip class represents the next smaller divisions of a CBundle.
-// / Each CStrip stores an ordered list of CPile instances, which are
-// / displayed in LtoR languages from left to right, and in RtoL languages
-// / from right to left.
-// / \derivation		The CStrip class is derived from wxObject.
-// ///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/// \project		adaptit
+/// \file			Strip.h
+/// \author			Bill Martin
+/// \date_created	26 March 2004
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public License or The GNU Lesser General Public
+///  License (see license directory)
+/// \description	This is the header file for the CStrip class. 
+/// The CStrip class represents the next smaller divisions of a CBundle.
+/// Each CStrip stores an ordered list of CPile instances, which are
+/// displayed in LtoR languages from left to right, and in RtoL languages
+/// from right to left.
+/// \derivation		The CStrip class is derived from wxObject.
+/////////////////////////////////////////////////////////////////////////////
 
 #ifndef Strip_h
 #define Strip_h
@@ -34,10 +34,10 @@ class CLayout; // make the "friend class CLayout" declaration work
 WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
 
 
-// / The CStrip class is what defines the ordered sequence of groups of CPiles arranged vertically
-// / in the canvas window. The piles are displayed in LtoR languages from left to right, and in RtoL
-// / languages from right to left. 
-// / \derivation The CStrip class is derived from wxObject.
+/// The CStrip class is what defines the ordered sequence of groups of CPiles arranged vertically
+/// in the canvas window. The piles are displayed in LtoR languages from left to right, and in RtoL
+/// languages from right to left. 
+/// \derivation The CStrip class is derived from wxObject.
 class CStrip : public wxObject  
 {
 	friend class CPile;

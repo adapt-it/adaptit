@@ -1,26 +1,25 @@
-// ///////////////////////////////////////////////////////////////////////////
-// / \project		adaptit
-// / \file			Strip.cpp
-// / \author			Bill Martin
-// / \date_created	26 March 2004
-// / \date_revised	15 January 2008
-// / \copyright		2008 Bruce Waters, Bill Martin, SIL International
-// / \license		The Common Public License or The GNU Lesser General Public
-// /  License (see license directory)
-// / \description	This is the implementation file for the CStrip class. 
-// / The CStrip class represents the next smaller divisions of a CBundle.
-// / Each CStrip stores an ordered list of CPile instances, which are
-// / displayed in LtoR languages from left to right, and in RtoL languages
-// / from right to left.
-// / \derivation		The CStrip class is derived from wxObject.
-// ///////////////////////////////////////////////////////////////////////////
+// *****************************************************************************
+/// \project		adaptit
+/// \file			Strip.cpp
+/// \author			Bill Martin
+/// \date_created	26 March 2004
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public License or The GNU Lesser General Public
+///  License (see license directory)
+/// \description	This is the implementation file for the CStrip class. 
+/// The CStrip class represents the next smaller divisions of a CBundle.
+/// Each CStrip stores an ordered list of CPile instances, which are
+/// displayed in LtoR languages from left to right, and in RtoL languages
+/// from right to left.
+/// \derivation		The CStrip class is derived from wxObject.
+// *****************************************************************************
 // Pending Implementation Items (in order of importance): (search for "TODO")
 // 1. 
 //
 // Unanswered questions: (search for "???")
-// 1. Test to insure Draw works correctly
 // 
-// ///////////////////////////////////////////////////////////////////////////
+// *****************************************************************************
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -59,8 +58,8 @@
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
-// / This macro together with the macro list declaration in the .h file
-// / complete the definition of a new safe pointer list class called StripList.
+/// This macro together with the macro list declaration in the .h file
+/// complete the definition of a new safe pointer list class called StripList.
 WX_DEFINE_LIST(StripList);
 
 
@@ -71,12 +70,12 @@ extern wxRect	grectViewClient; // used in OnDraw() below
 extern int		gnCurPage;
 extern bool		gbRTL_Layout;
 
-// / This global is defined in Adapt_It.cpp.
+/// This global is defined in Adapt_It.cpp.
 extern struct PageOffsets pgOffsets;
 
-// ////////////////////////////////////////////////////////////////////
+// *******************************************************************
 // Construction/Destruction
-// ////////////////////////////////////////////////////////////////////
+// *******************************************************************
 
 IMPLEMENT_DYNAMIC_CLASS(CStrip, wxObject)
 

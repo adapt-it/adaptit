@@ -773,7 +773,7 @@ void CSourcePhrase::DeepCopy(void)
 		// the list is left empty)
 		CSourcePhrase* pSrcPhraseDuplicate = new CSourcePhrase(*pSrcPhrase);
 		// replace the list's pointer at savePos with this new pointer
-		// //m_pSavedWords->SetAt(savePos,pSrcPhraseDuplicate);
+		////m_pSavedWords->SetAt(savePos,pSrcPhraseDuplicate);
 		// wx Note: wxList doesn't have a SetAt method, but we can use DeleteNode and Insert to achieve
 		// the same effect. 
 		// The following order won't work (wxList asserts):

@@ -2275,7 +2275,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// by checking the return bool value of RunWizard.
 END_EVENT_TABLE()
 
-// ///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
 // NOTE: Under wxWidgets I've changed the following from static TCHAR arrays to
 // just wxStrings, since all the methods in wxWidgets are efficient 
 // and sufficiently UNICODE aware with wxStrings.
@@ -4742,7 +4742,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pLocale = (wxLocale*)NULL;
 
 	// Initializations below are from MFC's CAdapt_ItApp's constructor
-	// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// MFC note: Place all significant initialization in InitInstance
 	//m_pCurView = NULL; // BEW added 22Sep05 
 	// whm Note: I'm not implementing this m_pCurView pointer in the wxWidgets version. 
@@ -5023,7 +5023,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// BEW added 2Sep08
 	gbAdaptBeforeGloss = TRUE; // in vertical edit, do adaptations updating before doing glosses updating
-	// //////////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Above initializations are from MFC's CAdapt_ItApp's constructor
 
 	m_eolStr = wxTextFile::GetEOL();	// this retrieves the platform specific end-of-line character string
@@ -5039,7 +5039,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gbPassedMFCinitialization = FALSE;
 
 
-	// //////// Initializations below were originally in the Doc in the MFC version ///////
+	////////// Initializations below were originally in the Doc in the MFC version ///////
 	// Variable initializations below moved here from the Doc because the 
 	// wxWidgets' doc/view framework deletes the Doc and recreates it 
 	// afresh (calling the Doc's constructor when a new Doc is opened) whereas MFC's
@@ -5078,10 +5078,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_filterMarkersAfterEdit.Empty(); // some reasonable default whm added 10Jun05 for Bruce
 	KeepYourHandsToYourself = FALSE; // Added by JF.
 
-	// //////// Initializations above were originally in the Doc in the MFC version ///////
+	////////// Initializations above were originally in the Doc in the MFC version ///////
 
-	// //////// Initializations below were originally in the View in the MFC version ///////
-	// /////////////////////////////////////////////////////////////////////
+	////////// Initializations below were originally in the View in the MFC version ///////
+	///////////////////////////////////////////////////////////////////////
 	// Variable initializations below moved here from the View because the 
 	// wxWidgets' doc/view framework deletes the View and recreates it 
 	// afresh (calling the View's constructor when a new view is opened)
@@ -5147,9 +5147,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
 
 	// Variable initializations above moved here from the View
-	// /////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
 	/*
-	// /////////////////// BEGIN WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////////////////////
+	///////////////////// BEGIN WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////////////////////
 	
 	// Testing of general C++ code fragments (not depending on Adapt It code) can be done here to save
 	// time in loading the Adapt It main frame, etc.
@@ -5310,11 +5310,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	int stop;
 	stop = 1;
 
-	// /////////////////// END OF WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////////////////////
+	///////////////////// END OF WXWIDGETS LIBRARY CODE FRAGMENT TESTING ////////////////////////////////
 	*/
 
 	// Variable initializations below moved here from the App's constructor
-	// /////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////
 	// bUserSelectedFileNew below is used in wxWidgets version to reinit 
 	// KB structures in view->OnCreate(). This is to allow for the fact that
 	// with only 1 doc allowed in WX, it first deletes the current doc and
@@ -5327,7 +5327,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	m_pDocManager = (wxDocManager*)NULL;// was originally in App constructor's preamble
 	m_pMainFrame = (CMainFrame*)NULL;// was originally in App constructor's preamble
-	// //////// Initializations above were originally in the App's constructor in the MFC version ///////
+	////////// Initializations above were originally in the App's constructor in the MFC version ///////
 
    
 	const wxString name = wxString::Format(_T("Adapt_ItApp-%s"), wxGetUserId().c_str());
@@ -6195,10 +6195,10 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// copy the printData info from the pageSetupDialog
 	(*pPrintData) = pPgSetupDlgData->GetPrintData();
 
-	// //////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Since we are about to read the config files, any data structures containing data that might be
 	// changed from the reading of config files need to be created by this point in OnInit().
-	// //////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	// If the user holds the SHIFT-DOWN key here at program startup she can bypass the normal reading
 	// of Adapt It's config file settings, forcing the program to load a set of default settings
@@ -21543,24 +21543,24 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 }
 
 /* BEW removed 21Mar09
-// //////////////////////////////////////////////////////////////////////////////////////////
-// / \return     the index for the active location
-// / \param      pList                   -> the SPList for the document
-// / \param      nFirstSequNumInBundle   -> an int representing the first sequence number of the needed 
-// /                                         bundle
-// / \remarks
-// / Called from: the App's AppendSourcePhrasesToCurrentDoc().
-// / SetBundleIndices takes a pointer to the m_pSourcePhrases list in the document, and an index
-// / to the CSourcePhrase instance in that list which is to be the first one of the bundle needed
-// / to be computed after a Join operation (since the join may have created a document bigger than
-// / a single bundle, even if not so previously), and returns the index for the active location
-// / (which typically is m_nPrecedingContext sourcephase instances further along than the 
-// / nFirstSequNumInBundle value). The caller can then do a GetSrcPhrase() call on the list using the
-// / returned index to get the active CSourcePhrase instance there, and then Jump() can be used
-// / to set up a correctly laid out bundle with the phrase box at the desired location. For the
-// / phrase box to be at the last join location, the caller should do a little simple arithmetic to
-// / work out the correct nFirstSequNumInBundle value to produce the wanted result.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     the index for the active location
+/// \param      pList                   -> the SPList for the document
+/// \param      nFirstSequNumInBundle   -> an int representing the first sequence number of the needed 
+///                                         bundle
+/// \remarks
+/// Called from: the App's AppendSourcePhrasesToCurrentDoc().
+/// SetBundleIndices takes a pointer to the m_pSourcePhrases list in the document, and an index
+/// to the CSourcePhrase instance in that list which is to be the first one of the bundle needed
+/// to be computed after a Join operation (since the join may have created a document bigger than
+/// a single bundle, even if not so previously), and returns the index for the active location
+/// (which typically is m_nPrecedingContext sourcephase instances further along than the 
+/// nFirstSequNumInBundle value). The caller can then do a GetSrcPhrase() call on the list using the
+/// returned index to get the active CSourcePhrase instance there, and then Jump() can be used
+/// to set up a correctly laid out bundle with the phrase box at the desired location. For the
+/// phrase box to be at the last join location, the caller should do a little simple arithmetic to
+/// work out the correct nFirstSequNumInBundle value to produce the wanted result.
+////////////////////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItApp::SetBundleIndices(SPList* pList, int nFirstSequNumInBundle)
 {
 	CAdapt_ItView *v = GetView();

@@ -370,7 +370,7 @@ public:
 	wxArrayPtrVoid* GetStripArray();
 	wxArrayInt*	GetInvalidStripArray();
 
-	// ////// public utility functions ////////
+	//////// public utility functions ////////
 	 
 	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
 	// the layout

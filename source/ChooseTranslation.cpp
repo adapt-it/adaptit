@@ -212,7 +212,7 @@ void CChooseTranslation::OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event))
 	m_pMyListBox->SetFocus();
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated for the ChooseTranslation dialog's
 ///                         Idle handler
@@ -220,7 +220,7 @@ void CChooseTranslation::OnButtonCancelAsk(wxCommandEvent& WXUNUSED(event))
 /// Called from: The wxUpdateUIEvent mechanism whenever the Choose Translation dialog is showing.
 /// If the dialog's list box (m_pMyListBox) has more than one item in it the dialog's "Move Up"
 /// button is enabled, otherwise it is disabled.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 void CChooseTranslation::OnUpdateButtonMoveUp(wxUpdateUIEvent& event)
 {
 	if (m_pMyListBox->GetCount() > 1)
@@ -320,7 +320,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 	TransferDataToWindow();
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated for the ChooseTranslation dialog's
 ///                         Idle handler
@@ -328,7 +328,7 @@ void CChooseTranslation::OnButtonMoveUp(wxCommandEvent& WXUNUSED(event))
 /// Called from: The wxUpdateUIEvent mechanism whenever the Choose Translation dialog is showing.
 /// If the dialog's list box (m_pMyListBox) has more than one item in it the dialog's "Move Down"
 /// button is enabled, otherwise it is disabled.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 void CChooseTranslation::OnUpdateButtonMoveDown(wxUpdateUIEvent& event)
 {
 	if (m_pMyListBox->GetCount() > 1)
@@ -894,7 +894,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated for the ChooseTranslation dialog's
 ///                         Idle handler
@@ -902,7 +902,7 @@ void CChooseTranslation::OnOK(wxCommandEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism whenever the Choose Translation dialog is showing.
 /// If the dialog's list box (m_pMyListBox) has at least one item in it the dialog's "Remove From KB"
 /// button is enabled, otherwise it is disabled when the list is empty.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 void CChooseTranslation::OnUpdateButtonRemove(wxUpdateUIEvent& event)
 {
 	if (m_pMyListBox->GetCount() == 0)

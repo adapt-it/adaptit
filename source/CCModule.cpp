@@ -4225,7 +4225,7 @@ void CCCModule::flushstringbuffer(int search)
 void CCCModule::parse( char **pntr, char **pntr2, int errormessage) /* Parse an element of a line */
 /****************************************************************************/
 //char **pntr,	/* Pointer to pointer to beginning of element found */
-//**pntr2;	/* Pointer to pointer to character just beyond element */
+// *pntr2;	/* Pointer to pointer to character just beyond element */
 //int errormessage;		/* Boolean: TRUE == output an error message if
 //							 *							 an unmatched quote is found
 //							 */

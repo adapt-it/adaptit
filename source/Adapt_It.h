@@ -25,7 +25,7 @@
 // comment out when the wxLogDebug() calls are no longer needed
 //#define Test_m_bNoAutoSave
 
-// ///////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
+/////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 // MFC type:					wxWidgets Equivalent:
 //	DWORD (unsigned long)			wxUint32
 //	COLORREF (unsigned long)		WXCOLORREF (unsigned long)
@@ -37,7 +37,7 @@
 //	LPCTSTR							const wxChar*
 //	LPTSTR							wxChar*
 //	HBRUSH							wxUint32
-// ///////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
+/////////////////// MFC to wxWidgets Type Conversions //////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -1183,7 +1183,7 @@ public:
 
 class wxDynamicLibrary;
 
-// ////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 /// The CAdapt_ItApp class initializes Adapt It's application and gets it running. Most of Adapt It's
 /// global enums, structs and variables are declared either as members of the CAdapt_ItApp class or in
 /// this source file's global space.
@@ -1350,9 +1350,9 @@ public:
 								   // doc rebuild, in order to restore the gCurrentSfmSet value to what is current
 	wxString	m_filterMarkersAfterEdit;	//whm added 10Jun05 for Bruce
 	bool		KeepYourHandsToYourself;	// Added by JF.  This is used to allow load/save operations to be performed _without_ affecting any globals or the current view.  This is used during the join operation to load multiple files into memory (one at a time) without closing the current file.  This allows us to simply append the source phrases from each file to the current document, rather than having to reconstruct or reload the was-current document after reading the other documents for the join operation.
-	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Variable declarations moved here from the View because the wxWidgets doc/view framework
 	// deletes the View and recreates it afresh (calling the View's constructor)
 	
@@ -1562,7 +1562,7 @@ public:
 //	int				m_curBoxWidth; // current m_targetBox width
 	long			m_nStartChar; // start of selection in the target box
 	long			m_nEndChar; // end of selection in the target box
-	// //////////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	bool bUserSelectedFileNew;
 

@@ -85,7 +85,7 @@ CMyListBox::~CMyListBox() // destructor
 
 // event handling functions
 
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxKeyEvent that is generated after a key is released by the user 
 ///                         when the list box is in focus
@@ -95,7 +95,7 @@ CMyListBox::~CMyListBox() // destructor
 /// In the case of the Choose Translation dialog, this can allow its "Cancel and Select" 
 /// action to take place.
 /// Note: This OnSysKeyUp() handler is activated AFTER the default wxListBox gets key up events.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 void CMyListBox::OnSysKeyUp(wxKeyEvent& event) 
 {
 	// Note: This OnSysKeyUp() handler is activated AFTER the default wxListBox gets key up events.
@@ -119,7 +119,7 @@ void CMyListBox::OnSysKeyUp(wxKeyEvent& event)
 	// want those behaviors to replace the default wxListBox native behaviors on all platforms.
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxKeyEvent that is generated before a key is released by the  
 ///                         user (and before default wxListBox handling occurs) when the list 
@@ -137,7 +137,7 @@ void CMyListBox::OnSysKeyUp(wxKeyEvent& event)
 /// events. Therefore, any special behaviors that are to replace the default wxListBox behaviors
 /// should call "return" after their implementation rather than allowing control to pass through the
 /// event.Skip() call at the end of the function.
-// //////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 void CMyListBox::OnSysKeyDown(wxKeyEvent& event) 
 {
 	// Note: This OnSysKeyDown() handler is activated BEFORE the default wxListBox gets key down
