@@ -1,20 +1,20 @@
-// ///////////////////////////////////////////////////////////////////////////
-// / \project		adaptit
-// / \file			Cell.h
-// / \author			Bill Martin
-// / \date_created	26 March 2004
-// / \date_revised	15 January 2008
-// / \copyright		2008 Bruce Waters, Bill Martin, SIL International
-// / \license		The Common Public License or The GNU Lesser General 
-// / Public License (see license directory)
-// / \description	This is the header file for the CCell class. 
-// / The CCell class represents the next smaller division of a CPile, there
-// / potentially being up to five CCells displaying vertically top to bottom
-// / within a CPile. Each CCell stores a CText which is for the display of 
-// / the cell's text, and changing background colour (for selections, 
-// / highlighting) etc.
-// / \derivation		The CCell class is derived from wxObject.
-// ///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+/// \project		adaptit
+/// \file			Cell.h
+/// \author			Bill Martin
+/// \date_created	26 March 2004
+/// \date_revised	15 January 2008
+/// \copyright		2008 Bruce Waters, Bill Martin, SIL International
+/// \license		The Common Public License or The GNU Lesser General 
+/// Public License (see license directory)
+/// \description	This is the header file for the CCell class. 
+/// The CCell class represents the next smaller division of a CPile, there
+/// potentially being up to five CCells displaying vertically top to bottom
+/// within a CPile. Each CCell stores a CText which is for the display of 
+/// the cell's text, and changing background colour (for selections, 
+/// highlighting) etc.
+/// \derivation		The CCell class is derived from wxObject.
+/////////////////////////////////////////////////////////////////////////////
 
 #ifndef Cell_h
 #define Cell_h
@@ -32,12 +32,12 @@ class CSourceBundle;
 //class CText;
 class CFont;
 
-// / The CCell class represents the next smaller division of a CPile, there
-// / potentially being up to five CCells displaying vertically top to bottom
-// / within a CPile. Each CCell stores a CText which is for the display of 
-// / the cell's text, and changing background colour (for selections, 
-// / highlighting) etc.
-// / \derivation		The CCell class is derived from wxObject.
+/// The CCell class represents the next smaller division of a CPile, there
+/// potentially being up to five CCells displaying vertically top to bottom
+/// within a CPile. Each CCell stores a CText which is for the display of 
+/// the cell's text, and changing background colour (for selections, 
+/// highlighting) etc.
+/// \derivation		The CCell class is derived from wxObject.
 class CCell : public wxObject  
 {
 	friend class CLayout;

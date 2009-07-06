@@ -660,7 +660,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			pDC->SetFont(SaveFont);
 		}
 
-		// ////////////////// Draw Green Wedge etc ////////////////////////////////
+		//////////////////// Draw Green Wedge etc ////////////////////////////////
 		
 		// next stuff is for the green wedge - it should be shown at the left or the right
 		// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather

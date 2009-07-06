@@ -2876,43 +2876,43 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 	return nCount;
 }
 
-//***************************************************************************************
-// / \return   a count of the final number of rebuild strips  -  this could be fewer, the
-// /           same, or more than the value of nInitialStripCount passed in
-// / \param
-// / nFirstStrip       <-> input: ref to index of first invalid strip (it is now emptied of piles)
-// /                       output: same as value input, refilling doesn't affect this value
-// / nLastStrip        <-> input: ref to index of last invalid strip (it is now emptied of piles)
-// /                       output: index of last rebuilt strip (it could be less than, the same,
-// /                       or greater than what was input - depending on whether pile widths
-// /                       have changed, and how many there are to be placed
-// / nStripWidth       ->  used for initializing m_nFree member of CStrip - we will need this
-// /                       if we have to create one or more extra strips to accomodate all the
-// /                       new CPile pointers to be placed in the rebuilt strips
-// / gap               ->  the interpile gap (in pixels) - we need this for filling the emptied
+// **************************************************************************************
+/// \return   a count of the final number of rebuild strips  -  this could be fewer, the
+///           same, or more than the value of nInitialStripCount passed in
+/// \param
+/// nFirstStrip       <-> input: ref to index of first invalid strip (it is now emptied of piles)
+///                       output: same as value input, refilling doesn't affect this value
+/// nLastStrip        <-> input: ref to index of last invalid strip (it is now emptied of piles)
+///                       output: index of last rebuilt strip (it could be less than, the same,
+///                       or greater than what was input - depending on whether pile widths
+///                       have changed, and how many there are to be placed
+/// nStripWidth       ->  used for initializing m_nFree member of CStrip - we will need this
+///                       if we have to create one or more extra strips to accomodate all the
+///                       new CPile pointers to be placed in the rebuilt strips
+/// gap               ->  the interpile gap (in pixels) - we need this for filling the emptied
 //                         strips with the appropriate gap between each pile
-// / nFirstPileIndex   ->  index to the CPile pointer for the pile in CLayout::m_pileList which
-// /                       is the first in the user's editing area, and hence the first
-// /                       one to be "placed" in the emptied range of strips 
-// / nEndPileIndex     ->  index to the last CPile pointer for the pile in CLayout::m_pileList
-// /                       which is the last in the user's editing area, and hence the last
-// /                       one to be "placed" in the emptied range of strips
-// / nInitialStripCount -> count of how many strips were emptied by the last function call
-// /                       in the caller; we use this to initialize the return value
-// / \remarks
-// / The function fills the strips with the pile pointers resulting from the user's edits,
-// / adding strips if necessary, or removing empty strips left over when done. Each completed
-// / strip is marked m_bValid = TRUE, but the last is marked m_bValid = TRUE only if we check
-// / and find that the pile which foloows is too wide to fit in that strip, or if we are at the
-// / end of the document, otherwise it is left with a FALSE value. (When Draw() sees a strip
-// / with m_bValid == FALSE and the strip is in the visible area of the view, it will attempt
-// / to flow one or more piles up to fill the strip, and similarly for strips lower down but 
-// / visible and which become invalid because they lose one or more piles due to the upward
-// / flow to fill the strip above, iterating until it comes to an off-view strip - at which
-// / point it leaves that strip marked as invalid - and it remains so until at some later
-// / time if becomes visible and drawn, or a full destroy all strips and rebuild is done due
-// / to some operation which requires it (such as changing the font size, etc).
-//***************************************************************************************
+/// nFirstPileIndex   ->  index to the CPile pointer for the pile in CLayout::m_pileList which
+///                       is the first in the user's editing area, and hence the first
+///                       one to be "placed" in the emptied range of strips 
+/// nEndPileIndex     ->  index to the last CPile pointer for the pile in CLayout::m_pileList
+///                       which is the last in the user's editing area, and hence the last
+///                       one to be "placed" in the emptied range of strips
+/// nInitialStripCount -> count of how many strips were emptied by the last function call
+///                       in the caller; we use this to initialize the return value
+/// \remarks
+/// The function fills the strips with the pile pointers resulting from the user's edits,
+/// adding strips if necessary, or removing empty strips left over when done. Each completed
+/// strip is marked m_bValid = TRUE, but the last is marked m_bValid = TRUE only if we check
+/// and find that the pile which foloows is too wide to fit in that strip, or if we are at the
+/// end of the document, otherwise it is left with a FALSE value. (When Draw() sees a strip
+/// with m_bValid == FALSE and the strip is in the visible area of the view, it will attempt
+/// to flow one or more piles up to fill the strip, and similarly for strips lower down but 
+/// visible and which become invalid because they lose one or more piles due to the upward
+/// flow to fill the strip above, iterating until it comes to an off-view strip - at which
+/// point it leaves that strip marked as invalid - and it remains so until at some later
+/// time if becomes visible and drawn, or a full destroy all strips and rebuild is done due
+/// to some operation which requires it (such as changing the font size, etc).
+// **************************************************************************************
 //int CLayout::RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
 //		int nStripWidth, int gap, CPile* pBeforePile, CPile* pAfterPile, 
 //		PileList::Node* posBegin, PileList::Node* posEnd, PileList::Node* pos,

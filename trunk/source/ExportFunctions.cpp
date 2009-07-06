@@ -801,7 +801,7 @@ void DoExportInterlinearRTF()
 	// the data we need. Our job is to retrieve the data from SPList and write it out to a text file,
 	// in the process inserting the needed RTF tags which structure it into nicely formatted RTF tables.
 
-	// /////////////////////////// RTF FILE Structure////////////////////////////////
+	///////////////////////////// RTF FILE Structure////////////////////////////////
 	// The general structure of an RTF file looks like this: (showing sample RTF):
 	//   1. Opening brace {
 	//   2. Standard header control words:
@@ -859,7 +859,7 @@ void DoExportInterlinearRTF()
 	//  10. Closing brace }
 	//
 	//
-	// /////////// RTF TABLE Structure////////////////////////////////
+	///////////// RTF TABLE Structure////////////////////////////////
 	//
 	//	Note: In examples in comments:	\f0 = font for Normal;
 	//									\f1 = font for Src Lang;
@@ -2060,7 +2060,7 @@ void DoExportInterlinearRTF()
 												// paragraph style definition when applied to table text
 	int startPos, endPos, parPos;
 
-	// //////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
 	// Adjust the In-Document forms for Interlinear use, and build the In-Table forms
 	// for Normal, Src Lang, Tgt Lang, Gls Lang, and Nav Lang
 
@@ -2596,7 +2596,7 @@ void DoExportInterlinearRTF()
 		// with \fet1 or omiting \fetN, but doesn't crash with \fet0. What to do?!
 		// \sectd = reset to default section properties
 
-	// ////////////////// HEADER and FOOTER Definition Tags //////////////
+	//////////////////// HEADER and FOOTER Definition Tags //////////////
 	wxString BookName = exportFilename;
 	int flen = BookName.Length();
 	BookName.Remove(flen-4,4); // remove the .adt or .xml extension (including the .)
@@ -6084,7 +6084,7 @@ void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportNam
 	// ApplyOutputFilterToText() already had code to escape the curly brace characters, 
 	// but it did not have code to detect non-marker backslash codes and escape them.
 
-	// ////////////////// DOCUMENT LEVEL TAGS ///////////////////////////
+	//////////////////// DOCUMENT LEVEL TAGS ///////////////////////////
 	// whm added 26Oct07
 	// Different versions of Word (especially Word 2003) are sensitive to whether or not the
 	// \fetN control word is used, and what value N has. Up to now this flag has merely been
@@ -12667,7 +12667,7 @@ void ProcessIrregularTagsInArrayStrings(wxArrayString& StyleDefStrArray,wxArrayS
 	// Note: Other special handling of unique style tags could be done here if desired.
 }
 
-// //////////// The following are helper functions for BuildRTFStyleTagString() ///////
+////////////// The following are helper functions for BuildRTFStyleTagString() ///////
 // Some of these functions are also used in DoExportInterLinearRTF()
 void AddAnyParaAlignment(wxString& tempStr, USFMAnalysis* pSfm)
 {

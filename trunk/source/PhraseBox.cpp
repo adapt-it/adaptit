@@ -2791,6 +2791,55 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
         // gets the contents of the phrasebox including the just typed character.
 		thePhrase = GetValue(); // current box text (including the character just typed)
 
+		// BEW 6Jul09, try moving the auto-caps code from OnIdle() to here
+		if (gbAutoCaps && pApp->m_pActivePile != NULL)
+		{
+			wxString str;
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			wxASSERT(pSrcPhrase != NULL);
+			bool bNoError = pView->SetCaseParameters(pSrcPhrase->m_key);
+			if (bNoError && gbSourceIsUpperCase)
+			{
+				// a change of case might be called for... first
+				// make sure the box exists and is visible before proceeding further
+				if (pApp->m_pTargetBox != NULL && (pApp->m_pTargetBox->IsShown()))
+				{
+					// get the string currently in the phrasebox
+					//str = pApp->m_pTargetBox->GetValue();
+					str = thePhrase;
+
+					// do the case adjustment only after the first character has been
+					// typed, and be sure to replace the cursor afterwards
+					int len = str.Length();
+					if (len != 1)
+					{
+						; // don't do anything to first character if string has more than 1 char
+					}
+					else
+					{
+						// set cursor offsets
+						int nStart = 1; int nEnd = 1;
+				
+						// check out its case status
+						bNoError = pView->SetCaseParameters(str,FALSE); // FALSE is value for bIsSrcText
+
+						// change to upper case if required
+						if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
+						{
+							str.SetChar(0,gcharNonSrcUC);
+							pApp->m_pTargetBox->ChangeValue(str);
+							pApp->m_pTargetBox->Refresh();
+							//pApp->m_targetPhrase = str;
+							thePhrase = str;
+
+							// fix the cursor location
+							pApp->m_pTargetBox->SetSelection(nStart,nEnd);
+						}
+					}
+				}
+			}
+		}
+		
 		// update m_targetPhrase to agree with what has been typed so far
 		pApp->m_targetPhrase = thePhrase;
 		

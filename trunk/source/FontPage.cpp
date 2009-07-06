@@ -866,7 +866,7 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 		}
 	#endif	// for _RTL_FLAGS
 		// Code above parallels code in EditPreferencesDlg::OnOk() 
-		// //////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////
 
 		// whm: The deletion of any KB stubs and calling of SetupDirectories() should not
 		// go here but in the bMovingForward block of LanguagePage's OnWizardPageChanging().

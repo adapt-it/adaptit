@@ -111,7 +111,7 @@ IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 // underlined hyperlink reference just use CTRL + left mouse click on the link. The functions with these
 // links also have hyperlinks back to the print_flow reference below.
 
-// ////////////////// Order of called methods in the wxWidgets printing framework ///////////////////
+//////////////////// Order of called methods in the wxWidgets printing framework ///////////////////
 // whm Note: The order of function calls when printing or print-previewing in the wxWidgets printing 
 // framework is:
 // #print_flow
@@ -130,7 +130,7 @@ IMPLEMENT_DYNAMIC_CLASS(AIPrintout, wxPrintout)
 // In Step 2 if printer.Print() returns FALSE, printing aborts and no other steps are completed.
 // Steps 6-9 are done for each copy of a document when multiple copies are requested
 // Steps 7-8 are done for each page to be printed in a given document
-// ////////////////// Order of called methods in the wxWidgets printing framework ///////////////////
+//////////////////// Order of called methods in the wxWidgets printing framework ///////////////////
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing

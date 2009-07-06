@@ -27,7 +27,7 @@ class SPList;	// declared in SourcePhrase.h WX_DECLARE_LIST(CSourcePhrase, SPLis
 				// and defined in SourcePhrase.cpp WX_DEFINE_LIST(SPList); macro
 class CSourcePhrase;
 
-// //////////////////////////////////////////
+////////////////////////////////////////////
 //  helper functions
 
 void DoDelay();

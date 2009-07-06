@@ -209,7 +209,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     // to determine the layout parameters (number of Strips) necessary for our version of PaginateDoc()
     // to determine how many pages it would take to print the document.
     // 
-	// ////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////
 	// The stuff below could go into a separate function - see also CAdapt_ItView::SetupRangePrintOp
     // Determine the length of the printed page in logical units.
 	int pageWidthBetweenMarginsMM, pageHeightBetweenMarginsMM;
@@ -269,7 +269,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
 	nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
 	// The stuff above could go into a separate function - see also CAdapt_ItView::SetupRangePrintOp
-	// ////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////
 	
     // whm Caution: It is not really appropriate to assume as MFC version does that, by converting from
     // thousandths to hundredths, the calculation will result in a measure equivalent to screen pixels.
