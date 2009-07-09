@@ -6995,7 +6995,8 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		_("Edit Preferences"),
 		wxDefaultPosition,
 		wxDefaultSize,
-		wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX|wxDIALOG_MODAL );
+		wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX /*|wxDIALOG_MODAL*/ );
+					// GDLC wxDIALOG_MODAL is obsolete - ShowModal() does what it used to
 	editPrefsDlg.Centre();
 
 	/* refactored 22Mar09, no longer needed, so just set to doc length
@@ -29146,7 +29147,8 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 		defaultDir,
 		reportFilename,
 		filter,
-		wxSAVE | wxOVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 	fileDlg.Centre();
 
 	if (fileDlg.ShowModal() != wxID_OK)
@@ -31316,7 +31318,8 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		defaultDir,	// empty string causes it to use the current working directory (set above)
 		dicFilename,	// default filename
 		filter,
-		wxSAVE | wxOVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 	fileDlg.Centre();
 
 	// make the dialog visible
@@ -31819,7 +31822,8 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 		defaultDir,	// empty string causes it to use the current working directory (set above)
 		exportFilename,	// default filename
 		filter,
-		wxOPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxOPEN deprecated in 2.8
 	fileDlg.Centre();
 
 	// open as modal dialog
