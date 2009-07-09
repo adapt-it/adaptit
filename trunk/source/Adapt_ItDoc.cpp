@@ -486,7 +486,8 @@ bool CAdapt_ItDoc::OnNewDocument()
 			defaultDir,	// default dir (either m_workFolderPath, or m_lastSourceFileFolder)
 			_T(""),		// default filename
 			filter,
-			wxOPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxOPEN deprecated in 2.8
 		fileDlg.Centre();
 		// open as modal dialog
 		int returnValue = fileDlg.ShowModal(); // MFC has DoModal()
@@ -14649,7 +14650,8 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 		defaultDir,
 		exportFilename,
 		filter,
-		wxSAVE | wxOVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 	fileDlg.Centre();
 
 	// set the default folder to be shown in the dialog (::SetCurrentDirectory does not
@@ -14732,7 +14734,8 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		defaultDir,
 		_T(""), // file name is null string
 		filter,
-		wxOPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_OPEN); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxOPEN deprecated in 2.8
 	fileDlg.Centre();
 
 	// open as modal dialog
