@@ -570,7 +570,8 @@ void CCCTabbedDialog::OnButtonBrowse(wxCommandEvent& WXUNUSED(event))
 		defaultDir,
 		_T(""), // file name is null string
 		filter,
-		wxOPEN);// a "File Open" dialog
+		wxFD_OPEN);	// a "File Open" dialog
+					// GDLC wxOPEN deprecated in 2.8
 	fileDlg.Centre();
 
 	// open as modal dialog
