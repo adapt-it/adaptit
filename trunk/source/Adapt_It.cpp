@@ -21936,25 +21936,33 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 	}
 	if (pListBox1 != NULL)
 	{
-		if (bIsRTL)
-		{
-			pListBox1->SetLayoutDirection(wxLayout_RightToLeft);
-		}
-		else
-		{
+        // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we probably
+        // don't want the list item right justified and the scroll bar mirrored on the left side, since
+        // the main window is not similarly mirrored.
+        // 
+        //if (bIsRTL)
+        //{
+        // pListBox1->SetLayoutDirection(wxLayout_RightToLeft);
+        //}
+        //else
+        //{
 			pListBox1->SetLayoutDirection(wxLayout_LeftToRight);
-		}
+		//}
 	}
 	if (pListBox2 != NULL)
 	{
-		if (bIsRTL)
-		{
-			pListBox2->SetLayoutDirection(wxLayout_RightToLeft);
-		}
-		else
-		{
+        // whm modified 8Jul09 to always use wxLayout_LeftToRight for list boxes, since we probably
+        // don't want the list item right justified and the scroll bar mirrored on the left side, since
+        // the main window is not similarly mirrored.
+        // 
+		//if (bIsRTL)
+		//{
+		// pListBox2->SetLayoutDirection(wxLayout_RightToLeft);
+		//}
+		//else
+		//{
 			pListBox2->SetLayoutDirection(wxLayout_LeftToRight);
-		}
+		//}
 	}
 	#endif
 }
