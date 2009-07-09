@@ -24930,8 +24930,17 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// BEW added 20May09, next line required in order to remove the selection
-	GetLayout()->Redraw();
-	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
+	// Note, this function can be called after having done a Restore Knowledge Base
+	// command and the latter requires no document be open, and in that case a call to
+	// Redraw() will fail, so we have to wrap the Redraw() and PlaceBox() calls with a
+	// test to ensure the box exists and a layout is available for redrawing - but the
+	// latter is sufficient, because if the layout is available, so will the phrase box be
+	if (GetLayout()->GetPileList()->GetCount() > 0 && GetLayout()->GetStripArray()->GetCount() > 0)
+	{
+		// a layout exists
+		GetLayout()->Redraw();
+		GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
+	}
 }
 
 bool CAdapt_ItView::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
