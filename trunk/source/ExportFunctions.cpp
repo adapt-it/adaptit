@@ -296,7 +296,8 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 		defaultDir,	// empty string causes it to use the current working directory (set above)
 		exportFilename,	// default filename
 		filter,
-		wxSAVE | wxOVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown	fileDlg.Centre();
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown	fileDlg.Centre();
+					// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 
 	if (fileDlg.ShowModal() != wxID_OK)
 	{
@@ -755,7 +756,8 @@ void DoExportInterlinearRTF()
 		defaultDir,
 		exportFilename,
 		filter,
-		wxSAVE | wxOVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); // | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
+					// GDLC wxSAVE & wxOVERWRITE_PROMPT deprecated in 2.8
 	fileDlg.Centre();
 
 	if (fileDlg.ShowModal() != wxID_OK)
