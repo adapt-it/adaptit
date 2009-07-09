@@ -5309,7 +5309,8 @@ d:		SetFocus();
 		SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
 		return;
 	}
-	else if (event.GetKeyCode() == WXK_PRIOR)
+	else if (event.GetKeyCode() == WXK_PAGEUP)
+					// GDLC WXK_PRIOR deprecated in 2.8
 	{
         // Note: an overload of CLayout::GetVisibleStripsRange() does the same job, so it
         // could be used instead here and for the other instance in next code block - as
@@ -5319,7 +5320,8 @@ d:		SetFocus();
 		nScrollCount = nLastStrip - nCurrentStrip;
 		goto a;
 	}
-	else if (event.GetKeyCode() == WXK_NEXT)
+	else if (event.GetKeyCode() == WXK_PAGEDOWN)
+					// GDLC WXK_NEXT deprecated in 2.8
 	{
         // Note: an overload of CLayout::GetVisibleStripsRange() does the same job, so it
         // could be used instead here and for the other instance in above code block - as
