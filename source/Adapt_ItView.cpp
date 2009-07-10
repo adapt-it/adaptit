@@ -839,8 +839,6 @@ int		gnSelectionEndSequNum;
 int		gnSelectionLine;
 
 bool	gbIsBeingPreviewed = FALSE; // true while a print preview is being done
-int		gnPrintingWidth;  // copy of the (logical coords) printing width for current paper
-						  // & margin settings
 int		gnPrintingLength; // ditto for the printing length of the page
 int		gnFromChapter = 1;
 int		gnFromVerse = 1;
@@ -5074,10 +5072,29 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 	int nStripHeightWithLeading = pLayout->GetCurLeading() + pLayout->GetStripHeight();
     // The nPagePrintingLength passed in represents the height of the printed page between the top and
     // bottom margins (in logical units).
-	int nMaxHeightPerPage = nPagePrintingLength; // the page height between top and bottom margins in logical units
-	// m_curLeading defaults to 32 pixels of height before each line including the first strip on the
-	// main window.
-	int nSafeBottomPaddingPerStrip = (nStripHeightWithLeading / (nMaxHeightPerPage / nStripHeightWithLeading));
+	int nMaxHeightPerPage = nPagePrintingLength; // the page height between top and 
+    // bottom margins in logical units
+    // m_curLeading defaults to 32 pixels of height before each line including the first
+    // strip on the main window <-- BEW 9Jul09, this is not true, the refactored code just
+    // uses m_curLeading value unchanged, which is safer as arbitrarily setting nav text
+    // area to 32 pixels of height when a large font may be being used, could result in a
+    // printing mess.
+    
+
+	// BEW removed 9Jul09 - the following calculation is safe only if a full strip plus
+	// leading is left over; but when a partial strip is left over it gives too large a
+	// value with the result that the number of strips for the page is calculated as one
+	// less than actually could fit. The three lines below the next line give the correct
+	// calculation which is basically "how much is left over" / "number of strips".
+	// However, I have commented the calculation out because it wastes time without
+	// doing anything useful - the extra pixels are not actually added to the strip
+	// offsets to space them out when the drawing is done, so there is no point in using
+	// the nSafeBottomPaddingPerStrip further below in this function, so I've removed it
+	//int nSafeBottomPaddingPerStrip = (nStripHeightWithLeading / (nMaxHeightPerPage / nStripHeightWithLeading));
+	//int nSafeBottomPaddingPerStrip = (nPagePrintingLength - 
+	//				(nMaxHeightPerPage / nStripHeightWithLeading) * nStripHeightWithLeading) /
+	//				(nMaxHeightPerPage / nStripHeightWithLeading);
+
 	int nAccumStripHeightThisPage = 0;
 	int nStripCountRunningTotal = 0;
 	int nFirstStripOnPage = 0;
@@ -5086,36 +5103,51 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 	{
 		if (nAccumStripHeightThisPage + nStripHeightWithLeading > nMaxHeightPerPage)
 		{
-			// can't fit the next strip on this page so create a PageOffset page and save its starting
-			// and ending strip offsets
+            // can't fit the next strip on this page so create a PageOffset page and save
+            // its starting and ending strip offsets
 			pOffsets = new PageOffsets;
 			if (paginationType == NoSimulation)
 			{
-				//pOffsets->nTop = pBundle->m_pStrip[nFirstStripOnPage]->m_rectStrip.GetTop();
-				//pOffsets->nBottom = pBundle->m_pStrip[nStripCountRunningTotal]->m_rectStrip.GetBottom();
 				pOffsets->nTop = ((CStrip*)(*pLayout->GetStripArray())[nFirstStripOnPage])->Top();
-				pOffsets->nBottom = ((CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal])->Top() 
-								+ ((CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal])->Height();
+				// BEW changed next line 9Jul09, because it uses the count value of
+				// nStripCountRunningTotal as an index, but the index value is always 1
+				// less than the count value, and hence it resulted in the next
+				// PageOffsets starting at an index one larger than it should have,
+				// resulting in a strip getting "lost" (ie. not drawn) from the end of the current
+				// PageOffsets instance
+				//pOffsets->nBottom = ((CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal])->Top() 
+				//				+ ((CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal])->Height();
+				pOffsets->nBottom = ((CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal - 1])->Top() 
+								+ ((CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal - 1])->Height();
 			}
 			else
 			{
 				pOffsets->nTop = 0;
 				pOffsets->nBottom = 0;
 			}
-			pOffsets->nFirstStrip = nFirstStripOnPage; 
-			pOffsets->nLastStrip = nStripCountRunningTotal;
+			pOffsets->nFirstStrip = nFirstStripOnPage;
+			// BEW changed first and last of next three lines, 9Jul09, because counts are
+			// used instead of indices, resulting in accesses to the wrong strips when drawing
+			//pOffsets->nLastStrip = nStripCountRunningTotal;
+			//pList->Append(pOffsets); // store the page information
+			//nFirstStripOnPage = nStripCountRunningTotal + 1;
+			pOffsets->nLastStrip = nStripCountRunningTotal - 1;
 			pList->Append(pOffsets); // store the page information
-			nFirstStripOnPage = nStripCountRunningTotal + 1;
+			nFirstStripOnPage = nStripCountRunningTotal;
 			nAccumStripHeightThisPage = 0;
 			pageCount++;
 		}
 		else
 		{
-			// The next strip fits on this page so continue adding strips. 
-			// Pad with a few extra pixels per strip to account for CRect vs wxRect differences in reportable
-			// rect heights. One pixel per strip might be enough, but two or three is probably safer to
-			// prevent printing beyond the bottom of the page, in case paper size isn't set properly.
-			nAccumStripHeightThisPage += nStripHeightWithLeading + nSafeBottomPaddingPerStrip; 
+            // The next strip fits on this page so continue adding strips. Pad with a few
+            // extra pixels per strip to account for CRect vs wxRect differences in
+            // reportable rect heights. One pixel per strip might be enough, but two or
+            // three is probably safer to prevent printing beyond the bottom of the page,
+            // in case paper size isn't set properly. 
+            // BEW changed next line 9Jul09, to remove use of unnecessary
+            // nSafeBottomPaddingPerStrip
+			//nAccumStripHeightThisPage += nStripHeightWithLeading + nSafeBottomPaddingPerStrip; 
+			nAccumStripHeightThisPage += nStripHeightWithLeading; 
 		}
 		nStripCountRunningTotal++;
 	}

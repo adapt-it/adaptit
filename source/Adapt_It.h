@@ -280,8 +280,8 @@ struct PageOffsets
 {
 	int nTop; // logical coord offset of first strip on page (from start of the logical/virtual document)
 	int nBottom; // logical coord offset of last strip on page (from start of the logical/virtual document)
-	int nFirstStrip; // number of the first strip to appear on the current page
-	int nLastStrip; // number of the last strip to appear on the current page
+	int nFirstStrip; // 0-based index of the first strip to appear on the current page
+	int nLastStrip; // 0-based index of the last strip to appear on the current page
 };
 
 /// wxList declaration and partial implementation of the POList class being
