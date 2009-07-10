@@ -8,11 +8,23 @@ the margin settings in millimeters, even if the Units dialog
 is set for "inches." This will eventually be corrected in a 
 future release of the Windows port.
 
+2. Under Windows Vista, if a project that uses a Right-to-Left 
+script for its target text is closed, and the user immediately 
+opens a different project which uses Left-to_Right script for
+its target text, the text that appears in the phrasebox may
+display right justified in the box. This is only a problem that
+appears under Windows Vista. If you experience this, the work-
+around is simply to exit from Adapt It and start it up and load
+the project with the Left-to-Right target language script again
+and the phrasebox text will then be left justified in the edit
+box.
+
 All Versions:
 
 1. RTF exports (including Interlinear) do not format correctly 
 when loaded into Open Office 3. They should format correctly 
-with MS Word. Eventually the RTF exports will be reworked to 
+with MS Word, and if saved from MS Word can subsequently opened
+in Open Office 3. Eventually the RTF exports will be reworked to 
 be compatible with Open Office 3.
 
 2. Sync Scrolling should work on the Windows port, but has not 
