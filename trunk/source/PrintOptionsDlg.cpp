@@ -76,7 +76,6 @@ extern bool gbPrintFooter;
 
 extern bool gbSuppressPrecedingHeadingInRange;
 extern bool gbIncludeFollowingHeadingInRange;
-extern int gnPrintingWidth;
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;

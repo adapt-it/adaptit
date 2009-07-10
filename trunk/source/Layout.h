@@ -166,6 +166,10 @@ public:
 											// and recreate the strips
 	bool		m_bFontInfoChanged; // if changed, update layout settings, recalc
 									// pile widths, recreate strips
+	PageOffsets* m_pOffsets; // the PageOffsets instance in use when printing current page
+						   // or when print previewing a given page (set by OnPrintPage()
+						   // in AIPringout.cpp; bool gbIsPrinting must be TRUE when this
+						   // member is accessed by Draw()
 
 //public:
 private:

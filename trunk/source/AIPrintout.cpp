@@ -69,7 +69,6 @@ extern bool gbIsBeingPreviewed;
 extern bool gbSuppressPrecedingHeadingInRange;
 extern bool gbIncludeFollowingHeadingInRange;
 extern bool gbIsPrinting;
-extern int gnPrintingWidth;
 extern int gnPrintingLength;
 extern int gnTopGap;
 extern int gnBottomGap;
@@ -168,6 +167,8 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
 */
+	pApp->m_docSize = pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
+															// back to app's member
 	pApp->m_saveDocSize = pApp->m_docSize; // store original size (can dispense with this
 			// here if we wish, because OnPreparePrinting() will make same call)
 	// the following, defined in the app class, is a kluge to prevent problems which would
@@ -216,6 +217,7 @@ AIPrintout::~AIPrintout()
 		pApp->m_docSize = pApp->m_saveDocSize;
 		// and put that value back into CLayout::m_logicalDocSize
 		pApp->m_pLayout->RestoreLogicalDocSizeFromSavedSize();
+		pApp->m_pLayout->m_pOffsets = NULL; // restore default NULL value for PageOffsets instance
 
 		// if we were printing a selection, restore the original state first (but don't restore the
 		// selection), then do tidy up of everything else & get a new layout calculated; likewise if
@@ -325,6 +327,7 @@ bool AIPrintout::OnPrintPage(int page)
 	// See code:#print_flow for the order of calling of OnPrintPage().
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItView* pView = pApp->GetView();
+	CLayout* pLayout = pApp->m_pLayout;
     wxDC *pDC = GetDC();
     if (pDC)
     {
@@ -369,7 +372,12 @@ bool AIPrintout::OnPrintPage(int page)
 		POList* pList = &pApp->m_pagesList;
 		POList::Node* pos = pList->Item(gnCurPage-1);
 		PageOffsets* pOffsets = (PageOffsets*)pos->GetData();
-	
+
+        // BEW added 10Jul09; inform CLayout of the PageOffsets instance which is current
+        // for the page being printed - Draw() needs this information in order to work out
+        // the strips to be drawn
+		pLayout->m_pOffsets = pOffsets;
+
         // Note: Printing of headers and/or footers needs to be done before we call
         // pDC->SetLogicalOrigin(0,pOffsets->nTop) below because headers and footers are always placed
         // on the page in constant coordinates in relation to the top and bottom page margins (scaled
@@ -416,7 +424,9 @@ bool AIPrintout::OnPrintPage(int page)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnBeginPrinting()
 {
-	// refactored 6Apr09 -- do nothing
+	// refactored 6Apr09 -- do nothing except ensure the gbIsPrinting flag is TRUE
+	gbIsPrinting = TRUE;
+
 	// set the mapping mode
 	// The highest resolution choices are wxMM_TWIPS and wxMM_LOMETRIC.
 	// With wxMM_TWIPS each logical unit is 1/20th point or 1/1440th of an inch.
@@ -527,26 +537,30 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return         nothing
 /// \remarks
-/// Called from: OnPreparePrinting() is called automatically by the framework when an OnPrint() event is
-/// handled (via wxID_PRINT standard Identifier). According to the docs, "It is called once by the
-/// framework before any other demands are made of the wxPrintout object. This gives the object an
-/// opportunity to calculate the number of pages in the document, and any other print preparations
-/// that are necessary before actual printing or print preview is done." OnPreparePrinting() is
-/// always called once just before a print preview dialog is displayed, and it is not called again
-/// when a different page is selected in print preview mode. When File | Print is selected
-/// OnPreparePrinting() is not called until after the the OK button is pressed at the print dialog,
-/// so, if user cancels the print dialog OnPreparePrinting() is never called in that case. Unlike the 
-/// MFC version, which actually calls up the print dialog from within its version of OnPreparePrinting 
-/// (by calling the MFC DoPreparePrinting(pInfo) function), the wx version works differently. The print 
-/// dialog is called up in its high level OnPrint() handler at the point where the wxPrinter object's 
-/// Print() method is called. There is therefore no need for cleanup code to fix indices, call 
-/// RecalcLayout, etc, here in OnPreparePrinting. All that is done in the AIPrintout's destructor, 
-/// rather than here in OnPreparePrinting(). See notes within OnPreparePrinting() for more detail.
+/// Called from: OnPreparePrinting() is called automatically by the framework when an
+/// OnPrint() event is handled (via wxID_PRINT standard Identifier). According to the docs,
+/// "It is called once by the framework before any other demands are made of the wxPrintout
+/// object. This gives the object an opportunity to calculate the number of pages in the
+/// document, and any other print preparations that are necessary before actual printing or
+/// print preview is done." OnPreparePrinting() is always called once just before a print
+/// preview dialog is displayed, and it is not called again when a different page is
+/// selected in print preview mode. When File | Print is selected OnPreparePrinting() is
+/// not called until after the the OK button is pressed at the print dialog, so, if user
+/// cancels the print dialog OnPreparePrinting() is never called in that case. Unlike the
+/// MFC version, which actually calls up the print dialog from within its version of
+/// OnPreparePrinting (by calling the MFC DoPreparePrinting(pInfo) function), the wx
+/// version works differently. The print dialog is called up in its high level OnPrint()
+/// handler at the point where the wxPrinter object's Print() method is called. There is
+/// therefore no need for cleanup code to fix indices, call RecalcLayout, etc, here in
+/// OnPreparePrinting. All that is done in the AIPrintout's destructor, rather than here in
+/// OnPreparePrinting(). See notes within OnPreparePrinting() for more detail.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnPreparePrinting() 
 {
 	// refactored 6Apr09
  	CAdapt_ItApp* pApp = &wxGetApp();
+	pApp->m_docSize = pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
+															// back to app's member
  	pApp->m_saveDocSize = pApp->m_docSize; // also done in creator of AIPrintout class
 
   // whm notes:
@@ -802,9 +816,6 @@ void AIPrintout::OnPreparePrinting()
 	pApp->m_docSize.y = 0;
     pApp->m_pLayout->CopyLogicalDocSizeFromApp();
    
-	// whm Note: The MFC version uses the following gnPrintingWidth global in SetupRangePrintOp().
-	gnPrintingWidth = pApp->m_docSize.x;
-
 	// check for a selection, if it exists, assume user wants to print it & setup accordingly
 	if (pApp->m_selectionLine == -1)
 	{

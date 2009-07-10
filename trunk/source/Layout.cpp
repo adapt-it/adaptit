@@ -276,6 +276,7 @@ void CLayout::InitializeCLayout()
 	m_invalidStripArray.Clear();
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
+	m_pOffsets = NULL;
 #ifdef Do_Clipping
 	//m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
@@ -355,47 +356,74 @@ void CLayout::Draw(wxDC* pDC)
 
 	// work out the range of visible strips based on the phrase box location
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
-	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
-	GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
 
+	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
+	// BEW added 10July09, GetVisibleStripsRange() assumes drawing is being done to the
+	// client rectangle of the view, and this is not the case when printing or print
+	// previewing, so code is added to access the current PageOffsets struct when printing
+	// is in effect, to work out the first and last strip and the number of strips to be
+	// drawn for the current printed page or previewed page
+	if (gbIsPrinting)
+	{
+		// printing, or print previewing is currently in effect
+		nFirstStripIndex = m_pOffsets->nFirstStrip;
+		nLastStripIndex = m_pOffsets->nLastStrip;
+	}
+	else
+	{
+		// not printing nor print previewing
+		GetVisibleStripsRange(pDC, nFirstStripIndex, nLastStripIndex);
+	}
 	// check for any invalid strips in the range to be drawn, and if one is found, call
 	// the CleanUpFromStripAt() function, doing it for a window's worth of strips, so that
 	// no invalid strip will be visible to the user - either when displaying document
 	// editing results, or when scrolling up or down
-	CStrip* aStripPtr = NULL;
-	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
+	// 
+	// BEW added 10Jul09, since RecalcLayout() with param create_strips_keep_piles is
+	// called before drawing when doing print, or print preview, there won't be invalid
+	// strips in existence, and so we don't need to do this block when gbIsPrinting is
+	// TRUE
+	if (!gbIsPrinting)
 	{
-		aStripPtr = (CStrip*)m_stripArray.Item(i);
-		if (aStripPtr->m_bValid == FALSE)
+		CStrip* aStripPtr = NULL;
+		for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
 		{
-			// fix a window's worth of strips from here on - do it only once per loop
-			CleanUpTheLayoutFromStripAt(aStripPtr->m_nStrip, GetNumVisibleStrips());
-			break;
+			aStripPtr = (CStrip*)m_stripArray.Item(i);
+			if (aStripPtr->m_bValid == FALSE)
+			{
+				// fix a window's worth of strips from here on - do it only once per loop
+				CleanUpTheLayoutFromStripAt(aStripPtr->m_nStrip, GetNumVisibleStrips());
+				break;
+			}
 		}
 	}
 
 	// in case the count of the inventory of strips has changed because a strip was
 	// cleared and removed, check for this possibility and reset the nLastStripIndex if it
 	// no longer references an element in the array
-	int newLastIndex = m_stripArray.GetCount() - 1;
-	if (nLastStripIndex > newLastIndex)
+	int newLastIndex = 0;
+	if (!gbIsPrinting)
 	{
-        // NECESSARY! Here's how to induce a crash if this test and resetting of
-        // nLastStripIndex was not done. Have several words of an unadapted phrase to be
-        // merged at the end of the document, in such a way that a couple of the source
-        // words are at the end of the penultimate strip and the final few words are at the
-        // beginning of the final strip - and the final strip should have not a full
-        // inventory of piles - but few enough for the new merger to later fit within it.
-        // Get the box at the first of the words, make the merger. The app will make the
-        // merger, it will be too long for the penultimate strip and be thrown down to an
-        // inserted strip as the latter's only pile (and the strip count increases by one)
-        // but the pile flow up mechanism results in the last strip's piles flowing up, and
-        // they all fit, so the last strip becomes empty and gets removed. The
-        // nLastStripIndex set externally to that process then references a strip which no
-        // longer exists, and the app would crash when the m_stripArray is asked for a
-        // CStrip* which now no longer exists. The following line fixes the problem if ever
-        // it arises.
-		nLastStripIndex = newLastIndex;
+		newLastIndex = m_stripArray.GetCount() - 1;
+		if (nLastStripIndex > newLastIndex)
+		{
+			// NECESSARY! Here's how to induce a crash if this test and resetting of
+			// nLastStripIndex was not done. Have several words of an unadapted phrase to be
+			// merged at the end of the document, in such a way that a couple of the source
+			// words are at the end of the penultimate strip and the final few words are at the
+			// beginning of the final strip - and the final strip should have not a full
+			// inventory of piles - but few enough for the new merger to later fit within it.
+			// Get the box at the first of the words, make the merger. The app will make the
+			// merger, it will be too long for the penultimate strip and be thrown down to an
+			// inserted strip as the latter's only pile (and the strip count increases by one)
+			// but the pile flow up mechanism results in the last strip's piles flowing up, and
+			// they all fit, so the last strip becomes empty and gets removed. The
+			// nLastStripIndex set externally to that process then references a strip which no
+			// longer exists, and the app would crash when the m_stripArray is asked for a
+			// CStrip* which now no longer exists. The following line fixes the problem if ever
+			// it arises.
+			nLastStripIndex = newLastIndex;
+		}
 	}
 
 	// draw the visible strips (includes an extra one, where possible)
@@ -1643,10 +1671,11 @@ void CLayout::CopyLogicalDocSizeFromApp()
 
 void CLayout::RestoreLogicalDocSizeFromSavedSize()
 {
-	m_pApp->m_docSize = m_pApp->m_saveDocSize; // restore the normal doc size after 
-					// a printing operation, the latter has different strip width
-					// and document height; put this call in ~AIPrintout() before 
-					// RecalcLayout() is called there
+	m_logicalDocSize = m_pApp->m_saveDocSize; // copy it to our class's variable
+					// with similar name, as this is used in RecalcLayout() calls
+	// in the destructor for AIPrintout, the app member, m_savDocSize is used to
+	// restore the app member m_docSize, so we don't need to do that here - we only
+	// need to restore the CLayout::m_logicalDocSize here
 }
 
 // return TRUE if a layout was set up, or if no layout can yet be set up;
@@ -1749,11 +1778,16 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// when printing)
 	wxClientDC viewDC(m_pApp->GetMainFrame()->canvas);
 	m_pApp->GetMainFrame()->canvas->DoPrepareDC(viewDC); //  adjust origin
-	m_pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(
-										0,0,&grectViewClient.x,&grectViewClient.y);
-	grectViewClient.width = m_sizeClientWindow.GetWidth(); // m_sizeClientWindow set in
-						// the above call to SetClientWindowSizeAndLogicalDocWidth()
-	grectViewClient.height = m_sizeClientWindow.GetHeight();
+	// BEW 9Jul09; add test to jump grectViewClient calculation when printing, it just
+	// wastes time because the values are not used when printing
+	if (!gbIsPrinting)
+	{
+		m_pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(
+											0,0,&grectViewClient.x,&grectViewClient.y);
+		grectViewClient.width = m_sizeClientWindow.GetWidth(); // m_sizeClientWindow set in
+							// the above call to SetClientWindowSizeAndLogicalDocWidth()
+		grectViewClient.height = m_sizeClientWindow.GetHeight();
+	}
 	// if we are printing, then we will want text extents (which use viewDC for their calculation)
 	// to be done for MM_LOENGLISH mapping mode
 	// whm notes:
