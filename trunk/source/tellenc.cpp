@@ -240,7 +240,8 @@ static void print_char_cnt(const char_count_t char_cnt[])
         if (char_cnt[i].second == 0)
             break;
         printf("%.2x ('%c'): %-6u    ", ch,
-               isprint(ch) ? ch : '?', char_cnt[i].second);
+//			   isprint(ch) ? ch : '?', (uint16_t)char_cnt[i].second); // GDLC modified 11Jul09 added (uint16_t) cast
+               isprint(ch) ? ch : '?', char_cnt[i].second); // GDLC removed cast because it did not fix the link problem with PPC release build
     }
     printf("\n");
 }
@@ -249,7 +250,8 @@ static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
 {
     for (vector<char_count_t>::const_iterator it = dbyte_char_cnt.begin();
             it != dbyte_char_cnt.end(); ++it) {
-        printf("%.4x: %-6u        ", it->first, it->second);
+//		printf("%.4x: %-6u        ", it->first, (uint16_t)it->second); // GDLC modified 11Jul09 added (uint16_t) cast
+        printf("%.4x: %-6u        ", it->first, it->second); // GDLC removed cast because it did not fix the link problem with PPC release build
     }
 }
 
@@ -436,10 +438,14 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
     if (verbose) {
         print_dbyte_char_cnt(dbyte_char_cnt);
         printf("\n");
-        printf("%u characters\n", len);
-        printf("%u double-byte characters\n", dbyte_cnt);
-        printf("%u double-byte hi-hi characters\n", dbyte_hihi_cnt);
-        printf("%u unique double-byte characters\n", dbyte_char_cnt.size());
+//		printf("%u characters\n", (uint16_t)len); // GDLC modified 11Jul09 added (uint16_t) cast
+        printf("%u characters\n", len); // GDLC removed cast because it did not fix the link problem with PPC release build
+//		printf("%u double-byte characters\n", (uint16_t)dbyte_cnt); // GDLC modified 11Jul09 added (uint16_t) cast
+        printf("%u double-byte characters\n", dbyte_cnt); // GDLC removed cast because it did not fix the link problem with PPC release build
+//		printf("%u double-byte hi-hi characters\n", (uint16_t)dbyte_hihi_cnt); // GDLC modified 11Jul09 added (uint16_t) cast
+        printf("%u double-byte hi-hi characters\n", dbyte_hihi_cnt); // GDLC removed cast because it did not fix the link problem with PPC release build
+//		printf("%u unique double-byte characters\n", (uint16_t)dbyte_char_cnt.size()); // GDLC modified 11Jul09 added (uint16_t) cast
+        printf("%u unique double-byte characters\n", dbyte_char_cnt.size()); // GDLC removed cast because it did not fix the link problem with PPC release build
     }
 
     if (!is_valid_utf8 && is_binary) {
