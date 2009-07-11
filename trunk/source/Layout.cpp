@@ -1323,7 +1323,7 @@ void CLayout::SetClientWindowSizeAndLogicalDocWidth()
 	{
 		// not printing, so the layout is being done for the screen
 		docSize.x = m_sizeClientWindow.x - m_nCurLMargin - RH_SLOP; 
-                // RH_SLOP defined in AdaptItConstants.h with a value of 40 (reduces
+                // RH_SLOP defined in AdaptItConstants.h with a value of 60 (reduces
                 // likelihood of long nav text above a narrow pile which is last in a
                 // strip, having the end of the nav text drawn off-window
 	}
