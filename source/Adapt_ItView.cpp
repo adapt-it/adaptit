@@ -5044,6 +5044,17 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
+
+#ifdef PrintPreview_Lost_End
+	int nTheMaxIndex = pApp->GetMaxIndex();
+	CStrip* pTheLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
+	CPile* pTheLastPile = (CPile*)pTheLastStrip->GetPilesArray()->Last();
+	CSourcePhrase* pTheLastSrcPhrase = pTheLastPile->GetSrcPhrase();
+	int nTheLastSN = pTheLastSrcPhrase->m_nSequNumber;
+	wxLogDebug(_T("\n PaginateDoc() Max src phrase sequ number %d , Last strip index %d , Last src phrase %s , Last sequ num %d "), 
+		nTheMaxIndex, pTheLastStrip->GetStripIndex(), pTheLastSrcPhrase->m_srcPhrase, nTheLastSN);
+#endif
+
 	// whm Observations: PaginateDoc() basically uses the existing indices for the App's
 	// strip count as the max number of strips to be paginated into pages, and
 	// determines how many pages it will take to print the document.
@@ -5098,7 +5109,12 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 	int nAccumStripHeightThisPage = 0;
 	int nStripCountRunningTotal = 0;
 	int nFirstStripOnPage = 0;
-	// process pages until we've processed all the strips that need processing
+    // loop to process pages until we've processed all the strips that need processing
+	// BEW 11Jul09, added boolean because if a PageOffset was just closed off when one
+	// strip remains to be processed, the loop exits with nAccumStripHeightThisPage reset
+	// to 0, and then the block following the loop is not entered, so extra help is needed
+	// in that block's test to ensure it gets entered in this circumstance
+	bool bJustClosedOff = FALSE;
 	while (nStripCountRunningTotal < nMaxStrips)
 	{
 		if (nAccumStripHeightThisPage + nStripHeightWithLeading > nMaxHeightPerPage)
@@ -5131,28 +5147,55 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 			//pOffsets->nLastStrip = nStripCountRunningTotal;
 			//pList->Append(pOffsets); // store the page information
 			//nFirstStripOnPage = nStripCountRunningTotal + 1;
-			pOffsets->nLastStrip = nStripCountRunningTotal - 1;
-			pList->Append(pOffsets); // store the page information
-			nFirstStripOnPage = nStripCountRunningTotal;
-			nAccumStripHeightThisPage = 0;
+			pOffsets->nLastStrip = nStripCountRunningTotal - 1; // need an index, not a count
 			pageCount++;
+			pList->Append(pOffsets); // store the page information
+#ifdef PrintPreview_Lost_End
+		wxLogDebug(_T("PaginateDoc(), #1 Appended %x , page with index  %d , top %d , bottom %d , first strip index  %d , last strip index  %d"),
+			pOffsets, pageCount - 1, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+#endif
+			// prepare for the next iteration of the loop
+			nFirstStripOnPage = nStripCountRunningTotal; // index for first strip of next PageOffsets instance
+			nAccumStripHeightThisPage = 0;
+#ifdef PrintPreview_Lost_End
+			CStrip* pLastStrip = (CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal - 1];
+			CPile* pLastPile = (CPile*)pLastStrip->GetPilesArray()->Last();
+			CSourcePhrase* pLastSrcPhrase = pLastPile->GetSrcPhrase();
+			int nTheSN = pLastSrcPhrase->m_nSequNumber;
+			wxLogDebug(_T("PaginateDoc(), #1 PageOffsets  %d , last src phrase %s , last sequ num %d , num piles remaining %d , last strip index %d"),
+				pageCount, pLastSrcPhrase->m_srcPhrase, nTheSN, nTheMaxIndex - nTheSN, pLastStrip->GetStripIndex());
+#endif
+			bJustClosedOff = TRUE;
 		}
 		else
 		{
-            // The next strip fits on this page so continue adding strips. Pad with a few
-            // extra pixels per strip to account for CRect vs wxRect differences in
-            // reportable rect heights. One pixel per strip might be enough, but two or
-            // three is probably safer to prevent printing beyond the bottom of the page,
-            // in case paper size isn't set properly. 
-            // BEW changed next line 9Jul09, to remove use of unnecessary
-            // nSafeBottomPaddingPerStrip
-			//nAccumStripHeightThisPage += nStripHeightWithLeading + nSafeBottomPaddingPerStrip; 
-			nAccumStripHeightThisPage += nStripHeightWithLeading; 
+            // The next strip fits on this page so continue adding strips. 
+            // BEW changed next line 10Jul09, to remove use of unnecessary
+			// nSafeBottomPaddingPerStrip
+			//nAccumStripHeightThisPage += nStripHeightWithLeading + nSafeBottomPaddingPerStrip;
+			nAccumStripHeightThisPage += nStripHeightWithLeading;
+			bJustClosedOff = FALSE;
 		}
+#ifdef Gilaki_Wide_Margin_Bug
+		if (nStripCountRunningTotal <= 3)
+		{
+			// check the "left" margin value, and where the RecalcLayout() call put the
+			// left and right boundaries of the zeroth CPile instance in first 4 strips
+			CStrip* pStrip = (CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal];
+			CPile* pFirstPile = (CPile*)pStrip->GetPilesArray()->Item(0);
+			CPile* pLastPile = (CPile*)pStrip->GetPilesArray()->Last();
+			
+			wxLogDebug(_T("PaginateDoc(), Strip[ %d ], First pile: Left  %d , Right %d , Left Margin %d, Last pile: Left  %d , Right  %d"),
+				pStrip->GetStripIndex(), pFirstPile->Left(), pFirstPile->Left() + pFirstPile->Width(), pLayout->GetStripLeft(),
+				pLastPile->Left(), pLastPile->Left() + pLastPile->Width());
+		}
+#endif
 		nStripCountRunningTotal++;
 	}
 
-	if (nAccumStripHeightThisPage > 0)
+	// BEW added to this test on 11July09, for the reason see comments above the loop above
+	if (nAccumStripHeightThisPage > 0 || (bJustClosedOff && 
+		((CStrip*)pLayout->GetStripArray()->Last())->GetStripIndex() == nFirstStripOnPage))
 	{
 		// there is material for one final (partial) page
 		pOffsets = new PageOffsets;
@@ -5171,8 +5214,20 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 		}
 		pOffsets->nFirstStrip = nFirstStripOnPage;
 		pOffsets->nLastStrip = nStripCountRunningTotal - 1;
-		pList->Append(pOffsets); // store the page information
 		pageCount++;
+		pList->Append(pOffsets); // store the page information
+#ifdef PrintPreview_Lost_End
+		wxLogDebug(_T("PaginateDoc(), #2 Appended %x , page with index  %d , top %d , bottom %d , first strip index  %d , last strip index  %d"),
+			pOffsets, pageCount - 1, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+#endif
+#ifdef PrintPreview_Lost_End
+		CStrip* pLastStrip = (CStrip*)pLayout->GetStripArray()->Last();
+		CPile* pLastPile = (CPile*)pLastStrip->GetPilesArray()->Last();
+		CSourcePhrase* pLastSrcPhrase = pLastPile->GetSrcPhrase();
+		int nTheSN = pLastSrcPhrase->m_nSequNumber;
+		wxLogDebug(_T("PaginateDoc(), #2 PageOffsets  %d , last src phrase %s , last sequ num %d , num piles remaining %d , last strip index %d"),
+			pageCount, pLastSrcPhrase->m_srcPhrase, nTheSN, nTheMaxIndex - nTheSN, pLastStrip->GetStripIndex());
+#endif
 	}
 	wxASSERT(pageCount == (int)pList->GetCount());
 	return TRUE;
@@ -5195,7 +5250,9 @@ void CAdapt_ItView::ClearPagesList()
 	}
 	else
 	{
-		
+#ifdef PrintPreview_Lost_End
+		int aCounter = 0;
+#endif		
 		POList::Node* pos = pList->GetFirst();
 		while(pos != NULL)
 		{
@@ -5208,10 +5265,19 @@ void CAdapt_ItView::ClearPagesList()
 			// (PageOffsets*) which is really what was stored in this POList by the
 			// PaginateDoc() function above.
 			PageOffsets* pOffsets = (PageOffsets*)pos->GetData(); // MFC used PageParams*
+#ifdef PrintPreview_Lost_End
+			aCounter++;
+			wxLogDebug(_T("\nClearPagesList(), counter = %d , PageOffsets pointer %x , before delete pOffsets is called"),
+					aCounter, pOffsets);
+#endif
 			pos = pos->GetNext();
 			if (pOffsets != NULL)
 			{
 				delete pOffsets;
+#ifdef PrintPreview_Lost_End
+		wxLogDebug(_T("ClearPagesList(), counter = %d , PageOffsets pointer %x , this one deleted OK"),
+					aCounter, pOffsets);
+#endif
 			}
 		}
 		pList->Clear();

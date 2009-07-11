@@ -636,7 +636,15 @@ void CCell::Draw(wxDC* pDC)
    	if (m_nCell != 1 ||
 		m_pOwningPile->m_pSrcPhrase->m_nSequNumber != m_pLayout->m_pApp->m_nActiveSequNum)
 	{
-		//m_pText->Draw(pDC);
+#ifdef Gilaki_Wide_Margin_Bug
+		if (gbIsPrinting && m_nCell == 0 && m_pOwningPile->m_pOwningStrip->m_nStrip <= 3)
+		{
+            // check where the left and right boundaries are for the piles in first 4
+            // strips			
+			wxLogDebug(_T("CCell::Draw(), Strip[ %d ], Pile[ %d ] (in strip), Left %d Right %d"),
+				m_pOwningPile->m_pOwningStrip->m_nStrip, m_pOwningPile->m_nPile, Left(), Left() + Width());
+		}
+#endif		//m_pText->Draw(pDC);
 		DrawCell(pDC, color);
 	}
 	else
