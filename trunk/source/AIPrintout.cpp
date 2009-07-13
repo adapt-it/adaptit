@@ -607,7 +607,7 @@ void AIPrintout::OnPreparePrinting()
     // Strip's Draw() function.
     // 
     // whm update: It is not sufficient to set gbIsPrinting to TRUE only here, because OnEndPrinting()
-    // sets is to FALSE after each page is drawn in print preview. It is also set to TRUE in
+    // sets it to FALSE after each page is drawn in print preview. It is also set to TRUE in
     // OnBeginDocument().
 	gbIsPrinting = TRUE;
 
