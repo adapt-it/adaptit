@@ -400,12 +400,14 @@ bool AIPrintout::OnPrintPage(int page)
 		// initial drawing point for what's drawn on this page to the upper left corner - beginning at
 		// the point where the printout's logical top and left page margins intersect.
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
+		//this->SetLogicalOrigin(0, fitRect.y); // test with Gilaki doc
 		
 		// SetLogicalOrigin is only documented as a method of wxPrintout, but it is also available for
 		// wxDC. Since the "Strips" that will be drawn in OnDraw() below store their logical coordinates
 		// based on their position in the whole virtual document, we need to set the logical origin so
 		// that strips will start drawing from the top of our printout/preview page.
 		pDC->SetLogicalOrigin(0,pOffsets->nTop); // MFC used pDC->SetWindowOrg(0,pOffsets->nTop);
+		//pDC->SetLogicalOrigin(400,pOffsets->nTop); // test with Gilaki doc
 
 		pView->OnDraw(pDC);
         

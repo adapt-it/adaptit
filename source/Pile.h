@@ -80,7 +80,7 @@ private:
 public:
 	virtual		~CPile();
 
-	virtual		void Draw(wxDC* pDC); // *** TODO **** needs new param list and internals
+	virtual		void Draw(wxDC* pDC);
 	void		DrawNavTextInfoAndIcons(wxDC* pDC); // handles wedge, note icon, retranslation, nav text etc
 	void		PrintPhraseBox(wxDC* pDC);
 	bool		IsWrapPile();

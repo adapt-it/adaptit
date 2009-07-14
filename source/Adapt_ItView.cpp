@@ -21,6 +21,8 @@
 // 
 // **************************************************************************************
 
+//#define DrawFT_Bug
+
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
 #endif
@@ -45971,19 +45973,26 @@ wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 	activeSequNum	->	index of the current active location where the free translation's
 						current section commences (ie. the anchor CPile instance)
  Remarks:
-    Called early in the view's DrawFreeTranslations() function, to return an arbitrary but 
-	off-screen CPile instance guaranteed to lie somewhere within the document and preceding
-	the start of the current free translation section being drawn. This pile is used as the
-	kick off point for scanning forward to determine which CPile instance is actually to
-	be the start (ie. anchor) for the current free translation section. In the legacy
-	application where we segmented the document into "bundles" and only laid out a bundle
-	at a time, it was easy to start the forward scan from the start of the current bundle.
-	But in the refactored application, it would be a waste of time to start the scan from
-	the beginning of the document. So we work out a suitable location given the current
-	active location (& its anchor pile) - that works right even if the user has scrolled
-	the active location off screen. Since we need to dynamically for each call of
-	DrawFreeTranslations(), there is no need to store this starting pile's pointer in
-	a global for use at a later time
+    Called early in the view's DrawFreeTranslations() function, to return an arbitrary but
+    off-screen CPile instance guaranteed to lie somewhere within the document and preceding
+    the start of the current free translation section being drawn. This pile is used as the
+    kick off point for scanning forward to determine which CPile instance is actually to be
+    the start (ie. anchor) for the current free translation section. In the legacy
+    application where we segmented the document into "bundles" and only laid out a bundle
+    at a time, it was easy to start the forward scan from the start of the current bundle.
+    But in the refactored application, it would be a waste of time to start the scan from
+    the beginning of the document. So we work out a suitable location given the current
+    active location (& its anchor pile) - that works right even if the user has scrolled
+    the active location off screen. Since we need to dynamically work this out for each
+    call of DrawFreeTranslations(), there is no need to store this starting pile's pointer
+    in a global for use at a later time
+	Note: in July 09 (about 12th?) BEW changed the forward scanning in DrawFreeTranslations()
+	to not scan forward more than as many strips as fit in the visible window, otherwise
+	we were getting whole-document scans over thousands of strips which tied up the app for
+	a minute or more. Therefore, the kick off point for scanning forward has to be able to
+	find its target location within a window height's amount of strips from the kick off
+	location, so care must be exercised in coding the free translation functionality to
+	ensure this constraint is never violated. (see change of 14July below, for example)
 ***********************************************************************/
 CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 {
@@ -46003,9 +46012,12 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	int numVisibleStrips = pLayout->GetNumVisibleStrips();
 	if (numVisibleStrips < 1)
 		numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
-	numVisibleStrips *= 2; // use twice as many - i.e two client rectangle's worth
 	int nCurStripIndex = pStartPile->GetStripIndex();
-	nCurStripIndex = nCurStripIndex - numVisibleStrips;
+	// BEW changed 14Jul09, we want to start the off-window scan no more than a strip or
+	// two from the start of the visible area, otherwise our caller,
+	// DrawFreeTranslations() may exit early without drawing anything - so from the active
+	// strip we go back a half-window and then two more strips for good measure
+	nCurStripIndex = nCurStripIndex - (numVisibleStrips / 2 + 2);
 	if (nCurStripIndex < 0)
 		nCurStripIndex = 0;
 	CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
@@ -46026,11 +46038,7 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 
  Parameters:
 	pDC		->	pointer to the device context used for drawing the view
-	pBundle	->	pointer to the bundle, which has just been (possibly recalculted 
-                and) drawn - all the strips, piles, cells and backgrounding has been done
-                before DrawFreeTranslation() is called; so this function's task is just to
-                work out what bits of free translation text need to be drawn where - and do
-                it
+	pLayout	->	pointer to the CLayout instance, which manages all the strips, and piles.
  whm added parameters below 24Aug06 and 31May07
 	drawFTCaller -> enum value either call_from_ondraw, or call_from_edit - when 
                     call_from_ondraw all free translations within the view are drawn; when
@@ -46044,8 +46052,9 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
     rectangle for the view - and when the intersection is null, it skips further
     calculations at that point and draws nothing; furthermore, then the function determines
     that all further drawing will be done below the bottom of the client rect, it exits.
-    The data structures and variables the function requires are, for the most part, globals
-    defined at the start of the view class's file Adapt_ItView.cpp.
+    The data structures and variables the function requires are, for the most part, within
+	the CLayout instance, but there are also some globals defined at the start of the view 
+	class's file Adapt_ItView.cpp.
 
    whm: With its six jump labels, and thirteen gotos, the logic of this function is very
    convoluted and difficult to follow - BEWARE!
@@ -46126,6 +46135,18 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	}
 	pDC->SetTextForeground(color); 
 
+	// the logicalViewClientBottom is the scrolled value for the top of the view
+	// window, after the device context has been adjusted; this value is constant for any
+	// one call of DrawFreeTranslations(); we need to use this value in some tests,
+	// because grectViewClient.GetBottom() only gives what we want when the view is
+	// unscrolled
+	int logicalViewClientBottom = (int)pDC->DeviceToLogicalY(grectViewClient.GetBottom());
+	// use the thumb position to adjust the Y coordinate of testRect, so it has the
+	// correct logical coordinates value given the amount that the view is currently
+	// scrolled 
+	int nThumbPosition_InPixels = pDC->DeviceToLogicalY(0);
+
+
     // for wx testing we make the background yellow in order to verify the extent of each
     // DrawText and clearing of remaining free translation's rect segment
 	//pDC->SetBackgroundMode(pApp->m_backgroundMode);
@@ -46188,7 +46209,9 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	}
 
     // The a: labeled while loop below is skipped whenever drawFTCaller == call_from_edit
-    // find the next free translation section
+	// find the next free translation section, scanning forward (BEW added additional code
+	// on 13Jul09, to prevent scanning beyond the visible extent of the view window - for
+	// big documents that wastes huge slabs of time)
 a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 	{
 		pPile = GetNextPile(pPile);
@@ -46206,6 +46229,41 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		}
 		#endif
 		#endif
+
+		// BEW added 13Jul09, a test to determine when pPile's strip's top is greater than
+		// the bottom coord (in logical coord space) of the view window - when it is TRUE,
+		// we break out of the loop. Otherwise, if the document has no free translations
+		// ahead, the scan goes to the end of the document - and for documents with
+		// 30,000+ piles, this can take a minute or more!
+		if (pPile == NULL)
+		{
+			// at doc end, so destroy the elements and we are done, so return
+			DestroyElements(gpFreeTransArray); // don't leak memory
+			return;
+		}
+		CStrip* pStrip = pPile->GetStrip();
+		int nStripTop = pStrip->Top();
+
+#ifdef DrawFT_Bug
+	wxLogDebug(_T(" a: scan in visible part: srcPhrase %s , sequ num %d, strip index %d , nStripTop (logical) %d , grectViewClient bottom %d"),
+		pPile->GetSrcPhrase()->m_srcPhrase, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetStripIndex(),
+		nStripTop,logicalViewClientBottom);
+#endif
+
+		// when scrolled, grecViewClient is unchanged as it is device coords, so we have
+		// to convert the Top coord (ie. y value) to logical coords for the tests
+		//if (nStripTop > grectViewClient.GetBottom())
+		if (nStripTop > logicalViewClientBottom)
+		{
+			// the strip is below the bottom of the view rectangle, stop searching forward
+			DestroyElements(gpFreeTransArray); // don't leak memory
+			
+#ifdef DrawFT_Bug
+			wxLogDebug(_T(" a: RETURNING;  nStripTop  %d ,  logicalViewClientBottom  %d"),
+				nStripTop, logicalViewClientBottom);
+#endif
+			return;
+		}
 	}
 
 	// did we find a free translation section?
@@ -46221,38 +46279,15 @@ ed:	if (pPile == NULL)
 	}
 	pSrcPhrase = pPile->GetSrcPhrase();
 
-    // was the one we found the current one (that is, where the phrase box currently is)?
-    // If so, we choose to skip it because we can't be certain of a valid free translation
-    // being there yet
+#ifdef DrawFT_Bug
+	wxLogDebug(_T(" ed: scan ahead: srcPhrase %s , sequ num %d, active sn %d  nThumbPosition_InPixels = %d"),
+		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, pApp->m_nActiveSequNum, nThumbPosition_InPixels);
+#endif
 
     // BEW commented out the next line 11Sep08 because it appears to not be needed and when
     // in vertical edit mode, entering the free translation section which was just removed
     // the next line tries to do a GetAt() call on an empty list - which is illegal
 	//CPile* pCurrentPile = (CPile*)gpCurFreeTransSectionPileArray->GetAt(0); // the anchor pile
-
-	// whm commented out the block below in order to be able to see the current free translation
-	// updated real-time within the main window.
-	//if (pPile == pCurrentPile)
-	//{
-	//	// skip this section
-	//	int sectCount = gpCurFreeTransSectionPileArray->GetCount();
-		//pCurrentPile = (CPile*)gpCurFreeTransSectionPileArray->Item(sectCount - 1); // last pile in the array
-	//	wxASSERT(pCurrentPile);
-	//	pCurrentPile = GetNextPile(pCurrentPile);
-	//	if (pCurrentPile == NULL)
-	//	{
-	//		#ifdef _Trace_DrawFreeTrans
-	//		TRACE0("** exiting in skip current section block **\n");
-	//		#endif
-
-	//		DestroyElements(gpFreeTransArray); // don't leak memory
-	//		return; // we are at the end of the bundle, and nothing more to be written
-	//	}
-	//	pPile = pCurrentPile; // this is the first one past the current section (it may or 
-	//	                      // may not be an anchor)
-	//	goto a; // move forward, if necessary, to find the next anchor pile for a section 
-	//	        // to be written out
-	//}
 
     // if we get here, we've found the next one's start - save the pile for later on (we
     // won't use it until we are sure it's free translation data is to be written within
@@ -46338,6 +46373,10 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 			testRect = grectViewClient; // need a scratch testRect, since its values are 
                             // changed in the following test for intersection, so can't use
                             // grectViewClient 
+			// BEW added 13Jul09 convert the top (ie. y) to logical coords; x, width and
+			// height need no conversion as they are unchanged by scrolling
+            testRect.SetY(nThumbPosition_InPixels);
+            
 			// The intersection is the largest rectangle contained in both existing
 			// rectangles. Hence, when IntersectRect(&r,&rectTest) returns TRUE, it
 			// indicates that there is some client area to draw on.
@@ -46362,6 +46401,7 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 
 				// will we have to draw this rectangle's content?
 				testRect = grectViewClient;
+				testRect.SetY(nThumbPosition_InPixels); // correct if scrolled
 				if (testRect.Intersects(rect)) 
 					bSectionIntersects = TRUE;
 
@@ -46431,15 +46471,23 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
         // width of the rect here has no apparent affect on the resulting text being
         // displayed because only the upper left coordinates in LTR are significant in
         // DrawText operations below
-		//rect.SetLeft(pPile->m_rectPile.GetLeft());
 		rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
-		rect.SetWidth(
-			abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft())); 
-																// use abs to make sure
-		// is this pile the ending pile for the free translation section?
+		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft())); 
+        // used abs to make sure is this pile the ending pile for the free translation
+        // section?
+
+#ifdef DrawFT_Bug
+		wxLogDebug(_T(" LTR block: RECT: Left %d , TOP %d, WIDTH %d , Height %d  (logical coords)"),
+			rect.x, rect.y, rect.width, rect.height);
+#endif
+
 d:		if (pSrcPhrase->m_bEndFreeTrans)
 		{
-            // whether we make the right boundary of rect be the end of the pile's
+
+ #ifdef DrawFT_Bug
+			wxLogDebug(_T(" after d:  At end of section, so test for intersection follows:"));
+#endif
+           // whether we make the right boundary of rect be the end of the pile's
             // rectangle, or let it be the remainder of the strip's free translation
             // rectangle, depends on whether or not this pile is the last in the strip -
             // found out, and set the .right parameter accordingly
@@ -46466,9 +46514,27 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
             // determine whether or not this free translation section is going to have to
             // be written out in whole or part
 			testRect = grectViewClient;
+
+			// BEW added 13Jul09 convert the top (ie. y) to logical coords
+			testRect.SetY(nThumbPosition_InPixels);
+
+#ifdef DrawFT_Bug
+		wxLogDebug(_T(" LTR block: grectViewClient at test: L %d , T %d, W %d , H %d  (logical coords)"),
+			testRect.x, testRect.y, testRect.width, testRect.height);
+#endif
+
 			if (testRect.Intersects(rect))
+			{
 				bSectionIntersects = TRUE; // we'll have to write out at least this much 
 										   // of this section
+			}
+
+#ifdef DrawFT_Bug
+			if (bSectionIntersects)
+				wxLogDebug(_T(" Intersects?  TRUE  and goto b:"));
+			else
+				wxLogDebug(_T(" Intersects?  FALSE  and goto b:"));
+#endif
 			goto b; // exit the loop for constructing the drawing rectangles
 		}
 		else
@@ -46487,6 +46553,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 
 				// will we have to draw this rectangle's content?
 				testRect = grectViewClient;
+				testRect.SetY(nThumbPosition_InPixels);
 				if (testRect.Intersects(rect))
 					bSectionIntersects = TRUE;
 
@@ -46543,6 +46610,11 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 				pSrcPhrase = pPile->GetSrcPhrase();
 				//curPileIndex = pPile->m_nPileIndex;
 				curPileIndex = pPile->GetPileIndex();
+
+#ifdef DrawFT_Bug
+				wxLogDebug(_T(" iterating in strips:  another pile is there, with index = %d, srcPhrase = %s , and now going to d:"),
+					pPile->GetPileIndex(), pPile->GetSrcPhrase()->m_srcPhrase);
+#endif
 				goto d;
 			}
 		}
@@ -46558,12 +46630,22 @@ b:	if (!bSectionIntersects)
         // with futher calculations & can return immediately
 		pElement = (FreeTrElement*)gpFreeTransArray->Item(0);
 		// for next line... view only, MM_TEXT mode, y-axis positive downwards
-		if (pElement->subRect.GetTop() > grectViewClient.GetBottom()) 
+		
+#ifdef DrawFT_Bug
+				wxLogDebug(_T(" NO INTERSECTION block:  Testing, is  top %d still above window bottom %d ?"),
+					pElement->subRect.GetTop(), logicalViewClientBottom);
+#endif
+
+		if (pElement->subRect.GetTop() > logicalViewClientBottom) 
 		{
 			#ifdef _Trace_DrawFreeTrans
 			TRACE0("No intersection, *** and below bottom of client rect, so return ***\n");
 			#endif
 			DestroyElements(gpFreeTransArray); // don't leak memory
+
+#ifdef DrawFT_Bug
+			wxLogDebug(_T(" NO INTERSECTION block:  Returning, as top is below grectViewClient's bottom"));
+#endif
 			return; // we are done
 		}
 		else
@@ -46571,7 +46653,12 @@ b:	if (!bSectionIntersects)
 			#ifdef _Trace_DrawFreeTrans
 			TRACE0("No intersection, so iterating loop...\n");
 			#endif
+
 			DestroyElements(gpFreeTransArray); // don't leak memory
+
+#ifdef DrawFT_Bug
+			wxLogDebug(_T(" NO INTERSECTION block:  top is still above grectViewClient's bottom, so goto c: then to a: and iterate"));
+#endif
 			goto c;
 		}
 	}
@@ -46582,7 +46669,13 @@ b:	if (!bSectionIntersects)
 	offset = 0;
 	length = 0;
 	ftStr = GetExistingMarkerContent(theMkr, theEndMkr, pSrcPhrase, offset, length);
-    // whm note: length is the length of the free trans string within the m_markers member.
+
+#ifdef DrawFT_Bug
+	wxLogDebug(_T(" Drawing ftSstr =  %s ; for srcPhrase  %s  at sequ num  %d"), ftStr,
+		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
+#endif
+	
+	// whm note: length is the length of the free trans string within the m_markers member.
     // Since Bruce has globals tracking these, and since under certain circumstances (i.e.,
     // when an editing change is made by typing over and replacing a selection in which
     // case it is two successive edit operations - first delete of the selection and second
@@ -46667,6 +46760,14 @@ b:	if (!bSectionIntersects)
 		}
 		else
 		{
+
+#ifdef DrawFT_Bug
+			wxLogDebug(_T(" *** Drawing ftSstr at:  Left  %d   Top  %d  These are logical coords."),
+				pElement->subRect.GetLeft(), pElement->subRect.GetTop());
+			wxLogDebug(_T(" *** Drawing ftSstr: gpFirstPile's Logical Rect x= %d  y= %d  width= %d  height= %d   PileHeight + 2: %d"),
+				gpFirstPile->Left(), gpFirstPile->Top(), gpFirstPile->Width(), gpFirstPile->Height(), gpFirstPile->Height() + 2);
+#endif
+
 			pDC->DrawText(ftStr,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
 		}
 	}
@@ -46679,6 +46780,10 @@ b:	if (!bSectionIntersects)
         // into the available drawing rectangles
 		SegmentFreeTranslation(pDC,ftStr,ellipsis,extent.GetWidth(),nTotalHorizExtent,
 								gpFreeTransArray,&subStrings,totalRects);
+
+#ifdef DrawFT_Bug
+			wxLogDebug(_T(" Drawing ftSstr *** MultiStrip Draw ***"));
+#endif
 
 		// draw the substrings in their respective rectangles
 		int index;
@@ -46742,6 +46847,12 @@ c:	pPile = GetNextPile(pPile);
 	if (pPile != NULL)
 		pSrcPhrase = pPile->GetSrcPhrase();
 	DestroyElements(gpFreeTransArray);
+
+#ifdef DrawFT_Bug
+	wxLogDebug(_T(" At c: next pPile is --  srcphrase %s, sn = %d, going now to a:"),
+		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
+#endif
+
 	goto a;
 }
 
