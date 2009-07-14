@@ -124,6 +124,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			// loop resulting in flicker on Windows and program hang on Mac.
 			pView->canvas->Refresh();
 			pView->canvas->Update();
+			
 			// return to the default background mode
 			dc.SetBackgroundMode(gpApp->m_backgroundMode);
 		}

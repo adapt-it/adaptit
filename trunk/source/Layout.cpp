@@ -358,7 +358,7 @@ void CLayout::Draw(wxDC* pDC)
 	nActiveSequNum = m_pApp->m_nActiveSequNum;
 
 	// determine which strips are to be drawn  (a scrolled wxDC must be passed in)
-	// BEW added 10July09, GetVisibleStripsRange() assumes drawing is being done to the
+	// BEW added 10Jul09, GetVisibleStripsRange() assumes drawing is being done to the
 	// client rectangle of the view, and this is not the case when printing or print
 	// previewing, so code is added to access the current PageOffsets struct when printing
 	// is in effect, to work out the first and last strip and the number of strips to be
