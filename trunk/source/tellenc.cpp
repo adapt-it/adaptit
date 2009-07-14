@@ -185,7 +185,7 @@ static size_t nul_count_word[2];
 //static bool is_valid_utf8 = true;
 static bool is_valid_latin1 = true;
 
-bool verbose = false;
+//bool verbose = false; // whm commented out - verbose not needed
 
 static inline bool is_non_text(char ch)
 {
@@ -233,6 +233,7 @@ static void init_char_count(char_count_t char_cnt[])
     }
 }
 
+/* whm commented out - function not used
 static void print_char_cnt(const char_count_t char_cnt[])
 {
     for (size_t i = 0; i < MAX_CHAR; ++i) {
@@ -245,7 +246,9 @@ static void print_char_cnt(const char_count_t char_cnt[])
     }
     printf("\n");
 }
+*/
 
+/* whm commmented out - function not used
 static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
 {
     for (vector<char_count_t>::const_iterator it = dbyte_char_cnt.begin();
@@ -254,6 +257,7 @@ static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
         printf("%.4x: %-6u        ", it->first, it->second); // GDLC removed cast because it did not fix the link problem with PPC release build
     }
 }
+*/
 
 static const char* check_ucs_bom(const unsigned char* const buffer)
 {
@@ -421,9 +425,11 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
     // Get the character counts in descending order
     sort(char_cnt, char_cnt + MAX_CHAR, greater_char_count());
 
+	/* whm commented out - verbose not used
     if (verbose) {
         print_char_cnt(char_cnt);
     }
+	*/
 
     // Get the double-byte counts in descending order
     vector<char_count_t> dbyte_char_cnt;
@@ -435,6 +441,7 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
          dbyte_char_cnt.end(),
          greater_char_count());
 
+	/* whm commented out - verbose not used
     if (verbose) {
         print_dbyte_char_cnt(dbyte_char_cnt);
         printf("\n");
@@ -447,6 +454,7 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
 //		printf("%u unique double-byte characters\n", (uint16_t)dbyte_char_cnt.size()); // GDLC modified 11Jul09 added (uint16_t) cast
         printf("%u unique double-byte characters\n", dbyte_char_cnt.size()); // GDLC removed cast because it did not fix the link problem with PPC release build
     }
+	*/
 
     if (!is_valid_utf8 && is_binary) {
         // Heuristics for UTF-16/32
