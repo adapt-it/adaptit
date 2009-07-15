@@ -44,6 +44,11 @@
  * @author  Wu Yongwei
  */
 
+
+// GDLC Temporary work around for PPC STL library bug
+#if defined(__WXMAC__) && defined(__POWERPC__ )
+// tellenc() not used in PPC builds pending bug fix in PPC STL
+#else
 #include <algorithm>        // sort
 #include <functional>       // binary_function
 #include <map>              // map
@@ -506,6 +511,7 @@ const char* tellenc(const char* const buffer, const size_t len)
         return enc;
     }
 }
+#endif
 
 /*
 static void usage()
