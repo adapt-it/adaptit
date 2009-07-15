@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7D22945E0FE9C0EA00D49638 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
 		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
@@ -17,6 +16,7 @@
 		7DC038D50F462A570047FCAF /* books.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D30F462A570047FCAF /* books.xml */; };
 		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
 		C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C8F82E5E0F3F9CAB007579B8 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */; };
@@ -713,8 +713,8 @@
 				C8F82EAB0F3F9CAB007579B8 /* WhichFilesDlg.cpp in Sources */,
 				C8F82EAC0F3F9CAB007579B8 /* XML.cpp in Sources */,
 				C8F82EAD0F3F9CAB007579B8 /* XMLErrorDlg.cpp in Sources */,
-				7D22945E0FE9C0EA00D49638 /* tellenc.cpp in Sources */,
 				7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */,
+				C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
