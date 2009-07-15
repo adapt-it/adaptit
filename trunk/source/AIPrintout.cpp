@@ -378,6 +378,12 @@ bool AIPrintout::OnPrintPage(int page)
         // the strips to be drawn
 		pLayout->m_pOffsets = pOffsets;
 
+#ifdef Print_failure
+		int internalDC_Y = pDC->DeviceToLogicalY(0);
+		wxLogDebug(_T("\n page = %d , DC offset: %d , pOffsets: nTop %d  nBottom %d , nFirstStrip %d  nLastStrip %d"),
+			gnCurPage, internalDC_Y, pOffsets->nTop, pOffsets->nBottom, pOffsets->nFirstStrip, pOffsets->nLastStrip);
+#endif
+
         // Note: Printing of headers and/or footers needs to be done before we call
         // pDC->SetLogicalOrigin(0,pOffsets->nTop) below because headers and footers are always placed
         // on the page in constant coordinates in relation to the top and bottom page margins (scaled
@@ -385,9 +391,50 @@ bool AIPrintout::OnPrintPage(int page)
 		
 		// For drawing of footer, whose position is in relation to the whole page, margins, etc., it is easiest
 		// to set the AIPrintout logical origin at 0,0 and draw the footer with x and y coords in
-		// relation to the upper left corner of the paper.
-		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+		// relation to the upper left corner of the paper. 
+		
+		// BEW changed 15Jul09: wxPrintout is not documented, and the Printing Guidlines
+		// are very sparse. It turns out that the printed page, from the top left point
+		// where the margins intersect, functions like the client rectangle when printing
+		// to the view window - that is, it is in "device" coordinates. That means that we
+		// have to reset the AIPrintout DC's origin to (0,0) before we call
+		// GetLogicalPageMarginsRect() because the latter needs to get the top left x and
+		// y coordinates relative to a (0,0) "page" margin (the printing area, not the
+		// physical page top left) -- for our default margins in Adapt It, that means
+		// we'll get (x=72, y=78) for the x & y values in fitRect -- we have to do this
+		// resetting of the origin to (0,0) adjustment for every page printed, (has no
+		// effect when print previewing, the latter stays correct). Then, after printing
+		// the footer using that (0,0) origin for the AIPrintout DC, we then have to make
+		// the printing of strips start at the (fitRect.x,fitRect.y) as origin, so we do a
+		// call to SetLogicalOrigin() with those coordinates. Then the printing comes out
+		// right for each page. Finally!
 		this->SetLogicalOrigin(0,0);
+		wxRect fitRect = this->GetLogicalPageMarginsRect(*pApp->pPgSetupDlgData);
+
+#ifdef Print_failure
+		wxLogDebug(_T("fitRect = this->GetLogicalPageMarginsRect() x %d  y %d , width %d  height %d"),
+			fitRect.x, fitRect.y, fitRect.width, fitRect.height);
+#endif
+/* some rects I investigated to see what they x, y, width and height values are, but we don't need them
+		wxRect paperRectPixels = this->GetPaperRectPixels();
+#ifdef Print_failure
+		wxLogDebug(_T("paperRectPixels = this->GetPaperRectPixels() x %d  y %d , width %d  height %d"),
+			paperRectPixels.x, paperRectPixels.y, paperRectPixels.width, paperRectPixels.height);
+#endif
+
+		wxRect paperRectLogical = this->GetLogicalPaperRect();
+#ifdef Print_failure
+		wxLogDebug(_T("paperRectLogical = this->GetLogicalPaperRect() x %d  y %d , width %d  height %d"),
+			paperRectLogical.x, paperRectLogical.y, paperRectLogical.width, paperRectLogical.height);
+#endif
+
+		wxRect pageRectLogical = this->GetLogicalPageRect();
+#ifdef Print_failure
+		wxLogDebug(_T("pageRectLogical = this->GetLogicalPageRect() x %d  y %d , width %d  height %d"),
+			pageRectLogical.x, pageRectLogical.y, pageRectLogical.width, pageRectLogical.height);
+#endif
+*/
+		//this->SetLogicalOrigin(0,0); // BEW 15Jul09 moved this to precede the setting of fitRect
 		
 		// Now draw the footer for the page (logical origin for the printout page is at 0,0)
 		if (gbPrintFooter)
@@ -395,19 +442,33 @@ bool AIPrintout::OnPrintPage(int page)
 			pView->PrintFooter(pDC,fitRect,logicalUnitsFactor,page);
 		}
 		
-        // Set the upper left starting point of the drawn page to the point where the upper margin and
-        // left margin intersect. We call SetLogicalOrigin() called on AIPrintout below to set the
-		// initial drawing point for what's drawn on this page to the upper left corner - beginning at
-		// the point where the printout's logical top and left page margins intersect.
+        // Set the upper left starting point of the drawn page to the point where the upper
+        // margin and left margin intersect. We call SetLogicalOrigin() called on
+        // AIPrintout below to set the initial drawing point for what's drawn on this page
+        // to the upper left corner - beginning at the point where the printout's logical
+        // top and left page margins intersect.
+        // This gets the paper "device" set up right, then below we use the top left of the
+        // first strip to be printed for the setting of the origin for the pDC we pass to
+        // CLayout for strip printing -- this makes the strip print at the right location
+        // in the paper "device".
 		this->SetLogicalOrigin(fitRect.x, fitRect.y);
-		//this->SetLogicalOrigin(0, fitRect.y); // test with Gilaki doc
+
+#ifdef Print_failure
+		wxLogDebug(_T("this->SetLogicalOrigin(), this = AIPrintout:wxPrintout x %d , y %d"),
+			fitRect.x, fitRect.y );
+#endif
 		
-		// SetLogicalOrigin is only documented as a method of wxPrintout, but it is also available for
-		// wxDC. Since the "Strips" that will be drawn in OnDraw() below store their logical coordinates
-		// based on their position in the whole virtual document, we need to set the logical origin so
-		// that strips will start drawing from the top of our printout/preview page.
+        // SetLogicalOrigin is only documented as a method of wxPrintout, but it is also
+        // available for wxDC. Since the "Strips" that will be drawn in OnDraw() below
+        // store their logical coordinates based on their position in the whole virtual
+        // document, we need to set the logical origin so that strips will start drawing
+        // from the top of our printout/preview page.
 		pDC->SetLogicalOrigin(0,pOffsets->nTop); // MFC used pDC->SetWindowOrg(0,pOffsets->nTop);
-		//pDC->SetLogicalOrigin(400,pOffsets->nTop); // test with Gilaki doc
+
+#ifdef Print_failure
+		wxLogDebug(_T("pDC->SetLogicalOrigin(),                                x %d  y %d "),
+			0, pOffsets->nTop);
+#endif
 
 		pView->OnDraw(pDC);
         

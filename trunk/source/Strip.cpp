@@ -174,6 +174,13 @@ void CStrip::Draw(wxDC* pDC)
 		if (m_nStrip < pOffsets->nFirstStrip || m_nStrip > pOffsets->nLastStrip)
 			return;
 	}
+#ifdef Print_failure
+	if (gbIsPrinting)
+	{
+		wxLogDebug(_T("CStrip::Draw() strip index %d , its rectangle (logical coords) x %d  y %d , width %d  height %d"),
+			this->m_nStrip, Left(), Top(), Width(), Height());
+	}
+#endif
 	int i;
 	int nPileCount = m_arrPiles.GetCount();
 	CPile* aPilePtr = NULL;
