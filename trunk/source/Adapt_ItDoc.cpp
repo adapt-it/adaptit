@@ -6364,7 +6364,8 @@ enum getNewFileState CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& n
 // GDLC Temporary work around for PPC STL library bug
 #if defined(__WXMAC__) && defined(__POWERPC__ )
 //[code here would build for PowerPC Macs only]
-				const char* enc = 0;
+				const char* enc = "utf-8";
+				gpApp->m_srcEncoding = wxFONTENCODING_UTF8;
 #else
 				init_utf8_char_table();
 				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
