@@ -92,8 +92,13 @@
 #include "Layout.h"
 
 // forward declarations for functions called in tellenc.cpp
+// GDLC Temporary work around for PPC STL library bug
+#if defined(__WXMAC__) && defined(__POWERPC__ )
+// tellenc() not used in PPC builds pending bug fix in PPC STL
+#else
 void init_utf8_char_table();
 const char* tellenc(const char* const buffer, const size_t len);
+#endif
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress;
@@ -6356,8 +6361,14 @@ enum getNewFileState CAdapt_ItDoc::GetNewFile(wxString*& pstrBuffer, wxUint32& n
 				// from work by Wu Yongwei Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>.
 				// See tellenc.cpp source file for Copyright, Permissions and Restrictions.
 
+// GDLC Temporary work around for PPC STL library bug
+#if defined(__WXMAC__) && defined(__POWERPC__ )
+//[code here would build for PowerPC Macs only]
+				const char* enc = 0;
+#else
 				init_utf8_char_table();
 				const char* enc = tellenc(pbyteBuff, nLength - sizeof(wxChar)); // don't include null char at buffer end
+#endif
 				if (!(enc) || strcmp(enc, "unknown") == 0)
 				{
 					gpApp->m_srcEncoding = wxFONTENCODING_DEFAULT;
