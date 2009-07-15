@@ -831,6 +831,19 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				}
 			}
 
+			// whm added for testing 12Mar09 adding "end fn" to nav text at end of footnote
+			// (Requested by Wolfgang Stradner)
+			if (m_pSrcPhrase->m_bFootnoteEnd)
+			{
+				if (str.IsEmpty())
+					str = _("end fn");
+				else
+				{
+					str += _T(' ');
+					str += _("end fn");
+				}
+			}
+
 			wxFont aSavedFont;
 			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
 			aSavedFont = pDC->GetFont();
