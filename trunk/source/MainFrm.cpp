@@ -4955,6 +4955,17 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 						pRec->nFreeTranslationStep_StartingSequNum = -1;
 						pRec->nFreeTranslationStep_EndingSequNum = -1;
 
+						// BEW added 16Jul09, removing a document final word where a free translation ends
+						// carries into limbo with it the m_bEndFreeTrans = TRUE value, so we have to
+						// check if m_bHasFreeTrans is TRUE on the last CSourcePhrase and if so, and
+						// ensure that m_bEndFreeTrans is set TRUE there as well
+						SPList::Node* pLastPosition = gpApp->m_pSourcePhrases->GetLast();
+						CSourcePhrase* pFinalSrcPhrase = pLastPosition->GetData();
+						if (pFinalSrcPhrase->m_bHasFreeTrans)
+						{
+							pFinalSrcPhrase->m_bEndFreeTrans = TRUE;
+						}
+
 						gEditStep = freeTranslationsStep;
 						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization if user returns
 											// to here,  -- though I don't think I'm going to make that possible
@@ -5066,6 +5077,17 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 											   // no harm if the window is not embedded
 						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 						
+						// BEW added 16Jul09, removing a document final word where a free translation ends
+						// carries into limbo with it the m_bEndFreeTrans = TRUE value, so we have to
+						// check if m_bHasFreeTrans is TRUE on the last CSourcePhrase and if so, and
+						// ensure that m_bEndFreeTrans is set TRUE there as well
+						SPList::Node* pLastPosition = gpApp->m_pSourcePhrases->GetLast();
+						CSourcePhrase* pFinalSrcPhrase = pLastPosition->GetData();
+						if (pFinalSrcPhrase->m_bHasFreeTrans)
+						{
+							pFinalSrcPhrase->m_bEndFreeTrans = TRUE;
+						}
+
 						// place the phrase box at the start of the span, and update the layout etc
 						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
 						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
@@ -5180,6 +5202,17 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 						pRec->nFreeTranslationStep_StartingSequNum = -1;
 						pRec->nFreeTranslationStep_EndingSequNum = -1;
 
+						// BEW added 16Jul09, removing a document final word where a free translation ends
+						// carries into limbo with it the m_bEndFreeTrans = TRUE value, so we have to
+						// check if m_bHasFreeTrans is TRUE on the last CSourcePhrase and if so, and
+						// ensure that m_bEndFreeTrans is set TRUE there as well
+						SPList::Node* pLastPosition = gpApp->m_pSourcePhrases->GetLast();
+						CSourcePhrase* pFinalSrcPhrase = pLastPosition->GetData();
+						if (pFinalSrcPhrase->m_bHasFreeTrans)
+						{
+							pFinalSrcPhrase->m_bEndFreeTrans = TRUE;
+						}
+
 						gEditStep = freeTranslationsStep;
 						pRec->bFreeTranslationStepEntered = TRUE; // prevent reinitialization if user returns
 											// to here,  -- though I don't think I'm going to make that possible
@@ -5292,6 +5325,17 @@ void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(even
 						// since the doc/view framework won't do it for us.
 						SendSizeEvent(); // forces the CMainFrame::SetSize() handler to run and do the needed redraw
 						
+						// BEW added 16Jul09, removing a document final word where a free translation ends
+						// carries into limbo with it the m_bEndFreeTrans = TRUE value, so we have to
+						// check if m_bHasFreeTrans is TRUE on the last CSourcePhrase and if so, and
+						// ensure that m_bEndFreeTrans is set TRUE there as well
+						SPList::Node* pLastPosition = gpApp->m_pSourcePhrases->GetLast();
+						CSourcePhrase* pFinalSrcPhrase = pLastPosition->GetData();
+						if (pFinalSrcPhrase->m_bHasFreeTrans)
+						{
+							pFinalSrcPhrase->m_bEndFreeTrans = TRUE;
+						}
+
 						// place the phrase box at the start of the span, and update the layout etc
 						int activeSequNum = pRec->nFreeTranslationStep_StartingSequNum;
 						pView->PutPhraseBoxAtSequNumAndLayout(pRec,activeSequNum);
