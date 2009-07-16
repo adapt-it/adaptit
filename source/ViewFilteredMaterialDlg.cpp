@@ -1074,6 +1074,9 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 	bRemovalDone = FALSE;
 	gpApp->GetDocument()->Modify(TRUE); // mark the document dirty
 	pViewFilteredMaterialDlgSizer->Layout();
+
+	// BEW added 16Jul09 to get loss of wedge visibly done when free trans is removed
+	gpApp->m_pLayout->Redraw();
 }
 
 // takes the list of markers in the first list box in the dialog, and nSelection is the index

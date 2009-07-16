@@ -3216,7 +3216,8 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSou
 	}
 	else
 	{
-		// this block is for lookup, merger, and failure to find a KB entry
+		// this block is for lookup, merger, failure to find a KB entry, and landing on
+		// a "hole" when in free translation mode and Advance or Next> was pressed
 		gbByCopyOnly = FALSE;
 		if (bNoValidText)
 		{
@@ -3224,6 +3225,14 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp, CSou
             // comments & supporting code changes are in the blocks below)
 			if (pApp->m_bDrafting)
 			{
+                // BEW added 16Jul09; return an empty string if we are in free translation
+                // mode and the phrase box at the next section has been put at a "hole"
+				if (pApp->m_bFreeTranslationMode)
+				{
+					str.Empty();
+					return;
+				}
+				// it's not free translation mode, so try find something
 				bGotOne = pApp->m_pTargetBox->LookAhead(this, pApp->m_pActivePile);
 			}
 			else // we are in reviewing mode for the code in next block
