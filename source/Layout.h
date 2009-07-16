@@ -177,6 +177,9 @@ public:
 //public:
 private:
 	PileList			m_pileList;
+	PileList*			m_pSavePileList; // define on the heap, for saving the original list
+										 // when doing a range print over a subset within 
+										 // m_pileList
 	wxArrayPtrVoid		m_stripArray;
 	wxArrayInt			m_invalidStripArray;
 	enum layout_selector	m_lastLayoutSelector; // RecalcLayout() sets it, Draw() uses it
@@ -373,10 +376,11 @@ public:
 
 
 	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
-	PileList* GetPileList();
+	PileList*		GetPileList();
+	PileList*		GetSavePileList(); // also creates it on heap if its pointer is currently NULL
 	wxArrayPtrVoid* GetStripArray();
-	wxArrayInt*	GetInvalidStripArray();
-
+	wxArrayInt*		GetInvalidStripArray();
+	void			ClearSavePileList();
 	//////// public utility functions ////////
 	 
 	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from

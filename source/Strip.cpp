@@ -432,7 +432,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pPile = (CPile*)pos->GetData();
 		// set the pile's m_pOwningStrip member
 		pPile->m_pOwningStrip = this;
-		if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+		if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
 		{
 			pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 		}
@@ -491,7 +491,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 
 			// if control gets to here, the pile is a potential candidate for inclusion in this
 			// strip, so work out if it will fit - and if it does, add it to the m_arrPiles, etc
-			if (m_pLayout->m_pApp->m_nActiveSequNum == -1)
+			if (m_pLayout->m_pApp->m_nActiveSequNum == -1 || m_pLayout->m_bLayoutWithoutVisiblePhraseBox)
 			{
 				pileWidth = pPile->m_nMinWidth; // no "wide gap" for phrase box, as it is hidden
 			}
