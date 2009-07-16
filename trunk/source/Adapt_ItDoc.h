@@ -243,7 +243,7 @@ public:
 	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,int nTextLength);
 	void			UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,bool bKBBackupPath,
 										   bool bGlossingKBPath, bool bGlossingKBBackupPath);
-	void			UpdateSequNumbers(int nFirstSequNum);
+	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
 
 	void			SetFilename(const wxString& filename, bool notifyViews);
 

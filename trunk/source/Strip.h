@@ -95,7 +95,10 @@ public:
 															// iterator of next for placement
 	// next version is overloaded, uses indices, and has nEndPileIndex for the index of
 	// the last pile which is to be placed in the emptied strips; this version used for filling
-	// emptied strips using a subrange of the available pile pointers only
+	// emptied strips using a subrange of the available pile pointers only (this means the
+	// option keep_strips_keep_piles is used in RecalcLayout(), and that option is never
+	// used when printing, or print previewing, and so this version never is used when
+	// printing is happening, or print previewing)
 	int		CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap);
 	int		GetPileCount();
 	CPile*	GetPileByIndex(int index);

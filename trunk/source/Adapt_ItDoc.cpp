@@ -12081,12 +12081,28 @@ void CAdapt_ItDoc::CleanOutWork(SPList* pList)
 /// changes only on the pList passed to the function; in UpdateSequNumbers() the current 
 /// document's source phrases beginning with nFirstSequNum are set to numerical sequence 
 /// through to the end of the document.
+/// BEW changed 16Jul09 to have a second parameter which defaults to NULL, but otherwise is
+/// a pointer to the SPList on which the updating is to be done. This allows the function
+/// to be used on sublists which have to be processed by RecalcLayout(), as when doing a
+/// range print - the refactored view requires that the partner piles be accessible by a
+/// sequence number, and this will only work if the sublist of CSourcePhrase instances has
+/// the element's m_nSequNumber values reset so as to be 0-based and numbered from the
+/// first in the sublist. pOtherList can be set to any list, including of course, the
+/// m_pSourcePhrases list, if the former contents of that list have been stored elsewhere
+/// beforehand
 ////////////////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum)
+void CAdapt_ItDoc::UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
-	SPList* pList = pApp->m_pSourcePhrases;
+	SPList* pList;
+	if (pOtherList == NULL)
+		// use the normal list which defines the whole document
+		pList = pApp->m_pSourcePhrases;
+	else
+		// use some other list, typically a sublist with fewer elements, that stores
+		// temporary subset of (shallow) copies of the main list's CSourcePhrase instances
+		pList = pOtherList;
 
 	// get the first
 	SPList::Node* pos = pList->Item(nFirstSequNum);
@@ -15520,4 +15536,3 @@ void CAdapt_ItDoc::OnAdvancedSendSynchronizedScrollingMessages(wxCommandEvent& W
 		gbIgnoreScriptureReference_Send = FALSE;
 	}
 }
-

@@ -277,6 +277,7 @@ void CLayout::InitializeCLayout()
 	m_docEditOperationType = invalid_op_enum_value;
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
 	m_pOffsets = NULL;
+	m_pSavePileList = NULL;
 #ifdef Do_Clipping
 	//m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
@@ -1292,6 +1293,38 @@ PileList* CLayout::GetPileList()
 	return &m_pileList;
 }
 
+PileList* CLayout::GetSavePileList()
+{
+	if (m_pSavePileList == NULL)
+	{
+		m_pSavePileList = new PileList;
+		return m_pSavePileList;
+	}
+	else
+		return m_pSavePileList;
+}
+
+void CLayout::ClearSavePileList()
+{
+	if (m_pSavePileList == NULL)
+	{
+		return;
+	}
+	else if (m_pSavePileList->GetCount() > 0)
+	{
+		// these are pointer copies, so the same pointers are in some other list, so do
+		// not destroy the CPile instances, just abandon the pointers
+		m_pSavePileList->Clear();
+		m_pSavePileList = NULL;
+		return;
+	}
+	else
+	{
+		m_pSavePileList = NULL;
+	}
+}
+
+
 wxArrayPtrVoid* CLayout::GetStripArray()
 {
 	return & m_stripArray;
@@ -1705,7 +1738,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// every call of RecalcLayout() should calculate the number of strips currently that
 	// could be shown in the client area, setting the m_numVisibleStrips private member of
 	// the CLayout instance - other functions can then access it using
-	// GetNumVisibleStrips() and rely on the value returned
+	// GetNumVisibleStrips() and rely on the value returned; when printing however, the
+	// number of "visible" strips is determined by what can fit on the printed page, and
+	// this is calculated externally in PaginateDoc()
 	SetFullWindowDrawFlag(TRUE);
 	if (!gbIsPrinting)
 	{
@@ -1828,13 +1863,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// obtaining the active pile pointer which corresponds to that active location as well
 	bool bAtDocEnd = FALSE; // set TRUE if m_nActiveSequNum is -1 (as is the case when at 
 							// the end of the document)
-	CPile* pActivePile;
+	CPile* pActivePile = NULL;
 	pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum); // will return NULL if sn is -1
 	if (!gbDoingInitialSetup)
 	{
 		// the above test is to exclude setting bAtDocEnd to TRUE if the pActivePile is
 		// NULL which can be the case on launch or opening a doc or creating a new one, at
-		// least temporarily, due to the default sequence number being -1;
+		// least temporarily, due to the default sequence number being -1
 		// gbDoingInitialSetup is cleared to FALSE in OnNewDocument() and OnOpenDocument()
 		if (pActivePile == NULL)
 			bAtDocEnd = TRUE; // provide a different program path when this is the case
@@ -1842,7 +1877,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 
     // attempt the (re)creation of the m_pileList list of CPile instances if requested; if
     // not requested then the current m_pileList's contents will be retained, though their
-    // contents may be adjusted in the area where the user did editing
+	// contents may have been adjusted in the area where the user did editing (in which
+	// case their widths should have been recalculated before RecalcLayout() is called,
+	// unless many are to be done in one hit, by the else block's test below)
 	if (selector == create_strips_and_piles)
 	{
 		bool bIsOK = CreatePiles(pSrcPhrases);
@@ -1860,7 +1897,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	}
 
 	int gap = m_nCurGapWidth; // distance in pixels for interpile gap
-	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call
+	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call,
+	// and when printing, external functions will already have set the "logical"
+	// size returned by this call to a size based on the physical page's printable width
 
     // before building or tweaking the strips, we want to ensure that the gap left for the
     // phrase box to be drawn in the layout is as wide as the phrase box is going to be
@@ -1882,7 +1921,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
     if (!bAtDocEnd)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
-		// current active location
+		// current active location, provided we are not printing a range
 		if (selector == create_strips_keep_piles || selector == keep_strips_keep_piles
 			|| selector == create_strips_update_pile_widths)
 		{

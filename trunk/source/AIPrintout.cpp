@@ -946,9 +946,12 @@ void AIPrintout::OnPreparePrinting()
         // At this point, the selection has been temporarily made the whole document, so we must clobber
         // the selection (note: RemoveSelection() does not affect gbPrintingSelection value) but leaves
         // the global parameters unchanged, so it can later be restored.
-		pApp->m_selectionLine = -1;
-		pApp->m_selection.Clear();
-		pApp->m_pAnchor = NULL;
+		// BEW changed 16Jul09, because the selection could not be removed once the print
+		// was done
+		//pApp->m_selectionLine = -1;
+		//pApp->m_selection.Clear();
+		//pApp->m_pAnchor = NULL;
+		pView->RemoveSelection();
 
         // Recalc the layout with the new width (note, the gbPrintingSelection value being TRUE means
         // that the SaveSelection() and RestoreSelection() calls in RecalcLayout() do nothing).
