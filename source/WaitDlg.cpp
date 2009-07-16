@@ -114,6 +114,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 11: 
 			WaitMsg = _("Please wait while Adapt It backs up the Glossing KB...");
 			break;
+		case 12: 
+			WaitMsg = _("Please wait while Adapt It prepares the document for printing");
+			break;
 		default:
 			WaitMsg = _("Please wait. This may take a while...");
 	}

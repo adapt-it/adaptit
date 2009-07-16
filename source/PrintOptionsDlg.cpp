@@ -55,6 +55,7 @@
 #include "Pile.h"
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
+#include "WaitDlg.h"
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -334,6 +335,18 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	CAdapt_ItView* pView = gpApp->GetView();
 	int nTotalStrips_Simulated;
 	wxSize sizeTotal_Simulated(nPagePrintingWidthLU,nPagePrintingLengthLU);
+
+	// whm 16Jul09: The following RecalcLayout_SimulateOnly() can be fairly time consuming for larger
+	// documents, so we should provide a wait dialog starting here.
+	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
+	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 12;	// 12 "Please wait while Adapt It prepares the document for printing..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+
 	// RecalcLayout_SimulateOnly returns simulated docSize in its sizeTotal_Simulated reference parameter,
 	// and the number of strips in its return value.
 	nTotalStrips_Simulated = pView->RecalcLayout_SimulateOnly(pSPList, sizeTotal_Simulated,nBeginSequNum,nEndSequNum);
