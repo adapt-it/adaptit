@@ -5053,6 +5053,7 @@ void CAdapt_ItView::OnPrintPreview(wxCommandEvent& WXUNUSED(event))
 bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength, 
 								enum PaginationType paginationType)
 {
+	//wxLogDebug(_T("PaginateDoc() START"));	
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
 
@@ -5160,6 +5161,7 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 		pList->Append(pOffsets); // store the page information
 	}
 	wxASSERT(pageCount == (int)pList->GetCount());
+	//wxLogDebug(_T("PaginateDoc() END"));	
 	return TRUE;
 }
 

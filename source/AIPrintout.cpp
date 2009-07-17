@@ -620,7 +620,7 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnPreparePrinting() 
 {
-	wxLogDebug(_T("OnPreparePrint() START"));
+//	wxLogDebug(_T("OnPreparePrint() START"));
 	// refactored 6Apr09
  	CAdapt_ItApp* pApp = &wxGetApp();
 	pApp->m_docSize = pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
@@ -1025,6 +1025,6 @@ void AIPrintout::OnPreparePrinting()
     // OnPreparePrinting there was devoted to cleaning up indices, flags, doing
     // RecalcLayout, etc - things which the wx version does in the AIPrintout's class
     // destructor.
-    wxLogDebug(_T("OnPreparePrint() END"));
+    //wxLogDebug(_T("OnPreparePrint() END"));
 } // end of OnPreparePrinting()
 
