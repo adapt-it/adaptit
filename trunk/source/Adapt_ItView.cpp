@@ -5180,9 +5180,6 @@ void CAdapt_ItView::ClearPagesList()
 	}
 	else
 	{
-#ifdef PrintPreview_Lost_End
-		int aCounter = 0;
-#endif		
 		POList::Node* pos = pList->GetFirst();
 		while(pos != NULL)
 		{
@@ -5195,114 +5192,16 @@ void CAdapt_ItView::ClearPagesList()
 			// (PageOffsets*) which is really what was stored in this POList by the
 			// PaginateDoc() function above.
 			PageOffsets* pOffsets = (PageOffsets*)pos->GetData(); // MFC used PageParams*
-#ifdef PrintPreview_Lost_End
-			aCounter++;
-			wxLogDebug(_T("\nClearPagesList(), counter = %d , PageOffsets pointer %x , before delete pOffsets is called"),
-					aCounter, pOffsets);
-#endif
 			pos = pos->GetNext();
 			if (pOffsets != NULL)
 			{
 				delete pOffsets;
-#ifdef PrintPreview_Lost_End
-		wxLogDebug(_T("ClearPagesList(), counter = %d , PageOffsets pointer %x , this one deleted OK"),
-					aCounter, pOffsets);
-#endif
 			}
 		}
 		pList->Clear();
 	}
 }
-/* removed 6Apr09 for refactored layout design
-// *****************************************************************************************
-/// \return     nothing
-/// \param      nNewMaxIndex      -> used to initialize the App's m_endIndex and 
-//                                    m_upperIndex values at the start of printing
-/// \remarks
-/// Called from: the View's OnPrint() top level menu handler when File | Print is invoked
-/// by the user; and from the AIPrintout's OnPreparePrinting(). SaveAndSetIndices() saves a
-/// copy of certain indices associated with the current document, and initializes certain
-/// printing variables to default values, at the beginning of the printing operation. At
-/// the end of printing operations (in AIPrintout's destructor), RestoreIndices() is called
-/// to reset those indices using the values saved by SaveAndSetIndices().
-// ******************************************************************************************
-void CAdapt_ItView::SaveAndSetIndices(int nNewMaxIndex)
-{
-	// save current values
-	pApp->m_saveBeginIndex = pApp->m_beginIndex;
-	pApp->m_saveEndIndex = pApp->m_endIndex;
-	pApp->m_saveCurIndex = pApp->m_curIndex;
-	pApp->m_saveLowerIndex = pApp->m_lowerIndex;
-	pApp->m_saveUpperIndex = pApp->m_upperIndex;
-	pApp->m_saveMaxIndex = pApp->m_maxIndex;
-	
-	// now set default printing values
-	pApp->m_beginIndex = 0;
-	pApp->m_endIndex = nNewMaxIndex;
-	pApp->m_lowerIndex = 0;
-	pApp->m_upperIndex = nNewMaxIndex;
-}
 
-// ******************************************************************************************
-/// \return     nothing
-/// \remarks
-/// Called from: the View's RestoreOriginalList() and from within the AIPrintout's
-/// destructor at the end of a print or print preview operation. At the beginning of a
-/// print operation SaveAndSetIndices() saved a copy of certain indices associated with the
-/// current document, and initialized certain printing variables to default values.
-/// RestoreIndices() restores the values that were saved by SaveAndSetIndices() so that the
-/// document can be put back into the state it was in before the printing operation.
-// ******************************************************************************************
-void CAdapt_ItView::RestoreIndices()
-{
-	pApp->m_beginIndex = pApp->m_saveBeginIndex;
-	pApp->m_endIndex = pApp->m_saveEndIndex;
-	pApp->m_curIndex = pApp->m_saveCurIndex;
-	pApp->m_lowerIndex = pApp->m_saveLowerIndex;
-	pApp->m_upperIndex = pApp->m_saveUpperIndex;
-	pApp->m_maxIndex = pApp->m_saveMaxIndex;
-}
-
-// ****************************************************************************************
-/// \return     nothing
-/// \remarks
-/// Called from: the View's OnPrint() top level menu handler when File | Print is invoked
-/// by the user; and from the AIPrintout's OnPreparePrinting(). SaveIndicesForRange() saves
-/// a copy of certain indices associated with printing a range of the current document, at
-/// the beginning of the printing operation. At the end of printing operations (in
-/// AIPrintout's destructor), RestoreIndicesFromRange() is called to reset those indices
-/// using the values saved by SaveIndicesForRange().
-// ****************************************************************************************
-void CAdapt_ItView::SaveIndicesForRange()
-{
-	// save current values
-	pApp->m_saveRangeBeginIndex = pApp->m_beginIndex;
-	pApp->m_saveRangeEndIndex = pApp->m_endIndex;
-	pApp->m_saveRangeCurIndex = pApp->m_curIndex;
-	pApp->m_saveRangeLowerIndex = pApp->m_lowerIndex;
-	pApp->m_saveRangeUpperIndex = pApp->m_upperIndex;
-	pApp->m_saveRangeMaxIndex = pApp->m_maxIndex;
-}
-
-// ****************************************************************************************
-/// \return     nothing
-/// \remarks
-/// Called from: the View's RestoreOriginalList() at the end of a print or print preview operation (in
-/// AIPrintout's destructor). At the beginning of a print operation SaveIndicesForRange() 
-/// saved a copy of certain indices associated with printing a range of the current document. 
-/// RestoreIndicesFromRange() restores the values that were saved by SaveIndicesForRange() so that the 
-/// document can be put back into the state it was in before the printing operation.
-// ****************************************************************************************
-void CAdapt_ItView::RestoreIndicesFromRange()
-{
-	pApp->m_beginIndex = pApp->m_saveRangeBeginIndex;
-	pApp->m_endIndex = pApp->m_saveRangeEndIndex;
-	pApp->m_curIndex = pApp->m_saveRangeCurIndex;
-	pApp->m_lowerIndex = pApp->m_saveRangeLowerIndex;
-	pApp->m_upperIndex = pApp->m_saveRangeUpperIndex;
-	pApp->m_maxIndex = pApp->m_saveRangeMaxIndex;
-}
-*/
 // ***************************************************************************************
 /// \return     always TRUE in the wx version (FALSE in the MFC version only if a memory 
 //               error occurrs)
@@ -6591,8 +6490,6 @@ e:	bool bIsOK = GetSublist(pSaveList, pList, gnRangeStartSequNum, gnRangeEndSequ
     // which is called after the print dialog has been dismissed with OK, and thus we are
     // paginating the actual doc to print and not merely simulating it for purposes of
     // getting the pages edit box values for the print options dialog.
-	//bIsOK = PaginateDoc(pApp->m_pBundle->m_nStripCount, nPagePrintingLengthLU, NoSimulation); 
-										// doesn't call RecalcLayout(), uses m_nStripCount
 	bIsOK = PaginateDoc(pLayout->GetStripArray()->GetCount(), nPagePrintingLengthLU, NoSimulation);
 													// doesn't call RecalcLayout()
 	if (!bIsOK)

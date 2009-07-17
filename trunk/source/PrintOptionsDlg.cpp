@@ -96,6 +96,7 @@ BEGIN_EVENT_TABLE(CPrintOptionsDlg, AIModalDialog)
 	EVT_TEXT(IDC_EDIT3, CPrintOptionsDlg::OnEditChapterTo)
 	EVT_TEXT(IDC_EDIT4, CPrintOptionsDlg::OnEditVerseTo)
 	EVT_BUTTON(wxID_OK, CPrintOptionsDlg::OnOK)
+	EVT_BUTTON(wxID_CANCEL, CPrintOptionsDlg::OnCancel)
 	EVT_CHECKBOX(IDC_CHECK_SUPPRESS_FOOTER, CPrintOptionsDlg::OnCheckSuppressFooter)
 	EVT_CHECKBOX(IDC_CHECK_SUPPRESS_PREC_HEADING, CPrintOptionsDlg::OnCheckSuppressPrecedingHeading)
 	EVT_CHECKBOX(IDC_CHECK_INCLUDE_FOLL_HEADING, CPrintOptionsDlg::OnCheckIncludeFollowingHeading)
@@ -576,6 +577,21 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event   -> (unused)
+/// \remarks
+/// Called when the "Cancel" button on the dialog is pressed.
+/// It deletes the set of PageOffsets structs. Failure to do this when the user cancel
+/// would leak a lot of 16 byte memory blocks! (That's how I found we need this handler!)
+////////////////////////////////////////////////////////////////////////////////////////////
+void CPrintOptionsDlg::OnCancel(wxCommandEvent& event) 
+{
+	CAdapt_ItView* pView = gpApp->GetView();
+	pView->ClearPagesList();
+	event.Skip();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

@@ -64,6 +64,7 @@ public:
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
+	void OnCancel(wxCommandEvent& event);
 	void OnSetfocus(wxFocusEvent& event);
 	void OnAllPagesBtn(wxCommandEvent& WXUNUSED(event));
 	void OnSelectBtn(wxCommandEvent& WXUNUSED(event));
