@@ -26,13 +26,6 @@
     #pragma interface "Adapt_ItView.h"
 #endif
 
-// for debugging a print preview error whereby last PageOffsets with just a couple of
-// piles in one strip (Hez 7 document) is somehow lost
-//#define PrintPreview_Lost_End
-// for debugging a print preview error in the (RTL script) Gilaki to Maz. project, the
-// margin on the right is about 200 pixels wide and should only be less than 20
-//#define Gilaki_Wide_Margin_Bug
-
 //#include "PhraseBox.h"
 //#include "consistentChanger.h"
 //#include "FindReplace.h"
