@@ -119,14 +119,23 @@ contacting us. We try to fix bugs within 24 hours.
 ----------------------------------------------
 Bug fixes in 5.0.0
 ----------------------------------------------
-* Editing source text, particularly if deleting source text, at the
-very end of the document would crash the application. This
-has been fixed.
-* When a merge had been done across punctuation, a
-placement dialog came up which enabled you to specify where
-the punctuation should be placed within the target text. Formerly,
+* Editing source text, particularly if deleting source text, 
+at the very end of the document would crash the application. 
+This has been fixed.
+* When a merge had been done across punctuation, a placement 
+dialog came up which enabled you to specify where the 
+punctuation should be placed within the target text. Formerly,
 this dialog came up twice at a single location. This has been
 fixed, it now comes up only once.
+* Fixed the File > Print to correctly format printed pages
+longer than two pages (previously pages 3ff would not format
+correctly), and significantly reduced the wait time for the 
+Print Preview and Print Options dialog to appear.
+* Fixed the File > Print and File > Print Preview to 
+correctly format Right to Left text projects.
+* Fixed a memory leak that would happen if the user canceled
+at the Print Options dialog.
+* Fixed a number of bugs affecting Free Translation mode.
 * Fixed a bug that might prevent a font color change from
 being registered correctly.
 * Fixed a bug that prevented a selection in the Auto-Saving 
