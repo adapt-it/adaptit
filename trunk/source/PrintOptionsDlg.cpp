@@ -197,6 +197,7 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
+//	wxLogDebug(_T("InitDialog() START"));	
 
     // Get the logical page dimensions for paginating the document and printing.
     // 
@@ -348,9 +349,11 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
+	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  START RecalcLayout simulated"));
 	// RecalcLayout_SimulateOnly returns simulated docSize in its sizeTotal_Simulated reference parameter,
 	// and the number of strips in its return value.
 	nTotalStrips_Simulated = pView->RecalcLayout_SimulateOnly(pSPList, sizeTotal_Simulated,nBeginSequNum,nEndSequNum);
+	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  END RecalcLayout simulated"));
 	
 	// don't leak memory
 	pSelectedSPList->Clear();
@@ -366,7 +369,9 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
     // purposes of getting the pages edit box values for the print options dialog and we haven't changed
     // any indices for the layout of the main document.
 	bool bOK;
+	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  START PaginateDoc simulated"));
 	bOK = pView->PaginateDoc(nTotalStrips_Simulated,nPagePrintingLengthLU,DoSimulation); // (doesn't call RecalcLayout())
+	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  END PaginateDoc simulated"));
 	if (!bOK)
 	{
 		// PaginateDoc will have notified the user of any problem, so just return here - we can't print
@@ -519,6 +524,7 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		pEditChTo->Enable(FALSE);
 	if (pEditVsTo->IsEnabled())
 		pEditVsTo->Enable(FALSE);
+//	wxLogDebug(_T("InitDialog() END"));	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
