@@ -21,7 +21,7 @@ box.
 
 All Versions:
 
-1. RTF exports (including Interlinear) do not format correctly 
+1. RTF exports (including Interlinear) may not format correctly 
 when loaded into Open Office 3. They should format correctly 
 with MS Word, and if saved from MS Word can subsequently opened
 in Open Office 3. Eventually the RTF exports will be reworked to 
