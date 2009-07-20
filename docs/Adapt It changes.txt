@@ -1,4 +1,4 @@
-Version 5.0.0 update 11July2009:
+Version 5.0.0 update 31July2009:
 ----------------------------------------------
 Feature changes and new features in 5.0.0
 ----------------------------------------------
@@ -20,63 +20,70 @@ and target text lines (punctuated and non-punctuated) during
 Find and Replace operations.
 * The Replace button no longer does the replacement and then
 automatically advances to the next found text location that
-matches. That behaviour prevented the user from seeing what the 
-effect of the replacement was, and it took away the chance of
-doing further editing before doing the next Find. Now the Find
-Next button has to be pressed explicitly once the user is ready, 
-each time after a replacement has been done. (Replace All works 
-as it did earlier.)
-* The toggle buttons for switching on/off two source text lines
-the display, and / or two target text lines, have been removed.
+matches. That behaviour prevented the user from seeing what 
+the effect of the replacement was, and it took away the 
+chance of doing further editing before doing the next Find. 
+Now the Find Next button has to be pressed explicitly once 
+the user is ready, each time after a replacement has been 
+done. (Replace All works as it did earlier.)
+* The toggle buttons for switching on/off two source text 
+lines the display, and / or two target text lines, have been 
+removed.
 * Use of the command bar button "Ignore Boundaries" has been
-extended. It can be used preceding any of the three selection 
-methods (click & drag, shift+click extension, or ALT+arrow keys)
-to allow selecting across punctuation boundaries. It can also be
-used that way after you have commenced a selection, except for
-the drag-select method.
-* Re-established the legacy behaviour where if you click to place
-the phrase box elsewhere, when the phrase box has only copied
-source text which is still selected, the box contents are abandoned
-and nothing is entered into the document or knowledge base from
-the location that the box leaves.
-* When typing into the phrase box, or deleting, blinking has been
-eliminated except for when a necessary update of the display is
-required because the width of the phrase box has changed.
-* When re-opening Free Translation Mode at a location where a
-free translation has already been put, the application will 
-automatically try to make a "best possible guess" at what the
-former setting was for free translation section length, and then
-set the radio button to conform accordingly - either to the 
-"Punctuation" setting, or to the "Verse" setting. This also happens
-if you earlier changed the settings and you reenter a section which
-had a different setting in operation - you will see the radio button
-change to conform to that earlier setting at that location.
-* Adapt It now can process an -wf <path> command-line option, 
-where <path> is the path to a folder to be used as Adapt It's
-work folder. When this command-line option is used the <path>
-will be used instead of Adapt It's default work folder which
-has traditionally been called "Adapt It (Unicode) Work". The 
-<path> following the -wf option can be on a different drive/
-volume or even a network path. This option can be added to 
-the command-line on most systems by right-clicking on a menu 
-item, shortcut, or launcher icon that is normally used to start 
-Adapt It, and choosing "Properties" from the popup menu. Find 
-the Command or Target field that invokes Adapt It, and add a 
+extended. It can be used preceding any of the three 
+selection methods (click & drag, shift+click extension, or 
+ALT+arrow keys) to allow selecting across punctuation 
+boundaries. It can also be used that way after you have 
+commenced a selection, except for the drag-select method.
+* Re-established the legacy behaviour where if you click to 
+place the phrase box elsewhere, when the phrase box has only 
+copied source text which is still selected, the box contents 
+are abandoned and nothing is entered into the document or 
+knowledge base from the location that the box leaves.
+* When typing into the phrase box, or deleting, blinking has 
+been eliminated except for when a necessary update of the 
+display is required because the width of the phrase box has 
+changed.
+* When re-opening Free Translation Mode at a location where 
+a free translation has already been put, the application 
+will automatically try to make a "best possible guess" at 
+what the former setting was for free translation section 
+length, and then set the radio button to conform 
+accordingly - either to the "Punctuation" setting, or to 
+the "Verse" setting. This also happens if you earlier 
+changed the settings and you reenter a section which had a 
+different setting in operation - you will see the radio 
+button change to conform to that earlier setting at that 
+location.
+* Adapt It now can process an -wf <path> command-line 
+option, where <path> is the path to a folder to be used as 
+Adapt It's work folder. When this command-line option is 
+used the <path> will be used instead of Adapt It's default 
+work folder which has traditionally been called "Adapt It 
+(Unicode) Work". The <path> following the -wf option can 
+be on a different drive/volume or even a network path. 
+This option can be added to the command-line on most 
+systems by right-clicking on a menu item, shortcut, or 
+launcher icon that is normally used to start Adapt It, 
+and choosing "Properties" from the popup menu. Find the 
+Command or Target field that invokes Adapt It, and add a 
 space followed by  -wf  followed by another space and the
-desired path. For example, the Command/Target field might look
-like this (on a Windows Start Menu item for Adapt It WX):
+desired path. For example, the Command/Target field might 
+look like this (on a Windows Start Menu item for 
+Adapt It WX):
 
 "C:\Program Files\Adapt It WX\Adapt_It.exe" -wf "e:\My Data"
 
-in which case the project file(s) created by Adapt It would
-be located in the "My Data" folder on the e: drive volume.
-Note: paths containing spaces must be enclosed in quote marks.
-If no -wf <path> command-line argument is supplied Adapt It 
-reverts completely back to its classic behavior of creating 
-an "Adapt It (Unicode) Work" folder in the user's 
-"(My) Documents" folder (or whatever path and folder name 
-the OS reports is currently being used for documents by the 
-user), and using that folder as its work folder.
+in which case the project file(s) created by Adapt It 
+would be located in the "My Data" folder on the e: drive 
+volume. Note: paths containing spaces must be enclosed in 
+quote marks. If no -wf <path> command-line argument is 
+supplied Adapt It reverts completely back to its classic 
+behavior of creating an "Adapt It (Unicode) Work" folder 
+in the user's "(My) Documents" folder (or whatever path 
+and folder name the OS reports is currently being used 
+for documents by the user), and using that folder as its 
+work folder.
 
 If an administrator sets Adapt It up to use a custom work 
 folder (using -wf <path>) AFTER data is already created at 
@@ -95,23 +102,23 @@ version tries to input a new text for adaptation which is a
 Unicode encoded file, and aborts the input and informs the
 user that the Unicode version of Adapt It must be used to
 input and process Unicode files.
-* Significant work has been done on the internal representation
-code for the view of the document in the main window. Due
-to these changes there are some unavoidable performance
-degradations for some actions. Changing anything (such as
-fonts, or font sizes) that affects the width of the text in each 
-pile in the display is now "costly" - but only for large 
-documents - because the internal representation of the view 
-has to be totally rebuilt when such things happen. Therefore, 
-when you change some settings in the Preferencess, you may 
-have to wait several seconds for the document to update. 
-Once such document rebuilding is done, however, performance 
-will return to being speedy for all normal adapting, glossing, 
-or free translating work.
-* While we expect this version to be robust, please bear in
-mind that literally thousands of changes have been made
-internally. We've tested it a lot, but if you do something and
-you get an unexpected behaviour, please let one of the 
+* Significant work has been done on the internal 
+representation code for the view of the document in the 
+main window. Due to these changes there are some unavoidable 
+performance degradations for some actions. Changing anything 
+(such as fonts, or font sizes) that affects the width of the 
+text in each pile in the display is now "costly" - but only 
+for large documents - because the internal representation 
+of the view has to be totally rebuilt when such things 
+happen. Therefore, when you change some settings in the 
+Preferencess, you may have to wait several seconds for the 
+document to update. Once such document rebuilding is done, 
+however, performance will return to being speedy for all 
+normal adapting, glossing, or free translating work.
+* While we expect this version to be robust, please bear 
+in mind that literally thousands of changes have been made
+internally. We've tested it a lot, but if you do something 
+and you get an unexpected behaviour, please let one of the 
 developers know as soon as possible. The "About Adapt It"
 menu item in the Help menu has email addresses for 
 contacting us. We try to fix bugs within 24 hours.
