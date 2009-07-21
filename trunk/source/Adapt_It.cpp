@@ -88,6 +88,12 @@
 #include <wx/filepicker.h> // for wxDirPickerCtrl
 #include <wx/log.h> // for wxLogStream
 
+#ifdef __WXGTK__
+#include <wx/dcps.h> // for wxPostScriptDC
+#else
+#include <wx/dcprint.h> // for wxPrinterDC
+#endif
+
 // The following include is Copyright (c) 2005 by Dan Moulding Dan Moulding and used
 // under the LGPL. The vld.h header usage is described in an article on The Code 
 // Project called "Memory Leak Detection". It generates better memory leak detection 
