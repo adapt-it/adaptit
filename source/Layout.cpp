@@ -1744,7 +1744,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// GetNumVisibleStrips() and rely on the value returned; when printing however, the
 	// number of "visible" strips is determined by what can fit on the printed page, and
 	// this is calculated externally in PaginateDoc()
-	
+	/*
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (gbIsPrinting)
 		wxLogDebug(_T("\n\nPRINTING   RecalcLayout()  app m_docSize.x  %d  CLayout m_logicalDocSize.x %d"),
@@ -1752,13 +1752,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	else
 		wxLogDebug(_T("\n\nNOT PRINTING   RecalcLayout()  app m_docSize.x  %d  CLayout m_logicalDocSize.x %d"),
 				pApp->m_docSize.x, m_logicalDocSize.x);
-
+	*/
 	SetFullWindowDrawFlag(TRUE);
 	if (!gbIsPrinting)
 	{
 		m_numVisibleStrips = CalcNumVisibleStrips();
-		wxLogDebug(_T("RecalcLayout()  SHOULDN'T SEE THIS WHEN PRINTING,  m_numVisibleStrips  %d  "),
-		m_numVisibleStrips);
+		//wxLogDebug(_T("RecalcLayout()  SHOULDN'T SEE THIS WHEN PRINTING,  m_numVisibleStrips  %d  "),
+		//m_numVisibleStrips);
 	}
 
 	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which
@@ -1987,11 +1987,13 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles
 		|| selector == create_strips_update_pile_widths)
 	{
-		if (gbIsPrinting)
-			wxLogDebug(_T("RecalcLayout() CreateStrips about to be called  "));
+		//if (gbIsPrinting)
+		//	wxLogDebug(_T("RecalcLayout() CreateStrips about to be called  "));
+		
 		CreateStrips(nStripWidth, gap);
-		if (gbIsPrinting)
-			wxLogDebug(_T("RecalcLayout() CreateStrips has Finished  "));
+
+		//if (gbIsPrinting)
+		//	wxLogDebug(_T("RecalcLayout() CreateStrips has Finished  "));
 	}
 	if (selector == keep_strips_keep_piles)
 	{
@@ -2382,16 +2384,19 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 //#endif
 		m_stripArray.Add(pStrip); // add the new strip to the strip array
 		// set up the strip's pile (and cells) contents
-		if (gbIsPrinting)
-			wxLogDebug(_T("CreateStrips():  propulating strip with strip index  %d  ,  strip width  %d (pass in)"),
-			 nStripIndex, nStripWidth);
+		
+		//if (gbIsPrinting)
+		//	wxLogDebug(_T("CreateStrips():  propulating strip with strip index  %d  ,  strip width  %d (pass in)"),
+		//	 nStripIndex, nStripWidth);
+
 		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles 
+		/*
 		if (gbIsPrinting)
 		{
 			int nStripIndex = pStrip->m_nStrip;
 			int free = pStrip->m_nFree;
 			int numPiles = pStrip->m_arrPileOffsets.GetCount();
-			wxLogDebug(_T("CreateStrip(): Num Piles %d  :  pile index %d, free %d"),numPiles, nStripIndex, free);
+			wxLogDebug(_T("CreateStrip(): Num Piles %d  :  strip index %d, free %d"),numPiles, nStripIndex, free);
 			int i;
 			for (i=0;i<numPiles;i++)
 			{
@@ -2404,8 +2409,9 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 			int nStripIndex = pStrip->m_nStrip;
 			int free = pStrip->m_nFree;
 			int numPiles = pStrip->m_arrPileOffsets.GetCount();
-			wxLogDebug(_T("CreateStrip(): NOT PRINTING Num Piles %d  :  pile index %d, free %d"),numPiles, nStripIndex, free);
+			wxLogDebug(_T("CreateStrip(): NOT PRINTING Num Piles %d  :  strip index %d, free %d"),numPiles, nStripIndex, free);
 		}
+		*/
 		nStripIndex++;
 	}
     // layout is built, we should call Shrink() to reclaim memory space unused
