@@ -25,7 +25,7 @@ All Versions:
 when loaded into Open Office 3. They should format correctly 
 with MS Word, and if saved from MS Word can subsequently opened
 in Open Office 3. Eventually the RTF exports will be reworked to 
-be compatible with Open Office 3.
+be fully compatible with Open Office 3.
 
 2. Sync Scrolling should work on the Windows port, but has not 
 been implemented on the non-Windows ports because the 
