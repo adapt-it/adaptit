@@ -686,7 +686,10 @@ void CLayout::PlaceBox()
 		// range specification get set by the SetupCursorGlobals() calls in the switch below
 
 		// handle any operation specific parameter settings
-		//* this stuff may not be needed now that I've had to put PlaceBox() all over the app
+		// this stuff may not be needed now that I've had to put PlaceBox() all over the app
+		// BEW 21Jul09, I commented out currently unused parts of the switch, if we later
+		// want to use any of those parts, we can just restore the wanted part below, the
+		// enum values are not changed
 		enum doc_edit_op opType = m_docEditOperationType;
 		switch(opType)
 		{
@@ -696,12 +699,12 @@ void CLayout::PlaceBox()
 				bSetModify = TRUE;
 				break;
 			}
-		case cancel_op:
+/*		case cancel_op:
 			{
 
 				break;
 			}
-		case char_typed_op:
+*/		case char_typed_op:
 			{
 				// don't interfere with the m_nStartChar and m_nEndChar values, just set
 				// modify flag
@@ -720,7 +723,7 @@ void CLayout::PlaceBox()
 				bSetTextColor = TRUE;
 				break;
 			}
-		case merge_op:
+/*		case merge_op:
 			{
 
 				break;
@@ -730,7 +733,7 @@ void CLayout::PlaceBox()
 
 				break;
 			}
-		case retranslate_op:
+*/		case retranslate_op:
 			{
 				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 				bSetModify = FALSE;
@@ -748,12 +751,12 @@ void CLayout::PlaceBox()
 				bSetModify = FALSE;
 				break;
 			}
-		case insert_placeholder_op:
+/*		case insert_placeholder_op:
 			{
 
 				break;
 			}
-		case remove_placeholder_op:
+*/		case remove_placeholder_op:
 			{ 
 				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 				break;
@@ -763,7 +766,7 @@ void CLayout::PlaceBox()
 				m_pView->RemoveSelection();
 				break;
 			}
-		case split_op:
+/*		case split_op:
 			{
 
 				break;
@@ -778,14 +781,14 @@ void CLayout::PlaceBox()
 
 				break;
 			}
-		case on_button_no_adaptation_op:
+*/		case on_button_no_adaptation_op:
 			{
 				m_pApp->m_nStartChar = 0;
 				m_pApp->m_nEndChar = 0;
 				bSetModify = TRUE;
 				break;
 			}
-		case edit_source_text_op:
+/*		case edit_source_text_op:
 			{
 
 				break;
@@ -800,13 +803,13 @@ void CLayout::PlaceBox()
 
 				break;
 			}
-		case retokenize_text_op:
+*/		case retokenize_text_op:
 			{
 				SetupCursorGlobals(m_pApp->m_targetPhrase, cursor_at_text_end);
 				bSetModify = FALSE;
 				break;
 			}
-		case collect_back_translations_op:
+/*		case collect_back_translations_op:
 			{
 
 				break;
@@ -856,7 +859,7 @@ void CLayout::PlaceBox()
 
 				break;
 			}
-		case vert_edit_exit_op:
+*/		case vert_edit_exit_op:
 			{
 				SetupCursorGlobals(m_pApp->m_targetPhrase, select_all); // sets to (-1,-1)
 				bSetModify = FALSE;
@@ -868,7 +871,7 @@ void CLayout::PlaceBox()
 				bSetModify = FALSE;
 				break;
 			}
-		case exit_preferences_op:
+/*		case exit_preferences_op:
 			{
 
 				break;
@@ -918,7 +921,7 @@ void CLayout::PlaceBox()
 
 				break;
 			}
-		default: // do the same as default_op	
+*/		default: // do the same as default_op	
 		case no_edit_op:
 			{
 				// do nothing additional
@@ -1732,8 +1735,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// strips for the whole document - so potentially may consume a lot of time; however, the
 	// efficiency of the new design (eg. no rectangles are calculated) may compensate significantly
 //#ifdef __WXDEBUG__
-//	CAdapt_ItApp* pAppl = &wxGetApp();
-//	wxLogDebug(_T("Location = %d  Active Sequ Num  %d"),1,pAppl->m_nActiveSequNum);
+//	CAdapt_ItApp* pApp = &wxGetApp();
+//	wxLogDebug(_T("Location = %d  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
 //#endif
 	// every call of RecalcLayout() should calculate the number of strips currently that
 	// could be shown in the client area, setting the m_numVisibleStrips private member of
@@ -1741,10 +1744,21 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// GetNumVisibleStrips() and rely on the value returned; when printing however, the
 	// number of "visible" strips is determined by what can fit on the printed page, and
 	// this is calculated externally in PaginateDoc()
+	
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (gbIsPrinting)
+		wxLogDebug(_T("\n\nPRINTING   RecalcLayout()  app m_docSize.x  %d  CLayout m_logicalDocSize.x %d"),
+				pApp->m_docSize.x, m_logicalDocSize.x);
+	else
+		wxLogDebug(_T("\n\nNOT PRINTING   RecalcLayout()  app m_docSize.x  %d  CLayout m_logicalDocSize.x %d"),
+				pApp->m_docSize.x, m_logicalDocSize.x);
+
 	SetFullWindowDrawFlag(TRUE);
 	if (!gbIsPrinting)
 	{
 		m_numVisibleStrips = CalcNumVisibleStrips();
+		wxLogDebug(_T("RecalcLayout()  SHOULDN'T SEE THIS WHEN PRINTING,  m_numVisibleStrips  %d  "),
+		m_numVisibleStrips);
 	}
 
 	SPList* pSrcPhrases = pList; // the list of CSourcePhrase instances which
@@ -1770,19 +1784,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			{
 				m_pileList.DeleteContents(TRUE); // TRUE means "delete the stored CCell instances too"
 			}
-			// remove this message - it gets shown about a dozen times before the Welcome
-			// splash window appears!!
-			// a message to us developers is needed here, in case we get the design wrong
-			//wxMessageBox(_T("Warning: SetupLayout() did nothing because there are no CSourcePhrases yet."),
-			//			_T(""), wxICON_WARNING);
 			SetFullWindowDrawFlag(FALSE);
 			return TRUE;
 		}
 	}
-
-	// preserve selection parameters, so it can be preserved across the recalculation
-	// m_pView->StoreSelection(m_pApp->m_selectionLine); BEW 25Jun09, can't do this anymore
-
 	wxRect rectFrame(0,0,0,0);
 	CMainFrame *pFrame = NULL;
 	if (!gbIsPrinting)
@@ -1900,7 +1905,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	int nStripWidth = (GetLogicalDocSize()).x; // constant for any one RecalcLayout call,
 	// and when printing, external functions will already have set the "logical"
 	// size returned by this call to a size based on the physical page's printable width
-
     // before building or tweaking the strips, we want to ensure that the gap left for the
     // phrase box to be drawn in the layout is as wide as the phrase box is going to be
     // when it is made visible by CLayout::Draw(). When RecalcLayout() is called,
@@ -1927,10 +1931,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 		{
             // these three lines ensure that the active pile's width is based on the
             // CLayout::m_curBoxWidth value that was stored there by any adjustment to the
-            // box width done by FixBox() just prior to this RecalcLayout() call ( similar
-            // code will be needed in AdjustForUserEdits() when we complete the layout
-            // refactoring,
-			// *** TODO *** )
+            // box width done by FixBox() just prior to this RecalcLayout() call
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
@@ -1955,7 +1956,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
 		gbExpanding = FALSE; // has to be restored to default value
-		// m_pView->RestoreSelection(); // there won't be a selection in this circumstance
 	}
 	gbContracting = FALSE; // restore default value
 /*
@@ -1987,7 +1987,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles
 		|| selector == create_strips_update_pile_widths)
 	{
+		if (gbIsPrinting)
+			wxLogDebug(_T("RecalcLayout() CreateStrips about to be called  "));
 		CreateStrips(nStripWidth, gap);
+		if (gbIsPrinting)
+			wxLogDebug(_T("RecalcLayout() CreateStrips has Finished  "));
 	}
 	if (selector == keep_strips_keep_piles)
 	{
@@ -2108,9 +2112,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
     			noRefresh);						// SetScrollPos called elsewhere
 	}
 
-	// restore the selection, if there was one
-	//m_pView->RestoreSelection(); // 25Jun09 can't do this anymore
-
 	// if free translation mode is turned on, get the current section
 	// delimited and made visible - but only when not currently printing
 	if (m_pApp->m_bFreeTranslationMode && !gbIsPrinting)
@@ -2119,12 +2120,6 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 		{
 			m_pView->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
 		}
-
-		//CMainFrame* pFrame;
-		//pFrame = m_pApp->GetMainFrame();
-		//wxASSERT(pFrame);
-		//wxTextCtrl* pEdit = (wxTextCtrl*)
-		//					pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		wxTextCtrl* pEdit = (wxTextCtrl*)
 							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		pEdit->SetFocus();
@@ -2387,7 +2382,30 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 //#endif
 		m_stripArray.Add(pStrip); // add the new strip to the strip array
 		// set up the strip's pile (and cells) contents
+		if (gbIsPrinting)
+			wxLogDebug(_T("CreateStrips():  propulating strip with strip index  %d  ,  strip width  %d (pass in)"),
+			 nStripIndex, nStripWidth);
 		pos = pStrip->CreateStrip(pos, nStripWidth, gap);	// fill out with piles 
+		if (gbIsPrinting)
+		{
+			int nStripIndex = pStrip->m_nStrip;
+			int free = pStrip->m_nFree;
+			int numPiles = pStrip->m_arrPileOffsets.GetCount();
+			wxLogDebug(_T("CreateStrip(): Num Piles %d  :  pile index %d, free %d"),numPiles, nStripIndex, free);
+			int i;
+			for (i=0;i<numPiles;i++)
+			{
+				wxLogDebug(_T("        index [%d] has offset %d , for srcPhrase:  %s"),
+					i,pStrip->m_arrPileOffsets[i], ((CPile*)pStrip->m_arrPiles[i])->GetSrcPhrase()->m_srcPhrase);
+			}
+		}
+		else
+		{
+			int nStripIndex = pStrip->m_nStrip;
+			int free = pStrip->m_nFree;
+			int numPiles = pStrip->m_arrPileOffsets.GetCount();
+			wxLogDebug(_T("CreateStrip(): NOT PRINTING Num Piles %d  :  pile index %d, free %d"),numPiles, nStripIndex, free);
+		}
 		nStripIndex++;
 	}
     // layout is built, we should call Shrink() to reclaim memory space unused

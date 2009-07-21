@@ -21,6 +21,7 @@
 #ifndef Adapt_It_h
 #define Adapt_It_h
 
+class AIPrintout;
 // for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...
 // comment out when the wxLogDebug() calls are no longer needed
 //#define Test_m_bNoAutoSave
@@ -2039,7 +2040,7 @@ public:
 	// BEW added 10Jan06
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE (used in SetupDirectories())
 
-
+	AIPrintout* pAIPrintout;
 // Overrides
 	public:
     bool OnInit();// wxApp uses non-virtual OnInit() instead of virtual bool InitInstance()
@@ -2126,6 +2127,11 @@ public:
 	bool	ChooseInterfaceLanguage(enum SetInterfaceLanguage setInterface);
 	bool	ReverseOkCancelButtonsForMac(wxDialog* dialog);
 
+	// printing support
+	void	DoPrintCleanup();
+	bool	CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU, int& nPagePrintingLengthLU);
+
+	// miscellaneous (alphabetical order mostly)
 	bool	FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolledWindow, wxSize maxSize);
 	wxString GetDefaultPathForLocalizationSubDirectories();
 	wxString GetDefaultPathForXMLControlFiles();
@@ -2193,6 +2199,7 @@ public:
 	//int		SetBundleIndices(SPList* pList, int nFirstSequNumInBundle); // for Joining documents, returns active loc'n
 
 	//void	KBIntegrityCheck(); // whm 16Jan09 Removed
+	bool	LayoutAndPaginate(int& nPagePrintingWidthLU, int& nPagePrintingLengthLU);
 	bool	LoadKB();
 	bool	LoadGlossingKB();
 	wxFontEncoding MapMFCCharsetToWXFontEncoding(const int Charset);

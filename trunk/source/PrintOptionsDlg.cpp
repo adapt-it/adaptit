@@ -65,6 +65,8 @@
 // This global is defined in Adapt_ItView.cpp.
 //extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
+extern bool	gbPrintingAll; // defined in Adapt_It.cpp
+extern bool gbIsPrinting;
 extern bool gbPrintingSelection;
 extern bool	gbPrintingRange;
 extern int	gnFromChapter;
@@ -197,93 +199,55 @@ CPrintOptionsDlg::~CPrintOptionsDlg() // destructor
 void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class
-//	wxLogDebug(_T("InitDialog() START"));	
+	//wxLogDebug(_T("InitDialog() START"));	
 
     // Get the logical page dimensions for paginating the document and printing.
-    // 
-    // whm Note: For initializing the CPrintOptionsDlg, we only simulate the calculation of the
-    // document's layout without changing it, as would a direct call to RecalcLayout() would do. We
-    // simulate it because we only want to paginate the document at this point to know what the possible
-    // page range is for entering into the dialog's Pages from: and Pages to: edit boxes. To effect the
-    // simulation we call RecalcLayout_SimulateOnly() instead of the usual RecalcLayout().
-    // RecalcLayout_SimulateOnly() does not change the state of the document or any of its
-    // indices/variables; it does the same calculations as RecalcLayout(), but only as far as necessary
-    // to determine the layout parameters (number of Strips) necessary for our version of PaginateDoc()
-    // to determine how many pages it would take to print the document.
-    // 
-	//////////////////////////////////////////////////////////////////////////////////////////////
-	// The stuff below could go into a separate function - see also CAdapt_ItView::SetupRangePrintOp
-    // Determine the length of the printed page in logical units.
-	int pageWidthBetweenMarginsMM, pageHeightBetweenMarginsMM;
-	wxSize paperSize_mm;
-	paperSize_mm = gpApp->pPgSetupDlgData->GetPaperSize();
-	wxASSERT(paperSize_mm.x != 0);
-	wxASSERT(paperSize_mm.y != 0);
-     // We should also have valid (non-zero) margins stored in our pPgSetupDlgData object.
-	wxPoint topLeft_mm, bottomRight_mm; // MFC uses CRect for margins, wx uses wxPoint
-	topLeft_mm = gpApp->pPgSetupDlgData->GetMarginTopLeft(); // returns top (y) and left (x) margins as wxPoint in milimeters
-	bottomRight_mm = gpApp->pPgSetupDlgData->GetMarginBottomRight(); // returns bottom (y) and right (x) margins as wxPoint in milimeters
-	wxASSERT(topLeft_mm.x != 0);
-	wxASSERT(topLeft_mm.y != 0);
-	wxASSERT(bottomRight_mm.x != 0);
-	wxASSERT(bottomRight_mm.y != 0);
-	// The size data returned by GetPageSizeMM is not the actual paper size edge to edge, nor the size
-    // within the margins, but it is the usual printable area of a paper, i.e., the limit of where most
-    // printers are physically able to print; it is the area in between the actual paper size and the
-	// usual margins. We therefore start with the raw paperSize and determine the intended print area
-	// between the margins.
-	pageWidthBetweenMarginsMM = paperSize_mm.x - topLeft_mm.x - bottomRight_mm.x;
-	pageHeightBetweenMarginsMM = paperSize_mm.y - topLeft_mm.y - bottomRight_mm.y;
-	
-	// Now, convert the pageHeightBetweenMarginsMM to logical units for use in calling PaginateDoc.
-	// 
-	// Get the logical pixels per inch of screen and printer.
-	// whm NOTE: We can't yet use the wxPrintout::GetPPIScreen() and GetPPIPrinter() methods because
-	// the wxPrintout object is not created yet at the time this print options dialog is displayed.
-	// But, we can do the same calculations by using the wxDC::GetPPI() method call on both a
-	// wxPrinterDC and a wxClientDC of our canvas.
-	//
-    // Set up printer and screen DCs and determine the scaling factors between printer and screen.
-    wxASSERT(gpApp->pPrintData->IsOk());
+    int nPagePrintingWidthLU;
+	int nPagePrintingLengthLU;
+	bool bOK = gpApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
+	if (!bOK)
+	{
+		// what should we do here, I guess it shouldn't happen, so I will just return and
+		// hope -- maybe a beep too
+		::wxBell();
+		gbIsPrinting = FALSE;
+		return;
+	}
 
-#ifdef __WXGTK__
-	// Linux requires we use wxPostScriptDC rather than wxPrinterDC
-	// Note: If the Print Preview display is drawn with text displaced up and off the display on wxGTK,
-	// the wxWidgets libraries probably were not configured properly. They should have included a
-	// --with-gnomeprint parameter in the configure call.
-	wxPostScriptDC printerDC(*gpApp->pPrintData); // MUST use * here otherwise printerDC will not be initialized properly
-#else
-	wxPrinterDC printerDC(*gpApp->pPrintData); // MUST use * here otherwise printerDC will not be initialized properly
-#endif
-	
-	wxASSERT(printerDC.IsOk());
-	wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the printer in pixels per inch (dpi)
-	wxClientDC canvasDC(gpApp->GetMainFrame()->canvas);
-	wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the screen/canvas in pixels per inch (dpi)
-	float scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
+	// setup the layout for the new pile width, and get the PageOffsets structs list populated
+	bOK = gpApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
+	if (!bOK)
+	{
+		// what should we do here, I guess it shouldn't happen, but just in case....
+		// Note, the document will have been modified here, so I think the right thing to
+		// do is to call DoPrintCleanup()  to ensure the original state of the document
+		// will be restored. Maybe ~AIPrintout() will be called too? I'm not sure, but we
+		// can prevent reentrancy into DoPrintCleanup() by using the
+		// m_nAIPrintout_Destructor_ReentrancyCount variable, DoPrintCleanup() will make
+		// it = 2 on return, and it ~AIPrintout() destructor is later called, we won't get
+		// a crash do to a second attempt to restore the document which has already been
+		// restored here
+		gpApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
+		gpApp->DoPrintCleanup();
+		::wxBell(); // we can still sound the bell, to let the user (or developer!) know something went bad
+		return;
+	}
 
-    // Calculate the conversion factor for converting millimetres into logical units. There are approx.
-    // 25.4 mm to the inch. There are ppi device units to the inch. Therefore 1 mm corresponds to
-    // ppi/25.4 device units. We also divide by the screen-to-printer scaling factor, because we need to
-    // unscale to pass logical units to PaginateDoc.
-	float logicalUnitsFactor = (float)(printerSizePPI.GetHeight()/(scale*25.4)); // use the more precise conversion factor
-	int nPagePrintingWidthLU, nPagePrintingLengthLU;
-	nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
-	nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
-	// The stuff above could go into a separate function - see also CAdapt_ItView::SetupRangePrintOp
-	//////////////////////////////////////////////////////////////////////////////////////////////
+/*  // BEW 20Jul09, this code removed, LayoutAndPaginate() uses the similar, non-simulation, 
+	// recalc and pagination done for print preview
+    // whm Caution: It is not really appropriate to assume as MFC version does that, by
+    // converting from thousandths to hundredths, the calculation will result in a measure
+    // equivalent to screen pixels. While most displays today are 96 dpi where each pixel
+    // approximates to one hundredth of an inch, the OLPC XO computer has a screen that is
+    // 200 dpi in its high reflective B&W mode.
 	
-    // whm Caution: It is not really appropriate to assume as MFC version does that, by converting from
-    // thousandths to hundredths, the calculation will result in a measure equivalent to screen pixels.
-    // While most displays today are 96 dpi where each pixel approximates to one hundredth of an inch,
-    // the OLPC XO computer has a screen that is 200 dpi in its high reflective B&W mode.
-	
-    // Determine if we have a selection, and if so, only calculate for it rather than the whole
-    // document. The following pSPList will point either to the whole list (gpApp->m_pSourcePhrases) if
-    // there is no selection, or pSPList will point to a temporary list of selected source phrases
-    // (pSelectedSPList) if there is a selection.
+    // Determine if we have a selection, and if so, only calculate for it rather than the
+    // whole document. The following pSPList will point either to the whole list
+    // (gpApp->m_pSourcePhrases) if there is no selection, or pSPList will point to a
+    // temporary list of selected source phrases (pSelectedSPList) if there is a selection.
 	SPList* pSPList; 
-	SPList* pSelectedSPList = new SPList; // list of selected SPs not likely to be large but we'll created it on the heap anyway
+	SPList* pSelectedSPList = new SPList; // list of selected SPs not likely to be
+								// large but we'll created it on the heap anyway
 	// The following will be sequence numbers for either the whole list, or the list of selected
 	// source phrases if there is a selection.
 	int nBeginSequNum;
@@ -293,15 +257,18 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		// there is no selection, so make pSPList pointer point to the whole list
 		pSPList = gpApp->m_pSourcePhrases;
 		nBeginSequNum = 0; // for no selection we always start at pSPList's sequence number 0 
-		nEndSequNum = pSPList->GetCount() - 1; // for no selection we do the whole pSPList, nEndSequNum is last item //gpApp->m_endIndex;
+		nEndSequNum = pSPList->GetCount() - 1; // for no selection we do the whole 
+								// pSPList, nEndSequNum is last item //gpApp->m_endIndex;
 	}
 	else
 	{
-		// there is a selection, so we'll simulate the recalc based on just the selected list of source
-		// phrases, but since we're simulating, we won't change the App's list of m_pSourcePhrases
+        // there is a selection, so we'll simulate the recalc based on just the selected
+        // list of source phrases, but since we're simulating, we won't change the App's
+        // list of m_pSourcePhrases
 		// 
-		// We also won't call StoreSelection() because we won't need to restore it after the
-		// simulation; but just get the sequence numbers to build a temporary SPList for the simulation.
+        // We also won't call StoreSelection() because we won't need to restore it after
+        // the simulation; but just get the sequence numbers to build a temporary SPList
+        // for the simulation.
 		CCellList::Node* cpos = gpApp->m_selection.GetFirst();
 		CCell* pCell = cpos->GetData();
 		int nBeginSN,nEndSN;
@@ -310,12 +277,13 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		pCell = cpos->GetData();
 		nEndSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
 		
-        // We want to simulate the recalc (creation of strips) based on only the selected source
-        // phrases, so rather than calling GetSublist() [which modifies the App's m_pSourcePhrases list]
-        // we will create a temporary list here to hand over to RecalcLayout_SimulateOnly() rather than
-        // giving it the App's m_pSourcePhrases list.
-		// Copy across to pSelectedSPList the pointers to the source phrases which are wanted for the 
-		// selection sublist.
+        // We want to simulate the recalc (creation of strips) based on only the selected
+        // source phrases, so rather than calling GetSublist() [which modifies the App's
+        // m_pSourcePhrases list] we will create a temporary list here to hand over to
+        // RecalcLayout_SimulateOnly() rather than giving it the App's m_pSourcePhrases
+        // list.
+        // Copy across to pSelectedSPList the pointers to the source phrases which are
+        // wanted for the selection sublist.
 		SPList::Node* spos = gpApp->m_pSourcePhrases->Item(nBeginSN);
 		int sn = nBeginSN;
 		while (sn <= nEndSN)
@@ -338,8 +306,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	int nTotalStrips_Simulated;
 	wxSize sizeTotal_Simulated(nPagePrintingWidthLU,nPagePrintingLengthLU);
 
-	// whm 16Jul09: The following RecalcLayout_SimulateOnly() can be fairly time consuming for larger
-	// documents, so we should provide a wait dialog starting here.
+    // whm 16Jul09: The following RecalcLayout_SimulateOnly() can be fairly time consuming
+    // for larger documents, so we should provide a wait dialog starting here.
 	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
 	CWaitDlg waitDlg(gpApp->GetMainFrame());
 	// indicate we want the reading file wait message
@@ -350,8 +318,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
 	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  START RecalcLayout simulated"));
-	// RecalcLayout_SimulateOnly returns simulated docSize in its sizeTotal_Simulated reference parameter,
-	// and the number of strips in its return value.
+    // RecalcLayout_SimulateOnly returns simulated docSize in its sizeTotal_Simulated
+    // reference parameter, and the number of strips in its return value.
 	nTotalStrips_Simulated = pView->RecalcLayout_SimulateOnly(pSPList, sizeTotal_Simulated,nBeginSequNum,nEndSequNum);
 	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  END RecalcLayout simulated"));
 	
@@ -360,26 +328,27 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 	delete pSelectedSPList;
 	pSPList = (SPList*)NULL;
 
-    // whm: Populate the Pages from: and to: edit boxes with the possible range (accounting for any
-    // selection). This requires that we call PaginateDoc() to determine the number of pages for the
-    // current page setup, selection, etc.
+    // whm: Populate the Pages from: and to: edit boxes with the possible range (accounting
+    // for any selection). This requires that we call PaginateDoc() to determine the number
+    // of pages for the current page setup, selection, etc.
     // 
-    // In the following call to PaginateDoc, we use the nTotalStrips_Simulated value returned from the
-    // above RecalcLayout_SimulateOnly call, because the PaginateDoc() call here is done only for
-    // purposes of getting the pages edit box values for the print options dialog and we haven't changed
-    // any indices for the layout of the main document.
-	bool bOK;
+    // In the following call to PaginateDoc, we use the nTotalStrips_Simulated value
+    // returned from the above RecalcLayout_SimulateOnly call, because the PaginateDoc()
+    // call here is done only for purposes of getting the pages edit box values for the
+    // print options dialog and we haven't changed any indices for the layout of the main
+    // document.
 	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  START PaginateDoc simulated"));
 	bOK = pView->PaginateDoc(nTotalStrips_Simulated,nPagePrintingLengthLU,DoSimulation); // (doesn't call RecalcLayout())
 	//wxLogDebug(_T("PrintOptionsDlg.cpp InitDialog()  END PaginateDoc simulated"));
 	if (!bOK)
 	{
-		// PaginateDoc will have notified the user of any problem, so just return here - we can't print
-		// without paginating the doc. Cleanup of the doc's indices, etc, is done in the AIPrintout
-		// destructor.
+        // PaginateDoc will have notified the user of any problem, so just return here - we
+        // can't print without paginating the doc. Cleanup of the doc's indices, etc, is
+        // done in the AIPrintout destructor.
 		//return;
-		// TODO: notify user that page range is not accurate
 	}
+*/
+
 	// Populate the Pages from: and Pages to: edit boxes
 	int nNumPages = (int)gpApp->m_pagesList.GetCount();
 	wxString nNumPagesStr;
@@ -489,7 +458,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 
     // The "Selection" radio button should be disabled if there was no selection existing before
     // invoking the print options dialog.
-	if (gpApp->m_selectionLine != -1)
+	//if (gpApp->m_selectionLine != -1)
+	if (gbPrintingSelection) // LayoutAndPaginate() will have either set it or cleared it already
 	{
 		// there is a selection so enable and set the "Selection" radio button by default
 		pRadioSelection->Enable(TRUE);
@@ -524,6 +494,12 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 		pEditChTo->Enable(FALSE);
 	if (pEditVsTo->IsEnabled())
 		pEditVsTo->Enable(FALSE);
+
+	// turn off gbIsPrinting before the Print Options Dlg shows, otherwise, when OnPaint()
+	// has CLayout::Draw() called, tests for gbIsPringing TRUE will give crashes; we want
+	// the flag to be FALSE while the dialog is up
+	gbIsPrinting = FALSE;
+
 //	wxLogDebug(_T("InitDialog() END"));	
 }
 
@@ -536,6 +512,8 @@ void CPrintOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDia
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnOK(wxCommandEvent& event) 
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+
 	// whm note: Since we are not fiddling with our print options within a customized print dialog, we
 	// could do all this from within the wxID_OK block of code in OnPrint(). 
 	// 
@@ -581,7 +559,9 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 		gbSuppressPrecedingHeadingInRange = FALSE;
 		gbIncludeFollowingHeadingInRange = FALSE;
 	}
-	
+
+	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
+
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -595,8 +575,10 @@ void CPrintOptionsDlg::OnOK(wxCommandEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnCancel(wxCommandEvent& event) 
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItView* pView = gpApp->GetView();
 	pView->ClearPagesList();
+	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1; // BEW added 18Jul09
 	event.Skip();
 }
 
@@ -653,6 +635,16 @@ void CPrintOptionsDlg::OnSetfocus(wxFocusEvent& event)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnAllPagesBtn(wxCommandEvent& WXUNUSED(event))
 {
+	// for an explanation why the following test is here, see the 21Jul09 comment in the
+	// header comment for the OnRadioChapterVerseRange() function
+	if (gbPrintingSelection)
+	{
+		// not allowed to change the "printing selection" choice at this stage
+		pRadioAll->SetValue(FALSE);
+		pRadioSelection->SetValue(TRUE);
+		::wxBell();
+		return;
+	}
 	// When user clicks on the "All" button, we need to unselect the other radio buttons.
 	// Normally, when we have 4 radio buttons forming a "group" and one of them is selected, the other 3
 	// should automatically get unselected, but to be safe we'll they are unselected.
@@ -685,6 +677,18 @@ void CPrintOptionsDlg::OnAllPagesBtn(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnSelectBtn(wxCommandEvent& WXUNUSED(event))
 {
+	// for an explanation why the following test is here, see the 21Jul09 comment in the
+	// header comment for the OnRadioChapterVerseRange() function
+	// (Actually, this test is not needed because if there was no selection, this button
+	// will be disabled prior to the dialog being shown)
+	if (!gbPrintingSelection)
+	{
+		// it's now too late to change to a "printing selection" choice at this stage,
+		// because there is no way for the user to set up a selection from within the
+		// print options dialog, so just give an audible warning and do nothing
+		::wxBell();
+		return;
+	}
 	pRadioAll->SetValue(FALSE);
 	pRadioPages->SetValue(FALSE);
 	pRadioChVs->SetValue(FALSE);
@@ -709,6 +713,16 @@ void CPrintOptionsDlg::OnSelectBtn(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event)) 
 {
+	// for an explanation why the following test is here, see the 21Jul09 comment in the
+	// header comment for the OnRadioChapterVerseRange() function
+	if (gbPrintingSelection)
+	{
+		// not allowed to change the "printing selection" choice at this stage
+		pRadioPages->SetValue(FALSE);
+		pRadioSelection->SetValue(TRUE);
+		::wxBell();
+		return;
+	}
 	pRadioAll->SetValue(FALSE);
 	pRadioSelection->SetValue(FALSE);
 	pRadioChVs->SetValue(FALSE);
@@ -747,9 +761,31 @@ void CPrintOptionsDlg::OnPagesBtn(wxCommandEvent& WXUNUSED(event))
 /// button, and disables the two edit boxes associated with the Pages radio button. When the
 /// "Chapter/Verse Range" radio button is clicked, focus moves to the first empty edit box associated 
 /// with it.
+/// BEW changed 21Jul09, a selection should have priority over a chapter:verse range,
+/// because the selection is something the user does explicitly in the view before
+/// invoking the print command - and if he's done a selection when he asks for printing,
+/// we assume he means it. Therefore, the chapter:verse range option should only be
+/// available when he's not already set up a selection - and we can test for a selection
+/// having been set up because if so, gbPrintingSelection will be already TRUE when
+/// control first gets the chance to enter this function, so use the boolean to suppress
+/// switching to a range print in that circumstance. A ring of the bell should suffice as
+/// a warning. (Our code does not permit making a selection, choosing print, then in the
+/// print options dialog unchecking the Selection radiobutton in order to take some other
+/// option such as full doc print, or range print, because the selection will already have
+/// been temporarily made to be the whole document, and we can't change that fact at this
+/// late stage - the selection must be printed, the only other option is to Cancel right
+/// out of the print operation)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CPrintOptionsDlg::OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event))
 {
+	if (gbPrintingSelection)
+	{
+		// not allowed to change the "printing selection" choice at this stage
+		pRadioChVs->SetValue(FALSE);
+		pRadioSelection->SetValue(TRUE);
+		::wxBell();
+		return;
+	}
 	pRadioAll->SetValue(FALSE);
 	pRadioSelection->SetValue(FALSE);
 	pRadioPages->SetValue(FALSE);
@@ -762,6 +798,9 @@ void CPrintOptionsDlg::OnRadioChapterVerseRange(wxCommandEvent& WXUNUSED(event))
 	// disable the from and to edit boxes
 	pEditPagesFrom->Enable(FALSE);
 	pEditPagesTo->Enable(FALSE);
+	// enable the section header checkboxes
+	pCheckSuppressPrecSectHeading->Enable(TRUE);
+	pCheckIncludeFollSectHeading->Enable(TRUE);
 
 	// when the Chapter/Verse Range radio button is clicked, move focus to the first
 	// empty edit box, which would often be from:chapter, unless user is coming back to edit
