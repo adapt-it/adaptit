@@ -456,7 +456,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 		pileIndex_InStrip++;
 		pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 		nHorzOffset_FromLeft = nWidthOfPreviousPile + gap;
-
+	
 		// if m_nFree went negative or zero, we can't fit any more piles, so declare 
 		// the strip full
 		if (m_nFree <= 0)
@@ -534,7 +534,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 			pos = pos->GetNext(); // will be NULL if the pile just created was at doc end
 
 			// set the nHorzOffset_FromLeft value ready for the next iteration of the loop
-			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;
+			nHorzOffset_FromLeft += nWidthOfPreviousPile + gap;	
 		}
 	}
 //	else
@@ -660,7 +660,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 //	}
 	// if the loop exits because the while test yields FALSE, then either we are at the end of the
 	// document or the first pile was wider than the whole strip - in either case we must declare
-	// this strip filled and we are done
+	// this strip filled and we are done	
 	m_bValid = TRUE;
 	return pos; // the iterator value where we start when we create the next strip
 }

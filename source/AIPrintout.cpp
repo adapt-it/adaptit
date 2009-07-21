@@ -59,6 +59,7 @@ extern int gnCurPage;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
 
+extern bool	gbPrintingAll; // defined in Adapt_It.cpp
 extern bool gbPrintingSelection;
 extern bool gbPrintingRange;
 extern int gnFromChapter;
@@ -176,6 +177,7 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 	// Preview, so I'm counting times reentered, and only letting the function do any work
 	// on the first time entered
 	pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
+	pApp->pAIPrintout = this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,119 +198,14 @@ AIPrintout::AIPrintout(const wxChar *title):wxPrintout(title)
 /// active location, since the active sequence number gets wrongly reset to -1 on the
 /// second call! So, I'll try a global to count the number of times reentered, and for the
 /// second or later reenters, just exist immediately without doing anything. Crude, but it
-/// will have to do. A pity the cleanup is done in the destructor, but I've not got the
-/// time to try figure out why Bill put it so late. 
+/// will have to do. 18Jul09 BEW moved the code, including the reentracy protection
+/// global, into a function called DoPrintCleanup() and put the latter in the app class. 
 ////////////////////////////////////////////////////////////////////////////////////////////
 AIPrintout::~AIPrintout()
 {
-	// refactored 6Apr09
 	CAdapt_ItApp* pApp = &wxGetApp();
-
-    // Note: The code below cleans up the indices and flags after a print and/or print
-    // preview operation. It could not go in OnEndPrinting because that gets called earlier
-    // and more often in the wx version (especially when doing print preview).
-	CAdapt_ItView* pView = pApp->GetView();
-
-	if (pApp->m_nAIPrintout_Destructor_ReentrancyCount == 1) 
-	{
-		// so the the stuff in this block only when we enter this function the first time
-
-		// restore original doc size
-		pApp->m_docSize = pApp->m_saveDocSize;
-		// and put that value back into CLayout::m_logicalDocSize
-		pApp->m_pLayout->RestoreLogicalDocSizeFromSavedSize();
-		pApp->m_pLayout->m_pOffsets = NULL; // restore default NULL value for PageOffsets instance
-
-		// if we were printing a selection, restore the original state first (but don't restore the
-		// selection), then do tidy up of everything else & get a new layout calculated; likewise if
-		// we were printing a chapter & verse range
-		if (gbPrintingSelection  || gbPrintingRange)
-		{
-			pView->RestoreOriginalList(pApp->m_pSaveList, pApp->m_pSourcePhrases); // ignore return value,
-															// either we aborted, or all was well
-			// we want any selection retained if we have been doing a print preview, but we want the
-			// selection removed if we have been printing
-			if (!gbIsBeingPreviewed && gbPrintingSelection)
-			{
-				pView->RemoveSelection();
-			}
-
-			gbPrintingSelection = FALSE;
-			gbPrintingRange = FALSE;
-
-			// restore defaults for the checkboxes
-			gbSuppressPrecedingHeadingInRange = FALSE;
-			gbIncludeFollowingHeadingInRange = FALSE;
-		}
-
-		// clean up
-		//pView->RestoreIndices();
-		pView->ClearPagesList();
-		gbIsPrinting = FALSE;
-		// wx version: I think the All Pages button gets enabled
-
-		// layout again for the screen, get an updated pointer to the active location, restore
-		// the phrase box, scroll, invalidate window to restore pre-printing appearance (if we
-		// had been printing a selection, it will get restored now because the globals will
-		// have been preserved)
-		pApp->m_nActiveSequNum = pApp->m_nSaveActiveSequNum;
-		// get a temporary m_pActivePile pointer
-		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-#ifdef _NEW_LAYOUT
-		//pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles); 
-														// this one gives a crash
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles); // no
-														// crash
-		//pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_and_piles); //
-														//too slow!! and doesn't fix problems
-#else
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-	#endif
-
-		pApp->m_nSaveActiveSequNum = -1; // **** NOTE ***** this can only be safely done once,
-            // after the above RecalcLayout() call, and if the function is reentered and we
-            // don't cause it to do nothing by the test put at the top, then RecalcLayout()
-            // gets called with an active sequence number of -1, which messes up the phrase
-            // box placement etc, hence the kluge of using
-            // m_nAIPrintout_Destructor_ReentrancyCount to prevent the repeat of the
-            // calculations in this block
-	} // block ends here so that a call to ScrollIntoView() is done for each time entered,
-	// otherwise, the scroll position gets lost for the second entrance, and a manual
-	// scroll is then required to make the active strip visible; but having the call done
-	// each time solves this problem
-
-	// recalculate the active pile & update location for phraseBox creation
-	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-	if (pApp->m_pActivePile != NULL) // whm added 27Feb05 to avoid crash when m_nActiveSequNum == -1
-								// as can be the case when user finishes adapting a doc, dismisses
-								// the dialog that informs of such, then immediately does print
-								// preview. When closing print preview this routine would otherwise
-								// crash below because GetPile makes m_pActivePile NULL.
-	{
-		pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-		pApp->m_nStartChar = 0;
-		pApp->m_nEndChar = -1; // ensure initially all is selected
-		pApp->m_pTargetBox->SetSelection(-1,-1); // select all
-		pApp->m_pTargetBox->SetFocus();
-	}
-   	
-	pView->Invalidate();
-	pApp->m_pLayout->PlaceBox();
-	wxWindow* pWnd;
-	pWnd = wxWindow::FindFocus(); // the box is not visible when the focus is set by the above code,
-							 // so unfortunately the cursor will have to be manually put back in the
-							 // box
-	
-	// Code to thaw the canvas needs to go here in OnCloseWindow, because OnEndPrinting gets called
-	// prematurely by the framework as each preview page is about to be shown.
-	// (Also, now that BEW has added the m_nAIPrintout_Destructor_ReentrancyCount kluge,
-	// we must permit a balanced number of calls to Thaw(), although we permit the stuff
-	// in the block above to be done only once)
-	if (pApp->GetMainFrame()->canvas->IsFrozen())
-		pApp->GetMainFrame()->canvas->Thaw();
-
-	pApp->m_nAIPrintout_Destructor_ReentrancyCount++; // count the number of times this function is
-						// entered, we do nothing in this block if it is is entered more than once
+	pApp->DoPrintCleanup();
+	pApp->pAIPrintout = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -620,378 +517,44 @@ void AIPrintout::GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AIPrintout::OnPreparePrinting() 
 {
-//	wxLogDebug(_T("OnPreparePrint() START"));
-	// refactored 6Apr09
  	CAdapt_ItApp* pApp = &wxGetApp();
-	pApp->m_docSize = pApp->m_pLayout->GetLogicalDocSize(); // copy m_logicalDocSize value 
-															// back to app's member
- 	pApp->m_saveDocSize = pApp->m_docSize; // also done in creator of AIPrintout class
+	//CAdapt_ItView* pView = pApp->GetView();
 
-  // whm notes:
-    // 
-    // 1. OnPreparePrinting() is called automatically by the framework when an OnPrint()
-    // event is handled (via wxID_PRINT standard Identifier). According to the docs, "It is
-    // called once by the framework before any other demands are made of the wxPrintout
-    // object. This gives the object an opportunity to calculate the number of pages in the
-    // document, and any other print preparations that are necessary before actual printing
-    // or print preview is done." OnPreparePrinting() is always called once just before a
-    // print preview dialog is displayed, and it is not called again when a different page
-    // is selected in print preview mode. When File | Print is selected OnPreparePrinting()
-    // is not called until after the the OK button is pressed at the print dialog, so, if
-    // user cancels the print dialog OnPreparePrinting() is never called in that case.
-    // 
-    // 2. MFC uses a CPrintInfo* pInfo parameter, but the wx version creates a wxPrintData
-    // object (pPrintData) in OnInit() of the App. pPrintData is also used as a data member
-    // of wxPrintDialogData and wxPageSetupDialogData, as part of the mechanism for
-    // transferring data between the print dialogs and the application.
-    // 
-    // 3. For the wx version, as the wxWidgets' printing sample illustrates, it is not
-    // necessary to explicitly change the display context's mapping mode for printing and
-    // print previewing, but that printing can be done readily just using the default
-    // wxMM_TEXT mapping mode. Also it is evident that most of the manipulation that MFC
-    // does of the printing routines that are conditional on the gbIsPrinting global
-    // (especially in the handling of negative y axis offsets) are not necessary.
-    // 
-    // 4. Note: The page setup routines in wx mostly return values in millimeters, so I've
-    // revised the App to maintain page size and margin data in metric (millimeters) as
-    // well as MFC's thousandths of an inch. The internal routines here in
-    // OnPreparePrinting() handle the data in mm.
-    // 
-    // 5. The MFC version actually calls up the print dialog from within its version of
-    // OnPreparePrinting (by calling the MFC DoPreparePrinting(pInfo) function). The wx
-    // version works differently. The print dialog is called up in its high level OnPrint()
-    // handler at the point where the wxPrinter object's Print() method is called. There is
-    // therefore no need for cleanup code to fix indices, call RecalcLayout, etc. All that
-    // is done in the AIPrintout's destructor.
-    // 
-    // See code:#print_flow for the order of calling of OnPreparePrinting().
-    
-	CAdapt_ItView* pView = pApp->GetView();
-
-    // whm Note: Most of the approximately 50 blocks of code where gbIsPrinting is used in
-    // the MFC version (in Adapt_ItCanvas.cpp, Adapt_ItView.cpp, AIPrintout.cpp, Cell.cpp,
-    // Pile.cpp and Strip.cpp), are removed in the wx version. The wx version does not use
-    // any negative offsets in printing. We can't remove gbIsPrinting altogether because of
-    // the way that it is used in the Strip's Draw() function.
-    // 
-    // whm update: It is not sufficient to set gbIsPrinting to TRUE only here, because
-    // OnEndPrinting() sets it to FALSE after each page is drawn in print preview. It is
-    // also set to TRUE in OnBeginDocument().
-	gbIsPrinting = TRUE;
-
-    // The MFC version deletes the CPrintDialog object created in the CPrintInfo
-    // constructor, and substitutes a customized print dialog. The wx version is not using
-    // a customized print dialog at present, but we may provide one eventually if it
-    // becomes clear how to tie in to the standard print dialog for each individual
-    // platform.
-
-	// whm: get a pointer to the wxPrintDialogData object (from printing sample)
-	wxPrintDialogData printDialogData(*pApp->pPrintData); 
-	
-	// set the page range to defaults
-	printDialogData.SetMinPage(1); // must start at 1
-	printDialogData.SetMaxPage(0xffff); // don't know how many yet
-
-	// clear any old view settings for an earlier print, in case they were not cleared
-	pView->ClearPagesList();
-	/* removed 6Apr09
-	// in case the user chooses a chapter/verse range, save the current indices
-	//pView->SaveIndicesForRange();	// this doesn't reset m_endIndex, etc, just sets m_saveRange... 
-									// indices values; do this first because next line resets m_maxIndex
-	//pView->SaveAndSetIndices(pApp->m_maxIndex);	// this sets m_maxIndex as m_endIndex, since we layout 
-													// whole doc for printing
-	*/
-	if (gbPrintingRange)
+	int nPagePrintingWidthLU = 0;
+	int nPagePrintingLengthLU = 0;
+	bool bAllsWell = pApp->CalcPrintableArea_LogicalUnits(nPagePrintingWidthLU, nPagePrintingLengthLU);
+	if (!bAllsWell)
 	{
-		// set up the range, layout, etc. (It is SetupRangePrintOp()'s responsibility to set up
-		// the new index values, since the old settings have already been saved)
-		bool bSetupOK = pView->SetupRangePrintOp(gnFromChapter,gnFromVerse,gnToChapter,gnToVerse,pApp->pPrintData,
-            			gbSuppressPrecedingHeadingInRange, gbIncludeFollowingHeadingInRange);
-
-		if(!bSetupOK)
-		{
-			// IDS_RANGE_SETUP_FAILED
-			wxMessageBox(_("Sorry, setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."), _T(""), wxICON_STOP);
-			return; // abort the print operation
-		}
-	}
-
-	bool bDefaultPgSetupInfoAvailable;
-	bDefaultPgSetupInfoAvailable = pApp->pPgSetupDlgData->GetDefaultInfo();
-	if (!bDefaultPgSetupInfoAvailable)
-	{
-        // The default page setup information is not available, so set the default page
-        // setup dimensions for A4 paper. The default page setup info generally won't be
-        // available unless the user has explicitly called up the page setup dialog.
-		pApp->pPgSetupDlgData->SetPaperSize(wxSize(210,297)); // sets A4 paper size in mm (210mm x 297mm)
-		pApp->pPgSetupDlgData->SetMarginTopLeft(wxPoint(25,25)); // sets top left margin in mm (approx 1 inch)
-		pApp->pPgSetupDlgData->SetMarginBottomRight(wxPoint(25,25)); // sets bottom right margin in mm (approx 1 inch)
-	}
-	
-    // whm: Caution: The following commented out call to SetDefaultInfo(TRUE) would cause
-    // the page setup handler to be inable to call up the page setup dialog after a print
-    // preview.
-	// pApp->pPgSetupDlgData->SetDefaultInfo(TRUE);
-	// TRUE means we return default printer information without showing a dialog 
-	// (Windows only)
-
-    // whm Notes:
-    // 
-    // 1. If the user has not accessed the page setup dialog pPgSetupDlgData's
-    // GetPaperSize() and actually selected a paper size explicitly, this GetPaperSize()
-    // method will return a (0,0) size, Check for a (0,0) sized paper.
-    // 
-    // 2. It should not be necessary to store the m_paperSizeCode value here from within
-    // the print or print preview routines. If the user changes the paper size selection
-    // (which can only be done from the Page Setup Dialog), the App's storage variables
-    // should only be changed from there not here.
-    // 
-    // 3. For compatibility with MFC version we could store the paper size in config file
-    // as an int representative of MFC's DEVMODE enum values, however the paper size codes
-    // in MFC and wx don't match because they use different enum structures. To get better
-    // compatibility between the config values stored in MFC and wx, we map the wx paper
-    // size code to MFC's code using our MapWXtoMFCPaperSizeCode function in
-    // OnFilePageSetup() and store in pApp->m_paperSizeCode.
-    //
-    // 4. The App's m_pageWidth and m_pageLength are stored in thousandths of an inch,
-    // i.e., 8269 x 11692 for A4, 8500 x 11000 for Letter. Neither the MFC nor the wx
-    // version use m_pageWidth and m_pageLength to draw text on the screen apart from print
-    // operations. Moreover, the wx version doesn't need to use these values in its print
-    // and print preview routines. Therefore, I don't see any reason to change these values
-    // held on the App during printing. They really only store the page width and length
-    // for eventual writing to the config files
-
-    // MFC Note: Because PrintSetup, if user changes from Portrait to Landscape, does not
-    // result in the width and height being swapped, we have to test for the change in
-    // orientation and fix it up - this mismatch will obtain if m_bIsPortraitOrientation is
-    // still TRUE when GetPageOrientation() returns 2 (== Landscape) - the next two if's
-    // are needed only if user changes orientation in the Print Setup dialog; if he does it
-    // in the Page Setup dialog, my other code gets everything fixed right, but Print Setup
-    // doesn't inform the view of the interchange of x and y axes in MFC, so I must do it
-    // here.
-	int nOrientation = pApp->GetPageOrientation();
-	if (nOrientation == 1)
-	{
-		pApp->m_bIsPortraitOrientation = TRUE;
-	}
-	else
-	{
-		pApp->m_bIsPortraitOrientation = FALSE;
-	}
-
-    // the above width & length are portrait settings, so check if we have landscape
-    // currently set, if so, switch values to agree
-	if (!pApp->m_bIsPortraitOrientation)
-	{
-        // Swap the width and length values for landscape in the pPgSetupDlgData object.
-        // 
-        // Note: the pPrintData->SetOrientation(wxLANDSCAPE) method will already have been
-        // called (via SetPageOrientation() function) for landscape mode. That call
-        // switches the printer into that mode when printing, so we only need to manually
-        // reverse the dimensions of the paper size (here), and set the logical unit page
-        // printing width nPagePrintingWidthLU. The nPagePrintingWidthLU is assigned to
-        // m_docSize (used in RecalcLayout) and passed to our PaginateDoc() function.
-		int width = pApp->m_pageWidthMM;
-		int length = pApp->m_pageLengthMM;
-		pApp->pPgSetupDlgData->SetPaperSize(wxSize(length,width)); // reverse parameters for landscape
-	}
-
-    // At this point we should have a valid (non-zero) paper size stored in our
-    // pPgSetupDlgData object. It should have x and y values which reflect the page
-    // orientation m_bIsPortraitOrientation. The paper size is in mm (default is 210 mm by
-    // 297 mm for A4). If we have landscape mode, the paperSize will be 297 mm by 210 mm.
-	wxSize paperSize_mm;
-	paperSize_mm = pApp->pPgSetupDlgData->GetPaperSize();
-	wxASSERT(paperSize_mm.x != 0);
-	wxASSERT(paperSize_mm.y != 0);
-	
-    // We should also have valid (non-zero) margins stored in our pPgSetupDlgData object.
-	wxPoint topLeft_mm, bottomRight_mm; // MFC uses CRect for margins, wx uses wxPoint
-	topLeft_mm = pApp->pPgSetupDlgData->GetMarginTopLeft(); // returns top (y) and 
-									// left (x) margins as wxPoint in milimeters
-	bottomRight_mm = pApp->pPgSetupDlgData->GetMarginBottomRight(); // returns bottom (y)
-									// and right (x) margins as wxPoint in milimeters
-	wxASSERT(topLeft_mm.x != 0);
-	wxASSERT(topLeft_mm.y != 0);
-	wxASSERT(bottomRight_mm.x != 0);
-	wxASSERT(bottomRight_mm.y != 0);
-	
-    // whm Note: Up to this point the code in OnPreparePrinting() has focused on insuring
-    // that we have good (or default) page and margin sizes established before proceeding
-    // with printing and/or print previewing. Now we focus on getting the actual dimensions
-    // of the printing area and determining the scaling factors we'll use to properly draw
-    // into our differing display contexts (screen resolutions are generally different from
-    // printer resolutions).
-	
-    // whm Note: The MFC application assumed the screen resolution would always be 96dpi,
-    // or each dot being approximately 1/100th of an inch; hence, it divided the calculated
-    // printing area (whose value was in 1000ths of an inch) by 10 to get the assumed
-    // printing width (nPrintingWidth) to pass to RecalcLayout (via the m_docSize global)
-    // and to PaginateDoc (directly as parameter). I've written the code below for the wx
-    // version so that no screen resolution is assumed.
-	
-	// The code below was patterned after the wxWidgets printing sample.
-	// 
-    // whm Note: For a good explanation of GDI Mapping Modes, SetWindowOrg and
-    // SetViewportOrg see: http://wvware.sourceforge.net/caolan/mapmode.html See also:
-    // http://functionx.com/visualc/gdi/gdicoord.htm for a decent graphical illustration of
-    // SetViewportOrg() and SetMappingMode effects for the various mapping modes.
-	//
-    // whm: Our target display context for pagination purposes is the printed page. We want
-    // to draw strips within the printed page's margins - from the top margin to the bottom
-    // margin - paginating the document into full pages plus any final partially filled
-    // page.
-    // 
-    // See CAdapt_ItView::SetupRangePrintOp() and CPrintOptionsDlg::InitDialog() for coding
-    // similar to that below which calculates the page dimensions in logical units.
-	// TODO: It might be good to write a separate function to do the job for all three places. The 
-	// main difference here is that we can use the wxPrintout::GetPPIScreen() and 
-	// wxPrintout::GetPPIPrinter() convenience methods, but the method used in SetupRangePrintOp() 
-	// and CPrintOptionsDlg's InitDialog() would also work here.
-    // 
-    // When printing, Adapt It's RecalcLayout generates strips whose width is based on the
-    // margin dimensions of a printed page (printer device context), rather than
-    // RecalcLayout's usual (when not printing) docSize.x based on the dimensions of the
-    // main window's client area in device units or pixels. Since this OnPreparePrinting
-    // function is also called for a print preview display context, if we were to call the
-    // GetLogicalPageMarginsRect function during a print preview, it won't give us the
-    // length data of printed page display context we need for calling PaginateDoc. Instead
-    // we'll first calculate the length between top and bottom margins of a printed page in
-    // mm, then convert the result to appropriate device units for use by PaginateDoc.
-	int pageWidthBetweenMarginsMM, pageHeightBetweenMarginsMM;
-    // The size data returned by GetPageSizeMM is not the actual paper size edge to edge,
-    // nor the size within the margins, but it is the usual printable area of a paper,
-    // i.e., the limit of where most printers are physically able to print; it is the area
-    // in between the actual paper size and the usual margins. We therefore start with the
-    // raw paperSize and determine the intended print area between the margins.
-	pageWidthBetweenMarginsMM = paperSize_mm.x - topLeft_mm.x - bottomRight_mm.x;
-	pageHeightBetweenMarginsMM = paperSize_mm.y - topLeft_mm.y - bottomRight_mm.y;
-    // Now, convert the pageHeightBetweenMargins to logical units for use in calling
-    // PaginateDoc. Get the logical pixels per inch of screen and printer.
-	int ppiScreenX, ppiScreenY;
-	GetPPIScreen(&ppiScreenX, &ppiScreenY); // usually 96 dpi but may differ on newer/future computers
-	int ppiPrinterX, ppiPrinterY;
-	GetPPIPrinter(&ppiPrinterX, &ppiPrinterY); // dependent on the printer
-    // Calculate the scale for the DC so that the printout represents the screen scaling.
-    // The printing sample has the following comment: "The text point size _should_ be the
-    // right size but in fact is too small for some reason. This is a detail that will need
-    // to be addressed at some point but can be fudged for the moment."
-	float scale = (float)((float)ppiPrinterX/(float)ppiScreenX);
-    // Calculate the conversion factor for converting millimetres into logical units. There
-    // are approx. 25.4 mm to the inch. There are ppi device units to the inch. Therefore 1
-    // mm corresponds to ppi/25.4 device units. We also divide by the screen-to-printer
-    // scaling factor, because we need to unscale to pass logical units to PaginateDoc.
-	float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4)); // use the more precise conversion factor
-	int nPagePrintingWidthLU, nPagePrintingLengthLU;
-	nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
-	nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
-
-	// Set the document size (the width explicitly).
-    // whm: m_docSize.x is normally the width of the main window client area in pixels. For
-    // printing we want this to be the size of the printable area within the page's
-    // margins.
-	pApp->m_docSize.x = nPagePrintingWidthLU; 
-    // Note: the document's length m_docSize.y is determined after call to PaginateDoc()
-    // farther below, so just set the .y value to zero here - then call
-    // CopyLogicalDocSizeFromApp() to inform the CLayout::m_logicalDocSize member (used in
-    // RecalcLayout() of the different strip width to be used for populating the strips
-    // with piles for printing
-	pApp->m_docSize.y = 0;
-    pApp->m_pLayout->CopyLogicalDocSizeFromApp();
-   
-	// check for a selection, if it exists, assume user wants to print it & setup
-	// accordingly 
-	if (pApp->m_selectionLine == -1)
-	{
-		// no selection, so assume whole document
-		gbPrintingSelection = FALSE;
-
-		// force the selection button to be disabled, set the page range to defaults
-		printDialogData.SetSelection(FALSE); // must start at 1
-		
-        // Recalc the layout with the new width.
-        // 
-        // whm note: RecalcLayout uses m_docSize.x as its width in calculating the number
-        // of strips for the current document. When layout out for the screen is intended
-        // ReclacLayout sets m_docSize.x equal to the client size of the main window -
-        // RHSlop. But, in printing, the client window size is ignored and the value for
-        // m_docSize.x is assigned (above) based on the resolution width of the display
-        // context, i.e., the number of dots printed per paper width when printing, or the
-        // number of pixels per width of simulated paper in the print preview (the number
-        // of pixels per width will vary depending on the scale set in preview).
-#ifdef _NEW_LAYOUT
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-	}
-	else
-	{
-		// a selection is current, so set up for it
-		printDialogData.SetSelection(TRUE);
-
-        // MFC version: we want the pages radio button to be enabled, so fix Flags for that
-        // whm: The wx version appears to have no way to change the "Pages" radio button;
-        // it is not generally disabled. I think that just doing SetSelection(TRUE) above
-        // is sufficient.
-
-		// Be able to recover the fact that we are printing a selection.
-		gbPrintingSelection = TRUE;
-
-		CCellList::Node* pos = pApp->m_selection.GetFirst();
-		CCell* pCell = pos->GetData();
-		int nBeginSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
-		pos = pApp->m_selection.GetLast();
-		pCell = pos->GetData();
-		int nEndSN = pCell->GetPile()->GetSrcPhrase()->m_nSequNumber;
-
-		bool bOK;
-		bOK = pView->GetSublist(pApp->m_pSaveList, pApp->m_pSourcePhrases, nBeginSN, nEndSN);
-
-        // At this point, the selection has been temporarily made the whole document, so we
-        // must clobber the selection (note: RemoveSelection() does not affect
-        // gbPrintingSelection value) but leaves the global parameters unchanged, so it can
-        // later be restored. 
-        // BEW changed 16Jul09, because the selection could not be removed once the print
-        // was done, and RemoveSelection() has the view-fixing smarts we need here
-		//pApp->m_selectionLine = -1;
-		//pApp->m_selection.Clear();
-		//pApp->m_pAnchor = NULL;
-		pView->RemoveSelection();
-
-        // Recalc the layout with the new width
-#ifdef _NEW_LAYOUT
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#else
-		pApp->m_pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
-#endif
-
-		// Set safe values for a non-active location (but leave m_targetPhrase unchanged).
-		pApp->m_pActivePile = NULL;
-		pApp->m_nActiveSequNum = -1;
-        // whm: The MFC version destroyed the phrasebox at this point, but, in the wx
-        // version we don't destroy the phrasebox - we could hide it if necessary but I'll
-        // leave it showing for now.
-	}
-
-	// do pagination
-	// 
-    // whm: In the following call to PaginateDoc, we use the current document
-    // m_nStripCount, because the PaginateDoc() call here is done within
-    // OnPreparePrinting() which is called after the print dialog has been dismissed with
-    // OK, and thus we are paginating the actual doc to print and not merely simulating it
-    // for purposes of getting the pages edit box values for the print options dialog.
-	bool bOK;
-	bOK = pView->PaginateDoc(pApp->m_pLayout->GetStripArray()->GetCount(), nPagePrintingLengthLU,
-							NoSimulation); // (doesn't call RecalcLayout())
-	if (!bOK)
-	{
-		// PaginateDoc will have notified the user of any problem, so just return here - we can't print
-		// without paginating the doc. Cleanup of the doc's indices, etc, is done in the AIPrintout
-		// destructor.
+		// document state is not changed yet
 		return;
 	}
+
+	// ensure gbIsPrinting is turned on - it gets turned off when the Print Options Dlg is
+	// shown so that RecalcLayout() calls will draw the view correctly (the user may move
+	// the dialog relative to the visible part of the document in the view window), so we
+	// must ensure it is back on when OnPreparePrinting()is next called, because the
+	// LayoutAndPaginate() call below will need to redo the layout to the strip width as
+	// required for the physical page, rather than the view
+	gbIsPrinting = TRUE;
+
+	// use the page printing dimensions to paginate, calling RecalcLayout(), and if there
+	// is a selection, to make the selection temporarily become the whole document, and
+	// then paginate using PaginateDoc(), a view function, so whatever is then in
+	// m_pSourcePhrases is apportioned into a list of PageOffsets structs which specify
+	// the beginning and end of what is to be printed on each page. This function is used
+	// for both pagination of a print preview, and pagination of an actual real (paper)
+	// printout, so that the number of printed pages is always the same number as shown in
+	// the print preview. These structs are then used by OnPrintPage() for printing or
+	// previewing. 
+	bAllsWell = pApp->LayoutAndPaginate(nPagePrintingWidthLU,nPagePrintingLengthLU);
+	if (!bAllsWell)
+	{
+		// just return, ~AIPrintout() will restore the document's original state
+		return;
+	}
+
+	// get a pointer to the wxPrintDialogData object (from printing sample)
+	wxPrintDialogData printDialogData(*pApp->pPrintData);
 
 	// pagination succeeded, so set the initial values for pInfo
 	int nTotalPages;

@@ -128,6 +128,8 @@ bool gbLegacySourceTextCopy = FALSE; // BEW added 16July08 at Roland Fumey's req
 
 // Globals
 
+extern bool gbPrintingAll; // defined in Adapt_It.cpp
+
 // next global is for passing to SetupCursorGlobals()'s third parameter, for box_cursor
 // enum value of cursor_at_offset
 int gnBoxCursorOffset = 0;
@@ -826,7 +828,7 @@ extern wxPoint gptLastClick;
 
 // globals relevant to the printing process
 bool	gbPrintingSelection = FALSE;
-bool	gbIsPrinting = FALSE; // TRUE when when OnPreparePrinting is called, cleared only in
+bool	gbIsPrinting = FALSE; // TRUE when OnPreparePrinting is called, cleared only in
 							  // the AIPrintout destructor.
 bool	gbPrintingRange = FALSE; // TRUE when the user wants to print a chapter/verse range
 int		gnCurPage = 0; // to make number of current page being printed accessible to CStrip's Draw()
@@ -4894,10 +4896,17 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
 
 	gbIsBeingPreviewed = FALSE; // from MFC's OnPreparePrinting
+	gbPrintingAll = FALSE; // ensure set to default FALSE
+
 	CAdapt_ItApp* pApp = &wxGetApp();
    
 	wxPrintDialogData printDialogData(*pApp->pPrintData);
-	
+
+	gbIsPrinting = TRUE; // new printing support code needs it set before poDlg InitDialog() is called
+	pApp->m_nSaveActiveSequNum = pApp->m_nActiveSequNum; // needed! So Cancel from PrintOptionsDlg
+														 // can restore document correctly
+
+
     // In the wx version we implement a chapter and verse selection dialog to supplement the print
     // dialog, since it is not likely we will be able to use custom print dialogs for all platforms. 
     // The print options dialog items are:
@@ -4934,13 +4943,31 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		{
 			printDialogData.SetSelection(TRUE);
 		}
+		else if (!gbPrintingRange)
+		{
+            // BEW added 21Jul09, we can get away without having this boolean, but because
+            // LayoutAndPaginate() is called twice -- once in InitDialog(), which sets up
+            // the layout and pagination, and again in OnPreparePrinting() when we don't
+            // want to again set up the layout and pagination because they are already
+            // correct for a "print all" scenario, we use this boolean in that function to
+            // suppress the second and redundant calls to RecalcLayout(), and PaginateDoc()
+			gbPrintingAll = TRUE;
+		}
 	}
 	else
 	{
-		// User cancelled the print options, so we assume we should also cancel the print dialog which
-		// happens if we simply return here. The MFC version did a lot of work to get the document back
-		// into its original state, but the wx version doesn't change the doc's state at this early
-		// stage.
+        // User cancelled the print options, so we assume we should also cancel the print
+        // dialog which happens if we simply return here. The MFC version did a lot of work
+        // to get the document back into its original state, but the wx version doesn't
+        // change the doc's state at this early stage.
+		//BEW added 20July(), because we no longer do "simulated" recalc of the layout
+		//etc, but a real one and real pagination in order to prepare parameters for the
+		//PrintOptionsDlg, and so we need to undo all that to get the original document
+		//state back.
+		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 1;
+		pApp->DoPrintCleanup();
+		pApp->m_nAIPrintout_Destructor_ReentrancyCount = 0;
+		gbIsPrinting = FALSE;
 		return;
 	}
 	
@@ -4954,18 +4981,10 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
     {
 		// whm: Other error messages are issued, so we don't need yet another one here
         //if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
-        //    wxMessageBox(_T("There was a problem printing.\nPerhaps your current printer is not set correctly?"), _T("Printing"), wxOK);
-        //    
+        //    wxMessageBox(_T("There was a problem printing.\nPerhaps your current printer is not set correctly?"),
+        //     _T("Printing"), wxOK);    
 		// OnPreparePrinting() is not called when user cancels from the printer dialog or on printer
-		// error. OnPreparePrinting calls SaveIndicesForRange() and SaveAndSetIndices() as part of its
-		// setup for printing operations, but since we're now exiting prematurely, we need to make
-		// those calls, because the AIPrintout destructor calls the cleanup code including
-		// RestoreIndices (which assumes a previous call to SaveAndSetIndices). If we don't call SaveIndicesForRange()
-		// and SaveAndSetIndices() here RestoreIndices() in the destructor's cleanup code will trash
-		// the indices causing a later crash when RecalcLayout calls CreateStrip, etc.
-		//SaveIndicesForRange(); // removed 6Apr09
-		//SaveAndSetIndices(pApp->m_maxIndex); // removed 6Apr09
-		// can query if (wxPrinter::GetLastError() == wxPRINTER_CANCELLED) to determine if user cancelled
+		// error. Can query if (wxPrinter::GetLastError() == wxPRINTER_CANCELLED) to determine if user cancelled
     }
     else
     {
@@ -5133,6 +5152,9 @@ bool CAdapt_ItView::PaginateDoc(const int nTotalStripCount, const int nPagePrint
 			nAccumStripHeightThisPage += nStripHeightWithLeading;
 			bJustClosedOff = FALSE;
  			nStripCountRunningTotal++;
+
+			//CStrip* pStrip = (CStrip*)(*pLayout->GetStripArray())[nStripCountRunningTotal - 1];
+			//wxLogDebug(_T("CORRECT: Strip[ %d ]     Pile count:  %d"), pStrip->GetStripIndex(), pStrip->GetPilesArray()->GetCount());
 		}
 	}
 
@@ -5344,6 +5366,21 @@ bool CAdapt_ItView::RestoreOriginalList(SPList* pSaveList,SPList* pOriginalList)
 	// get the CLayout::m_pSavePileList pointer which holds the original set of piles
 	PileList* pOriginalPileList = pLayout->GetPileList();
 	PileList* pSavePileList = pLayout->GetSavePileList();
+
+	// BEW changed 21Jul09: it can happen that this function is entered before the culling
+	// of a range print's CSourcePhrases to just those needed for printing the range (and
+	// the originals saved in m_pSaveList). One scenario I found for this was to do a
+	// normal print, specify a range, and turn on and then off a checkbox such as the one
+	// for suppressing a preceding header, then click Print to have the print go ahead,
+	// but then when the physical print's Print Settings dialog shows, Cancel at that
+	// point. The wxWidgets framework correctly calls ~AIPrintout() which is one of the
+	// places where the DoPrintCleanup() function is called, and then because
+	// gbPrintingRange is TRUE, RestoreOriginalList() is entered - but pOriginalPileList
+	// still has the full list of the document's piles, and pSavePileList is empty. So we
+	// have to test for this scenario and when we have such a situation, detect it and
+	// just return TRUE immediately because there is no restoration required
+	if (!pOriginalPileList->IsEmpty() && pSavePileList->IsEmpty())
+		return TRUE;
 	wxASSERT(pSavePileList->GetCount() > 0);
 	wxASSERT(pSaveList->GetCount() > 0); // ensure the list is not empty
     // If the list is empty, which may happen if there is a range error, we don't want to
@@ -6679,13 +6716,13 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 	{
 		strLeft = strLeft.Format(_T("%s/%s  %s   %d:%d to %d:%d"),srcName.c_str(),tgtName.c_str(),strDocName.c_str(),
 										gnFromChapter,gnFromVerse,gnToChapter,gnToVerse);
-		strLeftPlusPageNum = strLeftPlusPageNum.Format(_T("%s/%s  %s   %d:%d to %d:%d   %d"),srcName.c_str(),tgtName.c_str(),strDocName.c_str(),
+		strLeftPlusPageNum = strLeftPlusPageNum.Format(_T("  %s/%s  %s   %d:%d to %d:%d   %d"),srcName.c_str(),tgtName.c_str(),strDocName.c_str(),
 										gnFromChapter,gnFromVerse,gnToChapter,gnToVerse,page);
 	}
 	else
 	{
 		strLeft = strLeft.Format(_T("%s/%s  %s"),srcName.c_str(),tgtName.c_str(),strDocName.c_str());
-		strLeftPlusPageNum = strLeftPlusPageNum.Format(_T("%s/%s  %s   %d"),srcName.c_str(),tgtName.c_str(),strDocName.c_str(),page);
+		strLeftPlusPageNum = strLeftPlusPageNum.Format(_T("  %s/%s  %s   %d"),srcName.c_str(),tgtName.c_str(),strDocName.c_str(),page);
 	}
 
 	// create a 12 point size copy of the system font, colour black
@@ -6744,13 +6781,19 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
     // (fitRect.GetLeft()) to xPosFtr. In calculating the position of yPosFtr, however,
     // fitRect.GetBottom() returns coordinates in reference to 0,0. See AIPrintout::OnPrintPage() for
     // how logicalUnitsFactor is calculated.
+	// BEW added 21Jul09 because '2' is not two spaces of width, but 2 pixels, so need
+	// something bigger - otherwise for a range, end of range is too close to page number
+	int wXExt; int wYExt; 
+	pDC->GetTextExtent(_T("W"),&wXExt,&wYExt);
+	// Bill's legacy code
 	int footerXExt,footerYExt;
 	pDC->GetTextExtent(strLeft,&footerXExt,&footerYExt);
 	float yPosFtr = (float)(fitRect.GetBottom() + 12.7*logicalUnitsFactor); // y pos same for all segments of the footer
 	float xPosFtrLeft = (float)fitRect.GetLeft();
 	int timeXExt,timeYExt;
 	pDC->GetTextExtent(timeStr,&timeXExt,&timeYExt);
-	if (footerXExt+2 >= fitRect.GetWidth()/2)
+	//if (footerXExt+2 >= fitRect.GetWidth()/2)
+	if (footerXExt+2*wXExt >= fitRect.GetWidth()/2)
 	{
 		pDC->GetTextExtent(strLeftPlusPageNum,&footerXExt,&footerYExt);
 		// The strLeft (language names and file name) extends past the middle point of the footer, so
@@ -6758,7 +6801,8 @@ void CAdapt_ItView::PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFac
 		// spaces and the page number to the end of strLeft.
 		// The timeStr should fit in the right-hand side of the footer, unless the language names
 		// and/or file name are extremently long. Check to see if the time string will fit.
-		if (footerXExt + timeXExt + 2 > fitRect.GetWidth()) // allow 2 spaces between footerXExt and timeXExt
+		//if (footerXExt + timeXExt + 2 > fitRect.GetWidth()) // allow 2 spaces between footerXExt and timeXExt
+		if (footerXExt + timeXExt + 2*wXExt > fitRect.GetWidth()) // allow 2 W widths between footerXExt and timeXExt
 		{
 			// There is not enough space for the timeStr to fit on the footer between margins, so we'll
 			// position the left part a little higher and draw the time part one line height lower than
@@ -7668,8 +7712,13 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 	int nSpaceTaken = 0;
 	int pileWidth = 0;
 
+	CPile* pFirstPileInStrip;
+
 	// first pile always belongs, to ensure we progress through the document
 	pPile = pos->GetData();
+
+	pFirstPileInStrip = pPile;
+
 	if (pPile->GetSrcPhrase()->m_nSequNumber == pApp->m_nActiveSequNum)
 	{
 		pileWidth = pPile->GetPhraseBoxGapWidth();
@@ -7683,7 +7732,13 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 
 	// return if we are at end or if the pile is so wide it overflows the printing width
 	if (nextNumber >= nEndIndex || nFree < 0)
+	{
+		//CStrip* pStrip = pFirstPileInStrip->GetStrip();
+		//int stripIndex = pStrip->GetStripIndex();
+		//wxLogDebug(_T("WRONG: Strip[ %d ]     Pile count:  %d"), stripIndex, 1);
+
 		return;
+	}
 
 	// prepare for loop
 	nextNumber++;
@@ -7705,6 +7760,11 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 		if (span + nSpaceTaken > nFree)
 		{
 			nextNumber--;
+
+			CStrip* pStrip = pFirstPileInStrip->GetStrip();
+			int stripIndex = pStrip->GetStripIndex();
+			wxLogDebug(_T("WRONG: Strip[ %d ]     Pile count:  %d"), stripIndex, nextNumber - nLastSequNumber);
+
 			nLastSequNumber = nextNumber;
 			return; // this pile won't fit, so we are done with this strip
 		}
@@ -7723,6 +7783,11 @@ void CAdapt_ItView::CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWid
 					if (IsWrapMarker(pSrcPhrase))
 					{
 						nextNumber--;
+
+			CStrip* pStrip = pFirstPileInStrip->GetStrip();
+			int stripIndex = pStrip->GetStripIndex();
+			wxLogDebug(_T("WRONG: Strip[ %d ]     Pile count:  %d"), stripIndex, nextNumber - nLastSequNumber);
+
 						nLastSequNumber = nextNumber;
 						return; // if we need to wrap, discontinue pile creation in this strip
 					}

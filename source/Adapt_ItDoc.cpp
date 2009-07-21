@@ -349,6 +349,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 {
 	// refactored 10Mar09
 	CAdapt_ItApp* pApp = GetApp();
+	pApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc 
 
 	gnBeginInsertionsSequNum = -1; // reset for "no current insertions"
 	gnEndInsertionsSequNum = -1; // reset for "no current insertions"
@@ -3223,6 +3224,8 @@ bool CAdapt_ItDoc::OnSaveModified() // note MFC name for this function is just S
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) 
 {
 	// refactored 10Mar09
+	gpApp->m_nSaveActiveSequNum = 0; // reset to a default initial value, safe for any length of doc 
+	
 	// whm Version 3 Note: Since the WX version i/o is strictly XML, we do not need nor use the legacy 
 	// version's  OnOpenDocument() serialization facilities, and can thus avoid the black box problems 
 	// it caused.
