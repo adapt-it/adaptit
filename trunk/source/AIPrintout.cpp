@@ -59,7 +59,6 @@ extern int gnCurPage;
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbPrintFooter;
 
-extern bool	gbPrintingAll; // defined in Adapt_It.cpp
 extern bool gbPrintingSelection;
 extern bool gbPrintingRange;
 extern int gnFromChapter;

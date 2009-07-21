@@ -160,7 +160,6 @@
 #endif // wxUSE_WXHTML_HELP
 
 // 18Jul09, for support of refactoring the printing support & simplification thereof
-bool		gbPrintingAll;
 extern bool gbPrintingSelection;
 extern bool gbPrintingRange;	
 extern bool gbIsBeingPreviewed;
@@ -22445,8 +22444,6 @@ void CAdapt_ItApp::DoPrintCleanup()
 	// scroll is then required to make the active strip visible; but having the call done
 	// each time solves this problem
 
-	gbPrintingAll = FALSE; // restore default (also restored to FALSE at start of OnPrint())
-
 	// recalculate the active pile & update location for phraseBox creation
 	m_pActivePile = pView->GetPile(m_nActiveSequNum);
 	if (m_pActivePile != NULL) // whm added 27Feb05 to avoid crash when m_nActiveSequNum == -1
@@ -22924,9 +22921,7 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU, int& nPagePrinti
             // the display context, i.e., the number of dots printed per paper width when
             // printing, or the number of pixels per width of simulated paper in the print
             // preview (the number of pixels per width will vary depending on the scale set
-            // in preview). BEW added 21Jul09, use of gbPrintingSelection and gbPrintingAll
-            // to suppress a redundant RecalcLayout call (saves significant amount of time
-            // if the document is large)
+            // in preview).
 			// BEW note 21Jul09: the RecalcLayout() call below is NOT redundant when
 			// OnPreparePrinting() is called after the Print Options dialog is dismissed,
 			// because while that dialog was visible, RecalcLayout() was done with for the
