@@ -128,8 +128,6 @@ bool gbLegacySourceTextCopy = FALSE; // BEW added 16July08 at Roland Fumey's req
 
 // Globals
 
-extern bool gbPrintingAll; // defined in Adapt_It.cpp
-
 // next global is for passing to SetupCursorGlobals()'s third parameter, for box_cursor
 // enum value of cursor_at_offset
 int gnBoxCursorOffset = 0;
@@ -4896,7 +4894,6 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 	// See file:.\AIPrintout.cpp#print_flow for the order of calling of OnPrint().
 
 	gbIsBeingPreviewed = FALSE; // from MFC's OnPreparePrinting
-	gbPrintingAll = FALSE; // ensure set to default FALSE
 
 	CAdapt_ItApp* pApp = &wxGetApp();
    
@@ -4942,16 +4939,6 @@ void CAdapt_ItView::OnPrint(wxCommandEvent& WXUNUSED(event))
 		else if (poDlg.pRadioSelection->GetValue() == TRUE)
 		{
 			printDialogData.SetSelection(TRUE);
-		}
-		else if (!gbPrintingRange)
-		{
-            // BEW added 21Jul09, we can get away without having this boolean, but because
-            // LayoutAndPaginate() is called twice -- once in InitDialog(), which sets up
-            // the layout and pagination, and again in OnPreparePrinting() when we don't
-            // want to again set up the layout and pagination because they are already
-            // correct for a "print all" scenario, we use this boolean in that function to
-            // suppress the second and redundant calls to RecalcLayout(), and PaginateDoc()
-			gbPrintingAll = TRUE;
 		}
 	}
 	else

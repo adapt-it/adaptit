@@ -65,7 +65,6 @@
 // This global is defined in Adapt_ItView.cpp.
 //extern bool	gbEnableGlossing; // TRUE makes Adapt It revert to Shoebox functionality only
 
-extern bool	gbPrintingAll; // defined in Adapt_It.cpp
 extern bool gbIsPrinting;
 extern bool gbPrintingSelection;
 extern bool	gbPrintingRange;
