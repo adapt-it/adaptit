@@ -22746,7 +22746,48 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
         // _should_ be the right size but in fact is too small for some reason. This is a
         // detail that will need to be addressed at some point but can be fudged for the
         // moment."
-		float scale = (float)((float)ppiPrinterX/(float)ppiScreenX);
+
+		// Do a reality check. On wxMAC sometimes the ppiPrinterX and ppiScreenX values
+		// are zero! If either value is zero we set up a wxDC and try to calculate those 
+		// values using the wxDC::GetPPI() method.
+		float scale;
+		if (ppiPrinterX == 0 || ppiScreenX == 0)
+		{
+			// Now, convert the pageHeightBetweenMarginsMM to logical units for use in calling PaginateDoc.
+			// 
+			// Get the logical pixels per inch of screen and printer.
+			// whm NOTE: We can't yet use the wxPrintout::GetPPIScreen() and GetPPIPrinter() methods because
+			// the wxPrintout object is not created yet at the time this print options dialog is displayed.
+			// But, we can do the same calculations by using the wxDC::GetPPI() method call on both a
+			// wxPrinterDC and a wxClientDC of our canvas.
+			//
+			// Set up printer and screen DCs and determine the scaling factors between printer and screen.
+			wxASSERT(pPrintData->IsOk());
+
+		#ifdef __WXGTK__
+			// Linux requires we use wxPostScriptDC rather than wxPrinterDC
+			// Note: If the Print Preview display is drawn with text displaced up and off the
+			// display on wxGTK, the wxWidgets libraries probably were not configured properly.
+			// They should have included a --with-gnomeprint parameter in the configure call.
+			wxPostScriptDC printerDC(*pPrintData);
+		#else
+			wxPrinterDC printerDC(*pPrintData);
+		#endif
+			
+			wxASSERT(printerDC.IsOk());
+			wxSize printerSizePPI = printerDC.GetPPI(); // gets the resolution of the printer 
+														// in pixels per inch (dpi)
+			wxClientDC canvasDC(GetMainFrame()->canvas);
+			wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the screen/canvas
+													  // in pixels per inch (dpi)
+			scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
+		}
+		else
+		{
+            // Use the values calculated by pAIPrintout->GetPPIScreen() and
+            // pAIPrintout->GetPPIPrinter()
+			scale = (float)((float)ppiPrinterX/(float)ppiScreenX);
+		}
         // Calculate the conversion factor for converting millimetres into logical units.
         // There are approx. 25.4 mm to the inch. There are ppi device units to the inch.
         // Therefore 1 mm corresponds to ppi/25.4 device units. We also divide by the
