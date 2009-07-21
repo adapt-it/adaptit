@@ -23003,8 +23003,8 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU, int& nPagePrinti
 	// otherwise the list of structs will be empty)
 	int nStripCount = m_pLayout->GetStripArray()->GetCount(); // put it here, for debugging
 	bool bOK;
-	bOK = pView->PaginateDoc(nStripCount, nPagePrintingLengthLU,NoSimulation); // (doesn't
-																	// call RecalcLayout())
+	bOK = pView->PaginateDoc(nStripCount, nPagePrintingLengthLU); // (doesn't
+																// call RecalcLayout())
 	if (!bOK)
 	{
 		// PaginateDoc will have notified the user of any problem, so just return here - we can't print

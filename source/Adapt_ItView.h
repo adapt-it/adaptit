@@ -114,7 +114,7 @@ public:
 	//bool OnClose(bool WXUNUSED(deleteWindow)); // see note in .cpp file
 
 	void OnDraw(wxDC* pDC);
-	bool PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength, enum PaginationType paginationType); // whm moved to public for wx
+	bool PaginateDoc(const int nTotalStripCount, const int nPagePrintingLength); // whm moved to public for wx
 	void PrintFooter(wxDC* pDC, wxRect fitRect, float logicalUnitsFactor, int page);
 	//virtual BOOL PreCreateWindow(CREATESTRUCT& cs); // wx doesn't need this
 	//void OnPrepareDC(wxDC* pDC); // not an override as in MFC; in wx it is called DoPrepareDC and is in CAdapt_ItCanvas.
@@ -149,24 +149,6 @@ public:
 	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
 	bool		AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr); // MFC CMapStringToOb*
 	wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
-	//void		CalcIndicesForAdvance(int nSequNum); // removed 19Mar09
-	//void		CalcInitialIndices(); // removed 19Mar09
-	
-	//CPile*		CalcPile(CPile *pPile); // removed 23Mar09 because does same as GetNextPile()
-	//int			CalcPileWidth(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourcePhrase* pSrcPhrase);
-	//CCell*		CreateCell(CAdapt_ItDoc* pDoc,
-	//					CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
-	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
-	//					wxPoint* pBotRight, int index); // BEW deprecated 3Feb09
-	//CCell*		CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString phrase,
-	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
-	//					wxPoint* pBotRight, int index); // BEW moved to CCell 9Feb09
-	//void		CreatePhraseBoxAtEnd();
-	//CPile*	CreatePile(wxClientDC* pDC, CAdapt_ItApp* pApp, CSourceBundle* pBundle, 
-	//				CStrip* pStrip, CSourcePhrase* pSrcPhrase, wxRect* pRectPile); // BEW moved to Pile.h
-	//int		CreateStrip(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
-	//					int& nLastSequNumber, int nEndIndex); // BEW 9Feb09 moved to Strip.h
-	// see public function CreateStrip_SimulateOnly()
 
 	bool		CheckForVerticalEditBoundsError(CPile* pPile); // whm moved to public for wx version
 	void		ChooseTranslation();
@@ -174,12 +156,6 @@ public:
 	void		ClobberDocument();
 	void		CloseProject();
 	
-	// CreateStrip_SimulateOnly() is used only in RecalcLayout_SimulateOnly() for PaginateDoc
-	//int			CreateStrip_SimulateOnly(wxClientDC* pDC, SPList* pSrcList, int nVertOffset,
-	//									int nPagePrintWidthLU, int& nLastSequNumber, int
-	//									nEndIndex); // deprecated 19Mar09
-	void		CreateStrip_SimulateOnly(PileList* pPiles, int nPagePrintWidthLU, int& nLastSequNumber,
-						int nEndIndex);
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); 
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE, bool bRestoreBoxOnFailure = FALSE); // BEW added 1Aug08
@@ -280,19 +256,10 @@ public:
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event)); // moved to public
-	//void		PlacePhraseBox(const CCell* pCell, int selector = 0); // use selector to 
-	//															  // enable/disable code
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to 
 																// enable/disable code
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
-	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);
-	//void		RecalcLayout(SPList* pSrcPhrases, int nFirstStrip, CSourceBundle*
-	//						pBundle); // removed for refactor, 19Mar09
-	
-	// RecalcLayout_SimulateOnly() is used only in PaginateDoc()
-	int			RecalcLayout_SimulateOnly(SPList* pSrcPhrases, const wxSize sizeTotal, 
-						const int nBeginSN,const int nEndSN); // refactored 19Mar09
-	
+	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);	
 	CSourcePhrase*	ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*& insertPos,
 											bool bForRetranslation = FALSE);
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
