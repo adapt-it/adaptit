@@ -509,14 +509,6 @@ enum Reparse
 	NoReparse
 };
 
-/// An enum for specifying the type of pagination to be done when when calling PaginageDoc(), either NoSimulation or
-/// DoSimulation.
-enum PaginationType
-{
-	NoSimulation,
-	DoSimulation
-};
-
 /// An enum for specifying the type of filter status when calling GetUnknownMarkersFromDoc(), one of
 /// the following: setAllUnfiltered, setAllFiltered, useCurrentUnkMkrFilterStatus, or
 /// preserveUnkMkrFilterStatusInDoc.
