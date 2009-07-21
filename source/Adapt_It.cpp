@@ -22781,21 +22781,29 @@ bool CAdapt_ItApp::CalcPrintableArea_LogicalUnits(int& nPagePrintingWidthLU,
 			wxSize canvasSizePPI = canvasDC.GetPPI(); // gets the resolution of the screen/canvas
 													  // in pixels per inch (dpi)
 			scale = (float)printerSizePPI.GetHeight() / (float)canvasSizePPI.GetHeight();
+			// Calculate the conversion factor for converting millimetres into logical units.
+			// There are approx. 25.4 mm to the inch. There are ppi device units to the inch.
+			// Therefore 1 mm corresponds to ppi/25.4 device units. We also divide by the
+			// screen-to-printer scaling factor, because we need to unscale to pass logical
+			// units to PaginateDoc.
+			float logicalUnitsFactor = (float)(printerSizePPI.GetHeight()/(scale*25.4));
+			nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
+			nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
 		}
 		else
 		{
             // Use the values calculated by pAIPrintout->GetPPIScreen() and
             // pAIPrintout->GetPPIPrinter()
 			scale = (float)((float)ppiPrinterX/(float)ppiScreenX);
+			// Calculate the conversion factor for converting millimetres into logical units.
+			// There are approx. 25.4 mm to the inch. There are ppi device units to the inch.
+			// Therefore 1 mm corresponds to ppi/25.4 device units. We also divide by the
+			// screen-to-printer scaling factor, because we need to unscale to pass logical
+			// units to PaginateDoc.
+			float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4)); // use the more precise conversion factor
+			nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
+			nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
 		}
-        // Calculate the conversion factor for converting millimetres into logical units.
-        // There are approx. 25.4 mm to the inch. There are ppi device units to the inch.
-        // Therefore 1 mm corresponds to ppi/25.4 device units. We also divide by the
-        // screen-to-printer scaling factor, because we need to unscale to pass logical
-        // units to PaginateDoc.
-		float logicalUnitsFactor = (float)(ppiPrinterX/(scale*25.4)); // use the more precise conversion factor
-		nPagePrintingWidthLU = (int)(pageWidthBetweenMarginsMM * logicalUnitsFactor);
-		nPagePrintingLengthLU = (int)(pageHeightBetweenMarginsMM * logicalUnitsFactor);
 	}
 	else
 	{
