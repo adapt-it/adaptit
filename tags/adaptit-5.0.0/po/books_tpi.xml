@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- filename is books.xml -->
+<!-- Partial Localization for PNG Tok Pisin -->
+<BOOKS defaultBook="40">
+<DIV title="Buk bilong Stori"/>
+	<NAMEPAIR folder="Genesis" view="Stat" code="GEN"/>
+	<NAMEPAIR folder="Exodus" view="Kisim Bek" code="EXO"/>
+	<NAMEPAIR folder="Leviticus" view="Wok Pris" code="LEV"/>
+	<NAMEPAIR folder="Numbers" view="Namba" code="NUM"/>
+	<NAMEPAIR folder="Deuteronomy" view="Lo" code="DEU"/>
+	<NAMEPAIR folder="Joshua" view="Josua" code="JOS"/>
+	<NAMEPAIR folder="Judges" view="Hetman" code="JDG"/>
+	<NAMEPAIR folder="Ruth" view="Rut" code="RUT"/>
+	<NAMEPAIR folder="1 Samuel" view="1 Samuel" code="1SA"/>
+	<NAMEPAIR folder="2 Samuel" view="2 Samuel" code="2SA"/>
+	<NAMEPAIR folder="1 Kings" view="1 King" code="1KI"/>
+	<NAMEPAIR folder="2 Kings" view="2 King" code="2KI"/>
+	<NAMEPAIR folder="1 Chronicles" view="1 Stori" code="1CH"/>
+	<NAMEPAIR folder="2 Chronicles" view="2 Stori" code="2CH"/>
+	<NAMEPAIR folder="Ezra" view="Esra" code="EZR"/>
+	<NAMEPAIR folder="Nehemiah" view="Nehemia" code="NEH"/>
+	<NAMEPAIR folder="Esther" view="Esta" code="EST"/>
+<DIV title="Buk bilong Sindaun"/>
+	<NAMEPAIR folder="Job" view="Jop" code="JOB"/>
+	<NAMEPAIR folder="Psalms" view="Buk Song" code="PSA"/>
+	<NAMEPAIR folder="Proverbs" view="Sindaun" code="PRO"/>
+	<NAMEPAIR folder="Ecclesiastes" view="Saveman" code="ECC"/>
+	<NAMEPAIR folder="Song of Songs" view="Solomon" code="SNG"/>
+<DIV title="Buk bilong ol Propet"/>
+	<NAMEPAIR folder="Isaiah" view="Aisaia" code="ISA"/>
+	<NAMEPAIR folder="Jeremiah" view="Jeremaia" code="JER"/>
+	<NAMEPAIR folder="Lamentations" view="Krai" code="LAM"/>
+	<NAMEPAIR folder="Ezekiel" view="Esekiel" code="EZK"/>
+	<NAMEPAIR folder="Daniel" view="Daniel" code="DAN"/>
+	<NAMEPAIR folder="Hosea" view="Hosea" code="HOS"/>
+	<NAMEPAIR folder="Joel" view="Joel" code="JOL"/>
+	<NAMEPAIR folder="Amos" view="Amos" code="AMO"/>
+	<NAMEPAIR folder="Obadiah" view="Obadia" code="OBA"/>
+	<NAMEPAIR folder="Jonah" view="Jona" code="JON"/>
+	<NAMEPAIR folder="Micah" view="Maika" code="MIC"/>
+	<NAMEPAIR folder="Nahum" view="Nahum" code="NAM"/>
+	<NAMEPAIR folder="Habakkuk" view="Habakuk" code="HAB"/>
+	<NAMEPAIR folder="Zephaniah" view="Sefanaia" code="ZEP"/>
+	<NAMEPAIR folder="Haggai" view="Hagai" code="HAG"/>
+	<NAMEPAIR folder="Zechariah" view="Sekaraia" code="ZEC"/>
+	<NAMEPAIR folder="Malachi" view="Malakai" code="MAL"/>
+<DIV title="Ol Buk bilong Nupela Testamen"/>
+	<NAMEPAIR folder="Matthew" view="Matyu" code="MAT"/>
+	<NAMEPAIR folder="Mark" view="Mak" code="MRK"/>
+	<NAMEPAIR folder="Luke" view="Luk" code="LUK"/>
+	<NAMEPAIR folder="John" view="Jon" code="JHN"/>
+	<NAMEPAIR folder="Acts" view="Aposel" code="ACT"/>
+	<NAMEPAIR folder="Romans" view="Rom" code="ROM"/>
+	<NAMEPAIR folder="1 Corinthians" view="1 Korin" code="1CO"/>
+	<NAMEPAIR folder="2 Corinthians" view="2 Korin" code="2CO"/>
+	<NAMEPAIR folder="Galatians" view="Galesia" code="GAL"/>
+	<NAMEPAIR folder="Ephesians" view="Efesus" code="EPH"/>
+	<NAMEPAIR folder="Philippians" view="Filipai" code="PHP"/>
+	<NAMEPAIR folder="Colossians" view="Kolosi" code="COL"/>
+	<NAMEPAIR folder="1 Thessalonians" view="1 Tesalonaika" code="1TH"/>
+	<NAMEPAIR folder="2 Thessalonians" view="2 Tesalonaika" code="2TH"/>
+	<NAMEPAIR folder="1 Timothy" view="1 Timoti" code="1TI"/>
+	<NAMEPAIR folder="2 Timothy" view="2 Timoti" code="2TI"/>
+	<NAMEPAIR folder="Titus" view="Taitus" code="TIT"/>
+	<NAMEPAIR folder="Philemon" view="Filemon" code="PHM"/>
+	<NAMEPAIR folder="Hebrews" view="Hibru" code="HEB"/>
+	<NAMEPAIR folder="James" view="Jems" code="JAS"/>
+	<NAMEPAIR folder="1 Peter" view="1 Pita" code="1PE"/>
+	<NAMEPAIR folder="2 Peter" view="2 Pita" code="2PE"/>
+	<NAMEPAIR folder="1 John" view="1 Jon" code="1JN"/>
+	<NAMEPAIR folder="2 John" view="2 Jon" code="2JN"/>
+	<NAMEPAIR folder="3 John" view="3 Jon" code="3JN"/>
+	<NAMEPAIR folder="Jude" view="Jut" code="JUD"/>
+	<NAMEPAIR folder="Revelation" view="Revelesen" code="REV"/>
+<DIV title="Other Texts"/>
+	<NAMEPAIR folder="Other Texts" view="Ol Arapela Buk" code="OTX"/>
+</BOOKS>
+
+
