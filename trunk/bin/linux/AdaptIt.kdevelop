@@ -9,10 +9,10 @@
     <ignoreparts/>
     <projectdirectory>.</projectdirectory>
     <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
+    <description></description>
     <versioncontrol/>
     <projectname>AdaptIt</projectname>
-    <defaultencoding/>
+    <defaultencoding></defaultencoding>
   </general>
   <kdevautoproject>
     <general>
@@ -20,15 +20,15 @@
       <useconfiguration>UnicodeDebug</useconfiguration>
     </general>
     <run>
-      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug</mainprogram>
+      <mainprogram>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/adaptit</mainprogram>
       <directoryradio>executable</directoryradio>
       <customdirectory>/</customdirectory>
-      <programargs/>
+      <programargs></programargs>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
       <envvars/>
-      <globaldebugarguments/>
-      <globalcwd>./</globalcwd>
+      <globaldebugarguments></globaldebugarguments>
+      <globalcwd>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug</globalcwd>
       <useglobalprogram>true</useglobalprogram>
       <autoinstall>false</autoinstall>
       <autokdesu>false</autokdesu>
@@ -39,7 +39,7 @@
         <adaptit/>
       </debugarguments>
       <cwd>
-        <adaptit>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug/./</adaptit>
+        <adaptit>/home/wmartin/subversion/adaptit/bin/linux/UnicodeDebug</adaptit>
       </cwd>
     </run>
     <configurations>
@@ -136,10 +136,10 @@
     <general>
       <dbgshell>libtool</dbgshell>
       <programargs/>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
+      <gdbpath></gdbpath>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
       <breakonloadinglibs>true</breakonloadinglibs>
       <separatetty>false</separatetty>
       <floatingtoolbar>false</floatingtoolbar>
@@ -252,7 +252,7 @@
       <resolveIncludePaths>true</resolveIncludePaths>
     </codecompletion>
     <creategettersetter>
-      <prefixGet/>
+      <prefixGet></prefixGet>
       <prefixSet>set</prefixSet>
       <prefixVariable>m_,_</prefixVariable>
       <parameterName>theValue</parameterName>
