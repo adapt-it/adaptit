@@ -428,15 +428,9 @@ void CLayout::Draw(wxDC* pDC)
 	}
 
 	// draw the visible strips (includes an extra one, where possible)
-	CStrip* aTempStripPtr = NULL;
 	for (i = nFirstStripIndex; i <=  nLastStripIndex; i++)
 	{
-		aTempStripPtr = (CStrip*)m_stripArray.Item(i); // do it as two code lines
-#ifdef BLINKING_BUG
-		wxLogDebug(_T("Draw() BEFORE drawing strip %d  having  %d  piles"), i, 
-				aTempStripPtr->m_arrPiles.GetCount() );
-#endif
-		aTempStripPtr->Draw(pDC);			// so we can have a breakpoint on the second
+		((CStrip*)m_stripArray.Item(i))->Draw(pDC);
 	}
 
 	m_invalidStripArray.Clear(); // initialize for next user edit operation
@@ -457,10 +451,6 @@ void CLayout::Draw(wxDC* pDC)
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
-#ifdef BLINKING_BUG
-		wxLogDebug(_T("Draw() Exiting (all's well this time)"));
-#endif
-
 	// BEW added 1Jul09, to support suppressing multiple calls of MakeLineFourString()
 	// (and therefore the potential for multiple shows of the placement dialog for
 	// medial punctuation) at a single active location
@@ -2973,7 +2963,7 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 	return nCount;
 }
 
-// **************************************************************************************
+/////////////////////////////////////////////////////////////////////////////////***
 /// \return   a count of the final number of rebuild strips  -  this could be fewer, the
 ///           same, or more than the value of nInitialStripCount passed in
 /// \param
@@ -3009,7 +2999,7 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 /// point it leaves that strip marked as invalid - and it remains so until at some later
 /// time if becomes visible and drawn, or a full destroy all strips and rebuild is done due
 /// to some operation which requires it (such as changing the font size, etc).
-// **************************************************************************************
+/////////////////////////////////////////////////////////////////////////////////***
 //int CLayout::RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
 //		int nStripWidth, int gap, CPile* pBeforePile, CPile* pAfterPile, 
 //		PileList::Node* posBegin, PileList::Node* posEnd, PileList::Node* pos,
