@@ -831,9 +831,9 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 
 		// set text heights from font metrics, for source and target languages
 		// first, get the view, then pass it to the UpdateTextHeights function
-		CAdapt_ItView* pAdView = gpApp->GetView();
-		wxASSERT(pAdView->IsKindOf(CLASSINFO(CAdapt_ItView)));
-		gpApp->UpdateTextHeights(pAdView);
+		CAdapt_ItView* pView = gpApp->GetView();
+		wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+		gpApp->UpdateTextHeights(pView);
 
 	#ifdef _RTL_FLAGS
 		// for the NonRoman version, get the user's choices for RTL rendering for source, target & navtext
@@ -861,7 +861,7 @@ void CFontPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 				gbRTLLayout = FALSE;
 			}
 
-			pAdView->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // fix the menu, if necessary
+			pView->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // fix the menu, if necessary
 			// Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
 		}
 	#endif	// for _RTL_FLAGS
@@ -1140,9 +1140,9 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 
 	// set text heights from font metrics, for source and target languages
 	// first, get the view, then pass it to the UpdateTextHeights function
-	CAdapt_ItView* pAdView = gpApp->GetView();
-	wxASSERT(pAdView->IsKindOf(CLASSINFO(CAdapt_ItView)));
-	gpApp->UpdateTextHeights(pAdView);
+	CAdapt_ItView* pView = gpApp->GetView();
+	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
+	gpApp->UpdateTextHeights(pView);
 
 #ifdef _RTL_FLAGS
 	// for the NonRoman version, get the user's choices for RTL rendering for source, target & navtext
@@ -1170,7 +1170,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 			gbRTLLayout = FALSE;
 		}
 
-		pAdView->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // fix the menu, if necessary
+		pView->AdjustAlignmentMenu(gbRTLLayout,gbLTRLayout); // fix the menu, if necessary
 		// Note: AdjustAlignmentMenu above also sets the m_bRTL_Layout to match gbRTL_Layout
 
 		// if we've entered this block, any changes made should not affect pile widths,
