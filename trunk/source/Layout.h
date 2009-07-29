@@ -173,6 +173,9 @@ public:
 						   // or when print previewing a given page (set by OnPrintPage()
 						   // in AIPringout.cpp; bool gbIsPrinting must be TRUE when this
 						   // member is accessed by Draw()
+	bool		m_bInhibitDraw; // set TRUE when a process is midstream and the view's 
+								// strips and piles are not in a consistent state, else
+								// it should be FALSE
 
 //public:
 private:
@@ -418,7 +421,6 @@ public:
 											// just lays them out, ensuring  proper spacing
 	void		DoRecalcLayoutAfterPreferencesDlg();
 	void		RecalcPileWidths(PileList* pPiles);
-	//void		PlacePhraseBoxInLayout(int nActiveSequNum); // BEW added 17Mar09, removed 30Jun09
 	void		PlaceBox(); // call this after Invalidate() and after Redraw(); contents of 
 							// PlacePhraseBoxInLayout() moved into here, and the latter removed
 	void		SetupCursorGlobals(wxString& phrase, enum box_cursor state, 

@@ -3907,7 +3907,7 @@ b:		pSrcPhrase->m_gloss = gloss;
 /// Rebuilds the document after a filtering change is indicated. The new document reflects
 /// the new filtering changes.
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView, 
+bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 													SPList*& pList, wxString& fixesStr)
 {
 	// refactored 18Mar09
@@ -3934,7 +3934,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 		return 0;
 	}
 	int nOldCount = 0;
-/*
+
 #ifdef __WXMSW__
 	wxString progMsg = _("Pass 1 - File: %s  - %d of %d Total words and phrases");
 	wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nOldTotal);
@@ -3963,7 +3963,11 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 	waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 #endif
-*/
+
+	// BEW added 29Jul09, turn off CLayout Draw() while strips and piles could get
+	// inconsistent with each other
+	GetLayout()->m_bInhibitDraw = TRUE;
+
 	// Set up a rapid access string for the markers changed to be now unfiltered,
 	// and another for the markers now to be filtered. Unfiltering has to be done
 	// before filtering is done.
@@ -4163,7 +4167,6 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 							remainderStr = remainderStr.Mid(1); // remove an initial space if there is one
 						offsetNextSection = end; // update, this section is to be 
 												 // unfiltered (on this pass at least)
-
 						// tokenize the substring
 						wxASSERT(extractedStr[0] == gSFescapechar);
 						int count = pView->TokenizeTextString(pSublist,extractedStr,pSrcPhrase->m_nSequNumber);
@@ -4196,7 +4199,7 @@ bool CAdapt_ItDoc::ReconstituteAfterFilteringChange(CAdapt_ItView* pView,
 						int curPos = -1;
 						if (!pSublist->IsEmpty())
 						{
-                            // Note: wxList::GetLast() returns a node, not a pointer to a
+                           // Note: wxList::GetLast() returns a node, not a pointer to a
                             // data item, so we do the GetLast operation in two parts
 							SPList::Node* lastPos = pSublist->GetLast();
 							CSourcePhrase* pTailSrcPhrase = lastPos->GetData();
@@ -4552,7 +4555,7 @@ h:						bool bIsInitial = TRUE;
 							}
 						} // end of while loop for pSublist elements
 
-                        // now insert the completed CSourcePhrase instances into the
+                       // now insert the completed CSourcePhrase instances into the
                         // m_pSourcePhrases list preceding the oldPos POSITION
 						pos2 = pSublist->GetFirst();
 						while (pos2 != NULL)
@@ -4579,8 +4582,12 @@ h:						bool bIsInitial = TRUE;
 
 						pSublist->Clear(); // clear the local list (but leave the memory chunks in RAM)
 
+ 						wxLogDebug(_T("Loc doc4603 INNER LOOP ; before SequNum Update: curSequNum %d ,  SN = %d"), curSequNum, gpApp->m_nActiveSequNum);
 						// update the active sequence number on the view
-						if (gpApp->m_nActiveSequNum >= curSequNum)
+						// BEW changed 29Jul09, the test needs to be > rather than >=,
+						// because otherwise a spurious increment by 1 can happen at the
+						// end of the first run through this block
+						if (gpApp->m_nActiveSequNum > curSequNum)
 						{
                             // adjustment of the value is needed (for unfilterings, the box
                             // location remains a valid one (but not necessarily so when
@@ -4631,7 +4638,7 @@ h:						bool bIsInitial = TRUE;
                 // navtext now
 				pSrcPhrase->m_inform = RedoNavigationText(pSrcPhrase);
 			}
-/*
+
 #ifdef __WXMSW_
 			// update progress bar every 20 iterations
 			++nOldCount;
@@ -4641,9 +4648,10 @@ h:						bool bIsInitial = TRUE;
 				progDlg.Update(nOldCount,msgDisplayed);
 			}
 #endif
-*/
+
 			endingMkrsStr.Empty();
 		} // loop end for checking each pSrcPhrase for presence of material to be unfiltered
+
 	} // end block for test bUnfilteringRequired
 
 	// reinitialize the variables we need
@@ -4672,15 +4680,20 @@ h:						bool bIsInitial = TRUE;
             // ReconstituteAfterFilteringChange goes out of scope
 			pSublist->Clear();
 			delete pSublist;
+
+			// BEW added 29Jul09, turn back on CLayout Draw() so drawing of the view
+			// can now be done -- no, do it at end of second_pass
+			//GetLayout()->m_bInhibitDraw = FALSE;
+
 			return 0;
 		}
 		nOldCount = 0;
-/*
+
 #ifdef __WXMSW_
 		progMsg = _("Pass 2 - File: %s  - %d of %d Total words and phrases");
 		msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nOldCount);
 #endif
-*/
+
         // the following variables are for tracking how the active sequence number has to
         // be updated after each span of material designated for filtering is filtered out
 		bool bBoxBefore = TRUE; // TRUE when the active location is before the first sourcephrase being filtered
@@ -4759,7 +4772,7 @@ h:						bool bIsInitial = TRUE;
 			wxString markersStr;
 			if (pSrcPhrase->m_markers.IsEmpty())
 			{
-/*
+
 #ifdef __WXMSW__
 				// the following copied from bottom of loop to here in order to 
 				// remove the goto c; and label
@@ -4771,7 +4784,7 @@ h:						bool bIsInitial = TRUE;
 						progDlg.Update(nOldCount,msgDisplayed);
 				}
 #endif
-*/
+
 				continue;
 			}
 
@@ -4791,7 +4804,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 			{
                 // either wholeMkr is not filterable, or its not in strMarkersToBeFiltered,
                 // or its an endmarker -- if so, just iterate to the next sourcephrase
-/*
+
 #ifdef __WXMSW__
 				// the following copied from bottom of loop to here in order to remove the 
 				// goto c; and label
@@ -4803,7 +4816,7 @@ g:			int filterableMkrOffset = ContainsMarkerToBeFiltered(gpApp->gCurrentSfmSet,
 						progDlg.Update(nOldCount,msgDisplayed);
 				}
 #endif
-*/
+
 				continue;
 			}
 
@@ -5543,8 +5556,7 @@ d:				if (!bAtEnd || bGotEndmarker)
 							  // for filtering out
 			}
 			// update progress bar every 20 iterations
-//c:
-/*			
+//c:			
 #ifdef __WXMSW__
 			++nOldCount;
 			if (nOldCount % 1000 == 0) //if (20 * (nOldCount / 20) == nOldCount)
@@ -5554,7 +5566,6 @@ d:				if (!bAtEnd || bGotEndmarker)
 					progDlg.Update(nOldCount,msgDisplayed);
 			}
 #endif
-*/
 		} // end of loop for scanning contents of successive pSrcPhrase instances
 
         // prepare for update of view... locate the phrase box approximately where it was,
@@ -5565,19 +5576,27 @@ d:				if (!bAtEnd || bGotEndmarker)
 
 	} // end of block for bIsFilteringRequired == TRUE
 
-    // since we now have valid indices for the potential active location, we can check it
-    // is a safe location - we only need do this check if the earlier box location was
-    // destroyed by the filtering, since we can and do preserve the box location otherwise
+    // BEW changed 29Jul09: do this call unilaterally, bBoxLocationDestroyed is not set
+    // TRUE in as many circumstances as we would want, and in the caller use a test of
+    // bFilterChangeInDoc being TRUE to suppress resetting phrase box contents using
+    // strSavePhraseBox's string value, since we set it here instead - we assume the box
+    // location changed and we'll use the m_adaption member at the new location, but if
+    // that turns out to be the old active location, the caller will instead use the saved
+    // phrase box contents (because m_adaption won't have been set at the time we needed to
+    // save the box contents, so we can't use m_adaption there)
+    /*
 	if (bBoxLocationDestroyed)
 	{
-        // GetSavePhraseBoxLocationUsingList calculates a safe location (ie. not in a
-        // retranslation), sets the view's m_nActiveSequNumber member to that value, and
-        // calculates and sets m_targetPhrase to agree with what will be the new phrase box
-        // location; also, if the calculations put the box outside the bundle, then it does
-        // an internal bundle recalculation of its own before returning; it does nothing if
-        // the active location is already a safe one
 		gpApp->GetSafePhraseBoxLocationUsingList(pView);
 	}
+	*/
+    // GetSavePhraseBoxLocationUsingList calculates a safe location (ie. not in a
+    // retranslation), sets the view's m_nActiveSequNumber member to that value, and
+    // calculates and sets m_targetPhrase to agree with what will be the new phrase box
+	// location; it doesn't move the location if it is already safe; in either case it
+	// sets the box text to be the m_adaption contents for the current active location
+	// at the time this call is made
+	gpApp->GetSafePhraseBoxLocationUsingList(pView);
 
 	// remove the progress window, clear out the sublist from memory
 	// wx version note: Since the progress dialog is modeless we do not need to destroy
@@ -5588,6 +5607,12 @@ d:				if (!bAtEnd || bGotEndmarker)
 		pSublist->Clear();
 		delete pSublist;
 	}
+
+
+	// BEW added 29Jul09, turn back on CLayout Draw() so drawing of the view
+	// can now be done
+	GetLayout()->m_bInhibitDraw = FALSE;
+
 	return bSuccessful;
 }
 
@@ -10937,7 +10962,6 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 		int docSrcPhraseCount = gpApp->m_pSourcePhrases->size();
 		DoMarkerHousekeeping(gpApp->m_pSourcePhrases,
 								docSrcPhraseCount,gPropagationType,gbPropagationNeeded);
-
 	}
 
     if (bChangedFiltering)

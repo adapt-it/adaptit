@@ -8736,11 +8736,24 @@ a:			pNextSrcPhrase = pSaveSrcPhrase;
 		}
 	}
 
+	// inform, via a member in the app class, the DoUsfmFilterChanges() function of the
+	// m_srcPhrase string value at the pSrcPhrase location
+	m_strFiltering_SrcText_AtNewLocation = pSrcPhrase->m_srcPhrase;
+
 	// set m_targetPhrase
 	if (gbIsGlossing)
 		m_targetPhrase = pSrcPhrase->m_gloss;
 	else
 		m_targetPhrase = pSrcPhrase->m_adaption;
+
+	// BEW added 29Jul09, get the phrase box text into the box and all selected
+	m_pTargetBox->ChangeValue(m_targetPhrase);
+	m_nStartChar = -1;
+	m_nEndChar = -1;
+	if (m_pTargetBox != NULL)
+	{
+		m_pTargetBox->SetSelection(m_nStartChar, m_nEndChar); // select it all
+	}
 
 	return m_nActiveSequNum;
 }
@@ -8909,6 +8922,9 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
             // nevertheless, since the user will immediately see it and can manually edit
             // the contents to what they should be before continuing to adapt.
 			wxString strSavePhraseBox = gpApp->m_targetPhrase;
+            // BEW added 29Jul09, save the m_srcPhrase contents for use in the test after
+            // RetokenizeText() returns
+			wxString savedSrcPhrase = gpApp->m_pActivePile->GetSrcPhrase()->m_srcPhrase;
 
 			// now do the reparse
 			int nNewSrcPhraseCount = pDoc->RetokenizeText(FALSE, // FALSE = punctuation not changed here
@@ -8917,11 +8933,31 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
 			// a dummy line to avoid a compiler warning
 			nNewSrcPhraseCount = nNewSrcPhraseCount;
 
-			gpApp->m_targetPhrase = strSavePhraseBox;
+			// BEW added 29Jul09, use the saved value when the CSourcePhrase which is the
+			// active location hasn't changed (the m_strFiltering_SrcText_AtNewLocation
+			// string is set at the end of the GetSafePhraseBoxLocationUsingList()
+			// function) Note: the reason we can't use the CSourcePhrase:m_nSequNumber
+			// value here instead is because filtering consumes pile instances and
+			// sequence number reordering may result in a different CSourcePhrase instance
+			// becoming the new active location but it may end up with the same sequence
+			// number value as for the old active location - testing for identity of
+			// sequence numbers would then give wrong results
+			if (savedSrcPhrase == m_strFiltering_SrcText_AtNewLocation)
+			{
+				// restore what the phrase box's old contents were (this will override
+				// whatever value GetSafePhraseBoxLocationUsingList() set at its end; but
+				// that function's value will be used instead whenever the the active
+				// location has moved to a different CSourcePhrase instance.
+				// Note: if when unfiltering something the active location is place in the
+				// unfiltered content, we cannot restore the former adaptation (or gloss)
+				// text there because such text is irretrievably lost when the filtering
+				// was done earlier
+				gpApp->m_targetPhrase = strSavePhraseBox;
+			}
 		}
 		else
 		{
-			// No Reparse the Document called for
+			// No Reparse of the Document is called for
 			;
 		}
 		m_pLayout->m_bFilteringChanged = TRUE;

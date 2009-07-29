@@ -49,9 +49,9 @@ class AIPrintout;
 
 #define VERSION_MAJOR_PART 5
 #define VERSION_MINOR_PART 0
-#define VERSION_BUILD_PART 0
+#define VERSION_BUILD_PART 1
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 21
+#define VERSION_DATE_DAY 29
 #define VERSION_DATE_MONTH 7
 #define VERSION_DATE_YEAR 2009
 
@@ -1285,6 +1285,13 @@ class CAdapt_ItApp : public wxApp
     /// environment variable. On Windows or Mac OS, this will include the directory which
     /// contains the Audacity program.
 	wxArrayString adaptitPathList; // TODO: Implement this!
+
+	// a string used for restoring the appropriate phrase box contents after filtering or
+	// unfiltering changes have been made to the document. Enables the source text at a
+	// possibly new active location in the document determined within the
+	// GetSafePhraseBoxLocationUsingList() function to be communicated to a test in the
+	// DoUsfmFilterChanges() function
+	wxString m_strFiltering_SrcText_AtNewLocation;
 
 private:
     
