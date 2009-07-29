@@ -278,6 +278,7 @@ void CLayout::InitializeCLayout()
 	m_bLayoutWithoutVisiblePhraseBox = FALSE;
 	m_pOffsets = NULL;
 	m_pSavePileList = NULL;
+	m_bInhibitDraw = FALSE;
 #ifdef Do_Clipping
 	//m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
@@ -324,6 +325,13 @@ bool CLayout::GetScrollingFlag()
 
 void CLayout::Draw(wxDC* pDC)
 {
+	if (m_bInhibitDraw)
+	{
+        // BEW added 29Jul09, idea from Graeme, don't attempt any drawing if the view is
+        // not in a consistent state that would allow it
+		return;
+	}
+
     // BEW 23Jun09 - tried moving the placement of the phrase box to Invalidate() so as to
     // support clipping, but that was too early in the flow of events, and the box was not
     // uptodate and the last character typed was not "seen", so I had to move it back here.

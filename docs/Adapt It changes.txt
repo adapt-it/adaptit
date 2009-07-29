@@ -1,3 +1,17 @@
+Version 5.0.1 update 29July2009:
+----------------------------------------------
+Bug fixes and new features in 5.0.1
+----------------------------------------------
+* Fixes a crash at the point that the progress dialog is displayed 
+when changing the filtering settings within a document. 
+* The filtering mechanism also now restores the phrase box 
+contents at the active location properly. Unfiltering will do the
+same except when the new active location is within unfiltered
+material - in that circumstance the best it can do is to restore
+the phrase box empty - because earlier filtering has thrown away
+adaptation and gloss information which cannot therefore be 
+recovered by unfiltering.
+
 Version 5.0.0 update 21July2009:
 ----------------------------------------------
 Feature changes and new features in 5.0.0
