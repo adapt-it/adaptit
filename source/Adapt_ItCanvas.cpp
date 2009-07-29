@@ -193,35 +193,6 @@ CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
 
 // event handling functions
 
-// whm Note: Whether using OnDraw() or OnPaint() the result is the same
-//void CAdapt_ItCanvas::OnDraw(wxDC& dc) // note the & rather than *
-//{
-//	// wx behavior: This OnDraw() handler is called whenever our canvas scrolled
-//	// window needs updating, i.e., when the scrollbar is changed, when the window 
-//	// frame is resized, or when another window uncovers part or all of the canvas
-//	// window.
-//	// wx Note: The wx docs say that when implementing doc/view, the window on which 
-//	// drawing is done needs to call the View's OnDraw() within the window's OnDraw
-//	// method.
-//	// wx Note: The wxScrollHelper::HandleOnPaint calls this canvas' OnDraw()
-//	// method when the window needs painting. The HandleOnPaint routine calls
-//	// DoPrepareDC beforehand. The wx docs say that DoPrepareDC "sets the
-//	// device origin according to the current scroll position." However, the
-//	// wx docs also say about wxScrolledWindow::OnDraw(wxDC& dc), that it is "Called
-//	// by the default paint event handler to allow the application to define painting
-//	// behaviour without having to worry about calling wxScrolledWindow::DoPrepareDC. 
-//	// Instead of overriding this function, you may also just process the paint event
-//	// in the derived class as usual, but then you will have to call DoPrepareDC()
-//	// yourself."
-//	if (pView)
-//	{
-//#ifdef _LOG_DEBUG_DRAWING
-//		wxLogDebug(_T("Canvas calling View OnDraw()"));
-//#endif
-//		pView->OnDraw(& dc);
-//	}
-//}
-
 void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
 	wxPaintDC paintDC(this);//wxAutoBufferedPaintDC paintDC(this);
@@ -244,9 +215,6 @@ void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 	
 	if (pView)
 	{
-#ifdef _LOG_DEBUG_DRAWING
-		wxLogDebug(_T("Canvas calling View OnDraw()"));
-#endif
 		pView->OnDraw(& paintDC);
 	}
 }
