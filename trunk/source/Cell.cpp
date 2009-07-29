@@ -799,18 +799,12 @@ void CCell::DrawCell(wxDC* pDC, wxColor color)
 		// for those differences (see notes in DrawTextRTL for further information).
 		if (bRTLLayout)
 		{
-			#ifdef _LOG_DEBUG_DRAWING
-			wxLogDebug(_T("DrawText [%d chars] cell%d right align"),(*pPhrase).Length(),m_nCell);
-			#endif
 			//wxSize sizeOfPhrase = pDC->GetTextExtent(m_phrase);
 			// ********* Draw RTL Cell Text  ***********
 			DrawTextRTL(pDC,*pPhrase,enclosingRect);
 		}
 		else
 		{
-			#ifdef _LOG_DEBUG_DRAWING
-			wxLogDebug(_T("DrawText [%d chars] cell%d left align"),(*pPhrase).Length(),m_nCell);
-			#endif
 			// ********* Draw LTR Cell Text  **********
 			pDC->DrawText(*pPhrase,enclosingRect.GetLeft(), enclosingRect.GetTop());
 		}
