@@ -353,9 +353,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 		target =  ApplyOutputFilterToText(target, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output
-		// whm added: FormatMarkerBufferForOutput now does what FixSFMarkers, FixInLineMarkers
-		// and TuckPunctuationLeftwardsAfterEndMarker() did previously.
-		FormatMarkerBufferForOutput(target); // whm added: does what FixSFMarkers, FixInLineMarkers did previously
+		FormatMarkerBufferForOutput(target);
 		
 		target = pDoc->RemoveMultipleSpaces(target);
 		
@@ -376,8 +374,6 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 		source = ApplyOutputFilterToText(source, m_exportBareMarkers, m_exportFilterFlags, bRTFOutput);
 
 		// format for text oriented output
-		// whm added: FormatMarkerBufferForOutput now does what FixSFMarkers, FixInLineMarkers
-		// and TuckPunctuationLeftwardsAfterEndMarker() did previously.
 		FormatMarkerBufferForOutput(source);
 		
 		source = pDoc->RemoveMultipleSpaces(source);
@@ -3687,14 +3683,11 @@ void DoExportInterlinearRTF()
 		// Gloss text as well as composing appropriate Nav text.
 		//
 		// Observations from Bruce's RebuildTargetText() function:
-		// This routine builds the text into a single wxString returned by wxString& reference
-		// parameter, the function itself returning the length of the text as an int.
-		// In general it iterates through all the Doc's SPList of m_pSourcePhrases
-		// while rebuilding the text. It calls on FixSFMarkers() and FixInLineMarkers() to
-		// add forward slashes in the place of new lines preceeding backslash markers, in order
-		// to get an accurate length count, then converts those back to new lines at the end
-		// once the buffer has been constructed. The specifics for rebuilding the target text
-		// are covered below.
+        // This routine builds the text into a single wxString returned by wxString&
+        // reference parameter, the function itself returning the length of the text as an
+        // int. In general it iterates through all the Doc's SPList of m_pSourcePhrases
+        // while rebuilding the text. The specifics for rebuilding the target text are
+        // covered below.
 		//
 		// Rebuilding the TARGET TEXT:
 		// Rebuilding the target text is handled differently depending on whether the pSrcPhrase
@@ -12951,10 +12944,6 @@ int RebuildSourceText(wxString& source)
 // So we use / and later on, when the whole text is built, we change every forward slash which
 // precedes a gSFescapechar into a newline at one time, which is safe to do provided we don't want
 // to then get the string length.
-// Note, we use FixSFmarkers() which takes some account of the gbSfmOnlyAfterNewlines flag - but it
-// is not foolproof when gbSfmOnlyAfterNewlines is TRUE, some genuine markers might end up not
-// after a newline - but we err on the side of safety, so the user can add a newline to these visually
-// later on if he wants in a word processor after exporting the source text.
 // whm ammended 29Apr05. Since RebuildSourceText() is not used any longer in RetokenizeText() but
 // only in export routines, I've rewritten it to always remove any filter bracket markers
 // \~FILTER and \~FILTER* from the source text. The export routines determine whether to include
@@ -12966,13 +12955,9 @@ int RebuildSourceText(wxString& source)
 // by bit and add a great amount of RTF code words to the output text, hence the RTF routines
 // cannot make use of this RebuildSourceText function.) 
 //
-// The MFC version used a scheme of prefixing forward slash markers in its FixSFMarkers() function
-// and later removing them to avoid problems with embedded new line characters. I had problems setting
-// up buffers within buffers (which the MFC version does where RebuildSourceText process an overall
-// buffer and FixSFMarkers sets up an embedded buffer within the overall buffer). That problem plus a 
-// desire to simplify the forward slash scheme led me to instead create a separate routine called 
-// FormatMarkerBufferForOutput() which gets called after RebuildSourceText() is finished. It goes 
-// through and makes all the end-of-line tweaks and adjusts the spaces where needed.
+// I created a routine called FormatMarkerBufferForOutput() which gets called after
+// RebuildSourceText() is finished. It goes through and makes all the end-of-line tweaks
+// and adjusts the spaces where needed.
 //
 // Cross-platform code must accommodate the different end-of-line (eol) schemes that the various 
 // operating systems use for external text-oriented files. The MFC code stores a single \n newline 
@@ -13118,11 +13103,9 @@ int RebuildSourceText(wxString& source)
 
 				str << tempStr; //str += tempStr;
 
-				// MFC has calls to FixSFMarkers and FixSFMarkers here
-
-				// BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe or \x,
-				// so we do it by refraining to do any space insertion at the start of str when
-				// it starts with one of these markers
+                // BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe
+                // or \x, so we do it by refraining to do any space insertion at the start
+                // of str when it starts with one of these markers
 				wxString wholeMkr;
 				bool bStartsWithMarker = FALSE;
 				if (str.GetChar(0) == gSFescapechar)
@@ -13181,7 +13164,6 @@ int RebuildSourceText(wxString& source)
 					tempStr = pSrcPhrase->m_markers;
 					str += tempStr;
 					hasSFM = TRUE;
-					// MFC has calls to FixSFMarkers and FixSFMarkers here
 				}
 				bIsFirst = FALSE;
 				// BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe or \x,
@@ -13223,9 +13205,7 @@ int RebuildSourceText(wxString& source)
 		{
 			// it's a single word sourcephrase, so handle it....
 
-			// handle any stnd format markers first, and don't concatenate the source
-			// text word until after FixSFmarkers() has done its work (this allows us to
-			// ignore whether gbSfmOnlyAfterNewlines was TRUE or FALSE in the original parse)
+			// handle any stnd format markers first
 			// 
 			// BEW added more on 17Jan09: if m_markers content was moved to a preceding
 			// placeholder, then bMarkersOnPlaceholder should be TRUE and those markers
@@ -13269,12 +13249,8 @@ int RebuildSourceText(wxString& source)
 				hasSFM = TRUE;
 			}
 
-			// MFC has calls to FixSFMarkers and FixSFMarkers here
-			// MFC also calls FixInLineMarkers here
-
 			// add the concatenating space at the start, provided we are not at the
-			// start of the source text data; do it here otherwise FixSFMarkers( ) would
-			// remove it
+			// start of the source text data
 			// BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe or \x,
 			// so we do it by refraining to do any space insertion at the start of str when
 			// it starts with one of these markers
@@ -13347,7 +13323,7 @@ int RebuildTargetText(wxString& target)
 
 	wxChar fwdslash = _T('/');	// a placeholder for newline (CString doesn't count newlines)
 	wxChar newline = _T('\n');	// before returning we replace forward slash placeholders
-								// with newlines in FixSFmarkers()
+								// with newlines
 
 	wxString targetstr; // accumulate the target text here
 
@@ -13447,8 +13423,6 @@ int RebuildTargetText(wxString& target)
 				str = tgtStr;
 			}
 		}
-
-		// MFC calls FixSFMarkers  and FixInLineMarkers here
 
 		// The retranslation test's block can present us with a str with no initial space, and
         // targetstr may not end with a space, so we have to check for no space and add one if
@@ -13760,13 +13734,12 @@ wxString ApplyOutputFilterToText(wxString& textStr,
 	return textStr2;
 }
 
-// whm added the following to eliminate problems in FixSFMarkers and FixInLineMarkers within
-// RebuildSourceText, and RebuildTargetText. It also incorporates the functionality that previously
-// was in the separate TuckPunctuationLeftwardsAfterEndmarker() function. The exact format that
-// results of the sfm file should be nearly identical to that produced by the MFC version. One
-// difference noted is that the wx version currently leaves any extra spaces at end of lines before 
-// eol, whereas the MFC version leaves them on text lines, but removes them at the ends of markers
-// that have no associated text. There is no detrimental effects either way.
+// whm added the following to eliminate problems in some legacy functions. The exact format
+// that results of the sfm file should be nearly identical to that produced by the legacy
+// MFC version. One difference noted is that the wx version currently leaves any extra
+// spaces at end of lines before eol, whereas the MFC version left them on text lines, but
+// removed them at the ends of markers that have no associated text. There is no
+// detrimental effects either way.
 void FormatMarkerBufferForOutput(wxString& text)
 {
 	// FormatMarkerBufferForOutput assumes the complete text to be output as a text file is
@@ -13963,10 +13936,7 @@ void FormatMarkerBufferForOutput(wxString& text)
 							// when inserting eolStr, if preceding char is a space, first remove that
 							// space so there won't be any spaces dangling at ends of lines preceding
 							// the newly inserted eol char(s).
-							// whm note: Seems that in the MFC version, FixSFMarkers in the do loop near
-							// the end is supposed to "back up over" preceding spaces, but I think spaces
-							// may get added back in later in MFC's rendition of RebuildSourceText().
-							// I'll remove them here as they are not needed.
+							// I'll remove any spaces that managed to creep in, as they are not needed.
 							int cteol;
 							// now add the eol char(s) to the new buffer
 							for (cteol = 0; cteol < lenEolStr; cteol++)
