@@ -188,10 +188,6 @@ void CStrip::Draw(wxDC* pDC)
 	{
 		aPilePtr = ((CPile*)m_arrPiles[i]);
 		aPilePtr->Draw(pDC);
-#ifdef BLINKING_BUG
-		wxLogDebug(_T("CStrip::Draw() AFTER drawing CPile %d  having Src Text %s "), i, 
-			aPilePtr->m_pSrcPhrase->m_srcPhrase );
-#endif
 	}
 }
 #endif
