@@ -8918,9 +8918,9 @@ bool CAdapt_ItApp::DoUsfmFilterChanges(CFilterPageCommon* pfilterPageCommon,
             // stretch which got filtered out, then it's location will be changed to
             // somewhere close by (the app tries to put it at the first safe location
             // following where its earlier location was destroyed by the filtering) - and
-            // restoring the old contents will in that case typically be wrong. We'll do it
-            // nevertheless, since the user will immediately see it and can manually edit
-            // the contents to what they should be before continuing to adapt.
+			// restoring the old contents will in that case be wrong without the tweaks we
+			// do here and after the RetokenizeText() call -- see comments below for more
+			// details
 			wxString strSavePhraseBox = gpApp->m_targetPhrase;
             // BEW added 29Jul09, save the m_srcPhrase contents for use in the test after
             // RetokenizeText() returns
