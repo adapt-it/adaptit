@@ -154,7 +154,7 @@ public:
 	
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); 
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
-	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE, bool bRestoreBoxOnFailure = FALSE); // BEW added 1Aug08
+	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE); // BEW added 1Aug08
 	void		DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc);
 	void		DoFileSaveKB();
 	bool		DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
