@@ -1573,12 +1573,21 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		// need to reinitialize our KBs here, since immediately after this
 		// OnCreate() method finishes, OnNewDocument() will be called and
 		// the KB structures need to be reinitialized before OnNewDocument
-		// can succeed. I borrowed the code below from the App's
-		// SetupDirectories().
+		// can succeed. 
 
         // we have the desired directory structures. Now we need to get a KB 
         // initialized and stored in the languages-specific folder. Ditto for the glossing
         // KB (version 2)
+         
+		// BEW changed 1Aug09, because the code was using the old binary filenames *.KB
+		// etc, and so creating a new adaptation document using the File / New command was
+		// not finding the KB on disk, creating a new empty one and saving it, thereby
+		// clobbering the disk's good KB file. So I removed the wrong code and instead
+		// called SetupKBPaths() which, for the wx version, sets up the correct normal and
+		// alternate path names, file names, and backup paths and filenames.
+		pApp->SetupKBPathsEtc();
+
+		/* bad code, uses old filenames 
 		pApp->m_curKBName = pApp->m_curProjectName + _T(".KB");
 		pApp->m_curKBPath = pApp->m_curProjectPath + pApp->PathSeparator + pApp->m_curKBName;
 		pApp->m_curKBBackupPath = pApp->m_curProjectPath + pApp->PathSeparator + 
@@ -1590,7 +1599,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		pApp->m_curGlossingKBPath  += _T(".KB"); // version 2
 		pApp->m_curGlossingKBBackupPath = pApp->m_curProjectPath + pApp->PathSeparator + 
 												pApp->m_curGlossingKBName + _T(".BAK");
-
+		*/
 		if (::wxFileExists(pApp->m_curKBPath)) //if (cFile.GetStatus(m_curKBPath,status))
 		{
 			// there is an existing .KB file, so we need to create a CKB instance in
@@ -38971,36 +38980,41 @@ a:					wxString filtEnd = filterMkrEnd;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  InsertFilteredMaterial
-///
-/// Parameters:
-///	rMkr			->	reference to the marker (either \free, or \note, or \bt or a bt-prefixed marker)
-///	rEndMkr			->	reference to the matching endmarker (either \free* or \note*), empty string if none
-///	contentStr		->	the string content (it should end in a space) which is to be inserted, if there is
-///						no content for insertion, contentStr should be empty. (ContentStr must be a
-///						free translation, backtranslation, or a note, depending on what rMkr happens to be.)
-///						Any earlier content must have been cleared out by the caller first.
-///	pSrcPhrase		->	pointer to the CSourcePhrase instance whose m_markers member is to have the
-///						insertion done at offsetForInsert
-///	offsetForInsert ->	character offset where insertion is to take place - what actually gets put there
-///						depends on the next parameter
-///	bContentOnly	->	TRUE if only contentStr is to be inserted
+/// \return                     nothing
+///	\param rMkr			->	reference to the marker (either \free, or \note, or \bt  
+///	                        or a bt-prefixed marker)
+///	\param rEndMkr		->	reference to the matching endmarker (either \free* or \note*),
+///	                        empty string if none
+///	\param contentStr	->	the string content (it should end in a space) which is to be 
+///                         inserted, if there is no content for insertion, contentStr
+///                         should be empty. (ContentStr must be a free translation,
+///                         backtranslation, or a note, depending on what rMkr happens to
+///                         be.) Any earlier content must have been cleared out by the
+///                         caller first.
+///	\param pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers member is 
+///	                        to have the insertion done at offsetForInsert
+///	\param offsetForInsert ->	character offset where insertion is to take place - what 
+///	                        actually gets put there depends on the next parameter
+///	\param bContentOnly	->	TRUE if only contentStr is to be inserted
 ///
 /// Remarks:
-///	Used to insert either free translation, or backtranslation, or a note, into m_markers - and these markers
-///	are always filtered, so we have to be clever. If bContentOnly is TRUE, only the content for a marker gets
-///	inserted, because the marker, any endmarker, and bracketing filter markers will already be present and so
-///	not need to be inserted again. If bContentOnly is FALSE, none of the required stuff is already present, and
-///	so filter markers, marker, endmarker (if needed) and content, with a space between each, will need to be
-///	inserted at offsetForInsert, and a final space added too.
-///	Note: if the marker is already present, then its content should have been removed before calling
-///	InsertFilteredMaterial() -- a good way to do this is to use the function GetExistingMarkerContent() which
-///	also returns offsets to the beginning and end of the content string, and then CString's Delete() function
-///	can be used to get rid of the content.
-///
+///    Used to insert either free translation, or backtranslation, or a note, into
+///    m_markers - and these markers are always filtered, so we have to be clever. If
+///    bContentOnly is TRUE, only the content for a marker gets inserted, because the
+///    marker, any endmarker, and bracketing filter markers will already be present and so
+///    not need to be inserted again. If bContentOnly is FALSE, none of the required stuff
+///    is already present, and so filter markers, marker, endmarker (if needed) and
+///    content, with a space between each, will need to be inserted at offsetForInsert, and
+///    a final space added too.
+///    Note: if the marker is already present, then its content should have been removed
+///    before calling InsertFilteredMaterial() -- a good way to do this is to use the
+///    function GetExistingMarkerContent() which also returns offsets to the beginning and
+///    end of the content string, and then CString's Delete() function can be used to get
+///    rid of the content.
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
-									 CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly)
+void CAdapt_ItView::InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, 
+						wxString contentStr, CSourcePhrase* pSrcPhrase, 
+						int offsetForInsert, bool bContentOnly)
 {
 	int len = contentStr.Length();
 	if (bContentOnly)
@@ -39009,11 +39023,11 @@ void CAdapt_ItView::InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wx
 		if (contentStr.IsEmpty())
 			return;
 		if (contentStr[len - 1] != _T(' '))
-			contentStr += _T(' '); // add a space if contentStr does not already end with one
-		//pSrcPhrase->m_markers.Insert(offsetForInsert,contentStr); // ignore returned length
-		// wxString doesn't have an Insert method, so we'll do it
-		// with a helper function
-		pSrcPhrase->m_markers = InsertInString(pSrcPhrase->m_markers,offsetForInsert,contentStr);
+			contentStr += _T(' '); // add a space if contentStr does not already 
+								   // end with one
+		// wxString doesn't have an Insert method, so we'll do it with a helper function
+		pSrcPhrase->m_markers = 
+						InsertInString(pSrcPhrase->m_markers,offsetForInsert,contentStr);
 	}
 	else
 	{
@@ -39022,7 +39036,8 @@ void CAdapt_ItView::InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wx
 		accumStr.Empty();
 		accumStr += filterMkr; // add \~FILTER
 		accumStr += _T(' '); // add a space
-		accumStr += rMkr; // add whatever marker rMkr is, either \free, or \note, or \bt (or a derivative thereof)
+		accumStr += rMkr; // add whatever marker rMkr is, either \free, or \note, or 
+						  // \bt (or a derivative thereof)
 		accumStr += _T(' '); // add a space
 		if (contentStr.IsEmpty())
 		{
@@ -39031,7 +39046,8 @@ void CAdapt_ItView::InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wx
 		else
 		{
 			if (contentStr[len - 1] != _T(' '))
-				contentStr += _T(' '); // add a space if contentStr does not already end with one
+				contentStr += _T(' '); // add a space if contentStr does not 
+									   // already end with one
 		}
 		accumStr += contentStr;
 		if (!rEndMkr.IsEmpty())
@@ -39041,38 +39057,37 @@ void CAdapt_ItView::InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wx
 		}
 		accumStr += filterMkrEnd;
 		accumStr += _T(' '); // add a space
-		pSrcPhrase->m_markers = InsertInString(pSrcPhrase->m_markers,offsetForInsert,accumStr); // ignore returned length
+		pSrcPhrase->m_markers = 
+					InsertInString(pSrcPhrase->m_markers,offsetForInsert,accumStr); 
+														// ignore returned length
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  IsFreeTranslationEndDueToMarker
+/// \return             TRUE if the 'next' sourcephrase pointed at by the passed in 
+///                     pile pointer contains in its m_markers member a SF marker which
+///                     should halt forward scanning for determining the end of the current
+///                     section to be free translated; FALSE otherwise
 ///
-/// Returns: TRUE if the 'next' sourcephrase pointed at by the passed in pile pointer 
-///            contains in its m_markers member a SF marker which should halt forward scanning
-///           for determining the end of the current section to be free translated; FALSE
-///            otherwise
-///
-/// Parameters:
-///	pNextPile	->	pointer to the pile which is one position further along in the 
-///                    list than where control happens to be in the caller (so if TRUE is
-///                    returned, that passed in pile will be excluded from the current free
-///                    translation section being delimited, and scanning will stop)
-/// Remarks:
-///    We don't want a situation, such as in introductory material at the start of a book
-///    where there are no verses defined, and perhaps limited or no punctuation as well, for
-///    scanning to find an endpoint for the current section to fail to find some criterion for
-///    termination of the section - which would easily happen if we ignored SF markers - and
-///    we'd get overrun of the section into quite different kinds of information. So we'll
-///    halt scanning when there is a marker, but not when the marker is an endmarker for a
-///    marker with TextType none, nor when it is a beginning marker which has a TextType of
-///    none - the latter we want Adapt It to treat as if they are 'not there' for most
-///    purposes. And we'll not halt at embedded markers within a footnote (\f) or cross
-///    reference (\x) section either, but certainly halt when there is \f* or (PNG set's \fe
-///    or \F) or \x* on the 'next' sourcephrase passed in. BEW changed 22Dec07: a filtered
-///    Note can be anywhere, and we don't want these to needlessly halt section delineation,
-///    so we'll ignore \note and \note* as well.
-///
+///	\param pNextPile	->	pointer to the pile which is one position further along in the 
+///                         list than where control happens to be in the caller (so if TRUE
+///                         is returned, that passed in pile will be excluded from the
+///                         current free translation section being delimited, and scanning
+///                         will stop)
+/// \remarks
+/// We don't want a situation, such as in introductory material at the start of a book
+/// where there are no verses defined, and perhaps limited or no punctuation as well, for
+/// scanning to find an endpoint for the current section to fail to find some criterion for
+/// termination of the section - which would easily happen if we ignored SF markers - and
+/// we'd get overrun of the section into quite different kinds of information. So we'll
+/// halt scanning when there is a marker, but not when the marker is an endmarker for a
+/// marker with TextType none, nor when it is a beginning marker which has a TextType of
+/// none - the latter we want Adapt It to treat as if they are 'not there' for most
+/// purposes. And we'll not halt at embedded markers within a footnote (\f) or cross
+/// reference (\x) section either, but certainly halt when there is \f* or (PNG set's \fe
+/// or \F) or \x* on the 'next' sourcephrase passed in. BEW changed 22Dec07: a filtered
+/// Note can be anywhere, and we don't want these to needlessly halt section delineation,
+/// so we'll ignore \note and \note* as well.
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 {
@@ -39085,27 +39100,28 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 	if (markers.IsEmpty())
 		return FALSE;
 
-	// anything filtered must halt scanning, (BEW added:) exept for \note & its content
+	// anything filtered must halt scanning, exept for a \note & its content
 	wxString fltr = filterMkr; // \~FILTER
 	int fltrPos = FindFromPos(markers,fltr,0);
 	if (fltrPos != -1)
 	{
-		// since \~FILTER has been found, it could be for a Note; but it might be something
-		// else which is filtered, or there might be a Note present plus other filtered
-		// information (in which case the presence of the other filtered stuff must halt
-		// the section delineation). So only when there is a single bit of filtered info
-		// and it is a Note do we let processing continue, otherwise halt. It is sufficient
-		// to test for \note, then branch according to whether or not there are least 3 
-		// instances of \~FILTER, in markers.
+        // since \~FILTER has been found, it could be for a Note; but it might be something
+        // else which is filtered, or there might be a Note present plus other filtered
+        // information (in which case the presence of the other filtered stuff must halt
+        // the section delineation). So only when there is a single bit of filtered info
+        // and it is a Note do we let processing continue, otherwise halt. It is sufficient
+        // to test for \note, then branch according to whether or not there are least 3
+        // instances of \~FILTER, in markers.
 		if (FindFromPos(markers,noteMkr,0) != -1)
 		{
-			// there is a note filtered here; check for other filtered information too, there
-			// needs to be more than two instances of \~FILTER (first is the beginning marker,
-			// the second is its endmarker \~FILTER*) for that to be TRUE
+            // there is a note filtered here; check for other filtered information too,
+            // there needs to be more than two instances of \~FILTER (first is the
+            // beginning marker, the second is its endmarker \~FILTER*) for that to be TRUE
 			fltrPos = FindFromPos(markers,fltr,++fltrPos);
 			if (fltrPos == -1)
 			{
-				// could happen, eg. a filtered \bt has no matching endmarker, & it halts progress
+				// could happen, eg. a filtered \bt has no matching endmarker, 
+				// & it halts progress
 				return TRUE;
 			}
 			else
@@ -39118,14 +39134,15 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 				}
 				else
 				{
-					// there were only two, so they were the beginning marker and its endmarker
+					// there were only two, so they were the 
+					// beginning marker and its endmarker
 					return FALSE;
 				}
 			}
 		}
 		else
-			// no \note marker is in markers, so the filtered material is something else
-			// and so we must halt here
+			// no \note marker is in markers, so the filtered material
+			// is something else and so we must halt here
 			return TRUE;
 	}
 
@@ -39151,7 +39168,7 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 	// reference section, (BEW added:) or is \note*
 	if (markers.GetChar(0) == gSFescapechar)
 	{
-		pBuff = markers.GetData(); //GetWriteBuf(bufLen + 1);
+		pBuff = markers.GetData();
 		pBufStart = (wxChar*)pBuff;
 		wxChar* pEnd;
 		pEnd = pBufStart + bufLen; // whm added
@@ -39162,8 +39179,8 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 		bool bIsEndMkr = FALSE;
 		if (mkr.GetChar(0) == _T('*'))
 		{
-			// markers begins with an endmarker, determine whether it is one
-			// which halts scanning or not
+			// markers begins with an endmarker, determine
+			// whether it is one which halts scanning or not
 			itemLen++; // increment to encompass the following space
 			bIsEndMkr = TRUE;
 		}
@@ -39175,13 +39192,15 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 				return TRUE; // halt scanning
 			if (mkr == xrefMkr + _T('*'))
 				return TRUE;
-			if (pApp->gCurrentSfmSet == UsfmOnly && (mkr == endnoteMkr + _T('*'))) // BEW added 16Jan06
+			if (pApp->gCurrentSfmSet == UsfmOnly && 
+					(mkr == endnoteMkr + _T('*')))
 				return TRUE;
-			if (pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || mkr == _T("\\F")))
+			if (pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || 
+					mkr == _T("\\F")))
 				return TRUE;
 
-			// find out if it is an embedded marker with TextType of none - we don't
-			// halt for these; (BEW added:) nor for \note*
+			// find out if it is an embedded marker with TextType of none
+			// - we don't halt for these nor for a \note*
 			if (mkr == noteMkr + _T('*'))
 				return FALSE; // don't halt scanning for this
 			mkrLen = mkr.Length();
@@ -39190,11 +39209,13 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 			bareMkr = bareMkr.Mid(1);
 			pAnalysis = pDoc->LookupSFM(bareMkr);
 			if (pAnalysis == NULL)
-				return TRUE; // halt for an unknown endmarker (never should be such a thing anyway)
+				return TRUE; // halt for an unknown endmarker 
+							 // (never should be such a thing anyway)
 			if (pAnalysis->textType == none)
 				return FALSE; // don't halt scanning for these
 
-			// we don't halt for embedded endmarkers in footnotes or cross references (USFM set only) either
+			// we don't halt for embedded endmarkers in footnotes or cross references 
+			// (USFM set only) either
 			int nFound = mkr.Find(ftnoteMkr); // if true, \f is contained within mkr
 			if (nFound >= 0 && mkrLen > 2)
 				return FALSE; // must be \fr*, \fk*, etc - so don't halt
@@ -39204,11 +39225,8 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 
 			// halt for any other endmarker
 			return TRUE;
-//			markers.Delete(0,itemLen);
 		}
 	}
-//	if (markers.IsEmpty())
-//		return FALSE; // don't halt if all there was in m_markers was an endmarker
 
 	// something else is present, so check it out
 	curPos = markers.Find(gSFescapechar);
@@ -39216,8 +39234,9 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 		// there are no SF markes left in the string
 		return FALSE; // don't halt scanning
 
-	// we've a marker to deal with, and its not a filtered one - so we'll halt now unless
-	// the marker is one like \k , or \it ,  or \sc , or \bd etc - these have TextType none
+    // we've a marker to deal with, and its not a filtered one 
+    // - so we'll halt now unless the marker is one like \k , or 
+    // \it , or \sc , or \bd etc - these have TextType none
 	bufLen = markers.Length();
 	pBuff = markers.GetData(); //GetWriteBuf(bufLen + 1);
 	pBufStart = (wxChar*)pBuff;
@@ -39234,8 +39253,8 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 	if (pAnalysis->textType == none)
 		return FALSE; // don't halt scanning for these
 
-	// if it's an embedded marker in a footnote or cross reference section, then these don't
-	// halt scanning
+	// if it's an embedded marker in a footnote or cross reference section,
+	// then these don't halt scanning
 	wxString mkr = _T("\\") + bareMkr; // this is genuine backslash not PathSeparator
 	mkrLen = mkr.Length();
 	int nFound = mkr.Find(ftnoteMkr); // if true, \f is contained within mkr
@@ -39249,19 +39268,17 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  DestroyElements
+/// \return             nothing
 ///
-/// Returns: nothing
-///
-/// Parameters:
-///	pArr	->	pointer to the global gpFreeTransArray which contains FreeTrElement structs - each of which
-///				contains the information relevant to writing a subpart of the free translation in a single
-///				rectangle under a single strip
+///	\param pArr	   ->  pointer to the global gpFreeTransArray which contains FreeTrElement 
+///                    structs - each of which contains the information relevant to
+///                    writing a subpart of the free translation in a single rectangle
+///                    under a single strip
 /// Remarks:
-///	The global structures and variables are used over and over while writing out the free translation
-///	text in the client area, and so we need this function to clear out the array each time we come to
-///	the next section of the free translation. Used by DrawFreeTranslations().
-///
+///    The global structures and variables are used over and over while writing out the
+///    free translation text in the client area, and so we need this function to clear out
+///    the array each time we come to the next section of the free translation. 
+///    Used by DrawFreeTranslations().
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DestroyElements(wxArrayPtrVoid* pArr)
 {
@@ -39279,27 +39296,29 @@ void CAdapt_ItView::DestroyElements(wxArrayPtrVoid* pArr)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  HasWordFinalPunctuation
+/// \return             TRUE if the passed in word or phrase has word-final punctuation 
+///                     at its end, else FALSE
 ///
-/// Returns: TRUE if the passed in word or phrase has word-final punctuation at its end, else FALSE
-///
-/// Parameters:
-///	pSP		->	pointer to the CSourcePhrase instance which stores the phrase parameter as a member
-///	phrase	->	the word or phrase being considered (actually, pSP->m_targetStr)
-///	punctSet->	reference to a string of target language punctuation characters containing no spaces
-/// Remarks:
-///	We can't simply search for a non-empty m_follPunct member of pSrcPhrase in order to end a free
-///	translation section, because if we have a lot of typing in a retranslation, then there will be
-///	several final placeholders in the source text line, and these will have their m_follPunct members
-///	empty; so we must check for final punctuation in the target text line instead, and the only way
-///	to do this is to look for final punctuation in the m_targetStr member of pSrcPhrase - this will
-///	have content, even throughout a retranslation
-///	BEW modified 25Nov05; the above algorithm breaks down in document sections which have not yet
-///	been adapted, because then there is no target text to examine! So when the m_targetStr member
-///	is empty, we will indeed instead check for a non-empty m_follPunct member!
-///
+///	\param pSP		->	pointer to the CSourcePhrase instance which stores the phrase 
+///	                    parameter as a member
+///	\param phrase	->	the word or phrase being considered (actually, pSP->m_targetStr)
+///	\param punctSet ->	reference to a string of target language punctuation characters 
+///	                    containing no spaces
+/// \remarks
+/// We can't simply search for a non-empty m_follPunct member of pSrcPhrase in order to end
+/// a free translation section, because if we have a lot of typing in a retranslation, then
+/// there will be several final placeholders in the source text line, and these will have
+/// their m_follPunct members empty; so we must check for final punctuation in the target
+/// text line instead, and the only way to do this is to look for final punctuation in the
+/// m_targetStr member of pSrcPhrase - this will have content, even throughout a
+/// retranslation
+/// BEW modified 25Nov05; the above algorithm breaks down in document sections which have
+/// not yet been adapted, because then there is no target text to examine! So when the
+/// m_targetStr member is empty, we will indeed instead check for a non-empty m_follPunct
+/// member!
 /////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet)
+bool CAdapt_ItView::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, 
+											wxString& punctSet)
 {
 	// beware, phrase can sometimes have a final space following punctuation - so first
 	// remove trailing spaces
@@ -39322,23 +39341,23 @@ bool CAdapt_ItView::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  TruncateToFit
+/// \return             a CString which is the truncated text with an ellipsis (...) 
+///                     at the end
 ///
-/// Returns: a CString which is the truncated text with an ellipsis (...) at the end
-///
-/// Parameters:
-///	pDC				->	pointer to the device context used for drawing the view
-///	str				->	the string which is to be elided to fit the available drawing rectangle
-///	ellipsis		->	the ellipsis text (three dots)
-///	totalHExtent	->	the total horizontal extent (pixels) available in the drawing rectangle
-///						to be used for drawing the elided text. It is the caller's responsibility
-///						to work out when this function needs to be called.
-/// Remarks:
+///	\param pDC			->	pointer to the device context used for drawing the view
+///	\param str			->	the string which is to be elided to fit the available drawing 
+///	                        rectangle
+///	\param ellipsis		->	the ellipsis text (three dots)
+///	\param totalHExtent	->	the total horizontal extent (pixels) available in the drawing 
+///                         rectangle to be used for drawing the elided text. It is the
+///                         caller's responsibility to work out when this function needs
+///                         to be called.
+/// \remarks
 ///	Called in DrawFreeTranslations() when there is a need to shorten a text substring to fit
 ///	within the available drawing space in the layout
-///
 /////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItView::TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent)
+wxString CAdapt_ItView::TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
+									  int totalHExtent)
 {
 	wxSize extent;
 	wxString text = str;
@@ -39347,7 +39366,8 @@ a:	text.Remove(text.Length() - 1,1);
 	textPlus = text + ellipsis;
 	pDC->GetTextExtent(textPlus,&extent.x,&extent.y); 
 	if (extent.x <= totalHExtent) 
-		return textPlus; // return truncated text with ellipsis at the end, as soon as it fits
+		return textPlus; // return truncated text with ellipsis 
+						 // at the end, as soon as it fits
 	else
 	{
 		if (text.Length() > 0)
@@ -39361,49 +39381,62 @@ a:	text.Remove(text.Length() - 1,1);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  SegmentToFit
+/// \return             a CString which is the segmented input text (integral number of 
+///                     whole words) that will fit within the passed in extent
 ///
-/// Returns: a CString which is the segmented input text (integral number of whole words) that will
-///			fit within the passed in extent
-///
-/// Parameters:
-///	pDC				->	pointer to the device context used for drawing the view
-///	str				->	the string which is to be segmented to fit the available drawing rectangle
-///	ellipsis		->	the ellipsis text (three dots)
-///	horizRectExtent	->	the horizontal extent (pixels) available in the drawing rectangle to be
-///						used for drawing the segmented text
-///	fScale			->	scaling factor to be used if the text is smaller than the available total
-///						space (ie. all rectangles), we use fScale if bUseScale is TRUE, and with it
-///						we scale the horizontal extent (horizExtent) to be a lesser number of whole
-///						pixels when the text is comparatively short, so that we get a better distribution
-///						of words between the available drawing rectangles. (bUseScale is passed in as
-///						FALSE if we know in the caller that the total text is too long for the sum of
-///						the available drawing rectangles for it all to fit)
-///	offset			<-	pass back to the caller the offset of the first character in str which is not
-///						included in the returned CString - the caller will use this offset to do a
-///						.Mid(offset) call on the passed in string, to shorten it  for the next iteration's
-///						call of SegmentToFit()
-///	nIteration		->	the iteration count for this particular rectangle
-///	nIterBound		->	the highest value that nIteration can take (equal to the total number of drawing
-///						rectangles for this free translation section, less one)
-///	bTryAgain		<->	passing in FALSE allows fScale to be used, passing in TRUE prevents it being used
-///	bUseScale		->	whether or not to do scaling of the rectangle extents to give a better
-///						segmentation results - ie. distributing words more evenly than would be the case
-///						if unscaled rectangle extents were used for the calculations
-/// Remarks:
-///	Called in DrawFreeTranslations() when there is a need to work out what the suitable substring should
-///	be for the drawing rectangle with the passed in horizExtent value. Note: bUseScale will be ignored
-///	on the last iteration (ie.for the last drawing rectangle) because the function must try to get all
-///	of the remaining string text drawn within this last rectangle if possible, so for the last rectangle
-///	we try fit what remains and if it won't go, then we truncate the text. The bTryAgain parameter enables
-///	a TRUE value to be sent back to the caller (SegmentFreeTranslation()) so that the caller can request
-///	a complete recalculation without any rectangle scaling by fScale being done - we want to do this when
-///	scaling has cut a free translation string too early and the last rectangle's text got truncated - so
-///	we want a second run with no scaling so that we minimize the possibility of truncation being needed
-///
+///	\param pDC				->	pointer to the device context used for drawing the view
+///	\param str				->	the string which is to be segmented to fit the available 
+///	                            drawing rectangle
+///	\param ellipsis		    ->	the ellipsis text (three dots)
+///	\param horizRectExtent	->	the horizontal extent (pixels) available in the drawing 
+///	                            rectangle to be used for drawing the segmented text
+///	\param fScale			->	scaling factor to be used if the text is smaller than 
+///                             the available total space (ie. all rectangles), we use
+///                             fScale if bUseScale is TRUE, and with it we scale the
+///                             horizontal extent (horizExtent) to be a lesser number of
+///                             whole pixels when the text is comparatively short, so that
+///                             we get a better distribution of words between the available
+///                             drawing rectangles. (bUseScale is passed in as FALSE if we
+///                             know in the caller that the total text is too long for the
+///                             sum of the available drawing rectangles for it all to fit)
+///	\param offset			<-	pass back to the caller the offset of the first character 
+///                             in str which is not included in the returned CString - the
+///                             caller will use this offset to do a .Mid(offset) call on
+///                             the passed in string, to shorten it for the next
+///                             iteration's call of SegmentToFit()
+///	\param nIteration		->	the iteration count for this particular rectangle
+///	\param nIterBound		->	the highest value that nIteration can take (equal to the 
+///                             total number of drawing rectangles for this free
+///                             translation section, less one)
+///	\param bTryAgain		<->	passing in FALSE allows fScale to be used, passing in TRUE 
+///	                            prevents it being used
+///	\param bUseScale		->	whether or not to do scaling of the rectangle extents to 
+///                             give a better segmentation results - ie. distributing words
+///                             more evenly than would be the case if unscaled rectangle
+///                             extents were used for the calculations
+/// \remarks
+///    Called in DrawFreeTranslations() when there is a need to work out what the suitable
+///    substring should be for the drawing rectangle with the passed in horizExtent value.
+///    Note: bUseScale will be ignored on the last iteration (ie.for the last drawing
+///    rectangle) because the function must try to get all of the remaining string text
+///    drawn within this last rectangle if possible, so for the last rectangle we try fit
+///    what remains and if it won't go, then we truncate the text. The bTryAgain parameter
+///    enables a TRUE value to be sent back to the caller (SegmentFreeTranslation()) so
+///    that the caller can request a complete recalculation without any rectangle scaling
+///    by fScale being done - we want to do this when scaling has cut a free translation
+///    string too early and the last rectangle's text got truncated - so we want a second
+///    run with no scaling so that we minimize the possibility of truncation being needed
 /////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int horizRectExtent,float fScale,
-								int& offset,int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale)
+wxString CAdapt_ItView::SegmentToFit(wxDC*		pDC,
+									 wxString&	str,
+									 wxString&	ellipsis,
+									 int		horizRectExtent,
+									 float		fScale,
+									 int&		offset,
+									 int		nIteration,
+									 int		nIterBound,
+									 bool&		bTryAgain,
+									 bool		bUseScale)
 {
 	wxString subStr;
 	wxSize extent;
@@ -39415,14 +39448,16 @@ wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 	int nShortenBy;
 	if (bUseScale && !bTryAgain)
 	{
-		// don't use the scaling factor if bTryAgain is TRUE, but if FALSE it can be used provided
-		// bUseScale is TRUE (and the latter will be the case if the caller knows the text is shorter than
-		// the total rectangle horizontal extents)
-		nHExtent = (int)(horizRectExtent * fScale); // this is a lesser number of pixels than horizRectExtent
-		// the scaling effectively gives us shorter rectangles for our segmenting calculations
+        // don't use the scaling factor if bTryAgain is TRUE, but if FALSE it can be used
+        // provided bUseScale is TRUE (and the latter will be the case if the caller knows
+        // the text is shorter than the total rectangle horizontal extents)
+		nHExtent = (int)(horizRectExtent * fScale); // this is a lesser number of pixels 
+                        // than horizRectExtent the scaling effectively gives us shorter
+                        // rectangles for our segmenting calculations
 	}
 
-	// work out how much will fit - start at 5 characters, since we can be sure that much is fittable
+	// work out how much will fit - start at 5 characters, 
+	// since we can be sure that much is fittable
 	if (nIteration < nIterBound)
 	{
 		ncount = 5;
@@ -39442,13 +39477,14 @@ wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 			return subStr;
 		}
 
-		// we didn't get to the str's end, so work backwards until we come to a space
+		// we didn't get to the str's end, so work backwards 
+		// until we come to a space
 		subStr = MakeReverse(subStr);
 		int nFind = (int)subStr.Find(_T(' '));
 		if (nFind == -1)
 		{
-			// there was no space character found, so this rectangle can't have anything drawn in it
-			// - that is, we can't make a whole word fit within it
+            // there was no space character found, so this rectangle can't have anything
+            // drawn in it - that is, we can't make a whole word fit within it
 			subStr.Empty();
 			offset = 0;
 		}
@@ -39457,11 +39493,13 @@ wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 			nShortenBy = nFind;
 			wxASSERT( nShortenBy >= 0);
 			ncount -= nShortenBy;
-			subStr = str.Left(ncount); // this includes a trailing space, even if nShortenBy was 0
-			offset = ncount; // return the offset value that ensures the caller's .Mid() call will remove
-							// the trailing space as well (beware, the resulting shortened string may
-							// still begin with a space, because the user may have typed more than one
-							// space between words, so the caller must do a Trim() anyway
+			subStr = str.Left(ncount); // this includes a trailing space, 
+									   // even if nShortenBy was 0
+			offset = ncount; // return the offset value that ensures the caller's 
+                        //.Mid() call will remove the trailing space as well (beware, the
+                        //resulting shortened string may still begin with a space, because
+                        //the user may have typed more than one space between words, so the
+                        //caller must do a Trim() anyway
 			// remove the final space, so we are sure it will fit
 			subStr.Trim(FALSE); // trim left end
 			subStr.Trim(TRUE); // trim right end
@@ -39475,7 +39513,8 @@ wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 		subStr = str;
 		subStr.Trim(FALSE); // trim left end
 		subStr.Trim(TRUE); // trim right end
-		// recalculate, in case lopping off a trailing space has now made it able to fit
+		// recalculate, in case lopping off a trailing space 
+		// has now made it able to fit
 		pDC->GetTextExtent(subStr,&extent.x,&extent.y);
 		nStrExtent = extent.x; 
 		if (nStrExtent < horizRectExtent)
@@ -39488,61 +39527,53 @@ wxString CAdapt_ItView::SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 			// it ain't gunna fit, so truncate
 			subStr = TruncateToFit(pDC,str,ellipsis,horizRectExtent);
 
-			// here is where we can set bTryAgain to force a recalculation without the scaling factor
+			// here is where we can set bTryAgain to force a recalculation 
+			// without the scaling factor
 			if (!bTryAgain && bUseScale)
 			{
 				bTryAgain = TRUE; // tell the caller to initiate a recalculation
 			}
-			/* we don't need this block because on the second attempt we return to a different block
-				in the caller, and so bTryAgain's value is not again tested, so we can't keep looping
-			else if (bTryAgain && bUseScale)
-			{
-				bTryAgain = FALSE; // after the second try, clear the boolean to prevent an
-								   //  infinite loop of recalculation attempts
-			}
-			*/
 		}
 		return subStr;
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-/// Returns:
-/// Parameters:
-///	activeSequNum	->	index of the current active location where the free translation's
-///						current section commences (ie. the anchor CPile instance)
-/// Remarks:
-///    Called early in the view's DrawFreeTranslations() function, to return an arbitrary but
-///    off-screen CPile instance guaranteed to lie somewhere within the document and preceding
-///    the start of the current free translation section being drawn. This pile is used as the
-///    kick off point for scanning forward to determine which CPile instance is actually to be
-///    the start (ie. anchor) for the current free translation section. In the legacy
-///    application where we segmented the document into "bundles" and only laid out a bundle
-///    at a time, it was easy to start the forward scan from the start of the current bundle.
-///    But in the refactored application, it would be a waste of time to start the scan from
-///    the beginning of the document. So we work out a suitable location given the current
-///    active location (& its anchor pile) - that works right even if the user has scrolled
-///    the active location off screen. Since we need to dynamically work this out for each
-///    call of DrawFreeTranslations(), there is no need to store this starting pile's pointer
-///    in a global for use at a later time
-///	Note: in July 09 (about 12th?) BEW changed the forward scanning in DrawFreeTranslations()
-///	to not scan forward more than as many strips as fit in the visible window, otherwise
-///	we were getting whole-document scans over thousands of strips which tied up the app for
-///	a minute or more. Therefore, the kick off point for scanning forward has to be able to
-///	find its target location within a window height's amount of strips from the kick off
-///	location, so care must be exercised in coding the free translation functionality to
-///	ensure this constraint is never violated. (see change of 14July below, for example)
+/// \return             the CPile instance, safely earlier than where we are interested in
+///                     and where the caller will start scanning ahead from to get the
+///                     'real' starting location we want
+///	\param activeSequNum	->	index of the current active location where the free 
+///	                            translation's current section commences (ie. the 
+///	                            anchor CPile instance)
+/// \remarks
+/// Called early in the view's DrawFreeTranslations() function, to return an arbitrary but
+/// off-screen CPile instance guaranteed to lie somewhere within the document and preceding
+/// the start of the current free translation section being drawn. This pile is used as the
+/// kick off point for scanning forward to determine which CPile instance is actually to be
+/// the start (ie. anchor) for the current free translation section. In the legacy
+/// application where we segmented the document into "bundles" and only laid out a bundle
+/// at a time, it was easy to start the forward scan from the start of the current bundle.
+/// But in the refactored application, it would be a waste of time to start the scan from
+/// the beginning of the document. So we work out a suitable location given the current
+/// active location (& its anchor pile) - that works right even if the user has scrolled
+/// the active location off screen. Since we need to dynamically work this out for each
+/// call of DrawFreeTranslations(), there is no need to store this starting pile's pointer
+/// in a global for use at a later time
+/// Note: in July 09 (about 12th?) BEW changed the forward scanning in
+/// DrawFreeTranslations() to not scan forward more than as many strips as fit in the
+/// visible window, otherwise we were getting whole-document scans over thousands of strips
+/// which tied up the app for a minute or more. Therefore, the kick off point for scanning
+/// forward has to be able to find its target location within a window height's amount of
+/// strips from the kick off location, so care must be exercised in coding the free
+/// translation functionality to ensure this constraint is never violated. (see change of
+/// 14July below, for example)
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 {
-	//CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
 	CPile* pStartPile = NULL;
-	//wxPileListNode* pos;
 	if (activeSequNum < 0)
 	{
-		//pos = pLayout->GetPileList()->Item(0); // start at doc start for safety
-		//pStartPile = pos->GetData();
 		pStartPile = GetPile(0);
 		return pStartPile;
 	}
@@ -39552,10 +39583,10 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	if (numVisibleStrips < 1)
 		numVisibleStrips = 2; // we don't want to use 0 or 1, not a big enough jump
 	int nCurStripIndex = pStartPile->GetStripIndex();
-	// BEW changed 14Jul09, we want to start the off-window scan no more than a strip or
-	// two from the start of the visible area, otherwise our caller,
-	// DrawFreeTranslations() may exit early without drawing anything - so from the active
-	// strip we go back a half-window and then two more strips for good measure
+    // BEW changed 14Jul09, we want to start the off-window scan no more than a strip or
+    // two from the start of the visible area, otherwise our caller, DrawFreeTranslations()
+    // may exit early without drawing anything - so from the active strip we go back a
+    // half-window and then two more strips for good measure
 	nCurStripIndex = nCurStripIndex - (numVisibleStrips / 2 + 2);
 	if (nCurStripIndex < 0)
 		nCurStripIndex = 0;
@@ -39569,36 +39600,35 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	return pStartPile;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////
-///  DrawFreeTranslations
-///
-/// Returns: nothing
+/// \return                 nothing
 ///
 /// Parameters:
-///	pDC		->	pointer to the device context used for drawing the view
-///	pLayout	->	pointer to the CLayout instance, which manages all the strips, and piles.
-/// whm added parameters below 24Aug06 and 31May07
-///	drawFTCaller -> enum value either call_from_ondraw, or call_from_edit - when 
-///                    call_from_ondraw all free translations within the view are drawn; when
-///                    call_from_edit, only the free translation being edited is redrawn as
-///                    editing is being done
-/// Remarks:
-///    Called in the view's OnDraw() function, which gets invoked whenever a paint message has
-///    been received, but DrawFreeTranslations is only done when free translation mode is
-///    turned on, otherwise it is skipped. Internally, it intersects each rectangle, and the
-///    whole of each free translation section (which may span several strips), with the client
-///    rectangle for the view - and when the intersection is null, it skips further
-///    calculations at that point and draws nothing; furthermore, then the function determines
-///    that all further drawing will be done below the bottom of the client rect, it exits.
-///    The data structures and variables the function requires are, for the most part, within
+///	\param pDC		       ->	pointer to the device context used for drawing the view
+///	\param pLayout	       ->	pointer to the CLayout instance, which manages all the 
+///	                            strips, and piles.
+///	\param drawFTCaller    ->   enum value either call_from_ondraw, or call_from_edit - 
+///                             when call_from_ondraw all free translations within the view
+///                             are drawn; when call_from_edit, only the free translation
+///                             being edited is redrawn as editing is being done
+/// \remarks
+/// Called in the view's OnDraw() function, which gets invoked whenever a paint message has
+/// been received, but DrawFreeTranslations is only done when free translation mode is
+/// turned on, otherwise it is skipped. Internally, it intersects each rectangle, and the
+/// whole of each free translation section (which may span several strips), with the client
+/// rectangle for the view - and when the intersection is null, it skips further
+/// calculations at that point and draws nothing; furthermore, then the function determines
+/// that all further drawing will be done below the bottom of the client rect, it exits.
+/// The data structures and variables the function requires are, for the most part, within
 ///	the CLayout instance, but there are also some globals defined at the start of the view 
 ///	class's file Adapt_ItView.cpp.
+///	It does either one or two passes. A second pass is tried, with tighter fitting of data
+///	to available space, if the first pass does not fit it all in.
 ///
-///   whm: With its six jump labels, and thirteen gotos, the logic of this function is very
-///   convoluted and difficult to follow - BEWARE!
+/// whm: With its six jump labels, and thirteen gotos, the logic of this function is very
+/// convoluted and difficult to follow - BEWARE!
 ///   TODO: Rewrite with simpler logic!
-///
+/// whm added additional parameters on 24Aug06 and later on 31May07
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
 										 enum DrawFTCaller drawFTCaller)
@@ -39614,15 +39644,14 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	int curPileIndex;
 	int curPileCount;
 	int nTotalHorizExtent; // the sum of the horizonal extents of the subrectangles 
-                           // which make up the laid out possible writable areas for the
-                           // current free trans section
+                           // which make up the laid out possible writable areas
+                           // for the current free trans section
 	wxPoint topLeft;
 	wxPoint botRight;
 	CSourcePhrase* pSrcPhrase;
 	FreeTrElement* pElement;
 	wxSize extent;
 	bool bSectionIntersects = FALSE;
-	//pPile = pBundle->m_pStrip[0]->GetPile()[0]; // first pile in bundle
 	// get an offscreen pile from which to scan forwards for the anchor pile
 	pPile = GetStartingPileForScan(pApp->m_nActiveSequNum);
 	// get it's CSourcePhrase instance
@@ -39643,11 +39672,6 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	wxRect rectBounding;
 	bool bRTLLayout = FALSE;
 	#ifdef _RTL_FLAGS
-	//wxUint32 nFormat; // for specifying directionality
-	//nFormat = gnFormat; // this global has the basic value (LTR assumed), DT_LEFT is default
-	// wx note: wx's DrawText() does not have an nFormat parameter to indicate directionality
-	// and alignment, so I'll use a separate bool bRTLLayout to signal when we must do RTL
-	// and right alignment.
 	if (pApp->m_bTgtRTL)
 	{
 		ellipsis = _T('\u2026'); // use a unicode ellipsis for RTL
@@ -39661,7 +39685,8 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	}
 	#endif
 
-	// set up a new colour - make it a purple, hard coded in app as m_freetransTextColor
+	// set up a new colour - make it a purple, 
+	// hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
 	wxFont* pFreeTransFont = pApp->m_pTargetFont;
 	pSaveFont = pDC->GetFont();
@@ -39692,15 +39717,15 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	//pDC->SetTextBackground(wxColour(255,255,0));
 	// wx testing above
 
-	/* THE LOOP FOR ITERATING OVER ALL FREE TRANSLATION SECTIONS IN THE DOC,
-	   STARTING FROM A PRECEDING OFFSCREEN CPile INSTANCE, BEGINS HERE */
+	// THE LOOP FOR ITERATING OVER ALL FREE TRANSLATION SECTIONS IN THE DOC,
+	//  STARTING FROM A PRECEDING OFFSCREEN CPile INSTANCE, BEGINS HERE
 
 	#ifdef _Trace_DrawFreeTrans
 	TRACE0("\n\n BEGIN - Loop About To Start in DrawFreeTranslations()\n\n");
 	#endif
 
-	// whm: I moved the following declarations and initializations here from way below 
-	// to avoid compiler warnings:
+	// whm: I moved the following declarations and initializations here
+	// from way below to avoid compiler warnings:
 	bool bTextIsTooLong = FALSE;
 	int totalRects = 0;
 	int offset = 0;
@@ -39742,15 +39767,15 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 		pCurrentPile->GetSrcPhrase()->m_bStartFreeTrans = TRUE;
 		// set the ending one
 		pCurrentPile = (CPile*)gpCurFreeTransSectionPileArray->Item(
-										gpCurFreeTransSectionPileArray->GetCount()-1);
+									gpCurFreeTransSectionPileArray->GetCount()-1);
 		pCurrentPile->GetSrcPhrase()->m_bEndFreeTrans = TRUE;
 		goto ed;
 	}
 
     // The a: labeled while loop below is skipped whenever drawFTCaller == call_from_edit
-	// find the next free translation section, scanning forward (BEW added additional code
-	// on 13Jul09, to prevent scanning beyond the visible extent of the view window - for
-	// big documents that wastes huge slabs of time)
+	// find the next free translation section, scanning forward 
+    // (BEW added additional code on 13Jul09, to prevent scanning beyond the visible extent
+    // of the view window - for big documents that wasted huge slabs of time)
 a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 	{
 		pPile = GetNextPile(pPile);
@@ -39791,7 +39816,6 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 
 		// when scrolled, grecViewClient is unchanged as it is device coords, so we have
 		// to convert the Top coord (ie. y value) to logical coords for the tests
-		//if (nStripTop > grectViewClient.GetBottom())
 		if (nStripTop > logicalViewClientBottom)
 		{
 			// the strip is below the bottom of the view rectangle, stop searching forward
@@ -39823,11 +39847,6 @@ ed:	if (pPile == NULL)
 		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, pApp->m_nActiveSequNum, nThumbPosition_InPixels);
 #endif
 
-    // BEW commented out the next line 11Sep08 because it appears to not be needed and when
-    // in vertical edit mode, entering the free translation section which was just removed
-    // the next line tries to do a GetAt() call on an empty list - which is illegal
-	//CPile* pCurrentPile = (CPile*)gpCurFreeTransSectionPileArray->GetAt(0); // the anchor pile
-
     // if we get here, we've found the next one's start - save the pile for later on (we
     // won't use it until we are sure it's free translation data is to be written within
     // the client rectangle of the view)
@@ -39846,17 +39865,8 @@ ed:	if (pPile == NULL)
 	curPileCount = pStrip->GetPileCount();
 #endif
 	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
-	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, and reduce as 
-									// required below
-	/* old code
-	pStrip = pPile->m_pStrip;
-	curStripIndex = pStrip->m_nStripIndex;
-	curPileIndex = pPile->m_nPileIndex;
-	curPileCount = pStrip->m_nPileCount;
-	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
-	rect = pStrip->m_rectFreeTrans; // start with the full rectangle, and reduce as 
-									// required below
-	*/
+	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
+									   // and reduce as required below
 	nTotalHorizExtent = 0;
 	bSectionIntersects = FALSE; // TRUE when the section being laid out intersects 
 								// the window's client area
@@ -39869,7 +39879,6 @@ ed:	if (pPile == NULL)
 	{
         // source is to be laid out right-to-left, so free translation rectangles will be
         // altered in location from what would be the case for a LTR layout
-		//rect.SetRight(pPile->m_rectPile.GetRight());
 		rect.SetRight(pPile->GetPileRect().GetRight()); // this fixes where the writable 
 														// area starts
         //  is this pile the ending pile for the free translation section?
@@ -39973,12 +39982,6 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 					curPileCount = pStrip->GetPileCount();
 #endif
 					curPileIndex = pPile->GetPileIndex();
-					/* old code
-					pStrip = pPile->m_pStrip;
-					curStripIndex = pStrip->m_nStripIndex;
-					curPileCount = pStrip->m_nPileCount;
-					curPileIndex = pPile->m_nPileIndex;
-					*/
 					// get a new element
 					pElement = new FreeTrElement;
 					//rect = pStrip->m_rectFreeTrans; 
@@ -40011,7 +40014,8 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
         // displayed because only the upper left coordinates in LTR are significant in
         // DrawText operations below
 		rect.SetLeft(pPile->GetPileRect().GetLeft()); // fixes where the writable area starts
-		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - pPile->GetPileRect().GetLeft())); 
+		rect.SetWidth(abs(pStrip->GetFreeTransRect().GetRight() - 
+												pPile->GetPileRect().GetLeft())); 
         // used abs to make sure is this pile the ending pile for the free translation
         // section?
 
@@ -40026,7 +40030,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
  #ifdef DrawFT_Bug
 			wxLogDebug(_T(" after d:  At end of section, so test for intersection follows:"));
 #endif
-           // whether we make the right boundary of rect be the end of the pile's
+            // whether we make the right boundary of rect be the end of the pile's
             // rectangle, or let it be the remainder of the strip's free translation
             // rectangle, depends on whether or not this pile is the last in the strip -
             // found out, and set the .right parameter accordingly
@@ -40099,7 +40103,6 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
                 // are there more strips? (we may have come to the end of the doc) (for a
                 // partial section at doc end, we just show as much of it as we possibly
                 // can)
-				//if (curStripIndex == pBundle->m_nStripCount - 1)
 				if (curStripIndex == pLayout->GetStripCount() - 1)
 				{
                     // there are no more strips, so this free translation section will be
@@ -40125,15 +40128,8 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 					curPileCount = pStrip->GetPileCount();
 #endif
 					curPileIndex = pPile->GetPileIndex();
-					/* old code
-					pStrip = pPile->m_pStrip;
-					curStripIndex = pStrip->m_nStripIndex;
-					curPileCount = pStrip->m_nPileCount;
-					curPileIndex = pPile->m_nPileIndex;
-					*/
 					// get a new element
 					pElement = new FreeTrElement;
-					//rect = pStrip->m_rectFreeTrans; 
 					rect = pStrip->GetFreeTransRect(); // rect.left is already correct, 
 													   // since this is pile[0]
                     // this new pile might be the one for the end of the free translation
@@ -40147,7 +40143,6 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 				pPile = GetNextPile(pPile);
 				wxASSERT(pPile != NULL); 
 				pSrcPhrase = pPile->GetSrcPhrase();
-				//curPileIndex = pPile->m_nPileIndex;
 				curPileIndex = pPile->GetPileIndex();
 
 #ifdef DrawFT_Bug
@@ -40159,8 +40154,8 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 		}
 	} // end LTR layout block
 
-	// rectangle calculations are finished, and stored in FreeTrElement structs in 
-	// gpFreeTransArray
+	// rectangle calculations are finished, and stored in 
+	// FreeTrElement structs in gpFreeTransArray
 b:	if (!bSectionIntersects)
 	{
         // nothing in this current section of free translation is visible in the view's
@@ -40202,8 +40197,8 @@ b:	if (!bSectionIntersects)
 		}
 	}
 
-    // the whole or part of this section must be drawn, so do the calculations now; first,
-    // get the free translation text
+    // the whole or part of this section must be drawn, so do the
+    // calculations now; first, get the free translation text
 	pSrcPhrase = gpFirstPile->GetSrcPhrase();
 	offset = 0;
 	length = 0;
@@ -40236,8 +40231,8 @@ b:	if (!bSectionIntersects)
 	{
 		if (length == 0)
 		{
-			// there is no text to be written to the screen, so continue with the next free 
-			// translation section
+			// there is no text to be written to the screen, 
+			// so continue with the next free translation section
 			goto c;
 		}
 
@@ -40267,8 +40262,7 @@ b:	if (!bSectionIntersects)
 			ftStr = TruncateToFit(pDC,ftStr,ellipsis,nTotalHorizExtent);
 		}
 
-		// wx version always uses DrawText
-		// ********* Draw Single Strip Free Translation Text  *********
+		// next section:   Draw Single Strip Free Translation Text
 		
         // clear only the subRect; this effectively allows for the erasing from the display
         // of any deleted text from the free translation string; even though this clearing
@@ -40281,11 +40275,6 @@ b:	if (!bSectionIntersects)
 		pDC->DestroyClippingRegion();
 		if (bRTLLayout)
 		{
-			// Here are some other DrawText() variations I tried:
-			//pDC->DrawText(ftStr,pElement->subRect.GetRight(),pElement->subRect.GetTop());
-			//pDC->DrawText(ftStr,pStrip->m_rectFreeTrans.GetWidth()+RH_SLOP - 
-			//                 pElement->subRect.GetRight(),pElement->subRect.GetTop());
-			
 //#ifdef _DEBUG
 //			wxSize trueSz;
 //			pDC->GetTextExtent(ftStr,&trueSz.x,&trueSz.y);
@@ -40334,7 +40323,7 @@ b:	if (!bSectionIntersects)
 			wxString s = subStrings.Item(index);
 
 			// draw this substring
-			// *********** Draw Multiple Strip Free Translation Text  ************
+			// this section:  Draw Multiple Strip Free Translation Text
 			
             // clear only the subRect; this effectively allows for the erasing from the
             // display of any deleted text from the free translation string; even though
@@ -40347,11 +40336,6 @@ b:	if (!bSectionIntersects)
 			pDC->DestroyClippingRegion();
 			if (bRTLLayout)
 			{
-				// Here are some other DrawText() variations I tried:
-				//pDC->DrawText(s,pElement->subRect.GetRight(),pElement->subRect.GetTop());
- 				//pDC->DrawText(s,pStrip->m_rectFreeTrans.GetWidth()+RH_SLOP - 
- 				//             pElement->subRect.GetRight(),pElement->subRect.GetTop());
- 			
 //#ifdef _DEBUG
 //				wxSize trueSz;
 //				pDC->GetTextExtent(s,&trueSz.x,&trueSz.y);
@@ -40366,9 +40350,10 @@ b:	if (!bSectionIntersects)
 			{
 				pDC->DrawText(s,pElement->subRect.GetLeft(),pElement->subRect.GetTop());
 			}
-			// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations because it
-			// triggers a run-on condition endlessly calling the View's OnDraw.
-			//Invalidate();
+			// Cannot call Invalidate() or SendSizeEvent from within DrawFreeTranslations
+			// because it triggers a paint event which results in a Draw() which results
+			// in DrawFreeTranslations() being reentered... hence a run-on condition 
+			// endlessly calling the View's OnDraw.
 		}
 
 		subStrings.Clear(); // clear the array ready for the next iteration
@@ -40396,33 +40381,40 @@ c:	pPile = GetNextPile(pPile);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  SegmentFreeTranslation
+/// \return             nothing
 ///
-/// Returns: nothing
-///
-/// Parameters:
-///	pDC				->	pointer to the device context used for drawing the view
-///	str				->	the string which is to be segmented to fit the available drawing rectangles
-///	ellipsis		->	the ellipsis text (three dots)
-///	textHExtent		->	horizontal extent of the section's free translation text (unsegmented)
-///	totalHExtent	->	the total horizontal extent (pixels) available - calculated by summing the
-///						horizontal extents of all the drawing rectangles to be used for drawing the
-///						subtext strings.
-///	pElementsArray	->	array of FreeTrElement structs, one per drawing rectangle for this section
-///	pSubstrings		<-	array of substrings formed by segmenting str into substrings which will fit,
-///						one per rectangle, in the rectangles stored in pElementsArray (the caller
-///						will do the drawing of these substrings in the appropriate rectangles)
-///	totalRects		->	the total number of drawing rectangles available for this section (equals
-///						pElementsArray->GetSize() - which is how it was calculated in the caller)
-/// Remarks:
-///	Called in DrawFreeTranslations() when there is a need distribute the typed free 
-///	translation string	passed in in the str parameter over a number of drawing rectangles
-///	in two or more consecutive strips - hence the size of the pSubstrings array must be the 
-///	same as or less than totalRects.
+///	\param pDC				->	pointer to the device context used for drawing the view
+///	\param str				->	the string which is to be segmented to fit the available 
+///	                            drawing rectangles
+///	\param ellipsis		    ->	the ellipsis text (three dots)
+///	\param textHExtent		->	horizontal extent of the section's free translation text 
+///	                            (unsegmented)
+///	\param totalHExtent	    ->  the total horizontal extent (pixels) available - calculated 
+///                             by summing the horizontal extents of all the drawing
+///                             rectangles to be used for drawing the subtext strings.
+///	\param pElementsArray	->	array of FreeTrElement structs, one per drawing rectangle 
+///	                            for this section
+///	\param pSubstrings		<-	array of substrings formed by segmenting str into substrings 
+///                             which will fit, one per rectangle, in the rectangles stored
+///                             in pElementsArray (the caller will do the drawing of these
+///                             substrings in the appropriate rectangles)
+///	\param totalRects		->	the total number of drawing rectangles available for this 
+///                             section (equals pElementsArray->GetSize() - which is how
+///                             it was calculated in the caller)
+/// \remarks
+/// Called in DrawFreeTranslations() when there is a need distribute the typed free
+/// translation string passed in in the str parameter over a number of drawing rectangles
+/// in two or more consecutive strips - hence the size of the pSubstrings array must be the
+/// same as or less than totalRects.
 /////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, 
-					int textHExtent, int totalHExtent, wxArrayPtrVoid* pElementsArray, 
-					wxArrayString* pSubstrings, int totalRects)
+void CAdapt_ItView::SegmentFreeTranslation(wxDC*			pDC,
+										   wxString&		str, 
+										   wxString&		ellipsis, 
+										   int				textHExtent, 
+										   int				totalHExtent, 
+										   wxArrayPtrVoid*	pElementsArray, 
+										   wxArrayString*	pSubstrings, 
+										   int				totalRects)
 {
 	float fScale = (float)(textHExtent / totalHExtent); // calculate the scale factor
 
@@ -40461,19 +40453,20 @@ void CAdapt_ItView::SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& el
 
 a:	if (bTryAgain || textHExtent > totalHExtent)
 	{
-        // the text is longer than the available space for drawing it, so there is no point
-        // to doing any scaling -- instead, get as much as will fit into each each
-        // rectange, and the last rectangle will have to have its text elided using
-        // TruncateToFit()
+        // the text is longer than the available space for drawing it, so there is
+        // no point to doing any scaling -- instead, get as much as will fit into
+        // each each rectange, and the last rectangle will have to have its text
+        // elided using TruncateToFit()
 		for (nIteration = 0; nIteration <= nIterBound; nIteration++)
 		{
 			pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
 
 			// do the calculation, ignoring fScale (hence, last parameter is FALSE)
-			subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,fScale,offset,
-									nIteration,nIterBound,bTryAgain,FALSE);
+			subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
+							fScale,offset,nIteration,nIterBound,bTryAgain,FALSE);
 			pSubstrings->Add(subStr);
-			remainderStr = remainderStr.Mid(offset); // shorten, for next segmentation
+			remainderStr = remainderStr.Mid(offset); // shorten, 
+													 // for next segmentation
 		}
 	}
 	else
@@ -40486,8 +40479,8 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 			pElement = (FreeTrElement*)pElementsArray->Item(nIteration);
 
 			// do the calculation, using fScale (hence, last parameter is TRUE)
-			subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,fScale,offset,
-									nIteration,nIterBound,bTryAgain,TRUE);
+			subStr = SegmentToFit(pDC,remainderStr,ellipsis,pElement->horizExtent,
+								fScale,offset,nIteration,nIterBound,bTryAgain,TRUE);
 			pSubstrings->Add(subStr);
 			remainderStr = remainderStr.Mid(offset); // shorten, for next segmentation
 		}
@@ -40503,8 +40496,8 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-///                        about to be displayed
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed. The "Remove Filtered Back Translations" item on the
@@ -40622,8 +40615,8 @@ void CAdapt_ItView::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXU
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu is 
-///                        about to be displayed
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+///                        is about to be displayed
 /// \remarks
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed. The "Remove Filtered Free Translations" item on the
@@ -40643,9 +40636,6 @@ void CAdapt_ItView::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEve
 	else
 		event.Enable(FALSE);
 }
-
-// Moved ScrollToNearTop to CAdapt_ItCanvas in WX version
-//void CAdapt_ItView::ScrollToNearTop(int nSequNum)
 
 // when the phrase box lands at the anchor location, it may clear the m_bHasKBEntry flag,
 // or the m_bHasGlossingKBEntry flag when glossing mode is on, and if there is an
@@ -40692,21 +40682,23 @@ void CAdapt_ItView::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 	CSourcePhrase* pSrcPhrase = NULL;
 	gnOldSequNum = pApp->m_nActiveSequNum; // save it, to be safe
 
-	// create the note attached to the first sourcephrase of a selection if there is one,
-	// else do it at the active location
+    // create the note attached to the first sourcephrase of a selection if there is one,
+    // else do it at the active location
 	int nSequNum = -1;
 	CCellList* pCellList;
 	if (pApp->m_selectionLine != -1)
 	{
-		// we have a selection, the pile we want is that of the selection list's first element
+		// we have a selection, the pile we want is that of 
+		// the selection list's first element
 		pCellList = &pApp->m_selection;
 		CCellList::Node* fpos = pCellList->GetFirst();
 		pPile = fpos->GetData()->GetPile();
 		if (pPile == NULL)
 		{
 			// unlikely, so an English message will do
-			wxMessageBox(_T("A zero pile pointer was returned, the note dialog cannot be put up."),_T(""),
-				wxICON_EXCLAMATION);
+			wxMessageBox(_T(
+			"A zero pile pointer was returned, the note dialog cannot be put up."),
+			_T(""), wxICON_EXCLAMATION);
 			return;
 		}
 		wxASSERT(pPile != NULL);
@@ -40742,14 +40734,12 @@ void CAdapt_ItView::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 	// open the dialog so the user can type in a note
 	wxASSERT(pApp->m_pNoteDlg == NULL);
 	pApp->m_pNoteDlg = new CNoteDlg(pApp->GetMainFrame()); 
-	// wx version: we don't need the Create() call for modeless notes dialog
-	//pApp->m_pNoteDlg->Create(pApp->GetMainFrame(),-1,_("Note"));
-    // whm using the ...ByClick form here doesn't make sense to me unless the user
-    // purposely clicks near the phrase box location of the note and avoids scrolling
-    // afterwards positioning the phrasebox. AdjustDialogPositionByClick doesn't appear to
-    // avoid the phrasebox location very well which I think is more important, so I'm
-    // changing the call below to use AdjustDialogPosition() which better avoids the
-    // phrasebox even with scrolling.
+    // whm using the ...ByClick form of the function here doesn't make sense to me unless
+    // the user purposely clicks near the phrase box location of the note and avoids
+    // scrolling afterwards positioning the phrasebox. AdjustDialogPositionByClick doesn't
+    // appear to avoid the phrasebox location very well which I think is more important, so
+    // I'm changing the call below to use AdjustDialogPosition() which better avoids the
+    // phrasebox even with scrolling. (Bill didn't do what he said. I'll leave it.)
 	AdjustDialogPositionByClick(pApp->m_pNoteDlg,gptLastClick); // avoid click location
 	pApp->m_pNoteDlg->Show(TRUE);
 }
@@ -40785,14 +40775,15 @@ void CAdapt_ItView::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 	}
 	if (pApp->m_pNoteDlg != NULL)
 	{
-		// there already is a note dialog open, so we can't open another until it is closed
+		// there already is a note dialog open, 
+		// so we can't open another until it is closed
 		event.Enable(FALSE);
 		return;
 	}
 	if (pApp->m_selectionLine != -1)
 	{
-        // if the first sourcephrase in the selection does not have a note, enable the
-        // button, but if it does then disable the button
+        // if the first sourcephrase in the selection does not have a note,
+        // enable the button, but if it does then disable the button
 		CCellList::Node* pos = pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
@@ -40801,8 +40792,8 @@ void CAdapt_ItView::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 			CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
-                // has a note already, so clicking this button is not the way to open it -
-                // do it with the note icon in the layout instead
+                // has a note already, so clicking this button is not the way
+                // to open it - do it with the note icon in the layout instead
 				event.Enable(FALSE);
 				return;
 			}
@@ -40888,20 +40879,22 @@ void CAdapt_ItView::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 	}
 	if (pApp->m_selectionLine != -1)
 	{
-        // if there is a selection, then disable the button (doing the jump and ignoring a
-        // selection might be confusing to some users)
+        // if there is a selection, then disable the button (doing the jump
+        // and ignoring a selection might be confusing to some users)
 		event.Enable(FALSE);
 		return;
 	}
 	if (pApp->m_pNoteDlg != NULL)
 	{
-		// there is a note dialog open, but the button handler will close it before jumping
+		// there is a note dialog open, but the button handler 
+		// will close it before jumping
 		event.Enable(TRUE);
 	}
 	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown()
 		&& pApp->m_bNotesExist)
 	{
-		// if the phrase box is visible and there are notes in the document, then enable
+		// if the phrase box is visible and there are notes 
+		// in the document, then enable
 		event.Enable(TRUE);
 		return;
 	}
@@ -40969,20 +40962,22 @@ void CAdapt_ItView::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 	}
 	if (pApp->m_selectionLine != -1)
 	{
-		// if there is a selection, then disable the button (doing the jump and ignoring a
-		// selection might be confusing to some users)
+		// if there is a selection, then disable the button (doing the jump
+		// and ignoring a selection might be confusing to some users)
 		event.Enable(FALSE);
 		return;
 	}
 	if (pApp->m_pNoteDlg != NULL)
 	{
-		// there is a note dialog open, but the button handler will close it before jumping
+		// there is a note dialog open, but the button handler 
+		// will close it before jumping
 		event.Enable(TRUE);
 	}
 	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown()
 		&& pApp->m_bNotesExist)
 	{
-		// if the phrase box is visible and there are notes in the document, then enable
+		// if the phrase box is visible and there are notes 
+		// in the document, then enable
 		event.Enable(TRUE);
 		return;
 	}
@@ -41050,7 +41045,8 @@ void CAdapt_ItView::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 	if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown()
 		&& pApp->m_bNotesExist)
 	{
-		// if the phrase box is visible and there are notes in the document, then enable
+		// if the phrase box is visible and there are notes 
+		// in the document, then enable
 		event.Enable(TRUE);
 		return;
 	}
@@ -41061,8 +41057,8 @@ void CAdapt_ItView::MoveToAndOpenFirstNote()
 {
 	// is a note dialog open, if so - close it (and invoke the OK button's handler)
 	// it's location defines the starting sequence number from which we look forward
-	// for the next one -- but if the dialog is not open, then the phrase box's location
-	// is where we start looking from
+	// for the next one -- but if the dialog is not open, then the phrase box's
+	// location is where we start looking from
 	CAdapt_ItApp* pApp = &wxGetApp();
 	int nJumpOffSequNum = 0;
 	if (pApp->m_pNoteDlg != NULL)
@@ -41075,26 +41071,23 @@ void CAdapt_ItView::MoveToAndOpenFirstNote()
 	JumpForwardToNote_CoreCode(nJumpOffSequNum);
 }
 
-
-
 /////////////////////////////////////////////////////////////////////////////////
-///  FindNoteSubstring
+/// \return	        the sequence number of the pSrcPhase which has a note containing 
+///                 the whole string (though white space between words may be different 
+///                 in the matching up of the search string with the matched string), 
+///                 or -1 if there was no matching string found
 ///
-/// Returns:	the sequence number of the pSrcPhase which has a note containing the whole string
-///			(though white space between words may be different in the matching up of the search
-///			string with the matched string), or -1 if there was no matching string found
-///
-/// Parameters:
-///	nCurrentlyOpenNote_SequNum	->	sequ num of the note dialog from which the search was initiated
-///	searchStr					->	reference to the string the user typed in to be searched for
-///
+///	nCurrentlyOpenNote_SequNum	->	sequ num of the note dialog from which the search 
+///	                                was initiated
+///	searchStr					->	reference to the string the user typed in to be 
+///	                                searched for
 /// Remarks:
 ///	If it finds a matching string in a subsequent note, that location's sequence 
 ///	number is returned to the caller
-///
 /////////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItView::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearchList,
-									 int numWords, int& nStartOffset, int& nEndOffset)
+int CAdapt_ItView::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, 
+							WordList*& pSearchList,int numWords, int& nStartOffset, 
+							int& nEndOffset)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	int sn = nCurrentlyOpenNote_SequNum;
@@ -41237,44 +41230,49 @@ a:	return nFoundSequNum;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  DoesTheRestMatch
+/// \return             TRUE if the user's typed string matches, FALSE if not
 ///
-/// Returns: TRUE if the user's typed string matches, FALSE if not
-///
-/// Parameters:
-///	pSearchList		->	pointer to the list of words in the user's typed string, as returned
-///						by repeated calls to Tokenize(), using whitespace characters for delimiters
-///	firstWord		->	the first word in pSearchList - the caller will already have matched this one
-///	noteStr			->	the full content of the note, as stored on the pSrcPhrase currently being examined
-///						and typically this string will end in a space (if the filtering was done right)
-///	nStartOffset	<->	starting offset in noteStr for the already matched part (ie. firstWord)
-///	nEndOffset		<-	ending offset (ie. the character immediately after the matched search string)
-///						for the match -- used  in conjunction with nStartOffset to enable the CNoteDlg
-///						code to later determine how much of noteStr to hightlight
-/// Remarks:
-///	Uses some of the document's text parsing code. For multiword matches, only the first and last of
-///	the passed in search words can be other than full-word matchups, the first must at least match
-///	suffixally, and the last must at least match prefixally. We don't care if the user has typed
-///	white space characters such as newline, carriage return or tabs in noteStr, and only spaces in
-///	the search string - such white space differences are ignored (which we expect is what the user
-///	would always want). The returned offsets are used by the caller (ie. CNoteDlg) for highlighting
-///	purposes when there was a successful match.
-///
+///	pSearchList		->	pointer to the list of words in the user's typed string, 
+///                     as returned by repeated calls to Tokenize(), using whitespace
+///                     characters for delimiters
+///	firstWord		->	the first word in pSearchList - the caller will already have 
+///	                    matched this one
+///	noteStr			->	the full content of the note, as stored on the pSrcPhrase 
+///	                    currently being examined and typically this string will end in 
+///	                    a space (if the filtering was done right)
+///	nStartOffset	<->	starting offset in noteStr for the already matched part 
+///	                    (ie. firstWord)
+///	nEndOffset		<-	ending offset (ie. the character immediately after the matched 
+///	                    search string) for the match -- used  in conjunction with 
+///	                    nStartOffset to enable the CNoteDlg code to later determine how 
+///	                    much of noteStr to hightlight
+/// \remarks
+///    Uses some of the document's text parsing code. For multiword matches, only the first
+///    and last of the passed in search words can be other than full-word matchups, the
+///    first must at least match suffixally, and the last must at least match prefixally.
+///    We don't care if the user has typed white space characters such as newline, carriage
+///    return or tabs in noteStr, and only spaces in the search string - such white space
+///    differences are ignored (which we expect is what the user would always want). The
+///    returned offsets are used by the caller (ie. CNoteDlg) for highlighting purposes
+///    when there was a successful match.
 /////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
-										int& nStartOffset, int& nEndOffset)
+bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, 
+								wxString& noteStr, int& nStartOffset, int& nEndOffset)
 {
-	// get a str variable containing the rest, beginning at the start of the matched first word
+	// get a str variable containing the rest, beginning at the start 
+	// of the matched first word
 	wxString str = noteStr.Mid(nStartOffset);
 	int len = firstWord.Length();
 
-	// if the first word match was just a prefix in a larger word, then we won't be able to match
-	// any of the other search words, in which case return FALSE to the caller
-	if ( (str[len] != _T(' ')) && (str[len] != _T('\n')) && (str[len] != _T('\r')) && (str[len] != _T('\t')) )
+    // if the first word match was just a prefix in a larger word, then we won't be able to
+    // match any of the other search words, in which case return FALSE to the caller
+	if ( (str[len] != _T(' ')) && (str[len] != _T('\n')) && 
+		(str[len] != _T('\r')) && (str[len] != _T('\t')) )
 	{
-		// there is an alphabetic or numeric character at the next location, so we've just matched a
-		// subpart of the word and that subpart does not extend to the word's end, so we cannot match any
-		// of the other search words; this constitutes a failure to match the whole search string
+        // there is an alphabetic or numeric character at the next location, so we've just
+        // matched a subpart of the word and that subpart does not extend to the word's
+        // end, so we cannot match any of the other search words; this constitutes a
+        // failure to match the whole search string
 		return FALSE;
 	}
 

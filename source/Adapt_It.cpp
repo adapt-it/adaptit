@@ -8548,10 +8548,13 @@ bool CAdapt_ItApp::SetupDirectories()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return    nothing 
 /// \remarks
-/// Called from: the App's SetupDirectories(), the Doc's DoUnpackDocument(), and from
-/// CProjectPage::OnWizardPageChanging() when the wizard page is moving forward.
+/// Called from: the App's SetupDirectories(), the Doc's DoUnpackDocument(), the
+/// CProjectPage::OnWizardPageChanging() when the wizard page is moving forward, and
+/// CAdapt_ItView::OnCreate().
 /// SetupKBPathsEtc() composes the path and file names for the regular KB and its backup
 /// and the path and file names for the glossing KB and its backup.
+/// BEW 1Aug09, added a call of this function to view's OnCreate() function to remove a
+/// bug in which the File / New command was erasing the project's KB file.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SetupKBPathsEtc()
 {
