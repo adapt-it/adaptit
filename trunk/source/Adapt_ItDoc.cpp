@@ -414,7 +414,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 	 // Note: The OnSaveModified() call is handled when needed in 
 	 // the Doc's Close() and/or OnOpenDocument()
 
-
 	// (SDI documents will reuse this document)
 	if (pApp->m_pBuffer != 0)
 	{
@@ -949,7 +948,6 @@ bool CAdapt_ItDoc::OnNewDocument()
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
-
 	return TRUE;
 }
 
@@ -10418,7 +10416,6 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 	// Empty the map and list and delete their contained objects
 	if (pKB != NULL)
 	{
-
 		// Clear all elements from each map, and delete each map
 		for (int i = 0; i < MAX_WORDS; i++)
 		{
@@ -11131,7 +11128,6 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 	// called when File | New menu item selected specifically by user
 	// Note: The App's OnInit() skips this and calls pApp->OnFileNew
 	// directly, so we can initialize our flag here.
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	pApp->bUserSelectedFileNew = TRUE; // causes the view->OnCreate() to reinit the KBs
