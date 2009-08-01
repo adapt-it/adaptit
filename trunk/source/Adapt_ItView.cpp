@@ -25443,23 +25443,59 @@ void CAdapt_ItView::OnSize(wxSizeEvent& event)
 	// need to initiate a recalc of the layout with new m_docSize value, 
 	// since strip-wrap is on
 	CLayout* pLayout = GetLayout();
+
+    // BEW added this test 6May09, because in the refactored design, an size event was
+    // posted from (I think, somewhere in a CreatePiles() call within a RecalcLayout()
+    // call, and the event was posted after the list of piles was deleted and before it
+    // was recreated - and unfortunately in the legacy OnSize() function there was the
+    // following RecalcLayout() call, which then crashes because the pile pointers
+    // point at freed memory. The original call of RecalcLayout() was from within
+    // OnInitialUpdate(), and that from end of OnNewDocument() and all this re-calling
+    // of RecalcLayout() is bad design. Let's see if this safety first test gets us
+    // past the crash, and maybe later we can tidy up the design to be less redundant
+    // on the layout calls. *** TODO *** Appears to have worked!
 	if (!pLayout->GetPileList()->IsEmpty())
 	{
-        // BEW added this test 6May09, because in the refactored design, an size event was
-        // posted from (I think, somewhere in a CreatePiles() call within a RecalcLayout()
-        // call, and the event was posted after the list of piles was deleted and before it
-        // was recreated - and unfortunately in the legacy OnSize() function there was the
-        // following RecalcLayout() call, which then crashes because the pile pointers
-        // point at freed memory. The original call of RecalcLayout() was from within
-        // OnInitialUpdate(), and that from end of OnNewDocument() and all this re-calling
-        // of RecalcLayout() is bad design. Let's see if this safety first test gets us
-        // past the crash, and maybe later we can tidy up the design to be less redundant
-        // on the layout calls. *** TODO *** Appears to have worked!
+		// BEW added 1Aug09, to prevent a crash as follows. If a RecalcLayout() is done
+		// with parameter keep_strips_keep_piles when there are piles in the m_pileList
+		// but no strips in m_stripArray, then we'll get a (spectacular) crash. This
+		// scenario can happen in the following scenario:
+		// 1. Run the app, load a document, 
+		// 2. do File command and chose a different document from the MRU list (same or 
+		// different project doesn't matter). 
+        // 3. All proceeds nicely, but during the view's OnInitialUpdate() call, a SetSize
+        // is done on the canvas. 
+        // 4. wxWidgets then posts a size event, and then 
+        // 5. the view's OnSize() handler is called, and so 
+        // 6. we get here with a populated pile list, but an empty (or destroyed - not sure 
+		// which) strip list. So we'll get a crash now unless we do the RecalcLayout()
+		// call which takes the parameter create_strips_keep_piles. Hence the following
+		// test and the two RecalcLayout() blocks.
+		if (pLayout->GetStripArray()->IsEmpty())
+		{
+			// we've come here probably from an MRU document opening, strips need building
 #ifdef _NEW_LAYOUT
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #else
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
+		}
+		else
+		{
+			// we've come here for some other reason, but not a window frame resize
+			// because that will use CMainFrame::OnSize() which contains a call to
+			// RecalcLayout() using the parameter create_strips_keep_piles; other situations
+			// which result in this CAdapt_ItView::OnSize() being called will enter this
+			// block and work acceptably without having to change the strip lengths and so 
+			// keep_strips_keep_piles can be used here (I believe Bill has used the view's
+			// OnSize() function to force a frame update in situations where no view
+			// resizing is required  **TODO** remove those misused OnSize() calls someday)
+#ifdef _NEW_LAYOUT
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+#else
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+#endif
+		}
 		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 		Invalidate();
 		GetLayout()->PlaceBox();
