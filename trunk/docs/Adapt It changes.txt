@@ -11,6 +11,13 @@ material - in that circumstance the best it can do is to restore
 the phrase box empty - because earlier filtering has thrown away
 adaptation and gloss information which cannot therefore be 
 recovered by unfiltering.
+* Fixes the following bug: after working in a document and
+closing it with File / Close, then doing File / New and creating a
+new document, the project's knowledge base file had its contents
+erased.
+* Fixes the following bug: if the File / MRU list is used to select
+a document created earlier in order to open it again, the 
+application crashed.
 
 Version 5.0.0 update 21July2009:
 ----------------------------------------------
