@@ -41316,12 +41316,15 @@ bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 	int buflen = noteStr.Length();
 	const wxChar* pBuff = str.GetData();
 	wxChar* pBufStart = (wxChar*)pBuff;
-	wxChar* ptr = pBufStart + len; // start from where we've matched to so far (it will be pointing at whitespace)
+	wxChar* ptr = pBufStart + len; // start from where we've matched to so far 
+								   // (it will be pointing at whitespace)
 	wxChar* pEnd = pBufStart + buflen; // get the bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // whm added
-	CAdapt_ItDoc* pDoc = GetDocument(); // we'll use the doc's functions IsWhiteSpace() and ParseWhiteSpace()
+	CAdapt_ItDoc* pDoc = GetDocument(); // we'll use the doc's functions 
+										// IsWhiteSpace() and ParseWhiteSpace()
 	WordList::Node* pos = pSearchList->GetFirst(); 
-	wxString nextWord = *pos->GetData(); // we've already matched this one, so the loop handles the rest
+	wxString nextWord = *pos->GetData(); // we've already matched this one, 
+										 // so the loop handles the rest
 	pos = pos->GetNext();
 	int nHowManyChars;
 	int nWordNum = 1;
@@ -41343,8 +41346,8 @@ bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 			nTotalChars += nHowManyChars;
 		}
 
-		// are we at the end? If so, since we've not yet matched the search word, then
-		// we would have failed to get a match and must return, otherwise, continue processing
+        // are we at the end? If so, since we've not yet matched the search word, then we
+        // would have failed to get a match and must return, otherwise, continue processing
 		if (ptr == pEnd)
 		{
 			// MFC released noteStr which was error
@@ -41357,12 +41360,13 @@ bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 			// the strings matched...
 			// count what we just matched
 			nTotalChars += len;
-			ptr += len; // point to the character which immediately follows the matched word
+			ptr += len; // point to the character which 
+						// immediately follows the matched word
 
-			// if we are not dealing with the last word in the search list, then the match
-			// must be a whole word match -- and if it isn't, we have failed & must return FALSE,
-			// but if we *are* dealing with the last word, then a prefixal match is sufficient
-			// for success
+            // if we are not dealing with the last word in the search list, then the match
+            // must be a whole word match -- and if it isn't, we have failed & must return
+            // FALSE, but if we *are* dealing with the last word, then a prefixal match is
+            // sufficient for success
 			if (nWordNum < nLastWord)
 			{
 				// this is not the last word needing to be matched, so check out it is a
@@ -41375,14 +41379,14 @@ bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 				}
 				else if (!pDoc->IsWhiteSpace(ptr))
 				{
-					// there is more of a word at the ptr location, so we only matched an
-					// initial substring, and so no further match is possible - we've failed
-					// MFC released noteStr which was error
+                    // there is more of a word at the ptr location, so we only matched an
+                    // initial substring, and so no further match is possible
 					return FALSE;
 				}
 				else
 				{
-					// we had a whole-word match, hence so far so good, & we iterate the loop
+					// we had a whole-word match, hence so far so good, 
+					// & we iterate the loop
 					continue;
 				}
 			}
@@ -41403,17 +41407,17 @@ bool CAdapt_ItView::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 	} // end of word-matching loop
 
 	// if we get here, then the whole search string has been matched
-	nEndOffset = nStartOffset + nTotalChars; // set nEndOffset which is to be returned to the caller
-	// MFC released noteStr which was error
+	nEndOffset = nStartOffset + nTotalChars; // set nEndOffset which is to be 
+											 // returned to the caller
 	return TRUE;
 }
 
 void CAdapt_ItView::MoveToAndOpenLastNote()
 {
-	// is a note dialog open, if so - close it (and invoke the OK button's handler)
-	// it's location defines the starting sequence number from which we look backward
-	// for the last one -- but if the dialog is not open, then the phrase box's location
-	// is where we start looking from
+    // is a note dialog open, if so - close it (and invoke the OK button's handler) it's
+    // location defines the starting sequence number from which we look backward for the
+    // last one -- but if the dialog is not open, then the phrase box's location is where
+    // we start looking from
 	CAdapt_ItApp* pApp = &wxGetApp();
 	int nJumpOffSequNum = pApp->GetMaxIndex();
 	if (pApp->m_pNoteDlg != NULL)
@@ -41512,16 +41516,7 @@ void CAdapt_ItView::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
             // already know it
 			pApp->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs this 
 													   // value to be correct
-            // now work out where the active location (ie. phrase box location) should be
-            /* no bundles now
-			if (nNoteSequNum > pApp->m_upperIndex)
-			{
-				// a bundle recalculation is required
-				pApp->m_nActiveSequNum = nNoteSequNum;
-				CalcIndicesForAdvance(pApp->m_nActiveSequNum);
-				pApp->m_pActivePile = AdvanceBundle(pApp->m_nActiveSequNum);
-			}
-			*/
+            // now work out where the active location (ie. phrase box) should be
 			pApp->m_nActiveSequNum = nNoteSequNum;
 			pApp->m_pActivePile = GetPile(nNoteSequNum);
 			wxASSERT(pApp->m_pActivePile);
@@ -41553,15 +41548,6 @@ void CAdapt_ItView::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		{
             // there should be no restraint against us placing the box at the same location
             // as the note
-            /* no bundles now
-			if (nNoteSequNum > pApp->m_upperIndex)
-			{
-				// a bundle recalculation is required
-				pApp->m_nActiveSequNum = nNoteSequNum;
-				CalcIndicesForAdvance(pApp->m_nActiveSequNum);
-				pApp->m_pActivePile = AdvanceBundle(pApp->m_nActiveSequNum);
-			}
-			*/
 			pApp->m_nActiveSequNum = nNoteSequNum;
 			pApp->m_pActivePile = GetPile(nNoteSequNum);
 			wxASSERT(pApp->m_pActivePile);
@@ -41575,8 +41561,9 @@ void CAdapt_ItView::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
     // possibility that the new active location might be a "<Not In KB>" one
 a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	{
-		// this ensures user has to explicitly type into the box and explicitly check the
-		// checkbox if he wants to override the "not in kb" earlier setting at this location
+        // this ensures user has to explicitly type into the box and explicitly check the
+        // checkbox if he wants to override the "not in kb" earlier setting at this
+        // location
 		pApp->m_bSaveToKB = FALSE;
 		pApp->m_targetPhrase.Empty();
 		pApp->m_pTargetBox->m_bAbandonable = TRUE;
@@ -41593,7 +41580,8 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 			pApp->m_pTargetBox->m_bAbandonable = TRUE;
 			if (pApp->m_bCopySource)
 			{
-				pApp->m_targetPhrase = CopySourceKey(pSrcPhrase,pApp->m_bUseConsistentChanges);
+				pApp->m_targetPhrase = 
+					CopySourceKey(pSrcPhrase,pApp->m_bUseConsistentChanges);
 			}
 			else
 			{
@@ -41607,42 +41595,6 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 								pSrcPhrase->m_key,pSrcPhrase->m_adaption);
 	RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 
-	/* old code
-	// get a device context, and work out the targetBox initial size, since there is
-	// a stored adaption it could be long, so we'll need to recalc the layout again
-	wxClientDC aDC(pApp->GetMainFrame()->canvas);
-	wxString str = pApp->m_targetPhrase;
-	wxFont* pFont;
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pFont = pApp->m_pNavTextFont;
-	else
-		pFont = pApp->m_pTargetFont;
-	aDC.SetFont(*pFont); 
-	wxSize extent;
-	aDC.GetTextExtent(str,&extent.x,&extent.y);
-	wxString aChar = _T('w');
-	wxSize charSize;
-	aDC.GetTextExtent(aChar,&charSize.y,&charSize.y);
-	int width = extent.GetWidth() + gnExpandBox*charSize.GetWidth();
-	pApp->m_nCurPileMinWidth = width <= pApp->m_nCurPileMinWidth ? pApp->m_nCurPileMinWidth : width;
-	pApp->m_curBoxWidth = pApp->m_nCurPileMinWidth;
-
-	// recalculate the layout from the beginning
-	RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
-
-	// recalculate the active pile & update location for phraseBox creation
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-
-	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-	pApp->m_nStartChar = 0;
-	pApp->m_nEndChar = -1; // ensure initially all is selected
-	RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
-	*/
-	// BEW removed 27Apr09, this is called within the following RecalcLayout() call so
-	// there is no need to do it here too
-	//GetLayout()->m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // gets the gap 
-				// width set, & a copy in to CLayout::m_curBoxWidth
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
 	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
@@ -41705,8 +41657,8 @@ void CAdapt_ItView::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		}
 
 		// store the adaptation in the KB before moving the phrase box
-		wxASSERT(pApp->m_pActivePile); // the old value is still valid, and it's pile 
-									   // has the old sourcephrase
+		wxASSERT(pApp->m_pActivePile); // the old value is still valid, and 
+									   // it's pile has the old sourcephrase
 		bool bOK;
 		bOK = StoreBeforeProceeding(pApp->m_pActivePile->GetSrcPhrase());
 
@@ -41757,15 +41709,6 @@ void CAdapt_ItView::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 													   // this value to be correct
             // now work out where the active location (ie. phrase box location) should
             // be
-            /* no bundles now
-			if (nNoteSequNum < pApp->m_lowerIndex)
-			{
-				// a bundle recalculation is required
-				pApp->m_nActiveSequNum = nNoteSequNum;
-				CalcIndicesForRetreat(pApp->m_nActiveSequNum);
-				pApp->m_pActivePile = RetreatBundle(pApp->m_nActiveSequNum);
-			}
-			*/
 			pApp->m_nActiveSequNum = nNoteSequNum;
 			pApp->m_pActivePile = GetPile(nNoteSequNum);
 			wxASSERT(pApp->m_pActivePile);
@@ -41795,28 +41738,20 @@ void CAdapt_ItView::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		}
 		else
 		{
-            // there should be no restraint against us placing the box at the same location
-            // as the note
-            /* no bundles now
-			if (nNoteSequNum < pApp->m_lowerIndex)
-			{
-				// a bundle recalculation is required
-				pApp->m_nActiveSequNum = nNoteSequNum;
-				CalcIndicesForRetreat(pApp->m_nActiveSequNum);
-				pApp->m_pActivePile = AdvanceBundle(pApp->m_nActiveSequNum);
-			}
-			*/
+            // there should be no restraint against us placing the box
+            // at the same location as the note
 			pApp->m_nActiveSequNum = nNoteSequNum;
 			pApp->m_pActivePile = GetPile(nNoteSequNum);
 			wxASSERT(pApp->m_pActivePile);
-			pApp->m_nSequNumBeingViewed = pApp->m_nActiveSequNum; // the note dialog needs
-																  // this value to be correct
+			pApp->m_nSequNumBeingViewed = pApp->m_nActiveSequNum; // the note
+										// dialog needs this value to be correct
 			// now do the stuff common to each of these above three possibilities
-		} // end of block for not in a retranslation and not in free translation mode
+		} // end of block for not in a retranslation and not in 
+		  // free translation mode
 	} // end of block for testing that a jump is possible
 
-	// get the phrase box contents appropriate for the new location
-	// & handle the possibility that the new active location might be a "<Not In KB>" one
+    // get the phrase box contents appropriate for the new location & handle the
+    // possibility that the new active location might be a "<Not In KB>" one
 a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	{
         // this ensures user has to explicitly type into the box and explicitly check the
@@ -41851,42 +41786,6 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 								pSrcPhrase->m_key,pSrcPhrase->m_adaption);
 	RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 
-	/* old code
-	// get a device context, and work out the targetBox initial size, since there is
-	// a stored adaption it could be long, so we'll need to recalc the layout again
-	wxClientDC aDC(pApp->GetMainFrame()->canvas);
-	wxString str = pApp->m_targetPhrase;
-	wxFont* pFont;
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		pFont = pApp->m_pNavTextFont;
-	else
-		pFont = pApp->m_pTargetFont;
-	aDC.SetFont(*pFont);
-	wxSize extent;
-	aDC.GetTextExtent(str,&extent.x,&extent.y);
-	wxString aChar = _T('w');
-	wxSize charSize;
-	aDC.GetTextExtent(aChar,&charSize.x,&charSize.y);
-	int width = extent.GetWidth() + gnExpandBox*charSize.GetWidth();
-	pApp->m_nCurPileMinWidth = width <= pApp->m_nCurPileMinWidth ? pApp->m_nCurPileMinWidth : width;
-	pApp->m_curBoxWidth = pApp->m_nCurPileMinWidth;
-
-	// recalculate the layout from the beginning
-	RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
-
-	// recalculate the active pile & update location for phraseBox creation
-	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
-	pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
-
-	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-	pApp->m_nStartChar = 0;
-	pApp->m_nEndChar = -1; // ensure initially all is selected
-	RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase);
-	*/
-	// BEW removed 27Apr09, this is called within the following RecalcLayout() call so
-	// there is no need to do it here too
-	//GetLayout()->m_pDoc->ResetPartnerPileWidth(pSrcPhrase); // gets the gap width 
-							// set, & a copy into CLayout::m_curBoxWidth
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
 	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
@@ -41917,9 +41816,7 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  RemoveContentWrappers
-///
-/// Returns: nothing
+/// \return             nothing
 ///
 /// Parameters:
 ///	pSrcPhrase		->	ref to pointer to the sourcephrase containing the filtered content
