@@ -119,7 +119,6 @@ extern wxArrayPtrVoid* gpCurFreeTransSectionPileArray; // new creates on heap in
 
 extern bool	gbFindIsCurrent;
 extern bool gbFindOrReplaceCurrent;
-extern bool gbMatchedRetranslation;
 extern int gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 extern bool gbJustReplaced;
 extern bool gbSaveSuppressFirst; // save the toggled state of the lines in the strips (across Find or
@@ -952,7 +951,7 @@ y:				; // I may put some code here later
 				gbFindOrReplaceCurrent = FALSE;
 
 				// clear the globals
-				gbMatchedRetranslation = FALSE;
+				pApp->m_bMatchedRetranslation = FALSE;
 				gnRetransEndSequNum = -1;
 
 				if (gbJustReplaced)
