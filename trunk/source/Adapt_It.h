@@ -1293,6 +1293,17 @@ class CAdapt_ItApp : public wxApp
 	// DoUsfmFilterChanges() function
 	wxString m_strFiltering_SrcText_AtNewLocation;
 
+	// When doing Find Next, and the matched text overlaps or is within a retranslation,
+	// set this boolean TRUE so that the phrase box's pile can have its source text
+	// unhighlighted because the retranslation text will have the selection instead, and
+	// otherwise if the user Cancels the Find Next and wants to edit the retranslation,
+	// he'd have to destroy the selection and highlight and reselect. This flag is FALSE
+	// in all other circumstances; but the TRUE value is significant to a number of
+	// functions which must treat matches within a retranslation as a match within a
+	// "unit" of text but the unit is internally complex (ie. a sequence of words, not a
+	// single word), such as DoExtendedSearch(), etc
+	bool m_bMatchedRetranslation;
+
 private:
     
     /// The application's m_pMainFrame member serves as the backbone for Adapt It's
