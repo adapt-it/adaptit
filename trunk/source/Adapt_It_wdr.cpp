@@ -81,13 +81,13 @@ wxSizer *AboutDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item7->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, _("5.0.0a"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item8 = new wxStaticText( parent, ID_ABOUT_VERSION_NUM, wxT("5.0.0a"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
     item5->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, _("July 29, 2009"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_ABOUT_VERSION_DATE, wxT("July 29, 2009"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxBOLD ) );
-    item9->SetToolTip( _("This date should be the same as the executable file") );
+    item9->SetToolTip( wxT("This date should be the same as the executable file") );
     item5->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 0 );
