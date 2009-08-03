@@ -91,6 +91,8 @@
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
 // includes above
 
+extern bool gbRTL_Layout; // temporary for debugging only
+
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress; 
 
@@ -1857,7 +1859,6 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 		::wxBell(); 
 		return;
 	}
-
 	gbTryingMRUOpen = TRUE; // TRUE only while this function's stack frame exists
 							// and used only in doc's OnOpenDocument() function
 
@@ -1892,6 +1893,8 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 		gpApp->m_nBookIndex = -1;
 		gpApp->m_nLastBookIndex = gpApp->m_nDefaultBookIndex;
 	}
+	// get a pointer to the CLayout object
+	CLayout* pLayout = gpApp->m_pLayout;
 
 	// WX Docs show the following example for its OnMRUFile handler:
 	// TODO: need to tweak this to also to insure that things are set up properly to 
@@ -1911,6 +1914,14 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 			if (!pDoc->OnSaveModified())
 				return;
 			pDoc->Modify(FALSE);
+
+			// BEW 3Aug09, brought here from after OnOpenDoc file, otherwise,
+			// m_bRTL_Layout value of OnOpenDocument() gets reset to earlier 
+			// project's value in OnInitialUpdate()
+			pDoc->SetFilename(fileFromMRU,TRUE);
+
+			pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't automatically call it
+
 			bool bOK = pDoc->OnOpenDocument(fileFromMRU);
 			if (!bOK)
 			{
@@ -1919,8 +1930,25 @@ void CMainFrame::OnMRUFile(wxCommandEvent& event) //BOOL CAdapt_ItApp::OnOpenRec
 				// and do away with the if gbUpdateDocTitleNeeded global altogether.
 				return;
 			}
-			pDoc->SetFilename(fileFromMRU,TRUE);
-			pView->OnInitialUpdate(); // need to call it here because wx's doc/view doesn't automatically call it
+
+            // BEW added 3Aug09, the layout already done would have used the old project's
+            // fonts & sizes etc, so if we don't layout again with the correct parameters
+            // the view won't display properly; so first call SetLayoutParameters() to hook
+            // up the font settings etc from the MRU opened document to the CLayout object,
+            // and then layout
+			pLayout->SetLayoutParameters();
+
+			// BEW 3Aug09 added RecalcLayout() etc here, otherwise changing from RTL to
+			// LTR results in a too deep whiteboard and a too big interpile gap as
+			// settings from earlier project & document still persist - we have to rebuild
+			// the piles from scratch with the updated settings, before we let
+			// CMainFrame's later RecalcLayout() call with param create_strips_keep_piles
+			// happen, otherwise the piles won't be right
+			pLayout->RecalcLayout(gpApp->m_pSourcePhrases,create_strips_and_piles);
+			gpApp->m_pActivePile = pView->GetPile(gpApp->m_nActiveSequNum);
+			// CMainFrame will do an OnSize() which will call RecalcLayout() again and
+            // then invalidate the view, so don't waste time here with an Invalidate() call
+            // on the view
 		}
 	}
 	else
