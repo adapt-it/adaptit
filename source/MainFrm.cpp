@@ -169,7 +169,6 @@ extern wxChar	gcharNonSrcUC;
 /// This global is defined in PhraseBox.cpp.
 extern bool		gbCameToEnd; // see PhraseBox.cpp
 
-extern  bool	gbMatchedRetranslation;
 extern  int		gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 extern  bool	gbHaltedAtBoundary;
 extern	bool	gbFindOrReplaceCurrent;
