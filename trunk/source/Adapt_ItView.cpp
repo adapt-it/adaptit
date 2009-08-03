@@ -36119,7 +36119,7 @@ a:		iter = pMap->find(keyStr);
 		}
 	}
 #ifndef __VISUALC__
-	return bOK; // unreachable according to VC7.1, but gcc says it is needed!!!
+	return FALSE; // unreachable according to VC7.1, but gcc says it is needed!!!
 #endif
 }
 
