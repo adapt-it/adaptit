@@ -74,7 +74,6 @@ extern wxChar	gSFescapechar;
 extern bool		gbFind;
 extern bool		gbFindIsCurrent;
 extern bool		gbJustReplaced;
-extern bool		gbMatchedRetranslation;
 extern int		gnRetransEndSequNum;
 extern wxString	gOldConcatStr;
 extern wxString	gOldConcatStrNoPunct;
@@ -565,7 +564,7 @@ void CFindDlg::DoFindNext()
 		gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample 
 									// also calls PrepareDC on the owning frame
 
-		if (!gbIsGlossing && gbMatchedRetranslation)
+		if (!gbIsGlossing && gpApp->m_bMatchedRetranslation)
 		{
 			// use end of retranslation
 			CCellList::Node* cpos = gpApp->m_selection.GetLast();
@@ -946,14 +945,10 @@ void CFindDlg::OnRadioNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 	TransferDataToWindow();
 }
 
+// BEW 3Aug09 removed unneeded FindNextHasLanded() call in OnCancel()
 void CFindDlg::OnCancel(wxCommandEvent& WXUNUSED(event)) 
 {
-	CAdapt_ItView* pView = gpApp->GetView();
 	wxASSERT(gpApp->m_pFindDlg != NULL);
-
-	// clear the globals
-	gbMatchedRetranslation = FALSE;
-	gnRetransEndSequNum = -1;
 
 	// destroying the window, but first clear the variables to defaults
 	m_srcStr = _T("");
@@ -976,96 +971,7 @@ void CFindDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 
 	gbFindIsCurrent = FALSE;
 	gbJustReplaced = FALSE; // clear to default value 
-/* remove this convoluted mess, the cleanup should be the same whether replaced or not
-	if (gbJustReplaced)
-	{
-		// we have cancelled just after a replacement, so we expect the phrase box to exist
-		// and be visible, so we only have to do a little tidying up before we return
-		// whm 12Aug08 Note: In the wx version m_pTargetBox is never NULL. Therefore, I 
-		// think we should remove the == NULL check below and always jump to the "longer"
-		// cleanup in the else block below. 
-		//if (gpApp->m_pTargetBox == NULL)
-		// whm Note: moved the gbJustReplaced = FALSE statement here 12Aug08 because in
-		// its placement below, it would never be reset to FALSE. The logic is not real
-		// clear, however, because if in the MFC version the target box were NULL, the
-		// goto a jump would be made without resetting the boolean (which seems to me
-		// to be faulty logic somewhere).
-		gbJustReplaced = FALSE; // clear to default value 
-		goto a; // check, just in case, and do the longer cleanup if the box is not there
 
-		// whm note: The code below is never reachable so I'm commenting it out after the
-		// modification made above.
-		// restore focus to the targetBox
-		//if (gpApp->m_pTargetBox != NULL)
-		//{
-		//	if (gpApp->m_pTargetBox->IsShown())
-		//	{
-		//		gpApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
-		//		gpApp->m_pTargetBox->SetFocus();
-		//	}
-		//}
-		//gbJustReplaced = FALSE; // clear to default value
-	}
-	else
-	{
-        // we have tried a FindNext since the previous replacement, so we expect the phrase
-        // box to have been destroyed by the time we enter this code block; so place the
-        // phrase box, if it has been destroyed
-		// wx version the phrase box always exists
-        // whm note 11Aug08 Since in the wx version the phrase box is never destroyed, but
-        // in the MFC code it was "destroyed by the time we enter this code block" we
-        // should not test whether the m_pTargetBox == NULL here, but always execute the
-        // code block below.
-		//if (gpApp->m_pTargetBox == NULL)
-		//{
-			// in wx version this block should never execute
-a:			CCell* pCell = 0;
-			CPile* pPile = 0;
-			if (!gpApp->m_selection.IsEmpty())
-			{
-				CCellList::Node* cpos = gpApp->m_selection.GetFirst();
-				pCell = cpos->GetData(); // could be on any line
-				wxASSERT(pCell != NULL);
-				pPile = pCell->GetPile();
-			}
-			else
-			{
-				// no selection, so find another way to define active location 
-				// & place the phrase box
-				int nCurSequNum = gpApp->m_nActiveSequNum;
-				if (nCurSequNum == -1)
-				{
-					nCurSequNum = gpApp->GetMaxIndex(); // make active loc the last 
-														// src phrase in the doc
-					gpApp->m_nActiveSequNum = nCurSequNum;
-				}
-				else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->GetMaxIndex())
-				{
-					gpApp->m_nActiveSequNum = nCurSequNum;
-				}
-				else
-				{
-					// if all else fails, go to the start
-					gpApp->m_nActiveSequNum = 0;
-				}
-				gbJustCancelled = TRUE;
-				pView->FindNextHasLanded(gpApp->m_nActiveSequNum);
-			}
-		//}
-		//else
-		//{
-		//	// restore focus to the targetBox
-		//	if (gpApp->m_pTargetBox != NULL)
-		//	{
-		//		if (gpApp->m_pTargetBox->IsShown())
-		//		{
-		//			gpApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
-		//			gpApp->m_pTargetBox->SetFocus();
-		//		}
-		//	}
-		//}
-	}
-*/
 	// no selection, so find another way to define active location 
 	// & place the phrase box
 	int nCurSequNum = gpApp->m_nActiveSequNum;
@@ -1085,21 +991,16 @@ a:			CCell* pCell = 0;
 		gpApp->m_nActiveSequNum = 0;
 	}
 	gbJustCancelled = TRUE;
-	pView->FindNextHasLanded(gpApp->m_nActiveSequNum, FALSE); // FALSE means
-			// "don't suppress the extension of the selection, (if relevant)"
-
 	gbFindOrReplaceCurrent = FALSE; // turn it back off
-
-	// refactored 26Apr09 -- no longer can do this
-	// toggle back to earlier number of lines per strip
-	//if (gbSaveSuppressFirst)
-	//	pView->ToggleSourceLines();
-	//if (gbSaveSuppressLast)
-	//	pView->ToggleTargetLines();
 
 	gpApp->m_pFindDlg = (CFindDlg*)NULL;
 
-	//	wxDialog::OnCancel(); //don't call base class because we are modeless - use this only if its modal
+	// clear the globals
+	gpApp->m_bMatchedRetranslation = FALSE;
+	gnRetransEndSequNum = -1;
+
+	//	wxDialog::OnCancel(); // don't call base class because we are modeless
+							  // - use this only if its modal
 }
 
 void CFindDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
@@ -1480,7 +1381,7 @@ void CReplaceDlg::DoFindNext()
 		pView->canvas->DoPrepareDC(dc); // adjust origin
 		gpApp->GetMainFrame()->PrepareDC(dc); // wxWidgets' drawing.cpp sample also calls 
 											  // PrepareDC on the owning frame
-		if (!gbIsGlossing && gbMatchedRetranslation)
+		if (!gbIsGlossing && gpApp->m_bMatchedRetranslation)
 		{
 			// use end of retranslation
 			CCellList::Node* cpos = gpApp->m_selection.GetLast();
@@ -1784,7 +1685,7 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(gpApp->m_pReplaceDlg != NULL);
 
 	// clear the globals
-	gbMatchedRetranslation = FALSE;
+	gpApp->m_bMatchedRetranslation = FALSE;
 	gnRetransEndSequNum = -1;
 
 	// destroying the window, but first clear the variables to defaults
@@ -1821,17 +1722,6 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 		// to be faulty logic somewhere).
 		gbJustReplaced = FALSE; // clear to default value 
 		goto a; // check, just in case, and do the longer cleanup if the box is not there
-
-		// restore focus to the targetBox
-		//if (gpApp->m_pTargetBox != NULL)
-		//{
-		//	if (gpApp->m_pTargetBox->IsShown())
-		//	{
-		//		gpApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
-		//		gpApp->m_pTargetBox->SetFocus();
-		//	}
-		//}
-		//gbJustReplaced = FALSE; // clear to default value
 	}
 	else
 	{
@@ -1979,29 +1869,9 @@ a:			CCell* pCell = 0;
 					pView->ExtendSelectionForFind(pAnchorCell,nCount);
 				}
 			}
-		//}
-		//else
-		//{
-		//	// restore focus to the targetBox
-		//	if (gpApp->m_pTargetBox != NULL)
-		//	{
-		//		if (gpApp->m_pTargetBox->IsShown())
-		//		{
-		//			gpApp->m_pTargetBox->SetSelection(-1,-1); // -1,-1 selects all
-		//			gpApp->m_pTargetBox->SetFocus();
-		//		}
-		//	}
-		//}
 	}
 
 	gbFindOrReplaceCurrent = FALSE; // turn it back off
-
-	// toggle back to earlier number of lines per strip
-	// refactored 26Apr09 -- we no longer can toggle lines
-	//if (gbSaveSuppressFirst)
-	//	pView->ToggleSourceLines();
-	//if (gbSaveSuppressLast)
-	//	pView->ToggleTargetLines();
 
 	gpApp->m_pReplaceDlg = (CReplaceDlg*)NULL;
 
