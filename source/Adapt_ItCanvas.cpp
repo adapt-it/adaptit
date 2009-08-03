@@ -693,7 +693,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 						xLeft = pileRect.GetRight();
 					}
 					#endif
-                    // BEW changed 16Jul05 to make the clickable rectagle a pixel wider all
+                    // BEW changed 16Jul05 to make the clickable rectangle a pixel wider all
                     // round so that less motor control is needed for the wedge click
 					// wx note: The following is wxRect ok, since adjustments are made to the
 					// upper left and lower right points to form a new wedgeRect
