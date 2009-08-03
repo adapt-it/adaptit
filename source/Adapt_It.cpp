@@ -7330,6 +7330,7 @@ while (resToken != "")
 									// called from within StoreText()
 	m_nCurSequNum_ForPlacementDialog = -1; // -1 is default, it means "undefined"
 
+	m_bMatchedRetranslation = FALSE;
 	m_bJustLaunched = TRUE;// set false in OnIdle call
     return TRUE;
 }
