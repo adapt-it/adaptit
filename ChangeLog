@@ -1,3 +1,42 @@
+Version 5.0.1 update 3August2009:
+----------------------------------------------
+Bug fixes and new features in 5.0.1
+----------------------------------------------
+* Fixes a crash at the point that the progress dialog is displayed 
+when changing the filtering settings within a document. 
+* The filtering mechanism also now restores the phrase box 
+contents at the active location properly. Unfiltering will do the
+same except when the new active location is within unfiltered
+material - in that circumstance the best it can do is to restore
+the phrase box empty - because earlier filtering has thrown away
+adaptation and gloss information which cannot therefore be 
+recovered by unfiltering.
+* Fixes the following bug: after working in a document and
+closing it with File / Close, then doing File / New and creating a
+new document, the project's knowledge base file had its contents
+erased.
+* Fixes the following bug: if the File / MRU list is used to select
+a document created earlier in order to open it again, the 
+application crashed.
+* Fixes the following bug: opening a document from the MRU 
+list, particularly if transferring from a Right To Left project to a
+Left To Right project, resulted in wrong display characteristics
+and other usage problems. Transfers now go smoothly and 
+LTR versus RTL differences don't any more arise in the 
+transition results.
+* Fixes the following bug: Doing a Find operation where the 
+matched text happens to lie within a retranslation resulted in the
+phrase box wrongly being placed at the first pile of the
+retranslation, and showing the wrong contents. This situation
+should show the whole retranslation selected but the phrase
+box disengaged from being "under" the selected source text. 
+That is now what happens, the phrase box is immediately
+before the retranslation and the source text above the phrase
+box is not selected (because the following retranslation is
+selected instead). This is the situation we want if the user
+were to then Cancel from the Find Next, and decide to edit the
+contents of the selected retranslation.
+
 Version 5.0.0 update 21July2009:
 ----------------------------------------------
 Feature changes and new features in 5.0.0

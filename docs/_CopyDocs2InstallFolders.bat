@@ -40,7 +40,9 @@ echo    Readme.txt
 echo To all setup Unicode except Localization Only:
 echo    Readme_Unicode_Version.txt
 echo ===================================================
-echo Adapt It changes.txt is copied to ChangeLog in parent adaptit folder
+echo Adapt It changes.txt is copied to ChangeLog in parent adaptit folder (11.)
+echo adapt_it.ico is copied from res folder to Images folder of 
+echo    setup Regular and setup Unicode (12.)
 echo ===================================================
 echo Press CRTL-C to abort or
 pause
@@ -185,6 +187,10 @@ xcopy "Localization_Readme.txt" "..\setup Unicode Localizations Only\" /Y
 
 rem 11. Copy Adapt It changes.txt to ChangeLog file in parent adaptit folder (for Linux packaging)
 copy "Adapt It changes.txt" "..\ChangeLog"
+
+rem 12. Copy adapt_it.ico to the docs/Images folder of the "setup Regular" and "setup Unicode" folders
+xcopy "..\res\adapt_it.ico" "..\setup Regular\Images\" /Y
+xcopy "..\res\adapt_it.ico" "..\setup Unicode\Images\" /Y
 
 echo ===================================================
 echo Copy process completed.
