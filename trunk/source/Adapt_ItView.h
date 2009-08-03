@@ -290,7 +290,7 @@ public:
 	void		SelectDragRange(CCell* pAnchor,CCell* pCurrent);
 	void		SelectAnchorOnly();
 	void		SelectFoundSrcPhrases(int nNewSequNum, int nCount, bool bIncludePunct, 
-									bool bSearchedInSrc);
+									bool bSearchedInSrc, bool bDoRecalcLayout);
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
@@ -438,7 +438,8 @@ protected:
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
-	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine);
+	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
+					bool bDoRecalcLayoutInternally);
 	bool		MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
 	void		PadOrShortenAtEnd(SPList* pSrcPhrases,
 					int nStartSequNum,int nEndSequNum,int nNewLength,int nCount,TextType myTextType,
