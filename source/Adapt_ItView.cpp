@@ -1,4 +1,4 @@
-/////////////////////////////////////////////////////////////////////////////////***
+/////////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
 /// \file			Adapt_ItView.cpp
 /// \author			Bill Martin
@@ -16,10 +16,10 @@
 /// structures. This schema is an implementation of the document/view
 /// framework.
 /// \derivation		The CAdapt_ItView class is derived from wxView.
-/////////////////////////////////////////////////////////////////////////////////**
+/////////////////////////////////////////////////////////////////////////////////
 // Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
 // 
-/////////////////////////////////////////////////////////////////////////////////***
+/////////////////////////////////////////////////////////////////////////////////
 
 //#define DrawFT_Bug
 
@@ -792,7 +792,8 @@ wxString gReplStr = _T("");
 bool	 gbReplaceInRetranslation = FALSE;
 
 // globals for handling advancement over a found retranslation
-bool gbMatchedRetranslation = FALSE;
+//bool gbMatchedRetranslation = FALSE; BEW 3Aug09 changed it to be the app member 
+//m_bMatchedRetranslation
 int  gnRetransEndSequNum; // sequ num of last srcPhrase in a matched retranslation
 
 /// A global for saving a source phrase's old sequence number in case it is required 
@@ -21179,14 +21180,23 @@ void CAdapt_ItView::OnUpdateGoTo(wxUpdateUIEvent& event)
 // nNewSequNum is the index of the first srcPhrase in the new selection, nCount is how many
 // srcPhrases are to be selected, and nSelectionLine is the 0-based line index to put the
 // selection it - it can be any of the first two line indices in a strip (ie. 0 or 1)
-void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine)
+// Called from CAdapt_ItView::DoFindNext() and CPhraseBox::DoCancelAndSelect().
+// CPhraseBox::DoCancelAndSelect() requires that a RecalcLayout() call, and resetting of
+// the active sequence number and active pile be done internally, but DoFindNext() doesn't
+// require these calls because they are done further up in the call hierarchy - and in
+// fact if done when a match is made for text in a retranslation, the active location
+// would be set wrongly if done here. So we use the bDoRecalcLayoutInternally flag to
+// suppress the unwanted code when used in the context of a Find operation.
+// BEW added 2Aug09, the bDoRecalcLayoutInternally flag
+void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
+														bool bDoRecalcLayoutInternally)
 {
 	// refactored 17Apr09
 	wxASSERT(nSelectionLine == 0 || nSelectionLine == 1);
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pApp != NULL);
-	if (!gbUserWantsSelection)
+	if (!gbUserWantsSelection && bDoRecalcLayoutInternally)
 	{
         // the above flag is never TRUE when this function is being called in association
         // with a Find Next operation; but since this function is also used for making a
@@ -21208,7 +21218,20 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		pApp->GetMainFrame()->canvas->ScrollIntoView(nNewSequNum);
 	}
 	// get the cell which will show the selection
-	CCell* pCell = pApp->m_pActivePile->GetCell(nSelectionLine); 
+	CCell* pCell;
+	if (pApp->m_bMatchedRetranslation)
+	{
+		// active pile is outside the retranslation, so the cell must be the first in the
+		// retranslation 
+		CPile* pFirstPileInRetrans = GetPile(nNewSequNum);
+		pCell = pFirstPileInRetrans->GetCell(nSelectionLine);
+	}
+	else
+	{
+		// it's okay to use the active pile as the first to select
+		pCell = pApp->m_pActivePile->GetCell(nSelectionLine);
+	}
+
 
     // make the selection (remember, this code can make a selection in line index 1 as well
     // as in 0; so if we click on the view, we will have to transform it to a legal
@@ -21249,6 +21272,12 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	{
 		// extend the selection
 		ExtendSelectionForFind(pCell,nCount);
+	}
+	else
+	{
+		// if not extending, we still need a Redraw() in order to get the highlighted
+		// single cell shown selected
+		GetLayout()->Redraw();
 	}
 
 	gbUserWantsSelection = FALSE; // appropriate place to turn it back off
@@ -21733,9 +21762,9 @@ void CAdapt_ItView::OnUpdateReplace(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
-
+// Called in DoFindNext() of view class, and DoCancelAndSelect() of CPhraseBox class
 void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
-										 bool bIncludePunct, bool bSearchedInSrc)
+		bool bIncludePunct, bool bSearchedInSrc, bool bDoRecalcLayout)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (gbIsGlossing)
@@ -21745,20 +21774,36 @@ void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
 
 	bIncludePunct = TRUE; // set it, rather than ignore, to avoid compiler warning
 	int nSelLineIndex;
-	if (bSearchedInSrc)
-	{
-		nSelLineIndex = 0;
-	}
-	else
-	{
-		nSelLineIndex = 1;
-	}
 
-	// set up bundle, recalc layout, etc, and make the appropriate selection
-	MakeSelectionForFind(nNewSequNum,nCount,nSelLineIndex);
+	// BEW changed 3Aug09 to always have the selection line for Find Next be the source
+	// text line - this makes the interface more consistent
+	nSelLineIndex = 0;
+	bSearchedInSrc = bSearchedInSrc; // prevent compiler warning
+	//if (bSearchedInSrc)
+	//{
+	//	nSelLineIndex = 0;
+	//}
+	//else
+	//{
+	//	nSelLineIndex = 1;
+	//}
 
-	// update the active sequ number
-	pApp->m_nActiveSequNum = nNewSequNum;
+	// set up bundle, recalc layout, etc, and make the appropriate selection...
+    // BEW changed 2Aug09, internally it tests (!gbUserWantsSelection &&
+    // bDoRecalcLayoutInternally) and so it will do the RecalcLayout, resetting of active
+    // sequ num, and the active pile to that location, only if gbUserWantsSelection is
+    // FALSE, and bDoRecalcLayoutInternally is TRUE. 
+    // ** TODO ** check sometime, do we need both flags??
+    // (well, we do at present, but could we do a Find with first flag TRUE and not get
+    // negative effects - the issue here is to prevent wrong active location setting if the
+    // match in a Find is within a retranslation - it can get set wrongly to first
+    // srcphrase in the retranslation instead of the one before the retranslation
+	MakeSelectionForFind(nNewSequNum,nCount,nSelLineIndex, bDoRecalcLayout);
+
+	// update the active sequ number, if the MakeSelectionForFind did an internal
+	// RecalcLayout() call, etc.
+	if (bDoRecalcLayout)
+		pApp->m_nActiveSequNum = nNewSequNum;
 }
 
 // All parameters relevant when glossing is OFF. When glossing is ON, the following
@@ -21867,7 +21912,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		if (!bFound)
 		{
 			// clear the globals
-			gbMatchedRetranslation = FALSE;
+			pApp->m_bMatchedRetranslation = FALSE;
 			gnRetransEndSequNum = -1;
 			::wxBell(); // alert user there was no match
 			Invalidate();
@@ -21877,7 +21922,10 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		else
 		{
 			// found a matching string, in the srcPhrase with sequ num nSequNum
-			SelectFoundSrcPhrases(nSequNum,nCount,TRUE,TRUE);
+			// BEW 9Aug09 added last parameter bDoRecalcLayoutInternally = FALSE
+			// to suppress unhelpful RecalcLayout, resetting of active sequ num etc in the
+			// internal function MakeSelectionForFind()
+			SelectFoundSrcPhrases(nSequNum,nCount,TRUE,TRUE,FALSE);
 			return TRUE;
 		}
 	}
@@ -21890,11 +21938,11 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
         // if we previously matched a retranslation, we have to advance to its end before
         // we can continue searching for a new match; but if glossing is ON, retranslations
         // are irrelevant, so we would skip the block in that case
-		if (!gbIsGlossing && gbMatchedRetranslation)
+		if (!gbIsGlossing && pApp->m_bMatchedRetranslation)
 		{
 			wxASSERT(gnRetransEndSequNum >= 0);
 			nCurSequNum = gnRetransEndSequNum;
-			gbMatchedRetranslation = FALSE;
+			pApp->m_bMatchedRetranslation = FALSE;
 			gnRetransEndSequNum = -1;
 		}
 
@@ -21929,7 +21977,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		if (!bFound)
 		{
 			// clear the globals
-			gbMatchedRetranslation = FALSE;
+			pApp->m_bMatchedRetranslation = FALSE;
 			gnRetransEndSequNum = -1;
 			::wxBell(); // alert user there was no match
 			Invalidate();
@@ -21940,8 +21988,19 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		{
 			// found a matching string, in the srcPhrase with sequ num nSequNum
 			FindNextHasLanded(nSequNum); // bSuppressSelectionExtention is default TRUE
-										 // because SelectFoundSrcPhrases() will do the job
-			SelectFoundSrcPhrases(nSequNum,nCount,bIncludePunct,bInSrc);
+										 // because SelectFoundSrcPhrases() will do it
+
+ 			// BEW 2Aug09 added last parameter bDoRecalcLayoutInternally = FALSE
+			// to suppress unhelpful RecalcLayout, resetting of active sequ num etc in the
+			// internal function MakeSelectionForFind()
+           // BEW changed 3Aug09, SelectFoundSrcPhrases() conditionally does a
+            // RecalcLayout() & if it does it resets the active sequence number to the
+            // nSequNum value passed in. A test of two flags prevents this leading to an
+            // error in the circumstance where the phrase box needs to be not at the
+            // matched location within a retranslation. It also sets the selection of the
+            // source text to show what was matched. For a match within a retranslation,
+            // the whole retranslation is shown selected.
+			SelectFoundSrcPhrases(nSequNum,nCount,bIncludePunct,bInSrc,FALSE);
 			return TRUE;
 		}
 	}
@@ -22233,7 +22292,51 @@ a:	nFirstChar = FindFromPos(strTarget,strSearch,nStart);
 // function - we use these to construct search strings which we wish to match within the
 // appropriate members of each pSrcPhrase in the pList, starting from the location pos
 // If glossing is ON, this should never get called.
-bool CAdapt_ItView::DoExtendedSearch(int selector, 
+// 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if an extended match was made, FALSE if not
+/// \param      selector    ->  0 means, a src search, 1 means a tgt search
+/// \param      pos         ->  iterator through the list of CSourcePhrase instances in 
+///                             the application's m_pSourcePhrases member; if selector is
+///                             0, the tests for matches will be done in the m_key or
+///                             m_srcPhrase members of CSourcePhrase instances from that
+///                             list; if selector = 1, the tests for matches will be done
+///                             in the m_adaption or m_targetStr members, depending on the
+///                             bIncludePunct value passed in
+/// \param      pDoc        ->  pointer to CAdapt_ItDoc class, needed for accessing
+///                             TokenizeText() function
+/// \param      pTempList   ->  pointer to a temporary list created in the caller, of
+///                             pSrcPhrase instances which are the result of parsing src
+///                             string using TokenizeText() function - we use these to
+///                             construct search strings which we wish to match within the
+///                             appropriate members of each pSrcPhrase in the pList,
+///                             starting from the location pos
+/// \param      nElements   ->  the number of elements in pTempList. If matching across
+///                             multiple piles, nElements will be greater than 1; or if
+///                             matching even a single word but the "unit" to be searched
+///                             is a retranslation's target text (since we treat
+///                             retranslations as a whole), nElements can be 1 but still
+///                             require extended matching by this function because there
+///                             may be more than one pile in the retranslation
+/// \param      bIncludePunct -> if TRUE, uses m_srcPhrase for tests in src, m_targetStr
+///                             for tests in tgt. Otherwise, m_key & m_adaption, respectively                            
+/// \param      bIgnoreCase ->  Default is FALSE in caller, if TRUE passed in, strings are
+///                             reset to lower case before testing for a match
+/// \param      nCount      ->  a count of how many words are to be matched (note, the
+///                             function is required event when nCount is 1 if the source
+///                             text matched within a retranslation)                         
+/// \remarks
+/// Used for matching several words across more than one pile, or matching within a
+/// retranslation. In the case of a retranslation, the matching, if source and target text
+/// matches are required, does not have to be for piles vertically aligned; so for
+/// retranslations a single source text word may match at one point in the retranslation
+/// but the target text line might match at a different pile within the retranslation,
+/// because we consider retranslations a textual "unit", and so when that is the case, a
+/// TRUE value would be returned.
+/// This is a complex function, BEWARE.
+/// If glossing is ON, this function should never get called.
+/////////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItView::DoExtendedSearch(int			selector, 
 									 SPList::Node*&	pos, 
 									 CAdapt_ItDoc*	pDoc, 
 									 SPList*		pTempList, 
@@ -22888,7 +22991,7 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 				nCount = nRetransLast - nRetransFirst + 1;
 
 				// set the globals
-				gbMatchedRetranslation = TRUE;
+				pApp->m_bMatchedRetranslation = TRUE;
 				gnRetransEndSequNum = nRetransLast;
 				DeleteTempList(pTempList);
 				return TRUE;
@@ -22896,13 +22999,13 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 			else
 			{
 				// clear the globals
-				gbMatchedRetranslation = FALSE;
+				pApp->m_bMatchedRetranslation = FALSE;
 				gnRetransEndSequNum = -1;
 				goto e; // continue iterating, looking for a match
 			}
 		}
 		// clear the globals
-		gbMatchedRetranslation = FALSE;
+		pApp->m_bMatchedRetranslation = FALSE;
 		gnRetransEndSequNum = -1;
 		DeleteTempList(pTempList);
 		return TRUE; // return with unchanged nSequNum and nCount values
@@ -22986,9 +23089,9 @@ a:				if (nFound >= 0)
     // ON because matching can be within a translation in that circumstance
 c: if (gbIsGlossing)
    {
-	gbMatchedRetranslation = FALSE;
-	gnRetransEndSequNum = -1;
-	return TRUE;
+		pApp->m_bMatchedRetranslation = FALSE;
+		gnRetransEndSequNum = -1;
+		return TRUE;
    }
    // when not glossing we have to consider the possibility that we may be in, out, or
    // partially within a retranslation
@@ -23007,20 +23110,20 @@ c: if (gbIsGlossing)
 			nCount = nRetransLast - nRetransFirst + 1;
 
 			// set the globals
-			gbMatchedRetranslation = TRUE;
+			pApp->m_bMatchedRetranslation = TRUE;
 			gnRetransEndSequNum = nRetransLast;
 			return TRUE;
 		}
 		else
 		{
 			// clear the globals
-			gbMatchedRetranslation = FALSE;
+			pApp->m_bMatchedRetranslation = FALSE;
 			gnRetransEndSequNum = -1;
 			goto f; // continue iterating, looking for a match
 		}
 	}
 	// clear the globals
-	gbMatchedRetranslation = FALSE;
+	pApp->m_bMatchedRetranslation = FALSE;
 	gnRetransEndSequNum = -1;
 	return TRUE; // return with unchanged nSequNum and nCount values
 }
@@ -23132,7 +23235,7 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 				nCount = nRetransLast - nRetransFirst + 1;
 
 				// set the globals
-				gbMatchedRetranslation = TRUE;
+				pApp->m_bMatchedRetranslation = TRUE;
 				gnRetransEndSequNum = nRetransLast;
 				DeleteTempList(pTempList);
 				return TRUE;
@@ -23140,13 +23243,13 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 			else
 			{
 				// clear the globals
-				gbMatchedRetranslation = FALSE;
+				pApp->m_bMatchedRetranslation = FALSE;
 				gnRetransEndSequNum = -1;
 				goto h; // continue iterating, looking for a match
 			}
 		}
 		// clear the globals
-		gbMatchedRetranslation = FALSE;
+		pApp->m_bMatchedRetranslation = FALSE;
 		gnRetransEndSequNum = -1;
 		DeleteTempList(pTempList);
 		return TRUE; // return with unchanged nSequNum and nCount values
@@ -23277,7 +23380,7 @@ a:				if (nFound >= 0)
 	// nSequNum if it is contained within the retranslation
 e:	if (gbIsGlossing)
 	{
-		gbMatchedRetranslation = FALSE;
+		pApp->m_bMatchedRetranslation = FALSE;
 		gnRetransEndSequNum = -1;
 		return TRUE;
 	}
@@ -23298,7 +23401,7 @@ e:	if (gbIsGlossing)
 			nCount = nRetransLast - nRetransFirst + 1;
 
 			// set the globals
-			gbMatchedRetranslation = TRUE;
+			pApp->m_bMatchedRetranslation = TRUE;
 			gnRetransEndSequNum = nRetransLast;
 			return TRUE;
 		}
@@ -23306,13 +23409,13 @@ e:	if (gbIsGlossing)
 		{
 
 			// clear the globals
-			gbMatchedRetranslation = FALSE;
+			pApp->m_bMatchedRetranslation = FALSE;
 			gnRetransEndSequNum = -1;
 			goto i; // continue iterating, looking for a match
 		}
 	}
 	// clear the globals
-	gbMatchedRetranslation = FALSE;
+	pApp->m_bMatchedRetranslation = FALSE;
 	gnRetransEndSequNum = -1;
 	return TRUE; // return with unchanged nSequNum and nCount values
 }
@@ -23427,7 +23530,7 @@ e:		while (pos != NULL)
 													nRetransFirst,nRetransLast);
 			if (bInRetrans)
 			{
-				// adjust values, so that the match is the whole retranslation
+                 // adjust values, so that the match is the whole retranslation
 				CPile* pP = GetPile(nRetransFirst);
 				wxASSERT(pP != NULL);
 				CSourcePhrase* pSP = pP->GetSrcPhrase();
@@ -23440,7 +23543,7 @@ e:		while (pos != NULL)
 			{
 				// clear the globals
 				bSrcMatchIsRetrans = FALSE;
-				gbMatchedRetranslation = FALSE;
+				pApp->m_bMatchedRetranslation = FALSE;
 				gnRetransEndSequNum = -1;
 				sn++;
 				nSaveSrcSequNum = -1;
@@ -23468,7 +23571,7 @@ e:		while (pos != NULL)
 				if (!pSP->m_adaption.IsEmpty())
 				{
 					bSrcMatchIsRetrans = FALSE;
-					gbMatchedRetranslation = FALSE;
+					pApp->m_bMatchedRetranslation = FALSE;
 					gnRetransEndSequNum = -1;
 					sn++;
 					nSaveSrcSequNum = -1;
@@ -23513,7 +23616,7 @@ e:		while (pos != NULL)
         // source match was in a retranslation
 		if (nElements2 > nElements && !bSrcMatchIsRetrans)
 		{
-			gbMatchedRetranslation = FALSE;
+			pApp->m_bMatchedRetranslation = FALSE;
 			gnRetransEndSequNum = -1;
 			sn = nSaveSrcSequNum; // prepare for outer loop
 			sn++;
@@ -23558,7 +23661,7 @@ e:		while (pos != NULL)
 						nCount = nCount1;
 
 						// set the globals
-						gbMatchedRetranslation = TRUE;
+						pApp->m_bMatchedRetranslation = TRUE;
 						gnRetransEndSequNum = nRetransLast;
 						if (pTempList != NULL) DeleteTempList(pTempList);
 						return TRUE;
@@ -23570,7 +23673,7 @@ e:		while (pos != NULL)
                         // of the retranslation which makes it a non-match for the src/tgt
                         // string pair (caller clears the globals)
 						bSrcMatchIsRetrans = FALSE;
-						gbMatchedRetranslation = FALSE;
+						pApp->m_bMatchedRetranslation = FALSE;
 						gnRetransEndSequNum = -1;
 						sn = nSaveSrcSequNum; // prepare for outer loop
 						sn++;
@@ -23586,7 +23689,7 @@ e:		while (pos != NULL)
 						if (nCount2 <= nCount1)
 						{
 							// we have a valid match, but not to a retranslation
-							gbMatchedRetranslation = FALSE;
+							pApp->m_bMatchedRetranslation = FALSE;
 							gnRetransEndSequNum = -1;
 							nCount = nCount1;
 							if (pTempList != NULL) DeleteTempList(pTempList);
@@ -23596,7 +23699,7 @@ e:		while (pos != NULL)
 						{
 							// match is not valid
 							bSrcMatchIsRetrans = FALSE;
-							gbMatchedRetranslation = FALSE;
+							pApp->m_bMatchedRetranslation = FALSE;
 							gnRetransEndSequNum = -1;
 							sn = nSaveSrcSequNum; // prepare for outer loop
 							sn++;
@@ -23609,7 +23712,7 @@ e:		while (pos != NULL)
 						if (nSequNum + nCount2 <= nSaveSrcSequNum + nCount1)
 						{
 							// we have a valid match
-							gbMatchedRetranslation = FALSE;
+							pApp->m_bMatchedRetranslation = FALSE;
 							gnRetransEndSequNum = -1;
 							nSequNum = nSaveSrcSequNum;
 							nCount = nCount1;
@@ -23620,7 +23723,7 @@ e:		while (pos != NULL)
 						{
 							// match is not valid
 							bSrcMatchIsRetrans = FALSE;
-							gbMatchedRetranslation = FALSE;
+							pApp->m_bMatchedRetranslation = FALSE;
 							gnRetransEndSequNum = -1;
 							sn = nSaveSrcSequNum; // prepare for outer loop
 							sn++;
@@ -23631,7 +23734,7 @@ e:		while (pos != NULL)
 					else
 					{
 						bSrcMatchIsRetrans = FALSE;
-						gbMatchedRetranslation = FALSE;
+						pApp->m_bMatchedRetranslation = FALSE;
 						gnRetransEndSequNum = -1;
 						sn = nSaveSrcSequNum; // prepare for outer loop
 						sn++;
@@ -23650,7 +23753,7 @@ e:		while (pos != NULL)
 				if (sn >= nSaveSrcSequNum + nCount1)
 				{
 					bSrcMatchIsRetrans = FALSE;
-					gbMatchedRetranslation = FALSE;
+					pApp->m_bMatchedRetranslation = FALSE;
 					gnRetransEndSequNum = -1;
 					sn = nSaveSrcSequNum; // prepare for outer loop
 					sn++;
@@ -23738,8 +23841,9 @@ e:		while (pos != NULL)
 			// bSpanSrcPhrases == TRUE case, and try make the match anywhere within the
 			// appropriate target text of the retranslation
 
-			// check if the match is in a retranslation & adjust nCount & nSequNum if it
-			// is contained within a retranslation; if glossing is ON we don't enter next block
+            // check if the match is in a retranslation & adjust nCount & nSequNum if it is
+            // contained within a retranslation; if glossing is ON we don't enter next
+            // block
 			if (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
 			{
 				bInRetrans = IsContainedByRetranslation(sn,1,nRetransFirst,nRetransLast);
@@ -23819,7 +23923,7 @@ e:		while (pos != NULL)
 									nCount = nCount1;
 
 									// set the globals
-									gbMatchedRetranslation = TRUE;
+									pApp->m_bMatchedRetranslation = TRUE;
 									gnRetransEndSequNum = nRetransLast;
 									if (pTempList != NULL) DeleteTempList(pTempList);
 									return TRUE;
@@ -23832,7 +23936,7 @@ e:		while (pos != NULL)
                                     // makes it a non-match for the src/tgt string pair
                                     // (caller clears the globals)
 									bSrcMatchIsRetrans = FALSE;
-									gbMatchedRetranslation = FALSE;
+									pApp->m_bMatchedRetranslation = FALSE;
 									gnRetransEndSequNum = -1;
 									sn = nSaveSrcSequNum; // prepare to continue in outer loop
 									goto g;
@@ -23846,7 +23950,7 @@ e:		while (pos != NULL)
 									if (nCount2 <= nCount1)
 									{
 										// we have a valid match, but not to a retranslation
-										gbMatchedRetranslation = FALSE;
+										pApp->m_bMatchedRetranslation = FALSE;
 										gnRetransEndSequNum = -1;
 										nCount = nCount1;
 										if (pTempList != NULL) DeleteTempList(pTempList);
@@ -23865,7 +23969,7 @@ e:		while (pos != NULL)
 									if (nSequNum + nCount2 <= nSaveSrcSequNum + nCount1)
 									{
 										// we have a valid match
-										gbMatchedRetranslation = FALSE;
+										pApp->m_bMatchedRetranslation = FALSE;
 										gnRetransEndSequNum = -1;
 										nSequNum = nSaveSrcSequNum;
 										nCount = nCount1;
@@ -23913,7 +24017,7 @@ e:		while (pos != NULL)
 				{
 					// clear the globals
 					bSrcMatchIsRetrans = FALSE;
-					gbMatchedRetranslation = FALSE;
+					pApp->m_bMatchedRetranslation = FALSE;
 					gnRetransEndSequNum = -1;
 					sn++;
 					nSaveSrcSequNum = -1;
@@ -24038,7 +24142,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 		OnButtonEditRetranslation(event);
 
 		// clear the globals
-		gbMatchedRetranslation = FALSE;
+		pApp->m_bMatchedRetranslation = FALSE;
 		gnRetransEndSequNum = -1;
 		return TRUE;
 	}
@@ -24415,7 +24519,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 		GetLayout()->PlaceBox();
 
 		// clear the globals
-		gbMatchedRetranslation = FALSE;
+		pApp->m_bMatchedRetranslation = FALSE;
 		gnRetransEndSequNum = -1;
 		return TRUE;
 	}
@@ -34278,8 +34382,11 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
     // though we are not doing a Find command
 	gbUserWantsSelection = TRUE; // TODO do we still need this global??  check someday
 	int nSelectionLine = 0; // select in the punctuated source text line
+    // BEW 2Aug09 added bool bDoRecalcLayoutInternally parameter to end of signature, because it
+    // is needed (with FALSE value) for helping Find Next do its job properly when a match
+    // is made in a retranslation, but here it just needs to be TRUE
 	MakeSelectionForFind(pRec->nBackTrans_StartingSequNum, nBackTranslationSpanExtent, 
-							nSelectionLine);
+							nSelectionLine,TRUE);
 	// hand over to the function which does the collecting,
 	// using the selection defined above
 	DoCollectBacktranslations(pRec->bCollectedFromTargetText);
