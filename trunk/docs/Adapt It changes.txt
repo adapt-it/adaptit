@@ -18,6 +18,24 @@ erased.
 * Fixes the following bug: if the File / MRU list is used to select
 a document created earlier in order to open it again, the 
 application crashed.
+* Fixes the following bug: Doing a Find operation where the 
+matched text happens to lie within a retranslation resulted in the
+phrase box wrongly being placed at the first pile of the
+retranslation, and showing the wrong contents. This situation
+should show the whole retranslation selected but the phrase
+box disengaged from being "under" the selected source text. 
+That is now what happens, the phrase box is immediately
+before the retranslation and the source text above the phrase
+box is not selected (because the following retranslation is
+selected instead). This is the situation we want if the user
+were to then Cancel from the Find Next, and decide to edit the
+contents of the selected retranslation.
+* Fixes the following bug: opening a document from the MRU 
+list, particularly if transferring from a Right To Left project to a
+Left To Right project, resulted in wrong display characteristics
+and other usage problems. Transfers now go smoothly and 
+LTR versus RTL differences don't any more arise in the 
+transition results.
 
 Version 5.0.0 update 21July2009:
 ----------------------------------------------
