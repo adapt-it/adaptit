@@ -6177,15 +6177,8 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 #else
 	pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-
-    // if a phrase jumps back on to the line due to the recalc of the layout, then the
-    // current location for the box will end up too far right, so we must find out where
-    // the active pile now is and reset m_ptCurBoxLocation before calling CreateBox, so
-    // recalculate the active pile pointer (old was clobbered by the RecalcLayout call)
 	pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 	wxASSERT(pApp->m_pActivePile != NULL);
-	//pApp->m_pTargetBox->m_pActivePile = pApp->m_pActivePile; // put copy in the CPhraseBox too
-	//pApp->m_ptCurBoxLocation = pApp->m_pActivePile->m_pCell[2]->m_ptTopLeft;
 
 	// do a scroll if needed
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
@@ -6193,7 +6186,6 @@ void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 	// place cursor at end of the inserted text
 	int length = theText.Length();
 	pApp->m_nEndChar = pApp->m_nStartChar = length;
-	//pView->RemakePhraseBox(pApp->m_pActivePile,pApp->m_targetPhrase); // Draw() does it now
 
 	// restore focus and make non-abandonable
 	if (pApp->m_pTargetBox != NULL) // should always be the case
