@@ -30,7 +30,7 @@
     #pragma interface "Layout.h"
 #endif
 
-/////////// FRIENDSHIPS in the layout functionality, and their meanings ///////////////////////
+/////////// FRIENDSHIPS in the layout functionality, and their meanings /////////////////
 ///
 ///    CLayout is a friend for CStrip, CPile & CCell
 ///    CStrip  is a friend for CPile & CLayout
@@ -44,7 +44,7 @@
 ///    the application will, when the user changes some setting or other, need to update the
 ///    relevant private members of CLayout safely.
 ///
-////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 
 // forward references
 class CAdapt_ItDoc;
@@ -57,14 +57,6 @@ class PileList;
 
 #define Do_Clipping
 
-//#define	nJumpDistanceForUserEditsSpanDetermination 80 // how far to jump in either 
-			// direction from the current m_nActiveSequNum value to scan forward and back
-			// to determine the beginning and end locations for the user edit operations
-			// changes to the m_pileList contents
-//#define	nBigJumpDistance 300 // for use when user may have clicked some visible but far
-			// from the active location (eg. as when inserting a placeholder when reading
-			// back through his work & finding an error a long way from active location)
-
 // add one of these to the end of the handler for a user editing operation, and
 // because of the possibility of nested operations (suboperations) the best
 // location is to put the the relevant operatation enum value immediately before
@@ -72,7 +64,7 @@ class PileList;
 // sub-operation
 enum doc_edit_op {
 	no_edit_op, // a "do nothing" case
-	default_op, // assumes a ResizeBox() call is required
+	default_op,
 	char_typed_op,
 	cancel_op,
 	target_box_paste_op,
@@ -126,10 +118,10 @@ enum layout_selector {
 };
 
 /// The CLayout class manages the layout of the document. It's private members pull
-/// together into one place parameters pertinent to dynamically laying out the strips
-/// piles and cells of the layout. Setters in various parts of the application set
-/// these private members, and getters are used by the layout functionalities to
-/// get the drawing done correctly
+/// together into one place parameters pertinent to dynamically laying out the strips piles
+/// and cells of the layout. Setters in various parts of the application set these private
+/// members, and getters are used by the layout functionalities to get the drawing done
+/// correctly
 /// \derivation		The CLayout class is derived from wxObject.
 class CLayout : public wxObject  
 {
@@ -157,8 +149,8 @@ public:
 	// piles, recalc pile widths, call SetupLayoutParameters(), keep or create strips, etc
 	// There is nothing to be gained by making these private
 	bool		m_bViewParamsChanged; // we care only about leading, margin, gap
-											  // and the phrase box slop multiplier; so
-											  // update layout settings & recreate strips
+									  // and the phrase box slop multiplier; so
+									  // update layout settings & recreate strips
 	bool		m_bUSFMChanged; // if changed, full rebuilding
 								// of the layout should be done
 	bool		m_bFilteringChanged; // if changed, full rebuilding
@@ -170,14 +162,12 @@ public:
 	bool		m_bFontInfoChanged; // if changed, update layout settings, recalc
 									// pile widths, recreate strips
 	PageOffsets* m_pOffsets; // the PageOffsets instance in use when printing current page
-						   // or when print previewing a given page (set by OnPrintPage()
-						   // in AIPringout.cpp; bool gbIsPrinting must be TRUE when this
-						   // member is accessed by Draw()
+						     // or when print previewing a given page (set by OnPrintPage()
+						     // in AIPringout.cpp; bool gbIsPrinting must be TRUE when this
+						     // member is accessed by Draw()
 	bool		m_bInhibitDraw; // set TRUE when a process is midstream and the view's 
 								// strips and piles are not in a consistent state, else
 								// it should be FALSE
-
-//public:
 private:
 	PileList			m_pileList;
 	PileList*			m_pSavePileList; // define on the heap, for saving the original list
@@ -195,7 +185,6 @@ private:
 	int			m_nClipRectLeft;
 	int			m_nClipRectWidth;
 	int			m_nClipRectHeight;
-	//bool		m_bAllowClipping; // default is FALSE <- don't need this one
 	bool		m_bScrolling; // TRUE when scrolling is happening
 	bool		m_bDoFullWindowDraw;	
 #endif
@@ -224,10 +213,10 @@ private:
 
 	//bool		m_bShowTargetOnly; // we won't bother just yet, retain the global
 
-	// the pile height -- this changes in value only when one or more of the font metrics
-	// are changed, such as bolding, point size, face, etc. Strip height has more in it.
-	// We also have the current leading value for the strips (the nav text whiteboard height),
-	// left margin for strips
+    // the pile height -- this changes in value only when one or more of the font metrics
+    // are changed, such as bolding, point size, face, etc. Strip height has more in it. We
+    // also have the current leading value for the strips (the nav text whiteboard height),
+    // left margin for strips
 	int			m_nPileHeight;
 	int			m_nStripHeight;
 	int			m_nCurLeading;
@@ -237,25 +226,25 @@ private:
 	int			m_nSaveGap;
 	int			m_numVisibleStrips;
 
-    // client size (width & height as a wxSize) based on Bill's calculation in the CMainFrame, and
-    // then as a spin off, the document width (actually m_logicalDocSize.x) and we initialize
-    // docSize.y to 0, and set that value later when all the strips are laid out; the setter
-    // follows code found in the legacy RecalcLayout() function on the view class
-	wxSize		m_sizeClientWindow; // .x is width, .y is height (control bars taken into account)
-	wxSize		m_logicalDocSize; // the m_logicalDocSize.x  value is the strip width value to be
-	// used for filling a strip with CPile objects; the .y value,
-	// plus 40 pixels, is the range to be used for the vertical scroll bar
-    // NOTE: *** TODO *** Bill's Canvas class inherits from wxScrollingWindow, which has a virtual
-    // function SetVirtualSize() which can be used to define a virtual size different from the
-    // client window's width (and height) -- Bill sets it using that function at the end of
-    // RecalcLayout(), so the CLayout setup of the strips should end with the same.
-
-
-
+    // client size (width & height as a wxSize) based on Bill's calculation in the
+    // CMainFrame, and then as a spin off, the document width (actually m_logicalDocSize.x)
+    // and we initialize docSize.y to 0, and set that value later when all the strips are
+    // laid out; the setter follows code found in the legacy RecalcLayout() function on the
+    // view class
+	wxSize		m_sizeClientWindow; // .x is width, .y is height (control bars taken 
+									// into account)
+	wxSize		m_logicalDocSize;   // the m_logicalDocSize.x  value is the strip width 
+                    // value to be used for filling a strip with CPile objects; the .y
+                    // value, plus 40 pixels, is the range to be used for the vertical
+                    // scroll bar NOTE: *** TODO *** Bill's Canvas class inherits from
+                    // wxScrollingWindow, which has a virtual function SetVirtualSize()
+                    // which can be used to define a virtual size different from the client
+                    // window's width (and height) -- Bill sets it using that function at
+                    // the end of RecalcLayout(), so the CLayout setup of the strips should
+                    // end with the same
 public:
 	// destructor
 	virtual ~CLayout();
-	//virtual void Draw(wxDC* pDC, bool bDrawAtActiveLocation = TRUE);
 	virtual void Draw(wxDC* pDC);
 
 	// helpers; setters & getters
@@ -264,7 +253,7 @@ public:
 	CAdapt_ItCanvas*	GetCanvas();
 	CAdapt_ItDoc*		GetDoc();
 	CMainFrame*			GetMainFrame(CAdapt_ItApp* pApp);
-	void		InitializeCLayout(); // called only once, in view class's OnInitialUpdate()
+	void		InitializeCLayout();   // called only once, in view class's OnInitialUpdate()
 	void		SetLayoutParameters(); // call this to get CLayout's private parameters updated
 									   // to whatever is currently set within the app, doc and
 									   // view classes; that is, it hooks up CLayout to the
@@ -279,7 +268,6 @@ public:
 	// Pile destructors (for the persistent ones in CLayout::m_pPiles list) - note, 
 	// destroying a pile also, in the same function, destroys its array of CCell instances
 	void		DestroyPile(CPile* pPile, PileList* pPileList, bool bRemoveFromListToo = TRUE);
-	//void		DestroyPileRange(int nFirstPile, int nLastPile); // removed 6May09, not used
 	void		DestroyPiles();
 
 	// for setting or clearing the m_bLayoutWithoutVisiblePhraseBox boolean
@@ -289,40 +277,19 @@ public:
 	// is clipped to the active strip - but only when this makes sense, such as when the
 	// phrase box is not resized by a character typed by the user, and scrolling is not
 	// happening)
-	//void		SetAllowClippingFlag(bool bAllow); // <- uneeded
-	//bool		GetAllowClippingFlag(); // <- uneeded
 	void		SetFullWindowDrawFlag(bool bFullWndDraw);
 	bool		GetFullWindowDrawFlag();
 	void		SetScrollingFlag(bool bIsScrolling);
 	bool		GetScrollingFlag();
-	// BEW removed next three on 3July09, because a zero rectangle works fine for
-	// clipping, because drawing in the phrase box still works even when nothing can be
-	// drawn in the view
-	//void		CalcClipRectangle(CPile* pActivePile,
-	//			int& top, int& left, int& width, int& height); // always, the active pile only
-	//void		SetClipRectangle(CPile* pActivePile);
-	//wxRect	GetClipRect();
-	//void		ClearClipRect(); // don't confuse with device context's DestroyClippingRegion()
-	/* don't need these
-	void		SetClipRectTop(int nTop);
-	void		SetClipRectLeft(int nLeft);
-	void		SetClipRectWidth(int nWidth);
-	void		SetClipRectHeight(int nHeight);
-	*/
 #endif
 	// setters and getters for font pointers
 	void		SetSrcFont(CAdapt_ItApp* pApp);
 	void		SetTgtFont(CAdapt_ItApp* pApp);
 	void		SetNavTextFont(CAdapt_ItApp* pApp);
-	/* using friends, we only need the setters
-	wxFont*		GetSrcFont();
-	wxFont*		GetTgtFont();
-	wxFont*		GetNavTextFont();
-	*/
 
 	// getters and setters for m_nCurLeading and m_nCurGapWidth
-	// (these mirror the app's m_curLeading and m_curGapWidth; and the "Saved" ones are for
-	// removing the globals gnSaveGap and gnSaveLeading
+	// (these mirror the app's m_curLeading and m_curGapWidth; and the 
+	// "Saved" ones are for removing the globals gnSaveGap and gnSaveLeading
 	int			GetSavedLeading();
 	int			GetSavedGapWidth();
 	void		SetSavedLeading(int nCurLeading);
@@ -337,7 +304,6 @@ public:
 	wxColour	GetNavTextColor();
 	wxColour	GetSpecialTextColor();
 	wxColour	GetRetranslationTextColor();
-	//wxColour	GetCurColor(); // for the phrase box text // no, use CCell's GetColor()
 
 	// setters and getters for source, target and navText heights (from TEXTMETRICS), the 
 	// setters access members on the app & later can bypass them when we refactor further
@@ -352,11 +318,8 @@ public:
 	void		SetGapWidth(CAdapt_ItApp* pApp);
 	int			GetGapWidth();
 
-	// setter and getter global bool gbShowTargetOnly, later remove the global
-//	void		SetShowTargetOnlyBoolean();
-//	bool		GetShowTargetOnlyBoolean();
-
-	// setter and getter for the pile height & strip height; also the current leading value
+	// setter and getter for the pile height & strip height; 
+	// also the current leading value
 	void		SetPileAndStripHeight();
 	int			GetPileHeight();
 	int			GetStripHeight();
@@ -368,51 +331,56 @@ public:
 	int			GetStripLeft(); // use this instead of GetCurLMargin()
 
 	void		SetClientWindowSizeAndLogicalDocWidth();
-	void		SetLogicalDocHeight();	// set m_logicalDocSize.y (call after strips are built)
+	void		SetLogicalDocHeight();	// set m_logicalDocSize.y 
+										// (call after strips are built)
 	wxSize		GetClientWindowSize();
 	wxSize		GetLogicalDocSize();
-	void		CopyLogicalDocSizeFromApp(); // copy the CAdapt_ItApp:m_docSize wxSize value to
-						// wxSize m_logicalDocSize in CLayout, for use while printing
-	void		RestoreLogicalDocSizeFromSavedSize(); // copy the wxSize value saved in the
-						// CAdapt_ItApp:m_saveDocSize member, back to m_logicalDocSize here
-						// in CLayout, for use again in the view refreshes, after printing
-
+	void		CopyLogicalDocSizeFromApp(); // copy the CAdapt_ItApp:m_docSize 
+                        // wxSize value to wxSize m_logicalDocSize in CLayout,
+                        // for use while printing
+	void		RestoreLogicalDocSizeFromSavedSize(); // copy the wxSize value 
+                        // saved in the CAdapt_ItApp:m_saveDocSize member, back to
+                        // m_logicalDocSize here in CLayout, for use again in the view
+                        // refreshes, after printing
 
 	// getters for the m_pileList, and m_stripArray, and m_invalidStripArray
 	PileList*		GetPileList();
-	PileList*		GetSavePileList(); // also creates it on heap if its pointer is currently NULL
+	PileList*		GetSavePileList(); // also creates it on heap if its 
+									   // pointer is currently NULL
 	wxArrayPtrVoid* GetStripArray();
 	wxArrayInt*		GetInvalidStripArray();
 	void			ClearSavePileList();
+
 	//////// public utility functions ////////
 	 
 	// updating the m_nStrip index values after insertion or removal of CStrip instance(s) from
 	// the layout
-	void		UpdateStripIndices(int nStartFrom = 0);
-	// get the pile pointer for a given sequNumber passed in
-	CPile*		GetPile(int index);
-	// get the strip index from a passed in sequNumber for a pile in m_pileList
-	int			GetStripIndex(int nSequNum);
-	// get the strip pointer from a passed in sequNumber for a pile in m_pileList,
-	// or by the index into its storage array
+	void		UpdateStripIndices(int nStartFrom = 0); // get the pile pointer for 
+														// a given sequNumber passed in
+	CPile*		GetPile(int index); // get the strip index from a passed in sequNumber 
+									// for a pile in m_pileList
+	int			GetStripIndex(int nSequNum); // get the strip pointer from a passed in 
+											 // sequNumber for a pile in m_pileList,
+	                                         // or by the index into its storage array
 	CStrip*		GetStrip(int nSequNum);
-	CStrip*		GetStripByIndex(int index);
-	// get the number of visible strips plus an extra one if a non-integral number of
-	// strips fit the window
+	CStrip*		GetStripByIndex(int index); // get the number of visible strips plus an 
+											// extra one if a non-integral number of
+											// strips fit the window
 	int			GetNumVisibleStrips();
 	int			CalcNumVisibleStrips();
-	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed in pile pointer
-	int			GetStripCount(); // return a count of how many strips are in the current layout
+	int			IndexOf(CPile* pPile); // return the index in m_pileList of the passed 
+									   // in pile pointer
+	int			GetStripCount(); // return a count of how many strips are 
+								 // in the current layout
 	bool		GetBoxVisibilityFlag();
 
 	// function calls relevant to laying out the view updated after user's doc-editing operation
-	// support of user edit actions...
 	
 	// create the list of CPile objects (it's a parallel list to document's m_pSourcePhrases
 	// list, and each CPile instance has a member which points to one and only one
 	// CSourcePhrase instance in pSrcPhrases)
 	CPile*		CreatePile(CSourcePhrase* pSrcPhrase); // create detached, caller will store it
-	bool		CreatePiles(SPList* pSrcPhrases);// RecalcLayout() calls this
+	bool		CreatePiles(SPList* pSrcPhrases); // RecalcLayout() calls this
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
@@ -458,8 +426,6 @@ public:
 												int numTotalStrips);
 	bool		GetPileRangeForUserEdits(int nFirstInvalidStrip, int nLastInvalidStrip, 
 											int& nFirstPileIndex, int& nEndPileIndex);
-	//bool		GetPilesBoundingTheInvalidStrips(int nFirstInvalidStrip, 
-	//						int nLastInvalidStrip, CPile*& pBeforePile, CPile*& pAfterPile);
 	int			EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWidth);
 	int			RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, 
 										int nStripWidth, int gap, int nFirstPileIndex, 

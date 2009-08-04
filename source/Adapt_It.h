@@ -1556,8 +1556,6 @@ public:
 	int	m_nTgtHeight;	// ditto for target lines & the pApp->m_targetBox
 	int	m_nNavTextHeight; // for use by CCell when working out where to print the 
                 // nav text & the value is set in the App's UpdateTextHeights() function
-	int	m_nCurPileMinWidth; // used when laying out, CreatePile uses this value which is
-				// set by GetPileWidth() beforehand
 	int	m_nSaveActiveSequNum; // a location to save the active sequ number across 
 				// an operation
 	// window size and position saving & restoring

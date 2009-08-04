@@ -996,11 +996,6 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 										// logical coords, but
 			height = rectBox.GetHeight(); // that will not matter
 
-            // this pile contains the phrase box, pApp->m_ptCurBoxLocation is still in
-            // MM_TEXT coords, so get the proper coords (MM_LOENGLISH) from the CCell[2]'s
-            // rectangle
-			// whm note: When printing in MFC the cell's m_ptTopLeft.y is negative, whereas
-			// m_ptCurBoxLocation.y is positive (absolute value of y is the same for both).
 			wxPoint topLeft;
 			m_pCell[1]->TopLeft(topLeft);
 			// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)

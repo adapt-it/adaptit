@@ -554,7 +554,6 @@ void CFindDlg::DoFindNext()
 			else
 				m_nTwoLineDepth += gpApp->m_nTgtHeight;
 		}
-		//m_ptBoxTopLeft = gpApp->m_ptCurBoxLocation;
 		m_ptBoxTopLeft = gpApp->m_pActivePile->GetCell(1)->GetTopLeft();
 		wxRect rectScreen;
 		rectScreen = wxGetClientDisplayRect();
@@ -1372,7 +1371,6 @@ void CReplaceDlg::DoFindNext()
 			else
 				m_nTwoLineDepth += gpApp->m_nTgtHeight;
 		}
-		//m_ptBoxTopLeft = gpApp->m_ptCurBoxLocation;
 		m_ptBoxTopLeft = gpApp->m_pActivePile->GetCell(1)->GetTopLeft();
 		wxRect rectScreen;
 		rectScreen = wxGetClientDisplayRect();
@@ -1808,7 +1806,6 @@ a:			CCell* pCell = 0;
 			gpApp->m_pActivePile = pPile;
 			//pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box - legacy app
 			pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
-			//gpApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
 
 			// scroll into view, just in case (but shouldn't be needed)
 			gpApp->GetMainFrame()->canvas->ScrollIntoView(gpApp->m_nActiveSequNum);

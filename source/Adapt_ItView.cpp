@@ -407,7 +407,7 @@ extern int	gnVerticalBoxBloat; // see CAdapt_ItApp (bloats vertical dim'n of phr
 
 bool gbDummyAddedTemporarily = FALSE; // TRUE if an null sourcephrase is to be inserted 
         // after the sel'n or after the active location, when the either of those are at
-        // the m_maxIndex location (we use InsertNullSrcPhrase() which always inserts
+        // the GetMaxIndex() location (we use InsertNullSrcPhrase() which always inserts
         // before a location, so we have to add a dummy at the end until the insert is
         // done, and then remove it.
 
@@ -1699,8 +1699,7 @@ int CAdapt_ItView::RecalcPhraseBoxWidth(wxString& phrase)
     // a sudden change in the m_targetPhrase's length (eg. due to a paste into the phrase
     // box) and a subsequent RecalcLayout() call, would not allow the box to be smaller
     // than its previous value; so RecalcPhraseBoxWidth() can be called wherever the
-    // potential for a resizing of the box is called for, (and m_nCurPileMinWidth needs to
-    // be set to the returned value in the caller too)
+    // potential for a resizing of the box is called for
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxClientDC dc(pApp->GetMainFrame()->canvas);
 	wxClientDC* pDC = &dc;
@@ -6747,8 +6746,8 @@ bool CAdapt_ItView::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN,
 /// because we want removals (which are all done from within the old edit span) to be
 /// reconstituted within the new bounds of the edit span after the user's edit is done. The
 /// nRightBound parameter is the location of the first unremoved note in the following
-/// context, or if there are none, then m_maxIndex (the location of the last CSourcePhrase
-/// in the document). The nRightBound value is used to make sure that when locating notes
+/// context, or if there are none, then the location of the last CSourcePhrase
+/// in the document. The nRightBound value is used to make sure that when locating notes
 /// consecutively, we don't transgress the bound and so cause a note reordering. If we come
 /// to this bound, we'll return to the caller to let the above algorithm for placing the
 /// remainder do its job.
@@ -18337,10 +18336,10 @@ void CAdapt_ItView::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 // of target text words - it could be less, more, or the same as the number piles selected
 // (we test internally and act accordingly), and nCount is the number of CSourcePhrase
 // instances after all nulls removed, and mergers unmerged. We have to be careful if
-// nEndSequNumber is equal to m_maxIndex, because insertion of null source phrases has to
-// take place before a sourcephrase instance which would not exist, so we must detect this
-// and temporarily add an extra CSourcePhrase instance at the end of the main list, do the
-// insertions preceding it, then remove it.
+// nEndSequNumber is equal to GetMaxIndex() value, because insertion of null source phrases
+// has to take place before a sourcephrase instance which would not exist, so we must
+// detect this and temporarily add an extra CSourcePhrase instance at the end of the main
+// list, do the insertions preceding it, then remove it.
 void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int nEndSequNum,int nNewCount,int nCount)
 {
@@ -18359,9 +18358,9 @@ void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItAp
 		{
             // we are at the end, so we must add a dummy sourcephrase; note,
             // m_nActiveSequNum and the caller's nSaveActiveSequNum values will almost
-            // certainly be greater than m_maxIndex, and so we must not use these until we
-            // adjust them in the caller later on. So we can ignore the active location,
-            // and just temporarily treat it as the last pile in the document.
+            // certainly be greater than GetMaxIndex() value, and so we must not use these
+            // until we adjust them in the caller later on. So we can ignore the active
+            // location, and just temporarily treat it as the last pile in the document.
 			CSourcePhrase* pDummySrcPhrase = new CSourcePhrase;
 			pDummySrcPhrase->m_srcPhrase = _T("dummy"); // something needed, so a pile width
 														// can be computed
@@ -31294,7 +31293,7 @@ bool CAdapt_ItView::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRec
 					} // end of for loop for relocating all those we couldn't fit in 
 					  // edit span at the start of the context following the edit span 
 					  // - rightshifting notes if necessary
-				} // end of TRUE block for test nStartAt <= m_maxIndex
+				} // end of TRUE block for test nStartAt <= GetMaxIndex()
 				else
 				{
                     // we are already at the end of the document, so the remainders have to
@@ -37904,20 +37903,8 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
                               // location)
 			PlacePhraseBox(pCell,selector); // forces a a RecalcLayout(), which gets 
 											// SetupCurrentFreeTransSection() called
-			#ifdef _Trace_Box_Loc_Wrong
-			pCell = pApp->m_pActivePile->GetCell(1);
-			// to use this, need to refactor the TRACE2 call, m_ptCurBoxLocation no longer exists
-			TRACE2("OnPrevButton   m_ptCurBoxLocation { %d , %d }  AFTER PlacePhraseBox()\n", 
-						pApp->m_ptCurBoxLocation.x, pApp->m_ptCurBoxLocation.y);
-			#endif
-
 			// make sure we can see the phrase box
 			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-
-			#ifdef _Trace_Box_Loc_Wrong
-			TRACE2("OnPrevButton   m_ptCurBoxLocation { %d , %d }  AFTER ScrollToNearTop()\n", 
-						m_ptCurBoxLocation.x, m_ptCurBoxLocation.y);
-			#endif
 
 			Invalidate(); // gets the view redrawn
 			GetLayout()->PlaceBox();

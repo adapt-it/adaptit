@@ -150,13 +150,7 @@ float ypos = -1;
 
 // event handler table
 BEGIN_EVENT_TABLE(CAdapt_ItCanvas, wxScrolledWindow)
-	//EVT_PAINT(CAdapt_ItCanvas::OnPaint) // Not needed for Adapt It - see note in OnPaint() handler
     EVT_PAINT(CAdapt_ItCanvas::OnPaint) // whm added 28May07
-	//EVT_SIZE(CAdapt_ItCanvas::OnSize) // Not needed - see note in OnSize() handler
-	//EVT_MENU(ID_SOME_MENU_ITEM, OnDoSomething)
-	//EVT_UPDATE_UI(ID_SOME_MENU_ITEM, OnUpdateDoSomething)
-	// ... other menu, button or control events
-    //EVT_MOUSE_EVENTS(CAdapt_ItCanvas::OnMouseEvent)
 
 	// wx Note: wxScrollEvent only appears to intercept scroll events for scroll bars manually
 	// placed in wxWindow based windows. In order to handle scroll events for windows like
@@ -165,7 +159,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItCanvas, wxScrolledWindow)
     EVT_SCROLLWIN(CAdapt_ItCanvas::OnScroll)
 	EVT_LEFT_DOWN(CAdapt_ItCanvas::OnLButtonDown)
 	EVT_LEFT_UP(CAdapt_ItCanvas::OnLButtonUp)
-	EVT_MOTION(CAdapt_ItCanvas::OnMouseMove) // whm added to activate OnMouseMove; MFC just had "ON_WM_MOUSEMOVE()"
+	EVT_MOTION(CAdapt_ItCanvas::OnMouseMove) // whm added to activate OnMouseMove
 END_EVENT_TABLE()
 
 CAdapt_ItCanvas::CAdapt_ItCanvas()
@@ -182,7 +176,8 @@ CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame,
 	: wxScrolledWindow(frame, wxID_ANY, pos, size, style)
 #endif
 {
-	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' view pointer point to incoming view pointer
+	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' 
+				  // view pointer point to incoming view pointer
 	pFrame = NULL; // pFrame is set in CMainFrame's 
 }
 
@@ -339,8 +334,9 @@ void CView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 }
 
 */
-
-void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc) // this is called OnPrepareDC() in MFC
+// Bill wrote this, but he says it never need be called, and has left it here because of
+// its notes... so I guess I won't delete it! (yet)
+void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc)
 {
     // See notes above comparing MFC's OnPrepareDC and wxWidgets' DoPrepareDC. Here are more notes on
     // MFC's usage of OnPrepareDC. The MFC's OnPrepareDC() is called in the following situations:
@@ -461,9 +457,7 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc) // this is called OnPrepareDC() in M
 	// whm note: The wx version doesn't need to do anything in this override of DoPrepareDC. In fact
 	// DoPrepareDC doesn't have to be overridden in the wx version. We'll leave this here for the sake
 	// of the above notes and just call the base class method.
-	
 	wxScrolledWindow::DoPrepareDC(dc);
-
 }
 
 
@@ -475,22 +469,15 @@ void CAdapt_ItCanvas::DoPrepareDC(wxDC& dc) // this is called OnPrepareDC() in M
 // to clicking on the thumb, arrows, or the paging parts of the canvas' scrollbar.
 void CAdapt_ItCanvas::OnScroll(wxScrollWinEvent& event)
 {
-	//pApp->GetMainFrame()->SendSizeEvent();
-
 	event.Skip();	// this is necessary for the built-in scrolling behavior of wxScrolledWindow
 					// to be processed
 }
 
 bool CAdapt_ItCanvas::IsModified() const
 {
-
 	return FALSE;
 }
 
-//void CAdapt_ItCanvas::Modify(bool mod)
-//{
-//
-//}
 
 void CAdapt_ItCanvas::DiscardEdits()
 {
@@ -531,7 +518,7 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 		// so there must be something I'm not seeing correctly about the following call to GetWindowRect.
 		// For the wx version, I here call GetRect on the dialog's window pointer m_pNoteDlg.
 		// Not sure why MFC versions works, but this does too, so I'll do it this way.
-		dlgRect = pApp->m_pNoteDlg->GetRect(); //GetWindowRect(&dlgRect); // gets it as screen coords
+		dlgRect = pApp->m_pNoteDlg->GetRect(); // gets it as screen coords
 
 		// if the point is not in this rect, then close it as if OK was pressed
 		if (!dlgRect.Contains(point))
@@ -543,32 +530,9 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 		}
 	}
 
-	// BEW moved the next 3 lines of code to the top from its earlier position
-	// further down, so that clicking in a wedge will use logical coordinates when
-	// determining which strip's wedge was clicked in
-	//gbBundleStartIteratingBack = FALSE; // BEW added 27Jun05 for free trans support, make sure it is
-										// always FALSE when OnLButtonDown() is entered
 	// get the point into logical coordinates
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted (calls wxScrolledWindow::DoPrepareDC)
-	//aDC.DPtoLP(&point); // get the point converted to logical coords - use CalcUnscrolledPosition below
-	//int x = aDC.DeviceToLogicalX(point.x);// get the device X coord converted to logical coord
-	//int y = aDC.DeviceToLogicalY(point.y);// get the device Y coord converted to logical coord
-	//point.x = x;
-	//point.y = y;
-
-//#ifdef _DEBUG
-//	// next bit is for verification of logical calculations
-//	wxPoint logicalPoint(event.GetLogicalPosition(aDC)); // alternate for verification
-//	// The CalcUnscrolledPosition() function also translates device coordinates
-//	// to logical ones.
-//	int newXPos,newYPos;
-//	// In the next statement point should be device/screen coords because it was determined before DoPrepareDC(aDC)
-//	// The logical position point determine by GetLogicalPosition above should be same as newXPos,newYPos
-//	CalcUnscrolledPosition(point.x,point.y,&newXPos,&newYPos);
-//	wxASSERT(newXPos == logicalPoint.x); //point.x = newXPos;
-//	wxASSERT(newYPos == logicalPoint.y); //point.y = newYPos;
-//#endif
 	
 	// we don't need to call CalcUnscrolledPosition here because GetLogicalPosition already
 	// provides logical coordinates for the clicked point; wxPoint in device coords was needed
@@ -576,19 +540,6 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	// coords of the point here.
 	wxPoint logicalPoint(event.GetLogicalPosition(aDC));
 	point = logicalPoint;
-
-	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-	//GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-	//GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-	//// the point is in reference to the upper left position (origin)
-	//point.x += xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-	//point.y += yOrigin * yScrollUnits;
-
-//#ifdef _DEBUG
-//	// the values set by CalcUnscrolledPosition should now equal those determined by calcs directly above
-//	wxASSERT(newXPos == point.x);
-//	wxASSERT(newYPos == point.y);
-//#endif
 
 	#ifdef _Trace_Click_FT
 	/*
@@ -629,8 +580,6 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	wxPoint ptNoteBotRight;
 	if (pClickedStrip != NULL)
 	{
-		//ptWedgeTopLeft.x = pClickedStrip->m_rectStrip.GetLeft();
-		//ptWedgeTopLeft.y = pClickedStrip->m_rectStrip.GetTop();
 		ptWedgeTopLeft.x = pClickedStrip->GetStripRect_CellsOnly().GetLeft();
 		ptWedgeTopLeft.y = pClickedStrip->GetStripRect_CellsOnly().GetTop();
 		ptNoteTopLeft = ptWedgeTopLeft;
@@ -717,7 +666,6 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
                         // ViewFilteredMarkersDlg. Since the dialog is non-modal, we need a
                         // way to identify the source phrase whose m_markers member is to
                         // be updated after edit (edit update is done in
-                        // CViewFilteredMaterialDlg's OnBnClickedOK).
 						pApp->m_nSequNumBeingViewed = pPile->GetSrcPhrase()->m_nSequNumber;
 
                         // BEW added 11Oct05, to allow clicked wedge's topmost cell in the
@@ -981,118 +929,95 @@ y:				; // I may put some code here later
                     // whm note 12Aug08. Since the MFC version expects the phrase box to be
                     // NULL here, but in the wx version it never is null, we will remove
                     // the == NULL test here.
-					//if (pApp->m_pTargetBox == NULL)
-					//{
-x:						CCell* pCell = 0;
-						CPile* pPile = 0;
-						if (!pApp->m_selection.IsEmpty())
+x:					CCell* pCell = 0;
+					CPile* pPile = 0;
+					if (!pApp->m_selection.IsEmpty())
+					{
+						CCellList::Node* cpos = pApp->m_selection.GetFirst();
+						pCell = (CCell*)cpos->GetData(); // could be on any line
+						wxASSERT(pCell);
+						pPile = pCell->GetPile();
+					}
+					else
+					{
+                        // no selection, so find another way to define active location
+                        // & place the phrase box
+						int nCurSequNum = pApp->m_nActiveSequNum;
+						if (nCurSequNum == -1)
 						{
-							CCellList::Node* cpos = pApp->m_selection.GetFirst();
-							pCell = (CCell*)cpos->GetData(); // could be on any line
-							wxASSERT(pCell);
-							pPile = pCell->GetPile();
+							nCurSequNum = pApp->GetMaxIndex(); // make active loc the last 
+															// src phrase in the doc
+							pApp->m_nActiveSequNum = nCurSequNum;
+						}
+						else if (nCurSequNum >= 0 && nCurSequNum <= pApp->GetMaxIndex())
+						{
+							pApp->m_nActiveSequNum = nCurSequNum;
 						}
 						else
 						{
-                            // no selection, so find another way to define active location
-                            // & place the phrase box
-							int nCurSequNum = pApp->m_nActiveSequNum;
-							if (nCurSequNum == -1)
-							{
-								nCurSequNum = pApp->GetMaxIndex(); // make active loc the last 
-																// src phrase in the doc
-								pApp->m_nActiveSequNum = nCurSequNum;
-							}
-							else if (nCurSequNum >= 0 && nCurSequNum <= pApp->GetMaxIndex())
-							{
-								pApp->m_nActiveSequNum = nCurSequNum;
-							}
-							else
-							{
-								// if all else fails, go to the start
-								pApp->m_nActiveSequNum = 0;
-							}
-							pPile = pView->GetPile(pApp->m_nActiveSequNum);
+							// if all else fails, go to the start
+							pApp->m_nActiveSequNum = 0;
 						}
-						CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+						pPile = pView->GetPile(pApp->m_nActiveSequNum);
+					}
+					CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
 
-                        // pPile is what we will use for the active pile, so set everything
-                        // up there, provided it is not in a retranslation - if it is,
-                        // place the box preceding it, if possible, else after it; but if
-                        // we are glossing, then ignore the fact of the retranslation,
-                        // since we can have a phrasebox within a retranslation when
-                        // glossing
-						CPile* pSavePile = pPile;
-						while (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
+                    // pPile is what we will use for the active pile, so set everything
+                    // up there, provided it is not in a retranslation - if it is,
+                    // place the box preceding it, if possible, else after it; but if
+                    // we are glossing, then ignore the fact of the retranslation,
+                    // since we can have a phrasebox within a retranslation when
+                    // glossing
+					CPile* pSavePile = pPile;
+					while (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
+					{
+						pPile = pView->GetPrevPile(pPile);
+						if (pPile == NULL)
 						{
-							pPile = pView->GetPrevPile(pPile);
-							if (pPile == NULL)
+							// if we get to the start, try again, going the other way
+							pPile = pSavePile;
+							while (pSrcPhrase->m_bRetranslation)
 							{
-								// if we get to the start, try again, going the other way
-								pPile = pSavePile;
-								while (pSrcPhrase->m_bRetranslation)
-								{
-									pPile = pView->GetNextPile(pPile);
-									wxASSERT(pPile); // we'll assume this will never fail
-									pSrcPhrase = pPile->GetSrcPhrase();
-								}
-								break;
+								pPile = pView->GetNextPile(pPile);
+								wxASSERT(pPile); // we'll assume this will never fail
+								pSrcPhrase = pPile->GetSrcPhrase();
 							}
-							pSrcPhrase = pPile->GetSrcPhrase();
+							break;
 						}
 						pSrcPhrase = pPile->GetSrcPhrase();
-						pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
-						pApp->m_pActivePile = pPile;
-						pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
-						//pApp->m_ptCurBoxLocation = pCell->m_ptTopLeft;
+					}
+					pSrcPhrase = pPile->GetSrcPhrase();
+					pApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
+					pApp->m_pActivePile = pPile;
+					pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
 
-						// save old sequ number in case required for toolbar's Back button
-						gnOldSequNum = pApp->m_nActiveSequNum;
+					// save old sequ number in case required for toolbar's Back button
+					gnOldSequNum = pApp->m_nActiveSequNum;
 
-						// place the phrase box
-						pView->PlacePhraseBox(pCell,2);
+					// place the phrase box
+					pView->PlacePhraseBox(pCell,2);
 
-                        // get a new active pile pointer, the PlacePhraseBox call did a
-                        // recal of the layout
-						pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-						wxASSERT(pApp->m_pActivePile);
+                    // get a new active pile pointer, the PlacePhraseBox call did a
+                    // recal of the layout
+					pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+					wxASSERT(pApp->m_pActivePile);
 
-						// scroll into view, just in case (but shouldn't be needed)
-						ScrollIntoView(pApp->m_nActiveSequNum);
-						pView->Invalidate(); // get window redrawn
-						pLayout->PlaceBox();
+					// scroll into view, just in case (but shouldn't be needed)
+					ScrollIntoView(pApp->m_nActiveSequNum);
+					pView->Invalidate(); // get window redrawn
+					pLayout->PlaceBox();
 
-						// restore focus to the targetBox
-						if (pApp->m_pTargetBox != NULL)
+					// restore focus to the targetBox
+					if (pApp->m_pTargetBox != NULL)
+					{
+						if (pApp->m_pTargetBox->IsShown())
 						{
-							if (pApp->m_pTargetBox->IsShown())
-							{
-								pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
-								pApp->m_pTargetBox->SetFocus();
-							}
+							pApp->m_pTargetBox->SetSelection(pApp->m_nStartChar,pApp->m_nEndChar);
+							pApp->m_pTargetBox->SetFocus();
 						}
-					//} // end block for null phrase box handle or phrase box not a window
-					//else
-					//{
-					//	// phrase box exists so restore focus to the targetBox
-					//	if (pApp->m_pTargetBox != NULL)
-					//	{
-					//		if (pApp->m_pTargetBox->IsShown())
-					//		{
-					//			pApp->m_pTargetBox->SetSelection(gnStart,gnEnd);
-					//			pApp->m_pTargetBox->SetFocus();
-					//		}
-					//	}
-					//}
+					}
 					gbHaltedAtBoundary = FALSE;
 
-					/* we don't have 5 lines now, only 3
-					// toggle back to earlier number of lines per strip
-					if (gbSaveSuppressFirst)
-						pView->ToggleSourceLines();
-					if (gbSaveSuppressLast)
-						pView->ToggleTargetLines();
-					*/
 					return; // otherwise, we would go on to process the click, which we don't 
 							// want to do
 				} // end block for a click after a FindNext (which means phrase box will have 
@@ -1178,8 +1103,6 @@ x:						CCell* pCell = 0;
 
 	// we may be going to drag-select, so prepare for drag
 	gbHaltedAtBoundary = FALSE;
-	//	TRACE1("OnLButtonDown: gbHalted %d\n",gbHaltedAtBoundary);
-	//if (pCell != NULL && (pCell->GetCellIndex() == 0 || pCell->GetCellIndex() == 1))
 	if (pCell != NULL && pCell->GetCellIndex() == 0)
 	{
         // if we have a selection and shift key is being held down, we assume user is not
@@ -1188,11 +1111,8 @@ x:						CCell* pCell = 0;
 		if (event.ShiftDown() && pApp->m_selection.GetCount() > 0)
 			goto t;
 		// remove any old selection & update window immediately
-		// TRACE1("OnLButtonDown()  about to call RemoveSelection(); m_selection's count is %d\n",
-		//																	m_selection.GetCount());
 		pView->RemoveSelection();
 		Refresh();
-		// TRACE0("View 26\n");
 
 		// prepare for drag
 		pApp->m_mouse = point;
@@ -1214,7 +1134,7 @@ t:	if (pCell == NULL)
 		gnEndInsertionsSequNum = -1;
 
 		pApp->m_bSelectByArrowKey = FALSE;
-		Refresh(); //Invalidate(); // must force a redraw, or else the selection 
+		Refresh(); // must force a redraw, or else the selection 
                    // stays on the screen (UpdateWindow() doesn't work here)
 
         // can't initiate a drag selection unless we click on a cell, so clear drag support
@@ -1837,38 +1757,6 @@ void CAdapt_ItCanvas::OnLButtonUp(wxMouseEvent& event)
     // already provides the logical position of the clicked point
 	wxPoint point(event.GetLogicalPosition(aDC));
 
-	//aDC.DPtoLP(&point); // get the point converted to logical coords - use CalcUnscrolledPosition below
-	//int x = aDC.DeviceToLogicalX(point.x);// get the device X coord converted to logical coord
-	//int y = aDC.DeviceToLogicalY(point.y);// get the device Y coord converted to logical coord
-	//point.x = x;
-	//point.y = y;
-
-//#ifdef _DEBUG
-//	wxPoint logicalPoint(event.GetLogicalPosition(aDC));
-//#endif
-
-//#ifdef _DEBUG
-//	// The CalcUnscrolledPosition() function also translates device coordinates
-//	// to logical ones.
-//	int newXPos,newYPos;
-//	CalcUnscrolledPosition(point.x,point.y,&newXPos,&newYPos);
-//	wxASSERT(newXPos == logicalPoint.x); //point.x = newXPos;
-//	wxASSERT(newYPos == logicalPoint.y); //point.y = newYPos;
-//#endif
-	
-	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-	//GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-	//GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-	// the point is in reference to the upper left position (origin)
-	//point.x += xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-	//point.y += yOrigin * yScrollUnits;
-
-//#ifdef _DEBUG
-//	// the logical positions calculated should all be the same
-//	wxASSERT(newXPos == point.x);
-//	wxASSERT(newYPos == point.y);
-//#endif
-
 	// can do a selection only if we have a non zero anchor pointer
 	if (pApp->m_pAnchor != NULL)
 	{
@@ -1993,11 +1881,7 @@ a:	pApp->m_mouse.x = pApp->m_mouse.y = -1;
 // Adapt It's mode bar and compose bar are unique to Adapt It and are managed separately
 // from the other standard wxFrame's "bar" windows. These Adapt It specific bars are
 // managed in CMainFrame, and its OnSize() handler, rather than here in the canvas class.
-/*
-void CAdapt_ItCanvas::OnSize(wxSizeEvent& event)
-{
-}
-*/
+
 
 void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 {
@@ -2010,46 +1894,12 @@ void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 	wxClientDC aDC(this); // make a device context
 	DoPrepareDC(aDC); // get origin adjusted
 	
-	//wxPoint point = event.GetPosition();
     // whm note: The wx docs seem to indicate that, once DoPrepareDC is called,
     // event.GetPosition() should return a point that is already converted to logical
     // coords, but testing shows that's not the case. GetPosition() always returns
     // device/screen coordinates; only GetLogicalPosition() returns the point converted to
     // logical coords
 	wxPoint point(event.GetLogicalPosition(aDC));
-
-//#ifdef _DEBUG
-//	wxPoint logicalPoint(event.GetLogicalPosition(aDC));
-//#endif
-
-//#ifdef _DEBUG
-//	//aDC.DPtoLP(&point); // get the point converted to logical coords - the MFC function
-//	// the following wx method should be equivalent to the MFC way of doing it
-//	int x = aDC.DeviceToLogicalX(point.x);// get the device X coord converted to logical coord
-//	int y = aDC.DeviceToLogicalY(point.y);// get the device Y coord converted to logical coord
-//	wxASSERT(x == logicalPoint.x); //point.x = x;
-//	wxASSERT(y == logicalPoint.y); //point.y = y;
-//#endif
-	
-//#ifdef _DEBUG
-//	// CalcUnscrolledPosition is an alternate method of above
-//	int newXPos,newYPos;
-//	CalcUnscrolledPosition(point.x,point.y,&newXPos,&newYPos);
-//	wxASSERT(newXPos == logicalPoint.x); //point.x = newXPos;
-//	wxASSERT(newYPos == logicalPoint.y); //point.y = newYPos;
-//#endif
-
-	//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-	//GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-	//GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-	//// the point is in reference to the upper left position (origin)
-	//point.x += xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-	//point.y += yOrigin * yScrollUnits;
-
-//#ifdef _DEBUG
-//	wxASSERT(newXPos == point.x);
-//	wxASSERT(newYPos == point.y);
-//#endif
 
 	if (event.Dragging()) // whm note: Dragging() works here; LeftDown() doesn't
 	{
@@ -2071,9 +1921,6 @@ void CAdapt_ItCanvas::OnMouseMove(wxMouseEvent& event)
 			}
 		}
 	}
-
-	//event.Skip(); //CScrollView::OnMouseMove(nFlags, point); 
-	// event.Skip apparently not needed here
 }
 
 /* 
@@ -2143,10 +1990,6 @@ void CAdapt_ItCanvas::OnMouseEvent(wxMouseEvent& event)
 // BEW changed 3Jun309 to make smarter when auto-inserts are done
 void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
 {
-//#ifdef __WXDEBUG__
-//	wxLogDebug(_T("ScrollIntoView entered"));
-//#endif
-
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 
@@ -2189,8 +2032,8 @@ void CAdapt_ItCanvas::ScrollIntoView(int nSequNum)
         // center (so as to show more, rather than less, of any automatic inserted material
         // which may have background highlighting turned on)
 		// BEW 26Apr09: legacy app included 3 pixels plus height of free trans line (when
-		// in free translation mode) in the m_curPileHeight value; the refactored design
-		// doesn't so I'll have to add them here
+		// in free translation mode) in the now removed m_curPileHeight value;
+		// the refactored design doesn't so I'll have to add them here
 		int nWindowDepth = visRect.GetHeight();
 		int nStripHeight = pLayout->GetPileHeight() + pLayout->GetCurLeading();
 		if (pApp->m_bFreeTranslationMode)
@@ -2511,38 +2354,10 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 #ifdef Do_Clipping
 	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
 #endif
-    // MFC's GetScrollPosition() "gets the location in the document to which the upper left
-    // corner of the view has been scrolled. It returns values in logical units." wx note:
-    // The wx docs only say of GetScrollPos(), that it "Returns the built-in scrollbar
-    // position." I assume this means it gets the logical position of the upper left
-    // corner, but it is in scroll units which need to be converted to device (pixel) units
-	//scrollPos.x = GetScrollPos(wxHORIZONTAL); //wxPoint scrollPos = GetScrollPosition();
-	//scrollPos.y = GetScrollPos(wxVERTICAL); //wxPoint scrollPos = GetScrollPosition();
-	//scrollPos.x *= xPixelsPerUnit; wxASSERT(scrollPos.x == 0);
-	//scrollPos.y *= yPixelsPerUnit;
-
-//#ifdef _DEBUG
-//	int xOrigin, yOrigin;
-//	// the view start is effectively the scroll position, but GetViewStart returns scroll units
-//	GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-//	xOrigin = xOrigin * xPixelsPerUnit; // number pixels is ScrollUnits * pixelsPerScrollUnit
-//	yOrigin = yOrigin * yPixelsPerUnit;
-//	wxASSERT(xOrigin == scrollPos.x);
-//	wxASSERT(yOrigin == scrollPos.y);
-//#endif
-
-//#ifdef _DEBUG
-//	int newXPos, newYPos;
-//	// We can simplify all of the above by using this calc instead
-//	CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
-//	wxASSERT(newXPos == scrollPos.x); // scrollPos.x = newXPos;
-//	wxASSERT(newYPos == scrollPos.y); // scrollPos.y = newYPos;
-//#endif
 	
 	CalcUnscrolledPosition(0,0,&scrollPos.x,&scrollPos.y);
 
 	wxRect visRect; // wxRect rectClient;
-	//GetClientSize(&visRect.width,&visRect.height); //pFrame->GetClientRect(&rectClient);
     // wx note: calling GetClientSize on the canvas produced different results in wxGTK and
     // wxMSW, so I'll use my own GetCanvasClientSize() which calculates it from the main
     // frame's client size.
@@ -2557,7 +2372,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	if (pApp->m_bFreeTranslationMode)
 	{
 		// the legacy app included the 3 pixels and tgt text height in the 
-		// m_curPileHeight calculation
+		// calculation
 		nCurrentPileHeight += 3 + pLayout->GetTgtTextHeight();
 	}
 
@@ -2585,7 +2400,6 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 	int nMaxDist = nLimit - scrollPos.y;
 
 	// do the vertical scroll asked for
-	//yDist = pApp->m_curPileHeight + pApp->m_curLeading;
 	yDist = nCurrentPileHeight + pLayout->GetCurLeading();
 	yDist *= nStrips;
 
@@ -2595,8 +2409,6 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 
 		int posn = scrollPos.y;
 		posn = posn / yPixelsPerUnit;
-		//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,scrollPos.y,TRUE); 
-		//                                     // WX's SetScrollPos takes scroll units
         // Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount to scroll in
         // device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are
         // in SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow
@@ -2617,9 +2429,7 @@ int CAdapt_ItCanvas::ScrollDown(int nStrips)
 
 		int posn = scrollPos.y;
 		posn = posn / yPixelsPerUnit;
-		//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,scrollPos.y,TRUE); 
-		//                                     // WX's SetScrollPos takes scroll units
-        // Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount to scroll in
+       // Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount to scroll in
         // device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are
         // in SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow
         // takes parameters whose value represents an "amount" to scroll from the current
@@ -2646,35 +2456,7 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	GetScrollPixelsPerUnit(&xPixelsPerUnit,&yPixelsPerUnit);
 #ifdef Do_Clipping
 	pLayout->SetScrollingFlag(TRUE); // need full screen drawing, so clipping can't happen
-#endif	
-    // MFC's GetScrollPosition() "gets the location in the document to which the upper left
-    // corner of the view has been scrolled. It returns values in logical units."
-    // wx note: The wx docs only say of GetScrollPos(), that it "Returns the built-in
-    // scrollbar position." I assume this means it gets the logical position of the upper
-    // left corner, but it is in scroll units which need to be converted to device (pixel)
-    // units
-	//scrollPos.x = GetScrollPos(wxHORIZONTAL); //wxPoint scrollPos = GetScrollPosition();
-	//scrollPos.y = GetScrollPos(wxVERTICAL); //wxPoint scrollPos = GetScrollPosition();
-	//scrollPos.x *= xPixelsPerUnit; wxASSERT(scrollPos.x == 0);
-	//scrollPos.y *= yPixelsPerUnit;
-
-//#ifdef _DEBUG
-//	int xOrigin, yOrigin;
-//	// the view start is effectively the scroll position, but GetViewStart returns scroll units
-//	GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-//	xOrigin = xOrigin * xPixelsPerUnit; // number pixels is ScrollUnits * pixelsPerScrollUnit
-//	yOrigin = yOrigin * yPixelsPerUnit;
-//	wxASSERT(xOrigin == scrollPos.x); // scrollPos.x = xOrigin;
-//	wxASSERT(yOrigin == scrollPos.y); // scrollPos.y = yOrigin;
-//#endif
-
-//#ifdef _DEBUG
-//	int newXPos, newYPos;
-//	// We can simplify all of the above by using this calc instead
-//	CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
-//	wxASSERT(newXPos == scrollPos.x); // scrollPos.x = newXPos;
-//	wxASSERT(newYPos == scrollPos.y); // scrollPos.y = newYPos;
-//#endif
+#endif
 	
 	CalcUnscrolledPosition(0,0,&scrollPos.x,&scrollPos.y);
 
@@ -2687,12 +2469,11 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 	if (pApp->m_bFreeTranslationMode)
 	{
 		// the legacy app included the 3 pixels and tgt text height in the 
-		// m_curPileHeight calculation
+		// calculation
 		nCurrentPileHeight += 3 + pLayout->GetTgtTextHeight();
 	}
 
 	// do the vertical scroll asked for
-	//yDist = pApp->m_curPileHeight + pApp->m_curLeading;
 	yDist = nCurrentPileHeight + pLayout->GetCurLeading();
 	yDist *= nStrips;
 
@@ -2705,7 +2486,6 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 		int posn = scrollPos.y;
 		wxASSERT(posn == 0); // should be zero
 		posn = posn / yPixelsPerUnit;
-		//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,scrollPos.y,TRUE);
         // Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount to scroll in
         // device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are
         // in SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow
@@ -2727,7 +2507,6 @@ int CAdapt_ItCanvas::ScrollUp(int nStrips)
 
 		int posn = scrollPos.y;
 		posn = posn / yPixelsPerUnit;
-		//SetScrollPos(wxVERTICAL,posn,TRUE); //SetScrollPos(SB_VERT,scrollPos.y,TRUE);
         // Note: MFC's ScrollWindow's 2 params specify the xAmount and yAmount to scroll in
         // device units (pixels). The equivalent in wx is Scroll(x,y) in which x and y are
         // in SCROLL UNITS (pixels divided by pixels per unit). Also MFC's ScrollWindow

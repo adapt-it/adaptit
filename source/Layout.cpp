@@ -1,19 +1,11 @@
 // Deprecation List..... get rid of these later....
 /*
-bool gbSuppressLast
-bool gbSuppressFirst
-int curRows     in param lists only?
-int m_curPileHeight     on the app
-int m_nCurPileMinWidth  on the app
 gnSaveGap and gnSaveLeading are replaced by m_nSaveGap and m_nSaveLeading in CLayout
-grectViewClient	(was used for testing rect intersections for drawing in the legacy app)
-m_maxIndex, and the other indices -- use GetCount() of m_pSourcePhrases wherever needed
-wxPoint m_ptCurBoxLocation on the app
-int m_curDocWidth on the app
-m_bSaveAsXML on app, not needed in WX version
+but the view still uses them at the moment, so I've not removed them yet
+
+m_bSaveAsXML on app, not needed in WX version -- but not removed yet, 
+it's used in a lot of tests and removing it will take a bit of careful work
 gbBundleChanged  defined in CAdapt_ItView.cpp
-
-
 
 */
 
@@ -65,11 +57,6 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
-// Define type safe pointer lists
-//#include "wx/listimpl.cpp"
-//#include "wx/list.h"
-//#include "wx/debug.h" 
-
 #include "Adapt_It.h"
 #include "Adapt_ItDoc.h"
 #include "AdaptitConstants.h"
@@ -84,7 +71,6 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Cell.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
-//#include "memory.h"
 
 /// This global is defined in Adapt_It.cpp. (default is FALSE)
 extern bool gbDoingInitialSetup;
@@ -138,9 +124,6 @@ extern bool gbVerticalEditInProgress;
 /// This global is defined in Adapt_ItView.cpp.
 extern EditStep gEditStep;
 
-/// A local pointer to the global gEditRecord defined in Adapt_It.cpp
-//static EditRecord* pRec = &gEditRecord; // whm removed because it is unused and to eliminate g++ warning
-
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpGreenWedgePile;
 
@@ -180,23 +163,23 @@ extern bool gbExpanding;
 /// This global is defined in PhraseBox.cpp
 extern bool	gbContracting;
 
-//static int nDebugIndex = 0;
-
-// whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an equivalent
-// to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection dir) method
-// to change the logical direction of the display context. In wxDC the display context is mirrored
-// right-to-left when wxLayout_RightToLeft is passed as the parameter;
-// While the MFC version changes the alignment and RTL reading direction of DrawText(), it is not
-// the same as mirroring (in which MFC would actually call CDC::SetLayout(LAYOUT_RTL) to effect RTL
-// mirroring in the display context. In wx, wxDC::DrawText() does not have a parameter that can 
-// be used to control Right alignment and/or RTL Reading of text at that level of the DC.
-// Certain controls such as wxTextCtrl and wxListBox, etc., also have an undocumented method called
-// SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or wxLayout_RightToLeft. 
-// Setting the layout to wxLayout_RightToLeft on these controls also involves some mirroring, so that 
-// any scrollbar that gets displayed, for example, displays on the left rather than on the right, etc.
-// In the wx version we have to be careful about the automatic mirroring features involved in the
-// SetLayoutDirection() function, since Adapt It MFC was designed to micromanage the layout direction
-// itself in the coding of text, cells, piles, strips, etc.
+// whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an
+// equivalent to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection
+// dir) method to change the logical direction of the display context. In wxDC the display
+// context is mirrored right-to-left when wxLayout_RightToLeft is passed as the parameter;
+// While the MFC version changes the alignment and RTL reading direction of DrawText(), it
+// is not the same as mirroring (in which MFC would actually call
+// CDC::SetLayout(LAYOUT_RTL) to effect RTL mirroring in the display context. In wx,
+// wxDC::DrawText() does not have a parameter that can be used to control Right alignment
+// and/or RTL Reading of text at that level of the DC. Certain controls such as wxTextCtrl
+// and wxListBox, etc., also have an undocumented method called
+// SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or
+// wxLayout_RightToLeft. Setting the layout to wxLayout_RightToLeft on these controls also
+// involves some mirroring, so that any scrollbar that gets displayed, for example,
+// displays on the left rather than on the right, etc. In the wx version we have to be
+// careful about the automatic mirroring features involved in the SetLayoutDirection()
+// function, since Adapt It MFC was designed to micromanage the layout direction itself in
+// the coding of text, cells, piles, strips, etc.
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // want to access it fast
@@ -270,8 +253,6 @@ void CLayout::InitializeCLayout()
 	m_pCanvas = GetCanvas();
 	m_pDoc = GetDoc();
 	m_pMainFrame = GetMainFrame(m_pApp);
-	//m_pPiles = NULL;
-	//m_pStrips = NULL;
 	m_stripArray.Clear();
 	m_invalidStripArray.Clear();
 	m_docEditOperationType = invalid_op_enum_value;
@@ -280,7 +261,6 @@ void CLayout::InitializeCLayout()
 	m_pSavePileList = NULL;
 	m_bInhibitDraw = FALSE;
 #ifdef Do_Clipping
-	//m_bAllowClipping = FALSE; // default is FALSE
 	m_bScrolling = FALSE; // TRUE when scrolling is happening
 	m_bDoFullWindowDraw = FALSE; 
 #endif
@@ -295,20 +275,6 @@ void CLayout::SetBoxInvisibleWhenLayoutIsDrawn(bool bMakeInvisible)
 	m_bLayoutWithoutVisiblePhraseBox = bMakeInvisible;
 }
 #ifdef Do_Clipping
-/* don't need these two
-void CLayout::SetAllowClippingFlag(bool bAllow)
-{
-	if (bAllow)
-		m_bAllowClipping = TRUE;
-	else
-		m_bAllowClipping = FALSE;
-}
-
-bool CLayout::GetAllowClippingFlag()
-{
-	return m_bAllowClipping;
-}
-*/
 void CLayout::SetScrollingFlag(bool bIsScrolling)
 {
 	if (bIsScrolling)
@@ -449,13 +415,9 @@ void CLayout::Draw(wxDC* pDC)
 	//			m_bDoFullWindowDraw ? _T("TRUE") : _T("FALSE") );
     // initialize the clipping support flags, and clear the clip rectangle in both the
     // device context, and the one for the active strip in CLayout
-	//SetAllowClippingFlag(FALSE); // <- uneeded
 	SetScrollingFlag(FALSE);
 	SetFullWindowDrawFlag(FALSE);
 	pDC->DestroyClippingRegion(); // makes it default to full-window drawing again
-				// (Invalidate() is where a clip rectangle will be set, if wanted)
-	// BEW removed 3Jul09, a zero rectangle suffices for clipping for flicker suppression
-	//ClearClipRect();
 #else
 	pDC->DestroyClippingRegion(); // only full-window drawing
 #endif
@@ -496,7 +458,8 @@ CAdapt_ItApp* CLayout::GetApp()
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pApp == NULL)
 	{
-		wxMessageBox(_T("Error: failed to get m_pApp pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxMessageBox(_T("Error: failed to get m_pApp pointer in CLayout"),_T(""), 
+		wxICON_ERROR);
 		wxASSERT(FALSE);
 	}
 	return pApp;
@@ -507,7 +470,8 @@ CAdapt_ItView* CLayout::GetView()
 	CAdapt_ItView* pView = GetApp()->GetView();
 	if (pView == NULL)
 	{
-		wxMessageBox(_T("Error: failed to get m_pView pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxMessageBox(_T("Error: failed to get m_pView pointer in CLayout"),_T(""),
+		wxICON_ERROR);
 		wxASSERT(FALSE);
 	}
 	return pView;
@@ -519,7 +483,8 @@ CAdapt_ItCanvas* CLayout::GetCanvas()
 	CAdapt_ItCanvas* pCanvas = pFrame->canvas;
 	if (pCanvas == NULL)
 	{
-		wxMessageBox(_T("Error: failed to get m_pCanvas pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxMessageBox(_T("Error: failed to get m_pCanvas pointer in CLayout"),_T(""), 
+		wxICON_ERROR);
 		wxASSERT(FALSE);
 	}
 	return pCanvas;
@@ -530,7 +495,8 @@ CAdapt_ItDoc* CLayout::GetDoc()
 	CAdapt_ItDoc* pDoc = GetView()->GetDocument();
 	if (pDoc == NULL)
 	{
-		wxMessageBox(_T("Error: failed to get m_pDoc pointer in CLayout"),_T(""), wxICON_ERROR);
+		wxMessageBox(_T("Error: failed to get m_pDoc pointer in CLayout"),_T(""),
+		wxICON_ERROR);
 		wxASSERT(FALSE);
 	}
 	return pDoc;
@@ -550,54 +516,6 @@ CMainFrame*	CLayout::GetMainFrame(CAdapt_ItApp* pApp)
 
 #ifdef Do_Clipping
 // Clipping support
-/*
-void CLayout::CalcClipRectangle(CPile* pActivePile,
-								int& top, int& left, int& width, int& height)
-{
-	if (pActivePile == NULL)
-	{
-		// no clip rectangle can be defined, so return zero values
-		top = 0;
-		left = 0;
-		width = 0;
-		height = 0;
-		return;
-	}
-	// the active pile exists, to make the clip rectangle be the client area occupied by
-	// the pile's rectangle
-	wxRect pileRect = pActivePile->GetPileRect();
-    // the pileRect is in logical coordinates (that's what wxWidgets expects), so the
-    // LogicalToDeviceX() etc calls should be done by widgets - assume so until proven
-    // otherwise; wxWidgets has an error here, right and bottom lie outside the rect, so
-    // augment by 1
-	top = pileRect.GetTop();
-	left = pileRect.GetLeft(); 
-	width = pileRect.GetWidth(); 
-	height = pileRect.GetHeight();
-	width += 1;
-	height += 1;
-}
-
-void CLayout::SetClipRectangle(CPile* pActivePile)
-{
-	CalcClipRectangle(pActivePile, m_nClipRectTop, m_nClipRectLeft, 
-									m_nClipRectWidth, m_nClipRectHeight);  
-}
-
-wxRect CLayout::GetClipRect()
-{
-	wxRect rect(m_nClipRectLeft,m_nClipRectTop,m_nClipRectWidth,m_nClipRectHeight);
-	return rect;
-}
-
-void CLayout::ClearClipRect()
-{
-	m_nClipRectTop = 0;
-	m_nClipRectLeft = 0;
-	m_nClipRectWidth = 0;
-	m_nClipRectHeight = 0;
-}
-*/
 void CLayout::SetFullWindowDrawFlag(bool bFullWndDraw)
 {
 	if (bFullWndDraw)
@@ -610,28 +528,6 @@ bool CLayout::GetFullWindowDrawFlag()
 {
 	return m_bDoFullWindowDraw;
 }
-
-/* don't need these
-void CLayout::SetClipRectTop(int nTop)
-{
-	m_nClipRectTop = nTop;
-}
-
-void CLayout::SetClipRectLeft(int nLeft)
-{
-	m_nClipRectLeft = nLeft;
-}
-
-void CLayout::SetClipRectWidth(int nWidth)
-{
-	m_nClipRectWidth = nWidth;
-}
-
-void CLayout::SetClipRectHeight(int nHeight)
-{
-	m_nClipRectHeight = nHeight;
-}
-*/
 #endif
 
 void CLayout::PlaceBox()
@@ -931,29 +827,7 @@ void CLayout::PlaceBox()
 		// the user's editing operation, or programmatic operation, the default: case will
 		// fall through to the no_edit_op case, which does nothing
 		m_docEditOperationType = invalid_op_enum_value; // an invalid value
-	/* not needed?
-		// do any required auto capitalization...
-		// if auto capitalization is on, determine the source text's case properties
-		bool bNoError = TRUE;
-		if (gbAutoCaps)
-		{
-			bNoError = m_pView->SetCaseParameters(pActivePile->GetSrcPhrase()->m_key);
-		}
-		// now set the m_targetPhrase contents accordingly
-		if (gbAutoCaps)
-		{
-			if (bNoError && gbSourceIsUpperCase)
-			{
-				// in the next call, FALSE is the value for param bool bIsSrcText
-				bNoError = m_pView->SetCaseParameters(m_pApp->m_targetPhrase,FALSE);
-				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-				{
-					// change to upper case initial letter
-					m_pApp->m_targetPhrase.SetChar(0,gcharNonSrcUC);
-				}
-			}
-		}
-	*/
+
 		// wx Note: we don't destroy the target box, just set its text to null
 		m_pApp->m_pTargetBox->ChangeValue(_T(""));
 
@@ -1014,7 +888,6 @@ void CLayout::PlaceBox()
 				}
 		}
 	}
-	//pLayout->SetBoxInvisibleWhenLayoutIsDrawn(FALSE); // restore default
 	m_bLayoutWithoutVisiblePhraseBox = FALSE; // restore default
 }
 
@@ -1038,22 +911,6 @@ void CLayout::SetNavTextFont(CAdapt_ItApp* pApp)
 {
 	m_pNavTextFont = pApp->m_pNavTextFont;
 }
-
-/* using friends, we only need the setters
-wxFont*	CLayout::GetSrcFont()
-{
-	return m_pSrcFont;
-}
-wxFont* CLayout::GetTgtFont()
-{
-	return m_pTgtFont;
-}
-wxFont* CLayout::GetNavTextFont()
-{
-	return m_pNavTextFont;
-}
-*/
-
 
 // accessors and getters for src, tgt & navText colours
 void CLayout::SetSrcColor(CAdapt_ItApp* pApp)
@@ -1098,15 +955,6 @@ wxColour CLayout::GetRetranslationTextColor()
 									   // of m_reTranslnTextColor
 }
 
-/* use CCell::GetColor(), syntax wxColour* pColor = pCell->GetColor();
-wxColour CLayout::GetCurColor()
-{
-	if (gbIsGlossing && gbGlossingUsesNavFont)
-		return m_navTextColor;
-	else
-		return m_tgtColor;
-}
-*/
 // accessors for src, tgt, navText line heights
 void CLayout::SetSrcTextHeight(CAdapt_ItApp* pApp)
 {
@@ -1138,18 +986,6 @@ int	CLayout::GetNavTextHeight()
 	return m_nNavTextHeight;
 }
 
-// setter & getter for m_bShowTargetOnly
-/*
-void CLayout::SetShowTargetOnlyBoolean()
-{
-	m_bShowTargetOnly = gbShowTargetOnly;
-}
-bool CLayout::GetShowTargetOnlyBoolean()
-{
-	return m_bShowTargetOnly;
-}
-*/
-
 // leading for strips
 void CLayout::SetCurLeading(CAdapt_ItApp* pApp)
 {
@@ -1166,13 +1002,6 @@ void CLayout::SetCurLMargin(CAdapt_ItApp* pApp)
 {
 	m_nCurLMargin = pApp->m_curLMargin;
 }
-
-/*
-int CLayout::GetCurLMargin()
-{
-	return m_nCurLMargin;
-}
-*/
 
 int CLayout::GetStripLeft()
 {
@@ -1452,38 +1281,6 @@ void CLayout::DestroyStrip(int index)
     // strip does not own these
 }
 
-/* the time-consuming tests should not be needed so I've removed them in the above version
-void CLayout::DestroyStrip(int index)
-{
-	// CStrip now does not store pointers, so the only memory it owns are the blocks for
-	// the two wxArrayInt arrays - so Clear() these and then delete the strip
-	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
-#ifdef _ALT_LAYOUT_
-	if (!pStrip->m_arrPileIndices.IsEmpty())
-	{
-		pStrip->m_arrPileIndices.Clear();
-	}
-	if (!pStrip->m_arrPileOffsets.IsEmpty())
-	{
-		pStrip->m_arrPileOffsets.Clear();
-	}
-#else
-	if (!pStrip->m_arrPiles.IsEmpty())
-	{
-		pStrip->m_arrPiles.Clear();
-	}
-	if (!pStrip->m_arrPileOffsets.IsEmpty())
-	{
-		pStrip->m_arrPileOffsets.Clear();
-	}
-#endif
- 	delete pStrip;
-	// don't try to delete CCell array, because the cell objects are managed 
-    // by the persistent pile pointers in the CLayout array m_pPiles, and the 
-    // strip does not own these
-}
-*/
-
 void CLayout::DestroyStripRange(int nFirstStrip, int nLastStrip)
 {
 	if (m_stripArray.IsEmpty())
@@ -1576,11 +1373,6 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	CPile* pPile = new CPile;
 	wxASSERT(pPile != NULL); // if tripped, must be a memory error
 
-//#ifdef __WXDEBUG__
-//	nDebugIndex = 1;
-//	wxLogDebug(_T("DebugIndex = %d  CLayout, CPile pointer  %x"),nDebugIndex,pPile);
-//#endif
-
 	// assign the passed in source phrase pointer to its m_pSrcPhrase public member,
 	// and also the pointer to the CLayout object
 	pPile->m_pSrcPhrase = pSrcPhrase;
@@ -1611,12 +1403,6 @@ CPile* CLayout::CreatePile(CSourcePhrase* pSrcPhrase)
 	for (index = 0; index < MAX_CELLS; index++)
 	{
 		pCell = new CCell();
-
-//#ifdef __WXDEBUG__
-//	nDebugIndex = 2;
-//	wxLogDebug(_T("DebugIndex = %d  CLayout, CreatePile, CCell pointer  %x"),nDebugIndex,pCell);
-//#endif
-
 
 		// store it
 		pPile->m_pCell[index] = pCell; // index ranges through 0 1 and 2 in our new design
@@ -1667,7 +1453,6 @@ bool CLayout::CreatePiles(SPList* pSrcPhrases)
 		wxASSERT(pSrcPhrase != NULL);
 
 		// create the CPile instance
-		//pPile = CreatePile(this,pSrcPhrase);
 		pPile = CreatePile(pSrcPhrase);
 		wxASSERT(pPile != NULL);
 
@@ -1732,10 +1517,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
     // function - the latter built only a bundle's-worth of strips, but the new design must build
 	// strips for the whole document - so potentially may consume a lot of time; however, the
 	// efficiency of the new design (eg. no rectangles are calculated) may compensate significantly
-//#ifdef __WXDEBUG__
-//	CAdapt_ItApp* pApp = &wxGetApp();
-//	wxLogDebug(_T("Location = %d  Active Sequ Num  %d"),1,pApp->m_nActiveSequNum);
-//#endif
+	
 	// every call of RecalcLayout() should calculate the number of strips currently that
 	// could be shown in the client area, setting the m_numVisibleStrips private member of
 	// the CLayout instance - other functions can then access it using
@@ -1985,13 +1767,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	if (selector == create_strips_and_piles || selector == create_strips_keep_piles
 		|| selector == create_strips_update_pile_widths)
 	{
-		//if (gbIsPrinting)
-		//	wxLogDebug(_T("RecalcLayout() CreateStrips about to be called  "));
-		
 		CreateStrips(nStripWidth, gap);
-
-		//if (gbIsPrinting)
-		//	wxLogDebug(_T("RecalcLayout() CreateStrips has Finished  "));
 	}
 	if (selector == keep_strips_keep_piles)
 	{
@@ -2341,29 +2117,7 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 	}
 	m_stripArray.Shrink();
 #else
-/*
-#ifdef __WXDEBUG__
-	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
-	SPList::Node* posDebug = pSrcPhrases->GetFirst();
-	int index = 0;
-	while (posDebug != NULL)
-	{
-		CSourcePhrase* pSrcPhrase = posDebug->GetData();
-		wxLogDebug(_T("Index = %d   pSrcPhrase pointer  %x"),index,pSrcPhrase);
-		posDebug = posDebug->GetNext();
-		index++;
-	}
-	PileList::Node* posPDbg = m_pileList.GetFirst();
-	index = 0;
-	while (posPDbg != NULL)
-	{
-		CPile* pPile = posPDbg->GetData();
-		wxLogDebug(_T("Index = %d   pPile pointer  %x"),index,pPile);
-		posPDbg = posPDbg->GetNext();
-		index++;
-	}
-#endif
-*/
+
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
 	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
@@ -2376,10 +2130,6 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 	{
 		pStrip = new CStrip(this);
 		pStrip->m_nStrip = nStripIndex; // set it's index
-//#ifdef __WXDEBUG__
-//	nDebugIndex = 3;
-//	wxLogDebug(_T("DebugIndex = %d  CLayout, CreateStrips, CStrip pointer  %x"),nDebugIndex,pStrip);
-//#endif
 		m_stripArray.Add(pStrip); // add the new strip to the strip array
 		// set up the strip's pile (and cells) contents
 		
@@ -2856,32 +2606,7 @@ void CLayout::SetupCursorGlobals(wxString& phrase, enum box_cursor state,
 		}
 	}
 }
-/* BEW removed 30Jun09
-void CLayout::PlacePhraseBoxInLayout(int nActiveSequNum)
-{
-	// ... former content here moved to PlaceBox()...
-	
-	// if free translating, put focus in the compose bar's wxTextCtrl
-	if (m_pApp->m_bFreeTranslationMode)
-	{
-		wxTextCtrl* pEdit = (wxTextCtrl*)
-							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
-		pEdit->SetFocus();
-		if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasFreeTrans)
-		{
-			pEdit->SetSelection(-1,-1); // -1, -1 selects it all
-		}
-		else
-		{
-			int len = pEdit->GetValue().Length(); 
-			if (len > 0)
-			{
-				pEdit->SetSelection(len,len);
-			}
-		}
-	}
-}
-*/
+
 // Detect if the user's edit area is not adequately defined, in which case reenter
 // RecalcLayout() to rebuild the doc by destroying and recreating all strips and return
 // FALSE to the caller so that it can return FALSE to the original RecalcLayout() call so
@@ -3008,10 +2733,6 @@ int CLayout::EmptyTheInvalidStrips(int nFirstStrip, int nLastStrip, int nStripWi
 /// time if becomes visible and drawn, or a full destroy all strips and rebuild is done due
 /// to some operation which requires it (such as changing the font size, etc).
 /////////////////////////////////////////////////////////////////////////////////***
-//int CLayout::RebuildTheInvalidStripRange(int& nFirstStrip, int& nLastStrip, 
-//		int nStripWidth, int gap, CPile* pBeforePile, CPile* pAfterPile, 
-//		PileList::Node* posBegin, PileList::Node* posEnd, PileList::Node* pos,
-//		int nInitialStripCount)
 int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nStripWidth,
 		 int gap, int nFirstPileIndex, int nEndPileIndex, int nInitialStripCount)
 {
@@ -3049,8 +2770,6 @@ int CLayout::RebuildTheInvalidStripRange(int nFirstStrip, int nLastStrip, int nS
 	while (pileIndex <= nEndPileIndex)
 	{
 		// fill the one or more strips which have been emptied
-		//pos = pStrip->CreateStrip(pos, posEnd, nStripWidth, gap);
-		// DebugIndexMismatch(111, 100);
 		nNumberPlacedAtThisCall = pStrip->CreateStrip(pileIndex, nEndPileIndex, 
 														nStripWidth, gap);
 		// DebugIndexMismatch(111, 101);
@@ -3588,7 +3307,6 @@ bool CLayout::FlowInitialPileUp(int nUpStripIndex, int gap, bool& bDeletedFollow
 	bDeletedFollowingStrip = FALSE;
 	// prevent bounds error
 	int lastStripIndex = m_stripArray.GetCount() - 1;
-	//int nStripWidth = GetLogicalDocSize().x;
 	if ( nUpStripIndex > lastStripIndex)
 	{
 		// index passed in was beyond the end of the array, return indicating inability to
