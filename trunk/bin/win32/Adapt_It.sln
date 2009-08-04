@@ -4,6 +4,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Adapt_It", "Adapt_It.vcproj
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Adapt It WX Unicode Setup", "..\Adapt It WX Unicode Setup\Adapt It WX Unicode Setup.vdproj", "{EE034E8D-A995-4036-B9C3-16C013393D61}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Adapt It WX Regular Setup", "..\Adapt It WX Regular Setup\Adapt It WX Regular Setup.vdproj", "{FA731F88-3419-4724-BC8D-076C603C9AB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -24,6 +26,11 @@ Global
 		{EE034E8D-A995-4036-B9C3-16C013393D61}.Release|Win32.ActiveCfg = Release
 		{EE034E8D-A995-4036-B9C3-16C013393D61}.Unicode Debug|Win32.ActiveCfg = Debug
 		{EE034E8D-A995-4036-B9C3-16C013393D61}.Unicode Release|Win32.ActiveCfg = Release
+		{FA731F88-3419-4724-BC8D-076C603C9AB4}.Debug|Win32.ActiveCfg = Debug
+		{FA731F88-3419-4724-BC8D-076C603C9AB4}.Release|Win32.ActiveCfg = Release
+		{FA731F88-3419-4724-BC8D-076C603C9AB4}.Release|Win32.Build.0 = Release
+		{FA731F88-3419-4724-BC8D-076C603C9AB4}.Unicode Debug|Win32.ActiveCfg = Debug
+		{FA731F88-3419-4724-BC8D-076C603C9AB4}.Unicode Release|Win32.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
