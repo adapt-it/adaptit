@@ -21,6 +21,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_07BB9217B01F42988EE7C26DF69F3619"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0DC2F14153A245F9AA75025731D48C03"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -135,6 +141,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_4007B921F9EA47CFA638BD20BA9F285D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_4502C11C07D34552B791615EF3D14F9D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -171,7 +183,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_4F8009A313A04C568ADAB7DA505BF5A6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_52C1EA10BC734E2E95C2F0A03017E618"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_54CC7E757FDF466A801D15AFD439B603"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -231,6 +255,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_70A975FEE4BE4542A85B8C643EA560D2"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_71255171CE4D4C41900D0222EEABB2C3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -274,6 +304,12 @@
         "Entry"
         {
         "MsmKey" = "8:_831984A66DAA455680564E9AC3A53ECD"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_8479A79D374F4BBC9FFFCF6F4C1F6ED5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -340,6 +376,12 @@
         "Entry"
         {
         "MsmKey" = "8:_B609A5A8C36F40ED9470BF847E0FC231"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BB7FB4EF889A4E6088D8CA5E0C76336F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -423,6 +465,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_E6EA84A4FC2141208BB1BCA33D913AA6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_EB4E7452943644DBB3F842F4544A2290"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -459,7 +507,19 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_F18FEF74ACF24A02AC0034125DFC0A56"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_F19848517D5C4556AF4FCE9BD383150A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -575,6 +635,26 @@
             "TargetName" = "8:back_button.gif"
             "Tag" = "8:"
             "Folder" = "8:_C2E66B2B655B4E649CC2CABF4491B49F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_07BB9217B01F42988EE7C26DF69F3619"
+            {
+            "SourcePath" = "8:..\\..\\res\\Word16x16-4color.ico"
+            "TargetName" = "8:Word16x16-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -969,6 +1049,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4007B921F9EA47CFA638BD20BA9F285D"
+            {
+            "SourcePath" = "8:..\\..\\res\\CC16x16-4color.ico"
+            "TargetName" = "8:CC16x16-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4502C11C07D34552B791615EF3D14F9D"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\License_CPLv05.txt"
@@ -1089,12 +1189,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4F8009A313A04C568ADAB7DA505BF5A6"
+            {
+            "SourcePath" = "8:..\\..\\res\\Notepad32x32-4color.ico"
+            "TargetName" = "8:Notepad32x32-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_52C1EA10BC734E2E95C2F0A03017E618"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Adapt_It_Unicode.htb"
             "TargetName" = "8:Adapt_It_Unicode.htb"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_54CC7E757FDF466A801D15AFD439B603"
+            {
+            "SourcePath" = "8:..\\..\\res\\AI16x16-4color.ico"
+            "TargetName" = "8:AI16x16-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1289,6 +1429,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_70A975FEE4BE4542A85B8C643EA560D2"
+            {
+            "SourcePath" = "8:..\\..\\res\\CC32x32-4color.ico"
+            "TargetName" = "8:CC32x32-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_71255171CE4D4C41900D0222EEABB2C3"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\az\\az.po"
@@ -1435,6 +1595,26 @@
             "TargetName" = "8:CCDebug.doc"
             "Tag" = "8:"
             "Folder" = "8:_75DF7C91CF3742F99553845EB77E427C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8479A79D374F4BBC9FFFCF6F4C1F6ED5"
+            {
+            "SourcePath" = "8:..\\..\\res\\AI32x32-4color.ico"
+            "TargetName" = "8:AI32x32-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1655,6 +1835,26 @@
             "TargetName" = "8:books.xml"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BB7FB4EF889A4E6088D8CA5E0C76336F"
+            {
+            "SourcePath" = "8:..\\..\\res\\Word32x32-4color.ico"
+            "TargetName" = "8:Word32x32-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1929,6 +2129,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E6EA84A4FC2141208BB1BCA33D913AA6"
+            {
+            "SourcePath" = "8:..\\..\\res\\IE32x32-4color.ico"
+            "TargetName" = "8:IE32x32-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EB4E7452943644DBB3F842F4544A2290"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\es\\Adapt_It_Unicode.mo"
@@ -2049,12 +2269,52 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F18FEF74ACF24A02AC0034125DFC0A56"
+            {
+            "SourcePath" = "8:..\\..\\res\\IE16x16-4color.ico"
+            "TargetName" = "8:IE16x16-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F19848517D5C4556AF4FCE9BD383150A"
             {
             "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\id\\id.po"
             "TargetName" = "8:id.po"
             "Tag" = "8:"
             "Folder" = "8:_1CEA5F0337404EA69437B2E8EC622037"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F442350AFFD6473B8C1CBFBC5F4E2451"
+            {
+            "SourcePath" = "8:..\\..\\res\\Notepad16x16-4color.ico"
+            "TargetName" = "8:Notepad16x16-4color.ico"
+            "Tag" = "8:"
+            "Folder" = "8:_3552EC210CF545428E52EBB2B2B8F5E2"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -2478,7 +2738,7 @@
             "Target" = "8:_EDD364BDC4FF461BB5B9B6EEEA950521"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_07BB9217B01F42988EE7C26DF69F3619"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_372AD0A82B5C4F4EA13E245AACE25F8B"
@@ -2492,7 +2752,7 @@
             "Target" = "8:_C3D1CFBB0D934534B48DE1CEDA7A2ACC"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_F18FEF74ACF24A02AC0034125DFC0A56"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_501052B69A6A4ADBB293B79AB02ADEF2"
@@ -2506,7 +2766,7 @@
             "Target" = "8:_31998C8C081B40149B8D27E8AB501824"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_59C7F264CE7F4AD3BFDCAE40261CBCD6"
@@ -2520,7 +2780,7 @@
             "Target" = "8:_DA889CEB75B34C4E80B1EA5FBAD114DC"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_6FFBA632A1FA45DAB822DCAA4A5D5243"
@@ -2534,7 +2794,7 @@
             "Target" = "8:_FCAC448B0F9244F78B0518A007E84D8C"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_54CC7E757FDF466A801D15AFD439B603"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7B51398FF32B4B81A5B593AB80CA8FDB"
@@ -2548,7 +2808,7 @@
             "Target" = "8:_46B3ED3611FF46E18663FB4036F81699"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_75DF7C91CF3742F99553845EB77E427C"
-            "Icon" = "8:"
+            "Icon" = "8:_4007B921F9EA47CFA638BD20BA9F285D"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_B330AEBBF375473AB7131AE9F2019299"
@@ -2562,7 +2822,7 @@
             "Target" = "8:_0DC2F14153A245F9AA75025731D48C03"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_BEF2955980DA468E8772CEB6DDE98F18"
@@ -2576,7 +2836,7 @@
             "Target" = "8:_4F20413098AC4F70ADA93679712CF348"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_07BB9217B01F42988EE7C26DF69F3619"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_D495E1F76FEF47E28D1763EA083B8E44"
@@ -2590,7 +2850,7 @@
             "Target" = "8:_E3CECC3933D74EF59FCC923241B6864E"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_F442350AFFD6473B8C1CBFBC5F4E2451"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_F7BEEB1BE0484925A8CA13D8A35301AF"
@@ -2604,7 +2864,7 @@
             "Target" = "8:_719F5B0198FE4C52968983AB7EE9350A"
             "Folder" = "8:_C934A7F7D53F4734A043DD745C4951E0"
             "WorkingFolder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
-            "Icon" = "8:"
+            "Icon" = "8:_07BB9217B01F42988EE7C26DF69F3619"
             "Feature" = "8:"
             }
         }
