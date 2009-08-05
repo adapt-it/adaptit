@@ -721,9 +721,6 @@ int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidt
 		// calculated at the active pile unless we call it here, provided the active
 		// location is within the area of strips being rebuilt
 		pileWidth = pPile->CalcPhraseBoxGapWidth();
-		//pileWidth = pPile->m_nWidth; // at m_nActiveSequNum, this value will be 
-                // large enough to accomodate the phrase box's width, even if just
-                // expanded due to the user's typing
 	}
 	else
 	{
@@ -970,7 +967,8 @@ int CStrip::Left()
 
 int CStrip::Top()
 {
-	return m_pLayout->GetCurLeading() + m_nStrip * (Height() + m_pLayout->GetCurLeading());
+	return m_pLayout->GetCurLeading() + m_nStrip * (Height() 
+				+ m_pLayout->GetCurLeading());
 }
 
 int CStrip::GetFree()

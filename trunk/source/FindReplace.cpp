@@ -319,14 +319,15 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	wxString key;
 	wxString cbStr;
 	m_pComboSFM->Clear(); // whm added 26Oct08
-	// wx version: I've modified the m_pComboSFM->Append() routines to only put sensible sfms in the
-	// combo box, i.e., none of the _basestyle markers or others that are merely used internally by 
-	// Adapt It are now included.
+    // wx version: I've modified the m_pComboSFM->Append() routines to only put sensible
+    // sfms in the combo box, i.e., none of the _basestyle markers or others that are
+    // merely used internally by Adapt It are now included.
 	switch(gpApp->gCurrentSfmSet)
 	{
 	case UsfmOnly:
 		{
-			for (iter = gpApp->m_pUsfmStylesMap->begin(); iter != gpApp->m_pUsfmStylesMap->end(); ++iter)
+			for (iter = gpApp->m_pUsfmStylesMap->begin(); 
+				iter != gpApp->m_pUsfmStylesMap->end(); ++iter)
 			{
 				// Retrieve each USFMAnalysis struct from the map
 				key = iter->first;
@@ -343,7 +344,8 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		}
 	case PngOnly:
 		{
-			for (iter = gpApp->m_pPngStylesMap->begin(); iter != gpApp->m_pPngStylesMap->end(); ++iter)
+			for (iter = gpApp->m_pPngStylesMap->begin(); 
+				iter != gpApp->m_pPngStylesMap->end(); ++iter)
 			{
 				// Retrieve each USFMAnalysis struct from the map
 				key = iter->first;
@@ -360,7 +362,8 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		}
 	case UsfmAndPng:
 		{
-			for (iter = gpApp->m_pUsfmAndPngStylesMap->begin(); iter != gpApp->m_pUsfmAndPngStylesMap->end(); ++iter)
+			for (iter = gpApp->m_pUsfmAndPngStylesMap->begin(); 
+				iter != gpApp->m_pUsfmAndPngStylesMap->end(); ++iter)
 			{
 				// Retrieve each USFMAnalysis struct from the map
 				key = iter->first;
@@ -378,7 +381,8 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	default:
 		{
 			// this should never happen
-			for (iter = gpApp->m_pUsfmStylesMap->begin(); iter != gpApp->m_pUsfmStylesMap->end(); ++iter)
+			for (iter = gpApp->m_pUsfmStylesMap->begin(); 
+				iter != gpApp->m_pUsfmStylesMap->end(); ++iter)
 			{
 				// Retrieve each USFMAnalysis struct from the map
 				key = iter->first;
@@ -416,7 +420,6 @@ void CFindDlg::DoFindNext()
 	if (gpApp->m_nActiveSequNum == -1)
 	{	
 		wxASSERT(gpApp->m_pActivePile == 0);
-		//wxASSERT(gpApp->m_pTargetBox == NULL); // whm commented out since it is never true in wx version
 		::wxBell();
 		return;
 	}
@@ -436,13 +439,15 @@ void CFindDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
+											gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
-				// the store will fail if the user edited the entry out of the KB, as the latter
-				// cannot know which srcPhrases will be affected, so these will still have their
-				// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
-				// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
+                // the store will fail if the user edited the entry out of the KB, as the
+                // latter cannot know which srcPhrases will be affected, so these will
+                // still have their m_bHasKBEntry set true. We have to test for this, ie. a
+                // null pRefString but the above flag TRUE is a sufficient test, and if so,
+                // set the flag to FALSE
 				CRefString* pRefStr;
 				bool bOK;
 				if (gbIsGlossing)
@@ -495,10 +500,6 @@ void CFindDlg::DoFindNext()
     // in some situations (eg. after a merge in a replacement) a LayoutStrip call is
     // needed, otherwise the destruction of the targetBox window will leave an empty white
     // space at the active loc.
-	//CPile* pPile = gpApp->m_pActivePile;
-	//CStrip* pStrip = pPile->m_pStrip;
-	//int nActiveStrip = pStrip->m_nStripIndex;
-	//pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
 #ifdef _NEW_LAYOUT
 		gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -570,19 +571,8 @@ void CFindDlg::DoFindNext()
 			CCell* pCell = (CCell*)cpos->GetData();
 			wxASSERT(pCell != NULL);
 			CPile* pPile = pCell->GetPile();
-			//pCell = pPile->m_pCell[3]; // last line
 			pCell = pPile->GetCell(1); // last line
-			//m_ptBoxTopLeft = pCell->m_ptTopLeft;
 			m_ptBoxTopLeft = pCell->GetTopLeft();
-			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
-			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin);
-			//                      // gets xOrigin and yOrigin in scroll units
-			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(
-			//    &xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is 
-			//                             // ScrollUnits * pixelsPerScrollUnit
-			//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
 
 			int newXPos,newYPos;
 			// CalcScrolledPosition translates logical coordinates to device ones. 
@@ -594,15 +584,6 @@ void CFindDlg::DoFindNext()
 		else
 		{
 			// use location where phrase box would be put
-			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
-			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); 
-			//                         // gets xOrigin and yOrigin in scroll units
-			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, 
-			//                     &yScrollUnits); // gets pixels per scroll unit
-			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is 
-			//                                 // ScrollUnits * pixelsPerScrollUnit
-			//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
 			int newXPos,newYPos;
 			// CalcScrolledPosition translates logical coordinates to device ones. 
 			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
@@ -714,8 +695,9 @@ void CFindDlg::DoRadioSrcAndTgt()
 
 void CFindDlg::OnSelchangeComboSfm(wxCommandEvent& WXUNUSED(event))
 {
-	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
-	// so we must check to see if the listbox contains no items and if so return immediately
+    // wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a
+    // call to Clear() so we must check to see if the listbox contains no items and if so
+    // return immediately
 	if (m_pComboSFM->GetCount() == 0)
 		return;
 
@@ -727,15 +709,16 @@ void CFindDlg::OnSelchangeComboSfm(wxCommandEvent& WXUNUSED(event))
 	m_markerStr = m_pComboSFM->GetStringSelection();
 	wxASSERT(!m_markerStr.IsEmpty());
 	m_sfm = SpanExcluding(m_markerStr, _T(" ")); // up to the first space character
-	wxASSERT(m_sfm.Left(1) == gSFescapechar); // it must start with a backslash to be a valid sfm,
-											// or with sfm escape char set by user
+	wxASSERT(m_sfm.Left(1) == gSFescapechar); // it must start with a backslash 
+						// to be a valid sfm, or with sfm escape char set by user
 }
 
 void CFindDlg::OnButtonSpecial(wxCommandEvent& WXUNUSED(event)) 
 {
 	if (m_bSpecialSearch)
 	{
-		m_bSpecialSearch = FALSE; // toggle flag value, we are returning to 'normal' search mode
+		m_bSpecialSearch = FALSE; // toggle flag value, we are 
+								  // returning to 'normal' search mode
 		
 		wxASSERT(m_pButtonSpecialNormal != NULL);
 		wxString str;
@@ -802,7 +785,8 @@ void CFindDlg::OnButtonSpecial(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		m_bSpecialSearch = TRUE; // toggle flag value, we are entering 'special' mode
+		m_bSpecialSearch = TRUE; // toggle flag value, we are 
+								 // entering 'special' mode
 		
 		wxASSERT(m_pButtonSpecialNormal != NULL);
 		wxString str;
@@ -842,8 +826,8 @@ void CFindDlg::OnButtonSpecial(wxCommandEvent& WXUNUSED(event))
 		m_markerStr = m_pComboSFM->GetStringSelection();
 		wxASSERT(!m_markerStr.IsEmpty());
 		m_sfm = SpanExcluding(m_markerStr,_T(" ")); // up to the first space character
-		wxASSERT(m_sfm.Left(1) == gSFescapechar); // it must start with a backslash to be a valid 
-												// sfm, or with the user set escape character
+		wxASSERT(m_sfm.Left(1) == gSFescapechar); // it must start with a backslash 
+						// to be a valid sfm, or with the user set escape character
 		// now disable the box until it's explicitly wanted
 		m_pComboSFM->Enable(FALSE); // it should start off disabled
 
@@ -1033,7 +1017,8 @@ IMPLEMENT_DYNAMIC_CLASS( CReplaceDlg, wxDialog )
 
 // event handler table
 BEGIN_EVENT_TABLE(CReplaceDlg, wxDialog)
-	EVT_INIT_DIALOG(CReplaceDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(CReplaceDlg::InitDialog) // not strictly necessary for 
+											 // dialogs based on wxDialog
 	EVT_BUTTON(wxID_CANCEL, CReplaceDlg::OnCancel)	
 	
 	EVT_BUTTON(IDC_REPLACE, CReplaceDlg::OnReplaceButton)
@@ -1058,10 +1043,10 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	: wxDialog(parent, -1, _("Find and Replace"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
-	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
-	// for the dialog. The first parameter is the parent which should normally be "this".
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
+    // This dialog function below is generated in wxDesigner, and defines the controls and
+    // sizers for the dialog. The first parameter is the parent which should normally be
+    // "this". The second and third parameters should both be TRUE to utilize the sizers
+    // and create the right size dialog.
 	pReplaceDlgSizer = ReplaceDlgFunc(this, TRUE, TRUE);
 	// The declaration is: ReplaceDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
@@ -1089,7 +1074,8 @@ CReplaceDlg::CReplaceDlg(wxWindow* parent) // dialog constructor
 	wxASSERT(m_pCheckIgnoreCase != NULL);
 	m_pCheckIgnoreCase->SetValidator(wxGenericValidator(&m_bIgnoreCase)); // use validator
 
-	m_pFindNext = (wxButton*)FindWindow(wxID_OK); // just use FindWindow here to limit search to CReplaceDlg
+	m_pFindNext = (wxButton*)FindWindow(wxID_OK); // just use FindWindow here to 
+												  // limit search to CReplaceDlg
 	wxASSERT(m_pFindNext != NULL);
 
 	m_pStaticSrcBoxLabel = (wxStaticText*)FindWindowById(IDC_STATIC_SRC_REPLACE);
@@ -1146,21 +1132,25 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	if (gbIsGlossing && gbGlossingUsesNavFont)
 	{
 		#ifdef _RTL_FLAGS
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditTgt, m_pEditReplace,
-									NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
-		#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, m_pEditTgt, m_pEditReplace, 
-									NULL, NULL, gpApp->m_pDlgTgtFont);
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
+				m_pEditTgt, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont, 
+				gpApp->m_bNavTextRTL);
+		#else // Regular version, only LTR scripts supported, 
+			  // so use default FALSE for last parameter
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
+				m_pEditTgt, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
 	else
 	{
 		#ifdef _RTL_FLAGS
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pEditTgt, m_pEditReplace,
-									NULL, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
-		#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
-		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, m_pEditTgt, m_pEditReplace, 
-									NULL, NULL, gpApp->m_pDlgTgtFont);
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
+				m_pEditTgt, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont, 
+				gpApp->m_bTgtRTL);
+		#else // Regular version, only LTR scripts supported, 
+			  // so use default FALSE for last parameter
+		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
+				m_pEditTgt, m_pEditReplace, NULL, NULL, gpApp->m_pDlgTgtFont);
 		#endif
 	}
 
@@ -1207,8 +1197,8 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	wxASSERT(m_pEditTgt != NULL);
 	m_pEditTgt->Show(TRUE);
 
-	// set the default button to Find Next button explicitly (otherwise, an MFC bug makes it
-	// the Replace All button)
+    // set the default button to Find Next button explicitly (otherwise, an MFC bug makes
+    // it the Replace All button)
 	// whm note: The "Find Next" button is assigned the wxID_OK identifier
 	wxASSERT(m_pFindNext != NULL);
 	m_pFindNext->SetDefault(); // ID for Find Next button
@@ -1229,7 +1219,6 @@ void CReplaceDlg::DoFindNext()
 	if (gpApp->m_nActiveSequNum == -1)
 	{	
 		wxASSERT(gpApp->m_pActivePile == 0);
-		//wxASSERT(gpApp->m_pTargetBox == NULL); // whm commented out since it is never true in wx version
 		::wxBell();
 		return;
 	}
@@ -1246,13 +1235,15 @@ void CReplaceDlg::DoFindNext()
 			{
 				if (!gbIsGlossing)
 				{
-					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					pView->MakeLineFourString(gpApp->m_pActivePile->GetSrcPhrase(),
+												gpApp->m_targetPhrase);
 					pView->RemovePunctuation(pDoc,&gpApp->m_targetPhrase,from_target_text);
 				}
-				// the store will fail if the user edited the entry out of the KB, as the latter
-				// cannot know which srcPhrases will be affected, so these will still have their
-				// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
-				// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
+                // the store will fail if the user edited the entry out of the KB, as the
+                // latter cannot know which srcPhrases will be affected, so these will
+                // still have their m_bHasKBEntry set true. We have to test for this, ie. a
+                // null pRefString but the above flag TRUE is a sufficient test, and if so,
+                // set the flag to FALSE
 				CRefString* pRefStr;
 				bool bOK;
 				if (gbIsGlossing)
@@ -1305,10 +1296,6 @@ void CReplaceDlg::DoFindNext()
     // in some situations (eg. after a merge in a replacement) a LayoutStrip call is
     // needed, otherwise the destruction of the targetBox window will leave an empty white
     // space at the active loc.
-	//CPile* pPile = gpApp->m_pActivePile;
-	//CStrip* pStrip = pPile->m_pStrip;
-	//int nActiveStrip = pStrip->m_nStripIndex;
-	//pView->LayoutStrip(gpApp->m_pSourcePhrases,nActiveStrip,pStrip->m_pBundle);
 #ifdef _NEW_LAYOUT
 		gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -1388,35 +1375,25 @@ void CReplaceDlg::DoFindNext()
 			CPile* pPile = pCell->GetPile();
 			pCell = pPile->GetCell(1); // last line
 			m_ptBoxTopLeft = pCell->GetTopLeft();
-			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
-			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-			//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
 
 			int newXPos,newYPos;
 			// CalcScrolledPosition translates logical coordinates to device ones. 
-			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,m_ptBoxTopLeft.y,&newXPos,&newYPos);
+			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
+											m_ptBoxTopLeft.y,&newXPos,&newYPos);
 			m_ptBoxTopLeft.x = newXPos;
 			m_ptBoxTopLeft.y = newYPos;
 		}
 		else
 		{
 			// use location where phrase box would be put
-			//dc.LPtoDP(&m_ptBoxTopLeft); // now it's device coords
-			//int xScrollUnits, yScrollUnits, xOrigin, yOrigin;
-			//pApp->GetMainFrame()->canvas->GetViewStart(&xOrigin, &yOrigin); // gets xOrigin and yOrigin in scroll units
-			//pApp->GetMainFrame()->canvas->GetScrollPixelsPerUnit(&xScrollUnits, &yScrollUnits); // gets pixels per scroll unit
-			//m_ptBoxTopLeft.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
-			//m_ptBoxTopLeft.y = yOrigin * yScrollUnits;
 			int newXPos,newYPos;
 			// CalcScrolledPosition translates logical coordinates to device ones. 
-			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,m_ptBoxTopLeft.y,&newXPos,&newYPos);
+			gpApp->GetMainFrame()->canvas->CalcScrolledPosition(m_ptBoxTopLeft.x,
+											m_ptBoxTopLeft.y,&newXPos,&newYPos);
 			m_ptBoxTopLeft.x = newXPos;
 			m_ptBoxTopLeft.y = newYPos;
 		}
-		gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,&m_ptBoxTopLeft.y); //gpApp->ClientToScreen(&m_ptBoxTopLeft); // now it's screen coords
+		gpApp->GetMainFrame()->canvas->ClientToScreen(&m_ptBoxTopLeft.x,&m_ptBoxTopLeft.y);
 		int height = m_nTwoLineDepth;
 		wxRect rectDlg;
 		GetClientSize(&rectDlg.width, &rectDlg.height);
@@ -1571,7 +1548,6 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	if (gpApp->m_nActiveSequNum == -1)
 	{	
 		wxASSERT(gpApp->m_pActivePile == 0);
-		//wxASSERT(gpApp->m_pTargetBox == NULL); // whm commented out since it is never true in wx version
 		::wxBell();
 		return;
 	}
@@ -1582,7 +1558,9 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	{
 		m_bSelectionExists = FALSE;
 		// IDS_NO_SELECTION_YET
-		wxMessageBox(_("Sorry, you cannot do a Replace operation because there is no selection yet."),_T(""), wxICON_INFORMATION);
+		wxMessageBox(_(
+"Sorry, you cannot do a Replace operation because there is no selection yet."),
+		_T(""), wxICON_INFORMATION);
 		gbJustReplaced = FALSE;
 		return;
 	}
@@ -1593,16 +1571,17 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 	bool bOK = gpApp->GetView()->DoReplace(gpApp->m_nActiveSequNum,m_bIncludePunct,
 											m_tgtStr,m_replaceStr,m_nCount);
 
-	// clear the global strings, in case they were set by OnButtonMerge() (we can safely not
-	// clear them, since DoReplace clears them when first entered, but its best to play safe
+    // clear the global strings, in case they were set by OnButtonMerge() (we can safely
+    // not clear them, since DoReplace clears them when first entered, but its best to play
+    // safe
 	gOldConcatStr = _T("");
 	gOldConcatStrNoPunct = _T("");
 
 	if (!bOK)
 	{
 		wxMessageBox(_(
-			"Failed to do the replacement without error. The next Find Next will be skipped."),
-						_T(""), wxICON_INFORMATION);
+		"Failed to do the replacement without error. The next Find Next will be skipped."),
+		_T(""), wxICON_INFORMATION);
 		return;
 	}
 	
@@ -1635,13 +1614,12 @@ void CReplaceDlg::OnReplaceButton(wxCommandEvent& event)
 
 void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event) 
 {
-	TransferDataFromWindow(); //GetDataFromControls(); // TODO: check this!!!
+	TransferDataFromWindow(); // TODO: check this!!!
 
 	// do nothing if past the end of the last srcPhrase, ie. at the EOF
 	if (gpApp->m_nActiveSequNum == -1)
 	{	
 		wxASSERT(gpApp->m_pActivePile == 0);
-		//wxASSERT(gpApp->m_pTargetBox == NULL); // whm commented out since it is never true in wx version
 		::wxBell();
 		return;
 	}
@@ -1658,8 +1636,8 @@ void CReplaceDlg::OnReplaceAllButton(wxCommandEvent& event)
 		}
 	}
 
-	// if we get here then we have a selection, and the OnIdle() handler can now
-	// start doing the replacements following by finds, till no match happens or eof reached
+    // if we get here then we have a selection, and the OnIdle() handler can now start
+    // doing the replacements following by finds, till no match happens or eof reached
 	Hide();
 	gbReplaceAllIsCurrent = TRUE;
 	
@@ -1707,11 +1685,11 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 
 	if (gbJustReplaced)
 	{
-		// we have cancelled just after a replacement, so we expect the phrase box to exist
-		// and be visible, so we only have to do a little tidying up before we return
-		// whm 12Aug08 Note: In the wx version m_pTargetBox is never NULL. Therefore, I 
-		// think we should remove the == NULL check below and always jump to the "longer"
-		// cleanup in the else block below. 
+        // we have cancelled just after a replacement, so we expect the phrase box to exist
+        // and be visible, so we only have to do a little tidying up before we return whm
+        // 12Aug08 Note: In the wx version m_pTargetBox is never NULL. Therefore, I think
+        // we should remove the == NULL check below and always jump to the "longer" cleanup
+        // in the else block below.
 		//if (gpApp->m_pTargetBox == NULL)
 		// whm Note: moved the gbJustReplaced = FALSE statement here 12Aug08 because in
 		// its placement below, it would never be reset to FALSE. The logic is not real
@@ -1723,14 +1701,14 @@ void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	}
 	else
 	{
-		// we have tried a FindNext since the previous replacement, so we expect the phrase box
-		// to have been destroyed by the time we enter this code block;
-		// so place the phrase box, if it has been destroyed
+        // we have tried a FindNext since the previous replacement, so we expect the phrase
+        // box to have been destroyed by the time we enter this code block; so place the
+        // phrase box, if it has been destroyed
 		// wx version the phrase box always exists
-		// whm 11Aug08 - here we need to remove the m_pTargetBox == NULL test, because in the MFC
-		// version we "expect the phrase box to have been destroyed by the time we enter this code
-		// block". But we don't destroy the phrase box in the wx version so we should always execute
-		// the following block.
+        // whm 11Aug08 - here we need to remove the m_pTargetBox == NULL test, because in
+        // the MFC version we "expect the phrase box to have been destroyed by the time we
+        // enter this code block". But we don't destroy the phrase box in the wx version so
+        // we should always execute the following block.
 		//if (gpApp->m_pTargetBox == NULL)
 		//{
 			// in wx version this block should never execute
@@ -1745,11 +1723,13 @@ a:			CCell* pCell = 0;
 			}
 			else
 			{
-				// no selection, so find another way to define active location & place the phrase box
+				// no selection, so find another way to define active location 
+				// & place the phrase box
 				int nCurSequNum = gpApp->m_nActiveSequNum;
 				if (nCurSequNum == -1)
 				{
-					nCurSequNum = gpApp->GetMaxIndex(); // make active loc the last src phrase in the doc
+					nCurSequNum = gpApp->GetMaxIndex(); // make active loc the 
+														// last src phrase in the doc
 					gpApp->m_nActiveSequNum = nCurSequNum;
 				}
 				else if (nCurSequNum >= 0 && nCurSequNum <= gpApp->GetMaxIndex())
@@ -1773,13 +1753,13 @@ a:			CCell* pCell = 0;
 				nCount = gpApp->m_selection.GetCount();
 				wxASSERT(nCount >0);
 			}
-			int nSaveSelSequNum = pSrcPhrase->m_nSequNumber; // if in a retrans, selection will not
-															 // be where phrase box ends up
+			int nSaveSelSequNum = pSrcPhrase->m_nSequNumber; // if in a retrans, 
+                                // selection will not be where phrase box ends up
 
-			// pPile is what we will use for the active pile, so set everything up there, provided it
-			// is not in a retranslation - if it is, place the box preceding it, if possible; but
-			// if glossing is ON, we can have the box within a retranslation in which case ignore
-			// the block of code 
+            // pPile is what we will use for the active pile, so set everything up there,
+            // provided it is not in a retranslation - if it is, place the box preceding
+            // it, if possible; but if glossing is ON, we can have the box within a
+            // retranslation in which case ignore the block of code
 			CPile* pSavePile = pPile;
 			if (!gbIsGlossing)
 			{
@@ -1804,7 +1784,6 @@ a:			CCell* pCell = 0;
 			pSrcPhrase = pPile->GetSrcPhrase();
 			gpApp->m_nActiveSequNum = pSrcPhrase->m_nSequNumber;
 			gpApp->m_pActivePile = pPile;
-			//pCell = pPile->m_pCell[2]; // we want the 3rd line, for phrase box - legacy app
 			pCell = pPile->GetCell(1); // we want the 2nd line, for phrase box
 
 			// scroll into view, just in case (but shouldn't be needed)
@@ -1837,7 +1816,6 @@ a:			CCell* pCell = 0;
 			}
 
 			// recreate the selection to be in line 1, hence ignoring boundary flags
-			//CCell* pAnchorCell = pSelPile->m_pCell[0]; // top cell, ie. line 1
 			CCell* pAnchorCell = pSelPile->GetCell(0); // first line, index 0 cell
 			if (nCount > 0)
 			{
@@ -1872,7 +1850,8 @@ a:			CCell* pCell = 0;
 
 	gpApp->m_pReplaceDlg = (CReplaceDlg*)NULL;
 
-	//	wxDialog::OnCancel(); //don't call base class because we are modeless - use this only if its modal
+	//	wxDialog::OnCancel(); //don't call base class because we 
+	//	                      // are modeless - use this only if its modal
 }
 
 void CReplaceDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))

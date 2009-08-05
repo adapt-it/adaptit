@@ -2144,7 +2144,6 @@ IMPLEMENT_APP(CAdapt_ItApp)
 // Use this instead of MyApp myApp;
 
 BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
-	// EVT_IDLE(CAdapt_ItApp::OnIdle)
 	// OnIdle() handler was moved to CMainFrame. Having it here in 
 	// the App was causing File | Exit and x App cancel to become 
 	// unresponsive. Same code works fine there.
@@ -2152,47 +2151,15 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// File Menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	EVT_MENU(wxID_NEW, CAdapt_ItApp::OnFileNew)
 	// OnFileOpen is in the Doc 
-    // Note: In the MFC version OnFileOpen() is implemented in the Doc and sets the App's
-    // m_curAdaptationsPath, and calls DoFileOpen() here in the App which in turn calls the
-    // Doc's OnOpenDocument().
-
-	// OnFileSave is in the Doc
-	// OnUpdateFileSave is in the Doc
-	// OnFileClose is in the Doc
-	// OnUpdateFileClose is in the Doc
-	// OnFileExportSource is in the View
-	// OnUpdateFileExportSource is in the View
-	// OnFileExport is in the View
-	// OnUpdateFileExport is in the View
-	// OnFileExportToRtf is in the View
-	// OnUpdateFileExportToRtf is in the View
-	// OnFilePrint is in the View
-	// OnUpdateFilePrint is in the View
-	// OnFilePrintPreview is in the View
-	// OnUpdateFilePrintPreview is in the View
-    // According to the wxWidgets developers, the "Print Setup..." menu selection is
-    // obsolete since Windows 95. Users are expecte to do any necessary print setup from
-    // the main print dialog. 
-    // EVT_MENU(wxID_PRINT_SETUP, OnFilePrintSetup)
-	// OnUpdateFilePrintSetup is in the View
 	EVT_MENU(wxID_PAGE_SETUP,CAdapt_ItApp::OnFilePageSetup)
 	EVT_UPDATE_UI(wxID_PAGE_SETUP, CAdapt_ItApp::OnUpdateFilePageSetup)
-	// OnFileStartupWizard is in the View
 	EVT_UPDATE_UI(ID_FILE_STARTUP_WIZARD, CAdapt_ItApp::OnUpdateFileStartupWizard)
-	// OnFileCloseProject is in the View
-	// OnUpdateFileCloseKb is in the View
-	// OnFileSaveKB is in the View
-	// OnUpdateFileSaveKb is in the View
 	EVT_MENU(ID_FILE_BACKUP_KB, CAdapt_ItApp::OnFileBackupKb)
 	EVT_UPDATE_UI(ID_FILE_BACKUP_KB, CAdapt_ItApp::OnUpdateFileBackupKb)
 	EVT_MENU(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnFileRestoreKb)
 	EVT_UPDATE_UI(ID_FILE_RESTORE_KB, CAdapt_ItApp::OnUpdateFileRestoreKb)
 	EVT_MENU(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnFileChangeFolder)
 	EVT_UPDATE_UI(ID_FILE_CHANGEFOLDER, CAdapt_ItApp::OnUpdateFileChangeFolder)
-	// OnFileExportKb is in the View
-	// OnUpdateFileExportKb is in the View
-	// OnImportToKb is in the View
-	// OnUpdateImportToKb is in the View
 	//EVT_MENU_RANGE(wxID_FILE1, wxID_FILE9, CAdapt_ItApp::OnOpenRecentFile)// renamed to 
 	    //OnMRUFile and moved to CMainFrame
 
@@ -3196,12 +3163,15 @@ bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolled
         if (scrolledWindow)
         {
             // Allow extra for a scrollbar, assuming we resizing in one direction only.
-            if ((resizeVertically && !resizeHorizontally) && (windowSize.x < (displaySize.x - scrollBarSize)))
+            if ((resizeVertically && !resizeHorizontally) && 
+					(windowSize.x < (displaySize.x - scrollBarSize)))
                 scrollBarExtraX = scrollBarSize;
-            if ((resizeHorizontally && !resizeVertically) && (windowSize.y < (displaySize.y - scrollBarSize)))
+            if ((resizeHorizontally && !resizeVertically) && 
+					(windowSize.y < (displaySize.y - scrollBarSize)))
                 scrollBarExtraY = scrollBarSize;
 
-            scrolledWindow->SetScrollRate(resizeHorizontally ? 10 : 0, resizeVertically ? 10 : 0);
+            scrolledWindow->SetScrollRate(resizeHorizontally ? 
+											10 : 0, resizeVertically ? 10 : 0);
         }
             
         wxSize limitTo = windowSize + wxSize(scrollBarExtraX, scrollBarExtraY);
@@ -3213,7 +3183,8 @@ bool CAdapt_ItApp::FitWithScrolling(wxDialog* dialog, wxScrolledWindow* scrolled
         dialog->SetMinSize(limitTo);
         dialog->SetSize(limitTo);
         
-        dialog->SetSizeHints( limitTo.x, limitTo.y, dialog->GetMaxWidth(), dialog->GetMaxHeight() );
+        dialog->SetSizeHints( limitTo.x, limitTo.y, dialog->GetMaxWidth(), 
+								dialog->GetMaxHeight() );
     }
 
     return true;
@@ -3244,23 +3215,27 @@ wxString CAdapt_ItApp::GetDefaultPathForLocalizationSubDirectories()
 	// The Audacity program uses a simpler method, putting its localization files in:
 	// C:\Program Files\Audacity\Languages\<lang>.
 	// For Windows at least, I like the simplified way that Audacity does it. So, we add a 
-	// "Languages" subdirectory so that the localization subdirectories and files will be installed
-	// at:  "C:\Program Files\Adapt It WX\Languages\" or "C:\Program Files\Adapt It WX Unicode\Languages\"
-	// and Adapt It on the Windows port will look there.
+	// "Languages" subdirectory so that the localization subdirectories and files will
+	// be installed at:  "C:\Program Files\Adapt It WX\Languages\" or 
+	// "C:\Program Files\Adapt It WX Unicode\Languages\" and Adapt It on the Windows port 
+	// will look there.
 	// 
-	// - On Unix, the localization files are installed in "<prefix>/share/locale" so Adapt It 
-	// looks for localization <lang> subfolders and files in the /usr/share/locale/ subdirectory. The 
-	// <lang> subfolders have an additional LC_MESSAGES subfolder which contains the adaptit.mo files.
+    // - On Unix, the localization files are installed in "<prefix>/share/locale" so Adapt
+    // It looks for localization <lang> subfolders and files in the /usr/share/locale/
+    // subdirectory. The <lang> subfolders have an additional LC_MESSAGES subfolder which
+    // contains the adaptit.mo files.
 	// 
-	// - On Mac OS X, localization files are installed in the "<appname>.app/Contents/Resources/locale" 
-	// bundle subdirectory, so Adapt It looks for localization <lang> subfolders and files in the 
-	// AdaptIt.app/Contents/Resources/locale bundle subdirectory. The <lang> subfolders also have an
-	// additional LC_MESSAGES subfolder which contains the AdaptIt.mo files.
-	// In all cases, the <lang> subdirectory is named with the two (or five) letter short canonical 
-	// name of the language from the old ISO639 standard. Within these individual <lang> subdirectories, 
-	// the localization translations are contained in a compiled <appname>.mo file. Additionally there
-	// should be a wxWidgets library file called wxstd.mo in the directory if that
-	// language has also been localized for the wxWidgets library itself.
+    // - On Mac OS X, localization files are installed in the
+    // "<appname>.app/Contents/Resources/locale" bundle subdirectory, so Adapt It looks for
+    // localization <lang> subfolders and files in the
+    // AdaptIt.app/Contents/Resources/locale bundle subdirectory. The <lang> subfolders
+    // also have an additional LC_MESSAGES subfolder which contains the AdaptIt.mo files.
+    // In all cases, the <lang> subdirectory is named with the two (or five) letter short
+    // canonical name of the language from the old ISO639 standard. Within these individual
+    // <lang> subdirectories, the localization translations are contained in a compiled
+    // <appname>.mo file. Additionally there should be a wxWidgets library file called
+    // wxstd.mo in the directory if that language has also been localized for the wxWidgets
+    // library itself.
 	//
 //	// !!! testing only below
 //#if wxCHECK_VERSION(2, 7, 0)
@@ -3973,16 +3948,6 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 				break;
 			}
 		}
-
-		// BEW 25Jul09 - leaving next bit, I don't know if it may be wanted or not
-		// check to see if we need to make space in the array for this compositeStr.
-		//if (!bAssigned)
-		//{
-		//	// The composite string didn't get assigned so that means the array is full, so 
-		//	// we can assign the current compositeStr to the last element which should be 
-		//	// the oldest.
-		//	keyArray[8] = compositeStr;
-		//}
 	}
 	
 	// Sort the array again since we may have added or inserted something.
@@ -4043,8 +4008,9 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 	bool bAllKeysAssigned = FALSE;
 	for (ct = 0; ct < nKeys; ct++)
 	{
-		wxLogNull logNo; // eliminates spurious message from the system: "Can't read value 
-			// of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid until end of this block]
+		wxLogNull logNo; // eliminates spurious message from the system: 
+            // "Can't read value of key 'HKCU\Software\Adapt_It_WX\Settings' Error" [valid
+            // until end of this block]
 		wxString str;
 #ifdef _UNICODE
 		str << _T("user_defined_language_u_") << ct;
@@ -5576,8 +5542,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxStandardPaths stdPaths;
 	resourcesDir = stdPaths.GetResourcesDir(); // GetResourcesDir() is new with wxWidgets 2.7.0
 	wxLogDebug(_T("The wxStandardPaths::GetResourcesDir()  = %s"),resourcesDir.c_str());
-	//localizedResourcesDir = stdPaths.GetLocalizedResourcesDir(_T("es")); // GetLocalizedResourcesDir() is new with wxWidgets 2.7.0
-	//wxLogDebug(_T("The wxStandardPaths::GetLocalizedResourcesDir(_T(\"es\")) = %s"),localizedResourcesDir.c_str());
 	dataDir = stdPaths.GetDataDir();
 	wxLogDebug(_T("The wxStandardPaths::GetDataDir() = %s"),dataDir.c_str());
 	localDataDir = stdPaths.GetLocalDataDir();
