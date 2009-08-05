@@ -41,12 +41,13 @@ WX_DECLARE_LIST(CPile, PileList); // see list definition macro in .cpp file
 
 const int PHRASE_BOX_WIDTH_UNSET = -1;
 
-/// The CPile class represents the next smaller divisions of a CStrip. The CPile instances are laid
-/// out sequentially within a CStrip. Each CPile stores a stack or "pile" of CCells stacked
-/// vertically in the pile. Within a CPile the top CCell displays the source word or phrase with
-/// punctuation, the second CCell displays the translation with punctuation as copied (if the user
-/// typed none) or as typed by the user. The third CCell displays the Gloss, when used. In glossing
-/// mode, second displays gloss and third displays target text.
+/// The CPile class represents the next smaller divisions of a CStrip. The CPile instances
+/// are laid out sequentially within a CStrip. Each CPile stores a stack or "pile" of
+/// CCells stacked vertically in the pile. Within a CPile the top CCell displays the source
+/// word or phrase with punctuation, the second CCell displays the translation with
+/// punctuation as copied (if the user typed none) or as typed by the user. The third CCell
+/// displays the Gloss, when used. In glossing mode, second displays gloss and third
+/// displays target text.
 /// \derivation		The CPile class is derived from wxObject.
 class CPile : public wxObject  
 {

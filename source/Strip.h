@@ -24,9 +24,6 @@
 #endif
 
 // forward references:
-//class CAdapt_ItDoc; // BEW deprecated 3Feb09
-//class CSourceBundle;
-//class CPile;
 #include "Pile.h"
 class CStrip;
 class CLayout; // make the "friend class CLayout" declaration work
@@ -34,9 +31,9 @@ class CLayout; // make the "friend class CLayout" declaration work
 WX_DECLARE_LIST(CStrip, StripList); // see list definition macro in .cpp file
 
 
-/// The CStrip class is what defines the ordered sequence of groups of CPiles arranged vertically
-/// in the canvas window. The piles are displayed in LtoR languages from left to right, and in RtoL
-/// languages from right to left. 
+/// The CStrip class is what defines the ordered sequence of groups of CPiles arranged
+/// vertically in the canvas window. The piles are displayed in LtoR languages from left to
+/// right, and in RtoL languages from right to left.
 /// \derivation The CStrip class is derived from wxObject.
 class CStrip : public wxObject  
 {

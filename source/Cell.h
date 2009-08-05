@@ -27,9 +27,6 @@
 // forward references
 class CAdapt_ItDoc;
 class CSourceBundle;
-//class CStrip;
-//class CPile;
-//class CText;
 class CFont;
 
 /// The CCell class represents the next smaller division of a CPile, there
@@ -50,7 +47,7 @@ public:
 
 	// attributes
 private: 
-	bool		m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
+	bool		m_bSelected;	//< TRUE if text is within a selection, FALSE otherwise
 	int			m_nCell;	// index to this particular cell in the pile's array
 	wxString*	m_pPhrase;	// point to m_gloss or m_targetStr depending on gbIsGlossing
 	CLayout*	m_pLayout;
@@ -92,36 +89,6 @@ public:
 	// Used inside a class declaration to declare that the objects of 
 	// this class should be dynamically creatable from run-time type 
 	// information. MFC uses DECLARE_DYNCREATE(CRefString)
-	
-	// old stuff - deprecated
-	//	CCell(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, 
-	//				CStrip* pStrip, CPile* pPile); //BEW deprecated 3Feb09
-	//	CCell(CSourceBundle* pSourceBundle, CStrip* pStrip, CPile* pPile);
-	/*
-	public:
-	//CText*				m_pText; // note, cell can exist with this ptr NULL; BEW removed 6Feb09
-	wxColour				m_color;
-	wxColour				m_navColor;
-	wxFont*					m_pFont;
-	wxPoint					m_ptBotRight;
-	wxPoint					m_ptTopLeft;
-	int						m_nTextExtent; // not set if m_bDisplay == FALSE
-	int						m_nCellIndex; // which one I am of the five
-	//bool					m_bDisplay; // TRUE if the cell is to be displayed, BEW deprecated 3Feb09
-	//CAdapt_ItDoc*			m_pDoc; // BEW deprecated 3Feb09
-	CSourceBundle*			m_pBundle;
-	CStrip*					m_pStrip;
-	CPile*					m_pPile;
-	//wxString*				m_pPhrase; // BEW changed 9Feb09 to point at the text, not copy it
-	// and for the refactored design, we don't need to even store the pointer, but get it as needed
-	// using GetCellText()
-	bool					m_bSelected;	///< TRUE if text is within a selection, FALSE otherwise
-	*/
-	//void  DrawCell(wxDC* pDC, wxPoint& start, wxPoint& end, wxFont* pFont,
-	//		const wxString& phrase, const wxColour& color, int nCell);
-	//void	CreateCell(CSourceBundle* pBundle,CStrip* pStrip, CPile* pPile, wxString* pPhrase,
-	//					int xExtent, wxFont* pFont, wxColour* pColor, wxPoint* pTopLeft, 
-	//					wxPoint* pBotRight, int index, wxColor* pNavTextColor);
 };
 
 #endif

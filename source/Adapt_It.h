@@ -693,22 +693,26 @@ enum USFMAnalysisField
 // 3. The ParseAndFillStruct function in Adapt_It.cpp
 // 4. Add any necessary const char defined string literals to beginning of XML.cpp
 // 5. Change/add any necessary else if clause to the AtSFMAttr function in XML.cpp
-// 6. Change/add any necessary else if clause to the ParseXMLAttribute function in XML.cpp (this
-//    would be appropriate for any attribute additions involving enum values)
-// 7. Change/add any necessary new USFMAnalysis struct default value for the attribute in AtSFMTag
-//    in XML.cpp
-// 8. Change/add any necessary > if(comment) dup else '' endif  line in UsfmXml.cct if there is
-//    a default form of the attribute which should not be placed in AI_USFM.xml to save space.
-// 9. The AI_USFM_full.xml attributes need to be added to the markers defined there, if applicable.
-// 10. Using the stand-alone Consistent Changes program with UsfmXml.cct and UsfmXmlTidy.cct,
-//    then the resulting AI_USFM.xml file deposited/installed to the Adapt It (Unicode) Work
-//    directory.
-// 11. The const wxString defaultSFM[] unix-style default strings (defined in Adapt_It.cpp) need to be 
-//    re-assembled by moving the updated AI_USFM_full.xml file to the Adapt It (Unicode) Work directory,
-//    then uncommenting the //#define Output_Default_Style_Strings symbol near the beginning of the
-//    XML.h header file, and compiling/running the program until it reaches the Start Working Wizard. A
-//    AI_USFM_full.txt file is generated automatically in the Adapt It (Unicode) Work directory that
-//    contains the unix style default strings to be copied over those located in Adapt_It.cpp.
+// 6. Change/add any necessary else if clause to the ParseXMLAttribute function in 
+//    XML.cpp (this would be appropriate for any attribute additions involving enum values)
+// 7. Change/add any necessary new USFMAnalysis struct default value for the attribute
+//    in AtSFMTag in XML.cpp
+// 8. Change/add any necessary > if(comment) dup else '' endif  line in UsfmXml.cct if 
+//    there is a default form of the attribute which should not be placed in AI_USFM.xml 
+//    to save space.
+// 9. The AI_USFM_full.xml attributes need to be added to the markers defined there, 
+//    if applicable.
+// 10. Using the stand-alone Consistent Changes program with UsfmXml.cct and 
+//    UsfmXmlTidy.cct, then the resulting AI_USFM.xml file deposited/installed to the 
+//    Adapt It (Unicode) Work directory.
+// 11. The const wxString defaultSFM[] unix-style default strings (defined in 
+//    Adapt_It.cpp) need to be re-assembled by moving the updated AI_USFM_full.xml file 
+//    to the Adapt It (Unicode) Work directory, then uncommenting the 
+//    #define Output_Default_Style_Strings symbol near the beginning of the
+//    XML.h header file, and compiling/running the program until it reaches the 
+//    Start Working Wizard. An AI_USFM_full.txt file is generated automatically in
+//    the Adapt It (Unicode) Work directory that contains the unix style default 
+//    strings to be copied over those located in Adapt_It.cpp.
 
 /// A struct for storing the attributes of usfm markers. Structs are created on the heap
 /// and their pointers are associated with the standard format marker name in high-speed
@@ -2151,7 +2155,6 @@ public:
     int		OnExit();// wxApp uses non-virtual OnExit() instead of virtual int ExitInstance()
     // OnIdle() handler moved to CMainFrame. Having it here in the App was causing File |
     // Exit and x App cancel to become unresponsive 
-    // void OnIdle(wxIdleEvent& event);
 
 // Declaration of event handlers
 

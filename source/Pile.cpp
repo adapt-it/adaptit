@@ -26,42 +26,50 @@
 // 
 /////////////////////////////////////////////////////////////////////////////
 
-// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: (BEW moved here from deprecated CText)
-//    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function does not 
-// have an nFormat parameter like MFC's CDC::DrawText(const CString& str, lPRECT lpRect, UINT nFormat) 
-// text-drawing function. The MFC function utilizes the nFormat parameter to control the RTL vs LTR 
-// directionality, which apparently only affects the directionality of the display context WITHIN the
-// lpRect region of the display context. At present, it seems that the wxWidgets function cannot 
-// directly control the directionality of the text using its DrawText() function. In both MFC and 
-// wxWidgets there is a way to control the overall layout direction of the elements of a whole diaplay
-// context. In MFC it is CDC::SetLayout(DWORD dwLayout); in wxWidgets it is 
-// wxDC::SetLayoutDirection(wxLayoutDirection dir). Both of these dc layout functions cause the whole 
-// display context to be mirrored so that all elements drawn in the display context are reversed as 
-// though seen in a mirror. For a simple application that only displays a single language in its display
-// context, perhaps layout mirroring would work OK. However, Adapt It must layout several different
-// diverse languages within the same display context, some of which may have different directionality
-// and alignment. Therefore, except for possibly some widget controls, MFC's SetLayout() and wxWidgets'
-// SetLayoutDirection() would not be good choices. The MFC Adapt It sources NEVER call the mirroring 
-// functions. Instead, for writing on a display context, MFC uses the nFormat paramter within 
-// DrawText(str,m_enclosingRect,nFormat) to accomplish two things: (1) Render the text as Right-To-Left, 
-// and (2) Align the text to the RIGHT within the enclosing rectangle passed as parameter to DrawText().
-// The challenge within wxWidgets is to determine how to get the equivalent display of RTL and LTR text.
-//    2. The SetLayoutDirection() function within wxWidgets can be applied to certain controls containing
-// text such as wxTextCtrl and wxListBox, etc. It is presently an undocumented method with the following
-// signature: SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or 
-// wxLayout_RightToLeft. It should be noted that setting the layout to wxLayout_RightToLeft on these 
-// controls also involves mirroring, so that any scrollbar that gets displayed, for example, displays 
-// on the left rather than on the right for RTL, etc.
+// whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: 
+// (BEW moved here from deprecated CText)
+//    1. The wxWidgets wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) function
+//    does not have an nFormat parameter like MFC's CDC::DrawText(const CString& str,
+//    lPRECT lpRect, UINT nFormat) text-drawing function. The MFC function utilizes the
+//    nFormat parameter to control the RTL vs LTR directionality, which apparently only
+//    affects the directionality of the display context WITHIN the lpRect region of the
+//    display context. At present, it seems that the wxWidgets function cannot directly
+//    control the directionality of the text using its DrawText() function. In both MFC and
+//    wxWidgets there is a way to control the overall layout direction of the elements of a
+//    whole diaplay context. In MFC it is CDC::SetLayout(DWORD dwLayout); in wxWidgets it
+//    is wxDC::SetLayoutDirection(wxLayoutDirection dir). Both of these dc layout functions
+//    cause the whole display context to be mirrored so that all elements drawn in the
+//    display context are reversed as though seen in a mirror. For a simple application
+//    that only displays a single language in its display context, perhaps layout mirroring
+//    would work OK. However, Adapt It must layout several different diverse languages
+//    within the same display context, some of which may have different directionality and
+//    alignment. Therefore, except for possibly some widget controls, MFC's SetLayout() and
+//    wxWidgets' SetLayoutDirection() would not be good choices. The MFC Adapt It sources
+//    NEVER call the mirroring functions. Instead, for writing on a display context, MFC
+//    uses the nFormat paramter within DrawText(str,m_enclosingRect,nFormat) to accomplish
+//    two things: (1) Render the text as Right-To-Left, and (2) Align the text to the RIGHT
+//    within the enclosing rectangle passed as parameter to DrawText(). The challenge
+//    within wxWidgets is to determine how to get the equivalent display of RTL and LTR
+//    text.
+//    2. The SetLayoutDirection() function within wxWidgets can be applied to certain
+//    controls containing text such as wxTextCtrl and wxListBox, etc. It is presently an
+//    undocumented method with the following signature:
+//    SetLayoutDirection(wxLayoutDirection dir), where dir is wxLayout_LeftToRight or
+//    wxLayout_RightToLeft. It should be noted that setting the layout to
+//    wxLayout_RightToLeft on these controls also involves mirroring, so that any scrollbar
+//    that gets displayed, for example, displays on the left rather than on the right for
+//    RTL, etc.
 // CONCLUSIONS:
-// Pango in wxGTK, ATSIU in wxMac and Uniscribe in wxMSW seem to do a good job of rendering Right-To-Left 
-// Reading text with the correct directionality in a display context without calling the 
-// SetLayoutDirection() method. The main thing we have to do is determine where the starting point for 
-// the DrawText() operation needs to be located to effect the correct text alignment within the cells 
-// (rectangles) of the pile for the given language - the upper left coordinates for LTR text, and the
-// upper-right coordinates for RTL text.
-// Therefore, in the wx version we have to be careful about the automatic mirroring features involved 
-// in the SetLayoutDirection() function, since Adapt It MFC was designed to micromanage the layout 
-// direction itself in the coding of text, cells, piles, strips, etc.
+// Pango in wxGTK, ATSIU in wxMac and Uniscribe in wxMSW seem to do a good job of rendering
+// Right-To-Left Reading text with the correct directionality in a display context without
+// calling the SetLayoutDirection() method. The main thing we have to do is determine where
+// the starting point for the DrawText() operation needs to be located to effect the
+// correct text alignment within the cells (rectangles) of the pile for the given language
+// - the upper left coordinates for LTR text, and the upper-right coordinates for RTL text.
+// Therefore, in the wx version we have to be careful about the automatic mirroring
+// features involved in the SetLayoutDirection() function, since Adapt It MFC was designed
+// to micromanage the layout direction itself in the coding of text, cells, piles, strips,
+// etc.
 
 
 
@@ -90,8 +98,8 @@
 //#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
-// don't mess with the order of the following includes, Strip must precede View must precede
-// Pile must precede Layout and Cell can usefully by last
+// don't mess with the order of the following includes, Strip must precede View must
+// precede Pile must precede Layout and Cell can usefully by last
 #include "Strip.h"
 #include "Adapt_ItView.h"
 #include "Pile.h"
@@ -108,7 +116,8 @@ WX_DEFINE_LIST(PileList);
 
 // next two are for version 2.0 which includes the option of a 3rd line for glossing
 
-// these next globals are put here when I moved CreatePile() from the view to the CPile class
+// these next globals are put here when I moved CreatePile() 
+// from the view to the CPile class
 extern bool gbShowTargetOnly;
 extern bool gbEnableGlossing;
 //extern CAdapt_ItApp* gpApp;
@@ -147,30 +156,14 @@ CPile::CPile()
 	m_nWidth = 20;
 	m_nMinWidth = 40;
 	m_nPile = -1; // I don't belong in any strip yet
-
-	/*  Use CreatePile() to set up the internals correctly
-	m_bIsActivePile = FALSE;
-	m_nPileIndex = 0;
-	m_rectPile = wxRect(0,0,0,0);
-	// NOTE: Difference in MFC's CRect and wxWidgets' wxRect using 4 parameters: 
-	// MFC has (left, top, right, bottom); wxRect has (x, y, width, height).
-	// When initializing to 0,0,0,0 it doesn't matter, but may matter when used
-	// in CAdapt_ItView and CPhraseBox.
-	m_nWidth = 40;
-	m_nMinWidth = 40;
-	m_nHorzOffset = 0;
-	m_pCell[0] = m_pCell[1] = m_pCell[2] = m_pCell[3] = (CCell*)NULL;
-	m_pSrcPhrase = (CSourcePhrase*)NULL;
-	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
-	m_navTextColor = gpApp->m_navTextColor;
-	*/
 }
 
 CPile::CPile(CLayout* pLayout)  // use this one, it sets m_pLayout
 {
 	m_pLayout = pLayout;
 	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
-	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
+	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for 
+										  // free translation support
 	m_pSrcPhrase = (CSourcePhrase*)NULL;
 	m_pLayout = (CLayout*)NULL;
 	m_pOwningStrip = (CStrip*)NULL;
@@ -193,7 +186,8 @@ CPile::CPile(const CPile& pile)
 
 #ifdef __WXDEBUG__
 	int nDebugIndex = 4;
-	wxLogDebug(_T("DebugIndex = %d  CPile, copy creator, CPile pointer  %x"),nDebugIndex,this);
+	wxLogDebug(_T("DebugIndex = %d  CPile, copy creator, CPile pointer  %x"),
+				nDebugIndex,this);
 #endif
 
 
@@ -203,46 +197,12 @@ CPile::CPile(const CPile& pile)
 	m_bIsCurrentFreeTransSection = pile.m_bIsCurrentFreeTransSection;
 }
 
-//CPile::CPile(CAdapt_ItDoc* pDocument, CSourceBundle* pSourceBundle, CStrip* pStrip,
-//			CSourcePhrase* pSrcPhrase) // BEW deprecated 3Feb09
-//CPile::CPile(CSourceBundle* pSourceBundle, CStrip* pStrip, CSourcePhrase* pSrcPhrase)
-/* unneeded, we will have a 2-step creation process using CPile() followed by CreatePile(params...)
-CPile(CLayout* pLayout, CSourcePhrase* pSrcPhrase)
-{
-	m_pCell[0] = m_pCell[1] = m_pCell[2] = (CCell*)NULL;
-	m_bIsCurrentFreeTransSection = FALSE; // BEW added 24Jun05 for free translation support
-	m_pSrcPhrase = pSrcPhrase;
-	CLayout* m_pLayout = pLayout;
-	m_nWidth = 20;
-	m_nMinWidth = 40;
-}
-*/
-
 CPile::~CPile()
 {
 
 }
 
 // implementation
-/*
-void CPile::DestroyCells()
-{
-	// not yet refactored!!!
-	for (int i=0; i<MAX_CELLS; i++)
-	{
-		if (m_pCell[i] != NULL)
-		{
-			//if (m_pCell[i]->m_pText != NULL) // BEW removed 6Feb09
-			//{
-			//	delete m_pCell[i]->m_pText;
-			//	m_pCell[i]->m_pText = (CText*)NULL;
-			//}
-			delete m_pCell[i];
-			m_pCell[i] = (CCell*)NULL;
-		}
-	}
-}
-*/
 
 CCell* CPile::GetCell(int nCellIndex)
 {
@@ -404,7 +364,6 @@ int CPile::CalcPileWidth()
 	int pileWidth = 40; // ensure we never get a pileWidth of zero
 
 	// get a device context for the canvas on the stack (wont' accept uncasted definition)
-	//wxClientDC aDC((wxWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxClientDC aDC((wxScrolledWindow*)m_pLayout->m_pCanvas); // make a temporary device context
 	wxSize extent;
 	aDC.SetFont(*m_pLayout->m_pSrcFont); // works, now we are friends
@@ -412,7 +371,6 @@ int CPile::CalcPileWidth()
 	pileWidth = extent.x; // can assume >= to key's width, as differ only by possible punctuation
 	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
 	{
-		//aDC.SetFont(*m_pLayout->GetTgtFont());
 		aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
 		if (extent.x > pileWidth)
@@ -423,10 +381,8 @@ int CPile::CalcPileWidth()
 	if (!m_pSrcPhrase->m_gloss.IsEmpty())
 	{
 		if (gbGlossingUsesNavFont)
-			//aDC.SetFont(*m_pLayout->GetNavTextFont());
 			aDC.SetFont(*m_pLayout->m_pNavTextFont);
 		else
-			//aDC.SetFont(*m_pLayout->GetTgtFont());
 			aDC.SetFont(*m_pLayout->m_pTgtFont);
 		aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
 		if (extent.x > pileWidth)
@@ -434,48 +390,6 @@ int CPile::CalcPileWidth()
 			pileWidth = extent.x;
 		}
 	}
-	/* 
-	// older version, BEW removed 6Jun09, because we want all cell's always used, so that
-	// we can switch from glossing mode to adaptation mode and to showing target text only
-	// and back again without having to relayout the piles in strips, but just call
-	// Redraw() so the new code above just sets the width to the widest of the 3 strings
-	if (!gbShowTargetOnly)
-	{
-		aDC.GetTextExtent(m_pSrcPhrase->m_srcPhrase, &extent.x, &extent.y);
-		pileWidth = extent.x; // can assume >= to key's width, as differ only by 
-							  // possible punctuation
-	}
-	if (!m_pSrcPhrase->m_targetStr.IsEmpty())
-	{
-		//aDC.SetFont(*m_pLayout->GetTgtFont());
-		aDC.SetFont(*m_pLayout->m_pTgtFont);
-		aDC.GetTextExtent(m_pSrcPhrase->m_targetStr, &extent.x, &extent.y);
-		if (extent.x > pileWidth)
-		{
-			pileWidth = extent.x;
-		}
-	}
-	if (gbEnableGlossing)
-	{
-		// include the m_gloss contents in the width calculation only if gbEnableGlossing
-		// is TRUE, that is, if the "See Glosses" menu item is checked; and also only
-		// provided the contents of m_gloss are not empty
-		if (!m_pSrcPhrase->m_gloss.IsEmpty())
-		{
-			if (gbGlossingUsesNavFont)
-				//aDC.SetFont(*m_pLayout->GetNavTextFont());
-				aDC.SetFont(*m_pLayout->m_pNavTextFont);
-			else
-				//aDC.SetFont(*m_pLayout->GetTgtFont());
-				aDC.SetFont(*m_pLayout->m_pTgtFont);
-			aDC.GetTextExtent(m_pSrcPhrase->m_gloss, &extent.x, &extent.y);
-			if (extent.x > pileWidth)
-			{
-				pileWidth = extent.x;
-			}
-		}
-	}
-	*/
 	return pileWidth;
 }
 
@@ -592,13 +506,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 	// stuff below is for drawing the navText stuff above this pile of the strip
 	// Note: in the wx version m_bSuppressFirst is now located in the App
-	//if (((m_nCellIndex == 0 && !m_pLayout->m_pApp->m_bSuppressFirst) ||
-	//	 (m_nCellIndex == 1 && m_pLayout->m_pApp->m_bSuppressFirst)) && !gbShowTargetOnly )
 	if (!gbShowTargetOnly)
 	{
 		int xOffset = 0;
 		int diff;
-		//bool bHasFilterMarker = HasFilterMarker(m_pPile);
 		bool bHasFilterMarker = HasFilterMarker();
 
 		// if a message is to be displayed above this word, draw it too
@@ -611,7 +522,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				pt.x += rectBounding.GetWidth(); // align right
 #endif
 			// whm: the wx version doesn't use negative offsets
-			//diff = m_pLayout->m_pApp->m_nNavTextHeight - (m_pLayout->m_pApp->m_nSrcHeight/4);
 			diff = m_pLayout->GetNavTextHeight() - (m_pLayout->GetSrcTextHeight()/4);
 			pt.y -= diff;
 			wxString str;
@@ -621,17 +531,14 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			else
 				str = _T("* ");
 			wxFont SaveFont;
-			//wxFont* pNavTextFont = m_pLayout->m_pApp->m_pNavTextFont;
 			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
 			SaveFont = pDC->GetFont(); // save current font
 			pDC->SetFont(*pNavTextFont);
-			//if (!m_navColor.IsOk())
 			if (!navColor.IsOk())
 			{
 				::wxBell(); 
 				wxASSERT(FALSE);
 			}
-			//pDC->SetTextForeground(m_navColor);
 			pDC->SetTextForeground(navColor);
 
 			rectBounding.Offset(0,-diff);
@@ -640,7 +547,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			// right-to-left reading of the text, but we need to manually control 
 			// the right-alignment of text when we have bRTLLayout. The upper-left
 			// x coordinate for RTL drawing of the m_phrase should be 
-			// enclosingRect.GetLeft() + widthOfCell - textExtOfPhrase.
 			if (bRTLLayout)
 			{
 				// *** Draw the RTL Retranslation section marks *# or * in Nav Text area ***
@@ -649,7 +555,6 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 				// text is not normally drawn above every cell but just at major markers like
 				// at ch:vs points, section headings, etc. For RTL the nav text could extend
 				// out and be clipped beyond the left margin.
-				//pView->DrawTextRTL(pDC,str,rectBounding);
 				m_pCell[0]->DrawTextRTL(pDC,str,rectBounding); // any CCell pointer would do here
 			}
 			else
@@ -848,13 +753,11 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 			wxFont* pNavTextFont = m_pLayout->m_pNavTextFont;
 			aSavedFont = pDC->GetFont();
 			pDC->SetFont(*pNavTextFont);
-			//if (!m_navColor.IsOk())
 			if (!navColor.IsOk())
 			{
 				::wxBell(); 
 				wxASSERT(FALSE);
 			}
-			//pDC->SetTextForeground(m_navColor);
 			pDC->SetTextForeground(navColor);
 
             // BEW modified 25Nov05 to move the start of navText to just after the green
@@ -999,7 +902,6 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 			wxPoint topLeft;
 			m_pCell[1]->TopLeft(topLeft);
 			// Note: GetMargins not supported in wxWidgets' wxTextCtrl (nor MFC's RichEdit3)
-			//DWORD boxMargins = pApp->m_targetBox.GetMargins();
 			int leftMargin = 2; // we'll hard code 2 pixels on left as above - check this ???
 			wxPoint textTopLeft = topLeft;
 			textTopLeft.x += leftMargin;
