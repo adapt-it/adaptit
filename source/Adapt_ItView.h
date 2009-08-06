@@ -593,10 +593,14 @@ protected:
 	void OnUpdateEditSourceText(wxUpdateUIEvent& event);
 	void OnEditSourceText(wxCommandEvent& WXUNUSED(event));
 	void OnButtonNoAdapt(wxCommandEvent& event);
-	void OnUpdateFileExportSource(wxUpdateUIEvent& event);
 	void OnFileExportSource(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateFileExportSource(wxUpdateUIEvent& event);
 	void OnFileExportToRtf(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileExportToRtf(wxUpdateUIEvent& event);
+
+	void OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateExportGlossesAsText(wxUpdateUIEvent& event);
+
 	void OnButtonCreateNote(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonCreateNote(wxUpdateUIEvent& event);
 	void OnUpdateButtonPrevNote(wxUpdateUIEvent& event);

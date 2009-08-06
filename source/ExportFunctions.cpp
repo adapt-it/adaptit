@@ -150,14 +150,16 @@ WX_DEFINE_LIST(BackTransList); // a list to store Back trans text phrases compos
 MapBareMkrToRTFTags rtfTagsMap;
 MapBareMkrToRTFTags::iterator rtfIter; // wx note: rtfIter declared locally as needed
 
-void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
+//void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
+//void DoExportSrcOrTgt(enum ExportType exportType, bool bForceUTF8Conversion)
+void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 {
 	bForceUTF8Conversion = bForceUTF8Conversion; // to avoid unreferenced formal parameter warning
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	CAdapt_ItView* pView = gpApp->GetView();
 
 	wxString exportFilename;
-	if (bExportTarget)
+	if (exportType == targetTextExport)
 		exportFilename = gpApp->m_curOutputFilename;
 	else
 		exportFilename = _T("new source text.txt");
@@ -166,7 +168,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 	// make the working directory the "<Project Name>" one, unless there is a path in
 	// app's m_lastExportPath member, or m_lastSrcExportPath if doing source export
 	bool bOK;
-	if (bExportTarget)
+	if (exportType == targetTextExport)
 	{
 		// we are exporting the target text
 		if (gpApp->m_lastExportPath.IsEmpty())
@@ -200,7 +202,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 
 	wxString s;
 	bool bRTFOutput = FALSE;	// local var - assume SFM output for Source or Target text
-	if (bExportTarget)
+	if (exportType == targetTextExport)
 	{
 		// IDS_EXPORT_TGT
 		s = _("Export Translation (Target) Text");
@@ -266,7 +268,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 	}
 	else // we want SFM output
 	{
-		if (bExportTarget)
+		if (exportType == targetTextExport)
 		{
 			if (gpApp->m_lastExportPath.IsEmpty())
 			{
@@ -318,7 +320,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 		gpApp->m_rtfExportPath = exportPath.Left(pathLen - nameLen - 1);
 	else
 	{
-		if (bExportTarget)
+		if (exportType == targetTextExport)
 			gpApp->m_lastExportPath = exportPath.Left(pathLen - nameLen - 1);
 		else
 			gpApp->m_lastSrcExportPath = exportPath.Left(pathLen - nameLen - 1);
@@ -346,7 +348,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 	// backtranslations, notes, and free translations.
 
 	// Rebuild the text and apply the output filter to it.
-	if (bExportTarget)
+	if (exportType == targetTextExport)
 	{
 		nTextLength = RebuildTargetText(target);
 		// Apply output filter to the target text
@@ -395,7 +397,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 
 	if( !f.Open( exportPath, wxFile::write))
 	{
-		if (bExportTarget)
+		if (exportType == targetTextExport)
 		{
 			#ifdef __WXDEBUG__
 			wxLogDebug(_T("Unable to open export target text file\n"));
@@ -418,7 +420,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 
 	// output the final form of the string
 	#ifndef _UNICODE // ANSI
-	if (bExportTarget)
+	if (exportType == targetTextExport)
 	{
 		f.Write(target);
 	}
@@ -427,7 +429,7 @@ void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion)
 		f.Write(source);
 	}
 	#else // Unicode
-	if (bExportTarget)
+	if (exportType == targetTextExport)
 	{
 		// we must check the encoding; if it is utf-safe, send it out as UTF-8;
 		// if not, assume it's a legacy encoding and use the code page

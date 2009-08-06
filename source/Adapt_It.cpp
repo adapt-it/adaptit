@@ -6128,7 +6128,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// Get the File Menu, tell the doc manager that we want the File History on the
 	// File Menu, and Load the File History (MRU) to it
-	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(0);
+	wxMenu* pFileMenu = m_pMainFrame->GetMenuBar()->GetMenu(fileMenu);
 	wxASSERT(pFileMenu != NULL);
 	m_pDocManager->FileHistoryUseMenu(pFileMenu);
 	// This must come after Main Menu is created and FileHistoryUseMenu call
@@ -6171,7 +6171,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxASSERT(pFileExitItem != NULL);
 	pFileExitItem->SetItemLabel(_("Exit\tCtrl-Q")); //pFileMenu->SetLabel(wxID_EXIT,_("Exit\tCtrl-Q"));
 	
-	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(1);
+	wxMenu* pEditMenu = m_pMainFrame->GetMenuBar()->GetMenu(editMenu);
 	wxASSERT(pEditMenu != NULL);
 	
 	// Edit | Edit Source Text
@@ -6192,7 +6192,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // use Ctrl-Shift-3 for it here.
     pEditMenu->SetLabel(ID_EDIT_MOVE_NOTE_FORWARD,_("Move Note Forward\tCtrl-Shift-3"));
 	
-	wxMenu* pToolsMenu = m_pMainFrame->GetMenuBar()->GetMenu(3);
+	wxMenu* pToolsMenu = m_pMainFrame->GetMenuBar()->GetMenu(toolsMenu);
 	wxASSERT(pToolsMenu != NULL);
 	
 	// Tools | Find and Replace
@@ -6201,7 +6201,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// menu to use Ctrl-Shift-F for it here.
 	pToolsMenu->SetLabel(wxID_REPLACE,_("Find and Replace...\tCtrl-Shift-F"));
 
-	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(5);
+	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(layoutMenu);
 	wxASSERT(pLayoutMenu != NULL);
 	
 	// Layout | Layout Window Right To Left
@@ -6591,7 +6591,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	// In the wx version we started with the Layout menu loaded with 
 	// other menu resources. Here we'll remove it for the ANSI version.
-	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(5);
+	wxMenu* pLayoutMenu = m_pMainFrame->GetMenuBar()->GetMenu(layoutMenu);
 	wxASSERT(pLayoutMenu != NULL);
 	// first delete the "Layout Window Right To Left\tCTRL+1" menu item
 	pRemMenuItem = pLayoutMenu->Remove(ID_ALIGNMENT);
@@ -6601,7 +6601,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// then delete the top level "Layout" menu
 	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
 	wxMenu* pRemMenu;
-	pRemMenu = pMenuBar->Remove(5);
+	pRemMenu = pMenuBar->Remove(layoutMenu);
 	wxASSERT(pRemMenu != NULL);
 	delete pRemMenu; // to avoid memory leaks
 	pRemMenu = (wxMenu*)NULL;
