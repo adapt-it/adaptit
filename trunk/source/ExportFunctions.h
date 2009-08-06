@@ -59,8 +59,20 @@ WX_DECLARE_HASH_MAP( wxString,		// the map key is the whole sfm marker (with bac
                     wxStringEqual,
 					MapMkrToColorStr );
 
+/* defined in Adapt_It.h
+enum ExportType
+{
+	sourceTextExport,
+	targetTextExport,
+	glossesTextExport,
+	freeTransTextExport
+};
+*/
+
 // main export functions:
-void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion);
+//void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion);
+//void DoExportSrcOrTgt(enum ExportType exportType, bool bForceUTF8Conversion);
+void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion); // BEW created 6Aug09
 void DoExportInterlinearRTF();
 void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportName, wxString& Buffer);
 

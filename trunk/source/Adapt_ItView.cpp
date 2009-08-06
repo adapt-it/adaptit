@@ -890,12 +890,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	// File Menu 
 	EVT_UPDATE_UI(wxID_NEW, CAdapt_ItView::OnUpdateFileNew)
 	EVT_UPDATE_UI(wxID_OPEN, CAdapt_ItView::OnUpdateFileOpen)
-	EVT_MENU(ID_FILE_EXPORT_SOURCE, CAdapt_ItView::OnFileExportSource)
-	EVT_UPDATE_UI(ID_FILE_EXPORT_SOURCE, CAdapt_ItView::OnUpdateFileExportSource)
-	EVT_MENU(ID_FILE_EXPORT, CAdapt_ItView::OnFileExport)
-	EVT_UPDATE_UI(ID_FILE_EXPORT, CAdapt_ItView::OnUpdateFileExport)
-	EVT_MENU(ID_FILE_EXPORT_TO_RTF, CAdapt_ItView::OnFileExportToRtf)
-	EVT_UPDATE_UI(ID_FILE_EXPORT_TO_RTF, CAdapt_ItView::OnUpdateFileExportToRtf)
 
 	// Standard printing commands
 	EVT_MENU(wxID_PRINT, CAdapt_ItView::OnPrint)
@@ -907,10 +901,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_FILE_CLOSEKB, CAdapt_ItView::OnUpdateFileCloseKB)
 	EVT_MENU(ID_FILE_SAVEKB, CAdapt_ItView::OnFileSaveKB)
 	EVT_UPDATE_UI(ID_FILE_SAVEKB, CAdapt_ItView::OnUpdateFileSaveKB)
-	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItView::OnFileExportKb)
-	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItView::OnUpdateFileExportKb)
-	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
-	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
 	// End of File Menu
 
 	// Edit Menu
@@ -968,6 +958,21 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_MENU(ID_RETRANS_REPORT, CAdapt_ItView::OnRetransReport) // uncomment to activate
 	EVT_UPDATE_UI(ID_RETRANS_REPORT, CAdapt_ItView::OnUpdateRetransReport)
 	// End of Tools Menu
+
+	// Export-Import Menu
+	EVT_MENU(ID_FILE_EXPORT_SOURCE, CAdapt_ItView::OnFileExportSource)
+	EVT_UPDATE_UI(ID_FILE_EXPORT_SOURCE, CAdapt_ItView::OnUpdateFileExportSource)
+	EVT_MENU(ID_FILE_EXPORT, CAdapt_ItView::OnFileExport)
+	EVT_UPDATE_UI(ID_FILE_EXPORT, CAdapt_ItView::OnUpdateFileExport)
+	EVT_MENU(ID_FILE_EXPORT_TO_RTF, CAdapt_ItView::OnFileExportToRtf)
+	EVT_UPDATE_UI(ID_FILE_EXPORT_TO_RTF, CAdapt_ItView::OnUpdateFileExportToRtf)
+	EVT_MENU(ID_EXPORT_GLOSSES, CAdapt_ItView::OnExportGlossesAsText)
+	EVT_UPDATE_UI(ID_EXPORT_GLOSSES, CAdapt_ItView::OnUpdateExportGlossesAsText)
+	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItView::OnFileExportKb)
+	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItView::OnUpdateFileExportKb)
+	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
+	EVT_UPDATE_UI(ID_IMPORT_TO_KB, CAdapt_ItView::OnUpdateImportToKb)
+	// End of Export-Import Menu
 
 	// Advanced Menu
 	// Event for Enable/Disable Glossing menu item
@@ -25420,45 +25425,6 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 	}
 }
 
-void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
-{
-	bool bExportTarget = TRUE;
-	bool bForceUTF8Conversion = TRUE; // BEW changed 08Dec06, as Bob's encoding 
-            // checking code was unreliable, so from now on always force the conversion,
-            // and remove the Export....As UTF-8 command
-	DoExportSrcOrTgt(bExportTarget,bForceUTF8Conversion);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return		nothing
-/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu
-///                        is about to be displayed
-/// \remarks
-/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
-/// and before the menu is displayed.
-/// If Vertical Editing is in progress, or if the application is in glossing mode this
-/// handler disables the "Export Translation Text..." item in the File menu, otherwise it
-/// enables the "Export Translation Text..." item on the File menu.
-/////////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	if (gbVerticalEditInProgress)
-	{
-		event.Enable(FALSE);
-		return;
-	}
-	if (pApp->m_pSourcePhrases->GetCount() > 0)
-	{
-		if (gbIsGlossing)
-			event.Enable(FALSE); // don't allow target text export when glossing
-		else
-			event.Enable(TRUE); // not glossing, so allow target text export
-	}
-	else
-		event.Enable(FALSE); // nothing to export since doc is empty
-}
-
 bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 {
 	// the markers below can just have terminating space, because we call the
@@ -35028,10 +34994,83 @@ void CAdapt_ItView::OnUpdateFileExportSource(wxUpdateUIEvent& event)
 // from the CSourcePhrase instances
 void CAdapt_ItView::OnFileExportSource(wxCommandEvent& WXUNUSED(event))
 {
-	bool bExportTarget = FALSE;
 	bool bForceUTF8Conversion = TRUE; // BEW changed 08Dec06, to avoid unreliable encoding check
-	DoExportSrcOrTgt(bExportTarget,bForceUTF8Conversion);
+	DoExportSfmText(sourceTextExport,bForceUTF8Conversion); // BEW changed 6Aug09
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// If Vertical Editing is in progress, or if the application is in glossing mode this
+/// handler disables the "Export Translation Text..." item in the File menu, otherwise it
+/// enables the "Export Translation Text..." item on the File menu.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::OnUpdateFileExport(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() > 0)
+	{
+		if (gbIsGlossing)
+			event.Enable(FALSE); // don't allow target text export when glossing
+		else
+			event.Enable(TRUE); // not glossing, so allow target text export
+	}
+	else
+		event.Enable(FALSE); // nothing to export since doc is empty
+}
+
+void CAdapt_ItView::OnFileExport(wxCommandEvent& WXUNUSED(event))
+{
+	bool bForceUTF8Conversion = TRUE; // BEW changed 08Dec06, as Bob's encoding 
+            // checking code was unreliable, so from now on always force the conversion,
+            // and remove the Export....As UTF-8 command
+	DoExportSfmText(targetTextExport,bForceUTF8Conversion); // BEW changed 6Aug09
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu 
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If there are no source phrases in the App's
+/// m_pSourcePhrases list, or glossing mode is not on, this handler disables the "Export
+/// Glosses As Text..." item on the File menu, otherwise it enables the "Export Glosses As
+/// Text..." item on the Export-Import menu.
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::OnUpdateExportGlossesAsText(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() > 0 && gbIsGlossing)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
+
+// BEW created 6Aug09 to derive the a text formed by accumulating the contents of the
+// m_gloss members with an intervening space betwen each, and adding the SF markers where
+// appropriate, from the CSourcePhrase instances
+void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
+{
+	bool bForceUTF8Conversion = TRUE;
+	DoExportSfmText(glossesTextExport,bForceUTF8Conversion);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

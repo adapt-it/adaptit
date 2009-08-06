@@ -289,6 +289,27 @@ struct FreeTrElement
 	wxRect subRect;
 };
 
+/// An enum for the indices for the top level menus
+enum TopLevelMenu
+{
+    fileMenu,
+    editMenu,
+    viewMenu,
+    toolsMenu,
+	exportImportMenu,
+    advancedMenu,
+    layoutMenu,
+    helpMenu
+};
+
+enum ExportType
+{
+	sourceTextExport,
+	targetTextExport,
+	glossesTextExport,
+	freeTransTextExport
+};
+
 /// An enum for return error-state from GetNewFile()
 enum getNewFileState
 {
