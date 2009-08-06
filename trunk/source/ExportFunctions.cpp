@@ -12979,45 +12979,49 @@ int RebuildSourceText(wxString& source)
 	wxASSERT(pList != NULL);
 
 	// as we traverse the list of CSourcePhrase instances, the special things we must be
-	// careful of are 1. null source phrase placeholders (we ignore these, but we don't
-	// ignore any m_markers, m_precPunt, m_follPunct, content which has been moved to them
-	// by the user doing a Placeholder insertion where markers or punctuation is located),
+	// careful of are 
+    // 1. null source phrase placeholders (we ignore these, but we don't ignore any
+    // m_markers, m_precPunt, m_follPunct, content which has been moved to them by the user
+    // doing a Placeholder insertion where markers or punctuation is located),
 	// 2. retranslations (we can ignore the fact these instances belong to a retranslation),
-	// 3. mergers (these give us a headache - we have to look at the stored list of original
-	// CSourcePhrase instances on each such merged one, and build the source text from those - 
-	// since they will have any sf markers in the right places, and that info is lost to the
-	// parent merged one.)
+    // 3. mergers (these give us a headache - we have to look at the stored list of
+    // original CSourcePhrase instances on each such merged one, and build the source text
+    // from those - since they will have any sf markers in the right places, and that info
+    // is lost to the parent merged one.)
 
-    // BEW added comment 08Oct05: version 3 introduces filtering, and this complicates the picture
-    // a little. Mergers are not possible across filtered information, and so saved original
-    // sourcephrase instances within a merged sourcephrase will never contain filtered information;
-    // moreover, notes, backtranslations and free translations are things which often are created
-    // within the document after it has been parsed in, and possibly after the mergers are all
-    // done, and so we will find filtered information on a merged sourcephrase itself and never in
-    // those it stores. This means we must use m_markers from the merged sourcephrase (it may
-    // contain both filtered and unfiltered markers), and for saved originals in the merged
-    // sourcephrase we must examine all those in the m_pSavedWords sublist but the first must be
-    // given special treatment - namely, we ignore its m_markers member, but use its m_srcPhrase
-    // text. In addition, preservation of the extent of free translation text sections can only be
-    // ensured across an export and subsequent parse in to create a new document provided that the
-    // number of words in each extent (null source phrase instances are not included in the count,
-    // for source text exporting) are saved within each \free ... \free* substring in the export
-    // file. The Adapt It parser automatically uses that information and eliminates the numbers as
-    // part of the document setup process, if the input file contains free translation information.
+    // BEW added comment 08Oct05: version 3 introduces filtering, and this complicates the
+    // picture a little. Mergers are not possible across filtered information, and so saved
+    // original sourcephrase instances within a merged sourcephrase will never contain
+    // filtered information; moreover, notes, backtranslations and free translations are
+    // things which often are created within the document after it has been parsed in, and
+    // possibly after the mergers are all done, and so we will find filtered information on
+    // a merged sourcephrase itself and never in those it stores. This means we must use
+    // m_markers from the merged sourcephrase (it may contain both filtered and unfiltered
+    // markers), and for saved originals in the merged sourcephrase we must examine all
+    // those in the m_pSavedWords sublist but the first must be given special treatment -
+    // namely, we ignore its m_markers member, but use its m_srcPhrase text. In addition,
+    // preservation of the extent of free translation text sections can only be ensured
+    // across an export and subsequent parse in to create a new document provided that the
+    // number of words in each extent (null source phrase instances are not included in the
+    // count, for source text exporting) are saved within each \free ... \free* substring
+    // in the export file. The Adapt It parser automatically uses that information and
+    // eliminates the numbers as part of the document setup process, if the input file
+    // contains free translation information.
     SPList::Node* pos = pList->GetFirst(); //POSITION pos = pList->GetHeadPosition();
 	wxASSERT(pos != NULL);
 	source.Empty();
 	wxString tempStr;
 	//TRACE0("\n");
-    // BEW added 16Jan08 A boolean added in support of adequate handling of markers which get added
-    // to a placeholder due to it being inserted at the beginning of a stretch of text where there
-    // are markers. Before this, placeholders were simply ignored, which meant that if they had
-    // received moved content from the m_markers member, then that content would get lost from the
-    // source text export. So now we check for moved markers, store them temporarily, and then make
-    // sure they are relocated appropriately. Also, a local wxString to hold the markers pending
-    // placement at the correct location. (We don't need to both with punctuation movement because
-    // it is already handled by our choice of using the m_srcPhrase member - which has it still
-    // attached.)
+    // BEW added 16Jan08 A boolean added in support of adequate handling of markers which
+    // get added to a placeholder due to it being inserted at the beginning of a stretch of
+    // text where there are markers. Before this, placeholders were simply ignored, which
+    // meant that if they had received moved content from the m_markers member, then that
+    // content would get lost from the source text export. So now we check for moved
+    // markers, store them temporarily, and then make sure they are relocated
+    // appropriately. Also, a local wxString to hold the markers pending placement at the
+    // correct location. (We don't need to bother with punctuation movement in the context
+    // of placeholder insertion because it is already handled by our choice of using the
+    // m_srcPhrase member - which has it still attached.)
     bool bMarkersOnPlaceholder = FALSE;
 	wxString strPlaceholderMarkers;
 	// Note, placing the above information is tricky. We have to delay markers relocation

@@ -13835,7 +13835,32 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 	int nStartingSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 	// whm 2Aug06 added following test to prevent insertion of placeholder 
 	// in front of \id marker
-	if (pPile->GetSrcPhrase()->m_markers.Find(_T("\\id")) != -1)
+	// BEW added !bForRetranslation on 6Aug09, because Bob Buss found the test succeeded
+	// when here was the following information at the source text file start:
+	// \id MAT English-US: New Living Translation 1996 
+	// \ide 65001 - UNICODE(UTF-8)
+	// \rem For any ... holder
+	// \h MAT
+	// \mt Matthew
+	// \c 1
+	// \s The Record of Jesus' Ancestors
+	// where the first non-filtered info was "Matthew" after the stuff in the \id line,
+	// and he had selected from English-US as far as the "1996" to make his retranslation
+	// and his retranslation was longer than the 5 words he selected. What happened was
+	// that the following test (without my addition) succeeds because the CSourcePhrase
+	// storing "Matthew" contains the m_markers member with marker \ide in it. The test
+	// for finding "\id" then succeeds, and so the bell rings and the needed null source
+	// phrases are not inserted - but in the caller the extra words are inserted into the
+	// list assuming the null source phrases had been put into the list beforehand,
+	// resulting in an error state - that is, a malformed document, but the app doesn't
+	// crash  - the extra words in the retranslation wipe out adaptations from Matthew
+	// onwards until all the extra words are consumed.
+	// Since this test only applies to an attempt by the user to insert a placeholder
+	// preceding the very first CSourcePhrase, and that can't happen when doing a
+	// retranslation because there have to be selectable CSourcePhrase instances before
+	// that, and that can't happen before the one bearing an \id marker, all we need do
+	// here is add the additional condition !bForRetranslation and this bug is history
+	if (pPile->GetSrcPhrase()->m_markers.Find(_T("\\id")) != -1 && !bForRetranslation)
 	{
         // user is attempting to insert placeholder before a \id marker which should not be
         // allowed rather than a message, we'll just beep and return
