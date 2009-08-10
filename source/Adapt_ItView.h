@@ -600,6 +600,8 @@ protected:
 
 	void OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateExportGlossesAsText(wxUpdateUIEvent& event);
+	void OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateExportFreeTranslations(wxUpdateUIEvent& event);
 
 	void OnButtonCreateNote(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonCreateNote(wxUpdateUIEvent& event);

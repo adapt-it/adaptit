@@ -79,6 +79,7 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 int RebuildSourceText(wxString& srcText);
 int RebuildTargetText(wxString& target);
 int RebuildGlossesText(wxString& glossText);
+int RebuildFreeTransText(wxString& freeTransText);
 wxString ApplyOutputFilterToText(wxString& textStr,
 		wxArrayString& bareMarkerArray, wxArrayInt& filterFlagsArray,
 		bool bRTFOutput);
