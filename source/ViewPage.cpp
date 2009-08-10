@@ -224,8 +224,6 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 
 	pApp->m_bSuppressFirst = TRUE; // retain these because the config file expects
 	pApp->m_bSuppressLast = TRUE; // them, but we won't use these values any more
-	//pApp->m_bSuppressFirst = m_pCheckSupressFirst->GetValue();
-	//pApp->m_bSuppressLast = m_pCheckSupressLast->GetValue();
 	pApp->m_bSuppressWelcome = !m_pCheckWelcomeVisible->GetValue();
 	pApp->m_bSuppressTargetHighlighting = !m_pCheckHighlightAutoInsertedTrans->GetValue();
 	pApp->m_AutoInsertionsHighlightColor = tempAutoInsertionsHighlightColor;

@@ -1332,11 +1332,18 @@ void CAdapt_ItView::OnInitialUpdate()
 		gbShowTargetOnly = TRUE;
 		OnFromShowingTargetOnlyToShowingAll(dummyevent); // normal view, showing source & target lines
 	}
-	if (!pApp->m_bHidePunctuation)
-	{
-		pApp->m_bHidePunctuation = TRUE; // the function call will reset it to FALSE
-		OnButtonFromHidingToShowingPunct(dummyevent); // make punctuation visible in lines 2 & 3, if 2-line display
-	}
+
+    // BEW removed 8Aug09, there is no good reason to store a "punctuation hidden"
+    // value because it we do that, the user could get confused if next time his
+    // document doesn't show and punctuation and he didn't realize he shut down
+    // with this setting toggled from the default, so now we'll ignore the config
+    // file value, and always launch the app with this m_bHidePunctuation flag set
+    // FALSE -- OnInit() initializes it to FALSE, config file is now ignored
+	//if (!pApp->m_bHidePunctuation)
+	//{
+	//	pApp->m_bHidePunctuation = TRUE; // the function call will reset it to FALSE
+	//	OnButtonFromHidingToShowingPunct(dummyevent); // make punctuation visible in lines 1 & 2
+	//}
 	if (pApp->m_bCopySourcePunctuation)
 	{
 		pApp->m_bCopySourcePunctuation = FALSE; // the function call will reset it to TRUE
@@ -2444,13 +2451,11 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 					}
 					else // adapting
 					{
-						if (pApp->m_bHidePunctuation)
-							str = pSrcPhrase->m_adaption; // no punctuation to be shown
-						else
-							str = pSrcPhrase->m_adaption; // no punctuation to be shown
+						str = pSrcPhrase->m_adaption; // no punctuation to be shown
 						// BEW changed 28Apr05, this is a better choice for the box contents
-						// than to show punctuation as well - MakeLineFourString() can then
-						// be allowed to do its work when the phrase box moves on
+						// than to show punctuation if the m_bHidePunctuation flag is FALSE;
+						// always using m_adaption means MakeLineFourString() can then be
+						// allowed to do its work when the phrase box moves on, that's best
 					}
 					pApp->m_pTargetBox->m_bAbandonable = FALSE;
 				}
@@ -14971,7 +14976,7 @@ b:		pApp->m_pActivePile = pNewPile;
     // the old string was real long, the CalcPileWidth() call will compute enormous and
     // wrong box width at the new location
 	pSP = GetSrcPhrase(pApp->m_nActiveSequNum);
-	if (!pApp->m_bHidePunctuation && pApp->m_bSuppressLast)
+	if (!pApp->m_bHidePunctuation) // BEW 8Aug09, removed deprecated m_bSuppressLast from test
 		pApp->m_targetPhrase = pSP->m_targetStr;
 	else
 		pApp->m_targetPhrase = pSP->m_adaption;
@@ -15000,7 +15005,7 @@ b:		pApp->m_pActivePile = pNewPile;
 	// set m_targetPhrase to the appropriate string
 	if (!pSrcPhrase->m_adaption.IsEmpty())
 	{
-		if (!pApp->m_bHidePunctuation && pApp->m_bSuppressLast)
+		if (!pApp->m_bHidePunctuation) // BEW 8Aug09, removed deprecated m_bSuppressLast from test
 			pApp->m_targetPhrase = pSrcPhrase->m_targetStr;
 		else
 			pApp->m_targetPhrase = pSrcPhrase->m_adaption;
@@ -25980,6 +25985,17 @@ void CAdapt_ItView::OnButtonFromShowingToHidingPunct(wxCommandEvent& WXUNUSED(ev
 			GetLayout()->PlaceBox();
 		}
 	}
+	else
+	{
+		// oops, the boolean was out of sync with the state shown by the view's icon, so
+		// have this else block to fix the value; next click of the same button will then work
+		// right - but we need to do a Redraw() here, to get punctuation shown - in
+		// agreement with this fix of the flag value
+		pApp->m_bHidePunctuation = FALSE;
+
+		CLayout* pLayout = GetLayout();
+		pLayout->Redraw();
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -26359,6 +26375,17 @@ void CAdapt_ItView::OnButtonFromHidingToShowingPunct(wxCommandEvent& WXUNUSED(ev
 				}
 			}
 		}
+	}
+	else
+	{
+		// oops, the boolean was out of sync with the state shown by the view's icon, so
+		// have this else block to fix the value; next click of the same button will then work
+		// right - but we need to do a Redraw() here, to get punctuation hidden - in
+		// agreement with this fix of the flag value
+		pApp->m_bHidePunctuation = TRUE;
+
+		CLayout* pLayout = GetLayout();
+		pLayout->Redraw();
 	}
 }
 

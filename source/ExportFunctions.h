@@ -70,15 +70,15 @@ enum ExportType
 */
 
 // main export functions:
-//void DoExportSrcOrTgt(bool bExportTarget, bool bForceUTF8Conversion);
-//void DoExportSrcOrTgt(enum ExportType exportType, bool bForceUTF8Conversion);
 void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion); // BEW created 6Aug09
 void DoExportInterlinearRTF();
-void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportName, wxString& Buffer);
+//void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportName, wxString& Buffer);
+void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString exportName, wxString& Buffer);
 
 // below are supporting functions for the above main export functions:
 int RebuildSourceText(wxString& srcText);
 int RebuildTargetText(wxString& target);
+int RebuildGlossesText(wxString& glossText);
 wxString ApplyOutputFilterToText(wxString& textStr,
 		wxArrayString& bareMarkerArray, wxArrayInt& filterFlagsArray,
 		bool bRTFOutput);

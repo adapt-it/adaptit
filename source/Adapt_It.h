@@ -1689,11 +1689,16 @@ public:
 	// the next four were added for version 2.0.1, so that each type of export
 	// could have its own remembered folder location; and to allow m_lastExportPath
 	// to be used ONLY for export of the target text
+	// BEW added 7Aug09 to support unique folder locations for export of glosses and free
+	// translations 
 	wxString		m_lastSrcExportPath; // for export of the source text
 	wxString		m_retransReportPath; // for retranslation reports
 	wxString		m_rtfExportPath; // for all RTF documents exported
 	wxString		m_kbExportPath; // for export of a KB, and place to look for 
 									// a KB to import
+	wxString		m_lastGlossesExportPath; // for export of glosses as text with markup
+	wxString		m_lastFreeTransExportPath; // for export of free translations with markup
+									
 	bool			m_bSaveAsXML;	// BEW added 04Aug05 for support of saving doc 
 									// and KB with XML markup
 	// font stuff
