@@ -272,7 +272,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 					// I changed the above to allow *.txt and *.*, with the
                     // *.* one first (shows all) so it comes up as default This has the
                     // nice property that if the user types an extension in the
-                    // filename, .txt won't be appended to it. bRTFOutput = FALSE;
+                    // filename, .txt won't be appended to it. 
+        bRTFOutput = FALSE;
 	}
 	else
 	{
