@@ -14231,7 +14231,7 @@ int RebuildFreeTransText(wxString& freeTrans)
 			// never find any free translations, but only markers within a merger, and
 			// there should be no point in harvesting these as they should only be
 			// insignificant ones with textType == none, for markers like \it \it* for
-			// italics, \bt & \bt* for bold text, \k and \k* for a keyword, etc
+			// italics, \bd & \bd* for bold text, \k and \k* for a keyword, etc
 			// 
             // now deal with the list of sourcephrases in the sublist -- we ignore
             // m_markers on the first, but not on subsequent ones, but we harvest any
@@ -14301,6 +14301,20 @@ int RebuildFreeTransText(wxString& freeTrans)
 		else
 		{
 			// it's a single word sourcephrase, so handle it....
+			// 
+			// BEW note 10Aug09: both this block and the block above will find any SFMs
+			// which don't have any free translation to appear between them - we want to
+			// do this so that we preserve the document's SFM structure by default. But if
+			// the user does not want the output to included marker and endmarker pairs
+			// with no content, and markers which don't take endmarkers with no content,
+			// then the Export Filter/Options button can be used, and there he can tick
+			// all markers he doesn't want to appear in the output (and that filters out
+			// their contents to - but since that won't typically be free translation
+			// content, that won't matter) - but of course, if he's not careful which ones
+			// he chooses, he could filter out markers which DO have free translation
+			// content. Even so, the Options button is the way to get a clean export file
+			// if the first attempt with default everything has lots of stuff which is
+			// just unwanted clutter.
 
 			// handle any stnd format markers first
 			// 
