@@ -2466,32 +2466,44 @@ wxString szCurKBPath = _T("KnowledgeBasePath");
 wxString szCurKBBackupPath = _T("KBBackupPath");
 
 /// The label that identifies the following string as the project's
-/// "LastNewDocumentFolder". This value is written in the "ProjectSettings" part of the
-/// project configuration file. Adapt It stores this path in the App's
+/// "LastNewDocumentFolder". This value is written in the "BasicSettings" part of the
+/// basic configuration file. Adapt It stores this path in the App's
 /// m_lastSourceFileFolder member variable.
 wxString szLastSourceFileFolder = _T("LastNewDocumentFolder");
 
 /// The label that identifies the following string as the project's
-/// "LastSourceTextExportPath". This value is written in the "ProjectSettings" part of the
-/// project configuration file. Adapt It stores this path in the App's m_lastSrcExportPath
+/// "LastSourceTextExportPath". This value is written in the "BasicSettings" part of the
+/// basic configuration file. Adapt It stores this path in the App's m_lastSrcExportPath
 /// member variable.
 wxString szLastSourceExportPath = _T("LastSourceTextExportPath");
 
 /// The label that identifies the following string as the project's "KB_ExportPath". This
-/// value is written in the "ProjectSettings" part of the project configuration file. Adapt
+/// value is written in the "BasicSettings" part of the basic configuration file. Adapt
 /// It stores this path in the App's m_kbExportPath member variable.
 wxString szKBExportPath = _T("KB_ExportPath"); // stored in the App's m_kbExportPath
 
 /// The label that identifies the following string as the project's
-/// "RetranslationReportPath". This value is written in the "ProjectSettings" part of the
-/// project configuration file. Adapt It stores this path in the App's m_retransReportPath
+/// "RetranslationReportPath". This value is written in the "BasicSettings" part of the
+/// basic configuration file. Adapt It stores this path in the App's m_retransReportPath
 /// member variable.
 wxString szRetranslationReportPath = _T("RetranslationReportPath");
 
 /// The label that identifies the following string as the project's "RTFExportPath". This
-/// value is written in the "ProjectSettings" part of the project configuration file. Adapt
+/// value is written in the "BasicSettings" part of the basic configuration file. Adapt
 /// It stores this path in the App's m_rtfExportPath member variable.
 wxString szRTFExportPath = _T("RTFExportPath");
+
+/// The label that identifies the following string as the project's
+/// "LastGlossesExportPath". This value is written in the "ProjectSettings" part of the
+/// project configuration file. Adapt It stores this path in the App's
+/// m_lastGlossesExportPath member variable.
+wxString szLastGlossesExportPath = _T("LastGlossesTextExportPath");
+
+/// The label that identifies the following string as the project's
+/// "LastFreeTranslationsExportPath". This value is written in the "ProjectSettings" part
+/// of the project configuration file. Adapt It stores this path in the App's
+/// m_lastFreeTransExportPath member variable.
+wxString szLastFreeTransExportPath = _T("LastFreeTransExportPath");
 
 // the following ones relate to view parameters
 
@@ -4932,6 +4944,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_kbExportPath = _T("");
 	m_rtfExportPath = _T("");
 	m_retransReportPath = _T("");
+	m_lastGlossesExportPath = _T("");
+	m_lastFreeTransExportPath = _T("");
 
 	m_bExecutingOnXO = FALSE; // whm added 13Apr09 - can be set to TRUE by 
 							  // use of command-line parameter -xo
@@ -12374,13 +12388,18 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szBackupDocument << tab << number;
 	pf->AddLine(data);
 
-	if (m_bHidePunctuation)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szHidePunctuation << tab << number;
-	pf->AddLine(data);
+	// BEW removed 8Aug09, there is no good reason to store a "punctuation hidden" value
+	// because it we do that, the user could get confused if next time his document
+	// doesn't show and punctuation and he didn't realize he shut down with this setting
+	// toggled from the default, so now we'll ignore the config file value, and always
+	// launch the app with this m_bHidePunctuation flag set FALSE
+	//if (m_bHidePunctuation)
+	//	number = _T("1");
+	//else
+	//	number = _T("0");
+	//data.Empty();
+	//data << szHidePunctuation << tab << number;
+	//pf->AddLine(data);
 
 	data.Empty();
 	data << szSpecialTextColor << tab << WxColour2Int(m_specialTextColor);
@@ -13723,13 +13742,20 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		}
 		else if (name == szHidePunctuation)
 		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 0; // don't hide it
-			if (num == 0)
-				m_bHidePunctuation = FALSE;
-			else
-				m_bHidePunctuation = TRUE;
+            // BEW removed 8Aug09, there is no good reason to store a "punctuation hidden"
+            // value because it we do that, the user could get confused if next time his
+            // document doesn't show and punctuation and he didn't realize he shut down
+            // with this setting toggled from the default, so now we'll ignore the config
+            // file value, and always launch the app with this m_bHidePunctuation flag set
+            // FALSE
+			m_bHidePunctuation = FALSE;
+			//	num = wxAtoi(strValue);
+			//	if (!(num == 0 || num == 1))
+			//		num = 0; // don't hide it
+			//	if (num == 0)
+			//		m_bHidePunctuation = FALSE;
+			//	else
+			//		m_bHidePunctuation = TRUE;
 		}
 		else if (name == szSuppressWelcome)
 		{
@@ -14298,6 +14324,16 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szLastSourceFileFolder << tab << m_lastSourceFileFolder;
 	pf->AddLine(data);
 
+	// paths for exports
+	data.Empty();
+	data << szLastGlossesExportPath << tab << m_lastGlossesExportPath;
+	pf->AddLine(data);
+
+	data.Empty();
+	data << szLastFreeTransExportPath << tab << m_lastFreeTransExportPath;
+	pf->AddLine(data);
+
+	
 #ifndef _UNICODE
 	// ANSI
 	wxString s;
@@ -14516,7 +14552,7 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szSilConverterNormalize << tab << number;
 	pf->AddLine(data);
-	
+
 	if (gbLegacySourceTextCopy)
 		number = _T("1");
 	else
@@ -14548,6 +14584,10 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 /// pointer to be moved to the "ProjectSettings" line in the config file. The
 /// wxWidgets version holds the entire config file in memory and reads individual
 /// text lines from memory.
+/// BEW 10Aug09 introducted additional order dependence, the paths for glosses and free
+/// translation exports have to be after the line for getting the last export path,
+/// because the latter's code block sets the boolean bForeignConfigFile which is needed
+/// for handling the other paths safely
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 {
@@ -14556,6 +14596,13 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 	wxString strValue;
 	int num; // for the string converted to a number
 	bool bExistsUsfmSettingInConfig = FALSE; // whm added 2Feb05
+
+	// BEW added 10Aug09, for detecting when the project config file is from a "foreign"
+	// profile, and therefore would give an error if a path from that profile was used
+	// herein as a path valid in the current user's profile; when the profile name part of
+	// paths differ, set the following boolean TRUE, default is FALSE (meaning the config
+	// file is not of foreign source and the path is the user's own)
+	bool bForeignConfigFile = FALSE;
 
 #ifdef _UNICODE
 	wxString strPunctPairsSrcSet;
@@ -14609,7 +14656,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
                 // they are different substrings, so we can assume that the ...\<profile
                 // name>\... part of the path differs between them (ie. different users),
                 // and so we'll go with the existing one
-				;
+				bForeignConfigFile = TRUE;
 			}
 			else
 			{
@@ -14622,6 +14669,30 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 		else if (name == szLastSourceFileFolder)
 		{
 			m_lastSourceFileFolder = strValue;
+		}
+		else if (name == szLastGlossesExportPath)
+		{
+			if (bForeignConfigFile)
+			{
+				// probably an unsafe path, so default it to current project folder
+				m_lastGlossesExportPath = m_curProjectPath;
+			}
+			else
+			{
+				m_lastGlossesExportPath = strValue;
+			}
+		}
+		else if (name == szLastFreeTransExportPath)
+		{
+			if (bForeignConfigFile)
+			{
+				// probably an unsafe path, so default it to current project folder
+				m_lastFreeTransExportPath = m_curProjectPath;
+			}
+			else
+			{
+				m_lastFreeTransExportPath = strValue;
+			}
 		}
 		// the next four are redundant from 2.3.0 and onwards, but must be retained
 		// in case the user uses a later version to read a config file produced by
