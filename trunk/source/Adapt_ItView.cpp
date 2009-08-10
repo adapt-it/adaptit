@@ -968,6 +968,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_TO_RTF, CAdapt_ItView::OnUpdateFileExportToRtf)
 	EVT_MENU(ID_EXPORT_GLOSSES, CAdapt_ItView::OnExportGlossesAsText)
 	EVT_UPDATE_UI(ID_EXPORT_GLOSSES, CAdapt_ItView::OnUpdateExportGlossesAsText)
+	EVT_MENU(ID_EXPORT_FREE_TRANS, CAdapt_ItView::OnExportFreeTranslations)
+	EVT_UPDATE_UI(ID_EXPORT_FREE_TRANS, CAdapt_ItView::OnUpdateExportFreeTranslations)
 	EVT_MENU(ID_FILE_EXPORT_KB, CAdapt_ItView::OnFileExportKb)
 	EVT_UPDATE_UI(ID_FILE_EXPORT_KB, CAdapt_ItView::OnUpdateFileExportKb)
 	EVT_MENU(ID_IMPORT_TO_KB, CAdapt_ItView::OnImportToKb)
@@ -35098,6 +35100,38 @@ void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
 	DoExportSfmText(glossesTextExport,bForceUTF8Conversion);
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the File Menu 
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed. If there are no source phrases in the App's
+/// m_pSourcePhrases list, or free translations mode is on, this handler disables the
+/// "Export Free Translation..." item on the File menu, otherwise it enables it
+/////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItView::OnUpdateExportFreeTranslations(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pSourcePhrases->GetCount() > 0 && !pApp->m_bFreeTranslationMode)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
+
+// BEW created 6Aug09 to derive the a text formed by accumulating the contents of the
+// filtered free translation sections with an intervening space betwen each, and adding the
+// SF markers where appropriate, from the CSourcePhrase instances
+void CAdapt_ItView::OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event))
+{
+	bool bForceUTF8Conversion = TRUE;
+	DoExportSfmText(freeTransTextExport,bForceUTF8Conversion);
+}
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
