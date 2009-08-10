@@ -1,4 +1,8 @@
 Version 5.0.1 update 3August2009:
+* Moved all the export functionalities to a new menu: Export-Import; both for exporting from the document, and exporting/importing the knowledge base. (Gives a less cluttered File menu.)
+* Added an Export Glosses As Text functionality - the command is enabled only when the application is in Glossing mode.
+* Fixes this bug: the basic configuration file is saved at exit of the app with the value for the Hide Punctuation line set to 0. When this was the case, the next launch of the application correctly hid the punctuation, but the button for changing the setting would do nothing. Now this parameter is no longer stored in any configuration file, and the application always shows the text with punctuation when first a document is opened. Also, now if the application gets out of sync with the flag for controlling this feature, clicking the command bar button will rectify the situation, and then subsequent clicks of the button will toggle the setting's value as normal.
+
 ----------------------------------------------
 Bug fixes and new features in 5.0.1
 ----------------------------------------------
