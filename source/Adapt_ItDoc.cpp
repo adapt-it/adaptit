@@ -3415,7 +3415,9 @@ void CAdapt_ItDoc::CreatePartnerPile(CSourcePhrase* pSrcPhrase)
 int CAdapt_ItDoc::IndexOf(CSourcePhrase* pSrcPhrase)
 {
 	wxASSERT(pSrcPhrase != NULL);
-	return GetApp()->m_pSourcePhrases->IndexOf(pSrcPhrase); 
+	SPList* pList = GetApp()->m_pSourcePhrases;
+	int nIndex = pList->IndexOf(pSrcPhrase);
+	return nIndex;
 }
 
 void CAdapt_ItDoc::ResetPartnerPileWidth(CSourcePhrase* pSrcPhrase,

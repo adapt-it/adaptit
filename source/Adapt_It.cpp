@@ -21054,6 +21054,16 @@ void CAdapt_ItApp::CascadeSourcePhraseListChange(bool DoFullScreenUpdate)
     // so the only value which can be safely set here is to set it to zero
 	m_nActiveSequNum = 0;
 
+    // BEW added 13Aug09, in our refactored layout code, we can't just call Jump() here
+    // because it would use the recalc layout call with parameter keep_strips_keep_piles
+    // and that would involve hanging pointers and we'd get a crash. We therefore have to
+    // do a call here with parameter create_strips_and_piles, for active sequ num = 0
+    // location, and then the Jump() call to the actual location and the ensuing
+	// RecaclLayout(), and then the Draw() won't fail in the CleanUpTheLayoutFromStripAt()
+	// call
+	gpApp->m_pLayout->RecalcLayout(gpApp->m_pSourcePhrases,create_strips_and_piles);
+	gpApp->m_pActivePile = v->GetPile(m_nActiveSequNum);
+
 	if (DoFullScreenUpdate) {
 		v->Jump(this, GetCurrentSourcePhrase());
 	}
@@ -21225,7 +21235,8 @@ void CAdapt_ItApp::AddBookIDToDoc(SPList* pSrcPhrasesList, wxString id)
 	// insert this instance at the start of the document
 	SPList::Node* pos = pSrcPhrasesList->GetFirst();
 	pos = pSrcPhrasesList->Insert(pos,pSrcPhrase);
-	pDoc->CreatePartnerPile(pSrcPhrase);
+	//pDoc->CreatePartnerPile(pSrcPhrase); // makes no sense, remove it (BEW 13Aug09)
+										   // bug discovered by Kent Schroeder
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

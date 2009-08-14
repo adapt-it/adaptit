@@ -407,6 +407,10 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	gpApp->CascadeSourcePhraseListChange(true);
 	gpApp->SetCurrentSourcePhraseByIndex(0);
 
+	// update Title bar (BEW added 14Aug09)
+	wxString strUserTyped = gpApp->m_curOutputFilename;
+	d->SetDocumentWindowTitle(strUserTyped, strUserTyped);
+
 	// update the file list to show all current files, including the file just split off and saved
 	// -- but don't show any plain text files or backup files
 	ListFiles();
