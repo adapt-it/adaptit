@@ -42,6 +42,7 @@
 #include "Adapt_It.h"
 #include "JoinDialog.h"
 #include "Adapt_ItView.h"
+#include "Adapt_ItDoc.h"
 #include "helpers.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -371,6 +372,11 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	InitialiseLists();
 
 	this->pJoiningWait->Show(FALSE);
+
+	// update Title bar (BEW added 14Aug09)
+	CAdapt_ItDoc* d = gpApp->GetDocument();
+	wxString strUserTyped = gpApp->m_curOutputFilename;
+	d->SetDocumentWindowTitle(strUserTyped, strUserTyped);
 
 	if (bNoIDMismatch)
 		wxMessageBox(_("Joining to the current document was successful."),_T(""),wxICON_INFORMATION);// IDS_JOIN_SUCCESSFUL

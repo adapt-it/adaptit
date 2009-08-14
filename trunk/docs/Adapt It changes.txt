@@ -1,4 +1,10 @@
 Version 5.0.1 update 3August2009:
+* Both Split and Join failed to update the final open document's 
+filename on the Title bar. This is now fixed.
+* Bug fix: Splitting a document with the option "at a chapter marker"
+caused a crash.
+* Bug fix: Splitting a document with the one-chapter-per-file option 
+caused a crash.
 * Added an Export Free Translation... functionality - the command 
 is enabled only when the application is not in Free Translation mode.
 By default, it exports all the SFMs, even those which do not end up
