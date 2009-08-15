@@ -554,7 +554,7 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 	case freeTransTextExport:
 		f.Write(freeTrans);
 		break;
-	case default:
+	default:
 	case targetTextExport:
 		f.Write(target);
 		break;

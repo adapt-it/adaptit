@@ -1,3 +1,54 @@
+Version 5.1.0 update 15August2009:
+----------------------------------------------
+Feature changes and new features in 5.1.0
+----------------------------------------------
+* Moved all the export functionalities to a new menu: Export-Import; 
+both for exporting from the document, and exporting/importing 
+the knowledge base. (Gives a less cluttered File menu.)
+* Added an Export Free Translation... functionality to the new
+Export-Import top level menu. By default, the 
+Export Free Translation... command exports all the SFMs except for 
+Notes and Back Translations. If the inclusion of text associated with 
+other SFMs clutters the output, the user can run the command again, 
+and this time use the Export Filter/Options button and in the child 
+dialog he can then tick the checkboxes for any markers which he 
+wants to be filtered out of the exported data.
+* Adapt It remembers the path of the last used export location for
+Free Translations in its project configuration file.
+* Added an Export Glosses As Text... functionality to the new
+Export-Import top level menu. By default, the Export Glosses As Text...
+command exports all the SFMs except for Free Translations, Notes, 
+and Back Translations. If the inclusion of text associated with 
+other SFMs clutters the output, the user can run the command again, 
+and this time use the Export Filter/Options button and in the child 
+dialog he can then tick the checkboxes for any markers which he 
+wants to be filtered out of the exported data. 
+* Adapt It remembers the path of the last used export location for
+Glosses As Text in its project configuration file.
+
+----------------------------------------------
+Bug fixes in 5.1.0
+----------------------------------------------
+* Bug fix: Splitting a document with the option "at a chapter marker"
+caused a crash.
+* Bug fix: Splitting a document with the one-chapter-per-file option 
+caused a crash.
+* Both Split and Join failed to update the final open document's 
+filename on the Title bar. This is now fixed.
+* Fixed bug that made the middle edit box in the View Filtered Dialog
+read only. It is now editable as it was in versions prior to 5.0.0.
+* Fixes this bug: the basic configuration file is saved at exit of the
+app with the value for the Hide Punctuation line set to 0. When 
+this was the case, the next launch of the application correctly hid 
+the punctuation, but the button for changing the setting would do 
+nothing. Now this parameter is no longer stored in any 
+configuration file, and the application always shows the text with 
+punctuation when first a document is opened. Also, now if the 
+application gets out of sync with the flag for controlling this 
+feature, clicking the command bar button will rectify the situation, 
+and then subsequent clicks of the button will toggle the setting's 
+value as normal.
+
 Version 5.0.1 update 3August2009:
 ----------------------------------------------
 Bug fixes and new features in 5.0.1
