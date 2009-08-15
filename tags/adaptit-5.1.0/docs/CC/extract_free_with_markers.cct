@@ -1,0 +1,109 @@
+begin > 
+c d92 is backslash, octal 11 is horiz tab, octal 15 is carriage return
+store(whitespace) " " nl 11 15 endstore
+c store(space) " " endstore
+store(verseinfo) "0123456789-," endstore
+store(backslash) d92 endstore    c backslash
+store(digits) "0123456789" endstore
+
+
+group(kickoff)
+"" > omit(1)
+any(whitespace) >  c omit initial whitespace
+"\free" > use(atnumber) c begin next section
+d92 "c " > nl dup store(chapternumber) use(getchapternumber)
+nl d92 "c " > dup store(chapternumber) use(getchapternumber)
+d92 "v " > dup back(3) store(thisbit) use(scanmarkers)
+
+group(getchapternumber)
+any(whitespace) > dup
+any(digits) > dup
+d92 > endstore out(chapternumber) back(1) nl use(kickoff)
+
+group(atnumber)
+"" > omit(1)
+"@| " > store(freeTrans) use(getFreeTrans)
+
+group(getFreeTrans)
+"" > fwd(1)
+endfile > endfile
+nl > " "
+"\free*" > endstore store(something) use(jumpwhitespace1)
+
+group(jumpwhitespace1)
+any(whitespace) >   c removes the matched whitespace character
+c next four lines are for \m or \q etc before a \v marker (get rid of these before the \v)
+d92 "m" nl >  c swallow any \m marker followed by newline
+d92 "q" nl >  c swallow any \q marker followed by newline
+d92 "q1" nl >  c swallow any \q1 marker followed by newline
+d92 "q2" nl >  c swallow any \q2 marker followed by newline
+endfile > endfile
+"" > fwd(1) ifeq(something) cont(backslash)
+     back(1) store(thisbit) nl use(scanmarkers)
+     else 
+     back(1) use(scantext)
+
+c the scanmarkers group is entered after a \free* is processed and in jumpwhitespace1 the test for SF marker
+c is done - if not a marker, then freeTrans is output and the text is swallowed until next \free, but if it is a marker
+c then we need to handle all possibilities here -- but note, markers like \q need to be swallowed too, because
+c they are indicators of text material, not free trans.
+group(scanmarkers) c thisbit store is active
+d92 "add " > dup out(thisbit) store(thisbit) set(is_marker_add)
+             use(skipwhitespace2)  c bleed of a marker needing an endmarker
+c next line, if matched, adds a + footnote caller and \ft "footnote text" marker
+d92 "f " > dup out(thisbit) "+ \ft " store(thisbit) set(is_marker_footnote)
+             use(skipwhitespace2)  c bleed of a marker needing an endmarker
+d92 "v " > dup out(thisbit) store(thisbit) use(getversenumber_part1)
+d92 "q" > use(scantext) c a \q marker gets swallowed and we output the freeTrans and start back at kickoff
+d92 "q1" > use(scantext) c a \q1 marker gets swallowed and we output the freeTrans and start back at kickoff
+d92 "q2" > use(scantext) c a \q2 marker gets swallowed and we output the freeTrans and start back at kickoff
+d92 "m " >  use(scantext) c swallow any \m markers (but not \mt, so include the space after m)
+d92 "m" nl >  use(scantext) c swallow any \m markers (but not \mt, so include the space after m)
+"" > fwd(1) use(getrestofmarker)
+endfile > endfile
+
+group(getrestofmarker)
+"" > fwd(1)
+endfile > endfile
+c any(whitespace) > out(thisbit) dup use(skipwhitespace)
+any(whitespace) > out(thisbit) endstore store(somenumber) dup use(getfollowingnumber)
+
+group(getfollowingnumber) c active store is somenumber
+any(whitespace) > dup
+any(digits) > dup
+d92 > endstore out(somenumber) endstore dup back(1) use(kickoff)
+
+group(skipwhitespace)
+any(whitespace) > store(first_letter)
+endfile > endfile
+d92 "v " > endstore nl dup store(thisbit) use(getversenumber_part1)
+"" > fwd(1) endstore ifeq(first_letter) cont(backslash) 
+     store(thisbit) nl append(first_letter) use(getrestofmarker)
+     else  
+     back(1) endstore out(freeTrans) use(kickoff)
+
+group(skipwhitespace2)
+any(whitespace) > store(first_letter)
+endfile > endfile
+"" > fwd(1) endstore ifeq(first_letter) cont(backslash) 
+     store(thisbit) nl append(first_letter) use(getrestofmarker)
+     else  
+     out(freeTrans) 
+     if(is_marker_add)
+	"\add* " clear(is_marker_add) c append its endmarker
+     endif
+     if(is_marker_footnote)
+	"\ft* \f* " clear(is_marker_footnote) c append its endmarker
+     endif
+     use(kickoff)
+
+group(getversenumber_part1)
+any(whitespace) >   c removes the whitespace character
+any(verseinfo) > dup back(1) use(getversenumber_part2)
+
+group(getversenumber_part2)
+any(verseinfo) > dup
+any(whitespace) > dup out(thisbit) out(freeTrans) use(kickoff)
+
+group(scantext)     
+"" > out(freeTrans) use(kickoff)
