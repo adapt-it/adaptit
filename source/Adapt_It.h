@@ -48,10 +48,10 @@ class AIPrintout;
 // ******************************* my #defines *********************************************
 
 #define VERSION_MAJOR_PART 5
-#define VERSION_MINOR_PART 0
-#define VERSION_BUILD_PART 1
+#define VERSION_MINOR_PART 1
+#define VERSION_BUILD_PART 0
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 3
+#define VERSION_DATE_DAY 15
 #define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2009
 

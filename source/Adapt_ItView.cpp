@@ -35085,7 +35085,9 @@ void CAdapt_ItView::OnUpdateExportGlossesAsText(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pSourcePhrases->GetCount() > 0 && gbIsGlossing)
+	// whm 14Aug09 modified test below to allow export of glosses whether or not
+	// gbIsGlossing is true or false.
+	if (pApp->m_pSourcePhrases->GetCount() > 0) // && gbIsGlossing)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -35118,7 +35120,9 @@ void CAdapt_ItView::OnUpdateExportFreeTranslations(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pSourcePhrases->GetCount() > 0 && !pApp->m_bFreeTranslationMode)
+	// whm 14Aug09 modified test below to allow export of free translations whether or not
+	// m_bFreeTranslationMode is true or false.
+	if (pApp->m_pSourcePhrases->GetCount() > 0) // && !pApp->m_bFreeTranslationMode)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);

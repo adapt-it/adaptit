@@ -6738,7 +6738,7 @@ wxMenuBar *AIMenuBarFunc()
     item5->Append( ID_FILE_EXPORT_SOURCE, _("Export &Source Text..."), _("Export the source language text as a *.txt file type") );
     item5->Append( ID_FILE_EXPORT, _("&Export Translation Text..."), _("Export the target language translation as a *.txt file type") );
     item5->Append( ID_FILE_EXPORT_TO_RTF, _("Export Interlinear &Text..."), _("Export the Source and Target languages in interlinear form as an *.rtf file type") );
-    item5->Append( ID_EXPORT_GLOSSES, _("Export &Glosses As Text"), _("Export the glossing lines' contents as text") );
+    item5->Append( ID_EXPORT_GLOSSES, _("Export &Glosses As Text..."), _("Export the glossing lines' contents as text") );
     item5->Append( ID_EXPORT_FREE_TRANS, _("Export Free Translation..."), _("Collect all the free translation sections' contents, adding standard format markers, and export") );
     item5->AppendSeparator();
     item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in SIL standard format") );
