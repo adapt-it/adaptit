@@ -7310,6 +7310,9 @@ while (resToken != "")
 
 	m_bMatchedRetranslation = FALSE;
 	m_bJustLaunched = TRUE;// set false in OnIdle call
+	m_bExportingGlossesAsText = FALSE;   // set TRUE during export of glosses
+	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
+
     return TRUE;
 }
 

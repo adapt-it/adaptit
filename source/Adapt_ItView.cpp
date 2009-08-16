@@ -35098,8 +35098,11 @@ void CAdapt_ItView::OnUpdateExportGlossesAsText(wxUpdateUIEvent& event)
 // appropriate, from the CSourcePhrase instances
 void CAdapt_ItView::OnExportGlossesAsText(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	bool bForceUTF8Conversion = TRUE;
+	pApp->m_bExportingGlossesAsText = TRUE;   // set TRUE during export of glosses
 	DoExportSfmText(glossesTextExport,bForceUTF8Conversion);
+	pApp->m_bExportingGlossesAsText = FALSE;   // restore default value
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -35133,8 +35136,11 @@ void CAdapt_ItView::OnUpdateExportFreeTranslations(wxUpdateUIEvent& event)
 // SF markers where appropriate, from the CSourcePhrase instances
 void CAdapt_ItView::OnExportFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	bool bForceUTF8Conversion = TRUE;
+	pApp->m_bExportingFreeTranslation = TRUE; // set TRUE during export of free translations
 	DoExportSfmText(freeTransTextExport,bForceUTF8Conversion);
+	pApp->m_bExportingFreeTranslation = FALSE; // restore default value
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -43741,12 +43747,34 @@ void CAdapt_ItView::GetMarkerInventoryFromCurrentDoc()
 				}
 				if (!mkrAlreadyExists)
 				{
-					m_exportBareMarkers.Add(bareMarker);
-					m_exportMarkerAndDescriptions.Add(lbStr);
-					m_exportFilterFlags.Add(FALSE); // export defaults to nothing 
-													// filtered out
-					m_exportFilterFlagsBeforeEdit.Add(FALSE); // export defaults to 
-															  // nothing filtered out
+					// BEW addition 16Aug09, to exclude \note, \bt and/or \free markers
+					// when exporting either free translations or glosses as text
+					if (pApp->m_bExportingFreeTranslation || pApp->m_bExportingGlossesAsText)
+					{
+						if (bareMarker == _T("note") || 
+							bareMarker == _T("free") ||
+							bareMarker == _T("bt"))
+						{
+							continue; // ignore any of these marker types
+						}
+						else
+						{
+							// anything else gets added to the inventory
+							m_exportBareMarkers.Add(bareMarker);
+							m_exportMarkerAndDescriptions.Add(lbStr);
+							m_exportFilterFlags.Add(FALSE);
+							m_exportFilterFlagsBeforeEdit.Add(FALSE); 
+						}
+					}
+					else
+					{
+						m_exportBareMarkers.Add(bareMarker);
+						m_exportMarkerAndDescriptions.Add(lbStr);
+						m_exportFilterFlags.Add(FALSE); // export defaults to nothing 
+														// filtered out
+						m_exportFilterFlagsBeforeEdit.Add(FALSE); // export defaults to 
+																  // nothing filtered out
+					}
 				}
 			}
 		}
