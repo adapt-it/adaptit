@@ -1,5 +1,14 @@
 Version 5.1.0 update 15August2009:
 ----------------------------------------------
+Feature changes and new features in ???
+----------------------------------------------
+* When doing either a free translation or glosses text export, and the
+button Export Filter/Options is clicked, the list does not show
+\note, \free nor \bt (or derivatives) markers because these are 
+obligatorily not included in such exports, so there is no point in
+displaying them as a filterable choice.
+
+----------------------------------------------
 Feature changes and new features in 5.1.0
 ----------------------------------------------
 * Moved all the export functionalities to a new menu: Export-Import; 

@@ -1698,6 +1698,10 @@ public:
 									// a KB to import
 	wxString		m_lastGlossesExportPath; // for export of glosses as text with markup
 	wxString		m_lastFreeTransExportPath; // for export of free translations with markup
+	// BEW added 16Aug09, to support removing \note,\note*,\free,\free*,\bt from exports
+	// of either the glosses text or free translation text
+	bool			m_bExportingGlossesAsText;
+	bool			m_bExportingFreeTranslation;
 									
 	bool			m_bSaveAsXML;	// BEW added 04Aug05 for support of saving doc 
 									// and KB with XML markup

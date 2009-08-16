@@ -194,8 +194,9 @@ void CExportOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 	pRadioSelectedMarkersOnly->SetValue(bExportSelectedMarkersOnly);
 	pButtonUndo->Enable(FALSE);
 
-	// BEW added 1Feb08 to increase the item height from default 16, to 17 to allow for
-	// items with Times New Roman, 11 point size, for Azeri. Comment out after producing? (I could leave it)
+    // BEW added 1Feb08 to increase the item height from default 16, to 17 to allow for
+    // items with Times New Roman, 11 point size, for Azeri. Comment out after producing?
+    // (I could leave it)
 	// whm: I don't think this is needed in the wx version
 	//m_pListBoxSFMs->SetItemHeight(0,17); // to handle 11 point font
 
@@ -204,8 +205,8 @@ void CExportOptionsDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 
 	bFilterListChangesMade = FALSE;
 
-	// In ExportOptionsDlg we show the Interlinear related check boxes only when the Export Options
-	// dialog is called from ExportInterlinearDlg
+    // In ExportOptionsDlg we show the Interlinear related check boxes only when the Export
+    // Options dialog is called from ExportInterlinearDlg
 	if (bExportAsRTFInterlinear)
 	{
 		pCheckPlaceFreeTransInterlinear->Show(TRUE);
@@ -364,6 +365,16 @@ void CExportOptionsDlg::OnBnClickedRadioExportAll(wxCommandEvent& event)
 
 void CExportOptionsDlg::OnBnClickedRadioExportSelectedMarkers(wxCommandEvent& WXUNUSED(event))
 {
+	// BEW added 16Aug09, don't try to do anything if there is nothing in the list!
+	if (m_pListBoxSFMs->GetCount() == 0)
+	{
+		::wxBell(); // bell to tell user that it won't work!
+		// the GUI reflects the click, so we have to reset the radio buttons back to what
+		// they were before returning
+		pRadioExportAll->SetValue(TRUE);
+		pRadioSelectedMarkersOnly->SetValue(FALSE);
+		return;
+	}
 	// user clicked on Export Selected Markers Only
 	// enable selected markers list
 	m_pListBoxSFMs->Enable(TRUE);
