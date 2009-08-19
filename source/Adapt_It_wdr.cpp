@@ -6782,6 +6782,10 @@ wxMenuBar *AIMenuBarFunc()
     item8->Append( wxID_ABOUT, _("&About Adapt It..."), _("Display program information, version number and copyright") );
     item0->Append( item8, _("&Help") );
     
+    wxMenu* item9 = new wxMenu;
+    item9->Append( ID_CUSTOM_WORK_FOLDER_LOCATION, _("&Custom Work Folder Location"), _("Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere") );
+    item0->Append( item9, _("Ad&ministrator") );
+    
     return item0;
 }
 
