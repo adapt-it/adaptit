@@ -299,7 +299,8 @@ enum TopLevelMenu
 	exportImportMenu,
     advancedMenu,
     layoutMenu,
-    helpMenu
+    helpMenu,
+	administratorMenu
 };
 
 enum ExportType
@@ -1843,9 +1844,20 @@ public:
 	bool		m_bSingleQuoteAsPunct; // default FALSE set in creator's code block
 	bool		m_bDoubleQuoteAsPunct; // default TRUE set in creator's code block
 
-	// file i/o and directory structures
-	wxString	m_workFolderPath;	// "C:\My Documents\Adapt It Work" or the 
-				// Win 2000 equiv path
+	// file i/o and directory structures & support for custom work folder locations
+	wxString	m_workFolderPath;	// default path to the "Adapt It Work" or "Adapt It
+									// Unicode Work" folder, depending on which build
+	wxString	m_customWorkFolderPath; // user or advisor defined work folder location
+										// used when the following boolean is TRUE
+	bool		m_bUseCustomWorkFolderPath; // default FALSE for legacy behaviour, set
+									// TRUE when Adapt It is pointed at a custom work
+									// folder location
+	bool		m_bSaveAutoBackupKB; // save local value while administrator is at a custom
+									 // folder location
+	bool		m_bSaveBackupDocument; // save local value while administrator is at a custom
+									 // folder location
+	bool		m_bSaveNoAutoSave; // save local value while administrator is at a custom
+									 // folder location			
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
@@ -2196,12 +2208,12 @@ public:
 	void OnToolsUnloadCcTables(wxCommandEvent& WXUNUSED(event));
 	
 	void OnFileChangeFolder(wxCommandEvent& event);
+	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnAdvancedBookMode(wxCommandEvent& event);
 	void OnAdvancedChangeWorkFolderLocation(wxCommandEvent& event);
 	void OnUpdateAdvancedChangeWorkFolderLocation(wxUpdateUIEvent& WXUNUSED(event));
 	
 	void OnFilePageSetup(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateAdvancedBookMode(wxUpdateUIEvent& event);
 	void OnUpdateFileChangeFolder(wxUpdateUIEvent& event);
 	void OnUpdateFileBackupKb(wxUpdateUIEvent& event);
 	void OnUpdateFileRestoreKb(wxUpdateUIEvent& event);
@@ -2215,6 +2227,10 @@ public:
 	void OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateToolsAutoCapitalization(wxUpdateUIEvent& event);
 
+	void OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event);
+	void OnCustomWorkFolderLocation(wxCommandEvent& event);
+
+
 protected:
 
 	void	AddWedgePunctPair(wxChar wedge);
@@ -2225,7 +2241,8 @@ protected:
 	void	GetValue(const wxString strReadIn, wxString& strValue, wxString& name);
 	wxSize	GetExtentOfLongestSfm(wxDC* pDC);
 	bool	IsAdaptitProjectDirectory(wxString title);
-	void	MakeForeignBasicConfigFileSafe(wxString& configFName,wxString& folderPath);
+	void	MakeForeignBasicConfigFileSafe(wxString& configFName,wxString& folderPath,
+											wxString* adminConfigFNamePtr = NULL);
 	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void	RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
@@ -2439,8 +2456,17 @@ public:
             // when splitting a document into multiple files, one per chapter, you may wish
             // to call this function multiple times with DoFullScreenUpdate = false, and
             // finally call it with DoFullScreenUpdate = true only after the last change.
-	CSourcePhrase *GetSourcePhraseByIndex(int Index);
+	CSourcePhrase	*GetSourcePhraseByIndex(int Index);
 	void	SetCurrentSourcePhraseByIndex(int Index);
+
+	// BEW added 17Aug09, to support custom work folder locations
+	// BEW removed 19Aug09, because it was only called in reading project config file and
+	// we no longer store flag nor custom work folder path in any config file
+	//bool	EnsureCustomWorkFolderPathIsSet(wxString customPath, wxString& newCustomPath, 
+	//											bool& bNewPathFound);
+	bool	IsValidWorkFolder(wxString path);
+	bool	LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath);
+	bool	m_bDoNotWriteConfigFiles; // default FALSE, TRUE to suppress config file writing
 
 	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
 	// docs re "Writing installers for wxWidgets applications"
