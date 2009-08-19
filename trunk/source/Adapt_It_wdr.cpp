@@ -2110,6 +2110,14 @@ wxSizer *ViewPageFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item31, 0, wxGROW|wxALL, 0 );
 
+    wxBoxSizer *item32 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxCheckBox *item33 = new wxCheckBox( parent, IDC_CHECK_SHOW_ADMIN_MENU, _("Show Administrator Menu (Password protected)"), wxDefaultPosition, wxDefaultSize, 0 );
+    item33->SetToolTip( _("Password protected. When ticked, Administrator menu shows") );
+    item32->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item32, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
     item3->Add( item4, 1, wxGROW|wxALL, 5 );
 
     item1->Add( item3, 1, wxALIGN_CENTER, 5 );

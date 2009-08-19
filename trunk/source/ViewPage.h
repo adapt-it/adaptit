@@ -59,6 +59,7 @@ public:
 	//wxCheckBox* m_pCheckSupressLast;
 	wxCheckBox* m_pCheckWelcomeVisible;
 	wxCheckBox* m_pCheckHighlightAutoInsertedTrans;
+	wxCheckBox* m_pCheckShowAdminMenu;
 	int		tempMaxToDisplay;
 	int		tempPrecCntxt;
 	int		tempFollCntxt;
@@ -72,6 +73,7 @@ public:
 	bool	tempMakeWelcomeVisible;
 	bool	tempUseStartupWizardOnLaunch;
 	bool	tempHighlightAutoInsertions;
+	bool	tempShowAdminMenu;
 	wxColour tempAutoInsertionsHighlightColor;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

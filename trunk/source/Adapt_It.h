@@ -2480,6 +2480,11 @@ public:
 	// dialog, at the once location, from being shown twice
 	int		m_nPlacePunctDlgCallNumber;
 	int		m_nCurSequNum_ForPlacementDialog;
+
+	// a boolean for whether or not to show the Administrator menu
+	bool		m_bShowAdministratorMenu;
+	wxString	m_adminPassword; // store password here (but not "admin" the latter always
+								 // will work, and is hard-coded)
 };
 
 DECLARE_APP(CAdapt_ItApp);
