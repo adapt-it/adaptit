@@ -9,6 +9,13 @@ obligatorily not included in such exports, so there is no point in
 displaying them as a filterable choice.
 
 ----------------------------------------------
+Bug fixes in ???
+----------------------------------------------
+* When the user has adapted all the document and the phrase box
+has become invisible, if he then used the Step Up button the application
+crashed.
+
+----------------------------------------------
 Feature changes and new features in 5.1.0
 ----------------------------------------------
 * Moved all the export functionalities to a new menu: Export-Import; 

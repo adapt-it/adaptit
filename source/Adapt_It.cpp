@@ -4852,7 +4852,9 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
 	m_bDoNotWriteConfigFiles = FALSE; // default is allow them to be written
-
+	m_adminPassword = _T(""); // nothing initially, basic config file can store one
+							  // and "admin" will always work, but not be stored in basic
+							  // config file ever
 	// wxWidgets NOTES:
     // 1. Do NOT attempt to call or manipulate anything from within the CMainFrame
     // constructor (see MainFrm.cpp) before a CMainFrame object is constructed here (see
@@ -7351,6 +7353,7 @@ while (resToken != "")
 	m_bExportingGlossesAsText = FALSE;   // set TRUE during export of glosses
 	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
 
+	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
     return TRUE;
 }
 

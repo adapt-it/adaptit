@@ -69,10 +69,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 {
 	Create( parent );
 
-	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
-	// for the dialog. The first parameter is the parent which should normally be "this".
-	// The second and third parameters should both be TRUE to utilize the sizers and create the right
-	// size dialog.
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	tempMaxToDisplay = 0;
 	tempPrecCntxt = 0;
 	tempFollCntxt = 0;
@@ -85,6 +82,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	tempSuppressLast = FALSE;
 	tempMakeWelcomeVisible = TRUE;
 	tempHighlightAutoInsertions = TRUE;
+	tempShowAdminMenu = pApp->m_bShowAdministratorMenu;
 
 	// refactored 26Apr09 -- next 3 no longer required
 	//m_pEditMaxSrcWordsDisplayed = (wxTextCtrl*)FindWindowById(IDC_EDIT_MAX_DISPLAYED);
@@ -100,6 +98,7 @@ CViewPage::CViewPage(wxWindow* parent) // dialog constructor
 	//m_pCheckSupressLast = (wxCheckBox*)FindWindowById(IDC_CHECK_SUPPRESS_LAST);
 	m_pCheckWelcomeVisible = (wxCheckBox*)FindWindowById(IDC_CHECK_WELCOME_VISIBLE);
 	m_pCheckHighlightAutoInsertedTrans = (wxCheckBox*)FindWindowById(IDC_CHECK_HIGHLIGHT_AUTO_INSERTED_TRANSLATIONS);
+	m_pCheckShowAdminMenu = (wxCheckBox*)FindWindowById(IDC_CHECK_SHOW_ADMIN_MENU);
 }
 
 CViewPage::~CViewPage() // destructor
@@ -227,6 +226,7 @@ void CViewPage::OnOK(wxCommandEvent& WXUNUSED(event))
 	pApp->m_bSuppressWelcome = !m_pCheckWelcomeVisible->GetValue();
 	pApp->m_bSuppressTargetHighlighting = !m_pCheckHighlightAutoInsertedTrans->GetValue();
 	pApp->m_AutoInsertionsHighlightColor = tempAutoInsertionsHighlightColor;
+	pApp->m_bShowAdministratorMenu = m_pCheckShowAdminMenu->GetValue();
 }
 
 void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -293,6 +293,7 @@ void CViewPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is 
 	//m_pCheckSupressLast->SetValue(tempSuppressLast);
 	m_pCheckWelcomeVisible->SetValue(tempMakeWelcomeVisible);
 	m_pCheckHighlightAutoInsertedTrans->SetValue(tempHighlightAutoInsertions);
+	m_pCheckShowAdminMenu->SetValue(tempShowAdminMenu);
 
 	// Since most users won't likely want any particular setting in this
 	// panel, we won't set focus to any particular control.

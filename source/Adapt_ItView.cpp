@@ -8829,7 +8829,20 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 
 	SPList* pList = pApp->m_pSourcePhrases;
-	int nSaveOldSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+
+	// Beware, the update handler has the button enabled if the active sequ num is -1 and
+	// there is data in the document; so we can't try to call GetSrcPhrase() for an active
+	// pile pointer which is NULL. The thing to do would be to temporarily place the box
+	// at the last CSourcePhrase in the document and let it then search back.
+	int nSaveOldSequNum;
+	if (pApp->m_nActiveSequNum == -1 || pApp->m_pActivePile == NULL)
+	{
+		// passed the end of the document
+		pApp->m_nActiveSequNum = pApp->GetMaxIndex();
+		pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
+		pApp->m_targetPhrase = _T("");
+	}
+	nSaveOldSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
 	wxString saveTargetPhrase = pApp->m_targetPhrase;
 
 	// return if we are at the start of the document
