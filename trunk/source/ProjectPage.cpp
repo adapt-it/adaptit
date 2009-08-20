@@ -567,7 +567,12 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				else
 				{
 					// IDS_KB_BACKUP_OFF
-					wxMessageBox(_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),_T(""), wxICON_INFORMATION);
+					if (!pApp->m_bUseCustomWorkFolderPath)
+					{
+						wxMessageBox(
+_("A reminder: backing up of the knowledge base is currently turned off.\nTo turn it on again, see the Knowledge Base tab within the Preferences dialog."),
+						_T(""), wxICON_INFORMATION);
+					}
 				}
 			}
 			else
@@ -581,7 +586,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 				pApp->m_bKBReady = FALSE;
 				pApp->m_pKB = (CKB*)NULL;
 				// IDS_KB_NEW_EMPTY_FAILED
-				wxMessageBox(_("Sorry, substituting a new empty knowledge base failed. Instead you should now try the Restore Knowledge Base command in the File menu. You need a valid knowledge base before doing any more work."),_T(""), wxICON_INFORMATION);
+				wxMessageBox(
+_("Sorry, substituting a new empty knowledge base failed. Instead you should now try the Restore Knowledge Base command in the File menu. You need a valid knowledge base before doing any more work.")
+				,_T(""), wxICON_INFORMATION);
 
 				pStartWorkingWizard->Show(FALSE);
 				pStartWorkingWizard->EndModal(1);

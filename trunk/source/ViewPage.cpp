@@ -58,8 +58,8 @@ IMPLEMENT_DYNAMIC_CLASS( CViewPage, wxPanel )
 BEGIN_EVENT_TABLE(CViewPage, wxPanel)
 	EVT_INIT_DIALOG(CViewPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(IDC_BUTTON_CHOOSE_HIGHLIGHT_COLOR, CViewPage::OnButtonHighlightColor)
+	EVT_CHECKBOX(IDC_CHECK_SHOW_ADMIN_MENU, CViewPage::OnCheckShowAdminMenu)
 END_EVENT_TABLE()
-
 
 CViewPage::CViewPage()
 {
@@ -135,6 +135,45 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 	{
 		tempAutoInsertionsHighlightColor  = colorData.GetColour();
 	}	
+}
+
+void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	bool bFlag = pApp->m_bShowAdministratorMenu;
+	if (bFlag)
+	{
+		// menu is currently shown and administrator wants it hidden, no password required
+		// for hiding it
+		pApp->m_bShowAdministratorMenu = FALSE;
+
+		// code for removing the menu and updating the menu bar is in
+		// the OnEditPreferences() handler in the view class
+	}
+	else
+	{
+		// someone wants to have the administrator menu made visible, this requires a
+		// password and we always accept the secret default "admin" password
+		wxString message = _("Access to Administrator privileges requires that you type a password");
+		wxString caption = _("Type Administrator Password");
+		wxString default_value = _T("");
+		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this); 
+		if (password == _T("admin") || 
+			(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
+		{
+			// a valid password was typed
+			pApp->m_bShowAdministratorMenu = TRUE;
+			
+			// code for installing the menu and updating the menu bar is in
+			// the OnEditPreferences() handler in the view class
+		}
+		else
+		{
+			// invalid password - turn the checkbox back off, beep also
+			::wxBell();
+			m_pCheckShowAdminMenu->SetValue(FALSE);
+		}
+	}
 }
 
 // MFC's OnSetActive() has no direct equivalent in wxWidgets. 
