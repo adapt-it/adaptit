@@ -96,6 +96,8 @@ class CMainFrame : public wxDocParentFrame
 	CMainFrame(wxDocManager* manager, wxFrame* frame, wxWindowID id,
 			const wxString& title,
 			const wxPoint& pos, const wxSize& size, const long type);
+	~CMainFrame(); // an explicit destructor, so the removed administrator menu can
+				   // be restored before destruction of the frame
     
 	// MFC Overrides
 	// MFC ClassWizard generated virtual function overrides below

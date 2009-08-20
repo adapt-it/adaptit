@@ -2250,8 +2250,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	// Administrator menu handlers !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	EVT_MENU(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnCustomWorkFolderLocation)
 	EVT_UPDATE_UI(ID_CUSTOM_WORK_FOLDER_LOCATION, CAdapt_ItApp::OnUpdateCustomWorkFolderLocation)
-
-	
+	EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
+	EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
+	EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnLocalWorkFolder)
+	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateLocalWorkFolder)	
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
 	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
@@ -3076,6 +3078,11 @@ wxString szSilConverterDirForward = _T("SilConverterDirectionForward");   // boo
 /// basic configuration file. Adapt It stores this value in the App's
 /// m_eSilConverterNormalizeOutput global variable.
 wxString szSilConverterNormalize = _T("SilConverterNormalizeOutput");
+
+/// The label that identifies the following string as a password which can be used to make
+/// the Administrator menu become visible at the end of the menu bar. (A checkbox in the
+/// View tab of Preferences is where an administrator can request the menu be shown or hid)
+wxString szAdministratorPassword = _T("AdministratorPassword");
 
 // Note: ecDriverDynamicLibrary.Load() is called in OnInit()
 wxDynamicLibrary ecDriverDynamicLibrary;
@@ -4851,6 +4858,9 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_pRemovedAdminMenu = NULL;
+	m_bAdminMenuRemoved = FALSE; // it will be removed later in this function and this
+								 // flag set at that point
 	m_bDoNotWriteConfigFiles = FALSE; // default is allow them to be written
 	m_adminPassword = _T(""); // nothing initially, basic config file can store one
 							  // and "admin" will always work, but not be stored in basic
@@ -6587,6 +6597,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 #endif
 
+	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
+	wxASSERT(pMenuBar != NULL);
 
 	// Hide the Glossing check box
 	wxPanel* pBar;
@@ -6662,8 +6674,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 #else
 	// Unicode version
 	// Initialize the Layout menu to LTR
-	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
-	wxASSERT(pMenuBar != NULL);
 	wxMenuItem * pLayoutMenuAlignment = pMenuBar->FindItem(ID_ALIGNMENT);
 	wxASSERT(pLayoutMenuAlignment != NULL);
 	// Set the menu item text to default value "Layout Window Right To Left\tCTRL+1"
@@ -7354,6 +7364,18 @@ while (resToken != "")
 	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
 
 	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
+
+	// remove the Administrator menu until asked for
+	int menuCount = pMenuBar->GetMenuCount();
+	//wxMenu* pAdminMenu = pMenuBar->GetMenu(administratorMenu); // no, a menu may be
+						//removed already, so this index may not be correct presently
+	wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
+	wxASSERT(pAdminMenu != NULL);
+	m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
+	m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
+	m_bAdminMenuRemoved = TRUE;
+	pMenuBar->Refresh();
+
     return TRUE;
 }
 
@@ -12630,6 +12652,10 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	pf->AddLine(data);
 
 	data.Empty();
+	data << szAdministratorPassword << tab << m_adminPassword;
+	pf->AddLine(data);
+
+	data.Empty();
 	data << szLastActiveSequNum << tab << nLastActiveSequNum;
 	pf->AddLine(data);
 
@@ -13728,6 +13754,10 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 		else if (name == szLastExportPath)
 		{
 			m_lastExportPath = strValue;
+		}
+		else if (name == szAdministratorPassword)
+		{
+			m_adminPassword = strValue;
 		}
 		else if (name == szLastActiveSequNum)
 		{
@@ -18486,7 +18516,9 @@ void CAdapt_ItApp::OnToolsAutoCapitalization(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      configFName         -> the name of the basic config file
-/// \param      folderPath          -> the work folder path m_workFolderPath
+/// \param      folderPath          -> the work folder path m_workFolderPath, or when
+///                                    the m_bUseCustomWorkFolderPath flag is TRUE, it is
+///                                    the m_customWorkFolderPath
 /// \param      adminConfigFName    -> pointer to the name of the administor configuration 
 ///                                    file name, for use when m_bUseCustomWorkFolderPath
 ///                                    is TRUE, because administrator is looking into a
@@ -18525,6 +18557,12 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 {
 	if ((m_customWorkFolderPath == m_workFolderPath) || !m_bUseCustomWorkFolderPath)
 	{
+        // NOTE: EnsureWorkFolderExists() must be called beforehand to ensure
+        // m_localPathPrefix path string has been correctly set before the program counter
+        // traverses this code block - this is important now that the path which was
+        // formerly being used may be to a non-standard work folder location somewhere deep
+        // in the folder hierarchy!
+		
 		// Get the "home" directory for the current system/platform. This would typically be:
 		// For Windows: C:\Documents and Settings\<UserName>
 		// For Linux: /usr/home
@@ -18822,7 +18860,12 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 
 		wxString adminConfigPath = folderPath + PathSeparator + *adminConfigFNamePtr;
 		wxString configPath = folderPath + PathSeparator + configFName;
-		wxString localPathPrefix = m_localPathPrefix; // m_localPathPrefix was set 
+		// BEW removed next line 20Aug09, we don't need to use m_localPathPrefix in this
+		// block, so not changing it means it only applies when using the legacy code for
+		// the default location (the TRUE block above) - and this reduces the dependency
+		// on EnsureWorkFolderPresent() being called beforehand to just when setting up
+		// for pointing back at the legacy work folder location
+		//wxString localPathPrefix = m_localPathPrefix; // m_localPathPrefix was set 
 													  // in EnsureWorkFolderPresent.
 		// m_localPathPrefix represents the part of the path preceeding the m_theWorkFolder
 		// part so that m_localPathPrefix + m_theWorkFolder together represents the desired
@@ -18912,11 +18955,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
         // folders. So we set m_localPathPrefix to m_customWorkFolderPath, because the
         // administrator's folder choice gives a fully determinate work folder path on his
         // local machine (which may be a path to a folder on a remote machine)
-		wxString localPath;
-		m_localPathPrefix = m_customWorkFolderPath;
-		localPath = m_localPathPrefix;
-		// the above 3 lines are more complex than needed, but it makes for less
-		// modifications in what follows
+		wxString localPath = m_customWorkFolderPath;
 		wxString tab = _T('\t');
 		wxString fileLine;
 		// scan the in-memory file line-by-line and process those needing path updates
@@ -23646,6 +23685,138 @@ void CAdapt_ItApp::OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event)
 	event.Enable(TRUE); // we want it always available, if visible
 }
 
+void CAdapt_ItApp::OnUpdateSetPassword(wxUpdateUIEvent& event)
+{
+	if (m_bAdminMenuRemoved)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE); // permit password setting if Administrator
+						// menu is currently visible
+}
+
+void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
+{
+	wxString caption = _("Type A Password");
+	wxString message = _(
+"The password can be a mix of letters, numbers or punctuation. Less than four characters will not be accepted.\nEmptying the box will remove an existing password.");
+	wxString default_value = _T("");
+	wxString password = ::wxGetTextFromUser(message,caption,default_value,m_pMainFrame);
+	int length = password.Len();
+	if (length == 0)
+	{
+		// administrator wants to lock out anyone who does not know the "admin" secret password
+		m_adminPassword = _T("");
+		return;
+	}
+	if (length <= 4)
+	{
+		::wxBell();
+		wxMessageBox(_("Too short."),_T(""),wxICON_WARNING);
+	}
+	else
+	{
+		// accept the password
+		m_adminPassword = password;
+	}
+}
+
+void CAdapt_ItApp::OnUpdateLocalWorkFolder(wxUpdateUIEvent& event)
+{
+	if (m_bAdminMenuRemoved)
+	{
+		// can't do it if the menu is not attached
+		event.Enable(FALSE);
+		return;
+	}
+	if (!m_bAdminMenuRemoved)
+	{
+		// the menu is showing
+		
+		// don't enable the menu item if the work folder and custom work folder are one
+		// and the same
+		if (m_workFolderPath == m_customWorkFolderPath)
+		{
+			event.Enable(FALSE);
+			return;
+		}
+		// otherwise, returning to the default work folder location is possible because
+		// the application is pointing at some other work folder, so allow user to choose it
+		event.Enable(TRUE);
+	}
+}
+
+void CAdapt_ItApp::OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event))
+{
+	//wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+	//wxLogDebug(_T("1  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+
+	wxASSERT(m_bUseCustomWorkFolderPath);
+	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
+
+	//wxLogDebug(_T("2  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+	//wxLogDebug(_T("2  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+	
+	m_customWorkFolderPath.Empty();
+	m_bUseCustomWorkFolderPath = FALSE;
+	bool bIsValid = IsValidWorkFolder(m_workFolderPath);
+
+	//wxLogDebug(_T("3  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+	//wxLogDebug(_T("3  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+
+	if (bIsValid)
+	{
+		::wxSetWorkingDirectory(m_workFolderPath);
+		// MUST call EnsureWorkFolderPresent() before calling
+		// MakeForeignBasicConfigFileSafe(), if it isn't called then
+		// m_localPathPrefix string is left with the remote work folder's path and we get
+		// wrong paths set up, and a crash (I'll see if I can remove the use of
+		// m_localPathPrefix at the custom location, that will be added protection -- yes,
+		// I did that)
+		EnsureWorkFolderPresent();	// <- this call should not now be needed, because 
+									// m_localPathPrefix is not now reset when setting
+									// up for a custom work folder location, and so that 
+									// variable should still be valid; however, calling
+									// it will ensure its validity so I've left it here	
+		wxString configFName = szBasicConfiguration + _T(".aic");
+		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
+		
+		//wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+		//wxLogDebug(_T("4  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+	}
+	else
+	{
+		// don't expect this, so do the from-first-principles way
+		EnsureWorkFolderPresent();
+
+		wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+		wxLogDebug(_T("5  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+
+		SetupDirectories();
+
+		//wxLogDebug(_T("6  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+		//wxLogDebug(_T("6  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+	}
+
+	// restore the administrator's original values for certain flags
+	m_bAutoBackupKB = m_bSaveAutoBackupKB;
+	m_bBackupDocument = m_bSaveBackupDocument;
+	m_bNoAutoSave = m_bSaveNoAutoSave;
+
+	// restore administrator's former local basic configuration settings
+	GetBasicConfigFileSettings();
+
+	//wxLogDebug(_T("7  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+	//wxLogDebug(_T("7  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+
+	// run the wizard, so that the administrator can access projects & their documents at
+	// the custom work folder's location
+	wxCommandEvent dummyevent;
+	pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+	DoStartWorkingWizard(dummyevent); // ignore returned TRUE, FALSE is never returned
+}
+
 void CAdapt_ItApp::OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
 {
 	//wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
@@ -23764,11 +23935,7 @@ a:			wxString stdDocsDir = _T("");
 		// again 
 		m_bUseCustomWorkFolderPath = bSaveUsageFlag;
 		m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
-		wxString msg1 = _("You failed to locate a valid work folder. The earlier custom work folder ");
-		wxString msg2 = _("location is still in effect, or if there was no earlier custom location ");	
-		wxString msg3 = _("then the default work folder location is currently set.\n");
-		wxString msg4 = _("If you want to point Adapt It at a custom work folder location, please try again.");
-		msg1 += msg2 + msg3 + msg4;
+		wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
 		wxMessageBox(msg1,_(""),wxICON_WARNING);
 		// check the former location is valid as a work folder, if not set up the default
 		// path

@@ -1116,6 +1116,23 @@ WXLRESULT CMainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
 }
 #endif
 
+CMainFrame::~CMainFrame()
+{
+	// restore to the menu bar the Administrator menu if it is currently removed
+	if (gpApp->m_bAdminMenuRemoved)
+	{
+		// we append it because when the frame is destroyed the menus will be also, and so
+		// we ensure no memory leak from this menu being detached
+		wxMenuBar* pMenuBar = GetMenuBar();
+		wxASSERT(pMenuBar != NULL);
+		bool bAppendedOK = pMenuBar->Append(gpApp->m_pRemovedAdminMenu,gpApp->m_adminMenuTitle);
+		wxASSERT(bAppendedOK);
+		gpApp->m_pRemovedAdminMenu = NULL;
+		gpApp->m_bAdminMenuRemoved = FALSE;
+		// no Refresh() needed
+	}
+}
+
 CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
                      const wxString& title, const wxPoint& pos,
                      const wxSize& size, const long type) :

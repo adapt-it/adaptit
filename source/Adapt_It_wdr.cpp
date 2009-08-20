@@ -6792,6 +6792,8 @@ wxMenuBar *AIMenuBarFunc()
     
     wxMenu* item9 = new wxMenu;
     item9->Append( ID_CUSTOM_WORK_FOLDER_LOCATION, _("&Custom Work Folder Location"), _("Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere") );
+    item9->Append( ID_SET_PASSWORD_MENU, _("Set Password"), _("Set a password, it will be stored in the clear in the basic configuration file") );
+    item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("Return To Local Work Folder"), _("Point at the local machine's default work folder") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;

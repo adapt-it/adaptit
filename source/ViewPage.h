@@ -79,6 +79,7 @@ public:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& WXUNUSED(event)); 
 	void OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event));
+	void OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event));
 
 private:
 	// class attributes

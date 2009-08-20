@@ -5211,8 +5211,54 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
         // need to update them from here after the CEditPreferencesDlg's ShowModal() call
         // is made - as does the MFC version.
 	}
+	else
+	{
+		// user cancelled
+		if (pApp->m_bShowAdministratorMenu)
+		{
+			// don't show it if the user cancelled prefs
+			pApp->m_bShowAdministratorMenu = FALSE;
+		}
+	}
 
-    // We want to be smarter here so that we don't create piles and strips again
+	// show the Administrator menu if the admin person requested it and password was valid
+	// if flag is FALSE, check if the menu is visible and if so, hide it
+	if (pApp->m_bShowAdministratorMenu)
+	{
+		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+		wxASSERT(pMenuBar != NULL);
+
+		// is the Admin menu hidden? If so, install it and show it, otherwise leave it
+		// showing 
+		if (pApp->m_bAdminMenuRemoved)
+		{
+			bool bAppendedOK = pMenuBar->Append(pApp->m_pRemovedAdminMenu,pApp->m_adminMenuTitle);
+			wxASSERT(bAppendedOK);
+			pApp->m_pRemovedAdminMenu = NULL;
+			pApp->m_bAdminMenuRemoved = FALSE;
+		}
+		pMenuBar->Refresh();
+	}
+	else
+	{
+		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+		wxASSERT(pMenuBar != NULL);
+
+		// is the Admin menu showing? If so, remove it
+		if (!pApp->m_bAdminMenuRemoved)
+		{
+			// it's showing, so get rid of it
+			int menuCount = pMenuBar->GetMenuCount();
+			wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
+			wxASSERT(pAdminMenu != NULL);
+			pApp->m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
+			pApp->m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
+			pApp->m_bAdminMenuRemoved = TRUE;
+		}
+		pMenuBar->Refresh();
+	}
+
+	// We want to be smarter here so that we don't create piles and strips again
     // unnecessarily - eg. if user changes the colour of text only, no recalculation of the
     // layout would be needed
 	// BEW 5Jun09, removed the RecalcLayout() call here, in favour of using the

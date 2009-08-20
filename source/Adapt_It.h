@@ -290,6 +290,9 @@ struct FreeTrElement
 };
 
 /// An enum for the indices for the top level menus
+/// Note: item0 is the menubar itself, but that does not mean that the File menu is 
+/// at index 1; the menus in a menu bar are indexed from the first (File menu) starting
+/// with index == 0
 enum TopLevelMenu
 {
     fileMenu,
@@ -2229,7 +2232,10 @@ public:
 
 	void OnUpdateCustomWorkFolderLocation(wxUpdateUIEvent& event);
 	void OnCustomWorkFolderLocation(wxCommandEvent& event);
-
+	void OnUpdateSetPassword(wxUpdateUIEvent& event);
+	void OnSetPassword(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateLocalWorkFolder(wxUpdateUIEvent& event);
+	void OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event));
 
 protected:
 
@@ -2481,10 +2487,18 @@ public:
 	int		m_nPlacePunctDlgCallNumber;
 	int		m_nCurSequNum_ForPlacementDialog;
 
+	// variables related to the Administrator menu
 	// a boolean for whether or not to show the Administrator menu
 	bool		m_bShowAdministratorMenu;
 	wxString	m_adminPassword; // store password here (but not "admin" the latter always
 								 // will work, and is hard-coded)
+	bool		m_bAdminMenuRemoved; // TRUE when removed from menu bar, but still on heap
+									 // FALSE when appended (and visible) on the menu bar
+	wxMenu*		m_pRemovedAdminMenu; // store the removed Administrator menu here until needed
+	wxString	m_adminMenuTitle; // to restore the menu to the menu bar, the function needs the
+								  // title to be passed in as well, so have to save it
+								  // here too
+						
 };
 
 DECLARE_APP(CAdapt_ItApp);
