@@ -49,9 +49,9 @@ class AIPrintout;
 
 #define VERSION_MAJOR_PART 5
 #define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 0
+#define VERSION_BUILD_PART 1
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 15
+#define VERSION_DATE_DAY 21
 #define VERSION_DATE_MONTH 8
 #define VERSION_DATE_YEAR 2009
 
@@ -2471,8 +2471,10 @@ public:
 	//bool	EnsureCustomWorkFolderPathIsSet(wxString customPath, wxString& newCustomPath, 
 	//											bool& bNewPathFound);
 	bool	IsValidWorkFolder(wxString path);
-	bool	LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath);
+	bool	LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath, 
+									bool& bUserCancelled);
 	bool	m_bDoNotWriteConfigFiles; // default FALSE, TRUE to suppress config file writing
+	bool	IsConfigFileWithin(wxString path, wxString& configFilePath, bool& bIsAdminBasic);
 
 	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
 	// docs re "Writing installers for wxWidgets applications"
@@ -2498,6 +2500,12 @@ public:
 	wxString	m_adminMenuTitle; // to restore the menu to the menu bar, the function needs the
 								  // title to be passed in as well, so have to save it
 								  // here too
+	wxString	m_pathTo_FoundBasicConfigFile; // empty, or either path to AI-BasicConfiguration.aic
+										// or to AI-AdminBasicConfiguration.aic in a custom
+										// work folder (IsValidWorkFolder() found it)
+	bool		m_bTypeOf_FoundBasicConfigFile; // TRUE if Admin type, FALSE if normal type,
+										// for the m_pathTo_FoundBasicConfigFile member;
+										// value is rubbish if that string is NULL
 						
 };
 

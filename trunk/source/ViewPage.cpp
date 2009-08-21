@@ -139,6 +139,14 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
+	/* used for 5.1.1 "fixed" version for Bob's Brazil workshop, built on 21Aug09
+	wxMessageBox(_T(
+"This functionality is a work in progress and it is not finished yet. Please wait for next release."),
+	_T(""), wxICON_INFORMATION);
+	m_pCheckShowAdminMenu->SetValue(FALSE);
+
+	 Turn off for Bob Buss's 5.1.1
+ */
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	bool bFlag = pApp->m_bShowAdministratorMenu;
 	if (bFlag)

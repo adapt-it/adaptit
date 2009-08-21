@@ -1129,6 +1129,7 @@ CMainFrame::~CMainFrame()
 		wxASSERT(bAppendedOK);
 		gpApp->m_pRemovedAdminMenu = NULL;
 		gpApp->m_bAdminMenuRemoved = FALSE;
+		bAppendedOK = bAppendedOK; // removes compiler warning
 		// no Refresh() needed
 	}
 }

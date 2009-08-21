@@ -5236,6 +5236,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 			wxASSERT(bAppendedOK);
 			pApp->m_pRemovedAdminMenu = NULL;
 			pApp->m_bAdminMenuRemoved = FALSE;
+			bAppendedOK = bAppendedOK; // to remove compiler warning
 		}
 		pMenuBar->Refresh();
 	}
@@ -5249,8 +5250,8 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		{
 			// it's showing, so get rid of it
 			int menuCount = pMenuBar->GetMenuCount();
-			wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
-			wxASSERT(pAdminMenu != NULL);
+			//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
+			//wxASSERT(pAdminMenu != NULL);
 			pApp->m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
 			pApp->m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
 			pApp->m_bAdminMenuRemoved = TRUE;
