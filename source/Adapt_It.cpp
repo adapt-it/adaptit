@@ -23896,8 +23896,8 @@ void CAdapt_ItApp::OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event))
 		// don't expect this, so do the from-first-principles way
 		EnsureWorkFolderPresent();
 
-		wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
-		wxLogDebug(_T("5  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+		wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
+		wxLogDebug(_T("5  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 
 		SetupDirectories();
 
