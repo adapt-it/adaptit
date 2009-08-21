@@ -27093,7 +27093,6 @@ a:			for (iter = pKB->m_pMap[numWords-1]->begin();
 				pFile->Write(pApp->m_eolStr); // use the proper cross-platform eol char(s)
 
 #else // Unicode version
-						pApp->ConvertAndWrite(pApp->m_srcEncoding,pFile,key); // source text
 						pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,key); // source text
 						pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,pApp->m_eolStr); 
 																	// whm added fix 23Jan09 
