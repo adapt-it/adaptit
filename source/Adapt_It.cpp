@@ -6665,7 +6665,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	delete pRemMenuItem; // to avoid memory leaks
 	pRemMenuItem = (wxMenuItem*)NULL;
 	// then delete the top level "Layout" menu
-	wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
+	//wxMenuBar* pMenuBar = m_pMainFrame->GetMenuBar();
 	wxMenu* pRemMenu;
 	pRemMenu = pMenuBar->Remove(layoutMenu);
 	wxASSERT(pRemMenu != NULL);
@@ -7369,8 +7369,8 @@ while (resToken != "")
 	int menuCount = pMenuBar->GetMenuCount();
 	//wxMenu* pAdminMenu = pMenuBar->GetMenu(administratorMenu); // no, a menu may be
 						//removed already, so this index may not be correct presently
-	wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
-	wxASSERT(pAdminMenu != NULL);
+	//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
+	//wxASSERT(pAdminMenu != NULL);
 	m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
 	m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
 	m_bAdminMenuRemoved = TRUE;
@@ -14640,12 +14640,22 @@ void CAdapt_ItApp::SetDefaults()
 
 	m_bUseStartupWizardOnLaunch = TRUE;
 	m_bAutoBackupKB = TRUE;
+	/* 
+	//BEW changed default to FALSE, because new users won't realize they start out
+	//unprotected from total work loss if the power goes out during their first session,
+	//as happened in Bob Buss's Brazil training workshop
 	m_bNoAutoSave = TRUE; // whm changed to TRUE in wx (MFC has FALSE here but TRUE in 
 						  // App's constructor as default)	
+	*/
+	m_bNoAutoSave = FALSE; // AutoSavingPage.cpp, InitDialog() takes this value and
+						   // sets up the wiz page's control value from it
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
 	#ifdef __WXDEBUG__
+	if (m_bNoAutoSave)
 		wxLogDebug(_T("m_bNoAutoSave  in SetDefaults() was set to TRUE"));
+	else
+		wxLogDebug(_T("m_bNoAutoSave  in SetDefaults() was set to FALSE"));
 	#endif
 #endif
 
@@ -15192,16 +15202,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 					// case, Adapt It cannot do any work. Rather than create an empty work
 					// folder it is better to advise the user to use a file manager to
 					// examine where the work folder is, and then try again.
-					wxString msg1 = _("You failed to locate a valid work folder. Adapt It will use the default ");
-					wxString msg2 = _("work folder location instead. If you want to point Adapt It at a custom work folder ");
-					wxString msg3 = _("location, you should now shut down without doing any work.\n");
-					wxString msg4 = _("Then use your operating system's file manager application to search for where ");
-					wxString msg5 = _("your work folder is - take note of that location. Then launch Adapt It and when ");
-					wxString msg6 = _("the work folder browser opens again, navigate to the location you took note of and ");
-					wxString msg7 = _("click the OK button.\nWhen you shut down now, the configuration files will not ");
-					wxString msg8 = _("be altered or written out, thereby preserving their current contents.");
-					msg1 += msg2 + msg3 + msg4 + msg5 + msg6 + msg7 + msg8;
-					wxMessageBox(msg1,_(""),wxICON_ERROR);
+					wxString msg1 = _("You failed to locate a valid work folder. Nothing was done.");
+					wxMessageBox(msg1,_(""),wxICON_WARNING);
 
                     // allow processing to continue, including doc to be opened etc, but
                     // user has been told to shut down and should do so, all we do here is
@@ -15210,6 +15212,8 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 					m_bDoNotWriteConfigFiles = TRUE;
 					m_customWorkFolderPath = _T("");
 					m_bUseCustomWorkFolderPath = FALSE;
+					wxCommandEvent dummyevent;
+					OnLocalWorkFolder(dummyevent);
 				}
 			}
 			else
@@ -23595,11 +23599,24 @@ bool CAdapt_ItApp::EnsureCustomWorkFolderPathIsSet(wxString customPath,
 			::wxSetWorkingDirectory(default_path);
 		}
 		wxString workFolderPath;
-		bGotFolder = LocateCustomWorkFolder(default_path, workFolderPath);
+		bool bWasCancelled = FALSE;
+		bGotFolder = LocateCustomWorkFolder(default_path, workFolderPath, bWasCancelled);
 		if (!bGotFolder)
 		{
 			// newCustomPath is already set to an empty string
 			bNewPathFound = FALSE;
+
+			if (bWasCancelled)
+			{
+				// TODO --- let user have options
+				; 
+			}
+			else
+			{
+				// an error -- do differently - but what?  TODO
+				; 
+				 
+			}
 		}
 		else
 		{
@@ -23642,18 +23659,102 @@ bool CAdapt_ItApp::IsValidWorkFolder(wxString path)
 		endFolder = reversed.Left(offset);
 	}
 	endFolder = MakeReverse(endFolder);
+
+	/*
+
+**** INCOMPLETE -- have to fix for / and \ paths (replace, see MakeForeignCFSafe for code)
+TODO -- after fix Bob Buss bugs, Magnus Dahlbacka misunderstandings, Dave Lux questions
+	*/
+
 	if (endFolder != m_theWorkFolder)
 	{
-		// we do not have a valid work folder
-		return FALSE;
+		// we may not have a valid work folder, depends on whether or not a basic config
+		// file can be found inside it, either AI-BasicConfiguration.aic or
+		// AI-AdminBasicConfiguration.aic; if either is present, allow it
+		wxString returnedConfigFilePath = _T(""); // default, "nothing found" path
+		bool bReturnedConfigFileType_IsAdminType = FALSE;
+		bool bHasConfigFileWithin = IsConfigFileWithin(path, returnedConfigFilePath, 
+										bReturnedConfigFileType_IsAdminType);
+		if (bHasConfigFileWithin)
+		{
+			// store the path and the basic config file type on the app, and tell
+			// the caller the folder is a work folder
+			m_pathTo_FoundBasicConfigFile = returnedConfigFilePath;
+			m_bTypeOf_FoundBasicConfigFile = bReturnedConfigFileType_IsAdminType;
+			return TRUE;
+		}
+		else
+		{
+			// no basic config file of any type, so user should be asked what to do
+			
+// *** TODO *****
+
+			// for now, return FALSE
+			return FALSE;
+		}
 	}
 	return TRUE; // it's a match, so is valid
 }
 
+// return TRUE if one of the two basic config file types is present, in second parameter
+// pass back the one found (don't look for the AI-AdminBasicConfiguration.aic file if the
+// standard basic one is present), and pass back in bIsAdminBasic a record of which was
+// found - it is conceivable that an admin one may be present but not yet a normal one
+bool CAdapt_ItApp::IsConfigFileWithin(wxString path, wxString& configFilePath, bool& bIsAdminBasic)
+{
+	// beware, a windows machine may be looking at a folder on a linux or mac machine, or
+	// vise versa, so we can't assume that the native path separator will apply equally to
+	// the targetted folder, so we have to try each of / and \ separators
+	wxString basicConfigName = szBasicConfiguration + _T(".aic");
+	wxString adminBasicConfigName = szAdminBasicConfiguration + _T(".aic");
+
+	// check first for the normal basic config file, with \ separator
+	wxString configPath = path + _T("\\") + basicConfigName;
+	if (::wxFileExists(configPath))
+	{
+		// it exists, so go no further
+		configFilePath = configPath; // return path to caller, it may want it
+		bIsAdminBasic = FALSE;
+		return TRUE;
+	}
+	// else check first for the normal basic config file, with / separator
+	configPath = path + _T("/") + basicConfigName;
+	if (::wxFileExists(configPath))
+	{
+		// it exists, so go no further
+		configFilePath = configPath; // return path to caller, it may want it
+		bIsAdminBasic = FALSE;
+		return TRUE;
+	}	
+	// couldn't find a normal basic config file, try for an administrator one - perhaps an
+	// administrator was here earlier and this really is a valid work folder if so
+	// check for one with \ separator first
+	configPath = path + _T("\\") +adminBasicConfigName;
+	if (::wxFileExists(configPath))
+	{
+		// it exists, so go no further
+		configFilePath = configPath; // return path to caller, it may want it
+		bIsAdminBasic = TRUE;
+		return TRUE;
+	}
+	// else check for one with / separator
+	configPath = path + _T("/") +adminBasicConfigName;
+	if (::wxFileExists(configPath))
+	{
+		// it exists, so go no further
+		configFilePath = configPath; // return path to caller, it may want it
+		bIsAdminBasic = TRUE;
+		return TRUE;
+	}
+	return FALSE; // couldnt find any basic config file of either type
+}
+
+
 // return TRUE if a valid work folder was located, otherwise return FALSE, and return the
 // path found (or an empty string if used cancelled browse dialog) in the returnedPath
-// parameter
-bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath)
+// parameter; if the user cancelled, bUserCancelled will be returned set to TRUE
+bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath, 
+										  bool& bUserCancelled)
 {
 	CMainFrame* pFrame = gpApp->m_pMainFrame;
 	wxString msg = _("Navigate to locate a different work folder named:\n");
@@ -23671,6 +23772,11 @@ bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& return
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	wxString dir = wxDirSelector(msg,defaultPath,style,pos,(wxWindow*)pFrame);
 	returnedPath = dir;
+	if (dir == _T(""))
+	{
+		bUserCancelled = TRUE;
+		return FALSE;
+	}
 	bool bIsValid = IsValidWorkFolder(dir);
 	return bIsValid;
 }
@@ -23925,48 +24031,72 @@ a:			wxString stdDocsDir = _T("");
 		//wxLogDebug(_T("5  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 	}
 	wxString workFolderPath;
-	bGotFolder = LocateCustomWorkFolder(default_path, workFolderPath);
+	bool bWasCancelled = FALSE;
+	bGotFolder = LocateCustomWorkFolder(default_path, workFolderPath, bWasCancelled);
 
 	//wxLogDebug(_T("6  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 
 	if (!bGotFolder)
 	{
-		// a valid work folder location was not obtained, so warn the user and let him try
-		// again 
-		m_bUseCustomWorkFolderPath = bSaveUsageFlag;
-		m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
-		wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
-		wxMessageBox(msg1,_(""),wxICON_WARNING);
-		// check the former location is valid as a work folder, if not set up the default
-		// path
-		if (m_bUseCustomWorkFolderPath)
+		if (bWasCancelled)
 		{
-			bool bExists = wxDir::Exists(m_customWorkFolderPath);
-			if (!bExists)
+            // assume a cancel means cancel from the whole attempt, so restore whatever was
+            // the earlier work folder location - whether legacy location or a custom
+            // location
+
+
+			// ** TODO **   call OnLocalWorkFolder() ??
+			;
+
+
+		}
+		else
+		{
+			// Bill suggests this block should ask the user what to do. Either cancel, or try
+			// a different folder -- implement these options.
+			
+
+			// ** TODO **
+
+
+
+			// a valid work folder location was not obtained, so warn the user and let him try
+			// again 
+			m_bUseCustomWorkFolderPath = bSaveUsageFlag;
+			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
+			wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
+			wxMessageBox(msg1,_(""),wxICON_WARNING);
+			// check the former location is valid as a work folder, if not set up the default
+			// path
+			if (m_bUseCustomWorkFolderPath)
 			{
-				// not a folder on the system, so use default location
-				// which m_workFolderPath already points at
-				m_bUseCustomWorkFolderPath = FALSE;
-				m_customWorkFolderPath = _T("");
-			}
-			else
-			{
-				// it's a folder on the system, but is it a valid work folder?
-				bool bIsValid = IsValidWorkFolder(m_customWorkFolderPath);
-				if (!bIsValid)
+				bool bExists = wxDir::Exists(m_customWorkFolderPath);
+				if (!bExists)
 				{
-					// not a work folder, so we have to use default location
+					// not a folder on the system, so use default location
 					// which m_workFolderPath already points at
 					m_bUseCustomWorkFolderPath = FALSE;
 					m_customWorkFolderPath = _T("");
 				}
 				else
 				{
-					// this path is to a valid custom work folder location, so use it
-					; // nothing more to do
-				}
-			} 
-		}
+					// it's a folder on the system, but is it a valid work folder?
+					bool bIsValid = IsValidWorkFolder(m_customWorkFolderPath);
+					if (!bIsValid)
+					{
+						// not a work folder, so we have to use default location
+						// which m_workFolderPath already points at
+						m_bUseCustomWorkFolderPath = FALSE;
+						m_customWorkFolderPath = _T("");
+					}
+					else
+					{
+						// this path is to a valid custom work folder location, so use it
+						; // nothing more to do
+					}
+				} 
+			}
+		} // end of else block for bWasCancelled test
 	}
 	else
 	{

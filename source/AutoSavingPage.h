@@ -18,6 +18,8 @@
 #ifndef AutoSavingPage_h
 #define AutoSavingPage_h
 
+#include <wx/spinbutt.h>
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "AutoSavingPage.h"
@@ -60,6 +62,11 @@ public:
 	wxTextCtrl*	m_pEditMoves;
 	wxTextCtrl* m_pEditKBMinutes;
 	wxTextCtrl* m_pTextCtrlAsStatic;
+	//BEW added 21Aug09, as spin buttons were not connected to their text controls
+	wxSpinButton* m_pSpinMinutes;
+	wxSpinButton* m_pSpinMoves;
+	wxSpinButton* m_pSpinKBMinutes;
+
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& WXUNUSED(event)); 
@@ -69,6 +76,15 @@ public:
 	void OnRadioByMoves(wxCommandEvent& WXUNUSED(event));
 	void OnCheckNoAutoSave(wxCommandEvent& WXUNUSED(event));
 	void EnableAll(bool bEnable = TRUE);
+
+	//BEW added 21Aug09, as spin buttons were not connected to their text controls
+	void OnSpinUpMinutes(wxSpinEvent& WXUNUSED(event));
+	void OnSpinDownMinutes(wxSpinEvent& WXUNUSED(event));
+	void OnSpinUpMoves(wxSpinEvent& WXUNUSED(event));
+	void OnSpinDownMoves(wxSpinEvent& WXUNUSED(event));
+	void OnSpinUpKBMinutes(wxSpinEvent& WXUNUSED(event));
+	void OnSpinDownKBMinutes(wxSpinEvent& WXUNUSED(event));
+
 
 private:
 	// class attributes

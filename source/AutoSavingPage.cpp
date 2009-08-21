@@ -58,8 +58,15 @@ BEGIN_EVENT_TABLE(CAutoSavingPage, wxPanel)
 	EVT_RADIOBUTTON(IDC_RADIO_BY_MINUTES, CAutoSavingPage::OnRadioByMinutes)
 	EVT_RADIOBUTTON(IDC_RADIO_BY_MOVES, CAutoSavingPage::OnRadioByMoves)
 	EVT_CHECKBOX(IDC_CHECK_NO_AUTOSAVE, CAutoSavingPage::OnCheckNoAutoSave)
-END_EVENT_TABLE()
 
+	//BEW added 21Aug09, as spin buttons were not connected to their text controls
+	EVT_SPIN_UP(IDC_SPIN_MINUTES, CAutoSavingPage::OnSpinUpMinutes)
+	EVT_SPIN_DOWN(IDC_SPIN_MINUTES, CAutoSavingPage::OnSpinDownMinutes)
+	EVT_SPIN_UP(IDC_SPIN_MOVES, CAutoSavingPage::OnSpinUpMoves)
+	EVT_SPIN_DOWN(IDC_SPIN_MOVES, CAutoSavingPage::OnSpinDownMoves)
+	EVT_SPIN_UP(IDC_SPIN_KB_MINUTES, CAutoSavingPage::OnSpinUpKBMinutes)
+	EVT_SPIN_DOWN(IDC_SPIN_KB_MINUTES, CAutoSavingPage::OnSpinDownKBMinutes)
+END_EVENT_TABLE()
 
 
 CAutoSavingPage::CAutoSavingPage()
@@ -100,6 +107,14 @@ CAutoSavingPage::CAutoSavingPage(wxWindow* parent) // dialog constructor
 	//m_pTextCtrlAsStatic->SetBackgroundColour(backgrndColor);
 	m_pTextCtrlAsStatic->SetBackgroundColour(gpApp->sysColorBtnFace);
 
+	m_pSpinMinutes = (wxSpinButton*)FindWindowById(IDC_SPIN_MINUTES);
+	wxASSERT(m_pSpinMinutes != NULL);
+
+	m_pSpinMoves = (wxSpinButton*)FindWindowById(IDC_SPIN_MOVES);
+	wxASSERT(m_pSpinMoves != NULL);
+
+	m_pSpinKBMinutes = (wxSpinButton*)FindWindowById(IDC_SPIN_KB_MINUTES);
+	wxASSERT(m_pSpinKBMinutes != NULL);
 }
 
 CAutoSavingPage::~CAutoSavingPage() // destructor
@@ -137,13 +152,25 @@ void CAutoSavingPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 #ifdef Test_m_bNoAutoSave
 	// Test_m_bNoAutoSave symbol #defined at start of Adapt_It.h
 	#ifdef __WXDEBUG__
-		wxLogDebug(_T("m_bNoAutoSave  in InitDialog() of AutoSavingPage.cpp; tempNoAutoSave was set to TRUE and value transferred to checkbox control"));
+		if (tempNoAutoSave)
+		{
+		wxLogDebug(_T("m_bNoAutoSave  in InitDialog() of AutoSavingPage.cpp; tempNoAutoSave is TRUE and value transferred to checkbox control"));
+		}
+		else
+		{
+		wxLogDebug(_T("m_bNoAutoSave  in InitDialog() of AutoSavingPage.cpp; tempNoAutoSave is FALSE and value transferred to checkbox control"));
+		}
 	#endif
 #endif
 	tempKBMinutes = pApp->m_timeSettings.m_tsKB.GetMinutes();
 	tempMinutes = pApp->m_timeSettings.m_tsDoc.GetMinutes();
 	tempMoves = pApp->m_nMoves;
 	tempIsDocTimeButton = pApp->m_bIsDocTimeButton;
+
+	// initialize spin buttons
+	m_pSpinMinutes->SetValue(tempMinutes);
+	m_pSpinMoves->SetValue(tempMoves);
+	m_pSpinKBMinutes->SetValue(tempKBMinutes);
 
 	// initialize radio buttons
 	if (tempIsDocTimeButton)
@@ -198,6 +225,90 @@ void CAutoSavingPage::OnCheckNoAutoSave(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+//BEW added 21Aug09, as spin buttons were not connected to their text controls
+void CAutoSavingPage::OnSpinUpMinutes(wxSpinEvent& WXUNUSED(event))
+{
+	int max = m_pSpinMinutes->GetMax();
+	tempMinutes = m_pSpinMinutes->GetValue();
+	wxString num;
+	if (tempMinutes < max)
+		tempMinutes += 1;
+	else
+		::wxBell();
+	num << tempMinutes;
+	m_pEditMinutes->ChangeValue(num);
+}
+
+void CAutoSavingPage::OnSpinDownMinutes(wxSpinEvent& WXUNUSED(event))
+{
+	int min = m_pSpinMinutes->GetMin();
+	tempMinutes = m_pSpinMinutes->GetValue();
+	wxString num;
+	if (tempMinutes > min)
+		tempMinutes -= 1;
+	else
+		::wxBell();
+	num << tempMinutes;
+	m_pEditMinutes->ChangeValue(num);
+}
+
+void CAutoSavingPage::OnSpinUpMoves(wxSpinEvent& WXUNUSED(event))
+{
+	int max = m_pSpinMoves->GetMax();
+	tempMinutes = m_pSpinMoves->GetValue();
+	wxString num;
+	if (tempMoves < max)
+		tempMoves += 1;
+	else
+		::wxBell();
+	num << tempMoves;
+	m_pEditMoves->ChangeValue(num);
+}
+
+void CAutoSavingPage::OnSpinDownMoves(wxSpinEvent& WXUNUSED(event))
+{
+	int min = m_pSpinMoves->GetMin();
+	tempMinutes = m_pSpinMoves->GetValue();
+	wxString num;
+	if (tempMoves > min)
+		tempMoves -= 1;
+	else
+		::wxBell();
+	num << tempMoves;
+	m_pEditMoves->ChangeValue(num);
+}
+
+void CAutoSavingPage::OnSpinUpKBMinutes(wxSpinEvent& WXUNUSED(event))
+{
+	int max = m_pSpinKBMinutes->GetMax();
+	tempKBMinutes = m_pSpinKBMinutes->GetValue();
+	wxString num;
+	if (tempKBMinutes < max)
+		tempKBMinutes += 1;
+	else
+		::wxBell();
+	num << tempKBMinutes;
+	m_pEditKBMinutes->ChangeValue(num);
+}
+
+void CAutoSavingPage::OnSpinDownKBMinutes(wxSpinEvent& WXUNUSED(event))
+{
+	int min = m_pSpinKBMinutes->GetMin();
+	tempKBMinutes = m_pSpinKBMinutes->GetValue();
+	wxString num;
+	if (tempKBMinutes > min)
+		tempKBMinutes -= 1;
+	else
+		::wxBell();
+	num << tempKBMinutes;
+	m_pEditKBMinutes->ChangeValue(num);
+}
+
+/*
+	wxTextCtrl* m_pEditMinutes;
+	wxTextCtrl*	m_pEditMoves;
+	wxTextCtrl* m_pEditKBMinutes;
+*/
 void CAutoSavingPage::OnRadioByMinutes(wxCommandEvent& WXUNUSED(event)) 
 {
 	m_pEditMinutes->Enable();
