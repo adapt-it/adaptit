@@ -133,6 +133,8 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 	colorDlg.Centre();
 	if(colorDlg.ShowModal() == wxID_OK)
 	{
+		// BEW 22Aug09 fixed failure to change colour
+		colorData = colorDlg.GetColourData();
 		tempAutoInsertionsHighlightColor  = colorData.GetColour();
 	}	
 }

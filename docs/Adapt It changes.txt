@@ -1,4 +1,12 @@
 Version 5.1.1 update 21August2009:
+
+
+----------------------------------------------
+Bug fixes in 5.??
+----------------------------------------------
+* Fixed failure of change of highlight colour for auto insertions
+to "stick" beyond closing the colour dialog.
+
 ----------------------------------------------
 Feature changes and new features in 5.1.1
 ----------------------------------------------
