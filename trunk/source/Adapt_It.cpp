@@ -23757,14 +23757,12 @@ bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& return
 										  bool& bUserCancelled)
 {
 	CMainFrame* pFrame = gpApp->m_pMainFrame;
-	wxString msg = _("Navigate to locate a different work folder named:\n");
-	msg += m_theWorkFolder; // set in OnInit() which is called before this, to be either
-		// Adapt It Work (for ANSI build) or Adapt It Unicode Work (for Unicode build)
-	msg += _("\nat some other location than the one shown.");
-	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	wxString msg = _("Locate the folder you wish to use for Adapt It work");
+	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
 		// second param suppresses a Create button being shown, 3rd makes chose directory 
 		// the working directory, first param is for default dialog style with resizable
 		// border (see wxDirDialog for details)
+	long style = wxDD_DEFAULT_STYLE | wxDD_CHANGE_DIR; // allow Create button in dialog
 	wxPoint pos = wxDefaultPosition;
 	// in the following call, which is a wx widget which can be called as below or as
 	// ::wxDirSelector(...params...), if the user cancels from the browser window the
