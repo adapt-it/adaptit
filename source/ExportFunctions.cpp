@@ -13713,68 +13713,42 @@ int RebuildGlossesText(wxString& glosses)
 				glosses += str;
 			}
 
-            // now deal with the list of sourcephrases in the sublist -- we ignore
-            // m_markers on the first, but not on subsequent ones, but we use m_gloss
-            // from each of them.
-			int nWords = pSrcPhrase->m_nSrcWords;
-			SPList* pSavedList = pSrcPhrase->m_pSavedWords;
-			SPList::Node* posInner = pSavedList->GetFirst();
-			wxASSERT(posInner != NULL);
-
-			// process each CSourcePhrase instance's contents
-			bool bIsFirst = TRUE;
-			int index;
-			for (index = 0; index < nWords; index++)
+			// BEW changed 23Aug09, the earlier code which scans the sublist in order to
+			// get marker placement done automatically is problematic, because the glosses
+			// may have been added after mergers were done in adaptation mode, and so the
+			// sublist would then contain no glosses, they would be only on the merged one
+			// we are now dealing with. The correct approach is to take the merger at face
+			// value, but to examine the sublist and collect markers into a list, and then
+			// allow the user to "place" them - same as is done for adaptation mode.
+			
+			// handling phrase-medial markers, we can press into service the code fragment
+			// for doing this in a target text export, and use it's tgtStr global string
+			// too as that is not currently being used for anything; we want the use to
+			// place the markers in the gloss phrase....
+			if (pSrcPhrase->m_bHasInternalMarkers)
 			{
-				pSrcPhrase = (CSourcePhrase*)posInner->GetData();
-				posInner = posInner->GetNext();
-				wxASSERT(pSrcPhrase->m_nSrcWords == 1);
-				str.Empty();
-				hasSFM = FALSE;
-				if (!pSrcPhrase->m_markers.IsEmpty() && !bIsFirst) // skip block for 
-																   // first in list
-				{
-					// whm Note: m_markers may include filtered material here, so remove them
-					// BEW modified 08Oct05, because these can never contain filtered info
-					tempStr = pSrcPhrase->m_markers;
-					str += tempStr;
-					hasSFM = TRUE;
-				}
-				bIsFirst = FALSE;
-				// BEW changed 2Jun06, to prevent unwanted space insertion before \f, \fe or \x,
-				// so we do it by refraining to do any space insertion at the start of str when
-				// it starts with one of these markers
-				wxString wholeMkr;
-				bool bStartsWithMarker = FALSE;
-				if (str.GetChar(0) == gSFescapechar)
-				{
-					wholeMkr = pDoc->GetWholeMarker(str);
-					bStartsWithMarker = TRUE;
-				}
-				else
-				{
-					wholeMkr.Empty();
-				}
-				if (bStartsWithMarker)
-				{
-					if (pSrcPhrase->m_nSequNumber != 0 &&
-						(wholeMkr != _T("\\f") && wholeMkr != _T("\\fe") && wholeMkr != _T("\\x")))
-					{
-						// add an initial space if one is not already there, and it is not started
-						// by a marker for which we want no space insertion
-						if (str.GetChar(0) != _T(' '))
-							str = _T(" ") + str;
-					}
-				}
-				else
-				{
-					// add an initial space if one is not already there
-					if (str.GetChar(0) != _T(' '))
-						str = _T(" ") + str;
-				}
-				str += pSrcPhrase->m_gloss;
-				glosses += str;
-			} // end of for loop for scanning a saved sublist of original CSourcePhrase instances
+				gpSrcPhrase = pSrcPhrase; // set the global, for access by dlg
+				tgtStr = pSrcPhrase->m_gloss; // set the global for the gloss string
+				CPlaceInternalMarkers dlg(gpApp->GetMainFrame());
+
+				// show the dialog
+				dlg.ShowModal();
+
+				// update the str from result of dialog, using the global tgtStr
+				str = tgtStr;
+			}
+			else
+			{
+				// when no phrase internal markers to be placed, just add the phrase
+				str = pSrcPhrase->m_gloss;
+			}
+
+			// add an initial space if one is not already there
+			if (str.GetChar(0) != _T(' '))
+			{
+				str = _T(" ") + str;
+			}
+			glosses += str;
 		}
 		else
 		{
