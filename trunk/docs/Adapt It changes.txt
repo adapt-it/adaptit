@@ -1,11 +1,17 @@
-Version 5.1.1 update 21August2009:
-
-
+Version 5.1.2 update 23August2009:
 ----------------------------------------------
-Bug fixes in 5.??
+Bug fixes in 5.1.2
 ----------------------------------------------
 * Fixed failure of change of highlight colour for auto insertions
 to "stick" beyond closing the colour dialog.
+* Export of glosses omitted exporting of a gloss phrase when 
+the gloss phrase was added after the merger was done in
+adaptation mode. It now doesn't omit such data, and if an
+embedded marker is within the phrase, a "Place Phrase
+Internal Marker" dialog shows for the user to place the
+phrase-internal marker correctly, during the export. (This is
+identical to how phrase internal markers are handled when 
+exporting the target text.)
 
 ----------------------------------------------
 Feature changes and new features in 5.1.1
