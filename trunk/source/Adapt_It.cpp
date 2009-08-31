@@ -20874,7 +20874,7 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 
 	// The following strings can be pre-built before examining the maps.
 	CBString encodingStr;
-	CBString aiKBBeginStr;
+	//CBString aiKBBeginStr; //whm 31Aug09 removed at Bob Eaton's request
 	CBString msWordWarnCommentStr;
 	CBString kbElementBeginStr;
 	// .. [calculate the total bytes for MAP and TU Elements]
@@ -20908,13 +20908,16 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
     // prologue (Changed by BEW, 18june07, at request of Bob Eaton so as to support legacy
     // KBs using his SILConverters software, UTF-8 becomes Windows-1252 for the Regular
     // app)
+
 	GetEncodingStringForXmlFiles(encodingStr);
 	buff.AppendData(encodingStr,encodingStr.GetLength()); // AppendData internally uses 
 											// memcpy and GetAppendBuf and UngetAppendBuf
 	
+    /*  //whm 31Aug09 removed at Bob Eaton's request
 	//	BEW added AdaptItKnowledgeBase element, 3Apr06, for Bob Eaton's SILConverters support, 
 	aiKBBeginStr = "<AdaptItKnowledgeBase xmlns=\"http://www.sil.org/computing/schemas/AdaptIt KB.xsd\">\r\n";
 	buff.AppendData(aiKBBeginStr,aiKBBeginStr.GetLength());
+	*/
 	
     // add the comment with the warning about not opening the XML file in MS WORD 'coz is
     // corrupts it - presumably because there is no XSLT file defined for it as well. When
