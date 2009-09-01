@@ -24066,7 +24066,7 @@ a:			wxString stdDocsDir = _T("");
 			m_bUseCustomWorkFolderPath = bSaveUsageFlag;
 			m_customWorkFolderPath = strSaveCurrentCustomWorkFolder;
 			wxString msg1 = _("You failed to locate a valid work folder. Please try again.");
-			wxMessageBox(msg1,_(""),wxICON_WARNING);
+			wxMessageBox(msg1,_T(""),wxICON_WARNING);
 			// check the former location is valid as a work folder, if not set up the default
 			// path
 			if (m_bUseCustomWorkFolderPath)

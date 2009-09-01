@@ -372,16 +372,16 @@ a:	offset++;
 
 CBString MakeMSWORDWarning(bool bExtraKBnote)
 {
-	wxString resStr1, resStr2, resStr3;
+	wxString resStr1, resStr2; //, resStr3;
 	// IDS_WARN_NO_MS_WORD
 	resStr1 = resStr1.Format(_("Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file."));
 	// IDS_SAFE_PROCESSORS
 	resStr2 = resStr2.Format(_("Instead, use NotePad or WordPad."));
 	// IDS_ELEM_ORDER_NOTE
-	resStr3 = resStr3.Format(_("Please note: the order of the TU elements in this xml file might differ each time the knowledge base is saved. This is not an error."));
+	//resStr3 = resStr3.Format(_("Please note: the order of the TU elements in this xml file might differ each time the knowledge base is saved. This is not an error."));
 	wxString msg;
 	// whm modified 1Sep09 to remove the resStr3 part of the msg
-	bExtraKBnote = bExtraKBnote;
+	bExtraKBnote = bExtraKBnote; // to avoid compiler warning
 	//if (bExtraKBnote)
 	//{
 	//	msg = msg.Format(_T("<!--\r\n\t %s\r\n\t %s\r\n\t %s -->\r\n"),resStr1.c_str(),resStr2.c_str(),resStr3.c_str());
