@@ -26999,6 +26999,9 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	f.Close();
 }
 
+
+// BEW modified 1Sep09 to remove a logic error, & to remove a goto command, and get rid 
+// of a bDelayed boolean flag & simplify the logic
 void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -27011,6 +27014,9 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 	key.Empty();
 	wxString gloss;
 	wxString baseKey;
+	wxString outputStr; // accumulate a whole "record" here, but abandon if it contains
+						// a <Not In KB> string, we don't export those
+	wxString strNotInKB = _T("<Not In KB>");
 	gloss.Empty(); // this name used for the "adaptation" when adapting,
 				   // or the "gloss" when glossing
 
@@ -27037,15 +27043,14 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 			continue;
 		else
 		{
-a:			for (iter = pKB->m_pMap[numWords-1]->begin(); 
-				iter != pKB->m_pMap[numWords-1]->end(); ++iter)
-			{
+			iter = pKB->m_pMap[numWords-1]->begin();
+			do {
+				outputStr.Empty(); // clean it out ready for next "record"
 				key = iter->first; 
 				pTU = (CTargetUnit*)iter->second; 
 				wxASSERT(pTU != NULL); 
 				baseKey = key;
 				key = lexSFM + key; // we put the proper eol char(s) below when writing
-				bool bDelayed = TRUE;
 
 				// get the reference strings
 				TranslationsList::Node* posRef = 0; 
@@ -27069,48 +27074,49 @@ a:			for (iter = pKB->m_pMap[numWords-1]->begin();
 					posRef = pTU->m_pTranslations->GetFirst(); 
 				wxASSERT(posRef != 0);
 
+				// if control gets here, there will be at least one non-null posRef and so
+				// we can now unilaterally write out the key's line as a \lx source text field,
+				// followed by the adaptation or gloss we've already found associated with it
+				outputStr = key + pApp->m_eolStr;
+				pRefStr = (CRefString*)posRef->GetData();
+				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
+				wxASSERT(pRefStr != NULL); 
+				gloss = pRefStr->m_translation;
+				gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
+				outputStr += gloss + pApp->m_eolStr;
+
+				// now deal with any additional CRefString instances within the same
+				// CTargetUnit instance
 				while (posRef != 0)
 				{
 					pRefStr = (CRefString*)posRef->GetData();
-					posRef = posRef->GetNext();
 					wxASSERT(pRefStr != NULL); 
+					posRef = posRef->GetNext(); // prepare for possibility of yet another
 					gloss = pRefStr->m_translation;
-					if (gloss == _T("<Not In KB>")) // this possibility forces us to 
-													// delay the \lx write
-						goto a;
 					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-					if (bDelayed)
-					{
-#ifndef _UNICODE // ANSI version
-						pFile->Write(key); 
-						pFile->Write(pApp->m_eolStr); // whm added for wx version
-						bDelayed = FALSE;
-					}
-					pFile->Write(gloss); 
-					pFile->Write(pApp->m_eolStr); // whm added for wx version
+					outputStr += gloss + pApp->m_eolStr;
 				}
 
-				// write a blank line
-				pFile->Write(pApp->m_eolStr); // use the proper cross-platform eol char(s)
+				// add a blank line
+				outputStr += pApp->m_eolStr;
 
-#else // Unicode version
-						pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,key); // source text
-						pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,pApp->m_eolStr); 
-																	// whm added fix 23Jan09 
-						bDelayed = FALSE;
-					}
-
-					pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,gloss);
-					pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,pApp->m_eolStr); 
-																	// whm added fix 23Jan09 
+				// reject any outputStr which contains "<Not In KB>"
+				if (outputStr.Find(strNotInKB) == wxNOT_FOUND)
+				{
+					// the entry is good, so output it
+					#ifndef _UNICODE // ANSI version
+						pFile->Write(outputStr); 
+					#else // Unicode version
+						pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputStr);
+					#endif
 				}
 
-				// write a blank line
-				pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,pApp->m_eolStr);
-#endif
-			}
-		}
-	}
+				// point at the next CTargetUnit instance, or at end() (which is NULL) if
+				// completeness has been obtained in traversing the map 
+				iter++;
+			} while (iter != pKB->m_pMap[numWords-1]->end());
+		} // end of normal situation block ...
+	} // end of numWords outer loop
 }
 
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)

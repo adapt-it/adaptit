@@ -41,7 +41,7 @@ class CKB; // needed for the macro below which must reside outside the class dec
 WX_DECLARE_LIST(CTargetUnit, TUList); // see WX_DEFINE_LIST macro in the .cpp file
 
 // wxHashMap uses this macro for its declaration
-WX_DECLARE_HASH_MAP( wxString,		// the map key is the 
+WX_DECLARE_HASH_MAP( wxString,		// the map key is the source text word or phrase string
                     CTargetUnit*,	// the map value is the pointer to the class instance
                     wxStringHash,
                     wxStringEqual,
