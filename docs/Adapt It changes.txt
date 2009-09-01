@@ -1,4 +1,12 @@
-Version 5.1.2 update 23August2009:
+Version 5.1.3 update 2September2009:
+----------------------------------------------
+Bug fixes in 5.1.3
+----------------------------------------------
+* During an export of the knowledge base, if an <Not In KB>
+entry was found, it caused the export to get into an infinite
+loop and produce an increasingly huge file on disk until eventually
+a crash occurred.
+
 ----------------------------------------------
 Bug fixes in 5.1.2
 ----------------------------------------------

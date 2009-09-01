@@ -141,15 +141,15 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
-	/* used for 5.1.1 & 5.1.2 "fixed" versions for Bob's Brazil workshop, built on 21Aug09
+	/**/ //used for 5.1.1 to 5.1.3 "fixed" versions for Bob's Brazil workshop, built on 21Aug09
 	wxMessageBox(_T(
 "This functionality is a work in progress and it is not finished yet. Please wait for next release."),
 	_T(""), wxICON_INFORMATION);
 	m_pCheckShowAdminMenu->SetValue(FALSE);
 
-	 Turn off for Bob Buss's 5.1.1 or 5.1.2
-	*/
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	 //Turn off for Bob Buss's 5.1.1 or 5.1.2 or 5.1.3
+	/**/
+/*	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	bool bFlag = pApp->m_bShowAdministratorMenu;
 	if (bFlag)
 	{
@@ -184,7 +184,7 @@ void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 			m_pCheckShowAdminMenu->SetValue(FALSE);
 		}
 	}
-
+*/
 }
 
 // MFC's OnSetActive() has no direct equivalent in wxWidgets. 
