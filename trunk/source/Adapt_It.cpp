@@ -12036,7 +12036,7 @@ void CAdapt_ItApp::GetForceAskList(CKB* pKB, KPlusCList* pKeys) // MFC has CPtrL
 		if (!pMap->empty())
 		{
 			MapKeyStringToTgtUnit::iterator iter;
-			for (iter = pMap->begin(); iter != pMap->end(); ++iter)
+			for (iter = pMap->begin(); iter != pMap->end(); iter++)
 			{
 				wxString key;
 				key.Empty();
