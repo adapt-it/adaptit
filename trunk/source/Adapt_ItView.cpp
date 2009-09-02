@@ -16181,26 +16181,24 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
 		{
 				if (pSrcPhrase->m_bNotInKB)
 				{
-					wxString str = _T("<Not In KB>");
-					pSrcPhrase->m_bHasKBEntry = FALSE; // to enable storage
-					gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement dialogs from showing
-					bOK = StoreText(pKB,pSrcPhrase,str,TRUE); // TRUE = support storing empty adaptation
-					gbInhibitLine4StrCall = FALSE;
-					if (!bOK)
-					{
-						// I don't expect any error here, but just in case ...
-						::wxBell(); 
-						wxASSERT(FALSE);
-					}
+                    // BEW changed 2Sep09, as there may have been some adaptations
+                    // "restored" before coming to this location where m_bNotInKB is set
+                    // true, we must ensure any normal adaptations for the relevant
+                    // CTargetUnit are removed, and <Not In KB>
+                    // put in their place - the easy way to do this is to call DoNotInKB()
+                    // with its last parameter set TRUE (that function is elsewhere called
+                    // in the handler for the Save to KB checkbox, namely,
+                    // OnCheckKBSave()); and once this <Not In KB> entry is set up, any
+                    // later identical source text encountered in the span will, when
+                    // StoreText() tries to add it to the KB, will reject it because of the
+                    // <Not In KB> entry already in the KB
+					DoNotInKB(pSrcPhrase, TRUE);
 					return;
 				}
 			if (!pSrcPhrase->m_bHasKBEntry)
 			{
 				return; // nothing to be done
 			}
-			// *** TODO **** get Bill's (eventual) code for the reporting to a log file
-			// and put in the stuff for it below...
-			
             // BEW added 24Apr09, for a while a bug allowed m_key to have following
             // punctuation treated as part of the word, allowing punctuation to get into
             // the adaptation KB's source text, and a different bug allowed punctuation to
