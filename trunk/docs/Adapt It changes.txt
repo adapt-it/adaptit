@@ -6,10 +6,6 @@ Bug fixes in 5.1.3
 entry was found, it caused the export to get into an infinite
 loop and produce an increasingly huge file on disk until eventually
 a crash occurred.
-
-----------------------------------------------
-Bug fixes in 5.1.2
-----------------------------------------------
 * Fixed failure of change of highlight colour for auto insertions
 to "stick" beyond closing the colour dialog.
 * Export of glosses omitted exporting of a gloss phrase when 
@@ -20,10 +16,6 @@ Internal Marker" dialog shows for the user to place the
 phrase-internal marker correctly, during the export. (This is
 identical to how phrase internal markers are handled when 
 exporting the target text.)
-
-----------------------------------------------
-Feature changes and new features in 5.1.1
-----------------------------------------------
 * When doing either a free translation or glosses text export, and the
 button Export Filter/Options is clicked, the list does not show
 \note, \free nor \bt (or derivatives) markers because these are 
@@ -34,10 +26,6 @@ for the first session after just installing for the first time. This was
 dangerous because a power failure could then result in work loss if
 the new user had not done any manal document saves. The checkbox
 now defaults to being off, so that automatic saves are ON by default.
-
-----------------------------------------------
-Bug fixes in 5.1.1
-----------------------------------------------
 * When the user has adapted all the document and the phrase box
 has become invisible, if he then used the Step Up button the application
 crashed.
@@ -48,7 +36,10 @@ this is now fixed.
 * The Auto-Saving page of the Preferences did not have the spin 
 buttons hooked up to the text boxes which display their value. They
 now work correctly.
+* Includes an updated ECDriver.dll for use with the current version
+of SIL Converters.
 
+Version 5.1.0 update 15August2009:
 ----------------------------------------------
 Feature changes and new features in 5.1.0
 ----------------------------------------------
