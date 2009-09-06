@@ -20879,7 +20879,7 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 	CBString kbElementBeginStr;
 	// .. [calculate the total bytes for MAP and TU Elements]
 	CBString kbElementEndStr;
-	CBString aiKBEndStr;
+	//CBString aiKBEndStr; // whm removed 5Sept09
 	
 	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
 	int maxWords;
@@ -21070,8 +21070,9 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 	kbElementEndStr = aStr;
 	buff.AppendData(kbElementEndStr,kbElementEndStr.GetLength());
 	// BEW added 0Apr06 for .NET parsing support for xml
-	aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
-	buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
+	// whm 5Sept09 Bob Eaton says we should now eliminate both aiKBEndStr and aiKBBeginStr
+	//aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
+	//buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
 
     const char *pByteStr = wx_static_cast(const char *, buff);
 	f.Write(pByteStr,buff.GetDataLen());
