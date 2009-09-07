@@ -829,10 +829,10 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
     // coordinate values input to DrawText and other drawing methods be reversed on the
     // x-axis while SetLayoutDirection() is set to RTL. Hence, for wxMSW, we must transform
     // the coordinates in such a way that, while mirroring is in effect, the logical 0,0
-    // coordinate for drawing text is located at the upper right corner of the of the
-    // logical document and x coordinate values increase toward the left rather than toward
-    // the right. The wxGTK and wxMac ports do not require the use of SetLayoutDirection()
-    // to render punctuation correctly for RTL text, but drawing RTL text in those cases
+    // coordinate for drawing text is located at the upper right corner of the logical
+    // document and x coordinate values increase toward the left rather than toward the
+    // right. The wxGTK and wxMac ports do not require the use of SetLayoutDirection() to
+    // render punctuation correctly for RTL text, but drawing RTL text in those cases
     // requires that we must adjust the drawing coordinates of RTL text to start drawing at
     // the left end of the resulting RTL text, rather than at the right end (as MFC does).
     // I've also used a wxRect as parameter rather than wxCoord x and wxCoord y coordinate
@@ -854,19 +854,19 @@ void CCell::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 	// indicate the current client view's total width, so if we subtract the urPt.x value
 	// from grectViewClient.GetWidth(), we should have the "mirrored" x-axis coordinate
 	// value for RTL layout.
-//#ifdef __WXMSW__
-//	// wxMSW needs SetLayoutDirection(wxLayout_RightToLeft) to be set; in addition we
-//	// need to transform the urPt so it is mirrored from the right edge of 
-//	// grectViewClient.
-//	wxASSERT(grectViewClient.GetWidth() >= urPt.x); // ensure grectViewClient is already set
-//	pDC->SetLayoutDirection(wxLayout_RightToLeft);
-//	pDC->DrawText(str,grectViewClient.GetWidth() - urPt.x - 16,urPt.y); // 16 pixels for scrollbar width
-//#else
+#ifdef __WXMSW__
+	// wxMSW needs SetLayoutDirection(wxLayout_RightToLeft) to be set; in addition we
+	// need to transform the urPt so it is mirrored from the right edge of 
+	// grectViewClient.
+	wxASSERT(grectViewClient.GetWidth() >= urPt.x); // ensure grectViewClient is already set
+	pDC->SetLayoutDirection(wxLayout_RightToLeft);
+	pDC->DrawText(str,grectViewClient.GetWidth() - urPt.x - 16,urPt.y); // 16 pixels for scrollbar width
+#else
 	// wxGTK and wxMac need to start drawing text at the point urPt less the width/extent
 	// of the text to be drawn
 	wxSize sizeOfPhrase = pDC->GetTextExtent(str);
 	pDC->DrawText(str,urPt.x - sizeOfPhrase.x,urPt.y);
-//#endif
+#endif
 
 #ifdef __WXMSW__
 	// turning off RTL layout of the DC after calling DrawText() would seem to be necessary 

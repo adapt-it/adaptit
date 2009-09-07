@@ -298,6 +298,17 @@ void CLayout::Draw(wxDC* pDC)
 		return;
 	}
 
+	// a last minute enforcment of RTL layout doesn't fix the Macaulay quotes & comma Arabic
+	// puntuation bug which happens only on the Windows build, so comment it out
+//#ifdef __WXMSW__
+//#ifdef _RTL_FLAGS
+//	if (m_pApp->m_bSrcRTL || m_pApp->m_bTgtRTL || m_pApp->m_bNavTextRTL)
+//	{
+//		pDC->SetLayoutDirection(wxLayout_RightToLeft);
+//	}
+//#endif
+//#endif
+
     // BEW 23Jun09 - tried moving the placement of the phrase box to Invalidate() so as to
     // support clipping, but that was too early in the flow of events, and the box was not
     // uptodate and the last character typed was not "seen", so I had to move it back here.

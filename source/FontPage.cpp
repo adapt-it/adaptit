@@ -1181,7 +1181,7 @@ void CFontPagePrefs::OnOK(wxCommandEvent& WXUNUSED(event))
 	// whm note for wx version: Right-to-left reading is handled automatically in Uniscribe and
 	// Pango, but they differ in how they handle Unicode text chars that are from the first 128
 	// point positions. In wxMSW SetLayoutDirection() aligns these to the right in the phrasebox
-	// but in wxGTK (under Pango) SetLahoutDirection() aligns these to the left within the
+	// but in wxGTK (under Pango) SetLayoutDirection() aligns these to the left within the
 	// phrasebox.
 	if (gpApp->m_bTgtRTL)	// MFC code has m_bSrcRTL but it should be m_bTgtRTL (in the MFC version it 
 							// probably gets overridden by ResizeBox() which actually uses m_bTgtRTL 
