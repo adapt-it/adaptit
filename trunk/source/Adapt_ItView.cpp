@@ -44459,21 +44459,21 @@ void CAdapt_ItView::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
     // not have an nFormat parameter as does the MFC function CDC::DrawText() and which
     // currently (as of wxWidgets 2.8.4) has different behaviors on wxMSW, wxGTK and wxMAC.
     // 
-	// The challenge here is due in part to the fact that the wxDC::SetLayoutDirection() 
-	// method applies to the whole DC and, on wxMSW (but not the other ports) 
-	// SetLayoutDirection() effectively mirrors the underlying coordinate system (requiring
-	// coordinate values input to DrawText and other drawing methods be reversed on the
-	// x-axis while SetLayoutDirection() is set to RTL. Hence, for wxMSW, we must transform 
-	// the coordinates in such a way that, while mirroring is in effect, the logical 0,0 
-	// coordinate for drawing text is located at the upper right corner of the of the 
-	// logical document and x coordinate values increase toward the left rather than toward 
-	// the right. The wxGTK and wxMac ports do not require the use of SetLayoutDirection()
-	// to render punctuation correctly for RTL text, but drawing RTL text in those cases 
-	// requires that we must adjust the drawing coordinates of RTL text to start drawing 
-	// at the left end of the resulting RTL text, rather than at the right end (as MFC does).
-	// I've also used a wxRect as parameter rather than wxCoord x and wxCoord y coordinate
-	// parameters to make the upper right corner of the wxRect more readily available to
-	// the function.
+    // The challenge here is due in part to the fact that the wxDC::SetLayoutDirection()
+    // method applies to the whole DC and, on wxMSW (but not the other ports)
+    // SetLayoutDirection() effectively mirrors the underlying coordinate system (requiring
+    // coordinate values input to DrawText and other drawing methods be reversed on the
+    // x-axis while SetLayoutDirection() is set to RTL. Hence, for wxMSW, we must transform
+    // the coordinates in such a way that, while mirroring is in effect, the logical 0,0
+    // coordinate for drawing text is located at the upper right corner of the logical
+    // document and x coordinate values increase toward the left rather than toward the
+    // right. The wxGTK and wxMac ports do not require the use of SetLayoutDirection() to
+    // render punctuation correctly for RTL text, but drawing RTL text in those cases
+    // requires that we must adjust the drawing coordinates of RTL text to start drawing at
+    // the left end of the resulting RTL text, rather than at the right end (as MFC does).
+    // I've also used a wxRect as parameter rather than wxCoord x and wxCoord y coordinate
+    // parameters to make the upper right corner of the wxRect more readily available to
+    // the function.
 	//
 	// TODO: Since the wxWidgets RTL rendering behaviors are obviously still somewhat in an 
 	// immature state of development (and may change in future library releases to become 
