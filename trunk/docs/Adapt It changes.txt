@@ -1,5 +1,12 @@
 Version 5.1.3 update 2September2009:
 ----------------------------------------------
+Bug fixes in 5.1.4
+----------------------------------------------
+* Arabic text did not display certain punctuation characters in
+correct RTL order, but instead located them at the wrong end 
+of words as if they were LTR text.
+
+----------------------------------------------
 Bug fixes in 5.1.3
 ----------------------------------------------
 * During an export of the knowledge base, if an <Not In KB>

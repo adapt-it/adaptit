@@ -1871,7 +1871,14 @@ public:
 	wxString	m_exports_forced_exportsPath; // any path following a -exports 
 				// command-line option
 
-	wxString	m_theWorkFolder;	// "Adapt It Work"
+	wxString	m_theWorkFolder;		// "Adapt It Work" or "Adapt It Unicode Work" or
+										// since Bill's -wf switch, even some other folder
+										// name 
+	wxString	m_theCustomWorkFolder;	// when m_bUseCustomWorkFolderPath is TRUE, this
+										// member is used to store the name of the work
+										// folder at the custom location (set in 
+										// EnsureWorkFolderPresent, and use in
+										// MakeForeignBasicConfigFileSafe()) BEW 7Sep09
 	wxString	m_localPathPrefix;	// the part of the workfolder path before the 
 				// m_theWorkFolder part
 	wxString	m_adaptionsFolder;	// "Adaptations" folder
