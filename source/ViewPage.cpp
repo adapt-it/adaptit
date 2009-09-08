@@ -141,53 +141,60 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
-	/* //used for 5.1.1 to 5.1.3 "fixed" versions for Bob's Brazil workshop, built on 21Aug09
-	wxMessageBox(_T(
-"This functionality is a work in progress and it is not finished yet. Please wait for next release."),
-	_T(""), wxICON_INFORMATION);
-	m_pCheckShowAdminMenu->SetValue(FALSE);
-
-	 //Turn off for Bob Buss's 5.1.1 or 5.1.2 or 5.1.3
-	*/
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	bool bFlag = pApp->m_bShowAdministratorMenu;
-	if (bFlag)
+	bool enableMenuCode;
+	enableMenuCode = FALSE; // change to TRUE to activate the Admin menu handling
+	if (enableMenuCode == FALSE)
 	{
-		// menu is currently shown and administrator wants it hidden, no password required
-		// for hiding it
-		pApp->m_bShowAdministratorMenu = FALSE;
-
-		// code for removing the menu and updating the menu bar is in
-		// the OnEditPreferences() handler in the view class
+		 //used for 5.1.1 to 5.1.3 "fixed" versions for Bob's Brazil workshop, built on 21Aug09
+		 //also used for 5.1.4 bug fix release
+		wxMessageBox(_T(
+	"This functionality is a work in progress and it is not finished yet. Please wait for next release."),
+		_T(""), wxICON_INFORMATION);
+		m_pCheckShowAdminMenu->SetValue(FALSE);
+		 return;
 	}
 	else
 	{
-		// someone wants to have the administrator menu made visible, this requires a
-		// password and we always accept the secret default "admin" password; note,
-		// although we won't document the fact, anyone can type an arbitrary password
-		// string in the relevant line of the basic configuration file, and the code below
-		// will accept it when next that config file is read in - ie. at next launch
-		wxString message = _("Access to Administrator privileges requires that you type a password");
-		wxString caption = _("Type Administrator Password");
-		wxString default_value = _T("");
-		wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this); 
-		if (password == _T("admin") || 
-			(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
+		// This block executed when enableMenuCode is TRUE
+		CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+		bool bFlag = pApp->m_bShowAdministratorMenu;
+		if (bFlag)
 		{
-			// a valid password was typed
-			pApp->m_bShowAdministratorMenu = TRUE;
-			
-			// code for installing the menu and updating the menu bar is in
+			// menu is currently shown and administrator wants it hidden, no password required
+			// for hiding it
+			pApp->m_bShowAdministratorMenu = FALSE;
+
+			// code for removing the menu and updating the menu bar is in
 			// the OnEditPreferences() handler in the view class
 		}
 		else
 		{
-			// invalid password - turn the checkbox back off, beep also
-			::wxBell();
-			m_pCheckShowAdminMenu->SetValue(FALSE);
+			// someone wants to have the administrator menu made visible, this requires a
+			// password and we always accept the secret default "admin" password; note,
+			// although we won't document the fact, anyone can type an arbitrary password
+			// string in the relevant line of the basic configuration file, and the code below
+			// will accept it when next that config file is read in - ie. at next launch
+			wxString message = _("Access to Administrator privileges requires that you type a password");
+			wxString caption = _("Type Administrator Password");
+			wxString default_value = _T("");
+			wxString password = ::wxGetPasswordFromUser(message,caption,default_value,this); 
+			if (password == _T("admin") || 
+				(password == pApp->m_adminPassword && !pApp->m_adminPassword.IsEmpty()))
+			{
+				// a valid password was typed
+				pApp->m_bShowAdministratorMenu = TRUE;
+				
+				// code for installing the menu and updating the menu bar is in
+				// the OnEditPreferences() handler in the view class
+			}
+			else
+			{
+				// invalid password - turn the checkbox back off, beep also
+				::wxBell();
+				m_pCheckShowAdminMenu->SetValue(FALSE);
+			}
 		}
 	}
-
 }
 
 // MFC's OnSetActive() has no direct equivalent in wxWidgets. 
