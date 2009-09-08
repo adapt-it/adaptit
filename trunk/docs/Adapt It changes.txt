@@ -1,4 +1,4 @@
-Version 5.1.3 update 2September2009:
+Version 5.1.4 update 8September2009:
 ----------------------------------------------
 Bug fixes in 5.1.4
 ----------------------------------------------
@@ -6,6 +6,7 @@ Bug fixes in 5.1.4
 correct RTL order, but instead located them at the wrong end 
 of words as if they were LTR text.
 
+Version 5.1.3 update 2September2009:
 ----------------------------------------------
 Bug fixes in 5.1.3
 ----------------------------------------------
