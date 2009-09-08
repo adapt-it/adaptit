@@ -23866,21 +23866,21 @@ void CAdapt_ItApp::OnUpdateLocalWorkFolder(wxUpdateUIEvent& event)
 
 void CAdapt_ItApp::OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event))
 {
-	wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
-	wxLogDebug(_T("1  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+	wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
+	wxLogDebug(_T("1  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 
 	wxASSERT(m_bUseCustomWorkFolderPath);
 	GetView()->CloseProject(); // calls protected view member OnFileCloseProject()
 
-	wxLogDebug(_T("2  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
-	wxLogDebug(_T("2  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+	wxLogDebug(_T("2  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
+	wxLogDebug(_T("2  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 	
 	m_customWorkFolderPath.Empty();
 	m_bUseCustomWorkFolderPath = FALSE;
 	bool bIsValid = IsValidWorkFolder(m_workFolderPath);
 
-	wxLogDebug(_T("3  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
-	wxLogDebug(_T("3  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+	wxLogDebug(_T("3  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
+	wxLogDebug(_T("3  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 
 	if (bIsValid)
 	{
@@ -23899,8 +23899,8 @@ void CAdapt_ItApp::OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event))
 		wxString configFName = szBasicConfiguration + _T(".aic");
 		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
 		
-		wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
-		wxLogDebug(_T("4  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+		wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
+		wxLogDebug(_T("4  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 	}
 	else
 	{
@@ -23912,8 +23912,8 @@ void CAdapt_ItApp::OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event))
 
 		SetupDirectories();
 
-		wxLogDebug(_T("6  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
-		wxLogDebug(_T("6  m_curAdaptionsPath = %s "), m_curAdaptionsPath);
+		wxLogDebug(_T("6  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
+		wxLogDebug(_T("6  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 	}
 
 	// restore the administrator's original values for certain flags
