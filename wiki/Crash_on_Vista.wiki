@@ -1,3 +1,5 @@
+#Try changing the default language to English US and/or region to US
+
 = Introduction =
 
 Adapt It Unicode crash when first attempting to run it on Vista.
