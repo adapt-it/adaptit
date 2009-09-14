@@ -1,4 +1,4 @@
-#Try changing the default language to English US and/or region to US
+Try changing the default language to English US and/or region to US
 
 = Introduction =
 
