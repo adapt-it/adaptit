@@ -123,6 +123,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_3132DE1AA8464823A6C24F83F2A789E5"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_316A6A2B601A4110A93A1A80A5DCAAF7"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -376,6 +382,12 @@
         "Entry"
         {
         "MsmKey" = "8:_B609A5A8C36F40ED9470BF847E0FC231"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_B8D4B72472634FB5817ED29E2CD6EF95"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -975,6 +987,26 @@
             "TargetName" = "8:License_LGPLv21.txt"
             "Tag" = "8:"
             "Folder" = "8:_DE1E7886DCF84B25B0DCF58CD549699F"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3132DE1AA8464823A6C24F83F2A789E5"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\swh\\Adapt_It_Unicode.mo"
+            "TargetName" = "8:Adapt_It_Unicode.mo"
+            "Tag" = "8:"
+            "Folder" = "8:_8C9A3F8D7A9E4BE8B789017999EDBD72"
             "Condition" = "8:"
             "Transitive" = "11:FALSE"
             "Vital" = "11:TRUE"
@@ -1849,6 +1881,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B8D4B72472634FB5817ED29E2CD6EF95"
+            {
+            "SourcePath" = "8:..\\..\\setup Unicode\\Languages\\swh\\swh.po"
+            "TargetName" = "8:swh.po"
+            "Tag" = "8:"
+            "Folder" = "8:_8C9A3F8D7A9E4BE8B789017999EDBD72"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BB7FB4EF889A4E6088D8CA5E0C76336F"
             {
             "SourcePath" = "8:..\\..\\res\\Word32x32-4color.ico"
@@ -2507,6 +2559,17 @@
                             "Condition" = "8:"
                             "Transitive" = "11:FALSE"
                             "Property" = "8:_A86B7AB6C0B24E4DAA6FE2D22B0D55D8"
+                                "Folders"
+                                {
+                                }
+                            }
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_8C9A3F8D7A9E4BE8B789017999EDBD72"
+                            {
+                            "Name" = "8:swh"
+                            "AlwaysCreate" = "11:FALSE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_F17836D3CA7B47D595A809F78B411B60"
                                 "Folders"
                                 {
                                 }
