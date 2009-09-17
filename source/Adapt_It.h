@@ -1855,12 +1855,6 @@ public:
 	bool		m_bUseCustomWorkFolderPath; // default FALSE for legacy behaviour, set
 									// TRUE when Adapt It is pointed at a custom work
 									// folder location
-	bool		m_bSaveAutoBackupKB; // save local value while administrator is at a custom
-									 // folder location
-	bool		m_bSaveBackupDocument; // save local value while administrator is at a custom
-									 // folder location
-	bool		m_bSaveNoAutoSave; // save local value while administrator is at a custom
-									 // folder location			
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
@@ -1874,11 +1868,13 @@ public:
 	wxString	m_theWorkFolder;		// "Adapt It Work" or "Adapt It Unicode Work" or
 										// since Bill's -wf switch, even some other folder
 										// name 
+	/* currently, not needed 9Sep09 
 	wxString	m_theCustomWorkFolder;	// when m_bUseCustomWorkFolderPath is TRUE, this
 										// member is used to store the name of the work
 										// folder at the custom location (set in 
 										// EnsureWorkFolderPresent, and use in
 										// MakeForeignBasicConfigFileSafe()) BEW 7Sep09
+	*/
 	wxString	m_localPathPrefix;	// the part of the workfolder path before the 
 				// m_theWorkFolder part
 	wxString	m_adaptionsFolder;	// "Adaptations" folder

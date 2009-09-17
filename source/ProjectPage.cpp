@@ -313,7 +313,7 @@ void CProjectPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog 
 	else
 	{
 		// must check if nReturned == LB_ERR, since, for example, if the user created a project then
-		// manually deleted the project from the Adaptit Word folder externally to the application, then
+		// manually deleted the project from the work folder externally to the application, then
 		// it would try find it and fail, and the app would crash
 		//if (nReturned == -1) //LB_ERR
 		//	m_listBox.SetSelection(0,TRUE); // use the first one as default, if there was an error
@@ -465,8 +465,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// was initialized by SetupMarkerStrings in InitInstance.
 			pApp->gProjectFilterMarkersForConfig = pApp->gCurrentFilterMarkers;
 			
-			// Movement through wizard pages is sequential - the next page is the languagesPage.
-			// The pLanguagesPage's InitDialog need to be called here just before going to it
+            // Movement through wizard pages is sequential - the next page is the
+            // languagesPage. The pLanguagesPage's InitDialog need to be called here just
+            // before going to it
 			wxInitDialogEvent idevent;
 			pLanguagesPage->InitDialog(idevent);
 		}
@@ -475,17 +476,28 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// it's an existing project, so we'll create KBs for it and show only the
 			// two-page wizard (Project Page and Doc Page)
 
-			// Roland Fumey requested that AI show a progress dialog during the project loading since
-			// large KBs can take a while to create backup copies and load.
+            // Roland Fumey requested that AI show a progress dialog during the project
+            // loading since large KBs can take a while to create backup copies and load.
 			
 			// fill out the app's member variables for the paths etc.
 			pApp->m_curProjectName = m_projectName;
-			pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator + pApp->m_curProjectName;
+			// BEW added 9Sep09, test for a custom work folder path & if to be used, use it
+			if (!pApp->m_customWorkFolderPath.IsEmpty() && pApp->m_bUseCustomWorkFolderPath)
+			{
+				pApp->m_curProjectPath = pApp->m_customWorkFolderPath + pApp->PathSeparator 
+										 + pApp->m_curProjectName;
+			}
+			else
+			{
+				pApp->m_curProjectPath = pApp->m_workFolderPath + pApp->PathSeparator 
+										 + pApp->m_curProjectName;
+			}
 
-			// make sure the path to the Adaptations folder is correct (if omitted, it would use
-			// the basic config file's "DocumentsFolderPath" line - which could have been the
-			// Adaptations folder in a different project)
-			pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator + pApp->m_adaptionsFolder;
+            // make sure the path to the Adaptations folder is correct (if omitted, it
+            // would use the basic config file's "DocumentsFolderPath" line - which could
+            // have been the Adaptations folder in a different project)
+			pApp->m_curAdaptionsPath = pApp->m_curProjectPath + pApp->PathSeparator 
+									   + pApp->m_adaptionsFolder;
 
 			// BEW moved to here, 19Aug05, so that m_bSaveAsXML flag is read back in before we
 			// try to set up the KB files.
