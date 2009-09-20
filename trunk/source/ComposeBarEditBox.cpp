@@ -58,7 +58,8 @@ IMPLEMENT_DYNAMIC_CLASS(CComposeBarEditBox, wxTextCtrl)
 BEGIN_EVENT_TABLE(CComposeBarEditBox, wxTextCtrl)
 	EVT_TEXT(IDC_EDIT_COMPOSE, CComposeBarEditBox::OnEditBoxChanged)
 	EVT_CHAR(CComposeBarEditBox::OnChar)
-	EVT_KEY_DOWN(CComposeBarEditBox::OnKeyDown)
+	// BEW 18Sep09 OnKeyDown() is unneed
+	//EVT_KEY_DOWN(CComposeBarEditBox::OnKeyDown)
 	EVT_KEY_UP(CComposeBarEditBox::OnKeyUp)
 END_EVENT_TABLE()
 
@@ -133,6 +134,24 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 {
+#if defined(KEY_2_KLUGE) && !defined(__GNUG__) && !defined(__APPLE__)
+
+    // kluge to workaround the problem of a '2' (event.m_keycode = 50) keypress being
+    // interpretted as a F10 function keypress (event.m_keyCode == 121)
+	if (event.m_keyCode == 50)
+	{
+		CMainFrame* pFrame = gpApp->GetMainFrame();
+		if (pFrame->m_pComposeBar != NULL)
+		{
+			wxTextCtrl* pEditBox = pFrame->m_pComposeBarEditBox;
+			long from; long to;
+			pEditBox->GetSelection(&from,&to);
+			wxString a2key = _T('2');
+			pEditBox->Replace(from,to,a2key);
+			return;
+		}
+	}
+#endif
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		CAdapt_ItView* pView = gpApp->GetView();
@@ -178,12 +197,12 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 		}
 	}
 	// do not call Skip here to avoid beep in base class' control handlers
+	// and we don't want any base class behaviours here either
 	//event.Skip();
 }
-
+/* BEW 18Sep09 OnKeyDown() is unneed
 void CComposeBarEditBox::OnKeyDown(wxKeyEvent& event)
 {
-	//
 	event.Skip();
 }
-
+*/

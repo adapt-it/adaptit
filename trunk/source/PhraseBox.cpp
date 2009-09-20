@@ -4295,6 +4295,19 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView->IsKindOf(CLASSINFO(CAdapt_ItView)));
 
+#if defined(KEY_2_KLUGE) && !defined(__GNUG__) && !defined(__APPLE__)
+    // kluge to workaround the problem of a '2' (event.m_keycode = 50) keypress being
+    // interpretted as a F10 function keypress (event.m_keyCode == 121)
+	if (event.m_keyCode == 50)
+	{
+			long from; long to;
+			GetSelection(&from,&to);
+			wxString a2key = _T('2');
+			Replace(from,to,a2key);
+			return;
+	}
+#endif
+
 	// Note: wxWidgets doesn't have a separate OnSysKeyUp() virtual method
 	// so we'll simply detect if the ALT key was down and call the
 	// OnSysKeyUp() method from here
