@@ -4952,6 +4952,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW added 17Aug09
 	m_customWorkFolderPath = _T("");
 	m_bUseCustomWorkFolderPath = FALSE;
+	m_bLockedCustomWorkFolderPath = FALSE;
 
 	// The following use the _T() macro as they shouldn't be translated/localized
 	m_theWorkFolder = m_theWorkFolder.Format(_T("Adapt It %sWork"),m_strNR.c_str());
@@ -6333,22 +6334,25 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // (actually, only 5 of them need to be potentially fixed, the others won't crash
     // anything because of fail-safe code elsewhere in the app)
 	wxString configFName = szBasicConfiguration + _T(".aic");
+	wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
 
-	// ultimately, a custom work folder location could have been locked down, and if so,
-	// then the basic config file will have its location, and m_bUseCustomWorkFolderPath
-	// will have been set TRUE if there is a file called "CustomWorkFolderPath" in the
-	// default work folder location, but FALSE if not - so two conditions are needed in
-	// order to use the custom location here for initialization
+    // ultimately, a custom work folder location could have been locked down, and if so,
+    // then the basic config file will have its location, and m_bUseCustomWorkFolderPath
+    // will have been set TRUE and so too will m_bLockedCustomWorkFolderPath be set TRUE if
+    // there is a file called "CustomWorkFolderPath" in the default work folder location,
+    // but FALSE if not - so two conditions are needed in order to use the custom location
+    // here for initialization
 	// *** TODO *** the code for checking on presence of CustomWorkFolderPath file and
-	// setting the flag, before control gets here needing to use the result of that test
-	if (!m_customWorkFolderPath.IsEmpty() && m_bUseCustomWorkFolderPath)
+	// setting the flags, before control gets here needing to use the result of that test
+	if (m_bLockedCustomWorkFolderPath && m_bUseCustomWorkFolderPath)
 	{
-		// using custom work folder location
-		MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath);
+		// the custom location is persistent
+		MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath,&adminConfigFName);
 	}
 	else
 	{
-		// using default location
+		// using default location, or for non-persistent custom locations, we start with
+		// the default location always
 		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
 	}
 
@@ -7428,7 +7432,13 @@ void CAdapt_ItApp::Terminate()
 	if (m_bUseCustomWorkFolderPath && !m_customWorkFolderPath.IsEmpty())
 	{
 		// 1 = app level
-		bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_customWorkFolderPath,1);
+		// BEW 17Sep09, must save using what paths are current, but when the custom
+		// location has been locked in, the filename lacks "Admin" in it, so that it
+		// becomes a "normal" basic configuration file at the custom location
+		if (m_bLockedCustomWorkFolderPath)
+			bOK = WriteConfigurationFile(szBasicConfiguration, m_workFolderPath,1);
+		else
+			bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_workFolderPath,1);
 	}
 	else
 	{
@@ -8298,8 +8308,12 @@ bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature
 			// MakeForeignConfigFileSafe() will have been called and the "foreign" basic
 			// config file at the custom location will have been cloned, renamed, and 
 			// modified to have the appropriate paths for the custom location, so the
-			// following call will not fail
-			bReturn = GetConfigurationFile(szAdminBasicConfiguration,m_customWorkFolderPath,1 );
+			// following call will not fail; it's stored in the default work folder
+			// BEW 17Sep09, it's now at m_workFolderPath, not m_customWorkFolderPath
+			if (m_bLockedCustomWorkFolderPath)
+				bReturn = GetConfigurationFile(szBasicConfiguration,m_workFolderPath,1 );
+			else
+				bReturn = GetConfigurationFile(szAdminBasicConfiguration,m_workFolderPath,1 );
 		}
 		else
 		{
@@ -8337,7 +8351,7 @@ bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature
 /// derivative paths, based on m_workFolderPath. 
 /// BEW modified 18Aug09 to support custom work folder locations:
 /// When the m_bUseCustomWorkFolderPath flag is TRUE, a custom location (never the same as
-/// the legacy location, because if that were the case then OnCustomWorkFolderLocation()
+/// the default location, because if that were the case then OnCustomWorkFolderLocation()
 /// will already have turned the flag back off to FALSE) is to be used and that directory
 /// is already set as the working directory. Derivative paths are then based on the
 /// contents of the m_customWorkFolderPath application class member; these are paths such
@@ -8470,22 +8484,33 @@ bool CAdapt_ItApp::SetupDirectories()
 		}
 		else
 		{
-			// language-specific Work folder does not yet exist, so create it.
-			bool bOK = ::wxMkdir(m_curProjectPath); //bool bOK = ::CreateDirectory(m_curProjectPath,NULL);
-			// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
-			// makes a directory with full read, write, and execute permissions.
-			if (!bOK)
+			// language-specific Work folder does not yet exist, so create it, but only if
+			// the source and target language names are currently defined; if they aren't,
+			// we don't go any further & return TRUE
+			if (!m_sourceName.IsEmpty() && !m_targetName.IsEmpty())
 			{
-				wxString str;
-				// IDS_CREATE_DIR2_FAILED
-				str = str.Format(_(
+				bool bOK = ::wxMkdir(m_curProjectPath); //bool bOK = ::CreateDirectory(m_curProjectPath,NULL);
+				// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
+				// makes a directory with full read, write, and execute permissions.
+				if (!bOK)
+				{
+					wxString str;
+					// IDS_CREATE_DIR2_FAILED
+					str = str.Format(_(
 "Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."),
-				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
-				wxMessageBox(str, _T(""), wxICON_ERROR);
-				wxASSERT(FALSE);
-				return FALSE;
+					m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
+					wxMessageBox(str, _T(""), wxICON_ERROR);
+					wxASSERT(FALSE);
+					return FALSE;
+				}
+				bLangWorkFolderExists = TRUE; // it now exists
 			}
-			bLangWorkFolderExists = TRUE; // it now exists
+			else
+			{
+				// both or one of the names is not defined and so we can't set up a valid
+				// project folder, so don't go any further
+				return TRUE;
+			}
 		}
 
         // we now have a location in which we can store the adaption project's knowledge
@@ -8723,7 +8748,17 @@ bool CAdapt_ItApp::SetupDirectories()
 		}
 		else
 		{
-			// language-specific Work folder does not yet exist, so create it.
+			// language-specific Work folder does not yet exist, so create it, but only if
+			// the source and target language names are currently defined; if they aren't,
+			// we don't go any further & return TRUE
+			if (m_sourceName.IsEmpty() || m_targetName.IsEmpty())
+			{
+				// can't set up a valid project folder path, so go no further
+				return TRUE;
+			}
+
+			// language-specific Work folder does not yet exist, so create it, because both
+			// name strings have content
 			bool bOK = ::wxMkdir(m_curProjectPath);
 			// WX NOTE: On Unix/Linux wxMkdir has a second default param: int perm = 0777 which
 			// makes a directory with full read, write, and execute permissions.
@@ -8732,7 +8767,7 @@ bool CAdapt_ItApp::SetupDirectories()
 				wxString str;
 				// IDS_CREATE_DIR2_FAILED
 				str = str.Format(
-				_T("SetupDirectories(): Error creating the \"%s to %s adaptations\" folder. Abort now."),
+				_T("SetupDirectories(): Error trying to create the \"%s to %s adaptations\" folder. Abort now."),
 				m_sourceName.c_str(),m_targetName.c_str(),m_strNR.c_str(),m_strNR.c_str());
 				wxMessageBox(str, _T(""), wxICON_ERROR);
 				abort();
@@ -10858,7 +10893,7 @@ void CAdapt_ItApp::DoFileOpen()
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::EnsureWorkFolderPresent()
 {
-    // whm 5Jun09 modified this rouitine to implement the ability of the user to specify a
+    // whm 5Jun09 modified this routine to implement the ability of the user to specify a
     // non-default location for a work folder as supplied from a -wf <path> command-line
     // option.
 	wxString stdDocsDir = _T("");
@@ -11004,55 +11039,11 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	{
 		// customWorkFolderPath exists so set the current work directory to it 
 		::wxSetWorkingDirectory(m_customWorkFolderPath);
-
-		/* 
-		// we don't appear to need m_theCustomWorkFolder variable after all... I thought
-		// MakeForeignBasicConfigFileSafe() would need it, but it turned out the code there
-		// is self-contained, and a local wxString basePath suffices, provided the basic
-		// config file used for cloning has the szAdaptitPath line before the other 4 
-		// critical path lines in the config file
-		//
-		// when a custom path is defined, we need the final folder name to be stored in
-		// m_theCustomWorkFolder (a wxString member of CAdapt_ItApp), so that
-		// MakeForeignBasicConfigFileSafe() can use it to set paths correctly 
-        // Note: the administrator may be accessing a custom work folder on a networked
-        // machine, and so the path to that folder would be a URL, rather than an absolute
-        // path on that machine - so the work folder we get will enable the Administrator
-        // basic config file to be stored in the remote folder; but for actual setting up
-        // of that folder as a work folder, that should be done on the machine itself so
-        // that the AI-BasicConfiguration.aic file produced there has the correct local
-        // absolute paths
-        wxString path = m_customWorkFolderPath;
-		wxString pathReversed = MakeReverse(path);
-		bool bUnixSeparator;
-		int offset = pathReversed.Find(_T('\\'));
-		// next line, yields TRUE if separator is forward slash, FALSE if it is backslash
-		bUnixSeparator = offset == wxNOT_FOUND; 
-		if (bUnixSeparator)
-		{
-			offset = pathReversed.Find(_T('/'));
-		}
-		else
-		{
-			offset = pathReversed.Find(_T('\\'));
-		}
-		wxASSERT(offset != wxNOT_FOUND);
-		// repurpose path string variable for the calculation
-		path = pathReversed.Left(offset);
-		int length = path.Len();
-		wxASSERT(length > 0);
-		m_theCustomWorkFolder = MakeReverse(path); // name of last directory in the 
-												   // m_customWorkFolderPath
-		*/
 	}
 	else
 	{
 		// workFolderPath exists so set the current work directory to it 
 		::wxSetWorkingDirectory(workFolderPath);
-
-		// if not using a custom path, set the custom work folder's name storage string to
-		// empty 
-		// m_theCustomWorkFolder.Empty(); // BEW 9Sep09, member not needed probably
 	}
 
 	// for the custom location, m_customWorkFolderPath is already determined to be a valid
@@ -13810,6 +13801,12 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 			// when the user first locates a custom folder, it is FALSE if he locates
 			// another custom folder but actually chooses the legacy location, and it is
 			// FALSE if the menu item to return to the local work folder has been chosen.
+			// BEW 17Apr09, before the config file is read, the app will have checked for
+			// the presence of a CustomWorkFolderPath file containing a custom path - if
+			// it is present in the default work folder location (ie. m_workFolderPath)
+			// then m_bLockedCustomWorkFolderPath is set TRUE and also
+			// m_bUseCustomWorkFolderPath is also set TRUE; if not present, both flags are
+			// cleared to FALSE
 			if (m_bUseCustomWorkFolderPath)
 			{
 				m_customWorkFolderPath = strValue;
@@ -15260,78 +15257,7 @@ void CAdapt_ItApp::GetProjectSettingsConfiguration(wxTextFile* pf)
 				m_lastFreeTransExportPath = strValue;
 			}
 		}
-		/* BEW removed 19Aug, there is no need to put these in any file
-		// BEW added 17Aug09, for support of custom work folder locations
-		else if (name == szUseCustomWorkFolderPath)
-		{
-			num = wxAtoi(strValue);
-			if (!(num == 0 || num == 1))
-				num = 0;
-			if (num == 0)
-				m_bUseCustomWorkFolderPath = FALSE;
-			else
-				m_bUseCustomWorkFolderPath = TRUE;
-		}
-		else if (name == szCustomWorkFolderPath)
-		{
-			m_customWorkFolderPath = strValue;
-			if (m_customWorkFolderPath.IsEmpty() || !m_bUseCustomWorkFolderPath)
-			{
-				m_bUseCustomWorkFolderPath = FALSE; // only FALSE is
-						// consistent with having an empty path stored
-			}
-			else if (m_bUseCustomWorkFolderPath)
-			{
-				// note: functions in this block utilize the app member
-				// m_theWorkFolder. It will have been previously set to the name of
-				// whichever work folder is appropriate for this build, within the
-				// OnInit() function which is called prior to accessing the project
-				// configuration file
-				wxString newWorkFolderPath = _T("");
-				bool bNewPathFound = FALSE;
-				bool bPointsAtAWorkFolder = EnsureCustomWorkFolderPathIsSet(
-					m_customWorkFolderPath,newWorkFolderPath,bNewPathFound);
-				if (bPointsAtAWorkFolder)
-				{
-					// the path read from the config file is valid, so use it
-					;
-				}
-				else if (bNewPathFound)
-				{
-					// the path read from the config file was not a path to a valid work
-					// folder but the user was able to browse to a valid work folder so
-					// set that one up as the custom work folder to be used hereafter
-					m_customWorkFolderPath = newWorkFolderPath;
-				}
-				else
-				{
-					// either the user cancelled the browse for locating a valid work
-					// folder, or there is none to be had on this machine - in either
-					// case, Adapt It cannot do any work. Rather than create an empty work
-					// folder it is better to advise the user to use a file manager to
-					// examine where the work folder is, and then try again.
-					wxString msg1 = _("You failed to locate a valid work folder. Nothing was done.");
-					wxMessageBox(msg1,_(""),wxICON_WARNING);
 
-                    // allow processing to continue, including doc to be opened etc, but
-                    // user has been told to shut down and should do so, all we do here is
-					// cause config files to not be written when app closes; the default
-					// work folder location will be accessed instead
-					m_bDoNotWriteConfigFiles = TRUE;
-					m_customWorkFolderPath = _T("");
-					m_bUseCustomWorkFolderPath = FALSE;
-					wxCommandEvent dummyevent;
-					OnLocalWorkFolder(dummyevent);
-				}
-			}
-			else
-			{
-				// a custom work folder location is not wanted, so set the member string
-				// variable to an empty string to reflect this fact
-				m_customWorkFolderPath = _T("");
-			}
-		}
-		*/
 		// the next four are redundant from 2.3.0 and onwards, but must be retained
 		// in case the user uses a later version to read a config file produced by
 		// a pre-2.3.0 version of the application
@@ -18997,110 +18923,76 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	  // if ((m_customWorkFolderPath == m_workFolderPath) || !m_bUseCustomWorkFolderPath)
 	else
 	{
-		// this block for when the administrator is looking at someone's work folder in a
-		// custom location, and an AI-AdminBasicConfiguration.aic file needs to be created
-		// with appropriate paths for the administrator's running AI instance. We need a
-		// basic configuration file to "fix", but there may not be one yet at the
-		// targetted work folder - so we resort to the expedient of taking the
-		// administrator's one and fixing that... that one should be found in the
-		// m_workFolderPath location, & if that does not yield one, we'll try
-		// m_customWorkFolderPath, and if that draws a blank, we'll force one to be
-        // temporarily written there and clone from that. Hence by one means or another we
-        // obtain a AI-BasicConfiguration.aic file for cloning, modify its contents and save
-        // them to a different file, AI_AdminBasicConfiguration.aic file in the targetted
-        // custom work folder.
+        // this block for when the administrator is looking at someone's work folder in a
+        // custom location, and an AI-AdminBasicConfiguration.aic file needs to be created
+        // with appropriate paths for the administrator's running AI instance. We need an
+        // administrator's basic configuration file to "fix", but there may not be one yet
+        // in his work folder - if so we resort to the expedient of taking the
+        // administrator's normal one, cloning and renaming it, and fixing that -- that one
+        // should be found in the m_workFolderPath location, & if that does not yield one,
+        // we'll force one to be temporarily written there and clone from that. Hence by
+        // one means or another we obtain a configuration file for cloning, modify its
+		// contents and save them to a different file called AI_AdminBasicConfiguration.aic,
+        // in the administrator's default work folder location (the latter is always
+        // pointed at by the path in m_workFolderLocation)
         bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
 										 // basic config file saved to disk only for cloning 
 										 // purposes
 		wxString configPath = m_workFolderPath + PathSeparator + configFName; // use native separator
 		wxString basePath;
 		// construct the path for where to save the admin basic config file from the
-		// passed in custom work folder path (it could be a path to a folder on a remote
-		// machine running a different operating system - but the native path separator
-		// for the administrator's machine should still work for accessing that folder)
-		wxString adminConfigPath = folderPath + PathSeparator + *adminConfigFNamePtr;
-		// now check if configPath contains a basic config file we can use for cloning
+		// administrator's machine's default work folder path (if he uses a custom work
+		// folder location, there won't be a basic config file in the default location,
+		// but no matter, we can force one to be temporarily saved there for cloning
+		// purposes and then remove it afterwards)
+		//wxString adminConfigPath = folderPath + PathSeparator + *adminConfigFNamePtr;
+		wxString adminConfigPath = m_workFolderPath + PathSeparator + *adminConfigFNamePtr;
+		// now check if configPath contains a basic config file we can use for cloning, we
+		// can use a normal one, or an already existing administrator's one if such is present
 		bool bCloneableBasicConfigFilePresent = TRUE;
-		bCloneableBasicConfigFilePresent = ::wxFileExists(configPath);
-		if (bCloneableBasicConfigFilePresent)
+		bCloneableBasicConfigFilePresent = ::wxFileExists(adminConfigPath); // best choice
+		bool bBestChoice = bCloneableBasicConfigFilePresent;
+		if (!bCloneableBasicConfigFilePresent)
 		{
-			// use the one we found using configPath
-			basePath = m_workFolderPath;
-		}
-		else
-		{
-			// one one there, so try the passed in work folder path, there might already
-			// by one there
-			configPath = folderPath + PathSeparator + configFName;
+            // no admin basic config file is present, so take our second best choice - the
+            // 'normal' basic config file, if present
 			bCloneableBasicConfigFilePresent = ::wxFileExists(configPath);
-			if (bCloneableBasicConfigFilePresent)
-			{
-				// use the one we found using this alternate value for configPath
-				basePath = folderPath;
-			}
-			else
-			{
-				// that didn't work either, so force one to be written out to folderPath
-				// and then use that, and remove the one we forced after the cloning is
-				// done further below; parameter 1 forces writing of a basic config file
-				bool bWrittenOK = WriteConfigurationFile(configFName,folderPath,1);
-				if (!bWrittenOK)
-				{
-					// fatal error, shouldn't happen, but if it does alert developer and
-					// exit app
-					wxMessageBox(
-_T("MakeForeignConfigFileSafe(): forcing write of a temporary basic config file for cloning failed. Shutting down."));
-					wxExit();
-					return;
-				}
-				basePath = folderPath;
-				bRemoveCloneSource = TRUE;
-			}
 		}
-		// one here, basePath has the path to whatever folder stores the basic config file
-		// we are going to clone off; later we will set it to whatever path we find in the
-		// cloned basic config file as the szAdaptitPath, as that will be used for the
-		// path to the work folder within that cloned config file's data lines
-		
-		// BEW removed next line 20Aug09, we don't need to use m_localPathPrefix in this
-		// block, so not changing it means it only applies when using the legacy code for
-		// the default location (the TRUE block above) - and this reduces the dependency
-		// on the re-use of paths for the default work folder location and so removes a
-		// potential source of error
-		//wxString localPathPrefix = m_localPathPrefix; // m_localPathPrefix was set 
-													  // in EnsureWorkFolderPresent.
-
+		basePath = m_workFolderPath;
+		if (!bCloneableBasicConfigFilePresent)
+		{
+			// none available, so force one to be written out to m_workFolderPath
+			// and then use that, and remove the one we forced after the cloning is
+			// done further below; parameter 1 in the following call forces writing 
+			// of a basic config file rather than a project one
+			bool bWrittenOK = WriteConfigurationFile(configFName,basePath,1);
+			if (!bWrittenOK)
+			{
+				// fatal error, shouldn't happen, but if it does alert developer and
+				// exit app
+				wxMessageBox(
+_T("MakeForeignConfigFileSafe(): forcing write of a temporary basic config file for cloning failed. Shutting down."));
+				wxExit();
+				return;
+			}
+			bRemoveCloneSource = TRUE;
+		}
+		// once here, basePath has the path to whatever folder stores the basic config file
+        // we are going to clone off; bBestChoice tells us which it will be. The path we
+        // construct within the cloned config file, however, is constructed from the value
+        // of the passed in folderPath - which points at the custom work folder location.
+        // The administrator's config file line, szAdaptitPath, is setup from that.
 		wxTextFile f;
 		// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
 		// call. It is set up so we can treat it as a line oriented text file while in memory,
 		// modifying it, then writing it back out to persistent storage with a single 
 		// call to Write().
-
-		// wx note: To avoid an annoying system message that pops up if Open is called on
-		// a non-existing file, we'll check for its existence first, and return immediately
-		// if it doesn't exist
-		if (!::wxFileExists(configPath))
-			return;
-
-		// at this point we must clone the configPath file, and give the clone the
-		// adminConfigPath filename. It is easiest to do this with a couple of file
-		// streams, but first find any pre-existing adminConfigPath cloned & modified
-		// config file in the target work directory and delete it - we'll create the new
-		// one after that
+		 
+		// At this point we must clone the configPath file, and give the clone the
+		// adminConfigPath filename. But if an admin basic config file already exists, we
+		// don't need to clone it, but just fix it's contents further below. 
 		bool bRemoved = TRUE;
-		if (::wxFileExists(adminConfigPath))
-			bRemoved = ::wxRemoveFile(adminConfigPath);
-		if (!bRemoved)
-		{
-			// fatal error, could not remove the file, so warn developer and shut down
-			// Note: if the test for existenc a couple of lines up returns FALSE, bRemoved
-			// remains set to TRUE and so this present block won't be entered - which we
-			// want to be the case as there is no admin config file to remove
-			wxMessageBox(
-_T("MakeForeignConfigFileSafe(): custom location block, could not remove adminConfigPath file. Shutting down."));
-			wxExit();
-			return;
-		}
+		if (!bBestChoice)
 		{
 			wxFileInputStream fis(configPath);
 			if (fis.IsOk())
@@ -19112,7 +19004,7 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not remove adminCo
 					fos.Write(fis);
 				}
 			}
-		} // now they are out of scope and so should be flushed and the new file closed
+		}
 
 		// if we forced a cloneable basic config file to be written, now remove it
 		if (bRemoveCloneSource)
@@ -19123,10 +19015,11 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not remove adminCo
 			// returned (we don't expect to ever get FALSE returned here)
 		}
 
-		// now work exclusively with the adminConfigPath clone of the basic config file
+		// now work exclusively with the adminConfigPath clone of the basic config file,
+		// or with the previous admin basic config file if one was already present
 		if (!::wxFileExists(adminConfigPath))
 		{
-			// eh!? We just got it, and now it's not there? Tell developer and exit app
+			// eh!? We just got it, and now it's not there?! Tell developer and exit app
 			wxMessageBox(
 _T("MakeForeignConfigFileSafe(): adminConfigPath's admin basic config file somehow doesn't exist!! Shutting down."));
 			wxExit();
@@ -19153,7 +19046,8 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
         // The entire cloned basic config file is now in memory under the name
         // adminConfigPath, and we can modify the lines we want to change. Basically we
         // want the set the critical paths to point at the relevant folders in the
-        // non-standard location; the work folder's name is in m_theCustomWorkFolder already
+        // non-standard location; the work folder's name is in m_theCustomWorkFolder
+        // already
 
 		// The five paths of concern are:
 		// szAdaptitPath = _("AdaptItPath");
@@ -19162,14 +19056,12 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
 		// szCurKBPath = _("KnowledgeBasePath");
 		// szCurKBBackupPath = _("KBBackupPath");
 		
-		//wxString localPath = m_customWorkFolderPath;
 		wxString localPath = folderPath; // target work folder after the fix is done
 		wxString tab = _T('\t');
 		wxString fileLine;
 		// scan the in-memory file line-by-line and process those needing path updates
-		// whm 29Dec06 TODO: determine if we should call convertToLocalCharset() here on fileLine
-		int basePathLength = 0; // set it at szAdaptitPath line, use for subsequent 
-								// critical path lines
+		int basePathLength = 0; // set it at szAdaptitPath line, the use that value for 
+								// subsequent critical path lines
 		for ( fileLine = f.GetFirstLine(); !f.Eof(); fileLine = f.GetNextLine() )
 		{
 			wxString subFoldersPath = _T("");	// for the part of the path to the 
@@ -23646,114 +23538,6 @@ bool CAdapt_ItApp::LayoutAndPaginate(int& nPagePrintingWidthLU,
 ///
 //////////////////////////////////////////////////////////////////////////////////////////
 
-/* BEW removed 19Aug09, not needed unless we reinstate storing the flag and custom work 
-// folder path in the project config file - which I'm pretty sure would be a mistake to
-// do ; but this function might usefully be tweaked for use with basic config file
-bool CAdapt_ItApp::EnsureCustomWorkFolderPathIsSet(wxString customPath, 
-					wxString& newCustomPath, bool& bNewPathFound)
-{
-	bNewPathFound = FALSE;
-	newCustomPath = _T("");
-	bool bValidPath = IsValidWorkFolder(customPath);
-	if (bValidPath)
-		return TRUE;
-	else
-	{
-        // give the user a chance to locate a valid work folder, return FALSE if
-        // none found or user cancels from folder browser
-		bool bGotFolder = FALSE;
-		wxString default_path;
-		if (m_bUseCustomWorkFolderPath)
-		{
-			if (m_customWorkFolderPath.IsEmpty())
-			{
-				// use standard documents directory - in portable way using the wxWidgets
-				// class wxStandardPaths (code plagiarized from EnsureWorkFolderPresent())
-				wxString stdDocsDir = _T("");
-				wxStandardPaths stdPaths;
-				#ifdef __WXMAC__
-				// whm note 18Jun09: the wxStandardPaths::GetDocumentsDir() is probably causing program
-				// crash when compiled for Mac OS X 10.3 Panther, so I'm using the older
-				// ::wxGetHomeDir() function for the Mac which should return the same directory string
-				// on the Mac that wxStandardPaths::GetDocumentsDir() does.
-				stdDocsDir = ::wxGetHomeDir();
-				#else
-				stdDocsDir = stdPaths.GetDocumentsDir(); // The GetDocumentsDir() function  
-													// is new since wxWidgets version 2.7.0
-				#endif
-				// Typically the "documents" directory depends on the system:
-				// Unix: ~/(the home directory, i.e., /home/<username>/)
-				// Windows (earlier and Vista): C:\Documents and Settings\username\Documents
-				// Windows (2000 and XP): C:\Documents and Settings\username\My Documents
-				// Mac: ~/(the home directory, i.e., /Users/<username>/ 
-
-                // whm note: In the cross-platform version we never refer to a specific
-                // "Documents" or "My Documents" folder and so we do not need to localize
-                // the name of the folder that is returned by the "GetDocumentsDir()
-                // function call.
-				// 
-                // Set the current working directory to point to the standard docs
-                // directory which would normally be the "Documents" or "My Documents"
-                // folder on Windows, the ~ (home directory) on Linux, or the ~/Documents
-                // directory on the Mac.
-				default_path = stdDocsDir; // one wasn't set, so use documents dir
-				::wxSetWorkingDirectory(stdDocsDir);
-			}
-			else
-			{
-				default_path = m_customWorkFolderPath; // the current one, if there is one
-				::wxSetWorkingDirectory(default_path);
-			}
-		}
-		else
-		{
-			// use legacy location
-			default_path = m_workFolderPath;
-			::wxSetWorkingDirectory(default_path);
-		}
-		wxString workFolderPath;
-		bool bWasCancelled = FALSE;
-		bGotFolder = LocateCustomWorkFolder(default_path, workFolderPath, bWasCancelled);
-		if (!bGotFolder)
-		{
-			// newCustomPath is already set to an empty string
-			bNewPathFound = FALSE;
-
-			if (bWasCancelled)
-			{
-				// TODO --- let user have options
-				; 
-			}
-			else
-			{
-				// an error -- do differently - but what?  TODO
-				; 
-				 
-			}
-		}
-		else
-		{
-			// caller will put this returned path string in m_customWorkFolderPath
-			bNewPathFound = TRUE;
-			newCustomPath = workFolderPath;
-		}
-	}
-	return FALSE; // config file's path wasn't valid, but user managed to find
-		// the wanted work folder by browing if bNewPathFound is returned TRUE, but if the
-		// latter is FALSE, the caller will suggest to the user that he shut down because
-		// it didn't find a custom work folder (caller will also told that the config
-		// files won't be rebuilt and written out on the next shut down). User can then
-		// use the OS's file manager (eg. in Windows, Win Explorer) to find just where the
-		// custom work folder location is, take note of the location, then re-lauch
-		// Adapt It, and because the project config file is unchanged, he'll then have a
-		// new chance to navigate to the wanted custom work folder location. Hopefully the
-		// second time round he'll get it right! If the user doesn't exit, he can actually
-		// do work if there is a work folder at the legacy location - but still on the next
-		// shut down the config files won't be written out, so he may as well do as he was
-		// told.
-}
-*/
-
 // return TRUE if the path is to a folder, otherwise return FALSE
 bool CAdapt_ItApp::IsValidWorkFolder(wxString path)
 {
@@ -23763,56 +23547,9 @@ bool CAdapt_ItApp::IsValidWorkFolder(wxString path)
 	if (path.IsEmpty())
 		return FALSE;
 	return ::wxDirExists(path.c_str());
-
-/*
-	// the m_theWorkFolder app class member variable will have been set to either
-	// "Adapt It Unicode Work" or "Adapt It Work" in a prior OnInit() call before this
-	// function is used for the first time, so we can count on it here
-	wxString reversed = MakeReverse(path);
-	wxString endFolder = _T("");
-	int offset = reversed.Find(PathSeparator);
-	if (offset != wxNOT_FOUND)
-	{
-		// get the folder name at the end of the passed in path
-		endFolder = reversed.Left(offset);
-	}
-	endFolder = MakeReverse(endFolder);
-
-**** INCOMPLETE -- have to fix for / and \ paths (replace, see MakeForeignCFSafe for code)
-TODO -- after fix Bob Buss bugs, Magnus Dahlbacka misunderstandings, Dave Lux questions
-	
-
-	if (endFolder != m_theWorkFolder)
-	{
-		// we may not have a valid work folder, depends on whether or not a basic config
-		// file can be found inside it, either AI-BasicConfiguration.aic or
-		// AI-AdminBasicConfiguration.aic; if either is present, allow it
-		wxString returnedConfigFilePath = _T(""); // default, "nothing found" path
-		bool bReturnedConfigFileType_IsAdminType = FALSE;
-		bool bHasConfigFileWithin = IsConfigFileWithin(path, returnedConfigFilePath, 
-										bReturnedConfigFileType_IsAdminType);
-		if (bHasConfigFileWithin)
-		{
-			// store the path and the basic config file type on the app, and tell
-			// the caller the folder is a work folder
-			m_pathTo_FoundBasicConfigFile = returnedConfigFilePath;
-			m_bTypeOf_FoundBasicConfigFile = bReturnedConfigFileType_IsAdminType;
-			return TRUE;
-		}
-		else
-		{
-			// no basic config file of any type, so user should be asked what to do
-			
-// *** TODO *****
-
-			// for now, return FALSE
-			return FALSE;
-		}
-	}
-	return TRUE; // it's a match, so is valid
-*/
 }
 
+/* unused
 // return TRUE if one of the two basic config file types is present, in second parameter
 // pass back the one found (don't look for the AI-AdminBasicConfiguration.aic file if the
 // standard basic one is present), and pass back in bIsAdminBasic a record of which was
@@ -23865,7 +23602,7 @@ bool CAdapt_ItApp::IsConfigFileWithin(wxString path, wxString& configFilePath, b
 	}
 	return FALSE; // couldnt find any basic config file of either type
 }
-
+*/
 
 // return TRUE if a valid work folder was located, otherwise return FALSE, and return the
 // path found (or an empty string if used cancelled browse dialog) in the returnedPath
@@ -24253,9 +23990,12 @@ a:			wxString stdDocsDir = _T("");
 		//wxLogDebug(_T("11  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 	}
 
-	// now that the "foreign" basic config file at the custom location is made safe for
-	// use, read it in and set up the app for the "foreign" work folder access
-	GetBasicConfigFileSettings(); // distinguishes between custom & default locations internally
+    // now that the basic config file, whether foreign or not, and whether at the default
+    // location or the custom location, is made safe for use, read it in and set up the app
+    // for work folder access
+	GetBasicConfigFileSettings(); // distinguishes between custom & default locations 
+				// internally, and for custom locations, it distinguishes between
+				// a persistent versus a non-persistent custom location
 
 	//wxLogDebug(_T("12  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 

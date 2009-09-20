@@ -1855,6 +1855,8 @@ public:
 	bool		m_bUseCustomWorkFolderPath; // default FALSE for legacy behaviour, set
 									// TRUE when Adapt It is pointed at a custom work
 									// folder location
+	bool		m_bLockedCustomWorkFolderPath; // TRUE if a custom work folder location has
+									// been made persistent, else FALSE
 
     // whm added 5Jun09 for alternate "forced" work folder path (forced by use of -wf
     // <path> command-line option)
@@ -1868,13 +1870,6 @@ public:
 	wxString	m_theWorkFolder;		// "Adapt It Work" or "Adapt It Unicode Work" or
 										// since Bill's -wf switch, even some other folder
 										// name 
-	/* currently, not needed 9Sep09 
-	wxString	m_theCustomWorkFolder;	// when m_bUseCustomWorkFolderPath is TRUE, this
-										// member is used to store the name of the work
-										// folder at the custom location (set in 
-										// EnsureWorkFolderPresent, and use in
-										// MakeForeignBasicConfigFileSafe()) BEW 7Sep09
-	*/
 	wxString	m_localPathPrefix;	// the part of the workfolder path before the 
 				// m_theWorkFolder part
 	wxString	m_adaptionsFolder;	// "Adaptations" folder
@@ -2477,7 +2472,8 @@ public:
 	bool	LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath, 
 									bool& bUserCancelled);
 	bool	m_bDoNotWriteConfigFiles; // default FALSE, TRUE to suppress config file writing
-	bool	IsConfigFileWithin(wxString path, wxString& configFilePath, bool& bIsAdminBasic);
+	//bool	IsConfigFileWithin(wxString path, wxString& configFilePath, bool&
+	//bIsAdminBasic); // unused
 
 	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
 	// docs re "Writing installers for wxWidgets applications"

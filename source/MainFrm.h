@@ -13,6 +13,8 @@
 /// its support for the document/view framework.
 /////////////////////////////////////////////////////////////////////////////
 
+#define KEY_2_KLUGE
+
 #ifndef MainFrame_h
 #define MainFrame_h
 

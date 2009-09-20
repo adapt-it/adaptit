@@ -40,7 +40,8 @@ public:
 
 	// other methods
 	void OnKeyUp(wxKeyEvent& event);
-	void OnKeyDown(wxKeyEvent& event);
+	// BEW 18Sep09, OnKeyDown() is unneed	
+	// void OnKeyDown(wxKeyEvent& event);
 	void OnChar(wxKeyEvent& event);
 	void OnEditBoxChanged(wxCommandEvent& WXUNUSED(event));
 
