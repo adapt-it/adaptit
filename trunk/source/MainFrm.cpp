@@ -1159,7 +1159,7 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	int dummyID5 = -1;
 	//int dummyID6 = -1;
 
-    // Accelerators
+	// Accelerators
 	// ASSIGN THE ACCELERATOR HOT KEYS REQUIRED FOR THE DIFFERENT PLATFORMS
 	// See also the the App's OnInit() where menu adjustments are made to
 	// coordinate with these accelerator/hot key assignments.
@@ -1177,7 +1177,12 @@ CMainFrame::CMainFrame(wxDocManager *manager, wxFrame *frame, wxWindowID id,
 	// to prevent them from executing if the user types the accelerator key combination.
 	// 
 	// whm modified 11Feb09 to conditionally compile for differences in preferred hot keys for wxMac.
-    wxAcceleratorEntry entries[37]; //[43];
+#ifdef __WXMAC__
+    wxAcceleratorEntry entries[37];
+#else
+    wxAcceleratorEntry entries[35];
+#endif
+
 #ifdef __WXMAC__
 	// whm Note: On Mac Command-1 is reserved for View as Icons, so we'll use Command-Shift-1 on Mac to
 	// avoid the reserved key.
