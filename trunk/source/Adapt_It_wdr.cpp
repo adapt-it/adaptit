@@ -369,7 +369,7 @@ wxSizer *ComposeBarFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
-    wxButton *item13 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item13 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item13->SetToolTip( _("Remove free translation") );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -1639,7 +1639,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
     item19->SetToolTip( _("Move a selected translation down in the list") );
     item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item20 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove From KB"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item20 = new wxButton( parent, IDC_BUTTON_REMOVE, _("&Remove From KB"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item20->SetToolTip( _("Remove the selected translation from the knowledge base") );
     item17->Add( item20, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -1661,7 +1661,7 @@ wxSizer *ChooseTranslationDlgFunc( wxWindow *parent, bool call_fit, bool set_siz
 
     wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item25 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item25 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
     item25->SetDefault();
     item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 0 );
 
@@ -6792,8 +6792,10 @@ wxMenuBar *AIMenuBarFunc()
     
     wxMenu* item9 = new wxMenu;
     item9->Append( ID_CUSTOM_WORK_FOLDER_LOCATION, _("&Custom Work Folder Location"), _("Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere") );
-    item9->Append( ID_SET_PASSWORD_MENU, _("Set Password"), _("Set a password, it will be stored in the clear in the basic configuration file") );
-    item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("Return To Local Work Folder"), _("Point at the local machine's default work folder") );
+    item9->Append( ID_LOCK_CUSTOM_LOCATION, _("&Lock Custom Location"), _("Make the custom work folder location permanent until explicitly changed") );
+    item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
+    item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Return To Default Work Folder"), _("Point at the local machine's default work folder") );
+    item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password"), _("Set a password, it will be stored in the clear in the basic configuration file") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;

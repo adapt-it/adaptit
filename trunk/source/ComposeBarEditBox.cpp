@@ -134,6 +134,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 
 void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 {
+/* turned out to be a pseudo key binding in accelerator keys code, in CMainFrame creator
 #if defined(KEY_2_KLUGE) && !defined(__GNUG__) && !defined(__APPLE__)
 
     // kluge to workaround the problem of a '2' (event.m_keycode = 50) keypress being
@@ -152,6 +153,7 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 		}
 	}
 #endif
+	*/
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		CAdapt_ItView* pView = gpApp->GetView();
