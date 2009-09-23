@@ -2252,6 +2252,11 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
 	EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnLocalWorkFolder)
 	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateLocalWorkFolder)	
+	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
+	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
+	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
+	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
+
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
 	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
@@ -18923,272 +18928,293 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 	  // if ((m_customWorkFolderPath == m_workFolderPath) || !m_bUseCustomWorkFolderPath)
 	else
 	{
-        // this block for when the administrator is looking at someone's work folder in a
-        // custom location, and an AI-AdminBasicConfiguration.aic file needs to be created
-        // with appropriate paths for the administrator's running AI instance. We need an
-        // administrator's basic configuration file to "fix", but there may not be one yet
-        // in his work folder - if so we resort to the expedient of taking the
-        // administrator's normal one, cloning and renaming it, and fixing that -- that one
-        // should be found in the m_workFolderPath location, & if that does not yield one,
-        // we'll force one to be temporarily written there and clone from that. Hence by
-        // one means or another we obtain a configuration file for cloning, modify its
-		// contents and save them to a different file called AI_AdminBasicConfiguration.aic,
-        // in the administrator's default work folder location (the latter is always
-        // pointed at by the path in m_workFolderLocation)
-        bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
-										 // basic config file saved to disk only for cloning 
-										 // purposes
-		wxString configPath = m_workFolderPath + PathSeparator + configFName; // use native separator
-		wxString basePath;
-		// construct the path for where to save the admin basic config file from the
-		// administrator's machine's default work folder path (if he uses a custom work
-		// folder location, there won't be a basic config file in the default location,
-		// but no matter, we can force one to be temporarily saved there for cloning
-		// purposes and then remove it afterwards)
-		//wxString adminConfigPath = folderPath + PathSeparator + *adminConfigFNamePtr;
-		wxString adminConfigPath = m_workFolderPath + PathSeparator + *adminConfigFNamePtr;
-		// now check if configPath contains a basic config file we can use for cloning, we
-		// can use a normal one, or an already existing administrator's one if such is present
-		bool bCloneableBasicConfigFilePresent = TRUE;
-		bCloneableBasicConfigFilePresent = ::wxFileExists(adminConfigPath); // best choice
-		bool bBestChoice = bCloneableBasicConfigFilePresent;
-		if (!bCloneableBasicConfigFilePresent)
+		if (!m_bLockedCustomWorkFolderPath)
 		{
-            // no admin basic config file is present, so take our second best choice - the
-            // 'normal' basic config file, if present
-			bCloneableBasicConfigFilePresent = ::wxFileExists(configPath);
-		}
-		basePath = m_workFolderPath;
-		if (!bCloneableBasicConfigFilePresent)
-		{
-			// none available, so force one to be written out to m_workFolderPath
-			// and then use that, and remove the one we forced after the cloning is
-			// done further below; parameter 1 in the following call forces writing 
-			// of a basic config file rather than a project one
-			bool bWrittenOK = WriteConfigurationFile(configFName,basePath,1);
-			if (!bWrittenOK)
+			// this block for when the administrator is looking at someone's work folder in a
+			// custom location, and an AI-AdminBasicConfiguration.aic file needs to be created
+			// with appropriate paths for the administrator's running AI instance. We need an
+			// administrator's basic configuration file to "fix", but there may not be one yet
+			// in his work folder - if so we resort to the expedient of taking the
+			// administrator's normal one, cloning and renaming it, and fixing that -- that one
+			// should be found in the m_workFolderPath location, & if that does not yield one,
+			// we'll force one to be temporarily written there and clone from that. Hence by
+			// one means or another we obtain a configuration file for cloning, modify its
+			// contents and save them to a different file called AI_AdminBasicConfiguration.aic,
+			// in the administrator's default work folder location (the latter is always
+			// pointed at by the path in m_workFolderLocation)
+			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
+											 // basic config file saved to disk only for cloning 
+											 // purposes
+			wxString configPath = m_workFolderPath + PathSeparator + configFName; // use native separator
+			wxString basePath;
+			// construct the path for where to save the admin basic config file from the
+			// administrator's machine's default work folder path (if he uses a custom work
+			// folder location, there won't be a basic config file in the default location,
+			// but no matter, we can force one to be temporarily saved there for cloning
+			// purposes and then remove it afterwards)
+			//wxString adminConfigPath = folderPath + PathSeparator + *adminConfigFNamePtr;
+			wxString adminConfigPath = m_workFolderPath + PathSeparator + *adminConfigFNamePtr;
+			// now check if configPath contains a basic config file we can use for cloning, we
+			// can use a normal one, or an already existing administrator's one if such is present
+			bool bCloneableBasicConfigFilePresent = TRUE;
+			bCloneableBasicConfigFilePresent = ::wxFileExists(adminConfigPath); // best choice
+			bool bBestChoice = bCloneableBasicConfigFilePresent;
+			if (!bCloneableBasicConfigFilePresent)
 			{
-				// fatal error, shouldn't happen, but if it does alert developer and
-				// exit app
+				// no admin basic config file is present, so take our second best choice - the
+				// 'normal' basic config file, if present
+				bCloneableBasicConfigFilePresent = ::wxFileExists(configPath);
+			}
+			basePath = m_workFolderPath;
+			if (!bCloneableBasicConfigFilePresent)
+			{
+				// none available, so force one to be written out to m_workFolderPath
+				// and then use that, and remove the one we forced after the cloning is
+				// done further below; parameter 1 in the following call forces writing 
+				// of a basic config file rather than a project one
+				bool bWrittenOK = WriteConfigurationFile(configFName,basePath,1);
+				if (!bWrittenOK)
+				{
+					// fatal error, shouldn't happen, but if it does alert developer and
+					// exit app
+					wxMessageBox(
+	_T("MakeForeignConfigFileSafe(): forcing write of a temporary basic config file for cloning failed. Shutting down."));
+					wxExit();
+					return;
+				}
+				bRemoveCloneSource = TRUE;
+			}
+			// once here, basePath has the path to whatever folder stores the basic config file
+			// we are going to clone off; bBestChoice tells us which it will be. The path we
+			// construct within the cloned config file, however, is constructed from the value
+			// of the passed in folderPath - which points at the custom work folder location.
+			// The administrator's config file line, szAdaptitPath, is setup from that.
+			wxTextFile f;
+			// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
+			// call. It is set up so we can treat it as a line oriented text file while in memory,
+			// modifying it, then writing it back out to persistent storage with a single 
+			// call to Write().
+			 
+			// At this point we must clone the configPath file, and give the clone the
+			// adminConfigPath filename. But if an admin basic config file already exists, we
+			// don't need to clone it, but just fix it's contents further below. 
+			bool bRemoved = TRUE;
+			if (!bBestChoice)
+			{
+				wxFileInputStream fis(configPath);
+				if (fis.IsOk())
+				{
+					wxFileOutputStream fos(adminConfigPath);
+					if (fos.IsOk())
+					{
+						// copy the input stream's data to the output streams file
+						fos.Write(fis);
+					}
+				}
+			}
+
+			// if we forced a cloneable basic config file to be written, now remove it
+			if (bRemoveCloneSource)
+			{
+				if (::wxFileExists(configPath))
+					bRemoved = ::wxRemoveFile(configPath);
+				// we don't care if the removal didn't happen, so ignore a FALSE value
+				// returned (we don't expect to ever get FALSE returned here)
+			}
+
+			// now work exclusively with the adminConfigPath clone of the basic config file,
+			// or with the previous admin basic config file if one was already present
+			if (!::wxFileExists(adminConfigPath))
+			{
+				// eh!? We just got it, and now it's not there?! Tell developer and exit app
 				wxMessageBox(
-_T("MakeForeignConfigFileSafe(): forcing write of a temporary basic config file for cloning failed. Shutting down."));
+	_T("MakeForeignConfigFileSafe(): adminConfigPath's admin basic config file somehow doesn't exist!! Shutting down."));
 				wxExit();
 				return;
 			}
-			bRemoveCloneSource = TRUE;
-		}
-		// once here, basePath has the path to whatever folder stores the basic config file
-        // we are going to clone off; bBestChoice tells us which it will be. The path we
-        // construct within the cloned config file, however, is constructed from the value
-        // of the passed in folderPath - which points at the custom work folder location.
-        // The administrator's config file line, szAdaptitPath, is setup from that.
-		wxTextFile f;
-		// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
-		// call. It is set up so we can treat it as a line oriented text file while in memory,
-		// modifying it, then writing it back out to persistent storage with a single 
-		// call to Write().
-		 
-		// At this point we must clone the configPath file, and give the clone the
-		// adminConfigPath filename. But if an admin basic config file already exists, we
-		// don't need to clone it, but just fix it's contents further below. 
-		bool bRemoved = TRUE;
-		if (!bBestChoice)
-		{
-			wxFileInputStream fis(configPath);
-			if (fis.IsOk())
+			
+			// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+			#ifndef _UNICODE
+			// ANSI
+			bool bSuccessful = f.Open(adminConfigPath); // read ANSI file into memory
+			#else
+			// UNICODE
+			bool bSuccessful = f.Open(adminConfigPath, wxConvUTF8); // read UNICODE file into memory
+			#endif
+			if (!bSuccessful)
 			{
-				wxFileOutputStream fos(adminConfigPath);
-				if (fos.IsOk())
-				{
-					// copy the input stream's data to the output streams file
-					fos.Write(fis);
-				}
+				// there was a problem opening the file, so we'll just shut down after warning
+				// developer 
+				wxMessageBox(
+	_T("MakeForeignConfigFileSafe(): custom location block, could not open adminConfigPath file. Shutting down."));
+				wxExit();
+				return;
 			}
-		}
+			// The entire cloned basic config file is now in memory under the name
+			// adminConfigPath, and we can modify the lines we want to change. Basically we
+			// want the set the critical paths to point at the relevant folders in the
+			// non-standard location; the work folder's name is in m_theCustomWorkFolder
+			// already
 
-		// if we forced a cloneable basic config file to be written, now remove it
-		if (bRemoveCloneSource)
-		{
-			if (::wxFileExists(configPath))
-				bRemoved = ::wxRemoveFile(configPath);
-			// we don't care if the removal didn't happen, so ignore a FALSE value
-			// returned (we don't expect to ever get FALSE returned here)
-		}
+			// The five paths of concern are:
+			// szAdaptitPath = _("AdaptItPath");
+			// szCurLanguagesPath = _("ProjectFolderPath");
+			// szCurAdaptionsPath = _("DocumentsFolderPath");
+			// szCurKBPath = _("KnowledgeBasePath");
+			// szCurKBBackupPath = _("KBBackupPath");
+			
+			wxString localPath = folderPath; // target work folder after the fix is done
+			wxString tab = _T('\t');
+			wxString fileLine;
+			// scan the in-memory file line-by-line and process those needing path updates
+			int basePathLength = 0; // set it at szAdaptitPath line, the use that value for 
+									// subsequent critical path lines
+			for ( fileLine = f.GetFirstLine(); !f.Eof(); fileLine = f.GetNextLine() )
+			{
+				wxString subFoldersPath = _T("");	// for the part of the path to the 
+													// right of m_theCustomWorkFolder
+				int nStartOfSubFoldersPath;
+				int strLength;
+				if(fileLine.Find(szAdaptitPath) != wxNOT_FOUND)
+				{
+					// we're at a line with "AdaptItPath" in it that we want to adjust; here
+					// we must set basePath to whatever follows the tab character, as that
+					// will be used in the other critical lines as the path to the work folder
+					// and it is not necessarily the same path as in folderPath which was
+					// passed in
+					int offsetToTab = fileLine.Find(tab);
+					wxASSERT(offsetToTab > 0);
+					basePath = fileLine.Mid(offsetToTab + 1); // "AdaptItPath MUST precede the
+															  // other critical paths in the
+															  // basic configuration file or
+															  // our code for setting correct
+															  // paths will break. ***NOTE***
+					basePathLength = basePath.Len(); // use in subsequent blocks below too
+					wxASSERT(basePathLength > 0);
+					fileLine = szAdaptitPath + tab + localPath; // make the fixed fileLine string
+					size_t lineNum = f.GetCurrentLine(); // get the line number
+					f.RemoveLine(lineNum); // remove the old line from the in-memory file
+					f.InsertLine(fileLine, lineNum); // replace it with the fixed line
+				}
+				else if (fileLine.Find(szCurLanguagesPath) != wxNOT_FOUND)
+				{
+					// we're at a line with "ProjectFolderPath" in it that we want to adjust
+					// ... get the offset to the path separator following basePath
+					nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
+					strLength = fileLine.Len();
+					subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
+					if (!subFoldersPath.IsEmpty())
+					{
+						// We don't know whether the subFoldersPath has \ or / separators so
+						// we'll change both to the native one (PathSeparator) The default
+						// behavior of the wxString::Replace method is to replace all.
+						int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
+						NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					}
+					// build the required administrator's config file path for this line
+					fileLine = szCurLanguagesPath + tab + localPath + subFoldersPath; // the fix
+					size_t lineNum = f.GetCurrentLine();
+					f.RemoveLine(lineNum);
+					f.InsertLine(fileLine, lineNum);
+				}
+				else if (fileLine.First(szCurAdaptionsPath) != -1)
+				{
+					// we're at a line with "DocumentsFolderPath" in it that we want to 
+					// adjust
+					nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
+					strLength = fileLine.Length();
+					subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
+					if (!subFoldersPath.IsEmpty())
+					{
+						// We don't know whether the subFoldersPath has \ or / separators so
+						// we'll change both to the native one (PathSeparator) The default
+						// behavior of the wxString::Replace method is to replace all.
+						int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
+						NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					}
+					// build the required administrator's config file path for this line
+					fileLine = szCurAdaptionsPath + tab + localPath + subFoldersPath;
+					size_t lineNum = f.GetCurrentLine();
+					f.RemoveLine(lineNum);
+					f.InsertLine(fileLine, lineNum);
+				}
+				else if (fileLine.First(szCurKBPath) != -1)
+				{
+					// we're at a line with "KnowledgeBasePath" in it that we want to 
+					// adjust
+					nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
+					strLength = fileLine.Length();
+					subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
+					if (!subFoldersPath.IsEmpty())
+					{
+						// We don't know whether the subFoldersPath has \ or / separators so
+						// we'll change both to the native one (PathSeparator) The default
+						// behavior of the wxString::Replace method is to replace all.
+						int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
+						NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					}
+					// build the required administrator's config file path for this line
+					fileLine = szCurKBPath + tab + localPath + subFoldersPath;
+					size_t lineNum = f.GetCurrentLine();
+					f.RemoveLine(lineNum);
+					f.InsertLine(fileLine, lineNum);
+				}
+				else if (fileLine.First(szCurKBBackupPath) != -1)
+				{
+					// we're at a line with "KBBackupPath" in it that we want to 
+					// adjust
+					nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
+					strLength = fileLine.Length();
+					subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
+					if (!subFoldersPath.IsEmpty())
+					{
+						// We don't know whether the subFoldersPath has \ or / separators so
+						// we'll change both to the native one (PathSeparator) The default
+						// behavior of the wxString::Replace method is to replace all.
+						int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
+						NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
+					}
+					// build the required administrator's config file path for this line
+					fileLine = szCurKBBackupPath + tab + localPath + subFoldersPath;
+					size_t lineNum = f.GetCurrentLine();
+					f.RemoveLine(lineNum);
+					f.InsertLine(fileLine, lineNum);
+				}
+			}
 
-		// now work exclusively with the adminConfigPath clone of the basic config file,
-		// or with the previous admin basic config file if one was already present
-		if (!::wxFileExists(adminConfigPath))
-		{
-			// eh!? We just got it, and now it's not there?! Tell developer and exit app
-			wxMessageBox(
-_T("MakeForeignConfigFileSafe(): adminConfigPath's admin basic config file somehow doesn't exist!! Shutting down."));
-			wxExit();
-			return;
-		}
-		
-		// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
-		#ifndef _UNICODE
-		// ANSI
-		bool bSuccessful = f.Open(adminConfigPath); // read ANSI file into memory
-		#else
-		// UNICODE
-		bool bSuccessful = f.Open(adminConfigPath, wxConvUTF8); // read UNICODE file into memory
-		#endif
-		if (!bSuccessful)
-		{
-			// there was a problem opening the file, so we'll just shut down after warning
-			// developer 
-			wxMessageBox(
-_T("MakeForeignConfigFileSafe(): custom location block, could not open adminConfigPath file. Shutting down."));
-			wxExit();
-			return;
-		}
-        // The entire cloned basic config file is now in memory under the name
-        // adminConfigPath, and we can modify the lines we want to change. Basically we
-        // want the set the critical paths to point at the relevant folders in the
-        // non-standard location; the work folder's name is in m_theCustomWorkFolder
-        // already
-
-		// The five paths of concern are:
-		// szAdaptitPath = _("AdaptItPath");
-		// szCurLanguagesPath = _("ProjectFolderPath");
-		// szCurAdaptionsPath = _("DocumentsFolderPath");
-		// szCurKBPath = _("KnowledgeBasePath");
-		// szCurKBBackupPath = _("KBBackupPath");
-		
-		wxString localPath = folderPath; // target work folder after the fix is done
-		wxString tab = _T('\t');
-		wxString fileLine;
-		// scan the in-memory file line-by-line and process those needing path updates
-		int basePathLength = 0; // set it at szAdaptitPath line, the use that value for 
-								// subsequent critical path lines
-		for ( fileLine = f.GetFirstLine(); !f.Eof(); fileLine = f.GetNextLine() )
-		{
-			wxString subFoldersPath = _T("");	// for the part of the path to the 
-												// right of m_theCustomWorkFolder
-			int nStartOfSubFoldersPath;
-			int strLength;
-			if(fileLine.Find(szAdaptitPath) != wxNOT_FOUND)
+			#ifndef _UNICODE
+			// ANSI
+			bSuccessful = f.Write(); // write ANSI file back to disk
+			#else
+			// UNICODE
+			bSuccessful = f.Write(); // write UNICODE file back to disk 
+									 // whm note: default is to use wxConvUTF8 in Unicode build
+			#endif
+			if (!bSuccessful)
 			{
-				// we're at a line with "AdaptItPath" in it that we want to adjust; here
-				// we must set basePath to whatever follows the tab character, as that
-				// will be used in the other critical lines as the path to the work folder
-				// and it is not necessarily the same path as in folderPath which was
-				// passed in
-				int offsetToTab = fileLine.Find(tab);
-				wxASSERT(offsetToTab > 0);
-				basePath = fileLine.Mid(offsetToTab + 1); // "AdaptItPath MUST precede the
-														  // other critical paths in the
-														  // basic configuration file or
-														  // our code for setting correct
-														  // paths will break. ***NOTE***
-				basePathLength = basePath.Len(); // use in subsequent blocks below too
-				wxASSERT(basePathLength > 0);
-				fileLine = szAdaptitPath + tab + localPath; // make the fixed fileLine string
-				size_t lineNum = f.GetCurrentLine(); // get the line number
-				f.RemoveLine(lineNum); // remove the old line from the in-memory file
-				f.InsertLine(fileLine, lineNum); // replace it with the fixed line
-			}
-			else if (fileLine.Find(szCurLanguagesPath) != wxNOT_FOUND)
-			{
-				// we're at a line with "ProjectFolderPath" in it that we want to adjust
-				// ... get the offset to the path separator following basePath
-				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
-				strLength = fileLine.Len();
-				subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
-				if (!subFoldersPath.IsEmpty())
-				{
-                    // We don't know whether the subFoldersPath has \ or / separators so
-                    // we'll change both to the native one (PathSeparator) The default
-                    // behavior of the wxString::Replace method is to replace all.
-					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
-					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-				}
-				// build the required administrator's config file path for this line
-				fileLine = szCurLanguagesPath + tab + localPath + subFoldersPath; // the fix
-				size_t lineNum = f.GetCurrentLine();
-				f.RemoveLine(lineNum);
-				f.InsertLine(fileLine, lineNum);
-			}
-			else if (fileLine.First(szCurAdaptionsPath) != -1)
-			{
-				// we're at a line with "DocumentsFolderPath" in it that we want to 
-				// adjust
-				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
-				strLength = fileLine.Length();
-				subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
-				if (!subFoldersPath.IsEmpty())
-				{
-                    // We don't know whether the subFoldersPath has \ or / separators so
-                    // we'll change both to the native one (PathSeparator) The default
-                    // behavior of the wxString::Replace method is to replace all.
-					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
-					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-				}
-				// build the required administrator's config file path for this line
-				fileLine = szCurAdaptionsPath + tab + localPath + subFoldersPath;
-				size_t lineNum = f.GetCurrentLine();
-				f.RemoveLine(lineNum);
-				f.InsertLine(fileLine, lineNum);
-			}
-			else if (fileLine.First(szCurKBPath) != -1)
-			{
-				// we're at a line with "KnowledgeBasePath" in it that we want to 
-				// adjust
-				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
-				strLength = fileLine.Length();
-				subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
-				if (!subFoldersPath.IsEmpty())
-				{
-                    // We don't know whether the subFoldersPath has \ or / separators so
-                    // we'll change both to the native one (PathSeparator) The default
-                    // behavior of the wxString::Replace method is to replace all.
-					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
-					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-				}
-				// build the required administrator's config file path for this line
-				fileLine = szCurKBPath + tab + localPath + subFoldersPath;
-				size_t lineNum = f.GetCurrentLine();
-				f.RemoveLine(lineNum);
-				f.InsertLine(fileLine, lineNum);
-			}
-			else if (fileLine.First(szCurKBBackupPath) != -1)
-			{
-				// we're at a line with "KBBackupPath" in it that we want to 
-				// adjust
-				nStartOfSubFoldersPath = fileLine.Find(basePath) + basePathLength;
-				strLength = fileLine.Length();
-				subFoldersPath = fileLine.Right(strLength - nStartOfSubFoldersPath);
-				if (!subFoldersPath.IsEmpty())
-				{
-                    // We don't know whether the subFoldersPath has \ or / separators so
-                    // we'll change both to the native one (PathSeparator) The default
-                    // behavior of the wxString::Replace method is to replace all.
-					int NumReplacements = subFoldersPath.Replace(_T("/"),PathSeparator);
-					NumReplacements = subFoldersPath.Replace(_T("\\"),PathSeparator);
-				}
-				// build the required administrator's config file path for this line
-				fileLine = szCurKBBackupPath + tab + localPath + subFoldersPath;
-				size_t lineNum = f.GetCurrentLine();
-				f.RemoveLine(lineNum);
-				f.InsertLine(fileLine, lineNum);
+				// could not update the config file so inform developer
+				wxMessageBox(_T("Unable to write adjusted Administrator basic config file for custom location, so abort"));
+				::wxExit();
+				return;
 			}
 		}
-
-		#ifndef _UNICODE
-		// ANSI
-		bSuccessful = f.Write(); // write ANSI file back to disk
-		#else
-		// UNICODE
-		bSuccessful = f.Write(); // write UNICODE file back to disk 
-								 // whm note: default is to use wxConvUTF8 in Unicode build
-		#endif
-		if (!bSuccessful)
+		else
 		{
-			// could not update the config file so inform developer
-			wxMessageBox(_T("Unable to write adjusted Administrator basic config file for custom location, so abort"));
-			::wxExit();
-			return;
+			// this block for when m_bLockedCustomWorkFolderPath is TRUE
+			// The actions here are:
+			// a) get the absolute path to the custom work folder
+			// b) put it in a file called CustomWorkFolderLocation
+			// c) store that file in the default work folder location (i.e. the
+			// one that m_workFolderPath points at, even if nothing else is there)
+			// d) clone the current AI-AdminBasicConfiguration.aic file - there has to
+			// be one as a consequence of the prior Locate Custom Work Folder command
+			// e) give the clone the name AI-BasicConfiguration.aic, and store it in
+			// the custom work folder location
+			// Note: the AI-BasicConfiguration.aic file will contain the work folder path
+			// string in its szAdaptitPath line, but this is unused at startup, rather,
+			// the path in the CustomWorkFolderLocation file is used, and that is accessed, 
+			// in OnInit(), before the basic configuration file is read.
+			; 
 		}
 	}
 }
@@ -23885,9 +23911,13 @@ a:			wxString stdDocsDir = _T("");
             // location
 
 
-			// ** TODO **   call OnLocalWorkFolder() ??
-			;
-
+			// ** TODO **   call OnLocalWorkFolder() ?? actually it could be one of
+			// several possibilities, depending on whether administrator is local or
+			// remote and whether a path is currently locked or not, or whether the
+			// default location on local machine is current or not...
+			wxLogDebug(_T("Cancelled block: default_path was = %s  cancelled flag = %d  MORE TO DO HERE!!"), m_workFolderPath, (int)bWasCancelled);
+			//OnLocalWorkFolder(); // force re-establish of default?? Nah, too simple, see above
+			return;
 
 		}
 		else
@@ -23896,9 +23926,7 @@ a:			wxString stdDocsDir = _T("");
 			// a different folder -- implement these options.
 			
 
-			// ** TODO **
-
-
+			// ** TODO **  first shot at it in code below - check it is enough
 
 			// a valid work folder location was not obtained, so warn the user and let him try
 			// again 
@@ -24007,5 +24035,118 @@ a:			wxString stdDocsDir = _T("");
 
 	//wxLogDebug(_T("END  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 }
+
+// \return     TRUE if the path passed in begins with either pair of backslashes,
+//             or a pair of forward slashes 
+// \remarks    Use a TRUE returned value to disable the Administrator menu's command "Lock 
+// Custom Location", because if the path is a URI then Adapt It is being pointed at a
+// remote machine, and our code cannot make a custom work folder location on a remote
+// machine be persistent - that has to be done from the local machine only
+bool CAdapt_ItApp::IsURI(wxString& uriPath)
+{
+	bool bURI = FALSE;
+	if (uriPath.IsEmpty())
+		return FALSE;
+	wxString uriBack = _T('\\');
+	uriBack += uriBack;
+	wxString uriForward = _T("//");
+	bURI = uriPath.Find(uriBack) == 0;
+	if (bURI)
+		return TRUE; // it's "\\"
+	bURI = uriPath.Find(uriForward) == 0;
+	if (bURI)
+		return TRUE; // it's "//"
+	return FALSE;
+}
+
+void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
+{
+	if (m_bAdminMenuRemoved)
+	{
+		// can't do it if the menu is not attached
+		event.Enable(FALSE);
+		return;
+	}
+	if (!m_bAdminMenuRemoved)
+	{
+		// the menu is showing
+		bool bURI = IsURI(m_customWorkFolderPath);
+		
+		// don't enable the menu item if the custom work folder path is a URI
+		// specification, or if the path is empty, or if the default path and the
+		// custom path are the same
+		if (m_customWorkFolderPath.IsEmpty() || m_customWorkFolderPath == m_workFolderPath)
+		{
+			event.Enable(FALSE);
+			return;
+		}
+		if (bURI)
+		{
+			event.Enable(FALSE);
+			return;
+		}
+		else
+		{
+			// the application is pointing at some other work folder than the default, and
+			// it is not a folder on a remote machine, and not an empty path, so allow the 
+			// user to choose it
+			event.Enable(TRUE);
+		}
+	}
+}
+
+void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
+{
+
+
+}
+
+void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
+{
+	if (m_bAdminMenuRemoved)
+	{
+		// can't do it if the menu is not attached
+		event.Enable(FALSE);
+		return;
+	}
+	if (!m_bAdminMenuRemoved)
+	{
+		// the menu is showing 
+		if (m_bLockedCustomWorkFolderPath)
+		{
+			// the application has a locked path currently
+			bool bURI = IsURI(m_customWorkFolderPath);
+			if (bURI)
+			{
+				// the administrator does not have permission to unlock a permanent path
+				// set up already on a remote machine; she can only do it from that
+				// machine itself - which is a reasonable constraint, otherwise a remote
+				// person could lock out a remote user from his or her data remotely
+				// without their knowledge, which would be naughty in the extreme
+				event.Enable(FALSE);
+			}
+			else
+			{
+				// administrator is on the machine which has the locked path, so is
+				// authorized to unlock it
+				event.Enable(TRUE);
+			}
+			return;
+		}
+		else
+		{
+			// the application doesn't have a locked path currently
+			event.Enable(FALSE);
+		}
+	}
+}
+
+void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event))
+{
+	wxLogDebug(_T("m_bLockedCustomWorkFolderPath = %d"),m_bLockedCustomWorkFolderPath);
+
+}
+
+
 
 

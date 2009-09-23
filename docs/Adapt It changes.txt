@@ -1,4 +1,47 @@
-Version 5.1.4 update 8September2009:
+Version 5.2.0 update ??November2009:
+----------------------------------------------
+Feature changes and new features in 5.2.0
+----------------------------------------------
+* Added a hidden password protected Administrator menu. The 
+menu can be made visible by Edit / Preferences / View page, and
+click the checkbox labelled "Show Administrator Menu (Password
+protected)". The password admin will always work. You can set
+some other password. Your password is stored in the basic 
+configuration file. The Administrator menu supports extra capabilities
+of interest to the administrator of a number of machines running
+Adapt It on a LAN, setting up a work folder in a custom location,
+or customizing the Adapt It interface. Not all features intended for
+this menu will be available initially. Priority for initial features is for 
+features which allow the administrator to access any of several
+work folders on any of several machines, and to move data to or
+from the accessed custom work folders (e.g. for archiving in a
+version control repository, etc.)
+* Added a Custom Work Folder Location command to the 
+Administrator menu. Permits the administrator to set (1) a temporary 
+custom work folder location on the local machine, a peripheral device, 
+or a remote machine - including a remote machine running a different 
+operating system; the setting lasts until the end of the session. (2) A 
+permanent custom work folder location on the local machine or on a 
+peripheral device attached to the local machine.
+* Added a Change Password command to the Administrator menu.
+* Added a Return To Default Work Folder command which restores
+the default work folder location (including to one setup by the -wf
+command line switch).
+* Added a Lock Custom Location command to the Administrator 
+menu, enabled provided the path to the custom folder is not a URI, 
+so that the work folder at the custom location becomes permanent, 
+until explicitly changed at some future time.
+* Added an Unlock Custom Location command to the Administrator
+menu, enabled provided the path to the custom folder is not a URI,
+so that the persistent work folder custom location becomes temporary
+- i.e. the path will be forgotten when the current session ends.
+
+----------------------------------------------
+Bug fixes in 5.2.0
+----------------------------------------------
+* Typing a '2' key into the phrase box, or the edit box used for free
+translations, no 2 character appeared in the box.
+
 ----------------------------------------------
 Bug fixes in 5.1.4
 ----------------------------------------------
