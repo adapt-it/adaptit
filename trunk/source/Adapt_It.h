@@ -289,6 +289,14 @@ struct FreeTrElement
 	wxRect subRect;
 };
 
+/// An enum for selecting which code block to use within the FixBasicConfigPaths()
+/// function, called from MakeForeignBasicConfigFilesSafe()
+enum ConfigFixType
+{
+    defaultPathsFix,
+    customPathsFix
+};
+
 /// An enum for the indices for the top level menus
 /// Note: item0 is the menubar itself, but that does not mean that the File menu is 
 /// at index 1; the menus in a menu bar are indexed from the first (File menu) starting
@@ -2245,6 +2253,8 @@ protected:
 	void	DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulativeTotal);
 	bool	DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& folderPath, 
 						wxString& bookFolderName, bool bSuppressStatistics = FALSE);
+	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
+						wxString& basePath, wxString& localPath);
 	void	GetForceAskList(CKB* pKB, KPlusCList* pKeys);
 	void	GetValue(const wxString strReadIn, wxString& strValue, wxString& name);
 	wxSize	GetExtentOfLongestSfm(wxDC* pDC);
