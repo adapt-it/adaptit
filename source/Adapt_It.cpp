@@ -6386,6 +6386,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// administrator or user can add something there which may be helpful as a memory
 		// aid if so desired)
 		m_customWorkFolderPath = f.GetFirstLine();
+		f.Close(); // don't bother with the returned boolean
 		if (m_customWorkFolderPath.IsEmpty())
 		{
             // can't proceed with an empty path, so warn user and temporarily allow
