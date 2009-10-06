@@ -23528,16 +23528,92 @@ void CAdapt_ItApp::OnUpdateLockCustomLocation(wxUpdateUIEvent& event)
 		{
 			// the application is pointing at some other work folder than the default, and
 			// it is not a folder on a remote machine, and not an empty path, so allow the 
-			// user to choose it
-			event.Enable(TRUE);
+			// user to choose it - provided a path is not already locked in
+			if (m_bLockedCustomWorkFolderPath)
+			{
+				// a custom path is locked in already, so disable the menu item
+				event.Enable(FALSE);
+				return;
+			}
+			else
+			{
+				// not yet locked, so allow it to be locked
+				event.Enable(TRUE);
+			}
 		}
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      event         -> the event is not used, except to trigger this handler
+/// \remarks
+/// Puts the custom work folder path in the file "CustomWorkFolderLocation" and stores the
+/// file in the default work folder on the host machine (ie. the one running the AI
+/// instance) and turns on the m_bLockedCustomWorkFolderPath flag. Then normal and admin
+/// configuration file names are constructed, and they plus the custom work folder path
+/// are parameters to a call to MakeForeignBasicConfigFileSafe() in order to construct a
+/// valid basic configuration file at the custom work folder location to be used
+/// thereafter for as long as that location remains the work folder location currently
+/// used.
+////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 {
+	// a) get the absolute path to the custom work folder
+	// b) put it in a file called CustomWorkFolderLocation
+	// c) store that file in the default work folder location (i.e. the
+	// one that m_workFolderPath points at, even if nothing else is there)
+	bool bOK;
+	wxFile f; // create a wxFile instance with default constructor
+	bOK = ::wxSetWorkingDirectory(m_workFolderPath); // the default work folder location
+	if (!bOK)
+	{
+		// only need a message for the developer here, once debugged this
+		// shouldn't fail
+		wxMessageBox(_(
+		"Failed to set the current working directory to default work folder location. Aborting..."),
+		_T(""), wxICON_ERROR);
+		abort();
+		return;
+	}
+	wxString theFilename = _T("CustomWorkFolderLocation"); // a hard-coded name, we 
+														   //don't want this localized
+	// open the file for writing, & if it already exists, clear it's contents too
+	if (!f.Open(theFilename,wxFile::write))
+	{
+		// don't expect a failure, but if we get one, just tell the developer & abort
+		wxMessageBox(_(
+		"Failed to open the CustomWorkFolderLocation file at default work folder location. Aborting..."),
+		_T(""), wxICON_ERROR);
+		abort();
+		return;
+	}
+	// save the custom path string to the file, but if the custom path is empty,
+	// tell the developer and abort
+	if (m_customWorkFolderPath.IsEmpty())
+	{
+		wxMessageBox(_(
+			"Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."),
+		_T(""), wxICON_ERROR);
+		abort();
+		return;
+	}
+	else
+	{
+		f.Write(m_customWorkFolderPath); // in Unicode build, converts 
+										 // contents to UTF-8 before writing
+	}
+	f.Close(); // close the created file with the custom path within it
 
+	// the menu command is disabled if the flag is true, so since this handler can only be
+	// called fwhen the flag is false, we unilaterally set it now
+	m_bLockedCustomWorkFolderPath = TRUE;
 
+	// now construct the names for basic and administrator basic config files, and make
+	// the needed basic config file at the custom location, with fixed critical paths
+	wxString configFName = szBasicConfiguration + _T(".aic");
+	wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
+	MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath,&adminConfigFName);
 }
 
 void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
@@ -23961,10 +24037,16 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 /// So we'll get a basic configuration file somehow, clone it, and change the relevant
 /// paths as needed for the targetted machine (which could be the same machine or one on
 /// the LAN with shared folders in which we are poking around), and save the modifed config
-/// data to a configuration file with a new name, in the targetted work folder, and use
-/// that for loading and saving basic config file settings when the administrator is poking
-/// his nose into someone else's work folder. That new filename will be
-/// AI-AdminBasicConfiguration.aic
+/// data to a configuration file with a new name, in the work folder of the user or
+/// administrator on his local machine, and use that for loading and saving basic config
+/// file settings when the administrator is poking his nose into someone else's work
+/// folder. That new filename will be AI-AdminBasicConfiguration.aic. We also use this
+/// function when setting up a custom work folder location on a machine, so as to put
+/// correct paths in the basic configuration file stored in that custom folder; when doing
+/// this the input paths are probably correct as is, but we recreate them "safely" as a
+/// precaution, even though we probably for most situations are merely recreating what we
+/// already have got from the contents of the CustomWorkFolderLocation file stored in the
+/// default work folder location on the machine.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString& folderPath,
 											wxString* adminConfigFNamePtr)
@@ -24240,61 +24322,16 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
 		{
 			// this block for when m_bLockedCustomWorkFolderPath is TRUE
 			// The actions here are:
-			// a) get the absolute path to the custom work folder
-			// b) put it in a file called CustomWorkFolderLocation
-			// c) store that file in the default work folder location (i.e. the
-			// one that m_workFolderPath points at, even if nothing else is there)
-			// d) clone the current AI-AdminBasicConfiguration.aic file - there has to
+			// a) clone the current AI-AdminBasicConfiguration.aic file - there has to
 			// be one as a consequence of the prior Locate Custom Work Folder command
-			// e) give the clone the name AI-BasicConfiguration.aic, and store it in
+			// b) give the clone the name AI-BasicConfiguration.aic, and store it in
 			// the custom work folder location
 			// Note: the AI-BasicConfiguration.aic file will contain the work folder path
 			// string in its szAdaptitPath line, but this is unused at startup, rather,
 			// the path in the CustomWorkFolderLocation file is used, and that is accessed, 
 			// in OnInit(), before the basic configuration file is read.
-			bool bOK;
-			wxFile ff; // create a wxFile instance with default constructor
-			bOK = ::wxSetWorkingDirectory(m_workFolderPath); // the default work folder location
-			if (!bOK)
-			{
-				// only need a message for the developer here, once debugged this
-				// shouldn't fail
-				wxMessageBox(_(
-				"Failed to set the current working directory to default work folder location. Aborting..."),
-				_T(""), wxICON_ERROR);
-				abort();
-				return;
-			}
-			wxString theFilename = _T("CustomWorkFolderLocation"); // a hard-coded name, we 
-																   //don't want this localized
-			// open the file for writing, & if it already exists, clear it's contents too
-			if (!ff.Open(theFilename,wxFile::write))
-			{
-				// don't expect a failure, but if we get one, just tell the developer & abort
-				wxMessageBox(_(
-				"Failed to open the CustomWorkFolderLocation file at default work folder location. Aborting..."),
-				_T(""), wxICON_ERROR);
-				abort();
-				return;
-			}
-			// save the custom path string to the file, but if the custom path is empty,
-			// tell the developer and abort
-			if (m_customWorkFolderPath.IsEmpty())
-			{
-				wxMessageBox(_(
-					"Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."),
-				_T(""), wxICON_ERROR);
-				abort();
-				return;
-			}
-			else
-			{
-				ff.Write(m_customWorkFolderPath); // in Unicode build, converts 
-												 // contents to UTF-8 before writing
-			}
-			ff.Close(); // close the created file with the custom path within it
 
-			// if there is already an AI-BasicConfiguration.aic file at the custom work
+			// If there is already an AI-BasicConfiguration.aic file at the custom work
 			// folder location, then use that - and fix its five ciritical paths; but if
 			// not, then clone the AI-AdminBasicConfiguration.aic file which is at the
 			// default work folder location (it already has the custom path stored in its
