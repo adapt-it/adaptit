@@ -2839,22 +2839,22 @@ wxString szZoomed = _T("IsMainWindowMaximized");
 /// stores this path in the App's m_lastExportPath member variable.
 wxString szLastExportPath = _T("LastExportPath");
 
-// BEW 19Aug09, removed next two because we don't need to save the flag and path in any
-// config file
 // The label that identifies the following string as the application's
 // "CustomWorkFolderPath". This value is written in the "Settings" part of the Project
-// configuration file. Adapt It stores this path in the App's m_customWorkFolderPath
-// member variable. The contents of this variable are used on when the boolean App's
-// boolean member m_bUseCustomWorkFolderPath is TRUE.
-//wxString szCustomWorkFolderPath = _T("CustomWorkFolderPath");
+// configuration file. Adapt It stores this path in the App's m_customWorkFolderPath member
+// variable. The contents of this variable are used when the App's boolean member
+// m_bLockedCustomWorkFolderPath is TRUE. (The same variable is used when the administrator
+// temporarily points Adapt It at a custom work folder location, but we don't track such
+// usage because the flag m_bLockedCustomWorkFolderPath is FALSE when that is the case)
+wxString szCustomWorkFolderPath = _T("CustomWorkFolderPath");
 
 // The label that identifies the following string as the application's
-// "UseCustomWorkFolderPath" boolean value. This value is written in the "Settings" part
-// of the Project configuration file. Adapt It stores this boolean in the App's
-// m_bUseCustomWorkFolderPath member variable. When m_bUseCustomWorkFolderPath is TRUE,
-// the work folder location is taken from the contents of the App's wxString member
-// m_customWorkFolderPath.
-//wxString szUseCustomWorkFolderPath = _T("UseCustomWorkFolderPath");
+// "m_bLockedCustomWorkFolderPath" boolean value. This value is written in the "Settings" part
+// of the Basic configuration file. Adapt It stores this boolean in the App's
+// m_bUseCustomWorkFolderPath member variable. When m_bLockedCustomWorkFolderPath is TRUE,
+// the work folder location is taken from the contents of the CustomWorkFolderLocation file
+// stored in the default work folder, and assigned to the variable m_customWorkFolderPath.
+wxString szLockedCustomWorkFolderPath = _T("LockedCustomWorkFolderPath");
 
 // print margins, etc
 
@@ -7503,7 +7503,7 @@ while (resToken != "")
 ///////////////////////////////////////////////////////////////////////////////////////
 /// \return   nothing  
 /// \remarks
-/// Called from: the App's OnExit(). The function is a misnomer, beacuse all the function
+/// Called from: the App's OnExit(). The function is a misnomer, because all the function
 /// does is call WriteConfigurationFile() to save the basic configuration file.
 /// BEW modified 19Aug09 for support of administrator access to custom work folder
 /// locations 
@@ -7518,7 +7518,7 @@ void CAdapt_ItApp::Terminate()
 		// location has been locked in, the filename lacks "Admin" in it, so that it
 		// becomes a "normal" basic configuration file at the custom location
 		if (m_bLockedCustomWorkFolderPath)
-			bOK = WriteConfigurationFile(szBasicConfiguration, m_workFolderPath,1);
+			bOK = WriteConfigurationFile(szBasicConfiguration, m_customWorkFolderPath,1);
 		else
 			bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_workFolderPath,1);
 	}
@@ -8391,9 +8391,13 @@ bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature
 			// config file at the custom location will have been cloned, renamed, and 
 			// modified to have the appropriate paths for the custom location, so the
 			// following call will not fail; it's stored in the default work folder
-			// BEW 17Sep09, it's now at m_workFolderPath, not m_customWorkFolderPath
+			// BEW 17Sep09, it's now at m_workFolderPath, not m_customWorkFolderPath, when
+			// the administrator is accessing a custom or remote (non-persistent) work
+			// folder location; but it is at m_customWorkFolderPath when the basic config
+			// file is being read in from the custom location which has been made
+			// persistent with a click of the Lock Custom Path command
 			if (m_bLockedCustomWorkFolderPath)
-				bReturn = GetConfigurationFile(szBasicConfiguration,m_workFolderPath,1 );
+				bReturn = GetConfigurationFile(szBasicConfiguration,m_customWorkFolderPath,1 );
 			else
 				bReturn = GetConfigurationFile(szAdminBasicConfiguration,m_workFolderPath,1 );
 		}
@@ -12796,6 +12800,41 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
 	data << szAdaptitPath << tab << m_workFolderPath;
 	pf->AddLine(data);
 
+    // next two added by BEW 9Oct09, for support of persistent custom work folder locations
+    // Note: if the flag is true, the path was locked in and therefore persistent and only
+    // then do we want to record (ie. write) the custom work folder path; because if the
+    // flag is false, the custom path was a temporary one used by the administrator and we
+    // don't want to keep track of what he does - in that case, we set the path string to
+    // an empty string. Note, the GetBasicConfigFileSettings() function does NOT try, ever,
+    // to read the flag value nor the custom work folder path from the basic configuration
+    // file, because there is no way to determine where that folder is from configuration
+	// files alone - at least as long as we retain the model in which the basic config
+	// file is stored in the work folder itself. 
+    // Therefore, the location of the persisent custom folder is found by looking at the
+    // default work folder to see if a file CustomWorkFolderLocation is present - if it is,
+    // that fact sets the m_bLockedCustomWorkFolderPath boolean, and the contents of the
+    // file (we look only at the first line - so the user is free to add personal comments
+    // to non-first lines in a text editor) is the custom work folder path and it is
+    // assigned to m_customWorkFolderPath in the app's OnInit() function before the basic
+    // config file is read in.
+	if (m_bLockedCustomWorkFolderPath)
+		number = _T("1");
+	else
+		number = _T("0");
+	data.Empty();
+	data << szLockedCustomWorkFolderPath << tab << number;
+	pf->AddLine(data);
+	
+	data.Empty();
+	if (m_bLockedCustomWorkFolderPath)
+	{
+		// write out a path only if the flag is set
+		data << szCustomWorkFolderPath << tab << m_customWorkFolderPath;
+	}
+	else
+		data << szCustomWorkFolderPath << tab << _T(""); // no path written out
+	pf->AddLine(data);
+
 	data.Empty();
 	data << szCurProjectName << tab << m_curProjectName;
 	pf->AddLine(data);
@@ -14956,28 +14995,6 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data.Empty();
 	data << szLastFreeTransExportPath << tab << m_lastFreeTransExportPath;
 	pf->AddLine(data);
-
-	/* BEW removed 19Aug09, there is no need to store these in any config file
-	// next two added by BEW 17Aug09, for support of custom work folder locations
-	// The code will work best when reading in the config file later on if the
-	// boolean is set first, before the line for the path is read, so keep the
-	// next two config file lines in the order: first bool, then path
-	if (m_bUseCustomWorkFolderPath)
-		number = _T("1");
-	else
-		number = _T("0");
-	data.Empty();
-	data << szUseCustomWorkFolderPath << tab << number;
-	pf->AddLine(data);
-	
-	data.Empty();
-	if (m_bUseCustomWorkFolderPath)
-		// write out a path only if the flag is set
-		data << szCustomWorkFolderPath << tab << m_customWorkFolderPath;
-	else
-		data << szCustomWorkFolderPath << tab << _T(""); // no path written out
-	pf->AddLine(data);
-	*/
 
 #ifndef _UNICODE
 	// ANSI
