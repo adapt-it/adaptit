@@ -2241,7 +2241,7 @@ public:
 	void OnUpdateSetPassword(wxUpdateUIEvent& event);
 	void OnSetPassword(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateLocalWorkFolder(wxUpdateUIEvent& event);
-	void OnLocalWorkFolder(wxCommandEvent& WXUNUSED(event));
+	void OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateLockCustomLocation(wxUpdateUIEvent& event);
 	void OnLockCustomLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event);
@@ -2383,6 +2383,7 @@ public:
 	void	GetEncodingStringForXmlFiles(CBString& aStr);
 	wxUint32 m_nCodePage;
 
+	bool	DealWithThePossibilityOfACustomWorkFolderLocation(); // BEW added 12Oct09
 	bool	SaveKB(bool bAutoBackup);
 	bool	SaveGlossingKB(bool bAutoBackup);
 	void	SetDefaultCaseEquivalences();
@@ -2487,6 +2488,9 @@ public:
 									bool& bUserCancelled);
 	bool	m_bDoNotWriteConfigFiles; // default FALSE, TRUE to suppress config file writing
 	bool	IsURI(wxString& uriPath); // return TRUE if uriPath begins with \\ or //, else FALSE
+	bool	m_bFailedToRemoveCustomWorkFolderLocationFile; // set TRUE in
+			// OnUnlockCustomLocation() if the CustomWorkFolderLocation file failed 
+			// at the ::RemoveFile() call, else FALSE
 	//bool	IsConfigFileWithin(wxString path, wxString& configFilePath, bool& bIsAdminBasic); // unused
 
 	// whm added 5Jan04 FindAppPath() from suggestion by Julian Smart in wxWidgets 
