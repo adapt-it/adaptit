@@ -2240,7 +2240,7 @@ public:
 	void OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateSetPassword(wxUpdateUIEvent& event);
 	void OnSetPassword(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateLocalWorkFolder(wxUpdateUIEvent& event);
+	void OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& event);
 	void OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateLockCustomLocation(wxUpdateUIEvent& event);
 	void OnLockCustomLocation(wxCommandEvent& WXUNUSED(event));

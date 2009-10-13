@@ -2251,7 +2251,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_MENU(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnSetPassword)
 	EVT_UPDATE_UI(ID_SET_PASSWORD_MENU, CAdapt_ItApp::OnUpdateSetPassword)
 	EVT_MENU(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation)
-	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateLocalWorkFolder)	
+	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)	
 	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
 	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
 	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
@@ -13877,6 +13877,14 @@ void CAdapt_ItApp::GetBasicSettingsConfiguration(wxTextFile* pf)
 				EnsureWorkFolderPresent(); // sets up a default work folder etc
 			}
 		}
+		else if (name == szLockedCustomWorkFolderPath)
+		{
+			; // do nothing, we never read in this value -- see 12Oct09 above for explanation
+		}
+		else if (name == szCustomWorkFolderPath)
+		{
+			; // do nothing, we never read in this value -- see 12Oct09 above for explanation
+		}
 		else if (name == szCurProjectName)
 		{
 			m_curProjectName = strValue;
@@ -23191,8 +23199,11 @@ void CAdapt_ItApp::OnSetPassword(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void CAdapt_ItApp::OnUpdateLocalWorkFolder(wxUpdateUIEvent& event)
+void CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation(wxUpdateUIEvent& event)
 {
+	//wxLogDebug(_T("m_bAdminMenuRemoved %d , equal paths %d , m_bUseCustomWorkFolderPath %d , m_customWorkFolderPath %s , m_workFolderpath %s"),
+	//			m_bAdminMenuRemoved, m_workFolderPath == m_customWorkFolderPath, m_bUseCustomWorkFolderPath , 
+	//			m_customWorkFolderPath, m_workFolderPath);
 	if (m_bAdminMenuRemoved)
 	{
 		// can't do it if the menu is not attached
@@ -23203,6 +23214,12 @@ void CAdapt_ItApp::OnUpdateLocalWorkFolder(wxUpdateUIEvent& event)
 	{
 		// the menu is showing
 		
+		// don't enable if the m_customWorkFolderPath is empty string
+		if (m_customWorkFolderPath.IsEmpty())
+		{
+			event.Enable(FALSE);
+			return;
+		}
 		// don't enable the menu item if the work folder and custom work folder are one
 		// and the same
 		if (m_workFolderPath == m_customWorkFolderPath)
@@ -23211,8 +23228,20 @@ void CAdapt_ItApp::OnUpdateLocalWorkFolder(wxUpdateUIEvent& event)
 			return;
 		}
 		// otherwise, returning to the default work folder location is possible because
-		// the application is pointing at some other work folder, so allow user to choose it
-		event.Enable(TRUE);
+		// the application is pointing at some other work folder - provided
+		// m_UseCustomWorkFolderPath is TRUE, so allow user to choose it if so (we ignore
+		// the m_bLockedCustomWorkFolderPath flag, allowing Restore Default Work Folder
+		// Location and / or Unlock Custom Location commands to be active with the same
+		// protocol
+		if (m_bUseCustomWorkFolderPath)
+		{
+			event.Enable(TRUE);
+		}
+		else
+		{
+			// not using a custom path
+			event.Enable(FALSE);
+		}
 	}
 }
 
@@ -23244,7 +23273,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 		// m_bFailedToRemoveCustomWorkFolderLocationFile if the call here fails or
 		// succeeds, respectively
 		wxCommandEvent dummyevent;
-		OnUnlockCustomLocation(dummyevent);
+		OnUnlockCustomLocation(dummyevent); // also deletes CustomWorkFolderLocation file
 	}
 
 	if (!m_bFailedToRemoveCustomWorkFolderLocationFile)
@@ -23504,10 +23533,43 @@ a:			wxString stdDocsDir = _T("");
 	{
 		if (m_customWorkFolderPath == m_workFolderPath)
 		{
-			// the two locations are the same, so revert to the standard situation
-			m_bUseCustomWorkFolderPath = FALSE;
-			m_customWorkFolderPath.Empty();
+			// the two locations are the same, so revert to the standard situation...
+			
+			// the user may have a persistent custom work folder location set, and not bothered to
+			// use the Unlock Custom Location command first, to make that location non-persistent,
+			// so we must check for that now and do it for him here, or he may have tried it and
+			// it failed. So if m_bLockedCustomWorkFolderPath is still TRUE, we will call
+			// OnUnlockCustomLocation() here, and then if the flag
+			// m_bFailedToRemoveCustomWorkFolderLocationFile is TRUE we'll know the attempt to
+			// make the custom location non-peprsistent failed, (a message in English will be
+			// shown too, so we don't need an extra one here) and so we'll use the flag to
+			// suppress the attempt to restore the default work folder location. (The developer
+			// should then fix the problem. But if necessary, manual deletion of the
+			// CustomWorkFolderLocation file can be done with WinExplorer or equivalent, and that
+			// would make the location non-persistent on next launch.)
+			if (m_bLockedCustomWorkFolderPath)
+			{
+				// custom work folder location is still persistent, so help the user out by making
+				// it non-persistent on his behalf (this will set or clear the flag
+				// m_bFailedToRemoveCustomWorkFolderLocationFile if the call here fails or
+				// succeeds, respectively
+				wxCommandEvent dummyevent;
+				OnUnlockCustomLocation(dummyevent); // also deletes CustomWorkFolderLocation file
+			}
 
+			// if a persistent custom work folder location is defined and the above
+			// OnUnlockCustomLocationa() call failed to do its job (in particular, to
+			// remove the CustomWorkFolderLocation file from the default work folder
+			// location) then we don't want to restore the work folder to the default
+			// location, so the appropriate thing to do would be to continue processing
+			// without clearing m_bUseCustomWorkFolderPath to FALSE, and setting
+			// m_customWorkFolderPath to be the empty string -- (the developer should be
+			// notified as we don't expect a failure in removal of a small text file)
+			if (!m_bFailedToRemoveCustomWorkFolderLocationFile)
+			{
+				m_bUseCustomWorkFolderPath = FALSE;
+				m_customWorkFolderPath.Empty();
+			}
 			//wxLogDebug(_T("8  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 		}
 	}
@@ -23528,7 +23590,9 @@ a:			wxString stdDocsDir = _T("");
 	wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
 	if (m_bUseCustomWorkFolderPath)
 	{
-		MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath,&adminConfigFName);
+		// use m_workFolderPath here, since we store the Admin basic config file on the
+		// administrator's machine's default work folder location
+		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
 
 		//wxLogDebug(_T("10  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 	}
@@ -23808,6 +23872,12 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event))
 /// actual path fixing from the code which determines just what the calling context's
 /// state is and what therefore has to be done. Called only from within
 /// MakeForeignBasicConfigFileSafe().
+/// Note: m_workFolderPath always is the default work folder location on the host machine,
+/// and so when calling FixBasicConfigPaths for a basic config file stored at a persistent
+/// custom work folder location, we must retain the m_workFolderPath value unchanged, even
+/// though the code does calculations based on the custom path passed in in both basePath
+/// and localPath parameters - but the calculations are to get an offset only, which is
+/// used subsequently for making safe the other 4 critical paths.
 ////////////////////////////////////////////////////////////////////////////////////////
 
 void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
@@ -23841,9 +23911,14 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 														  // basic configuration file or
 														  // our code for setting correct
 														  // paths will break. ***NOTE***
-				basePathLength = basePath.Len(); // use in subsequent blocks below too
+				basePathLength = basePath.Len();
 				wxASSERT(basePathLength > 0);
-				fileLine = szAdaptitPath + tab + localPath; // make the fixed fileLine string
+
+				// we now have basePathLength which we need in subsequent blocks below;
+				// and while the szAdaptitPath line is probably correct as is, we'll
+				// rebuild it using the known m_workFolderPath value to ensure it stays
+				// correct and unchanged
+				fileLine = szAdaptitPath + tab + m_workFolderPath; // make the fixed fileLine string
 				size_t lineNum = pf->GetCurrentLine(); // get the line number
 				pf->RemoveLine(lineNum); // remove the old line from the in-memory file
 				pf->InsertLine(fileLine, lineNum); // replace it with the fixed line
