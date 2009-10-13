@@ -24639,7 +24639,10 @@ _T("MakeForeignConfigFileSafe(): forcing write of a temporary admin basic config
 			if (!bSuccessful)
 			{
 				// there was a problem opening the file, so we'll just shut down after warning
-				// developer 
+				// developer: This can happen if the persistent custom location is on a
+				// thumb drive, say, and it is not currently plugged in when Adapt It WX
+				// is launched. Need a better message here, and don't abort.
+				//  **** TODO *****
 				wxMessageBox(
 _T("MakeForeignConfigFileSafe(): custom location, could not open configPath_Basic_CustomLoc file. Aborting..."));
 				abort();
