@@ -21158,7 +21158,16 @@ bool CAdapt_ItView::AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,
 	else
 	{
 		// chapter number exists, extract it and put the remainder after the colon into range
-		wxString strChapter = SpanExcluding(chVerse,_T(":")); 
+		wxString strChapter = SpanExcluding(chVerse,_T(":"));
+#ifdef __WXMAC__
+// Kludge because the atoi() function in the MacOS X standard library can't handle Arabic digits
+		for (size_t imak=0; imak < strChapter.Len(); imak++)
+		{
+			wxChar imaCh = strChapter.GetChar(imak);
+			if (imaCh >= (wchar_t)0x6f0 && imaCh <= (wchar_t)0x6f9)
+				strChapter.SetChar(imak, imaCh & (wchar_t)0x3f);	// zero out the higher bits of these Arabic digits
+		}
+#endif /* __WXMAC__ */
 		chap = wxAtoi(strChapter); 
 
 		nFound++; // index the first char after the colon
