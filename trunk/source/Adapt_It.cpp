@@ -6338,8 +6338,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// BEW added 24Sep09: once m_workFolderPath has been set (it's the default work folder
 	// location and will be a folder "Adapt It Work" or, for Unicode version, "Adapt It
 	// Unicode Work"), and before MakeForeignBasicConfigFileSafe() is called a little
-	// further below, we must now check for a custom work folder location having been made
-	// persistent in a previous session.
+	// further below in the DealWith...() function, we must now check for a custom work 
+	// folder location having been made persistent in a previous session.
 	// Such a folder, which could have any name and be anywhere on the local machine or an
 	// attached read-writable drive, will have had its absolute path stored in a file
 	// called CustomWorkFolderLocation, which is stored within the folder pointed at by
@@ -6366,12 +6366,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// is so that any unwise meddling with what is in the basic config file, in
 	// particular, it's stored critical paths, won't crash the app, but will instead get
 	// self-healed before the data has to be committed to.)
-	bool bDealtWithItOK = CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation();
+	bool bDealtWithItOK = DealWithThePossibilityOfACustomWorkFolderLocation();
 	if (!bDealtWithItOK)
 	{
 		// if we are supposed to have a persistent custom location but failed to setup for
-		// it, then abort - the function will have put up an appropriate error message
-		// already
+		// it, then abort - the function will have put up an error message already, but
+		// if recovery actions fail, another message is needed here, we'll make it localizable
+		wxString str;
+		str = str.Format(_(
+	"OnInit(): Locating a persistent basic configuration file at the custom work folder location failed; and either recovery attempt failed, or user Cancelled in order to force the application to abort now."),
+		m_customWorkFolderPath.c_str());
+		wxMessageBox(str, _T(""), wxICON_ERROR);
 		abort();
 		return FALSE;
 	}
@@ -14918,17 +14923,75 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		bool bDirectoryExists = ::wxDirExists(m_customWorkFolderPath);
 		if (!bDirectoryExists)
 		{
-			// don't expect this to have failed, so handle as for an empty path
-			// specification above
-			
-			// TODO
-			;
+			// this normally doesn't fail, but it will certainly fail if the user at
+			// an earlier session set up a custom work folder on an external (removable)
+			// drive and made it persistant there, but then unmounted the drive before 
+			// the current launch, or while working -- so because these possibilities are
+			// real, we need to give the user a chance to recover
+			wxString str;
+			str = str.Format(_(
+"Adapt It looked for your work folder at\n   %s\nbut did not find it. \nThis error usually occurs if your work folder is located on an external drive which you have forgotten to plug in before you launched Adapt It. You will have a chance to recover now."),
+			m_customWorkFolderPath.c_str());
+			wxMessageBox(str, _T("Failed to find the custom work folder"), wxICON_ERROR);
+			enum ActionChoices {
+				cancelled = -1,
+				plugInDriveAndRetry = 0,
+				ignoreCustomLocation,
+				ignoreCustomLocationAndForceAdminMenuOpen
+			};
+			wxString choices[3];
+			choices[0] = _("1. Plug in the missing external drive, then click OK.");
+			choices[1] = _("2. Forget the custom work folder location, use the default location instead.");
+			choices[2] = _("3. Forget the custom work folder location, and also open the Administrator menu.");
+			wxString myCaption = _("Choose Recovery Action or Cancel (to abort)");
+			wxString message = _("Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n1. Plug in the required external drive now, then click OK. \n2. Forget (but do not delete) the custom work folder location, use the default location instead. \n3. Same as option 2. but also show the Administrator menu (helpful if you know what to do with it).");
+			int returnValue = wxGetSingleChoiceIndex(
+				message,myCaption,3,choices,gpApp->m_pMainFrame);
+			switch (returnValue)
+			{
+			case plugInDriveAndRetry:
+				{
+					// assume the missing drive has been mounted, so try the code from
+					// the beginning of DealWithThePossibilityOfACustomWorkFolderLocation()
+					// again, and if it succeeds then we've successfully recovered
+					bDirectoryExists = ::wxDirExists(m_customWorkFolderPath);
+					if (!bDirectoryExists)
+					{
+						wxTextFile f;
+						bool bOpenedOK = f.Open(aPath);
+						// should open ok, if not, tell the developer & abort
+						if (!bOpenedOK)
+						{
+							wxMessageBox(_(
+"Recovery attempt was unsuccessful. The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."),
+							_T(""), wxICON_ERROR);
+							return FALSE; // let caller do the abort() call
+						}
+						break;
+					}
+				}
+			case ignoreCustomLocation:
+				{
+
+					break;
+				}
+			case ignoreCustomLocationAndForceAdminMenuOpen:
+				{
+					break;
+				}
+			default:
+			case cancelled:
+				{
+					abort();
+					return FALSE;
+					break;
+				}
+			}
 		}
 		// the custom work folder exists, so commit to it
 		m_bUseCustomWorkFolderPath = TRUE;
 		m_bLockedCustomWorkFolderPath = TRUE;
 	}
-	
 	
     // in case the user is using a copied (ie. 'foreign') basic configuration file from
     // some else's adaptation work on another machine, check and fix any bad path names
@@ -23297,7 +23360,6 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 
 		//wxLogDebug(_T("3  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 		//wxLogDebug(_T("3  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
-
 		if (bIsValid)
 		{
 			::wxSetWorkingDirectory(m_workFolderPath);
@@ -23314,7 +23376,6 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 										// it will ensure its validity so I've left it here	
 			wxString configFName = szBasicConfiguration + _T(".aic");
 			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
-			
 			//wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 			//wxLogDebug(_T("4  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 		}
@@ -23593,15 +23654,18 @@ a:			wxString stdDocsDir = _T("");
 		// use m_workFolderPath here, since we store the Admin basic config file on the
 		// administrator's machine's default work folder location
 		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
-
 		//wxLogDebug(_T("10  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 	}
 	else
 	{
 		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
-
 		//wxLogDebug(_T("11  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 	}
+	// we make no use of the returned bMadeSafe flag, because OnCustomWorkFolderLocation
+	// should only return a value of TRUE; it's only when the custom location is on an
+	// external drive and the user has forgotten to mount it, that in OnInit() just after
+	// AI is launched, a FALSE value would be returned, and that's where we need to make
+	// use of that fact
 
     // now that the basic config file, whether foreign or not, and whether at the default
     // location or the custom location, is made safe for use, read it in and set up the app
@@ -24519,8 +24583,9 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
 			if (!bSuccessful)
 			{
 				// could not update the config file so inform developer
-				wxMessageBox(_T("Unable to write adjusted Administrator basic config file for custom location, so abort"));
-				abort();
+				wxMessageBox(
+_T("Unable to write adjusted Administrator basic config file for custom location, so abort"));
+				wxExit();
 				return;
 			}
 		}
@@ -24568,9 +24633,9 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
 				// location with the name AI-BasicConfiguration.aic -- and although we
 				// expect it's internal paths don't need fixing, we'll do so to guarantee
 				// they point where they should
-				bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
-												 // basic config file saved to disk only for cloning 
-												 // purposes
+				bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a 
+												 // temporary basic config file saved to 
+												 // disk only for cloning purposes
 				bool bCloneableBasicConfigFilePresent = TRUE;
 				bCloneableBasicConfigFilePresent = ::wxFileExists(configPath_Admin_DefaultLoc);
 				if (bCloneableBasicConfigFilePresent)
@@ -24642,54 +24707,9 @@ _T("MakeForeignConfigFileSafe(): forcing write of a temporary admin basic config
 			#endif
 			if (!bSuccessful)
 			{
-				// there was a problem opening the file, the most likely reason is that
-				// the custom work folder location was put on an external drive and the
-				// user does not currently have it mounted when Adapt It was launched.
-				// Control is not likely to enter this block except when the above problem
-				// has happened, and it will happen during the processing of OnInit(), but
-				// since the possibility of this error is real, we'll have to provide good
-				// options for handling it, and a Cancel choice which leads to abort()
-				// being called. But first inform the user of the problem and tell him
-				// he will get a chance to recover given to him.
-				wxString str;
-				str = str.Format(_(
-"Adapt It looked for your work folder at\n   %s\nbut did not find it. Its attempt to open the basic configuration file at that location therefore failed. \nThis error usually occurs if your work folder is located on an external drive which you have forgotten to plug in before you launched Adapt It. You will have a chance to recover now."),
-				m_customWorkFolderPath.c_str());
-				wxMessageBox(str, _T(""), wxICON_ERROR);
-				enum ActionChoices {
-					cancelled = -1,
-					plugInDriveAndRetry = 0,
-					ignoreCustomLocation,
-					ignoreCustomLocationAndForceAdminMenuOpen
-				};
-				wxString choices[3];
-				choices[0] = _("1. Plug in the missing external drive, then click OK.");
-				choices[1] = _("2. Forget the custom work folder location, use the default location instead.");
-				choices[2] = _("3. Forget the custom work folder location, and also open the Administrator menu.");
-				wxString myCaption = _("Choose Recovery Action or Cancel (to abort)");
-				wxString message = _("Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n1. Plug in the required external drive now, then click OK. \n2. Forget (but do not delete) the custom work folder location, use the default location instead. \n3. Same as option 2. but also show the Administrator menu (helpful if you know what to do with it).");
-				int returnValue = wxGetSingleChoiceIndex(
-					message,myCaption,3,choices,gpApp->m_pMainFrame);
-				switch (returnValue)
-				{
-					case plugInDriveAndRetry:
-
-						break;
-					case ignoreCustomLocation:
-
-						break;
-					case ignoreCustomLocationAndForceAdminMenuOpen:
-
-						break;
-					default:
-					case cancelled:
-						
-						break;
-				}
-
-
-
-				wxASSERT(FALSE);
+				// there was a problem opening the file
+				wxString str = _T("MakeForeignBasicConfigFileSafe() failed, path to the folder was  %s. Aborting...");
+				wxMessageBox(str, _T("Could not open basic config file"), wxICON_ERROR);
 				abort();
 				return;
 			}
@@ -24721,7 +24741,8 @@ _T("MakeForeignConfigFileSafe(): forcing write of a temporary admin basic config
 			if (!bSuccessful)
 			{
 				// could not update the config file so inform developer
-				wxMessageBox(_T("Unable to write adjusted basic config file for persistent custom location, so abort"));
+				wxMessageBox(
+_T("Unable to write adjusted basic config file for persistent custom location, so abort"));
 				abort();
 				return;
 			}
