@@ -2264,7 +2264,7 @@ protected:
 	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void	RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
-	void	SetDefaults();
+	void	SetDefaults(bool bAllowCustomLocationCode = TRUE);
 	void	StringToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
 	void	StringToTwoPunctPairs(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxString& rStr);
 	void	TwoPunctPairsToString(TWOPUNCTPAIR pp[MAXTWOPUNCTPAIRS], wxString& rStr);
@@ -2523,6 +2523,12 @@ public:
 	bool		m_bTypeOf_FoundBasicConfigFile; // TRUE if Admin type, FALSE if normal type,
 										// for the m_pathTo_FoundBasicConfigFile member;
 										// value is rubbish if that string is NULL
+	bool		m_bSkipBasicConfigFileCall; // always FALSE except if 
+					// DealWithThePossibilityOfACustomWorkFolderLocation() has called SetDefaults()
+					// because the custom work folder path failed to find the required basic config
+					// file at the custom work folder location; we use a TRUE value to suppress the
+					// GetBasicConfigFileSettings() call in OnInit() since SetDefaults() done the
+					// setup job for us already
 						
 };
 
