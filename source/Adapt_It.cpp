@@ -4861,6 +4861,9 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
+								  // translating, via a frm switch for a launch from the
+								  // shell
 	m_bSkipBasicConfigFileCall = FALSE;
 	m_bFailedToRemoveCustomWorkFolderLocationFile = FALSE; // default
 	m_pRemovedAdminMenu = NULL;
@@ -5705,6 +5708,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // just before the application wxConfig processing. The command line processing must be
     // done before CMainFrame is created since the parameter -xo determines which toolbar
     // and commandbar is used in the main frame.
+	// BEW 23Oct09 added frm 'force review mode' switch for no lookup when back translating
+	// (intended for Bob Eaton, for shell opening of the application only, for a given doc)
 	static const wxCmdLineEntryDesc cmdLineDesc[] = 
 	{
 		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
@@ -5719,6 +5724,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_OPTION, _T("exports"), _T("exporteddocumentspath"), _T("Lock exported documents path to this path"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_NONE }
 	};
 
@@ -5793,6 +5800,18 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // forced exports path.
 		m_exports_forced_exportsPath = exportPathStr;
 	}
+
+	if (m_pParser->Found(_T("frm")))
+	{
+        // The -frm command-line parameter represents a choice to emasculate adaptation
+		// mode by forcing ON the "reviewing" radio button (ie. m_bDrafting = FALSE) at
+		// launch. It's intended for per-document launch via a shell script. Normal launches
+		// using the Programs menu or desktop shortcuts, etc, should not use this switch
+		// because it would turn off important functionality irrevokably on every launch
+		m_bForce_Review_Mode = TRUE;
+	}
+
+
 
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
@@ -7455,6 +7474,25 @@ while (resToken != "")
 	m_bAdminMenuRemoved = TRUE;
 	pMenuBar->Refresh();
 	m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
+
+	// override the default for m_bDrafting if the frm switch was found
+	if (m_bForce_Review_Mode)
+	{
+		m_bDrafting = FALSE; // turn review mode on
+
+		// hide the radio buttons
+		CMainFrame *pFrame = GetMainFrame();
+		wxASSERT(pFrame != NULL);
+		wxPanel* pControlBar;
+		pControlBar = pFrame->m_pControlBar;
+		wxASSERT(pControlBar);
+		wxRadioButton* pDraftingBtn = 
+			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_DRAFTING);
+		pDraftingBtn->Hide();
+		wxRadioButton* pReviewingBtn = 
+			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
+		pReviewingBtn->Hide();
+	}
     return TRUE;
 }
 
@@ -15117,52 +15155,61 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		m_bLockedCustomWorkFolderPath = TRUE;
 	}
 
-    // in case the user is using a copied (ie. 'foreign') basic configuration file from
-    // some else's adaptation work on another machine, check and fix any bad path names
-    // (actually, only 5 of them need to be potentially fixed, the others won't crash
-    // anything because of fail-safe code elsewhere in the app)
+	// in case the user is using a copied (ie. 'foreign') basic configuration file from
+	// some else's adaptation work on another machine, check and fix any bad path names
+	// (actually, only 5 of them need to be potentially fixed, the others won't crash
+	// anything because of fail-safe code elsewhere in the app)
 	wxString configFName = szBasicConfiguration + _T(".aic");
 	wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
-
- 	// we do expect a basic config file to be located ready for us at the custom work
-	// folder location; but if for any reason one is not found there, we don't want to
-	// abort the app, instead, we will just warn the user that one was not found, and 
-	// call SetDefaults() to set up default basic config values. The user will then
-	// need to perhaps do a little fiddling later in Preferences to restore his desired
-	// settings, but at least when he next exits the app, a valid basic config file will
-	// be written to the custom location for use in subsequent launches
-	wxString aPathToFile = m_customWorkFolderPath + PathSeparator + configFName;
-	bool bConfigFileExists = ::wxFileExists(aPathToFile);
-	if (!bConfigFileExists)
+	if (bIsCustomLocationPersistent && !m_customWorkFolderPath.IsEmpty())
 	{
-		// probably a path error... so take an alternate route
-		SetDefaults(FALSE); // FALSE = bAllowCustomLocationCode (we want suppression)
+ 		// we do expect a basic config file to be located ready for us at the custom work
+		// folder location; but if for any reason one is not found there, we don't want to
+		// abort the app, instead, we will just warn the user that one was not found, and 
+		// call SetDefaults() to set up default basic config values. The user will then
+		// need to perhaps do a little fiddling later in Preferences to restore his desired
+		// settings, but at least when he next exits the app, a valid basic config file will
+		// be written to the custom location for use in subsequent launches
+		wxString aPathToFile = m_customWorkFolderPath + PathSeparator + configFName;
+		bool bConfigFileExists = ::wxFileExists(aPathToFile);
+		if (!bConfigFileExists)
+		{
+			// probably a path error... so take an alternate route
+			SetDefaults(FALSE); // FALSE = bAllowCustomLocationCode (we want suppression)
 
-		// having set the default parameters with a SetDefaults() call, we must not let
-		// OnInit() subsequently call GetBasicConfigFileSettings(), because the latter
-		// would fail due to a path error; we can suppress the call by the following
-		// line
-		m_bSkipBasicConfigFileCall = TRUE;
-		return TRUE;
-	}
-	
-   // ultimately, the custom work folder location could have been locked down, and if so,
-    // then the basic config file will have its location, and m_bUseCustomWorkFolderPath
-    // will have been set TRUE and so too will m_bLockedCustomWorkFolderPath be set TRUE if
-    // there is a file called "CustomWorkFolderPath" in the default work folder location,
-    // but FALSE if not - so two conditions are needed in order to use the custom location
-    // here for initialization
-	if (m_bLockedCustomWorkFolderPath && m_bUseCustomWorkFolderPath)
-	{
-		// the custom location is persistent
-		MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath,&adminConfigFName);
+			// having set the default parameters with a SetDefaults() call, we must not let
+			// OnInit() subsequently call GetBasicConfigFileSettings(), because the latter
+			// would fail due to a path error; we can suppress the call by the following
+			// line
+			m_bSkipBasicConfigFileCall = TRUE;
+			return TRUE;
+		}
+		
+	   // ultimately, the custom work folder location could have been locked down, and if so,
+		// then the basic config file will have its location, and m_bUseCustomWorkFolderPath
+		// will have been set TRUE and so too will m_bLockedCustomWorkFolderPath be set TRUE if
+		// there is a file called "CustomWorkFolderPath" in the default work folder location,
+		// but FALSE if not - so two conditions are needed in order to use the custom location
+		// here for initialization
+		if (m_bLockedCustomWorkFolderPath && m_bUseCustomWorkFolderPath)
+		{
+			// the custom location is persistent
+			MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath,&adminConfigFName);
+		}
+		else
+		{
+			// must be a non-persistent custom location, for that we always look in
+			// the default location for the basic config file
+			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
+		}
 	}
 	else
 	{
-		// using default location, or for non-persistent custom locations, we always look in
+		// using default location, for that we always look in
 		// the default location for the basic config file
 		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
 	}
+	m_bSkipBasicConfigFileCall = FALSE;
 	return TRUE;
 }
 

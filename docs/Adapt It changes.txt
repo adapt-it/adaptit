@@ -2,6 +2,22 @@ Version 5.2.0 update ??November2009:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
 ----------------------------------------------
+* Added support for a -frm  command line switch, for Bob Eaton.
+Do not use this switch unless you know what you are doing. It
+puts Adapt It into 'Reviewing mode' on launch, and hides both the
+Drafting and Reviewing radio buttons, so that in that session the
+user becomes locked in to reviewing mode. This is useful when
+a "dumb mode" for back translating is wanted. No lookup of the
+KB is done, the phrase box does not copy source text nor make
+an initial suggestion of any kind, no auto insertions are done, but
+KB still gets populated in the normal way as the user types
+back translations into the phrase box. Bob Eaton uses this feature
+only with a shell script launch of Adapt It, to get this feature turned
+on on a per-document basis. That's the only way this feature should
+be used, otherwise if you use the switch when launching from the
+programs list or a shortcut button, you'll lock the user (or yourself)
+out of essential adaptation functionalities at every launch. You've
+been warned!
 * Added a hidden password protected Administrator menu. The 
 menu can be made visible by Edit / Preferences / View page, and
 click the checkbox labelled "Show Administrator Menu (Password
