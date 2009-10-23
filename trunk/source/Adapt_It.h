@@ -48,11 +48,11 @@ class AIPrintout;
 // ******************************* my #defines *********************************************
 
 #define VERSION_MAJOR_PART 5
-#define VERSION_MINOR_PART 1
-#define VERSION_BUILD_PART 4
-#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 8
-#define VERSION_DATE_MONTH 9
+#define VERSION_MINOR_PART 2
+#define VERSION_BUILD_PART 0
+#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 23
+#define VERSION_DATE_MONTH 10
 #define VERSION_DATE_YEAR 2009
 
 //#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
@@ -1520,6 +1520,12 @@ public:
                 // empty source phrase every time the user finishes editing something &
                 // hits RETURN) This flag's functionality is the same for adapting and for
                 // glossing.
+	bool m_bForce_Review_Mode; // added by BEW, 23Oct09, to support Bob Eaton's wish for
+				// shell opening to add a frm switch to have the document opened be opened
+				// in a launched app where review mode radio button is obligatory on, and
+				// the drafting & review mode radio buttons are hidden so the user can only
+				// do his back translating where no lookup is done, but the KB still gets
+				// populated by his back translation choices
 	bool m_bSingleStep; // when FALSE, application looks ahead to try find a match for
                 // source text in one of the 10 knowledge base maps and does not stop to
                 // ask the user provided there is only a single match; when TRUE, every
@@ -2527,8 +2533,8 @@ public:
 					// DealWithThePossibilityOfACustomWorkFolderLocation() has called SetDefaults()
 					// because the custom work folder path failed to find the required basic config
 					// file at the custom work folder location; we use a TRUE value to suppress the
-					// GetBasicConfigFileSettings() call in OnInit() since SetDefaults() done the
-					// setup job for us already
+					// GetBasicConfigFileSettings() call in OnInit() since SetDefaults() has done
+					// the setup job for us already
 						
 };
 

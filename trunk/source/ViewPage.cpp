@@ -142,7 +142,8 @@ void CViewPage::OnButtonHighlightColor(wxCommandEvent& WXUNUSED(event))
 void CViewPage::OnCheckShowAdminMenu(wxCommandEvent& WXUNUSED(event))
 {
 	bool enableMenuCode;
-	enableMenuCode = TRUE; // change to TRUE to activate the Admin menu handling
+	enableMenuCode = TRUE; 
+	//enableMenuCode = FALSE; // **** comment out this line to activate Admin menu handling ****
 	if (enableMenuCode == FALSE)
 	{
 		 //used for 5.1.1 to 5.1.3 "fixed" versions for Bob's Brazil workshop, built on 21Aug09
