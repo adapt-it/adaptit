@@ -1218,7 +1218,10 @@ CCell* CAdapt_ItView::GetNextCell(CCell *pCell, const int cellIndex)
 // returns a pointer to the next pile, or NULL if there is none
 CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 {
-	// refactored 17Mar09
+	// refactored 17Mar09; BEW modified 25Oct09 as pPile can be NULL
+	// passed in, in Review mode, so must test for it early!
+	if (pPile == NULL)
+		return (CPile*)NULL;
 	CPile* pNextPile = NULL;
 	PileList* pPiles = GetLayout()->GetPileList();
 	int index = pPiles->IndexOf(pPile);
@@ -1399,7 +1402,16 @@ void CAdapt_ItView::OnInitialUpdate()
 	}
 
 	// turn the Drafting radio button ON, on the toolbar
-	OnRadioDrafting(dummyevent);
+	//
+	// BEW modified 25Oct09, so that if m_bForce_Review_Mode is TRUE, then a call to 
+	// OnNewDocument() (which calls OnInitialUpdate()) does not change m_bDrafting
+	// back to a TRUE setting, thereby ruining the intended effect of the former flag
+	// - (m_bForce_Review_Mode, once set TRUE in OnInit() should remain TRUE, and 
+	// m_bDrafting should remain FALSE, for the life of that session)
+	if (!pApp->m_bForce_Review_Mode)
+	{
+		OnRadioDrafting(dummyevent);
+	}
 
 	// set the pointer to the save list
 	pApp->m_pSaveList = &pApp->m_saveList;
@@ -10271,7 +10283,19 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
     // savePos in pList and use its position in the Insert() call (which only inserts
     // BEFORE the indicated position). The result should be that the insertions will get
     // placed in the list the same way that MFC's InsertAfter() places them.
+	// BEW added 25Oct09: the above logic gives a crash if unmerging a merger at the
+	// document's end. Therefore we need to test for this condition and when it occurs
+	// we must insert a dummy CSourcePhrase pointer at the doc end so as to use it for
+	// the initial "insert before" operation
+	bool bDummyAdded = FALSE;
 	SPList::Node* newInsertBeforePos = savePos->GetNext();
+	if (newInsertBeforePos == NULL)
+	{
+		bDummyAdded = TRUE;
+		CSourcePhrase* pDummySrcPhrase = new CSourcePhrase();
+		newInsertBeforePos = pList->Append(pDummySrcPhrase);
+		wxASSERT(newInsertBeforePos != NULL);
+	}
 	while (pos1 != NULL)
 	{
 		CSourcePhrase* pSP = (CSourcePhrase*)pos1->GetData();
@@ -10332,6 +10356,16 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		pSP->m_bRetranslation = FALSE; // otherwise, after a wrong retranslation & cancel, it is
 									   // possible to have this flag wrongly still set TRUE, &
 									   // text of wrong colour shows
+	}
+	// BEW added 25Oct09, remove the dummy CSOurcePhrase appended at the list end for 
+	// supporting insertions, if we appended one above
+	if (bDummyAdded)
+	{
+		SPList::Node* extraPos = pList->GetLast();
+		wxASSERT(extraPos != NULL);
+		CSourcePhrase* pDummySrcPhrase = extraPos->GetData();
+		delete pDummySrcPhrase;
+		pList->Erase(extraPos);
 	}
 
     // pBigOne will not be needed any longer, and its KB stuff must be removed or reference

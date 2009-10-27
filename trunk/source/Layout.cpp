@@ -3137,7 +3137,15 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 	int nEndPileIndex = -1;
 	bool bWasSuccessful = GetPileRangeForUserEdits(nIndexWhereEditsStart, nIndexWhereEditsEnd, 
 													nFirstPileIndex, nEndPileIndex);
-	if (!bWasSuccessful)
+	// BEW added 25Oct09, need to include a test for an m_nActiveSequNum value of -1 or
+	// m_pActivePile == NULL, to ensure that in review mode when box advances at doc end,
+	// a return FALSE will be done here even if bWasSuccessful returns TRUE (somehow, even
+	// though the active sn is -1 and active pile is null, sometimes the value returned from
+	// GetPileRangeForUserEdits() is TRUE, with parameter values of 0,0,0 for first three - 
+	// which should not happen. Instead of trying to figure out how come this can happen, it
+	// is sufficient just to have the larger test to force correct premature exit, otherwise
+	// the code further below will fail
+	if (!bWasSuccessful || (m_pApp->m_nActiveSequNum == -1 || m_pApp->m_pActivePile == NULL))
 		return FALSE; // enable caller to inform RecalcLayout() to exit early because layout 
 					  // was done by reentering RecalcLayout() within 
 					  // GetPilesBoundingTheInvalidStrips(), and the active pile reset too

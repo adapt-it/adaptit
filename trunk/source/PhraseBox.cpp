@@ -3591,23 +3591,29 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 	wxASSERT(pApp != NULL);
 	gbByCopyOnly = FALSE; // restore default setting
 	CSourcePhrase* pOldActiveSrcPhrase = pCurPile->GetSrcPhrase();
+	bool bOK;
 	//CLayout* pLayout = GetLayout();
 
 	// make sure m_targetPhrase doesn't have any final spaces
 	pView->RemoveFinalSpaces(pApp->m_pTargetBox, &pApp->m_targetPhrase);
 
-	// when adapting, we can't move to the next pile when the next pile 
-	// can't be found
+	// BEW changed 25Oct09, altered syntax so it no longer exits here if pFwd
+	// is NULL, otherwise the document-end typed meaning doesn't 'stick' in
+	// the document
 	CPile* pFwd = pView->GetNextPile(pCurPile);
 	if (pFwd == NULL)
-		return FALSE;
-	bool bOK;
-
-	// when adapting, don't move forward if it means moving to a retranslation pile
-	// but we don't care when we are glossing
-	if (pFwd != NULL)
 	{
-		if (!gbIsGlossing && pFwd->GetSrcPhrase()->m_bRetranslation)
+		// no more piles, but continue so we can make the user's typed string
+		// 'stick' before we prematurely exit further below
+		;
+	}
+	else
+	{
+		// when adapting, don't move forward if it means moving to a
+		// retranslation pile but we don't care when we are glossing
+		bool bNotInRetranslation = 
+			CheckPhraseBoxDoesNotLandWithinRetranslation(pView,pFwd,pCurPile);
+		if (!gbIsGlossing && !bNotInRetranslation)
 		{
 			// IDS_NO_ACCESS_TO_RETRANS
 			wxMessageBox(_(
