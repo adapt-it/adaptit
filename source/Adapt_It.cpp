@@ -5811,6 +5811,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		m_bForce_Review_Mode = TRUE;
 	}
 
+	//m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
+								 // normal behaviours
 
 
 	// Change the registry key to something appropriate

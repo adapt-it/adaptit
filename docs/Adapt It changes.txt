@@ -57,6 +57,12 @@ Bug fixes in 5.2.0
 ----------------------------------------------
 * Typing a '2' key into the phrase box, or the edit box used for free
 translations, no 2 character appeared in the box.
+* Unmerging a merger which located at the end of the document
+caused a crash.
+* In Review mode, the application crashed after the user entered
+text into the phrase box at the end of the document.
+* In Review mode, text entered in the phrase box at the document
+end was not retained.
 
 ----------------------------------------------
 Bug fixes in 5.1.4
