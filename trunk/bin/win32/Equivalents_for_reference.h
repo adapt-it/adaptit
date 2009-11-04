@@ -207,7 +207,7 @@ if (rect.Contains(point)) <<< if (rect.PtInRect(point))
 // * Author:      Joel Farley, Ove Kåven
 // * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
 // * Created:     1998/06/12
-// * RCS-ID:      $Id: Equivalents_for_reference.h,v 1.13 2008-08-01 19:16:32 billm Exp $
+// * RCS-ID:      $Id: Equivalents_for_reference.h,v 1.2 2009/10/28 18:25:17 Bruce Exp $
 // * Copyright:   (c) 1998-2002 Joel Farley, Ove Kåven, Robert Roebling, Ron Lee
 // * Licence:     wxWidgets licence
 // 

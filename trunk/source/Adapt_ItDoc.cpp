@@ -26,8 +26,6 @@
     #pragma implementation "Adapt_ItDoc.h"
 #endif
 
-// BEW 28Oct09 checking Tortoise CVS to SD card repository works!
-
 // For compilers that support precompilation, includes "wx.h".
 #include <wx/wxprec.h>
 
