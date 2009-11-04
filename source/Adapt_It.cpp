@@ -6382,7 +6382,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	// there with a foreign one with different path settings which, if used, would crash
 	// the application) have bad paths, and so we first  call
 	// MakeForeignBasicConfigFileSafe() to guarantee the paths in the AI-BasicConfiguration.aic
-	// file are correct, and only then to we let control go further into OnInit() in order
+	// file are correct, and only then do we let control go further into OnInit() in order
 	// to actually read the basic configuration file data within that file and set up the
 	// application for work based on those settings. (The intent of all these convolutions
 	// is so that any unwise meddling with what is in the basic config file, in
@@ -6396,7 +6396,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// if recovery actions fail, another message is needed here, we'll make it localizable
 		wxString str;
 		str = str.Format(_(
-"Locating the custom work folder location failed. Either the recovery attempt failed, or you Cancelled in order to force the application to abort now."),
+"Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."),
 		m_customWorkFolderPath.c_str());
 		wxMessageBox(str, _("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
 		abort();
@@ -14981,7 +14981,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 	bool bIsCustomLocationPersistent = ::FileExists(aPath);
 	if (bIsCustomLocationPersistent)
 	{
-		// check for an file with no content, or locked by another process
+		// check for a file with no content, or locked by another process
 		wxFileName fnAttributes(aPath);
 		wxULongLong itsSize = fnAttributes.GetSize();
 		wxULongLong invalidSize = wxInvalidSize;
@@ -14994,7 +14994,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				// CustomWorkFolderLocation, and then re-launch (Returning FALSE will force
 				// a call to abort())
 				wxMessageBox(_T(
-"The CustomWorkFolderLocation file is empty, but it should contain the path to the custom work folder. Aborting now. To recover, outside of Adapt It use a file browser to find where your custom work folder is located, then in a text editor, type the path to that custom work folder into the CustomWorkFolderLocation, save the file where it is (in the default work folder), and then re-launch Adapt It."),
+					"The CustomWorkFolderLocation file is empty, but it should contain the path to the custom work folder. Aborting now. To recover: (1) Outside of Adapt It use a file browser to find where your custom work folder is located, then (2) in a text editor, type the path to that custom work folder into the CustomWorkFolderLocation, (3) save the file where it currently is (in the default work folder), and then (4) re-launch Adapt It."),
 				_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
 				return FALSE;
 			}
@@ -15071,10 +15071,10 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			wxString choices[4];
 			choices[0] = _("1. Plug in the missing external drive, then click OK here.");
 			choices[1] = _("2. Close the other application, or use a text editor to fix the path in the file CustomWorkFolderLocation; then click OK here.");
-			choices[2] = _("3. Forget the custom work folder location, use the default location instead. (The least helpful option.)");
-			choices[3] = _("4. Forget the custom work folder location, and also open the Administrator menu. (You can then reset the location.)");
+			choices[2] = _("3. Ignore the custom work folder location, use the default location instead. (This option is the least helpful. Your administrator may need to help you to continue.)");
+			choices[3] = _("4. Forget the custom work folder location, and also open the Administrator menu. (You can then re-locate the folder with the Custom Work Folder Location command.)");
 			wxString myCaption = _("Choose Recovery Action or Cancel (to abort)");
-			wxString message = _("Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n1. Plug in the required external drive now, then click OK. \n2. Leave the dialog open, launch a text editor, open the CustomWorkFolderLocation file in it, edit the path, save, then click OK here. \n3. Forget (but do not delete) the custom work folder location, use the default location instead. \n4. Same as option 2. but also show the Administrator menu (helpful if you know what to do with it).");
+			wxString message = _("Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n1. Plug in the required external drive now, then click OK. \n2. Leave the dialog open, launch a text editor, open the CustomWorkFolderLocation file in it, edit the path, save, then click OK here. \n3. Forget (but do not delete) the custom work folder location, use the default location instead. \n4. Same as option 3. but also show the Administrator menu (helpful if you know what to do with it).");
 			int returnValue = wxGetSingleChoiceIndex(
 				message,myCaption,4,choices,gpApp->m_pMainFrame);
 			switch (returnValue)
@@ -15118,7 +15118,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						f.Close(); // don't bother with the returned boolean
 						bOK = ::wxRenameFile(strRenamedFile,strOriginalFile,TRUE);
 						wxMessageBox(_(
-"Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in a text editor. Save it and close the text editor before you re-launch Adapt It. Aborting now."),
+"Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."),
 						_("Error of file named CustomWorkFolderLocation"), wxICON_ERROR);
 						return FALSE; // forces caller to call abort()
 					}
@@ -15135,7 +15135,22 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				}
 			case ignoreCustomLocation:
 				{
-// *** TODO ***
+					// remove the CustomWorkFolderLocation file, because if we don't
+					// then the same failure could occur on next launch -- since we
+					// cannot assume that a naive user will have taken any action
+					// to sort out what the problem with the file's contents was
+					bOK = wxRemoveFile(aPath); // assume it worked, ignore returned value
+					m_bUseCustomWorkFolderPath = FALSE;
+					m_bLockedCustomWorkFolderPath = FALSE;
+					m_customWorkFolderPath.Empty();
+					bIsCustomLocationPersistent = FALSE;
+					// the above four lines ensure the app initialization proceeds
+					// from this point as if the work folder is the default one -
+					// this always exists, but it may have no project folders in it,
+					// so this option could be unhelpful. Recovery would require an
+					// administrator to re-locate the custom work folder by using the
+					// Administrator menu command "Custom Work Folder Location" on
+					// relaunch
 					break;
 				}
 			case ignoreCustomLocationAndForceAdminMenuOpen:
@@ -15151,11 +15166,13 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					break;
 				}
 			}
-		}
+		} // end of TRUE block for test:  if (!bDirectoryExists)
+
 		// the custom work folder exists, so commit to it
 		m_bUseCustomWorkFolderPath = TRUE;
 		m_bLockedCustomWorkFolderPath = TRUE;
-	}
+	} // end of TRUE block for test: if (bIsCustomLocationPersistent)
+
 
 	// in case the user is using a copied (ie. 'foreign') basic configuration file from
 	// some else's adaptation work on another machine, check and fix any bad path names
