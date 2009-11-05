@@ -2506,6 +2506,7 @@ public:
 
 private:
 	void	EnsureWorkFolderPresent();
+	bool	SetupCustomWorkFolderLocation();
 public:
 	// a couple of members to be used for (hopefully) limiting the CPlaceInternalPunct
 	// dialog, at the once location, from being shown twice
