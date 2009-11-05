@@ -14981,6 +14981,8 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 	bool bIsCustomLocationPersistent = ::FileExists(aPath);
 	if (bIsCustomLocationPersistent)
 	{
+		bool bUseAndLockedFlagsShouldBeSet = TRUE;
+
 		// check for a file with no content, or locked by another process
 		wxFileName fnAttributes(aPath);
 		wxULongLong itsSize = fnAttributes.GetSize();
@@ -15151,11 +15153,14 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 					// administrator to re-locate the custom work folder by using the
 					// Administrator menu command "Custom Work Folder Location" on
 					// relaunch
+					bUseAndLockedFlagsShouldBeSet = FALSE; // suppress flag setting below
 					break;
 				}
 			case ignoreCustomLocationAndForceAdminMenuOpen:
 				{
 // *** TODO ***
+					
+					bUseAndLockedFlagsShouldBeSet = FALSE; // suppress flag setting below
 					break;
 				}
 			default:
@@ -15168,9 +15173,13 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			}
 		} // end of TRUE block for test:  if (!bDirectoryExists)
 
-		// the custom work folder exists, so commit to it
-		m_bUseCustomWorkFolderPath = TRUE;
-		m_bLockedCustomWorkFolderPath = TRUE;
+		// the custom work folder exists, so commit to it, provided the setting of
+		// the flags has not be turned off in the switch above
+		if (bUseAndLockedFlagsShouldBeSet)
+		{
+			m_bUseCustomWorkFolderPath = TRUE;
+			m_bLockedCustomWorkFolderPath = TRUE;
+		}
 	} // end of TRUE block for test: if (bIsCustomLocationPersistent)
 
 
