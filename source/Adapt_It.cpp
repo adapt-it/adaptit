@@ -15071,8 +15071,8 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			wxString choices[4];
 			choices[0] = _("1. Plug in the missing external drive, then click OK here.");
 			choices[1] = _("2. Close the other application, or use a text editor to fix the path in the file CustomWorkFolderLocation; then click OK here.");
-			choices[2] = _("3. Ignore the custom work folder location, use the default location instead. (This option is the least helpful. Your administrator may need to help you to continue.)");
-			choices[3] = _("4. Forget the custom work folder location, and also open the Administrator menu. (You can then re-locate the folder with the Custom Work Folder Location command.)");
+			choices[2] = _("3. Ignore the custom work folder location, use the default location instead. (Then ask your administrator to help you.)");
+			choices[3] = _("4. Forget the custom work folder location. The command Custom Work Folder Location will then run, use it to relocate the folder.)");
 			wxString myCaption = _("Choose Recovery Action or Cancel (to abort)");
 			wxString message = _("Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n1. Plug in the required external drive now, then click OK. \n2. Leave the dialog open, launch a text editor, open the CustomWorkFolderLocation file in it, edit the path, save, then click OK here. \n3. Forget (but do not delete) the custom work folder location, use the default location instead. \n4. Same as option 3. but also show the Administrator menu (helpful if you know what to do with it).");
 			int returnValue = wxGetSingleChoiceIndex(
@@ -23619,7 +23619,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 	} // end of TRUE block for test: if (!m_bFailedToRemoveCustomWorkFolderLocationFile)
 }
 
-void CAdapt_ItApp::OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
+bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
 {
 	//wxLogDebug(_T("STARTING....  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 
@@ -23740,7 +23740,7 @@ a:			wxString stdDocsDir = _T("");
 			// default location on local machine is current or not...
 			wxLogDebug(_T("Cancelled block: default_path was = %s  cancelled flag = %d  MORE TO DO HERE!!"), m_workFolderPath, (int)bWasCancelled);
 			//OnLocalWorkFolder(); // force re-establish of default?? Nah, too simple, see above
-			return;
+			return FALSE;
 
 		}
 		else
@@ -23887,13 +23887,22 @@ a:			wxString stdDocsDir = _T("");
 				// a persistent versus a non-persistent custom location
 
 	//wxLogDebug(_T("12  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+	// setup succeeded, so return TRUE
+	return TRUE;
+}
 
-	// run the wizard, so that the administrator can access projects & their documents at
-	// the custom work folder's location
-	wxCommandEvent dummyevent;
-	pStartWorkingWizard = (CStartWorkingWizard*)NULL;
-	DoStartWorkingWizard(dummyevent); // ignore returned TRUE, FALSE is never returned
+void CAdapt_ItApp::OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
+{
+	bool bSetupSucceeded = SetupCustomWorkFolderLocation();
 
+	if (bSetupSucceeded)
+	{
+		// run the wizard, so that the administrator can access projects & their documents at
+		// the custom work folder's location
+		wxCommandEvent dummyevent;
+		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
+		DoStartWorkingWizard(dummyevent); // ignore returned TRUE, FALSE is never returned
+	}
 	//wxLogDebug(_T("END  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 }
 
