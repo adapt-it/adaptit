@@ -5431,6 +5431,16 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp);
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	// BEW added 6Nov09 because, if recovering within the OnInit() call just after
+	// launch because a custom work folder location is not accessible (eg. it may be
+	// on a thumb drive not currently plugged in), the GetCustomWorkFolderLocation()
+	// call, part of the recovery attempt, will call GetView()->CloseProject(), but
+	// that calls OnFileCloseProject() which then tries to set up a pointer to the
+	// document class's instance, which at that time does not yet exist. The pointer
+	// is returned as NULL, and so the pDoc->OnFileClose() call a little further below
+	// would fail unless we here detect a pDoc being NULL and exit immediately
+	if (pDoc == NULL)
+		return; // do nothin because no doc instance exists yet, so prevent crash
 
 	if (gbEnableGlossing)
 	{
@@ -12344,6 +12354,12 @@ void CAdapt_ItView::OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event))
 /// It enables the "Preferences..." item on the View menu if a document is loaded (i.e.,
 /// the count of source phrases in m_pSourcePhrases list is greater than zero), otherwise
 /// it disables the menu item.
+/// BEW note 6Nov09, the requirement that a doc be open is unnecessarily stringent,
+/// there are times when you'd want access when no doc is loaded - such as getting
+/// access to the Administrator menu should only require you be in an open project (and
+/// even that is maybe a bit too stringent). However our code won't support this currently
+/// because the USFM and Filtering pages do a lot of setup for USFM and filtering and for 
+/// that it looks into the doc- which therefore has to be open.
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateEditPreferences(wxUpdateUIEvent& event)
 {
@@ -12731,6 +12747,7 @@ void CAdapt_ItView::OnRadioDrafting(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_pTargetBox != NULL)
 		if (pApp->m_pTargetBox->IsShown())
 			pApp->m_pTargetBox->SetFocus();
+	pApp->RefreshStatusBarInfo();
 }
 
 void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& WXUNUSED(event))
@@ -12759,6 +12776,7 @@ void CAdapt_ItView::OnRadioReviewing(wxCommandEvent& WXUNUSED(event))
 	if (pApp->m_pTargetBox != NULL)
 		if ((pApp->m_pTargetBox->IsShown()))
 			pApp->m_pTargetBox->SetFocus();
+	pApp->RefreshStatusBarInfo();
 }
 
 void CAdapt_ItView::OnClearContentsButton(wxCommandEvent& WXUNUSED(event))
