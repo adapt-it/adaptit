@@ -2266,7 +2266,7 @@ protected:
 	wxSize	GetExtentOfLongestSfm(wxDC* pDC);
 	bool	IsAdaptitProjectDirectory(wxString title);
 	void	MakeForeignBasicConfigFileSafe(wxString& configFName,wxString& folderPath,
-											wxString* adminConfigFNamePtr = NULL);
+											wxString* adminConfigFNamePtr);
 	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void	RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);

@@ -2254,7 +2254,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_LOCAL_WORK_FOLDER_MENU, CAdapt_ItApp::OnUpdateRestoreDefaultWorkFolderLocation)	
 	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnLockCustomLocation)
 	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
-	EVT_MENU(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
+	EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
 	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
 
 
@@ -15158,9 +15158,57 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 				}
 			case ignoreCustomLocationAndForceAdminMenuOpen:
 				{
-// *** TODO ***
-					
-					bUseAndLockedFlagsShouldBeSet = FALSE; // suppress flag setting below
+					// remove the CustomWorkFolderLocation file, because if we don't
+					// then the same failure could occur on next launch -- since we
+					// cannot assume that a naive user will have taken any action
+					// to sort out what the problem with the file's contents was
+					bOK = wxRemoveFile(aPath); // assume it worked, ignore returned value
+					m_bUseCustomWorkFolderPath = FALSE;
+					m_bLockedCustomWorkFolderPath = FALSE;
+					m_customWorkFolderPath.Empty();
+					bIsCustomLocationPersistent = FALSE;
+					// the above four lines ensure the app initialization proceeds
+					// from this point as if the work folder is the default one -
+					// this always exists, but it may have no project folders in it,
+					// however. The Administrator menu will not be made visible, but
+					// nevertheless we now drop straight into the function which
+					// OnCustomWorkFolderLocation() calls, which allows the user to
+					// do a once-only navigation to where he believes the work folder
+					// to be. Then on exit we unilaterally call the handler for the
+					// Lock Custom Location command, to make the chosen folder path
+					// be stored in a newly created CustomWorkFolderLocation file stored
+					// in the default work folder
+					// administrator to re-locate the custom work folder by using the
+					// Administrator menu command "Custom Work Folder Location" on
+					// relaunch; on exit from the switch, two flags are redundantly
+					// reset TRUE, and then control passes on - having 'recovered' 
+					// (provided the user chose the correct folder!)
+					bool bSucceeded = SetupCustomWorkFolderLocation(); // let user search
+					if (bSucceeded)
+					{
+						wxCommandEvent dummy; // needed for signature, not used internally
+						OnLockCustomLocation(dummy);
+						// since the above code is being called from OnInit() or SetDefaults(),
+						// in other case control will enter the Start Working Wizard and
+						// so the projects in the custom work folder location should be 
+						// accessible now (a way to test this is to set up a custom work
+						// folder on a thumb drive, then close AI, remove the thumb drive,
+						// launch AI, and when the recovery messages are visible, plug in
+						// the thumb drive but choose option 4 above, rather than option 1;
+						// option 4 is more circuituous, but should get to the same result)
+					}
+					else
+					{
+						// user may have cancelled, or something unexpected went wrong; so
+						// the appropriate thing to do is to abort. May need administrator
+						// to intervene to set the user up again, after determining just why
+						// his access to the custom work folder location got lost.
+						wxMessageBox(_(
+"You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to located the required work folder."),
+						_("One chance to relocate the work folder failed"), wxICON_ERROR);
+						abort();
+						return FALSE; // let caller do the abort() call
+					}
 					break;
 				}
 			default:
@@ -15228,14 +15276,14 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 		{
 			// must be a non-persistent custom location, for that we always look in
 			// the default location for the basic config file
-			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
+			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
 		}
 	}
 	else
 	{
 		// using default location, for that we always look in
 		// the default location for the basic config file
-		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
+		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
 	}
 	m_bSkipBasicConfigFileCall = FALSE;
 	return TRUE;
@@ -20889,7 +20937,9 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 /// OnBnClickedRadioFromBookFolder(), CPhraseBox's OnPhraseBoxChanged(), MoveToNextPile(),
 /// MoveToPrevPile(), OnKeyDown(), ChooseTranslation(), CSplitDialog's
 /// OnBnClickedButtonSplitNow(), InitDialog(), CWhichBook's InitDialog(),
-/// OnSelchangeChooseBook(), OnCancel(), and OnOK().
+/// OnSelchangeChooseBook(), OnCancel(), OnOK(), OnCustomWorkFolderLocation(),
+/// OnLockCustomLocation(), OnUnlockCustomLocation, OnRestoreDefaultWorkFolderLocation(),
+/// OnRadioReviewing() and OnRadioDrafting()
 /// Updates the status bar message to reflect the current activity.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::RefreshStatusBarInfo()
@@ -20897,7 +20947,31 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	CAdapt_ItView* pView = gpApp->GetView();
 	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxString rscStr; // MFC Note: to get past a bug 
-	rscStr = _("Current Project: %s");
+
+	// BEW 6Nov09, added "[Default Work Folder Location]" versus "[Custom Work Folder Location]" 
+	// to distinguish between whether a custom work folder location is in effect versus the
+	// default "Adapt It Work" or "Adapt It Unicode Work" folder at the standard data folder 
+	// for the particular OS (the latter also includes non-standard locations specified by 
+	// use of the -wf switch) -- also added "[Temporary Work Folder Location]" for when
+	// the custom location is not locked down (ie. will not persist beyond the session)
+	if (m_bUseCustomWorkFolderPath)
+	{
+		if (m_bLockedCustomWorkFolderPath)
+		{
+			// a persistent custom work folder location is in effect
+			rscStr = _("[Custom Work Folder Location]  Current Project: %s");
+		}
+		else
+		{
+			// a non-persistent custom work folder location is in effect
+			rscStr = _("[Temporary Work Folder Location]  Current Project: %s");
+		}
+	}
+	else
+	{
+		// the default, or -wf switch-specified, location is in effect
+		rscStr = _("[Default Work Folder Location]  Current Project: %s");
+	}
 	wxString message;
 	message = message.Format(rscStr,gpApp->m_curProjectName.c_str());
 
@@ -20933,8 +21007,22 @@ void CAdapt_ItApp::RefreshStatusBarInfo()
 	}
 	else
 	{
-		// IDS_ADAPTING
-		prefix = _("Adapting");
+		// BEW changed 6Nov09 to distinguish between drafting (ie. "adapting")
+		// versus reviewing (as adapting mode can be used for smart back translating
+		// and reviewing mode for dumb back translating, we use the primary labels
+		// adapting versus reviewing, which hopefully are the maximally meaningful ones)
+		if (m_bDrafting)
+		{
+			// IDS_ADAPTING
+			prefix = _("Adapting");
+		}
+		else
+		{
+			// review mode - which, for the use of the -frm switch, is also
+			// the "back translating 'dumb' mode made persistent for the
+			// session
+			prefix = _("Reviewing");
+		}
 	}
 	message = prefix + _T("  ") + message;
 	wxString mssg;
@@ -23596,7 +23684,8 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 										// variable should still be valid; however, calling
 										// it will ensure its validity so I've left it here	
 			wxString configFName = szBasicConfiguration + _T(".aic");
-			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
+			wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
+			MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
 			//wxLogDebug(_T("4  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 			//wxLogDebug(_T("4  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
 		}
@@ -23626,6 +23715,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 		pStartWorkingWizard = (CStartWorkingWizard*)NULL;
 		DoStartWorkingWizard(dummyevent); // ignore returned TRUE, FALSE is never returned
 	} // end of TRUE block for test: if (!m_bFailedToRemoveCustomWorkFolderLocationFile)
+	RefreshStatusBarInfo();
 }
 
 bool CAdapt_ItApp::SetupCustomWorkFolderLocation()
@@ -23870,6 +23960,13 @@ a:			wxString stdDocsDir = _T("");
     // administrator (or a user with administrator privileges)
 	wxString configFName = szBasicConfiguration + _T(".aic");
 	wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
+	// use m_workFolderPath here, whether or not a custom folder location is
+	// being set up, since we store the Admin basic config file on the
+	// administrator's machine's default work folder location, as we do
+	// the normal basic config file
+	MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
+
+	/* BEW removed 6Nov09, as 3rd argument is now obligatory, even if unused within
 	if (m_bUseCustomWorkFolderPath)
 	{
 		// use m_workFolderPath here, since we store the Admin basic config file on the
@@ -23879,9 +23976,10 @@ a:			wxString stdDocsDir = _T("");
 	}
 	else
 	{
-		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath);
+		MakeForeignBasicConfigFileSafe(configFName,m_workFolderPath,&adminConfigFName);
 		//wxLogDebug(_T("11  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
 	}
+	*/
 	// we make no use of the returned bMadeSafe flag, because OnCustomWorkFolderLocation
 	// should only return a value of TRUE; it's only when the custom location is on an
 	// external drive and the user has forgotten to mount it, that in OnInit() just after
@@ -23913,6 +24011,7 @@ void CAdapt_ItApp::OnCustomWorkFolderLocation(wxCommandEvent& WXUNUSED(event))
 		DoStartWorkingWizard(dummyevent); // ignore returned TRUE, FALSE is never returned
 	}
 	//wxLogDebug(_T("END  m_workFolderPath = %s  flag = %d"), m_workFolderPath, (int)m_bUseCustomWorkFolderPath);
+	RefreshStatusBarInfo();
 }
 
 // \return     TRUE if the path passed in begins with either pair of backslashes,
@@ -24056,6 +24155,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 	wxString configFName = szBasicConfiguration + _T(".aic");
 	wxString adminConfigFName = szAdminBasicConfiguration + _T(".aic");
 	MakeForeignBasicConfigFileSafe(configFName,m_customWorkFolderPath,&adminConfigFName);
+	RefreshStatusBarInfo();
 }
 
 void CAdapt_ItApp::OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event)
@@ -24145,6 +24245,7 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event))
 			_T(""), wxICON_ERROR);
 		}
 	}
+	RefreshStatusBarInfo();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
