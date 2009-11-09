@@ -2,22 +2,41 @@ Version 5.2.0 update ??November2009:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
 ----------------------------------------------
-* Added support for a -frm  command line switch, for Bob Eaton.
+* Added extra information to the status bar display, so that the
+user has feedback about which location the project is being
+accessed from. The information is in [ ] brackets, and there are
+three possibilities:
+Default Work Folder Location
+Temporary Work Folder Location
+Custom Work Folder Location
+The first of the above is for the legacy situation; the second is when
+the Custom Work Folder Location command is used from the
+Administrator menu to point Adapt It at a work folder in a non-
+standard location (and the folder name could be anything). The
+third is like the second, but the use has also used the command
+Lock Custom Location to make the new work folder location
+be persistent across sessions.
+Also, the status message now also distinguishes "Adapting" versus
+"Reviewing" modes, in the first word of the message.
+* Added support for a -frm  command line switch.
+frm stands for "force reviewing mode" to be turned on at launch.
 Do not use this switch unless you know what you are doing. It
 puts Adapt It into 'Reviewing mode' on launch, and hides both the
 Drafting and Reviewing radio buttons, so that in that session the
 user becomes locked in to reviewing mode. This is useful when
 a "dumb mode" for back translating is wanted. No lookup of the
 KB is done, the phrase box does not copy source text nor make
-an initial suggestion of any kind, no auto insertions are done, but
-KB still gets populated in the normal way as the user types
-back translations into the phrase box. Bob Eaton uses this feature
-only with a shell script launch of Adapt It, to get this feature turned
-on on a per-document basis. That's the only way this feature should
-be used, otherwise if you use the switch when launching from the
-programs list or a shortcut button, you'll lock the user (or yourself)
-out of essential adaptation functionalities at every launch. You've
-been warned!
+an initial suggestion of any kind, and no auto insertions are done,
+but the KB still gets populated in the normal way as the user types
+back translations into the phrase box. This feature can be used
+with a shell script launch of Adapt It, to force this mode on on
+a per-session basis. That's one way this feature could
+be used. Another way is to setup a desktop shortcut and in the
+Target box, add the -frm switch to the end of the path. Whatever
+you do, be sure that the normal way to launch Adapt It does not
+have the -frm switch used, otherwise you'll lock the user (or
+ yourself) out of essential adaptation functionalities at every launch.
+ You've been warned!
 * Added a hidden password protected Administrator menu. The 
 menu can be made visible by Edit / Preferences / View page, and
 click the checkbox labelled "Show Administrator Menu (Password
@@ -38,11 +57,31 @@ custom work folder location on the local machine, a peripheral device,
 or a remote machine - including a remote machine running a different 
 operating system; the setting lasts until the end of the session. (2) A 
 permanent custom work folder location on the local machine or on a 
-peripheral device attached to the local machine.
+peripheral device attached to the local machine. (If the administrator
+accesses a project on a remote machine and that project is already
+being accessed by a user on that machine, the administrator's running
+Adapt It will detect the fact and only allow read-only access to the
+remote machine's project. Likewise, if the administrator gains full
+access to a project on a remote machine, and a user on the remote
+machine later tries to open that project for work, he will be granted
+read-only access, and will not be able to write KB or documents to
+disk until the administrator has relinquished ownership of the project
+and the remote user reenters the project.) That is, whoever opens
+the project first, gets ownership; whoever arrives second, only gets
+read-only access. This protocol prevents inadvertent loss of data.
 * Added a Change Password command to the Administrator menu.
 * Added a Return To Default Work Folder command which restores
-the default work folder location (including to one setup by the -wf
-command line switch).
+the default work folder location (including returning to the use of a
+work folder location set up earlier by the -wf command line switch).
+If this command is used when a custom work folder location has
+previously been made persistent, then Adapt It does an implicit
+call of the Unlock Custom Location as part of the process of returning
+to the use of the default work folder at the default location. (Note:
+there may not be any projects at the default location, so returning
+there may also require moving project folders back there from the
+former custom work folder; that task can be done by Administrator
+menu commands, or with a file browser application outside of
+Adapt It.)
 * Added a Lock Custom Location command to the Administrator 
 menu, enabled provided the path to the custom folder is not a URI, 
 so that the work folder at the custom location becomes permanent, 

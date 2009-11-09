@@ -2204,10 +2204,68 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE 
 				// (used in SetupDirectories())
 
+	// *** for support of Read-Only access to remote projects ***
+	bool	m_bReadOnlyAccess; // default FALSE, set TRUE if your running instances accesses
+				// a remote project folder which is already "owned" by the remote user
+				// (ownership is dynamically assigned to whoever accesses the project folder
+				// first; a file with name ~AIROP-machinename-username.lock will be opened for
+				// writing, but never written to, by whoever gets to have ownership; and is
+				// closed for writing and removed when ownership of the project folder is
+				// relinquished - that then gives whoever came second and so only got read-only
+				// access the chance to re-open the project folder and so gain ownership)
+				// AIROP has no deep significance other than providing a few ascii characters
+				// to decrease the likelihood of an accidental name clash when searching for
+				// the file within a project folder; AIROP means "Adapt It Read Only Protection"
+	wxString	m_strLocalUsername; // whoever is the user running this instance
+	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance
+	wxString	m_strTheOtherUsername; // a holder for the Username parsed from the filename
+	wxString	m_strTheOtherMachinename; // a holder for the Machinename parsed from the filename
+	wxString	m_strAIROP_Prefix; // first part of the filename (see OnInit())
+	wxString	m_strLock_Suffix; // the suffix to add to the filename's end (see OnInit())
+	wxString	m_strReadOnlyProtectionFilename; // has the form ~AIROP*.lock where * will
+						// be machinename followed by username, delimited by single hyphens
+				// The first two two names are obtained from the system using two getter functions
+				// called GetLocalUsername() & GetLocalMachinename; and when a file specification
+				// matching ~AIROP*.lock is found, a pair of getters called ExtractUserName() &
+				// ExtractMachinename() return the Username and Machinename within the filename
+				// and these are stored in the second pair of string members above. If either of
+				// the Get... functions fail, we supply a default name - either "UnknownUser" or
+				// "UnknownMachine", as required. (If a remote machine's Adapt It also fails in the
+				// same way, this could lead to Adapt It thinking the remote user is myself - and
+				// granting ownership leading to potential data loss, but this dual failure is
+				// hopefully unlikely.)
+				// Comparison is provided by a function called IsDifferentUserOrMachine() which 
+				// takes 4 wxString arguments, and returns TRUE if user or machine or both are 
+				// different, FALSE if the usernames and machinenames are the same
+	// member functions supporting Read-Only access (all public: at this stage)
+	wxString	GetLocalUsername(); // return empty string if the local username isn't got
+	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
+	wxString	ExtractUsername(wxString strFilename); // pass filename by value so we can play
+													   // internally with impunity
+	wxString	ExtractMachinename(wxString strFilename); // pass filename by value so we can play
+													   // internally with impunity
+	wxString	MakeReadOnlyProtectionFilename(
+					const wxString prefix, // pass in m_strAIROP_Prefix
+					const wxString suffix, // pass in m_strLock_Suffix
+					const wxString machinename,
+					const wxString username); // return str of form ~AIROP*.lock where * will
+						// be machinename followed by username, delimited by single hyphens
+	bool		IsDifferentUserOrMachine(
+					wxString& localMachine,
+					wxString& localUser,
+					wxString& theOtherMachine,
+					wxString& theOtherUser); // return TRUE if users or machines or both don't match,
+						// return FALSE when both users and machines are the same (that is, FALSE
+						// means the running instance making the test has ownership of the project
+						// folder already, and so writing of KB and documents should not be prevented)
+	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
+
+	// *** end support for Read-Only access to remote projects ***
+
+	public:
 	AIPrintout* pAIPrintout;
 
 // Overrides
-	public:
     bool	OnInit();// wxApp uses non-virtual OnInit() instead of virtual bool InitInstance()
     int		OnExit();// wxApp uses non-virtual OnExit() instead of virtual int ExitInstance()
     // OnIdle() handler moved to CMainFrame. Having it here in the App was causing File |
