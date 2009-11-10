@@ -651,6 +651,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\ReadOnlyProtection.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\RefString.cpp"
 				>
 			</File>
@@ -993,6 +997,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\PunctCorrespPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\ReadOnlyProtection.h"
 				>
 			</File>
 			<File

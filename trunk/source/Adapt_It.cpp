@@ -154,6 +154,7 @@
 #include "ConsistentChanger.h"
 #include "ChooseLanguageDlg.h"
 #include "Layout.h"
+#include "ReadOnlyProtection.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -4861,27 +4862,22 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
-	// next two initializations for Read-Only support when accessing a remote project folder
-	m_strAIROP_Prefix = _T("~AIROP"); // first part of the filename
-	m_strLock_Suffix = _T(".lock"); // the suffix to add to the filename's end
+	// initialize for Read-Only support when accessing a remote project folder
+	m_pROP = new ReadOnlyProtection(this);
+	m_pROP->Initialize();
 
-	// obtain the host machine's name, and the current user's id (ie. the name used
-	// in path specifications);  set defaults if either or both can't be determined
-	m_strLocalUsername = GetLocalUsername();
-	if (m_strLocalUsername.IsEmpty())
+	/*
+	// test GetReadOnlyProtectionFileInProjectFolder() function
+	wxString projectFolderPath = _T("C:\\Card1");
+	wxString myFile = _T("C:\\Card1\\~AIROP-BEW-watersb.lock");
+	wxFile file(myFile,wxFile::write);
+	if (file.IsOpened())
 	{
-		m_strLocalUsername = _T("UnknownUser");
+		m_pROP->m_strTheOtherReadOnlyProtectionFilename = 
+			m_pROP->GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
 	}
-	m_strLocalMachinename = GetLocalMachinename();
-	if (m_strLocalMachinename.IsEmpty())
-	{
-		m_strLocalMachinename = _T("UnknownMachine");
-	}
-	// set up the filename for read only protection, which is for this particular user
-	// and host machine
-	m_strReadOnlyProtectionFilename = MakeReadOnlyProtectionFilename(m_strAIROP_Prefix,
-					m_strLock_Suffix, m_strLocalMachinename, m_strLocalUsername);
-
+	// end test of GetReadOnlyProtectionFileInProjectFolder() function
+	*/
 
 	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
 								  // translating, via a frm switch for a launch from the
@@ -7574,6 +7570,9 @@ int CAdapt_ItApp::OnExit(void)
     // internal structures. All wxWidgets' objects that the program creates should be
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
+
+	delete m_pROP; // delete the ReadOnlyProtection class's only instance
+
 	m_pDocManager->FileHistorySave(* m_pConfig);
 
 	bool bOK; // we won't care whether it succeeds or not, since the later 
@@ -25102,107 +25101,6 @@ _T("Unable to write adjusted basic config file for persistent custom location, s
 		}
 	}
 }
-
-/* ******************************************************************************************
-
-	Support for Read-Only protection when accessing a remotely currently-owned project folder
-
-******************************************************************************************* */
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
-/// returns		the current user id, or an empty string if it cannot be determined
-/// \remarks	Obtain from wxWidgets "Network, user and OS functions" calls; if empty string
-///				returned, the caller should set up a default string such as "UnknownUser"
-///////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetLocalUsername()
-{
-	wxString theName = ::wxGetUserId(); // returns empty string if not found
-	return theName;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-/// returns		the host machine's name, or an empty string if it cannot be determined
-/// \remarks	Obtain from wxWidgets "Network, user and OS functions" calls; if empty string
-///				returned, the caller should set up a default string such as "UnknownMachine"
-///////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetLocalMachinename()
-{
-	// get's the host machine's name (ignores domain name)
-	wxString theMachine = ::wxGetHostName(); // returns empty string if not found
-	return theMachine;
-}
-
-wxString CAdapt_ItApp::ExtractUsername(wxString strFilename) // pass filename by value so we can play
-													   // internally with impunity
-{
-	wxString theName = _T(""); // not localizable
-
-// *** TODO ***  the rest
-	return theName;
-}
-
-wxString CAdapt_ItApp::ExtractMachinename(wxString strFilename) // pass filename by value so we can play
-													   // internally with impunity
-{
-	wxString theMachine = _T(""); // not localizable
-
-// *** TODO ***  the rest
-	return theMachine;
-}
-
-
-wxString CAdapt_ItApp::MakeReadOnlyProtectionFilename(
-					const wxString prefix, // pass in m_strAIROP_Prefix
-					const wxString suffix, // pass in m_strLock_Suffix
-					const wxString machinename,
-					const wxString username) // return str of form ~AIROP*.lock where * will
-						// be machinename followed by username, delimited by underscore
-{
-	wxString str = prefix;
-	str += _T("-") + machinename;
-	str += _T("-") + username;
-	return str += suffix;
-}
-
-bool CAdapt_ItApp::IsDifferentUserOrMachine(
-					wxString& localMachine,
-					wxString& localUser,
-					wxString& theOtherMachine,
-					wxString& theOtherUser) // return TRUE if users or machines or both don't match,
-						// return FALSE when both users and machines are the same (that is, FALSE
-						// means the running instance making the test has ownership of the project
-						// folder already, and so writing of KB and documents should not be prevented)
-{
-
-
-
-	return FALSE;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
-/// returns		the absolute path to the read-only protection file in the passed in folder,
-///				if it exists in the folder; otherwise, an empty string
-///	\param		projectFolderPath ->	absolute path to the project folder being checked
-/// \remarks	Search for a matching file in the project folder. wxRegEx class is not safe
-///				to use because regular expression support for Unicode may not work - one system
-///				does not support matching across character block boundaries, another (eg. VIM)
-///				allows this but limits matches to 128 (enough for our purposes but the wx 
-///				documentation doesn't indicate if this is supported). So we don't use regular
-///				expressions to obtain a match; instead, we search for the prefix "~AIROP" and
-///				the suffix ".lock" and the presence of two hyphens. That much extremely unlikely
-///				to occur by accident in an arbitrary filename from another unrelated source.
-///////////////////////////////////////////////////////////////////////////////////////////
-wxString CAdapt_ItApp::GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath)
-{
-	wxString path = _T("");
-
-
-	// *** TODO ***
-
-	return path;
-}
-
 
 
 
