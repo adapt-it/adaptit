@@ -45,28 +45,18 @@ public:
 
 	// attributes
 	CAdapt_ItApp* m_pApp; // pointer to the running application instance
-	bool	m_bReadOnlyAccess; // default FALSE, set TRUE if your running instances accesses
-				// a remote project folder which is already "owned" by the remote user
-				// (ownership is dynamically assigned to whoever accesses the project folder
-				// first; a file with name ~AIROP-machinename-username.lock will be opened for
-				// writing, but never written to, by whoever gets to have ownership; and is
-				// closed for writing and removed when ownership of the project folder is
-				// relinquished - that then gives whoever came second and so only got read-only
-				// access the chance to re-open the project folder and so gain ownership)
-				// AIROP has no deep significance other than providing a few ascii characters
-				// to decrease the likelihood of an accidental name clash when searching for
-				// the file within a project folder; AIROP means "Adapt It Read Only Protection"
+private:
 	wxString	m_strLocalUsername; // whoever is the user running this instance
 	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance
-	wxString	m_strTheOtherUsername; // a holder for the Username parsed from the filename, and
+	wxString	m_strOwningUsername; // a holder for the Username parsed from the filename, and
 				// set to empty string whenever the target project folder is owned by nobody
-	wxString	m_strTheOtherMachinename; // a holder for the Machinename parsed from the filename,
+	wxString	m_strOwningMachinename; // a holder for the Machinename parsed from the filename,
 				// and set to empty string whenever the target project folder is owned by nobody
 	wxString	m_strAIROP_Prefix; // first part of the filename (see OnInit())
 	wxString	m_strLock_Suffix; // the suffix to add to the filename's end (see OnInit())
 	wxString	m_strReadOnlyProtectionFilename; // has the form ~AIROP*.lock where * will
 						// be machinename followed by username, delimited by single hyphens
-	wxString	m_strTheOtherReadOnlyProtectionFilename; // stores the one found in a targetted
+	wxString	m_strOwningReadOnlyProtectionFilename; // stores the one found in a targetted
 						// project folder - possibly on a remote machine, but could be on the
 						// local machine and so could be the same as what is in the member
 						// m_strReadOnlyProtectionFilename; we must test to find out if same or not
@@ -84,11 +74,16 @@ public:
 				// takes 4 wxString arguments, and returns TRUE if user or machine or both are 
 				// different, FALSE if the usernames and machinenames are the same
 
-
-
-	// member functions supporting Read-Only access (all public: at this stage)
+	// member functions supporting Read-Only access
 public:
 	void		Initialize();
+	bool		SetReadOnlyProtection(wxString& projectFolderPath); // call when entering project
+					// and the returned bool value must be used to set (TRUE) or clear (FALSE) the 
+					// app member m_bReadOnlyAccess
+	bool		RemoveReadOnlyProtection(wxString& projectFolderPath); // call when leaving project
+					// and the returned bool value must always be used to clear the app member 
+					// m_bReadOnlyAccess to FALSE
+private:
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
 	wxString	ExtractUsername(wxString strFilename); // pass filename by value so we can play
@@ -110,6 +105,18 @@ public:
 						// means the running instance making the test has ownership of the project
 						// folder already, and so writing of KB and documents should not be prevented)
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
+	bool		IsTheReadOnlyProtectionFileAZombie(wxString& folderPath, wxString& ropFile); // return
+						// TRUE if it has not been opened (it must be left over after an abnormal
+						// machine shutdown or an app crash), so we'll want to know so we can remove it
+	bool		RemoveROPFile(wxString& folderPath, wxString& ropFile, bool& bAlreadyOpen); // return TRUE
+						// if removed okay, but if the return value is FALSE, then look at bAlreadyOpen
+						// which, if TRUE, indicates that the removal could not be done because the file
+						// was already opened for writing by someone else, if the bAlreadyOpen value is
+						// FALSE, then it was not removed becausee of an unknown failure of the internal
+						// ::wxRemoveFile() call itself - in which case the caller should warn the user
+						// and abort the app
+	bool		IsTheProjectFolderOwnedByAnother(wxString& projectFolderPath); // TRUE if it is owned,
+						// FALSE if it is owned by the local user, or if owned by nobody yet
 
 	DECLARE_DYNAMIC_CLASS(ReadOnlyProtection) 
 	// Used inside a class declaration to declare that the objects of 

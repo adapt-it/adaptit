@@ -4862,24 +4862,34 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	PathSeparator = wxFileName::GetPathSeparator(); // need this defined early, because the
+													// ReadOnlyProtection class uses it
+	// set m_pROPwxFile, on heap; delete it in OnExit()
+	m_pROPwxFile = new wxFile;	// use default constructor; call Open() later when project
+								// path is known
+
 	// initialize for Read-Only support when accessing a remote project folder
+	m_bReadOnlyAccess = FALSE; // default, allows current user write access to projects
 	m_pROP = new ReadOnlyProtection(this);
 	m_pROP->Initialize();
-
-	/*
-	// test GetReadOnlyProtectionFileInProjectFolder() function
+	
+	// test read-only access functionality
+	/* successful, m_pROPwxFile on heap, if open, stays open until explicitly Close()-ed
 	wxString projectFolderPath = _T("C:\\Card1");
-	wxString myFile = _T("C:\\Card1\\~AIROP-BEW-watersb.lock");
-	wxFile file(myFile,wxFile::write);
-	if (file.IsOpened())
-	{
-		m_pROP->m_strTheOtherReadOnlyProtectionFilename = 
-			m_pROP->GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
-	}
-	// end test of GetReadOnlyProtectionFileInProjectFolder() function
+	m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(projectFolderPath);
+	m_bReadOnlyAccess = m_pROP->RemoveReadOnlyProtection(projectFolderPath);
 	*/
+	//wxString myFile = _T("C:\\Card1\\~AIROP-BEW-watersb.lock");
+	//wxFile file(myFile,wxFile::write);
+	//if (file.IsOpened())
+	//{
+	//	m_pROP->m_strTheOtherReadOnlyProtectionFilename = 
+	//		m_pROP->GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
+	//}
+	// end test of GetReadOnlyProtectionFileInProjectFolder() function
+	
 
-	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
+ 	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
 								  // translating, via a frm switch for a launch from the
 								  // shell
 	m_bSkipBasicConfigFileCall = FALSE;
@@ -5535,8 +5545,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // OnNewDocument(). The MFC version does not do this, but reuses its old doc and view
     // pointers under the CSingleDocTemplate() that MFC Adapt It uses.
 	bUserSelectedFileNew = FALSE;	
-
-	PathSeparator = wxFileName::GetPathSeparator();
 
 	m_pDocManager = (wxDocManager*)NULL;// was originally in App constructor's preamble
 	m_pMainFrame = (CMainFrame*)NULL;// was originally in App constructor's preamble
@@ -7572,6 +7580,11 @@ int CAdapt_ItApp::OnExit(void)
     // application class destructor!"
 
 	delete m_pROP; // delete the ReadOnlyProtection class's only instance
+	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
+	delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
+						 // open read-only protection file of form 
+						 // ~AIRIOP-machinename-username.lock while the owning user
+						 // has a project folder open (on this or a remote machine)
 
 	m_pDocManager->FileHistorySave(* m_pConfig);
 

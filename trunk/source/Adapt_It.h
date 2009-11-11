@@ -2210,6 +2210,28 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE 
 				// (used in SetupDirectories())
 
+	// next two for read-only support....
+	// the next boolean is for support of read-only protection of the data accessed in a
+	// remote folder by a user on a remote machine, or a different account on local machine
+	// and it works in conjunction with the ReadOnlyProtection class -- the latter determines
+	// when m_bReadOnlyAccess should be set TRUE or cleared to FALSE
+	bool	m_bReadOnlyAccess; // default FALSE, set TRUE if your running instances accesses
+				// a remote project folder which is already "owned" by the remote user
+				// (ownership is dynamically assigned to whoever accesses the project folder
+				// first; a file with name ~AIROP-machinename-username.lock will be opened for
+				// writing, but never written to, by whoever gets to have ownership; and is
+				// closed for writing and removed when ownership of the project folder is
+				// relinquished - that then gives whoever came second and so only got read-only
+				// access the chance to re-open the project folder and so gain ownership)
+				// AIROP has no deep significance other than providing a few ascii characters
+				// to decrease the likelihood of an accidental name clash when searching for
+				// the file within a project folder; AIROP means "Adapt It Read Only Protection"
+	wxFile* m_pROPwxFile; // will be created in OnInit(), on the heap, and killed in OnExit(),
+				// we then use wxFile::Open() as needed. We do it this way because if we use
+				// a local wxFile and open with a path and wxFile(), then when the local wxFile
+				// goes out of scope, the wxFile is automatically closed - which we don't want
+				// to happen.
+
 	public:
 	AIPrintout* pAIPrintout;
 
