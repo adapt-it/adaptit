@@ -62,6 +62,9 @@ bool gbExcludeCurrentProject = FALSE;
 /////////////////////////////////////////////////////////////////////////////
 // COpenExistingProjectDlg dialog
 
+// NOTE *** this is not legacy code no longer used;; it is used in the Transform Adaptations Into 
+// Glosses" functionality ***
+
 BEGIN_EVENT_TABLE(COpenExistingProjectDlg, AIModalDialog)
 	EVT_INIT_DIALOG(COpenExistingProjectDlg::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, COpenExistingProjectDlg::OnOK)
@@ -192,7 +195,14 @@ void COpenExistingProjectDlg::OnOK(wxCommandEvent& event)
 	// set m_curProjectPath so we can load the Project configuration file, we need to
 	// make sure that the project's setting for m_bBookMode and m_nBookIndex are restored
 	// before the user clicks the Open command on the file menu
-	gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
+	if (!gpApp->m_customWorkFolderPath.IsEmpty() && gpApp->m_bUseCustomWorkFolderPath)
+	{
+		gpApp->m_curProjectPath = gpApp->m_customWorkFolderPath + gpApp->PathSeparator + m_projectName;
+	}
+	else
+	{
+		gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
+	}
 	gpApp->GetDocument()->GetProjectConfiguration(gpApp->m_curProjectPath);
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -250,7 +260,14 @@ void COpenExistingProjectDlg::OnDblclkListboxAdaptions(wxCommandEvent& WXUNUSED(
 	// set m_curProjectPath so we can load the Project configuration file, we need to
 	// make sure that the project's setting for m_bBookMode and m_nBookIndex are restored
 	// before the user clicks the Open command on the file menu
-	gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
+	if (!gpApp->m_customWorkFolderPath.IsEmpty() && gpApp->m_bUseCustomWorkFolderPath)
+	{
+		gpApp->m_curProjectPath = gpApp->m_customWorkFolderPath + gpApp->PathSeparator + m_projectName;
+	}
+	else
+	{
+		gpApp->m_curProjectPath = gpApp->m_workFolderPath + gpApp->PathSeparator + m_projectName;
+	}
 	gpApp->GetDocument()->GetProjectConfiguration(gpApp->m_curProjectPath);
 	wxCommandEvent okevent = wxID_OK;
 	OnOK(okevent); //EndModal(wxID_OK);//EndDialog(IDOK);

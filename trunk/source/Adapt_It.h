@@ -51,8 +51,8 @@ class AIPrintout;
 #define VERSION_MINOR_PART 2
 #define VERSION_BUILD_PART 0
 #define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 23
-#define VERSION_DATE_MONTH 10
+#define VERSION_DATE_DAY 12
+#define VERSION_DATE_MONTH 11
 #define VERSION_DATE_YEAR 2009
 
 //#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
@@ -1312,6 +1312,11 @@ class CAdapt_ItApp : public wxApp
     /// correctly. Although available for future use, it has not been implemented fully in
     /// the wxWidgets version.
 	wxCmdLineParser* m_pParser;
+	//wxCmdLineParser* m_pParser2; // BEW added 12Nov09 for parsing export command (Hatton,McEvoy)
+	wxString m_autoexport_command;
+	wxString m_autoexport_projectname;
+	wxString m_autoexport_docname;
+	wxString m_autoexport_outputpath;
 
     /// The application's array of 4 m_pConsistentChanger members are created on demand in
     /// OnToolsDefineCC(). They are used load and process consistent change tables in the
@@ -2231,6 +2236,10 @@ public:
 				// a local wxFile and open with a path and wxFile(), then when the local wxFile
 				// goes out of scope, the wxFile is automatically closed - which we don't want
 				// to happen.
+
+	bool	m_bAutoExport; // default FALSE, set TRUE if the export command is used on launch,
+				// the command line should be export followed by "project folder name" followed
+				// by "document filename" followed by "path to output folder"
 
 	public:
 	AIPrintout* pAIPrintout;

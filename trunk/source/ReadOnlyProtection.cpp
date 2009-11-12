@@ -369,10 +369,12 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedByAnother(wxString& projectFolde
 		// there is a read-only protection file in this project, and so there
 		// are three possibilities:
 		// (1) it's a zombie left over after a crash or power loss
-		// (2) it's opened, but I'm the owner already (shouldn't happen actually,
+		// (2) it's opened, but I'm the owner already (shouldn't happen often,
 		//		because we close and remove the file whenever the owner leaves
 		//		the owned project folder; so if it is present and not a zombie,
-		//		then (3) should be the case every time)
+		//		then (3) should be the case usually, but I'll allow for the
+		//		possibility of a novel set of actions that get the user back to
+		//		his own current project)
 		// (3) it's opened, and someone else has the ownership of write permission
 		bool bIsZombie = IsTheReadOnlyProtectionFileAZombie(projectFolderPath, 
 										m_strOwningReadOnlyProtectionFilename);
@@ -467,6 +469,7 @@ bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath) /
 	m_pApp->m_pROPwxFile->Close();
 	bool bRemoved = ::wxRemoveFile(readOnlyProtectionFilePath);
 	// check it got removed (release build will just assume it did, this is unlikely to fail)
+	bRemoved = bRemoved; // prevent compiler warning
 	wxASSERT(bRemoved);
 	m_strOwningMachinename.Empty();
 	m_strOwningUsername.Empty();

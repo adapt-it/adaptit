@@ -89,6 +89,7 @@
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
 #include "Layout.h"
+#include "ExportFunctions.h"
 
 // forward declarations for functions called in tellenc.cpp
 // GDLC Temporary work around for PPC STL library bug
@@ -2959,7 +2960,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
     // turned on or off the book mode in the wizard) so that if the app subsequently
     // crashes, at least the next launch will be in the expected mode (see near top of
     // CAdapt_It.cpp for an explanation of the gbPassedAppInitialization global flag)
-	if (gbPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty())
+	// BEW added 12Nov09, m_bAutoExport test to suppress writing the project config file
+	// when export is done from the command line export command
+	if (gbPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty() && !pApp->m_bAutoExport)
 	{
         // BEW on 4Jan07 added change to WriteConfiguration to save the external current
         // work directory and reestablish it at the end of the WriteConfiguration call,
@@ -2972,7 +2975,9 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 
 	// wx version addition:
 	// Add the file to the file history MRU
-	if (!pApp->m_curOutputPath.IsEmpty())
+	// BEW added 12Nov09, m_bAutoExport test to suppress history update when export is
+	// done from the command line export command
+	if (!pApp->m_curOutputPath.IsEmpty() && !pApp->m_bAutoExport)
 	{
 		wxFileHistory* fileHistory = pApp->m_pDocManager->GetFileHistory();
 		fileHistory->AddFileToHistory(pApp->m_curOutputPath);
@@ -2986,6 +2991,56 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	}
 	// Note: Tests of the MFC version show that OnInitialUpdate() should not be
 	// called at all from OnOpenDocument()
+
+	// BEW added 12Nov09, do the auto-export here, if asked for, and shut
+	// down the app before returning; otherwise, continue for normal user
+	// GUI interaction
+	if (pApp->m_bAutoExport)
+	{
+		// set up output path using m_autoexport_outputpath
+		wxString docName = pApp->m_autoexport_docname;
+		docName = MakeReverse(docName);
+		docName = docName.Mid(4); // remove reversed ".xml"
+		docName = MakeReverse(docName); // back to normal order without extension
+		docName = docName + _T(".txt"); // make a plain text file
+		pApp->m_curOutputFilename = docName;
+		pApp->m_curOutputPath = pApp->m_autoexport_outputpath + pApp->PathSeparator + docName;
+
+		// pinch what I need from ExportFunctions.cpp
+		wxString target;	// a export data's buffer
+		target.Empty();
+		int nTextLength;
+		nTextLength = RebuildTargetText(target);
+		FormatMarkerBufferForOutput(target);
+		target = RemoveMultipleSpaces(target);
+
+		// now write out the exported data string
+		wxFile f;
+		if( !f.Open(pApp->m_curOutputPath, wxFile::write))
+		{
+			wxString msg;
+			msg = msg.Format(_("Unable to open the file for exporting the target text with path:\n%s"),pApp->m_curOutputPath.c_str());
+			wxMessageBox(msg,_T(""),wxICON_EXCLAMATION);
+			pApp->OnExit();
+			return FALSE;
+		}
+		#ifndef _UNICODE // ANSI
+		f.Write(target);
+		#else // _UNICODE
+		wxFontEncoding enc = wxFONTENCODING_UTF8; 
+		pApp->ConvertAndWrite(enc,&f,target);
+		#endif // for _UNICODE
+		f.Close();
+		// shut down forcefully
+		//pApp->OnExit();
+		unsigned long pid = ::wxGetProcessId();
+		enum wxKillError killErr;
+		int rv = ::wxKill(pid,wxSIGTERM,&killErr); // makes OnExit() be called
+		rv  = rv; // prevent compiler warning
+
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
