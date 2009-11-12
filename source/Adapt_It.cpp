@@ -4862,6 +4862,14 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
+						   // export, which takes three obligatory string parameters following
+						   // BEW added 12Nov09 for John Hatton & Steve McEvoy; if set in OnInit() 
+						   // the app is launched does an automated default USFM adapation
+						   // export from a given doc in given project and saves to a given
+						   // folder and then shuts down, no GUI is displayed (John H will
+						   // build a SendIt app to grab the resulting file and send it over
+						   // HF radio email link to Steve McEvoy
 	PathSeparator = wxFileName::GetPathSeparator(); // need this defined early, because the
 													// ReadOnlyProtection class uses it
 	// set m_pROPwxFile, on heap; delete it in OnExit()
@@ -5752,20 +5760,31 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
 		{ wxCMD_LINE_SWITCH, _T("frm"), _T("forcereviewmode"), _T("Force review mode ON"),
 			wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL  },
+		// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
+		// for default adaptation export of adaptation text from a given doc file from
+		// a given project folder is what the next 4 params are
+		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"), _T("export"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\nproject name (must be in doublequotes)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\ndocument name (in doublequotes if spaces present)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\noutput folder path (in doublequotes if spaces present)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+
 		{ wxCMD_LINE_NONE }
 	};
 
-	// Note: In the MFC version, InitiInstance() sets up CCommandLineInfo cmdInfo.
+	// Note: In the MFC version, InitInstance() sets up CCommandLineInfo cmdInfo.
 	// InitInstance() then calls ProcessShellCommand(cmdInfo) which has a switch
 	// statement which switches on CCommandLineInfo::FileNew, and calls the app's
 	// OnFileNew() to initiate the doc/view creation process at program startup.
 	m_pParser = new wxCmdLineParser(cmdLineDesc, argc, argv);
 
-	if (m_pParser->Parse())
-	 return false; // returns false if commandline help (-h or -help) is used or 
+	int itsokay = m_pParser->Parse(); // continue if it fails
+	//if (m_pParser->Parse())
+	// return false; // returns false if commandline help (-h or -help) is used or 
 				   // if there is an error parsing the commandline
-	// Note: returning here creates memory leaks, but it is not too serious since the
-	// program is terminating anyway.
 
 	/*
 	if (m_pParser->Found(_T("v")))
@@ -5796,50 +5815,132 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	}
 	*/
 
-	if (m_pParser->Found(_T("xo")))
+	int paramCount = m_pParser->GetParamCount();
+	if (itsokay == 0 && paramCount > 0)
 	{
-		m_bExecutingOnXO = TRUE;
+		if (m_pParser->Found(_T("xo")))
+		{
+			m_bExecutingOnXO = TRUE;
+		}
+
+		wxString wfPathStr;
+		if (m_pParser->Found(_T("wf"), &wfPathStr))
+		{
+			// The -wf command-line parameter represents a path that the user wants to become
+			// the work folder path, so use it as the forced work folder path.
+			m_wf_forced_workFolderPath = wfPathStr;
+		}
+
+		wxString newdocPathStr;
+		if (m_pParser->Found(_T("newdocs"), &newdocPathStr))
+		{
+			// The -newdoc command-line parameter represents a path that the user wants to be
+			// locked in as the only path for finding new documents to adapt, so use it as the
+			// forced new documents path.
+			m_newdoc_forced_newDocPath = newdocPathStr;
+		}
+
+		wxString exportPathStr;
+		if (m_pParser->Found(_T("exports"), &exportPathStr))
+		{
+			// The -exports command-line parameter represents a path that the user wants to be
+			// locked in as the folder path for saving all exports to, so use it as the
+			// forced exports path.
+			m_exports_forced_exportsPath = exportPathStr;
+		}
+
+		if (m_pParser->Found(_T("frm")))
+		{
+			// The -frm command-line parameter represents a choice to emasculate adaptation
+			// mode by forcing ON the "reviewing" radio button (ie. m_bDrafting = FALSE) at
+			// launch. It's intended for per-document launch via a shell script. Normal launches
+			// using the Programs menu or desktop shortcuts, etc, should not use this switch
+			// because it would turn off important functionality irrevokably on every launch
+			m_bForce_Review_Mode = TRUE;
+		}
+
+		//m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
+									 // normal behaviours
+
+		// if there were 4 params, it should be an auto-export attempt
+		if (paramCount == 4)
+		{
+			// got a valid parse for the export command + params
+			m_autoexport_command = m_pParser->GetParam(0);
+			if (m_autoexport_command == _T("export"))
+			{
+				m_autoexport_projectname = m_pParser->GetParam(1);
+				m_autoexport_projectname.Trim(FALSE); // remove whitespace from left
+				m_autoexport_projectname.Trim(); // remove whitespace from right
+				m_autoexport_docname = m_pParser->GetParam(2);
+				m_autoexport_docname.Trim(FALSE); // remove whitespace from left
+				m_autoexport_docname.Trim(); // remove whitespace from right
+				m_autoexport_outputpath = m_pParser->GetParam(3);
+				m_autoexport_outputpath.Trim(FALSE); // remove whitespace from left
+				m_autoexport_outputpath.Trim(); // remove whitespace from right
+				m_bAutoExport = TRUE;
+			}
+		}
 	}
 
-	wxString wfPathStr;
-	if (m_pParser->Found(_T("wf"), &wfPathStr))
+	// BEW 12Nov09, command line support requested by Steve McEvoy & John Hatton
+	// for default adaptation export of adaptation text from a given doc file from
+	// a given project folder
+	/*
+	static const wxCmdLineEntryDesc cmdLineDesc2[] = 
 	{
-        // The -wf command-line parameter represents a path that the user wants to become
-        // the work folder path, so use it as the forced work folder path.
-		m_wf_forced_workFolderPath = wfPathStr;
-	}
+		{ wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("show this help message"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+		{ wxCMD_LINE_PARAM, _T("export"), _T("export_auto"), _T("export"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\nproject name (must be in doublequotes)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\ndocument name (in doublequotes if spaces present)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_PARAM, _T(""), _T(""), _T("\noutput folder path (in doublequotes if spaces present)"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL  },
+		{ wxCMD_LINE_NONE }
+	};
+	m_pParser2 = new wxCmdLineParser(cmdLineDesc2, argc, argv);
 
-	wxString newdocPathStr;
-	if (m_pParser->Found(_T("newdocs"), &newdocPathStr))
+	// for testing, set up the following command line - comment out later for Release version
+	//m_pParser2->SetCmdLine(_T("export \42 XX to YY adaptations\42 \42 Ruth.xml\42 \42C:\\Card1\42"));
+
+	int allswell = m_pParser2->Parse(); // allow continued processing if parse failed
+
+	// Note: returning here creates memory leaks, but it is not too serious since the
+	// program is terminating anyway.
+
+	int paramCount2 = m_pParser2->GetParamCount();
+	if (allswell == 0 && paramCount2 == 4)
 	{
-        // The -newdoc command-line parameter represents a path that the user wants to be
-        // locked in as the only path for finding new documents to adapt, so use it as the
-        // forced new documents path.
-		m_newdoc_forced_newDocPath = newdocPathStr;
+		// got a valid parse for the export command + params
+		m_autoexport_command = m_pParser2->GetParam(0);
+		if (m_autoexport_command == _T("export"))
+		{
+			m_autoexport_projectname = m_pParser2->GetParam(1);
+			m_autoexport_projectname.Trim(FALSE); // remove whitespace from left
+			m_autoexport_projectname.Trim(); // remove whitespace from right
+			m_autoexport_docname = m_pParser2->GetParam(2);
+			m_autoexport_docname.Trim(FALSE); // remove whitespace from left
+			m_autoexport_docname.Trim(); // remove whitespace from right
+			m_autoexport_outputpath = m_pParser2->GetParam(3);
+			m_autoexport_outputpath.Trim(FALSE); // remove whitespace from left
+			m_autoexport_outputpath.Trim(); // remove whitespace from right
+			m_bAutoExport = TRUE;
+		}
+		else
+		{
+			wxMessageBox(_("Command line, export command misspelled; parse failed"));
+			m_bAutoExport = FALSE;
+		}
 	}
-
-	wxString exportPathStr;
-	if (m_pParser->Found(_T("exports"), &exportPathStr))
+	else if (allswell > 0)
 	{
-        // The -exports command-line parameter represents a path that the user wants to be
-        // locked in as the folder path for saving all exports to, so use it as the
-        // forced exports path.
-		m_exports_forced_exportsPath = exportPathStr;
+		wxMessageBox(_("Command line, export command, parse error"));
+		m_bAutoExport = FALSE;
 	}
-
-	if (m_pParser->Found(_T("frm")))
-	{
-        // The -frm command-line parameter represents a choice to emasculate adaptation
-		// mode by forcing ON the "reviewing" radio button (ie. m_bDrafting = FALSE) at
-		// launch. It's intended for per-document launch via a shell script. Normal launches
-		// using the Programs menu or desktop shortcuts, etc, should not use this switch
-		// because it would turn off important functionality irrevokably on every launch
-		m_bForce_Review_Mode = TRUE;
-	}
-
-	//m_bForce_Review_Mode = TRUE; // for debugging the frm switch, comment out for
-								 // normal behaviours
-
+	*/
 
 	// Change the registry key to something appropriate
 	// MFC used: SetRegistryKey(_T("SIL-PNG Applications"));
@@ -7521,6 +7622,25 @@ while (resToken != "")
 			(wxRadioButton*)pControlBar->FindWindowById(IDC_RADIO_REVIEWING);
 		pReviewingBtn->Hide();
 	}
+	else if (m_bAutoExport)
+	{
+		// BEW added 12Nov09, do the auto-export here, if asked for, and shut
+		// down the app before returning; otherwise, continue for normal user
+		// GUI interaction...
+		// What we do here is bypass the Startup Wizard, calling OnOpenDocument()
+		// and passing in the absolute path to the document - after setting up
+		// a few string member variables (for filenames and paths) that would
+		// otherwise have been set up from using the wizard - such as the project
+		// folder name, the project folder path, and so forth. (Then in OnOpenDocument()
+		// at the end of it we have another test of m_bAutoExport, and in its block
+		// we do the export and shut the app down.)
+		wxString fullPath;
+		m_curProjectName = m_autoexport_projectname;
+		m_curProjectPath = m_workFolderPath + PathSeparator + m_curProjectName;
+		m_curAdaptionsPath = m_curProjectPath + PathSeparator + m_adaptionsFolder;
+		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
+		GetDocument()->OnOpenDocument(fullPath);
+	}
     return TRUE;
 }
 
@@ -7591,15 +7711,22 @@ int CAdapt_ItApp::OnExit(void)
 	bool bOK; // we won't care whether it succeeds or not, since the later 
 			  // Get... can use defaults
 	// WriteConfigurationFile selector 2 forces write of project config info
-	bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,2);
-
+	if (!m_bAutoExport)
+	{
+		// only write the project config file if we are not doing a command line export
+		bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,2);
+	}
     // clean up the help system
 	delete m_pHelpController;
 	m_pHelpController = (wxHtmlHelpController*)NULL;
 	delete wxHelpProvider::Set(NULL);
 
 	// call Terminate to get the app level 1 basic configuration file updated
-	Terminate();
+	if (!m_bAutoExport)
+	{
+		// only write the basic config file if we are not doing a command line export
+		Terminate();
+	}
 
     // WX Note: Our TargetBox is now a child of the view's canvas (which itself is derived
     // from wxScrolledWindow. As a child of the canvas window, m_pTargetBox will be
@@ -7609,9 +7736,6 @@ int CAdapt_ItApp::OnExit(void)
     // deleted again in the App's OnExit() method, when the App terminates.
 	//delete m_pTargetBox;
 	//m_pTargetBox = (CPhraseBox*)NULL;
-
-    delete m_pDocManager; // deleting this 
-	m_pDocManager = (wxDocManager*)NULL;
 
 	delete m_pConfig;
 	m_pConfig = (wxConfig*)NULL;
@@ -7625,6 +7749,8 @@ int CAdapt_ItApp::OnExit(void)
 
 	delete m_pParser;
 	m_pParser = (wxCmdLineParser*)NULL;
+	//delete m_pParser2; // BEW added 11Nov09
+	//m_pParser2 = (wxCmdLineParser*)NULL;
 
 	delete m_pSourceFont;
 	m_pSourceFont = (wxFont*)NULL;
@@ -7775,6 +7901,23 @@ int CAdapt_ItApp::OnExit(void)
 		m_pLayout->DestroyPiles();	// destroys each pile in m_pLayout's m_pPiles lists,
 									// and the CCell instances that each pile owns
 		delete m_pLayout;
+	}
+
+	// BEW added 12Nov09, for support of auto export from the command line
+	if (m_bAutoExport)
+	{
+		// try shut down by deleting the top window, which also halts the event loop
+		m_bAutoExport = FALSE;
+		//ExitMainLoop();
+		delete GetTopWindow();
+	}
+	else
+	{
+		// can't do this from a call of OnExit() from OnOpenDocument() without it
+		// asking if I want to save the document because it is changed, so I moved
+		// this to the end, and we do it only if not auto exporting
+		delete m_pDocManager; // deleting this 
+		m_pDocManager = (wxDocManager*)NULL;
 	}
 	return 0;
 }
@@ -8569,7 +8712,9 @@ bool CAdapt_ItApp::SetupDirectories()
                     // set up and it would be a nuisance to mention it already exists. The
                     // m_bUnpacking flag is cleared in the doc class's OnFileUnpackDoc()
                     // function.
-					if (!m_bUnpacking)
+					// BEW 12Nov09 added m_bAutoExport test to suppress the message when
+					// doing an autoexport from the command line
+					if (!m_bUnpacking && !m_bAutoExport)
 					{
 						wxString str;
 						// IDS_DUP_PROJECT_NAME
