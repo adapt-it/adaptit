@@ -5353,6 +5353,15 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp);
 	bool bOK = FALSE;
+
+	// BEW added 13Nov09, the local user, if he has only read-only access to a remote
+	// project folder, must not be able to cause saving of the KB data - otherwise the
+	// remote user would probably lose data added to the KB in his machine's memory
+	// since his last save; so prevent my machine's in-memory KB copy from being saved
+	// to his machine
+	if (pApp->m_bReadOnlyAccess)
+		return;
+
 	wxString mess;
 	mess.Empty();
 	if (gbIsGlossing)
@@ -8227,6 +8236,10 @@ void CAdapt_ItView::RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase)
 /// m_key (the function for storage exits if either does not yet exist in the KB, so the
 /// call is always safe) - we need this function for document rebuilding, where both KBs
 /// have to be updated in the one operation
+/// BEW note 13Nov09: we don't want to allow the local user to cause a document rebuild
+/// on a remote machine if the local use only has read-only access to the remote project
+/// folder. We'll therefore not allow access to the remote running instance's preferences
+/// in this circumstance.
 void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, 
 										wxString& adaptationStr, wxString& glossStr)
 {
@@ -11325,6 +11338,10 @@ bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgt
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 
+	// do not permit storage if the local user has read-only priveleges
+	if (pApp->m_bReadOnlyAccess)
+		return TRUE;
+
     // do not permit storage if the source phrase has an empty key (eg. user may have ...
     // ellipsis in the source text, which generates an empty key and three periods in the
     // punctuation)
@@ -11987,6 +12004,11 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 	wxASSERT(pApp != NULL);
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
+
+	// do not permit storage if the local user has read-only priveleges
+	if (pApp->m_bReadOnlyAccess)
+		return TRUE;
+
 	if (gbAutoCaps)
 	{
 		bNoError = SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
@@ -12352,16 +12374,25 @@ void CAdapt_ItView::OnChangeInterfaceLanguage(wxCommandEvent& WXUNUSED(event))
 /// even that is maybe a bit too stringent). However our code won't support this currently
 /// because the USFM and Filtering pages do a lot of setup for USFM and filtering and for 
 /// that it looks into the doc- which therefore has to be open.
+/// BEW modified 13Nov09: if the local user has read-only access (to a remote project
+/// folder) it must not be possible to change the remote settings so as to initiate a
+/// rebuild of the remote document while the remote user is working with it, therefore
+/// disable the Preferences access in this circumstance
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateEditPreferences(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
 	if (gbShowTargetOnly)
 	{
 		event.Enable(FALSE);
@@ -17860,11 +17891,20 @@ y:						;
 /// active KB is not in a ready state, this handler disables the "Consistency Check..."
 /// item in the Edit menu, otherwise it enables the "Consistency Check..." item on the Edit
 /// menu.
+/// BEW modified 13Nov09, disable the consistency check menu item when the flag
+/// m_bReadOnlyAccess is TRUE (it must not be possible to initiate a consistency
+/// check when visiting a remote user's project folder -- it involves KB modifications
+/// and that would potentially lose data added to the remote user's remote KB by him)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event)
 {
 	CAdapt_ItDoc* pDoc = GetDocument();
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -28139,10 +28179,17 @@ bool CAdapt_ItView::IsFreeTranslationInSelection(SPList* pList)
 /// disabled if any of the following conditions is TRUE: Vertical Editing is in progress,
 /// the m_pActivePile is NULL, the application is in Free Translation mode. Otherwise it is
 /// enabled only if some source text selected.
+/// BEW modified 13Nov09 - don't allow local user with read-only access to cause
+/// update of a remote user's document's source text!
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event) 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 
 	// BEW updated, 11Apr08, to remove the "not when in free translation mode" modality
 	if (gbVerticalEditInProgress)
@@ -32359,10 +32406,17 @@ void CAdapt_ItView::EditSourceText(wxCommandEvent& event)
 /// dialog for marker transfer (This refactored version is part of a staged process, called
 /// "vertical editing" which makes use of a global struct, gEditRecord, defined at the top
 /// of this file.)
+/// BEW modified 13Nov09, if the local user has only read-only access to a remote
+/// project folder, do not permit him to force a source text edit upon the remote
+// user! (suppress here, and also in the update handler)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		return;
+	}
 	CAdapt_ItDoc* pDoc = GetDocument();
 	EditRecord* pRec = &gEditRecord; // local pointer to the global EditRecord
 
