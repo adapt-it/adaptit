@@ -78,12 +78,12 @@ void ReadOnlyProtection::Initialize()
 	m_strLocalUsername = GetLocalUsername();
 	if (m_strLocalUsername.IsEmpty())
 	{
-		m_strLocalUsername = _T("UnknownUser");
+		m_strLocalUsername = _T("UnknownUser"); // not localizable, just need 'something'
 	}
 	m_strLocalMachinename = GetLocalMachinename();
 	if (m_strLocalMachinename.IsEmpty())
 	{
-		m_strLocalMachinename = _T("UnknownMachine");
+		m_strLocalMachinename = _T("UnknownMachine"); // ditto
 	}
 	// set up the filename for read only protection, which is for this particular user
 	// and host machine; it remains unchanged for the session
@@ -236,7 +236,8 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 		// this message should be localizable; we allow processing to continue, returning an 
 		// empty string (the user should then retry to access a directory)
 		wxString mssg;
-		mssg.Format(_("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
+		mssg.Format(
+_("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
 				projectFolderPath);
 		wxMessageBox(mssg,_("Warning: Not a folder!"), wxICON_WARNING);
 		return theFilename;
@@ -251,7 +252,8 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 			// it didn't open, this is unexpected and probably is something for the developer
 			// to fix, so warn and abort
 			wxString mssg;
-			mssg.Format(_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."),
+			mssg.Format(
+_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."),
 				projectFolderPath);
 			wxMessageBox(mssg,_T("wxDir Error: Could not open directory"), wxICON_ERROR);
 			wxExit();
@@ -278,7 +280,8 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 				{
 					// unexpectedly failed to get it, so tell developer and then abort
 					wxString mssg;
-					mssg.Format(_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the file ~AIROP-*.lock, but GetFirst() failed to get it. Now aborting."),
+					mssg.Format(
+_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the file ~AIROP-*.lock, but GetFirst() failed to get it. Now aborting."),
 						projectFolderPath);
 					wxMessageBox(mssg,_T("wxDir Error: GetFirst() failed"), wxICON_ERROR);
 					wxExit();
@@ -297,7 +300,8 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 		// the directory should exist - warn user and call OnExit() to abort; only the 
 		// developers should ever get to see this error so don't make it localizable
 		wxString mssg;
-		mssg.Format(_T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder was tested and found to not exist! Now aborting."),
+		mssg.Format(
+_T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder was tested and found to not exist! Now aborting."),
 			projectFolderPath);
 		wxMessageBox(mssg,_T("wxDir Error: directory does not exist"), wxICON_ERROR);
 		wxExit();
@@ -394,7 +398,8 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedByAnother(wxString& projectFolde
 				// folder - and that would break the constraint that we allow only one
 				// such file per project folder - so the developer needs to know & fix it
 				wxString mssg;
-				mssg.Format(_T("IsTheProjectFolderOwnedByAnother(): the zombie read-only protection file: %s, in the project folder: %s, was not successfully removed. Now aborting."),
+				mssg.Format(
+_T("IsTheProjectFolderOwnedByAnother(): the zombie read-only protection file: %s, in the project folder: %s, was not successfully removed. Now aborting."),
 					m_strOwningReadOnlyProtectionFilename, projectFolderPath);
 				wxMessageBox(mssg,_T("ReadOnlyProtection Error: zombie not removed"), wxICON_ERROR);
 				wxExit();
@@ -423,7 +428,7 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath) // c
 	{
 		// inform the user he has only read-only access; the message is localizable
 		wxMessageBox(
-		_("You have READ_ONLY access to this project."),_T("Project was already opened by another"),
+_("You have READ_ONLY access to this project, until the other person leaves the project folder."),_("Another person has write permission"),
 		wxICON_INFORMATION);
 		return TRUE; // the caller which receives this value must be app member m_bReadOnlyAccess
 	}
@@ -449,28 +454,108 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath) // c
 	}
 	else
 	{
-		// I must have ownership, so nothing to do except check the assertion in debug mode
-		wxASSERT(!IsDifferentUserOrMachine(m_strLocalMachinename, m_strLocalUsername,
-												m_strOwningMachinename, m_strOwningUsername));
-		wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
+		// I must have ownership, so nothing to do except check it's so
+		bool bItsMe = !IsDifferentUserOrMachine(m_strLocalMachinename, m_strLocalUsername,
+												m_strOwningMachinename, m_strOwningUsername);
+		if (!bItsMe)
+		{
+			// if it is not me, then who is it? It should not be possible to get into
+			// this block, so do something useful here & it may involve some correction
+			// manually (such as restarting the machine)
+			wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
 												m_strReadOnlyProtectionFilename;
-		m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write);// try to open it for writing
-		wxASSERT(!m_pApp->m_pROPwxFile->IsOpened()); // check it failed to be opened (because it's already open)
+			// try to open it for writing
+			m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write);
+			// check if it failed to be opened (because it's already open)
+			bool bFailedToOpen = !m_pApp->m_pROPwxFile->IsOpened();
+			if (bFailedToOpen)
+			{
+				// We've a problem Houston! Someone has hold of the project folder, but we
+				// have already determined above that that was not the case. Tell the user
+				// what to do.
+				wxMessageBox(
+_("Someone other than you has ownership for writing to this project. This will prevent you saving your work. Either wait until the other person leaves the project, or shut down your machine to break the connection and then start it again."),_("Project is owned by someone else"),
+				wxICON_INFORMATION);
+				return TRUE;
+			}
+			else
+			{
+				// it was opened, so must be a zombie -- try get rid of it and then
+				//  become the owner
+				m_pApp->m_pROPwxFile->Close(); // close wxFILE object
+				wxString ropFile = GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
+				bool bAlreadyOpen = FALSE;
+				bool bRemoved = RemoveROPFile(projectFolderPath, ropFile, bAlreadyOpen);
+				if (bRemoved && !bAlreadyOpen)
+				{
+					// it should now be possible to become the owner of write privileges
+					m_strOwningMachinename = m_strLocalMachinename;
+					m_strOwningUsername = m_strLocalUsername;
+					m_strOwningReadOnlyProtectionFilename = m_strReadOnlyProtectionFilename;
+					wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
+															m_strReadOnlyProtectionFilename;
+					m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write);
+					wxASSERT(m_pApp->m_pROPwxFile->IsOpened()); // check it got opened
+				}
+				else
+				{
+					wxMessageBox(
+_("Something unknown is preventing you from getting write access to the project. This will prevent you saving your work. Shut down your machine and then start it again."),_("Unknown write priveleges problem"),
+					wxICON_INFORMATION);
+					return TRUE;
+				}
+			}
+		}
 	}
 	return FALSE; // the caller which receives this value must be app member m_bReadOnlyAccess
 }
 
-// the return value always should clear pApp->m_bReadOnlyAccess to FALSE
+// Removal can only be done by the user who currently has ownership of write permission
+// for the passed in project folder; a second person coming along later cannot force the
+// owner to relinquish ownership.
+// The return value always should clear pApp->m_bReadOnlyAccess to FALSE
 bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath) // call when leaving project
 {
-	wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
-												m_strOwningReadOnlyProtectionFilename;
+	wxString readOnlyProtectionFilePath = 
+		projectFolderPath + m_pApp->PathSeparator + m_strOwningReadOnlyProtectionFilename;
 	wxASSERT(::wxFileExists(readOnlyProtectionFilePath));
-	m_pApp->m_pROPwxFile->Close();
-	bool bRemoved = ::wxRemoveFile(readOnlyProtectionFilePath);
-	// check it got removed (release build will just assume it did, this is unlikely to fail)
-	bRemoved = bRemoved; // prevent compiler warning
-	wxASSERT(bRemoved);
+
+	bool bOwnedByAnother = IsTheProjectFolderOwnedByAnother(projectFolderPath);
+	if (bOwnedByAnother)
+	{
+		// then I can't own it, so my leaving the project folder has to leave the current
+		// owner's write permission unchanged (his ~AIROP*.lock file remains as is), and
+		// all I do on my running AI instance is clear my local member variables, and
+		// set my local m_bReadOnlyAccess to default FALSE (for wherever I'm going next)
+		m_strOwningMachinename.Empty();
+		m_strOwningUsername.Empty();
+		m_strOwningReadOnlyProtectionFilename.Empty();
+		return FALSE; // the caller which receives this value must be app member m_bReadOnlyAccess
+	}
+	else
+	{
+		// it's either owned by me, or its a zombie (possibly left over from a crash or power
+		// loss) - find out which is the case and do the required removal actions
+		wxString ropFile = GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
+		bool bIsZombie = IsTheReadOnlyProtectionFileAZombie(projectFolderPath,ropFile);
+		bool bRemoved = FALSE;
+		if (bIsZombie)
+		{
+			// it's closed already, so just remove it
+			bRemoved = ::wxRemoveFile(readOnlyProtectionFilePath);
+		}
+		else
+		{
+			// it's not yet closed and I own it, so close it and remove it
+			m_pApp->m_pROPwxFile->Close();
+			bRemoved = ::wxRemoveFile(readOnlyProtectionFilePath);
+		}
+		// check it got removed (release build will just assume it did, this is unlikely to fail)
+		wxASSERT(bRemoved);
+	}
+	// clear my local member variables and have the caller set m_bReadOnlyAccess to FALSE
+	// (yes, I know this code is above and the function could be written simpler, but it
+	// is easier to follow what's going on this way)
 	m_strOwningMachinename.Empty();
 	m_strOwningUsername.Empty();
 	m_strOwningReadOnlyProtectionFilename.Empty();

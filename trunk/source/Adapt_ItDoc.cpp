@@ -90,6 +90,7 @@
 #include "UnpackWarningDlg.h"
 #include "Layout.h"
 #include "ExportFunctions.h"
+#include "ReadOnlyProtection.h"
 
 // forward declarations for functions called in tellenc.cpp
 // GDLC Temporary work around for PPC STL library bug
@@ -337,6 +338,10 @@ CAdapt_ItDoc::~CAdapt_ItDoc() // from MFC version
 ///     node position.
 /// 13. [added] call OnInitialUpdate() which needs to be called before the
 ///     view is shown.
+/// BEW added 13Nov09: call of m_bReadOnlyAccess = SetReadOnlyProtection(), in order to give
+/// the local user in the project ownership for writing permission (if FALSE is returned)
+/// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnOpenDocument()
+/// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnNewDocument()
 // ammended for support of glossing or adapting
@@ -949,6 +954,14 @@ bool CAdapt_ItDoc::OnNewDocument()
 		fileHistory->AddFileToHistory(wxT("[tempDummyEntry]"));
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
+
+	// BEW added 13Nov09, for setting or denying ownership for writing permission.
+	// This is something we want to do each time a doc is created (or opened) - if the
+	// local user already has ownership for writing, no change is done and he retains it;
+	// but if he had read only access, and the other person has relinquished the project,
+	// then the local user will now get ownership. 
+	pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
+
 	return TRUE;
 }
 
@@ -2621,6 +2634,10 @@ bool CAdapt_ItDoc::OnSaveModified()
 /// Opens the document at filename and does the necessary housekeeping and initialization of
 /// KB data structures for an open document.
 /// [see also notes within in the function]
+/// BEW added 13Nov09: call of m_bReadOnlyAccess = SetReadOnlyProtection(), in order to give
+/// the local user in the project ownership for writing permission (if FALSE is returned)
+/// or READ-ONLY access (if TRUE is returned). (Also added to LoadKB() and OnNewDocument()
+/// and OnCreate() for the view class.)
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename) 
 {
@@ -3039,6 +3056,19 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		rv  = rv; // prevent compiler warning
 
 		return FALSE;
+	}
+	else
+	{
+		// BEW added 13Nov09, for setting or denying ownership for writing permission.
+		// This is something we want to do each time a doc is opened - if the local user
+		// already has ownership for writing, no change is done and he retains it; but
+		// if he had read only access, and the other person has relinquished the project,
+		// then the local user will now get ownership. We do this here in the else block
+		// because we don't want to support this functionality for automated adaptation
+		// exports from the command line because those have the app open only for a few 
+		// seconds at most, and when they happen they change nothing so can be done
+		// safely no matter who currently has ownership for writing.
+		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 	}
 
 	return TRUE;
@@ -10466,7 +10496,18 @@ bool CAdapt_ItDoc::DeleteContents()
 /// the Doc's OnCloseDocument(), the View's OnFileCloseProject(), DoConsistencyCheck().
 /// Deletes the Knowledge Base after emptying and deleting its maps and its contained 
 /// list of CTargetUnit instances, and each CTargetUnit's contained list of CRefString 
-/// objects.
+/// objects. (Note: OnCloseDocument() is not called explicitly by the Adapt It
+/// code. It is called only by the framework when the application is being shut down.
+/// Therefore it really involves a project closure as well, and therefore Erasure
+/// of the KB and GlossingKB is appropriate; if the doc is dirty, then the user will
+/// be given a chance to save it, and if he does, the KBs get saved then automatically
+/// too.)
+/// BEW added 13Nov09: removal of read-only protection (which involves unlocking
+/// the ~AIROP-machinename-user-name.lock file, and removing it from the project
+/// folder, rendering the project ownable for writing by whoever first enters it
+/// subsequently). Doing this is appropriate in EraseKB() because EraseKB() is
+/// called whenever the project is being left by whoever has current ownership
+/// permission.
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::EraseKB(CKB* pKB)
 {
@@ -10522,6 +10563,11 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 		delete pKB;
 		pKB = (CKB*)NULL;
 	}
+
+	// BEW added 13Nov09, for restoring the potential for ownership for write permission
+	// of the current accessed project folder.
+	gpApp->m_bReadOnlyAccess = gpApp->m_pROP->SetReadOnlyProtection(gpApp->m_curProjectPath);
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
