@@ -73,6 +73,7 @@
 
 // includes below uncomment as implemented
 #include "Adapt_It.h"
+#include "ReadOnlyProtection.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
 #include "EditPreferencesDlg.h" 
@@ -1614,19 +1615,6 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 		// alternate path names, file names, and backup paths and filenames.
 		pApp->SetupKBPathsEtc();
 
-		/* bad code, uses old filenames 
-		pApp->m_curKBName = pApp->m_curProjectName + _T(".KB");
-		pApp->m_curKBPath = pApp->m_curProjectPath + pApp->PathSeparator + pApp->m_curKBName;
-		pApp->m_curKBBackupPath = pApp->m_curProjectPath + pApp->PathSeparator + 
-												pApp->m_curProjectName + _T(".BAK");
-
-		// now the same stuff for the glossing KB
-		pApp->m_curGlossingKBPath = pApp->m_curProjectPath + pApp->PathSeparator + 
-												pApp->m_curGlossingKBName; // version 2
-		pApp->m_curGlossingKBPath  += _T(".KB"); // version 2
-		pApp->m_curGlossingKBBackupPath = pApp->m_curProjectPath + pApp->PathSeparator + 
-												pApp->m_curGlossingKBName + _T(".BAK");
-		*/
 		if (::wxFileExists(pApp->m_curKBPath)) //if (cFile.GetStatus(m_curKBPath,status))
 		{
 			// there is an existing .KB file, so we need to create a CKB instance in
@@ -1715,6 +1703,10 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 				wxASSERT(FALSE);
 				wxExit();
 			}
+
+			// BEW added 13Nov09: give the local user ownership for writing, or deny it if
+			// somehow someone else has gotten ownership of the project folder already
+			pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 		}
 	}
     return TRUE;

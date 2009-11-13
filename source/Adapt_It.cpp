@@ -119,6 +119,7 @@
 // Other includes
 #include "AIPrintout.h"
 #include "Adapt_It.h"
+#include "ReadOnlyProtection.h"
 #include "MainFrm.h"
 #include "Adapt_ItDoc.h"
 #include "Adapt_ItView.h"
@@ -154,7 +155,6 @@
 #include "ConsistentChanger.h"
 #include "ChooseLanguageDlg.h"
 #include "Layout.h"
-#include "ReadOnlyProtection.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -10019,6 +10019,10 @@ bool CAdapt_ItApp::LoadGlossingKB()
 /// and CProjectPage::OnWizardPageChanging() when moving forward. Reads the data from an
 /// existing xml adapting KB file if present. If the xml KB file was not found (or could
 /// not be read), it creates a new (empty) adapting KB.
+/// BEW added 13Nov09: call of m_bReadOnlyAccess = SetReadOnlyProtection(), in order to give
+/// the person entering the project ownership for writing permission (if FALSE is returned)
+/// or READ-ONLY access (if TRUE is returned). (Also added to OnNewDocument & 
+/// OnOpenDocument() and OnCreate() for the view class.)
 /////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::LoadKB()
 {
@@ -10117,6 +10121,9 @@ bool CAdapt_ItApp::LoadKB()
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
 	m_bSaveAsXML = bSaveFlag;
+
+	// BEW added 13Nov09, for setting or denying ownership for writing permission
+	m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
 
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;

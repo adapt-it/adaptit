@@ -112,7 +112,7 @@ private:
 						// if removed okay, but if the return value is FALSE, then look at bAlreadyOpen
 						// which, if TRUE, indicates that the removal could not be done because the file
 						// was already opened for writing by someone else, if the bAlreadyOpen value is
-						// FALSE, then it was not removed becausee of an unknown failure of the internal
+						// FALSE, then it was not removed because of an unknown failure of the internal
 						// ::wxRemoveFile() call itself - in which case the caller should warn the user
 						// and abort the app
 	bool		IsTheProjectFolderOwnedByAnother(wxString& projectFolderPath); // TRUE if it is owned,
