@@ -997,16 +997,24 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 /// handler returns immediately. Otherwise, the item is enabled if the KB exists, and if 
 /// m_pSourcePhrases has at least one item in its list, and IsModified() returns TRUE; 
 /// otherwise the item is disabled.
+/// BEW modified 13Nov09, if the local user has only read-only access to a remote
+/// project folder, do not let him save his local copy of the remote document to the
+/// remote machine, otherwise the remote user is almost certainly to lose some edits
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileSave(wxUpdateUIEvent& event) 
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
 	if (pApp->m_pKB != NULL && pApp->m_pSourcePhrases->GetCount() > 0 && IsModified())
 		event.Enable(TRUE);
 	else
@@ -1986,13 +1994,24 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 /// Saves the current document and KB files in XML format and takes care of the necessary 
 /// housekeeping involved.
 /// Ammended for handling saving when glossing or adapting.
+/// BEW modified 13Nov09, if the local user has only read-only access to a remote
+/// project folder, the local user must not be able to cause his local copy of the 
+/// remote document to be saved to the remote user's disk; if that could happen, the
+/// remote user would almost certainly lose some of his edits
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg)
 {
+
 	// refactored 9Mar09
 	wxFile f; // create a CFile instance with default constructor
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
+
+	if (pApp->m_bReadOnlyAccess)
+	{
+		return TRUE; // let the caller think all is well, evene though the save is suppressed
+	}
+
     CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
 	
 	// make the working directory the "Adaptations" one; or the current Bible book folder
@@ -2401,11 +2420,20 @@ bool CAdapt_ItDoc::DoTransformedDocFileSave(wxString path)
 /// Called from: the Doc's OnFileClose() and CMainFrame's OnMRUFile().
 /// Takes care of saving a modified document, saving the project configuration file, and 
 /// other housekeeping tasks related to file saves.
+/// BEW modified 13Nov09: if local user has read-only access to a remote project
+/// folder, don't let any local actions result in saving the local copy of the document
+/// on the remote machine, otherwise some loss of edits may happen
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::OnSaveModified()
 {
 	// save project configuration fonts and settings
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+	if (pApp->m_bReadOnlyAccess)
+	{
+		return TRUE; // make the caller think a save etc was done
+	}
+
 	wxCommandEvent dummyevent;
 
 	// should not close a document or project while in "show target only" mode; so detect if that 
@@ -11247,9 +11275,16 @@ void CAdapt_ItDoc::OnFileNew(wxCommandEvent& event)
 /// If Vertical Editing is in progress the Split Document menu item is disabled and this
 /// handler returns immediately. Otherwise, it enables the Split Document command on the 
 /// Tools menu if a document is open, unless the app is in Free Translation Mode.
+/// BEW modified 13Nov09, don't allow user with read-only access to cause document
+/// change of this kind on the remote user's machine
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -11279,9 +11314,16 @@ void CAdapt_ItDoc::OnUpdateSplitDocument(wxUpdateUIEvent& event)
 /// Join Documents menu item is disabled and this handler returns immediately. It 
 /// enables the Join Document command if a document is open, otherwise it
 /// disables the command.
+/// BEW added 13Nov09, don't allow local user with read-only access to a remote project
+/// folder to make document changes of this kind on the remote machine
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -11309,9 +11351,16 @@ void CAdapt_ItDoc::OnUpdateJoinDocuments(wxUpdateUIEvent& event)
 /// vertical editing is in progress, or if the application is in Free Translation Mode.
 /// This event handler enables the Move Document command if a document is open, otherwise
 /// it disables the command.
+/// BEW added 13Nov09, don't allow local user with read-only access to a remote project
+/// folder to make document changes of this kind on the remote machine
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateMoveDocument(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -13234,9 +13283,15 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// returns immediately. It enables the menu item if there is a KB ready (even if only a
 /// stub), and the document is loaded, and documents are to be saved as XML is turned on;
 /// and glossing mode is turned off, otherwise the command is disabled.
+/// BEW modified 13Nov09, when read-only access to project folder, don't allow pack doc
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -13264,9 +13319,15 @@ void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 /// the menu is displayed.
 /// If Vertical Editing is in progress it disables the Unpack Document..." command on the File 
 /// menu, otherwise it enables the item as long as glossing mode is turned off.
+/// BEW modified 13Nov09, if read-only access to project folder, don't permit unpack doc
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 {
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);

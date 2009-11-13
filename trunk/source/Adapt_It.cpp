@@ -10449,6 +10449,10 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 {
 	// whm Note: This StoreGlossingKB() could easily be combined with the StoreKB()
 	// routine below into a single function
+
+	if (m_bReadOnlyAccess)
+		return TRUE; // BEW 13Nov09, not an error, just suppression of a remote save
+
 #ifdef SHOW_KB_I_O_BENCHMARKS
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
@@ -10608,10 +10612,13 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 ///////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 {
+	if (m_bReadOnlyAccess)
+		return TRUE; // BEW 13Nov09, not an error, just suppression of a remote save
 #ifdef SHOW_KB_I_O_BENCHMARKS
 	wxDateTime dt1 = wxDateTime::Now(),
 			   dt2 = wxDateTime::UNow();
 #endif
+
 	wxFile f; // create a CFile instance, using default constructor
 	wxString path;
 
@@ -10755,9 +10762,13 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 /// Called from: the App's SetupDirectories(), LoadKB(), SaveKB(), SubstituteKBBackup(),
 /// AccessOtherAdaptionProject(), the Doc's DoFileSave(), the View's OnCreate().
 /// Calls StoreKB() to store the KB data in the external xml file.
+/// BEW modified 13Nov09, don't permit saving of a remote KB if the local instance only
+/// has read-only access to the remote project
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 {
+	if (m_bReadOnlyAccess)
+		return TRUE; // not an error, just suppression of a remote save
 	if (bAutoBackup)
 	{
         // Do any needed adjustment to m_curKBBackupPath. Note -- this is different than
@@ -10798,9 +10809,13 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 /// SetupDirectories(), LoadKB(), SaveKB(), the View's OnFileSaveKB(), and
 /// OnToolsKbEditor().
 /// Calls StoreGlossingKB() to store the glossing KB data in the external xml file.
+/// BEW modified 13Nov09, don't permit saving of a remote KB if the local instance only
+/// has read-only access to the remote project
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 {
+	if (m_bReadOnlyAccess)
+		return TRUE; // not an error, just suppression of a remote save
 	if (bAutoBackup)
 	{
         // Do any needed adjustment to m_curGlossingKBBackupPath. Note -- this is different
@@ -11432,9 +11447,17 @@ void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event)
 /// As long as the active KB (glossing or regular) is in a ready state and there is at
 /// least one source phrase listed in m_pSourcePhrases, the "Restore Knowledge Base..."
 /// item on the File menu is enabled, otherwise it is disabled.
+/// BEW modified 19Nov09, suppress the menu item when local user has read-only access to
+/// a remote project (it must not be possible to initiate a KB restoration on the remote
+/// user's machine; that could lose some of his data. He must do it locally.)
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event) 
 {
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -16815,6 +16838,14 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename, 
 										  wxString destinationFolder,int selector)
 {
+	if (m_bReadOnlyAccess)
+	{
+		// BEW added 13Nov09, we don't allow the local user, if he has read-only access
+		// to a remote project folder, to cause project or basic config files on the
+		// remote machine to be written because of actions done on the local machine
+		return TRUE;
+	}
+
 	// BEW added 17Aug09, to allow OnExit() to be called without having config files
 	// composed and written out when in an error state early in app setup
 	if (m_bDoNotWriteConfigFiles)
@@ -19424,9 +19455,16 @@ void CAdapt_ItApp::OnAdvancedBookMode(wxCommandEvent& event)
 /// is enabled, the "Storing Documents in Book Folders" menu item on the Advanced menu is
 /// enabled, otherwise it is disabled. This handler also insures that the toggle state is
 /// ticked if On and unticked if Off.
+/// BEW added 13Nov09, don't allow local user with read-only access to a remote project
+/// folder to make document or folder changes of this kind on the remote machine
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateAdvancedBookMode(wxUpdateUIEvent& event) 
 {
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
