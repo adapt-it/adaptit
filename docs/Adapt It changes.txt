@@ -101,6 +101,39 @@ until explicitly changed at some future time.
 menu, enabled provided the path to the custom folder is not a URI,
 so that the persistent work folder custom location becomes temporary
 - i.e. the path will be forgotten when the current session ends.
+* Added a read-only protection functionality, so that if the local
+user navigates, using the Custom Work Folder Location command,
+to a remote machine's Adapt It project folder which is currently
+in use by the remote user, any kb or document saving attempts
+by the local user will not do anything; the local user will only obtain
+read-only access. Whichever of the two users first accesses a given
+project will get ownership write privileges within the project folder,
+the user who arrives at the project folder second, will only get
+read-only access (actually, he will be able to do things normally on
+the local copy in memory from the remote machine's drive, but any
+attempt to save work to the remote machine will only simulate 
+a successful save, in actual fact, no save it done This protects the
+remote user from unknowingly losing work because of actions done
+by a snooping administrator from a different machine somewhere on
+the local network. Whoever gets ownership of the project folder
+for writing, Adapt It will save a file with name
+"~AIROP-machinename-username.lock" in that folder, and open
+it for writing. Adapt It will fill in machinename and username with
+the appropriate names automatically retreived from the machine
+which is running the Adapt It instance that succeeded in obtaining
+ownership for writing. When no such file is present in a folder,
+the next person entering that folder will get ownership of it. The
+management of this functionality is totally automatic, no user or
+administrator need do anything in normal operation. Ownerhip is 
+lost when you leave the project folder. It is gained when entering
+the project folder, provided noone else alrealdy has ownership.
+Whenever you open a new document in the project, an attempt
+is made to give you ownership rights - but you won't get them
+unless the previous owner has relinquished the project folder.
+This protection functionality is "always turned on". It can't be 
+turned off. It works whether or not you are trying to access
+a folder on a remote machine, or just doing your normal work
+on your own machine.
 
 ----------------------------------------------
 Bug fixes in 5.2.0
