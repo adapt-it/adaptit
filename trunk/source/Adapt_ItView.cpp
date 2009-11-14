@@ -11338,10 +11338,6 @@ bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgt
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
 
-	// do not permit storage if the local user has read-only priveleges
-	if (pApp->m_bReadOnlyAccess)
-		return TRUE;
-
     // do not permit storage if the source phrase has an empty key (eg. user may have ...
     // ellipsis in the source text, which generates an empty key and three periods in the
     // punctuation)
@@ -12004,11 +12000,6 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 	wxASSERT(pApp != NULL);
 	// determine the auto caps parameters, if the functionality is turned on
 	bool bNoError = TRUE;
-
-	// do not permit storage if the local user has read-only priveleges
-	if (pApp->m_bReadOnlyAccess)
-		return TRUE;
-
 	if (gbAutoCaps)
 	{
 		bNoError = SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
