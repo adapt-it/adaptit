@@ -309,6 +309,7 @@ _T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in p
 	return theFilename;
 }
 
+/* f.IsOpened() returns true if already opened, so is a bad test - try remove instead
 bool ReadOnlyProtection::IsTheReadOnlyProtectionFileAZombie(wxString& folderPath, wxString& ropFile)
 {
 	wxString pathToFile = folderPath + m_pApp->PathSeparator + ropFile;
@@ -327,7 +328,49 @@ bool ReadOnlyProtection::IsTheReadOnlyProtectionFileAZombie(wxString& folderPath
 		return FALSE;
 	}
 }
+*/
+bool ReadOnlyProtection::IsTheReadOnlyProtectionFileAZombie(wxString& folderPath, wxString& ropFile)
+{
+	wxString pathToFile = folderPath + m_pApp->PathSeparator + ropFile;
+	bool bAlreadyOpen = FALSE;
+	wxASSERT(::wxFileExists(pathToFile));
+	bool bRemoved = RemoveROPFile(folderPath,ropFile,bAlreadyOpen);
+	if (bRemoved)
+	{
+		// we were able to remove it, so it must have been a zombie
+		wxASSERT(!bAlreadyOpen);
+		return TRUE;
+	}
+	else
+	{
+		// we could not remove it, so it is already opened by someone else,
+		// so not a zombie, and so it remains undeleted
+		wxASSERT(bAlreadyOpen);
+		return FALSE;
+	}
+}
 
+bool ReadOnlyProtection::RemoveROPFile(wxString& folderPath, wxString& ropFile, 
+										bool& bAlreadyOpen)
+{
+	bAlreadyOpen = FALSE;
+	wxString pathToFile = folderPath + m_pApp->PathSeparator + ropFile;
+	wxASSERT(::wxFileExists(pathToFile));
+	// in case IsTheReadOnlyProtectionFileAZombie() was not called before calling
+	// RemoveROPFile(), we'll try a removal and if it fails assume it was because
+	// it was already open
+	bool bRemoved = ::wxRemoveFile(pathToFile);
+	if (bRemoved)
+	{
+		bAlreadyOpen = FALSE;
+	}
+	else
+	{
+		bAlreadyOpen = TRUE;
+	}
+	return bRemoved;
+}
+/* old version, assumed f.IsOpened() would yield false if it was already open, but not so
 bool ReadOnlyProtection::RemoveROPFile(wxString& folderPath, wxString& ropFile, 
 										bool& bAlreadyOpen)
 {
@@ -352,7 +395,8 @@ bool ReadOnlyProtection::RemoveROPFile(wxString& folderPath, wxString& ropFile,
 	bool bRemoved = ::wxRemoveFile(pathToFile); //
 	return bRemoved;
 }
-
+*/
+/* old version, I now delete the file in the zombie test so need different syntax
 bool ReadOnlyProtection::IsTheProjectFolderOwnedByAnother(wxString& projectFolderPath)
 {
 	bool bItsNotMe = FALSE; // assume I'm the owner of write permission until 
@@ -407,6 +451,52 @@ _T("IsTheProjectFolderOwnedByAnother(): the zombie read-only protection file: %s
 			}
 			// if we get to here, it was successfully removed, so the local user can
 			// now become the owner for writing
+			return FALSE;
+		}
+		// next, check out if I (the local user) can become the owner for writing; as
+		// the read-only protection file exists and is opened for writing - but is it
+		// mine, or someone else's?
+		m_strOwningMachinename = ExtractMachinename(m_strOwningReadOnlyProtectionFilename);
+		m_strOwningUsername = ExtractUsername(m_strOwningReadOnlyProtectionFilename);
+		bItsNotMe = IsDifferentUserOrMachine(m_strLocalMachinename, m_strLocalUsername,
+												m_strOwningMachinename, m_strOwningUsername);
+	}
+	return bItsNotMe;
+}
+*/
+bool ReadOnlyProtection::IsTheProjectFolderOwnedByAnother(wxString& projectFolderPath)
+{
+	bool bItsNotMe = FALSE; // assume I'm the owner of write permission until 
+							// proven otherwise
+	m_strOwningReadOnlyProtectionFilename.Empty();
+	m_strOwningUsername.Empty();
+	m_strOwningMachinename.Empty();
+	// get the file, if one exists in the folder, else get an empty string
+	m_strOwningReadOnlyProtectionFilename = 
+			GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
+	if (m_strOwningReadOnlyProtectionFilename.IsEmpty())
+	{
+		// there is no read-only protection file in this project folder
+		return FALSE; // tell caller I now have qualified to own it for writing
+	}
+	else
+	{
+		// there is a read-only protection file in this project, and so there
+		// are three possibilities:
+		// (1) it's a zombie left over after a crash or power loss
+		// (2) it's opened, but I'm the owner already (shouldn't happen often,
+		//		because we close and remove the file whenever the owner leaves
+		//		the owned project folder; so if it is present and not a zombie,
+		//		then (3) should be the case usually, but I'll allow for the
+		//		possibility of a novel set of actions that get the user back to
+		//		his own current project)
+		// (3) it's opened, and someone else has the ownership of write permission
+		bool bIsZombie = IsTheReadOnlyProtectionFileAZombie(projectFolderPath, 
+										m_strOwningReadOnlyProtectionFilename);
+		if(bIsZombie)
+		{
+			// it was a zombie, because it was removed in the above call...
+			// so the local user can now become the owner for writing
 			return FALSE;
 		}
 		// next, check out if I (the local user) can become the owner for writing; as
@@ -536,9 +626,57 @@ bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath) /
 	{
 		// it's either owned by me, or its a zombie (possibly left over from a crash or power
 		// loss) - find out which is the case and do the required removal actions
+		bool bRemoved = FALSE;
 		wxString ropFile = GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
 		bool bIsZombie = IsTheReadOnlyProtectionFileAZombie(projectFolderPath,ropFile);
+		if (bIsZombie)
+		{
+			// it's removed, so it was a zombie
+			bRemoved = TRUE;
+		}
+		else
+		{
+			// it's not yet removed and I must own it, so close it and remove it
+			m_pApp->m_pROPwxFile->Close();
+			bRemoved = ::wxRemoveFile(readOnlyProtectionFilePath);
+		}
+		// check it got removed (release build will just assume it did, this is unlikely to fail)
+		wxASSERT(bRemoved);
+	}
+	// clear my local member variables and have the caller set m_bReadOnlyAccess to FALSE
+	// (yes, I know this code is above and the function could be written simpler, but it
+	// is easier to follow what's going on this way)
+	m_strOwningMachinename.Empty();
+	m_strOwningUsername.Empty();
+	m_strOwningReadOnlyProtectionFilename.Empty();
+	return FALSE; // the caller which receives this value must be app member m_bReadOnlyAccess
+}
+/* old version
+bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath) // call when leaving project
+{
+	wxString readOnlyProtectionFilePath = 
+		projectFolderPath + m_pApp->PathSeparator + m_strOwningReadOnlyProtectionFilename;
+	wxASSERT(::wxFileExists(readOnlyProtectionFilePath));
+
+	bool bOwnedByAnother = IsTheProjectFolderOwnedByAnother(projectFolderPath);
+	if (bOwnedByAnother)
+	{
+		// then I can't own it, so my leaving the project folder has to leave the current
+		// owner's write permission unchanged (his ~AIROP*.lock file remains as is), and
+		// all I do on my running AI instance is clear my local member variables, and
+		// set my local m_bReadOnlyAccess to default FALSE (for wherever I'm going next)
+		m_strOwningMachinename.Empty();
+		m_strOwningUsername.Empty();
+		m_strOwningReadOnlyProtectionFilename.Empty();
+		return FALSE; // the caller which receives this value must be app member m_bReadOnlyAccess
+	}
+	else
+	{
+		// it's either owned by me, or its a zombie (possibly left over from a crash or power
+		// loss) - find out which is the case and do the required removal actions
 		bool bRemoved = FALSE;
+		wxString ropFile = GetReadOnlyProtectionFileInProjectFolder(projectFolderPath);
+		bool bIsZombie = IsTheReadOnlyProtectionFileAZombie(projectFolderPath,ropFile);
 		if (bIsZombie)
 		{
 			// it's closed already, so just remove it
@@ -561,5 +699,6 @@ bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath) /
 	m_strOwningReadOnlyProtectionFilename.Empty();
 	return FALSE; // the caller which receives this value must be app member m_bReadOnlyAccess
 }
+*/
 
 
