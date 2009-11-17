@@ -507,6 +507,14 @@ bool CAdapt_ItDoc::OnNewDocument()
 				delete pApp->m_pBuffer;
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pView->Invalidate();
+				// BEW added next line 16Nov09 for following reason:
+				// the flag is set TRUE in OnFileNew(), before handing control over to wxWidgets
+				// app class's OnFileNew(), and eventually view's OnCreate() is called -- this is
+				// okay if the user chooses a file to use for creating a new document, but if he
+				// cancels out of the file dialog, the cancel block's code (which is right here)
+				// didn't clear bUserSelectedFileNew to FALSE, which lead to an error, so we
+				// here do this fix
+				pApp->bUserSelectedFileNew = FALSE;	
 				GetLayout()->PlaceBox();
 			}
 			return FALSE;
