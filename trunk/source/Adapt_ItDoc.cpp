@@ -508,12 +508,12 @@ bool CAdapt_ItDoc::OnNewDocument()
 				pApp->m_pBuffer = (wxString*)NULL; // MFC had = 0
 				pView->Invalidate();
 				// BEW added next line 16Nov09 for following reason:
-				// the flag is set TRUE in OnFileNew(), before handing control over to wxWidgets
-				// app class's OnFileNew(), and eventually view's OnCreate() is called -- this is
-				// okay if the user chooses a file to use for creating a new document, but if he
-				// cancels out of the file dialog, the cancel block's code (which is right here)
-				// didn't clear bUserSelectedFileNew to FALSE, which lead to an error, so we
-				// here do this fix
+                // the flag is set TRUE in OnFileNew(), before handing control over to
+                // wxWidgets app class's OnFileNew(), and eventually view's OnCreate() is
+                // called -- this is okay if the user chooses a file to use for creating a
+                // new document, but if he cancels out of the file dialog, the cancel
+                // block's code (which is right here) didn't clear bUserSelectedFileNew to
+                // FALSE, which lead to an error, so we here do this fix
 				pApp->bUserSelectedFileNew = FALSE;	
 				GetLayout()->PlaceBox();
 			}
@@ -543,12 +543,13 @@ bool CAdapt_ItDoc::OnNewDocument()
 				// get only the directory part.
 				gpApp->m_lastSourceFileFolder = ::wxPathOnly(tempSelectedFullPath);
 		
-				// Check if it has an \id line. If it does, get the 3-letter book code. If a valid code
-				// is present, check that it is a match for the currently active book folder. If it isn't
-				// tell the user and abort the <New Document> operation, leaving control in the Document
-				// page of the wizard for a new attempt with a different source text file, or a change of 
-				// book folder to be done and the same file reattempted after that. If it is a matching
-				// book code, continue with setting up the new document.
+                // Check if it has an \id line. If it does, get the 3-letter book code. If
+                // a valid code is present, check that it is a match for the currently
+                // active book folder. If it isn't tell the user and abort the <New
+                // Document> operation, leaving control in the Document page of the wizard
+                // for a new attempt with a different source text file, or a change of book
+                // folder to be done and the same file reattempted after that. If it is a
+                // matching book code, continue with setting up the new document.
 				if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 				{
 					// do the test only if Book Mode is turned on
@@ -10727,6 +10728,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	//		Modify(FALSE)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+
 	EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 	pApp->m_pKB = (CKB*)NULL; // whm added
 	EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory - 
@@ -10742,6 +10744,21 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		pApp->m_nActiveSequNum = 0;
 	pApp->m_lastDocPath = pApp->m_curOutputPath;
 	pApp->nLastActiveSequNum = pApp->m_nActiveSequNum;
+
+	// try remove any read-only protection
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
+		if (bRemoved)
+		{
+			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+		}
+		else
+		{
+			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
+											// for this running process
+		}
+	}
 
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
     // lists, because each document, on opening it, it must start with a truly empty

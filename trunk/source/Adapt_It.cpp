@@ -6729,7 +6729,32 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	//
 	wxCommandEvent event = wxID_NEW;
 	OnFileNew(event);
-	//
+
+	// we'll want to remove the ~AIROP*.lock file that may get set up here, so
+	// use the project folder path, if set up, and remove the lock file 
+	if (!m_curProjectPath.IsEmpty())
+	{
+		bool bWasRemoved = m_pROP->RemoveReadOnlyProtection(m_curProjectPath);
+		if (bWasRemoved)
+		{
+			m_bReadOnlyAccess = FALSE; // this process can now have ownership for writing
+		}
+		else
+		{
+			m_bReadOnlyAccess = TRUE; // control should never enter this block, don't proceed
+			wxString mssg;
+			mssg.Format(
+_T("Read-only protection failed be removed. Remove the ~AIROP*.lock protection file from the project folder and re-launch. Now aborting.")
+			);
+			wxMessageBox(mssg,_T("OnInit() Initialization error"), wxICON_ERROR);
+			unsigned long pid = ::wxGetProcessId();
+			enum wxKillError killErr;
+			int rv = ::wxKill(pid,wxSIGTERM,&killErr); // makes OnExit() be called
+			rv  = rv; // prevent compiler warning
+			return FALSE;
+		}
+	}
+	
 	//CAdapt_ItView* pView;
 	//pView = (CAdapt_ItView*)m_pDocManager->CreateView(pDoc,wxDOC_NEW);
 
