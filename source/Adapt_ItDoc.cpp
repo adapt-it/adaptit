@@ -964,13 +964,47 @@ bool CAdapt_ItDoc::OnNewDocument()
 		fileHistory->RemoveFileFromHistory(0); // 
 	}
 
-	// BEW added 13Nov09, for setting or denying ownership for writing permission.
-	// This is something we want to do each time a doc is created (or opened) - if the
-	// local user already has ownership for writing, no change is done and he retains it;
-	// but if he had read only access, and the other person has relinquished the project,
-	// then the local user will now get ownership. 
-	pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
+    // BEW added 13Nov09, for setting or denying ownership for writing permission. This is
+    // something we want to do each time a doc is created (or opened) - if the local user
+    // already has ownership for writing, no change is done and he retains it; but if he
+    // had read only access, and the other person has relinquished the project, then the
+    // local user will now get ownership. 
+    // BEW modified 18Nov09: there is an OnFileNew() call made in OnInit() at application
+    // initialization time, and control goes to wxWidgets CreateDocument() which internally
+    // calls its OnNewDocument() function which then calls Adapt_ItDoc::OnNewDocument().
+    // If, in OnInit() we here, therefore, allow SetReadOnlyProtection() to be called,
+    // we'll end up setting read-only access off when the application is the only instance
+    // running and accessing the last used project folder (and OnInit() then has to be
+    // given code to RemoveReadOnlyProtection() immediately after the OnFileNew() call,
+    // because the latter is bogus, it is just to get the wxWidgets doc/view framework set
+    // up, and the "real" access of a project folder comes later, after OnInit() ends and
+    // OnIdle() runs and so the start working wizard runs, etc. All this is fine until we
+    // do the following: the user starts Adapt It and opens a certain project; then the
+    // user starts a second instance of Adapt It and opens the same project -- when this
+    // second process runs, and while still within the OnInit() function, it detects that
+    // the read-only protection file is currently open - and it is unable to remove it
+    // because this is not the original process (although a 'bogus' one) that obtained
+    // ownership of the project - and our code then aborts the second running Adapt It
+    // instance giving a message that it is going to abort. This is unsatisfactory because
+    // we want anyone, whether the same user or another, to be able to open a second
+    // instance of Adapt It in read-only mode to look at what is being done, safely, in the
+    // first running instance. Removing another process's open file is forbidden, so the
+    // only recourse is to prevent the 'bogus' OnFileNew() call within OnInit() from
+    // creating a read-only protection file here in OnNewDocument() if the call of the
+    // latter is caused from within OnInit(). We can do this by having an app boolean
+    // which is TRUE during OnInit() and FALSE thereafter. We'll call it:
+    // m_bControlIsWithinOnInit
+	if (!pApp->m_bControlIsWithinOnInit)
+	{
+		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 
+		if (pApp->m_bReadOnlyAccess)
+		{
+			// if read only access is turned on, force the background colour change to show
+			// now, instead of waiting for a user action requiring a canvas redraw
+			pApp->GetView()->canvas->Refresh();
+		}
+	}
 	return TRUE;
 }
 
@@ -2985,6 +3019,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 			pApp->m_pTargetBox->SetOwnForegroundColour(pLayout->GetTgtColor());
 		}
 
+
 		pView->PlacePhraseBox(pApp->m_pActivePile->GetCell(1),2); // selector = 2, because we
 			// were not at any previous location, so inhibit the initial StoreText call,
 			// but enable the removal from KB storage of the adaptation text (see comments under
@@ -3106,6 +3141,13 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		// seconds at most, and when they happen they change nothing so can be done
 		// safely no matter who currently has ownership for writing.
 		pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
+
+		if (pApp->m_bReadOnlyAccess)
+		{
+			// if read only access is turned on, force the background colour change to show
+			// now, instead of waiting for a user action requiring a canvas redraw
+			pApp->GetView()->canvas->Refresh();
+		}
 	}
 
 	return TRUE;
@@ -10603,8 +10645,8 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 
 	// BEW added 13Nov09, for restoring the potential for ownership for write permission
 	// of the current accessed project folder.
-	gpApp->m_bReadOnlyAccess = gpApp->m_pROP->SetReadOnlyProtection(gpApp->m_curProjectPath);
-
+	gpApp->m_bReadOnlyAccess = gpApp->m_pROP->RemoveReadOnlyProtection(gpApp->m_curProjectPath);
+	gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -10752,6 +10794,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		if (bRemoved)
 		{
 			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+			pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 		}
 		else
 		{

@@ -543,6 +543,24 @@ void CCell::Draw(wxDC* pDC)
 																	 // set to wxSOLID
 		pDC->SetTextBackground(wxColour(255,255,0)); // yellow
 	}
+	else
+	{
+		if (m_pLayout->m_pApp->m_bReadOnlyAccess)
+		{
+			// make the background be an insipid red colour
+			wxColour backcolor(255,225,232,wxALPHA_OPAQUE);
+			oldBkColor = pDC->GetTextBackground(); // white
+			pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
+			pDC->SetTextBackground(backcolor);
+		}
+		else
+		{
+			wxColour backcolor(255,255,255,wxALPHA_OPAQUE); // white
+			oldBkColor = pDC->GetTextBackground(); // dunno
+			pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
+			pDC->SetTextBackground(backcolor);
+		}
+	}
 
     // BEW added 11Oct05 to have the top cell of the pile background coloured if the click
     // was on a green wedge or note icon

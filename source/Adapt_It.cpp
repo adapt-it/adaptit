@@ -4862,6 +4862,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bControlIsWithinOnInit = TRUE;
 	m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
 						   // export, which takes three obligatory string parameters following
 						   // BEW added 12Nov09 for John Hatton & Steve McEvoy; if set in OnInit() 
@@ -6729,6 +6730,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	wxCommandEvent event = wxID_NEW;
 	OnFileNew(event);
 
+	/* don't need this, as use in OnNewDocument() of m_bControlIsWithinOnInit makes it unneeded
 	// we'll want to remove the ~AIROP*.lock file that may get set up here, so
 	// use the project folder path, if set up, and remove the lock file 
 	if (!m_curProjectPath.IsEmpty())
@@ -6740,12 +6742,13 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		}
 		else
 		{
-			m_bReadOnlyAccess = TRUE; // control should never enter this block, don't proceed
+			m_bReadOnlyAccess = TRUE; // control should never enter this block, don't 
+									  // proceed further if it does, abort instead
 			wxString mssg;
-			mssg.Format(
-_T("Read-only protection failed be removed. Remove the ~AIROP*.lock protection file from the project folder and re-launch. Now aborting.")
-			);
-			wxMessageBox(mssg,_T("OnInit() Initialization error"), wxICON_ERROR);
+			wxMessageBox(_T("Read-only protection was not removed. Remove the ~AIROP*.lock protection file from the project folder and re-launch. Now aborting."),_T("OnInit() Initialization error"), wxICON_ERROR);
+			// this is how to abort cleanly from within the OnInit() function
+			// (wxKill() is required, otherwise the process hangs around and that
+			// makes the system think the app is still running)
 			unsigned long pid = ::wxGetProcessId();
 			enum wxKillError killErr;
 			int rv = ::wxKill(pid,wxSIGTERM,&killErr); // makes OnExit() be called
@@ -6753,6 +6756,7 @@ _T("Read-only protection failed be removed. Remove the ~AIROP*.lock protection f
 			return FALSE;
 		}
 	}
+	*/
 	
 	//CAdapt_ItView* pView;
 	//pView = (CAdapt_ItView*)m_pDocManager->CreateView(pDoc,wxDOC_NEW);
@@ -7666,6 +7670,7 @@ while (resToken != "")
 		fullPath = m_curAdaptionsPath + PathSeparator + m_autoexport_docname;
 		GetDocument()->OnOpenDocument(fullPath);
 	}
+	m_bControlIsWithinOnInit = FALSE;
     return TRUE;
 }
 

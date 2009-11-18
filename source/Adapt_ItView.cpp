@@ -1706,7 +1706,10 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
 			// BEW added 13Nov09: give the local user ownership for writing, or deny it if
 			// somehow someone else has gotten ownership of the project folder already
-			pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
+			if (!pApp->m_curProjectPath.IsEmpty())
+			{
+				pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
+			}
 		}
 	}
     return TRUE;
@@ -5488,6 +5491,7 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		if (bRemoved)
 		{
 			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+			pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 		}
 		else
 		{
@@ -16589,6 +16593,24 @@ void CAdapt_ItView::ClobberDocument()
 	pApp->m_selectionLine = -1;
 	Invalidate(); // our own
 	GetLayout()->PlaceBox();
+
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
+		if (bRemoved)
+		{
+			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+			pApp->GetView()->canvas->Refresh(); // try force color change back to normal 
+				// white background -- it won't work as the canvas is empty, but the
+				// removal of read only protection is still done if possible
+		}
+		else
+		{
+			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
+											// for this running process
+		}
+	}
+
 
 	gbDoingInitialSetup = TRUE; // MFC note: Needed because the phrase box will not 
         //exist after the close is done, so if a <New Document> command is issued, then

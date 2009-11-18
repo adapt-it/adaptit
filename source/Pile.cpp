@@ -504,6 +504,25 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 	// get the navText color
 	wxColour navColor = m_pLayout->GetNavTextColor();
 
+	// BEW added 18Nov09, background colour change...
+	// change to light pink background if m_bReadOnlyAccess is TRUE
+	wxColour oldBkColor;
+	if (m_pLayout->m_pApp->m_bReadOnlyAccess)
+	{
+		// make the background be an insipid red colour
+		wxColour backcolor(255,225,232,wxALPHA_OPAQUE);
+		oldBkColor = pDC->GetTextBackground(); // white
+		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
+		pDC->SetTextBackground(backcolor);
+	}
+	else
+	{
+		wxColour backcolor(255,255,255,wxALPHA_OPAQUE); // white
+		oldBkColor = pDC->GetTextBackground(); // dunno
+		pDC->SetBackgroundMode(m_pLayout->m_pApp->m_backgroundMode);
+		pDC->SetTextBackground(backcolor);
+	}
+
 	// stuff below is for drawing the navText stuff above this pile of the strip
 	// Note: in the wx version m_bSuppressFirst is now located in the App
 	if (!gbShowTargetOnly)

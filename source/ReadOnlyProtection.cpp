@@ -153,7 +153,7 @@ wxString ReadOnlyProtection::ExtractUsername(wxString strFilename)
 	offset = theName.Find(_T("-")); // second hyphen, username follows it
 	wxASSERT(offset > 0);
 	theName = theName.Mid(offset + 1); // theName now starts with username
-	offset = theName.Find(m_strLock_Suffix); // finds the ".lock" string at end of theName
+	offset = theName.Find(_T("-")); // finds the next hyphen
 	wxASSERT(offset > 0);
 	theName = theName.Left(offset);
 	return theName;
@@ -282,11 +282,12 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 	{
 		// this message should be localizable; we allow processing to continue, returning an 
 		// empty string (the user should then retry to access a directory)
+        // NOTE: if .Format is used, it has to be embedded within wxMessageBox(), otherwise
+        // the box doesn't see the message and has very narrow width and no title
 		wxString mssg;
-		mssg.Format(
+		wxMessageBox(mssg.Format(
 _("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
-				projectFolderPath);
-		wxMessageBox(mssg,_("Warning: Not a folder!"), wxICON_WARNING);
+				projectFolderPath),_("Warning: Not a folder!"), wxICON_WARNING);
 		return theFilename;
 	}
 	bool bDirectoryExists = wxDir::Exists(projectFolderPath); // a static function
@@ -298,11 +299,13 @@ _("The project folder being tested, %s, is really a file. Adapt It will continue
 		{
 			// it didn't open, this is unexpected and probably is something for the developer
 			// to fix, so warn and abort
+            // NOTE: if .Format is used, it has to be embedded within wxMessageBox(),
+            // otherwise the box doesn't see the message and has very narrow width and no
+            // title
 			wxString mssg;
-			mssg.Format(
+			wxMessageBox(mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."),
-				projectFolderPath);
-			wxMessageBox(mssg,_T("wxDir Err: not opened dir"), wxICON_ERROR);
+			projectFolderPath),_T("wxDir() Err: directory not opened"), wxICON_ERROR);
 			wxExit();
 			return theFilename;
 		}
@@ -326,11 +329,13 @@ _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open 
 				if (!bGotIt)
 				{
 					// unexpectedly failed to get it, so tell developer and then abort
+                    // NOTE: if .Format is used, it has to be embedded within
+                    // wxMessageBox(), otherwise the box doesn't see the message and has
+                    // very narrow width and no title
 					wxString mssg;
-					mssg.Format(
-_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the file ~AIROP-*.lock, but GetFirst() failed to get it. Now aborting."),
-						projectFolderPath);
-					wxMessageBox(mssg,_T("wxDir Err: GetFirst failed"), wxICON_ERROR);
+					wxMessageBox(mssg.Format(
+_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the protection file of form ~AIROP-*.lock, but GetFirst() failed to get it. Now aborting."),
+					projectFolderPath),_T("wxDir() Err: GetFirst() failed"), wxICON_ERROR);
 					wxExit();
 					return theFilename;
 				}
@@ -346,11 +351,13 @@ _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the file ~A
 	{
 		// the directory should exist - warn user and call OnExit() to abort; only the 
 		// developers should ever get to see this error so don't make it localizable
+		// NOTE: if .Format is used, it has to be embedded within wxMessageBox(),
+		// otherwise the box doesn't see the message and has very narrow width and
+		// no title
 		wxString mssg;
-		mssg.Format(
+		wxMessageBox(mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder was tested and found to not exist! Now aborting."),
-			projectFolderPath);
-		wxMessageBox(mssg,_T("wxDir Err: dir not exist"), wxICON_ERROR);
+		projectFolderPath),_T("wxDir Err: dir not exist"), wxICON_ERROR);
 		wxExit();
 	}
 	// populate the "owning" private members before returning
