@@ -48,10 +48,14 @@ public:
 private:
 	wxString	m_strLocalUsername; // whoever is the user running this instance
 	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance
+	wxString	m_strLocalProcessID; // the running instance's PID converted to a wxString
+
 	wxString	m_strOwningUsername; // a holder for the Username parsed from the filename, and
 				// set to empty string whenever the target project folder is owned by nobody
 	wxString	m_strOwningMachinename; // a holder for the Machinename parsed from the filename,
 				// and set to empty string whenever the target project folder is owned by nobody
+	wxString	m_strOwningProcessID; // the owning process's PID converted to a wxString
+
 	wxString	m_strAIROP_Prefix; // first part of the filename (see OnInit())
 	wxString	m_strLock_Suffix; // the suffix to add to the filename's end (see OnInit())
 	wxString	m_strReadOnlyProtectionFilename; // has the form ~AIROP*.lock where * will
@@ -81,42 +85,59 @@ public:
 					// and the returned bool value must be used to set (TRUE) or clear (FALSE) the 
 					// app member m_bReadOnlyAccess
 	bool		RemoveReadOnlyProtection(wxString& projectFolderPath); // call when leaving project
-					// and the returned bool value must always be used to clear the app member 
-					// m_bReadOnlyAccess to FALSE
+                    // and the returned bool value must always be used to clear to FALSE or
+                    // set to TRUE the app member m_bReadOnlyAccess, according to whether
+                    // the attempt at removal succeeded or not, respectively
 private:
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
-	wxString	ExtractUsername(wxString strFilename); // pass filename by value so we can play
-													   // internally with impunity
-	wxString	ExtractMachinename(wxString strFilename); // pass filename by value so we can play
-													   // internally with impunity
+	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
+
+	wxString	ExtractUsername(wxString strFilename); 
+	wxString	ExtractMachinename(wxString strFilename); 
+	wxString	ExtractProcessID(wxString strFilename); 
+
 	wxString	MakeReadOnlyProtectionFilename(
 					const wxString prefix, // pass in m_strAIROP_Prefix
 					const wxString suffix, // pass in m_strLock_Suffix
 					const wxString machinename,
-					const wxString username); // return str of form ~AIROP*.lock where * will
-						// be machinename followed by username, delimited by single hyphens
-	bool		IsDifferentUserOrMachine(
+					const wxString username,
+					const wxString processID); // return str of form ~AIROP*.lock where * will
+						// be machinename followed by username, followed by processID,
+						// delimited by single hyphens
+	bool		IsDifferentUserOrMachineOrProcess(
 					wxString& localMachine,
 					wxString& localUser,
-					wxString& theOtherMachine,
-					wxString& theOtherUser); // return TRUE if users or machines or both don't match,
-						// return FALSE when both users and machines are the same (that is, FALSE
-						// means the running instance making the test has ownership of the project
-						// folder already, and so writing of KB and documents should not be prevented)
+					wxString& localProcessID,
+					wxString& theOwningMachine,
+					wxString& theOwningUser,
+					wxString& theOwningProcessID); // return TRUE if users or machines or 
+                        // or processes don't match; but return FALSE when all three are
+                        // the same (that is, FALSE means the running instance making the
+                        // test has ownership of the project folder already, and so writing
+                        // of KB and documents should not be prevented)
+	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
+                        // process which owns the write privilege to the project folder is
+                        // different from me on my machine running my process which gained
+                        // ownership of write privileges earlier
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
-	bool		IsTheReadOnlyProtectionFileAZombie(wxString& folderPath, wxString& ropFile); // return
-						// TRUE if it has not been opened (it must be left over after an abnormal
-						// machine shutdown or an app crash), so we'll want to know so we can remove it
-	bool		RemoveROPFile(wxString& folderPath, wxString& ropFile, bool& bAlreadyOpen); // return TRUE
-						// if removed okay, but if the return value is FALSE, then look at bAlreadyOpen
-						// which, if TRUE, indicates that the removal could not be done because the file
-						// was already opened for writing by someone else, if the bAlreadyOpen value is
-						// FALSE, then it was not removed because of an unknown failure of the internal
-						// ::wxRemoveFile() call itself - in which case the caller should warn the user
-						// and abort the app
-	bool		IsTheProjectFolderOwnedByAnother(wxString& projectFolderPath); // TRUE if it is owned,
-						// FALSE if it is owned by the local user, or if owned by nobody yet
+	bool		IsZombie(wxString& folderPath, wxString& ropFile); // return
+						// TRUE if it is not open(it must be left over after an abnormal
+						// machine shutdown or an app crash), or if my running process created
+						// the open read-only protection file - in either case, my process can
+						// remove it and I can become the owner for writing (again perhaps);
+						// but returning FALSE means some other process has the folder open:
+						// the other process could be another user's running AI, or even
+						// myself opening AI again and accessing the same project
+ 
+	bool		RemoveROPFile(wxString& folderPath, wxString& ropFile); // return TRUE
+						// if removed okay, but if the return value is FALSE then another process
+						// has the file open
+	
+	bool		IsTheProjectFolderOwnedForWriting(wxString& projectFolderPath); // TRUE if it
+						// is owned, FALSE if no protection file is in the project folder
+						// yet, or if there was such a protection file but it was a zombie
+						// (ie. not open for writing, so was left open by some kind of failure)
 
 	DECLARE_DYNAMIC_CLASS(ReadOnlyProtection) 
 	// Used inside a class declaration to declare that the objects of 

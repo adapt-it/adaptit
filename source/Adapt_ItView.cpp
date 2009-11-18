@@ -5482,6 +5482,21 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		return;
 	}
 
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
+		if (bRemoved)
+		{
+			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+		}
+		else
+		{
+			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
+											// for this running process
+		}
+	}
+
+
 	// then delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
 	pDoc->EraseKB(pApp->m_pKB);
