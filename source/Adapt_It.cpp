@@ -4898,7 +4898,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	
 
  	m_bForce_Review_Mode = FALSE; // BEW added 23Oct09, for Bob Eaton's "dumb mode" back 
->>>>>>> .r785
 								  // translating, via a frm switch for a launch from the
 								  // shell
 	m_bSkipBasicConfigFileCall = FALSE;
