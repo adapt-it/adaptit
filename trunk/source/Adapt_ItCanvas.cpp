@@ -138,7 +138,7 @@ extern bool gbIgnoreScriptureReference_Receive;
 extern bool gbIgnoreScriptureReference_Send;
 
 /// This global is defined in Adapt_It.cpp.
-//extern CAdapt_ItApp* gpApp; // for rapid access to the app class
+extern CAdapt_ItApp* gpApp; // for rapid access to the app class
 
 // IMPLEMENT_CLASS(CAdapt_ItCanvas, wxScrolledWindow)
 IMPLEMENT_DYNAMIC_CLASS(CAdapt_ItCanvas, wxScrolledWindow)
@@ -189,6 +189,18 @@ CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
 
 void CAdapt_ItCanvas::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
+	if (gpApp->m_bReadOnlyAccess)
+	{
+		// make the background be an insipid red colour
+		wxColour backcolor(255,225,232,wxALPHA_OPAQUE);
+		this->SetOwnBackgroundColour(backcolor);
+	}
+	else
+	{
+		wxColour backcolor(255,255,255,wxALPHA_OPAQUE); // white
+		this->SetOwnBackgroundColour(backcolor);
+		//this->SetOwnBackgroundColour(wxNullColour);
+	}
 	wxPaintDC paintDC(this);//wxAutoBufferedPaintDC paintDC(this);
 	// whm 9Jun07 Note: use of wxAutoBufferedPaintDC() is supposed to recognize when
 	// double buffering is being done by the system's graphics primitives, and avoids

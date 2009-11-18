@@ -2240,6 +2240,10 @@ public:
 	bool	m_bAutoExport; // default FALSE, set TRUE if the export command is used on launch,
 				// the command line should be export followed by "project folder name" followed
 				// by "document filename" followed by "path to output folder"
+	bool	m_bControlIsWithinOnInit; // TRUE when OnInit() has not finished, FALSE thereafter
+				// there is an extensive explanation of the need for this boolean at the end
+				// of Adapt_ItDoc::OnNewDocument() - it suppresses setting read-only protection
+				// while OnInit() is running
 
 	public:
 	AIPrintout* pAIPrintout;
