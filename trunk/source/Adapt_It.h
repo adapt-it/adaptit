@@ -2215,6 +2215,7 @@ public:
 	bool	m_bUnpacking;	// TRUE when Unpack Document... is in progress, else FALSE 
 				// (used in SetupDirectories())
 
+
 	// next two for read-only support....
 	// the next boolean is for support of read-only protection of the data accessed in a
 	// remote folder by a user on a remote machine, or a different account on local machine
@@ -2246,6 +2247,8 @@ public:
 				// while OnInit() is running
 
 	public:
+
+
 	AIPrintout* pAIPrintout;
 
 // Overrides
