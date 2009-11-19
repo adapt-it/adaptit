@@ -5411,6 +5411,11 @@ void CAdapt_ItView::OnFileSaveKB(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateFileSaveKB(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbIsGlossing)
 		event.Enable(pApp->m_bGlossingKBReady);
 	else
