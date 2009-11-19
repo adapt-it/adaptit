@@ -11450,6 +11450,11 @@ void CAdapt_ItApp::OnFileBackupKb(wxCommandEvent& WXUNUSED(event))
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnUpdateFileBackupKb(wxUpdateUIEvent& event) 
 {
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
 	if (gbIsGlossing)
 	{
 		if (m_bGlossingKBReady)
