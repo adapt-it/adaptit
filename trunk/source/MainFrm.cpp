@@ -3418,16 +3418,9 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 				pApp->m_bStartViaWizard = FALSE; // suppress this code from now on
 			}
 
-			// return FALSE;
-			//if (m_bNoAutoSave)
-			//{
-			//	//return FALSE;  // we can disable further OnIdle calls now, since autosave is OFF
-			//}
-			//else
-			//{
-			//	//return TRUE; // leave it on, so that time processing will continue for autosave
-			//	event.RequestMore(); // added
-			//}
+				// force the background colour to update, in case m_bReadOnlyAccess
+				// has just become TRUE
+				pView->canvas->Refresh();
 		}
 		//else
 		//{

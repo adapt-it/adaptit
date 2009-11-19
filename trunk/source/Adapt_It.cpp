@@ -10153,7 +10153,9 @@ bool CAdapt_ItApp::LoadKB()
 	m_bSaveAsXML = bSaveFlag;
 
 	// BEW added 13Nov09, for setting or denying ownership for writing permission
-	m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
+	// attempt to set it only if not already set
+	//if (!m_bReadOnlyAccess)
+		m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
 
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
