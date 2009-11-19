@@ -1708,6 +1708,8 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			// somehow someone else has gotten ownership of the project folder already
 			if (!pApp->m_curProjectPath.IsEmpty())
 			{
+				// Attempt to set it only if not already set...
+				//if (!pApp->m_bReadOnlyAccess)
 				pApp->m_bReadOnlyAccess = pApp->m_pROP->SetReadOnlyProtection(pApp->m_curProjectPath);
 			}
 		}
@@ -5485,21 +5487,20 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 		return;
 	}
 
+	/* unneeded, EraseKB() (called twice below) will do this internally
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
 		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
 		if (bRemoved)
 		{
 			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
-			pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 		}
-		else
-		{
-			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
-											// for this running process
-		}
+		// we are leaving this folder, so the local process must have m_bReadOnlyAccess unilaterally
+		// returned to a FALSE value - whether or not a ~AIROP-*.lock file remains in the folder
+		pApp->m_bReadOnlyAccess = FALSE;
+		pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
 	}
-
+	*/
 
 	// then delete each KB and make the app unable to use either further
 	gbJustClosedProject = TRUE;
@@ -16594,23 +16595,9 @@ void CAdapt_ItView::ClobberDocument()
 	Invalidate(); // our own
 	GetLayout()->PlaceBox();
 
-	if (!pApp->m_curProjectPath.IsEmpty())
-	{
-		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
-		if (bRemoved)
-		{
-			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
-			pApp->GetView()->canvas->Refresh(); // try force color change back to normal 
-				// white background -- it won't work as the canvas is empty, but the
-				// removal of read only protection is still done if possible
-		}
-		else
-		{
-			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
-											// for this running process
-		}
-	}
-
+	// this is called from a number of places, and is not the appropriate place for trying
+	// to remove read-only protection; on doc closure, do it instead from the more
+	// specific document class's function OnFileClose() which calls ClobberDocument()
 
 	gbDoingInitialSetup = TRUE; // MFC note: Needed because the phrase box will not 
         //exist after the close is done, so if a <New Document> command is issued, then

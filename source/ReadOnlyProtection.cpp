@@ -494,11 +494,19 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		bool bItsNotMe = IsItNotMe(projectFolderPath);
 		if (bItsNotMe)
 		{
-			// I don't qualify to own this project folder, I can only have read-only
-			// access (this message is localizable)
-			wxMessageBox(
+			// we can call SetReadOnlyProtection() serially, eg. when entering a
+			// project for the first time, and then each time a document is opened
+			// or created in that project folder; so we don't want to have this
+			// message shown more than once - so wrap it in a test so that once
+			// in the read-only folder, the user doesn't see it again
+			if (!m_pApp->m_bReadOnlyAccess)
+			{
+				// I don't qualify to own this project folder, I can only have read-only
+				// access (this message is localizable)
+				wxMessageBox(
 _("You have READ-ONLY access to this project folder."),_("Another process owns write permission"),
-			wxICON_INFORMATION);
+				wxICON_INFORMATION);
+			}
 			return TRUE; // return TRUE to app member m_bReadOnlyAccess
 		}
 		else

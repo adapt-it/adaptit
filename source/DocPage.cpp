@@ -863,7 +863,13 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 
 		gbDoingInitialSetup = FALSE;
 
-		gpApp->RefreshStatusBarInfo();
+		pApp->RefreshStatusBarInfo();
+		if (pApp->m_bReadOnlyAccess)
+		{
+			// try get an extra paint job done, so background will show all pink from the
+			// outset
+			pView->canvas->Refresh();
+		}
 		return; //return CPropertyPage::OnWizardFinish();
 	}
 	else // the user did not choose <New Document>
@@ -1053,6 +1059,12 @@ void CDocPage::OnWizardFinish(wxWizardEvent& WXUNUSED(event))
 						(dt2 - dt1).Format(_T("%l")).c_str());
 #endif
 
+		if (pApp->m_bReadOnlyAccess)
+		{
+			// try get an extra paint job done, so background will show all pink from the
+			// outset
+			pView->canvas->Refresh();
+		}
 		return; //return CPropertyPage::OnWizardFinish();
 	}
 }

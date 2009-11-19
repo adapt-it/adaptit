@@ -1002,7 +1002,7 @@ bool CAdapt_ItDoc::OnNewDocument()
 		{
 			// if read only access is turned on, force the background colour change to show
 			// now, instead of waiting for a user action requiring a canvas redraw
-			pApp->GetView()->canvas->Refresh();
+			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more efffective
 		}
 	}
 	return TRUE;
@@ -1184,6 +1184,32 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	{
 		bUserCancelled = TRUE;
 		return;
+	}
+
+	// BEW added 19Nov09, for read-only support; when a document is closed, attempt
+	// to remove any read-only protection that is current for this project folder, because
+	// the owning process may have come to have abandoned its ownership prior to the local
+	// user closing this document, and that gives the next document opened in this project
+	// by the local user the chance to own it for writing
+	if (!pApp->m_curProjectPath.IsEmpty())
+	{
+		// if unowned, or if my process has the ownership, then ownership will be removed
+		// at the doc closure (the ~AIROP-*.lock file will have been deleted), and TRUE
+		// will be returned to bRemoved - which is then used to clear m_bReadOnlyAccess
+		// to FALSE. This makes this project ownable by whoever next opens a document in it.
+		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
+		if (bRemoved)
+		{
+			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+			pApp->GetView()->canvas->Refresh(); // try force color change back to normal 
+				// white background -- it won't work as the canvas is empty, but the
+				// removal of read only protection is still done if possible
+		}
+		else
+		{
+			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
+				// for this running process, as we are still in this project folder
+		}
 	}
 	
 	bUserCancelled = FALSE;
@@ -3146,7 +3172,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 		{
 			// if read only access is turned on, force the background colour change to show
 			// now, instead of waiting for a user action requiring a canvas redraw
-			pApp->GetView()->canvas->Refresh();
+			pApp->GetView()->canvas->Refresh(); // needed? the call in OnIdle() is more effective
 		}
 	}
 
@@ -10645,8 +10671,18 @@ void CAdapt_ItDoc::EraseKB(CKB* pKB)
 
 	// BEW added 13Nov09, for restoring the potential for ownership for write permission
 	// of the current accessed project folder.
-	gpApp->m_bReadOnlyAccess = gpApp->m_pROP->RemoveReadOnlyProtection(gpApp->m_curProjectPath);
-	gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
+	if (!gpApp->m_curProjectPath.IsEmpty())
+	{
+		bool bRemoved = gpApp->m_pROP->RemoveReadOnlyProtection(gpApp->m_curProjectPath);
+		if (bRemoved)
+		{
+			gpApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
+		}
+		// we are leaving this folder, so the local process must have m_bReadOnlyAccess unilaterally
+		// returned to a FALSE value - whether or not a ~AIROP-*.lock file remains in the folder
+		gpApp->m_bReadOnlyAccess = FALSE;
+		gpApp->GetView()->canvas->Refresh(); // force color change back to normal white background
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -10771,6 +10807,7 @@ bool CAdapt_ItDoc::OnCloseDocument()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 
+	// the EraseKB() call will also try to remove any read-only protection
 	EraseKB(pApp->m_pKB); // remove KB data structures from memory - EraseKB in the App in wx
 	pApp->m_pKB = (CKB*)NULL; // whm added
 	EraseKB(pApp->m_pGlossingKB); // remove glossing KB structures from memory - 
@@ -10786,22 +10823,6 @@ bool CAdapt_ItDoc::OnCloseDocument()
 		pApp->m_nActiveSequNum = 0;
 	pApp->m_lastDocPath = pApp->m_curOutputPath;
 	pApp->nLastActiveSequNum = pApp->m_nActiveSequNum;
-
-	// try remove any read-only protection
-	if (!pApp->m_curProjectPath.IsEmpty())
-	{
-		bool bRemoved = pApp->m_pROP->RemoveReadOnlyProtection(pApp->m_curProjectPath);
-		if (bRemoved)
-		{
-			pApp->m_bReadOnlyAccess = FALSE; // project folder is now ownable for writing
-			pApp->GetView()->canvas->Refresh(); // force color change back to normal white background
-		}
-		else
-		{
-			pApp->m_bReadOnlyAccess = TRUE; // this project folder is still read-only
-											// for this running process
-		}
-	}
 
     // BEW added 21Apr08; clean out the global struct gEditRecord & clear its deletion
     // lists, because each document, on opening it, it must start with a truly empty
