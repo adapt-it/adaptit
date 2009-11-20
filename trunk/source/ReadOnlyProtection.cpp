@@ -37,12 +37,15 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/dir.h>
+#include <wx/filename.h>
 
 #include "Adapt_It.h"
 #include "ReadOnlyProtection.h"
 
 // Define type safe pointer lists
 //#include "wx/listimpl.cpp"
+
+#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -282,30 +285,39 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 	{
 		// this message should be localizable; we allow processing to continue, returning an 
 		// empty string (the user should then retry to access a directory)
-        // NOTE: if .Format is used, it has to be embedded within wxMessageBox(), otherwise
-        // the box doesn't see the message and has very narrow width and no title
 		wxString mssg;
-		wxMessageBox(mssg.Format(
+		mssg = mssg.Format(
 _("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
-				projectFolderPath),_("Warning: Not a folder!"), wxICON_WARNING);
+		projectFolderPath);
+		wxMessageBox(mssg, _("Warning: Not a folder!"), wxICON_WARNING);
 		return theFilename;
 	}
-	bool bDirectoryExists = wxDir::Exists(projectFolderPath); // a static function
+	// sadly the following wxDir class function does not support a path which is a URI
+	//bool bDirectoryExists = wxDir::Exists(projectFolderPath); // a static function
+	bool bDirectoryExists = ::wxDirExists(projectFolderPath);
+#ifdef _DEBUG_ROP
+	wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: projectFolderPath %s ,  exists? = %s"), 
+		projectFolderPath, bDirectoryExists ? _T("TRUE") : _T("FALSE"));
+#endif
 	if (bDirectoryExists)
 	{
+		// sadly in the next call, wxDir does not support a URI, and .HasFiles() call
+		// returns FALSE, but the dir.IsOpened() call works, so don't use .HasFiles()
 		wxDir dir(projectFolderPath);
 		bool bIsOpened = dir.IsOpened();
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder:  dir.IsOpened()? = %s"), 
+			bIsOpened ? _T("TRUE") : _T("FALSE"));
+#endif
 		if (!bIsOpened)
 		{
 			// it didn't open, this is unexpected and probably is something for the developer
 			// to fix, so warn and abort
-            // NOTE: if .Format is used, it has to be embedded within wxMessageBox(),
-            // otherwise the box doesn't see the message and has very narrow width and no
-            // title
 			wxString mssg;
-			wxMessageBox(mssg.Format(
-_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."),
-			projectFolderPath),_T("wxDir() Err: directory not opened"), wxICON_ERROR);
+			mssg = mssg.Format(
+_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."), 
+			projectFolderPath);
+			wxMessageBox(mssg, _T("wxDir() Err: directory not opened"), wxICON_ERROR);
 			wxExit();
 			return theFilename;
 		}
@@ -315,30 +327,33 @@ _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open 
 			// otherwise find (using wildcard *) the one and only read-only projection
 			// file - if it exists; if found, return it to caller, it none is found, return
 			// the empty string
-			bool bHasFiles = FALSE;
+			wxString aFile = _T("");  // store any read-only protection file we find, here
+
 			// make the wildcarded file spec
 			wxString theFileSpec = m_strAIROP_Prefix;
 			theFileSpec += _T("-*");
 			theFileSpec += m_strLock_Suffix;
-			bHasFiles = dir.HasFiles(theFileSpec); // try match "~AIROP-*.lock"
-			if (bHasFiles)
+            // use wxDir to enumerate all file in directory and look for the first which
+            // begins with "~AIROP-" and ends with ".lock"; or better still, use
+            // GetAllFiles() which is easier as it uses a string array & supports wildcards
+			wxArrayString files;
+			int numFiles = dir.GetAllFiles(projectFolderPath, &files, theFileSpec, wxDIR_FILES);
+			if (numFiles > 0)
 			{
-				// a file matching the specification is present, so get it & return its
-				// filename to the caller
-				bool bGotIt = dir.GetFirst(&theFilename, theFileSpec, wxDIR_FILES);
-				if (!bGotIt)
-				{
-					// unexpectedly failed to get it, so tell developer and then abort
-                    // NOTE: if .Format is used, it has to be embedded within
-                    // wxMessageBox(), otherwise the box doesn't see the message and has
-                    // very narrow width and no title
-					wxString mssg;
-					wxMessageBox(mssg.Format(
-_T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the protection file of form ~AIROP-*.lock, but GetFirst() failed to get it. Now aborting."),
-					projectFolderPath),_T("wxDir() Err: GetFirst() failed"), wxICON_ERROR);
-					wxExit();
-					return theFilename;
-				}
+				// a file matching ~AIROP-*.lock has been found, take the first such
+				// (there should only be one anyway)
+				wxString path = files.Item(0);
+				wxFileName fn(path);
+				aFile = fn.GetFullName();
+			}
+#ifdef _DEBUG_ROP
+			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: theFileSpec:  %s "),theFileSpec);
+			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: ::wxFindFirstFile returns:  %s "),
+				aFile.IsEmpty() ? _T("Empty String") : aFile);
+#endif
+			if (!aFile.IsEmpty())
+			{
+				theFilename = aFile;
 			}
 			else
 			{
@@ -351,13 +366,11 @@ _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s has the protect
 	{
 		// the directory should exist - warn user and call OnExit() to abort; only the 
 		// developers should ever get to see this error so don't make it localizable
-		// NOTE: if .Format is used, it has to be embedded within wxMessageBox(),
-		// otherwise the box doesn't see the message and has very narrow width and
-		// no title
 		wxString mssg;
-		wxMessageBox(mssg.Format(
-_T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder was tested and found to not exist! Now aborting."),
-		projectFolderPath),_T("wxDir Err: dir not exist"), wxICON_ERROR);
+		mssg = mssg.Format(
+_T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder does not exist! Now aborting."),
+		projectFolderPath);
+		wxMessageBox(mssg, _T("wxDir() Err: the directory does not exist"), wxICON_ERROR);
 		wxExit();
 	}
 	// populate the "owning" private members before returning
@@ -485,6 +498,10 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath) 
 {
 	bool bIsOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath);
+#ifdef _DEBUG_ROP
+	wxLogDebug(_T("\n **BEGIN** SetReadOnlyProtection:  Is the folder owned? bIsOwned = %s"), 
+			bIsOwned ? _T("TRUE") : _T("FALSE"));
+#endif
 	if (bIsOwned)
 	{
 		// we need to distinguish me on my machine in my running process, from
@@ -492,6 +509,10 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 		// which I initiated on this machine and am trying to access the same
 		// project folder that my earlier process succeeded in getting access to)
 		bool bItsNotMe = IsItNotMe(projectFolderPath);
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("SetReadOnlyProtection:  Is is NOT me?  bItsNotMe = %s"), 
+				bItsNotMe ? _T("TRUE") : _T("FALSE"));
+#endif
 		if (bItsNotMe)
 		{
 			// we can call SetReadOnlyProtection() serially, eg. when entering a
@@ -513,6 +534,9 @@ _("You have READ-ONLY access to this project folder."),_("Another process owns w
 		{
             // it's me, in the same process which originally got ownership so just return
             // FALSE as I have full write permission already, and FALSE maintains that
+#ifdef _DEBUG_ROP
+			wxLogDebug(_T("SetReadOnlyProtection:  Its ME,  so returning FALSE"));
+#endif
 			return FALSE;  // return FALSE to app member m_bReadOnlyAccess
 		}
 	}
@@ -537,6 +561,9 @@ _("You have READ-ONLY access to this project folder."),_("Another process owns w
 		m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write);
 		wxASSERT(m_pApp->m_pROPwxFile->IsOpened()); // check it got opened
 	}
+#ifdef _DEBUG_ROP
+	wxLogDebug(_T("SetReadOnlyProtection:  Nobody owns it yet,  so returning FALSE"));
+#endif
 	return FALSE; // return FALSE to app member m_bReadOnlyAccess
 }
 
