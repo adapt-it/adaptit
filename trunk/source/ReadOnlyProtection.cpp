@@ -45,7 +45,7 @@
 // Define type safe pointer lists
 //#include "wx/listimpl.cpp"
 
-#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
+//#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -71,6 +71,13 @@ ReadOnlyProtection::~ReadOnlyProtection()
 
 // implementation
 
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \remarks	Initialize the ReadOnlyProtection class. Specifically, for the local
+/// running Adapt It instance, and local user, on the local machine, create a suitable
+/// read-only protection file with .lock extension to be kept ready for use for as long as
+/// this session lasts. Called from CAdapt_ItApp::OnInit() only.
+///////////////////////////////////////////////////////////////////////////////////////////
 void ReadOnlyProtection::Initialize()
 {
 	m_strAIROP_Prefix = _T("~AIROP"); // first part of the filename
@@ -267,13 +274,17 @@ bool ReadOnlyProtection::IsDifferentUserOrMachineOrProcess(wxString& localMachin
 ///				if it exists in the folder; otherwise, an empty string
 ///	\param		projectFolderPath ->	absolute path to the project folder being checked
 /// \remarks	Search for a matching file in the project folder. wxRegEx class is not safe
-///				to use because regular expression support for Unicode may not work - one system
-///				does not support matching across character block boundaries, another (eg. VIM)
-///				allows this but limits matches to 128 (enough for our purposes but the wx 
-///				documentation doesn't indicate if this is supported). So we don't use regular
-///				expressions to obtain a match; instead, we search for the prefix "~AIROP" and
-///				the suffix ".lock" and the presence of two hyphens. That much extremely unlikely
-///				to occur by accident in an arbitrary filename from another unrelated source.
+///             to use because regular expression support for Unicode may not work - one
+///             system does not support matching across character block boundaries,
+///             another (eg. VIM) allows this but limits matches to 128 (enough for our
+///             purposes but the wx documentation doesn't indicate if this is
+///             supported). So we don't use regular expressions to obtain a match;
+///             instead, we enumerate all files matching a file specification which
+///             includes the prefix "~AIROP" and the suffix ".lock" and the presence of
+///             a hyphen following the prefix. That much extremely unlikely to occur by
+///             accident in an arbitrary filename from another unrelated source. There
+///             should only be one returned. An empty string is returned if there was no
+///             match made.
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath)
 {
@@ -411,6 +422,23 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if a created protection file (with form ~AIROP-*.lock, where * is
+///             machinename-username-processID) was removed, FALSE if it could not be
+///             removed.
+/// \param      projectFolderPath   ->  absolute path to the project folder which we are
+///                                     attempting to find out whether it is currently 
+///                                     owned for writing or not
+/// \param      ropFile             ->  filename for the read-only protection file; see
+///                                     other header comments for format - it's title
+///                                     includes the name of the machine, user, and the
+///                                     running process's integer ID.
+/// \remarks Does the work of removing a given read-only protection file (ROP file), but
+/// first it checks to make sure it is entitled to do the removal. The ROP file has to be
+/// owned my running Adapt It instance, and I must be the account holder, and the machine
+/// mine, to qualify for removal. It the user, machine, or process is not mine, then the
+/// file is left in place.
+////////////////////////////////////////////////////////////////////////////////////////////
 bool ReadOnlyProtection::RemoveROPFile(wxString& projectFolderPath, wxString& ropFile)
 {
 	wxString pathToFile = projectFolderPath + m_pApp->PathSeparator + ropFile;
@@ -458,6 +486,22 @@ bool ReadOnlyProtection::IsItNotMe(wxString& projectFolderPath)
 	return bItsNotMe;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if a created protection file (with form ~AIROP-*.lock, where * is
+///             machinename-username-processID) is already present in the passed in
+///             folder and is open for writing; if there is no such file in the folder
+///             yet, or if there is such a file but it is not opened for writing (ie. a
+///             zombie left over from a power down, or app crash), then return FALSE, and
+///             if there was a zombie, automatically remove it as well.
+/// \param      projectFolderPath   ->  absolute path to the project folder which we are
+///                                     attempting to find out whether it is currently 
+///                                     owned for writing or not
+/// \remarks A private function which finds out whether or not the folder is owned for
+/// writing by someone (whether me on my Adapt It instance, or someone else on some other
+/// machine). A side-effect of detecting a zombie projection file is to automatically
+/// remove it; only projection files currently open for writing are relevant for the
+/// return value, and if one such is present.
+//////////////////////////////////////////////////////////////////////////////////////////// 
 bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFolderPath)
 {
 	m_strOwningReadOnlyProtectionFilename.Empty();
@@ -493,8 +537,31 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 	return TRUE;
 }
 
-// the return value sets or clears pApp->m_bReadOnlyAccess
-// call when entering project or opening or creating a document
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if a created protection file (with form ~AIROP-*.lock, where * is
+///             machinename-username-processID) is already present in the passed in
+///             folder and is open for writing; if there is no such file in the folder
+///             yet, or if the folder already is owned by me from my running process, then
+///             return FALSE
+///	\param		projectFolderPath  ->  absolute path to the project folder containing the
+///	                                   read-only protection file which we are attempting
+///	                                   to protect from having data lost by access by a
+///	                                   remote running Adapt It instance
+/// \remarks The return value always must be assigned to the flag
+/// CAdapt_ItApp::m_bReadOnlyAccess. TRUE is returned if the folder is already owned by
+/// someone else, FALSE is returned if the local machine succeeds in getting ownership of
+/// the project folder for write purposes. If two instances of Adapt It access the same
+/// projrect folder, the winner as far as getting ownership of writing permission is the
+/// instance that enters the project first. Ownership is relinquished briefly while the
+/// owning instance closes a document and then opens a different document in the same
+/// project. This gives a remote instance a brief window of opportunity to get full
+/// access, but the remote instance would have to either enter the project during that
+/// brief window of opportunity, or open a document in the project during that window -
+/// either possibility is unlikely unless people explicitly agree and time their actions
+/// accordingly .
+/// Call this function when the running instance enters a project project or opens or
+/// creates a document
+//////////////////////////////////////////////////////////////////////////////////////////// 
 bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath) 
 {
 	bool bIsOwned = IsTheProjectFolderOwnedForWriting(projectFolderPath);
@@ -567,13 +634,20 @@ _("You have READ-ONLY access to this project folder."),_("Another process owns w
 	return FALSE; // return FALSE to app member m_bReadOnlyAccess
 }
 
-// Removal can only be done by the process which currently has ownership of write
-// permission for the passed in project folder; a second process coming along later cannot
-// force the owner to relinquish ownership. The return value always be used for setting
-// or clearing pApp->m_bReadOnlyAccess; TRUE is returned if Removal was successful, FALSE
-// is returned if ownership is retained be someone else because this process does not qualify
-// for removing of protection.
-// Call this function when the running instance relinguishes the project
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if the protection file (with form ~AIROP-*.lock, where * is
+///             machinename-username-processID) was successfully removed; else FALSE.
+///	\param		projectFolderPath  ->  absolute path to the project folder containing the
+///	                                   read-only protection file which we are attempting
+///	                                   to remove
+/// \remarks Removal can only be done by the process which currently has ownership of write
+/// permission for the passed in project folder; a second process coming along later cannot
+/// force the owner to relinquish ownership. The return value always be used for setting
+/// or clearing pApp->m_bReadOnlyAccess; TRUE is returned if Removal was successful, FALSE
+/// is returned if ownership is retained be someone else because this process does not qualify
+/// for removing of protection.
+/// Call this function when the running instance relinguishes the project
+//////////////////////////////////////////////////////////////////////////////////////////// 
 bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath) 
 {
 	// get the current protection file, if there is one (this call tests for a zombie
