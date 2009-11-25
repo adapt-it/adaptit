@@ -13373,14 +13373,17 @@ SPList *CAdapt_ItDoc::LoadSourcePhraseListFromFile(wxString FilePath)
 /// stub), and the document is loaded, and documents are to be saved as XML is turned on;
 /// and glossing mode is turned off, otherwise the command is disabled.
 /// BEW modified 13Nov09, when read-only access to project folder, don't allow pack doc
+/// BEW 25Nov09, to allow pack doc but to use the m_bReadOnlyAccess flag to suppress
+/// doing a project config file write and a doc save, but instead to just take the project
+/// config file and doc files as they currently are on disk in order to do the pack
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnUpdateFilePackDoc(wxUpdateUIEvent& event)
 {
-	if (gpApp->m_bReadOnlyAccess)
-	{
-		event.Enable(FALSE);
-		return;
-	}
+	//if (gpApp->m_bReadOnlyAccess)
+	//{
+	//	event.Enable(FALSE);
+	//	return;
+	//}
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -13518,8 +13521,9 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 	}
 
 	// update and save the project configuration file
-	bool bOK = FALSE; // whm initialized
-	if (!gpApp->m_curProjectPath.IsEmpty())
+	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
+	// BEW added flag to the following test on 25Nov09
+	if (!gpApp->m_curProjectPath.IsEmpty() && !gpApp->m_bReadOnlyAccess)
 	{
 		bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,
 											gpApp->m_curProjectPath,2);
@@ -13553,10 +13557,18 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 	f.Close(); // needed because in wx we opened the file
 
 	// save the doc as XML (this handler can only be invoked when m_bSaveAsXML is TRUE)
-	bool bSavedOK;
-	bSavedOK = DoFileSave(TRUE); // TRUE - show wait/progress dialog
+	bool bSavedOK = TRUE;
+	// BEW added test on 25Nov09, so documents can be packed when user has read only access
+	if (!gpApp->m_bReadOnlyAccess)
+	{
+		bSavedOK = DoFileSave(TRUE); // TRUE - show wait/progress dialog
+	}
 
-	// construct the absolute path to the document
+	// construct the absolute path to the document as it currently is on disk; if the
+	// local user has read-only access, the document on disk may not have been recently
+	// saved. (Read-only access must not force document saves on a remote user
+	// who has ownership of writing permission for data in the project; otherwise, doing
+	// so could cause data to be lost)
 	wxString docPath;
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
