@@ -6661,6 +6661,165 @@ wxSizer *ControlBar2LineFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     return item0;
 }
 
+wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG, _("The move, or copy, takes the file or folder of the source (on the left) and puts it within the destination folder (on the right). Moving, or copying, a folder moves, or copies, the folder (and all its contents) which is shown in the 'Path to source folder' text box. To move or copy just one or more of its files, select them in the list on the left first. Double-clicking a folder in the list relocates to that folder; to relocate to the parent folder use the button with the green 'up' arrow. If there is a danger of overwriting a file, you will be asked first. Click OK when finished."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxFlexGridSizer *item3 = new wxFlexGridSizer( 3, 0, 3 );
+    item3->AddGrowableCol( 1 );
+    item3->AddGrowableCol( 0 );
+    item3->AddGrowableCol( 1 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item6 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the source folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item5->Add( item6, 0, wxALIGN_CENTER, 5 );
+
+    item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
+
+    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to source folder (this one is copied or moved):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxBitmapButton *item11 = new wxBitmapButton( parent, ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
+    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+
+    item4->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxFlexGridSizer *item13 = new wxFlexGridSizer( 2, 0, 4 );
+    item13->AddGrowableCol( 0 );
+    item13->AddGrowableCol( 1 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Contents of the source folder:") );
+    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
+
+    wxListCtrl *item17 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxSize(300,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item14->Add( item15, 0, wxALIGN_CENTER, 0 );
+
+    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item12->Add( item13, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item4->Add( item12, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item4, 0, wxALIGN_CENTER, 0 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticLine *item19 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,220), wxLI_VERTICAL );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item3->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item22 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the destination folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER, 5 );
+
+    item20->Add( item21, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
+
+    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to destination folder:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item23->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item20->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxBitmapButton *item27 = new wxBitmapButton( parent, ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
+    item25->Add( item27, 0, wxALIGN_CENTER, 5 );
+
+    item20->Add( item25, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxFlexGridSizer *item29 = new wxFlexGridSizer( 2, 0, 4 );
+    item29->AddGrowableCol( 0 );
+    item29->AddGrowableCol( 1 );
+
+    wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBox *item32 = new wxStaticBox( parent, -1, _("Contents of the destination folder:") );
+    wxStaticBoxSizer *item31 = new wxStaticBoxSizer( item32, wxVERTICAL );
+
+    wxListCtrl *item33 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxSize(300,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    item31->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item30->Add( item31, 0, wxALIGN_CENTER, 0 );
+
+    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item28->Add( item29, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item20->Add( item28, 0, wxALIGN_CENTER, 5 );
+
+    item3->Add( item20, 0, wxALIGN_CENTER, 0 );
+
+    item1->Add( item3, 0, wxALIGN_CENTER, 0 );
+
+    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_MOVE_FOLDER, _("Move Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxButton *item36 = new wxButton( parent, ID_BUTTON_MOVE_FILES, _("Move File or Files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item34->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item37 = new wxButton( parent, ID_BUTTON_COPY_FOLDER, _("Copy Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item37, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxButton *item38 = new wxButton( parent, ID_BUTTON_COPY_FILES, _("Copy File or Files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item34->Add( item38, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item34->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item39 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item39->SetDefault();
+    item34->Add( item39, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item1->Add( item34, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+
+    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()
@@ -6796,6 +6955,8 @@ wxMenuBar *AIMenuBarFunc()
     item9->Append( ID_UNLOCK_CUSTOM_LOCATION, _("&Unlock Custom Location"), _("Make the custom work folder location persist only until the end of the session") );
     item9->Append( ID_LOCAL_WORK_FOLDER_MENU, _("&Restore Default Work Folder Location"), _("Point at the local machine's default work folder") );
     item9->Append( ID_SET_PASSWORD_MENU, _("Set &Password"), _("Set a password, it will be stored in the clear in the basic configuration file") );
+    item9->AppendSeparator();
+    item9->Append( ID_MOVE_OR_COPY_FOLDERS_OR_FILES, _("Move Or Copy Folders Or Files\tShift-Ctrl-M"), _("Dialog for moving folders or files, or copying them, into a destination folder") );
     item0->Append( item9, _("Ad&ministrator") );
     
     return item0;
@@ -10355,7 +10516,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,250,250,250,229,126,119,238,36,23,247,225,223,255,255,
             255,255,255,255,251,250,250,235,110,102,237,23,10,238,23,9,247,165,159,255,255,255,255,255,255,
             255,255,255,254,254,254,217,191,190,237,28,16,237,23,10,237,23,10,239,55,44,255,255,255,255,
-            255,255,255,255,255,255,255,255,255,255,255,240,240,240,203,189,187,236,33,20,239,57,46,255,255,
+            255,255,255,255,255,255,255,255,255,255,255,240,241,240,203,189,187,236,33,20,239,57,46,255,255,
             255,254,254,254,240,160,155,238,45,33,244,190,186,220,220,219,209,165,162,237,26,12,238,22,9,
             241,87,77,255,255,255,238,214,212,235,43,32,240,94,84,245,235,234,254,254,254,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,230,229,229,230,57,46,239,50,38,254,251,251,255,255,
@@ -10666,7 +10827,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,250,250,250,202,200,200,236,36,24,238,23,9,238,23,9,237,
             26,13,243,117,109,254,246,245,255,255,255,255,255,255,247,247,247,203,186,185,237,31,19,237,23,
             10,237,23,10,237,30,17,245,151,145,255,253,253,255,255,255,255,255,255,255,255,255,255,255,255,
-            240,240,240,223,110,103,237,23,10,238,27,13,244,112,104,238,62,51,243,104,94,254,249,248,255,
+            240,241,240,223,110,103,237,23,10,238,27,13,244,112,104,238,62,51,243,104,94,254,249,248,255,
             255,255,255,255,255,255,255,255,233,233,233,210,162,159,237,23,10,238,23,9,245,133,125,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,237,237,237,212,143,139,238,
@@ -10693,7 +10854,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             205,178,176,228,75,65,233,40,28,233,70,60,244,170,165,255,254,254,255,255,255,255,255,255,255,
             255,255,255,255,255,249,249,249,201,198,198,235,45,33,238,23,9,240,67,56,255,253,253,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,240,240,209,154,151,237,23,10,238,
+            255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,240,241,240,209,154,151,237,23,10,238,
             23,9,237,23,10,243,99,90,237,215,213,233,42,30,238,39,26,252,222,220,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,248,248,248,206,171,168,237,24,11,
             238,23,9,237,23,10,248,181,176,250,249,249,228,107,100,237,23,10,242,89,79,255,251,251,255,
@@ -10728,7 +10889,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             13,252,230,228,255,255,255,255,255,255,255,255,255,255,250,250,255,255,255,244,244,244,215,132,127,
             238,23,9,237,23,10,238,42,30,254,250,249,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,223,192,190,235,32,19,237,23,10,238,23,9,238,25,11,251,220,218,255,255,255,255,255,
-            255,255,255,255,240,240,240,214,129,123,237,23,10,238,23,9,238,22,9,244,114,106,255,255,255,
+            255,255,255,255,240,241,240,214,129,123,237,23,10,238,23,9,238,22,9,244,114,106,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,252,237,236,243,97,88,251,
             204,201,255,255,255,255,255,255,255,255,255,245,245,245,215,132,127,237,23,10,237,23,10,238,26,
             13,252,222,219,255,255,255,255,255,255,255,255,255,255,255,255,253,250,249,244,134,127,244,121,113,
@@ -10815,7 +10976,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             12,237,23,10,248,178,173,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,208,207,207,229,60,50,238,23,9,237,25,12,247,174,169,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-            255,240,240,240,212,144,140,237,23,10,238,23,9,237,23,10,244,116,108,255,253,253,255,255,255,
+            255,240,241,240,212,144,140,237,23,10,238,23,9,237,23,10,244,116,108,255,253,253,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,212,212,212,233,41,29,238,23,9,238,23,9,238,32,
             19,243,109,100,237,29,16,242,116,108,255,251,250,255,255,255,227,227,227,215,126,120,237,23,10,
@@ -10851,7 +11012,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             9,237,23,10,237,23,10,238,22,9,238,23,9,237,23,10,235,62,51,245,192,189,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,204,204,204,232,
             50,38,237,22,10,238,23,9,238,23,9,238,22,9,236,58,46,246,193,190,255,255,255,255,255,
-            255,255,255,255,255,255,255,255,255,255,240,240,240,200,195,194,228,69,60,237,23,10,237,23,10,
+            255,255,255,255,255,255,255,255,255,255,240,241,240,200,195,194,228,69,60,237,23,10,237,23,10,
             239,56,45,247,156,151,249,182,178,248,161,156,243,97,89,236,26,13,237,31,18,246,146,140,255,
             253,253,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
@@ -10867,7 +11028,7 @@ wxBitmap AIMainFrameIcons( size_t index )
             255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,255,255,255,255,208,207,207,219,105,97,237,26,13,236,30,17,234,86,77,248,209,207,255,255,
             255,255,255,255,255,255,255,255,255,255,253,253,253,210,210,210,210,145,141,234,40,28,237,23,10,
-            235,33,20,230,75,65,239,176,171,253,252,251,255,255,255,240,240,240,208,158,155,235,29,17,237,
+            235,33,20,230,75,65,239,176,171,253,252,251,255,255,255,240,241,240,208,158,155,235,29,17,237,
             28,15,232,66,56,239,169,165,253,251,251,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
             255,250,250,250,207,207,207,209,150,145,223,86,79,227,72,63,234,38,26,237,64,53,248,206,204,
             255,255,255,255,255,255,251,251,251,205,178,176,237,23,10,237,23,10,238,22,9,248,179,174,255,
@@ -13974,6 +14135,118 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
+    if (index == 9)
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "30 26 8 1",
+        "a c #FFCC33",
+        "b c Black",
+        "c c #FFFFFF",
+        "d c #996633",
+        "e c #996666",
+        "f c #009933",
+        "g c #FFCC00",
+        "h c #339933",
+        /* pixels */
+        "cccccccccccccccccccccccccccccc",
+        "ccccccccccccccccccccbccccccccc",
+        "cccccccccccccccccccbbbcccccccc",
+        "ccccccccccccccccccbbhbbccccccc",
+        "cccdddddeccccccccbbfhhbbcccccc",
+        "ccdggggggdccccccbbfhhhfbbccccc",
+        "cdagagagggeccccbbfhhhhhhbbcccc",
+        "cdggggggggdcccbbfhfhhhhhfbbccc",
+        "cdggagagggeccbbfhhhhhhhhhhbbcc",
+        "dagggggggagdbbbbbbfhhhfbbbbbbc",
+        "dgggagagagggagagabbhhhbbcccccc",
+        "dgggggggggggggdddbbhhhbbdccccc",
+        "dgggggagggggadagabbhhhbbadcccc",
+        "dgggggggggggdgggbbhhhhbggdcccc",
+        "dgggggagagggdgggbbhhhbbgadcccc",
+        "dggggggggggdggggbhfhhbbgdccccc",
+        "dgggadedddegagggbhhhbbagdccccc",
+        "daggdggggagggggbbhfhbbgdcccccc",
+        "dgadagagagagaggbhhhbbgadcccccc",
+        "dgdggggggggggggbhhbbggdccccccc",
+        "dgdgagagagagagabhbbgagdccccccc",
+        "dgdgggggggggggbbbbgggdcccccccc",
+        "dgagagagagagagbbagagdccccccccc",
+        "cdggggggggggddddddddcccccccccc",
+        "ccedddddddedcccccccccccccccccc",
+        "cccccccccccccccccccccccccccccc"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 10) ||
+        (index == ID_BITMAP_FOLDERAI))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "16 14 6 1",
+        "  c None",
+        "b c #FFFFFF",
+        "c c #9F9F5F",
+        "d c #DACF07",
+        "e c #DAB110",
+        "f c #E9BC0C",
+        /* pixels */
+        "bbcccccbbbbbbbbb",
+        "bcdddddcbbbbbbbb",
+        "cffffdddcccccbbb",
+        "ceeffffffffffcbb",
+        "ceeeefffffffffc ",
+        "ceeeeeeeeeeeeec ",
+        "ceeeeeeeeeeeeec ",
+        "ceeeeeeeeeeeeec ",
+        "ceeeeeeeeeeeeec ",
+        "ceeeeeeeeeeeeec ",
+        "ceeeeeeeeeeeeec ",
+        "ceeeeeeeeeeeeec ",
+        "ccccccccccccccc ",
+        "                "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
+    if ((index == 11) ||
+        (index == ID_BITMAP_FILEAI))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "13 14 9 1",
+        "  c None",
+        "a c #FFFFFC",
+        "c c #FFFFFF",
+        "d c #9F9F5F",
+        "e c #808080",
+        "f c #D8BFD8",
+        "g c #C0C0C0",
+        "h c #595900",
+        "i c #009797",
+        /* pixels */
+        "ccccccccccccc",
+        "chhdddddddccc",
+        "chihiiiiiiecc",
+        "chiih aaaaecc",
+        " hiihdfafaecc",
+        " hiihdaaaaecc",
+        " hiihdaaaaecc",
+        " hiihdfffaecc",
+        " hiihdaaaaecc",
+        " hiihdaffaecc",
+        " hiihdaaaaecc",
+        "chiihdafafecc",
+        "chhihddddd cc",
+        "ccghhd     cc"
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
     return wxNullBitmap;
 }
 
@@ -14083,7 +14356,7 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         "16 15 5 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #FFFF00",
         "e c #FF0000",
         /* pixels */
@@ -14094,7 +14367,7 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         " eedddaadeeedee ",
         " eeaadaaeeeddee ",
         "eedaadaeeeddddee",
-        "eebdddeeeaadddee",
+        "eecdddeeeaadddee",
         " eeddeeadaaddee ",
         " eedeeeaddaddee ",
         "  eeeedddaddee  ",
@@ -14407,34 +14680,34 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 3 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         /* pixels */
         "                                ",
         "                                ",
         "      aaaaaaaaaaaaaaaa          ",
         "      aaaaaaaaaaaaaaaa          ",
-        "      aabbbbbbbbbbbbaaaa        ",
-        "      aabbbbbbbbbbbbaaaa        ",
-        "      aabbbbbbbbbbbbaabbaa      ",
-        "      aabbbbbbbbbbbbaabbaa      ",
-        "      aabbbbbbbbbbbbaaaaaaaa    ",
-        "      aabbbbbbbbbbbbaaaaaaaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
-        "      aabbbbbbbbbbbbbbbbbbaa    ",
+        "      aaccccccccccccaaaa        ",
+        "      aaccccccccccccaaaa        ",
+        "      aaccccccccccccaaccaa      ",
+        "      aaccccccccccccaaccaa      ",
+        "      aaccccccccccccaaaaaaaa    ",
+        "      aaccccccccccccaaaaaaaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
+        "      aaccccccccccccccccccaa    ",
         "      aaaaaaaaaaaaaaaaaaaaaa    ",
         "      aaaaaaaaaaaaaaaaaaaaaa    ",
         "                                ",
@@ -14451,7 +14724,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 5 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #FFFF00",
         "e c #808000",
         /* pixels */
@@ -14463,20 +14736,20 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "                            aaaa",
         "    aaaaaa                aaaaaa",
         "    aaaaaa                aaaaaa",
-        "  aabbddbbaaaaaaaaaaaaaa        ",
-        "  aabbddbbaaaaaaaaaaaaaa        ",
-        "  aaddbbddbbddbbddbbddaa        ",
-        "  aaddbbddbbddbbddbbddaa        ",
-        "  aabbddbbddbbddbbddbbaa        ",
-        "  aabbddbbddbbddbbddbbaa        ",
-        "  aaddbbddbbaaaaaaaaaaaaaaaaaaaa",
-        "  aaddbbddbbaaaaaaaaaaaaaaaaaaaa",
-        "  aabbddbbaaeeeeeeeeeeeeeeeeeeaa",
-        "  aabbddbbaaeeeeeeeeeeeeeeeeeeaa",
-        "  aaddbbaaeeeeeeeeeeeeeeeeeeaa  ",
-        "  aaddbbaaeeeeeeeeeeeeeeeeeeaa  ",
-        "  aabbaaeeeeeeeeeeeeeeeeeeaa    ",
-        "  aabbaaeeeeeeeeeeeeeeeeeeaa    ",
+        "  aaccddccaaaaaaaaaaaaaa        ",
+        "  aaccddccaaaaaaaaaaaaaa        ",
+        "  aaddccddccddccddccddaa        ",
+        "  aaddccddccddccddccddaa        ",
+        "  aaccddccddccddccddccaa        ",
+        "  aaccddccddccddccddccaa        ",
+        "  aaddccddccaaaaaaaaaaaaaaaaaaaa",
+        "  aaddccddccaaaaaaaaaaaaaaaaaaaa",
+        "  aaccddccaaeeeeeeeeeeeeeeeeeeaa",
+        "  aaccddccaaeeeeeeeeeeeeeeeeeeaa",
+        "  aaddccaaeeeeeeeeeeeeeeeeeeaa  ",
+        "  aaddccaaeeeeeeeeeeeeeeeeeeaa  ",
+        "  aaccaaeeeeeeeeeeeeeeeeeeaa    ",
+        "  aaccaaeeeeeeeeeeeeeeeeeeaa    ",
         "  aaaaeeeeeeeeeeeeeeeeeeaa      ",
         "  aaaaeeeeeeeeeeeeeeeeeeaa      ",
         "  aaaaaaaaaaaaaaaaaaaaaa        ",
@@ -14585,33 +14858,33 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 4 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #000080",
         /* pixels */
         "  aaaaaaaaaaaa                  ",
         "  aaaaaaaaaaaa                  ",
-        "  aabbbbbbbbaaaa                ",
-        "  aabbbbbbbbaaaa                ",
-        "  aabbbbbbbbaabbaa              ",
-        "  aabbbbbbbbaabbaa              ",
-        "  aabbaaaabbaadddddddddddd      ",
-        "  aabbaaaabbaadddddddddddd      ",
-        "  aabbbbbbbbbbddbbbbbbbbdddd    ",
-        "  aabbbbbbbbbbddbbbbbbbbdddd    ",
-        "  aabbaaaaaaaaddbbbbbbbbddbbdd  ",
-        "  aabbaaaaaaaaddbbbbbbbbddbbdd  ",
-        "  aabbbbbbbbbbddbbaaaabbdddddddd",
-        "  aabbbbbbbbbbddbbaaaabbdddddddd",
-        "  aabbaaaaaaaaddbbbbbbbbbbbbbbdd",
-        "  aabbaaaaaaaaddbbbbbbbbbbbbbbdd",
-        "  aabbbbbbbbbbddbbaaaaaaaaaabbdd",
-        "  aabbbbbbbbbbddbbaaaaaaaaaabbdd",
-        "  aaaaaaaaaaaaddbbbbbbbbbbbbbbdd",
-        "  aaaaaaaaaaaaddbbbbbbbbbbbbbbdd",
-        "              ddbbaaaaaaaaaabbdd",
-        "              ddbbaaaaaaaaaabbdd",
-        "              ddbbbbbbbbbbbbbbdd",
-        "              ddbbbbbbbbbbbbbbdd",
+        "  aaccccccccaaaa                ",
+        "  aaccccccccaaaa                ",
+        "  aaccccccccaaccaa              ",
+        "  aaccccccccaaccaa              ",
+        "  aaccaaaaccaadddddddddddd      ",
+        "  aaccaaaaccaadddddddddddd      ",
+        "  aaccccccccccddccccccccdddd    ",
+        "  aaccccccccccddccccccccdddd    ",
+        "  aaccaaaaaaaaddccccccccddccdd  ",
+        "  aaccaaaaaaaaddccccccccddccdd  ",
+        "  aaccccccccccddccaaaaccdddddddd",
+        "  aaccccccccccddccaaaaccdddddddd",
+        "  aaccaaaaaaaaddccccccccccccccdd",
+        "  aaccaaaaaaaaddccccccccccccccdd",
+        "  aaccccccccccddccaaaaaaaaaaccdd",
+        "  aaccccccccccddccaaaaaaaaaaccdd",
+        "  aaaaaaaaaaaaddccccccccccccccdd",
+        "  aaaaaaaaaaaaddccccccccccccccdd",
+        "              ddccaaaaaaaaaaccdd",
+        "              ddccaaaaaaaaaaccdd",
+        "              ddccccccccccccccdd",
+        "              ddccccccccccccccdd",
         "              dddddddddddddddddd",
         "              dddddddddddddddddd",
         "                                ",
@@ -14630,8 +14903,8 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 7 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #808080",
+        "c c #FFFFFF",
+        "d c #808080",
         "e c #000080",
         "f c #FFFF00",
         "g c #808000",
@@ -14640,28 +14913,28 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "            aaaaaaaa            ",
         "    aaaaaaaaaaffffaaaaaaaaaa    ",
         "    aaaaaaaaaaffffaaaaaaaaaa    ",
-        "  aaccggccaaffaaaaffaaggccggaa  ",
-        "  aaccggccaaffaaaaffaaggccggaa  ",
-        "  aaggccaa            aaggccaa  ",
-        "  aaggccaa            aaggccaa  ",
-        "  aaccggaaaaaaaaaaaaaaaaccggaa  ",
-        "  aaccggaaaaaaaaaaaaaaaaccggaa  ",
-        "  aaggccggccggccggccggccggccaa  ",
-        "  aaggccggccggccggccggccggccaa  ",
-        "  aaccggccggcceeeeeeeeeeeeeeaa  ",
-        "  aaccggccggcceeeeeeeeeeeeeeaa  ",
-        "  aaggccggccggeebbbbbbbbbbeeee  ",
-        "  aaggccggccggeebbbbbbbbbbeeee  ",
-        "  aaccggccggcceebbbbbbbbbbeebbee",
-        "  aaccggccggcceebbbbbbbbbbeebbee",
-        "  aaggccggccggeebbeeeeeebbeeeeee",
-        "  aaggccggccggeebbeeeeeebbeeeeee",
-        "  aaccggccggcceebbbbbbbbbbbbbbee",
-        "  aaccggccggcceebbbbbbbbbbbbbbee",
-        "  aaggccggccggeebbeeeeeeeeeebbee",
-        "  aaggccggccggeebbeeeeeeeeeebbee",
-        "    aaaaaaaaaaeebbbbbbbbbbbbbbee",
-        "    aaaaaaaaaaeebbbbbbbbbbbbbbee",
+        "  aaddggddaaffaaaaffaaggddggaa  ",
+        "  aaddggddaaffaaaaffaaggddggaa  ",
+        "  aaggddaa            aaggddaa  ",
+        "  aaggddaa            aaggddaa  ",
+        "  aaddggaaaaaaaaaaaaaaaaddggaa  ",
+        "  aaddggaaaaaaaaaaaaaaaaddggaa  ",
+        "  aaggddggddggddggddggddggddaa  ",
+        "  aaggddggddggddggddggddggddaa  ",
+        "  aaddggddggddeeeeeeeeeeeeeeaa  ",
+        "  aaddggddggddeeeeeeeeeeeeeeaa  ",
+        "  aaggddggddggeecccccccccceeee  ",
+        "  aaggddggddggeecccccccccceeee  ",
+        "  aaddggddggddeecccccccccceeccee",
+        "  aaddggddggddeecccccccccceeccee",
+        "  aaggddggddggeecceeeeeecceeeeee",
+        "  aaggddggddggeecceeeeeecceeeeee",
+        "  aaddggddggddeeccccccccccccccee",
+        "  aaddggddggddeeccccccccccccccee",
+        "  aaggddggddggeecceeeeeeeeeeccee",
+        "  aaggddggddggeecceeeeeeeeeeccee",
+        "    aaaaaaaaaaeeccccccccccccccee",
+        "    aaaaaaaaaaeeccccccccccccccee",
         "              eeeeeeeeeeeeeeeeee",
         "              eeeeeeeeeeeeeeeeee",
         "                                ",
@@ -14678,31 +14951,31 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #808080",
+        "c c #FFFFFF",
+        "d c #808080",
         "e c #FFFF00",
         "f c #C0C0C0",
         /* pixels */
         "          aaaaaaaaaaaaaaaaaa    ",
         "          aaaaaaaaaaaaaaaaaa    ",
-        "        aabbbbbbbbbbbbbbbbaa    ",
-        "        aabbbbbbbbbbbbbbbbaa    ",
-        "        aabbaaaaaaaaaabbaa      ",
-        "        aabbaaaaaaaaaabbaa      ",
-        "      aabbbbbbbbbbbbbbbbaa      ",
-        "      aabbbbbbbbbbbbbbbbaa      ",
-        "      aabbaaaaaaaaaabbaaaaaaaa  ",
-        "      aabbaaaaaaaaaabbaaaaaaaa  ",
-        "    aabbbbbbbbbbbbbbbbaaffaaffaa",
-        "    aabbbbbbbbbbbbbbbbaaffaaffaa",
+        "        aaccccccccccccccccaa    ",
+        "        aaccccccccccccccccaa    ",
+        "        aaccaaaaaaaaaaccaa      ",
+        "        aaccaaaaaaaaaaccaa      ",
+        "      aaccccccccccccccccaa      ",
+        "      aaccccccccccccccccaa      ",
+        "      aaccaaaaaaaaaaccaaaaaaaa  ",
+        "      aaccaaaaaaaaaaccaaaaaaaa  ",
+        "    aaccccccccccccccccaaffaaffaa",
+        "    aaccccccccccccccccaaffaaffaa",
         "  aaaaaaaaaaaaaaaaaaaaffaaffaaaa",
         "  aaaaaaaaaaaaaaaaaaaaffaaffaaaa",
         "aaffffffffffffffffffffaaffaaffaa",
         "aaffffffffffffffffffffaaffaaffaa",
         "aaaaaaaaaaaaaaaaaaaaaaaaaaffffaa",
         "aaaaaaaaaaaaaaaaaaaaaaaaaaffffaa",
-        "aaffffffffffffccccccffffaaffaa  ",
-        "aaffffffffffffccccccffffaaffaa  ",
+        "aaffffffffffffddddddffffaaffaa  ",
+        "aaffffffffffffddddddffffaaffaa  ",
         "aaffffffffffffeeeeeeffffaaaaaa  ",
         "aaffffffffffffeeeeeeffffaaaaaa  ",
         "aaaaaaaaaaaaaaaaaaaaaaaaaaffaa  ",
@@ -14725,41 +14998,41 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #008000",
+        "c c #FFFFFF",
+        "d c #008000",
         "e c #000080",
         "f c #FF0000",
         /* pixels */
-        "  cccccc    cccccc        cccc  ",
-        "  cccccc    cccccc        cccc  ",
-        "cc      cc  cc    cc    cccc  cc",
-        "cc      cc  cc    cc    cccc  cc",
-        "cc          cc    cc    cc      ",
-        "cc          cc    cc    cc      ",
-        "  cccccc    cccccc      cc      ",
-        "  cccccc    cccccc      cc      ",
-        "      cc    cc    cc    cc      ",
-        "      cc    cc    cc    cc      ",
-        "cc    cc    cc    cc    cccc  cc",
-        "cc    cc    cc    cc    cccc  cc",
-        "cccccc      cc    cc      cccc  ",
-        "cccccc      cc    cc      cccc  ",
-        "  aabb                  aaaa    ",
-        "  aabb                  aaaa    ",
-        "aaaabb                aabb  aabb",
-        "aaaabb                aabb  aabb",
-        "  aabb    ee      eebb        aa",
-        "  aabb    ee      eebb        aa",
-        "  aabb  eeffbb    ffeebb      aa",
-        "  aabb  eeffbb    ffeebb      aa",
-        "  aabbeeffffffffffffffee    aabb",
-        "  aabbeeffffffffffffffee    aabb",
-        "  aabb  eeffbb    ffee    aabb  ",
-        "  aabb  eeffbb    ffee    aabb  ",
-        "  aabb    eebb    ee    aabb    ",
-        "  aabb    eebb    ee    aabb    ",
-        "aaaaaabb              aaaaaaaaaa",
-        "aaaaaabb              aaaaaaaaaa"
+        "  dddddd    dddddd        dddd  ",
+        "  dddddd    dddddd        dddd  ",
+        "dd      dd  dd    dd    dddd  dd",
+        "dd      dd  dd    dd    dddd  dd",
+        "dd          dd    dd    dd      ",
+        "dd          dd    dd    dd      ",
+        "  dddddd    dddddd      dd      ",
+        "  dddddd    dddddd      dd      ",
+        "      dd    dd    dd    dd      ",
+        "      dd    dd    dd    dd      ",
+        "dd    dd    dd    dd    dddd  dd",
+        "dd    dd    dd    dd    dddd  dd",
+        "dddddd      dd    dd      dddd  ",
+        "dddddd      dd    dd      dddd  ",
+        "  aacc                  aaaa    ",
+        "  aacc                  aaaa    ",
+        "aaaacc                aacc  aacc",
+        "aaaacc                aacc  aacc",
+        "  aacc    ee      eecc        aa",
+        "  aacc    ee      eecc        aa",
+        "  aacc  eeffcc    ffeecc      aa",
+        "  aacc  eeffcc    ffeecc      aa",
+        "  aacceeffffffffffffffee    aacc",
+        "  aacceeffffffffffffffee    aacc",
+        "  aacc  eeffcc    ffee    aacc  ",
+        "  aacc  eeffcc    ffee    aacc  ",
+        "  aacc    eecc    ee    aacc    ",
+        "  aacc    eecc    ee    aacc    ",
+        "aaaaaacc              aaaaaaaaaa",
+        "aaaaaacc              aaaaaaaaaa"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -14772,41 +15045,41 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #008000",
+        "c c #FFFFFF",
+        "d c #008000",
         "e c #000080",
         "f c #FF0000",
         /* pixels */
-        "cccccccccc    cccc    cccccccccc",
-        "cccccccccc    cccc    cccccccccc",
-        "    cc      cc    cc      cc    ",
-        "    cc      cc    cc      cc    ",
-        "    cc      cc            cc    ",
-        "    cc      cc            cc    ",
-        "    cc      cc            cc    ",
-        "    cc      cc            cc    ",
-        "    cc      cc  cccccc    cc    ",
-        "    cc      cc  cccccc    cc    ",
-        "    cc      cc    cc      cc    ",
-        "    cc      cc    cc      cc    ",
-        "    cc        cccc        cc    ",
-        "    cc        cccc        cc    ",
-        "  aabb                  aaaabb  ",
-        "  aabb                  aaaabb  ",
-        "aaaabb                aabb  aabb",
-        "aaaabb                aabb  aabb",
-        "  aabb    eebb    eebb        aa",
-        "  aabb    eebb    eebb        aa",
-        "  aabb  eeffbb    ffeebb      aa",
-        "  aabb  eeffbb    ffeebb      aa",
-        "  aabbeeffffffffffffffeebb  aabb",
-        "  aabbeeffffffffffffffeebb  aabb",
-        "  aabb  eeffbb    ffee    aabb  ",
-        "  aabb  eeffbb    ffee    aabb  ",
-        "  aabb    eebb    ee    aabb    ",
-        "  aabb    eebb    ee    aabb    ",
-        "aaaaaabb              aaaaaaaaaa",
-        "aaaaaabb              aaaaaaaaaa"
+        "dddddddddd    dddd    dddddddddd",
+        "dddddddddd    dddd    dddddddddd",
+        "    dd      dd    dd      dd    ",
+        "    dd      dd    dd      dd    ",
+        "    dd      dd            dd    ",
+        "    dd      dd            dd    ",
+        "    dd      dd            dd    ",
+        "    dd      dd            dd    ",
+        "    dd      dd  dddddd    dd    ",
+        "    dd      dd  dddddd    dd    ",
+        "    dd      dd    dd      dd    ",
+        "    dd      dd    dd      dd    ",
+        "    dd        dddd        dd    ",
+        "    dd        dddd        dd    ",
+        "  aacc                  aaaacc  ",
+        "  aacc                  aaaacc  ",
+        "aaaacc                aacc  aacc",
+        "aaaacc                aacc  aacc",
+        "  aacc    eecc    eecc        aa",
+        "  aacc    eecc    eecc        aa",
+        "  aacc  eeffcc    ffeecc      aa",
+        "  aacc  eeffcc    ffeecc      aa",
+        "  aacceeffffffffffffffeecc  aacc",
+        "  aacceeffffffffffffffeecc  aacc",
+        "  aacc  eeffcc    ffee    aacc  ",
+        "  aacc  eeffcc    ffee    aacc  ",
+        "  aacc    eecc    ee    aacc    ",
+        "  aacc    eecc    ee    aacc    ",
+        "aaaaaacc              aaaaaaaaaa",
+        "aaaaaacc              aaaaaaaaaa"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -14869,43 +15142,43 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 8 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #808080",
+        "c c #FFFFFF",
+        "d c #808080",
         "e c #FFFF00",
         "f c #FF0000",
         "g c #C0C0C0",
         "h c #808000",
         /* pixels */
-        "ffffccffccffffccccffccffccffccff",
-        "ffffccffccffffccccffccffccffccff",
-        "ffffccffccffffccffffccffccffffcc",
-        "ffffccffccffffccffffccffccffffcc",
-        "ffccffffccffccbbccffccffffccffcc",
-        "ffccffffccffccbbccffccffffccffcc",
-        "ffccffccffffccbbccffffccffccffff",
-        "ffccffccffffccbbccffffccffccffff",
-        "ffccffccffccbbbbbbccffccffffccff",
-        "ffccffccffccbbbbbbccffccffffccff",
-        "hhffccffccbbggaaaabbccffccffffhh",
-        "hhffccffccbbggaaaabbccffccffffhh",
-        "aaaaffccbbbbggaaaabbbbccffhhaaaa",
-        "aaaaffccbbbbggaaaabbbbccffhhaaaa",
-        "ccaaa bbbbbbggaaaabbbbbbhhaaaaff",
-        "ccaaa bbbbbbggaaaabbbbbbhhaaaaff",
-        "ccffccbbbbbbggaaaabbbbccffccffff",
-        "ccffccbbbbbbggaaaabbbbccffccffff",
-        "ffccffccbbbbggaaaabbbbccffccffcc",
-        "ffccffccbbbbggaaaabbbbccffccffcc",
-        "ffccffcceeeeggaaaaeeeeccffccffcc",
-        "ffccffcceeeeggaaaaeeeeccffccffcc",
-        "ffccffcceeeeggaaaaeeeeccffccffcc",
-        "ffccffcceeeeggaaaaeeeeccffccffcc",
-        "ffccffcceeeeeeeeeeeeeeeeccccffcc",
-        "ffccffcceeeeeeeeeeeeeeeeccccffcc",
-        "ffccffcceeeeggaaaaeeeeeeeeccffcc",
-        "ffccffcceeeeggaaaaeeeeeeeeccffcc",
-        "cccccceeeeeeggaaaaeeeeeeeeeecccc",
-        "cccccceeeeeeggaaaaeeeeeeeeeecccc"
+        "ffffddffddffffddddffddffddffddff",
+        "ffffddffddffffddddffddffddffddff",
+        "ffffddffddffffddffffddffddffffdd",
+        "ffffddffddffffddffffddffddffffdd",
+        "ffddffffddffddccddffddffffddffdd",
+        "ffddffffddffddccddffddffffddffdd",
+        "ffddffddffffddccddffffddffddffff",
+        "ffddffddffffddccddffffddffddffff",
+        "ffddffddffddccccccddffddffffddff",
+        "ffddffddffddccccccddffddffffddff",
+        "hhffddffddccggaaaaccddffddffffhh",
+        "hhffddffddccggaaaaccddffddffffhh",
+        "aaaaffddccccggaaaaccccddffhhaaaa",
+        "aaaaffddccccggaaaaccccddffhhaaaa",
+        "ddaaa ccccccggaaaacccccchhaaaaff",
+        "ddaaa ccccccggaaaacccccchhaaaaff",
+        "ddffddccccccggaaaaccccddffddffff",
+        "ddffddccccccggaaaaccccddffddffff",
+        "ffddffddccccggaaaaccccddffddffdd",
+        "ffddffddccccggaaaaccccddffddffdd",
+        "ffddffddeeeeggaaaaeeeeddffddffdd",
+        "ffddffddeeeeggaaaaeeeeddffddffdd",
+        "ffddffddeeeeggaaaaeeeeddffddffdd",
+        "ffddffddeeeeggaaaaeeeeddffddffdd",
+        "ffddffddeeeeeeeeeeeeeeeeddddffdd",
+        "ffddffddeeeeeeeeeeeeeeeeddddffdd",
+        "ffddffddeeeeggaaaaeeeeeeeeddffdd",
+        "ffddffddeeeeggaaaaeeeeeeeeddffdd",
+        "ddddddeeeeeeggaaaaeeeeeeeeeedddd",
+        "ddddddeeeeeeggaaaaeeeeeeeeeedddd"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -14918,41 +15191,41 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #800000",
         "e c #008080",
         "f c #800080",
         /* pixels */
-        "ddddddddbb                      ",
-        "ddddddddbb                      ",
-        "ddbbbbbb      aaaaaabb          ",
-        "ddbbbbbb      aaaaaabb          ",
-        "ddddddbb    aaeeeeeeaabb        ",
-        "ddddddbb    aaeeeeeeaabb        ",
-        "ddbbbb      aaeeeeeeaabb        ",
-        "ddbbbb      aaeeeeeeaabb        ",
-        "dddddddd    aaeeeeeeaabb        ",
-        "dddddddd    aaeeeeeeaabb        ",
-        "  bbbbbbbb  aaeeeeeeaabb        ",
-        "  bbbbbbbb  aaeeeeeeaabb        ",
-        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
-        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
-        "        aaeeeeeeeeeeeeeeaabb    ",
-        "        aaeeeeeeeeeeeeeeaabb    ",
-        "          aaeeeeeeeeeeaabb      ",
-        "          aaeeeeeeeeeeaabb      ",
-        "            aaeeeeeeaabb        ",
-        "            aaeeeeeeaabb        ",
-        "              aaeeaabb          ",
-        "              aaeeaabb          ",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
-        "  aaffffffffffffffffffffffffaabb",
-        "  aaffffffffffffffffffffffffaabb",
-        "  aaffffffffffffffffffffffffaabb",
-        "  aaffffffffffffffffffffffffaabb",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabbbb",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabbbb"
+        "ddddddddcc                      ",
+        "ddddddddcc                      ",
+        "ddcccccc      aaaaaacc          ",
+        "ddcccccc      aaaaaacc          ",
+        "ddddddcc    aaeeeeeeaacc        ",
+        "ddddddcc    aaeeeeeeaacc        ",
+        "ddcccc      aaeeeeeeaacc        ",
+        "ddcccc      aaeeeeeeaacc        ",
+        "dddddddd    aaeeeeeeaacc        ",
+        "dddddddd    aaeeeeeeaacc        ",
+        "  cccccccc  aaeeeeeeaacc        ",
+        "  cccccccc  aaeeeeeeaacc        ",
+        "      aaaaaaeeeeeeeeeeaaaaaacc  ",
+        "      aaaaaaeeeeeeeeeeaaaaaacc  ",
+        "        aaeeeeeeeeeeeeeeaacc    ",
+        "        aaeeeeeeeeeeeeeeaacc    ",
+        "          aaeeeeeeeeeeaacc      ",
+        "          aaeeeeeeeeeeaacc      ",
+        "            aaeeeeeeaacc        ",
+        "            aaeeeeeeaacc        ",
+        "              aaeeaacc          ",
+        "              aaeeaacc          ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacc  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacc  ",
+        "  aaffffffffffffffffffffffffaacc",
+        "  aaffffffffffffffffffffffffaacc",
+        "  aaffffffffffffffffffffffffaacc",
+        "  aaffffffffffffffffffffffffaacc",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacccc",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacccc"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -14965,41 +15238,41 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #800000",
         "e c #008080",
         "f c #800080",
         /* pixels */
-        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
-        "  aaffffffffffffffffffffffffaabb",
-        "  aaffffffffffffffffffffffffaabb",
-        "  aaffffffffffffffffffffffffaabb",
-        "  aaffffffffffffffffffffffffaabb",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
-        "    aaaaaaaaaaaaaaaaaaaaaaaabb  ",
-        "              aaeeaabbbbbbbbbb  ",
-        "              aaeeaabbbbbbbbbb  ",
-        "            aaeeeeeeaabb        ",
-        "            aaeeeeeeaabb        ",
-        "          aaeeeeeeeeeeaabb      ",
-        "          aaeeeeeeeeeeaabb      ",
-        "        aaeeeeeeeeeeeeeeaabb    ",
-        "        aaeeeeeeeeeeeeeeaabb    ",
-        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
-        "      aaaaaaeeeeeeeeeeaaaaaabb  ",
-        "            aaeeeeeeaabbbbbbbb  ",
-        "            aaeeeeeeaabbbbbbbb  ",
-        "    ddddddbbaaeeeeeeaabb        ",
-        "    ddddddbbaaeeeeeeaabb        ",
-        "  ddbbbbbbbbaaeeeeeeaabb        ",
-        "  ddbbbbbbbbaaeeeeeeaabb        ",
-        "    ddddbb  aaeeeeeeaabb        ",
-        "    ddddbb  aaeeeeeeaabb        ",
-        "      bbddbb  aaaaaabb          ",
-        "      bbddbb  aaaaaabb          ",
-        "  ddddddbb      bbbbbb          ",
-        "  ddddddbb      bbbbbb          "
+        "    aaaaaaaaaaaaaaaaaaaaaaaacc  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacc  ",
+        "  aaffffffffffffffffffffffffaacc",
+        "  aaffffffffffffffffffffffffaacc",
+        "  aaffffffffffffffffffffffffaacc",
+        "  aaffffffffffffffffffffffffaacc",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacc  ",
+        "    aaaaaaaaaaaaaaaaaaaaaaaacc  ",
+        "              aaeeaacccccccccc  ",
+        "              aaeeaacccccccccc  ",
+        "            aaeeeeeeaacc        ",
+        "            aaeeeeeeaacc        ",
+        "          aaeeeeeeeeeeaacc      ",
+        "          aaeeeeeeeeeeaacc      ",
+        "        aaeeeeeeeeeeeeeeaacc    ",
+        "        aaeeeeeeeeeeeeeeaacc    ",
+        "      aaaaaaeeeeeeeeeeaaaaaacc  ",
+        "      aaaaaaeeeeeeeeeeaaaaaacc  ",
+        "            aaeeeeeeaacccccccc  ",
+        "            aaeeeeeeaacccccccc  ",
+        "    ddddddccaaeeeeeeaacc        ",
+        "    ddddddccaaeeeeeeaacc        ",
+        "  ddccccccccaaeeeeeeaacc        ",
+        "  ddccccccccaaeeeeeeaacc        ",
+        "    ddddcc  aaeeeeeeaacc        ",
+        "    ddddcc  aaeeeeeeaacc        ",
+        "      ccddcc  aaaaaacc          ",
+        "      ccddcc  aaaaaacc          ",
+        "  ddddddcc      cccccc          ",
+        "  ddddddcc      cccccc          "
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -15012,7 +15285,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 5 1",
         "  c None",
         "a c Black",
-        "b c #808080",
+        "c c #808080",
         "d c #FFFF00",
         "e c #800000",
         /* pixels */
@@ -15020,20 +15293,20 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "                            ee  ",
         "          aaaa            eeee  ",
         "          aaaa            eeee  ",
-        "dd        aabbaa            ee  ",
-        "dd        aabbaa            ee  ",
-        "aaeeaa      aabbaa          ee  ",
-        "aaeeaa      aabbaa          ee  ",
-        "eeeeaa        aabbaa      eeeeee",
-        "eeeeaa        aabbaa      eeeeee",
-        "eeeeaa          aabbaa          ",
-        "eeeeaa          aabbaa          ",
-        "eeaadddddd        aabbaa  aa    ",
-        "eeaadddddd        aabbaa  aa    ",
-        "aaddddddaaeeaa      aabbaaaa    ",
-        "aaddddddaaeeaa      aabbaaaa    ",
-        "ddddddaaeeeeaa        aabbaa    ",
-        "ddddddaaeeeeaa        aabbaa    ",
+        "dd        aaccaa            ee  ",
+        "dd        aaccaa            ee  ",
+        "aaeeaa      aaccaa          ee  ",
+        "aaeeaa      aaccaa          ee  ",
+        "eeeeaa        aaccaa      eeeeee",
+        "eeeeaa        aaccaa      eeeeee",
+        "eeeeaa          aaccaa          ",
+        "eeeeaa          aaccaa          ",
+        "eeaadddddd        aaccaa  aa    ",
+        "eeaadddddd        aaccaa  aa    ",
+        "aaddddddaaeeaa      aaccaaaa    ",
+        "aaddddddaaeeaa      aaccaaaa    ",
+        "ddddddaaeeeeaa        aaccaa    ",
+        "ddddddaaeeeeaa        aaccaa    ",
         "ddddaaeeeeeeaa      aaaaaaaa    ",
         "ddddaaeeeeeeaa      aaaaaaaa    ",
         "ddaaeeeeeeaadddddd              ",
@@ -15058,7 +15331,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #808080",
+        "c c #808080",
         "d c #FFFF00",
         "e c #800000",
         "f c #C0C0C0",
@@ -15067,20 +15340,20 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "    ee                          ",
         "  eeee        aaaaaaaa          ",
         "  eeee        aaaaaaaa          ",
-        "    ee          aabbaa        dd",
-        "    ee          aabbaa        dd",
-        "    ee        aabbaaaa    aaeeaa",
-        "    ee        aabbaaaa    aaeeaa",
-        "  eeeeee    aabbaaffaa    aaeeee",
-        "  eeeeee    aabbaaffaa    aaeeee",
-        "          aabbaa          aaeeee",
-        "          aabbaa          aaeeee",
-        "        aabbaa        ddddddaaee",
-        "        aabbaa        ddddddaaee",
-        "      aabbaa      aaeeaaddddddaa",
-        "      aabbaa      aaeeaaddddddaa",
-        "    aabbaa        aaeeeeaadddddd",
-        "    aabbaa        aaeeeeaadddddd",
+        "    ee          aaccaa        dd",
+        "    ee          aaccaa        dd",
+        "    ee        aaccaaaa    aaeeaa",
+        "    ee        aaccaaaa    aaeeaa",
+        "  eeeeee    aaccaaffaa    aaeeee",
+        "  eeeeee    aaccaaffaa    aaeeee",
+        "          aaccaa          aaeeee",
+        "          aaccaa          aaeeee",
+        "        aaccaa        ddddddaaee",
+        "        aaccaa        ddddddaaee",
+        "      aaccaa      aaeeaaddddddaa",
+        "      aaccaa      aaeeaaddddddaa",
+        "    aaccaa        aaeeeeaadddddd",
+        "    aaccaa        aaeeeeaadddddd",
         "    aaaa          aaeeeeeeaadddd",
         "    aaaa          aaeeeeeeaadddd",
         "              ddddddaaeeeeeeaadd",
@@ -15150,39 +15423,39 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #FFFF00",
         "e c #FF0000",
         "f c #800080",
         /* pixels */
         "                                ",
         "                                ",
-        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
-        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
-        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
-        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
-        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
-        "ddbbeeeeeeddbbeeeeeeddbbeeeeeedd",
+        "ddcceeeeeeddcceeeeeeddcceeeeeedd",
+        "ddcceeeeeeddcceeeeeeddcceeeeeedd",
+        "ddcceeeeeeddcceeeeeeddcceeeeeedd",
+        "ddcceeeeeeddcceeeeeeddcceeeeeedd",
+        "ddcceeeeeeddcceeeeeeddcceeeeeedd",
+        "ddcceeeeeeddcceeeeeeddcceeeeeedd",
         "                                ",
         "                                ",
-        "      aabb      aabb      aabb  ",
-        "      aabb      aabb      aabb  ",
-        "      aabb      aabb      aabb  ",
-        "      aabb      aabb      aabb  ",
-        "        aabb    aabb    aabb    ",
-        "        aabb    aabb    aabb    ",
+        "      aacc      aacc      aacc  ",
+        "      aacc      aacc      aacc  ",
+        "      aacc      aacc      aacc  ",
+        "      aacc      aacc      aacc  ",
+        "        aacc    aacc    aacc    ",
+        "        aacc    aacc    aacc    ",
         "      aaaaaa  aaaaaa  aaaaaa    ",
         "      aaaaaa  aaaaaa  aaaaaa    ",
-        "        aabb    aabb    aabb    ",
-        "        aabb    aabb    aabb    ",
-        "bbbbbb      bbbbbbbbbbbb      bb",
-        "bbbbbb      bbbbbbbbbbbb      bb",
-        "eeeedd    ffffffffffffbb    eeee",
-        "eeeedd    ffffffffffffbb    eeee",
-        "eeeedd    ffffffffffffbb    eeee",
-        "eeeedd    ffffffffffffbb    eeee",
-        "eeeedd    ffffffffffffbb    eeee",
-        "eeeedd    ffffffffffffbb    eeee",
+        "        aacc    aacc    aacc    ",
+        "        aacc    aacc    aacc    ",
+        "cccccc      cccccccccccc      cc",
+        "cccccc      cccccccccccc      cc",
+        "eeeedd    ffffffffffffcc    eeee",
+        "eeeedd    ffffffffffffcc    eeee",
+        "eeeedd    ffffffffffffcc    eeee",
+        "eeeedd    ffffffffffffcc    eeee",
+        "eeeedd    ffffffffffffcc    eeee",
+        "eeeedd    ffffffffffffcc    eeee",
         "                                ",
         "                                "
         };
@@ -15197,41 +15470,41 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 6 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #FFFF00",
         "e c #FF0000",
         "f c #800080",
         /* pixels */
         "                                ",
         "                                ",
-        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
-        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
-        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
-        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
-        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
-        "bbeeeeeeddbbeeeeeeddbbeeeeeeddbb",
+        "cceeeeeeddcceeeeeeddcceeeeeeddcc",
+        "cceeeeeeddcceeeeeeddcceeeeeeddcc",
+        "cceeeeeeddcceeeeeeddcceeeeeeddcc",
+        "cceeeeeeddcceeeeeeddcceeeeeeddcc",
+        "cceeeeeeddcceeeeeeddcceeeeeeddcc",
+        "cceeeeeeddcceeeeeeddcceeeeeeddcc",
         "                                ",
         "                                ",
-        "    aabb      aabb        aabb  ",
-        "    aabb      aabb        aabb  ",
+        "    aacc      aacc        aacc  ",
+        "    aacc      aacc        aacc  ",
         "  aaaaaa    aaaaaa      aaaaaa  ",
         "  aaaaaa    aaaaaa      aaaaaa  ",
-        "    aabb      aabb        aabb  ",
-        "    aabb      aabb        aabb  ",
-        "    aabb      aabb        aabb  ",
-        "    aabb      aabb        aabb  ",
-        "    aabb      aabb        aabb  ",
-        "    aabb      aabb        aabb  ",
-        "      aabb    aabb      aa      ",
-        "      aabb    aabb      aa      ",
-        "bbbbbb  aabbbbbbaabbaaaa    bbbb",
-        "bbbbbb  aabbbbbbaabbaaaa    bbbb",
-        "eeeedd    ffffffffffbb    eeeeee",
-        "eeeedd    ffffffffffbb    eeeeee",
-        "eeeedd    ffffffffffbb    eeeeee",
-        "eeeedd    ffffffffffbb    eeeeee",
-        "eeeedd    ffffffffffbb    eeeeee",
-        "eeeedd    ffffffffffbb    eeeeee"
+        "    aacc      aacc        aacc  ",
+        "    aacc      aacc        aacc  ",
+        "    aacc      aacc        aacc  ",
+        "    aacc      aacc        aacc  ",
+        "    aacc      aacc        aacc  ",
+        "    aacc      aacc        aacc  ",
+        "      aacc    aacc      aa      ",
+        "      aacc    aacc      aa      ",
+        "cccccc  aaccccccaaccaaaa    cccc",
+        "cccccc  aaccccccaaccaaaa    cccc",
+        "eeeedd    ffffffffffcc    eeeeee",
+        "eeeedd    ffffffffffcc    eeeeee",
+        "eeeedd    ffffffffffcc    eeeeee",
+        "eeeedd    ffffffffffcc    eeeeee",
+        "eeeedd    ffffffffffcc    eeeeee",
+        "eeeedd    ffffffffffcc    eeeeee"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -15244,7 +15517,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 7 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #FFFF00",
         "e c #00FFFF",
         "f c #008080",
@@ -15266,16 +15539,16 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "                                ",
         "                                ",
         "                                ",
-        "aabbaaaabb    aaaabb  aabbaabbaa",
-        "aabbaaaabb    aaaabb  aabbaabbaa",
-        "aaaabb  aabbaabb  aabbaabbaabbaa",
-        "aaaabb  aabbaabb  aabbaabbaabbaa",
-        "aabb    aabbaaaaaabb  aabbaabbaa",
-        "aabb    aabbaaaaaabb  aabbaabbaa",
-        "aabb    aabbaabbbbbb  aabbaabbaa",
-        "aabb    aabbaabbbbbb  aabbaabbaa",
-        "aabb    aabb  aaaaaabb  aabbaabb",
-        "aabb    aabb  aaaaaabb  aabbaabb",
+        "aaccaaaacc    aaaacc  aaccaaccaa",
+        "aaccaaaacc    aaaacc  aaccaaccaa",
+        "aaaacc  aaccaacc  aaccaaccaaccaa",
+        "aaaacc  aaccaacc  aaccaaccaaccaa",
+        "aacc    aaccaaaaaacc  aaccaaccaa",
+        "aacc    aaccaaaaaacc  aaccaaccaa",
+        "aacc    aaccaacccccc  aaccaaccaa",
+        "aacc    aaccaacccccc  aaccaaccaa",
+        "aacc    aacc  aaaaaacc  aaccaacc",
+        "aacc    aacc  aaaaaacc  aaccaacc",
         "                                ",
         "                                ",
         "ffffffff    ffffffff    ffffffff",
@@ -15292,35 +15565,35 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 4 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #008080",
         /* pixels */
-        "                  aabbaabbaabb  ",
-        "                  aabbaabbaabb  ",
-        "    bbbb    bbbbbbaabbbb  aabbbb",
-        "    bbbb    bbbbbbaabbbb  aabbbb",
-        "  aaaabb    aaaabbaabbaabbaaaaaa",
-        "  aaaabb    aaaabbaabbaabbaaaaaa",
-        "aabbbbaabbaabb  aaaabbaabbaabb  ",
-        "aabbbbaabbaabb  aaaabbaabbaabb  ",
-        "aaaaaabb  aabb    aabbaabbaabb  ",
-        "aaaaaabb  aabb    aabbaabbaabb  ",
-        "aabbbbbb  aabb    aabbaabbaabb  ",
-        "aabbbbbb  aabb    aabbaabbaabb  ",
-        "  aaaaaabb  aaaaaabb  aabb  aabb",
-        "  aaaaaabb  aaaaaabb  aabb  aabb",
-        "bb  bbbb      bbbbbb  bbbbbbbbbb",
-        "bb  bbbb      bbbbbb  bbbbbbbbbb",
-        "aabbaaaabbbb  aaaabb  aabbaabbaa",
-        "aabbaaaabbbb  aaaabb  aabbaabbaa",
-        "aaaabb  aabbaabbbbaabbaabbaabbaa",
-        "aaaabb  aabbaabbbbaabbaabbaabbaa",
-        "aabb    aabbaaaaaa    aabbaabbaa",
-        "aabb    aabbaaaaaa    aabbaabbaa",
-        "aabb    aabbaabbbbbbbbaabbaabbaa",
-        "aabb    aabbaabbbbbbbbaabbaabbaa",
-        "aabb    aabb  aaaaaabb  aabbaabb",
-        "aabb    aabb  aaaaaabb  aabbaabb",
+        "                  aaccaaccaacc  ",
+        "                  aaccaaccaacc  ",
+        "    cccc    ccccccaacccc  aacccc",
+        "    cccc    ccccccaacccc  aacccc",
+        "  aaaacc    aaaaccaaccaaccaaaaaa",
+        "  aaaacc    aaaaccaaccaaccaaaaaa",
+        "aaccccaaccaacc  aaaaccaaccaacc  ",
+        "aaccccaaccaacc  aaaaccaaccaacc  ",
+        "aaaaaacc  aacc    aaccaaccaacc  ",
+        "aaaaaacc  aacc    aaccaaccaacc  ",
+        "aacccccc  aacc    aaccaaccaacc  ",
+        "aacccccc  aacc    aaccaaccaacc  ",
+        "  aaaaaacc  aaaaaacc  aacc  aacc",
+        "  aaaaaacc  aaaaaacc  aacc  aacc",
+        "cc  cccc      cccccc  cccccccccc",
+        "cc  cccc      cccccc  cccccccccc",
+        "aaccaaaacccc  aaaacc  aaccaaccaa",
+        "aaccaaaacccc  aaaacc  aaccaaccaa",
+        "aaaacc  aaccaaccccaaccaaccaaccaa",
+        "aaaacc  aaccaaccccaaccaaccaaccaa",
+        "aacc    aaccaaaaaa    aaccaaccaa",
+        "aacc    aaccaaaaaa    aaccaaccaa",
+        "aacc    aaccaaccccccccaaccaaccaa",
+        "aacc    aaccaaccccccccaaccaaccaa",
+        "aacc    aacc  aaaaaacc  aaccaacc",
+        "aacc    aacc  aaaaaacc  aaccaacc",
         "                                ",
         "                                ",
         "dddddddd    dddddddd    dddddddd",
@@ -15337,44 +15610,44 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 9 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #008000",
-        "d c #FF00FF",
+        "c c #FFFFFF",
+        "d c #008000",
+        "e c #FF00FF",
         "f c #FFFF00",
         "g c #FF0000",
         "h c #0000FF",
         "i c #C0C0C0",
         /* pixels */
-        "    ddhhhh            ddhhhh    ",
-        "    ddhhhh            ddhhhh    ",
-        "      ddhhhh        ddhhhh      ",
-        "      ddhhhh        ddhhhh      ",
-        "ffggggggddhhhh    ddhhhhffgggggg",
-        "ffggggggddhhhh    ddhhhhffgggggg",
-        "ffggggggffddhhhhddhhhhggffgggggg",
-        "ffggggggffddhhhhddhhhhggffgggggg",
-        "ffggggggffggddhhhhhhggggffgggggg",
-        "ffggggggffggddhhhhhhggggffgggggg",
-        "ffggggggffggddhhhhhhggggffgggggg",
-        "ffggggggffggddhhhhhhggggffgggggg",
-        "          ddhhhhddhhhh          ",
-        "          ddhhhhddhhhh          ",
-        "    bbbbddhhhhbbbbddhhhh        ",
-        "    bbbbddhhhhbbbbddhhhh        ",
-        "aabbaaaahhhhiiaaaabbddhhhhaabbaa",
-        "aabbaaaahhhhiiaaaabbddhhhhaabbaa",
-        "aaaaddhhhhbbaabbbbaabbaahhhhbbaa",
-        "aaaaddhhhhbbaabbbbaabbaahhhhbbaa",
-        "aaddhhhhaabbaaaaaa    aaddhhhhaa",
-        "aaddhhhhaabbaaaaaa    aaddhhhhaa",
-        "aahhhh  aabbaabbbbbbbbaabbaahhhh",
-        "aahhhh  aabbaabbbbbbbbaabbaahhhh",
-        "hhhh    aabbbbaaaaaabb  aaaaaahh",
-        "hhhh    aabbbbaaaaaabb  aaaaaahh",
-        "hh                            dd",
-        "hh                            dd",
-        "cccccccc    cccccccc    cccccccc",
-        "cccccccc    cccccccc    cccccccc"
+        "    eehhhh            eehhhh    ",
+        "    eehhhh            eehhhh    ",
+        "      eehhhh        eehhhh      ",
+        "      eehhhh        eehhhh      ",
+        "ffggggggeehhhh    eehhhhffgggggg",
+        "ffggggggeehhhh    eehhhhffgggggg",
+        "ffggggggffeehhhheehhhhggffgggggg",
+        "ffggggggffeehhhheehhhhggffgggggg",
+        "ffggggggffggeehhhhhhggggffgggggg",
+        "ffggggggffggeehhhhhhggggffgggggg",
+        "ffggggggffggeehhhhhhggggffgggggg",
+        "ffggggggffggeehhhhhhggggffgggggg",
+        "          eehhhheehhhh          ",
+        "          eehhhheehhhh          ",
+        "    cccceehhhhcccceehhhh        ",
+        "    cccceehhhhcccceehhhh        ",
+        "aaccaaaahhhhiiaaaacceehhhhaaccaa",
+        "aaccaaaahhhhiiaaaacceehhhhaaccaa",
+        "aaaaeehhhhccaaccccaaccaahhhhccaa",
+        "aaaaeehhhhccaaccccaaccaahhhhccaa",
+        "aaeehhhhaaccaaaaaa    aaeehhhhaa",
+        "aaeehhhhaaccaaaaaa    aaeehhhhaa",
+        "aahhhh  aaccaaccccccccaaccaahhhh",
+        "aahhhh  aaccaaccccccccaaccaahhhh",
+        "hhhh    aaccccaaaaaacc  aaaaaahh",
+        "hhhh    aaccccaaaaaacc  aaaaaahh",
+        "hh                            ee",
+        "hh                            ee",
+        "dddddddd    dddddddd    dddddddd",
+        "dddddddd    dddddddd    dddddddd"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -15387,7 +15660,7 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 8 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
+        "c c #FFFFFF",
         "d c #FFFF00",
         "e c #00FFFF",
         "f c #008080",
@@ -15404,26 +15677,26 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "      aaaa    aaaa    aaaa      ",
         "                                ",
         "                                ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
-        "            ffffffffbb          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
+        "            ffffffffcc          ",
         "      eeee  ffffffff  eeee      ",
         "      eeee  ffffffff  eeee      ",
-        "bbbbbbbbhhffffffffffffffbb  bbbb",
-        "bbbbbbbbhhffffffffffffffbb  bbbb",
-        "ggggggdd  hhffffffffffbb  gggggg",
-        "ggggggdd  hhffffffffffbb  gggggg",
-        "ggggggdd    hhffffffbb    gggggg",
-        "ggggggdd    hhffffffbb    gggggg",
-        "ggggggdd      hhffbb      gggggg",
-        "ggggggdd      hhffbb      gggggg",
-        "                bb              ",
-        "                bb              "
+        "cccccccchhffffffffffffffcc  cccc",
+        "cccccccchhffffffffffffffcc  cccc",
+        "ggggggdd  hhffffffffffcc  gggggg",
+        "ggggggdd  hhffffffffffcc  gggggg",
+        "ggggggdd    hhffffffcc    gggggg",
+        "ggggggdd    hhffffffcc    gggggg",
+        "ggggggdd      hhffcc      gggggg",
+        "ggggggdd      hhffcc      gggggg",
+        "                cc              ",
+        "                cc              "
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -15436,9 +15709,9 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "32 30 9 1",
         "  c None",
         "a c Black",
-        "b c #FFFFFF",
-        "c c #808080",
-        "d c #008000",
+        "c c #FFFFFF",
+        "d c #808080",
+        "e c #008000",
         "f c #FFFF00",
         "g c #800000",
         "h c #FF0000",
@@ -15452,28 +15725,28 @@ wxBitmap AIToolBarBitmapsUnToggled32x30Func( size_t index )
         "hhhhff  aaaa  aaaa  aaaa  hhhhhh",
         "hhhhff                    hhhhhh",
         "hhhhff                    hhhhhh",
-        "            aaggggggggbb        ",
-        "            aaggggggggbb        ",
-        "              aaggggbb          ",
-        "              aaggggbb          ",
-        "                aabb            ",
-        "                aabb            ",
-        "    aabbaabbaaiicciiaaccaaccaa  ",
-        "    aabbaabbaaiicciiaaccaaccaa  ",
-        "    cciibbaabbaaiiaaiiaaiiaacc  ",
-        "    cciibbaabbaaiiaaiiaaiiaacc  ",
-        "    aabbaabbiibbaaiiddiiaaiiaa  ",
-        "    aabbaabbiibbaaiiddiiaaiiaa  ",
-        "      aabbaabbaaiiaaiiaaiiaa    ",
-        "      aabbaabbaaiiaaiiaaiiaa    ",
-        "      aaiibbaabbiiiiaaiiccaa    ",
-        "      aaiibbaabbiiiiaaiiccaa    ",
-        "      ccbbaabbaabbaaiiaaiicc    ",
-        "      ccbbaabbaabbaaiiaaiicc    ",
-        "      aaccbbccbbaabbcciiccaa    ",
-        "      aaccbbccbbaabbcciiccaa    ",
-        "        aaccccaaccaaccccaa      ",
-        "        aaccccaaccaaccccaa      "
+        "            aaggggggggcc        ",
+        "            aaggggggggcc        ",
+        "              aaggggcc          ",
+        "              aaggggcc          ",
+        "                aacc            ",
+        "                aacc            ",
+        "    aaccaaccaaiiddiiaaddaaddaa  ",
+        "    aaccaaccaaiiddiiaaddaaddaa  ",
+        "    ddiiccaaccaaiiaaiiaaiiaadd  ",
+        "    ddiiccaaccaaiiaaiiaaiiaadd  ",
+        "    aaccaacciiccaaiieeiiaaiiaa  ",
+        "    aaccaacciiccaaiieeiiaaiiaa  ",
+        "      aaccaaccaaiiaaiiaaiiaa    ",
+        "      aaccaaccaaiiaaiiaaiiaa    ",
+        "      aaiiccaacciiiiaaiiddaa    ",
+        "      aaiiccaacciiiiaaiiddaa    ",
+        "      ddccaaccaaccaaiiaaiidd    ",
+        "      ddccaaccaaccaaiiaaiidd    ",
+        "      aaddccddccaaccddiiddaa    ",
+        "      aaddccddccaaccddiiddaa    ",
+        "        aaddddaaddaaddddaa      ",
+        "        aaddddaaddaaddddaa      "
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;

@@ -2296,6 +2296,8 @@ public:
 	void OnLockCustomLocation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateUnlockCustomLocation(wxUpdateUIEvent& event);
 	void OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event);
+	void OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event));
 
 protected:
 

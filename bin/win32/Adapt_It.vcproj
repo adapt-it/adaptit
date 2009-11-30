@@ -447,6 +447,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\AdminMoveOrCopy.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\AIPrintout.cpp"
 				>
 			</File>
@@ -785,6 +789,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\AdaptitConstants.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\AdminMoveOrCopy.h"
 				>
 			</File>
 			<File
