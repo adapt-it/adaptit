@@ -155,6 +155,7 @@
 #include "ConsistentChanger.h"
 #include "ChooseLanguageDlg.h"
 #include "Layout.h"
+#include "AdminMoveOrCopy.h"
 
 
 #if !wxUSE_WXHTML_HELP
@@ -2257,6 +2258,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_UPDATE_UI(ID_LOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateLockCustomLocation)
 	EVT_MENU(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUnlockCustomLocation)
 	EVT_UPDATE_UI(ID_UNLOCK_CUSTOM_LOCATION, CAdapt_ItApp::OnUpdateUnlockCustomLocation)
+	EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
+	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
 
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
@@ -25340,5 +25343,39 @@ _T("Unable to write adjusted basic config file for persistent custom location, s
 			}
 		}
 	}
+}
+
+void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pApp->m_bReadOnlyAccess)
+	{
+		return;
+	}
+
+
+	AdminMoveOrCopy dlg(pApp->GetMainFrame());
+
+	if (dlg.ShowModal() == wxID_OK)
+	{
+
+
+
+	}
+}
+
+void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
+{
+	if (m_bAdminMenuRemoved)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (m_bReadOnlyAccess)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	event.Enable(TRUE); 
 }
 
