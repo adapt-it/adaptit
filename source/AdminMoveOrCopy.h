@@ -43,6 +43,12 @@ public:
 	*/
 	wxBitmapButton* pUpSrcFolder; 
 	wxBitmapButton* pUpDestFolder;
+	wxButton* pLocateSrcFolderButton;
+	wxButton* pLocateDestFolderButton;
+	wxTextCtrl* pSrcFolderPathTextCtrl;
+	wxTextCtrl* pDestFolderPathTextCtrl;
+
+	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
 
 	/*
 	void OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event));
@@ -57,6 +63,10 @@ public:
 	void OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event));
 	*/
+
+	wxString m_strSrcFolderPath;
+	wxString m_strDestFolderPath;
+
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);

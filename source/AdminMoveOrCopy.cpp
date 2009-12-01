@@ -46,6 +46,7 @@ extern bool gbDoingSplitOrJoin;
 BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_INIT_DIALOG(AdminMoveOrCopy::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, AdminMoveOrCopy::OnOK)
+	EVT_BUTTON(ID_BUTTON_LOCATE_SOURCE_FOLDER, AdminMoveOrCopy::OnBnClickedLocateSrcFolder)	
 	/*
 	EVT_BUTTON(ID_JOIN_NOW, CJoinDialog::OnBnClickedJoinNow)
 	EVT_BUTTON(IDC_BUTTON_MOVE_ALL_LEFT, CJoinDialog::OnBnClickedButtonMoveAllLeft)
@@ -71,6 +72,21 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	// size dialog.
 	MoveOrCopyFilesOrFoldersFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+	m_strSrcFolderPath = _T("");
+	m_strDestFolderPath = _T("");
+
+	pSrcFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_PATH);
+	pSrcFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strSrcFolderPath));
+	pDestFolderPathTextCtrl = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_PATH);
+	pDestFolderPathTextCtrl->SetValidator(wxGenericValidator(&m_strDestFolderPath));
+
+	pLocateSrcFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_SOURCE_FOLDER);
+	wxASSERT(pLocateSrcFolderButton != NULL);
+	pLocateDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_DESTINATION_FOLDER);
+	wxASSERT(pLocateDestFolderButton != NULL);
+
+
 }
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
@@ -80,8 +96,26 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 
 void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
-	
+	// set up pointers to interface objects
+	pUpSrcFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP);
+	wxASSERT(pUpSrcFolder != NULL);
+	pUpDestFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP);
+	wxASSERT(pUpDestFolder != NULL);
+
+
+
+	// initialize for the "Locate...folder" buttons
+	m_strSrcFolderPath = gpApp->m_workFolderPath;
+	// set up reasonable default paths so that the wxDir class's browser has directory
+	// defaults to start from
+	if (gpApp->m_bUseCustomWorkFolderPath  && !gpApp->m_customWorkFolderPath.IsEmpty())
+	{
+		m_strDestFolderPath = gpApp->m_customWorkFolderPath;
+	}
+	else
+	{
+		m_strDestFolderPath = gpApp->m_workFolderPath;
+	}
 	/*
 	pNewFileName = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_FILENAME);
 	wxASSERT(pNewFileName != NULL);
@@ -104,10 +138,6 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pJoiningWait = (wxStaticText*)FindWindowById(IDC_STATIC_JOINING_WAIT);
 	wxASSERT(pJoiningWait != NULL);
 	*/
-	pUpSrcFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP);
-	wxASSERT(pUpSrcFolder != NULL);
-	pUpDestFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP);
-	wxASSERT(pUpDestFolder != NULL);
 	/*
 	wxTextCtrl* pTextCtrlAsStaticJoin1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_JOIN1);
 	wxASSERT(pTextCtrlAsStaticJoin1 != NULL);
@@ -165,4 +195,24 @@ void AdminMoveOrCopy::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
+void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event))
+{
+	CMainFrame* pFrame = gpApp->GetMainFrame();
+	wxString msg = _("Locate the source folder");
+	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+		// second param suppresses a Create button being shown, 3rd makes chose directory 
+		// the working directory, first param is for default dialog style with resizable
+		// border (see wxDirDialog for details)
+	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	wxPoint pos = wxDefaultPosition;
+	// in the following call, which is a wx widget which can be called as below or as
+	// ::wxDirSelector(...params...), if the user cancels from the browser window the
+	// returned string is empty, otherwise it is the absolute path to whatever directory
+	// was shown selected in the folder hierarchy when the OK button was pressed
+	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
+	
+	// put the path into the edit control
+	pSrcFolderPathTextCtrl->ChangeValue(m_strSrcFolderPath);
 
+	//TransferDataToWindow();
+}

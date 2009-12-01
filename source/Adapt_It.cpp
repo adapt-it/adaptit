@@ -23771,7 +23771,7 @@ bool CAdapt_ItApp::IsConfigFileWithin(wxString path, wxString& configFilePath, b
 bool CAdapt_ItApp::LocateCustomWorkFolder(wxString defaultPath, wxString& returnedPath, 
 										  bool& bUserCancelled)
 {
-	CMainFrame* pFrame = gpApp->m_pMainFrame;
+	CMainFrame* pFrame = gpApp->GetMainFrame();
 	wxString msg = _("Locate the folder you wish to use for Adapt It work");
 	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
 		// second param suppresses a Create button being shown, 3rd makes chose directory 
