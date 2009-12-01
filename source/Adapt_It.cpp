@@ -7623,17 +7623,23 @@ while (resToken != "")
 	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
 
 	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
+#ifdef _DEBUG
+	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
+#endif
 
 	// remove the Administrator menu until asked for
-	int menuCount = pMenuBar->GetMenuCount();
-	//wxMenu* pAdminMenu = pMenuBar->GetMenu(administratorMenu); // no, a menu may be
-						//removed already, so this index may not be correct presently
-	//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
-	//wxASSERT(pAdminMenu != NULL);
-	m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
-	m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
-	m_bAdminMenuRemoved = TRUE;
-	pMenuBar->Refresh();
+	if (!m_bShowAdministratorMenu)
+	{
+		int menuCount = pMenuBar->GetMenuCount();
+		//wxMenu* pAdminMenu = pMenuBar->GetMenu(administratorMenu); // no, a menu may be
+							//removed already, so this index may not be correct presently
+		//wxMenu* pAdminMenu = pMenuBar->GetMenu(menuCount - 1);
+		//wxASSERT(pAdminMenu != NULL);
+		m_adminMenuTitle = pMenuBar->GetLabelTop(menuCount - 1);
+		m_pRemovedAdminMenu = pMenuBar->Remove(menuCount - 1);
+		m_bAdminMenuRemoved = TRUE;
+		pMenuBar->Refresh();
+	}
 	m_bSkipBasicConfigFileCall = FALSE; // ensure it is returned to default FALSE
 
 	// override the default for m_bDrafting if the frm switch was found

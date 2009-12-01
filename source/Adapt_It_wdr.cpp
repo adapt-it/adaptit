@@ -6668,145 +6668,129 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item2 = new wxTextCtrl( parent, ID_TEXTCTRL_MSG, _("The move, or copy, takes the file or folder of the source (on the left) and puts it within the destination folder (on the right). Moving, or copying, a folder moves, or copies, the folder (and all its contents) which is shown in the 'Path to source folder' text box. To move or copy just one or more of its files, select them in the list on the left first. Double-clicking a folder in the list relocates to that folder; to relocate to the parent folder use the button with the green 'up' arrow. If there is a danger of overwriting a file, you will be asked first. Click OK when finished."), wxDefaultPosition, wxSize(-1,60), wxTE_MULTILINE|wxTE_READONLY|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxFlexGridSizer *item3 = new wxFlexGridSizer( 3, 0, 3 );
-    item3->AddGrowableCol( 1 );
     item3->AddGrowableCol( 0 );
-    item3->AddGrowableCol( 1 );
+    item3->AddGrowableCol( 2 );
+    item3->AddGrowableRow( 0 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item6 = new wxButton( parent, ID_BUTTON_LOCATE_SOURCE_FOLDER, _("Locate the source folder"), wxDefaultPosition, wxDefaultSize, 0 );
     item5->Add( item6, 0, wxALIGN_CENTER, 5 );
 
+    item5->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBitmapButton *item7 = new wxBitmapButton( parent, ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
+    item5->Add( item7, 0, wxALIGN_CENTER, 5 );
+
     item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
 
-    wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item8 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to source folder (this one is copied or moved):"), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item8, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxStaticText *item9 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to source folder (this one is copied or moved):"), wxDefaultPosition, wxDefaultSize, 0 );
+    item8->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item4->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+    item4->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item10 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL|wxEXPAND );
-    item9->Add( item10, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL );
+    item10->Add( item11, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxBitmapButton *item11 = new wxBitmapButton( parent, ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
-    item9->Add( item11, 0, wxALIGN_CENTER, 5 );
+    item4->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    item4->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
+    wxStaticBox *item14 = new wxStaticBox( parent, -1, _("Contents of the source folder:") );
+    wxStaticBoxSizer *item13 = new wxStaticBoxSizer( item14, wxVERTICAL );
 
-    wxFlexGridSizer *item13 = new wxFlexGridSizer( 2, 0, 4 );
-    item13->AddGrowableCol( 0 );
-    item13->AddGrowableCol( 1 );
+    wxListCtrl *item15 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    item13->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+    item12->Add( item13, 1, wxGROW, 0 );
 
-    wxStaticBox *item16 = new wxStaticBox( parent, -1, _("Contents of the source folder:") );
-    wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
+    item4->Add( item12, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxListCtrl *item17 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxSize(300,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
-    item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+    item3->Add( item4, 1, wxGROW, 0 );
 
-    item14->Add( item15, 0, wxALIGN_CENTER, 0 );
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
-    item13->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxStaticLine *item17 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,220), wxLI_VERTICAL );
+    item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item12->Add( item13, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
-
-    item4->Add( item12, 0, wxALIGN_CENTER, 5 );
-
-    item3->Add( item4, 0, wxALIGN_CENTER, 0 );
+    item3->Add( item16, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticLine *item19 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,220), wxLI_VERTICAL );
-    item18->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
-    item3->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item20 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the destination folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item20, 0, wxALIGN_CENTER, 5 );
 
-    wxBoxSizer *item20 = new wxBoxSizer( wxVERTICAL );
+    item19->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+    wxBitmapButton *item21 = new wxBitmapButton( parent, ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
+    item19->Add( item21, 0, wxALIGN_CENTER, 5 );
 
-    wxButton *item22 = new wxButton( parent, ID_BUTTON_LOCATE_DESTINATION_FOLDER, _("Locate the destination folder"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item22, 0, wxALIGN_CENTER, 5 );
+    item18->Add( item19, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
 
-    item20->Add( item21, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 0 );
+    wxBoxSizer *item22 = new wxBoxSizer( wxVERTICAL );
 
-    wxBoxSizer *item23 = new wxBoxSizer( wxVERTICAL );
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to destination folder:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item23, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_SOURCE_FOLDER_PATH, _("Path to destination folder:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item23->Add( item24, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item18->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
 
-    item20->Add( item23, 0, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 0 );
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
+    wxTextCtrl *item25 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL );
+    item24->Add( item25, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL|wxEXPAND );
-    item25->Add( item26, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item18->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxBitmapButton *item27 = new wxBitmapButton( parent, ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP, AIMainFrameIcons( 9 ), wxDefaultPosition, wxSize(32,32) );
-    item25->Add( item27, 0, wxALIGN_CENTER, 5 );
+    wxBoxSizer *item26 = new wxBoxSizer( wxVERTICAL );
 
-    item20->Add( item25, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    wxStaticBox *item28 = new wxStaticBox( parent, -1, _("Contents of the destination folder:") );
+    wxStaticBoxSizer *item27 = new wxStaticBoxSizer( item28, wxVERTICAL );
 
-    wxBoxSizer *item28 = new wxBoxSizer( wxHORIZONTAL );
+    wxListCtrl *item29 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
+    item27->Add( item29, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxFlexGridSizer *item29 = new wxFlexGridSizer( 2, 0, 4 );
-    item29->AddGrowableCol( 0 );
-    item29->AddGrowableCol( 1 );
+    item26->Add( item27, 1, wxGROW, 0 );
+
+    item18->Add( item26, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item3->Add( item18, 1, wxGROW, 0 );
+
+    item1->Add( item3, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
 
     wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxStaticBox *item32 = new wxStaticBox( parent, -1, _("Contents of the destination folder:") );
-    wxStaticBoxSizer *item31 = new wxStaticBoxSizer( item32, wxVERTICAL );
+    wxButton *item31 = new wxButton( parent, ID_BUTTON_MOVE_FOLDER, _("Move Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item31, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxListCtrl *item33 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxSize(300,100), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
-    item31->Add( item33, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item32 = new wxButton( parent, ID_BUTTON_MOVE_FILES, _("Move File or Files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item32, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item30->Add( item31, 0, wxALIGN_CENTER, 0 );
+    item30->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY_FOLDER, _("Copy Folder"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item28->Add( item29, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    wxButton *item34 = new wxButton( parent, ID_BUTTON_COPY_FILES, _("Copy File or Files"), wxDefaultPosition, wxDefaultSize, 0 );
+    item30->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item20->Add( item28, 0, wxALIGN_CENTER, 5 );
+    item30->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( item20, 0, wxALIGN_CENTER, 0 );
+    wxButton *item35 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->SetDefault();
+    item30->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
-
-    wxBoxSizer *item34 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item35 = new wxButton( parent, ID_BUTTON_MOVE_FOLDER, _("Move Folder"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_MOVE_FILES, _("Move File or Files"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item34->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item37 = new wxButton( parent, ID_BUTTON_COPY_FOLDER, _("Copy Folder"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item37, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    wxButton *item38 = new wxButton( parent, ID_BUTTON_COPY_FILES, _("Copy File or Files"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->Add( item38, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item34->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item39 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item39->SetDefault();
-    item34->Add( item39, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
-
-    item1->Add( item34, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
+    item1->Add( item30, 0, wxALIGN_CENTER|wxBOTTOM, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -14188,25 +14172,25 @@ wxBitmap AIMainFrameIcons( size_t index )
         /* columns rows colors chars-per-pixel */
         "16 14 6 1",
         "  c None",
-        "b c #FFFFFF",
-        "c c #9F9F5F",
+        "a c #FFFFFF",
+        "b c #9F9F5F",
         "d c #DACF07",
         "e c #DAB110",
         "f c #E9BC0C",
         /* pixels */
-        "bbcccccbbbbbbbbb",
-        "bcdddddcbbbbbbbb",
-        "cffffdddcccccbbb",
-        "ceeffffffffffcbb",
-        "ceeeefffffffffc ",
-        "ceeeeeeeeeeeeec ",
-        "ceeeeeeeeeeeeec ",
-        "ceeeeeeeeeeeeec ",
-        "ceeeeeeeeeeeeec ",
-        "ceeeeeeeeeeeeec ",
-        "ceeeeeeeeeeeeec ",
-        "ceeeeeeeeeeeeec ",
-        "ccccccccccccccc ",
+        "aabbbbbaaaaaaaaa",
+        "abdddddbaaaaaaaa",
+        "bffffdddbbbbbaaa",
+        "beeffffffffffbaa",
+        "beeeefffffffffb ",
+        "beeeeeeeeeeeeeb ",
+        "beeeeeeeeeeeeeb ",
+        "beeeeeeeeeeeeeb ",
+        "beeeeeeeeeeeeeb ",
+        "beeeeeeeeeeeeeb ",
+        "beeeeeeeeeeeeeb ",
+        "beeeeeeeeeeeeeb ",
+        "bbbbbbbbbbbbbbb ",
         "                "
         };
         wxBitmap bitmap( xpm_data );
@@ -14221,28 +14205,28 @@ wxBitmap AIMainFrameIcons( size_t index )
         "13 14 9 1",
         "  c None",
         "a c #FFFFFC",
-        "c c #FFFFFF",
-        "d c #9F9F5F",
-        "e c #808080",
+        "b c #FFFFFF",
+        "c c #9F9F5F",
+        "d c #808080",
         "f c #D8BFD8",
         "g c #C0C0C0",
         "h c #595900",
         "i c #009797",
         /* pixels */
-        "ccccccccccccc",
-        "chhdddddddccc",
-        "chihiiiiiiecc",
-        "chiih aaaaecc",
-        " hiihdfafaecc",
-        " hiihdaaaaecc",
-        " hiihdaaaaecc",
-        " hiihdfffaecc",
-        " hiihdaaaaecc",
-        " hiihdaffaecc",
-        " hiihdaaaaecc",
-        "chiihdafafecc",
-        "chhihddddd cc",
-        "ccghhd     cc"
+        "bbbbbbbbbbbbb",
+        "bhhcccccccbbb",
+        "bhihiiiiiidbb",
+        "bhiih aaaadbb",
+        " hiihcfafadbb",
+        " hiihcaaaadbb",
+        " hiihcaaaadbb",
+        " hiihcfffadbb",
+        " hiihcaaaadbb",
+        " hiihcaffadbb",
+        " hiihcaaaadbb",
+        "bhiihcafafdbb",
+        "bhhihccccc bb",
+        "bbghhc     bb"
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -14356,7 +14340,7 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         "16 15 5 1",
         "  c None",
         "a c Black",
-        "c c #FFFFFF",
+        "b c #FFFFFF",
         "d c #FFFF00",
         "e c #FF0000",
         /* pixels */
@@ -14367,7 +14351,7 @@ wxBitmap AIToolBarBitmapsToggledFunc( size_t index )
         " eedddaadeeedee ",
         " eeaadaaeeeddee ",
         "eedaadaeeeddddee",
-        "eecdddeeeaadddee",
+        "eebdddeeeaadddee",
         " eeddeeadaaddee ",
         " eedeeeaddaddee ",
         "  eeeedddaddee  ",
