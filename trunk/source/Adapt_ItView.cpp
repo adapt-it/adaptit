@@ -5227,6 +5227,9 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		{
 			// don't show it if the user cancelled prefs
 			pApp->m_bShowAdministratorMenu = FALSE;
+#ifdef _DEBUG
+			pApp->m_bShowAdministratorMenu = TRUE; // for debugging convenience
+#endif
 		}
 	}
 
