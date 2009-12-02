@@ -29,6 +29,7 @@
 #include <wx/filename.h>
 #include <wx/tokenzr.h>
 #include <wx/colour.h>
+#include <wx/dir.h>
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -1479,4 +1480,101 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 		// still indeterminate, so default to returning TRUE
 		return TRUE;
 }
+
+int	sortCompareFunc(const wxString& first, const wxString& second)
+{
+#ifdef __WXMSW__
+	// for Microsoft Windows, we want a caseless compare
+	return first.CmpNoCase(second);
+#else
+	// for Unix (Mac) or Linux, we want a case-sensitive compare
+	return first.Cmp(second);
+#endif
+}
+
+bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, 
+					wxArrayString* pAbsFolderPaths, bool bSort)
+{
+
+
+
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if all went well (and the list has at least one item in it); FALSE
+///             if there was an error or the list is empty
+/// \param      pathToFolder   ->   absolute path to the folder which is being enumerated
+/// \param      pFiles         ->   pointer to a wxArrayString instance which stores the
+///                                 enumerated files (filenames, path info stripped off)
+/// \param      bSort          ->   boolean to indicate whether the list should be sorted
+///                                 prior to returning; default is TRUE (to get sort done)
+/// \remarks
+/// Called from: the AdminMoveOrCopy class, when building a folder's list of filenames.
+/// Fills the string array pFiles with the filenames (including extension) in the folder
+/// specified by pathToFolder (it must exist - caller must ensure that). Returns FALSE
+/// if there were not filenames obtained from the folder (we ignore hidden files and also
+/// "." and ".."); otherwise, returns TRUE indicating there were files present.
+/// The sort operation is option, but defaults to TRUE if not specified. On a MS Windows
+/// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
+////////////////////////////////////////////////////////////////////////////////////////
+bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort)
+{
+	wxDir dir;
+	// wxDir must call .Open() before enumerating files
+	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
+	if (!bOK)
+	{
+		// unlikely to fail, but just in case...
+		wxMessageBox(_(
+	"Failed to set the current directory when getting the folder's files; perhaps try again."),
+		_("Error, no working directory"), wxICON_ERROR);
+		return FALSE;
+	}
+	else
+	{
+		wxString str = _T("");
+		bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
+		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
+		// to include directories, OR with wxDIR_DIRS
+		// to include hidden files, OR with wxDIR_HIDDEN
+		// to include . and .. OR with wxDIR_DOTDOT
+		// For our Adapt It purposes, we don't use hidden files, so we won't
+		// show any such to the user - but moving folders will move any
+		// contained hidden files
+		while (bWorking)
+		{
+			if (str.IsEmpty())
+				continue;
+			wxFileName fn;
+			fn.Assign(str); // assign the full path to the wxFileName object
+			// for wxPathFormat format  we use the value wxPATH_NATIVE on the assumption
+			// that even when accessing a foreign machine's different OS, the path
+			// separator returned on the local machine is the native one (if this
+			// assumption proves false, I'll have to make checks and do conditional blocks
+			// for making calls using wxPath_UNIX (for Linux or Mac) versus wxPath_WIN
+			
+			// get the filename part (including extension), we don't care about rest of
+			// path because we won't show those to a user
+			str = fn.GetFullName();
+			pFiles->Add(str); // add the filename to the list
+
+			// try find the next one
+			bWorking = dir.GetNext(&str);
+		}
+
+		// if the list is still empty, return FALSE
+		if (pFiles->IsEmpty())
+			return FALSE;
+
+		// do the sort of the list of filenames, if requested
+		if (bSort)
+		{
+			pFiles->Sort(sortCompareFunc);
+		}
+	}
+	return TRUE;
+}
+
 

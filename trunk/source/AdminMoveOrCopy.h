@@ -47,8 +47,10 @@ public:
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
+	wxImageList iconImages;
 
 	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
 
 	/*
 	void OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event));
@@ -66,6 +68,18 @@ public:
 
 	wxString m_strSrcFolderPath;
 	wxString m_strDestFolderPath;
+
+	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
+	wxArrayString srcFolderPathsArray; // in parallel to srcFoldersArray but
+					// stores the absolute paths for the folders in 
+					// srcFoldersArray (these don't get displayed)
+	wxArrayString srcFilesArray; // stores filenames (these get displayed)
+
+	wxArrayString destFoldersArray; // stores folder names (these get displayed)
+	wxArrayString destFolderPathsArray; // in parallel to destFoldersArray but
+					// stores the absolute paths for the folders in 
+					// destFoldersArray (these don't get displayed)
+	wxArrayString destFilesArray; // stores filenames (these get displayed)
 
 protected:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));

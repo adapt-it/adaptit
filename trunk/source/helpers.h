@@ -84,7 +84,13 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep);
 
 wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet,
 		bool& bLacksAny, bool bCopyOnly = FALSE); // BEW added 15Aug07 for 3.5.0
-							 // & added 4th param on 19May08	
+							 // & added 4th param on 19May08
+// next three for use in the AdminMoveOrCopy class, the handler for Administrator
+// menu item Move Or Copy Folders Or Files
+bool	GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, 
+					   wxArrayString* pAbsFolderPaths, bool bSort = TRUE);
+bool	GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort = TRUE);
+int		sortCompareFunc(const wxString& first, const wxString& second);
 
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
