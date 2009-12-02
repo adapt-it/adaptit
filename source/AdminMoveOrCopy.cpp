@@ -34,6 +34,13 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include "Adapt_It.h"
+#include "helpers.h" // it has the Get... functions for getting list of files, folders
+					 // and optionally sorting
+#include "Adapt_It_wdr.h" // needed for the AIMainFrameIcons(index) function which returns
+						  // for index values 10 and 11 the folder icon and file icon
+						  // respectively, which we use in the two wxListCtrl instances to
+						  // distinguish folder names from filenames; the function returns
+						  // the relevant wxBitmap*
 #include "AdminMoveOrCopy.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -41,12 +48,17 @@ extern CAdapt_ItApp* gpApp;
 
 extern bool gbDoingSplitOrJoin;
 
+enum myicons {
+	indxFolderIcon,
+	indxFileIcon
+};
 
 // event handler table
 BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_INIT_DIALOG(AdminMoveOrCopy::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(wxID_OK, AdminMoveOrCopy::OnOK)
 	EVT_BUTTON(ID_BUTTON_LOCATE_SOURCE_FOLDER, AdminMoveOrCopy::OnBnClickedLocateSrcFolder)	
+	EVT_BUTTON(ID_BUTTON_LOCATE_DESTINATION_FOLDER, AdminMoveOrCopy::OnBnClickedLocateDestFolder)	
 	/*
 	EVT_BUTTON(ID_JOIN_NOW, CJoinDialog::OnBnClickedJoinNow)
 	EVT_BUTTON(IDC_BUTTON_MOVE_ALL_LEFT, CJoinDialog::OnBnClickedButtonMoveAllLeft)
@@ -87,11 +99,22 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	wxASSERT(pLocateDestFolderButton != NULL);
 
 
+	srcFoldersArray.Empty();
+	srcFolderPathsArray.Empty();
+	srcFilesArray.Empty();
+	destFoldersArray.Empty();
+	destFolderPathsArray.Empty();
+	destFilesArray.Empty();
 }
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 {
-	
+	srcFoldersArray.Clear();
+	srcFolderPathsArray.Clear();
+	srcFilesArray.Clear();
+	destFoldersArray.Clear();
+	destFolderPathsArray.Clear();
+	destFilesArray.Clear();
 }
 
 void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -102,7 +125,13 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pUpDestFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP);
 	wxASSERT(pUpDestFolder != NULL);
 
-
+    // get the folder and file icons (bitmaps actually) into the image list which the two
+    // wxListCtrl instances will use
+	iconImages.Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
+	wxBitmap folderIcon(AIMainFrameIcons(10));
+	wxBitmap fileIcon(AIMainFrameIcons(11));
+	iconImages.Add(folderIcon); // no mask; use enum value indxFolderIcon to access it
+	iconImages.Add(fileIcon); // no mask; use enum value indxFileIcon to access it
 
 	// initialize for the "Locate...folder" buttons
 	m_strSrcFolderPath = gpApp->m_workFolderPath;
@@ -215,4 +244,31 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	pSrcFolderPathTextCtrl->ChangeValue(m_strSrcFolderPath);
 
 	//TransferDataToWindow();
+
+	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
 }
+
+void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event))
+{
+	CMainFrame* pFrame = gpApp->GetMainFrame();
+	wxString msg = _("Locate the destination folder");
+	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+		// second param suppresses a Create button being shown, 3rd makes chose directory 
+		// the working directory, first param is for default dialog style with resizable
+		// border (see wxDirDialog for details)
+	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	wxPoint pos = wxDefaultPosition;
+	// in the following call, which is a wx widget which can be called as below or as
+	// ::wxDirSelector(...params...), if the user cancels from the browser window the
+	// returned string is empty, otherwise it is the absolute path to whatever directory
+	// was shown selected in the folder hierarchy when the OK button was pressed
+	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
+	
+	// put the path into the edit control
+	pDestFolderPathTextCtrl->ChangeValue(m_strDestFolderPath);
+
+	//TransferDataToWindow();
+
+	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
+}
+

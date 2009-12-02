@@ -14170,27 +14170,28 @@ wxBitmap AIMainFrameIcons( size_t index )
         /* XPM */
         static const char *xpm_data[] = {
         /* columns rows colors chars-per-pixel */
-        "16 14 6 1",
+        "16 14 7 1",
         "  c None",
         "a c #FFFFFF",
         "b c #9F9F5F",
+        "c c #808080",
         "d c #DACF07",
-        "e c #DAB110",
-        "f c #E9BC0C",
+        "f c #DAB110",
+        "g c #E9BC0C",
         /* pixels */
         "aabbbbbaaaaaaaaa",
         "abdddddbaaaaaaaa",
-        "bffffdddbbbbbaaa",
-        "beeffffffffffbaa",
-        "beeeefffffffffb ",
-        "beeeeeeeeeeeeeb ",
-        "beeeeeeeeeeeeeb ",
-        "beeeeeeeeeeeeeb ",
-        "beeeeeeeeeeeeeb ",
-        "beeeeeeeeeeeeeb ",
-        "beeeeeeeeeeeeeb ",
-        "beeeeeeeeeeeeeb ",
-        "bbbbbbbbbbbbbbb ",
+        "bggggdddbbbbbaaa",
+        "bffggggggggggbaa",
+        "bffffgggggggggb ",
+        "bfffbbbbbbbbbbb ",
+        "bffbffffffffffb ",
+        "bffbffffffffffb ",
+        "bffbffffffffffb ",
+        "bffbffffffffffb ",
+        "bffbffffffffffb ",
+        "ccccccccccccccc ",
+        " ccccccccccccc  ",
         "                "
         };
         wxBitmap bitmap( xpm_data );
