@@ -30,6 +30,10 @@
 #include <wx/wx.h>
 #endif
 
+// the following two must be deprecated, I can't find them anywhere and they don't compile
+//#include "file.xpm"
+//#include "folder.xpm"
+
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
@@ -137,13 +141,24 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
     // either make the icons 16x16, or make the Create() have the parameters
     // Create(16,14,...etc)
 	//iconImages.Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
-	iconImages.Create(16,14,FALSE,2); // FALSE is bool mask, and we don't need a mask
+	iconImages.Create(16,14,TRUE,2); // TRUE is bool mask, I think we need one??
 	wxBitmap folderIcon = AIMainFrameIcons(10);
 	wxBitmap fileIcon = AIMainFrameIcons(11);
+	wxBitmap folderMask = AIMainFrameIcons(12);
 	//wxBitmap folderIcon(AIMainFrameIcons(10)); // these two lines are probably ok
 	//wxBitmap fileIcon(AIMainFrameIcons(11));   // but the alternatives are ok too
-	iconImages.Add(folderIcon); // no mask; use enum value indxFolderIcon to access it
-	iconImages.Add(fileIcon); // no mask; use enum value indxFileIcon to access it
+	int iconIndex;
+	iconIndex = iconImages.Add(folderIcon);
+	iconIndex = iconImages.Add(fileIcon);
+	// NOTE: at first I had Create(16,14,FALSE,2) and adding with .Add(folderIcon); but
+	// doing that produced ugly scarlet colour blocks at the edge of the icons; next I tried
+	// setting a colour mask - made no difference; then I tried setting up an explicit
+	// wxBitmap mask called folderMask, with black at the places where no drawing was to be 
+	// done - and using Create(16,14,TRUE,2) and .Add(folderIcon,folderMask); this had the
+	// effect of wiping out the whole icon!, just one pixel was non-white at a top right edge.
+	// By accident I found out that the right way to do it is to use Create(16,14,TRUE,2),
+	// and use the call  .Add(folderIcon); to add it - then the icon showed with white
+	// surrounds as wanted. Quite contrary to what the documentation appeared to say.
 
 	// initialize for the "Locate...folder" buttons
 	m_strSrcFolderPath = gpApp->m_workFolderPath;

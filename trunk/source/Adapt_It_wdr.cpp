@@ -14170,28 +14170,27 @@ wxBitmap AIMainFrameIcons( size_t index )
         /* XPM */
         static const char *xpm_data[] = {
         /* columns rows colors chars-per-pixel */
-        "16 14 6 1",
+        "16 14 5 1",
         "  c None",
-        "b c #FFFFFF",
-        "c c #9F9F5F",
-        "d c #DACF07",
-        "e c #DAB110",
-        "f c #E9BC0C",
+        "b c #9F9F5F",
+        "c c #DACF07",
+        "d c #DAB110",
+        "e c #E9BC0C",
         /* pixels */
-        "bbcccccbbbbbbbbb",
-        "bcdddddcbbbbbbbb",
-        "cffffdddcccccbbb",
-        "ceeffffffffffcbb",
-        "ceeeefffffffffc ",
-        "ceeeccccccccccc ",
-        "ceeceeeeeeeeeec ",
-        "ceeceeeeeeeeeec ",
-        "ceeceeeeeeeeeec ",
-        "ceeceeeeeeeeeec ",
-        "ceeceeeeeeeeeec ",
-        "ceeceeeeeeeeeec ",
-        " ccccccccccccc  ",
-        "                "
+        "  bbbbb         ",
+        " bcccccb        ",
+        "beeeecccbbbbbb  ",
+        "bddeeeeeeeeeeeb ",
+        "bddddeeeeeeeeeeb",
+        "bdddbbbbbbbbbbbb",
+        "bddbdddddddddddb",
+        "bddbdddddddddddb",
+        "bddbdddddddddddb",
+        "bddbdddddddddddb",
+        "bddbdddddddddddb",
+        "bddbdddddddddddb",
+        "bddddddddddddddb",
+        " bbbbbbbbbbbbbb "
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
@@ -14202,32 +14201,28 @@ wxBitmap AIMainFrameIcons( size_t index )
         /* XPM */
         static const char *xpm_data[] = {
         /* columns rows colors chars-per-pixel */
-        "16 14 10 1",
+        "16 14 6 1",
         "  c None",
         "b c #FFFFFF",
         "c c #9F9F5F",
-        "d c #808080",
-        "e c #CC3232",
-        "f c #FF0000",
-        "g c #C0C0C0",
-        "h c #595900",
-        "i c #009797",
-        "j c #A52A2A",
+        "d c #C0C0C0",
+        "e c #595900",
+        "f c #009797",
         /* pixels */
-        "                ",
-        " hcccccccccc    ",
-        " hhiiiiiiiiic   ",
-        " hihiiiiiiiic   ",
-        " hiihg      c   ",
-        " hiihgjg egdc   ",
-        " hiihg    b c   ",
-        " hiihg      c   ",
-        " hiihg jdf jc   ",
-        " hiihg      c   ",
-        " hiihg      c   ",
-        " hiihgje gj c   ",
-        "  hihgcccccc    ",
-        "   hhg          "
+        " ecccccccccccc  ",
+        " eefffffffffffc ",
+        " eeefffffffffffc",
+        " efeedbbbbbbbbbc",
+        " effedbbbbbbbbbc",
+        " effedbddbbdddbc",
+        " effedbbbbbbbbbc",
+        " effedbdbddbdbbc",
+        "beffedbdbbbbbbbc",
+        "beffedbbbbbbbbbc",
+        "beffeddddbbdbdbc",
+        "beffedbbbbbbbb c",
+        "  efed         c",
+        "   eecccccccccc "
         };
         wxBitmap bitmap( xpm_data );
         return bitmap;
