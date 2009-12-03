@@ -1492,13 +1492,82 @@ int	sortCompareFunc(const wxString& first, const wxString& second)
 #endif
 }
 
-bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, 
-					wxArrayString* pAbsFolderPaths, bool bSort)
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if all went well (and the list has at least one item in it); FALSE
+///             if there was an error or the list is empty
+/// \param      pathToFolder   ->   absolute path to the folder which is being enumerated
+/// \param      pFolders       ->   pointer to a wxArrayString instance which stores the
+///                                 enumerated folders (last folder in the path, the rest
+///                                 are stripped off)
+/// \param      bSort          ->   boolean to indicate whether the list should be sorted
+///                                 prior to returning; default is TRUE (to get sort done)
+/// \remarks
+/// Called from: the AdminMoveOrCopy class, when building a folder's list of folder names.
+/// Fills the string array pFolders with the folder names in the passed in folder
+/// specified by pathToFolder (it must exist - caller must ensure that). Returns FALSE
+/// if there were no folder names obtained from the enumeration; otherwise, returns TRUE 
+/// indicating there were folders present.
+/// The sort operation is option, but defaults to TRUE if not specified. On a MS Windows
+/// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
+/// A side effect is to set the current working directory to the folder passed in.
+////////////////////////////////////////////////////////////////////////////////////////
+bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
 {
+	wxDir dir;
+	// wxDir must call .Open() before enumerating files
+	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
+	if (!bOK)
+	{
+		// unlikely to fail, but just in case...
+		wxMessageBox(_(
+	"Failed to set the current directory when getting the folder's child folders; perhaps try again."),
+		_("Error, no working directory"), wxICON_ERROR);
+		return FALSE;
+	}
+	else
+	{
+		wxString str = _T("");
+		bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_DIRS); // get directories only
+		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
+		// to include directories, OR with wxDIR_DIRS
+		// to include hidden files, OR with wxDIR_HIDDEN
+		// to include . and .. OR with wxDIR_DOTDOT
+		// For our Adapt It purposes, we don't use hidden files, so we won't
+		// show any such to the user - but moving or copying folders will move or
+		// copy any contained hidden files
+		while (bWorking)
+		{
+			if (str.IsEmpty())
+				continue;
+			// check the directory actually exists, this should always succeed
+			bool bExists = dir.Exists(str);
+			if (!bExists)
+			{
+				// this error is highly unlikely to ever occur, so an English-only message
+				// will do here
+				wxString msg;
+				msg = msg.Format(_T(
+"The directory %s was detected but testing for its existence failed. You probably should try again."), str);
+				wxMessageBox(msg, _("Error, not a directory"), wxICON_ERROR);
+				return FALSE;
+			}
+			wxASSERT(!str.IsEmpty());
+			pFolders->Add(str); // add the folder name to the list (makes a copy of str)
 
+			// try find the next one
+			bWorking = dir.GetNext(&str);
+		}
 
+		// if the list is still empty, return FALSE
+		if (pFolders->IsEmpty())
+			return FALSE;
 
-
+		// do the sort of the list of folder names, if requested
+		if (bSort)
+		{
+			pFolders->Sort(sortCompareFunc);
+		}
+	}
 	return TRUE;
 }
 
@@ -1518,6 +1587,7 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders,
 /// "." and ".."); otherwise, returns TRUE indicating there were files present.
 /// The sort operation is option, but defaults to TRUE if not specified. On a MS Windows
 /// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
+/// A side effect is to set the current working directory to the folder passed in.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort)
 {

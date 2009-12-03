@@ -20,6 +20,11 @@
     #pragma interface "AdminMoveOrCopy.h"
 #endif
 
+enum whichSide {
+	sourceSide,
+	destinationSide
+};
+
 /// The AdminMoveOrCopy class provides a dialog interface for moving or copying files or
 /// folders or both. It is derived from AIModalDialog.
 class AdminMoveOrCopy : public AIModalDialog
@@ -48,6 +53,9 @@ public:
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
 	wxImageList iconImages;
+	wxListCtrl* pSrcList;
+	wxListCtrl* pDestList;
+	wxString emptyFolderMessage;
 
 	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
@@ -70,19 +78,12 @@ public:
 	wxString m_strDestFolderPath;
 
 	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
-	wxArrayString srcFolderPathsArray; // in parallel to srcFoldersArray but
-					// stores the absolute paths for the folders in 
-					// srcFoldersArray (these don't get displayed)
 	wxArrayString srcFilesArray; // stores filenames (these get displayed)
 
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
-	wxArrayString destFolderPathsArray; // in parallel to destFoldersArray but
-					// stores the absolute paths for the folders in 
-					// destFoldersArray (these don't get displayed)
 	wxArrayString destFilesArray; // stores filenames (these get displayed)
 
 protected:
-	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void OnOK(wxCommandEvent& event);
 	/*
 	void MoveSelectedItems(wxListBox& From, wxListBox& To);
@@ -91,6 +92,8 @@ protected:
 	void ListContentsOrSelectionChanged();
 	*/
 private:
+	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	bool SetListCtrlContents(enum whichSide side);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
