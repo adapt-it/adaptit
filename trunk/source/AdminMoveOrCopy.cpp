@@ -98,22 +98,20 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	pLocateDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_DESTINATION_FOLDER);
 	wxASSERT(pLocateDestFolderButton != NULL);
 
+	pSrcList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
+	pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
 
 	srcFoldersArray.Empty();
-	srcFolderPathsArray.Empty();
 	srcFilesArray.Empty();
 	destFoldersArray.Empty();
-	destFolderPathsArray.Empty();
 	destFilesArray.Empty();
 }
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 {
 	srcFoldersArray.Clear();
-	srcFolderPathsArray.Clear();
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
-	destFolderPathsArray.Clear();
 	destFilesArray.Clear();
 }
 
@@ -127,9 +125,21 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 
     // get the folder and file icons (bitmaps actually) into the image list which the two
     // wxListCtrl instances will use
+    // Note: http://www.pnelsoncomposer.com/FAQs indicates that the error message
+    // "Couldn't add an image to the i mage list" can arise when bitmap images are not the
+    // expected size; I had the folder one as 16x14 (width x height) and the other as 13x14
+    // - and this caused the error --but it was generated lazily, when the modal dialog loop
+    // began to run, so it was not apparent that the error was in the next few lines; the
+    // error disappeared when I made both 16x14. However, it can also crop up apparently if
+    // the tool image size is greater than the bitmap dimensions, and so my Create below
+    // using width and height of 16 may yet still generate the error. If that ever happens,
+    // either make the icons 16x16, or make the Create() have the parameters
+    // Create(16,14,...etc)
 	iconImages.Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
-	wxBitmap folderIcon(AIMainFrameIcons(10));
-	wxBitmap fileIcon(AIMainFrameIcons(11));
+	wxBitmap folderIcon = AIMainFrameIcons(10);
+	wxBitmap fileIcon = AIMainFrameIcons(11);
+	//wxBitmap folderIcon(AIMainFrameIcons(10)); // these two lines are probably ok
+	//wxBitmap fileIcon(AIMainFrameIcons(11));   // but the alternatives are ok too
 	iconImages.Add(folderIcon); // no mask; use enum value indxFolderIcon to access it
 	iconImages.Add(fileIcon); // no mask; use enum value indxFileIcon to access it
 
@@ -189,6 +199,8 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
 
+	emptyFolderMessage = _("This folder is empty");
+
 	// make the font show the user's desired dialog font point size
 	#ifdef _RTL_FLAGS
 //	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pNewFileName, NULL,
@@ -211,6 +223,65 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	*/
 	pApp->RefreshStatusBarInfo();
 
+}
+
+
+// return TRUE if all went as expected; return FALSE if there were no files or folders to display
+bool AdminMoveOrCopy::SetListCtrlContents(enum whichSide side)
+{
+	bool bFoldersOK = FALSE;
+	bool bFilesOK = FALSE;
+	if (side == sourceSide)
+	{
+		// clear out old content in the list and its supporting arrays
+		srcFoldersArray.Empty();
+		srcFilesArray.Empty();
+		pSrcList->ClearAll();
+
+		// left side of the dialog (source folder's side)
+		bFoldersOK = GetFoldersOnly(m_strSrcFolderPath, &srcFoldersArray); // default is to sort the array
+		bFilesOK = GetFilesOnly(m_strSrcFolderPath, &srcFilesArray); // default is to sort the array
+		if (!bFoldersOK && !bFilesOK)
+		{
+			// no folders or files to display, so tell the caller
+			return FALSE;
+		}
+	}
+	else
+	{
+		// right side of the dialog (destination folder's side)
+		bFoldersOK = GetFoldersOnly(m_strDestFolderPath, &destFoldersArray); // default is to sort the array
+		bFilesOK = GetFilesOnly(m_strDestFolderPath, &destFilesArray); // default is to sort the array
+		if (!bFoldersOK && !bFilesOK)
+		{
+			// no folders or files to display, so tell the caller
+			return FALSE;
+		}
+	}
+
+	// debugging -- display what we got
+#ifdef _DEBUG
+	size_t foldersCount = srcFoldersArray.GetCount();
+	size_t counter;
+	wxLogDebug(_T("Folders (sorted, & fetched in ascending index order):\n"));
+	for (counter = 0; counter < foldersCount; counter++)
+	{
+		wxString aFolder = srcFoldersArray.Item(counter);
+		wxLogDebug(_T("   %s \n"),aFolder);
+	}
+	wxLogDebug(_T("Files (sorted, & fetched in ascending index order):\n"));
+	size_t filesCount = srcFilesArray.GetCount();
+	for (counter = 0; counter < filesCount; counter++)
+	{
+		wxString aFile = srcFilesArray.Item(counter);
+		wxLogDebug(_T("   %s \n"),aFile);
+	}
+	// nice, both folders and files lists are sorted right and all names correct
+#endif
+	// ** TODO ** the rest of it
+	
+	
+	return bFoldersOK || bFilesOK;
 }
 
 // event handling functions
@@ -243,9 +314,39 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	// put the path into the edit control
 	pSrcFolderPathTextCtrl->ChangeValue(m_strSrcFolderPath);
 
-	//TransferDataToWindow();
 
 	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
+	
+	bool bNotEmptyFolder = SetListCtrlContents(sourceSide);
+	if (bNotEmptyFolder)
+	{
+		// Enable the move and copy buttons at the bottom
+
+
+
+		// get data into the list control
+		
+		// for now, put a folder name in
+		pSrcList->AssignImageList( &iconImages, wxIMAGE_LIST_SMALL);
+		wxString anItem = srcFoldersArray.Item(0);
+		long rv = pSrcList->InsertItem(0,anItem,indxFolderIcon);
+// hmmm... nothing displays -- why?
+	}
+	else
+	{
+		// disable the move and copy buttons at the bottom, and put a "This folder is
+		// empty" message into the list
+		pSrcList->AssignImageList( &iconImages, wxIMAGE_LIST_SMALL);
+		pSrcList->InsertItem(0, emptyFolderMessage);
+
+
+
+	}
+
+	//TransferDataToWindow();
+
+	pSrcList->Show();
+
 }
 
 void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event))
