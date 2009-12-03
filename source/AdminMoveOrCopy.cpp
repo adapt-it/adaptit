@@ -136,7 +136,8 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
     // using width and height of 16 may yet still generate the error. If that ever happens,
     // either make the icons 16x16, or make the Create() have the parameters
     // Create(16,14,...etc)
-	iconImages.Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
+	//iconImages.Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
+	iconImages.Create(16,14,FALSE,2); // FALSE is bool mask, and we don't need a mask
 	wxBitmap folderIcon = AIMainFrameIcons(10);
 	wxBitmap fileIcon = AIMainFrameIcons(11);
 	//wxBitmap folderIcon(AIMainFrameIcons(10)); // these two lines are probably ok
@@ -329,9 +330,28 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 		
 		// for now, put a folder name in
 		pSrcList->SetImageList( &iconImages, wxIMAGE_LIST_SMALL);
-		wxString anItem = srcFoldersArray.Item(0);
-		long rv = pSrcList->InsertItem(0,anItem,indxFolderIcon);
-// hmmm... nothing displays -- why?
+		//wxString anItem = srcFoldersArray.Item(0);
+		//long rv = pSrcList->InsertItem(0,anItem,indxFolderIcon);
+		// set a column for an icon followed by text
+		int height;
+		int width;
+		pSrcList->GetClientSize(&width,&height);
+		wxListItem theColumn;
+		theColumn.SetWidth(width);
+		//theColumn.SetImage(0);
+		pSrcList->InsertColumn(0, theColumn);
+
+		// now try put an line of data in the list
+		wxString aFolder = srcFoldersArray.Item(0);
+		long rv = pSrcList->InsertItem(0,aFolder,indxFolderIcon);
+		wxString aFile = srcFilesArray.Item(0);
+		rv = pSrcList->InsertItem(1,aFile,indxFileIcon);
+		
+
+
+
+
+
 	}
 	else
 	{
