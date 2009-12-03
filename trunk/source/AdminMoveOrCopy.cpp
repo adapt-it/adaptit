@@ -109,6 +109,7 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 {
+	iconImages.RemoveAll();
 	srcFoldersArray.Clear();
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
@@ -327,7 +328,7 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 		// get data into the list control
 		
 		// for now, put a folder name in
-		pSrcList->AssignImageList( &iconImages, wxIMAGE_LIST_SMALL);
+		pSrcList->SetImageList( &iconImages, wxIMAGE_LIST_SMALL);
 		wxString anItem = srcFoldersArray.Item(0);
 		long rv = pSrcList->InsertItem(0,anItem,indxFolderIcon);
 // hmmm... nothing displays -- why?
@@ -336,7 +337,7 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	{
 		// disable the move and copy buttons at the bottom, and put a "This folder is
 		// empty" message into the list
-		pSrcList->AssignImageList( &iconImages, wxIMAGE_LIST_SMALL);
+		pSrcList->SetImageList( &iconImages, wxIMAGE_LIST_SMALL);
 		pSrcList->InsertItem(0, emptyFolderMessage);
 
 
@@ -345,7 +346,7 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 
 	//TransferDataToWindow();
 
-	pSrcList->Show();
+	//pSrcList->Show();
 
 }
 
