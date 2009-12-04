@@ -14227,6 +14227,38 @@ wxBitmap AIMainFrameIcons( size_t index )
         wxBitmap bitmap( xpm_data );
         return bitmap;
     }
+    if ((index == 12) ||
+        (index == ID_BITMAP_EMPTY_FOLDER))
+    {
+        /* XPM */
+        static const char *xpm_data[] = {
+        /* columns rows colors chars-per-pixel */
+        "16 14 6 1",
+        "  c None",
+        "a c Black",
+        "b c #4040FF",
+        "d c #FFFFFF",
+        "e c #808080",
+        "f c #606060",
+        /* pixels */
+        "eeea            ",
+        "eeef            ",
+        "eeeea           ",
+        "eeeeef          ",
+        "aafeea          ",
+        "   faa          ",
+        "                ",
+        "      b         ",
+        "      b         ",
+        "     bbb        ",
+        "     bbb        ",
+        "      b         ",
+        "                ",
+        "          dd    "
+        };
+        wxBitmap bitmap( xpm_data );
+        return bitmap;
+    }
     return wxNullBitmap;
 }
 

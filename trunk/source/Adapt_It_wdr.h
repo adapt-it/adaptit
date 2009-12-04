@@ -763,12 +763,13 @@ wxBitmap AIToolBarBitmapsUnToggledFunc( size_t index );
 
 const int ID_BITMAP_FOLDERAI = 588;
 const int ID_BITMAP_FILEAI = 589;
+const int ID_BITMAP_EMPTY_FOLDER = 590;
 wxBitmap AIMainFrameIcons( size_t index );
 
-const int ID_BUTTON_IGNORING_BDRY = 590;
-const int ID_BUTTON_HIDING_PUNCT = 591;
-const int ID_SHOWING_TGT = 592;
-const int ID_BUTTON_ENABLE_PUNCT_COPY = 593;
+const int ID_BUTTON_IGNORING_BDRY = 591;
+const int ID_BUTTON_HIDING_PUNCT = 592;
+const int ID_SHOWING_TGT = 593;
+const int ID_BUTTON_ENABLE_PUNCT_COPY = 594;
 wxBitmap AIToolBarBitmapsToggledFunc( size_t index );
 
 wxBitmap WhichFilesBitmapsFunc( size_t index );

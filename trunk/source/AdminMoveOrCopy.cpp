@@ -54,7 +54,8 @@ extern bool gbDoingSplitOrJoin;
 
 enum myicons {
 	indxFolderIcon,
-	indxFileIcon
+	indxFileIcon,
+	indxEmptyIcon
 };
 
 // event handler table
@@ -110,13 +111,18 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
 
-	pIconImages = new wxImageList(16,14,TRUE,2);
 }
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 {
-//	pIconImages->RemoveAll();
-//	delete pIconImages;
+#ifdef _IMAGELIST_ON_HEAP
+	pIconImages->RemoveAll();
+	delete pIconImages;
+#else
+	iconImages.RemoveAll();
+#endif
+	delete pTheColumnForSrcList;
+	delete pTheColumnForDestList;
 
 	srcFoldersArray.Clear();
 	srcFilesArray.Clear();
@@ -126,11 +132,22 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 
 void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
+	srcFoldersCount = 0;
+	srcFilesCount = 0;
+	destFoldersCount = 0;
+	destFilesCount = 0;
+
 	// set up pointers to interface objects
 	pUpSrcFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP);
 	wxASSERT(pUpSrcFolder != NULL);
 	pUpDestFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP);
 	wxASSERT(pUpDestFolder != NULL);
+
+	pMoveFolderButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FOLDER);
+	pMoveFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FILES);
+	pCopyFolderButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FOLDER);
+	pCopyFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FILES);
+
 
     // get the folder and file icons (bitmaps actually) into the image list which the two
     // wxListCtrl instances will use
@@ -146,13 +163,12 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
     // Create(16,14,...etc)
 	//pIconImages->Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
 	//pIconImages->Create(16,14,TRUE,2); // TRUE is bool mask, I think we need one??
-	wxBitmap folderIcon = AIMainFrameIcons(10);
-	wxBitmap fileIcon = AIMainFrameIcons(11);
-	//wxBitmap folderIcon(AIMainFrameIcons(10)); // these two lines are probably ok
-	//wxBitmap fileIcon(AIMainFrameIcons(11));   // but the alternatives are ok too
-	int iconIndex;
-	iconIndex = pIconImages->Add(folderIcon);
-	iconIndex = pIconImages->Add(fileIcon);
+	
+#ifdef _IMAGELIST_ON_HEAP
+	pIconImages = new wxImageList(16,14,TRUE,2);
+#else
+	bool bCreatedOK = iconImages.Create(16,14,TRUE,2);
+	bCreatedOK = bCreatedOK; // to avoid a compiler warning
 	// NOTE: at first I had Create(16,14,FALSE,2) and adding with ->Add(folderIcon); but
 	// doing that produced ugly scarlet colour blocks at the edge of the icons; next I tried
 	// setting a colour mask - made no difference; then I tried setting up an explicit
@@ -162,6 +178,53 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	// By accident I found out that the right way to do it is to use Create(16,14,TRUE,2),
 	// and use the call ->Add(folderIcon); to add it - then the icon showed with white
 	// surrounds as wanted. Quite contrary to what the documentation appeared to say.
+#endif
+
+	// set up the single column object for each list, on the heap (each has to persist until
+	// the dialog is dismissed)
+	// Note: the wxListItem which is the column has to be on the heap, because if made a local
+	// variable then it will go out of scope and be lost from the wxListCtrl before the
+	// latter has a chance to display anything, and then nothing will display in the control
+	int height; int width;
+	pTheColumnForSrcList = new wxListItem;
+	pTheColumnForDestList = new wxListItem;
+	// set the source column's width & insert it into the src side's wxListCtrl
+	pSrcList->GetClientSize(&width,&height);
+	pTheColumnForSrcList->SetWidth(width);
+	pSrcList->InsertColumn(0, *pTheColumnForSrcList);
+	// set the destination column's width & insert it into the destination side's wxListCtrl
+	pDestList->GetClientSize(&width,&height);
+	pTheColumnForDestList->SetWidth(width);
+	pDestList->InsertColumn(0, *pTheColumnForDestList);
+
+	// obtain the folder and file bitmap images which are to go at the start of folder
+	// names or file names, respectively, in each list; also an 'empty pot' icon for when
+	// the message "The folder is empty" is displayed, otherwise it defaults to showing
+	// the first icon of the image list, which is a folder icon (- that would be confusing)
+	wxBitmap folderIcon = AIMainFrameIcons(10);
+	wxBitmap fileIcon = AIMainFrameIcons(11);
+	wxBitmap emptyIcon = AIMainFrameIcons(12);
+	//wxBitmap folderIcon(AIMainFrameIcons(10)); // these two lines are probably ok but
+	//wxBitmap fileIcon(AIMainFrameIcons(11));   // the above alternatives are ok too
+	
+	int iconIndex;
+#ifdef _IMAGELIST_ON_HEAP
+	iconIndex = pIconImages->Add(folderIcon);
+	iconIndex = pIconImages->Add(fileIcon);
+	iconIndex = pIconImages->Add(emptyIcon);
+#else
+	iconIndex = iconImages.Add(folderIcon);
+	iconIndex = iconImages.Add(fileIcon);
+	iconIndex = iconImages.Add(emptyIcon);
+#endif
+
+	// set up the wxListCtrl instances, for each set a column for an icon followed by text
+#ifdef _IMAGELIST_ON_HEAP
+	pSrcList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
+#else
+	pSrcList->SetImageList(&iconImages, wxIMAGE_LIST_SMALL);
+#endif
+
 
 	// initialize for the "Locate...folder" buttons
 	m_strSrcFolderPath = gpApp->m_workFolderPath;
@@ -219,7 +282,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
 
-	emptyFolderMessage = _("This folder is empty");
+	emptyFolderMessage = _("The folder is empty");
 
 	
 
@@ -248,63 +311,59 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 
 }
 
-
-// return TRUE if all went as expected; return FALSE if there were no files or folders to display
-bool AdminMoveOrCopy::SetListCtrlContents(enum whichSide side)
+void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, bool& bHasFolders, bool& bHasFiles)
 {
-	bool bFoldersOK = FALSE;
-	bool bFilesOK = FALSE;
+	// calls helpers.cpp functions GetFoldersOnly() and GetFilesOnly() which are made helpers
+	// functions because they may be useful to reuse someday in other places in the app
+	bHasFolders = FALSE;
+	bHasFiles = FALSE;
 	if (side == sourceSide)
 	{
+		// left side of the dialog (source folder's side)
+		
 		// clear out old content in the list and its supporting arrays
 		srcFoldersArray.Empty();
 		srcFilesArray.Empty();
-		pSrcList->ClearAll();
+		pSrcList->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 
-		// left side of the dialog (source folder's side)
-		bFoldersOK = GetFoldersOnly(m_strSrcFolderPath, &srcFoldersArray); // default is to sort the array
-		bFilesOK = GetFilesOnly(m_strSrcFolderPath, &srcFilesArray); // default is to sort the array
-		if (!bFoldersOK && !bFilesOK)
-		{
-			// no folders or files to display, so tell the caller
-			return FALSE;
-		}
+		bHasFolders = GetFoldersOnly(m_strSrcFolderPath, &srcFoldersArray); // default is to sort the array
+		bHasFiles = GetFilesOnly(m_strSrcFolderPath, &srcFilesArray); // default is to sort the array
 	}
 	else
 	{
 		// right side of the dialog (destination folder's side)
-		bFoldersOK = GetFoldersOnly(m_strDestFolderPath, &destFoldersArray); // default is to sort the array
-		bFilesOK = GetFilesOnly(m_strDestFolderPath, &destFilesArray); // default is to sort the array
-		if (!bFoldersOK && !bFilesOK)
-		{
-			// no folders or files to display, so tell the caller
-			return FALSE;
-		}
+		
+		// clear out old content in the list and its supporting arrays
+		destFoldersArray.Empty();
+		destFilesArray.Empty();
+		pDestList->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
+
+		bHasFolders = GetFoldersOnly(m_strDestFolderPath, &destFoldersArray); // default is to sort the array
+		bHasFiles = GetFilesOnly(m_strDestFolderPath, &destFilesArray); // default is to sort the array
 	}
 
-	// debugging -- display what we got
+	// debugging -- display what we got for source side
 #ifdef _DEBUG
-	size_t foldersCount = srcFoldersArray.GetCount();
-	size_t counter;
-	wxLogDebug(_T("Folders (sorted, & fetched in ascending index order):\n"));
-	for (counter = 0; counter < foldersCount; counter++)
+	if (side == sourceSide)
 	{
-		wxString aFolder = srcFoldersArray.Item(counter);
-		wxLogDebug(_T("   %s \n"),aFolder);
-	}
-	wxLogDebug(_T("Files (sorted, & fetched in ascending index order):\n"));
-	size_t filesCount = srcFilesArray.GetCount();
-	for (counter = 0; counter < filesCount; counter++)
-	{
-		wxString aFile = srcFilesArray.Item(counter);
-		wxLogDebug(_T("   %s \n"),aFile);
+		size_t foldersCount = srcFoldersArray.GetCount();
+		size_t counter;
+		wxLogDebug(_T("Folders (sorted, & fetched in ascending index order):\n"));
+		for (counter = 0; counter < foldersCount; counter++)
+		{
+			wxString aFolder = srcFoldersArray.Item(counter);
+			wxLogDebug(_T("   %s \n"),aFolder);
+		}
+		wxLogDebug(_T("Files (sorted, & fetched in ascending index order):\n"));
+		size_t filesCount = srcFilesArray.GetCount();
+		for (counter = 0; counter < filesCount; counter++)
+		{
+			wxString aFile = srcFilesArray.Item(counter);
+			wxLogDebug(_T("   %s \n"),aFile);
+		}
 	}
 	// nice, both folders and files lists are sorted right and all names correct
 #endif
-	// ** TODO ** the rest of it
-	
-	
-	return bFoldersOK || bFilesOK;
 }
 
 // event handling functions
@@ -339,56 +398,64 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 
 
 	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
-
-	// set up the wxListCtrl instances, for each set a column for an icon followed by text
-	pSrcList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
-	int height;
-	int width;
-	pSrcList->GetClientSize(&width,&height);
-	wxListItem theColumn;
-	theColumn.SetWidth(width);
-	pSrcList->InsertColumn(0, theColumn);
-
-
 	long rv = 0L; // for a return value
-	bool bNotEmptyFolder = SetListCtrlContents(sourceSide);
-	if (bNotEmptyFolder)
+	bool bHasFiles;
+	bool bHasFolders;
+	wxString aFolder;
+	wxString aFile;
+	GetListCtrlContents(sourceSide, bHasFolders, bHasFiles);
+	if (bHasFolders || bHasFiles)
 	{
 		// Enable the move and copy buttons at the bottom
+		pMoveFolderButton->Enable();
+		pMoveFileOrFilesButton->Enable();
+		pCopyFolderButton->Enable();
+		pCopyFileOrFilesButton->Enable();
+		srcFoldersCount = 0;
+		srcFilesCount = 0;
 
-
-
-		// now try put a couple of lines of data in the list
-		wxString aFolder = srcFoldersArray.Item(0);
-		rv = pSrcList->InsertItem(0,aFolder,indxFolderIcon);
-		wxString aFile = srcFilesArray.Item(0);
-		rv = pSrcList->InsertItem(1,aFile,indxFileIcon);
-
-
-		// get data into the list control
-		
-
-		
-
-
-
-
-
+		// now try put the lines of data in the list; first folders, then files
+		int index = 0;
+		srcFoldersCount = srcFoldersArray.GetCount();
+		if (bHasFolders)
+		{
+			for (index = 0; index < srcFoldersCount; index++)
+			{
+				aFolder = srcFoldersArray.Item(index);
+				rv = pSrcList->InsertItem(index,aFolder,indxFolderIcon);
+			}
+		}
+		srcFilesCount = srcFilesArray.GetCount();
+		if (bHasFiles)
+		{
+			// this loop has to start at the index value next after
+			// the last value of the folders loop above
+			for (index = 0; index < srcFilesCount; index++)
+			{
+				aFile = srcFilesArray.Item(index);
+				rv = pSrcList->InsertItem(srcFoldersCount + index,aFile,indxFileIcon);
+			}
+		}
 	}
 	else
 	{
-		// disable the move and copy buttons at the bottom, and put a "This folder is
-		// empty" message into the list
-		rv = pSrcList->InsertItem(0, emptyFolderMessage);
+        // no files or folders, so disable the move and copy buttons at the bottom, and put
+		// a "The folder is empty" message into the list with an empty jug icon, because
+		// without an explicit icon, the icon in the list with index = 0 gets shown, and
+		// that is the folder icon - which would be confusing, as it would suggest a
+		// folder was found with the name "The folder is empty".
+        //wxListItem colInfo;
+        //bool bGotColInfoOK = pSrcList->GetColumn(0,colInfo);
+		//bGotColInfoOK = bGotColInfoOK;
+		rv = pSrcList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
+		srcFoldersCount = 0;
+		srcFilesCount = 0;
 
-
-
+		pMoveFolderButton->Disable();
+		pMoveFileOrFilesButton->Disable();
+		pCopyFolderButton->Disable();
+		pCopyFileOrFilesButton->Disable();
 	}
-
-	//TransferDataToWindow();
-
-
-
 }
 
 void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event))
@@ -415,7 +482,11 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
 
 	//set up the dest wxListCtrl
+#ifdef _IMAGELIST_ON_HEAP
 	pDestList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
+#else
+	pDestList->SetImageList(&iconImages, wxIMAGE_LIST_SMALL);
+#endif
 	int height;
 	int width;
 	pDestList->GetClientSize(&width,&height);
