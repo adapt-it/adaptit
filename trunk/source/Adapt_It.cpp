@@ -24112,7 +24112,7 @@ a:			wxString stdDocsDir = _T("");
 			// several possibilities, depending on whether administrator is local or
 			// remote and whether a path is currently locked or not, or whether the
 			// default location on local machine is current or not...
-			wxLogDebug(_T("Cancelled block: default_path was = %s  cancelled flag = %d  MORE TO DO HERE!!"), m_workFolderPath, (int)bWasCancelled);
+			wxLogDebug(_T("Cancelled block: default_path was = %s  cancelled flag = %d  MORE TO DO HERE!!"), m_workFolderPath.c_str(), (int)bWasCancelled);
 			//OnLocalWorkFolder(); // force re-establish of default?? Nah, too simple, see above
 			return FALSE;
 

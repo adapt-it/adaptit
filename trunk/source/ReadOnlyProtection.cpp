@@ -299,7 +299,7 @@ wxString ReadOnlyProtection::GetReadOnlyProtectionFileInProjectFolder(wxString& 
 		wxString mssg;
 		mssg = mssg.Format(
 _("The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."),
-		projectFolderPath);
+projectFolderPath.c_str());
 		wxMessageBox(mssg, _("Warning: Not a folder!"), wxICON_WARNING);
 		return theFilename;
 	}
@@ -327,7 +327,7 @@ _("The project folder being tested, %s, is really a file. Adapt It will continue
 			wxString mssg;
 			mssg = mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open for enumeration. Now aborting."), 
-			projectFolderPath);
+projectFolderPath.c_str());
 			wxMessageBox(mssg, _T("wxDir() Err: directory not opened"), wxICON_ERROR);
 			wxExit();
 			return theFilename;
@@ -380,7 +380,7 @@ _T("GetReadOnlyProtectionFileInProjectFolder(): the directory %s failed to open 
 		wxString mssg;
 		mssg = mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder does not exist! Now aborting."),
-		projectFolderPath);
+projectFolderPath.c_str());
 		wxMessageBox(mssg, _T("wxDir() Err: the directory does not exist"), wxICON_ERROR);
 		wxExit();
 	}
