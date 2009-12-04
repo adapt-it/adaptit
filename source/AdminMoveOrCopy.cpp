@@ -37,6 +37,7 @@
 // other includes
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
+#include <wx/imaglist.h> for wxImageList
 #include "Adapt_It.h"
 #include "helpers.h" // it has the Get... functions for getting list of files, folders
 					 // and optionally sorting
