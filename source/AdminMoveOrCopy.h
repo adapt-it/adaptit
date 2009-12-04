@@ -25,9 +25,6 @@ enum whichSide {
 	destinationSide
 };
 
-// comment out next line to have the image list on the stack (not a good choice)
-#define _IMAGELIST_ON_HEAP 
-
 /// The AdminMoveOrCopy class provides a dialog interface for moving or copying files or
 /// folders or both. It is derived from AIModalDialog.
 class AdminMoveOrCopy : public AIModalDialog
@@ -59,11 +56,8 @@ public:
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
-#ifdef _IMAGELIST_ON_HEAP
+
 	wxImageList* pIconImages;
-#else
-	wxImageList iconImages;
-#endif
 	wxListItem* pTheColumnForSrcList; // has to be on heap
 	wxListItem* pTheColumnForDestList; // has to be on heap
 	wxListCtrl* pSrcList;
