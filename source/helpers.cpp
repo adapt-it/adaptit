@@ -1547,7 +1547,7 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
 				// will do here
 				wxString msg;
 				msg = msg.Format(_T(
-"The directory %s was detected but testing for its existence failed. You probably should try again."), str);
+					"The directory %s was detected but testing for its existence failed. You probably should try again."), str.c_str());
 				wxMessageBox(msg, _("Error, not a directory"), wxICON_ERROR);
 				return FALSE;
 			}
