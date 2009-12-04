@@ -109,11 +109,15 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	srcFilesArray.Empty();
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
+
+	pIconImages = new wxImageList(16,14,TRUE,2);
 }
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 {
-	iconImages.RemoveAll();
+//	pIconImages->RemoveAll();
+//	delete pIconImages;
+
 	srcFoldersArray.Clear();
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
@@ -140,24 +144,23 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
     // using width and height of 16 may yet still generate the error. If that ever happens,
     // either make the icons 16x16, or make the Create() have the parameters
     // Create(16,14,...etc)
-	//iconImages.Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
-	iconImages.Create(16,14,TRUE,2); // TRUE is bool mask, I think we need one??
+	//pIconImages->Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
+	//pIconImages->Create(16,14,TRUE,2); // TRUE is bool mask, I think we need one??
 	wxBitmap folderIcon = AIMainFrameIcons(10);
 	wxBitmap fileIcon = AIMainFrameIcons(11);
-	wxBitmap folderMask = AIMainFrameIcons(12);
 	//wxBitmap folderIcon(AIMainFrameIcons(10)); // these two lines are probably ok
 	//wxBitmap fileIcon(AIMainFrameIcons(11));   // but the alternatives are ok too
 	int iconIndex;
-	iconIndex = iconImages.Add(folderIcon);
-	iconIndex = iconImages.Add(fileIcon);
-	// NOTE: at first I had Create(16,14,FALSE,2) and adding with .Add(folderIcon); but
+	iconIndex = pIconImages->Add(folderIcon);
+	iconIndex = pIconImages->Add(fileIcon);
+	// NOTE: at first I had Create(16,14,FALSE,2) and adding with ->Add(folderIcon); but
 	// doing that produced ugly scarlet colour blocks at the edge of the icons; next I tried
 	// setting a colour mask - made no difference; then I tried setting up an explicit
 	// wxBitmap mask called folderMask, with black at the places where no drawing was to be 
-	// done - and using Create(16,14,TRUE,2) and .Add(folderIcon,folderMask); this had the
+	// done - and using Create(16,14,TRUE,2) and ->Add(folderIcon,folderMask); this had the
 	// effect of wiping out the whole icon!, just one pixel was non-white at a top right edge.
 	// By accident I found out that the right way to do it is to use Create(16,14,TRUE,2),
-	// and use the call  .Add(folderIcon); to add it - then the icon showed with white
+	// and use the call ->Add(folderIcon); to add it - then the icon showed with white
 	// surrounds as wanted. Quite contrary to what the documentation appeared to say.
 
 	// initialize for the "Locate...folder" buttons
@@ -217,6 +220,9 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	wxASSERT(pApp != NULL);
 
 	emptyFolderMessage = _("This folder is empty");
+
+	
+
 
 	// make the font show the user's desired dialog font point size
 	#ifdef _RTL_FLAGS
@@ -333,7 +339,18 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 
 
 	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
-	
+
+	// set up the wxListCtrl instances, for each set a column for an icon followed by text
+	pSrcList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
+	int height;
+	int width;
+	pSrcList->GetClientSize(&width,&height);
+	wxListItem theColumn;
+	theColumn.SetWidth(width);
+	pSrcList->InsertColumn(0, theColumn);
+
+
+	long rv = 0L; // for a return value
 	bool bNotEmptyFolder = SetListCtrlContents(sourceSide);
 	if (bNotEmptyFolder)
 	{
@@ -341,26 +358,16 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 
 
 
-		// get data into the list control
-		
-		// for now, put a folder name in
-		pSrcList->SetImageList( &iconImages, wxIMAGE_LIST_SMALL);
-		//wxString anItem = srcFoldersArray.Item(0);
-		//long rv = pSrcList->InsertItem(0,anItem,indxFolderIcon);
-		// set a column for an icon followed by text
-		int height;
-		int width;
-		pSrcList->GetClientSize(&width,&height);
-		wxListItem theColumn;
-		theColumn.SetWidth(width);
-		//theColumn.SetImage(0);
-		pSrcList->InsertColumn(0, theColumn);
-
-		// now try put an line of data in the list
+		// now try put a couple of lines of data in the list
 		wxString aFolder = srcFoldersArray.Item(0);
-		long rv = pSrcList->InsertItem(0,aFolder,indxFolderIcon);
+		rv = pSrcList->InsertItem(0,aFolder,indxFolderIcon);
 		wxString aFile = srcFilesArray.Item(0);
 		rv = pSrcList->InsertItem(1,aFile,indxFileIcon);
+
+
+		// get data into the list control
+		
+
 		
 
 
@@ -372,8 +379,7 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	{
 		// disable the move and copy buttons at the bottom, and put a "This folder is
 		// empty" message into the list
-		pSrcList->SetImageList( &iconImages, wxIMAGE_LIST_SMALL);
-		pSrcList->InsertItem(0, emptyFolderMessage);
+		rv = pSrcList->InsertItem(0, emptyFolderMessage);
 
 
 
@@ -381,7 +387,7 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 
 	//TransferDataToWindow();
 
-	//pSrcList->Show();
+
 
 }
 
@@ -407,5 +413,16 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	//TransferDataToWindow();
 
 	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
+
+	//set up the dest wxListCtrl
+	pDestList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
+	int height;
+	int width;
+	pDestList->GetClientSize(&width,&height);
+	wxListItem theColumn;
+	theColumn.SetWidth(width);
+	pDestList->InsertColumn(0, theColumn);
+
+	
 }
 

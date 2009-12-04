@@ -52,7 +52,7 @@ public:
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
-	wxImageList iconImages;
+	wxImageList* pIconImages;
 	wxListCtrl* pSrcList;
 	wxListCtrl* pDestList;
 	wxString emptyFolderMessage;
