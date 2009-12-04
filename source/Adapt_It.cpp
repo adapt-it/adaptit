@@ -6081,56 +6081,61 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // file); ProcessUILanguageInfoFromConfig adds any previously stored user defined
     // languages to the current locale, and returns the current localization info in
     // currLocalizationInfo.
-	currLocalizationInfo = ProcessUILanguageInfoFromConfig(); // this needs to come after
+	// BEW added 4Dec09, so that a locale-related message doesn't come up when the
+	// m_bAutoExport flag is TRUE (for use of the app with SendIt.exe, by John Hatton)
+	if (!m_bAutoExport)
+	{
+		currLocalizationInfo = ProcessUILanguageInfoFromConfig(); // this needs to come after
 												// the m_languageInfo is defined above
 
-    // On first run of Adapt It (when no previous interface language choice has been made),
-    // or if the user holds down the ALT key while running the application, the following
-    // ChooseInterfaceLanguage() call will check to see if localizations other than the
-    // default system language are present on the user's computer. If so,
-    // ChooseInterfaceLanguage() will present the user with a "Select your preferred
-    // language for Adapt It's menus and other messages" dialog in which an alternative
-    // interface language choice can be made. For first run of Adapt It, the default choice
-    // is "Use default language" (wxLANGUAGE_DEFAULT).
-    // The only choices available in the dialog are languages for which actual localization
-    // subfolders exist in the localization path and contain an <appName>.mo localization
-    // file.
-	// Once the user makes the choice the interface is set to use that language.
-	// After the first run of Adapt It, the user's choice of UI language is saved in the 
-	// registry on Windows or a hidden settings file on Linux/Mac, and the user won't be 
-	// asked again at program startup - but the user can later change the interface language
-	// choice from within the app via View | "Choose Interface Language...".
+		// On first run of Adapt It (when no previous interface language choice has been made),
+		// or if the user holds down the ALT key while running the application, the following
+		// ChooseInterfaceLanguage() call will check to see if localizations other than the
+		// default system language are present on the user's computer. If so,
+		// ChooseInterfaceLanguage() will present the user with a "Select your preferred
+		// language for Adapt It's menus and other messages" dialog in which an alternative
+		// interface language choice can be made. For first run of Adapt It, the default choice
+		// is "Use default language" (wxLANGUAGE_DEFAULT).
+		// The only choices available in the dialog are languages for which actual localization
+		// subfolders exist in the localization path and contain an <appName>.mo localization
+		// file.
+		// Once the user makes the choice the interface is set to use that language.
+		// After the first run of Adapt It, the user's choice of UI language is saved in the 
+		// registry on Windows or a hidden settings file on Linux/Mac, and the user won't be 
+		// asked again at program startup - but the user can later change the interface language
+		// choice from within the app via View | "Choose Interface Language...".
 
-	if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
-	{
-		// can disregard return bool value of ChooseInterfaceLanguage() here
-		ChooseInterfaceLanguage(firstRun);	// calls CChooseLanguageDlg and insures that 
-			// currLocalizationInfo's curr_UI_Language is something other than wxLANGUAGE_UNKNOWN
-	}
+		if (currLocalizationInfo.curr_UI_Language == wxLANGUAGE_UNKNOWN || wxGetKeyState(WXK_ALT))
+		{
+			// can disregard return bool value of ChooseInterfaceLanguage() here
+			ChooseInterfaceLanguage(firstRun);	// calls CChooseLanguageDlg and insures that 
+				// currLocalizationInfo's curr_UI_Language is something other than wxLANGUAGE_UNKNOWN
+		}
 
-	// for testing below:
-	//wxString pathToLocaleSubDir;
-	//pathToLocaleSubDir = GetDefaultPathForLocalizationSubDirectories();
+		// for testing below:
+		//wxString pathToLocaleSubDir;
+		//pathToLocaleSubDir = GetDefaultPathForLocalizationSubDirectories();
 
-    // InitializeLanguageLocale() below deletes any exising wxLocale object and creates a
-    // new wxLocale for the currently selected language (using the non-default wxLocale
-    // constructor).
-    // The currLocalizationInfo struct was initialized with the interface language of
-    // choice above, so now we can create the wxLocale object
-	if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName, 
-		currLocalizationInfo.curr_fullName, currLocalizationInfo.curr_localizationPath))
-	{
-        // Loading of localization catalog failed. This means that either
-        // m_pLocale->AddCatalog(GetAppName()) or m_pLocale->IsLoaded(GetAppName()) failed
-        // in InitializeLanguageLocale(). Notify user of the problem.
-		wxString msg;
-        // We use the _T() macro below since localized translations of these messages would
-        // never be shown anyway (the localization failed to load).
-		msg = msg.Format(_T(
+		// InitializeLanguageLocale() below deletes any exising wxLocale object and creates a
+		// new wxLocale for the currently selected language (using the non-default wxLocale
+		// constructor).
+		// The currLocalizationInfo struct was initialized with the interface language of
+		// choice above, so now we can create the wxLocale object
+		if (!InitializeLanguageLocale(currLocalizationInfo.curr_shortName, 
+			currLocalizationInfo.curr_fullName, currLocalizationInfo.curr_localizationPath))
+		{
+			// Loading of localization catalog failed. This means that either
+			// m_pLocale->AddCatalog(GetAppName()) or m_pLocale->IsLoaded(GetAppName()) failed
+			// in InitializeLanguageLocale(). Notify user of the problem.
+			wxString msg;
+			// We use the _T() macro below since localized translations of these messages would
+			// never be shown anyway (the localization failed to load).
+			msg = msg.Format(_T(
 "Adapt It failed to initialize and load the localization for the %s language at the following path:\n%s\nYou may need to re-install the localization files or tell Adapt It where they are located by selecting the \"Change Interface Language..\" item on the View menu."),
-		currLocalizationInfo.curr_fullName.c_str(),
-		currLocalizationInfo.curr_localizationPath.c_str());
-		wxMessageBox(msg,_T("Previous localization file not found"),wxICON_WARNING);
+			currLocalizationInfo.curr_fullName.c_str(),
+			currLocalizationInfo.curr_localizationPath.c_str());
+			wxMessageBox(msg,_T("Previous localization file not found"),wxICON_WARNING);
+		}
 	}
 	wxString EncodingName = wxFontMapper::Get()->GetEncodingName(m_systemEncoding); 
 												// Windows: EncodingName = "windows-1252"

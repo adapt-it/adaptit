@@ -25,6 +25,9 @@ enum whichSide {
 	destinationSide
 };
 
+// comment out next line to have the image list on the stack (not a good choice)
+#define _IMAGELIST_ON_HEAP 
+
 /// The AdminMoveOrCopy class provides a dialog interface for moving or copying files or
 /// folders or both. It is derived from AIModalDialog.
 class AdminMoveOrCopy : public AIModalDialog
@@ -46,13 +49,23 @@ public:
 	wxButton* pMoveDown;
 	wxStaticText* pJoiningWait;
 	*/
+	wxButton* pMoveFolderButton;
+	wxButton* pMoveFileOrFilesButton;
+	wxButton* pCopyFolderButton;
+	wxButton* pCopyFileOrFilesButton;
 	wxBitmapButton* pUpSrcFolder; 
 	wxBitmapButton* pUpDestFolder;
 	wxButton* pLocateSrcFolderButton;
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
+#ifdef _IMAGELIST_ON_HEAP
 	wxImageList* pIconImages;
+#else
+	wxImageList iconImages;
+#endif
+	wxListItem* pTheColumnForSrcList; // has to be on heap
+	wxListItem* pTheColumnForDestList; // has to be on heap
 	wxListCtrl* pSrcList;
 	wxListCtrl* pDestList;
 	wxString emptyFolderMessage;
@@ -83,6 +96,11 @@ public:
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
 	wxArrayString destFilesArray; // stores filenames (these get displayed)
 
+	int srcFoldersCount;
+	int srcFilesCount;
+	int destFoldersCount;
+	int destFilesCount;
+
 protected:
 	void OnOK(wxCommandEvent& event);
 	/*
@@ -93,7 +111,7 @@ protected:
 	*/
 private:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	bool SetListCtrlContents(enum whichSide side);
+	void GetListCtrlContents(enum whichSide side, bool& bHasFolders, bool& bHasFiles);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
