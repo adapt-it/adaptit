@@ -61,9 +61,11 @@ public:
 
 	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
 	wxArrayString srcFilesArray; // stores filenames (these get displayed)
+	wxArrayString srcSelectedFilesArray; // stores filenames selected by user
 
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
 	wxArrayString destFilesArray; // stores filenames (these get displayed)
+	wxArrayString destSelectedFilesArray; // stores filenames selected by user
 
 	int srcFoldersCount;
 	int srcFilesCount;
@@ -73,6 +75,7 @@ public:
 protected:
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
+	void OnSrcListSelectItem(wxListEvent& event);
 private:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
