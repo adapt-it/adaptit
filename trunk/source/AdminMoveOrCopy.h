@@ -34,18 +34,6 @@ public:
 	virtual ~AdminMoveOrCopy(void); // destructor
 
 	// wx version pointers for dialog controls
-	/*
-	wxTextCtrl* pNewFileName;
-	wxListBox* pAcceptedFiles;
-	wxListBox* pRejectedFiles;
-	wxButton* pMoveAllRight;
-	wxButton* pMoveAllLeft;
-	wxButton* pJoinNow;
-	wxButton* pClose;
-	wxButton* pMoveUp;
-	wxButton* pMoveDown;
-	wxStaticText* pJoiningWait;
-	*/
 	wxButton* pMoveFolderButton;
 	wxButton* pMoveFileOrFilesButton;
 	wxButton* pCopyFolderButton;
@@ -66,20 +54,7 @@ public:
 
 	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
-
-	/*
-	void OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedButtonMoveAllLeft(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedButtonMoveAllRight(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedButtonAccept(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedButtonReject(wxCommandEvent& WXUNUSED(event));
-	void OnLbnDblclkListAccepted(wxCommandEvent& WXUNUSED(event));
-	void OnLbnDblclkListRejected(wxCommandEvent& WXUNUSED(event));
-	void OnLbnSelchangeListAccepted(wxCommandEvent& WXUNUSED(event));
-	void OnLbnSelchangeListRejected(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedButtonMoveDown(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedButtonMoveUp(wxCommandEvent& WXUNUSED(event));
-	*/
+	void OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event));
 
 	wxString m_strSrcFolderPath;
 	wxString m_strDestFolderPath;
@@ -97,15 +72,13 @@ public:
 
 protected:
 	void OnOK(wxCommandEvent& event);
-	/*
-	void MoveSelectedItems(wxListBox& From, wxListBox& To);
-	void MoveAllItems(wxListBox& From, wxListBox& To);
-	void InitialiseLists();
-	void ListContentsOrSelectionChanged();
-	*/
+	void OnSize(wxSizeEvent& event);
 private:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void GetListCtrlContents(enum whichSide side, bool& bHasFolders, bool& bHasFiles);
+	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
+								bool& bHasFolders, bool& bHasFiles);
+	void SetupSrcList(wxString& folderPath);
+	void SetupDestList(wxString& folderPath);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

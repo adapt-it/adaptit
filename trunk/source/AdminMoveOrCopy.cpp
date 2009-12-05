@@ -35,6 +35,7 @@
 //#include "folder.xpm"
 
 // other includes
+#include <wx/filename.h>
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/imaglist.h> // for wxImageList
@@ -61,23 +62,13 @@ enum myicons {
 
 // event handler table
 BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
-	EVT_INIT_DIALOG(AdminMoveOrCopy::InitDialog)// not strictly necessary for dialogs based on wxDialog
+	EVT_INIT_DIALOG(AdminMoveOrCopy::InitDialog)
 	EVT_BUTTON(wxID_OK, AdminMoveOrCopy::OnOK)
 	EVT_BUTTON(ID_BUTTON_LOCATE_SOURCE_FOLDER, AdminMoveOrCopy::OnBnClickedLocateSrcFolder)	
-	EVT_BUTTON(ID_BUTTON_LOCATE_DESTINATION_FOLDER, AdminMoveOrCopy::OnBnClickedLocateDestFolder)	
-	/*
-	EVT_BUTTON(ID_JOIN_NOW, CJoinDialog::OnBnClickedJoinNow)
-	EVT_BUTTON(IDC_BUTTON_MOVE_ALL_LEFT, CJoinDialog::OnBnClickedButtonMoveAllLeft)
-	EVT_BUTTON(IDC_BUTTON_MOVE_ALL_RIGHT, CJoinDialog::OnBnClickedButtonMoveAllRight)
-	EVT_BUTTON(IDC_BUTTON_ACCEPT, CJoinDialog::OnBnClickedButtonAccept)
-	EVT_BUTTON(IDC_BUTTON_REJECT, CJoinDialog::OnBnClickedButtonReject)
-	EVT_LISTBOX_DCLICK(IDC_LIST_ACCEPTED, CJoinDialog::OnLbnDblclkListAccepted)
-	EVT_LISTBOX_DCLICK(IDC_LIST_REJECTED, CJoinDialog::OnLbnDblclkListRejected)
-	EVT_LISTBOX(IDC_LIST_ACCEPTED, CJoinDialog::OnLbnSelchangeListAccepted)
-	EVT_LISTBOX(IDC_LIST_REJECTED, CJoinDialog::OnLbnSelchangeListRejected)
-	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CJoinDialog::OnBnClickedButtonMoveDown)
-	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CJoinDialog::OnBnClickedButtonMoveUp)
-	*/
+	EVT_BUTTON(ID_BUTTON_LOCATE_DESTINATION_FOLDER, AdminMoveOrCopy::OnBnClickedLocateDestFolder)
+	EVT_BUTTON(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AdminMoveOrCopy::OnBnClickedSrcParentFolder)
+	EVT_SIZE(AdminMoveOrCopy::OnSize)
+
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
@@ -90,6 +81,9 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	// size dialog.
 	MoveOrCopyFilesOrFoldersFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
+
+	pSrcList = NULL;
+	pDestList= NULL;
 
 	m_strSrcFolderPath = _T("");
 	m_strDestFolderPath = _T("");
@@ -175,10 +169,15 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pSrcList->GetClientSize(&width,&height);
 	pTheColumnForSrcList->SetWidth(width);
 	pSrcList->InsertColumn(0, *pTheColumnForSrcList);
+	//pSrcList->SetColumnWidth(0,wxLIST_AUTOSIZE); // <- supposed to work but doesn't
+	// so I made my own column-width adjusting code using OnSize()
+	 
 	// set the destination column's width & insert it into the destination side's wxListCtrl
 	pDestList->GetClientSize(&width,&height);
 	pTheColumnForDestList->SetWidth(width);
 	pDestList->InsertColumn(0, *pTheColumnForDestList);
+	//pDestList->SetColumnWidth(0, wxLIST_AUTOSIZE); // <- supposed to work but doesn't 
+	// so I made my own column-width adjusting code using OnSize()
 
 	// obtain the folder and file bitmap images which are to go at the start of folder
 	// names or file names, respectively, in each list; also an 'empty pot' icon for when
@@ -211,56 +210,14 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	{
 		m_strDestFolderPath = gpApp->m_workFolderPath;
 	}
-	/*
-	pNewFileName = (wxTextCtrl*)FindWindowById(IDC_EDIT_NEW_FILENAME);
-	wxASSERT(pNewFileName != NULL);
-	pAcceptedFiles = (wxListBox*)FindWindowById(IDC_LIST_ACCEPTED);
-	wxASSERT(pAcceptedFiles != NULL);
-	pRejectedFiles = (wxListBox*)FindWindowById(IDC_LIST_REJECTED);
-	wxASSERT(pRejectedFiles != NULL);
-	pMoveAllRight = (wxButton*)FindWindowById(IDC_BUTTON_MOVE_ALL_RIGHT);
-	wxASSERT(pMoveAllRight != NULL);
-	pMoveAllLeft = (wxButton*)FindWindowById(IDC_BUTTON_MOVE_ALL_LEFT);
-	wxASSERT(pMoveAllLeft != NULL);
-	pJoinNow = (wxButton*)FindWindowById(ID_JOIN_NOW);
-	wxASSERT(pJoinNow != NULL);
-	pClose = (wxButton*)FindWindowById(wxID_OK);
-	wxASSERT(pClose != NULL);
-	pMoveUp = (wxButton*)FindWindowById(IDC_BUTTON_MOVE_UP);
-	wxASSERT(pMoveUp != NULL);
-	pMoveDown = (wxButton*)FindWindowById(IDC_BUTTON_MOVE_DOWN);
-	wxASSERT(pMoveDown != NULL);
-	pJoiningWait = (wxStaticText*)FindWindowById(IDC_STATIC_JOINING_WAIT);
-	wxASSERT(pJoiningWait != NULL);
-	*/
-	/*
-	wxTextCtrl* pTextCtrlAsStaticJoin1 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_JOIN1);
-	wxASSERT(pTextCtrlAsStaticJoin1 != NULL);
-	wxColor backgrndColor = this->GetBackgroundColour();
-	pTextCtrlAsStaticJoin1->SetBackgroundColour(backgrndColor);
-
-	wxTextCtrl* pTextCtrlAsStaticJoin2 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_JOIN2);
-	wxASSERT(pTextCtrlAsStaticJoin2 != NULL);
-	pTextCtrlAsStaticJoin2->SetBackgroundColour(backgrndColor);
-
-	wxTextCtrl* pTextCtrlAsStaticJoin3 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_JOIN3);
-	wxASSERT(pTextCtrlAsStaticJoin3 != NULL);
-	pTextCtrlAsStaticJoin3->SetBackgroundColour(backgrndColor);
-
-	wxTextCtrl* pTextCtrlAsStaticJoin4 = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_AS_STATIC_JOIN4);
-	wxASSERT(pTextCtrlAsStaticJoin4 != NULL);
-	pTextCtrlAsStaticJoin4->SetBackgroundColour(backgrndColor);
-	*/
 	CAdapt_ItApp* pApp;
 	pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
 
 	emptyFolderMessage = _("The folder is empty");
 
-	
-
-
-	// make the font show the user's desired dialog font point size
+	// make the font show the user's desired dialog font point size ( I think this dialog can
+	// instead just rely on the system font supplied to the dialog by default)
 	#ifdef _RTL_FLAGS
 //	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pNewFileName, NULL,
 //					pAcceptedFiles, pRejectedFiles, gpApp->m_pDlgGlossFont, gpApp->m_bNavTextRTL);
@@ -269,22 +226,11 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 //					pAcceptedFiles, pRejectedFiles, gpApp->m_pDlgGlossFont);
 	#endif
 
-	//InitialiseLists();
-
-	// select the top item as default
-	/*
-	int index = 0;
-	if (pAcceptedFiles->GetCount() > 0)
-	{
-		pAcceptedFiles->SetSelection(index);
-		ListContentsOrSelectionChanged();
-	}
-	*/
 	pApp->RefreshStatusBarInfo();
-
 }
 
-void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, bool& bHasFolders, bool& bHasFiles)
+void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderPath,
+										  bool& bHasFolders, bool& bHasFiles)
 {
 	// calls helpers.cpp functions GetFoldersOnly() and GetFilesOnly() which are made helpers
 	// functions because they may be useful to reuse someday in other places in the app
@@ -299,8 +245,8 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, bool& bHasFolders
 		srcFilesArray.Empty();
 		pSrcList->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 
-		bHasFolders = GetFoldersOnly(m_strSrcFolderPath, &srcFoldersArray); // default is to sort the array
-		bHasFiles = GetFilesOnly(m_strSrcFolderPath, &srcFilesArray); // default is to sort the array
+		bHasFolders = GetFoldersOnly(folderPath, &srcFoldersArray); // default is to sort the array
+		bHasFiles = GetFilesOnly(folderPath, &srcFilesArray); // default is to sort the array
 	}
 	else
 	{
@@ -311,8 +257,8 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, bool& bHasFolders
 		destFilesArray.Empty();
 		pDestList->DeleteAllItems(); // don't use ClearAll() because it clobbers any columns too
 
-		bHasFolders = GetFoldersOnly(m_strDestFolderPath, &destFoldersArray); // default is to sort the array
-		bHasFiles = GetFilesOnly(m_strDestFolderPath, &destFilesArray); // default is to sort the array
+		bHasFolders = GetFoldersOnly(folderPath, &destFoldersArray); // default is to sort the array
+		bHasFiles = GetFilesOnly(folderPath, &destFilesArray); // default is to sort the array
 	}
 
 	// debugging -- display what we got for source side
@@ -350,33 +296,24 @@ void AdminMoveOrCopy::OnOK(wxCommandEvent& event)
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
-void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event))
+void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 {
-	CMainFrame* pFrame = gpApp->GetMainFrame();
-	wxString msg = _("Locate the source folder");
-	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
-		// second param suppresses a Create button being shown, 3rd makes chose directory 
-		// the working directory, first param is for default dialog style with resizable
-		// border (see wxDirDialog for details)
-	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
-	wxPoint pos = wxDefaultPosition;
-	// in the following call, which is a wx widget which can be called as below or as
-	// ::wxDirSelector(...params...), if the user cancels from the browser window the
-	// returned string is empty, otherwise it is the absolute path to whatever directory
-	// was shown selected in the folder hierarchy when the OK button was pressed
-	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
-	
 	// put the path into the edit control
-	pSrcFolderPathTextCtrl->ChangeValue(m_strSrcFolderPath);
+	pSrcFolderPathTextCtrl->ChangeValue(folderPath);
 
+	//int colWidth = pSrcList->GetColumnWidth(0);
+	//int width; int height;
+	//pSrcList->GetClientSize(&width,&height);
+	//if (width != colWidth)
+	//	pSrcList->SetColumnWidth(0,width);
 
-	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
+	// enumerate the files and folders, insert in list ctrl
 	long rv = 0L; // for a return value
 	bool bHasFiles;
 	bool bHasFolders;
 	wxString aFolder;
 	wxString aFile;
-	GetListCtrlContents(sourceSide, bHasFolders, bHasFiles);
+	GetListCtrlContents(sourceSide, folderPath, bHasFolders, bHasFiles);
 	if (bHasFolders || bHasFiles)
 	{
 		// Enable the move and copy buttons at the bottom
@@ -431,6 +368,33 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	}
 }
 
+void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
+{
+	folderPath = folderPath; // temporary to avoid compiler warning
+
+
+
+}
+
+
+void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event))
+{
+	CMainFrame* pFrame = gpApp->GetMainFrame();
+	wxString msg = _("Locate the source folder");
+	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+		// second param suppresses a Create button being shown, 3rd makes chose directory 
+		// the working directory, first param is for default dialog style with resizable
+		// border (see wxDirDialog for details)
+	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	wxPoint pos = wxDefaultPosition;
+	// in the following call, which is a wx widget which can be called as below or as
+	// ::wxDirSelector(...params...), if the user cancels from the browser window the
+	// returned string is empty, otherwise it is the absolute path to whatever directory
+	// was shown selected in the folder hierarchy when the OK button was pressed
+	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
+	SetupSrcList(m_strSrcFolderPath);
+}
+
 void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event))
 {
 	CMainFrame* pFrame = gpApp->GetMainFrame();
@@ -465,4 +429,61 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 
 	
 }
+
+void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event))
+{
+	wxFileName* pFN = new wxFileName;
+	wxChar charSeparator = pFN->GetPathSeparator();
+	int offset;
+	wxString path = m_strSrcFolderPath;
+	//path = MakeReverse(path);
+	offset = path.Find(charSeparator,TRUE); // TRUE is bFromEnd
+	if (offset != wxNOT_FOUND)
+	{
+		path = path.Left(offset);
+		// check we have not obtained the nothing which precedes the Linux / root
+		// folder marker, nor the "C:" or other volume indicator in Windows - as we've
+		// moved up as far as we can go if we had either situation
+		if (!path.IsEmpty())	
+		{
+			if (path.Last() == _T(':'))
+			{
+				// we are at the windows volume separator, so restore the following
+				// backslash and then display the volume's contents
+				path += _T("\\");
+				m_strSrcFolderPath = path;
+				SetupSrcList(m_strSrcFolderPath);
+			}
+			else
+			{
+				// we've a legitimate path, so make it the source path
+				m_strSrcFolderPath = path;
+				SetupSrcList(m_strSrcFolderPath);
+			}
+		}
+	}
+	delete pFN;
+}
+
+void AdminMoveOrCopy::OnSize(wxSizeEvent& event)
+{
+	if (this == event.GetEventObject())
+	{
+		// it's our AdminMoveOrCopy dialog
+		// re-set the source column's width
+		if (pSrcList == NULL || pDestList == NULL)
+		{
+			event.Skip();
+			return;
+		}
+		int colWidth = pSrcList->GetColumnWidth(0);
+		int width; int height;
+		pSrcList->GetClientSize(&width,&height);
+		if (width != colWidth)
+			pSrcList->SetColumnWidth(0,width);
+	}
+	event.Skip();
+}
+
+
 
