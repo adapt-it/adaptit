@@ -68,6 +68,7 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_LOCATE_DESTINATION_FOLDER, AdminMoveOrCopy::OnBnClickedLocateDestFolder)
 	EVT_BUTTON(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AdminMoveOrCopy::OnBnClickedSrcParentFolder)
 	EVT_SIZE(AdminMoveOrCopy::OnSize)
+	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListSelectItem)
 
 END_EVENT_TABLE()
 
@@ -484,6 +485,31 @@ void AdminMoveOrCopy::OnSize(wxSizeEvent& event)
 	}
 	event.Skip();
 }
+
+void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
+{
+	//int srcFoldersCount;
+	//int srcFilesCount;
+
+	int index = event.GetIndex();
+	if (index < srcFoldersCount)
+	{
+		// we clicked on a folder name, so drill down to that child folder and display its
+		// contents in the dialog
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupSrcList(m_strSrcFolderPath);
+		event.Skip();
+		return;
+	}
+	wxListItem item;
+
+
+	event.Skip();
+}
+
 
 
 
