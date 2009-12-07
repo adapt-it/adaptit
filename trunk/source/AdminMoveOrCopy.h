@@ -55,6 +55,7 @@ public:
 	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event));
 
 	wxString m_strSrcFolderPath;
 	wxString m_strDestFolderPath;
@@ -76,12 +77,16 @@ protected:
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSrcListSelectItem(wxListEvent& event);
+	void OnSrcListDeselectItem(wxListEvent& event);
+	void OnDestListSelectItem(wxListEvent& event);
+	void OnDestListDeselectItem(wxListEvent& event);
 private:
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
 								bool& bHasFolders, bool& bHasFiles);
 	void SetupSrcList(wxString& folderPath);
 	void SetupDestList(wxString& folderPath);
+	void SetupSelectedFilesArray(enum whichSide side);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
