@@ -67,8 +67,12 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_LOCATE_SOURCE_FOLDER, AdminMoveOrCopy::OnBnClickedLocateSrcFolder)	
 	EVT_BUTTON(ID_BUTTON_LOCATE_DESTINATION_FOLDER, AdminMoveOrCopy::OnBnClickedLocateDestFolder)
 	EVT_BUTTON(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AdminMoveOrCopy::OnBnClickedSrcParentFolder)
+	EVT_BUTTON(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP, AdminMoveOrCopy::OnBnClickedDestParentFolder)
 	EVT_SIZE(AdminMoveOrCopy::OnSize)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListSelectItem)
+	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDeselectItem)
+	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListSelectItem)
+	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
 
 END_EVENT_TABLE()
 
@@ -106,7 +110,8 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	srcFilesArray.Empty();
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
-
+	srcSelectedFilesArray.Empty();
+	destSelectedFilesArray.Empty();
 }
 
 AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
@@ -120,6 +125,8 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
 	destFilesArray.Clear();
+	srcSelectedFilesArray.Clear();
+	destSelectedFilesArray.Clear();
 }
 
 void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
@@ -156,7 +163,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	//pIconImages->Create(16,16,FALSE,2); // FALSE is bool mask, and we don't need a mask
 	//pIconImages->Create(16,14,TRUE,2); // TRUE is bool mask, I think we need one??
 	
-	pIconImages = new wxImageList(16,14,TRUE,2);
+	pIconImages = new wxImageList(16,14,TRUE,3);
 
 	// set up the single column object for each list, on the heap (each has to persist until
 	// the dialog is dismissed)
@@ -197,6 +204,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 
 	// set up the wxListCtrl instances, for each set a column for an icon followed by text
 	pSrcList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
+	pDestList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
 
 
 	// initialize for the "Locate...folder" buttons
@@ -228,6 +236,61 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	#endif
 
 	pApp->RefreshStatusBarInfo();
+}
+
+void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
+{
+	int index = 0;
+	int limit = 0;
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	int isSelected = 0;
+	if (side == sourceSide)
+	{
+		index = srcFoldersCount; // index of first file in the wxListCtrl
+		limit = pSrcList->GetItemCount(); // index of list file is (limit - 1)
+		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		srcSelectedFilesArray.Clear();
+		srcSelectedFilesArray.Alloc(srcFilesCount); // enough for all files in the folder
+		for (index = srcFoldersCount; index < limit - 1; index++)
+		{
+			isSelected = pSrcList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, add it's name to the list of selected files
+				wxString filename = pSrcList->GetItemText(index);
+				size_t itsIndex = srcSelectedFilesArray.Add(filename); // return is unused
+				itsIndex = itsIndex; // avoid compiler warning
+				isSelected = 0;
+			}
+		}
+	}
+	else
+	{
+		index = destFoldersCount; // index of first file in the wxListCtrl
+		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
+		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		destSelectedFilesArray.Clear();
+		destSelectedFilesArray.Alloc(destFilesCount); // enough for all files in the folder
+		for (index = destFoldersCount; index < limit - 1; index++)
+		{
+			isSelected = pDestList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, add it's name to the list of selected files
+				wxString filename = pSrcList->GetItemText(index);
+				size_t itsIndex = srcSelectedFilesArray.Add(filename); // return is unused
+				itsIndex = itsIndex; // avoid compiler warning
+				isSelected = 0;
+			}
+		}
+	}
 }
 
 void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderPath,
@@ -283,6 +346,24 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 		}
 	}
 	// nice, both folders and files lists are sorted right and all names correct
+	else
+	{
+		size_t foldersCount = destFoldersArray.GetCount();
+		size_t counter;
+		wxLogDebug(_T("DESTINATION folders (sorted, & fetched in ascending index order):\n"));
+		for (counter = 0; counter < foldersCount; counter++)
+		{
+			wxString aFolder = destFoldersArray.Item(counter);
+			wxLogDebug(_T("   %s \n"),aFolder);
+		}
+		wxLogDebug(_T("DESTINATION files (sorted, & fetched in ascending index order):\n"));
+		size_t filesCount = destFilesArray.GetCount();
+		for (counter = 0; counter < filesCount; counter++)
+		{
+			wxString aFile = destFilesArray.Item(counter);
+			wxLogDebug(_T("   %s \n"),aFile);
+		}
+	}
 #endif
 }
 
@@ -301,12 +382,6 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 {
 	// put the path into the edit control
 	pSrcFolderPathTextCtrl->ChangeValue(folderPath);
-
-	//int colWidth = pSrcList->GetColumnWidth(0);
-	//int width; int height;
-	//pSrcList->GetClientSize(&width,&height);
-	//if (width != colWidth)
-	//	pSrcList->SetColumnWidth(0,width);
 
 	// enumerate the files and folders, insert in list ctrl
 	long rv = 0L; // for a return value
@@ -371,10 +446,57 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 
 void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 {
-	folderPath = folderPath; // temporary to avoid compiler warning
+	// put the path into the edit control
+	pDestFolderPathTextCtrl->ChangeValue(folderPath);
 
+	// enumerate the files and folders, insert in list ctrl
+	long rv = 0L; // for a return value
+	bool bHasFiles;
+	bool bHasFolders;
+	wxString aFolder;
+	wxString aFile;
+	GetListCtrlContents(destinationSide, folderPath, bHasFolders, bHasFiles);
+	if (bHasFolders || bHasFiles)
+	{
+		destFoldersCount = 0;
+		destFilesCount = 0;
 
-
+		// now try put the lines of data in the list; first folders, then files
+		int index = 0;
+		destFoldersCount = destFoldersArray.GetCount();
+		if (bHasFolders)
+		{
+			for (index = 0; index < destFoldersCount; index++)
+			{
+				aFolder = destFoldersArray.Item(index);
+				rv = pDestList->InsertItem(index,aFolder,indxFolderIcon);
+			}
+		}
+		destFilesCount = destFilesArray.GetCount();
+		if (bHasFiles)
+		{
+			// this loop has to start at the index value next after
+			// the last value of the folders loop above
+			for (index = 0; index < destFilesCount; index++)
+			{
+				aFile = destFilesArray.Item(index);
+				rv = pDestList->InsertItem(destFoldersCount + index,aFile,indxFileIcon);
+			}
+		}
+	}
+	else
+	{
+        // no files or folders, put a "The folder is empty" message into the list with an
+        // empty jug icon, because without an explicit icon, the icon in the list with
+        // index = 0 gets shown, and that is the folder icon - which would be confusing, as
+        // it would suggest a folder was found with the name "The folder is empty".
+        //wxListItem colInfo;
+        //bool bGotColInfoOK = pDestList->GetColumn(0,colInfo);
+		//bGotColInfoOK = bGotColInfoOK;
+		rv = pDestList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
+		destFoldersCount = 0;
+		destFilesCount = 0;
+	}
 }
 
 
@@ -411,24 +533,7 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	// returned string is empty, otherwise it is the absolute path to whatever directory
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
-	
-	// put the path into the edit control
-	pDestFolderPathTextCtrl->ChangeValue(m_strDestFolderPath);
-
-	//TransferDataToWindow();
-
-	// *** TODO *** enumerate the files and folders, insert in list ctrl & select top item
-
-	//set up the dest wxListCtrl
-	pDestList->SetImageList(pIconImages, wxIMAGE_LIST_SMALL);
-	int height;
-	int width;
-	pDestList->GetClientSize(&width,&height);
-	wxListItem theColumn;
-	theColumn.SetWidth(width);
-	pDestList->InsertColumn(0, theColumn);
-
-	
+	SetupDestList(m_strDestFolderPath);
 }
 
 void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -462,6 +567,55 @@ void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event)
 				SetupSrcList(m_strSrcFolderPath);
 			}
 		}
+		else
+		{
+			// we are at the root in Linux or Unix
+			path = charSeparator;
+			m_strSrcFolderPath = path;
+			SetupSrcList(m_strSrcFolderPath);
+		}
+	}
+	delete pFN;
+}
+
+void AdminMoveOrCopy::OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event))
+{
+	wxFileName* pFN = new wxFileName;
+	wxChar charSeparator = pFN->GetPathSeparator();
+	int offset;
+	wxString path = m_strDestFolderPath;
+	//path = MakeReverse(path);
+	offset = path.Find(charSeparator,TRUE); // TRUE is bFromEnd
+	if (offset != wxNOT_FOUND)
+	{
+		path = path.Left(offset);
+		// check we have not obtained the nothing which precedes the Linux / root
+		// folder marker, nor the "C:" or other volume indicator in Windows - as we've
+		// moved up as far as we can go if we had either situation
+		if (!path.IsEmpty())	
+		{
+			if (path.Last() == _T(':'))
+			{
+				// we are at the windows volume separator, so restore the following
+				// backslash and then display the volume's contents
+				path += _T("\\");
+				m_strDestFolderPath = path;
+				SetupDestList(m_strDestFolderPath);
+			}
+			else
+			{
+				// we've a legitimate path, so make it the source path
+				m_strDestFolderPath = path;
+				SetupDestList(m_strDestFolderPath);
+			}
+		}
+		else
+		{
+			// we are at the root in Linux or Unix
+			path = charSeparator;
+			m_strDestFolderPath = path;
+			SetupDestList(m_strDestFolderPath);
+		}
 	}
 	delete pFN;
 }
@@ -477,20 +631,30 @@ void AdminMoveOrCopy::OnSize(wxSizeEvent& event)
 			event.Skip();
 			return;
 		}
-		int colWidth = pSrcList->GetColumnWidth(0);
-		int width; int height;
-		pSrcList->GetClientSize(&width,&height);
-		if (width != colWidth)
-			pSrcList->SetColumnWidth(0,width);
+		// control can still get here when the control is not setup initially, so next
+		// block should catch those (for which pSrcList is not NULL, but not defined)
+		if (pSrcList->GetColumnCount() == 0 || pDestList->GetColumnCount() == 0 ||
+			(wxImageList*)pSrcList->GetImageList(wxIMAGE_LIST_SMALL) == NULL ||
+			(wxImageList*)pDestList->GetImageList(wxIMAGE_LIST_SMALL) == NULL)
+		{
+			event.Skip();
+			return;
+		}
+		int colWidth_Src = pSrcList->GetColumnWidth(0);
+		int colWidth_Dest = pDestList->GetColumnWidth(0);
+		int width_Src; int width_Dest; int height_Src; int height_Dest;
+		pSrcList->GetClientSize(&width_Src,&height_Src);
+		pDestList->GetClientSize(&width_Dest,&height_Dest);
+		if (width_Src != colWidth_Src)
+			pSrcList->SetColumnWidth(0,width_Src);
+		if (width_Dest != colWidth_Dest)
+			pDestList->SetColumnWidth(0,width_Dest);
 	}
 	event.Skip();
 }
 
 void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
 {
-	//int srcFoldersCount;
-	//int srcFilesCount;
-
 	int index = event.GetIndex();
 	if (index < srcFoldersCount)
 	{
@@ -504,12 +668,65 @@ void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
 		event.Skip();
 		return;
 	}
-	wxListItem item;
-
-
 	event.Skip();
 }
 
+void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
+{
+	int index = event.GetIndex();
+	if (index < destFoldersCount)
+	{
+		// we clicked on a folder name, so drill down to that child folder and display its
+		// contents in the dialog
+		wxString aFolderName = event.GetText();
 
+		// extend the path using this foldername, and then display the contents
+		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupDestList(m_strDestFolderPath);
+		event.Skip();
+		return;
+	}
+	event.Skip();
+}
+
+void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
+{
+	int index = event.GetIndex();
+	if (index < srcFoldersCount)
+	{
+		// I don't expect control to go thru here, but if it does, I want feedback
+		// about that fact returned audibly; testing has so far never rung the bell
+		::wxBell();
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupSrcList(m_strSrcFolderPath);
+		event.Skip();
+		return;
+	}
+	// don't need any special behaviours for deselecting files
+	event.Skip();
+}
+
+void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
+{
+	int index = event.GetIndex();
+	if (index < destFoldersCount)
+	{
+		// I don't expect control to go thru here, but if it does, I want feedback
+		// about that fact returned audibly; testing has so far never rung the bell
+		::wxBell(); 
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupDestList(m_strDestFolderPath);
+		event.Skip();
+		return;
+	}
+	// don't need any special behaviours for deselecting files
+	event.Skip();
+}
 
 
