@@ -104,8 +104,14 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	wxTextCtrl* m_pSrcFileDataBox;
 	wxTextCtrl* m_pDestFileDataBox;
 	*/
-
-
+	m_pCopyAndReplaceRadioButton = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_REPLACE);
+	m_pNoCopyRadioRadioButton = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_NO_COPY);
+	m_pChangeNameAndCopyRadioButton = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_COPY_AND_RENAME);
+	m_pHandleSameWayCheckbox = (wxCheckBox*)FindWindowById(ID_CHECKBOX_HANDLE_SAME);
+	m_pProceedButton = (wxButton*)FindWindowById(wxID_OK);
+	m_pCancelButton = (wxButton*)FindWindowById(wxID_CANCEL);
+	m_pSrcFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_FILE_DETAILS);
+	m_pDestFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_FILE_DETAILS);
 
 	// make the file data be displayed in the wxTextBox instances
 	 

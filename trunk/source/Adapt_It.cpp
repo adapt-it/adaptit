@@ -3116,6 +3116,86 @@ const wxChar *FUNC_NAME_EC_CONVERT_STRING_AW = _T("EncConverterConvertString");
 wxString szDoAdaptingBeforeGlossing_InVerticalEdit = 
 	_T("DoAdaptingBeforeGlossing_InVerticalEdit");   // bool -- for vertical edit settings
 
+/* this following code from AdminMoveOrCopy class is tested below at lines 5470++
+wxString BuildChangedFilenameForCopy(wxString* pFilename);
+wxString BuildChangedFilenameForCopy(wxString* pFilename)
+{
+	wxString newFilename = _T("");
+	//wxFileName fn(m_strDestFolderPath,*pFilename);
+	wxFileName fn(*pFilename);
+	wxString extn = _T("");
+	bool bHasExtension = FALSE;
+	if (fn.HasExt())
+	{
+		extn = fn.GetExt();
+		bHasExtension = TRUE; // to handle when only the . of an extension is present
+	}
+	wxString name = fn.GetName();
+	wxString reversed = MakeReverse(name); // our utility from helpers.cpp
+	// look for ")d...d(" at the start of the reversed string, where d...d is one or more
+	// digits; we want to get the digit(s), convert to int, increment by 1, convert back
+	// to digits, and build the new string with (n) at the end where n is the new larger
+	// value. However, mostly no such end string is present, in which case we can just
+	// create a name with "(2)" at the end immediately.
+	wxString shortname;
+	wxChar aChar = reversed.GetChar(0);
+	wxString ending = _T("");
+	if (aChar == _T(')'))
+	{
+		// we've got a filename with the name part in the form name(n) where n is one or
+		// more digits (or at least we'll assume so)
+		ending = aChar;
+		shortname = reversed.Mid(1);
+		// get the digits -- look for matching '(', if not found, just add "(2)" as below,
+		// but if found, the characters up to that point should be the digit string we want
+		int offset = shortname.Find(_T('('));
+		if (offset == wxNOT_FOUND)
+		{
+			newFilename = name + _T("(2)");
+			newFilename += _T(".") + extn;
+		}
+		else
+		{
+			wxString digitStr = shortname.Left(offset);
+			shortname = shortname.Mid(offset); // this is now "(reversednamepart"
+			// reverse digitStr, to make it normal order
+			digitStr = MakeReverse(digitStr);
+			// convert digitStr to an unsigned long
+			unsigned long value;
+			bool bConvertedOK = digitStr.ToULong(&value);
+			if (!bConvertedOK)
+			{
+				// it wasn't a valid digit string, so make a (2) at end of original name
+				newFilename = name + _T("(2)");
+				newFilename += _T(".") + extn;
+			}
+			else
+			{
+				// it converted correctly, so bump the value by 1 and rebuild the new
+				// string's output form
+				value++;
+				digitStr.Printf(_T("%d"),value);
+				// now reverse it again
+				digitStr = MakeReverse(digitStr);
+				// prepend to shortname
+				shortname = digitStr + shortname;
+				// add the ending
+				shortname = ending + shortname; // remember this is still reversed!
+				// now reverse it back to natural order
+				shortname = MakeReverse(shortname);
+				newFilename = shortname + _T(".") + extn;
+			}
+		}
+	}
+	else
+	{
+		// assume it is a normal filename with no (n) on the end
+		newFilename = name + _T("(2)");
+		newFilename += _T(".") + extn;
+	}
+	return newFilename;
+}
+*/
 
 /////////////////////////////////////////////////////////////////////////////
 // CAdapt_ItApp construction
@@ -5383,10 +5463,37 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pLayout = new CLayout(); // persists on the heap for as long as the session is alive
 
 	// *** The variable initializations above were moved here from the View ***
-	
 	/*
-	//////////////// BEGIN WXWIDGETS LIBRARY CODE FRAGMENT TESTING //////////////////
+	// testing function used in FilenameConflictDlg & AdminMoveOrCopy (see lines 3120 to
+	// 3198 above)
 	
+	wxString filename = _T("Filename.xml");
+	wxString anOutput = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput = anOutput.c_str();
+	wxString anOutput2 = BuildChangedFilenameForCopy(&anOutput);
+	const wxChar* pOutput2 = anOutput2.c_str();
+	filename = _T("file(3)name.txt");
+	wxString anOutput3 = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput3 = anOutput3.c_str();
+	filename = _T("filename(abc).txt");
+	wxString anOutput4 = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput4 = anOutput4.c_str();
+	filename = _T("filename().txt");
+	wxString anOutput5 = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput5 = anOutput5.c_str();
+	filename = _T("filename).txt");
+	wxString anOutput6 = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput6 = anOutput6.c_str();
+	filename = _T("filename.");
+	wxString anOutput7 = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput7 = anOutput7.c_str();
+	filename = _T("filename");
+	wxString anOutput8 = BuildChangedFilenameForCopy(&filename);
+	const wxChar* pOutput8 = anOutput8.c_str();
+	// end test of function used in FilenameConflictDlg & AdminMoveOrCopy
+
+	//////////////// BEGIN WXWIDGETS LIBRARY CODE FRAGMENT TESTING //////////////////
+
     // Testing of general C++ code fragments (not depending on Adapt It code) can be done
     // here to save time in loading the Adapt It main frame, etc.
 	
@@ -25389,4 +25496,6 @@ void CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles(wxUpdateUIEvent& event)
 	}
 	event.Enable(TRUE); 
 }
+
+
 

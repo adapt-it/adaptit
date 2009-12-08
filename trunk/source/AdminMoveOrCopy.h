@@ -25,6 +25,13 @@ enum whichSide {
 	destinationSide
 };
 
+enum CopyAction {
+	copyUnique,
+	copyAndReplace,
+	copyWithChangedName,
+	noCopy
+};
+
 /// The AdminMoveOrCopy class provides a dialog interface for moving or copying files or
 /// folders or both. It is derived from AIModalDialog.
 class AdminMoveOrCopy : public AIModalDialog
@@ -32,6 +39,11 @@ class AdminMoveOrCopy : public AIModalDialog
 public:
 	AdminMoveOrCopy(wxWindow* parent); // constructor
 	virtual ~AdminMoveOrCopy(void); // destructor
+
+	// flags which the Resolve Filename Conflict dialog needs to set or clear
+	bool m_bUserCancelled;
+	bool m_bCopyWasSuccessful;
+	bool m_bDoTheSameWay;
 
 	// wx version pointers for dialog controls
 	wxButton* pMoveFolderButton;
@@ -65,19 +77,21 @@ public:
 	wxArrayString srcSelectedFilesArray; // stores filenames selected by user
 
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
-	wxArrayString destFilesArray; // stores filenames (these get displayed)
+	wxArrayString destFilesArray; // stores filenames (these get displayed); and use
+                // this to check for conflicts when copying or moving files with names
+                // stored in srcSelectedFilesArray
 	wxArrayString destSelectedFilesArray; // stores filenames selected by user
 				// (Note: files selected in destination folder is only meaningful
 				// for renaming or deleting these files, and the contents of this
 				// list is ignored for moving or copying as the latter two 
 				// functionalities use the destFolderAllFilesArray (below) instead
-	wxArrayString destFolderAllFilesArray; // use this to check for conflicts when
-				// copying or moving files with names stored in srcSelectedFilesArray
 
 	int srcFoldersCount;
 	int srcFilesCount;
 	int destFoldersCount;
 	int destFilesCount;
+
+	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
 protected:
 	void OnOK(wxCommandEvent& event);
@@ -93,6 +107,7 @@ private:
 	void SetupSrcList(wxString& folderPath);
 	void SetupDestList(wxString& folderPath);
 	void SetupSelectedFilesArray(enum whichSide side);
+	bool IsFileConflicted(int srcFileIndex, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
