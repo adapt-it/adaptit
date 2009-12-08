@@ -6826,6 +6826,126 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     return item0;
 }
 
+wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_MSG1, _("There is already a file with the same name in the destination folder."), wxDefaultPosition, wxDefaultSize, 0 );
+    item2->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 20 );
+    item3->AddGrowableCol( 0 );
+    item3->AddGrowableCol( 1 );
+
+    wxBoxSizer *item4 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item5 = new wxStaticText( parent, ID_TEXT, _("Source"), wxDefaultPosition, wxDefaultSize, 0 );
+    item4->Add( item5, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBitmap *item7 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 11 ), wxDefaultPosition, wxDefaultSize );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(-1,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item4->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item3->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Destination"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticBitmap *item12 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 11 ), wxDefaultPosition, wxDefaultSize );
+    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(-1,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item9->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item3->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+
+    wxRadioButton *item16 = new wxRadioButton( parent, ID_RADIOBUTTON_REPLACE, _("Move, or copy; and replace"), wxDefaultPosition, wxSize(-1,22), wxRB_GROUP );
+    item16->SetValue( TRUE );
+    item16->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Replace the file in the destination folder with the file you are moving or copying."), wxDefaultPosition, wxDefaultSize, 0 );
+    item15->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+
+    wxRadioButton *item19 = new wxRadioButton( parent, ID_RADIOBUTTON_NO_COPY, _("Do not move, or copy"), wxDefaultPosition, wxSize(-1,22), 0 );
+    item19->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item18->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("No move, nor copy, will be done. Leave the destination folder's file unchanged."), wxDefaultPosition, wxDefaultSize, 0 );
+    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item14->Add( item18, 1, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+
+    wxRadioButton *item22 = new wxRadioButton( parent, ID_RADIOBUTTON_COPY_AND_RENAME, _("Move, or copy, giving it a modified filename"), wxDefaultPosition, wxSize(-1,22), 0 );
+    item22->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
+    item21->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_MODIFY_NAME, _("The file you are moving, or copying will be renamed  %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item14->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    item0->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
+
+    item24->Add( 10, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxCheckBox *item25 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename confllicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 15, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+
+    wxButton *item26 = new wxButton( parent, wxID_OK, _("Proceed"), wxDefaultPosition, wxDefaultSize, 0 );
+    item26->SetDefault();
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+
+    wxButton *item27 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item0->Add( item24, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
 // Implement menubar functions
 
 wxMenuBar *AIMenuBarFunc()

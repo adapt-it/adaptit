@@ -547,6 +547,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\FilenameConflictDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\FilterPage.cpp"
 				>
 			</File>
@@ -897,6 +901,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\ExportSaveAsDlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\FilenameConflictDlg.h"
 				>
 			</File>
 			<File
