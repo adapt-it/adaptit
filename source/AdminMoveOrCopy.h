@@ -67,6 +67,12 @@ public:
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
 	wxArrayString destFilesArray; // stores filenames (these get displayed)
 	wxArrayString destSelectedFilesArray; // stores filenames selected by user
+				// (Note: files selected in destination folder is only meaningful
+				// for renaming or deleting these files, and the contents of this
+				// list is ignored for moving or copying as the latter two 
+				// functionalities use the destFolderAllFilesArray (below) instead
+	wxArrayString destFolderAllFilesArray; // use this to check for conflicts when
+				// copying or moving files with names stored in srcSelectedFilesArray
 
 	int srcFoldersCount;
 	int srcFilesCount;
