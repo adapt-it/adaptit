@@ -136,6 +136,10 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	destFoldersCount = 0;
 	destFilesCount = 0;
 
+	m_bUserCancelled = FALSE;
+	m_bCopyWasSuccessful = FALSE;
+	m_bDoTheSameWay = FALSE;
+
 	// set up pointers to interface objects
 	pUpSrcFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP);
 	wxASSERT(pUpSrcFolder != NULL);
@@ -727,6 +731,139 @@ void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 	}
 	// don't need any special behaviours for deselecting files
 	event.Skip();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the file in the source list with index srcFileIndex has the
+///             same filename as a file in the destination folder; FALSE otherwise
+/// \param      srcFileIndex   ->   0 based index into srcSelectedFilesArray array
+/// \param      pConflictIndex ->   pointer to 0 based index to whichever filename in
+///                                 destFilesArray (passed in as pDestFilesArr) has 
+///                                 the same name as for the one specified by index
+///                                 srcFileIndex; has value -1 if unset
+/// \param      pDestFilesArr   ->  pointer to a string array of all the filenames in
+///                                 the destination folder
+///  \remarks   Iterates through all the files in the pDestFilesArr array, looking for
+///             a match with the filename specified by srcFileIndex, returning TRUE if
+///             a match is made, otherwise FALSE
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::IsFileConflicted(int srcFileIndex, int* pConflictIndex, 
+									  wxArrayString* pDestFilesArr)
+{
+	wxASSERT(srcFileIndex < (int)srcSelectedFilesArray.GetCount());
+	(*pConflictIndex) = wxNOT_FOUND; // -1
+	size_t limit = pDestFilesArr->GetCount();
+	if (limit == 0)
+	{
+		// there are no files in the destination folder, so no conflict is possible
+		return FALSE;
+	}
+	// get the source filename
+	wxString srcFilename = srcSelectedFilesArray.Item(srcFileIndex);
+	size_t destIndex;
+	wxString aFilename;
+	for (destIndex = 0; destIndex < limit; destIndex++) 
+	{
+		aFilename = pDestFilesArr->Item(destIndex);
+		if (aFilename == srcFilename)
+		{
+			(*pConflictIndex) = (int)destIndex;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     the suitably changed filename (so that the conflict is removed)
+/// \param      pFilename   ->  pointer to the filename string from the destination
+///                             folder which conflicts with the filename being moved or
+///                             copied and use has elected to do the copy with a modified
+///                             name 
+///  \remarks   The typical situation is a filename is passed in, and the filename with
+///  (2) appended to the end of the name part and before the dot plus extension, if any,
+///  is returned. If (2) or (3) or (n) where n is one or more digits is aleady present at
+///  the end of the name part of the filename, then the value is bumped one higher in the
+///  returned string. If the string between ( and ) is empty, or cannot be converted to a
+///  number, or ( or ) occurs without a matching partner ) or ( respectively, or if the
+///  (n) substring is internal to the filename, then any such cases just have "(2)"
+///  appended to the end of the name part of the filename, as above.
+//////////////////////////////////////////////////////////////////////////////////
+wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
+{
+	wxString newFilename = _T("");
+	wxFileName fn(m_strDestFolderPath,*pFilename);
+	wxString extn = _T("");
+	bool bHasExtension = FALSE;
+	if (fn.HasExt())
+	{
+		extn = fn.GetExt();
+		bHasExtension = TRUE; // to handle when only the . of an extension is present
+	}
+	wxString name = fn.GetName();
+	wxString reversed = MakeReverse(name); // our utility from helpers.cpp
+	// look for ")d...d(" at the start of the reversed string, where d...d is one or more
+	// digits; we want to get the digit(s), convert to int, increment by 1, convert back
+	// to digits, and build the new string with (n) at the end where n is the new larger
+	// value. However, mostly no such end string is present, in which case we can just
+	// create a name with "(2)" at the end immediately.
+	wxString shortname;
+	wxChar aChar = reversed.GetChar(0);
+	wxString ending = _T("");
+	if (aChar == _T(')'))
+	{
+		// we've got a filename with the name part in the form name(n) where n is one or
+		// more digits (or at least we'll assume so)
+		ending = aChar;
+		shortname = reversed.Mid(1);
+		// get the digits -- look for matching '(', if not found, just add "(2)" as below,
+		// but if found, the characters up to that point should be the digit string we want
+		int offset = shortname.Find(_T('('));
+		if (offset == wxNOT_FOUND)
+		{
+			newFilename = name + _T("(2)");
+			newFilename += _T(".") + extn;
+		}
+		else
+		{
+			wxString digitStr = shortname.Left(offset);
+			shortname = shortname.Mid(offset); // this is now "(reversednamepart"
+			// reverse digitStr, to make it normal order
+			digitStr = MakeReverse(digitStr);
+			// convert digitStr to an unsigned long
+			unsigned long value;
+			bool bConvertedOK = digitStr.ToULong(&value);
+			if (!bConvertedOK)
+			{
+				// it wasn't a valid digit string, so make a (2) at end of original name
+				newFilename = name + _T("(2)");
+				newFilename += _T(".") + extn;
+			}
+			else
+			{
+				// it converted correctly, so bump the value by 1 and rebuild the new
+				// string's output form
+				value++;
+				digitStr.Printf(_T("%d"),value);
+				// now reverse it again
+				digitStr = MakeReverse(digitStr);
+				// prepend to shortname
+				shortname = digitStr + shortname;
+				// add the ending
+				shortname = ending + shortname; // remember this is still reversed!
+				// now reverse it back to natural order
+				shortname = MakeReverse(shortname);
+				newFilename = shortname + _T(".") + extn;
+			}
+		}
+	}
+	else
+	{
+		// assume it is a normal filename with no (n) on the end
+		newFilename = name + _T("(2)");
+		newFilename += _T(".") + extn;
+	}
+	return newFilename;
 }
 
 
