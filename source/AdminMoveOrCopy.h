@@ -101,13 +101,15 @@ protected:
 	void OnDestListSelectItem(wxListEvent& event);
 	void OnDestListDeselectItem(wxListEvent& event);
 private:
-	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
+	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
+						bool& bUserCancelled, bool& bDoTheSameWay);
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
 								bool& bHasFolders, bool& bHasFiles);
-	void SetupSrcList(wxString& folderPath);
-	void SetupDestList(wxString& folderPath);
-	void SetupSelectedFilesArray(enum whichSide side);
+	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	bool IsFileConflicted(int srcFileIndex, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
+	void SetupDestList(wxString& folderPath);
+	void SetupSrcList(wxString& folderPath);
+	void SetupSelectedFilesArray(enum whichSide side);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
