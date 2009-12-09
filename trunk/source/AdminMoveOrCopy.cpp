@@ -866,4 +866,51 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 	return newFilename;
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the copy was successfully done (in the event of a filename clash,
+///             successfully done means either that the user chose to copy and replace,
+///             overwriting the file in the destination folder of the same name, or he
+///             chose to copy with a changed name; a choice to 'not copy' should be
+///             interpretted as non-success and FALSE should be returned); return FALSE if
+///             the copy was not successful.
+/// \param      srcPath     ->  reference to the source folder path's string (no final 
+///                             path separator)
+/// \param      destPath    ->  reference to the destination folder path's string (no final 
+///                             path separator)
+/// \param      filename    ->  the name of the file to be copied (prior to knowing whether
+///                             there is or isn't a name conflict with a file in destation
+///                             folder)
+///  \param     bUserCancelled <- reference to boolean indicating whether or not the user
+///                               clicked the Cancel button in the FilenameConflictDlg
+///  \param     bDoTheSameWay  <- reference to boolean indicating whether or not the user
+///                               turned on the checkbox "Handle other filename conflicts
+///                               the same way" in the FilenameConflictDlg
+///  \remarks   This function handles the low level copying of a single file to the
+///  destination folder. It's return value is important for a "Move" choice in the GUI,
+///  because we support Moving a file by first copying it, and if the copy was successful,
+///  then we delete the original file in the source folder. In the event of a filename
+///  clash, the protocol for handling that is encapsulated herein - a child dialog is put
+///  up with 3 choices, similarly to what Windows Explorer offers. Two flags are included
+///  in the signature to return information to the caller about what choices have been
+///  made if that child dialog was put up because of a filename clash. Since our design
+///  allows for multiple filenames in the source folder to be copied (or moved) with a
+///  single click of the Copy.. or Move.. buttons, this function will be called multiple
+///  times by the caller - taking each filename from a string array populated earlier. In
+///  the event of a filename clash, if the user hits the Cancel button, it will cancel the
+///  Copy or Move command at that time, but any files already copied or moved will remain so.
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
+						bool& bUserCancelled, bool& bDoTheSameWay)
+{
+
+
+
+	return TRUE;
+}
+	//bool m_bUserCancelled;
+	//bool m_bCopyWasSuccessful;
+	//bool m_bDoTheSameWay;
+
+
+
 
