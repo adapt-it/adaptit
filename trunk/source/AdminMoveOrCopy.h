@@ -94,19 +94,22 @@ public:
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
 protected:
+	void EnableCopyFileOrFilesButton(bool bEnableFlag);
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSrcListSelectItem(wxListEvent& event);
 	void OnSrcListDeselectItem(wxListEvent& event);
 	void OnDestListSelectItem(wxListEvent& event);
 	void OnDestListDeselectItem(wxListEvent& event);
+	void OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event));
 private:
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
 						bool& bUserCancelled, bool& bDoTheSameWay);
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
 								bool& bHasFolders, bool& bHasFiles);
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	bool IsFileConflicted(int srcFileIndex, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
+	//bool IsFileConflicted(int srcFileIndex, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
+	bool IsFileConflicted(wxString& srcFile, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
 	void SetupSelectedFilesArray(enum whichSide side);
