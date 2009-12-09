@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDeselectItem)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListSelectItem)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
-
+	EVT_BUTTON(ID_BUTTON_COPY_FILES, AdminMoveOrCopy::OnCopyFileOrFiles)
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
@@ -259,7 +259,7 @@ void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 		}
 		srcSelectedFilesArray.Clear();
 		srcSelectedFilesArray.Alloc(srcFilesCount); // enough for all files in the folder
-		for (index = srcFoldersCount; index < limit - 1; index++)
+		for (index = srcFoldersCount; index < limit; index++)
 		{
 			isSelected = pSrcList->GetItemState(index,stateMask);
 			if (isSelected)
@@ -282,7 +282,7 @@ void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 		}
 		destSelectedFilesArray.Clear();
 		destSelectedFilesArray.Alloc(destFilesCount); // enough for all files in the folder
-		for (index = destFoldersCount; index < limit - 1; index++)
+		for (index = destFoldersCount; index < limit; index++)
 		{
 			isSelected = pDestList->GetItemState(index,stateMask);
 			if (isSelected)
@@ -520,6 +520,8 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupSrcList(m_strSrcFolderPath);
+	EnableCopyFileOrFilesButton(FALSE); // copy button starts off disabled until a file or
+										// files are selected
 }
 
 void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event))
@@ -580,6 +582,7 @@ void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event)
 		}
 	}
 	delete pFN;
+	EnableCopyFileOrFilesButton(FALSE); // start off disabled until a file is selected
 }
 
 void AdminMoveOrCopy::OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -670,9 +673,17 @@ void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
 		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
 		SetupSrcList(m_strSrcFolderPath);
 		event.Skip();
+		EnableCopyFileOrFilesButton(FALSE); // start with copy button disabled until a file
+											// is selected
 		return;
 	}
 	event.Skip();
+	// a file has been selected
+	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections 
+	if (srcSelectedFilesArray.GetCount() > 0)
+		EnableCopyFileOrFilesButton(TRUE);
+	else
+		EnableCopyFileOrFilesButton(FALSE);
 }
 
 void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
@@ -711,6 +722,12 @@ void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 	}
 	// don't need any special behaviours for deselecting files
 	event.Skip();
+	// if no files are now selected, disable the copy buton
+	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections 
+	if (srcSelectedFilesArray.GetCount() > 0)
+		EnableCopyFileOrFilesButton(TRUE);
+	else
+		EnableCopyFileOrFilesButton(FALSE);
 }
 
 void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
@@ -737,7 +754,7 @@ void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 /// \return     TRUE if the file in the source list with index srcFileIndex has the
 ///             same filename as a file in the destination folder; FALSE otherwise
 /// \param      srcFileIndex   ->   0 based index into srcSelectedFilesArray array
-/// \param      pConflictIndex ->   pointer to 0 based index to whichever filename in
+/// \param      pConflictIndex <-   pointer to 0 based index to whichever filename in
 ///                                 destFilesArray (passed in as pDestFilesArr) has 
 ///                                 the same name as for the one specified by index
 ///                                 srcFileIndex; has value -1 if unset
@@ -747,6 +764,7 @@ void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 ///             a match with the filename specified by srcFileIndex, returning TRUE if
 ///             a match is made, otherwise FALSE
 //////////////////////////////////////////////////////////////////////////////////
+/*
 bool AdminMoveOrCopy::IsFileConflicted(int srcFileIndex, int* pConflictIndex, 
 									  wxArrayString* pDestFilesArr)
 {
@@ -773,6 +791,48 @@ bool AdminMoveOrCopy::IsFileConflicted(int srcFileIndex, int* pConflictIndex,
 	}
 	return FALSE;
 }
+*/
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the file in the source list with index srcFileIndex has the
+///             same filename as a file in the destination folder; FALSE otherwise
+/// \param      srcFile        ->   reference to the source file's filename
+/// \param      pConflictIndex <-   pointer to 0 based index to whichever filename in
+///                                 destFilesArray (passed in as pDestFilesArr) has 
+///                                 the same name as for the one specified by srcFile;
+///                                 has value -1 if unset
+/// \param      pDestFilesArr   ->  pointer to a string array of all the filenames in
+///                                 the destination folder
+///  \remarks   Iterates through all the files in the pDestFilesArr array, looking for
+///             a match with the filename specified by srcFileIndex, returning TRUE if
+///             a match is made, otherwise FALSE
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::IsFileConflicted(wxString& srcFile, int* pConflictIndex, 
+									  wxArrayString* pDestFilesArr)
+{
+	wxASSERT(!srcFile.IsEmpty());
+	(*pConflictIndex) = wxNOT_FOUND; // -1
+	size_t limit = pDestFilesArr->GetCount();
+	if (limit == 0)
+	{
+		// there are no files in the destination folder, so no conflict is possible
+		return FALSE;
+	}
+	size_t destIndex;
+	wxString aFilename;
+	for (destIndex = 0; destIndex < limit; destIndex++) 
+	{
+		aFilename = pDestFilesArr->Item(destIndex);
+		if (aFilename == srcFile)
+		{
+			(*pConflictIndex) = (int)destIndex;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     the suitably changed filename (so that the conflict is removed)
@@ -902,15 +962,113 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
 						bool& bUserCancelled, bool& bDoTheSameWay)
 {
-
-
-
-	return TRUE;
+	bool bSuccess = TRUE;
+	// make the path to the source file
+	wxString theSourcePath = srcPath + gpApp->PathSeparator + filename;
+	// check for a name conflict (including extension, same names but different extensions
+	// is not to be treated as a conflict)
+	int nConflictedFileIndex = wxNOT_FOUND; // -1
+	bool bIsConflicted = IsFileConflicted(filename,&nConflictedFileIndex,&destFilesArray);
+	if (bIsConflicted)
+	{
+		// handle the filename conflict here
+		 
+// *** TODO ***		
+	}
+	else
+	{
+		// there was no conflict, so the copy can proceed...
+		// first, make the path to the destination folder
+		wxString theDestinationPath = destPath + gpApp->PathSeparator + filename;
+		bool bAlreadyExists = ::wxFileExists(theDestinationPath);
+		if (bAlreadyExists)
+		{
+			// This block should never be entered; we've already determined there is no
+			// name conflict and so the destination folder should not have a file of the
+			// same name. Because of the possibility of losing valuable data, what we do
+			// here is to alert the user to the file which is in danger of being lost due
+			// to the copy, then refraining from the copy automatically, keep the app
+			// running but return FALSE so that if a Move... was requested, then the
+			// caller will not go ahead with deletion of the source folder's file
+			wxString msg;
+			msg = msg.Format(_("The destination folder's file with the name %s would be overwritten if this move or copy were to go ahead. To avoid this unexpected possibility for data loss, the move or copy will now be cancelled. Do something appropriate with the destination folder's file, and then try again."),
+				filename);
+			wxMessageBox(msg,_T("Undetected Filename Conflict During Copy"),wxICON_WARNING);
+			return FALSE;
+		}
+		bSuccess = ::wxCopyFile(theSourcePath, theDestinationPath); //bool overwrite = true
+	}
+	return bSuccess;
 }
-	//bool m_bUserCancelled;
-	//bool m_bCopyWasSuccessful;
-	//bool m_bDoTheSameWay;
+
+void AdminMoveOrCopy::EnableCopyFileOrFilesButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pCopyFileOrFilesButton->Enable(TRUE);
+	else
+		pCopyFileOrFilesButton->Enable(FALSE);
+}
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent fired by the user's button press
+/// \remarks
+/// Handler for the "Copy File Or Files" button. I copies the one or more selected files
+/// in the source folder's wxListCtrl to the destination folder specified by the path
+/// m_strDestFolderPath. File name conflicts are handled internally, similarly to how Windows
+/// Explorer handles them (i.e. with a child dialog opening to display file attribute
+/// details such as name, size and last modification date & time for each of the files in
+/// conflict) and the user has 3 options - continue, overwritting the file at the
+/// destination folder with the one from the source folder; or to not copy; or to have the
+/// name of the source folder's file changed so as to remove the conflict and then the
+/// copy goes ahead - resulting in two files with same or similar data being in the
+/// destination folder. Cancelling, and opting to have all subsequent filename conflicts
+/// handled the same way as the current one are also supported.
+////////////////////////////////////////////////////////////////////////////////////////////
+void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event)) 
+{	
+	if (srcSelectedFilesArray.GetCount() == 0)
+	{
+		::wxBell();
+		wxMessageBox(_T("You first need to select at least one file in the left list before clicking the copy button"),_T("No File Selected"),wxICON_WARNING);
+		return;
+	}
 
+	int nItemIndex = 0;
+
+	//for now, just test by copying the first file from the list...
+	// *** TODO *** make this into a loop across all files that were selected
+
+	wxString aFilename = srcSelectedFilesArray.Item(nItemIndex);
+	wxASSERT(!aFilename.IsEmpty());
+	m_bUserCancelled = FALSE;
+	m_bDoTheSameWay = FALSE;
+	bool m_bCopyWasSuccessful = CopySingleFile(m_strSrcFolderPath,m_strDestFolderPath,aFilename, 
+												m_bUserCancelled, m_bDoTheSameWay);
+
+	if (!m_bCopyWasSuccessful)
+	{
+		wxString msg;
+		msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
+				aFilename);
+		wxMessageBox(msg,_T("Copying A File Failed"),wxICON_WARNING);
+	}
+	else
+	{
+		// the copy was successful, so remove that file from srcSelectedFilesArray
+		srcSelectedFilesArray.RemoveAt(nItemIndex);
+	}
+
+	// update the destination folder's list to show what has been copied or moved there
+	SetupDestList(m_strDestFolderPath);
+
+	// disable the Copy File Or Files button if there are no more files in the selected
+	// files array
+	if (srcSelectedFilesArray.GetCount() > 0)
+		EnableCopyFileOrFilesButton(TRUE);
+	else
+		EnableCopyFileOrFilesButton(FALSE);
+
+}
 
