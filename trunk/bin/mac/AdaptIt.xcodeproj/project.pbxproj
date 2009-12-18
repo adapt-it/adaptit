@@ -751,20 +751,22 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		C0E91AC608A95435008D54AB /* UnicodeDebug */ = {
+		84F6D22810D9FEFA00DE69CB /* PPC_UnicodeDebug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = ppc;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = YES;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G4;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"wxUSE_UNICODE=1",
+					"WXUSE_UNICODE=1",
 					NO_GCC_PRAGMA,
 					__WXMAC__,
 					"wxUSE_BASE=1",
@@ -773,7 +775,7 @@
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					MACOS_CLASSIC,
-					"__WXDEBUG__=1",
+					"__WX_DEBUG__=1",
 				);
 				GCC_VERSION_i386 = 4.0;
 				GCC_VERSION_ppc = 3.3;
@@ -802,24 +804,40 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = UnicodeDebug;
+			name = PPC_UnicodeDebug;
 		};
-		C0E91AC708A95435008D54AB /* UnicodeRelease */ = {
+		84F6D22910D9FEFA00DE69CB /* PPC_UnicodeDebug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = "";
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				USER_HEADER_SEARCH_PATHS = "$(inherited)";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = PPC_UnicodeDebug;
+		};
+		C0E91AC608A95435008D54AB /* Intel_UnicodeDebug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = (
-					ppc,
-					i386,
-				);
+				ARCHS = ppc;
+				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_MODEL_TUNING = G4;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"wxUSE_UNICODE=1",
+					"WXUSE_UNICODE=1",
 					NO_GCC_PRAGMA,
 					__WXMAC__,
 					"wxUSE_BASE=1",
@@ -828,6 +846,61 @@
 					"__WXMAC_XCODE__=1",
 					"WX_PRECOMP=1",
 					MACOS_CLASSIC,
+					"__WX_DEBUG__=1",
+				);
+				GCC_VERSION_i386 = 4.0;
+				GCC_VERSION_ppc = 3.3;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = "$(WXWIN)/src/build/Development";
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
+				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
+				OTHER_CPLUSPLUSFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"-liconv",
+					"-lz",
+					"-lwx_mac_static",
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = "Adapt It";
+				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				USE_HEADERMAP = "";
+				USE_SEPARATE_HEADERMAPS = YES;
+				WARNING_CFLAGS = (
+					"-Wmost",
+					"-Wno-four-char-constants",
+					"-Wno-unknown-pragmas",
+				);
+				WRAPPER_EXTENSION = app;
+				ZERO_LINK = NO;
+			};
+			name = Intel_UnicodeDebug;
+		};
+		C0E91AC708A95435008D54AB /* UnicodeRelease */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = ppc;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = G4;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"WXUSE_UNICODE=1",
+					NO_GCC_PRAGMA,
+					__WXMAC__,
+					"wxUSE_BASE=1",
+					"_FILE_OFFSET_BITS=64",
+					_LARGE_FILES,
+					"__WXMAC_XCODE__=1",
+					"WX_PRECOMP=1",
+					MACOS_CLASSIC,
+					"__WX_DEBUG__=1",
 				);
 				GCC_VERSION_i386 = 4.0;
 				GCC_VERSION_ppc = 3.3;
@@ -842,6 +915,7 @@
 					"-lz",
 					"-lwx_mac_static",
 				);
+				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
 				UNSTRIPPED_PRODUCT = NO;
 				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
@@ -857,7 +931,7 @@
 			};
 			name = UnicodeRelease;
 		};
-		C0E91ACA08A95435008D54AB /* UnicodeDebug */ = {
+		C0E91ACA08A95435008D54AB /* Intel_UnicodeDebug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -871,7 +945,7 @@
 				USER_HEADER_SEARCH_PATHS = "$(inherited)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
-			name = UnicodeDebug;
+			name = Intel_UnicodeDebug;
 		};
 		C0E91ACB08A95435008D54AB /* UnicodeRelease */ = {
 			isa = XCBuildConfiguration;
@@ -880,6 +954,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
 				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = UnicodeRelease;
 		};
@@ -889,7 +964,8 @@
 		C0E91AC508A95435008D54AB /* Build configuration list for PBXNativeTarget "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91AC608A95435008D54AB /* UnicodeDebug */,
+				C0E91AC608A95435008D54AB /* Intel_UnicodeDebug */,
+				84F6D22810D9FEFA00DE69CB /* PPC_UnicodeDebug */,
 				C0E91AC708A95435008D54AB /* UnicodeRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -898,7 +974,8 @@
 		C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C0E91ACA08A95435008D54AB /* UnicodeDebug */,
+				C0E91ACA08A95435008D54AB /* Intel_UnicodeDebug */,
+				84F6D22910D9FEFA00DE69CB /* PPC_UnicodeDebug */,
 				C0E91ACB08A95435008D54AB /* UnicodeRelease */,
 			);
 			defaultConfigurationIsVisible = 0;
