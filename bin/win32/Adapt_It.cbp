@@ -191,8 +191,12 @@
 					<Add option="/D_WINDOWS" />
 					<Add option="/DNOPCH" />
 					<Add option="/D_CRT_NONSTDC_NO_DEPRECATE" />
+					<Add option="/D_UNICODE" />
+					<Add option="/DUNICODE" />
 					<Add directory="$(WXWIN)\include" />
 					<Add directory="$(WXWIN)\contrib\include" />
+					<Add directory="$(WXWIN)\lib\mswu" />
+					<Add directory="$(WXWIN)\lib\vc_lib" />
 					<Add directory="$(WXWIN)\lib\vc_lib\mswu" />
 				</Compiler>
 				<ResourceCompiler>
@@ -223,12 +227,9 @@
 					<Add directory="$(WXWIN)\lib\vc_lib" />
 				</Linker>
 				<ExtraCommands>
-					<Add after="mkdir ..\..\setup Unicode\" />
-					<Add after="copy Unicode Release\Adapt_It_Unicode.exe ..\..\setup Unicode\Adapt_It_Unicode.exe" />
-					<Add after="mkdir ..\..\setup Unicode - Minimal\" />
-					<Add after="copy Unicode Release\Adapt_It_Unicode.exe ..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe" />
-					<Add after="mkdir ..\..\setup Unicode - No Html Help\" />
-					<Add after="copy Unicode Release\Adapt_It_Unicode.exe ..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe" />
+					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode\Adapt_It_Unicode.exe&quot; /Y' />
+					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - Minimal\Adapt_It_Unicode.exe&quot; /Y' />
+					<Add after='xcopy &quot;Unicode Release\Adapt_It_Unicode.exe&quot; &quot;..\..\setup Unicode - No Html Help\Adapt_It_Unicode.exe&quot; /Y' />
 				</ExtraCommands>
 			</Target>
 		</Build>
