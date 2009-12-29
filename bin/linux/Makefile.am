@@ -2,6 +2,7 @@
 noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
+	../../source/AdminMoveOrCopy.h \
 	../../source/AutoSavingPage.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
 	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ChooseConsistencyCheckTypeDlg.h \
@@ -17,7 +18,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h ../../source/PhraseBox.h \
 	../../source/Pile.h ../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
 	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
-	../../source/PunctCorrespPage.h ../../source/RefString.h ../../source/RetranslationDlg.h \
+	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h ../../source/RetranslationDlg.h \
 	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
 	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
@@ -58,7 +59,7 @@ adaptit.htb: ../../hlp
 # the application source, library search path, and link libraries
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
-	../../source/Adapt_It_wdr.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
+	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
 	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp \
 	../../source/CCTableNameDlg.cpp ../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/ChooseTranslation.cpp \
@@ -75,7 +76,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Pile.cpp ../../source/PlaceInternalMarkers.cpp \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
-	../../source/RefString.cpp ../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp \
+	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp ../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp \
 	../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp ../../source/SourcePhrase.cpp \
 	../../source/SplitDialog.cpp ../../source/Stack.cpp ../../source/StartWorkingWizard.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp ../../source/tellenc.cpp \

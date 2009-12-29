@@ -63,10 +63,11 @@ PROGRAMS = $(bin_PROGRAMS)
 am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	Adapt_ItCanvas.$(OBJEXT) Adapt_ItDoc.$(OBJEXT) \
 	Adapt_ItView.$(OBJEXT) Adapt_It_wdr.$(OBJEXT) \
-	AutoSavingPage.$(OBJEXT) BString.$(OBJEXT) CCModule.$(OBJEXT) \
-	CCTabbedDialog.$(OBJEXT) CCTableEditDlg.$(OBJEXT) \
-	CCTableNameDlg.$(OBJEXT) CaseEquivPage.$(OBJEXT) \
-	Cell.$(OBJEXT) ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
+	AdminMoveOrCopy.$(OBJEXT) AutoSavingPage.$(OBJEXT) \
+	BString.$(OBJEXT) CCModule.$(OBJEXT) CCTabbedDialog.$(OBJEXT) \
+	CCTableEditDlg.$(OBJEXT) CCTableNameDlg.$(OBJEXT) \
+	CaseEquivPage.$(OBJEXT) Cell.$(OBJEXT) \
+	ChooseConsistencyCheckTypeDlg.$(OBJEXT) \
 	ChooseLanguageDlg.$(OBJEXT) ChooseTranslation.$(OBJEXT) \
 	CollectBacktranslations.$(OBJEXT) ComposeBarEditBox.$(OBJEXT) \
 	ConsistencyCheckDlg.$(OBJEXT) ConsistentChanger.$(OBJEXT) \
@@ -85,10 +86,11 @@ am_adaptit_OBJECTS = AIPrintout.$(OBJEXT) Adapt_It.$(OBJEXT) \
 	PlaceInternalMarkers.$(OBJEXT) PlaceInternalPunct.$(OBJEXT) \
 	PlaceRetranslationInternalMarkers.$(OBJEXT) \
 	PrintOptionsDlg.$(OBJEXT) ProjectPage.$(OBJEXT) \
-	PunctCorrespPage.$(OBJEXT) RefString.$(OBJEXT) \
-	RetranslationDlg.$(OBJEXT) SetDelay.$(OBJEXT) \
-	SetEncodingDlg.$(OBJEXT) SilConverterSelectDlg.$(OBJEXT) \
-	SourcePhrase.$(OBJEXT) SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
+	PunctCorrespPage.$(OBJEXT) ReadOnlyProtection.$(OBJEXT) \
+	RefString.$(OBJEXT) RetranslationDlg.$(OBJEXT) \
+	SetDelay.$(OBJEXT) SetEncodingDlg.$(OBJEXT) \
+	SilConverterSelectDlg.$(OBJEXT) SourcePhrase.$(OBJEXT) \
+	SplitDialog.$(OBJEXT) Stack.$(OBJEXT) \
 	StartWorkingWizard.$(OBJEXT) Strip.$(OBJEXT) \
 	TargetUnit.$(OBJEXT) tellenc.$(OBJEXT) \
 	TransformToGlossesDlg.$(OBJEXT) USFMPage.$(OBJEXT) \
@@ -287,6 +289,7 @@ top_srcdir = @top_srcdir@
 noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/Adapt_ItCanvas.h ../../source/Adapt_ItDoc.h ../../source/Adapt_ItView.h \
 	../../source/Adapt_It_Resources.h ../../source/Adapt_It_wdr.h ../../source/AdaptitConstants.h \
+	../../source/AdminMoveOrCopy.h \
 	../../source/AutoSavingPage.h ../../source/BString.h ../../source/CCModule.h \
 	../../source/CCTabbedDialog.h ../../source/CCTableEditDlg.h ../../source/CCTableNameDlg.h \
 	../../source/CaseEquivPage.h ../../source/Cell.h ../../source/ChooseConsistencyCheckTypeDlg.h \
@@ -302,7 +305,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h ../../source/PhraseBox.h \
 	../../source/Pile.h ../../source/PlaceInternalMarkers.h ../../source/PlaceInternalPunct.h \
 	../../source/PlaceRetranslationInternalMarkers.h ../../source/PrintOptionsDlg.h ../../source/ProjectPage.h \
-	../../source/PunctCorrespPage.h ../../source/RefString.h ../../source/RetranslationDlg.h \
+	../../source/PunctCorrespPage.h ../../source/ReadOnlyProtection.h ../../source/RefString.h ../../source/RetranslationDlg.h \
 	../../source/SetDelay.h ../../source/SetEncodingDlg.h ../../source/SilConverterSelectDlg.h \
 	../../source/SourcePhrase.h ../../source/SplitDialog.h ../../source/Stack.h \
 	../../source/StartWorkingWizard.h ../../source/Strip.h ../../source/TargetUnit.h \
@@ -328,7 +331,7 @@ htmlhelp_DATA = adaptit.htb
 # the application source, library search path, and link libraries
 adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Adapt_ItCanvas.cpp ../../source/Adapt_ItDoc.cpp ../../source/Adapt_ItView.cpp \
-	../../source/Adapt_It_wdr.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
+	../../source/Adapt_It_wdr.cpp ../../source/AdminMoveOrCopy.cpp ../../source/AutoSavingPage.cpp ../../source/BString.cpp \
 	../../source/CCModule.cpp ../../source/CCTabbedDialog.cpp ../../source/CCTableEditDlg.cpp \
 	../../source/CCTableNameDlg.cpp ../../source/CaseEquivPage.cpp ../../source/Cell.cpp \
 	../../source/ChooseConsistencyCheckTypeDlg.cpp ../../source/ChooseLanguageDlg.cpp ../../source/ChooseTranslation.cpp \
@@ -345,7 +348,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/Pile.cpp ../../source/PlaceInternalMarkers.cpp \
 	../../source/PlaceInternalPunct.cpp ../../source/PlaceRetranslationInternalMarkers.cpp \
 	../../source/PrintOptionsDlg.cpp ../../source/ProjectPage.cpp ../../source/PunctCorrespPage.cpp \
-	../../source/RefString.cpp ../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp \
+	../../source/ReadOnlyProtection.cpp ../../source/RefString.cpp ../../source/RetranslationDlg.cpp ../../source/SetDelay.cpp \
 	../../source/SetEncodingDlg.cpp ../../source/SilConverterSelectDlg.cpp ../../source/SourcePhrase.cpp \
 	../../source/SplitDialog.cpp ../../source/Stack.cpp ../../source/StartWorkingWizard.cpp \
 	../../source/Strip.cpp ../../source/TargetUnit.cpp ../../source/tellenc.cpp \
@@ -437,6 +440,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_ItDoc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_ItView.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Adapt_It_wdr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AdminMoveOrCopy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AutoSavingPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BString.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CCModule.Po@am__quote@
@@ -486,6 +490,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PrintOptionsDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ProjectPage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PunctCorrespPage.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ReadOnlyProtection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RefString.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RetranslationDlg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SetDelay.Po@am__quote@
@@ -617,6 +622,20 @@ Adapt_It_wdr.obj: ../../source/Adapt_It_wdr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/Adapt_It_wdr.cpp' object='Adapt_It_wdr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Adapt_It_wdr.obj `if test -f '../../source/Adapt_It_wdr.cpp'; then $(CYGPATH_W) '../../source/Adapt_It_wdr.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/Adapt_It_wdr.cpp'; fi`
+
+AdminMoveOrCopy.o: ../../source/AdminMoveOrCopy.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AdminMoveOrCopy.o -MD -MP -MF $(DEPDIR)/AdminMoveOrCopy.Tpo -c -o AdminMoveOrCopy.o `test -f '../../source/AdminMoveOrCopy.cpp' || echo '$(srcdir)/'`../../source/AdminMoveOrCopy.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/AdminMoveOrCopy.Tpo $(DEPDIR)/AdminMoveOrCopy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AdminMoveOrCopy.cpp' object='AdminMoveOrCopy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AdminMoveOrCopy.o `test -f '../../source/AdminMoveOrCopy.cpp' || echo '$(srcdir)/'`../../source/AdminMoveOrCopy.cpp
+
+AdminMoveOrCopy.obj: ../../source/AdminMoveOrCopy.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AdminMoveOrCopy.obj -MD -MP -MF $(DEPDIR)/AdminMoveOrCopy.Tpo -c -o AdminMoveOrCopy.obj `if test -f '../../source/AdminMoveOrCopy.cpp'; then $(CYGPATH_W) '../../source/AdminMoveOrCopy.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AdminMoveOrCopy.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/AdminMoveOrCopy.Tpo $(DEPDIR)/AdminMoveOrCopy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/AdminMoveOrCopy.cpp' object='AdminMoveOrCopy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AdminMoveOrCopy.obj `if test -f '../../source/AdminMoveOrCopy.cpp'; then $(CYGPATH_W) '../../source/AdminMoveOrCopy.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/AdminMoveOrCopy.cpp'; fi`
 
 AutoSavingPage.o: ../../source/AutoSavingPage.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AutoSavingPage.o -MD -MP -MF $(DEPDIR)/AutoSavingPage.Tpo -c -o AutoSavingPage.o `test -f '../../source/AutoSavingPage.cpp' || echo '$(srcdir)/'`../../source/AutoSavingPage.cpp
@@ -1303,6 +1322,20 @@ PunctCorrespPage.obj: ../../source/PunctCorrespPage.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/PunctCorrespPage.cpp' object='PunctCorrespPage.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PunctCorrespPage.obj `if test -f '../../source/PunctCorrespPage.cpp'; then $(CYGPATH_W) '../../source/PunctCorrespPage.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/PunctCorrespPage.cpp'; fi`
+
+ReadOnlyProtection.o: ../../source/ReadOnlyProtection.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ReadOnlyProtection.o -MD -MP -MF $(DEPDIR)/ReadOnlyProtection.Tpo -c -o ReadOnlyProtection.o `test -f '../../source/ReadOnlyProtection.cpp' || echo '$(srcdir)/'`../../source/ReadOnlyProtection.cpp
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ReadOnlyProtection.Tpo $(DEPDIR)/ReadOnlyProtection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ReadOnlyProtection.cpp' object='ReadOnlyProtection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ReadOnlyProtection.o `test -f '../../source/ReadOnlyProtection.cpp' || echo '$(srcdir)/'`../../source/ReadOnlyProtection.cpp
+
+ReadOnlyProtection.obj: ../../source/ReadOnlyProtection.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ReadOnlyProtection.obj -MD -MP -MF $(DEPDIR)/ReadOnlyProtection.Tpo -c -o ReadOnlyProtection.obj `if test -f '../../source/ReadOnlyProtection.cpp'; then $(CYGPATH_W) '../../source/ReadOnlyProtection.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ReadOnlyProtection.cpp'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/ReadOnlyProtection.Tpo $(DEPDIR)/ReadOnlyProtection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='../../source/ReadOnlyProtection.cpp' object='ReadOnlyProtection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ReadOnlyProtection.obj `if test -f '../../source/ReadOnlyProtection.cpp'; then $(CYGPATH_W) '../../source/ReadOnlyProtection.cpp'; else $(CYGPATH_W) '$(srcdir)/../../source/ReadOnlyProtection.cpp'; fi`
 
 RefString.o: ../../source/RefString.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT RefString.o -MD -MP -MF $(DEPDIR)/RefString.Tpo -c -o RefString.o `test -f '../../source/RefString.cpp' || echo '$(srcdir)/'`../../source/RefString.cpp
