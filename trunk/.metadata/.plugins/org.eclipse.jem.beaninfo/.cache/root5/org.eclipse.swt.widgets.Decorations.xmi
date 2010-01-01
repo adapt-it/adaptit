@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Decorations">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.2 #//@objectsToAttach.3 #//@objectsToAttach.4 #//@objectsToAttach.5 #//@objectsToAttach.6 #//@objectsToAttach.7"/>
+    </value>
+  </objectChanges>
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="ecore:EReference java:/org.eclipse.swt.widgets#Decorations/menuBar">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="name" dataValue="menuBar"/>
+    <value xsi:type="change:FeatureChange" featureName="transient" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="volatile" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="changeable" dataValue="true"/>
+    <value xsi:type="change:FeatureChange" featureName="eType" referenceValue="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Menu"/>
+    <value xsi:type="change:FeatureChange" featureName="lowerBound" dataValue="0"/>
+    <value xsi:type="change:FeatureChange" featureName="upperBound" dataValue="1"/>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitlySetBits="2161727821137838094" implicitDecoratorFlag="IMPLICIT_DECORATOR" mergeSuperMethods="false">
+    <attributes xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:FeatureAttributeMapEntry" key="org.eclipse.ve.sweet.stylebits" value="implicit,[11][]{[4]{&quot;min&quot;,&quot;min&quot;,true,[3]{&quot;MIN&quot;,&quot;org.eclipse.swt.SWT.MIN&quot;,128}},[4]{&quot;close&quot;,&quot;close&quot;,true,[3]{&quot;CLOSE&quot;,&quot;org.eclipse.swt.SWT.CLOSE&quot;,64}},[4]{&quot;on_top&quot;,&quot;on_top&quot;,false,[3]{&quot;ON_TOP&quot;,&quot;org.eclipse.swt.SWT.ON_TOP&quot;,16384}},[4]{&quot;title&quot;,&quot;title&quot;,true,[3]{&quot;TITLE&quot;,&quot;org.eclipse.swt.SWT.TITLE&quot;,32}},[4]{&quot;trim&quot;,&quot;trim&quot;,false,[9]{&quot;SHELL_TRIM&quot;,&quot;org.eclipse.swt.SWT.SHELL_TRIM&quot;,1264,&quot;DIALOG_TRIM&quot;,&quot;org.eclipse.swt.SWT.DIALOG_TRIM&quot;,2144,&quot;NO_TRIM&quot;,&quot;org.eclipse.swt.SWT.NO_TRIM&quot;,8}},[4]{&quot;controlOrientation&quot;,&quot;controlOrientation&quot;,true,[6]{&quot;LEFT_TO_RIGHT&quot;,&quot;org.eclipse.swt.SWT.LEFT_TO_RIGHT&quot;,33554432,&quot;RIGHT_TO_LEFT&quot;,&quot;org.eclipse.swt.SWT.RIGHT_TO_LEFT&quot;,67108864}},[4]{&quot;horizontalScroll&quot;,&quot;horizontalScroll&quot;,false,[3]{&quot;H_SCROLL&quot;,&quot;org.eclipse.swt.SWT.H_SCROLL&quot;,256}},[4]{&quot;verticalScroll&quot;,&quot;verticalScroll&quot;,false,[3]{&quot;V_SCROLL&quot;,&quot;org.eclipse.swt.SWT.V_SCROLL&quot;,512}},[4]{&quot;border&quot;,&quot;border&quot;,false,[3]{&quot;BORDER&quot;,&quot;org.eclipse.swt.SWT.BORDER&quot;,2048}},[4]{&quot;max&quot;,&quot;max&quot;,true,[3]{&quot;MAX&quot;,&quot;org.eclipse.swt.SWT.MAX&quot;,1024}},[4]{&quot;resize&quot;,&quot;resize&quot;,true,[3]{&quot;RESIZE&quot;,&quot;org.eclipse.swt.SWT.RESIZE&quot;,16}}}"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's menu bar" hidden="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getMenuBar(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setMenuBar(org.eclipse.swt.widgets.Menu"/>
+  <objectsToAttach xsi:type="ecore:EReference" name="defaultButton" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Button" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's default button if one had previously been set." expert="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getDefaultButton(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setDefaultButton(org.eclipse.swt.widgets.Button"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="image" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Image" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's image" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getImage(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setImage(org.eclipse.swt.graphics.Image"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="images" eType="org.eclipse.jem.java:ArrayType java:/org.eclipse.swt.graphics#Image[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's images" implicitlySetBits="6629298651489370236" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getImages(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setImages(org.eclipse.swt.graphics.Image[]"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="maximized" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver is currently maximized, and false otherwise." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getMaximized(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setMaximized(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="minimized" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver is currently minimized, and false otherwise." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getMinimized(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setMinimized(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="text" eType="org.eclipse.jem.java:JavaClass java:/java.lang#String" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's text, which is the string that the window manager will typically display as the receiver's title." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.getText(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Decorations.setText(java.lang.String"/>
+  </objectsToAttach>
+</change:ChangeDescription>

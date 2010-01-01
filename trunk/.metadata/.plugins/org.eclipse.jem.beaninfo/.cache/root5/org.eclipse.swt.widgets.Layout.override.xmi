@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Layout">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1"/>
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.2"/>
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.3"/>
+    </value>
+  </objectChanges>
+  <objectsToAttach xsi:type="ecore:EAnnotation" source="org.eclipse.ve.LayoutInfo">
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutClass" value="org.eclipse.swt.layout.FillLayout"/>
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutDisplayName" value="FillLayout"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EAnnotation" source="org.eclipse.ve.LayoutInfo">
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutClass" value="org.eclipse.swt.layout.FormLayout"/>
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutDisplayName" value="FormLayout"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EAnnotation" source="org.eclipse.ve.LayoutInfo">
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutClass" value="org.eclipse.swt.layout.GridLayout"/>
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutDisplayName" value="GridLayout"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EAnnotation" source="org.eclipse.ve.LayoutInfo">
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutClass" value="org.eclipse.swt.layout.RowLayout"/>
+    <details xsi:type="ecore:EStringToStringMapEntry" key="org.eclipse.ve.internal.swt.layoutDisplayName" value="RowLayout"/>
+  </objectsToAttach>
+</change:ChangeDescription>

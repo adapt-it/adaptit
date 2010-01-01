@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:codeGenHelpers="platform:/plugin/org.eclipse.ve.java.core/overrides/codegenHelpers.ecore" xmlns:org.eclipse.jem.java="java.xmi" xmlns:org.eclipse.ve.internal.cde.decorators="http:///org/eclipse/ve/internal/cde/decorators.ecore" xmlns:org.eclipse.ve.internal.jcm="http:///org/eclipse/ve/internal/jcm.ecore">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Widget">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1"/>
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.2"/>
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.3"/>
+    </value>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.ve.internal.jcm:BeanDecorator" beanProxyClassName="org.eclipse.ve.swt/org.eclipse.ve.internal.swt.WidgetProxyAdapter"/>
+  <objectsToAttach xsi:type="codeGenHelpers:CodeGenHelperClass" source="codegen.CodeGenHelperClass" expDecoder="org.eclipse.ve.swt/org.eclipse.ve.internal.swt.codegen.SWTControlDecoder" methodGenerator="org.eclipse.ve.swt/org.eclipse.ve.internal.swt.codegen.SWTNoReturnMethodTextGenerator" modelled="true"/>
+  <objectsToAttach xsi:type="org.eclipse.ve.internal.cde.decorators:ClassDescriptorDecorator" modelAdapterClassname="org.eclipse.ve.swt/org.eclipse.ve.internal.swt.WidgetContainmentHandler"/>
+  <objectsToAttach xsi:type="org.eclipse.ve.internal.cde.decorators:PropertySourceAdapterInformation" propertySourceAdapterClassname="org.eclipse.ve.swt/org.eclipse.ve.internal.swt.WidgetPropertySourceAdapter"/>
+</change:ChangeDescription>

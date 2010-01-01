@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config date="1253113114109" transient="true" version="3.0">
+<site enabled="true" list="plugins/org.eclipse.core.databinding.observable_1.2.0.I20090604-2000.jar,plugins/org.eclipse.jface.databinding_1.3.0.I20090525-2000.jar,plugins/org.eclipse.core.databinding.property_1.2.0.I20090526-2000.jar,plugins/org.eclipse.swt_3.5.0.v3550b.jar,plugins/org.eclipse.help_3.4.0.v20090526.jar,plugins/org.eclipse.core.commands_3.5.0.I20090525-2000.jar,plugins/javax.servlet_2.5.0.v200806031605.jar,plugins/org.eclipse.equinox.app_1.2.0.v20090520-1800.jar,plugins/org.eclipse.core.contenttype_3.4.0.v20090429-1800.jar,plugins/org.eclipse.ui.workbench_3.5.0.I20090603-2000.jar,plugins/com.ibm.icu_4.0.1.v20090415.jar,plugins/org.eclipse.core.runtime_3.5.0.v20090525.jar,plugins/org.eclipse.ui.cocoa_1.0.0.I20090525-2000.jar,plugins/org.eclipse.equinox.registry_3.4.100.v20090520-1800.jar,plugins/org.eclipse.swt.cocoa.macosx_3.5.0.v3550b.jar,plugins/org.eclipse.jface_3.5.0.I20090525-2000.jar,plugins/org.eclipse.osgi.services_3.2.0.v20090520-1800.jar,plugins/org.eclipse.equinox.preferences_3.2.300.v20090520-1800.jar,plugins/org.eclipse.ui_3.5.0.I20090604-2000.jar,plugins/org.eclipse.core.databinding_1.2.0.I20090604-2000.jar,plugins/org.eclipse.core.jobs_3.4.100.v20090429-1800.jar,plugins/org.eclipse.core.expressions_3.4.100.v20090429-1800.jar,plugins/org.eclipse.core.runtime.compatibility.auth_3.2.100.v20090413.jar,plugins/org.eclipse.osgi_3.5.0.v20090520.jar,plugins/org.eclipse.core.runtime.compatibility.registry_3.2.200.v20090429-1800,plugins/org.eclipse.equinox.common_3.5.0.v20090520-1800.jar" policy="USER-INCLUDE" updateable="true" url="file:/Developer/Applications/eclipse35/">
+<feature id="org.eclipse.epp.usagedata.feature" url="features/org.eclipse.epp.usagedata.feature_1.1.0.R200906100410/" version="1.1.0.R200906100410">
+</feature>
+<feature id="org.tigris.subversion.subclipse.graph.feature" plugin-identifier="org.tigris.subversion.subclipse.graph" url="features/org.tigris.subversion.subclipse.graph.feature_1.0.7/" version="1.0.7">
+</feature>
+<feature id="org.eclipse.help" plugin-identifier="org.eclipse.help.base" url="features/org.eclipse.help_1.1.0.v20090602-7e7eFAlFEx2XZoYqwI68e2F/" version="1.1.0.v20090602-7e7eFAlFEx2XZoYqwI68e2F">
+</feature>
+<feature id="org.eclipse.epp.package.cpp.feature" plugin-identifier="org.eclipse.epp.package.cpp" url="features/org.eclipse.epp.package.cpp.feature_1.2.0.20090615-0818/" version="1.2.0.20090615-0818">
+</feature>
+<feature id="org.eclipse.cdt.mylyn" url="features/org.eclipse.cdt.mylyn_5.1.0.200906161748/" version="5.1.0.200906161748">
+</feature>
+<feature id="org.eclipse.cdt" url="features/org.eclipse.cdt_6.0.0.200906161748/" version="6.0.0.200906161748">
+</feature>
+<feature id="org.eclipse.mylyn.context_feature" plugin-identifier="org.eclipse.mylyn" url="features/org.eclipse.mylyn.context_feature_3.2.0.v20090617-0100-e3x/" version="3.2.0.v20090617-0100-e3x">
+</feature>
+<feature id="org.eclipse.equinox.p2.user.ui" url="features/org.eclipse.equinox.p2.user.ui_1.1.0.v20090605-1440-7u6Fb3FbPbJP5MjJjZgifk/" version="1.1.0.v20090605-1440-7u6Fb3FbPbJP5MjJjZgifk">
+</feature>
+<feature id="com.sun.jna" url="features/com.sun.jna_3.0.9/" version="3.0.9">
+</feature>
+<feature id="org.eclipse.cdt.gnu.dsf" url="features/org.eclipse.cdt.gnu.dsf_2.0.0.200906161748/" version="2.0.0.200906161748">
+</feature>
+<feature id="org.tigris.subversion.clientadapter.javahl.feature" plugin-identifier="org.tigris.subversion.clientadapter.javahl" url="features/org.tigris.subversion.clientadapter.javahl.feature_1.6.5/" version="1.6.5">
+</feature>
+<feature id="org.eclipse.cdt.gnu.debug" url="features/org.eclipse.cdt.gnu.debug_6.0.0.200906161748/" version="6.0.0.200906161748">
+</feature>
+<feature id="org.eclipse.cvs" url="features/org.eclipse.cvs_1.1.100.v20090514-7E79FEc9BJ99r9YFR6JOEF/" version="1.1.100.v20090514-7E79FEc9BJ99r9YFR6JOEF">
+</feature>
+<feature id="org.eclipse.platform" url="features/org.eclipse.platform_3.5.0.v20090611a-9gEeG1HFtQcmRThO4O3aR_fqSMvJR2sJ/" version="3.5.0.v20090611a-9gEeG1HFtQcmRThO4O3aR_fqSMvJR2sJ">
+</feature>
+<feature id="org.tigris.subversion.clientadapter.feature" plugin-identifier="org.tigris.subversion.clientadapter" url="features/org.tigris.subversion.clientadapter.feature_1.6.4.1/" version="1.6.4.1">
+</feature>
+<feature id="org.tmatesoft.svnkit" url="features/org.tmatesoft.svnkit_1.3.0.5847/" version="1.3.0.5847">
+</feature>
+<feature id="org.eclipse.jdt" url="features/org.eclipse.jdt_3.5.0.v20090527-2000-7r88FEeFJePyvYeA33DjZ_c1/" version="3.5.0.v20090527-2000-7r88FEeFJePyvYeA33DjZ_c1">
+</feature>
+<feature id="org.eclipse.mylyn.ide_feature" plugin-identifier="org.eclipse.mylyn" url="features/org.eclipse.mylyn.ide_feature_3.2.0.v20090617-0100-e3x/" version="3.2.0.v20090617-0100-e3x">
+</feature>
+<feature id="org.eclipse.mylyn.bugzilla_feature" plugin-identifier="org.eclipse.mylyn" url="features/org.eclipse.mylyn.bugzilla_feature_3.2.0.v20090617-0100-e3x/" version="3.2.0.v20090617-0100-e3x">
+</feature>
+<feature id="org.tigris.subversion.subclipse.mylyn" url="features/org.tigris.subversion.subclipse.mylyn_3.0.0/" version="3.0.0">
+</feature>
+<feature id="org.eclipse.cdt.gnu.build" url="features/org.eclipse.cdt.gnu.build_6.0.0.200906161748/" version="6.0.0.200906161748">
+</feature>
+<feature id="org.eclipse.cdt.platform" url="features/org.eclipse.cdt.platform_6.0.0.200906161748/" version="6.0.0.200906161748">
+</feature>
+<feature id="org.eclipse.mylyn_feature" plugin-identifier="org.eclipse.mylyn" url="features/org.eclipse.mylyn_feature_3.2.0.v20090617-0100-e3x/" version="3.2.0.v20090617-0100-e3x">
+</feature>
+<feature id="org.eclipse.rcp" url="features/org.eclipse.rcp_3.5.0.v20090519-9SA0FwxFv6x089WEf-TWh11/" version="3.5.0.v20090519-9SA0FwxFv6x089WEf-TWh11">
+</feature>
+<feature id="org.eclipse.mylyn.team_feature" plugin-identifier="org.eclipse.mylyn" url="features/org.eclipse.mylyn.team_feature_3.2.0.v20090617-0100-e3x/" version="3.2.0.v20090617-0100-e3x">
+</feature>
+<feature id="org.tigris.subversion.clientadapter.svnkit.feature" plugin-identifier="org.tigris.subversion.clientadapter.svnkit" url="features/org.tigris.subversion.clientadapter.svnkit.feature_1.6.4/" version="1.6.4">
+</feature>
+<feature id="org.eclipse.cdt.p2" url="features/org.eclipse.cdt.p2_1.0.0.200906161748/" version="1.0.0.200906161748">
+</feature>
+<feature id="org.eclipse.pde" url="features/org.eclipse.pde_3.5.0.v20090123-7Z7_F8NFE-z0VXhWiu-8Qb95/" version="3.5.0.v20090123-7Z7_F8NFE-z0VXhWiu-8Qb95">
+</feature>
+<feature id="org.tigris.subversion.subclipse" plugin-identifier="org.tigris.subversion.subclipse.core" url="features/org.tigris.subversion.subclipse_1.6.5/" version="1.6.5">
+</feature>
+<feature id="org.eclipse.mylyn.wikitext_feature" plugin-identifier="org.eclipse.mylyn" url="features/org.eclipse.mylyn.wikitext_feature_1.1.0.v20090617-0100-e3x/" version="1.1.0.v20090617-0100-e3x">
+</feature>
+<feature id="com.collabnet.subversion.merge.feature" plugin-identifier="com.collabnet.subversion.merge" url="features/com.collabnet.subversion.merge.feature_1.10.0/" version="1.10.0">
+</feature>
+</site>
+<site enabled="true" list="35workspace/ai/" policy="USER-INCLUDE" updateable="true" url="file:/Users/erik/Documents/">
+</site>
+</config>

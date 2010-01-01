@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Widget">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1 #//@objectsToAttach.2 #//@objectsToAttach.3"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="events">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.4"/>
+    </value>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitlySetBits="2017612633061982222" implicitDecoratorFlag="IMPLICIT_DECORATOR" mergeSuperMethods="false" mergeSuperEvents="false"/>
+  <objectsToAttach xsi:type="ecore:EReference" name="data" eType="org.eclipse.jem.java:JavaClass java:/java.lang#Object" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The application defined widget data associated with the receiver, or null if it has not been set." expert="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Widget.getData(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Widget.setData(java.lang.Object"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="display" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Display" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The Display that is associated with the receiver." expert="true" implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Widget.getDisplay("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="disposed" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the widget has been disposed, and false otherwise." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Widget.isDisposed("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="dispose">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Dispose" shortDescription="All dispose events" implicitlySetBits="-2594073385365405571" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" inDefaultEventSet="true" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Widget.addDisposeListener(org.eclipse.swt.events.DisposeListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#DisposeListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Widget.removeDisposeListener(org.eclipse.swt.events.DisposeListener">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="widgetDisposed" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#DisposeListener.widgetDisposed(org.eclipse.swt.events.DisposeEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the widget is disposed." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="DisposeEvent" implicitlySetBits="-7205759403792793599" name="disposeEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+</change:ChangeDescription>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Shell">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1 #//@objectsToAttach.2 #//@objectsToAttach.3"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="events">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.4"/>
+    </value>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitlySetBits="2161727821137838094" implicitDecoratorFlag="IMPLICIT_DECORATOR" mergeSuperMethods="false">
+    <attributes xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:FeatureAttributeMapEntry" key="org.eclipse.ve.sweet.stylebits" value="implicit,[12][]{[4]{&quot;min&quot;,&quot;min&quot;,true,[3]{&quot;MIN&quot;,&quot;org.eclipse.swt.SWT.MIN&quot;,128}},[4]{&quot;close&quot;,&quot;close&quot;,true,[3]{&quot;CLOSE&quot;,&quot;org.eclipse.swt.SWT.CLOSE&quot;,64}},[4]{&quot;on_top&quot;,&quot;on_top&quot;,false,[3]{&quot;ON_TOP&quot;,&quot;org.eclipse.swt.SWT.ON_TOP&quot;,16384}},[4]{&quot;title&quot;,&quot;title&quot;,true,[3]{&quot;TITLE&quot;,&quot;org.eclipse.swt.SWT.TITLE&quot;,32}},[4]{&quot;trim&quot;,&quot;trim&quot;,false,[9]{&quot;SHELL_TRIM&quot;,&quot;org.eclipse.swt.SWT.SHELL_TRIM&quot;,1264,&quot;DIALOG_TRIM&quot;,&quot;org.eclipse.swt.SWT.DIALOG_TRIM&quot;,2144,&quot;NO_TRIM&quot;,&quot;org.eclipse.swt.SWT.NO_TRIM&quot;,8}},[4]{&quot;controlOrientation&quot;,&quot;controlOrientation&quot;,true,[6]{&quot;LEFT_TO_RIGHT&quot;,&quot;org.eclipse.swt.SWT.LEFT_TO_RIGHT&quot;,33554432,&quot;RIGHT_TO_LEFT&quot;,&quot;org.eclipse.swt.SWT.RIGHT_TO_LEFT&quot;,67108864}},[4]{&quot;verticalScroll&quot;,&quot;verticalScroll&quot;,false,[3]{&quot;V_SCROLL&quot;,&quot;org.eclipse.swt.SWT.V_SCROLL&quot;,512}},[4]{&quot;horizontalScroll&quot;,&quot;horizontalScroll&quot;,false,[3]{&quot;H_SCROLL&quot;,&quot;org.eclipse.swt.SWT.H_SCROLL&quot;,256}},[4]{&quot;border&quot;,&quot;border&quot;,false,[3]{&quot;BORDER&quot;,&quot;org.eclipse.swt.SWT.BORDER&quot;,2048}},[4]{&quot;modality&quot;,&quot;modality&quot;,false,[12]{&quot;APPLICATION_MODAL&quot;,&quot;org.eclipse.swt.SWT.APPLICATION_MODAL&quot;,65536,&quot;MODELESS&quot;,&quot;org.eclipse.swt.SWT.MODELESS&quot;,0,&quot;PRIMARY_MODAL&quot;,&quot;org.eclipse.swt.SWT.PRIMARY_MODAL&quot;,32768,&quot;SYSTEM_MODAL&quot;,&quot;org.eclipse.swt.SWT.SYSTEM_MODAL&quot;,131072}},[4]{&quot;max&quot;,&quot;max&quot;,true,[3]{&quot;MAX&quot;,&quot;org.eclipse.swt.SWT.MAX&quot;,1024}},[4]{&quot;resize&quot;,&quot;resize&quot;,true,[3]{&quot;RESIZE&quot;,&quot;org.eclipse.swt.SWT.RESIZE&quot;,16}}}"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="imeInputMode" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's input method editor mode." expert="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.getImeInputMode(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.setImeInputMode(int"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="region" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Region" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The region that defines the shape of the shell, or null if the shell has the default shape." expert="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.getRegion(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.setRegion(org.eclipse.swt.graphics.Region"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="shells" eType="org.eclipse.jem.java:ArrayType java:/org.eclipse.swt.widgets#Shell[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="An array containing all shells which are descendents of the receiver." implicitlySetBits="6629298651489370228" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.getShells("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="shell">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Shell" shortDescription="All shell events" preferred="true" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" inDefaultEventSet="true" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.addShellListener(org.eclipse.swt.events.ShellListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#ShellListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Shell.removeShellListener(org.eclipse.swt.events.ShellListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#ShellAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="shellActivated" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ShellListener.shellActivated(org.eclipse.swt.events.ShellEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a shell becomes the active window." preferred="true" implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ShellEvent" implicitlySetBits="-7205759403792793599" name="shellEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="shellClosed" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ShellListener.shellClosed(org.eclipse.swt.events.ShellEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a shell is closed." preferred="true" implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ShellEvent" implicitlySetBits="-7205759403792793599" name="shellEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="shellDeactivated" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ShellListener.shellDeactivated(org.eclipse.swt.events.ShellEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a shell stops being the active window." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ShellEvent" implicitlySetBits="-7205759403792793599" name="shellEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="shellDeiconified" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ShellListener.shellDeiconified(org.eclipse.swt.events.ShellEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a shell is un-minimized." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ShellEvent" implicitlySetBits="-7205759403792793599" name="shellEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="shellIconified" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ShellListener.shellIconified(org.eclipse.swt.events.ShellEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a shell is minimized." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ShellEvent" implicitlySetBits="-7205759403792793599" name="shellEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+</change:ChangeDescription>

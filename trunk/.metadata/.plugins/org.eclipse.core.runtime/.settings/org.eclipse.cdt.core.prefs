@@ -1,0 +1,16 @@
+#Wed Dec 30 11:31:11 PST 2009
+indexer/indexerId=org.eclipse.cdt.core.fastIndexer
+indexer/indexUnusedHeadersWithDefaultLang=false
+indexer/skipImplicitReferences=false
+environment/workspace=<?xml version\="1.0" encoding\="UTF-8"?>\n<environment append\="true" appendContributed\="true">\n<variable delimiter\=";" name\="WXWIN" operation\="append" value\="/Developer/usr/wxMac-2.8.10"/>\n</environment>\n
+indexer/updatePolicy=0
+indexer/filesToParseUpFront=cstdarg, cstdio, sys/resource.h, ctime, stdarg.h, stddef.h, sys/types.h
+org.eclipse.cdt.core.taskPriorities=normal,normal,normal
+indexer/skipTypeReferences=false
+macros/workspace=<?xml version\="1.0" encoding\="UTF-8"?>\n<macros/>\n
+indexer/skipReferences=false
+indexer/skipMacroReferences=false
+indexer/indexAllFiles=true
+eclipse.preferences.version=1
+indexer/useHeuristicIncludeResolution=true
+org.eclipse.cdt.core.taskTags=TODO,FIXME,XXX

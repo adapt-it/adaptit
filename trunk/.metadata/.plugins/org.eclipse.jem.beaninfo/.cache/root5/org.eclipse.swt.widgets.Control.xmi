@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Control">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.4 #//@objectsToAttach.5 #//@objectsToAttach.6 #//@objectsToAttach.7 #//@objectsToAttach.8 #//@objectsToAttach.9 #//@objectsToAttach.10 #//@objectsToAttach.11 #//@objectsToAttach.12 #//@objectsToAttach.13 #//@objectsToAttach.14 #//@objectsToAttach.15 #//@objectsToAttach.16 #//@objectsToAttach.17 #//@objectsToAttach.18"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="events">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.19 #//@objectsToAttach.20 #//@objectsToAttach.21 #//@objectsToAttach.22 #//@objectsToAttach.23 #//@objectsToAttach.24 #//@objectsToAttach.25 #//@objectsToAttach.26 #//@objectsToAttach.27"/>
+    </value>
+  </objectChanges>
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="ecore:EReference java:/org.eclipse.swt.widgets#Control/bounds">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="name" dataValue="bounds"/>
+    <value xsi:type="change:FeatureChange" featureName="transient" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="volatile" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="changeable" dataValue="true"/>
+    <value xsi:type="change:FeatureChange" featureName="eType" referenceValue="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Rectangle"/>
+    <value xsi:type="change:FeatureChange" featureName="lowerBound" dataValue="0"/>
+    <value xsi:type="change:FeatureChange" featureName="upperBound" dataValue="1"/>
+  </objectChanges>
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="ecore:EReference java:/org.eclipse.swt.widgets#Control/location">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.2"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="name" dataValue="location"/>
+    <value xsi:type="change:FeatureChange" featureName="transient" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="volatile" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="changeable" dataValue="true"/>
+    <value xsi:type="change:FeatureChange" featureName="eType" referenceValue="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Point"/>
+    <value xsi:type="change:FeatureChange" featureName="lowerBound" dataValue="0"/>
+    <value xsi:type="change:FeatureChange" featureName="upperBound" dataValue="1"/>
+  </objectChanges>
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="ecore:EReference java:/org.eclipse.swt.widgets#Control/size">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.3"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="name" dataValue="size"/>
+    <value xsi:type="change:FeatureChange" featureName="transient" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="volatile" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="changeable" dataValue="true"/>
+    <value xsi:type="change:FeatureChange" featureName="eType" referenceValue="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Point"/>
+    <value xsi:type="change:FeatureChange" featureName="lowerBound" dataValue="0"/>
+    <value xsi:type="change:FeatureChange" featureName="upperBound" dataValue="1"/>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitlySetBits="2161727821137838094" implicitDecoratorFlag="IMPLICIT_DECORATOR" mergeSuperMethods="false">
+    <attributes xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:FeatureAttributeMapEntry" key="org.eclipse.ve.sweet.stylebits" value="implicit,[2][]{[4]{&quot;border&quot;,&quot;border&quot;,false,[3]{&quot;BORDER&quot;,&quot;org.eclipse.swt.SWT.BORDER&quot;,2048}},[4]{&quot;controlOrientation&quot;,&quot;controlOrientation&quot;,true,[6]{&quot;LEFT_TO_RIGHT&quot;,&quot;org.eclipse.swt.SWT.LEFT_TO_RIGHT&quot;,33554432,&quot;RIGHT_TO_LEFT&quot;,&quot;org.eclipse.swt.SWT.RIGHT_TO_LEFT&quot;,67108864}}}"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="A rectangle describing the receiver's size and location relative to its parent (or its display if its parent is null)." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getBounds(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setBounds(org.eclipse.swt.graphics.Rectangle"/>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="A point describing the receiver's location relative to its parent (or its display if its parent is null)." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getLocation(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setLocation(org.eclipse.swt.graphics.Point"/>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="A point describing the receiver's size." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getSize(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setSize(org.eclipse.swt.graphics.Point"/>
+  <objectsToAttach xsi:type="ecore:EReference" name="accessible" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.accessibility#Accessible" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The accessible object for the receiver." implicitlySetBits="6629298651489370228" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getAccessible("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="background" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Color" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's background color." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getBackground(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setBackground(org.eclipse.swt.graphics.Color"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="borderWidth" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's border width." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getBorderWidth("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="enabled" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver is enabled, and false otherwise." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.isEnabled(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setEnabled(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="focusControl" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver has the user-interface focus, and false otherwise." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.isFocusControl("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="font" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Font" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The font that the receiver will use to paint textual information." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getFont(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setFont(org.eclipse.swt.graphics.Font"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="foreground" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.graphics#Color" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The foreground color that the receiver will use to draw." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getForeground(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setForeground(org.eclipse.swt.graphics.Color"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="layoutData" eType="org.eclipse.jem.java:JavaClass java:/java.lang#Object" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Layout data which is associated with the receiver." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getLayoutData(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setLayoutData(java.lang.Object"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="menu" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Menu" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's pop up menu if it has one, or null if it does not." hidden="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getMenu(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setMenu(org.eclipse.swt.widgets.Menu"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="monitor" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Monitor" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's monitor." expert="true" implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getMonitor("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="parent" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Composite" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's parent, which must be a Composite or null when the receiver is a shell that was created with null or a display for a parent." implicitlySetBits="6629298651489370236" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getParent(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setParent(org.eclipse.swt.widgets.Composite"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="reparentable" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the underlying operating system supports this reparenting, otherwise false" expert="true" implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.isReparentable("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="shell" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Shell" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's shell." implicitlySetBits="6629298651489370228" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getShell("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="toolTipText" eType="org.eclipse.jem.java:JavaClass java:/java.lang#String" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The receiver's tool tip text, or null if it has not been set." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.getToolTipText(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setToolTipText(java.lang.String"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="visible" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver is visible, and false otherwise." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.isVisible(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.setVisible(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="key">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Key" shortDescription="All key events" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addKeyListener(org.eclipse.swt.events.KeyListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#KeyListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeKeyListener(org.eclipse.swt.events.KeyListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#KeyAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="keyPressed" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#KeyListener.keyPressed(org.eclipse.swt.events.KeyEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a key is pressed on the system keyboard." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="KeyEvent" implicitlySetBits="-7205759403792793599" name="keyEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="keyReleased" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#KeyListener.keyReleased(org.eclipse.swt.events.KeyEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a key is released on the system keyboard." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="KeyEvent" implicitlySetBits="-7205759403792793599" name="keyEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="mouse">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Mouse" shortDescription="All mouse events" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addMouseListener(org.eclipse.swt.events.MouseListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#MouseListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeMouseListener(org.eclipse.swt.events.MouseListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#MouseAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseDoubleClick" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseListener.mouseDoubleClick(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a mouse button is pressed twice within the  (operating system specified) double click period." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="MouseEvent" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseDown" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseListener.mouseDown(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a mouse button is pressed." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="MouseEvent" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseUp" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseListener.mouseUp(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a mouse button is released." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="MouseEvent" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="mouseMove">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Mouse Move" shortDescription="All mouseMove events" implicitlySetBits="-2594073385365405571" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addMouseMoveListener(org.eclipse.swt.events.MouseMoveListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#MouseMoveListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeMouseMoveListener(org.eclipse.swt.events.MouseMoveListener">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseMove" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseMoveListener.mouseMove(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the mouse moves." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="mouseMove" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="control">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Control" shortDescription="All control events" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addControlListener(org.eclipse.swt.events.ControlListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#ControlListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeControlListener(org.eclipse.swt.events.ControlListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#ControlAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="controlMoved" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ControlListener.controlMoved(org.eclipse.swt.events.ControlEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the location (x, y) of a control changes relative to its parent (or relative to the display, for Shells)." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ControlEvent" implicitlySetBits="-7205759403792793599" name="controlEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="controlResized" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#ControlListener.controlResized(org.eclipse.swt.events.ControlEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the size (width, height) of a control changes." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="ControlEvent" implicitlySetBits="-7205759403792793599" name="controlEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="traverse">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Traverse" shortDescription="All traverse events" implicitlySetBits="-2594073385365405571" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addTraverseListener(org.eclipse.swt.events.TraverseListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#TraverseListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeTraverseListener(org.eclipse.swt.events.TraverseListener">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="keyTraversed" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#TraverseListener.keyTraversed(org.eclipse.swt.events.TraverseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a traverse event occurs in a control." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="TraverseEvent" implicitlySetBits="-7205759403792793599" name="traverseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="focus">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Focus" shortDescription="All focus events" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" inDefaultEventSet="true" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addFocusListener(org.eclipse.swt.events.FocusListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#FocusListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeFocusListener(org.eclipse.swt.events.FocusListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#FocusAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="focusGained" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#FocusListener.focusGained(org.eclipse.swt.events.FocusEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a control gets focus." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="FocusEvent" implicitlySetBits="-7205759403792793599" name="focusEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="focusLost" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#FocusListener.focusLost(org.eclipse.swt.events.FocusEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a control loses focus." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="FocusEvent" implicitlySetBits="-7205759403792793599" name="focusEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="paint">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Paint" shortDescription="All paint events" implicitlySetBits="-2594073385365405571" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addPaintListener(org.eclipse.swt.events.PaintListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#PaintListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removePaintListener(org.eclipse.swt.events.PaintListener">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="paintControl" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#PaintListener.paintControl(org.eclipse.swt.events.PaintEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when a paint event occurs for the control." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="PaintEvent" implicitlySetBits="-7205759403792793599" name="paintEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="mouseTrack">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Mouse Track" shortDescription="All mouseTrack events" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addMouseTrackListener(org.eclipse.swt.events.MouseTrackListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#MouseTrackListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeMouseTrackListener(org.eclipse.swt.events.MouseTrackListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#MouseTrackAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseEnter" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseTrackListener.mouseEnter(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the mouse pointer passes into the area of the screen covered by a control." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="MouseEvent" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseExit" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseTrackListener.mouseExit(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the mouse pointer passes out of the area of the screen covered by a control." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="mouseExit" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="mouseHover" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#MouseTrackListener.mouseHover(org.eclipse.swt.events.MouseEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when the mouse pointer hovers (that is, stops moving for an (operating system specified) period of time) over a control." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="MouseEvent" implicitlySetBits="-7205759403792793599" name="mouseEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="help">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Help" shortDescription="All help events" implicitlySetBits="-2594073385365405571" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.addHelpListener(org.eclipse.swt.events.HelpListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#HelpListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Control.removeHelpListener(org.eclipse.swt.events.HelpListener">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="helpRequested" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#HelpListener.helpRequested(org.eclipse.swt.events.HelpEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when help is requested for a control, typically when the user presses F1." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="HelpEvent" implicitlySetBits="-7205759403792793599" name="helpEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+</change:ChangeDescription>

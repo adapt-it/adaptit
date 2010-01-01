@@ -1,0 +1,6 @@
+#Wed Dec 30 11:53:10 PST 2009
+eclipse.preferences.version=1
+preferredTargets=org.eclipse.cdt.debug.ui.toggleCBreakpointTarget\:org.eclipse.cdt.debug.ui.toggleCBreakpointTarget|default\:default|
+org.eclipse.debug.ui.PREF_LAUNCH_PERSPECTIVES=<?xml version\="1.0" encoding\="UTF-8"?>\n<launchPerspectives/>\n
+org.eclipse.debug.ui.user_view_bindings=<?xml version\="1.0" encoding\="UTF-8"?>\n<viewBindings>\n<view id\="org.eclipse.ui.console.ConsoleView">\n<perspective id\="org.tigris.subversion.subclipse.ui.svnPerspective" userAction\="opened"/>\n</view>\n</viewBindings>\n
+StringVariablePreferencePage=146,121,121,96,

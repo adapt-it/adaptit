@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.layout#GridLayout">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.2 #//@objectsToAttach.3 #//@objectsToAttach.4 #//@objectsToAttach.5 #//@objectsToAttach.6"/>
+    </value>
+  </objectChanges>
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="ecore:EReference java:/org.eclipse.swt.layout#GridLayout/numColumns">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="name" dataValue="numColumns"/>
+    <value xsi:type="change:FeatureChange" featureName="transient" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="volatile" dataValue="false"/>
+    <value xsi:type="change:FeatureChange" featureName="changeable" dataValue="true"/>
+    <value xsi:type="change:FeatureChange" featureName="eType" referenceValue="org.eclipse.jem.java:JavaDataType java:/#int"/>
+    <value xsi:type="change:FeatureChange" featureName="lowerBound" dataValue="0"/>
+    <value xsi:type="change:FeatureChange" featureName="upperBound" dataValue="1"/>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitlySetBits="2017612633061982222" implicitDecoratorFlag="IMPLICIT_DECORATOR" mergeSuperMethods="false" mergeSuperEvents="false"/>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Specifies the number of cell columns in the layout." implicitlySetBits="6629298651489370288" implicitDecoratorFlag="IMPLICIT_DECORATOR" field="org.eclipse.jem.java:Field java:/org.eclipse.swt.layout#GridLayout.numColumns"/>
+  <objectsToAttach xsi:type="ecore:EReference" name="horizontalSpacing" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Specifies the number of pixels between the right edge of one cell and the left edge of its neighbouring cell to the right." implicitlySetBits="6629298651489370288" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" field="org.eclipse.jem.java:Field java:/org.eclipse.swt.layout#GridLayout.horizontalSpacing"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="makeColumnsEqualWidth" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Specifies whether all columns in the layout will be forced to have the same width." implicitlySetBits="6629298651489370288" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" field="org.eclipse.jem.java:Field java:/org.eclipse.swt.layout#GridLayout.makeColumnsEqualWidth"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="marginHeight" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Specifies the number of pixels of vertical margin that will be placed along the top and bottom edges of the layout." implicitlySetBits="6629298651489370288" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" field="org.eclipse.jem.java:Field java:/org.eclipse.swt.layout#GridLayout.marginHeight"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="marginWidth" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Specifies the number of pixels of horizontal margin that will be placed along the left and right edges of the layout." implicitlySetBits="6629298651489370288" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" field="org.eclipse.jem.java:Field java:/org.eclipse.swt.layout#GridLayout.marginWidth"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="verticalSpacing" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Specifies the number of pixels between the bottom edge of one cell and the top edge of its neighbouring cell underneath." implicitlySetBits="6629298651489370288" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" field="org.eclipse.jem.java:Field java:/org.eclipse.swt.layout#GridLayout.verticalSpacing"/>
+  </objectsToAttach>
+</change:ChangeDescription>

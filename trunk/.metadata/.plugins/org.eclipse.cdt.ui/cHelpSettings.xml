@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cHelpSettings>
+<project name="delme">
+<provider id="org.eclipse.cdt.ui.provider1"/>
+</project>
+<project name="adaptit">
+<provider id="org.eclipse.cdt.ui.provider1"/>
+</project>
+</cHelpSettings>
