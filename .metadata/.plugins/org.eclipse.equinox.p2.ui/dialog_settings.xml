@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.equinox.internal.provisional.p2.ui.dialogs.InstallWizard.WizardSettings">
+		<item key="DIALOG_X_ORIGIN" value="280"/>
+		<item key="DIALOG_HEIGHT" value="769"/>
+		<item key="DIALOG_FONT_NAME" value="1|Lucida Grande|11.0|0|COCOA|1|LucidaGrande"/>
+		<item key="DIALOG_Y_ORIGIN" value="55"/>
+		<item key="DIALOG_WIDTH" value="720"/>
+	</section>
+	<section name="AvailableIUsPage">
+		<item key="AvailableViewType" value="1"/>
+		<item key="AvailableListSashWeight" value="800"/>
+		<item key="AvailableNameColumnWidth" value="240"/>
+		<item key="AvailableVersionColumnWidth" value="240"/>
+		<item key="ShowLatestVersionsOnly" value="true"/>
+		<item key="ResolveInstallWithAllSites" value="true"/>
+		<item key="AvailableDetailsSashWeight" value="200"/>
+		<item key="HideInstalledContent" value="false"/>
+	</section>
+	<section name="org.eclipse.equinox.internal.provisional.p2.ui.dialogs.UpdateWizard.WizardSettings">
+		<item key="DIALOG_X_ORIGIN" value="368"/>
+		<item key="DIALOG_FONT_NAME" value="1|Lucida Grande|11.0|0|COCOA|1|LucidaGrande"/>
+		<item key="DIALOG_HEIGHT" value="447"/>
+		<item key="DIALOG_Y_ORIGIN" value="132"/>
+		<item key="DIALOG_WIDTH" value="525"/>
+	</section>
+</section>

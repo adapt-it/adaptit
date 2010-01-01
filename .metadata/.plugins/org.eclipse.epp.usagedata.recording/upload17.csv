@@ -1,0 +1,26 @@
+what,kind,bundleId,bundleVersion,description,time
+java.runtime.name,sysinfo,,,"Java(TM) 2 Runtime Environment, Standard Edition",1253063294787
+java.runtime.version,sysinfo,,,"1.5.0_20-b02-315",1253063294787
+java.specification.name,sysinfo,,,"Java Platform API Specification",1253063294788
+java.specification.vendor,sysinfo,,,"Sun Microsystems Inc.",1253063294788
+java.specification.version,sysinfo,,,"1.5",1253063294788
+java.vendor,sysinfo,,,"Apple Inc.",1253063294788
+java.version,sysinfo,,,"1.5.0_20",1253063294788
+java.vm.info,sysinfo,,,"mixed mode",1253063294788
+java.vm.name,sysinfo,,,"Java HotSpot(TM) Client VM",1253063294788
+java.vm.specification.name,sysinfo,,,"Java Virtual Machine Specification",1253063294788
+java.vm.specification.vendor,sysinfo,,,"Sun Microsystems Inc.",1253063294788
+java.vm.specification.version,sysinfo,,,"1.0",1253063294788
+java.vm.vendor,sysinfo,,,"Apple Inc.",1253063294788
+java.vm.version,sysinfo,,,"1.5.0_20-141",1253063294788
+started,bundle,org.eclipse.mylyn.bugzilla.ui,3.2.0.v20090617-0100-e3x,"org.eclipse.mylyn.bugzilla.ui",1253063294809
+started,bundle,org.eclipse.team.ui,3.5.0.I20090430-0408,"org.eclipse.team.ui",1253063294896
+started,bundle,org.eclipse.ui.console,3.4.0.v20090513,"org.eclipse.ui.console",1253063294975
+started,bundle,org.eclipse.ui.forms,3.4.0.v20090526,"org.eclipse.ui.forms",1253063295018
+started,bundle,org.tigris.subversion.subclipse.ui,1.6.2,"org.tigris.subversion.subclipse.ui",1253063295067
+started,bundle,org.eclipse.mylyn.tasks.ui,3.2.0.v20090617-0100-e3x,"org.eclipse.mylyn.tasks.ui",1253063295125
+started,bundle,org.eclipse.mylyn.team.ui,3.2.0.v20090617-0100-e3x,"org.eclipse.mylyn.team.ui",1253063295149
+started,bundle,org.tigris.subversion.subclipse.mylyn,3.0.0,"org.tigris.subversion.subclipse.mylyn",1253063295168
+started,bundle,org.eclipse.mylyn.monitor.ui,3.2.0.v20090617-0100-e3x,"org.eclipse.mylyn.monitor.ui",1253063295225
+started,bundle,org.eclipse.jsch.core,1.1.100.I20090430-0408,"org.eclipse.jsch.core",1253063295492
+started,bundle,org.eclipse.team.cvs.core,3.3.200.I20090430-0408,"org.eclipse.team.cvs.core",1253063295493

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Table">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1 #//@objectsToAttach.2 #//@objectsToAttach.3 #//@objectsToAttach.4 #//@objectsToAttach.5 #//@objectsToAttach.6 #//@objectsToAttach.7 #//@objectsToAttach.8 #//@objectsToAttach.9 #//@objectsToAttach.10 #//@objectsToAttach.11 #//@objectsToAttach.12 #//@objectsToAttach.13 #//@objectsToAttach.14 #//@objectsToAttach.15"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="events">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.16"/>
+    </value>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitlySetBits="2161727821137838094" implicitDecoratorFlag="IMPLICIT_DECORATOR" mergeSuperMethods="false">
+    <attributes xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:FeatureAttributeMapEntry" key="org.eclipse.ve.sweet.stylebits" value="implicit,[10][]{[4]{&quot;selectionStyle&quot;,&quot;selectionStyle&quot;,false,[6]{&quot;SINGLE&quot;,&quot;org.eclipse.swt.SWT.SINGLE&quot;,4,&quot;MULTI&quot;,&quot;org.eclipse.swt.SWT.MULTI&quot;,2}},[4]{&quot;noRadioGroup&quot;,&quot;noRadioGroup&quot;,true,[3]{&quot;NO_RADIO_GROUP&quot;,&quot;org.eclipse.swt.SWT.NO_RADIO_GROUP&quot;,4194304}},[4]{&quot;fullSelection&quot;,&quot;fullSelection&quot;,false,[3]{&quot;FULL_SELECTION&quot;,&quot;org.eclipse.swt.SWT.FULL_SELECTION&quot;,65536}},[4]{&quot;controlOrientation&quot;,&quot;controlOrientation&quot;,true,[6]{&quot;LEFT_TO_RIGHT&quot;,&quot;org.eclipse.swt.SWT.LEFT_TO_RIGHT&quot;,33554432,&quot;RIGHT_TO_LEFT&quot;,&quot;org.eclipse.swt.SWT.RIGHT_TO_LEFT&quot;,67108864}},[4]{&quot;verticalScroll&quot;,&quot;verticalScroll&quot;,false,[3]{&quot;V_SCROLL&quot;,&quot;org.eclipse.swt.SWT.V_SCROLL&quot;,512}},[4]{&quot;horizontalScroll&quot;,&quot;horizontalScroll&quot;,false,[3]{&quot;H_SCROLL&quot;,&quot;org.eclipse.swt.SWT.H_SCROLL&quot;,256}},[4]{&quot;style&quot;,&quot;style&quot;,false,[3]{&quot;CHECK&quot;,&quot;org.eclipse.swt.SWT.CHECK&quot;,32}},[4]{&quot;border&quot;,&quot;border&quot;,false,[3]{&quot;BORDER&quot;,&quot;org.eclipse.swt.SWT.BORDER&quot;,2048}},[4]{&quot;hideSelection&quot;,&quot;hideSelection&quot;,false,[3]{&quot;HIDE_SELECTION&quot;,&quot;org.eclipse.swt.SWT.HIDE_SELECTION&quot;,32768}},[4]{&quot;embedded&quot;,&quot;embedded&quot;,true,[3]{&quot;EMBEDDED&quot;,&quot;org.eclipse.swt.SWT.EMBEDDED&quot;,16777216}}}"/>
+    <notInheritedPropertyNames>layout</notInheritedPropertyNames>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="columnCount" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The number of columns contained in the receiver." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getColumnCount("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="columns" eType="org.eclipse.jem.java:ArrayType java:/org.eclipse.swt.widgets#TableColumn[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="An array of TableColumns which are the columns in the receiver." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getColumns("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="gridLineWidth" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The width in pixels of a grid line." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getGridLineWidth("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="headerHeight" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The height of the receiver's header." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getHeaderHeight("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="headerVisible" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver's header is visible, and false otherwise." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getHeaderVisible(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.setHeaderVisible(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="itemCount" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The number of items contained in the receiver." expert="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getItemCount(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.setItemCount(int"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="itemHeight" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The height of the area which would be used to display one of the items in the receiver." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getItemHeight("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="items" eType="org.eclipse.jem.java:ArrayType java:/org.eclipse.swt.widgets#TableItem[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="An array of TableItems which are the items in the receiver." implicitlySetBits="6629298651489370228" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getItems("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="layout" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.widgets#Layout" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="Layout which is associated with the receiver, or null if one has not been set." implicitlySetBits="6629298651489370236" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Composite.getLayout(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Composite.setLayout(org.eclipse.swt.widgets.Layout"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="linesVisible" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="True if the receiver's lines are visible, and false otherwise." implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getLinesVisible(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.setLinesVisible(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="selection" eType="org.eclipse.jem.java:ArrayType java:/org.eclipse.swt.widgets#TableItem[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="An array of TableItems that are currently selected in the receiver." implicitlySetBits="6629298651489370236" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getSelection(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.setSelection(org.eclipse.swt.widgets.TableItem[]"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="selectionCount" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The number of selected items contained in the receiver." implicitlySetBits="6629298651489370228" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" designTime="false" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getSelectionCount("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="selectionIndex" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The zero-relative index of the item which is currently selected in the receiver, or -1 if no item is selected." implicitlySetBits="6629298651489370164" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getSelectionIndex("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="selectionIndices" eType="org.eclipse.jem.java:ArrayType java:/#int[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" displayName="selectiongIndices" shortDescription="The zero-relative indices of the items which are currently selected in the receiver." implicitlySetBits="-2594073385365405644" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getSelectionIndices("/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="topIndex" eType="org.eclipse.jem.java:JavaDataType java:/#int" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" shortDescription="The zero-relative index of the item which is currently at the top of the receiver." expert="true" implicitlySetBits="6629298651489370172" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.getTopIndex(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.setTopIndex(int"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanEvent" name="selection">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:EventSetDecorator" displayName="Selection" shortDescription="All selection events" preferred="true" implicitlySetBits="-2594073385365405569" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" inDefaultEventSet="true" addListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.addSelectionListener(org.eclipse.swt.events.SelectionListener" listenerType="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#SelectionListener" removeListenerMethod="org.eclipse.jem.java:Method java:/org.eclipse.swt.widgets#Table.removeSelectionListener(org.eclipse.swt.events.SelectionListener" eventAdapterClass="org.eclipse.jem.java:JavaClass java:/org.eclipse.swt.events#SelectionAdapter">
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="widgetDefaultSelected" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#SelectionListener.widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when default selection occurs in the control." implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="SelectionEvent" implicitlySetBits="-7205759403792793599" name="selectionEvent"/>
+        </eAnnotations>
+      </serListMthd>
+      <serListMthd xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodProxy" name="widgetSelected" method="org.eclipse.jem.java:Method java:/org.eclipse.swt.events#SelectionListener.widgetSelected(org.eclipse.swt.events.SelectionEvent">
+        <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:MethodDecorator" shortDescription="Sent when selection occurs in the control." preferred="true" implicitlySetBits="6629298651489370113">
+          <serParmDesc xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:ParameterDecorator" displayName="SelectionEvent" implicitlySetBits="-7205759403792793599" name="selectionEvent"/>
+        </eAnnotations>
+      </serListMthd>
+    </eAnnotations>
+  </objectsToAttach>
+</change:ChangeDescription>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<item key="rcpPlugin" value="true"/>
+	<item key="osgiProject" value="false"/>
+	<item key="apiAnalysis" value="false"/>
+	<item key="targetName" value=""/>
+	<item key="uiPlugin" value="false"/>
+	<item key="generateActivator" value="false"/>
+	<section name="pluginsView">
+	</section>
+	<section name="pde_compiler_errorwarnings_block">
+		<item key="3" value="false"/>
+		<item key="2" value="false"/>
+		<item key="0" value="true"/>
+		<item key="1" value="false"/>
+	</section>
+</section>

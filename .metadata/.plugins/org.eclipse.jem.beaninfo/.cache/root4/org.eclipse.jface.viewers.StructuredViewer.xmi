@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<change:ChangeDescription xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:change="http://www.eclipse.org/emf/2003/Change" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:org.eclipse.jem.internal.beaninfo.beaninfo="http:///org/eclipse/jem/internal/beaninfo/beaninfo.ecore" xmlns:org.eclipse.jem.java="java.xmi">
+  <objectChanges xsi:type="change:EObjectToChangesMapEntry" key="org.eclipse.jem.java:JavaClass java:/org.eclipse.jface.viewers#StructuredViewer">
+    <value xsi:type="change:FeatureChange" featureName="eAnnotations">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.0"/>
+    </value>
+    <value xsi:type="change:FeatureChange" featureName="eStructuralFeatures">
+      <listChanges xsi:type="change:ListChange" referenceValues="#//@objectsToAttach.1 #//@objectsToAttach.2 #//@objectsToAttach.3 #//@objectsToAttach.4 #//@objectsToAttach.5"/>
+    </value>
+  </objectChanges>
+  <objectsToAttach xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:BeanDecorator" implicitDecoratorFlag="IMPLICIT_DECORATOR"/>
+  <objectsToAttach xsi:type="ecore:EReference" name="useHashlookup" eType="org.eclipse.jem.java:JavaDataType java:/#boolean" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" implicitlySetBits="56" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.setUseHashlookup(boolean"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="comparator" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.jface.viewers#ViewerComparator" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" implicitlySetBits="60" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.getComparator(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.setComparator(org.eclipse.jface.viewers.ViewerComparator"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="sorter" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.jface.viewers#ViewerSorter" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" implicitlySetBits="60" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.getSorter(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.setSorter(org.eclipse.jface.viewers.ViewerSorter"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="comparer" eType="org.eclipse.jem.java:JavaClass java:/org.eclipse.jface.viewers#IElementComparer" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" implicitlySetBits="60" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.getComparer(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.setComparer(org.eclipse.jface.viewers.IElementComparer"/>
+  </objectsToAttach>
+  <objectsToAttach xsi:type="ecore:EReference" name="filters" eType="org.eclipse.jem.java:ArrayType java:/org.eclipse.jface.viewers#ViewerFilter[]" unsettable="true">
+    <eAnnotations xsi:type="org.eclipse.jem.internal.beaninfo.beaninfo:PropertyDecorator" implicitlySetBits="60" implicitDecoratorFlag="IMPLICIT_DECORATOR_AND_FEATURE" readMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.getFilters(" writeMethod="org.eclipse.jem.java:Method java:/org.eclipse.jface.viewers#StructuredViewer.setFilters(org.eclipse.jface.viewers.ViewerFilter[]"/>
+  </objectsToAttach>
+</change:ChangeDescription>
