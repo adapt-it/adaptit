@@ -44,7 +44,6 @@
  * @author  Wu Yongwei
  */
 
-
 // GDLC Temporary work around for PPC STL library bug
 #if defined(__WXMAC__) && defined(__POWERPC__ )
 // tellenc() not used in PPC builds pending bug fix in PPC STL
