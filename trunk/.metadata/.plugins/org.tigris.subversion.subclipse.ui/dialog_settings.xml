@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<section name="Workbench">
-	<section name="NewLocationWizard">
-		<list key="ConfigurationWizardMainPage.STORE_URL_ID">
-			<item value="https://adaptit.googlecode.com/svn/trunk/"/>
-			<item value="http://adaptit.googlecode.com/svn/trunk"/>
-		</list>
-	</section>
-</section>
