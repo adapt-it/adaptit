@@ -954,7 +954,7 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 ///  in the signature to return information to the caller about what choices have been
 ///  made if that child dialog was put up because of a filename clash. Since our design
 ///  allows for multiple filenames in the source folder to be copied (or moved) with a
-///  single click of the Copy.. or Move.. buttons, this function will be called multiple
+///  single click of the Copy.. or Move.. buttons, this function may be called multiple
 ///  times by the caller - taking each filename from a string array populated earlier. In
 ///  the event of a filename clash, if the user hits the Cancel button, it will cancel the
 ///  Copy or Move command at that time, but any files already copied or moved will remain so.
@@ -1014,17 +1014,17 @@ void AdminMoveOrCopy::EnableCopyFileOrFilesButton(bool bEnableFlag)
 /// \return		nothing
 /// \param      event   -> the wxCommandEvent fired by the user's button press
 /// \remarks
-/// Handler for the "Copy File Or Files" button. I copies the one or more selected files
+/// Handler for the "Copy File Or Files" button. It copies the one or more selected files
 /// in the source folder's wxListCtrl to the destination folder specified by the path
 /// m_strDestFolderPath. File name conflicts are handled internally, similarly to how Windows
 /// Explorer handles them (i.e. with a child dialog opening to display file attribute
 /// details such as name, size and last modification date & time for each of the files in
-/// conflict) and the user has 3 options - continue, overwritting the file at the
+/// conflict) and the user has 3 options - continue, overwriting the file at the
 /// destination folder with the one from the source folder; or to not copy; or to have the
 /// name of the source folder's file changed so as to remove the conflict and then the
 /// copy goes ahead - resulting in two files with same or similar data being in the
 /// destination folder. Cancelling, and opting to have all subsequent filename conflicts
-/// handled the same way as the current one are also supported.
+/// handled the same way as the current one are also supported from the child dialog.
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event)) 
 {	
