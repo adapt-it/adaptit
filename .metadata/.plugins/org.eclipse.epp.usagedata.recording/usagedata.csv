@@ -1,6 +1,0 @@
-what,kind,bundleId,bundleVersion,description,time
-started,bundle,org.eclipse.team.cvs.ui,3.3.200.I20090521-1750,"org.eclipse.team.cvs.ui",1253063295620
-started,bundle,org.eclipse.update.scheduler,3.2.200.v20081127,"org.eclipse.update.scheduler",1253063295657
-started,bundle,org.eclipse.update.core,3.2.300.v20090525,"org.eclipse.update.core",1253063295714
-started,bundle,org.eclipse.epp.usagedata.ui,1.1.0.R200906100410,"org.eclipse.epp.usagedata.ui",1253063295824
-deactivated,workbench,org.eclipse.ui.workbench,3.5.0.I20090603-2000,"",1253063296177
