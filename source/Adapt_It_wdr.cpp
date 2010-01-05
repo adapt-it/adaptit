@@ -6853,7 +6853,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(200,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
+    item6->Add( item8, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
@@ -6870,7 +6870,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(200,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
-    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+    item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
