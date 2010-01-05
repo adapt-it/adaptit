@@ -6852,12 +6852,12 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBitmap *item7 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 11 ), wxDefaultPosition, wxDefaultSize );
     item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(-1,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(200,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item4->Add( item6, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item3->Add( item4, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item3->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxVERTICAL );
 
@@ -6869,12 +6869,12 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBitmap *item12 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 11 ), wxDefaultPosition, wxDefaultSize );
     item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(-1,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(200,64), wxTE_MULTILINE|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item11, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item3->Add( item9, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    item3->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
@@ -6925,7 +6925,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item24->Add( 15, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    wxButton *item26 = new wxButton( parent, wxID_OK, _("Proceed"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item26 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item26->SetDefault();
     item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 

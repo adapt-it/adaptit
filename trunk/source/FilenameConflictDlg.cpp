@@ -66,7 +66,8 @@ BEGIN_EVENT_TABLE(FilenameConflictDlg, AIModalDialog)
 
 END_EVENT_TABLE()
 
-FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent) // dialog constructor
+FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
+		wxString* pConflictingFilename) // dialog constructor
 	: AIModalDialog(parent, -1, _("Resolve Filename Conflict"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -85,6 +86,12 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent) // dialog constructor
 	m_pDestFolderPath = &(*m_pAdminMoveOrCopy).m_strDestFolderPath;
 	// point to the string array of selected source folder filenames
 	m_pSrcFileArray = &(*m_pAdminMoveOrCopy).srcSelectedFilesArray;
+
+	srcDetailsStr.Empty();
+	destDetailsStr.Empty();
+
+	srcFilename = *pConflictingFilename;
+	destFilename = *pConflictingFilename;
 }
 
 FilenameConflictDlg::~FilenameConflictDlg() // destructor
@@ -114,8 +121,93 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	m_pDestFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_FILE_DETAILS);
 
 	// make the file data be displayed in the wxTextBox instances
+	wxString newlineStr = _T("\n");
+	wxString bytesStr = _(" bytes");
+	srcDetailsStr = srcFilename;
+	destDetailsStr = destFilename;
+	
+	wxFileName srcFN(*m_pSrcFolderPath,srcFilename);
+	wxFileName destFN(*m_pDestFolderPath,destFilename);
+
+	wxULongLong srcSize = srcFN.GetSize();
+	wxULongLong destSize = destFN.GetSize();
+	wxString srcSizeStr;
+	wxString destSizeStr;
+	srcSizeStr = srcSizeStr.Format(_T("%d"), srcSize);
+	destSizeStr = destSizeStr.Format(_T("%d"), destSize);
+
+	srcDetailsStr += newlineStr + srcSizeStr + bytesStr;
+	destDetailsStr += newlineStr + destSizeStr + bytesStr;
+	wxString srcSizeStr2;
+	wxString srcSizeStr3;
+	wxString destSizeStr2;
+	wxString destSizeStr3;
+	if (srcSize < 1024*1024)
+	{
+		// also give size in kilobytes (there are probably good ways to do this calc but
+		// I'm just going to hack it for now) - I can't find a way to convert wxULongLong
+		// into a float, so I'll simulate it instead
+		wxULongLong integerPartSrc = srcSize / 1024;
+		wxULongLong remainderPartSrc = srcSize % 1024;
+		remainderPartSrc = (remainderPartSrc * 100) / 1024;
+		//srcSizeStr2 = srcSizeStr2.Format(_T("( %d.%d"),integerPartSrc,remainderPartSrc);
+		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc);
+		srcSizeStr2 += _T(".");
+		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc);
+		srcSizeStr2 += srcSizeStr3;
+		srcSizeStr2 += _T(" KB )");
+	}
+	else
+	{
+		// its in megabyte range so also give size in megabytes
+		wxULongLong aMeg = 1024*1024;
+		wxULongLong integerPartSrc = srcSize / aMeg;
+		wxULongLong remainderPartSrc = srcSize % aMeg;
+		remainderPartSrc = (remainderPartSrc * 100) / aMeg;
+		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc);
+		srcSizeStr2 += _T(".");
+		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc);
+		srcSizeStr2 += srcSizeStr3;
+		srcSizeStr2 += _T(" MB )");
+	}
+	srcDetailsStr += _T(" ") + srcSizeStr2;
+	if (destSize < 1024*1024)
+	{
+		wxULongLong integerPartDest = destSize / 1024;
+		wxULongLong remainderPartDest = destSize % 1024;
+		remainderPartDest = (remainderPartDest * 100) / 1024;
+		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest);
+		destSizeStr2 += _T(".");
+		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest);
+		destSizeStr2 += destSizeStr3;
+		destSizeStr2 += _T(" KB )");
+	}
+	else
+	{
+		// its in megabyte range so also give size in megabytes
+		wxULongLong aMeg = 1024*1024;
+		wxULongLong integerPartDest = destSize / aMeg;
+		wxULongLong remainderPartDest = destSize % aMeg;
+		remainderPartDest = (remainderPartDest * 100) / aMeg;
+		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest);
+		destSizeStr2 += _T(".");
+		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest);
+		destSizeStr2 += destSizeStr3;
+		destSizeStr2 += _T(" MB )");
+	}
+	destDetailsStr += _T(" ") + destSizeStr2;
+
+	// ** TODO **  the rest of the details
+
+
+	// now insert it into the boxes
+	m_pSrcFileDataBox->ChangeValue(srcDetailsStr);
+	m_pDestFileDataBox->ChangeValue(destDetailsStr);
+
+	// make both boxes read only, now that their data is inserted
+	m_pSrcFileDataBox->SetEditable(FALSE);
+	m_pDestFileDataBox->SetEditable(FALSE);
 	 
-	// ** TODO **
 }
 
 void FilenameConflictDlg::OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event))
@@ -134,12 +226,14 @@ void FilenameConflictDlg::OnCheckboxHandleSameWay(wxCommandEvent& WXUNUSED(event
 {
 }
 
-void FilenameConflictDlg::OnBnClickedProceed(wxCommandEvent& WXUNUSED(event))
+void FilenameConflictDlg::OnBnClickedProceed(wxCommandEvent& event)
 {
+	event.Skip();
 }
 
-void FilenameConflictDlg::OnBnClickedCancel(wxCommandEvent& WXUNUSED(event))
+void FilenameConflictDlg::OnBnClickedCancel(wxCommandEvent& event)
 {
+	event.Skip();
 }
 
 

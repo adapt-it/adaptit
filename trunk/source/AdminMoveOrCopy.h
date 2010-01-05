@@ -113,6 +113,7 @@ private:
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
 	void SetupSelectedFilesArray(enum whichSide side);
+	void DeselectSelectedFiles(enum whichSide side);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

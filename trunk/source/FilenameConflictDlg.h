@@ -41,7 +41,8 @@ enum whichSide {
 class FilenameConflictDlg : public AIModalDialog
 {
 public:
-	FilenameConflictDlg(wxWindow* parent); // constructor, parent will be AdminMoveOrCopy instance
+	FilenameConflictDlg(wxWindow* parent,
+		wxString* pConflictingFilename); // constructor, parent will be AdminMoveOrCopy instance
 	virtual ~FilenameConflictDlg(void); // destructor
 
 	// wx version pointers for dialog controls; the names for buttons will leave the
@@ -71,8 +72,8 @@ protected:
 	void OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedNoCopy(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedChangeNameAndCopy(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedProceed(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedCancel(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedProceed(wxCommandEvent& event);
+	void OnBnClickedCancel(wxCommandEvent& event);
 	void OnCheckboxHandleSameWay(wxCommandEvent& WXUNUSED(event));
 private:
 	wxString srcFilename;
@@ -88,6 +89,8 @@ private:
 	wxDateTime srcFileModifiedTime;
 	wxDateTime destFileModifiedTime;
 	wxTimeSpan timeDifference;
+	wxString srcDetailsStr;
+	wxString destDetailsStr;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	DECLARE_EVENT_TABLE()
