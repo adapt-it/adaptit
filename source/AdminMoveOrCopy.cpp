@@ -48,6 +48,7 @@
 						  // distinguish folder names from filenames; the function returns
 						  // the relevant wxBitmap*
 #include "AdminMoveOrCopy.h"
+#include "FilenameConflictDlg.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -242,6 +243,54 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pApp->RefreshStatusBarInfo();
 }
 
+void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
+{
+	int index = 0;
+	int limit = 0;
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	int isSelected = 0;
+	bool bSetOK = 0;
+	if (side == sourceSide)
+	{
+		index = srcFoldersCount; // index of first file in the wxListCtrl
+		limit = pSrcList->GetItemCount(); // index of list file is (limit - 1)
+		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		for (index = srcFoldersCount; index < limit; index++)
+		{
+			isSelected = pSrcList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, so deselect it
+				bSetOK = pSrcList->SetItemState(index,0,stateMask);
+				isSelected = 0;
+			}
+		}
+	}
+	else
+	{
+		index = destFoldersCount; // index of first file in the wxListCtrl
+		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
+		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		for (index = destFoldersCount; index < limit; index++)
+		{
+			isSelected = pDestList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, so deselect it
+				bSetOK = pDestList->SetItemState(index,0,stateMask);
+				isSelected = 0;
+			}
+		}
+	}
+}
+
 void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 {
 	int index = 0;
@@ -315,6 +364,22 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 
 		bHasFolders = GetFoldersOnly(folderPath, &srcFoldersArray); // default is to sort the array
 		bHasFiles = GetFilesOnly(folderPath, &srcFilesArray); // default is to sort the array
+
+		// the read-only protection mechanism's lock file is not to be moved or copied
+		// so check for its presence in the array and remove it if it is there (there will
+		// ever only be one such filename, or none)
+		size_t count = srcFilesArray.GetCount();
+		size_t index;
+		for (index = 0; index < count; index++)
+		{
+			wxString filename = srcFilesArray.Item(index);
+			if (IsReadOnlyProtection_LockFile(filename))
+			{
+				// we found a lock file's filename, so remove it
+				srcFilesArray.RemoveAt(index);
+				break;
+			}
+		}
 	}
 	else
 	{
@@ -932,17 +997,18 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 ///             overwriting the file in the destination folder of the same name, or he
 ///             chose to copy with a changed name; a choice to 'not copy' should be
 ///             interpretted as non-success and FALSE should be returned); return FALSE if
-///             the copy was not successful.
+///             the copy was not successful. The "Cancel" response in the event of a
+///             filename clash should also cause FALSE to be returned.
 /// \param      srcPath     ->  reference to the source folder path's string (no final 
 ///                             path separator)
 /// \param      destPath    ->  reference to the destination folder path's string (no final 
 ///                             path separator)
-/// \param      filename    ->  the name of the file to be copied (prior to knowing whether
-///                             there is or isn't a name conflict with a file in destation
-///                             folder)
+/// \param      filename    ->  the name of the file to be copied (prior to knowing whether 
+///                             there is or isn't a name conflict with a file in the 
+///                             destination folder)
 ///  \param     bUserCancelled <- reference to boolean indicating whether or not the user
 ///                               clicked the Cancel button in the FilenameConflictDlg
-///  \param     bDoTheSameWay  <- reference to boolean indicating whether or not the user
+///  \param     bDoTheSameWay  <-> reference to boolean indicating whether or not the user
 ///                               turned on the checkbox "Handle other filename conflicts
 ///                               the same way" in the FilenameConflictDlg
 ///  \remarks   This function handles the low level copying of a single file to the
@@ -969,11 +1035,27 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 	// is not to be treated as a conflict)
 	int nConflictedFileIndex = wxNOT_FOUND; // -1
 	bool bIsConflicted = IsFileConflicted(filename,&nConflictedFileIndex,&destFilesArray);
+
+
+	//bIsConflicted = TRUE; // delete when forcing open the Filename Conflict dialog is not wanted any more
 	if (bIsConflicted)
 	{
 		// handle the filename conflict here
-		 
+		FilenameConflictDlg dlg(this,&filename);
+		dlg.Centre();
+		if (dlg.ShowModal() == wxID_OK)
+		{
+			// Proceed button was pressed
+			int ii = 1; // a temporary break point
+
 // *** TODO ***		
+		}
+		else
+		{
+			// Cancel button was pressed
+			bUserCancelled = TRUE;
+			bSuccess = FALSE;
+		}
 	}
 	else
 	{
@@ -1049,10 +1131,23 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 
 	if (!m_bCopyWasSuccessful)
 	{
-		wxString msg;
-		msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
-				aFilename);
-		wxMessageBox(msg,_T("Copying A File Failed"),wxICON_WARNING);
+		// if the copy did not succeed because the user chose to Cancel when a filename
+		// conflict was detected, we want to use the returned TRUE value in
+		// m_bUserCancelled to force the parent dialog to close; other failures, however,
+		// need a warning to be given to the user
+		if (m_bUserCancelled)
+		{
+			// force parent dialog to close
+			EndModal(wxID_OK);
+			return;
+		}
+		else
+		{
+			wxString msg;
+			msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
+					aFilename);
+			wxMessageBox(msg,_T("Copying A File Failed"),wxICON_WARNING);
+		}
 	}
 	else
 	{
@@ -1068,7 +1163,11 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 	if (srcSelectedFilesArray.GetCount() > 0)
 		EnableCopyFileOrFilesButton(TRUE);
 	else
+	{
 		EnableCopyFileOrFilesButton(FALSE);
 
+		// deselect any files remaining selected in the list
+		DeselectSelectedFiles(sourceSide);
+	}
 }
 

@@ -1492,6 +1492,32 @@ int	sortCompareFunc(const wxString& first, const wxString& second)
 #endif
 }
 
+bool IsReadOnlyProtection_LockFile(wxString& filename)
+{
+	// if the following two substrings are present in filename, where the firstPart is
+	// string initial and lastPart is string final, we assume the filename is a read-only
+	// protection filename and return TRUE, else return FALSE
+	wxString firstPart = _T("~AIROP-");
+	wxString lastPart = _T(".lock");
+	int offset = filename.Find(firstPart);
+	if (offset == 0)
+	{
+		offset = filename.Find(lastPart);
+		if (offset == wxNOT_FOUND)
+			return FALSE;
+		else 
+		{
+			// return TRUE only if lastPart is filename-final, else return FALSE
+			int filenameLength = filename.Len();
+			int strLastSubstringLength = lastPart.Len();
+			if (offset + strLastSubstringLength == filenameLength)
+				return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all went well (and the list has at least one item in it); FALSE
 ///             if there was an error or the list is empty

@@ -90,6 +90,7 @@ wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmS
 bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort = TRUE);
 bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort = TRUE);
 int	 sortCompareFunc(const wxString& first, const wxString& second);
+bool IsReadOnlyProtection_LockFile(wxString& filename);
 
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
