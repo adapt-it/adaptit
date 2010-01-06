@@ -6833,12 +6833,11 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_MSG1, _("There is already a file with the same name in the destination folder."), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
     item1->Add( item2, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 20 );
+    wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 0 );
     item3->AddGrowableCol( 0 );
     item3->AddGrowableCol( 1 );
 
@@ -6884,7 +6883,6 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxRadioButton *item16 = new wxRadioButton( parent, ID_RADIOBUTTON_REPLACE, _("Move, or copy; and replace"), wxDefaultPosition, wxSize(-1,22), wxRB_GROUP );
     item16->SetValue( TRUE );
-    item16->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
     item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Replace the file in the destination folder with the file you are moving or copying."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -6895,7 +6893,6 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
 
     wxRadioButton *item19 = new wxRadioButton( parent, ID_RADIOBUTTON_NO_COPY, _("Do not move, or copy"), wxDefaultPosition, wxSize(-1,22), 0 );
-    item19->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
     item18->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("No move, nor copy, will be done. Leave the destination folder's file unchanged."), wxDefaultPosition, wxDefaultSize, 0 );
@@ -6906,7 +6903,6 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
 
     wxRadioButton *item22 = new wxRadioButton( parent, ID_RADIOBUTTON_COPY_AND_RENAME, _("Move, or copy, giving it a modified filename"), wxDefaultPosition, wxSize(-1,22), 0 );
-    item22->SetFont( wxFont( 12, wxROMAN, wxNORMAL, wxNORMAL ) );
     item21->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_MODIFY_NAME, _("The file you are moving, or copying will be renamed  %s"), wxDefaultPosition, wxDefaultSize, 0 );
