@@ -377,6 +377,8 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 			{
 				// we found a lock file's filename, so remove it
 				srcFilesArray.RemoveAt(index);
+				if (srcFilesArray.GetCount() == 0)
+					bHasFiles = FALSE;
 				break;
 			}
 		}
@@ -392,9 +394,29 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 
 		bHasFolders = GetFoldersOnly(folderPath, &destFoldersArray); // default is to sort the array
 		bHasFiles = GetFilesOnly(folderPath, &destFilesArray); // default is to sort the array
+
+		// the read-only protection mechanism's lock file is not to be seen in the
+		// destination side, otherwise the user could misunderstand its purpose and delete it...
+		// so check for its presence in the array and remove it if it is there (there will
+		// ever only be one such filename, or none)
+		size_t count = destFilesArray.GetCount();
+		size_t index;
+		for (index = 0; index < count; index++)
+		{
+			wxString filename = destFilesArray.Item(index);
+			if (IsReadOnlyProtection_LockFile(filename))
+			{
+				// we found a lock file's filename, so remove it
+				destFilesArray.RemoveAt(index);
+				if (destFilesArray.GetCount() == 0)
+					bHasFiles = FALSE;
+				break;
+			}
+		}
 	}
 
-	// debugging -- display what we got for source side
+	// debugging -- display what we got for source side & destination side too
+	/*
 #ifdef _DEBUG
 	if (side == sourceSide)
 	{
@@ -434,7 +456,30 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 		}
 	}
 #endif
+	*/
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the passed in paths are identical, FALSE otherwise
+/// \param      srcPath    ->  reference to the source side's file path 
+/// \param      destPath   ->  reference to the destination side's file path 
+///  \remarks   Use to prevent copy or move of a file or folder to the same folder. We
+///  allow both sides to have the same path shown, but in the button handlers we check as
+///  necessary and prevent wrong action - and show a warning message
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPath)
+{
+	if (srcPath == destPath)
+	{
+		wxString msg;
+		::wxBell();
+		msg = msg.Format(_("The source and destination folders must not be the same folder."));
+		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_WARNING);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 // event handling functions
 
@@ -818,49 +863,6 @@ void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the file in the source list with index srcFileIndex has the
 ///             same filename as a file in the destination folder; FALSE otherwise
-/// \param      srcFileIndex   ->   0 based index into srcSelectedFilesArray array
-/// \param      pConflictIndex <-   pointer to 0 based index to whichever filename in
-///                                 destFilesArray (passed in as pDestFilesArr) has 
-///                                 the same name as for the one specified by index
-///                                 srcFileIndex; has value -1 if unset
-/// \param      pDestFilesArr   ->  pointer to a string array of all the filenames in
-///                                 the destination folder
-///  \remarks   Iterates through all the files in the pDestFilesArr array, looking for
-///             a match with the filename specified by srcFileIndex, returning TRUE if
-///             a match is made, otherwise FALSE
-//////////////////////////////////////////////////////////////////////////////////
-/*
-bool AdminMoveOrCopy::IsFileConflicted(int srcFileIndex, int* pConflictIndex, 
-									  wxArrayString* pDestFilesArr)
-{
-	wxASSERT(srcFileIndex < (int)srcSelectedFilesArray.GetCount());
-	(*pConflictIndex) = wxNOT_FOUND; // -1
-	size_t limit = pDestFilesArr->GetCount();
-	if (limit == 0)
-	{
-		// there are no files in the destination folder, so no conflict is possible
-		return FALSE;
-	}
-	// get the source filename
-	wxString srcFilename = srcSelectedFilesArray.Item(srcFileIndex);
-	size_t destIndex;
-	wxString aFilename;
-	for (destIndex = 0; destIndex < limit; destIndex++) 
-	{
-		aFilename = pDestFilesArr->Item(destIndex);
-		if (aFilename == srcFilename)
-		{
-			(*pConflictIndex) = (int)destIndex;
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-*/
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the file in the source list with index srcFileIndex has the
-///             same filename as a file in the destination folder; FALSE otherwise
 /// \param      srcFile        ->   reference to the source file's filename
 /// \param      pConflictIndex <-   pointer to 0 based index to whichever filename in
 ///                                 destFilesArray (passed in as pDestFilesArr) has 
@@ -1117,6 +1119,12 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	if(CheckForIdenticalPaths(m_strSrcFolderPath, m_strDestFolderPath))
+	{
+		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning message
+		return;
+	}
+
 	int nItemIndex = 0;
 
 	//for now, just test by copying the first file from the list...
@@ -1146,7 +1154,7 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 			wxString msg;
 			msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
 					aFilename);
-			wxMessageBox(msg,_T("Copying A File Failed"),wxICON_WARNING);
+			wxMessageBox(msg,_T("Copying a file failed"),wxICON_WARNING);
 		}
 	}
 	else

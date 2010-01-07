@@ -125,6 +125,10 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	wxString bytesStr = _(" bytes");
 	srcDetailsStr = srcFilename;
 	destDetailsStr = destFilename;
+	wxString locationLineSrc = *m_pSrcFolderPath;
+	wxString locationLineDest = *m_pDestFolderPath;
+	srcDetailsStr += newlineStr + locationLineSrc + _T("\\");
+	destDetailsStr += newlineStr + locationLineDest + _T("\\");
 	
 	wxFileName srcFN(*m_pSrcFolderPath,srcFilename);
 	wxFileName destFN(*m_pDestFolderPath,destFilename);
