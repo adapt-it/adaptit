@@ -114,6 +114,7 @@ private:
 	void SetupSrcList(wxString& folderPath);
 	void SetupSelectedFilesArray(enum whichSide side);
 	void DeselectSelectedFiles(enum whichSide side);
+	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
