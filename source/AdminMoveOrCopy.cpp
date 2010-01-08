@@ -905,7 +905,7 @@ bool AdminMoveOrCopy::IsFileConflicted(wxString& srcFile, int* pConflictIndex,
 /// \return     the suitably changed filename (so that the conflict is removed)
 /// \param      pFilename   ->  pointer to the filename string from the destination
 ///                             folder which conflicts with the filename being moved or
-///                             copied and use has elected to do the copy with a modified
+///                             copied and user has elected to do the copy with a modified
 ///                             name 
 ///  \remarks   The typical situation is a filename is passed in, and the filename with
 ///  (2) appended to the end of the name part and before the dot plus extension, if any,
