@@ -57,7 +57,7 @@ extern CAdapt_ItApp* gpApp;
 BEGIN_EVENT_TABLE(FilenameConflictDlg, AIModalDialog)
 
 	EVT_INIT_DIALOG(FilenameConflictDlg::InitDialog)
-	EVT_BUTTON(wxID_OK, FilenameConflictDlg::OnBnClickedProceed)
+	EVT_BUTTON(wxID_OK, FilenameConflictDlg::OnBnClickedClose)
 	EVT_BUTTON(wxID_CANCEL, FilenameConflictDlg::OnBnClickedCancel)
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_REPLACE, FilenameConflictDlg::OnBnClickedCopyAndReplace)	
 	EVT_RADIOBUTTON(ID_RADIOBUTTON_NO_COPY, FilenameConflictDlg::OnBnClickedNoCopy)	
@@ -110,6 +110,9 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	m_pSrcFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_FILE_DETAILS);
 	m_pDestFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_FILE_DETAILS);
 	m_pNameChangeText = (wxStaticText*)FindWindowById(ID_TEXT_MODIFY_NAME);
+
+	bSameWayValue = FALSE; // default
+	m_pHandleSameWayCheckbox->SetValue(FALSE);
 
 	// make the file data be displayed in the wxTextBox instances
 	wxString newlineStr = _T("\n");
@@ -249,22 +252,41 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 
 void FilenameConflictDlg::OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event))
 {
+
+
 }
 
 void FilenameConflictDlg::OnBnClickedNoCopy(wxCommandEvent& WXUNUSED(event))
 {
+
+
 }
 
 void FilenameConflictDlg::OnBnClickedChangeNameAndCopy(wxCommandEvent& WXUNUSED(event))
 {
+
+
 }
 
 void FilenameConflictDlg::OnCheckboxHandleSameWay(wxCommandEvent& WXUNUSED(event))
 {
+	// give the new value to the caller
+	//m_pAdminMoveOrCopy->m_bDoTheSameWay = m_pHandleSameWayCheckbox->GetValue();
+	bSameWayValue = m_pHandleSameWayCheckbox->GetValue();
 }
 
-void FilenameConflictDlg::OnBnClickedProceed(wxCommandEvent& event)
+void FilenameConflictDlg::OnBnClickedClose(wxCommandEvent& event)
 {
+	// return the appropriate copyType value for the enum CopyAction
+	if (m_pNoCopyRadioRadioButton->GetValue())
+		m_pAdminMoveOrCopy->copyType = noCopy;
+	else if (m_pChangeNameAndCopyRadioButton->GetValue())
+		m_pAdminMoveOrCopy->copyType = copyWithChangedName;
+	else
+		// one button must be checked, but if someone none are, then don't
+		// copy so as to give minimal risk of loss of data
+		m_pAdminMoveOrCopy->copyType = 
+			m_pCopyAndReplaceRadioButton->GetValue() ? copyAndReplace : noCopy;
 	event.Skip();
 }
 

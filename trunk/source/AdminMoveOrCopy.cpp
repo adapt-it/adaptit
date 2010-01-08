@@ -254,7 +254,7 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 	if (side == sourceSide)
 	{
 		index = srcFoldersCount; // index of first file in the wxListCtrl
-		limit = pSrcList->GetItemCount(); // index of list file is (limit - 1)
+		limit = pSrcList->GetItemCount(); // index of last file is (limit - 1)
 		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
 		{
 			return; // nothing to do
@@ -1008,49 +1008,101 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 /// \param      filename    ->  the name of the file to be copied (prior to knowing whether 
 ///                             there is or isn't a name conflict with a file in the 
 ///                             destination folder)
-///  \param     bUserCancelled <- reference to boolean indicating whether or not the user
+///  \param     bUserCancelled <-> reference to boolean indicating whether or not the user
 ///                               clicked the Cancel button in the FilenameConflictDlg
-///  \param     bDoTheSameWay  <-> reference to boolean indicating whether or not the user
-///                               turned on the checkbox "Handle other filename conflicts
-///                               the same way" in the FilenameConflictDlg
 ///  \remarks   This function handles the low level copying of a single file to the
 ///  destination folder. It's return value is important for a "Move" choice in the GUI,
 ///  because we support Moving a file by first copying it, and if the copy was successful,
 ///  then we delete the original file in the source folder. In the event of a filename
 ///  clash, the protocol for handling that is encapsulated herein - a child dialog is put
-///  up with 3 choices, similarly to what Windows Explorer offers. Two flags are included
-///  in the signature to return information to the caller about what choices have been
-///  made if that child dialog was put up because of a filename clash. Since our design
-///  allows for multiple filenames in the source folder to be copied (or moved) with a
-///  single click of the Copy.. or Move.. buttons, this function may be called multiple
-///  times by the caller - taking each filename from a string array populated earlier. In
-///  the event of a filename clash, if the user hits the Cancel button, it will cancel the
-///  Copy or Move command at that time, but any files already copied or moved will remain so.
+///  up with 3 choices, similarly to what Windows Explorer offers. A flag is included in
+///  the signature to return cancel information to the caller in the event of a filename
+///  clash. Since our design allows for multiple filenames in the source folder to be
+///  copied (or moved) with a single click of the Copy.. or Move.. buttons, this function
+///  may be called multiple times by the caller - taking each filename from a string array
+///  populated earlier. In the event of a filename clash, if the user hits the Cancel
+///  button, it will cancel the Copy or Move command at that time, but any files already
+///  copied or moved will remain so.
 //////////////////////////////////////////////////////////////////////////////////
 bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
-						bool& bUserCancelled, bool& bDoTheSameWay)
+						bool& bUserCancelled)
 {
+	wxString theDestinationPath; // build the path to the file here, from destPath and filename
 	bool bSuccess = TRUE;
+	copyType = copyAndReplace; // set to default value
+	wxString newFilenameStr = _T("");
+
 	// make the path to the source file
 	wxString theSourcePath = srcPath + gpApp->PathSeparator + filename;
 	// check for a name conflict (including extension, same names but different extensions
 	// is not to be treated as a conflict)
 	int nConflictedFileIndex = wxNOT_FOUND; // -1
 	bool bIsConflicted = IsFileConflicted(filename,&nConflictedFileIndex,&destFilesArray);
-
-
-	//bIsConflicted = TRUE; // delete when forcing open the Filename Conflict dialog is not wanted any more
 	if (bIsConflicted)
 	{
-		// handle the filename conflict here
+		// handle the filename conflict here; the existence of a conflict is testimony to
+		// the fact that the destination folder has the conflicting file in it, so we
+		// don't need to test for it here, so we just construct the path and use it
+
+		// put up the filename conflict dialog (similar options as Win Explorer has for
+		// conflicts)
 		FilenameConflictDlg dlg(this,&filename);
 		dlg.Centre();
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			// Proceed button was pressed
-			int ii = 1; // a temporary break point
-
-// *** TODO ***		
+			// Close button was pressed, so get the user's choices
+			if (!m_bDoTheSameWay)
+			{
+				// we get the checkbox value only so long as m_bDoTheSameWay is FALSE, once
+				// it is TRUE we continue using the TRUE value until all the copies are done
+				m_bDoTheSameWay = dlg.bSameWayValue;
+				lastWay = copyType; // as just set by user in the FilenameConflictDlg
+			}
+			else
+			{
+				// m_bDoTheSameWay has been set to TRUE, so here we must copy the file, but
+				// handle any conflict the same way as before without showing the
+				// conflict dialog to the user -- the enum variable, lastWay, contains the
+				// enum value used for the last conflict dealt with
+				switch (lastWay)
+				{
+				case copyAndReplace:
+					theDestinationPath = destPath + gpApp->PathSeparator + filename;
+					bSuccess = ::wxCopyFile(theSourcePath, theDestinationPath); //bool overwrite = true
+					break;
+				case copyWithChangedName:
+					newFilenameStr = BuildChangedFilenameForCopy(&filename);
+					theDestinationPath = destPath + gpApp->PathSeparator + newFilenameStr;
+					bSuccess = ::wxCopyFile(theSourcePath, theDestinationPath); //bool overwrite = true
+					break;
+				default:
+				case noCopy:
+					// treat this as a successful copy, but just don't copy this file
+					bSuccess = TRUE;
+					break;
+				}
+				return bSuccess;
+			}
+			// The value of the copyType enum has been set at the Close button call in the
+			// FilenameConflictDlg
+			//m_bDoTheSameWay = m_bDoTheSameWay; // for checking value in debugger
+			switch (copyType)
+			{
+			case copyAndReplace:
+				theDestinationPath = destPath + gpApp->PathSeparator + filename;
+				bSuccess = ::wxCopyFile(theSourcePath, theDestinationPath); //bool overwrite = true
+				break;
+			case copyWithChangedName:
+				newFilenameStr = BuildChangedFilenameForCopy(&filename);
+				theDestinationPath = destPath + gpApp->PathSeparator + newFilenameStr;
+				bSuccess = ::wxCopyFile(theSourcePath, theDestinationPath); //bool overwrite = true
+				break;
+			default:
+			case noCopy:
+				// treat this as a successful copy, but just don't copy this file
+				bSuccess = TRUE;
+				break;
+			}
 		}
 		else
 		{
@@ -1063,7 +1115,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 	{
 		// there was no conflict, so the copy can proceed...
 		// first, make the path to the destination folder
-		wxString theDestinationPath = destPath + gpApp->PathSeparator + filename;
+		theDestinationPath = destPath + gpApp->PathSeparator + filename;
 		bool bAlreadyExists = ::wxFileExists(theDestinationPath);
 		if (bAlreadyExists)
 		{
@@ -1126,42 +1178,47 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 	}
 
 	int nItemIndex = 0;
-
-	//for now, just test by copying the first file from the list...
-	// *** TODO *** make this into a loop across all files that were selected
-
+	bool m_bCopyWasSuccessful = TRUE;
+	
 	wxString aFilename = srcSelectedFilesArray.Item(nItemIndex);
 	wxASSERT(!aFilename.IsEmpty());
 	m_bUserCancelled = FALSE;
 	m_bDoTheSameWay = FALSE;
-	bool m_bCopyWasSuccessful = CopySingleFile(m_strSrcFolderPath,m_strDestFolderPath,aFilename, 
-												m_bUserCancelled, m_bDoTheSameWay);
-
-	if (!m_bCopyWasSuccessful)
-	{
-		// if the copy did not succeed because the user chose to Cancel when a filename
-		// conflict was detected, we want to use the returned TRUE value in
-		// m_bUserCancelled to force the parent dialog to close; other failures, however,
-		// need a warning to be given to the user
-		if (m_bUserCancelled)
+	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
+					  // if there was one, was handled (see CopyAction enum for values)
+	// loop across all files that were selected
+	do {
+		// process one file per iteration until the list of selected filenames is empty
+		m_bCopyWasSuccessful = CopySingleFile(m_strSrcFolderPath,m_strDestFolderPath,aFilename, 
+												m_bUserCancelled);
+		if (!m_bCopyWasSuccessful)
 		{
-			// force parent dialog to close
-			EndModal(wxID_OK);
-			return;
+			// if the copy did not succeed because the user chose to Cancel when a filename
+			// conflict was detected, we want to use the returned TRUE value in
+			// m_bUserCancelled to force the parent dialog to close; other failures, however,
+			// need a warning to be given to the user
+			if (m_bUserCancelled)
+			{
+				// force parent dialog to close
+				EndModal(wxID_OK);
+				return;
+			}
+			else
+			{
+				wxString msg;
+				msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
+						aFilename);
+				wxMessageBox(msg,_T("Copying a file failed"),wxICON_WARNING);
+			}
 		}
 		else
 		{
-			wxString msg;
-			msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
-					aFilename);
-			wxMessageBox(msg,_T("Copying a file failed"),wxICON_WARNING);
+			// the copy was successful, so remove that file from srcSelectedFilesArray; and
+			// note that in the event of a filename conflict in which the user elects to "not
+			// copy" we still remove this non-copied file from the selection list
+			srcSelectedFilesArray.RemoveAt(nItemIndex);
 		}
-	}
-	else
-	{
-		// the copy was successful, so remove that file from srcSelectedFilesArray
-		srcSelectedFilesArray.RemoveAt(nItemIndex);
-	}
+	} while (srcSelectedFilesArray.GetCount() > 0);
 
 	// update the destination folder's list to show what has been copied or moved there
 	SetupDestList(m_strDestFolderPath);
