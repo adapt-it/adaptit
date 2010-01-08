@@ -63,6 +63,8 @@ public:
 	AdminMoveOrCopy* m_pAdminMoveOrCopy; //this is the parent dialog
 	wxArrayString* m_pSrcFileArray; // we'll set this from pAdminMoveOrCopy's 
 								  // srcSelectedFilesArray public string array member
+	bool bSameWayValue; // value of the "handle conflicts in the same way" checkbox
+						// which the caller will want to access
 
 	// the path to source and destination folders - we'll set these
 	// using pAdminMoveOrCopy's public members
@@ -73,7 +75,7 @@ protected:
 	void OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedNoCopy(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedChangeNameAndCopy(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedProceed(wxCommandEvent& event);
+	void OnBnClickedClose(wxCommandEvent& event);
 	void OnBnClickedCancel(wxCommandEvent& event);
 	void OnCheckboxHandleSameWay(wxCommandEvent& WXUNUSED(event));
 private:
@@ -81,15 +83,6 @@ private:
 	wxString destFilename;
 	wxString srcPathToFilename;
 	wxString destPathToFilename;
-	size_t	 srcFilesizeInBytes;
-	size_t	 destFilesizeInBytes;
-	float	 srcFilesizeInKB;
-	float	 destFilesizeInKB;
-	float	 srcFilesizeInMB;
-	float	 destFilesizeInMB;
-	wxDateTime srcFileModifiedTime;
-	wxDateTime destFileModifiedTime;
-	wxTimeSpan timeDifference;
 	wxString srcDetailsStr;
 	wxString destDetailsStr;
 

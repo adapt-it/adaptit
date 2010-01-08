@@ -26,10 +26,10 @@ enum whichSide {
 };
 
 enum CopyAction {
-	copyUnique,
-	copyAndReplace,
-	copyWithChangedName,
-	noCopy
+	copyAndReplace, // covers both copy which overwrites file of same name, 
+					// and copy of a file with unique filename (default)
+	copyWithChangedName, // copy but with unique name, such as <filename>(2)
+	noCopy			// don't copy (nor move) the conflicting file
 };
 
 /// The AdminMoveOrCopy class provides a dialog interface for moving or copying files or
@@ -44,6 +44,8 @@ public:
 	bool m_bUserCancelled;
 	bool m_bCopyWasSuccessful;
 	bool m_bDoTheSameWay;
+	CopyAction copyType;
+	CopyAction lastWay;
 
 	// wx version pointers for dialog controls
 	wxButton* pMoveFolderButton;
@@ -104,7 +106,7 @@ protected:
 	void OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event));
 private:
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
-						bool& bUserCancelled, bool& bDoTheSameWay);
+						bool& bUserCancelled);
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
 								bool& bHasFolders, bool& bHasFiles);
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
