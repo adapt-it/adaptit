@@ -6851,7 +6851,7 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBitmap *item7 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 11 ), wxDefaultPosition, wxDefaultSize );
     item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(200,84), wxTE_MULTILINE|wxVSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(240,84), wxTE_MULTILINE|wxVSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item6->Add( item8, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item4->Add( item6, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
@@ -6868,69 +6868,73 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBitmap *item12 = new wxStaticBitmap( parent, ID_STATICBITMAP, AIMainFrameIcons( 11 ), wxDefaultPosition, wxDefaultSize );
     item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(210,84), wxTE_MULTILINE|wxVSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
+    wxTextCtrl *item13 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_FILE_DETAILS, wxT(""), wxDefaultPosition, wxSize(250,84), wxTE_MULTILINE|wxVSCROLL|wxNO_BORDER | wxGROW | wxTE_NO_VSCROLL );
     item11->Add( item13, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item9->Add( item11, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item3->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
-    wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
+    wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
+
+    item14->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
 
-    wxRadioButton *item16 = new wxRadioButton( parent, ID_RADIOBUTTON_REPLACE, _("Move, or copy; and replace"), wxDefaultPosition, wxSize(-1,22), wxRB_GROUP );
-    item16->SetValue( TRUE );
-    item15->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item17 = new wxStaticText( parent, ID_TEXT, _("Replace the file in the destination folder with the file you are moving or copying."), wxDefaultPosition, wxDefaultSize, 0 );
-    item15->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxRadioButton *item17 = new wxRadioButton( parent, ID_RADIOBUTTON_REPLACE, _("Move, or copy; and replace"), wxDefaultPosition, wxSize(-1,22), wxRB_GROUP );
+    item17->SetValue( TRUE );
+    item16->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Replace the file in the destination folder with the file you are moving or copying."), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxBoxSizer *item18 = new wxBoxSizer( wxVERTICAL );
+    item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxRadioButton *item19 = new wxRadioButton( parent, ID_RADIOBUTTON_NO_COPY, _("Do not move, or copy"), wxDefaultPosition, wxSize(-1,22), 0 );
-    item18->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxBoxSizer *item19 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item20 = new wxStaticText( parent, ID_TEXT, _("No move, nor copy, will be done. Leave the destination folder's file unchanged."), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxRadioButton *item20 = new wxRadioButton( parent, ID_RADIOBUTTON_NO_COPY, _("Do not move, or copy"), wxDefaultPosition, wxSize(-1,22), 0 );
+    item19->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item14->Add( item18, 1, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item21 = new wxStaticText( parent, ID_TEXT, _("No move, nor copy, will be done. Leave the destination folder's file unchanged."), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
+    item15->Add( item19, 1, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
 
-    wxRadioButton *item22 = new wxRadioButton( parent, ID_RADIOBUTTON_COPY_AND_RENAME, _("Move, or copy, giving it a modified filename"), wxDefaultPosition, wxSize(-1,22), 0 );
-    item21->Add( item22, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    wxBoxSizer *item22 = new wxBoxSizer( wxVERTICAL );
 
-    wxStaticText *item23 = new wxStaticText( parent, ID_TEXT_MODIFY_NAME, _("The file you are moving, or copying will be renamed  %s"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxRadioButton *item23 = new wxRadioButton( parent, ID_RADIOBUTTON_COPY_AND_RENAME, _("Move, or copy, giving it a modified filename"), wxDefaultPosition, wxSize(-1,22), 0 );
+    item22->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
-    item14->Add( item21, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    wxStaticText *item24 = new wxStaticText( parent, ID_TEXT_MODIFY_NAME, _("The file you are moving, or copying will be renamed  %s"), wxDefaultPosition, wxDefaultSize, 0 );
+    item22->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item15->Add( item22, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+
+    item14->Add( item15, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
+    wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    item24->Add( 10, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    wxCheckBox *item26 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename confllicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxCheckBox *item25 = new wxCheckBox( parent, ID_CHECKBOX_HANDLE_SAME, _("Handle other filename confllicts the same way"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+    item25->Add( 70, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
-    item24->Add( 15, 20, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
+    wxButton *item27 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetDefault();
+    item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item26 = new wxButton( parent, wxID_OK, _("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item26->SetDefault();
-    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+    item25->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
 
-    item24->Add( 20, 20, 0, wxALIGN_CENTER, 5 );
+    wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item0->Add( item24, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
     if (set_sizer)
     {

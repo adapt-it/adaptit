@@ -101,16 +101,6 @@ FilenameConflictDlg::~FilenameConflictDlg() // destructor
 void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	// set these pointers up
-	/*   ** TODO **
-	wxRadioButton* m_pCopyAndReplaceRadioButton;
-	wxRadioButton* m_pNoCopyRadioRadioButton;
-	wxRadioButton* m_pChangeNameAndCopyRadioButton;
-	wxCheckBox* m_pHandleSameWayCheckbox;
-	wxButton* m_pProceedButton;
-	wxButton* m_pCancelButton;
-	wxTextCtrl* m_pSrcFileDataBox;
-	wxTextCtrl* m_pDestFileDataBox;
-	*/
 	m_pCopyAndReplaceRadioButton = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_REPLACE);
 	m_pNoCopyRadioRadioButton = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_NO_COPY);
 	m_pChangeNameAndCopyRadioButton = (wxRadioButton*)FindWindowById(ID_RADIOBUTTON_COPY_AND_RENAME);
@@ -119,6 +109,7 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	m_pCancelButton = (wxButton*)FindWindowById(wxID_CANCEL);
 	m_pSrcFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_SOURCE_FILE_DETAILS);
 	m_pDestFileDataBox = (wxTextCtrl*)FindWindowById(ID_TEXTCTRL_DESTINATION_FILE_DETAILS);
+	m_pNameChangeText = (wxStaticText*)FindWindowById(ID_TEXT_MODIFY_NAME);
 
 	// make the file data be displayed in the wxTextBox instances
 	wxString newlineStr = _T("\n");
@@ -201,12 +192,54 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	}
 	destDetailsStr += _T(" ") + destSizeStr2;
 
-	// ** TODO **  the rest of the details
-
+	wxDateTime srcModTime = srcFN.GetModificationTime();
+	wxDateTime destModTime = destFN.GetModificationTime();
+	wxString strNewer = _("(newer)");
+	wxString strOlder = _("(older)");
+	wxString strSameTime = _("(same time and date)");
+	wxString strLastMod = _("Last modified: ");
+	wxString srcDateStr = srcModTime.FormatDate();
+	wxString destDateStr = destModTime.FormatDate();
+	wxString srcTimeStr = srcModTime.FormatTime();
+	wxString destTimeStr = destModTime.FormatTime();
+	wxString srcTimeLineStr;
+	wxString destTimeLineStr;
+	if (srcModTime.IsEarlierThan(destModTime))
+	{
+		// source modification time is < destination modification time
+		srcTimeLineStr = newlineStr + strLastMod + _T("  ") + srcDateStr + _T("  ") + 
+							srcTimeStr + _T("  ") + strOlder;
+		destTimeLineStr = newlineStr + strLastMod + _T("  ") + destDateStr + _T("  ") + 
+							destTimeStr + _T("  ") + strNewer;
+	}
+	else if (srcModTime.IsLaterThan(destModTime))
+	{
+		// source modification time is > destination modification time
+		srcTimeLineStr = newlineStr + strLastMod + _T("  ") + srcDateStr + _T("  ") + 
+							srcTimeStr + _T("  ") + strNewer;
+		destTimeLineStr = newlineStr + strLastMod + _T("  ") + destDateStr + _T("  ") + 
+							destTimeStr + _T("  ") + strOlder;
+	}
+	else
+	{
+		// source modification time equals destination modification time
+		srcTimeLineStr = newlineStr + strLastMod + _T("  ") + srcDateStr + _T("  ") + 
+							srcTimeStr + _T("  ") + strSameTime;
+		destTimeLineStr = newlineStr + strLastMod + _T("  ") + destDateStr + _T("  ") + 
+							destTimeStr + _T("  ") + strSameTime;
+	}
+	srcDetailsStr += srcTimeLineStr;
+	destDetailsStr += destTimeLineStr;
 
 	// now insert it into the boxes
 	m_pSrcFileDataBox->ChangeValue(srcDetailsStr);
 	m_pDestFileDataBox->ChangeValue(destDetailsStr);
+
+	// compute the modified filename's name for the last option's message
+	wxString strNewDestFilename = m_pAdminMoveOrCopy->BuildChangedFilenameForCopy(&destFilename);
+	wxString label = m_pNameChangeText->GetLabel();
+	strNewDestFilename = strNewDestFilename.Format(label,strNewDestFilename.c_str());
+	m_pNameChangeText->SetLabel(strNewDestFilename);
 
 	// make both boxes read only, now that their data is inserted
 	m_pSrcFileDataBox->SetEditable(FALSE);

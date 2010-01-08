@@ -57,9 +57,10 @@ public:
 	wxButton* m_pCancelButton;
 	wxTextCtrl* m_pSrcFileDataBox;
 	wxTextCtrl* m_pDestFileDataBox;
+	wxStaticText* m_pNameChangeText;
 
 
-	AdminMoveOrCopy* m_pAdminMoveOrCopy; //this is the parent window
+	AdminMoveOrCopy* m_pAdminMoveOrCopy; //this is the parent dialog
 	wxArrayString* m_pSrcFileArray; // we'll set this from pAdminMoveOrCopy's 
 								  // srcSelectedFilesArray public string array member
 
