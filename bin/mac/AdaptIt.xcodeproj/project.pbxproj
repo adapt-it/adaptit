@@ -15,6 +15,7 @@
 		7DC038D40F462A570047FCAF /* AI_USFM.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D20F462A570047FCAF /* AI_USFM.xml */; };
 		7DC038D50F462A570047FCAF /* books.xml in Resources */ = {isa = PBXBuildFile; fileRef = 7DC038D30F462A570047FCAF /* books.xml */; };
 		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
+		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
@@ -122,6 +123,8 @@
 		7DC038D30F462A570047FCAF /* books.xml */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = books.xml; path = ../../xml/books.xml; sourceTree = SOURCE_ROOT; };
 		7DC0390C0F4654B30047FCAF /* Adapt It.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = "Adapt It.icns"; path = "../../res/Adapt It.icns"; sourceTree = SOURCE_ROOT; };
 		7DC0399C0F4672720047FCAF /* ai_build_phase_script.sh */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.script.sh; path = ai_build_phase_script.sh; sourceTree = "<group>"; };
+		7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = FilenameConflictDlg.cpp; path = ../../source/FilenameConflictDlg.cpp; sourceTree = SOURCE_ROOT; };
+		7DE437ED10FA707E0036CC92 /* FilenameConflictDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FilenameConflictDlg.h; path = ../../source/FilenameConflictDlg.h; sourceTree = SOURCE_ROOT; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
@@ -339,6 +342,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */,
+				7DE437ED10FA707E0036CC92 /* FilenameConflictDlg.h */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
 				C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */,
 				C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */,
@@ -727,6 +732,7 @@
 				C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */,
 				C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */,
 				C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */,
+				7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
