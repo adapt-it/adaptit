@@ -10,7 +10,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/ComposeBarEditBox.h ../../source/ConsistencyCheckDlg.h ../../source/ConsistentChanger.h \
 	../../source/DocPage.h ../../source/EarlierTranslationDlg.h ../../source/EditPreferencesDlg.h \
 	../../source/EditSourceTextDlg.h ../../source/ExportFunctions.h ../../source/ExportInterlinearDlg.h \
-	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h ../../source/FilterPage.h \
+	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h ../../source/FilenameConflictDlg.h ../../source/FilterPage.h \
 	../../source/FindReplace.h ../../source/FontPage.h ../../source/GoToDlg.h \
 	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBPage.h \
 	../../source/LanguagesPage.h ../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
@@ -67,7 +67,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/ConsistentChanger.cpp ../../source/DocPage.cpp ../../source/EarlierTranslationDlg.cpp \
 	../../source/EditPreferencesDlg.cpp ../../source/EditSourceTextDlg.cpp ../../source/ExportFunctions.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
-	../../source/FilterPage.cpp ../../source/FindReplace.cpp ../../source/FontPage.cpp \
+	../../source/FilenameConflictDlg.cpp ../../source/FilterPage.cpp ../../source/FindReplace.cpp ../../source/FontPage.cpp \
 	../../source/GoToDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
 	../../source/KBEditor.cpp ../../source/KBPage.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
