@@ -47,8 +47,8 @@
 						  // respectively, which we use in the two wxListCtrl instances to
 						  // distinguish folder names from filenames; the function returns
 						  // the relevant wxBitmap*
-#include "AdminMoveOrCopy.h"
 #include "FilenameConflictDlg.h"
+#include "AdminMoveOrCopy.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
