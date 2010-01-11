@@ -77,6 +77,10 @@ public:
 	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
 	wxArrayString srcFilesArray; // stores filenames (these get displayed)
 	wxArrayString srcSelectedFilesArray; // stores filenames selected by user
+	wxArrayString srcSelectedMoveFilesArray; // stores filenames selected by
+		// user, which are to be removed from the source side because a Move
+		// was wanted, rather than a copy (the contents are copies of what is
+		// stored in srcSelectedFilesArray)
 
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
 	wxArrayString destFilesArray; // stores filenames (these get displayed); and use
@@ -104,7 +108,9 @@ protected:
 	void OnDestListSelectItem(wxListEvent& event);
 	void OnDestListDeselectItem(wxListEvent& event);
 	void OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event));
+	void OnMoveFileOrFiles(wxCommandEvent& WXUNUSED(event));
 private:
+	void MoveOrCopyFileOrFiles(bool bDoMove = TRUE);
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
 						bool& bUserCancelled);
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 

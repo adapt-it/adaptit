@@ -75,6 +75,7 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListSelectItem)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
 	EVT_BUTTON(ID_BUTTON_COPY_FILES, AdminMoveOrCopy::OnCopyFileOrFiles)
+	EVT_BUTTON(ID_BUTTON_MOVE_FILES, AdminMoveOrCopy::OnMoveFileOrFiles)
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
@@ -112,6 +113,7 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
 	srcSelectedFilesArray.Empty();
+	srcSelectedMoveFilesArray.Empty();
 	destSelectedFilesArray.Empty();
 }
 
@@ -127,6 +129,7 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 	destFoldersArray.Clear();
 	destFilesArray.Clear();
 	srcSelectedFilesArray.Clear();
+	srcSelectedMoveFilesArray.Clear();
 	destSelectedFilesArray.Clear();
 }
 
@@ -1164,6 +1167,36 @@ void AdminMoveOrCopy::EnableCopyFileOrFilesButton(bool bEnableFlag)
 ////////////////////////////////////////////////////////////////////////////////////////////
 void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event)) 
 {	
+	MoveOrCopyFileOrFiles(FALSE); // FALSE is  bool bDoMove
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent fired by the user's button press
+/// \remarks
+/// Handler for the "Move File Or Files" button. It copies the one or more selected files
+/// in the source folder's wxListCtrl to the destination folder specified by the path
+/// m_strDestFolderPath, and deletes the original in the source location. 
+/// File name conflicts are handled internally, similarly to how Windows
+/// Explorer handles them (i.e. with a child dialog opening to display file attribute
+/// details such as name, size and last modification date & time for each of the files in
+/// conflict) and the user has 3 options - continue, overwriting the file at the
+/// destination folder with the one from the source folder; or to not copy; or to have the
+/// name of the source folder's file changed so as to remove the conflict and then the
+/// copy goes ahead - resulting in two files with same or similar data being in the
+/// destination folder. Cancelling, and opting to have all subsequent filename conflicts
+/// handled the same way as the current one are also supported from the child dialog.
+////////////////////////////////////////////////////////////////////////////////////////////
+void AdminMoveOrCopy::OnMoveFileOrFiles(wxCommandEvent& WXUNUSED(event)) 
+{	
+	MoveOrCopyFileOrFiles(); // parameter  bool bDoMove is default TRUE
+}
+
+// the MoveOrCopyFileOrFiles() function is used in both the Move and the Copy button handlers
+// for file moves of file copying. Moving is done by copying, and then removing the original
+// source files which were copied. Copying does not do the removal step.
+void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
+{
 	if (srcSelectedFilesArray.GetCount() == 0)
 	{
 		::wxBell();
@@ -1177,8 +1210,22 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	// if a Move is wanted, copy the filename seletions across to the 
+	// srcSelectedMoveFilesArray, giving two identical filename arrays
+	if (bDoMove)
+	{
+		wxString fn;
+		size_t limit = srcSelectedFilesArray.GetCount();
+		size_t index;
+		for (index = 0; index < limit; index++)
+		{
+			fn = srcSelectedFilesArray.Item(index);
+			srcSelectedFilesArray.Add(fn);
+		}
+	}
+
 	int nItemIndex = 0;
-	bool m_bCopyWasSuccessful = TRUE;
+	m_bCopyWasSuccessful = TRUE;
 	
 	wxString aFilename = srcSelectedFilesArray.Item(nItemIndex);
 	wxASSERT(!aFilename.IsEmpty());
@@ -1199,16 +1246,30 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 			// need a warning to be given to the user
 			if (m_bUserCancelled)
 			{
-				// force parent dialog to close
+				// force parent dialog to close, and if Move was being attempted, abandon that
+				// to without removing anything more at the source side
 				EndModal(wxID_OK);
 				return;
 			}
 			else
 			{
+				// if the copy was part of a Move attempt, don't do any more of it
 				wxString msg;
-				msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
-						aFilename);
-				wxMessageBox(msg,_T("Copying a file failed"),wxICON_WARNING);
+				if (bDoMove)
+				{
+
+// *** TODO *** whatever is needed before the message is shown
+
+					msg = msg.Format(_("Moving the file %s did not succeed. Make sure no other application has it open, then try again to move it."),
+							aFilename);
+					wxMessageBox(msg,_("Moving a file failed"),wxICON_WARNING);
+				}
+				else
+				{
+					msg = msg.Format(_("Copying the file %s did not succeed. Make sure no other application has it open, then try again to copy it."),
+							aFilename);
+					wxMessageBox(msg,_("Copying a file failed"),wxICON_WARNING);
+				}
 			}
 		}
 		else
@@ -1217,6 +1278,16 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 			// note that in the event of a filename conflict in which the user elects to "not
 			// copy" we still remove this non-copied file from the selection list
 			srcSelectedFilesArray.RemoveAt(nItemIndex);
+
+			// if the copy was part of a move request, then delete the source file that was copied
+			// and remove it from the array of selected files to be moved
+			if (bDoMove)
+			{
+// *** TODO *** whatever is needed for here - we don't yet have a wxArrayString defined for the files to be moved
+
+
+
+			}
 		}
 	} while (srcSelectedFilesArray.GetCount() > 0);
 
@@ -1235,4 +1306,7 @@ void AdminMoveOrCopy::OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event))
 		DeselectSelectedFiles(sourceSide);
 	}
 }
+
+
+
 
