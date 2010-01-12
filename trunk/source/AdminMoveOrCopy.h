@@ -64,6 +64,8 @@ public:
 	wxListItem* pTheColumnForDestList; // has to be on heap
 	wxListCtrl* pSrcList;
 	wxListCtrl* pDestList;
+	//wxListView* pSrcList; // a subclass of wxListCtrl
+	//wxListView* pDestList; // ditto
 	wxString emptyFolderMessage;
 
 	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
@@ -88,10 +90,10 @@ public:
 				// functionalities use the destFolderAllFilesArray (below) instead
 	wxArrayInt arrCopiedOK; // stores 1 for a successful file copy, 0 if not copied
 
-	int srcFoldersCount;
-	int srcFilesCount;
-	int destFoldersCount;
-	int destFilesCount;
+	long srcFoldersCount;
+	long srcFilesCount;
+	long destFoldersCount;
+	long destFilesCount;
 
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
@@ -118,7 +120,8 @@ private:
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
 	void SetupSelectedFilesArray(enum whichSide side);
-	void DeselectSelectedFiles(enum whichSide side);
+	//void DeselectSelectedFiles(enum whichSide side); // can't use it, due to wxWidgets bug
+													   // so use SetupSelectedFilesArray() instead
 	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
