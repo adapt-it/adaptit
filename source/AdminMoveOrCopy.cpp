@@ -107,6 +107,8 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 
 	pSrcList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
 	pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
+	//pSrcList = (wxListView*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
+	//pDestList= (wxListView*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
 
 	srcFoldersArray.Empty();
 	srcFilesArray.Empty();
@@ -246,12 +248,17 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pApp->RefreshStatusBarInfo();
 }
 
+/* 
+// I did two versions of this, one using wxListCtrl, another using the subclass wxListView
+// and both failed in the same way - see the comments below; it's a widgets problem, not
+// mine 
 void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 {
 	int index = 0;
 	int limit = 0;
 	long stateMask = 0;
 	stateMask |= wxLIST_STATE_SELECTED;
+	stateMask |= wxLIST_STATE_FOCUSED;
 	int isSelected = 0;
 	bool bSetOK = 0;
 	if (side == sourceSide)
@@ -268,7 +275,11 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 			if (isSelected)
 			{
 				// this one is selected, so deselect it
-				bSetOK = pSrcList->SetItemState(index,0,stateMask);
+unsigned int aCount = srcSelectedFilesArray.GetCount(); // for debugging, the next call is spuriously giving empty srcSelectedFileArray() which is on another thread (the main thread) a m_nCount value of 1, if two or more files were selected for copying
+				
+				bSetOK = pSrcList->SetItemState(index,0,stateMask); // stepping thru this does nothing which should interfer with Main thread
+
+aCount = srcSelectedFilesArray.GetCount(); // this goes to aCount = 1 after the above call!!! (even though its not on wxListCtrl's Worker Thread!!!)
 				isSelected = 0;
 			}
 		}
@@ -293,6 +304,57 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 		}
 	}
 }
+*/
+/*
+// redo using wxListView -- hopefully this won't have the bug above & is simpler
+void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
+{
+	long index = 0;
+	long limit;
+	if (side == sourceSide)
+	{
+		limit = pSrcList->GetItemCount(); // index of last file is (limit - 1)
+		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		index = pSrcList->GetFirstSelected();
+		if (index != (long)-1)
+		{
+			// there is one or more selections
+			pSrcList->Select(index,FALSE); // FALSE turns selection off
+		}
+		do {
+			index = pSrcList->GetNextSelected(index);
+			if (index == -1)
+				break;
+			pSrcList->Select(index,FALSE); // FALSE turns selection off
+		} while (TRUE);
+	}
+	else
+	{
+		limit = pDestList->GetItemCount(); // index of last file is (limit - 1)
+		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		index = pDestList->GetFirstSelected();
+		if (index != (long)-1)
+		{
+			// there is one or more selections
+			pDestList->Select(index,FALSE); // FALSE turns selection off
+		}
+		do {
+			index = pDestList->GetNextSelected(index);
+			if (index == -1)
+				break;
+			pDestList->Select(index,FALSE); // FALSE turns selection off
+		} while (TRUE);
+	}
+	// unsigned int aCount = srcSelectedFilesArray.GetCount();  same bug manifests, so
+	// wxListView doesn't help get round the problem
+}
+*/
 
 void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 {
@@ -1289,7 +1351,8 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 
 		// prepare for iteration, a new value for aFilename is required
 		nItemIndex++;
-		aFilename = srcSelectedFilesArray.Item(nItemIndex);
+		if (nItemIndex < limitSelected)
+			aFilename = srcSelectedFilesArray.Item(nItemIndex);
 
 	} while (nItemIndex < limitSelected);
 
@@ -1327,22 +1390,50 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 		} // end loop block
 	}  // end block for test: if (bDoMove)
 
+	unsigned int i;
+	for (i=0; i < srcSelectedFilesArray.GetCount(); i++)
+	{
+		wxString fn = srcSelectedFilesArray.Item(i);
+		wxLogDebug(_T("Files Before:  %s   at index:  %d  for total of %d\n"), fn.c_str(),i, srcSelectedFilesArray.GetCount());
+	}
 	// clear the source side's array of filename selections
-	srcSelectedFilesArray.Clear();
+	srcSelectedFilesArray.Empty();
 
+	/* for seeing what gets copied when debugging
+	for (i=0; i < srcSelectedFilesArray.GetCount(); i++)
+	{
+		wxString fn = srcSelectedFilesArray.Item(i);
+		wxLogDebug(_T("Files After:   %s   at index:  %d  for total of %d\n"), fn.c_str(),i, srcSelectedFilesArray.GetCount());
+	}
+	*/
 	// update the destination folder's list to show what has been copied or moved there
 	SetupDestList(m_strDestFolderPath);
 
     // update the source folder's list to show what remains after a move; for a copy, we
     // just need to deselect any selected files which may remain in the source list
+    /*
 	if (bDoMove)
 	{
 		SetupSrcList(m_strSrcFolderPath); // update its contents, clears any selections too
 	}
 	else
 	{
+		unsigned int aCount = srcSelectedFilesArray.GetCount();
 		DeselectSelectedFiles(sourceSide);
+		aCount = srcSelectedFilesArray.GetCount();
 	}
+	*/
+	SetupSrcList(m_strSrcFolderPath); // update its contents, clears any selections too
+    // NOTE: the commented out code above should work, but doesn't - a weird interference
+    // of wxListCtrl::SetItemState() with strSelectedFilesArray, in different threads,
+    // somehow spuriously gave the latter a m_nCount value of 1 after having been emptied
+    // earlier above, and then the wxASSERT below would trip when it should succeed
+
+	//unsigned int aCount = srcSelectedFilesArray.GetCount(); // for debugging, the assert
+															  //below was tripping
+	//wxString aName = srcSelectedFilesArray.Item(0); // for debugging, to see what was 
+													  // there and shouldn't have been
+	
 	// disable the Copy File Or Files button, and other relevant buttons
 	wxASSERT(srcSelectedFilesArray.GetCount() == 0);
 	EnableCopyFileOrFilesButton(FALSE);
