@@ -1209,7 +1209,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 			// caller will not go ahead with deletion of the source folder's file
 			wxString msg;
 			msg = msg.Format(_("The destination folder's file with the name %s would be overwritten if this move or copy were to go ahead. To avoid this unexpected possibility for data loss, the move or copy will now be cancelled. Do something appropriate with the destination folder's file, and then try again."),
-				filename);
+				filename.c_str());
 			wxMessageBox(msg,_("Unexpected Filename Conflict During Copy Or Move"),wxICON_WARNING);
 			return FALSE;
 		}
@@ -1219,7 +1219,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 			wxString msg;
 			msg = msg.Format(
 _("Moving or copying the file with path %s failed unexpectedly. Make sure no other application has it open, then try again to move or copy it."),
-			theSourcePath);
+theSourcePath.c_str());
 			wxMessageBox(msg,_("Moving or copying failed"),wxICON_WARNING);
 			if (bSuccess)
 				bSuccess = FALSE;
