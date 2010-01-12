@@ -1609,7 +1609,7 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
 /// Called from: the AdminMoveOrCopy class, when building a folder's list of filenames.
 /// Fills the string array pFiles with the filenames (including extension) in the folder
 /// specified by pathToFolder (it must exist - caller must ensure that). Returns FALSE
-/// if there were not filenames obtained from the folder (we ignore hidden files and also
+/// if there were no filenames obtained from the folder (we ignore hidden files and also
 /// "." and ".."); otherwise, returns TRUE indicating there were files present.
 /// The sort operation is option, but defaults to TRUE if not specified. On a MS Windows
 /// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
