@@ -77,11 +77,6 @@ public:
 	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
 	wxArrayString srcFilesArray; // stores filenames (these get displayed)
 	wxArrayString srcSelectedFilesArray; // stores filenames selected by user
-	wxArrayString srcSelectedMoveFilesArray; // stores filenames selected by
-		// user, which are to be removed from the source side because a Move
-		// was wanted, rather than a copy (the contents are copies of what is
-		// stored in srcSelectedFilesArray)
-
 	wxArrayString destFoldersArray; // stores folder names (these get displayed)
 	wxArrayString destFilesArray; // stores filenames (these get displayed); and use
                 // this to check for conflicts when copying or moving files with names
@@ -91,6 +86,7 @@ public:
 				// for renaming or deleting these files, and the contents of this
 				// list is ignored for moving or copying as the latter two 
 				// functionalities use the destFolderAllFilesArray (below) instead
+	wxArrayInt arrCopiedOK; // stores 1 for a successful file copy, 0 if not copied
 
 	int srcFoldersCount;
 	int srcFilesCount;
@@ -101,6 +97,7 @@ public:
 
 protected:
 	void EnableCopyFileOrFilesButton(bool bEnableFlag);
+	void EnableMoveFileOrFilesButton(bool bEnableFlag);
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSrcListSelectItem(wxListEvent& event);
