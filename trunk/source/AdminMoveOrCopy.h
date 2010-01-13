@@ -60,6 +60,9 @@ public:
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
 	wxButton* pDeleteDestFileOrFilesButton;
+	wxButton* pDeleteDestFolderButton;
+	wxButton* pRenameDestFileButton;
+	wxButton* pRenameDestFolderButton;
 
 	wxImageList* pIconImages;
 	wxListItem* pTheColumnForSrcList; // has to be on heap
@@ -69,12 +72,6 @@ public:
 	wxListView* pSrcList; // a subclass of wxListCtrl
 	wxListView* pDestList; // ditto
 	wxString emptyFolderMessage;
-
-	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event));
 
 	wxString m_strSrcFolderPath;
 	wxString m_strDestFolderPath;
@@ -101,9 +98,22 @@ public:
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
 protected:
+	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedDeleteDestFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedRenameDestFile(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedRenameDestFolder(wxCommandEvent& WXUNUSED(event));
+
 	void EnableCopyFileOrFilesButton(bool bEnableFlag);
 	void EnableMoveFileOrFilesButton(bool bEnableFlag);
 	void EnableDeleteDestFileOrFilesButton(bool bEnableFlag);
+	void EnableDeleteDestFolderButton(bool bEnableFlag);
+	void EnableRenameDestFileButton(bool bEnableFlag);
+	void EnableRenameDestFolderButton(bool bEnableFlag);
+
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSrcListSelectItem(wxListEvent& event);

@@ -648,7 +648,7 @@ const int ID_BUTTON_MOVE_FILES = 487;
 const int ID_BUTTON_COPY_FOLDER = 488;
 const int ID_BUTTON_COPY_FILES = 489;
 const int ID_BUTTON_RENAME_DEST_FOLDER = 490;
-const int ID_BUTTON_RENAME_DEST_FILES = 491;
+const int ID_BUTTON_RENAME_DEST_FILE = 491;
 const int ID_BUTTON_DELETE_DEST_FOLDER = 492;
 const int ID_BUTTON_DELETE_DEST_FILES = 493;
 wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit = TRUE, bool set_sizer = TRUE );
