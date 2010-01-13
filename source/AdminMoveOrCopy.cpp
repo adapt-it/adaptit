@@ -76,12 +76,15 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
 	EVT_BUTTON(ID_BUTTON_COPY_FILES, AdminMoveOrCopy::OnCopyFileOrFiles)
 	EVT_BUTTON(ID_BUTTON_MOVE_FILES, AdminMoveOrCopy::OnMoveFileOrFiles)
+	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FILES, AdminMoveOrCopy::OnBnClickedDeleteDestFiles)
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	: AIModalDialog(parent, -1, _("Move or Copy Folders Or Files"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
+	pSrcList = NULL;
+	pDestList= NULL;
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
 	// for the dialog. The first parameter is the parent which should normally be "this".
 	// The second and third parameters should both be TRUE to utilize the sizers and create the right
@@ -89,8 +92,6 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	MoveOrCopyFilesOrFoldersFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
-	pSrcList = NULL;
-	pDestList= NULL;
 
 	m_strSrcFolderPath = _T("");
 	m_strDestFolderPath = _T("");
@@ -141,6 +142,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	srcFilesCount = 0;
 	destFoldersCount = 0;
 	destFilesCount = 0;
+	m_bNoDestPathYet = FALSE;
 
 	m_bUserCancelled = FALSE;
 	m_bCopyWasSuccessful = FALSE;
@@ -156,6 +158,11 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pMoveFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FILES);
 	pCopyFolderButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FOLDER);
 	pCopyFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FILES);
+	pDeleteDestFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FILES);
+
+	EnableCopyFileOrFilesButton(FALSE);
+	EnableMoveFileOrFilesButton(FALSE);
+	EnableDeleteDestFileOrFilesButton(FALSE);
 
 
     // get the folder and file icons (bitmaps actually) into the image list which the two
@@ -219,6 +226,10 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 
 	// initialize for the "Locate...folder" buttons
 	m_strSrcFolderPath = gpApp->m_workFolderPath;
+	/* 
+	// it's better to start with an undefined destination folder - prevents copies 
+	// being done by mistake to the work folder if user forgets to locate a destination
+	// 
 	// set up reasonable default paths so that the wxDir class's browser has directory
 	// defaults to start from
 	if (gpApp->m_bUseCustomWorkFolderPath  && !gpApp->m_customWorkFolderPath.IsEmpty())
@@ -229,11 +240,13 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	{
 		m_strDestFolderPath = gpApp->m_workFolderPath;
 	}
+	*/
+	emptyFolderMessage = _("The folder is empty (or maybe undefined)");
+	m_strDestFolderPath = _T(""); // start with no path defined
+
 	CAdapt_ItApp* pApp;
 	pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);
-
-	emptyFolderMessage = _("The folder is empty");
 
 	// make the font show the user's desired dialog font point size ( I think this dialog can
 	// instead just rely on the system font supplied to the dialog by default)
@@ -372,6 +385,7 @@ void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 	int isSelected = 0;
 	if (side == sourceSide)
 	{
+		srcSelectedFilesArray.Empty(); // clear, we'll refill in the loop
 		index = srcFoldersCount; // index of first file in the wxListCtrl
 		limit = pSrcList->GetItemCount(); // index of list file is (limit - 1)
 		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
@@ -395,6 +409,7 @@ void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 	}
 	else
 	{
+		destSelectedFilesArray.Empty(); // clear, we'll refill in the loop
 		index = destFoldersCount; // index of first file in the wxListCtrl
 		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
 		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
@@ -409,8 +424,8 @@ void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 			if (isSelected)
 			{
 				// this one is selected, add it's name to the list of selected files
-				wxString filename = pSrcList->GetItemText(index);
-				size_t itsIndex = srcSelectedFilesArray.Add(filename); // return is unused
+				wxString filename = pDestList->GetItemText(index);
+				size_t itsIndex = destSelectedFilesArray.Add(filename); // return is unused
 				itsIndex = itsIndex; // avoid compiler warning
 				isSelected = 0;
 			}
@@ -578,11 +593,11 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 	GetListCtrlContents(sourceSide, folderPath, bHasFolders, bHasFiles);
 	if (bHasFolders || bHasFiles)
 	{
-		// Enable the move and copy buttons at the bottom
-		pMoveFolderButton->Enable();
-		pMoveFileOrFilesButton->Enable();
-		pCopyFolderButton->Enable();
-		pCopyFileOrFilesButton->Enable();
+		// Disable the move and copy buttons at the bottom
+		pMoveFolderButton->Enable(FALSE);
+		pMoveFileOrFilesButton->Enable(FALSE);
+		pCopyFolderButton->Enable(FALSE);
+		pCopyFileOrFilesButton->Enable(FALSE);
 		srcFoldersCount = 0;
 		srcFilesCount = 0;
 
@@ -632,6 +647,15 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 
 void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 {
+	/*
+	if (folderPath.IsEmpty())
+	{
+		rv = pDestList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
+		destFoldersCount = 0;
+		destFilesCount = 0;
+		return;
+	}
+	*/
 	// put the path into the edit control
 	pDestFolderPathTextCtrl->ChangeValue(folderPath);
 
@@ -644,6 +668,8 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 	GetListCtrlContents(destinationSide, folderPath, bHasFolders, bHasFiles);
 	if (bHasFolders || bHasFiles)
 	{
+		pDeleteDestFileOrFilesButton->Enable(FALSE);
+
 		destFoldersCount = 0;
 		destFilesCount = 0;
 
@@ -676,13 +702,11 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
         // empty jug icon, because without an explicit icon, the icon in the list with
         // index = 0 gets shown, and that is the folder icon - which would be confusing, as
         // it would suggest a folder was found with the name "The folder is empty".
-        //wxListItem colInfo;
-        //bool bGotColInfoOK = pDestList->GetColumn(0,colInfo);
-		//bGotColInfoOK = bGotColInfoOK;
 		rv = pDestList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
 		destFoldersCount = 0;
 		destFilesCount = 0;
 	}
+	EnableDeleteDestFileOrFilesButton(FALSE);
 }
 
 
@@ -723,6 +747,7 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupDestList(m_strDestFolderPath);
+	EnableDeleteDestFileOrFilesButton(FALSE);
 }
 
 void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -893,6 +918,16 @@ void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 		return;
 	}
 	event.Skip();
+	// a file has been selected
+	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
+	if (destSelectedFilesArray.GetCount() > 0)
+	{
+		EnableDeleteDestFileOrFilesButton(TRUE);
+	}
+	else
+	{
+		EnableDeleteDestFileOrFilesButton(FALSE);
+	}
 }
 
 void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
@@ -1119,6 +1154,16 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 	copyType = copyAndReplace; // set to default value
 	wxString newFilenameStr = _T("");
 
+	// do nothing if the destination folder is not yet defined
+	if (destPath.IsEmpty())
+	{
+		wxMessageBox(_(
+	"No destination folder is defined. Use the button 'Locate the destination folder' to first set a destination, then try again."),
+		_("Cannot move or copy"), wxICON_WARNING);
+		m_bNoDestPathYet = TRUE;
+		return FALSE;
+	}
+
 	// make the path to the source file
 	wxString theSourcePath = srcPath + gpApp->PathSeparator + filename;
 	// check for a name conflict (including extension, same names but different extensions
@@ -1225,7 +1270,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 		{
 			wxString msg;
 			msg = msg.Format(
-_("Moving or copying the file with path %s failed unexpectedly. Make sure no other application has it open, then try again to move or copy it."),
+_("Moving or copying the file with path %s failed unexpectedly. Possibly you forgot to use the button for locating a destination folder. Do so then try again."),
 theSourcePath.c_str());
 			wxMessageBox(msg,_("Moving or copying failed"),wxICON_WARNING);
 			if (bSuccess)
@@ -1340,6 +1385,12 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 			// m_bUserCancelled to force the parent dialog to close; other failures, however,
 			// need a warning to be given to the user
 			arrCopiedOK.Add(0); // record the fact that the copy did not take place
+			if (m_bNoDestPathYet)
+			{
+				// a warning has been seen from CopySingleFile(), so just return
+				m_bNoDestPathYet = FALSE; // restore default value
+				return;
+			}
 			if (m_bUserCancelled)
 			{
 				// force parent dialog to close, and if Move was being attempted, abandon that
@@ -1392,9 +1443,9 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 					msg = msg.Format(_T("MoveOrCopyFileOrFiles: Removing the file ( %s ) for the requested move, failed"),
 							theSourceFilePath.c_str());
 					wxMessageBox(msg, _T("Removing a source file after moving it, failed"),wxICON_WARNING);
-				}
-			} // end block for test: if (!bRemovedSuccessfully)
-		} // end loop block
+				} // end block for test: if (!bRemovedSuccessfully)
+			} // end block for test: if (flag)
+		} // end for loop block
 	}  // end block for test: if (bDoMove)
 	/*
 	unsigned int i;
@@ -1437,6 +1488,40 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 	EnableMoveFileOrFilesButton(FALSE);
 }
 
+void AdminMoveOrCopy::EnableDeleteDestFileOrFilesButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pDeleteDestFileOrFilesButton->Enable(TRUE);
+	else
+		pDeleteDestFileOrFilesButton->Enable(FALSE);
+}
 
+void AdminMoveOrCopy::OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event))
+{
+	size_t index;
+	size_t limitSelected = destSelectedFilesArray.GetCount();
+	wxString aFilename;
+	wxString theDestFilePath;
+	bool bRemovedSuccessfully;
+	for (index = 0; index < limitSelected; index++)
+	{
+		aFilename = destSelectedFilesArray.Item(index); // get the filename
+		// make the path to it
+		theDestFilePath = m_strDestFolderPath + gpApp->PathSeparator + aFilename;
+
+		// remove the file from the destination folder
+		bRemovedSuccessfully = ::wxRemoveFile(theDestFilePath);
+		if (!bRemovedSuccessfully)
+		{
+			// shouldn't ever fail, so an English message for developer will do
+			wxString msg;
+			msg = msg.Format(_T("Delete File or Files: Deleting the file  %s  failed"),
+					theDestFilePath.c_str());
+			wxMessageBox(msg, _T("Deleting a file failed"),wxICON_WARNING);
+		} // end block for test: if (!bRemovedSuccessfully)
+	} // end for loop block
+	// update the destination list
+	SetupDestList(m_strDestFolderPath);
+}
 
 

@@ -25470,15 +25470,9 @@ void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 	{
 		return;
 	}
-
-
 	AdminMoveOrCopy dlg(pApp->GetMainFrame());
-
 	if (dlg.ShowModal() == wxID_OK)
 	{
-
-
-
 	}
 }
 

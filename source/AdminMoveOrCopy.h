@@ -44,6 +44,7 @@ public:
 	bool m_bUserCancelled;
 	bool m_bCopyWasSuccessful;
 	bool m_bDoTheSameWay;
+	bool m_bNoDestPathYet;
 	CopyAction copyType;
 	CopyAction lastWay;
 
@@ -58,6 +59,7 @@ public:
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
+	wxButton* pDeleteDestFileOrFilesButton;
 
 	wxImageList* pIconImages;
 	wxListItem* pTheColumnForSrcList; // has to be on heap
@@ -72,6 +74,7 @@ public:
 	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event));
 
 	wxString m_strSrcFolderPath;
 	wxString m_strDestFolderPath;
@@ -100,6 +103,7 @@ public:
 protected:
 	void EnableCopyFileOrFilesButton(bool bEnableFlag);
 	void EnableMoveFileOrFilesButton(bool bEnableFlag);
+	void EnableDeleteDestFileOrFilesButton(bool bEnableFlag);
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnSrcListSelectItem(wxListEvent& event);

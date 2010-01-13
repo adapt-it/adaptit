@@ -1539,6 +1539,13 @@ bool IsReadOnlyProtection_LockFile(wxString& filename)
 ////////////////////////////////////////////////////////////////////////////////////////
 bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
 {
+	if (pathToFolder.IsEmpty())
+	{
+		wxMessageBox(_(
+	"No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."),
+		_("Error, empty path specification"), wxICON_ERROR);
+		return FALSE;
+	}
 	wxDir dir;
 	// wxDir must call .Open() before enumerating files
 	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
@@ -1617,6 +1624,12 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
 ////////////////////////////////////////////////////////////////////////////////////////
 bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort)
 {
+	if (pathToFolder.IsEmpty())
+	{
+		// return silently, GetFoldersOnly() will already have put up the appropriate
+		// message 
+		return FALSE;
+	}
 	wxDir dir;
 	// wxDir must call .Open() before enumerating files
 	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
