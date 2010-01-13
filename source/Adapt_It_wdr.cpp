@@ -6799,7 +6799,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     item36->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item38 = new wxButton( parent, ID_BUTTON_RENAME_DEST_FILES, _("Rename Destination File"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item38 = new wxButton( parent, ID_BUTTON_RENAME_DEST_FILE, _("Rename Destination File"), wxDefaultPosition, wxDefaultSize, 0 );
     item36->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item36->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );

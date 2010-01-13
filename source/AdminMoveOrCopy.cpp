@@ -77,6 +77,9 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_COPY_FILES, AdminMoveOrCopy::OnCopyFileOrFiles)
 	EVT_BUTTON(ID_BUTTON_MOVE_FILES, AdminMoveOrCopy::OnMoveFileOrFiles)
 	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FILES, AdminMoveOrCopy::OnBnClickedDeleteDestFiles)
+	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FOLDER, AdminMoveOrCopy::OnBnClickedDeleteDestFolder)
+	EVT_BUTTON(ID_BUTTON_RENAME_DEST_FILE, AdminMoveOrCopy::OnBnClickedRenameDestFile)
+	EVT_BUTTON(ID_BUTTON_RENAME_DEST_FOLDER, AdminMoveOrCopy::OnBnClickedRenameDestFolder)
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
@@ -159,10 +162,17 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pCopyFolderButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FOLDER);
 	pCopyFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FILES);
 	pDeleteDestFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FILES);
+	pDeleteDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FOLDER);
+	pRenameDestFileButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME_DEST_FILE);
+	pRenameDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME_DEST_FOLDER);
 
+	// start with lower buttons disabled (they rely on selections to become enabled)
 	EnableCopyFileOrFilesButton(FALSE);
 	EnableMoveFileOrFilesButton(FALSE);
 	EnableDeleteDestFileOrFilesButton(FALSE);
+	EnableDeleteDestFolderButton(FALSE);
+	EnableRenameDestFileButton(FALSE);
+	EnableRenameDestFolderButton(FALSE);
 
 
     // get the folder and file icons (bitmaps actually) into the image list which the two
@@ -707,6 +717,9 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 		destFilesCount = 0;
 	}
 	EnableDeleteDestFileOrFilesButton(FALSE);
+	EnableDeleteDestFolderButton(FALSE);
+	EnableRenameDestFileButton(FALSE);
+	EnableRenameDestFolderButton(FALSE);
 }
 
 
@@ -748,6 +761,9 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupDestList(m_strDestFolderPath);
 	EnableDeleteDestFileOrFilesButton(FALSE);
+	EnableDeleteDestFolderButton(FALSE);
+	EnableRenameDestFileButton(FALSE);
+	EnableRenameDestFolderButton(FALSE);
 }
 
 void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -923,10 +939,16 @@ void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 	if (destSelectedFilesArray.GetCount() > 0)
 	{
 		EnableDeleteDestFileOrFilesButton(TRUE);
+		EnableDeleteDestFolderButton(TRUE);
+		EnableRenameDestFileButton(TRUE);
+		EnableRenameDestFolderButton(TRUE);
 	}
 	else
 	{
 		EnableDeleteDestFileOrFilesButton(FALSE);
+		EnableDeleteDestFolderButton(FALSE);
+		EnableRenameDestFileButton(FALSE);
+		EnableRenameDestFolderButton(FALSE);
 	}
 }
 
@@ -946,7 +968,6 @@ void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 		event.Skip();
 		return;
 	}
-	// don't need any special behaviours for deselecting files
 	event.Skip();
 	// if no files are now selected, disable the copy buton
 	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections 
@@ -978,8 +999,23 @@ void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 		event.Skip();
 		return;
 	}
-	// don't need any special behaviours for deselecting files
 	event.Skip();
+	// if no files are now selected, disable the delete and rename buttons (4 buttons)
+	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
+	if (destSelectedFilesArray.GetCount() > 0)
+	{
+		EnableDeleteDestFileOrFilesButton(TRUE);
+		EnableDeleteDestFolderButton(TRUE);
+		EnableRenameDestFileButton(TRUE);
+		EnableRenameDestFolderButton(TRUE);
+	}
+	else
+	{
+		EnableDeleteDestFileOrFilesButton(FALSE);
+		EnableDeleteDestFolderButton(FALSE);
+		EnableRenameDestFileButton(FALSE);
+		EnableRenameDestFolderButton(FALSE);
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1488,6 +1524,30 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 	EnableMoveFileOrFilesButton(FALSE);
 }
 
+void AdminMoveOrCopy::EnableDeleteDestFolderButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pDeleteDestFolderButton->Enable(TRUE);
+	else
+		pDeleteDestFolderButton->Enable(FALSE);
+}
+
+void AdminMoveOrCopy::EnableRenameDestFileButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pRenameDestFileButton->Enable(TRUE);
+	else
+		pRenameDestFileButton->Enable(FALSE);
+}
+
+void AdminMoveOrCopy::EnableRenameDestFolderButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pRenameDestFolderButton->Enable(TRUE);
+	else
+		pRenameDestFolderButton->Enable(FALSE);
+}
+
 void AdminMoveOrCopy::EnableDeleteDestFileOrFilesButton(bool bEnableFlag)
 {
 	if (bEnableFlag)
@@ -1524,4 +1584,26 @@ void AdminMoveOrCopy::OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event)
 	SetupDestList(m_strDestFolderPath);
 }
 
+
+void AdminMoveOrCopy::OnBnClickedDeleteDestFolder(wxCommandEvent& WXUNUSED(event))
+{
+
+
+}
+
+void AdminMoveOrCopy::OnBnClickedRenameDestFile(wxCommandEvent& WXUNUSED(event))
+{
+
+
+	// update the destination list
+	SetupDestList(m_strDestFolderPath);
+}
+
+void AdminMoveOrCopy::OnBnClickedRenameDestFolder(wxCommandEvent& WXUNUSED(event))
+{
+
+
+	// update the destination list
+	SetupDestList(m_strDestFolderPath);
+}
 
