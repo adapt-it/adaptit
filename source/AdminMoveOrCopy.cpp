@@ -105,10 +105,10 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	pLocateDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_LOCATE_DESTINATION_FOLDER);
 	wxASSERT(pLocateDestFolderButton != NULL);
 
-	pSrcList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
-	pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
-	//pSrcList = (wxListView*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
-	//pDestList= (wxListView*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
+	//pSrcList = (wxListCtrl*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
+	//pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
+	pSrcList = (wxListView*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
+	pDestList= (wxListView*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
 
 	srcFoldersArray.Empty();
 	srcFilesArray.Empty();
@@ -251,14 +251,16 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 /* 
 // I did two versions of this, one using wxListCtrl, another using the subclass wxListView
 // and both failed in the same way - see the comments below; it's a widgets problem, not
-// mine 
+// mine; the version using wxListView is simpler so I'll use that, but it has the
+// SetItemState() call implicit in its Selection() function, whereas I call it explicitly
+// in this first version now commented out
 void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 {
 	int index = 0;
 	int limit = 0;
 	long stateMask = 0;
 	stateMask |= wxLIST_STATE_SELECTED;
-	stateMask |= wxLIST_STATE_FOCUSED;
+	stateMask |= wxLIST_STATE_FOCUSED; // not necessary, but the wiki.wxWidgets site has it
 	int isSelected = 0;
 	bool bSetOK = 0;
 	if (side == sourceSide)
@@ -305,8 +307,8 @@ aCount = srcSelectedFilesArray.GetCount(); // this goes to aCount = 1 after the 
 	}
 }
 */
-/*
-// redo using wxListView -- hopefully this won't have the bug above & is simpler
+
+// redo using a wxListView class -- this is simpler
 void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 {
 	long index = 0;
@@ -328,6 +330,10 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 			index = pSrcList->GetNextSelected(index);
 			if (index == -1)
 				break;
+			// *** BEWARE *** this call uses SetItemState() and it causes
+			// m_nCount of wxArrayString to get set to 1 spuriously, for
+			// the strSrcSelectedFilesArray after the latter is Empty()ied,
+			// so make the .Empty() call be done after DeselectSelectedFiles()
 			pSrcList->Select(index,FALSE); // FALSE turns selection off
 		} while (TRUE);
 	}
@@ -348,13 +354,14 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 			index = pDestList->GetNextSelected(index);
 			if (index == -1)
 				break;
-			pDestList->Select(index,FALSE); // FALSE turns selection off
+			// *** BEWARE *** this call uses SetItemState() and it might cause
+			// m_nCount of wxArrayString to get set to 1 spuriously, -- see above
 		} while (TRUE);
 	}
 	// unsigned int aCount = srcSelectedFilesArray.GetCount();  same bug manifests, so
 	// wxListView doesn't help get round the problem
 }
-*/
+
 
 void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 {
@@ -1389,51 +1396,41 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 			} // end block for test: if (!bRemovedSuccessfully)
 		} // end loop block
 	}  // end block for test: if (bDoMove)
-
+	/*
 	unsigned int i;
 	for (i=0; i < srcSelectedFilesArray.GetCount(); i++)
 	{
 		wxString fn = srcSelectedFilesArray.Item(i);
 		wxLogDebug(_T("Files Before:  %s   at index:  %d  for total of %d\n"), fn.c_str(),i, srcSelectedFilesArray.GetCount());
 	}
-	// clear the source side's array of filename selections
+	*/
+	// Note: a bug in SetItemState() which DeselectSelectedFiles() call uses causes the
+	// m_nCount member of wxArrayString for srcSelectedFilesArray() to be overwritten to
+	// have value 1, do after emptying here, a further empty is required further below
 	srcSelectedFilesArray.Empty();
 
-	/* for seeing what gets copied when debugging
-	for (i=0; i < srcSelectedFilesArray.GetCount(); i++)
-	{
-		wxString fn = srcSelectedFilesArray.Item(i);
-		wxLogDebug(_T("Files After:   %s   at index:  %d  for total of %d\n"), fn.c_str(),i, srcSelectedFilesArray.GetCount());
-	}
-	*/
 	// update the destination folder's list to show what has been copied or moved there
 	SetupDestList(m_strDestFolderPath);
 
     // update the source folder's list to show what remains after a move; for a copy, we
     // just need to deselect any selected files which may remain in the source list
-    /*
 	if (bDoMove)
 	{
 		SetupSrcList(m_strSrcFolderPath); // update its contents, clears any selections too
 	}
 	else
 	{
-		unsigned int aCount = srcSelectedFilesArray.GetCount();
 		DeselectSelectedFiles(sourceSide);
-		aCount = srcSelectedFilesArray.GetCount();
 	}
-	*/
-	SetupSrcList(m_strSrcFolderPath); // update its contents, clears any selections too
-    // NOTE: the commented out code above should work, but doesn't - a weird interference
-    // of wxListCtrl::SetItemState() with strSelectedFilesArray, in different threads,
-    // somehow spuriously gave the latter a m_nCount value of 1 after having been emptied
-    // earlier above, and then the wxASSERT below would trip when it should succeed
 
-	//unsigned int aCount = srcSelectedFilesArray.GetCount(); // for debugging, the assert
-															  //below was tripping
-	//wxString aName = srcSelectedFilesArray.Item(0); // for debugging, to see what was 
-													  // there and shouldn't have been
-	
+	// clear the source side's array of filename selections (put it here because the
+	// SetItemState() call implicit in DeselectSelectedFiles() causes the emptied
+	// srcSelectedFilesArray to become non-empty (its m_nCount becomes 1, even though the
+	// AdminMoveOrCopy class and its members is on main thread and the wxListCtrl, or
+	// wxListView class, is on a different work thread). I can just do a unilateral call
+	// above of SetupSrcList() to get round this problem, but that's wasteful
+	srcSelectedFilesArray.Empty(); // DO NOT DELETE THIS CALL HERE (even though its above)
+
 	// disable the Copy File Or Files button, and other relevant buttons
 	wxASSERT(srcSelectedFilesArray.GetCount() == 0);
 	EnableCopyFileOrFilesButton(FALSE);

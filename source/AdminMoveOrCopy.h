@@ -62,10 +62,10 @@ public:
 	wxImageList* pIconImages;
 	wxListItem* pTheColumnForSrcList; // has to be on heap
 	wxListItem* pTheColumnForDestList; // has to be on heap
-	wxListCtrl* pSrcList;
-	wxListCtrl* pDestList;
-	//wxListView* pSrcList; // a subclass of wxListCtrl
-	//wxListView* pDestList; // ditto
+	//wxListCtrl* pSrcList; // using wxListView is easier
+	//wxListCtrl* pDestList;
+	wxListView* pSrcList; // a subclass of wxListCtrl
+	wxListView* pDestList; // ditto
 	wxString emptyFolderMessage;
 
 	void OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event));
@@ -115,13 +115,11 @@ private:
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
 								bool& bHasFolders, bool& bHasFiles);
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	//bool IsFileConflicted(int srcFileIndex, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 	bool IsFileConflicted(wxString& srcFile, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
 	void SetupSelectedFilesArray(enum whichSide side);
-	//void DeselectSelectedFiles(enum whichSide side); // can't use it, due to wxWidgets bug
-													   // so use SetupSelectedFilesArray() instead
+	void DeselectSelectedFiles(enum whichSide side); // beware of wxWidgets bug in SetItemState()
 	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
