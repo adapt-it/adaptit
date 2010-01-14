@@ -1279,6 +1279,8 @@ class CAdapt_ItApp : public wxApp
 	virtual ~CAdapt_ItApp(); // whm make all destructors virtual
     CMainFrame* GetMainFrame();
 
+	bool m_bAdminMoveOrCopyIsInitializing;
+
     /// The application's m_pDocManager member is one of the main players in the
     /// document-view framework as implemented in wxWidgets. It is created in OnInit() and
     /// mostly it takes care of itself, but we do use it explicitly to manage the file

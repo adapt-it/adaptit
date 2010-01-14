@@ -106,11 +106,15 @@ protected:
 	void OnBnClickedDeleteDestFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRenameDestFile(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRenameDestFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedCopySrcFolder(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedMoveSrcFolder(wxCommandEvent& WXUNUSED(event));
 
 	void EnableCopyFileOrFilesButton(bool bEnableFlag);
 	void EnableMoveFileOrFilesButton(bool bEnableFlag);
-	void EnableDeleteDestFileOrFilesButton(bool bEnableFlag);
+	void EnableCopyFolderButton(bool bEnableFlag);
+	void EnableMoveFolderButton(bool bEnableFlag);
 	void EnableDeleteDestFolderButton(bool bEnableFlag);
+	void EnableDeleteDestFileOrFilesButton(bool bEnableFlag);
 	void EnableRenameDestFileButton(bool bEnableFlag);
 	void EnableRenameDestFolderButton(bool bEnableFlag);
 
