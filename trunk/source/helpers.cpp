@@ -1527,6 +1527,8 @@ bool IsReadOnlyProtection_LockFile(wxString& filename)
 ///                                 are stripped off)
 /// \param      bSort          ->   boolean to indicate whether the list should be sorted
 ///                                 prior to returning; default is TRUE (to get sort done)
+/// \param      bSuppressMessage  -> default FALSE, allows the message for an empty path to
+///                                 be displayable; set TRUE to suppress the message
 /// \remarks
 /// Called from: the AdminMoveOrCopy class, when building a folder's list of folder names.
 /// Fills the string array pFolders with the folder names in the passed in folder
@@ -1536,69 +1538,86 @@ bool IsReadOnlyProtection_LockFile(wxString& filename)
 /// The sort operation is option, but defaults to TRUE if not specified. On a MS Windows
 /// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
 /// A side effect is to set the current working directory to the folder passed in.
+/// So far (January 2010) we use the bSuppressMessage = TRUE on in order to suppress the
+/// empty path warning during initialization of the AdminMoveOrCopy class, where we want
+/// the destination folder path to be empty explicitly when the dialog is first opened.
+/// For this we use a CAdapt_ItApp::m_bAdminMoveOrCopyIsInitializing member variable which
+/// is set TRUE at the start of initialization, cleared to FALSE when initialization is
+/// done, and is FALSE at all other times.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
+bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
+					bool bSuppressMessage)
 {
-	if (pathToFolder.IsEmpty())
-	{
-		wxMessageBox(_(
-	"No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."),
-		_("Error, empty path specification"), wxICON_ERROR);
-		return FALSE;
-	}
+	bool bOK = TRUE;
 	wxDir dir;
-	// wxDir must call .Open() before enumerating files
-	bool bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
-	if (!bOK)
+	if (pathToFolder.IsEmpty() )
 	{
-		// unlikely to fail, but just in case...
-		wxMessageBox(_(
-	"Failed to set the current directory when getting the folder's child folders; perhaps try again."),
-		_("Error, no working directory"), wxICON_ERROR);
+		if (!bSuppressMessage)
+		{
+			wxMessageBox(_(
+"No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."),
+			_("Error, empty path specification"), wxICON_ERROR);
+		}
 		return FALSE;
 	}
-	else
+	else 
 	{
-		wxString str = _T("");
-		bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_DIRS); // get directories only
-		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
-		// to include directories, OR with wxDIR_DIRS
-		// to include hidden files, OR with wxDIR_HIDDEN
-		// to include . and .. OR with wxDIR_DOTDOT
-		// For our Adapt It purposes, we don't use hidden files, so we won't
-		// show any such to the user - but moving or copying folders will move or
-		// copy any contained hidden files
-		while (bWorking)
+		// wxDir must call .Open() before enumerating files
+		bOK = (::wxSetWorkingDirectory(pathToFolder) && dir.Open(pathToFolder)); 
+		if (!bOK)
 		{
-			if (str.IsEmpty())
-				continue;
-			// check the directory actually exists, this should always succeed
-			bool bExists = dir.Exists(str);
-			if (!bExists)
+			// unlikely to fail, but just in case...
+			if (!bSuppressMessage)
 			{
-				// this error is highly unlikely to ever occur, so an English-only message
-				// will do here
-				wxString msg;
-				msg = msg.Format(_T(
-					"The directory %s was detected but testing for its existence failed. You probably should try again."), str.c_str());
-				wxMessageBox(msg, _("Error, not a directory"), wxICON_ERROR);
-				return FALSE;
+				wxMessageBox(_(
+"Failed to set the current directory when getting the folder's child folders; perhaps try again."),
+				_("Error, no working directory"), wxICON_WARNING);
 			}
-			wxASSERT(!str.IsEmpty());
-			pFolders->Add(str); // add the folder name to the list (makes a copy of str)
-
-			// try find the next one
-			bWorking = dir.GetNext(&str);
-		}
-
-		// if the list is still empty, return FALSE
-		if (pFolders->IsEmpty())
 			return FALSE;
-
-		// do the sort of the list of folder names, if requested
-		if (bSort)
+		}
+		else
 		{
-			pFolders->Sort(sortCompareFunc);
+			wxString str = _T("");
+			bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_DIRS); // get directories only
+			// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
+			// to include directories, OR with wxDIR_DIRS
+			// to include hidden files, OR with wxDIR_HIDDEN
+			// to include . and .. OR with wxDIR_DOTDOT
+			// For our Adapt It purposes, we don't use hidden files, so we won't
+			// show any such to the user - but moving or copying folders will move or
+			// copy any contained hidden files
+			while (bWorking)
+			{
+				if (str.IsEmpty())
+					continue;
+				// check the directory actually exists, this should always succeed
+				bool bExists = dir.Exists(str);
+				if (!bExists)
+				{
+					// this error is highly unlikely to ever occur, so an English-only message
+					// will do here
+					wxString msg;
+					msg = msg.Format(_T(
+						"The directory %s was detected but testing for its existence failed. You probably should try again."), str.c_str());
+					wxMessageBox(msg, _("Error, not a directory"), wxICON_ERROR);
+					return FALSE;
+				}
+				wxASSERT(!str.IsEmpty());
+				pFolders->Add(str); // add the folder name to the list (makes a copy of str)
+
+				// try find the next one
+				bWorking = dir.GetNext(&str);
+			}
+
+			// if the list is still empty, return FALSE
+			if (pFolders->IsEmpty())
+				return FALSE;
+
+			// do the sort of the list of folder names, if requested
+			if (bSort)
+			{
+				pFolders->Sort(sortCompareFunc);
+			}
 		}
 	}
 	return TRUE;
@@ -1622,7 +1641,8 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort)
 /// plaform, a caseless sort is done, on Linux or Unix (or Mac) it is a case-enabled sort.
 /// A side effect is to set the current working directory to the folder passed in.
 ////////////////////////////////////////////////////////////////////////////////////////
-bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort)
+bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
+				  bool bSuppressMessage)
 {
 	if (pathToFolder.IsEmpty())
 	{
@@ -1636,9 +1656,12 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort)
 	if (!bOK)
 	{
 		// unlikely to fail, but just in case...
-		wxMessageBox(_(
-	"Failed to set the current directory when getting the folder's files; perhaps try again."),
-		_("Error, no working directory"), wxICON_ERROR);
+		if (!bSuppressMessage)
+		{
+			wxMessageBox(_(
+"Failed to set the current directory when getting the folder's files; perhaps try again."),
+			_("Error, no working directory"), wxICON_WARNING);
+		}
 		return FALSE;
 	}
 	else

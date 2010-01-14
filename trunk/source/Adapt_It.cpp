@@ -4945,6 +4945,7 @@ int CAdapt_ItApp::GetFirstAvailableLanguageCodeOtherThan(const int codeToAvoid,
 //////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 {
+	m_bAdminMoveOrCopyIsInitializing = FALSE; // default
 	m_bControlIsWithinOnInit = TRUE;
 	m_bAutoExport = FALSE; // this flag can only be set TRUE by use of the commandline command
 						   // export, which takes three obligatory string parameters following
