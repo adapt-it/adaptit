@@ -899,20 +899,11 @@ void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 
 void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 {
-	size_t index = event.GetIndex();
-	if (index < srcFoldersCount)
-	{
-		// I don't expect control to go thru here, but if it does, I want feedback
-		// about that fact returned audibly; testing has so far never rung the bell
-		::wxBell();
-		wxString aFolderName = event.GetText();
+	m_srcIndex = 0;
+	m_srcItemText.Empty(); // make sure dbl click handler won't fire with old value
 
-		// extend the path using this foldername, and then display the contents
-		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupSrcList(m_strSrcFolderPath);
-		event.Skip();
-		return;
-	}
+	size_t index = event.GetIndex();
+	index = index; // prevent compiler warning
 	event.Skip();
 	// if no files are now selected, disable the copy buton
 	SetupSelectionArray(sourceSide); // update srcSelectedFilesArray with current selections 
@@ -920,20 +911,11 @@ void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 
 void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 {
-	size_t index = event.GetIndex();
-	if (index < destFoldersCount)
-	{
-		// I don't expect control to go thru here, but if it does, I want feedback
-		// about that fact returned audibly; testing has so far never rung the bell
-		::wxBell(); 
-		wxString aFolderName = event.GetText();
+	m_destIndex = 0;
+	m_destItemText.Empty(); // make sure dbl click handler won't fire with old value
 
-		// extend the path using this foldername, and then display the contents
-		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupDestList(m_strDestFolderPath);
-		event.Skip();
-		return;
-	}
+	size_t index = event.GetIndex();
+	index = index; // prevent compiler warning
 	event.Skip();
 	// if no files are now selected, disable the delete and rename buttons (4 buttons)
 	SetupSelectionArray(destinationSide); // update destSelectedFilesArray with current selections 
@@ -959,7 +941,10 @@ void AdminMoveOrCopy::OnSrcListDoubleclick(wxCommandEvent& WXUNUSED(event))
 	if (index < srcFoldersCount)
 	{
 		// we clicked on a folder name, so drill down to that child folder and display its
-		// contents in the dialog
+		// contents in the dialog;  check here for an empty string in m_srcItemText, and if so
+		// then don't do anything in this handler
+		if (m_srcItemText.IsEmpty())
+			return;		
 
 		// extend the path using this foldername, and then display the contents
 		m_strSrcFolderPath += gpApp->PathSeparator + m_srcItemText;
@@ -985,7 +970,10 @@ void AdminMoveOrCopy::OnDestListDoubleclick(wxCommandEvent& WXUNUSED(event))
 	if (index < destFoldersCount)
 	{
 		// we clicked on a folder name, so drill down to that child folder and display its
-		// contents in the dialog
+		// contents in the dialog;  check here for an empty string in m_destItemText, and if so
+		// then don't do anything in this handler
+		if (m_destItemText.IsEmpty())
+			return;		
 
 		// extend the path using this foldername, and then display the contents
 		m_strDestFolderPath += gpApp->PathSeparator + m_destItemText;
