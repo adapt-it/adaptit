@@ -375,14 +375,19 @@ projectFolderPath.c_str());
 	}
 	else
 	{
-		// the directory should exist - warn user and call OnExit() to abort; only the 
-		// developers should ever get to see this error so don't make it localizable
+		// the directory should exist - warn user. However, if setting up a custom folder location
+		// and not going through with defining a project folder, then detect theFilename
+		// being empty and silently return an empty string
+		if (theFilename.IsEmpty())
+			return theFilename;
+		/*
 		wxString mssg;
 		mssg = mssg.Format(
 _T("GetReadOnlyProtectionFileInProjectFolder(): the path, %s, to the passed in project folder does not exist! Now aborting."),
 projectFolderPath.c_str());
 		wxMessageBox(mssg, _T("wxDir() Err: the directory does not exist"), wxICON_ERROR);
 		wxExit();
+		*/
 	}
 	// populate the "owning" private members before returning
 	m_strOwningMachinename = ExtractMachinename(theFilename);

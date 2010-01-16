@@ -20,6 +20,8 @@
     #pragma interface "AdminMoveOrCopy.h"
 #endif
 
+#include <wx/datetime.h>
+
 enum whichSide {
 	sourceSide,
 	destinationSide
@@ -49,20 +51,21 @@ public:
 	CopyAction lastWay;
 
 	// wx version pointers for dialog controls
-	wxButton* pMoveFolderButton;
-	wxButton* pMoveFileOrFilesButton;
-	wxButton* pCopyFolderButton;
-	wxButton* pCopyFileOrFilesButton;
+	wxButton* pMoveButton;
+	//wxButton* pMoveFileOrFilesButton;
+	wxButton* pCopyButton;
+	//wxButton* pCopyFileOrFilesButton;
+	//wxButton* pDeleteDestFileOrFilesButton;
+	wxButton* pDeleteButton;
+	//wxButton* pRenameDestFileButton;
+	
+	wxButton* pRenameButton;
 	wxBitmapButton* pUpSrcFolder; 
 	wxBitmapButton* pUpDestFolder;
 	wxButton* pLocateSrcFolderButton;
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
 	wxTextCtrl* pDestFolderPathTextCtrl;
-	wxButton* pDeleteDestFileOrFilesButton;
-	wxButton* pDeleteDestFolderButton;
-	wxButton* pRenameDestFileButton;
-	wxButton* pRenameDestFolderButton;
 
 	wxImageList* pIconImages;
 	wxListItem* pTheColumnForSrcList; // has to be on heap
@@ -78,22 +81,27 @@ public:
 
 	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
 	wxArrayString srcFilesArray; // stores filenames (these get displayed)
-	wxArrayString srcSelectedFilesArray; // stores filenames selected by user
-	wxArrayString destFoldersArray; // stores folder names (these get displayed)
-	wxArrayString destFilesArray; // stores filenames (these get displayed); and use
-                // this to check for conflicts when copying or moving files with names
-                // stored in srcSelectedFilesArray
-	wxArrayString destSelectedFilesArray; // stores filenames selected by user
-				// (Note: files selected in destination folder is only meaningful
-				// for renaming or deleting these files, and the contents of this
-				// list is ignored for moving or copying as the latter two 
-				// functionalities use the destFolderAllFilesArray (below) instead
+	wxArrayString destFoldersArray; // stores folder names (these get displayed)in a block
+	wxArrayString destFilesArray; // stores filenames (these get displayed) in a block;
+                // and use this to check for conflicts when copying or moving files with
+                // names stored in srcSelectionArray
+	wxArrayString srcSelectionArray; // stores foldernames & filenames selected by user
+	wxArrayString destSelectionArray; // stores foldernames & filenames selected by
+				// user (Note: files selected in destination folder is only meaningful
+				// for renaming or deleting these files or folders, and the contents
+				// of this list is ignored for moving or copying
 	wxArrayInt arrCopiedOK; // stores 1 for a successful file copy, 0 if not copied
 
-	long srcFoldersCount;
-	long srcFilesCount;
-	long destFoldersCount;
-	long destFilesCount;
+	size_t srcFoldersCount;
+	size_t srcFilesCount;
+	size_t destFoldersCount;
+	size_t destFilesCount;
+
+	// next four for value passing (the double-click event doesn't know about the list)
+	size_t m_srcIndex;  // use this to pass item index to the double-click handler
+	size_t m_destIndex;  // use this to pass item index to the double-click handler
+	wxString m_srcItemText; // use this to pass text of double-clicked item to dbl click handler
+	wxString m_destItemText; // use this to pass text of double-clicked item to dbl click handler
 
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
@@ -102,30 +110,28 @@ protected:
 	void OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedDeleteDestFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedRenameDestFile(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedRenameDestFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedCopySrcFolder(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedMoveSrcFolder(wxCommandEvent& WXUNUSED(event));
 
-	void EnableCopyFileOrFilesButton(bool bEnableFlag);
-	void EnableMoveFileOrFilesButton(bool bEnableFlag);
-	void EnableCopyFolderButton(bool bEnableFlag);
-	void EnableMoveFolderButton(bool bEnableFlag);
-	void EnableDeleteDestFolderButton(bool bEnableFlag);
-	void EnableDeleteDestFileOrFilesButton(bool bEnableFlag);
-	void EnableRenameDestFileButton(bool bEnableFlag);
-	void EnableRenameDestFolderButton(bool bEnableFlag);
+	void OnBnClickedRename(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedDelete(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedCopy(wxCommandEvent& WXUNUSED(event));
+	void OnBnClickedMove(wxCommandEvent& WXUNUSED(event));
+
+	void EnableCopyButton(bool bEnableFlag);
+	void EnableMoveButton(bool bEnableFlag);
+	void EnableDeleteButton(bool bEnableFlag);
+	void EnableRenameButton(bool bEnableFlag);
 
 	void OnOK(wxCommandEvent& event);
 	void OnSize(wxSizeEvent& event);
+
 	void OnSrcListSelectItem(wxListEvent& event);
 	void OnSrcListDeselectItem(wxListEvent& event);
 	void OnDestListSelectItem(wxListEvent& event);
 	void OnDestListDeselectItem(wxListEvent& event);
-	void OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event));
-	void OnMoveFileOrFiles(wxCommandEvent& WXUNUSED(event));
+
+	void OnSrcListDoubleclick(wxCommandEvent& WXUNUSED(event));
+	void OnDestListDoubleclick(wxCommandEvent& WXUNUSED(event));
+
 private:
 	void MoveOrCopyFileOrFiles(bool bDoMove = TRUE);
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
@@ -136,9 +142,22 @@ private:
 	bool IsFileConflicted(wxString& srcFile, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
-	void SetupSelectedFilesArray(enum whichSide side);
+	void SetupSelectionArray(enum whichSide side);
 	void DeselectSelectedFiles(enum whichSide side); // beware of wxWidgets bug in SetItemState()
 	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
+
+	/* OBSOLETE
+
+	//void OnCopyFileOrFiles(wxCommandEvent& WXUNUSED(event));
+	//void OnMoveFileOrFiles(wxCommandEvent& WXUNUSED(event));
+	//void EnableCopyFileOrFilesButton(bool bEnableFlag);
+	//void EnableMoveFileOrFilesButton(bool bEnableFlag);
+	//void EnableDeleteDestFileOrFilesButton(bool bEnableFlag);
+	//void EnableRenameDestFileButton(bool bEnableFlag);
+	//
+	//void OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event));
+
+	*/
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
