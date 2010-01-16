@@ -652,19 +652,8 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupSrcList(m_strSrcFolderPath);
-	//EnableCopyFileOrFilesButton(FALSE); // copy button starts off disabled until a file or
-										// files are selected
-	//EnableMoveFileOrFilesButton(FALSE); // ditto for move button, etc
-	if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
-	{
-		EnableCopyButton(TRUE);
-		EnableMoveButton(TRUE);
-	}
-	else
-	{
-		EnableCopyButton(FALSE);
-		EnableMoveButton(FALSE);
-	}
+	EnableCopyButton(FALSE);
+	EnableMoveButton(FALSE);
 }
 
 void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event))
@@ -683,28 +672,8 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupDestList(m_strDestFolderPath);
-	//EnableDeleteDestFileOrFilesButton(FALSE);
-	if (m_strDestFolderPath.IsEmpty())
-	{
-		EnableRenameButton(FALSE);
-		EnableDeleteButton(FALSE);
-	}
-	else
-	{
-		EnableRenameButton(TRUE);
-		EnableDeleteButton(TRUE);
-	}
 	EnableRenameButton(FALSE);
-	if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
-	{
-		EnableCopyButton(TRUE);
-		EnableMoveButton(TRUE);
-	}
-	else
-	{
-		EnableCopyButton(FALSE);
-		EnableMoveButton(FALSE);
-	}
+	EnableDeleteButton(FALSE);
 }
 
 void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -713,7 +682,6 @@ void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event)
 	wxChar charSeparator = pFN->GetPathSeparator();
 	int offset;
 	wxString path = m_strSrcFolderPath;
-	//path = MakeReverse(path);
 	offset = path.Find(charSeparator,TRUE); // TRUE is bFromEnd
 	if (offset != wxNOT_FOUND)
 	{
@@ -757,7 +725,6 @@ void AdminMoveOrCopy::OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event
 	wxChar charSeparator = pFN->GetPathSeparator();
 	int offset;
 	wxString path = m_strDestFolderPath;
-	//path = MakeReverse(path);
 	offset = path.Find(charSeparator,TRUE); // TRUE is bFromEnd
 	if (offset != wxNOT_FOUND)
 	{
@@ -1083,16 +1050,8 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 		if ((srcFilesCount == 0 && srcFoldersCount == 0) || 
 			pSrcList->GetSelectedItemCount() == 0)
 		{
-			if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
-			{
-				EnableCopyButton(TRUE);
-				EnableMoveButton(TRUE);
-			}
-			else
-			{
-				EnableCopyButton(FALSE);
-				EnableMoveButton(FALSE);
-			}
+			EnableCopyButton(FALSE);
+			EnableMoveButton(FALSE);
 			return; // nothing to do
 		}
 		srcSelectionArray.Alloc(limit); // enough for all items in the list
@@ -1111,25 +1070,23 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 
 		wxLogDebug(_T(" ***** Src Selection Count  %d "), srcSelectionArray.GetCount());
 
-		if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
-		{
-			EnableCopyButton(TRUE);
-			EnableMoveButton(TRUE);
-		}
-		else
+		if (m_strSrcFolderPath.IsEmpty() || m_strDestFolderPath.IsEmpty())
 		{
 			EnableCopyButton(FALSE);
 			EnableMoveButton(FALSE);
 		}
-		if (srcSelectionArray.GetCount() > 0)
-		{
-			EnableCopyButton(TRUE);
-			EnableMoveButton(TRUE);
-		}
 		else
 		{
-			EnableCopyButton(FALSE);
-			EnableMoveButton(FALSE);
+			if (srcSelectionArray.GetCount() > 0)
+			{
+				EnableCopyButton(TRUE);
+				EnableMoveButton(TRUE);
+			}
+			else
+			{
+				EnableCopyButton(FALSE);
+				EnableMoveButton(FALSE);
+			}
 		}
 	}
 	else
@@ -1169,39 +1126,6 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 				EnableRenameButton(FALSE);
 			EnableDeleteButton(TRUE);
 		}
-		/*
-		if (m_strDestFolderPath.IsEmpty())
-		{
-			EnableDeleteButton(FALSE);
-			EnableRenameButton(FALSE);
-		}
-		else
-		{
-			EnableDeleteButton(FALSE);
-			EnableRenameButton(TRUE);
-		}
-		if (destSelectedFilesArray.GetCount() == 1)
-		{
-			EnableRenameButton(TRUE);
-			EnableDeleteButton(TRUE);
-			//EnableDeleteDestFileOrFilesButton(TRUE);
-		}
-		if (destSelectedFilesArray.GetCount() == 0 ||
-			destSelectedFilesArray.GetCount() > 1)
-		{
-			if (destSelectedFilesArray.GetCount() == 0)
-			{
-				EnableDeleteButton(FALSE);
-				//EnableDeleteDestFileOrFilesButton(FALSE);
-			}
-			else
-			{
-				EnableDeleteButton(TRUE);
-				//EnableDeleteDestFileOrFilesButton(TRUE);
-			}
-			//EnableRenameDestFileButton(FALSE);
-		}
-		*/
 	}
 }
 
