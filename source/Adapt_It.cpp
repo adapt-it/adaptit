@@ -7866,7 +7866,10 @@ int CAdapt_ItApp::OnExit(void)
 	if (!m_bAutoExport)
 	{
 		// only write the project config file if we are not doing a command line export
-		bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,2);
+		if (::wxDirExists(m_curProjectPath))
+		{
+			bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,2);
+		}
 	}
     // clean up the help system
 	delete m_pHelpController;

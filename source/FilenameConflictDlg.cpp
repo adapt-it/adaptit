@@ -85,7 +85,7 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
 	m_pSrcFolderPath = &(*m_pAdminMoveOrCopy).m_strSrcFolderPath;
 	m_pDestFolderPath = &(*m_pAdminMoveOrCopy).m_strDestFolderPath;
 	// point to the string array of selected source folder filenames
-	m_pSrcFileArray = &(*m_pAdminMoveOrCopy).srcSelectedFilesArray;
+	m_pSrcFileArray = &(*m_pAdminMoveOrCopy).srcSelectionArray; // this array has folders & files
 
 	srcDetailsStr.Empty();
 	destDetailsStr.Empty();

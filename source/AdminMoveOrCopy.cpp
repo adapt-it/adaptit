@@ -39,6 +39,7 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/valgen.h> // for wxGenericValidator
 #include <wx/imaglist.h> // for wxImageList
+#include <wx/datetime.h>
 #include "Adapt_It.h"
 #include "helpers.h" // it has the Get... functions for getting list of files, folders
 					 // and optionally sorting
@@ -63,25 +64,30 @@ enum myicons {
 
 // event handler table
 BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
+
 	EVT_INIT_DIALOG(AdminMoveOrCopy::InitDialog)
 	EVT_BUTTON(wxID_OK, AdminMoveOrCopy::OnOK)
+
 	EVT_BUTTON(ID_BUTTON_LOCATE_SOURCE_FOLDER, AdminMoveOrCopy::OnBnClickedLocateSrcFolder)	
 	EVT_BUTTON(ID_BUTTON_LOCATE_DESTINATION_FOLDER, AdminMoveOrCopy::OnBnClickedLocateDestFolder)
 	EVT_BUTTON(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP, AdminMoveOrCopy::OnBnClickedSrcParentFolder)
 	EVT_BUTTON(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP, AdminMoveOrCopy::OnBnClickedDestParentFolder)
+
 	EVT_SIZE(AdminMoveOrCopy::OnSize)
+
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListSelectItem)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDeselectItem)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListSelectItem)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
-	EVT_BUTTON(ID_BUTTON_COPY_FILES, AdminMoveOrCopy::OnCopyFileOrFiles)
-	EVT_BUTTON(ID_BUTTON_MOVE_FILES, AdminMoveOrCopy::OnMoveFileOrFiles)
-	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FILES, AdminMoveOrCopy::OnBnClickedDeleteDestFiles)
-	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FOLDER, AdminMoveOrCopy::OnBnClickedDeleteDestFolder)
-	EVT_BUTTON(ID_BUTTON_RENAME_DEST_FILE, AdminMoveOrCopy::OnBnClickedRenameDestFile)
-	EVT_BUTTON(ID_BUTTON_RENAME_DEST_FOLDER, AdminMoveOrCopy::OnBnClickedRenameDestFolder)
-	EVT_BUTTON(ID_BUTTON_COPY_FOLDER, AdminMoveOrCopy::OnBnClickedCopySrcFolder)
-	EVT_BUTTON(ID_BUTTON_MOVE_FOLDER, AdminMoveOrCopy::OnBnClickedMoveSrcFolder)
+
+	EVT_BUTTON(ID_BUTTON_DELETE, AdminMoveOrCopy::OnBnClickedDelete)
+	EVT_BUTTON(ID_BUTTON_RENAME, AdminMoveOrCopy::OnBnClickedRename)
+	EVT_BUTTON(ID_BUTTON_COPY, AdminMoveOrCopy::OnBnClickedCopy)
+	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
+
+	EVT_COMMAND_LEFT_DCLICK(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDoubleclick)
+	EVT_COMMAND_LEFT_DCLICK(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDoubleclick)
+
 END_EVENT_TABLE()
 
 AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
@@ -105,8 +111,8 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	srcFilesArray.Empty();
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
-	srcSelectedFilesArray.Empty();
-	destSelectedFilesArray.Empty();
+	srcSelectionArray.Empty();
+	destSelectionArray.Empty();
 	arrCopiedOK.Empty();
 }
 
@@ -121,12 +127,21 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
 	destFilesArray.Clear();
-	srcSelectedFilesArray.Clear();
-	destSelectedFilesArray.Clear();
+	srcSelectionArray.Clear();
+	destSelectionArray.Clear();
 	arrCopiedOK.Clear();
 }
 
-void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+///////////////////////////////////////////////////////////////////////////////////
+///
+///    START OF GUI FUNCTIONS 
+///
+///////////////////////////////////////////////////////////////////////////////////
+
+
+
+// InitDialog is method of wxWindow
+void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp;
 	pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -134,6 +149,7 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pApp->m_bAdminMoveOrCopyIsInitializing = TRUE; // set TRUE, use this to suppress
 			// a warning message in GetFoldersOnly() when InitDialog is running
 			//  -- see Helpers.cpp
+	
 	srcFoldersCount = 0;
 	srcFilesCount = 0;
 	destFoldersCount = 0;
@@ -165,24 +181,24 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pUpDestFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP);
 	wxASSERT(pUpDestFolder != NULL);
 
-	pMoveFolderButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FOLDER);
-	pMoveFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FILES);
-	pCopyFolderButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FOLDER);
-	pCopyFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FILES);
-	pDeleteDestFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FILES);
-	pDeleteDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FOLDER);
-	pRenameDestFileButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME_DEST_FILE);
-	pRenameDestFolderButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME_DEST_FOLDER);
+	pMoveButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE);
+	//pMoveFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FILES);
+	pCopyButton = (wxButton*)FindWindowById(ID_BUTTON_COPY);
+	//pCopyFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FILES);
+	//pDeleteDestFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FILES);
+	pDeleteButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE);
+	//pRenameDestFileButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME_DEST_FILE);
+	pRenameButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME);
 
 	// start with lower buttons disabled (they rely on selections to become enabled)
-	EnableCopyFileOrFilesButton(FALSE);
-	EnableMoveFileOrFilesButton(FALSE);
-	EnableDeleteDestFileOrFilesButton(FALSE);
-	EnableDeleteDestFolderButton(FALSE);
-	EnableRenameDestFileButton(FALSE);
-	EnableRenameDestFolderButton(FALSE);
-	EnableCopyFolderButton(FALSE);
-	EnableMoveFolderButton(FALSE);
+	//EnableCopyFileOrFilesButton(FALSE);
+	//EnableMoveFileOrFilesButton(FALSE);
+	//EnableDeleteDestFileOrFilesButton(FALSE);
+	//EnableRenameDestFileButton(FALSE);
+	EnableDeleteButton(FALSE);
+	EnableRenameButton(FALSE);
+	EnableCopyButton(FALSE);
+	EnableMoveButton(FALSE);
 
 
     // get the folder and file icons (bitmaps actually) into the image list which the two
@@ -257,11 +273,11 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 		m_strSrcFolderPath = gpApp->m_workFolderPath;
 	}
 	SetupSrcList(m_strSrcFolderPath);
-	SetupSelectedFilesArray(sourceSide);
+	SetupSelectionArray(sourceSide);
 
 	m_strDestFolderPath = _T(""); // start with no path defined
 	SetupDestList(m_strDestFolderPath);
-	SetupSelectedFilesArray(destinationSide);
+	SetupSelectionArray(destinationSide);
 
 	// make the font show the user's desired dialog font point size ( I think this dialog can
 	// instead just rely on the system font supplied to the dialog by default)
@@ -277,65 +293,37 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDial
 	pApp->RefreshStatusBarInfo();
 }
 
-/* 
-// I did two versions of this, one using wxListCtrl, another using the subclass wxListView
-// and both failed in the same way - see the comments below; it's a widgets problem, not
-// mine; the version using wxListView is simpler so I'll use that, but it has the
-// SetItemState() call implicit in its Selection() function, whereas I call it explicitly
-// in this first version now commented out
-void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
+void AdminMoveOrCopy::EnableCopyButton(bool bEnableFlag)
 {
-	int index = 0;
-	int limit = 0;
-	long stateMask = 0;
-	stateMask |= wxLIST_STATE_SELECTED;
-	stateMask |= wxLIST_STATE_FOCUSED; // not necessary, but the wiki.wxWidgets site has it
-	int isSelected = 0;
-	bool bSetOK = 0;
-	if (side == sourceSide)
-	{
-		index = srcFoldersCount; // index of first file in the wxListCtrl
-		limit = pSrcList->GetItemCount(); // index of last file is (limit - 1)
-		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
-		{
-			return; // nothing to do
-		}
-		for (index = srcFoldersCount; index < limit; index++)
-		{
-			isSelected = pSrcList->GetItemState(index,stateMask);
-			if (isSelected)
-			{
-				// this one is selected, so deselect it
-unsigned int aCount = srcSelectedFilesArray.GetCount(); // for debugging, the next call is spuriously giving empty srcSelectedFileArray() which is on another thread (the main thread) a m_nCount value of 1, if two or more files were selected for copying
-				
-				bSetOK = pSrcList->SetItemState(index,0,stateMask); // stepping thru this does nothing which should interfer with Main thread
-
-aCount = srcSelectedFilesArray.GetCount(); // this goes to aCount = 1 after the above call!!! (even though its not on wxListCtrl's Worker Thread!!!)
-				isSelected = 0;
-			}
-		}
-	}
+	if (bEnableFlag)
+		pCopyButton->Enable(TRUE);
 	else
-	{
-		index = destFoldersCount; // index of first file in the wxListCtrl
-		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
-		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
-		{
-			return; // nothing to do
-		}
-		for (index = destFoldersCount; index < limit; index++)
-		{
-			isSelected = pDestList->GetItemState(index,stateMask);
-			if (isSelected)
-			{
-				// this one is selected, so deselect it
-				bSetOK = pDestList->SetItemState(index,0,stateMask);
-				isSelected = 0;
-			}
-		}
-	}
+		pCopyButton->Enable(FALSE);
 }
-*/
+
+void AdminMoveOrCopy::EnableMoveButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pMoveButton->Enable(TRUE);
+	else
+		pMoveButton->Enable(FALSE);
+}
+
+void AdminMoveOrCopy::EnableDeleteButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pDeleteButton->Enable(TRUE);
+	else
+		pDeleteButton->Enable(FALSE);
+}
+
+void AdminMoveOrCopy::EnableRenameButton(bool bEnableFlag)
+{
+	if (bEnableFlag)
+		pRenameButton->Enable(TRUE);
+	else
+		pRenameButton->Enable(FALSE);
+}
 
 // redo using a wxListView class -- this is simpler
 void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
@@ -389,125 +377,6 @@ void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
 	}
 	// unsigned int aCount = srcSelectedFilesArray.GetCount();  same bug manifests, so
 	// wxListView doesn't help get round the problem
-}
-
-
-void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
-{
-	int index = 0;
-	int limit = 0;
-	long stateMask = 0;
-	stateMask |= wxLIST_STATE_SELECTED;
-	int isSelected = 0;
-	if (side == sourceSide)
-	{
-		srcSelectedFilesArray.Empty(); // clear, we'll refill in the loop
-		index = srcFoldersCount; // index of first file in the wxListCtrl
-		limit = pSrcList->GetItemCount(); // index of list file is (limit - 1)
-		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
-		{
-			EnableCopyFileOrFilesButton(FALSE);
-			EnableMoveFileOrFilesButton(FALSE);
-			if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
-			{
-				EnableCopyFolderButton(TRUE);
-				EnableMoveFolderButton(TRUE);
-			}
-			else
-			{
-				EnableCopyFolderButton(FALSE);
-				EnableMoveFolderButton(FALSE);
-			}
-			return; // nothing to do
-		}
-		srcSelectedFilesArray.Clear();
-		srcSelectedFilesArray.Alloc(srcFilesCount); // enough for all files in the folder
-		for (index = srcFoldersCount; index < limit; index++)
-		{
-			isSelected = pSrcList->GetItemState(index,stateMask);
-			if (isSelected)
-			{
-				// this one is selected, add it's name to the list of selected files
-				wxString filename = pSrcList->GetItemText(index);
-				size_t itsIndex = srcSelectedFilesArray.Add(filename); // return is unused
-				itsIndex = itsIndex; // avoid compiler warning
-				isSelected = 0;
-			}
-		}
-		if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
-		{
-			EnableCopyFolderButton(TRUE);
-			EnableMoveFolderButton(TRUE);
-		}
-		else
-		{
-			EnableCopyFolderButton(FALSE);
-			EnableMoveFolderButton(FALSE);
-		}
-		if (srcSelectedFilesArray.GetCount() > 0)
-		{
-			EnableCopyFileOrFilesButton(TRUE);
-			EnableMoveFileOrFilesButton(TRUE);
-		}
-		else
-		{
-			// must be 0, so disable relevant buttons
-			EnableCopyFileOrFilesButton(FALSE);
-			EnableMoveFileOrFilesButton(FALSE);
-			EnableCopyFolderButton(FALSE);
-			EnableMoveFolderButton(FALSE);
-		}
-	}
-	else
-	{
-		destSelectedFilesArray.Empty(); // clear, we'll refill in the loop
-		index = destFoldersCount; // index of first file in the wxListCtrl
-		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
-		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
-		{
-			EnableDeleteDestFileOrFilesButton(FALSE);
-			EnableDeleteDestFolderButton(FALSE);
-			EnableRenameDestFileButton(FALSE);
-			EnableRenameDestFolderButton(FALSE);
-			return; // nothing to do
-		}
-		destSelectedFilesArray.Clear();
-		destSelectedFilesArray.Alloc(destFilesCount); // enough for all files in the folder
-		for (index = destFoldersCount; index < limit; index++)
-		{
-			isSelected = pDestList->GetItemState(index,stateMask);
-			if (isSelected)
-			{
-				// this one is selected, add it's name to the list of selected files
-				wxString filename = pDestList->GetItemText(index);
-				size_t itsIndex = destSelectedFilesArray.Add(filename); // return is unused
-				itsIndex = itsIndex; // avoid compiler warning
-				isSelected = 0;
-			}
-		}
-		if (destSelectedFilesArray.GetCount() == 1)
-		{
-			EnableDeleteDestFolderButton(TRUE);
-			EnableRenameDestFileButton(TRUE);
-			EnableRenameDestFolderButton(TRUE);
-			EnableDeleteDestFileOrFilesButton(TRUE);
-		}
-		if (destSelectedFilesArray.GetCount() == 0 ||
-			destSelectedFilesArray.GetCount() > 1)
-		{
-			if (destSelectedFilesArray.GetCount() == 0)
-			{
-				EnableDeleteDestFileOrFilesButton(FALSE);
-			}
-			else
-			{
-				EnableDeleteDestFileOrFilesButton(TRUE);
-			}
-			EnableDeleteDestFolderButton(FALSE);
-			EnableRenameDestFileButton(FALSE);
-			EnableRenameDestFolderButton(FALSE);
-		}
-	}
 }
 
 void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderPath,
@@ -625,30 +494,6 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 	*/
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the passed in paths are identical, FALSE otherwise
-/// \param      srcPath    ->  reference to the source side's file path 
-/// \param      destPath   ->  reference to the destination side's file path 
-///  \remarks   Use to prevent copy or move of a file or folder to the same folder. We
-///  allow both sides to have the same path shown, but in the button handlers we check as
-///  necessary and prevent wrong action - and show a warning message
-//////////////////////////////////////////////////////////////////////////////////
-bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPath)
-{
-	if (srcPath == destPath)
-	{
-		wxString msg;
-		::wxBell();
-		msg = msg.Format(_("The source and destination folders must not be the same folder."));
-		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_WARNING);
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
-// event handling functions
-
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -673,15 +518,15 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 	if (bHasFolders || bHasFiles)
 	{
 		// Disable the move and copy buttons at the bottom
-		pMoveFolderButton->Enable(FALSE);
-		pMoveFileOrFilesButton->Enable(FALSE);
-		pCopyFolderButton->Enable(FALSE);
-		pCopyFileOrFilesButton->Enable(FALSE);
+		pMoveButton->Enable(FALSE);
+		//pMoveFileOrFilesButton->Enable(FALSE);
+		pCopyButton->Enable(FALSE);
+		//pCopyFileOrFilesButton->Enable(FALSE);
 		srcFoldersCount = 0;
 		srcFilesCount = 0;
 
 		// now try put the lines of data in the list; first folders, then files
-		int index = 0;
+		size_t index = 0;
 		srcFoldersCount = srcFoldersArray.GetCount();
 		if (bHasFolders)
 		{
@@ -717,24 +562,15 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 		srcFoldersCount = 0;
 		srcFilesCount = 0;
 
-		pMoveFolderButton->Disable();
-		pMoveFileOrFilesButton->Disable();
-		pCopyFolderButton->Disable();
-		pCopyFileOrFilesButton->Disable();
+		pMoveButton->Disable();
+		//pMoveFileOrFilesButton->Disable();
+		pCopyButton->Disable();
+		//pCopyFileOrFilesButton->Disable();
 	}
 }
 
 void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 {
-	/*
-	if (folderPath.IsEmpty())
-	{
-		rv = pDestList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
-		destFoldersCount = 0;
-		destFilesCount = 0;
-		return;
-	}
-	*/
 	// put the path into the edit control
 	pDestFolderPathTextCtrl->ChangeValue(folderPath);
 
@@ -747,13 +583,13 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 	GetListCtrlContents(destinationSide, folderPath, bHasFolders, bHasFiles);
 	if (bHasFolders || bHasFiles)
 	{
-		pDeleteDestFileOrFilesButton->Enable(FALSE);
+		//pDeleteDestFileOrFilesButton->Enable(FALSE);
 
 		destFoldersCount = 0;
 		destFilesCount = 0;
 
 		// now try put the lines of data in the list; first folders, then files
-		int index = 0;
+		size_t index = 0;
 		destFoldersCount = destFoldersArray.GetCount();
 		if (bHasFolders)
 		{
@@ -785,10 +621,18 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 		destFoldersCount = 0;
 		destFilesCount = 0;
 	}
-	EnableDeleteDestFileOrFilesButton(FALSE);
-	EnableDeleteDestFolderButton(FALSE);
-	EnableRenameDestFileButton(FALSE);
-	EnableRenameDestFolderButton(FALSE);
+	//EnableDeleteDestFileOrFilesButton(FALSE);
+	//EnableRenameDestFileButton(FALSE);
+	if (m_strDestFolderPath.IsEmpty())
+	{
+		EnableDeleteButton(FALSE);
+		EnableRenameButton(FALSE);
+	}
+	else
+	{
+		EnableDeleteButton(FALSE);
+		EnableRenameButton(TRUE);
+	}
 }
 
 
@@ -808,18 +652,18 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupSrcList(m_strSrcFolderPath);
-	EnableCopyFileOrFilesButton(FALSE); // copy button starts off disabled until a file or
+	//EnableCopyFileOrFilesButton(FALSE); // copy button starts off disabled until a file or
 										// files are selected
-	EnableMoveFileOrFilesButton(FALSE); // ditto for move button, etc
+	//EnableMoveFileOrFilesButton(FALSE); // ditto for move button, etc
 	if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
 	{
-		EnableCopyFolderButton(TRUE);
-		EnableMoveFolderButton(TRUE);
+		EnableCopyButton(TRUE);
+		EnableMoveButton(TRUE);
 	}
 	else
 	{
-		EnableCopyFolderButton(FALSE);
-		EnableMoveFolderButton(FALSE);
+		EnableCopyButton(FALSE);
+		EnableMoveButton(FALSE);
 	}
 }
 
@@ -839,19 +683,27 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 	// was shown selected in the folder hierarchy when the OK button was pressed
 	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
 	SetupDestList(m_strDestFolderPath);
-	EnableDeleteDestFileOrFilesButton(FALSE);
-	EnableDeleteDestFolderButton(FALSE);
-	EnableRenameDestFileButton(FALSE);
-	EnableRenameDestFolderButton(FALSE);
-	if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
+	//EnableDeleteDestFileOrFilesButton(FALSE);
+	if (m_strDestFolderPath.IsEmpty())
 	{
-		EnableCopyFolderButton(TRUE);
-		EnableMoveFolderButton(TRUE);
+		EnableRenameButton(FALSE);
+		EnableDeleteButton(FALSE);
 	}
 	else
 	{
-		EnableCopyFolderButton(FALSE);
-		EnableMoveFolderButton(FALSE);
+		EnableRenameButton(TRUE);
+		EnableDeleteButton(TRUE);
+	}
+	EnableRenameButton(FALSE);
+	if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
+	{
+		EnableCopyButton(TRUE);
+		EnableMoveButton(TRUE);
+	}
+	else
+	{
+		EnableCopyButton(FALSE);
+		EnableMoveButton(FALSE);
 	}
 }
 
@@ -895,10 +747,8 @@ void AdminMoveOrCopy::OnBnClickedSrcParentFolder(wxCommandEvent& WXUNUSED(event)
 		}
 	}
 	delete pFN;
-	EnableCopyFileOrFilesButton(FALSE); // start off disabled until a file is selected
-	EnableMoveFileOrFilesButton(FALSE); // ditto
-	EnableCopyFolderButton(FALSE);
-	EnableMoveFolderButton(FALSE);
+	EnableCopyButton(FALSE); // start off disabled until a file is selected
+	EnableMoveButton(FALSE); // ditto
 }
 
 void AdminMoveOrCopy::OnBnClickedDestParentFolder(wxCommandEvent& WXUNUSED(event))
@@ -975,192 +825,6 @@ void AdminMoveOrCopy::OnSize(wxSizeEvent& event)
 	}
 	event.Skip();
 }
-
-void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < srcFoldersCount)
-	{
-		// we clicked on a folder name, so drill down to that child folder and display its
-		// contents in the dialog
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupSrcList(m_strSrcFolderPath);
-		event.Skip();
-		EnableCopyFileOrFilesButton(FALSE); // start with copy button disabled until a file
-											// is selected
-		EnableMoveFileOrFilesButton(FALSE); // ditto for move button
-		EnableCopyFolderButton(FALSE);
-		EnableMoveFolderButton(FALSE);
-		return;
-	}
-	event.Skip();
-	// a file has been selected
-	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections
-	/* button enabling or disabling is now done in the SetupSelectedFilesArray() call above
-	if (srcSelectedFilesArray.GetCount() > 0)
-	{
-		EnableCopyFileOrFilesButton(TRUE);
-		EnableMoveFileOrFilesButton(TRUE);
-	}
-	else
-	{
-		EnableCopyFileOrFilesButton(FALSE);
-		EnableMoveFileOrFilesButton(FALSE);
-	}
-	*/
-}
-
-void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < destFoldersCount)
-	{
-		// we clicked on a folder name, so drill down to that child folder and display its
-		// contents in the dialog
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupDestList(m_strDestFolderPath);
-		event.Skip();
-		return;
-	}
-	event.Skip();
-	// a file has been selected
-	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
-	/* button enabling or disabling is now done in the SetupSelectedFilesArray() call above
-	if (destSelectedFilesArray.GetCount() > 0)
-	{
-		EnableDeleteDestFileOrFilesButton(TRUE);
-		EnableDeleteDestFolderButton(TRUE);
-		EnableRenameDestFileButton(TRUE);
-		EnableRenameDestFolderButton(TRUE);
-	}
-	else
-	{
-		EnableDeleteDestFileOrFilesButton(FALSE);
-		EnableDeleteDestFolderButton(FALSE);
-		EnableRenameDestFileButton(FALSE);
-		EnableRenameDestFolderButton(FALSE);
-	}
-	*/
-}
-
-void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < srcFoldersCount)
-	{
-		// I don't expect control to go thru here, but if it does, I want feedback
-		// about that fact returned audibly; testing has so far never rung the bell
-		::wxBell();
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupSrcList(m_strSrcFolderPath);
-		event.Skip();
-		return;
-	}
-	event.Skip();
-	// if no files are now selected, disable the copy buton
-	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections 
-	/* button enabling or disabling is now done in the SetupSelectedFilesArray() call above
-
-	if (srcSelectedFilesArray.GetCount() > 0)
-	{
-		EnableCopyFileOrFilesButton(TRUE);
-		EnableMoveFileOrFilesButton(TRUE);
-	}
-	else
-	{
-		EnableCopyFileOrFilesButton(FALSE);
-		EnableMoveFileOrFilesButton(FALSE);
-	}
-	*/
-}
-
-void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < destFoldersCount)
-	{
-		// I don't expect control to go thru here, but if it does, I want feedback
-		// about that fact returned audibly; testing has so far never rung the bell
-		::wxBell(); 
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupDestList(m_strDestFolderPath);
-		event.Skip();
-		return;
-	}
-	event.Skip();
-	// if no files are now selected, disable the delete and rename buttons (4 buttons)
-	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
-	/* button enabling or disabling is now done in the SetupSelectedFilesArray() call above
-	if (destSelectedFilesArray.GetCount() > 0)
-	{
-		EnableDeleteDestFileOrFilesButton(TRUE);
-		EnableDeleteDestFolderButton(TRUE);
-		EnableRenameDestFileButton(TRUE);
-		EnableRenameDestFolderButton(TRUE);
-	}
-	else
-	{
-		EnableDeleteDestFileOrFilesButton(FALSE);
-		EnableDeleteDestFolderButton(FALSE);
-		EnableRenameDestFileButton(FALSE);
-		EnableRenameDestFolderButton(FALSE);
-	}
-	*/
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the file in the source list with index srcFileIndex has the
-///             same filename as a file in the destination folder; FALSE otherwise
-/// \param      srcFile        ->   reference to the source file's filename
-/// \param      pConflictIndex <-   pointer to 0 based index to whichever filename in
-///                                 destFilesArray (passed in as pDestFilesArr) has 
-///                                 the same name as for the one specified by srcFile;
-///                                 has value -1 if unset
-/// \param      pDestFilesArr   ->  pointer to a string array of all the filenames in
-///                                 the destination folder
-///  \remarks   Iterates through all the files in the pDestFilesArr array, looking for
-///             a match with the filename specified by srcFileIndex, returning TRUE if
-///             a match is made, otherwise FALSE
-//////////////////////////////////////////////////////////////////////////////////
-bool AdminMoveOrCopy::IsFileConflicted(wxString& srcFile, int* pConflictIndex, 
-									  wxArrayString* pDestFilesArr)
-{
-	wxASSERT(!srcFile.IsEmpty());
-	(*pConflictIndex) = wxNOT_FOUND; // -1
-	size_t limit = pDestFilesArr->GetCount();
-	if (limit == 0)
-	{
-		// there are no files in the destination folder, so no conflict is possible
-		return FALSE;
-	}
-	size_t destIndex;
-	wxString aFilename;
-	for (destIndex = 0; destIndex < limit; destIndex++) 
-	{
-		aFilename = pDestFilesArr->Item(destIndex);
-		if (aFilename == srcFile)
-		{
-			(*pConflictIndex) = (int)destIndex;
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-
-
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     the suitably changed filename (so that the conflict is removed)
 /// \param      pFilename   ->  pointer to the filename string from the destination
@@ -1252,6 +916,334 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 	}
 	return newFilename;
 }
+
+
+void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
+{
+	// we repopulate the srcSelectionArray each time with the set of selected items 
+	wxLogDebug(_T("OnDestListSelectItem -- provides data for doubleclick handler"));
+	m_destIndex = event.GetIndex(); // get index, OnSrcListDoubleclick() needs it
+	m_destIndex = m_destIndex; // prevent compiler warning
+	m_destItemText = event.GetText();
+	event.Skip();
+	SetupSelectionArray(destinationSide); // update destSelectionArray 
+										  // with current selections
+}
+
+void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
+{
+	size_t index = event.GetIndex();
+	if (index < srcFoldersCount)
+	{
+		// I don't expect control to go thru here, but if it does, I want feedback
+		// about that fact returned audibly; testing has so far never rung the bell
+		::wxBell();
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupSrcList(m_strSrcFolderPath);
+		event.Skip();
+		return;
+	}
+	event.Skip();
+	// if no files are now selected, disable the copy buton
+	SetupSelectionArray(sourceSide); // update srcSelectedFilesArray with current selections 
+}
+
+void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
+{
+	size_t index = event.GetIndex();
+	if (index < destFoldersCount)
+	{
+		// I don't expect control to go thru here, but if it does, I want feedback
+		// about that fact returned audibly; testing has so far never rung the bell
+		::wxBell(); 
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupDestList(m_strDestFolderPath);
+		event.Skip();
+		return;
+	}
+	event.Skip();
+	// if no files are now selected, disable the delete and rename buttons (4 buttons)
+	SetupSelectionArray(destinationSide); // update destSelectedFilesArray with current selections 
+}
+
+void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
+{
+	// we repopulate the srcSelectionArray each time with the set of selected items 
+	wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
+	m_srcIndex = event.GetIndex(); // get index, OnSrcListDoubleclick() needs it
+	m_srcIndex = m_srcIndex; // prevent compiler warning
+	m_srcItemText = event.GetText();
+	event.Skip();
+	SetupSelectionArray(sourceSide); // update srcSelectionArray 
+									 // with current selections
+}
+
+void AdminMoveOrCopy::OnSrcListDoubleclick(wxCommandEvent& WXUNUSED(event))
+{
+	wxLogDebug(_T("OnSrcListDoubleclick"));
+	size_t index = m_srcIndex; // set from the preceding OnSrcListSelectItem() call,
+							   // (the dbl click event is posted after the selection event)
+	if (index < srcFoldersCount)
+	{
+		// we clicked on a folder name, so drill down to that child folder and display its
+		// contents in the dialog
+
+		// extend the path using this foldername, and then display the contents
+		m_strSrcFolderPath += gpApp->PathSeparator + m_srcItemText;
+		SetupSrcList(m_strSrcFolderPath);
+		//event.Skip();
+		EnableCopyButton(FALSE);
+		EnableMoveButton(FALSE);
+		return;
+	}
+	else
+	{
+		// doubleclicked on a file - do nothing, we don't open files from this dialog
+		wxLogDebug(_T("\n *******   double clicked on a FILE"));
+		return;
+	}
+}
+
+void AdminMoveOrCopy::OnDestListDoubleclick(wxCommandEvent& WXUNUSED(event))
+{
+	wxLogDebug(_T("OnDestListDoubleclick"));
+	size_t index = m_destIndex; // set from the preceding OnSrcListSelectItem() call,
+							   // (the dbl click event is posted after the selection event)
+	if (index < destFoldersCount)
+	{
+		// we clicked on a folder name, so drill down to that child folder and display its
+		// contents in the dialog
+
+		// extend the path using this foldername, and then display the contents
+		m_strDestFolderPath += gpApp->PathSeparator + m_destItemText;
+		SetupDestList(m_strDestFolderPath);
+		//event.Skip();
+		EnableRenameButton(FALSE);
+		EnableDeleteButton(FALSE);
+		return;
+	}
+	else
+	{
+		// doubleclicked on a file - do nothing, we don't open files from this dialog
+		wxLogDebug(_T("\n *******   double clicked on a destination FILE"));
+		return;
+	}
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+///
+///    END OF GUI FUNCTIONS                 START OF BUTTON HANDLERS 
+///
+///////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the passed in paths are identical, FALSE otherwise
+/// \param      srcPath    ->  reference to the source side's file path 
+/// \param      destPath   ->  reference to the destination side's file path 
+///  \remarks   Use to prevent copy or move of a file or folder to the same folder. We
+///  allow both sides to have the same path shown, but in the button handlers we check as
+///  necessary and prevent wrong action - and show a warning message
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPath)
+{
+	if (srcPath == destPath)
+	{
+		wxString msg;
+		::wxBell();
+		msg = msg.Format(_("The source and destination folders must not be the same folder."));
+		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_WARNING);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+// populates srcSelectionArray or destSelectionArray
+void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
+{
+	size_t index = 0;
+	size_t limit = 0;
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	int isSelected = 0;
+	if (side == sourceSide)
+	{
+		srcSelectionArray.Empty(); // clear, we'll refill in the loop
+		limit = pSrcList->GetItemCount();
+		if ((srcFilesCount == 0 && srcFoldersCount == 0) || 
+			pSrcList->GetSelectedItemCount() == 0)
+		{
+			if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
+			{
+				EnableCopyButton(TRUE);
+				EnableMoveButton(TRUE);
+			}
+			else
+			{
+				EnableCopyButton(FALSE);
+				EnableMoveButton(FALSE);
+			}
+			return; // nothing to do
+		}
+		srcSelectionArray.Alloc(limit); // enough for all items in the list
+		for (index = 0; index < limit; index++)
+		{
+			isSelected = pSrcList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, add it's name to the list of selected items
+				wxString itemName = pSrcList->GetItemText(index);
+				size_t itsIndex = srcSelectionArray.Add(itemName); // return is unused
+				itsIndex = itsIndex; // avoid compiler warning
+				isSelected = 0;
+			}
+		}
+
+		wxLogDebug(_T(" ***** Src Selection Count  %d "), srcSelectionArray.GetCount());
+
+		if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
+		{
+			EnableCopyButton(TRUE);
+			EnableMoveButton(TRUE);
+		}
+		else
+		{
+			EnableCopyButton(FALSE);
+			EnableMoveButton(FALSE);
+		}
+		if (srcSelectionArray.GetCount() > 0)
+		{
+			EnableCopyButton(TRUE);
+			EnableMoveButton(TRUE);
+		}
+		else
+		{
+			EnableCopyButton(FALSE);
+			EnableMoveButton(FALSE);
+		}
+	}
+	else
+	{
+		destSelectionArray.Empty(); // clear, we'll refill in the loop
+		limit = pDestList->GetItemCount();
+		if ((destFilesCount == 0 && destFoldersCount == 0) || 
+			pDestList->GetSelectedItemCount() == 0)
+		{
+			EnableRenameButton(FALSE);
+			EnableDeleteButton(FALSE);
+			return; // nothing to do
+		}
+		destSelectionArray.Alloc(limit); // enough for all items in the list
+		for (index = 0; index < limit; index++)
+		{
+			isSelected = pDestList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, add it's name to the list of selected items
+				wxString itemName = pDestList->GetItemText(index);
+				size_t itsIndex = destSelectionArray.Add(itemName); // return is unused
+				itsIndex = itsIndex; // avoid compiler warning
+				isSelected = 0;
+			}
+		}
+		if (destSelectionArray.IsEmpty())
+		{
+			EnableRenameButton(FALSE);
+			EnableDeleteButton(FALSE);
+		}
+		else
+		{
+			if (destSelectionArray.GetCount() == 1)
+				EnableRenameButton(TRUE);
+			else
+				EnableRenameButton(FALSE);
+			EnableDeleteButton(TRUE);
+		}
+		/*
+		if (m_strDestFolderPath.IsEmpty())
+		{
+			EnableDeleteButton(FALSE);
+			EnableRenameButton(FALSE);
+		}
+		else
+		{
+			EnableDeleteButton(FALSE);
+			EnableRenameButton(TRUE);
+		}
+		if (destSelectedFilesArray.GetCount() == 1)
+		{
+			EnableRenameButton(TRUE);
+			EnableDeleteButton(TRUE);
+			//EnableDeleteDestFileOrFilesButton(TRUE);
+		}
+		if (destSelectedFilesArray.GetCount() == 0 ||
+			destSelectedFilesArray.GetCount() > 1)
+		{
+			if (destSelectedFilesArray.GetCount() == 0)
+			{
+				EnableDeleteButton(FALSE);
+				//EnableDeleteDestFileOrFilesButton(FALSE);
+			}
+			else
+			{
+				EnableDeleteButton(TRUE);
+				//EnableDeleteDestFileOrFilesButton(TRUE);
+			}
+			//EnableRenameDestFileButton(FALSE);
+		}
+		*/
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the file in the source list with index srcFileIndex has the
+///             same filename as a file in the destination folder; FALSE otherwise
+/// \param      srcFile        ->   reference to the source file's filename
+/// \param      pConflictIndex <-   pointer to 0 based index to whichever filename in
+///                                 destFilesArray (passed in as pDestFilesArr) has 
+///                                 the same name as for the one specified by srcFile;
+///                                 has value -1 if unset
+/// \param      pDestFilesArr   ->  pointer to a string array of all the filenames in
+///                                 the destination folder
+///  \remarks   Iterates through all the files in the pDestFilesArr array, looking for
+///             a match with the filename specified by srcFileIndex, returning TRUE if
+///             a match is made, otherwise FALSE
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::IsFileConflicted(wxString& srcFile, int* pConflictIndex, 
+									  wxArrayString* pDestFilesArr)
+{
+	wxASSERT(!srcFile.IsEmpty());
+	(*pConflictIndex) = wxNOT_FOUND; // -1
+	size_t limit = pDestFilesArr->GetCount();
+	if (limit == 0)
+	{
+		// there are no files in the destination folder, so no conflict is possible
+		return FALSE;
+	}
+	size_t destIndex;
+	wxString aFilename;
+	for (destIndex = 0; destIndex < limit; destIndex++) 
+	{
+		aFilename = pDestFilesArr->Item(destIndex);
+		if (aFilename == srcFile)
+		{
+			(*pConflictIndex) = (int)destIndex;
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the copy was successfully done (in the event of a filename clash,
@@ -1417,6 +1409,268 @@ theSourcePath.c_str());
 	}
 	return bSuccess;
 }
+void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
+{
+
+
+}
+
+void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
+{
+//		bool bOK = ::wxRenameFile(_T("C:\\Card2\\PALM"),_T("C:\\Card2\\COCONUT"),TRUE);
+
+	/*
+	wxFileName FN = wxFileName::DirName(m_strDestFolderPath); // DirName() is static
+	wxString oldName = _T("");
+	wxArrayString names = FN.GetDirs();
+	size_t count = names.GetCount();
+	if (count > 0)
+	{
+		// m_nCount will be 0 if the destination folder is a windows drive letter, or a
+		// Unix (or Linux) root folder (ie. "/")
+		oldName = names.Item(count - 1); // last directory of the path
+		wxString pathPrefix;
+		int offset = m_strDestFolderPath.Find(oldName);
+		pathPrefix = m_strDestFolderPath.Left((size_t)offset);
+		wxASSERT(!pathPrefix.IsEmpty());
+
+		// now get the user's wanted new directory name
+		wxString msg = _("Type the new folder name");
+		wxString caption = _("Type Name For Folder (spaces permitted)");
+		wxString newName = ::wxGetTextFromUser(msg,caption,oldName,this); // use selection as default name
+
+
+		//How can I change the directory's name? -- use ::wxRenameFile() but not on open
+		//directory, and with overwrite parameter set TRUE
+		
+		wxString theNewPath = pathPrefix + newName;
+		bool bOK = ::wxRenameFile(m_strDestFolderPath,theNewPath,TRUE);
+		// update the destination list
+		SetupDestList(m_strDestFolderPath);
+	}
+	else
+	{
+		::wxBell();
+	}
+	*/
+}
+
+void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
+{
+
+	// update the destination list
+	SetupDestList(m_strDestFolderPath);
+}
+
+void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
+{
+
+
+	// update the destination list and the source list
+	SetupDestList(m_strDestFolderPath);
+	SetupSrcList(m_strSrcFolderPath);
+}
+
+
+/* FIRST VERSION FUNCTIONS
+
+
+
+
+	EVT_BUTTON(ID_BUTTON_COPY_FILES, AdminMoveOrCopy::OnCopyFileOrFiles)
+	EVT_BUTTON(ID_BUTTON_MOVE_FILES, AdminMoveOrCopy::OnMoveFileOrFiles)
+	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FILES, AdminMoveOrCopy::OnBnClickedDeleteDestFiles)
+	EVT_BUTTON(ID_BUTTON_DELETE_DEST_FOLDER, AdminMoveOrCopy::OnBnClickedDeleteDestFolder)
+	EVT_BUTTON(ID_BUTTON_RENAME_DEST_FILE, AdminMoveOrCopy::OnBnClickedRenameDestFile)
+	EVT_BUTTON(ID_BUTTON_RENAME_DEST_FOLDER, AdminMoveOrCopy::OnBnClickedRenameDestFolder)
+	EVT_BUTTON(ID_BUTTON_MOVE_FOLDER, AdminMoveOrCopy::OnBnClickedMoveFolder)
+	EVT_BUTTON(ID_BUTTON_COPY_FOLDER, AdminMoveOrCopy::OnBnClickedCopySrcFolder)
+
+
+// *** OBSOLETE FUNCTIONS *****
+
+
+// I did two versions of this, one using wxListCtrl, another using the subclass wxListView
+// and both failed in the same way - see the comments below; it's a widgets problem, not
+// mine; the version using wxListView is simpler so I'll use that, but it has the
+// SetItemState() call implicit in its Selection() function, whereas I call it explicitly
+// in this first version now commented out
+void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
+{
+	int index = 0;
+	int limit = 0;
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	stateMask |= wxLIST_STATE_FOCUSED; // not necessary, but the wiki.wxWidgets site has it
+	int isSelected = 0;
+	bool bSetOK = 0;
+	if (side == sourceSide)
+	{
+		index = srcFoldersCount; // index of first file in the wxListCtrl
+		limit = pSrcList->GetItemCount(); // index of last file is (limit - 1)
+		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		for (index = srcFoldersCount; index < limit; index++)
+		{
+			isSelected = pSrcList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, so deselect it
+unsigned int aCount = srcSelectedFilesArray.GetCount(); // for debugging, the next call is spuriously giving empty srcSelectedFileArray() which is on another thread (the main thread) a m_nCount value of 1, if two or more files were selected for copying
+				
+				bSetOK = pSrcList->SetItemState(index,0,stateMask); // stepping thru this does nothing which should interfer with Main thread
+
+aCount = srcSelectedFilesArray.GetCount(); // this goes to aCount = 1 after the above call!!! (even though its not on wxListCtrl's Worker Thread!!!)
+				isSelected = 0;
+			}
+		}
+	}
+	else
+	{
+		index = destFoldersCount; // index of first file in the wxListCtrl
+		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
+		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
+		{
+			return; // nothing to do
+		}
+		for (index = destFoldersCount; index < limit; index++)
+		{
+			isSelected = pDestList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, so deselect it
+				bSetOK = pDestList->SetItemState(index,0,stateMask);
+				isSelected = 0;
+			}
+		}
+	}
+}
+
+void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
+{
+	wxLogDebug(_T("OnSrcListSelectItem -- user of doubleclick"));
+
+	bool bIsDoubleClick = TRUE;
+
+
+	// can we find a way to determine if user double-clicked?
+
+
+	int index = event.GetIndex();
+	if (bIsDoubleClick)
+	{
+		if (index < srcFoldersCount)
+		{
+			// we clicked on a folder name, so drill down to that child folder and display its
+			// contents in the dialog
+			wxString aFolderName = event.GetText();
+
+			// extend the path using this foldername, and then display the contents
+			m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
+			SetupSrcList(m_strSrcFolderPath);
+			event.Skip();
+			EnableCopyFileOrFilesButton(FALSE); // start with copy button disabled until a file
+												// is selected
+			EnableMoveFileOrFilesButton(FALSE); // ditto for move button
+			EnableCopyFolderButton(FALSE);
+			EnableMoveFolderButton(FALSE);
+			return;
+		}
+		else
+		{
+			// doubleclicked on a file - do nothing, we don't open files from this dialog
+			wxLogDebug(_T("\n *******   double clicked on a FILE"));
+			return;
+		}
+	}
+	else
+	{
+		// just treat as a single click, which makes the item become selected if not
+		// already so
+		if (index >= srcFoldersCount)
+		{
+			event.Skip();
+			// a file has been selected
+			SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray 
+												 // with current selections
+		}
+		else
+		{
+// *** TODO ***			// single click on a folder -- at the moment, SetupSelectedFilesArray()
+			// would crash if we called it here - fix it first, then do selection of the
+			// folder etc.
+			event.Skip();
+
+			wxLogDebug(_T("\n *******   single clicked on a FOLDER, or slow double clicked! "));
+			return;
+		}
+	}
+}
+
+void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
+{
+	int index = event.GetIndex();
+	if (index < destFoldersCount)
+	{
+		// we clicked on a folder name, so drill down to that child folder and display its
+		// contents in the dialog
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupDestList(m_strDestFolderPath);
+		event.Skip();
+		return;
+	}
+	event.Skip();
+	// a file has been selected
+	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
+}
+
+void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
+{
+	int index = event.GetIndex();
+	if (index < srcFoldersCount)
+	{
+		// I don't expect control to go thru here, but if it does, I want feedback
+		// about that fact returned audibly; testing has so far never rung the bell
+		::wxBell();
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupSrcList(m_strSrcFolderPath);
+		event.Skip();
+		return;
+	}
+	event.Skip();
+	// if no files are now selected, disable the copy buton
+	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections 
+}
+
+void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
+{
+	int index = event.GetIndex();
+	if (index < destFoldersCount)
+	{
+		// I don't expect control to go thru here, but if it does, I want feedback
+		// about that fact returned audibly; testing has so far never rung the bell
+		::wxBell(); 
+		wxString aFolderName = event.GetText();
+
+		// extend the path using this foldername, and then display the contents
+		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
+		SetupDestList(m_strDestFolderPath);
+		event.Skip();
+		return;
+	}
+	event.Skip();
+	// if no files are now selected, disable the delete and rename buttons (4 buttons)
+	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
+}
+
 
 void AdminMoveOrCopy::EnableCopyFileOrFilesButton(bool bEnableFlag)
 {
@@ -1433,23 +1687,6 @@ void AdminMoveOrCopy::EnableMoveFileOrFilesButton(bool bEnableFlag)
 	else
 		pMoveFileOrFilesButton->Enable(FALSE);
 }
-
-void AdminMoveOrCopy::EnableCopyFolderButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pCopyFolderButton->Enable(TRUE);
-	else
-		pCopyFolderButton->Enable(FALSE);
-}
-
-void AdminMoveOrCopy::EnableMoveFolderButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pMoveFolderButton->Enable(TRUE);
-	else
-		pMoveFolderButton->Enable(FALSE);
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -1493,6 +1730,7 @@ void AdminMoveOrCopy::OnMoveFileOrFiles(wxCommandEvent& WXUNUSED(event))
 {	
 	MoveOrCopyFileOrFiles(); // parameter  bool bDoMove is default TRUE
 }
+
 
 // the MoveOrCopyFileOrFiles() function is used in both the Move and the Copy button handlers
 // for file moves of file copying. Moving is done by copying, and then removing the original
@@ -1602,14 +1840,14 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 			} // end block for test: if (flag)
 		} // end for loop block
 	}  // end block for test: if (bDoMove)
-	/*
-	unsigned int i;
-	for (i=0; i < srcSelectedFilesArray.GetCount(); i++)
-	{
-		wxString fn = srcSelectedFilesArray.Item(i);
-		wxLogDebug(_T("Files Before:  %s   at index:  %d  for total of %d\n"), fn.c_str(),i, srcSelectedFilesArray.GetCount());
-	}
-	*/
+	
+	//unsigned int i;
+	//for (i=0; i < srcSelectedFilesArray.GetCount(); i++)
+	//{
+	//	wxString fn = srcSelectedFilesArray.Item(i);
+	//	wxLogDebug(_T("Files Before:  %s   at index:  %d  for total of %d\n"), fn.c_str(),i, srcSelectedFilesArray.GetCount());
+	//}
+	
 	// Note: a bug in SetItemState() which DeselectSelectedFiles() call uses causes the
 	// m_nCount member of wxArrayString for srcSelectedFilesArray() to be overwritten to
 	// have value 1, do after emptying here, a further empty is required further below
@@ -1639,18 +1877,14 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 
 	// disable the Copy File Or Files button, and other relevant buttons
 	wxASSERT(srcSelectedFilesArray.GetCount() == 0);
-	/* button disabling is now done in the calls above
-	EnableCopyFileOrFilesButton(FALSE);
-	EnableMoveFileOrFilesButton(FALSE);
-	*/
 }
 
-void AdminMoveOrCopy::EnableDeleteDestFolderButton(bool bEnableFlag)
+void AdminMoveOrCopy::EnableDeleteDestFileOrFilesButton(bool bEnableFlag)
 {
 	if (bEnableFlag)
-		pDeleteDestFolderButton->Enable(TRUE);
+		pDeleteDestFileOrFilesButton->Enable(TRUE);
 	else
-		pDeleteDestFolderButton->Enable(FALSE);
+		pDeleteDestFileOrFilesButton->Enable(FALSE);
 }
 
 void AdminMoveOrCopy::EnableRenameDestFileButton(bool bEnableFlag)
@@ -1661,21 +1895,140 @@ void AdminMoveOrCopy::EnableRenameDestFileButton(bool bEnableFlag)
 		pRenameDestFileButton->Enable(FALSE);
 }
 
-void AdminMoveOrCopy::EnableRenameDestFolderButton(bool bEnableFlag)
+
+
+void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
 {
-	if (bEnableFlag)
-		pRenameDestFolderButton->Enable(TRUE);
+	int index = 0;
+	int limit = 0;
+	long stateMask = 0;
+	stateMask |= wxLIST_STATE_SELECTED;
+	int isSelected = 0;
+	if (side == sourceSide)
+	{
+		srcSelectedFilesArray.Empty(); // clear, we'll refill in the loop
+		index = srcFoldersCount; // index of first file in the wxListCtrl
+		limit = pSrcList->GetItemCount(); // index of list file is (limit - 1)
+		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
+		{
+			EnableCopyFileOrFilesButton(FALSE);
+			EnableMoveFileOrFilesButton(FALSE);
+			if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
+			{
+				EnableCopyFolderButton(TRUE);
+				EnableMoveFolderButton(TRUE);
+			}
+			else
+			{
+				EnableCopyFolderButton(FALSE);
+				EnableMoveFolderButton(FALSE);
+			}
+			return; // nothing to do
+		}
+		srcSelectedFilesArray.Clear();
+		srcSelectedFilesArray.Alloc(srcFilesCount); // enough for all files in the folder
+		for (index = srcFoldersCount; index < limit; index++)
+		{
+			isSelected = pSrcList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, add it's name to the list of selected files
+				wxString filename = pSrcList->GetItemText(index);
+				size_t itsIndex = srcSelectedFilesArray.Add(filename); // return is unused
+				itsIndex = itsIndex; // avoid compiler warning
+				isSelected = 0;
+			}
+		}
+		if (!m_strSrcFolderPath.IsEmpty() && !m_strDestFolderPath.IsEmpty())
+		{
+			EnableCopyFolderButton(TRUE);
+			EnableMoveFolderButton(TRUE);
+		}
+		else
+		{
+			EnableCopyFolderButton(FALSE);
+			EnableMoveFolderButton(FALSE);
+		}
+		if (srcSelectedFilesArray.GetCount() > 0)
+		{
+			EnableCopyFileOrFilesButton(TRUE);
+			EnableMoveFileOrFilesButton(TRUE);
+		}
+		else
+		{
+			// must be 0, so disable relevant buttons
+			EnableCopyFileOrFilesButton(FALSE);
+			EnableMoveFileOrFilesButton(FALSE);
+			EnableCopyFolderButton(FALSE);
+			EnableMoveFolderButton(FALSE);
+		}
+	}
 	else
-		pRenameDestFolderButton->Enable(FALSE);
+	{
+		destSelectedFilesArray.Empty(); // clear, we'll refill in the loop
+		index = destFoldersCount; // index of first file in the wxListCtrl
+		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
+		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
+		{
+			EnableDeleteDestFileOrFilesButton(FALSE);
+			EnableRenameDestFileButton(FALSE);
+			if (m_strDestFolderPath.IsEmpty())
+			{
+				EnableDeleteDestFolderButton(FALSE);
+				EnableRenameDestFolderButton(FALSE);
+			}
+			else
+			{
+				EnableDeleteDestFolderButton(FALSE);
+				EnableRenameDestFolderButton(TRUE);
+			}
+			return; // nothing to do
+		}
+		destSelectedFilesArray.Clear();
+		destSelectedFilesArray.Alloc(destFilesCount); // enough for all files in the folder
+		for (index = destFoldersCount; index < limit; index++)
+		{
+			isSelected = pDestList->GetItemState(index,stateMask);
+			if (isSelected)
+			{
+				// this one is selected, add it's name to the list of selected files
+				wxString filename = pDestList->GetItemText(index);
+				size_t itsIndex = destSelectedFilesArray.Add(filename); // return is unused
+				itsIndex = itsIndex; // avoid compiler warning
+				isSelected = 0;
+			}
+		}
+		if (m_strDestFolderPath.IsEmpty())
+		{
+			EnableDeleteDestFolderButton(FALSE);
+			EnableRenameDestFolderButton(FALSE);
+		}
+		else
+		{
+			EnableDeleteDestFolderButton(FALSE);
+			EnableRenameDestFolderButton(TRUE);
+		}
+		if (destSelectedFilesArray.GetCount() == 1)
+		{
+			EnableRenameDestFileButton(TRUE);
+			EnableDeleteDestFileOrFilesButton(TRUE);
+		}
+		if (destSelectedFilesArray.GetCount() == 0 ||
+			destSelectedFilesArray.GetCount() > 1)
+		{
+			if (destSelectedFilesArray.GetCount() == 0)
+			{
+				EnableDeleteDestFileOrFilesButton(FALSE);
+			}
+			else
+			{
+				EnableDeleteDestFileOrFilesButton(TRUE);
+			}
+			EnableRenameDestFileButton(FALSE);
+		}
+	}
 }
 
-void AdminMoveOrCopy::EnableDeleteDestFileOrFilesButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pDeleteDestFileOrFilesButton->Enable(TRUE);
-	else
-		pDeleteDestFileOrFilesButton->Enable(FALSE);
-}
 
 void AdminMoveOrCopy::OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event))
 {
@@ -1706,12 +2059,6 @@ void AdminMoveOrCopy::OnBnClickedDeleteDestFiles(wxCommandEvent& WXUNUSED(event)
 }
 
 
-void AdminMoveOrCopy::OnBnClickedDeleteDestFolder(wxCommandEvent& WXUNUSED(event))
-{
-
-
-}
-
 void AdminMoveOrCopy::OnBnClickedRenameDestFile(wxCommandEvent& WXUNUSED(event))
 {
 	wxString theFilePath;
@@ -1740,28 +2087,7 @@ void AdminMoveOrCopy::OnBnClickedRenameDestFile(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-void AdminMoveOrCopy::OnBnClickedRenameDestFolder(wxCommandEvent& WXUNUSED(event))
-{
 
-
-	// update the destination list
-	SetupDestList(m_strDestFolderPath);
-}
-
-void AdminMoveOrCopy::OnBnClickedCopySrcFolder(wxCommandEvent& WXUNUSED(event))
-{
-
-	// update the destination list
-	SetupDestList(m_strDestFolderPath);
-}
-
-void AdminMoveOrCopy::OnBnClickedMoveSrcFolder(wxCommandEvent& WXUNUSED(event))
-{
-
-
-	// update the destination list and the source list
-	SetupDestList(m_strDestFolderPath);
-	SetupSrcList(m_strSrcFolderPath);
-}
+*/
 
 
