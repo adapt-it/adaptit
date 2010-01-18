@@ -233,7 +233,7 @@ WX_DEFINE_LIST(KPlusCList);
 #define nU16BOMLen 2
 
 // globals
-
+ 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool gbVerticalEditInProgress; // defined in Adapt_ItView.cpp 
 			// (for vertical edit functionality)
@@ -25477,6 +25477,7 @@ void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
 	AdminMoveOrCopy dlg(pApp->GetMainFrame());
 	if (dlg.ShowModal() == wxID_OK)
 	{
+		;
 	}
 }
 
