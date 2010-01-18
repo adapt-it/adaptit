@@ -6702,7 +6702,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL );
+    wxTextCtrl *item12 = new wxTextCtrl( parent, ID_TEXTCTRL_SOURCE_PATH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxHSCROLL );
     item11->Add( item12, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item5->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
@@ -6710,10 +6710,10 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticBox *item15 = new wxStaticBox( parent, -1, _("Contents of the source folder:") );
-    wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxVERTICAL );
+    wxStaticBoxSizer *item14 = new wxStaticBoxSizer( item15, wxHORIZONTAL );
 
     wxListCtrl *item16 = new wxListCtrl( parent, ID_LISTCTRL_SOURCE_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
-    item14->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add( item16, 1, wxGROW|wxALL, 5 );
 
     item13->Add( item14, 1, wxGROW, 0 );
 
@@ -6751,7 +6751,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_PATH, wxT(""), wxDefaultPosition, wxSize(300,-1), wxTE_READONLY|wxHSCROLL );
+    wxTextCtrl *item26 = new wxTextCtrl( parent, ID_TEXTCTRL_DESTINATION_PATH, wxT(""), wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxHSCROLL );
     item25->Add( item26, 1, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item19->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
@@ -6759,10 +6759,10 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticBox *item29 = new wxStaticBox( parent, -1, _("Contents of the destination folder:") );
-    wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxVERTICAL );
+    wxStaticBoxSizer *item28 = new wxStaticBoxSizer( item29, wxHORIZONTAL );
 
     wxListCtrl *item30 = new wxListCtrl( parent, ID_LISTCTRL_DESTINATION_CONTENTS, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
-    item28->Add( item30, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item28->Add( item30, 1, wxGROW|wxALL, 5 );
 
     item27->Add( item28, 1, wxGROW, 0 );
 
