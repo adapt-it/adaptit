@@ -1667,6 +1667,7 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 	else
 	{
 		wxString str = _T("");
+		wxString filename = _T("");
 		bool bWorking = dir.GetFirst(&str,wxEmptyString,wxDIR_FILES); 
 		// whm note: wxDIR_FILES finds only files; it ignores directories, and . and ..
 		// to include directories, OR with wxDIR_DIRS
@@ -1681,16 +1682,20 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 				continue;
 			wxFileName fn;
 			fn.Assign(str); // assign the full path to the wxFileName object
-			// for wxPathFormat format  we use the value wxPATH_NATIVE on the assumption
-			// that even when accessing a foreign machine's different OS, the path
-			// separator returned on the local machine is the native one (if this
-			// assumption proves false, I'll have to make checks and do conditional blocks
-			// for making calls using wxPath_UNIX (for Linux or Mac) versus wxPath_WIN
+            // for wxPathFormat format we use the value wxPATH_NATIVE on the assumption
+            // that even when accessing a foreign machine's different OS, the path
+            // separator returned on the local machine is the native one (if this
+            // assumption proves false, I'll have to make checks and do conditional blocks
+            // for making calls using wxPath_UNIX (for Linux or Mac) versus wxPath_WIN
 			
-			// get the filename part (including extension), we don't care about rest of
-			// path because we won't show those to a user
-			str = fn.GetFullName();
-			pFiles->Add(str); // add the filename to the list
+            // get the filename part (including extension), we don't care about rest of
+            // path and so it's thrown away in the next call; also don't add to the array
+            // any read-only protection file encountered
+			filename = fn.GetFullName();
+			if (!IsReadOnlyProtection_LockFile(filename))
+			{
+				pFiles->Add(filename); // add the filename to the list
+			}
 
 			// try find the next one
 			bWorking = dir.GetNext(&str);

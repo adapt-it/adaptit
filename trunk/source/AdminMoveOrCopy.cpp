@@ -153,10 +153,8 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	srcFilesCount = 0;
 	destFoldersCount = 0;
 	destFilesCount = 0;
-	m_bNoDestPathYet = FALSE;
 
 	m_bUserCancelled = FALSE;
-	m_bCopyWasSuccessful = FALSE;
 	m_bDoTheSameWay = FALSE;
 
 	// set up pointers to interface objects
@@ -390,23 +388,6 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 						gpApp->m_bAdminMoveOrCopyIsInitializing); // TRUE means to sort the array
 		bHasFiles = GetFilesOnly(folderPath, &srcFilesArray); // default is to sort the array
 
-		// the read-only protection mechanism's lock file is not to be moved or copied
-		// so check for its presence in the array and remove it if it is there (there will
-		// ever only be one such filename, or none)
-		size_t count = srcFilesArray.GetCount();
-		size_t index;
-		for (index = 0; index < count; index++)
-		{
-			wxString filename = srcFilesArray.Item(index);
-			if (IsReadOnlyProtection_LockFile(filename))
-			{
-				// we found a lock file's filename, so remove it
-				srcFilesArray.RemoveAt(index);
-				if (srcFilesArray.GetCount() == 0)
-					bHasFiles = FALSE;
-				break;
-			}
-		}
 	}
 	else
 	{
@@ -420,25 +401,6 @@ void AdminMoveOrCopy::GetListCtrlContents(enum whichSide side, wxString& folderP
 		bHasFolders = GetFoldersOnly(folderPath, &destFoldersArray, TRUE,
 						gpApp->m_bAdminMoveOrCopyIsInitializing); // TRUE means sort the array
 		bHasFiles = GetFilesOnly(folderPath, &destFilesArray); // default is to sort the array
-
-		// the read-only protection mechanism's lock file is not to be seen in the
-		// destination side, otherwise the user could misunderstand its purpose and delete it...
-		// so check for its presence in the array and remove it if it is there (there will
-		// ever only be one such filename, or none)
-		size_t count = destFilesArray.GetCount();
-		size_t index;
-		for (index = 0; index < count; index++)
-		{
-			wxString filename = destFilesArray.Item(index);
-			if (IsReadOnlyProtection_LockFile(filename))
-			{
-				// we found a lock file's filename, so remove it
-				destFilesArray.RemoveAt(index);
-				if (destFilesArray.GetCount() == 0)
-					bHasFiles = FALSE;
-				break;
-			}
-		}
 	}
 
 	// debugging -- display what we got for source side & destination side too
@@ -976,7 +938,20 @@ bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPa
 	return FALSE;
 }
 
-// populates srcSelectionArray or destSelectionArray
+// 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      side    ->  enum with value either sourceSide, or destinationSide 
+///  \remarks   Populates srcSelectionArray, or destSelectionArray, with wxString filename
+///  entries or foldername entries or both, depending on what is selected in the passed in
+///  side's wxListCtrl.
+///  A side effect is to enable or disable the Move, Copy, Rename and/or Delete buttons.
+///  If multiple files or folders or both are selected, this function is only used at the
+///  top level of the handler for such butons, because the handlers are recursive and for
+///  child folders the selections are set up programmatically.
+///  Another job it does is to populate the member arrays, srcSelectedFilesArray and
+///  srcSelectedFoldersArray, needed at the top level of the Copy or Move handlers.
+//////////////////////////////////////////////////////////////////////////////////
 void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 {
 	size_t index = 0;
@@ -986,7 +961,9 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 	int isSelected = 0;
 	if (side == sourceSide)
 	{
-		srcSelectionArray.Empty(); // clear, we'll refill in the loop
+		srcSelectedFilesArray.Empty();
+		srcSelectedFoldersArray.Empty();
+		srcSelectionArray.Empty();
 		limit = pSrcList->GetItemCount();
 		if ((srcFilesCount == 0 && srcFoldersCount == 0) || 
 			pSrcList->GetSelectedItemCount() == 0)
@@ -996,6 +973,8 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 			return; // nothing to do
 		}
 		srcSelectionArray.Alloc(limit); // enough for all items in the list
+		srcSelectedFoldersArray.Alloc(srcFoldersCount);
+		srcSelectedFilesArray.Alloc(srcFilesCount);
 		for (index = 0; index < limit; index++)
 		{
 			isSelected = pSrcList->GetItemState(index,stateMask);
@@ -1004,7 +983,19 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 				// this one is selected, add it's name to the list of selected items
 				wxString itemName = pSrcList->GetItemText(index);
 				size_t itsIndex = srcSelectionArray.Add(itemName); // return is unused
-				itsIndex = itsIndex; // avoid compiler warning
+
+				// is it a folder or a file - find out and add it to the appropriate array
+				wxString path = m_strSrcFolderPath + gpApp->PathSeparator + itemName;
+				if (::wxDirExists(path.c_str()))
+				{
+					// it's a directory
+					itsIndex = srcSelectedFoldersArray.Add(itemName);
+				}
+				else
+				{
+					// it'a a file
+					itsIndex = srcSelectedFilesArray.Add(itemName);
+				}
 				isSelected = 0;
 			}
 		}
@@ -1148,16 +1139,6 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 	bool bSuccess = TRUE;
 	copyType = copyAndReplace; // set to default value
 	wxString newFilenameStr = _T("");
-
-	// do nothing if the destination folder is not yet defined
-	if (destPath.IsEmpty())
-	{
-		wxMessageBox(_(
-	"No destination folder is defined. Use the button 'Locate the destination folder' to first set a destination, then try again."),
-		_("Cannot move or copy"), wxICON_WARNING);
-		m_bNoDestPathYet = TRUE;
-		return FALSE;
-	}
 
 	// make the path to the source file
 	wxString theSourcePath = srcPath + gpApp->PathSeparator + filename;
@@ -1320,8 +1301,207 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 	*/
 }
 
+
+// the MoveOrCopyFileOrFiles() function is used in both the Move and the Copy button handlers
+// for file moves of file copying. Moving is done by copying, and then removing the original
+// source files which were copied. Copying does not do the removal step.
+void AdminMoveOrCopy::MoveOrCopyFiles(wxString srcFolderPath, wxString destFolderPath,
+				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
+				bool bDoMove)
+{
+	// copy the files first, then recurse for copying the one or more folders, if any
+	size_t limitSelectedFiles = pSrcSelectedFilesArray->GetCount();
+	size_t limitSelectedFolders = pSrcSelectedFoldersArray->GetCount();
+	size_t index;
+	arrCopiedOK.Clear();
+	arrCopiedOK.Alloc(limitSelectedFiles); // space for a flag for every 
+										   // selected filename to have a flag value
+	size_t nItemIndex = 0;
+	bool bCopyWasSuccessful = TRUE;
+	
+	wxString aFilename = pSrcSelectedFilesArray->Item(nItemIndex);
+	wxASSERT(!aFilename.IsEmpty());
+	m_bUserCancelled = FALSE;
+	m_bDoTheSameWay = FALSE;
+	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
+					  // if there was one, was handled (see CopyAction enum for values)
+	// loop across all files that were selected
+	do {
+		// process one file per iteration until the list of selected filenames is empty
+		bCopyWasSuccessful = CopySingleFile(srcFolderPath,destFolderPath,aFilename, 
+												m_bUserCancelled);
+		if (!bCopyWasSuccessful)
+		{
+            // if the copy did not succeed because the user chose to Cancel when a filename
+            // conflict was detected, we want to use the returned TRUE value in
+			// m_bUserCancelled to force the parent dialog to close; other failures, however,
+			// need a warning to be given to the user
+			arrCopiedOK.Add(0); // record the fact that the last file copy did not take place
+			if (m_bUserCancelled)
+			{
+				// force parent dialog to close, and if Move was being attempted, abandon that
+				// to without removing anything more at the source side
+				return;
+			}
+		}
+		else
+		{
+			arrCopiedOK.Add(1); // record the fact that the copy took place
+		}
+
+		// prepare for iteration, a new value for aFilename is required
+		nItemIndex++;
+		if (nItemIndex < limitSelectedFiles)
+			aFilename = pSrcSelectedFilesArray->Item(nItemIndex);
+
+	} while (nItemIndex < limitSelectedFiles);
+
+
+	// If Move was requested, remove each source filename for which there was a successful
+	// copy from the srcSelectedFilesArray, and then clear the srcSelectedFilesArray. 
+	// Also, for a Move, remove those same files from the src folder
+	if (bDoMove)
+	{
+		int flag; // will be 1 or 0, for each selected filename
+		wxString aFilename;
+		wxString theSourceFilePath;
+		bool bRemovedSuccessfully = TRUE;
+		for (index = 0; index < limitSelectedFiles; index++)
+		{
+			flag = arrCopiedOK.Item(index); // get whether or not it was successfully copied
+			if (flag)
+			{
+				aFilename = pSrcSelectedFilesArray->Item(index); // get the filename
+				// make the path to it
+				theSourceFilePath = srcFolderPath + gpApp->PathSeparator + aFilename;
+
+				// remove the file from the source folder
+				bRemovedSuccessfully = ::wxRemoveFile(theSourceFilePath);
+				if (!bRemovedSuccessfully)
+				{
+					// shouldn't ever fail, so an English message for developer will do
+					wxString msg;
+					msg = msg.Format(_T("MoveOrCopyFiles: Removing the file ( %s ) for the requested move, failed"),
+							theSourceFilePath.c_str());
+					wxMessageBox(msg, _T("Removing a source file after moving it, failed"),wxICON_WARNING);
+				} // end block for test: if (!bRemovedSuccessfully)
+			} // end block for test: if (flag)
+		} // end for loop block
+	}  // end block for test: if (bDoMove)
+
+	// now handle any folder selections, these will be recursive
+	if (limitSelectedFolders > 0)
+	{
+		// there are one or more folders to copy or move
+		
+
+// **** TODO *****
+
+		if (bDoMove)
+		{
+// **** TODO *****
+		}
+	}
+	//unsigned int i;
+	//for (i=0; i < *pSrcSelectedFilesArray.GetCount(); i++)
+	//{
+	//	wxString fn = *pSrcSelectedFilesArray.Item(i);
+	//	wxLogDebug(_T("File:  %s   at index:  %d  for total of %d\n"), fn.c_str(),i, *pSrcSelectedFilesArray.GetCount());
+	//}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxCommandEvent fired by the user's button press
+/// \remarks
+/// Handler for the "Copy" button. It copies the one or more selected files
+/// in the source folder's wxListCtrl to the destination folder specified by the path
+/// m_strDestFolderPath; and recursively copies files and folders of any child folders.
+///  File name conflicts are handled internally, similarly to how Windows Explorer handles
+///  them (i.e. with a child dialog opening to display file attribute details such as name,
+///  size and last modification date & time for each of the files in conflict) and the user
+///  has 3 options - continue, overwriting the file at the destination folder with the one
+///  from the source folder; or to not copy; or to have the name of the source folder's
+///  file changed so as to remove the conflict and then the copy goes ahead - resulting in
+///  two files with same or similar data being in the destination folder. Cancelling, and
+///  opting to have all subsequent filename conflicts handled the same way as the current
+///  one are also supported from the child dialog.
+////////////////////////////////////////////////////////////////////////////////////////////
 void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 {
+	// do nothing if the destination folder is not yet defined
+	if (m_strDestFolderPath.IsEmpty())
+	{
+		wxMessageBox(
+_("No destination folder is defined. Use the button 'Locate the destination folder' to first set a destination, then try again."),
+		_("Cannot move or copy"), wxICON_WARNING);
+		return;
+	}
+	if(CheckForIdenticalPaths(m_strSrcFolderPath, m_strDestFolderPath))
+	{
+		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning message
+		return;
+	}
+
+	// on the heap, create the arrays of files and folders which are to be copied & populate them
+	wxArrayString* pSrcSelectedFoldersArray	= new wxArrayString;
+	wxArrayString* pSrcSelectedFilesArray	= new wxArrayString;
+	size_t index;
+	size_t foldersLimit = srcSelectedFoldersArray.GetCount(); // RHS populated in SetSelectionArray() call earlier
+	size_t filesLimit = srcSelectedFilesArray.GetCount(); // RHS populated in SetSelectionArray() call earlier
+	if (srcSelectedFilesArray.GetCount() == 0 && srcSelectedFoldersArray.GetCount() == 0)
+	{
+		wxMessageBox(
+_("You first need to select at least one item in the left list before clicking the Copy button"),
+		_("No Files Or Folders Selected"),wxICON_WARNING);
+		pSrcSelectedFilesArray->Clear(); // this one is on heap
+		pSrcSelectedFoldersArray->Clear(); // this one is on heap
+		delete pSrcSelectedFilesArray; // don't leak it
+		delete pSrcSelectedFoldersArray; // don't leak it
+		return;
+	}
+	for (index = 0; index < foldersLimit; index++)
+	{
+		pSrcSelectedFoldersArray->Add(srcFoldersArray.Item(index));
+	}
+	for (index = 0; index < filesLimit; index++)
+	{
+		pSrcSelectedFilesArray->Add(srcFilesArray.Item(index));
+	}
+
+	MoveOrCopyFiles(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
+					pSrcSelectedFilesArray, FALSE); // FALSE is  bool bDoMove
+
+	// clear the allocations to the heap
+	pSrcSelectedFilesArray->Clear(); // this one is on heap
+	pSrcSelectedFoldersArray->Clear(); // this one is on heap
+	delete pSrcSelectedFilesArray; // don't leak it
+	delete pSrcSelectedFoldersArray; // don't leak it
+
+	// if the user asked for a cancel from the file conflict dialog, it cancels the parent
+	// dlg too
+	if (m_bUserCancelled)
+	{
+		// force parent dialog to close, and if Move was being attempted, abandon that
+		// to without removing anything more at the source side
+		EndModal(wxID_OK);
+		return;
+	}
+
+	// Note: a bug in SetItemState() which DeselectSelectedFiles() call uses causes the
+	// m_nCount member of wxArrayString for srcSelectedFilesArray() to be overwritten to
+	// have value 1, do after emptying here, a further empty is required further below
+	srcSelectedFilesArray.Clear(); // the member wxArrayString variable, for top level
+	DeselectSelectedFiles(sourceSide); // loops through wxListCtrl clearing selection
+									   // for each item which has it set
+
+	// clear the source side's array of filename selections (put it here because the
+	// SetItemState() call implicit in DeselectSelectedFiles() causes the emptied
+	// srcSelectedFilesArray to become non-empty (its m_nCount becomes 1, even though the
+	// AdminMoveOrCopy class and its members is on main thread and the wxListCtrl, or
+	// wxListView class, is on a different work thread). I can just do a unilateral call
+	// above of SetupSrcList() to get round this problem, but that's wasteful
+	srcSelectedFilesArray.Clear(); // DO NOT DELETE THIS CALL HERE (even though its above)
 
 	// update the destination list
 	SetupDestList(m_strDestFolderPath);
@@ -1329,12 +1509,85 @@ void AdminMoveOrCopy::OnBnClickedCopy(wxCommandEvent& WXUNUSED(event))
 
 void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 {
+	// do nothing if the destination folder is not yet defined
+	if (m_strDestFolderPath.IsEmpty())
+	{
+		wxMessageBox(
+_("No destination folder is defined. Use the button 'Locate the destination folder' to first set a destination, then try again."),
+		_("Cannot move or copy"), wxICON_WARNING);
+		return;
+	}
+	if(CheckForIdenticalPaths(m_strSrcFolderPath, m_strDestFolderPath))
+	{
+		// identical paths, so bail out; CheckForIdenticalPaths() has put up a warning message
+		return;
+	}
 
+	// on the heap, create the arrays of files and folders which are to be copied & populate them
+	wxArrayString* pSrcSelectedFoldersArray	= new wxArrayString;
+	wxArrayString* pSrcSelectedFilesArray	= new wxArrayString;
+	size_t index;
+	size_t foldersLimit = srcSelectedFoldersArray.GetCount(); // RHS populated in SetSelectionArray() call earlier
+	size_t filesLimit = srcSelectedFilesArray.GetCount(); // RHS populated in SetSelectionArray() call earlier
+	if (srcSelectedFilesArray.GetCount() == 0 && srcSelectedFoldersArray.GetCount() == 0)
+	{
+		wxMessageBox(
+_("You first need to select at least one item in the left list before clicking the Move button"),
+		_("No Files Or Folders Selected"),wxICON_WARNING);
+		pSrcSelectedFilesArray->Clear(); // this one is on heap
+		pSrcSelectedFoldersArray->Clear(); // this one is on heap
+		delete pSrcSelectedFilesArray; // don't leak it
+		delete pSrcSelectedFoldersArray; // don't leak it
+		return;
+	}
+	for (index = 0; index < foldersLimit; index++)
+	{
+		pSrcSelectedFoldersArray->Add(srcFoldersArray.Item(index));
+	}
+	for (index = 0; index < filesLimit; index++)
+	{
+		pSrcSelectedFilesArray->Add(srcFilesArray.Item(index));
+	}
+
+	MoveOrCopyFiles(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
+					pSrcSelectedFilesArray); // last param  bool bDoMove is TRUE
+
+	// clear the allocations to the heap
+	pSrcSelectedFilesArray->Clear(); // this one is on heap
+	pSrcSelectedFoldersArray->Clear(); // this one is on heap
+	delete pSrcSelectedFilesArray; // don't leak it
+	delete pSrcSelectedFoldersArray; // don't leak it
+
+	// if the user asked for a cancel from the file conflict dialog, it cancels the parent
+	// dlg too
+	if (m_bUserCancelled)
+	{
+		// force parent dialog to close, and if Move was being attempted, abandon that
+		// to without removing anything more at the source side
+		EndModal(wxID_OK);
+		return;
+	}
+
+	// Note: a bug in SetItemState() which DeselectSelectedFiles() call uses causes the
+	// m_nCount member of wxArrayString for srcSelectedFilesArray() to be overwritten to
+	// have value 1, do after emptying here, a further empty is required further below
+	srcSelectedFilesArray.Clear(); // the member wxArrayString variable, for top level
+	DeselectSelectedFiles(sourceSide); // loops through wxListCtrl clearing selection
+									   // for each item which has it set
+
+	// clear the source side's array of filename selections (put it here because the
+	// SetItemState() call implicit in DeselectSelectedFiles() causes the emptied
+	// srcSelectedFilesArray to become non-empty (its m_nCount becomes 1, even though the
+	// AdminMoveOrCopy class and its members is on main thread and the wxListCtrl, or
+	// wxListView class, is on a different work thread). I can just do a unilateral call
+	// above of SetupSrcList() to get round this problem, but that's wasteful
+	srcSelectedFilesArray.Clear(); // DO NOT DELETE THIS CALL HERE (even though its above)
 
 	// update the destination list and the source list
 	SetupDestList(m_strDestFolderPath);
 	SetupSrcList(m_strSrcFolderPath);
 }
+
 
 
 /* FIRST VERSION FUNCTIONS
@@ -1355,203 +1608,6 @@ void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 // *** OBSOLETE FUNCTIONS *****
 
 
-// I did two versions of this, one using wxListCtrl, another using the subclass wxListView
-// and both failed in the same way - see the comments below; it's a widgets problem, not
-// mine; the version using wxListView is simpler so I'll use that, but it has the
-// SetItemState() call implicit in its Selection() function, whereas I call it explicitly
-// in this first version now commented out
-void AdminMoveOrCopy::DeselectSelectedFiles(enum whichSide side)
-{
-	int index = 0;
-	int limit = 0;
-	long stateMask = 0;
-	stateMask |= wxLIST_STATE_SELECTED;
-	stateMask |= wxLIST_STATE_FOCUSED; // not necessary, but the wiki.wxWidgets site has it
-	int isSelected = 0;
-	bool bSetOK = 0;
-	if (side == sourceSide)
-	{
-		index = srcFoldersCount; // index of first file in the wxListCtrl
-		limit = pSrcList->GetItemCount(); // index of last file is (limit - 1)
-		if (srcFilesCount == 0 || pSrcList->GetSelectedItemCount() == 0)
-		{
-			return; // nothing to do
-		}
-		for (index = srcFoldersCount; index < limit; index++)
-		{
-			isSelected = pSrcList->GetItemState(index,stateMask);
-			if (isSelected)
-			{
-				// this one is selected, so deselect it
-unsigned int aCount = srcSelectedFilesArray.GetCount(); // for debugging, the next call is spuriously giving empty srcSelectedFileArray() which is on another thread (the main thread) a m_nCount value of 1, if two or more files were selected for copying
-				
-				bSetOK = pSrcList->SetItemState(index,0,stateMask); // stepping thru this does nothing which should interfer with Main thread
-
-aCount = srcSelectedFilesArray.GetCount(); // this goes to aCount = 1 after the above call!!! (even though its not on wxListCtrl's Worker Thread!!!)
-				isSelected = 0;
-			}
-		}
-	}
-	else
-	{
-		index = destFoldersCount; // index of first file in the wxListCtrl
-		limit = pDestList->GetItemCount(); // index of list file is (limit - 1)
-		if (destFilesCount == 0 || pDestList->GetSelectedItemCount() == 0)
-		{
-			return; // nothing to do
-		}
-		for (index = destFoldersCount; index < limit; index++)
-		{
-			isSelected = pDestList->GetItemState(index,stateMask);
-			if (isSelected)
-			{
-				// this one is selected, so deselect it
-				bSetOK = pDestList->SetItemState(index,0,stateMask);
-				isSelected = 0;
-			}
-		}
-	}
-}
-
-void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
-{
-	wxLogDebug(_T("OnSrcListSelectItem -- user of doubleclick"));
-
-	bool bIsDoubleClick = TRUE;
-
-
-	// can we find a way to determine if user double-clicked?
-
-
-	int index = event.GetIndex();
-	if (bIsDoubleClick)
-	{
-		if (index < srcFoldersCount)
-		{
-			// we clicked on a folder name, so drill down to that child folder and display its
-			// contents in the dialog
-			wxString aFolderName = event.GetText();
-
-			// extend the path using this foldername, and then display the contents
-			m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
-			SetupSrcList(m_strSrcFolderPath);
-			event.Skip();
-			EnableCopyFileOrFilesButton(FALSE); // start with copy button disabled until a file
-												// is selected
-			EnableMoveFileOrFilesButton(FALSE); // ditto for move button
-			EnableCopyFolderButton(FALSE);
-			EnableMoveFolderButton(FALSE);
-			return;
-		}
-		else
-		{
-			// doubleclicked on a file - do nothing, we don't open files from this dialog
-			wxLogDebug(_T("\n *******   double clicked on a FILE"));
-			return;
-		}
-	}
-	else
-	{
-		// just treat as a single click, which makes the item become selected if not
-		// already so
-		if (index >= srcFoldersCount)
-		{
-			event.Skip();
-			// a file has been selected
-			SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray 
-												 // with current selections
-		}
-		else
-		{
-// *** TODO ***			// single click on a folder -- at the moment, SetupSelectedFilesArray()
-			// would crash if we called it here - fix it first, then do selection of the
-			// folder etc.
-			event.Skip();
-
-			wxLogDebug(_T("\n *******   single clicked on a FOLDER, or slow double clicked! "));
-			return;
-		}
-	}
-}
-
-void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < destFoldersCount)
-	{
-		// we clicked on a folder name, so drill down to that child folder and display its
-		// contents in the dialog
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupDestList(m_strDestFolderPath);
-		event.Skip();
-		return;
-	}
-	event.Skip();
-	// a file has been selected
-	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
-}
-
-void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < srcFoldersCount)
-	{
-		// I don't expect control to go thru here, but if it does, I want feedback
-		// about that fact returned audibly; testing has so far never rung the bell
-		::wxBell();
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strSrcFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupSrcList(m_strSrcFolderPath);
-		event.Skip();
-		return;
-	}
-	event.Skip();
-	// if no files are now selected, disable the copy buton
-	SetupSelectedFilesArray(sourceSide); // update srcSelectedFilesArray with current selections 
-}
-
-void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
-{
-	int index = event.GetIndex();
-	if (index < destFoldersCount)
-	{
-		// I don't expect control to go thru here, but if it does, I want feedback
-		// about that fact returned audibly; testing has so far never rung the bell
-		::wxBell(); 
-		wxString aFolderName = event.GetText();
-
-		// extend the path using this foldername, and then display the contents
-		m_strDestFolderPath += gpApp->PathSeparator + aFolderName;
-		SetupDestList(m_strDestFolderPath);
-		event.Skip();
-		return;
-	}
-	event.Skip();
-	// if no files are now selected, disable the delete and rename buttons (4 buttons)
-	SetupSelectedFilesArray(destinationSide); // update destSelectedFilesArray with current selections 
-}
-
-
-void AdminMoveOrCopy::EnableCopyFileOrFilesButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pCopyFileOrFilesButton->Enable(TRUE);
-	else
-		pCopyFileOrFilesButton->Enable(FALSE);
-}
-
-void AdminMoveOrCopy::EnableMoveFileOrFilesButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pMoveFileOrFilesButton->Enable(TRUE);
-	else
-		pMoveFileOrFilesButton->Enable(FALSE);
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -1615,8 +1671,6 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 		return;
 	}
 
-	// if a Move is wanted, copy the filename seletions across to the 
-	// srcSelectedMoveFilesArray, giving two identical filename arrays
 	size_t limitSelected = srcSelectedFilesArray.GetCount();
 	size_t index;
 	arrCopiedOK.Clear();
@@ -1659,9 +1713,6 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 		}
 		else
 		{
-            // successful copy: if the copy was part of a move request, then delete the
-            // source file that was copied and remove it from the array of selected files
-            // to be moved
 			arrCopiedOK.Add(1); // record the fact that the copy took place
 		}
 
@@ -1743,23 +1794,6 @@ void AdminMoveOrCopy::MoveOrCopyFileOrFiles(bool bDoMove)
 	// disable the Copy File Or Files button, and other relevant buttons
 	wxASSERT(srcSelectedFilesArray.GetCount() == 0);
 }
-
-void AdminMoveOrCopy::EnableDeleteDestFileOrFilesButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pDeleteDestFileOrFilesButton->Enable(TRUE);
-	else
-		pDeleteDestFileOrFilesButton->Enable(FALSE);
-}
-
-void AdminMoveOrCopy::EnableRenameDestFileButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		pRenameDestFileButton->Enable(TRUE);
-	else
-		pRenameDestFileButton->Enable(FALSE);
-}
-
 
 
 void AdminMoveOrCopy::SetupSelectedFilesArray(enum whichSide side)
