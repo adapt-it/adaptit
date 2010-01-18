@@ -79,14 +79,13 @@ BEGIN_EVENT_TABLE(AdminMoveOrCopy, AIModalDialog)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDeselectItem)
 	EVT_LIST_ITEM_SELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListSelectItem)
 	EVT_LIST_ITEM_DESELECTED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDeselectItem)
+	EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDoubleclick)
+	EVT_LIST_ITEM_ACTIVATED(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDoubleclick)
 
 	EVT_BUTTON(ID_BUTTON_DELETE, AdminMoveOrCopy::OnBnClickedDelete)
 	EVT_BUTTON(ID_BUTTON_RENAME, AdminMoveOrCopy::OnBnClickedRename)
 	EVT_BUTTON(ID_BUTTON_COPY, AdminMoveOrCopy::OnBnClickedCopy)
 	EVT_BUTTON(ID_BUTTON_MOVE, AdminMoveOrCopy::OnBnClickedMove)
-
-	EVT_COMMAND_LEFT_DCLICK(ID_LISTCTRL_SOURCE_CONTENTS, AdminMoveOrCopy::OnSrcListDoubleclick)
-	EVT_COMMAND_LEFT_DCLICK(ID_LISTCTRL_DESTINATION_CONTENTS, AdminMoveOrCopy::OnDestListDoubleclick)
 
 END_EVENT_TABLE()
 
@@ -175,26 +174,18 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	//pDestList= (wxListCtrl*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
 	pSrcList = (wxListView*)FindWindowById(ID_LISTCTRL_SOURCE_CONTENTS);
 	pDestList= (wxListView*)FindWindowById(ID_LISTCTRL_DESTINATION_CONTENTS);
-	
+
 	pUpSrcFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_SRC_OPEN_FOLDER_UP);
 	wxASSERT(pUpSrcFolder != NULL);
 	pUpDestFolder = (wxBitmapButton*)FindWindowById(ID_BITMAPBUTTON_DEST_OPEN_FOLDER_UP);
 	wxASSERT(pUpDestFolder != NULL);
 
 	pMoveButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE);
-	//pMoveFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_MOVE_FILES);
 	pCopyButton = (wxButton*)FindWindowById(ID_BUTTON_COPY);
-	//pCopyFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_COPY_FILES);
-	//pDeleteDestFileOrFilesButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE_DEST_FILES);
 	pDeleteButton = (wxButton*)FindWindowById(ID_BUTTON_DELETE);
-	//pRenameDestFileButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME_DEST_FILE);
 	pRenameButton = (wxButton*)FindWindowById(ID_BUTTON_RENAME);
 
 	// start with lower buttons disabled (they rely on selections to become enabled)
-	//EnableCopyFileOrFilesButton(FALSE);
-	//EnableMoveFileOrFilesButton(FALSE);
-	//EnableDeleteDestFileOrFilesButton(FALSE);
-	//EnableRenameDestFileButton(FALSE);
 	EnableDeleteButton(FALSE);
 	EnableRenameButton(FALSE);
 	EnableCopyButton(FALSE);
@@ -555,17 +546,12 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 		// without an explicit icon, the icon in the list with index = 0 gets shown, and
 		// that is the folder icon - which would be confusing, as it would suggest a
 		// folder was found with the name "The folder is empty".
-        //wxListItem colInfo;
-        //bool bGotColInfoOK = pSrcList->GetColumn(0,colInfo);
-		//bGotColInfoOK = bGotColInfoOK;
 		rv = pSrcList->InsertItem(0, emptyFolderMessage,indxEmptyIcon);
 		srcFoldersCount = 0;
 		srcFilesCount = 0;
 
 		pMoveButton->Disable();
-		//pMoveFileOrFilesButton->Disable();
 		pCopyButton->Disable();
-		//pCopyFileOrFilesButton->Disable();
 	}
 }
 
@@ -583,8 +569,6 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 	GetListCtrlContents(destinationSide, folderPath, bHasFolders, bHasFiles);
 	if (bHasFolders || bHasFiles)
 	{
-		//pDeleteDestFileOrFilesButton->Enable(FALSE);
-
 		destFoldersCount = 0;
 		destFilesCount = 0;
 
@@ -888,10 +872,7 @@ wxString AdminMoveOrCopy::BuildChangedFilenameForCopy(wxString* pFilename)
 void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 {
 	// we repopulate the srcSelectionArray each time with the set of selected items 
-	wxLogDebug(_T("OnDestListSelectItem -- provides data for doubleclick handler"));
-	m_destIndex = event.GetIndex(); // get index, OnSrcListDoubleclick() needs it
-	m_destIndex = m_destIndex; // prevent compiler warning
-	m_destItemText = event.GetText();
+	//wxLogDebug(_T("OnDestListSelectItem"));
 	event.Skip();
 	SetupSelectionArray(destinationSide); // update destSelectionArray 
 										  // with current selections
@@ -899,98 +880,70 @@ void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 
 void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 {
-	m_srcIndex = 0;
-	m_srcItemText.Empty(); // make sure dbl click handler won't fire with old value
-
-	size_t index = event.GetIndex();
-	index = index; // prevent compiler warning
 	event.Skip();
-	// if no files are now selected, disable the copy buton
-	SetupSelectionArray(sourceSide); // update srcSelectedFilesArray with current selections 
+	SetupSelectionArray(sourceSide); // update srcSelectedFilesArray 
+									 // with current selections 
 }
 
 void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 {
-	m_destIndex = 0;
-	m_destItemText.Empty(); // make sure dbl click handler won't fire with old value
-
-	size_t index = event.GetIndex();
-	index = index; // prevent compiler warning
 	event.Skip();
-	// if no files are now selected, disable the delete and rename buttons (4 buttons)
-	SetupSelectionArray(destinationSide); // update destSelectedFilesArray with current selections 
+	SetupSelectionArray(destinationSide); // update destSelectedFilesArray 
+										  // with current selections 
 }
 
 void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
 {
 	// we repopulate the srcSelectionArray each time with the set of selected items 
-	wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
-	m_srcIndex = event.GetIndex(); // get index, OnSrcListDoubleclick() needs it
-	m_srcIndex = m_srcIndex; // prevent compiler warning
-	m_srcItemText = event.GetText();
+	//wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
 	event.Skip();
 	SetupSelectionArray(sourceSide); // update srcSelectionArray 
 									 // with current selections
 }
 
-void AdminMoveOrCopy::OnSrcListDoubleclick(wxCommandEvent& WXUNUSED(event))
+void AdminMoveOrCopy::OnSrcListDoubleclick(wxListEvent& event)
 {
-	wxLogDebug(_T("OnSrcListDoubleclick"));
-	size_t index = m_srcIndex; // set from the preceding OnSrcListSelectItem() call,
-							   // (the dbl click event is posted after the selection event)
+	//wxLogDebug(_T("OnSrcListDoubleclick"));
+	size_t index = event.GetIndex();
 	if (index < srcFoldersCount)
 	{
 		// we clicked on a folder name, so drill down to that child folder and display its
 		// contents in the dialog;  check here for an empty string in m_srcItemText, and if so
 		// then don't do anything in this handler
-		if (m_srcItemText.IsEmpty())
+		if (event.GetText().IsEmpty())
 			return;		
 
 		// extend the path using this foldername, and then display the contents
-		m_strSrcFolderPath += gpApp->PathSeparator + m_srcItemText;
+		m_strSrcFolderPath += gpApp->PathSeparator + event.GetText();
 		SetupSrcList(m_strSrcFolderPath);
 		//event.Skip();
 		EnableCopyButton(FALSE);
 		EnableMoveButton(FALSE);
-		return;
-	}
-	else
-	{
-		// doubleclicked on a file - do nothing, we don't open files from this dialog
-		wxLogDebug(_T("\n *******   double clicked on a FILE"));
-		return;
 	}
 }
 
-void AdminMoveOrCopy::OnDestListDoubleclick(wxCommandEvent& WXUNUSED(event))
+
+void AdminMoveOrCopy::OnDestListDoubleclick(wxListEvent& event)
 {
-	wxLogDebug(_T("OnDestListDoubleclick"));
-	size_t index = m_destIndex; // set from the preceding OnSrcListSelectItem() call,
+	//wxLogDebug(_T("OnDestListDoubleclick"));
+	//size_t index = m_destIndex; // set from the preceding OnSrcListSelectItem() call,
 							   // (the dbl click event is posted after the selection event)
+	size_t index = event.GetIndex();
 	if (index < destFoldersCount)
 	{
 		// we clicked on a folder name, so drill down to that child folder and display its
 		// contents in the dialog;  check here for an empty string in m_destItemText, and if so
 		// then don't do anything in this handler
-		if (m_destItemText.IsEmpty())
+		if (event.GetText().IsEmpty())
 			return;		
 
 		// extend the path using this foldername, and then display the contents
-		m_strDestFolderPath += gpApp->PathSeparator + m_destItemText;
+		m_strDestFolderPath += gpApp->PathSeparator + event.GetText();
 		SetupDestList(m_strDestFolderPath);
-		//event.Skip();
 		EnableRenameButton(FALSE);
 		EnableDeleteButton(FALSE);
-		return;
-	}
-	else
-	{
-		// doubleclicked on a file - do nothing, we don't open files from this dialog
-		wxLogDebug(_T("\n *******   double clicked on a destination FILE"));
-		return;
 	}
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////

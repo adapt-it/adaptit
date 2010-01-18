@@ -98,10 +98,12 @@ public:
 	size_t destFilesCount;
 
 	// next four for value passing (the double-click event doesn't know about the list)
-	size_t m_srcIndex;  // use this to pass item index to the double-click handler
-	size_t m_destIndex;  // use this to pass item index to the double-click handler
-	wxString m_srcItemText; // use this to pass text of double-clicked item to dbl click handler
-	wxString m_destItemText; // use this to pass text of double-clicked item to dbl click handler
+	//size_t m_srcIndex;  // use this to pass item index to the double-click handler
+	//size_t m_destIndex;  // use this to pass item index to the double-click handler
+	//wxString m_srcItemText; // use this to pass text of double-clicked item to dbl click handler
+	//wxString m_destItemText; // use this to pass text of double-clicked item to dbl click handler
+	//bool m_bSrcListDoubleclicked; // TRUE if mouse handler detects src list was just doubleclicked
+	//bool m_bDestListDoubleclicked; // TRUE if mouse handler detects destination list was just doubleclicked
 
 	wxString BuildChangedFilenameForCopy(wxString* pFilename);
 
@@ -129,8 +131,9 @@ protected:
 	void OnDestListSelectItem(wxListEvent& event);
 	void OnDestListDeselectItem(wxListEvent& event);
 
-	void OnSrcListDoubleclick(wxCommandEvent& WXUNUSED(event));
-	void OnDestListDoubleclick(wxCommandEvent& WXUNUSED(event));
+	void OnSrcListDoubleclick(wxListEvent& event);
+	void OnDestListDoubleclick(wxListEvent& event);
+
 
 private:
 	void MoveOrCopyFileOrFiles(bool bDoMove = TRUE);
