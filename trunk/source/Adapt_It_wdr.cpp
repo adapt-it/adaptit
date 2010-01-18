@@ -6674,10 +6674,7 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxFlexGridSizer *item4 = new wxFlexGridSizer( 3, 0, 3 );
-    item4->AddGrowableCol( 0 );
-    item4->AddGrowableCol( 2 );
-    item4->AddGrowableRow( 0 );
+    wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
