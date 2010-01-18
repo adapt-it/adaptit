@@ -110,7 +110,7 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	srcFilesArray.Empty();
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
-	srcSelectionArray.Empty();
+	//srcSelectionArray.Empty();
 	destSelectionArray.Empty();
 	arrCopiedOK.Empty();
 }
@@ -126,7 +126,7 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
 	destFilesArray.Clear();
-	srcSelectionArray.Clear();
+	//srcSelectionArray.Clear();
 	destSelectionArray.Clear();
 	arrCopiedOK.Clear();
 }
@@ -262,11 +262,11 @@ void AdminMoveOrCopy::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		m_strSrcFolderPath = gpApp->m_workFolderPath;
 	}
 	SetupSrcList(m_strSrcFolderPath);
-	SetupSelectionArray(sourceSide);
+	SetupSelectionArrays(sourceSide);
 
 	m_strDestFolderPath = _T(""); // start with no path defined
 	SetupDestList(m_strDestFolderPath);
-	SetupSelectionArray(destinationSide);
+	SetupSelectionArrays(destinationSide);
 
 	// make the font show the user's desired dialog font point size ( I think this dialog can
 	// instead just rely on the system font supplied to the dialog by default)
@@ -836,21 +836,21 @@ void AdminMoveOrCopy::OnDestListSelectItem(wxListEvent& event)
 	// we repopulate the srcSelectionArray each time with the set of selected items 
 	//wxLogDebug(_T("OnDestListSelectItem"));
 	event.Skip();
-	SetupSelectionArray(destinationSide); // update destSelectionArray 
+	SetupSelectionArrays(destinationSide); // update destSelectionArray 
 										  // with current selections
 }
 
 void AdminMoveOrCopy::OnSrcListDeselectItem(wxListEvent& event)
 {
 	event.Skip();
-	SetupSelectionArray(sourceSide); // update srcSelectedFilesArray 
+	SetupSelectionArrays(sourceSide); // update srcSelectedFilesArray 
 									 // with current selections 
 }
 
 void AdminMoveOrCopy::OnDestListDeselectItem(wxListEvent& event)
 {
 	event.Skip();
-	SetupSelectionArray(destinationSide); // update destSelectedFilesArray 
+	SetupSelectionArrays(destinationSide); // update destSelectedFilesArray 
 										  // with current selections 
 }
 
@@ -859,7 +859,7 @@ void AdminMoveOrCopy::OnSrcListSelectItem(wxListEvent& event)
 	// we repopulate the srcSelectionArray each time with the set of selected items 
 	//wxLogDebug(_T("OnSrcListSelectItem -- provides data for doubleclick handler"));
 	event.Skip();
-	SetupSelectionArray(sourceSide); // update srcSelectionArray 
+	SetupSelectionArrays(sourceSide); // update srcSelectionArray 
 									 // with current selections
 }
 
@@ -952,7 +952,7 @@ bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPa
 ///  Another job it does is to populate the member arrays, srcSelectedFilesArray and
 ///  srcSelectedFoldersArray, needed at the top level of the Copy or Move handlers.
 //////////////////////////////////////////////////////////////////////////////////
-void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
+void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 {
 	size_t index = 0;
 	size_t limit = 0;
@@ -963,7 +963,7 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 	{
 		srcSelectedFilesArray.Empty();
 		srcSelectedFoldersArray.Empty();
-		srcSelectionArray.Empty();
+		//srcSelectionArray.Empty();
 		limit = pSrcList->GetItemCount();
 		if ((srcFilesCount == 0 && srcFoldersCount == 0) || 
 			pSrcList->GetSelectedItemCount() == 0)
@@ -972,7 +972,7 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 			EnableMoveButton(FALSE);
 			return; // nothing to do
 		}
-		srcSelectionArray.Alloc(limit); // enough for all items in the list
+		//srcSelectionArray.Alloc(limit); // enough for all items in the list
 		srcSelectedFoldersArray.Alloc(srcFoldersCount);
 		srcSelectedFilesArray.Alloc(srcFilesCount);
 		for (index = 0; index < limit; index++)
@@ -982,10 +982,11 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 			{
 				// this one is selected, add it's name to the list of selected items
 				wxString itemName = pSrcList->GetItemText(index);
-				size_t itsIndex = srcSelectionArray.Add(itemName); // return is unused
+				//size_t itsIndex = srcSelectionArray.Add(itemName); // return is unused
 
 				// is it a folder or a file - find out and add it to the appropriate array
 				wxString path = m_strSrcFolderPath + gpApp->PathSeparator + itemName;
+				size_t itsIndex = 0xFFFF;
 				if (::wxDirExists(path.c_str()))
 				{
 					// it's a directory
@@ -1000,7 +1001,7 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 			}
 		}
 
-		wxLogDebug(_T(" ***** Src Selection Count  %d "), srcSelectionArray.GetCount());
+		//wxLogDebug(_T(" ***** Src Selection Count  %d "), srcSelectionArray.GetCount());
 
 		if (m_strSrcFolderPath.IsEmpty() || m_strDestFolderPath.IsEmpty())
 		{
@@ -1009,7 +1010,8 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 		}
 		else
 		{
-			if (srcSelectionArray.GetCount() > 0)
+			//if (srcSelectionArray.GetCount() > 0)
+			if (srcSelectedFilesArray.GetCount() > 0 || srcSelectedFoldersArray.GetCount() > 0)
 			{
 				EnableCopyButton(TRUE);
 				EnableMoveButton(TRUE);
@@ -1040,22 +1042,42 @@ void AdminMoveOrCopy::SetupSelectionArray(enum whichSide side)
 			{
 				// this one is selected, add it's name to the list of selected items
 				wxString itemName = pDestList->GetItemText(index);
-				size_t itsIndex = destSelectionArray.Add(itemName); // return is unused
-				itsIndex = itsIndex; // avoid compiler warning
+				//size_t itsIndex = destSelectionArray.Add(itemName); // return is unused
+
+				// is it a folder or a file - find out and add it to the appropriate array
+				wxString path = m_strDestFolderPath + gpApp->PathSeparator + itemName;
+				size_t itsIndex = 0xFFFF;
+				if (::wxDirExists(path.c_str()))
+				{
+					// it's a directory
+					itsIndex = destSelectedFoldersArray.Add(itemName);
+				}
+				else
+				{
+					// it'a a file
+					itsIndex = destSelectedFilesArray.Add(itemName);
+				}
 				isSelected = 0;
 			}
 		}
-		if (destSelectionArray.IsEmpty())
+		//if (destSelectionArray.IsEmpty())
+		if (destSelectedFoldersArray.IsEmpty() || destSelectedFilesArray.IsEmpty())
 		{
+			// disable the Rename and Delete buttons if nothing is selected in the
+			// destination side's list
 			EnableRenameButton(FALSE);
 			EnableDeleteButton(FALSE);
 		}
 		else
 		{
-			if (destSelectionArray.GetCount() == 1)
+			// enable Rename button only if a single file is selected, or a single folder
+			if (destSelectedFilesArray.GetCount() == 1 && destSelectedFoldersArray.GetCount() == 0)
+				EnableRenameButton(TRUE);
+			else if (destSelectedFoldersArray.GetCount() == 1 && destSelectedFilesArray.GetCount() == 0)
 				EnableRenameButton(TRUE);
 			else
 				EnableRenameButton(FALSE);
+			// allow multiple file or folder deletions
 			EnableDeleteButton(TRUE);
 		}
 	}
