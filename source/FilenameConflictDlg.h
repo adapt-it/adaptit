@@ -61,8 +61,6 @@ public:
 
 
 	AdminMoveOrCopy* m_pAdminMoveOrCopy; //this is the parent dialog
-	wxArrayString* m_pSrcFileArray; // we'll set this from pAdminMoveOrCopy's 
-								  // srcSelectedFilesArray public string array member
 	bool bSameWayValue; // value of the "handle conflicts in the same way" checkbox
 						// which the caller will want to access
 

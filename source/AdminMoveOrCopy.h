@@ -82,7 +82,9 @@ public:
                 // names stored in srcSelectionArray
     wxArrayString srcSelectedFilesArray; // stores just the names of the selected files
     wxArrayString srcSelectedFoldersArray; // stores just the names of the selected folders
-	wxArrayString srcSelectionArray; // stores aggregate of selected foldernames & filenames
+    wxArrayString destSelectedFilesArray; // stores just the names of the selected files
+    wxArrayString destSelectedFoldersArray; // stores just the names of the selected folders
+	//wxArrayString srcSelectionArray; // stores aggregate of selected foldernames & filenames
 	wxArrayString destSelectionArray; // stores aggregate olf selected foldernames & filenames
 				// user (Note: files selected in destination folder is only meaningful
 				// for renaming or deleting these files or folders, and the contents
@@ -144,7 +146,7 @@ private:
 	bool IsFileConflicted(wxString& srcFile, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 	void SetupDestList(wxString& folderPath);
 	void SetupSrcList(wxString& folderPath);
-	void SetupSelectionArray(enum whichSide side);
+	void SetupSelectionArrays(enum whichSide side);
 	void DeselectSelectedFiles(enum whichSide side); // beware of wxWidgets bug in SetItemState()
 	bool CheckForIdenticalPaths(wxString& srcPath, wxString& destPath);
 
