@@ -3282,7 +3282,7 @@ void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletio
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)node->GetData();
 				node = node->GetNext();
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 				//wxLogDebug(_T("   DeleteSourcePhrases pSrcPhrase at %x = %s"),
 				//pSrcPhrase->m_srcPhrase, pSrcPhrase->m_srcPhrase.c_str());
 #endif
