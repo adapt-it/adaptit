@@ -131,8 +131,8 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	wxULongLong destSize = destFN.GetSize();
 	wxString srcSizeStr;
 	wxString destSizeStr;
-	srcSizeStr = srcSizeStr.Format(_T("%d"), srcSize);
-	destSizeStr = destSizeStr.Format(_T("%d"), destSize);
+	srcSizeStr = srcSizeStr.Format(_T("%d"), srcSize.ToULong());
+	destSizeStr = destSizeStr.Format(_T("%d"), destSize.ToULong());
 
 	srcDetailsStr += newlineStr + srcSizeStr + bytesStr;
 	destDetailsStr += newlineStr + destSizeStr + bytesStr;
@@ -149,9 +149,9 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 		wxULongLong remainderPartSrc = srcSize % 1024;
 		remainderPartSrc = (remainderPartSrc * 100) / 1024;
 		//srcSizeStr2 = srcSizeStr2.Format(_T("( %d.%d"),integerPartSrc,remainderPartSrc);
-		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc);
+		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc.ToULong());
 		srcSizeStr2 += _T(".");
-		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc);
+		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc.ToULong());
 		srcSizeStr2 += srcSizeStr3;
 		srcSizeStr2 += _T(" KB )");
 	}
@@ -162,9 +162,9 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 		wxULongLong integerPartSrc = srcSize / aMeg;
 		wxULongLong remainderPartSrc = srcSize % aMeg;
 		remainderPartSrc = (remainderPartSrc * 100) / aMeg;
-		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc);
+		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc.ToULong());
 		srcSizeStr2 += _T(".");
-		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc);
+		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc.ToULong());
 		srcSizeStr2 += srcSizeStr3;
 		srcSizeStr2 += _T(" MB )");
 	}
@@ -174,9 +174,9 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 		wxULongLong integerPartDest = destSize / 1024;
 		wxULongLong remainderPartDest = destSize % 1024;
 		remainderPartDest = (remainderPartDest * 100) / 1024;
-		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest);
+		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest.ToULong());
 		destSizeStr2 += _T(".");
-		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest);
+		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest.ToULong());
 		destSizeStr2 += destSizeStr3;
 		destSizeStr2 += _T(" KB )");
 	}
@@ -187,9 +187,9 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 		wxULongLong integerPartDest = destSize / aMeg;
 		wxULongLong remainderPartDest = destSize % aMeg;
 		remainderPartDest = (remainderPartDest * 100) / aMeg;
-		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest);
+		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest.ToULong());
 		destSizeStr2 += _T(".");
-		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest);
+		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest.ToULong());
 		destSizeStr2 += destSizeStr3;
 		destSizeStr2 += _T(" MB )");
 	}
