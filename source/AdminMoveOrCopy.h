@@ -44,24 +44,19 @@ public:
 
 	// flags which the Resolve Filename Conflict dialog needs to set or clear
 	bool m_bUserCancelled;
-	bool m_bCopyWasSuccessful;
 	bool m_bDoTheSameWay;
-	bool m_bNoDestPathYet;
 	CopyAction copyType;
 	CopyAction lastWay;
 
 	// wx version pointers for dialog controls
 	wxButton* pMoveButton;
-	//wxButton* pMoveFileOrFilesButton;
 	wxButton* pCopyButton;
-	//wxButton* pCopyFileOrFilesButton;
-	//wxButton* pDeleteDestFileOrFilesButton;
 	wxButton* pDeleteButton;
-	//wxButton* pRenameDestFileButton;
-	
 	wxButton* pRenameButton;
+
 	wxBitmapButton* pUpSrcFolder; 
 	wxBitmapButton* pUpDestFolder;
+
 	wxButton* pLocateSrcFolderButton;
 	wxButton* pLocateDestFolderButton;
 	wxTextCtrl* pSrcFolderPathTextCtrl;
@@ -85,11 +80,13 @@ public:
 	wxArrayString destFilesArray; // stores filenames (these get displayed) in a block;
                 // and use this to check for conflicts when copying or moving files with
                 // names stored in srcSelectionArray
-	wxArrayString srcSelectionArray; // stores foldernames & filenames selected by user
-	wxArrayString destSelectionArray; // stores foldernames & filenames selected by
+    wxArrayString srcSelectedFilesArray; // stores just the names of the selected files
+    wxArrayString srcSelectedFoldersArray; // stores just the names of the selected folders
+	wxArrayString srcSelectionArray; // stores aggregate of selected foldernames & filenames
+	wxArrayString destSelectionArray; // stores aggregate olf selected foldernames & filenames
 				// user (Note: files selected in destination folder is only meaningful
 				// for renaming or deleting these files or folders, and the contents
-				// of this list is ignored for moving or copying
+				// of this list is ignored for moving or copying)
 	wxArrayInt arrCopiedOK; // stores 1 for a successful file copy, 0 if not copied
 
 	size_t srcFoldersCount;
@@ -136,7 +133,9 @@ protected:
 
 
 private:
-	void MoveOrCopyFileOrFiles(bool bDoMove = TRUE);
+	void MoveOrCopyFiles(wxString srcFolderPath, wxString destFolderPath,
+				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
+				bool bDoMove = TRUE);
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
 						bool& bUserCancelled);
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
