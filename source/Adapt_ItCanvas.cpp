@@ -278,7 +278,7 @@ void CScrollView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 {
 	ASSERT_VALID(pDC);
 
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 	if (m_nMapMode == MM_NONE)
 	{
 		TRACE(traceAppMsg, 0, "Error: must call SetScrollSizes() or SetScaleToFitSize()");
@@ -286,7 +286,7 @@ void CScrollView::OnPrepareDC(CDC* pDC, CPrintInfo* pInfo)
 		ASSERT(FALSE);
 		return;
 	}
-#endif //_DEBUG
+#endif //__WXDEBUG__
 	ASSERT(m_totalDev.cx >= 0 && m_totalDev.cy >= 0);
 	switch (m_nMapMode)
 	{

@@ -2137,7 +2137,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 	wxSize canvasViewSize;
 	canvasViewSize = pApp->GetMainFrame()->GetCanvasClientSize();
 
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //	// Here's sample code for alternative 1:
 //	// save a copy of the initial grectViewClient values for use below (alternative 2 changes grectViewClient)
 //	wxRect testRectViewClient = rectClient;
@@ -2149,7 +2149,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 	//rectClient.x = xOrigin * xScrollUnits; // number pixels is ScrollUnits * pixelsPerScrollUnit
 	//rectClient.y = yOrigin * yScrollUnits;
 
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //	//wx version uses CalcUnscrolledPosition
 //	int newXPos,newYPos;
 //	pApp->GetMainFrame()->canvas->CalcUnscrolledPosition(0,0,&newXPos,&newYPos);
@@ -2157,7 +2157,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 //	wxASSERT(newYPos == rectClient.y); //rectClient.y = newYPos;
 //#endif
 
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //	//dc.DPtoLP(&rectClient); // this is like the MFC method
 //	int x = dc.DeviceToLogicalX(testRectViewClient.x);// get the device X (width) coord converted to logical coord
 //	int y = dc.DeviceToLogicalY(testRectViewClient.y); // get the device Y (height) coord converted to logical coord
@@ -5047,7 +5047,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 	// we leave the width and height the same
 	
 	// Below are alternates for calculating scrolled position
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //	// The device coords can be found by subtracting the logical coords of the upper left corner as
 //	// reported by GetViewStart, from rectBox's upper left corner coords. This doesn't change the
 //	// width and height of a wxRect; the width and height were established in the wxRect rectBox()
@@ -5060,7 +5060,7 @@ void CAdapt_ItView::ResizeBox(const wxPoint *pLoc, const int nWidth, const int n
 //#endif
 
 	
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //	//aDC.LPtoDP(&rectBox);
 //	// whm Note: The following LogicalToDeviceXRel and LogicalToDeviceYRel and their non-Rel functions
 //	// adjust the logical position of rectBox after scrolling down from the zero scroll position
@@ -5227,7 +5227,7 @@ void CAdapt_ItView::OnEditPreferences(wxCommandEvent& WXUNUSED(event))
 		{
 			// don't show it if the user cancelled prefs
 			pApp->m_bShowAdministratorMenu = FALSE;
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 			pApp->m_bShowAdministratorMenu = TRUE; // for debugging convenience
 #endif
 		}
@@ -6311,7 +6311,7 @@ bool CAdapt_ItView::ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartA
 	{
 		// insertion is wanted, preceding posMaster location
 ins:	;
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 		//SPList::Node* posDebug = pMasterList->GetFirst();
 		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		//{
@@ -6342,7 +6342,7 @@ ins:	;
 			if (pReplaceSrcPhrase == NULL)
 				break;
 		}
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 		//posDebug = pMasterList->GetFirst();
 		//for (index = 0; index < (int)pMasterList->GetCount(); index++)
 		//{
@@ -30837,7 +30837,7 @@ bool CAdapt_ItView::CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList,
 			posInsert = pDestinationList->Append(pNewOne);
 		}
 	}
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 		SPList::Node* testpos = pOriginalList->GetFirst();
 		int ct = 0;
 		while (testpos)
@@ -32784,7 +32784,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 										&pRec->modificationsSpan_SrcPhraseList, 
 										pRec->nStartingSequNum, pRec->nEndingSequNum);
 		
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 		SPList::Node* testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		int ct = 0;
 		while (testpos)
@@ -32796,7 +32796,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 			//ct++, pSrcP->m_srcPhrase, pSrcP->m_srcPhrase.c_str());
 		}
 #endif
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 		testpos = pTempList->GetFirst();
 		ct = 0;
 		while (testpos)
@@ -32825,7 +32825,7 @@ exit:		BailOutFromEditProcess(pSrcPhrases, pRec); // clears the
 				wxExit();
 		}
 
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 		testpos = pRec->modificationsSpan_SrcPhraseList.GetFirst();
 		ct = 0;
 		while (testpos)
@@ -40733,7 +40733,7 @@ b:	if (!bSectionIntersects)
 		pDC->DestroyClippingRegion();
 		if (bRTLLayout)
 		{
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //			wxSize trueSz;
 //			pDC->GetTextExtent(ftStr,&trueSz.x,&trueSz.y);
 //			wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d - 
@@ -40794,7 +40794,7 @@ b:	if (!bSectionIntersects)
 			pDC->DestroyClippingRegion();
 			if (bRTLLayout)
 			{
-//#ifdef _DEBUG
+//#ifdef __WXDEBUG__
 //				wxSize trueSz;
 //				pDC->GetTextExtent(s,&trueSz.x,&trueSz.y);
 //				wxLogDebug(_T("RTL DrawText sub.l=%d + sub.w=%d - sExt.x=%d, x=%d, y=%d of %s"),

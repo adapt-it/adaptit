@@ -3885,7 +3885,7 @@ void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
     m_pConfig->Write(_T("ui_language_path"), currLocalizationInfo.curr_localizationPath);
 #endif
 
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 	wxLogDebug(_T(
 "Writing to m_pConfig:\n   curr_UI_Language = %d\n   curr_shortName = %s\n   curr_fullName = %s\n   curr_localizationPath = %s"),
 		currLocalizationInfo.curr_UI_Language,
@@ -7736,7 +7736,7 @@ while (resToken != "")
 	m_bExportingFreeTranslation = FALSE; // set TRUE during export of free translations
 
 	m_bShowAdministratorMenu = FALSE; // on launch, Administrator menu should be hidden
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 	m_bShowAdministratorMenu = TRUE; // on launch, Administrator menu shown (debugging only)
 #endif
 

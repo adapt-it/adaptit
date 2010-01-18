@@ -207,7 +207,7 @@ void CJoinDialog::OnBnClickedJoinNow(wxCommandEvent& WXUNUSED(event))
 	this->pJoiningWait->Update();
 
 
-#ifdef _DEBUG
+#ifdef __WXDEBUG__
 	// check the reordering user does gets reflected in the AcceptedFiles list (it does)
 	int cnt = pAcceptedFiles->GetCount();
 	int ii;

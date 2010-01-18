@@ -67,7 +67,9 @@ class AIPrintout;
 // uncomment to turn on wxLogDebug tracking of gnBeginInsertionsSequNum & gnEndInsertionsSequNum
 //#define Highlighting_Bug
 
-// The __WXDEBUG__ and _DEBUG symbols are defined automatically when doing a debug build
+// In the Windows port, the __WXDEBUG__ and _DEBUG symbols are defined automatically when doing a debug build,
+// however, on Linux and the Mac only __WXDEBUG__ is defined, therefore it is best to only use the
+// __WXDEBUG__ symbol for including debug code.
 
 // The following define is for testing the wxSplitterWindow on the wx version.
 // To add the splitter window uncomment the line below and rebuild. (It may be buggy.
