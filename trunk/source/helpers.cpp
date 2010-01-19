@@ -1569,9 +1569,11 @@ bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort,
 			// unlikely to fail, but just in case...
 			if (!bSuppressMessage)
 			{
-				wxMessageBox(_(
-"Failed to set the current directory when getting the folder's child folders; perhaps try again."),
-				_("Error, no working directory"), wxICON_WARNING);
+				wxString msg;
+				msg = msg.Format(
+_("Failed to make the directory  %s  the current working directory prior to getting the directory's child directories; perhaps try again."),
+				pathToFolder.c_str());
+				wxMessageBox(msg, _("Error, no working directory"), wxICON_WARNING);
 			}
 			return FALSE;
 		}
@@ -1658,9 +1660,11 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort,
 		// unlikely to fail, but just in case...
 		if (!bSuppressMessage)
 		{
-			wxMessageBox(_(
-"Failed to set the current directory when getting the folder's files; perhaps try again."),
-			_("Error, no working directory"), wxICON_WARNING);
+			wxString msg;
+			msg = msg.Format(
+_("Failed to make the directory  %s  the current working directory prior to getting the folder's files; perhaps try again."),
+			pathToFolder.c_str());
+			wxMessageBox(msg, _("Error, no working directory"), wxICON_WARNING);
 		}
 		return FALSE;
 	}

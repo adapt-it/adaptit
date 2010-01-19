@@ -135,7 +135,7 @@ protected:
 
 
 private:
-	void MoveOrCopyFiles(wxString srcFolderPath, wxString destFolderPath,
+	void MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
 				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
 				bool bDoMove = TRUE);
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
