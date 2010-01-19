@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Adapt It" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="UnicodeDebug">
+				<Option output="build/UnicodeDebug/Adapt It" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../../trunk" />
+				<Option object_output="obj/UnicodeDebug/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-march=i386" />
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -pipe -fpascal-strings -fasm-blocks -fmessage-length=0 -mfix-and-continue -mmacosx-version-min=10.4 -gdwarf-2" />
+					<Add option="-D__WXDEBUG__=1" />
+				</Compiler>
+				<Linker>
+					<Add option="-framework Carbon -framework QuickTime -framework AppKit -framework AGL -framework IOKit -framework OpenGL -framework System -arch i386 -prebind -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk" />
+					<Add directory="$(WXWIN)/src/build/Development" />
+					<Add directory="/Users/erik/Documents/adaptit/trunk/bin/mac/bin/UnicodeDebug" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="chmod 500 $(PROJECT_DIR)scripts/ai_cbmac_postbuild_script.sh" />
+					<Add after='echo \&quot;Running post-build phase script: ai_cbmac_postbuild_script.sh\&quot;' />
+					<Add after="${PROJECT_DIR}scripts/ai_cbmac_postbuild_script.sh $(TARGET_OUTPUT_DIR)" />
+					<Add after='echo \&quot;DONE running ai_cbmac_postbuild_script.sh\&quot;' />
+				</ExtraCommands>
+			</Target>
+			<Target title="UnicodeRelease">
+				<Option output="build/UnicodeRelease/Adapt It" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../../trunk" />
+				<Option object_output="obj/UnicodeRelease/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O" />
+					<Add option="-Wall" />
+					<Add option="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -pipe -fpascal-strings -fasm-blocks -fmessage-length=0 -mmacosx-version-min=10.4" />
+					<Add directory="-I$(WXWIN)/buildmacu/lib/wx/include/mac-unicode-release-static-2.8" />
+				</Compiler>
+				<Linker>
+					<Add option="-framework Carbon -framework QuickTime -framework AppKit -framework AGL -framework IOKit -framework OpenGL -framework System -arch i386 -prebind -mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.4u.sdk" />
+					<Add directory="$(WXWIN)/src/build/Deployment" />
+					<Add directory="/Users/erik/Documents/adaptit/trunk/bin/mac/bin/UnicodeDebug" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="chmod 500 $(PROJECT_DIR)scripts/ai_cbmac_postbuild_script.sh" />
+					<Add after='echo \&quot;Running post-build phase script: ai_cbmac_postbuild_script.sh\&quot;' />
+					<Add after="${PROJECT_DIR}scripts/ai_cbmac_postbuild_script.sh $(TARGET_OUTPUT_DIR)" />
+					<Add after='echo \&quot;DONE running ai_cbmac_postbuild_script.sh\&quot;' />
+				</ExtraCommands>
+			</Target>
+			<Environment>
+				<Variable name="WXWIN" value="/Users/erik/wxMac-2.8.10" />
+			</Environment>
+		</Build>
+		<VirtualTargets>
+			<Add alias="All" targets="UnicodeDebug;UnicodeRelease;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="-DwxUSE_UNICODE" />
+			<Add option="-DNO_GCC_PRAGMA" />
+			<Add option="-D__WXMAC__" />
+			<Add option="-DwxUSE_BASE=1" />
+			<Add option="-D_FILE_OFFSET_BITS=64" />
+			<Add option="-D_LARGE_FILES" />
+			<Add option="-D__WXMAC_XCODE__" />
+			<Add option="-DMACOS_CLASSIC" />
+			<Add option="-DWX_PRECOMP" />
+			<Add directory="$(WXWIN)/include" />
+			<Add directory="$(WXWIN)/src/build/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-liconv -lz -lwx_mac_static" />
+			<Add directory="/usr/local/lib" />
+		</Linker>
+		<Unit filename="../../license/LICENSING.txt">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../license/License_CPLv05.txt">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../license/License_GPLv2.txt">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../license/License_LGPLv21.txt">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/32x32/adaptit.png">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/48x48/adaptit.png">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AI16x16-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AI32x32-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AIWX.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AIWX.gif">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AIicon256.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AIicon256.png">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AIicon256_1.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AIicon256_2.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Adapt It.icns">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/AdaptIt2.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/CC16x16-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/CC32x32-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/IE16x16-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/IE32x32-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Linux_penguin_in_folder_32x32.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Linux_penguin_in_folder_32x32.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Linux_penguin_in_folder_64x64.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Linux_penguin_in_folder_64x64.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Notepad16x16-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Notepad32x32-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Word16x16-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/Word32x32-4color.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adapt_it.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adapt_it_mac.icns">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adapt_it_mac.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit.xpm.0">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit.xpm.1">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit16x16.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adaptit2.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adv2end.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/adv2end.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/back2start.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/back2start.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/builtwithwx.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/builtwithwx.gif">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/builtwithwx.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/builtwithwxlogo.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/builtwithwxlogo.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/builtwithwxwidgets.gif">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/copy.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/copy.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/copy.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/cut.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/cut.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/cut.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/doaretrans.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/doaretrans.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/editaretrans.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/editaretrans.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/help.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/help.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/help.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/helpabout.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/helpabout.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/hidepunct.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/hidepunct.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/ibounds.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/ibounds.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/icon1.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/icon1.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/icon_rej.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/icon_rej.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/icon_v3.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/icon_v3.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/insplaceholder.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/insplaceholder.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/jumpback.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/jumpback.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/logo6.gif">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/mainfram.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/mainfram.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/makeaphr.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/makeaphr.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/mondrian.ico">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/mondrian.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/movdn1.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/movdn1.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/movup1.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/movup1.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/new.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/new.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/new.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/open.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/open.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/open.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/open_parent_folder.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/paste.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/paste.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/paste.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/preview.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/preview.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/preview.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/print.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/print.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/print.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/rbounds.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/rbounds.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/removaplaceholder.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/removaplaceholder.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/removaretrans.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/removaretrans.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/save.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/save.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/save.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showctdlg.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showctdlg.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showpunct.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showpunct.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showsrctgt.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showsrctgt.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showtgtonly.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/showtgtonly.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/src12.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/src12.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/tgt12.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/tgt12.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/unmakeaphr.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/unmakeaphr.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/viewtranselsewh.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/viewtranselsewh.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo1.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo1.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo1.xpm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo2.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxWindowsLogo2.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxwidgets02-small.bmp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../res/wxwidgets02-small.svg">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../../source/AIPrintout.cpp" />
+		<Unit filename="../../source/AIPrintout.h" />
+		<Unit filename="../../source/Adapt_It.cpp" />
+		<Unit filename="../../source/Adapt_It.h" />
+		<Unit filename="../../source/Adapt_It.wdr" />
+		<Unit filename="../../source/Adapt_ItCanvas.cpp" />
+		<Unit filename="../../source/Adapt_ItCanvas.h" />
+		<Unit filename="../../source/Adapt_ItDoc.cpp" />
+		<Unit filename="../../source/Adapt_ItDoc.h" />
+		<Unit filename="../../source/Adapt_ItView.cpp" />
+		<Unit filename="../../source/Adapt_ItView.h" />
+		<Unit filename="../../source/Adapt_It_Resources.h" />
+		<Unit filename="../../source/Adapt_It_wdr.cpp" />
+		<Unit filename="../../source/Adapt_It_wdr.h" />
+		<Unit filename="../../source/AdaptitConstants.h" />
+		<Unit filename="../../source/AdminMoveOrCopy.cpp" />
+		<Unit filename="../../source/AdminMoveOrCopy.h" />
+		<Unit filename="../../source/AutoSavingPage.cpp" />
+		<Unit filename="../../source/AutoSavingPage.h" />
+		<Unit filename="../../source/BString.cpp" />
+		<Unit filename="../../source/BString.h" />
+		<Unit filename="../../source/CCModule.cpp" />
+		<Unit filename="../../source/CCModule.h" />
+		<Unit filename="../../source/CCTabbedDialog.cpp" />
+		<Unit filename="../../source/CCTabbedDialog.h" />
+		<Unit filename="../../source/CCTableEditDlg.cpp" />
+		<Unit filename="../../source/CCTableEditDlg.h" />
+		<Unit filename="../../source/CCTableNameDlg.cpp" />
+		<Unit filename="../../source/CCTableNameDlg.h" />
+		<Unit filename="../../source/CaseEquivPage.cpp" />
+		<Unit filename="../../source/CaseEquivPage.h" />
+		<Unit filename="../../source/Ccdll.h" />
+		<Unit filename="../../source/Cell.cpp" />
+		<Unit filename="../../source/Cell.h" />
+		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.cpp" />
+		<Unit filename="../../source/ChooseConsistencyCheckTypeDlg.h" />
+		<Unit filename="../../source/ChooseLanguageDlg.cpp" />
+		<Unit filename="../../source/ChooseLanguageDlg.h" />
+		<Unit filename="../../source/ChooseTranslation.cpp" />
+		<Unit filename="../../source/ChooseTranslation.h" />
+		<Unit filename="../../source/CollectBacktranslations.cpp" />
+		<Unit filename="../../source/CollectBacktranslations.h" />
+		<Unit filename="../../source/ComposeBarEditBox.cpp" />
+		<Unit filename="../../source/ComposeBarEditBox.h" />
+		<Unit filename="../../source/ConsistencyCheckDlg.cpp" />
+		<Unit filename="../../source/ConsistencyCheckDlg.h" />
+		<Unit filename="../../source/ConsistentChanger.cpp" />
+		<Unit filename="../../source/ConsistentChanger.h" />
+		<Unit filename="../../source/DocPage.cpp" />
+		<Unit filename="../../source/DocPage.h" />
+		<Unit filename="../../source/EarlierTranslationDlg.cpp" />
+		<Unit filename="../../source/EarlierTranslationDlg.h" />
+		<Unit filename="../../source/EditPreferencesDlg.cpp" />
+		<Unit filename="../../source/EditPreferencesDlg.h" />
+		<Unit filename="../../source/EditSourceTextDlg.cpp" />
+		<Unit filename="../../source/EditSourceTextDlg.h" />
+		<Unit filename="../../source/ExportFunctions.cpp" />
+		<Unit filename="../../source/ExportFunctions.h" />
+		<Unit filename="../../source/ExportInterlinearDlg.cpp" />
+		<Unit filename="../../source/ExportInterlinearDlg.h" />
+		<Unit filename="../../source/ExportOptionsDlg.cpp" />
+		<Unit filename="../../source/ExportOptionsDlg.h" />
+		<Unit filename="../../source/ExportSaveAsDlg.cpp" />
+		<Unit filename="../../source/ExportSaveAsDlg.h" />
+		<Unit filename="../../source/FilenameConflictDlg.cpp" />
+		<Unit filename="../../source/FilenameConflictDlg.h" />
+		<Unit filename="../../source/FilterPage.cpp" />
+		<Unit filename="../../source/FilterPage.h" />
+		<Unit filename="../../source/FindReplace.cpp" />
+		<Unit filename="../../source/FindReplace.h" />
+		<Unit filename="../../source/FontPage.cpp" />
+		<Unit filename="../../source/FontPage.h" />
+		<Unit filename="../../source/GoToDlg.cpp" />
+		<Unit filename="../../source/GoToDlg.h" />
+		<Unit filename="../../source/JoinDialog.cpp" />
+		<Unit filename="../../source/JoinDialog.h" />
+		<Unit filename="../../source/KB.cpp" />
+		<Unit filename="../../source/KB.h" />
+		<Unit filename="../../source/KBEditor.cpp" />
+		<Unit filename="../../source/KBEditor.h" />
+		<Unit filename="../../source/KBPage.cpp" />
+		<Unit filename="../../source/KBPage.h" />
+		<Unit filename="../../source/LanguagesPage.cpp" />
+		<Unit filename="../../source/LanguagesPage.h" />
+		<Unit filename="../../source/Layout.cpp" />
+		<Unit filename="../../source/Layout.h" />
+		<Unit filename="../../source/ListDocumentsInOtherFolderDialog.cpp" />
+		<Unit filename="../../source/ListDocumentsInOtherFolderDialog.h" />
+		<Unit filename="../../source/MainFrm.cpp" />
+		<Unit filename="../../source/MainFrm.h" />
+		<Unit filename="../../source/MoveDialog.cpp" />
+		<Unit filename="../../source/MoveDialog.h" />
+		<Unit filename="../../source/Mover.cpp" />
+		<Unit filename="../../source/Mover.h" />
+		<Unit filename="../../source/MyListBox.cpp" />
+		<Unit filename="../../source/MyListBox.h" />
+		<Unit filename="../../source/NewClassHeaderTemplate.txt" />
+		<Unit filename="../../source/NewClassImplementationTemplate.txt" />
+		<Unit filename="../../source/NewDialogHeaderTemplate.txt" />
+		<Unit filename="../../source/NewDialogImplementationTemplate.txt" />
+		<Unit filename="../../source/NoteDlg.cpp" />
+		<Unit filename="../../source/NoteDlg.h" />
+		<Unit filename="../../source/OpenExistingProjectDlg.cpp" />
+		<Unit filename="../../source/OpenExistingProjectDlg.h" />
+		<Unit filename="../../source/OutputFilenameDlg.cpp" />
+		<Unit filename="../../source/OutputFilenameDlg.h" />
+		<Unit filename="../../source/PhraseBox.cpp" />
+		<Unit filename="../../source/PhraseBox.h" />
+		<Unit filename="../../source/Pile.cpp" />
+		<Unit filename="../../source/Pile.h" />
+		<Unit filename="../../source/PlaceInternalMarkers.cpp" />
+		<Unit filename="../../source/PlaceInternalMarkers.h" />
+		<Unit filename="../../source/PlaceInternalPunct.cpp" />
+		<Unit filename="../../source/PlaceInternalPunct.h" />
+		<Unit filename="../../source/PlaceRetranslationInternalMarkers.cpp" />
+		<Unit filename="../../source/PlaceRetranslationInternalMarkers.h" />
+		<Unit filename="../../source/PrintOptionsDlg.cpp" />
+		<Unit filename="../../source/PrintOptionsDlg.h" />
+		<Unit filename="../../source/ProjectPage.cpp" />
+		<Unit filename="../../source/ProjectPage.h" />
+		<Unit filename="../../source/PunctCorrespPage.cpp" />
+		<Unit filename="../../source/PunctCorrespPage.h" />
+		<Unit filename="../../source/ReadOnlyProtection.cpp" />
+		<Unit filename="../../source/ReadOnlyProtection.h" />
+		<Unit filename="../../source/RefString.cpp" />
+		<Unit filename="../../source/RefString.h" />
+		<Unit filename="../../source/RetranslationDlg.cpp" />
+		<Unit filename="../../source/RetranslationDlg.h" />
+		<Unit filename="../../source/SetDelay.cpp" />
+		<Unit filename="../../source/SetDelay.h" />
+		<Unit filename="../../source/SetEncodingDlg.cpp" />
+		<Unit filename="../../source/SetEncodingDlg.h" />
+		<Unit filename="../../source/SilConverterSelectDlg.cpp" />
+		<Unit filename="../../source/SilConverterSelectDlg.h" />
+		<Unit filename="../../source/SourcePhrase.cpp" />
+		<Unit filename="../../source/SourcePhrase.h" />
+		<Unit filename="../../source/SplitDialog.cpp" />
+		<Unit filename="../../source/SplitDialog.h" />
+		<Unit filename="../../source/Stack.cpp" />
+		<Unit filename="../../source/Stack.h" />
+		<Unit filename="../../source/StartWorkingWizard.cpp" />
+		<Unit filename="../../source/StartWorkingWizard.h" />
+		<Unit filename="../../source/Strip.cpp" />
+		<Unit filename="../../source/Strip.h" />
+		<Unit filename="../../source/TargetUnit.cpp" />
+		<Unit filename="../../source/TargetUnit.h" />
+		<Unit filename="../../source/TransformToGlossesDlg.cpp" />
+		<Unit filename="../../source/TransformToGlossesDlg.h" />
+		<Unit filename="../../source/USFMPage.cpp" />
+		<Unit filename="../../source/USFMPage.h" />
+		<Unit filename="../../source/UnitsDlg.cpp" />
+		<Unit filename="../../source/UnitsDlg.h" />
+		<Unit filename="../../source/UnitsPage.cpp" />
+		<Unit filename="../../source/UnitsPage.h" />
+		<Unit filename="../../source/UnpackWarningDlg.cpp" />
+		<Unit filename="../../source/UnpackWarningDlg.h" />
+		<Unit filename="../../source/ViewFilteredMaterialDlg.cpp" />
+		<Unit filename="../../source/ViewFilteredMaterialDlg.h" />
+		<Unit filename="../../source/ViewPage.cpp" />
+		<Unit filename="../../source/ViewPage.h" />
+		<Unit filename="../../source/WaitDlg.cpp" />
+		<Unit filename="../../source/WaitDlg.h" />
+		<Unit filename="../../source/Welcome.cpp" />
+		<Unit filename="../../source/Welcome.h" />
+		<Unit filename="../../source/WhichBook.cpp" />
+		<Unit filename="../../source/WhichBook.h" />
+		<Unit filename="../../source/WhichFilesDlg.cpp" />
+		<Unit filename="../../source/WhichFilesDlg.h" />
+		<Unit filename="../../source/XML.cpp" />
+		<Unit filename="../../source/XML.h" />
+		<Unit filename="../../source/XMLErrorDlg.cpp" />
+		<Unit filename="../../source/XMLErrorDlg.h" />
+		<Unit filename="../../source/ecdriver.h" />
+		<Unit filename="../../source/helpers.cpp" />
+		<Unit filename="../../source/helpers.h" />
+		<Unit filename="../../source/tellenc.cpp" />
+		<Unit filename="../../xml/AI_USFM.xml" />
+		<Unit filename="../../xml/AI_USFM_full.txt" />
+		<Unit filename="../../xml/AI_USFM_full.xml" />
+		<Unit filename="../../xml/UsfmXml.cct" />
+		<Unit filename="../../xml/UsfmXmlTidy.cct" />
+		<Unit filename="../../xml/books.xml" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
