@@ -1478,7 +1478,8 @@ _("Failed to create the destination directory  %s  for the Copy or Move operatio
 			bool bRemovedOK = TRUE;
 			if (bDoMove)
 			{
-				bRemovedOK = ::wxRmdir(srcFolderPath2.c_str());
+				bool bOK = ::wxSetWorkingDirectory(srcFolderPath);
+				bRemovedOK = ::wxRmdir(srcFolderPath2);
 				// don't expect failure, so just do a message for developer & continue on
 				if (!bRemovedOK)
 				{
@@ -1611,6 +1612,12 @@ _("You first need to select at least one item in the left list before clicking t
 
 void AdminMoveOrCopy::OnBnClickedMove(wxCommandEvent& WXUNUSED(event))
 {
+	// this works, but I can't get ::Rmdir() to work below
+	//if (TRUE)
+	//{
+	//	bool bRemovedOK = ::wxRmdir(_T("C:\\Card4\\emptyfolder"));
+	//	return;
+	//}
 	// do nothing if the destination folder is not yet defined
 	if (m_strDestFolderPath.IsEmpty())
 	{
