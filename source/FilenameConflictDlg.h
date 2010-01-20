@@ -42,7 +42,10 @@ class FilenameConflictDlg : public AIModalDialog
 {
 public:
 	FilenameConflictDlg(wxWindow* parent,
-		wxString* pConflictingFilename); // constructor, parent will be AdminMoveOrCopy instance
+		wxString* pConflictingFilename,
+		wxString* pSrcFolderPath ,
+		wxString* pDestFolderPath
+		); // constructor, parent will be AdminMoveOrCopy instance
 	virtual ~FilenameConflictDlg(void); // destructor
 
 	// wx version pointers for dialog controls; the names for buttons will leave the

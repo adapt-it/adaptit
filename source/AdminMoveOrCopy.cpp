@@ -1164,10 +1164,16 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 
 	// make the path to the source file
 	wxString theSourcePath = srcPath + gpApp->PathSeparator + filename;
+
+	// get an array of the filenames in the destination folder
+	wxArrayString myDestFilesArray;
+	bool bGotten = GetFilesOnly(destPath, &myDestFilesArray, TRUE, TRUE);
+	bGotten = bGotten; // avoid compiler warning
+
 	// check for a name conflict (including extension, same names but different extensions
 	// is not to be treated as a conflict)
 	int nConflictedFileIndex = wxNOT_FOUND; // -1
-	bool bIsConflicted = IsFileConflicted(filename,&nConflictedFileIndex,&destFilesArray);
+	bool bIsConflicted = IsFileConflicted(filename,&nConflictedFileIndex,&myDestFilesArray);
 	if (bIsConflicted)
 	{
 		// handle the filename conflict here; the existence of a conflict is testimony to
@@ -1205,7 +1211,7 @@ bool AdminMoveOrCopy::CopySingleFile(wxString& srcPath, wxString& destPath, wxSt
 		else
 		{
 			// put conflict dialog up
-			FilenameConflictDlg dlg(this,&filename);
+			FilenameConflictDlg dlg(this,&filename,&srcPath,&destPath);
 			dlg.Centre();
 			if (dlg.ShowModal() == wxID_OK)
 			{
@@ -1347,15 +1353,12 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 											   // selected filename to have a flag value
 		wxString aFilename = pSrcSelectedFilesArray->Item(nItemIndex);
 		wxASSERT(!aFilename.IsEmpty());
-		m_bUserCancelled = FALSE;
-		m_bDoTheSameWay = FALSE;
-		lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
-						  // if there was one, was handled (see CopyAction enum for values)
 		// loop across all files that were selected
 		do {
 			// process one file per iteration until the list of selected filenames is empty
 			bCopyWasSuccessful = CopySingleFile(srcFolderPath,destFolderPath,aFilename, 
 													m_bUserCancelled);
+//			wxLogDebug(_T("\nCopied  %s  ,  folder path = %s "),aFilename, srcFolderPath);
 			if (!bCopyWasSuccessful)
 			{
 				// if the copy did not succeed because the user chose to Cancel when a filename
@@ -1378,8 +1381,10 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 			// prepare for iteration, a new value for aFilename is required
 			nItemIndex++;
 			if (nItemIndex < limitSelectedFiles)
+			{
 				aFilename = pSrcSelectedFilesArray->Item(nItemIndex);
-
+//				wxLogDebug(_T("Prepare for iteration: next filename =  %s"),aFilename);
+			}
 		} while (nItemIndex < limitSelectedFiles);
 	}
 
@@ -1407,10 +1412,14 @@ void AdminMoveOrCopy::MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString
 				{
 					// shouldn't ever fail, so an English message for developer will do
 					wxString msg;
-					msg = msg.Format(_T("MoveOrCopyFiles: Removing the file ( %s ) for the requested move, failed"),
-							theSourceFilePath.c_str());
+//					msg = msg.Format(_T("MoveOrCopyFiles: Removing the file ( %s ) for the requested move, failed"),
+//							theSourceFilePath.c_str());
 					wxMessageBox(msg, _T("Removing a source file after moving it, failed"),wxICON_WARNING);
 				} // end block for test: if (!bRemovedSuccessfully)
+//				else
+//				{
+//					wxLogDebug(_T("Removed file  %s  from path  %s"),aFilename, theSourceFilePath);
+//				}
 			} // end block for test: if (flag)
 		} // end for loop block
 	}  // end block for test: if (bDoMove)
@@ -1469,26 +1478,40 @@ _("Failed to create the destination directory  %s  for the Copy or Move operatio
 			bHasFiles = bHasFiles; // avoid compiler warning
 
 			// Reenter
+//			wxLogDebug(_T("Re-entering: srcPath = %s , destPath = %s, hasFolders %d , hasFiles %d"),
+//				srcFolderPath2, destFolderPath2, (int)bHasFolders, (int)bHasFiles);
 			MoveOrCopyFilesAndFolders(srcFolderPath2, destFolderPath2, pSrcSelectedFoldersArray2,
 					pSrcSelectedFilesArray2, bDoMove);
 
 			// if Move was requested, the return of the above call will indicate that
-			// srcFolderPath2 has been emptied of both files and folders, so remove the
-			// now empty source folder
+			// srcFolderPath2 might have been emptied of both files and folders, so try remove the
+			// possibly empty source folder -- if will be removed only if empty
 			bool bRemovedOK = TRUE;
 			if (bDoMove)
 			{
+				// the directory in srcFolderPath will be currently set as the working
+				// directory, and that prevents ::wxRmdir() from removing it, so first
+				// reset the working directory to its parent, and the removals will work
 				bool bOK = ::wxSetWorkingDirectory(srcFolderPath);
-				bRemovedOK = ::wxRmdir(srcFolderPath2);
-				// don't expect failure, so just do a message for developer & continue on
-				if (!bRemovedOK)
+				bOK = ::wxRmdir(srcFolderPath2);
+				// ::wxRmdir() will fail if it still contains a file or folder - this can
+				// happen if there was a file conflict and the user elected to do noCopy,
+				// which means the conflicting file remains in the source directory. We
+				// don't want to have an annoying message put up for each such 'failure'
+				// so just ignore the return value bOK
+				/*
+				if (!bOK)
 				{
 					wxString msg;
 					msg = msg.Format(_T("::Rmdir() failed to remove directory %s "),srcFolderPath2.c_str());
 					wxMessageBox(msg,_T("Couldn't remove directory"),wxICON_WARNING);
 				}
+				else
+				{
+					wxLogDebug(_T("Removed directory  %s  "),srcFolderPath2);
+				}
+				*/
 			}
-
 			// clean up for this iteration
 			pSrcSelectedFilesArray2->Clear();
 			pSrcSelectedFoldersArray2->Clear();
@@ -1571,6 +1594,13 @@ _("You first need to select at least one item in the left list before clicking t
 	{
 		pSrcSelectedFilesArray->Add(srcFilesArray.Item(index));
 	}
+
+	// initialize bail out flag, and boolean for doing it the same way henceforth,
+	// and set the default lastWay value to noCopy
+	m_bUserCancelled = FALSE;
+	m_bDoTheSameWay = FALSE;
+	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
+						  // if there was one, was handled (see CopyAction enum for values)
 
 	MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
 					pSrcSelectedFilesArray, FALSE); // FALSE is  bool bDoMove
@@ -1657,6 +1687,13 @@ _("You first need to select at least one item in the left list before clicking t
 	{
 		pSrcSelectedFilesArray->Add(srcFilesArray.Item(index));
 	}
+
+	// initialize bail out flag, and boolean for doing it the same way henceforth,
+	// and set the default lastWay value to noCopy
+	m_bUserCancelled = FALSE;
+	m_bDoTheSameWay = FALSE;
+	lastWay = noCopy; // a safe default (for whatever way the last filename conflict, 
+						  // if there was one, was handled (see CopyAction enum for values)
 
 	MoveOrCopyFilesAndFolders(m_strSrcFolderPath, m_strDestFolderPath, pSrcSelectedFoldersArray,
 					pSrcSelectedFilesArray); // last param  bool bDoMove is TRUE

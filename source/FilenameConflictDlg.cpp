@@ -67,7 +67,9 @@ BEGIN_EVENT_TABLE(FilenameConflictDlg, AIModalDialog)
 END_EVENT_TABLE()
 
 FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
-		wxString* pConflictingFilename) // dialog constructor
+		wxString* pConflictingFilename,
+		wxString* pSrcFolderPath ,
+		wxString* pDestFolderPath) // dialog constructor
 	: AIModalDialog(parent, -1, _("Resolve Filename Conflict"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -82,8 +84,8 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
 	wxASSERT(m_pAdminMoveOrCopy != NULL);
 	// point to the parent's source and destination folder paths (no path separator at end
 	// of the path strings)
-	m_pSrcFolderPath = &(*m_pAdminMoveOrCopy).m_strSrcFolderPath;
-	m_pDestFolderPath = &(*m_pAdminMoveOrCopy).m_strDestFolderPath;
+	m_pSrcFolderPath = pSrcFolderPath;
+	m_pDestFolderPath = pDestFolderPath;
 
 	srcDetailsStr.Empty();
 	destDetailsStr.Empty();
@@ -114,7 +116,6 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 
 	// make the file data be displayed in the wxTextBox instances
 	wxString newlineStr = _T("\n");
-	wxString bytesStr = _(" bytes");
 	srcDetailsStr = srcFilename;
 	destDetailsStr = destFilename;
 	wxString locationLineSrc = *m_pSrcFolderPath;
@@ -129,69 +130,11 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	wxULongLong destSize = destFN.GetSize();
 	wxString srcSizeStr;
 	wxString destSizeStr;
-	srcSizeStr = srcSizeStr.Format(_T("%d"), srcSize.ToULong());
-	destSizeStr = destSizeStr.Format(_T("%d"), destSize.ToULong());
+	srcSizeStr = srcFN.GetHumanReadableSize(srcSize,_T("0"),2);
+	destSizeStr = srcFN.GetHumanReadableSize(destSize,_T("0"),2);
 
-	srcDetailsStr += newlineStr + srcSizeStr + bytesStr;
-	destDetailsStr += newlineStr + destSizeStr + bytesStr;
-	wxString srcSizeStr2;
-	wxString srcSizeStr3;
-	wxString destSizeStr2;
-	wxString destSizeStr3;
-	if (srcSize < 1024*1024)
-	{
-		// also give size in kilobytes (there are probably good ways to do this calc but
-		// I'm just going to hack it for now) - I can't find a way to convert wxULongLong
-		// into a float, so I'll simulate it instead
-		wxULongLong integerPartSrc = srcSize / 1024;
-		wxULongLong remainderPartSrc = srcSize % 1024;
-		remainderPartSrc = (remainderPartSrc * 100) / 1024;
-		//srcSizeStr2 = srcSizeStr2.Format(_T("( %d.%d"),integerPartSrc,remainderPartSrc);
-		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc.ToULong());
-		srcSizeStr2 += _T(".");
-		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc.ToULong());
-		srcSizeStr2 += srcSizeStr3;
-		srcSizeStr2 += _T(" KB )");
-	}
-	else
-	{
-		// its in megabyte range so also give size in megabytes
-		wxULongLong aMeg = 1024*1024;
-		wxULongLong integerPartSrc = srcSize / aMeg;
-		wxULongLong remainderPartSrc = srcSize % aMeg;
-		remainderPartSrc = (remainderPartSrc * 100) / aMeg;
-		srcSizeStr2 = srcSizeStr2.Format(_T("( %d"),integerPartSrc.ToULong());
-		srcSizeStr2 += _T(".");
-		srcSizeStr3 = srcSizeStr3.Format(_T("%d"),remainderPartSrc.ToULong());
-		srcSizeStr2 += srcSizeStr3;
-		srcSizeStr2 += _T(" MB )");
-	}
-	srcDetailsStr += _T(" ") + srcSizeStr2;
-	if (destSize < 1024*1024)
-	{
-		wxULongLong integerPartDest = destSize / 1024;
-		wxULongLong remainderPartDest = destSize % 1024;
-		remainderPartDest = (remainderPartDest * 100) / 1024;
-		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest.ToULong());
-		destSizeStr2 += _T(".");
-		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest.ToULong());
-		destSizeStr2 += destSizeStr3;
-		destSizeStr2 += _T(" KB )");
-	}
-	else
-	{
-		// its in megabyte range so also give size in megabytes
-		wxULongLong aMeg = 1024*1024;
-		wxULongLong integerPartDest = destSize / aMeg;
-		wxULongLong remainderPartDest = destSize % aMeg;
-		remainderPartDest = (remainderPartDest * 100) / aMeg;
-		destSizeStr2 = destSizeStr2.Format(_T("( %d"),integerPartDest.ToULong());
-		destSizeStr2 += _T(".");
-		destSizeStr3 = destSizeStr3.Format(_T("%d"),remainderPartDest.ToULong());
-		destSizeStr2 += destSizeStr3;
-		destSizeStr2 += _T(" MB )");
-	}
-	destDetailsStr += _T(" ") + destSizeStr2;
+	srcDetailsStr += newlineStr + srcSizeStr;
+	destDetailsStr += newlineStr + destSizeStr;
 
 	wxDateTime srcModTime = srcFN.GetModificationTime();
 	wxDateTime destModTime = destFN.GetModificationTime();
