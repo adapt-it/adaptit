@@ -133,10 +133,13 @@ private:
 	void MoveOrCopyFilesAndFolders(wxString srcFolderPath, wxString destFolderPath,
 				wxArrayString* pSrcSelectedFoldersArray, wxArrayString* pSrcSelectedFilesArray, 
 				bool bDoMove = TRUE);
+	void RemoveFilesAndFolders(wxString destFolderPath, wxArrayString* pDestSelectedFoldersArray, 
+				wxArrayString* pDestSelectedFilesArray);
 	bool CopySingleFile(wxString& srcPath, wxString& destPath, wxString& filename, 
-						bool& bUserCancelled);
+				bool& bUserCancelled);
+	bool RemoveSingleFile(wxString& destPath, wxString& filename);
 	void GetListCtrlContents(enum whichSide side, wxString& folderPath, 
-								bool& bHasFolders, bool& bHasFiles);
+				bool& bHasFolders, bool& bHasFiles);
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	bool IsFileConflicted(wxString& srcFile, int* pConflictedDestFile, wxArrayString* pDestFilesArr);
 	void SetupDestList(wxString& folderPath);
