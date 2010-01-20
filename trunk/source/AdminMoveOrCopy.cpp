@@ -1269,10 +1269,200 @@ theSourcePath.c_str());
 	}
 	return bSuccess;
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the removal was successfully done; return FALSE if
+///             the removal was not successful. (FALSE should halt the removals.)
+/// \param      destPath    ->  reference to the destination folder path's string (no final 
+///                             path separator)-- removals are done from right side
+///                             wxListCtrl only
+/// \param      filename    ->  the name of the file to be removed
+///  \remarks   This function handles the low level copying of a single file to the
+///  destination folder. It's return value is important for a "Move" choice in the GUI,
+///  because we support Moving a file by first copying it, and if the copy was successful,
+///  then we delete the original file in the source folder. In the event of a filename
+///  clash, the protocol for handling that is encapsulated herein - a child dialog is put
+///  up with 3 choices, similarly to what Windows Explorer offers. A flag is included in
+///  the signature to return cancel information to the caller in the event of a filename
+///  clash. Since our design allows for multiple filenames in the source folder to be
+///  copied (or moved) with a single click of the Copy.. or Move.. buttons, this function
+///  may be called multiple times by the caller - taking each filename from a string array
+///  populated earlier. In the event of a filename clash, if the user hits the Cancel
+///  button, it will cancel the Copy or Move command at that time, but any files already
+///  copied or moved will remain so.
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::RemoveSingleFile(wxString& destPath, wxString& filename)
+{
+	bool bSuccess = TRUE;
+
+	// make the path to the destination folder's file
+	wxString theDestPath = destPath + gpApp->PathSeparator + filename;
+
+	// do the removal
+	bSuccess = ::wxRemoveFile(theDestPath); //bool overwrite = true
+	if (!bSuccess)
+	{
+		wxString msg;
+		msg = msg.Format(
+_("Removing the file with path %s failed. Removals have been halted. Possibly an application has the file still open. Close the file and then you can try the removal operation again."),
+		theDestPath.c_str());
+		wxMessageBox(msg,_("Removing a file failed"),wxICON_WARNING);
+
+		// use the m_bUserCancelled mechanism to force drilling up through any recursions,
+		// but don't clobber the AdminMoveOrCopy dialog itself
+		m_bUserCancelled = TRUE;
+	}
+	return bSuccess;
+}
+
 void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 {
+	m_bUserCancelled = FALSE;
 
+	// on the heap, create the arrays of files and folders which are to be removed & populate them
+	wxArrayString* pDestSelectedFoldersArray	= new wxArrayString;
+	wxArrayString* pDestSelectedFilesArray	= new wxArrayString;
+	size_t index;
+	size_t foldersLimit = destSelectedFoldersArray.GetCount(); // RHS populated in SetSelectionArray() call earlier
+	size_t filesLimit = destSelectedFilesArray.GetCount(); // RHS populated in SetSelectionArray() call earlier
+	if (destSelectedFilesArray.GetCount() == 0 && destSelectedFoldersArray.GetCount() == 0)
+	{
+		wxMessageBox(
+_("You first need to select at least one item in the right hand list before clicking the Delete button"),
+		_("No Files Or Folders Selected"),wxICON_WARNING);
+		pDestSelectedFilesArray->Clear(); // this one is on heap
+		pDestSelectedFoldersArray->Clear(); // this one is on heap
+		delete pDestSelectedFilesArray; // don't leak it
+		delete pDestSelectedFoldersArray; // don't leak it
+		return;
+	}
+	for (index = 0; index < foldersLimit; index++)
+	{
+		pDestSelectedFoldersArray->Add(destFoldersArray.Item(index));
+	}
+	for (index = 0; index < filesLimit; index++)
+	{
+		pDestSelectedFilesArray->Add(destFilesArray.Item(index));
+	}
 
+	RemoveFilesAndFolders(m_strDestFolderPath, pDestSelectedFoldersArray, pDestSelectedFilesArray);
+
+	// clear the allocations to the heap
+	pDestSelectedFilesArray->Clear(); // this one is on heap
+	pDestSelectedFoldersArray->Clear(); // this one is on heap
+	delete pDestSelectedFilesArray; // don't leak it
+	delete pDestSelectedFoldersArray; // don't leak it
+
+	destSelectedFilesArray.Clear();
+	destSelectedFoldersArray.Clear();
+
+	// update the destination list
+	SetupDestList(m_strDestFolderPath);
+}
+
+void AdminMoveOrCopy::RemoveFilesAndFolders(wxString destFolderPath, 
+				wxArrayString* pDestSelectedFoldersArray, 
+				wxArrayString* pDestSelectedFilesArray)
+{
+	// copy the files first, then recurse for copying the one or more folders, if any
+	size_t limitSelectedFiles = pDestSelectedFilesArray->GetCount();
+	size_t limitSelectedFolders = pDestSelectedFoldersArray->GetCount();
+	bool bRemovedOK = TRUE;
+
+    // the passed in destination folder may have no files in it - check, and only do this
+    // block if there is at least one file to be removed
+	size_t nItemIndex = 0;
+	if (limitSelectedFiles > 0)
+	{
+		wxString aFilename = pDestSelectedFilesArray->Item(nItemIndex);
+		wxASSERT(!aFilename.IsEmpty());
+		// loop across all files that were selected, deleting each as we go
+		do {
+			// do the removal of the file (an internal failure will not just return FALSE,
+			// but will set the member boolean m_bUserCancelled to TRUE)
+			bRemovedOK = RemoveSingleFile(destFolderPath, aFilename);
+//			wxLogDebug(_T("\nRemoved  %s  ,  folder path = %s "),aFilename, destFolderPath);
+			if (!bRemovedOK)
+			{
+				// if the removal did not succeed we want to halt proceedings ( a warning
+				// will have been shown by RemoveSingleFile already) - use the
+				// m_bUserCancelled mechanism, but don't clobber the AdminMoveOrCopy
+				// dialog itself
+				if (m_bUserCancelled)
+				{
+					// force return, and premature exit of loop
+					return;
+				}
+			}
+
+			// prepare for iteration, a new value for aFilename is required
+			nItemIndex++;
+			if (nItemIndex < limitSelectedFiles)
+			{
+				aFilename = pDestSelectedFilesArray->Item(nItemIndex);
+//				wxLogDebug(_T("Prepare for iteration: next filename =  %s"),aFilename);
+			}
+		} while (nItemIndex < limitSelectedFiles);
+	}
+
+	// now handle any folder selections, these will be recursive calls within the loop
+	if (limitSelectedFolders > 0)
+	{
+		// there are one or more folders to remove -- do it in a loop
+		size_t indexForLoop;
+		// loop over the selected directory names
+		for (indexForLoop = 0; indexForLoop < limitSelectedFolders; indexForLoop++)
+		{
+			wxString destFolderPath2;
+			wxArrayString* pDestSelectedFoldersArray2 = new wxArrayString;
+			wxArrayString* pDestSelectedFilesArray2 = new wxArrayString;
+			wxString aFoldername = pDestSelectedFoldersArray->Item(indexForLoop); // get next directory name
+			destFolderPath2 = destFolderPath + gpApp->PathSeparator + aFoldername; // we know this folder exists
+            // Now we must call GetFilesOnly() and GetFoldersOnly() in order to gather the
+            // destination child directory's folder names and file names into the the arrays provided
+			// (Each call internally resets the working directory.) First TRUE is bool
+			// bSort, second TRUE is bool bSuppressMessage.
+            bool bHasFolders = GetFoldersOnly(destFolderPath2, pDestSelectedFoldersArray2, TRUE, TRUE);
+			bool bHasFiles = GetFilesOnly(destFolderPath2, pDestSelectedFilesArray2, TRUE, TRUE);
+			bHasFolders = bHasFolders; // avoid compiler warning
+			bHasFiles = bHasFiles; // avoid compiler warning
+
+			// Reenter
+//			wxLogDebug(_T("Re-entering: destPath = %s, hasFolders %d , hasFiles %d"),
+//				destFolderPath2, (int)bHasFolders, (int)bHasFiles);
+			RemoveFilesAndFolders(destFolderPath2, pDestSelectedFoldersArray2, pDestSelectedFilesArray2);
+
+            // on the return of the above call srcFolderPath2 will have been emptied of
+            // both files and folders, so remove it; first reset the working directory to a
+            // directory not to be removed, and the removals will work
+			bool bOK = ::wxSetWorkingDirectory(m_strDestFolderPath);
+			bOK = ::wxRmdir(destFolderPath2);
+			if (!bOK)
+			{
+				wxString msg;
+				msg = msg.Format(_T("Failed to remove directory %s "),destFolderPath2.c_str());
+				wxMessageBox(msg,_T("Could not remove directory"),wxICON_WARNING);
+				m_bUserCancelled = TRUE;
+			}
+//			else
+//			{
+//				wxLogDebug(_T("Removed directory  %s  "),destFolderPath2);
+//			}
+				
+			// clean up for this iteration
+			pDestSelectedFilesArray2->Clear();
+			pDestSelectedFoldersArray2->Clear();
+			delete pDestSelectedFilesArray2; // don't leak it
+			delete pDestSelectedFoldersArray2; // don't leak it
+
+			// if there was a failure...
+			if (m_bUserCancelled)
+			{
+				// exit loop immediately
+				return;
+			}
+		} // end block for the for loop iterating over selected foldernames
+	}
 }
 
 void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
