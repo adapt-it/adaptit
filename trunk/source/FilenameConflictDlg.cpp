@@ -59,9 +59,9 @@ BEGIN_EVENT_TABLE(FilenameConflictDlg, AIModalDialog)
 	EVT_INIT_DIALOG(FilenameConflictDlg::InitDialog)
 	EVT_BUTTON(wxID_OK, FilenameConflictDlg::OnBnClickedClose)
 	EVT_BUTTON(wxID_CANCEL, FilenameConflictDlg::OnBnClickedCancel)
-	EVT_RADIOBUTTON(ID_RADIOBUTTON_REPLACE, FilenameConflictDlg::OnBnClickedCopyAndReplace)	
-	EVT_RADIOBUTTON(ID_RADIOBUTTON_NO_COPY, FilenameConflictDlg::OnBnClickedNoCopy)	
-	EVT_RADIOBUTTON(ID_RADIOBUTTON_COPY_AND_RENAME, FilenameConflictDlg::OnBnClickedChangeNameAndCopy)	
+//	EVT_RADIOBUTTON(ID_RADIOBUTTON_REPLACE, FilenameConflictDlg::OnBnClickedCopyAndReplace)	
+//	EVT_RADIOBUTTON(ID_RADIOBUTTON_NO_COPY, FilenameConflictDlg::OnBnClickedNoCopy)	
+//	EVT_RADIOBUTTON(ID_RADIOBUTTON_COPY_AND_RENAME, FilenameConflictDlg::OnBnClickedChangeNameAndCopy)	
 	EVT_CHECKBOX(ID_CHECKBOX_HANDLE_SAME, FilenameConflictDlg::OnCheckboxHandleSameWay)	
 
 END_EVENT_TABLE()
@@ -190,7 +190,7 @@ void FilenameConflictDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // Init
 	m_pDestFileDataBox->SetEditable(FALSE);
 	 
 }
-
+/*
 void FilenameConflictDlg::OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event))
 {
 
@@ -208,7 +208,7 @@ void FilenameConflictDlg::OnBnClickedChangeNameAndCopy(wxCommandEvent& WXUNUSED(
 
 
 }
-
+*/
 void FilenameConflictDlg::OnCheckboxHandleSameWay(wxCommandEvent& WXUNUSED(event))
 {
 	// give the new value to the caller

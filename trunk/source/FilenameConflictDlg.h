@@ -73,9 +73,9 @@ public:
 	wxString* m_pDestFolderPath;
 
 protected:
-	void OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedNoCopy(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedChangeNameAndCopy(wxCommandEvent& WXUNUSED(event));
+	//void OnBnClickedCopyAndReplace(wxCommandEvent& WXUNUSED(event));
+	//void OnBnClickedNoCopy(wxCommandEvent& WXUNUSED(event));
+	//void OnBnClickedChangeNameAndCopy(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedClose(wxCommandEvent& event);
 	void OnBnClickedCancel(wxCommandEvent& event);
 	void OnCheckboxHandleSameWay(wxCommandEvent& WXUNUSED(event));
