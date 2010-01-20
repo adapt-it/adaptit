@@ -84,11 +84,6 @@ public:
     wxArrayString srcSelectedFoldersArray; // stores just the names of the selected folders
     wxArrayString destSelectedFilesArray; // stores just the names of the selected files
     wxArrayString destSelectedFoldersArray; // stores just the names of the selected folders
-	//wxArrayString srcSelectionArray; // stores aggregate of selected foldernames & filenames
-	wxArrayString destSelectionArray; // stores aggregate olf selected foldernames & filenames
-				// user (Note: files selected in destination folder is only meaningful
-				// for renaming or deleting these files or folders, and the contents
-				// of this list is ignored for moving or copying)
 	wxArrayInt arrCopiedOK; // stores 1 for a successful file copy, 0 if not copied
 
 	size_t srcFoldersCount;

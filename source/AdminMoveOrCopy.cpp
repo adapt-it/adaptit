@@ -110,8 +110,10 @@ AdminMoveOrCopy::AdminMoveOrCopy(wxWindow* parent) // dialog constructor
 	srcFilesArray.Empty();
 	destFoldersArray.Empty();
 	destFilesArray.Empty();
-	//srcSelectionArray.Empty();
-	destSelectionArray.Empty();
+	srcSelectedFoldersArray.Empty();
+	srcSelectedFilesArray.Empty();
+	destSelectedFilesArray.Empty();
+	destSelectedFoldersArray.Empty();
 	arrCopiedOK.Empty();
 }
 
@@ -126,8 +128,10 @@ AdminMoveOrCopy::~AdminMoveOrCopy() // destructor
 	srcFilesArray.Clear();
 	destFoldersArray.Clear();
 	destFilesArray.Clear();
-	//srcSelectionArray.Clear();
-	destSelectionArray.Clear();
+	srcSelectedFoldersArray.Clear();
+	srcSelectedFilesArray.Clear();
+	destSelectedFoldersArray.Clear();
+	destSelectedFilesArray.Clear();
 	arrCopiedOK.Clear();
 }
 
@@ -470,11 +474,6 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 	GetListCtrlContents(sourceSide, folderPath, bHasFolders, bHasFiles);
 	if (bHasFolders || bHasFiles)
 	{
-		// Disable the move and copy buttons at the bottom
-		pMoveButton->Enable(FALSE);
-		//pMoveFileOrFilesButton->Enable(FALSE);
-		pCopyButton->Enable(FALSE);
-		//pCopyFileOrFilesButton->Enable(FALSE);
 		srcFoldersCount = 0;
 		srcFilesCount = 0;
 
@@ -500,6 +499,9 @@ void AdminMoveOrCopy::SetupSrcList(wxString& folderPath)
 				rv = pSrcList->InsertItem(srcFoldersCount + index,aFile,indxFileIcon);
 			}
 		}
+		// Disable the move and copy buttons at the bottom
+		pMoveButton->Enable(FALSE);
+		pCopyButton->Enable(FALSE);
 	}
 	else
 	{
@@ -567,18 +569,8 @@ void AdminMoveOrCopy::SetupDestList(wxString& folderPath)
 		destFoldersCount = 0;
 		destFilesCount = 0;
 	}
-	//EnableDeleteDestFileOrFilesButton(FALSE);
-	//EnableRenameDestFileButton(FALSE);
-	if (m_strDestFolderPath.IsEmpty())
-	{
-		EnableDeleteButton(FALSE);
-		EnableRenameButton(FALSE);
-	}
-	else
-	{
-		EnableDeleteButton(FALSE);
-		EnableRenameButton(TRUE);
-	}
+	EnableDeleteButton(FALSE);
+	EnableRenameButton(FALSE);
 }
 
 
@@ -963,7 +955,6 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 	{
 		srcSelectedFilesArray.Empty();
 		srcSelectedFoldersArray.Empty();
-		//srcSelectionArray.Empty();
 		limit = pSrcList->GetItemCount();
 		if ((srcFilesCount == 0 && srcFoldersCount == 0) || 
 			pSrcList->GetSelectedItemCount() == 0)
@@ -972,7 +963,6 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 			EnableMoveButton(FALSE);
 			return; // nothing to do
 		}
-		//srcSelectionArray.Alloc(limit); // enough for all items in the list
 		srcSelectedFoldersArray.Alloc(srcFoldersCount);
 		srcSelectedFilesArray.Alloc(srcFilesCount);
 		for (index = 0; index < limit; index++)
@@ -982,7 +972,6 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 			{
 				// this one is selected, add it's name to the list of selected items
 				wxString itemName = pSrcList->GetItemText(index);
-				//size_t itsIndex = srcSelectionArray.Add(itemName); // return is unused
 
 				// is it a folder or a file - find out and add it to the appropriate array
 				wxString path = m_strSrcFolderPath + gpApp->PathSeparator + itemName;
@@ -1000,9 +989,6 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 				isSelected = 0;
 			}
 		}
-
-		//wxLogDebug(_T(" ***** Src Selection Count  %d "), srcSelectionArray.GetCount());
-
 		if (m_strSrcFolderPath.IsEmpty() || m_strDestFolderPath.IsEmpty())
 		{
 			EnableCopyButton(FALSE);
@@ -1010,7 +996,6 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 		}
 		else
 		{
-			//if (srcSelectionArray.GetCount() > 0)
 			if (srcSelectedFilesArray.GetCount() > 0 || srcSelectedFoldersArray.GetCount() > 0)
 			{
 				EnableCopyButton(TRUE);
@@ -1025,7 +1010,8 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 	}
 	else
 	{
-		destSelectionArray.Empty(); // clear, we'll refill in the loop
+		destSelectedFilesArray.Empty(); // clear, we'll refill in the loop
+		destSelectedFoldersArray.Empty(); // ditto
 		limit = pDestList->GetItemCount();
 		if ((destFilesCount == 0 && destFoldersCount == 0) || 
 			pDestList->GetSelectedItemCount() == 0)
@@ -1034,7 +1020,8 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 			EnableDeleteButton(FALSE);
 			return; // nothing to do
 		}
-		destSelectionArray.Alloc(limit); // enough for all items in the list
+		destSelectedFilesArray.Alloc(limit);
+		destSelectedFoldersArray.Alloc(limit);
 		for (index = 0; index < limit; index++)
 		{
 			isSelected = pDestList->GetItemState(index,stateMask);
@@ -1042,7 +1029,6 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 			{
 				// this one is selected, add it's name to the list of selected items
 				wxString itemName = pDestList->GetItemText(index);
-				//size_t itsIndex = destSelectionArray.Add(itemName); // return is unused
 
 				// is it a folder or a file - find out and add it to the appropriate array
 				wxString path = m_strDestFolderPath + gpApp->PathSeparator + itemName;
@@ -1061,7 +1047,7 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 			}
 		}
 		//if (destSelectionArray.IsEmpty())
-		if (destSelectedFoldersArray.IsEmpty() || destSelectedFilesArray.IsEmpty())
+		if (destSelectedFoldersArray.IsEmpty() && destSelectedFilesArray.IsEmpty())
 		{
 			// disable the Rename and Delete buttons if nothing is selected in the
 			// destination side's list
@@ -1291,34 +1277,42 @@ void AdminMoveOrCopy::OnBnClickedDelete(wxCommandEvent& WXUNUSED(event))
 
 void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 {
-//		bool bOK = ::wxRenameFile(_T("C:\\Card2\\PALM"),_T("C:\\Card2\\COCONUT"),TRUE);
-
-	/*
-	wxFileName FN = wxFileName::DirName(m_strDestFolderPath); // DirName() is static
-	wxString oldName = _T("");
-	wxArrayString names = FN.GetDirs();
-	size_t count = names.GetCount();
-	if (count > 0)
+	bool bOK = TRUE;
+	if (destSelectedFoldersArray.GetCount() == 1)
 	{
-		// m_nCount will be 0 if the destination folder is a windows drive letter, or a
-		// Unix (or Linux) root folder (ie. "/")
-		oldName = names.Item(count - 1); // last directory of the path
-		wxString pathPrefix;
-		int offset = m_strDestFolderPath.Find(oldName);
-		pathPrefix = m_strDestFolderPath.Left((size_t)offset);
-		wxASSERT(!pathPrefix.IsEmpty());
+		wxString theFolderPath = m_strDestFolderPath + gpApp->PathSeparator;
+		wxString oldName = destSelectedFoldersArray.Item(0); // old folder name
+		theFolderPath += oldName; // path to selected folder which we want to rename
 
 		// now get the user's wanted new directory name
 		wxString msg = _("Type the new folder name");
 		wxString caption = _("Type Name For Folder (spaces permitted)");
 		wxString newName = ::wxGetTextFromUser(msg,caption,oldName,this); // use selection as default name
 
+		// Change to new name? -- use ::wxRenameFile(), but not on open
+		// or working directory, and the overwrite parameter must be set TRUE
+		bOK = ::wxSetWorkingDirectory(m_strDestFolderPath); // make parent directory be the working one
+		wxString theNewPath = m_strDestFolderPath + gpApp->PathSeparator + newName;
+		bOK = ::wxRenameFile(theFolderPath,theNewPath,TRUE);
+		// update the destination list
+		SetupDestList(m_strDestFolderPath);
+	}
+	else if (destSelectedFilesArray.GetCount() == 1)
+	{
+		wxString theFilePath = m_strDestFolderPath + gpApp->PathSeparator;
+		wxString oldName = destSelectedFilesArray.Item(0); // old file name
+		theFilePath += oldName; // path to selected file which we want to rename
 
-		//How can I change the directory's name? -- use ::wxRenameFile() but not on open
-		//directory, and with overwrite parameter set TRUE
-		
-		wxString theNewPath = pathPrefix + newName;
-		bool bOK = ::wxRenameFile(m_strDestFolderPath,theNewPath,TRUE);
+		// now get the user's wanted new filename
+		wxString msg = _("Type the new file name");
+		wxString caption = _("Type Name For File (spaces permitted)");
+		wxString newName = ::wxGetTextFromUser(msg,caption,oldName,this); // use selection as default name
+
+		// Change to new name? -- use ::wxRenameFile(), but not on open
+		// or working directory, and the overwrite parameter must be set TRUE
+		bOK = ::wxSetWorkingDirectory(m_strDestFolderPath); // make parent directory be the working one
+		wxString theNewPath = m_strDestFolderPath + gpApp->PathSeparator + newName;
+		bOK = ::wxRenameFile(theFilePath,theNewPath,TRUE);
 		// update the destination list
 		SetupDestList(m_strDestFolderPath);
 	}
@@ -1326,7 +1320,6 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 	{
 		::wxBell();
 	}
-	*/
 }
 
 
@@ -1486,7 +1479,6 @@ _("Failed to create the destination directory  %s  for the Copy or Move operatio
 			// if Move was requested, the return of the above call will indicate that
 			// srcFolderPath2 might have been emptied of both files and folders, so try remove the
 			// possibly empty source folder -- if will be removed only if empty
-			bool bRemovedOK = TRUE;
 			if (bDoMove)
 			{
 				// the directory in srcFolderPath will be currently set as the working
