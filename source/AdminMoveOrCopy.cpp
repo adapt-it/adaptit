@@ -1351,11 +1351,11 @@ _("You first need to select at least one item in the right hand list before clic
 	}
 	for (index = 0; index < foldersLimit; index++)
 	{
-		pDestSelectedFoldersArray->Add(destFoldersArray.Item(index));
+		pDestSelectedFoldersArray->Add(destSelectedFoldersArray.Item(index));
 	}
 	for (index = 0; index < filesLimit; index++)
 	{
-		pDestSelectedFilesArray->Add(destFilesArray.Item(index));
+		pDestSelectedFilesArray->Add(destSelectedFilesArray.Item(index));
 	}
 
 	RemoveFilesAndFolders(m_strDestFolderPath, pDestSelectedFoldersArray, pDestSelectedFilesArray);

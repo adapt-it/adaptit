@@ -6779,29 +6779,23 @@ wxSizer *MoveOrCopyFilesOrFoldersFunc( wxWindow *parent, bool call_fit, bool set
     wxButton *item33 = new wxButton( parent, ID_BUTTON_COPY, _("Copy"), wxDefaultPosition, wxDefaultSize, 0 );
     item31->Add( item33, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
-    item31->Add( 120, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item31->Add( 80, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item34 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item34->SetDefault();
-    item31->Add( item34, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+    wxButton *item34 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->Add( item34, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item31->Add( 40, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item35 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
+    item31->Add( item35, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item31->Add( 60, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item36 = new wxButton( parent, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item36->SetDefault();
+    item31->Add( item36, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 
     item1->Add( item31, 0, wxALIGN_CENTER, 5 );
-
-    wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
-
-    wxButton *item36 = new wxButton( parent, ID_BUTTON_RENAME, _("Rename"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item35->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item35->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item37 = new wxButton( parent, ID_BUTTON_DELETE, _("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item35->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    item1->Add( item35, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT, 5 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
