@@ -898,10 +898,10 @@ void CCaseEquivPageWiz::OnWizardPageChanging(wxWizardEvent& event)
 	}
 }
 
-IMPLEMENT_DYNAMIC_CLASS( CCaseEquivPagePrefs, wxWizardPage )
+IMPLEMENT_DYNAMIC_CLASS( CCaseEquivPagePrefs, wxPanel )
 
 // event handler table
-BEGIN_EVENT_TABLE(CCaseEquivPagePrefs, wxWizardPage)
+BEGIN_EVENT_TABLE(CCaseEquivPagePrefs, wxPanel)
 	EVT_INIT_DIALOG(CCaseEquivPagePrefs::InitDialog)// not strictly necessary for dialogs based on wxDialog
 	EVT_BUTTON(IDC_BUTTON_CLEAR_SRC_LIST, CCaseEquivPagePrefs::OnBnClickedClearSrcList)
 	EVT_BUTTON(IDC_BUTTON_SRC_SET_ENGLISH, CCaseEquivPagePrefs::OnBnClickedSrcSetEnglish)
