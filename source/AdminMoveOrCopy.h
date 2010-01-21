@@ -73,6 +73,8 @@ public:
 
 	wxString m_strSrcFolderPath;
 	wxString m_strDestFolderPath;
+	wxString m_strSrcFolderPath_OLD;
+	wxString m_strDestFolderPath_OLD;
 
 	wxArrayString srcFoldersArray; // stores folder names (these get displayed)
 	wxArrayString srcFilesArray; // stores filenames (these get displayed)
