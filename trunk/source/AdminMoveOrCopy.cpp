@@ -582,13 +582,20 @@ void AdminMoveOrCopy::OnBnClickedLocateSrcFolder(wxCommandEvent& WXUNUSED(event)
 		// second param suppresses a Create button being shown, 3rd makes chose directory 
 		// the working directory, first param is for default dialog style with resizable
 		// border (see wxDirDialog for details)
-	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	long style = wxDD_DEFAULT_STYLE | wxDD_CHANGE_DIR; // allow Create button in dialog
 	wxPoint pos = wxDefaultPosition;
 	// in the following call, which is a wx widget which can be called as below or as
 	// ::wxDirSelector(...params...), if the user cancels from the browser window the
 	// returned string is empty, otherwise it is the absolute path to whatever directory
 	// was shown selected in the folder hierarchy when the OK button was pressed
+	m_strSrcFolderPath_OLD = m_strSrcFolderPath; // save current path in case user cancels
 	m_strSrcFolderPath = wxDirSelector(msg,m_strSrcFolderPath,style,pos,(wxWindow*)pFrame);
+	if (m_strSrcFolderPath.IsEmpty())
+	{
+		// restore the old path
+		m_strSrcFolderPath = m_strSrcFolderPath_OLD;
+	}
 	SetupSrcList(m_strSrcFolderPath);
 	EnableCopyButton(FALSE);
 	EnableMoveButton(FALSE);
@@ -602,13 +609,20 @@ void AdminMoveOrCopy::OnBnClickedLocateDestFolder(wxCommandEvent& WXUNUSED(event
 		// second param suppresses a Create button being shown, 3rd makes chose directory 
 		// the working directory, first param is for default dialog style with resizable
 		// border (see wxDirDialog for details)
-	long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	//long style = wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST | wxDD_CHANGE_DIR;
+	long style = wxDD_DEFAULT_STYLE | wxDD_CHANGE_DIR; // allow Create button in dialog
 	wxPoint pos = wxDefaultPosition;
 	// in the following call, which is a wx widget which can be called as below or as
 	// ::wxDirSelector(...params...), if the user cancels from the browser window the
 	// returned string is empty, otherwise it is the absolute path to whatever directory
 	// was shown selected in the folder hierarchy when the OK button was pressed
+	m_strDestFolderPath_OLD = m_strDestFolderPath; // save current path in case user cancels
 	m_strDestFolderPath = wxDirSelector(msg,m_strDestFolderPath,style,pos,(wxWindow*)pFrame);
+	if (m_strDestFolderPath.IsEmpty())
+	{
+		// restore the old path
+		m_strDestFolderPath = m_strDestFolderPath_OLD;
+	}
 	SetupDestList(m_strDestFolderPath);
 	EnableRenameButton(FALSE);
 	EnableDeleteButton(FALSE);
@@ -899,38 +913,6 @@ void AdminMoveOrCopy::OnDestListDoubleclick(wxListEvent& event)
 	}
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////
-///
-///    END OF GUI FUNCTIONS                 START OF BUTTON HANDLERS 
-///
-///////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return     TRUE if the passed in paths are identical, FALSE otherwise
-/// \param      srcPath    ->  reference to the source side's file path 
-/// \param      destPath   ->  reference to the destination side's file path 
-///  \remarks   Use to prevent copy or move of a file or folder to the same folder. We
-///  allow both sides to have the same path shown, but in the button handlers we check as
-///  necessary and prevent wrong action - and show a warning message
-//////////////////////////////////////////////////////////////////////////////////
-bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPath)
-{
-	if (srcPath == destPath)
-	{
-		wxString msg;
-		::wxBell();
-		msg = msg.Format(_("The source and destination folders must not be the same folder."));
-		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_WARNING);
-		return TRUE;
-	}
-	return FALSE;
-}
-
-// 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      side    ->  enum with value either sourceSide, or destinationSide 
@@ -1068,6 +1050,37 @@ void AdminMoveOrCopy::SetupSelectionArrays(enum whichSide side)
 		}
 	}
 }
+
+///////////////////////////////////////////////////////////////////////////////////
+///
+///    END OF GUI FUNCTIONS                 START OF BUTTON HANDLERS 
+///
+///////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if the passed in paths are identical, FALSE otherwise
+/// \param      srcPath    ->  reference to the source side's file path 
+/// \param      destPath   ->  reference to the destination side's file path 
+///  \remarks   Use to prevent copy or move of a file or folder to the same folder. We
+///  allow both sides to have the same path shown, but in the button handlers we check as
+///  necessary and prevent wrong action - and show a warning message
+//////////////////////////////////////////////////////////////////////////////////
+bool AdminMoveOrCopy::CheckForIdenticalPaths(wxString& srcPath, wxString& destPath)
+{
+	if (srcPath == destPath)
+	{
+		wxString msg;
+		::wxBell();
+		msg = msg.Format(_("The source and destination folders must not be the same folder."));
+		wxMessageBox(msg,_("Copy or Move is not permitted"),wxICON_WARNING);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if the file in the source list with index srcFileIndex has the
@@ -1486,6 +1499,11 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		bOK = ::wxRenameFile(theFolderPath,theNewPath,TRUE);
 		// update the destination list
 		SetupDestList(m_strDestFolderPath);
+		if (m_strDestFolderPath == m_strSrcFolderPath)
+		{
+			::wxSetWorkingDirectory(m_strSrcFolderPath);
+			SetupSrcList(m_strSrcFolderPath);
+		}
 	}
 	else if (destSelectedFilesArray.GetCount() == 1)
 	{
@@ -1505,6 +1523,11 @@ void AdminMoveOrCopy::OnBnClickedRename(wxCommandEvent& WXUNUSED(event))
 		bOK = ::wxRenameFile(theFilePath,theNewPath,TRUE);
 		// update the destination list
 		SetupDestList(m_strDestFolderPath);
+		if (m_strDestFolderPath == m_strSrcFolderPath)
+		{
+			::wxSetWorkingDirectory(m_strSrcFolderPath);
+			SetupSrcList(m_strSrcFolderPath);
+		}
 	}
 	else
 	{
@@ -1770,11 +1793,11 @@ _("You first need to select at least one item in the left list before clicking t
 	}
 	for (index = 0; index < foldersLimit; index++)
 	{
-		pSrcSelectedFoldersArray->Add(srcFoldersArray.Item(index));
+		pSrcSelectedFoldersArray->Add(srcSelectedFoldersArray.Item(index));
 	}
 	for (index = 0; index < filesLimit; index++)
 	{
-		pSrcSelectedFilesArray->Add(srcFilesArray.Item(index));
+		pSrcSelectedFilesArray->Add(srcSelectedFilesArray.Item(index));
 	}
 
 	// initialize bail out flag, and boolean for doing it the same way henceforth,
@@ -1863,11 +1886,11 @@ _("You first need to select at least one item in the left list before clicking t
 	}
 	for (index = 0; index < foldersLimit; index++)
 	{
-		pSrcSelectedFoldersArray->Add(srcFoldersArray.Item(index));
+		pSrcSelectedFoldersArray->Add(srcSelectedFoldersArray.Item(index));
 	}
 	for (index = 0; index < filesLimit; index++)
 	{
-		pSrcSelectedFilesArray->Add(srcFilesArray.Item(index));
+		pSrcSelectedFilesArray->Add(srcSelectedFilesArray.Item(index));
 	}
 
 	// initialize bail out flag, and boolean for doing it the same way henceforth,
