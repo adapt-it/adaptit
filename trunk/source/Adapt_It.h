@@ -1271,27 +1271,6 @@ typedef struct
 	int				nRefStrIndex;	 // index to the cCRefString instance in pTU which
 									 // stores the ref count and  strMapOldString string
 } KBMatchRecord;
-/* old first guess at what might be needed
-typedef struct
-{
-	wxString		strMapOldString; // adapatation (or gloss) which was matched
-	wxUint32		nUpdateIndex;	 // index to the sorted array which has the
-									 // KBUpdateRecord for the user's edit of this
-									 // entry, & hence the index also is to the item
-									 // in the list which displays the updated 
-									 // spellings; store 0xFFFF if this match is not
-									 // edited
-	wxUint32		nIndexToMap;	 // values in range 0 to (MAX_WORDS -1) inclusive
-	wxString		strMapKey;		 // key string (i.e. source text) for the 
-									 // CTargetUnit* which stores the matched adaptation
-									 // (or gloss)
-	CTargetUnit*	pTU;			 // pointer to the CTargetUnit instance which stores
-									 // the CRefString which stores the string stored
-									 // here as strMapOldString
-	int				nRefStrIndex;	 // index to the cCRefString instance in pTU which
-									 // stores the ref count and  strMapOldString string
-} KBMatchRecord;
-*/
 
 /// Define a sorted array of void* for storing instances of KBMatchRecord
 WX_DEFINE_SORTED_ARRAY(KBMatchRecord*, KBMatchRecordArray);
