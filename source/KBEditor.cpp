@@ -55,6 +55,7 @@
 #include "Adapt_ItView.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
+#include "KBEditSearch.h"
 
 // for support of auto-capitalization
 
@@ -124,6 +125,10 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 	EVT_BUTTON(IDC_BUTTON_MOVE_UP, CKBEditor::OnButtonMoveUp)
 	EVT_BUTTON(IDC_BUTTON_MOVE_DOWN, CKBEditor::OnButtonMoveDown)
 	EVT_BUTTON(IDC_BUTTON_FLAG_TOGGLE, CKBEditor::OnButtonFlagToggle)
+
+	EVT_BUTTON(ID_BUTTON_GO, CKBEditor::OnButtonGo)
+	EVT_BUTTON(ID_BUTTON_ERASE_ALL_LINES, CKBEditor::OnButtonEraseAllLines)
+
 END_EVENT_TABLE()
 
 
@@ -205,6 +210,11 @@ void CKBEditor::OnTabSelChange(wxNotebookEvent& event)
 		// user selected same page, so just return
 		return;
 	}
+
+	// store any search strings in the m_pEditSearches wxTextBox multiline control so that
+	// they can be restored to the new page which the user has clicked
+	DoRetain();
+
 	// if we get to here user selected a different page
 	m_srcKeyStr.Empty(); // we don't want a string from a previous page displayed 
 						 // on tab with no entries
@@ -661,6 +671,102 @@ void CKBEditor::OnButtonAdd(wxCommandEvent& event)
 		UpdateButtons();
 		gpApp->GetDocument()->Modify(TRUE); // whm added addition should make save button enabled
 	}
+}
+
+void CKBEditor::DoRestoreSearchStrings()
+{
+	m_pEditSearches->ChangeValue(_T("")); // make sure the control is empty
+	m_pEditSearches->SetInsertionPointEnd();
+	if (!gpApp->m_arrSearches.IsEmpty())
+	{
+		size_t max = gpApp->m_arrSearches.GetCount();
+		size_t index;
+		// we don't store empty strings in m_arrSearches
+		for (index = 0; index < max; index++)
+		{
+			wxString str = gpApp->m_arrSearches.Item(index);
+			m_pEditSearches->WriteText(str);
+			m_pEditSearches->WriteText(_T("\n"));
+		}
+		// reposition to the start of the control
+		m_pEditSearches->SetSelection(0,0);
+	}
+}
+
+void CKBEditor::DoRetain()
+{
+	// get the line strings from the multiline control, into the wxArrayString
+	// m_arrSearches which is a member of the CAdapt_ItApp class
+	wxString delims = _T("\n\r");
+	bool bStoreEmptyStringsToo = FALSE;
+	wxString contents = m_pEditSearches->GetValue();
+	// SmartTokenize always first clears the passed in wxArrayString
+	long numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches, 
+					  bStoreEmptyStringsToo);
+	// check what we got
+#ifdef __WXDEBUG__
+	long index;
+	wxLogDebug(_T("\n"));
+	for (index = 0; index < numSearchStrings; index++)
+	{
+		wxLogDebug(_T("%s"),(gpApp->m_arrSearches.Item(index)).c_str());
+	}
+	wxLogDebug(_T("\n"));
+#endif
+}
+
+void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
+{
+	// clear and populate app's m_arrSearches string array, provided there is at least a
+	// search string defined; and if there is, store the old one or more of them before
+	// populating with the new search string(s)
+	wxString contents = m_pEditSearches->GetValue();
+	if (contents.IsEmpty())
+	{
+		::wxBell();
+		wxMessageBox(_("You have not yet typed something to search for."),
+		_T("No search strings defined"), wxICON_WARNING);
+		return;
+	}
+	else
+	{
+		// one or more search strings have been defined
+		
+		DoRetain();
+
+		// put up the KBEditSearch dialog, and in its InitDialog() method do the search and
+		// populate the m_pMatchRecordArray of that class's instance
+		KBEditSearch* pKBSearchDlg = new KBEditSearch(this);
+		if (pKBSearchDlg->ShowModal() == wxID_OK)
+		{
+			// the search and any needed editing were done; so accumulate the search
+			// string(s) into the m_arrOldSearches before deleting them
+			size_t count = gpApp->m_arrSearches.GetCount();
+			size_t index;
+			for (index = 0; index < count; index++)
+			{
+				gpApp->m_arrOldSearches.Add(gpApp->m_arrSearches.Item(index));
+			}
+		}
+		else
+		{
+			// user cancelled
+			;
+		}
+		gpApp->m_arrSearches.Empty();
+
+		// ** TODO ** other actions ??
+	}
+}
+
+void CKBEditor::OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event))
+{
+	// the "Forget All Lines" button handler -- erases the control window and also empties
+	// the contents of m_arrSearches
+	wxTextCtrl* pText = m_pEditSearches;
+	wxString emptyStr = _T("");
+	pText->ChangeValue(emptyStr);
+	gpApp->m_arrSearches.Empty();
 }
 
 void CKBEditor::OnButtonRemove(wxCommandEvent& WXUNUSED(event)) 
@@ -1290,6 +1396,7 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
+	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 }
 
 void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event)) 
@@ -1314,6 +1421,7 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->GetSrcPhrase(),nWords);
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
+	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
 }
 
 // other class methods
@@ -1361,6 +1469,9 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	wxASSERT(m_pEditRefCount != NULL);
 	m_pEditRefCount->SetBackgroundColour(gpApp->sysColorBtnFace); // read only background color
 
+	m_pEditSearches = (wxTextCtrl*)nbPage->FindWindow(ID_TEXTCTRL_SEARCH);
+	wxASSERT(m_pEditSearches != NULL);
+
 	m_pStaticCount = (wxStaticText*)nbPage->FindWindow(IDC_STATIC_COUNT);
 	wxASSERT(m_pStaticCount != NULL);
 
@@ -1369,6 +1480,9 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 
 	m_pListBoxKeys = (wxListBox*)nbPage->FindWindow(IDC_LIST_SRC_KEYS);
 	wxASSERT(m_pListBoxKeys != NULL);
+
+	m_pComboOldSearches = (wxComboBox*)nbPage->FindWindow(ID_COMBO_OLD_SEARCHES);
+	wxASSERT(m_pComboOldSearches != NULL);
 
 	// below are pointers to the buttons on this nbPage page
 	m_pBtnUpdate = (wxButton*)nbPage->FindWindow(IDC_BUTTON_UPDATE);
@@ -1385,6 +1499,11 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	wxASSERT(m_pBtnAddNoAdaptation != NULL);
 	m_pBtnToggleTheSetting = (wxButton*)nbPage->FindWindow(IDC_BUTTON_FLAG_TOGGLE);
 	wxASSERT(m_pBtnToggleTheSetting != NULL);
+
+	m_pBtnGo = (wxButton*)nbPage->FindWindow(ID_BUTTON_GO);
+	wxASSERT(m_pBtnGo != NULL);
+	m_pBtnEraseAllLines = (wxButton*)nbPage->FindWindow(ID_BUTTON_ERASE_ALL_LINES);
+	wxASSERT(m_pBtnEraseAllLines != NULL);
 
 	// most of this was originally in MFC's InitDialog
 	wxString s;
@@ -1412,24 +1531,32 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	{
 		#ifdef _RTL_FLAGS
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
-				m_pEditOrAddTranslationBox, NULL, m_pListBoxExistingTranslations, 
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
 				NULL, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pNavTextFont, 
+				m_pComboOldSearches, gpApp->m_pDlgTgtFont, gpApp->m_bNavTextRTL);
 		#else 
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, 
-				m_pEditOrAddTranslationBox, NULL, m_pListBoxExistingTranslations, 
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
 				NULL, gpApp->m_pDlgTgtFont);
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pNavTextFont, 
+				m_pComboOldSearches, gpApp->m_pDlgTgtFont);
 		#endif
 	}
 	else
 	{
 		#ifdef _RTL_FLAGS
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
-				m_pEditOrAddTranslationBox, NULL, m_pListBoxExistingTranslations, 
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
 				NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pTargetFont, 
+				m_pComboOldSearches, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
 		#else 
 		gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, 
-				m_pEditOrAddTranslationBox, NULL, m_pListBoxExistingTranslations, 
+				m_pEditOrAddTranslationBox, m_pEditSearches, m_pListBoxExistingTranslations, 
 				NULL, gpApp->m_pDlgTgtFont);
+		gpApp->SetFontAndDirectionalityForComboBox(gpApp->m_pTargetFont, 
+				m_pComboOldSearches, gpApp->m_pDlgTgtFont);
 		#endif
 	}
 
@@ -1437,6 +1564,14 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	m_pListBoxKeys->Clear(); // whm added
 	// start with an empty translations list box
 	m_pListBoxExistingTranslations->Clear();
+
+	// if a page change in the tabbed control was done, and the m_arrSearches array has
+	// search strings put there by the OnTabSelChange() function, then restore them
+	// to the wxTextCtrl, m_pEditSearches on the new page & then erase the m_arrSearches -
+	// we will leave it populated only when the Go button was pressed (to do the searching)
+	// now erase the storage in the array
+	DoRestoreSearchStrings();
+	gpApp->m_arrSearches.Empty();
 
 	// get the list of source keys filled
 	if (pMap->size() > 0)

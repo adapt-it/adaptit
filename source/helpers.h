@@ -94,6 +94,9 @@ bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort = TR
 int	 sortCompareFunc(const wxString& first, const wxString& second);
 bool IsReadOnlyProtection_LockFile(wxString& filename);
 
+long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
+					  bool bStoreEmptyStringsToo = TRUE);
+
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 

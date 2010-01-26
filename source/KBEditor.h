@@ -47,6 +47,8 @@ public:
 	wxTextCtrl*		m_pTypeSourceBox;
 	wxTextCtrl*		m_pEditOrAddTranslationBox;
 	wxTextCtrl*		m_pEditRefCount;
+	wxTextCtrl*		m_pEditSearches;
+	wxComboBox*		m_pComboOldSearches; // BEW added 22Jan10
 	wxStaticText*	m_pStaticCount;
 	wxListBox*		m_pListBoxExistingTranslations;
 	wxListBox*		m_pListBoxKeys;
@@ -59,6 +61,9 @@ public:
 	wxButton*		m_pBtnMoveDown;
 	wxButton*		m_pBtnAddNoAdaptation;
 	wxButton*		m_pBtnToggleTheSetting;
+	// BEW added 22Jan10, next 3 buttons
+	wxButton*		m_pBtnGo;
+	wxButton*		m_pBtnEraseAllLines;
 	
 	wxString		m_edTransStr;
 	wxString		m_srcKeyStr;
@@ -108,8 +113,12 @@ protected:
 	void OnButtonMoveDown(wxCommandEvent& WXUNUSED(event));
 	void OnButtonFlagToggle(wxCommandEvent& WXUNUSED(event));
 
-private:
+	void OnButtonGo(wxCommandEvent& WXUNUSED(event));
+	void OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event));
 
+private:
+	void DoRetain();
+	void DoRestoreSearchStrings();
 	bool bKBEntryTemporarilyAddedForLookup;
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()

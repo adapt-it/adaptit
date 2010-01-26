@@ -4282,9 +4282,41 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item34->SetToolTip( _("Number of references in the knowledge base (approximate)") );
     item30->Add( item34, 1, wxALIGN_CENTER|wxLEFT|wxTOP|wxBOTTOM, 0 );
 
-    item30->Add( 10, 10, 0, wxALIGN_CENTER, 5 );
-
     item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
+
+    item35->Add( 5, 20, 0, wxALIGN_CENTER, 0 );
+
+    wxStaticText *item36 = new wxStaticText( parent, ID_TEXT, _("&Search for:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item36, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item37 = new wxTextCtrl( parent, ID_TEXTCTRL_SEARCH, wxT(""), wxDefaultPosition, wxSize(300,86), wxTE_MULTILINE|wxVSCROLL );
+    item35->Add( item37, 2, wxALIGN_CENTER|wxALL, 0 );
+
+    wxBoxSizer *item38 = new wxBoxSizer( wxVERTICAL );
+
+    wxButton *item39 = new wxButton( parent, ID_BUTTON_GO, _("Go"), wxDefaultPosition, wxSize(50,-1), 0 );
+    item38->Add( item39, 0, wxALIGN_CENTER, 0 );
+
+    wxButton *item40 = new wxButton( parent, ID_BUTTON_ERASE_ALL_LINES, _("Erase All Lines"), wxDefaultPosition, wxDefaultSize, 0 );
+    item38->Add( item40, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+
+    item35->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item35->Add( 15, 20, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    wxStaticText *item41 = new wxStaticText( parent, ID_TEXT, _("Old searches:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item35->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxString strs42[] = 
+    {
+        wxT("")
+    };
+    wxComboBox *item42 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(200,-1), 1, strs42, wxCB_DROPDOWN );
+    item35->Add( item42, 2, wxALIGN_CENTER|wxALL, 5 );
+
+    item1->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
 
@@ -6918,6 +6950,144 @@ wxSizer *FilenameConflictFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item25->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+
+    if (set_sizer)
+    {
+        parent->SetSizer( item0 );
+        if (call_fit)
+            item0->SetSizeHints( parent );
+    }
+    
+    return item0;
+}
+
+wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
+{
+    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item1 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxBoxSizer *item3 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, _("Updated Spellings"), wxDefaultPosition, wxDefaultSize, 0 );
+    item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxString strs5[] = 
+    {
+        wxT("")
+    };
+    wxListBox *item5 = new wxListBox( parent, ID_LISTBOX_UPDATED, wxDefaultPosition, wxDefaultSize, 1, strs5, wxLB_SINGLE );
+    item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, _("Source:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item6->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item8 = new wxTextCtrl( parent, ID_TEXTCTRL_INFO_SOURCE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item6->Add( item8, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+
+    item3->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item10 = new wxStaticText( parent, ID_TEXT, _("Number of references:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item9->Add( item10, 0, wxALIGN_CENTER, 5 );
+
+    wxTextCtrl *item11 = new wxTextCtrl( parent, ID_TEXTCTRL_INFO_REFS, wxT(""), wxDefaultPosition, wxSize(-1,20), 0 );
+    item9->Add( item11, 1, wxGROW, 0 );
+
+    item3->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+
+    item2->Add( item3, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item2->Add( 2, 20, 0, wxALIGN_CENTER, 5 );
+
+    wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
+
+    wxStaticText *item13 = new wxStaticText( parent, ID_TEXT, _("Matches for the one or more search strings"), wxDefaultPosition, wxDefaultSize, 0 );
+    item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxString strs14[] = 
+    {
+        wxT("")
+    };
+    wxListBox *item14 = new wxListBox( parent, ID_LISTBOX_MATCHED, wxDefaultPosition, wxSize(-1,240), 1, strs14, wxLB_SINGLE );
+    item12->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
+
+    item2->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+
+    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxBoxSizer *item15 = new wxBoxSizer( wxVERTICAL );
+
+    wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
+
+    item16->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item17 = new wxButton( parent, ID_BUTTON_UPDATE, _("&Update"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item16->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxStaticText *item18 = new wxStaticText( parent, ID_TEXT, _("Find in matched list:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL_LOCAL_SEARCH, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
+    item16->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item20 = new wxButton( parent, ID_BUTTON_FIND_NEXT, _("Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
+    item16->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( item16, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxSHAPED, 0 );
+
+    wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
+
+    wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Edit:"), wxDefaultPosition, wxDefaultSize, 0 );
+    item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_EDITBOX, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    item21->Add( item23, 1, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
+
+    wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
+
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item25 = new wxButton( parent, ID_BUTTON_RESTORE, _("Restore Original Spelling"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_ACCEPT_EDIT, _("&Accept Edit"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item27 = new wxButton( parent, ID_BUTTON_REMOVE_UPDATE, _("&Remove Update"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 41, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item28 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item28->SetDefault();
+    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item29 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    item15->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
+
+    item15->Add( 20, 10, 0, wxALIGN_CENTER|wxALL, 0 );
+
+    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 0 );
+
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     if (set_sizer)
     {
