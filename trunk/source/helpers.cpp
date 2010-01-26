@@ -1625,6 +1625,46 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 	return TRUE;
 }
 
+// BEW added 22Jan10: string tokenization is a pain in the butt in wxWidgets, because the
+// developers do not try to give uniform behaviours for CR versus CR+LF across all
+// platforms (eg. multiline text controls), so a function is needed for tokenizing which
+// allows the options we want. The following is it. wxStringTokenizer gets close, but I
+// want something which will permit the options and collect the resulting strings into a
+// wxArrayString passed in by reference. Parameters: delimiters is the set of allowed
+// delimiters, such as _T(":\n\r") (colon, newline, carriagereturn), str is the string we
+// want to tokenize, array is the array in which we return the tokenized strings, and
+// bStoreEmptyStringsToo allows us to control whether empty strings get appended to array
+// or not, default is to append them. Returns the count of the strings stored in array.
+// 
+// Note: it internally trim spaces from the end tokenized strings, and really I've made
+// this function for getting logical lines from a multiline wxTextCtrl, so don't make space
+// or tab one of the delimiters if what you want is logical lines - otherwise it will
+// return an array of words rather than an array of lines
+long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
+					  bool bStoreEmptyStringsToo)
+{
+	wxString aToken;
+	array.Empty();
+	wxStringTokenizerMode mode = wxTOKEN_RET_EMPTY_ALL;
+	wxStringTokenizer tokenizer(str,delimiters,mode);
+	while (tokenizer.HasMoreTokens())
+	{
+		aToken = tokenizer.GetNextToken();
+		aToken = aToken.Trim(FALSE); // FALSE means trim white space from both ends
+		if (aToken.IsEmpty())
+		{
+			if (bStoreEmptyStringsToo)
+				array.Add(aToken);
+		}
+		else
+		{
+			array.Add(aToken);
+		}
+	}
+	return (long)array.GetCount();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if all went well (and the list has at least one item in it); FALSE
 ///             if there was an error or the list is empty

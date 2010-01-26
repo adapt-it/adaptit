@@ -5520,6 +5520,10 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	pApp->m_bGlossingKBReady = FALSE;
 	pApp->m_pGlossingKB = (CKB*)NULL; // done in EraseKB too
 
+	// BEW added 22Jan10, clear the KB search string arrays 
+	pApp->m_arrSearches.Clear(); // set of search strings for dialog's multiline wxTextCtrl
+	pApp->m_arrOldSearches.Clear(); // old search strings accumulated while in this project
+
 	// update status bar with project name
 	wxString message;
 	// IDS_NO_PROJECT

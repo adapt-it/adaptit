@@ -583,6 +583,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\KBEditSearch.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\KBPage.cpp"
 				>
 			</File>
@@ -937,6 +941,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBEditor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\KBEditSearch.h"
 				>
 			</File>
 			<File

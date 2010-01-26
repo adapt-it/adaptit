@@ -1253,6 +1253,27 @@ typedef struct
 /// Editor dialog;  instances of this struct are stored in their own wxSortedArray
 typedef struct
 {
+	wxString		strOriginal;	 // adapatation (or gloss) which was matched, before
+									 // any spelling changes have been done
+	wxUint32		nUpdateIndex;	 // index in the sorted array which has the
+									 // KBUpdateRecord ptr for the user's edit of this
+									 // entry, & hence the index also is to the item
+									 // in the list which displays the updated 
+									 // spellings; store 0xFFFF if this item is not
+									 // edited
+	wxUint32		nIndexToMap;	 // values in range 0 to (MAX_WORDS -1) inclusive
+	wxString		strMapKey;		 // key string (i.e. source text) for the 
+									 // CTargetUnit* which stores the matched adaptation
+									 // (or gloss)
+	CTargetUnit*	pTU;			 // pointer to the CTargetUnit instance which stores
+									 // the CRefString which stores the string stored
+									 // here as strMapOldString
+	int				nRefStrIndex;	 // index to the cCRefString instance in pTU which
+									 // stores the ref count and  strMapOldString string
+} KBMatchRecord;
+/* old first guess at what might be needed
+typedef struct
+{
 	wxString		strMapOldString; // adapatation (or gloss) which was matched
 	wxUint32		nUpdateIndex;	 // index to the sorted array which has the
 									 // KBUpdateRecord for the user's edit of this
@@ -1270,6 +1291,7 @@ typedef struct
 	int				nRefStrIndex;	 // index to the cCRefString instance in pTU which
 									 // stores the ref count and  strMapOldString string
 } KBMatchRecord;
+*/
 
 /// Define a sorted array of void* for storing instances of KBMatchRecord
 WX_DEFINE_SORTED_ARRAY(KBMatchRecord*, KBMatchRecordArray);
@@ -1286,6 +1308,10 @@ typedef struct
 
 /// Define a sorted array of void* for storing instances of KBUpdateRecord
 WX_DEFINE_SORTED_ARRAY(KBUpdateRecord*, KBUpdateRecordArray);
+
+int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr);
+int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr);
+
 
 /// The AIModalDialog class is used as the base class for most of Adapt It's modal dialogs.
 /// Its primary purpose is to turn off background idle processing while the dialog is being
@@ -2471,6 +2497,8 @@ public:
 	void	SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTextCtrl* pEdit1, 
 				wxTextCtrl* pEdit2, wxListBox* pListBox1, wxListBox* pListBox2, 
 				wxFont*& pDlgFont, bool bIsRTL = FALSE);
+	void	SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
+				wxFont*& pDlgFont, bool bIsRTL = FALSE);
 
     // rde: version 3.4.1 and up, determining the correct 'encoding=' string to put in an
     // XML file takes some extra thought...
@@ -2624,6 +2652,10 @@ public:
 					// file at the custom work folder location; we use a TRUE value to suppress the
 					// GetBasicConfigFileSettings() call in OnInit() since SetDefaults() has done
 					// the setup job for us already
+	// members for support of KB search functionality added Jan-Feb 2010 by BEW
+	wxArrayString m_arrSearches; // set of search strings for dialog's multiline wxTextCtrl
+	wxArrayString m_arrOldSearches; // old search strings accumulated while in this project, this
+					// array (and the one above)should be cleared when the project is exitted
 						
 };
 

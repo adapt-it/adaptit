@@ -2089,6 +2089,26 @@ LangInfo langsKnownToWX[] =
     { NULL, wxLANGUAGE_UNKNOWN, NULL}												// 1
 };
 
+int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr)
+{
+	// do a standard case-insensitive string compare, this should give best results except
+	// that special characters will all be treated differently perhaps; calls _tcsicmp
+	// which is defined as _wcsicmp
+	int value = ::wxStricmp(struct1Ptr->strOriginal,struct2Ptr->strOriginal);
+	return value; 
+}
+
+int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr)
+{
+	// do a standard case-insensitive string compare this should give best results except
+	// that special characters will all be treated differently perhaps; ; calls _tcsicmp
+	// which is defined as _wcsicmp
+	int value = ::wxStricmp(struct1Ptr->updatedString,struct2Ptr->updatedString);
+	return value; 
+}
+
+
+
 // beginning of AIModalDialog class implementation !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // whm Note: The AIModalDialog class exists as a base dialog class for Adapt It modal
 // dialogs. AIModalDialog functions practically identical to its own base class wxDialog.
@@ -22701,6 +22721,64 @@ void CAdapt_ItApp::SetFontAndDirectionalityForDialogControl(wxFont* pFont, wxTex
 	}
 	#endif
 }
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pFont      -> a pointer to the font from which its base properties are 
+///                           copied in setting the pDlgFont
+/// \param      pCombo     <- a pointer to the wxComboBox for which we wish to set the font
+/// \param      pDlgFont   <- the dialog font being adjusted for use in the above 
+///                           combobox
+/// \param      bIsRTL     -> TRUE if the control is Right-to-Left (RTL), FALSE if the 
+///                           control is Left-to-Right (LTR)
+/// \remarks
+/// Called from: The InitDialog() methods of most of the application's dialogs that use a
+/// combobox control. SetFontAndDirectionalityForDialogControl sets the dialog's font and
+/// script directionality for a single wxComboBox -- the pFont pointer passed in is used.
+/// To set a mixture of such controls to different fonts and directionalities, according to
+/// the app's settings for source, target and navigation text fonts, repeat the calls with
+/// varying font pointers. The desired directionality is specified by the bIsRTL, which
+/// should be TRUE when right to left reading text is wanted (and right justification),
+/// default is FALSE for left to right.
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::SetFontAndDirectionalityForComboBox(wxFont* pFont, wxComboBox* pCombo, 
+				wxFont*& pDlgFont, bool bIsRTL)
+{
+    // whm Note: The MFC function deletes any existing dialog font that is passed in; then
+    // creates the dialog font anew by first getting the pFont's LOGFONT data (stored in
+    // navLF), and using that log font data calls CreateFontIndirect(&navLF) to create a
+    // new pDlgFont. If the attempt to get the log font data from pFont fails, it creates a
+    // new pApp->m_pNavTextFont using a Windows SYSTEM_FONT, then uses that font at 12
+    // point size as input to SetFont for the edit and/or listbox controls' font. The WX
+    // version does not need to delete the existing dialog font and recreate it for the
+    // dialog. Instead, the wx version simply assigns the pFont characteristics to the
+    // dialog font pDlgFont, but sets its size to pApp->m_dialogFontSize.
+	wxASSERT(pFont != NULL);
+	wxASSERT(pDlgFont != NULL);
+	CopyFontBaseProperties(pFont,pDlgFont);
+	// The CopyFontBaseProperties function above doesn't copy the point size, so 
+	// make the dialog font show in the proper dialog font size.
+	pDlgFont->SetPointSize(m_dialogFontSize);
+	if (pCombo != NULL)
+		pCombo->SetFont(*pDlgFont);
+
+	bIsRTL = bIsRTL; // suppresses "unreferenced formal parameter" warning in ANSI version
+	// add RTL support for Unicode version
+#ifdef _RTL_FLAGS
+	if (pCombo != NULL)
+	{
+		if (bIsRTL)
+		{
+			pCombo->SetLayoutDirection(wxLayout_RightToLeft);
+		}
+		else
+		{
+			pCombo->SetLayoutDirection(wxLayout_LeftToRight);
+		}
+	}
+	#endif
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     an int representing the index into the array where findStr was found, 

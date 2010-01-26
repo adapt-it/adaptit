@@ -8,7 +8,9 @@
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the AdminMoveOrCopy class. 
 /// The AdminMoveOrCopy class provides a dialog interface for the user (typically an administrator) to be able
-/// to move or copy files or folders or both from a source location into a destination folder.
+/// to move or copy files or folders or both from a source location into a destination
+/// folder; and also to delete files or folders, and also, one at a time, to rename a file
+/// or folder. Its dialog provides a 2-list view, one list for source, another for destination.
 /// \derivation		The AdminMoveOrCopy class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
