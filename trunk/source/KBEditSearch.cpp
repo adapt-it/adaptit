@@ -399,7 +399,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					}
 
 					#ifdef __WXDEBUG__
-					wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr);
+					wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
 					anItemsCount++;
 					#endif __WXDEBUG__
 
@@ -408,7 +408,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					{
 						pMatchRec = new KBMatchRecord;
 						#ifdef __WXDEBUG__
-						wxLogDebug(_T("Matched:  %s"),testStr);
+						wxLogDebug(_T("Matched:  %s"),testStr.c_str());
 						#endif __WXDEBUG__
 
 						// fill it out
@@ -438,7 +438,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 							continue;
 
 						#ifdef __WXDEBUG__
-						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr);
+						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
 						anItemsCount++;
 						#endif __WXDEBUG__
 
@@ -447,7 +447,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						{
 							pMatchRec = new KBMatchRecord;
 							#ifdef __WXDEBUG__
-							wxLogDebug(_T("Matched:  %s"),testStr);
+							wxLogDebug(_T("Matched:  %s"),testStr.c_str());
 							#endif __WXDEBUG__
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
