@@ -38,7 +38,6 @@ public:
 	wxButton* m_pOKButton;
 	wxButton* m_pCancelButton;
 	wxButton* m_pRemoveUpdateButton;
-	wxButton* m_pAcceptEditButton;
 	wxButton* m_pUpdateButton;
 	wxButton* m_pFindNextButton;
 	wxButton* m_pRestoreOriginalSpellingButton;
@@ -55,10 +54,19 @@ public:
 				// Adapt_It.h, which becomes pKB of parent CKBEditor instance)
 	TUList*		m_pTUList; // pointer to the list of CTargetUnit pointers stored in m_pKB
 
+	// in the next 4 members, the wxArrayString members are for the labels in the
+	// listboxes, which will be seen by the user; the KBMatchRecordArray and
+	// KBUpdateRecordArray pointers hold the KBMatchRecord struct, and KBUpdateRecord
+	// struct, the "data" which are associated with the labels which the user sees
 	KBMatchRecordArray* m_pMatchRecordArray; // from WX_DEFINE_SORTED_ARRAY
 				// macro and storing struct KBMatchRecord pointers (see Adapt_It.h)
 	KBUpdateRecordArray*  m_pUpdateRecordArray; // from WX_DEFINE_SORTED_ARRAY
 				// macro and storing struct KBUpdateRecord pointers (see Adapt_It.h)
+	wxArrayString* m_pMatchStrArray; // on heap, label strings for the Matched listbox
+									 // (obtained from KBMatchRecord.strOriginal values)
+	wxArrayString* m_pUpdateStrArray; // on heap, labels for Updated listbox
+									 // (obtained from KBUpdateRecord.updatedString values)
+	KBMatchRecord* m_pDummyMatchRecord;
 	 
 	// data transfer of the user's choice of search string, or search strings, is via a
 	// wxArrayString defined in Adapt_It.h, called m_arrSearches. In the same place is a
@@ -80,7 +88,6 @@ protected:
 	void EnableUpdateButton(bool bEnableFlag);
 	void EnableFindNextButton(bool bEnableFlag);
 	void EnableRestoreOriginalSpellingButton(bool bEnableFlag);
-	void EnableAcceptEditButton(bool bEnableFlag);
 	void EnableRemoveUpdateButton(bool bEnableFlag);
 
 	void OnOK(wxCommandEvent& event);
@@ -89,7 +96,6 @@ protected:
 	void OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(event));
-	void OnBnClickedAcceptEdit(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRemoveUpdate(wxCommandEvent& WXUNUSED(event));
 
 	void OnMatchListSelectItem(wxCommandEvent& event);
@@ -99,14 +105,17 @@ protected:
 	void OnUpdateListDoubleclickItem(wxCommandEvent& event);
 
 private:
+	bool m_bMatchesExist;
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
-	void SetupMatchList(wxArrayString* pArrSearches,	// pass in pointer to app's m_arrSearches
+	void SetupMatchArray(wxArrayString* pArrSearches,	// pass in pointer to app's m_arrSearches
 						CKB* pKB, // the knowledge base instance whose contents we are testing
 						KBMatchRecordArray* pMatchRecordArray, // return matched strings here
 						bool* pbIsGlossing); // need this boolean, it defines how many maps we test
 	void InsertInUpdateList(KBUpdateRecordArray* pMatchRecordArray, KBUpdateRecord* bRec, int index);
 	bool TestForMatch(wxArrayPtrVoid* pSubStringSet, wxString& testStr);
-
+	void PopulateMatchedList(wxArrayString* pMatchStrArray, KBMatchRecordArray* pMatchRecordArray, 
+						wxListBox* pListBox);
+	bool PopulateMatchLabelsArray(KBMatchRecordArray* pMatchRecordArray, wxArrayString* pMatchStrArray);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };

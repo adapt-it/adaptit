@@ -6978,7 +6978,7 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     {
         wxT("")
     };
-    wxListBox *item5 = new wxListBox( parent, ID_LISTBOX_UPDATED, wxDefaultPosition, wxDefaultSize, 1, strs5, wxLB_SINGLE );
+    wxListBox *item5 = new wxListBox( parent, ID_LISTBOX_UPDATED, wxDefaultPosition, wxDefaultSize, 1, strs5, wxLB_SINGLE|wxLB_HSCROLL );
     item3->Add( item5, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
@@ -7014,7 +7014,7 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     {
         wxT("")
     };
-    wxListBox *item14 = new wxListBox( parent, ID_LISTBOX_MATCHED, wxDefaultPosition, wxSize(-1,240), 1, strs14, wxLB_SINGLE );
+    wxListBox *item14 = new wxListBox( parent, ID_LISTBOX_MATCHED, wxDefaultPosition, wxSize(-1,240), 1, strs14, wxLB_SINGLE|wxLB_HSCROLL );
     item12->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
     item2->Add( item12, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
@@ -7036,7 +7036,7 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item19 = new wxTextCtrl( parent, ID_TEXTCTRL_LOCAL_SEARCH, wxT(""), wxDefaultPosition, wxSize(360,-1), 0 );
-    item16->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
+    item16->Add( item19, 2, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item20 = new wxButton( parent, ID_BUTTON_FIND_NEXT, _("Find Next"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -7062,24 +7062,21 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item26 = new wxButton( parent, ID_BUTTON_ACCEPT_EDIT, _("&Accept Edit"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxButton *item26 = new wxButton( parent, ID_BUTTON_REMOVE_UPDATE, _("&Remove Update"), wxDefaultPosition, wxDefaultSize, 0 );
     item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
+    item24->Add( 120, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item27 = new wxButton( parent, ID_BUTTON_REMOVE_UPDATE, _("&Remove Update"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item27 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
+    item27->SetDefault();
     item24->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item24->Add( 41, 20, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item28 = new wxButton( parent, wxID_OK, _("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item28->SetDefault();
-    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
-
     item24->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item29 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item24->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxButton *item28 = new wxButton( parent, wxID_CANCEL, _("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+    item24->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item15->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 

@@ -1650,7 +1650,8 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 	while (tokenizer.HasMoreTokens())
 	{
 		aToken = tokenizer.GetNextToken();
-		aToken = aToken.Trim(FALSE); // FALSE means trim white space from both ends
+		aToken = aToken.Trim(FALSE); // FALSE means trim white space from left end
+		aToken = aToken.Trim(); // default TRUE means trim white space from right end
 		if (aToken.IsEmpty())
 		{
 			if (bStoreEmptyStringsToo)

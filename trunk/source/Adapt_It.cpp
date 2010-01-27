@@ -2141,7 +2141,6 @@ AIModalDialog::~AIModalDialog()
 	// override of wxDialog's destructor to start up idle processing again
 	wxIdleEvent::SetMode(wxIDLE_PROCESS_ALL);
 	wxUpdateUIEvent::SetMode(wxUPDATE_UI_PROCESS_ALL);
-	//wxDialog::~wxDialog(); // causes crash if base destructor is called explicitly
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
