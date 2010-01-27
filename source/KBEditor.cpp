@@ -697,7 +697,10 @@ void CKBEditor::DoRetain()
 {
 	// get the line strings from the multiline control, into the wxArrayString
 	// m_arrSearches which is a member of the CAdapt_ItApp class
-	wxString delims = _T("\n\r");
+	//wxString delims = _T("\n\r");
+	wxString delims = _T("\n"); // wxWidgets guarantees the string returned from
+								// a multiline wxTestCtrl will only have \n as the
+								// line delimiter
 	bool bStoreEmptyStringsToo = FALSE;
 	wxString contents = m_pEditSearches->GetValue();
 	// SmartTokenize always first clears the passed in wxArrayString

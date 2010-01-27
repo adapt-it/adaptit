@@ -58,7 +58,6 @@ BEGIN_EVENT_TABLE(KBEditSearch, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_UPDATE, KBEditSearch::OnBnClickedUpdate)	
 	EVT_BUTTON(ID_BUTTON_FIND_NEXT, KBEditSearch::OnBnClickedFindNext)
 	EVT_BUTTON(ID_BUTTON_RESTORE, KBEditSearch::OnBnClickedRestoreOriginalSpelling)
-	EVT_BUTTON(ID_BUTTON_ACCEPT_EDIT, KBEditSearch::OnBnClickedAcceptEdit)
 	EVT_BUTTON(ID_BUTTON_REMOVE_UPDATE, KBEditSearch::OnBnClickedRemoveUpdate)
 	EVT_BUTTON(wxID_CANCEL, KBEditSearch::OnBnClickedCancel)
 
@@ -72,7 +71,7 @@ BEGIN_EVENT_TABLE(KBEditSearch, AIModalDialog)
 END_EVENT_TABLE()
 
 KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
-	: AIModalDialog(parent, -1, _("Edit Knowledge Base Items Matched In The Search"),
+	: AIModalDialog(parent, -1, _("Respell or Inspect Matched Knowledge Base Items"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
 	// This dialog function below is generated in wxDesigner, and defines the controls and sizers
@@ -91,10 +90,59 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	// Adapt_It.cpp 
 	m_pMatchRecordArray = new KBMatchRecordArray(CompareMatchRecords);
 	m_pUpdateRecordArray = new KBUpdateRecordArray(CompareUpdateRecords);
+	m_pMatchStrArray = new wxArrayString;
+	m_pUpdateStrArray = new wxArrayString;
+
+	// now a dummy match record on heap, in case the match list is empty
+	// ~KBEditSearch() will delete it
+	m_pDummyMatchRecord = new KBMatchRecord;
+	wxString msg = _("No Matches");
+	m_pDummyMatchRecord->strOriginal = msg;
+
 }
 
 KBEditSearch::~KBEditSearch() // destructor
 {
+	// prevent leaks, clear out the structs and their storage arrays
+	size_t count = m_pMatchRecordArray->GetCount();
+	size_t index;
+	KBMatchRecord* pMR = NULL;
+	if (m_bMatchesExist)
+	{
+		// the m_pDummyMatchRecord is still on heap and will not have been
+		// used, so delete it here; but if there were no matches, then the
+		// next block below will delete it instead
+		delete m_pDummyMatchRecord;
+	}
+	if (!m_pMatchRecordArray->IsEmpty())
+	{
+		for (index = 0; index < count; index++)
+		{
+			pMR = m_pMatchRecordArray->Item(index);
+			delete pMR;
+		}
+	}
+	else
+
+	delete m_pMatchRecordArray;
+
+	count = m_pUpdateRecordArray->GetCount();
+	KBUpdateRecord* pUR = NULL;
+	if (!m_pUpdateRecordArray->IsEmpty())
+	{
+		for (index = 0; index < count; index++)
+		{
+			pUR = m_pUpdateRecordArray->Item(index);
+			delete pUR;
+		}
+	}
+	delete m_pUpdateRecordArray;
+
+	m_pMatchStrArray->Clear();
+	delete m_pMatchStrArray;
+	m_pUpdateStrArray->Clear();
+	delete m_pUpdateStrArray;
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -127,8 +175,6 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	wxASSERT(m_pFindNextButton != NULL);
 	m_pRestoreOriginalSpellingButton = (wxButton*)FindWindowById(ID_BUTTON_RESTORE);
 	wxASSERT(m_pRestoreOriginalSpellingButton != NULL);
-	m_pAcceptEditButton = (wxButton*)FindWindowById(ID_BUTTON_ACCEPT_EDIT);
-	wxASSERT(m_pAcceptEditButton != NULL);
 	m_pRemoveUpdateButton = (wxButton*)FindWindowById(ID_BUTTON_REMOVE_UPDATE);
 	wxASSERT(m_pRemoveUpdateButton != NULL);
 
@@ -141,7 +187,6 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	EnableUpdateButton(FALSE);
 	EnableFindNextButton(FALSE);
 	EnableRestoreOriginalSpellingButton(FALSE);
-	EnableAcceptEditButton(FALSE);
 	EnableRemoveUpdateButton(FALSE);
 
 
@@ -187,9 +232,11 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// Now get the pointer to the particular KB we are dealing with, and its list of
 	// CTargetUnit pointers
 	m_pKB = pKBEditorDlg->pKB;
-	wxASSERT(!m_pKB != NULL);
+	wxASSERT(m_pKB != NULL);
 	m_pTUList = m_pKB->m_pTargetUnits;
-	wxASSERT(!m_pTUList != NULL);
+	wxASSERT(m_pTUList != NULL);
+
+
 
 	// *** TODO **** set up a progress dialog here
 
@@ -197,7 +244,12 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 	// find the matches -- all search strings are tested against all of KB contents in the
 	// m_pTUList list of CTargetUnit pointer instances
-	SetupMatchList(	&pApp->m_arrSearches, m_pKB, m_pMatchRecordArray, &gbIsGlossing);
+	SetupMatchArray(&pApp->m_arrSearches, m_pKB, m_pMatchRecordArray, &gbIsGlossing);
+
+	// populate the Matched array
+	m_bMatchesExist = PopulateMatchLabelsArray(m_pMatchRecordArray, m_pMatchStrArray);
+	PopulateMatchedList(m_pMatchStrArray, m_pMatchRecordArray, m_pMatchListBox);
+
 
 
 	//  *** TODO **** end the progress dialog here
@@ -207,9 +259,51 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 }
 
-void KBEditSearch::SetupMatchList(wxArrayString* pArrSearches,
+bool KBEditSearch::PopulateMatchLabelsArray(KBMatchRecordArray* pMatchRecordArray, 
+											wxArrayString* pMatchStrArray)
+{
+	size_t count = pMatchRecordArray->GetCount();
+	size_t index;
+	bool returnValue;
+	if (count > 0)
+	{
+		for (index = 0; index < count; index++)
+		{
+			KBMatchRecord* pMR = pMatchRecordArray->Item(index);
+			pMatchStrArray->Add(pMR->strOriginal);
+		}
+		returnValue = TRUE;
+	}
+	else
+	{
+		// put "No Matches" label, and the dummy record as its "data"
+		pMatchRecordArray->Add(m_pDummyMatchRecord);
+		pMatchStrArray->Add(m_pDummyMatchRecord->strOriginal); // "No Match" is label
+		// the return value of FALSE is important - it tells the caller not to treat the
+		// data in these two arrays as real data, since we just use it to inform user of
+		// the lack of any match, and so we need a way to disable buttons
+		returnValue = FALSE;
+	}
+	return returnValue;
+}
+
+
+// return FALSE if there was nothing matched, TRUE if one or more matches were made (that
+// is, if pMatchRecordArray has an item count of 1 or greater)
+void KBEditSearch::PopulateMatchedList(wxArrayString* pMatchStrArray, 
+					KBMatchRecordArray* pMatchRecordArray, wxListBox* pListBox)
+{
+	pListBox->Set((*pMatchStrArray),(void**)&pMatchRecordArray);
+}
+
+
+void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					CKB* pKB, KBMatchRecordArray* pMatchRecordArray, bool* pbIsGlossing)
 {
+	#ifdef __WXDEBUG__
+	wxLogDebug(_T("Start SetupMatchArray()\n"));
+	int anItemsCount = 0;
+	#endif
 	bool bIsGlossing = *pbIsGlossing;
 	size_t numSearchStrings = pArrSearches->GetCount();
 	size_t subStrIndex;
@@ -304,10 +398,18 @@ void KBEditSearch::SetupMatchList(wxArrayString* pArrSearches,
 						continue;
 					}
 
+					#ifdef __WXDEBUG__
+					wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr);
+					anItemsCount++;
+					#endif __WXDEBUG__
+
 					bool bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
 					if (bSuccessfulMatch)
 					{
 						pMatchRec = new KBMatchRecord;
+						#ifdef __WXDEBUG__
+						wxLogDebug(_T("Matched:  %s"),testStr);
+						#endif __WXDEBUG__
 
 						// fill it out
 						pMatchRec->strOriginal = testStr; // adaptation, or gloss
@@ -335,11 +437,18 @@ void KBEditSearch::SetupMatchList(wxArrayString* pArrSearches,
 						if (testStr.IsEmpty())
 							continue;
 
+						#ifdef __WXDEBUG__
+						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr);
+						anItemsCount++;
+						#endif __WXDEBUG__
+
 						bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
 						if (bSuccessfulMatch)
 						{
 							pMatchRec = new KBMatchRecord;
-
+							#ifdef __WXDEBUG__
+							wxLogDebug(_T("Matched:  %s"),testStr);
+							#endif __WXDEBUG__
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
 							pMatchRec->nUpdateIndex = 0xFFFF; // as yet, undefined
@@ -369,6 +478,10 @@ void KBEditSearch::SetupMatchList(wxArrayString* pArrSearches,
 		delete pSubStrArray;
 	}
 
+	#ifdef __WXDEBUG__
+	wxLogDebug(_T("Items count:   %d"), anItemsCount);
+	wxLogDebug(_T("End SetupMatchArray()\n"));
+	#endif
 }
 
 bool KBEditSearch::TestForMatch(wxArrayPtrVoid* pSubStringSet, wxString& testStr)
@@ -458,14 +571,6 @@ void KBEditSearch::EnableRestoreOriginalSpellingButton(bool bEnableFlag)
 		m_pRestoreOriginalSpellingButton->Enable(FALSE);
 }
 
-void KBEditSearch::EnableAcceptEditButton(bool bEnableFlag)
-{
-	if (bEnableFlag)
-		m_pAcceptEditButton->Enable(TRUE);
-	else
-		m_pAcceptEditButton->Enable(FALSE);
-}
-
 void KBEditSearch::EnableRemoveUpdateButton(bool bEnableFlag)
 {
 	if (bEnableFlag)
@@ -489,8 +594,15 @@ void KBEditSearch::EnableRemoveUpdateButton(bool bEnableFlag)
 // if the dialog is modeless.
 void KBEditSearch::OnOK(wxCommandEvent& event) 
 {
+	if (m_bMatchesExist)
+	{
 	// *** TODO ***   update all the respelled adaptations or glosses from the list
+	
 
+
+
+
+	}
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
 
@@ -508,10 +620,6 @@ void KBEditSearch::OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event))
 }
 
 void KBEditSearch::OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(event))
-{
-}
-
-void KBEditSearch::OnBnClickedAcceptEdit(wxCommandEvent& WXUNUSED(event))
 {
 }
 

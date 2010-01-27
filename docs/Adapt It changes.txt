@@ -2,6 +2,75 @@ Version 5.2.0 update ??November2009:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
 ----------------------------------------------
+* Added support for knowledge base searches. To do this, the
+dialog for the Edit Knowledge Base command has some extra
+controls at the bottom -
+(a) a multiline text box where search strings can be typed
+(b) a Go button which initiates the search
+(c) an Erase All Lines button which clears out the multiline text
+box's strings if the user does not want what he has typed and wants
+to start over by typing different strings
+(d) a Combobox control which lists all older search strings that the
+user typed while within the current project during the current
+session - this control is cleared automatically when the user leaves
+the project.
+Note: the search is "smart". In the multiline text box where search
+strings are typed, one or more words or parts of words, each
+separated by a space, can be typed. All the words in a "line" must
+match, in the order in which they were typed, for a KB adaptation
+(or gloss, if glossing mode is currently on) to be accepted as a
+successful match. The search text "line" can be longer than the width
+of the multiline text control - and although a long typed string may
+wrap over more than one physical line, it is still a single search string.
+The user must end the line by explicitly pressing the Enter key.
+Searching supports discontinuous matches. If the user wanted to
+match all KB entries in which there is somewhere the string "ing" 
+followed somewhere, even if many words away, by the string "ed",
+then in the multiline text box he would type (without the doubequotes)
+"ing ed"  (note, there must be at least one space between each part
+which is to be separately matched).
+Once the Go button has been pressed, the whole KB is searched for
+matches to whatever occurs on any one "line" in the search box. As
+many search string "lines" can be typed for a single search operation
+as desired - the only thing to bear in mind is that if there are many
+search string lines, the searching will take longer. 
+After the matches have been collected internally, a dialog opens to 
+display the matched KB entries in a list. The list, on a Windows
+machine, will have a horizontal scroll bar if any of the matched entries
+exceed the width of the list; but on Mac or Linux, neither of which 
+support horizontal scroll bars within a list box, the user will need to
+drag the dialog's boundary to widen it sufficiently to see all of the
+contents of a long entry.
+The dialog provides the following features:
+(a) click on a matched entry, it then appears in an Edit box where
+it can be respelled if the user wishes
+(b) click on an Update button to cause a respelled adaptation (or
+gloss, if in glossing mode) to be added to an Updated Spellings list
+which is to the left of the list of matched KB entries.
+(c) the items in the two lists are linked, so clicking on an item in either
+causes the other list's corresponding item to be selected, and the Edit
+box to have the appropriate string placed in it.
+(d) a Remove Update button allows the user to reject a respelled item
+and it is removed from the Updated Spellings list and the formerlyu
+updated spelling is still shown in the Edit box, but the original spelling
+remains in the Matched list.
+(e) a Restore Original Spelling button does the same as the Remove
+Update button, except the Edit box shows the original spelling.
+(f) because the Matched list may have many items in it, a text box is
+provided for a search string to be typed, and a Find Next button
+initiates the search, and if a matching item is found, it is scrolled into
+view. (This search is not smart, it tries to match the whole string 
+as typed, including any spaces within it.)
+(g) when the OK button is clicked, Adapt It looks at the contents of
+the Updated Spellings list, and updates the KB entries to which they
+belong.
+(h) the Cancel button rejects the whole of the current search - no KB
+entries are updated, the search string lines which the user had typed are
+thrown away, any new spellings in the Updated Spellings list are ignored.
+(i) on return to the parent dialog (and provided the Cancel button was not
+clicked), the set of typed search string "lines" are added to the contents of
+the combo box, so that at a later time it is easy to search for any of those
+"lines" again.
 * Added support for an automated export (default options used)
 of the adaptation line's text, using the command line. The command
 line requires four parameters, all must be present, and in the
