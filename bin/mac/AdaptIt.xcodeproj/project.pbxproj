@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
+		7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D820F871110B941005EDDC9 /* KBEditSearch.cpp */; };
 		7DA17E8F0F4BC8E000BDDF30 /* License_CPLv05.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */; };
 		7DA17E900F4BC8E000BDDF30 /* License_GPLv2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */; };
 		7DA17E910F4BC8E000BDDF30 /* License_LGPLv21.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */; };
@@ -115,6 +116,8 @@
 		7D22945D0FE9C0EA00D49638 /* tellenc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = tellenc.cpp; path = ../../source/tellenc.cpp; sourceTree = SOURCE_ROOT; };
 		7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Layout.cpp; path = ../../source/Layout.cpp; sourceTree = SOURCE_ROOT; };
 		7D5D920C0FFBB9E6005E7ED3 /* Layout.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Layout.h; path = ../../source/Layout.h; sourceTree = SOURCE_ROOT; };
+		7D820F871110B941005EDDC9 /* KBEditSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = KBEditSearch.cpp; path = ../../source/KBEditSearch.cpp; sourceTree = SOURCE_ROOT; };
+		7D820F881110B941005EDDC9 /* KBEditSearch.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = KBEditSearch.h; path = ../../source/KBEditSearch.h; sourceTree = SOURCE_ROOT; };
 		7DA17E8B0F4BC8E000BDDF30 /* License_CPLv05.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_CPLv05.txt; sourceTree = "<group>"; };
 		7DA17E8C0F4BC8E000BDDF30 /* License_GPLv2.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_GPLv2.txt; sourceTree = "<group>"; };
 		7DA17E8D0F4BC8E000BDDF30 /* License_LGPLv21.txt */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; path = License_LGPLv21.txt; sourceTree = "<group>"; };
@@ -342,6 +345,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7D820F871110B941005EDDC9 /* KBEditSearch.cpp */,
+				7D820F881110B941005EDDC9 /* KBEditSearch.h */,
 				7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */,
 				7DE437ED10FA707E0036CC92 /* FilenameConflictDlg.h */,
 				C8F82DB30F3F9CAB007579B8 /* Adapt_It_Resources.h */,
@@ -733,6 +738,7 @@
 				C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */,
 				C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */,
 				7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */,
+				7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
