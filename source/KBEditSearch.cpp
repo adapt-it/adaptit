@@ -91,7 +91,7 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	m_pMatchRecordArray = new KBMatchRecordArray(CompareMatchRecords);
 	m_pUpdateRecordArray = new KBUpdateRecordArray(CompareUpdateRecords);
 	m_pMatchStrArray = new wxArrayString;
-	m_pUpdateStrArray = new wxArrayString;
+	//m_pUpdateStrArray = new wxArrayString;
 
 	// now a dummy match record on heap, in case the match list is empty
 	// ~KBEditSearch() will delete it
@@ -140,8 +140,8 @@ KBEditSearch::~KBEditSearch() // destructor
 
 	m_pMatchStrArray->Clear();
 	delete m_pMatchStrArray;
-	m_pUpdateStrArray->Clear();
-	delete m_pUpdateStrArray;
+	//m_pUpdateStrArray->Clear();
+	//delete m_pUpdateStrArray;
 
 }
 
@@ -236,7 +236,8 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pTUList = m_pKB->m_pTargetUnits;
 	wxASSERT(m_pTUList != NULL);
 
-
+	m_pUpdateListBox->Clear();
+	m_pUpdateListBox->Clear();
 
 	// *** TODO **** set up a progress dialog here
 
@@ -374,6 +375,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 				if (pTU->m_pTranslations->IsEmpty())
 				{
 					// don't expect an empty list of CRefString* instances, but code defensively
+					iter++;
 					continue;
 				}
 				else
@@ -388,13 +390,18 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 
 					// reject empty strings - we can't match anything in one
 					if (testStr.IsEmpty())
+					{
+						iter++;
 						continue;
+					}
 
 					// reject any testStr which contains "<Not In KB>" (if present, it is
 					// the only CRefString entry in the pTU, so only need test here)
-					if (testStr.Find(strNotInKB) != wxNOT_FOUND)
+					int anOffset = testStr.Find(strNotInKB);
+					if (anOffset != wxNOT_FOUND)
 					{
 						// the entry has <Not In KB> so don't accept this string
+						iter++;
 						continue;
 					}
 
@@ -413,7 +420,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 
 						// fill it out
 						pMatchRec->strOriginal = testStr; // adaptation, or gloss
-						pMatchRec->nUpdateIndex = 0xFFFF; // as yet, undefined
+						pMatchRec->pUpdateRecord = NULL; // as yet, undefined
 						pMatchRec->nIndexToMap = numWords-1;
 						pMatchRec->strMapKey = key;
 						pMatchRec->pTU = pTU;
@@ -435,7 +442,10 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 
 						// reject empty strings - we can't match anything in one
 						if (testStr.IsEmpty())
+						{
+							iter++;
 							continue;
+						}
 
 						#ifdef __WXDEBUG__
 						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
@@ -451,7 +461,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 							#endif __WXDEBUG__
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
-							pMatchRec->nUpdateIndex = 0xFFFF; // as yet, undefined
+							pMatchRec->pUpdateRecord = NULL; // as yet, undefined
 							pMatchRec->nIndexToMap = numWords-1;
 							pMatchRec->strMapKey = key;
 							pMatchRec->pTU = pTU;
@@ -476,6 +486,15 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 	{
 		wxArrayString* pSubStrArray = (wxArrayString*)arrSubStringSet.Item(subStrIndex);
 		delete pSubStrArray;
+	}
+
+	if (m_pMatchRecordArray->IsEmpty())
+	{
+		EnableFindNextButton(FALSE);
+	}
+	else
+	{
+		EnableFindNextButton(TRUE);
 	}
 
 	#ifdef __WXDEBUG__
@@ -611,10 +630,6 @@ void KBEditSearch::OnBnClickedCancel(wxCommandEvent& event)
 	event.Skip();
 }
 
-void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
-{
-}
-
 void KBEditSearch::OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event))
 {
 }
@@ -634,18 +649,163 @@ void KBEditSearch::InsertInUpdateList(KBUpdateRecordArray* pMatchRecordArray, KB
 
 void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
 {
+	// get the index to the KBMatchRecord pointer stored in m_pKBMatchRecordArray
+	m_nCurMatchListIndex = event.GetSelection();
+	m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
+	wxString strLabel = m_pMatchListBox->GetStringSelection();
+	if (!strLabel.IsEmpty() && (strLabel == m_pCurKBMatchRec->strOriginal))
+	{
+		// if the selected word or phrase has already been edited and is in the update
+		// list, then select it there and show the update list's version in the edit box,
+		// otherwise, put the string in the edit box so it can be respelled
+		if (m_pCurKBMatchRec->pUpdateRecord != NULL)
+		{
+			// it's been edited already...
+			m_pCurKBUpdateRec = m_pCurKBMatchRec->pUpdateRecord;
+			wxString textThatWasEdited = m_pCurKBUpdateRec->updatedString;
+
+            // find the index of the update list's item to select, using the data pointer
+			// rather than the label string, because user edits may have resulted in
+			// homonyms being in the list, and that would always select the first of such,
+			// but the data pointers will be unique
+			unsigned int index;
+			unsigned int count = m_pUpdateListBox->GetCount();
+			KBUpdateRecord* pUpdateRec = NULL;
+			for (index = 0; index < count; index++)
+			{
+				pUpdateRec = (KBUpdateRecord*)m_pUpdateListBox->GetClientData(index);
+				wxASSERT(pUpdateRec);
+				if (pUpdateRec == m_pCurKBUpdateRec)
+					break;
+			}
+			m_pEditBox->ChangeValue(textThatWasEdited);
+			m_pUpdateListBox->SetSelection(index);
+			m_nCurUpdateListIndex = index;
+		}
+		else
+		{
+			// put the strLabel (the adaptation or gloss that was matched) into the edit box
+			// to permit the user to change its spelling; use ChangeValue() in order not to
+			// generate a wxEVT_TEXT event; and clear the pointer to the current update record,
+			// and the index into the update list
+			m_pEditBox->ChangeValue(strLabel);
+			m_pCurKBUpdateRec = NULL;
+			m_nCurUpdateListIndex = wxNOT_FOUND; // -1
+		}
+		EnableUpdateButton(TRUE);
+		EnableRestoreOriginalSpellingButton(TRUE);
+		EnableRemoveUpdateButton(TRUE);
+
+	}
 }
 
+void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
+{
+	// don't Update if the word has not been respelled or the box is empty
+	if (m_pEditBox->IsEmpty() || (m_pEditBox->GetValue() == m_pCurKBMatchRec->strOriginal))
+	{
+		::wxBell(); // don't put a word not respelled into the update list, warn user
+	}
+	else
+	{
+		// is this the first time this respelling has been added to the list, or is it a
+		// re-edit? Check and process accordingly. For a re-edit, m_pCurKBUpdateRec will
+		// not be NULL... 
+        // *** NOTE ****(if we add a copy of strOriginal to the update record, then we
+        //     could here make an additional test that the strOriginal in the match record
+        //     matches the string stored as the copy in the update record; do so only if we
+        //     need it)
+		if (m_pCurKBUpdateRec != NULL)
+		{
+			// we have possibly re-edited (if the edit box contents have changed), and so
+			// we check, and if so, we update the m_pUpdateListBox entry 'in place'
+			if (m_pEditBox->IsEmpty() || (m_pEditBox->GetValue() == m_pCurKBUpdateRec->updatedString))
+			{
+				// the text box entry is not any different from what is in the update list
+				// entry, so do nothing except give the user feedback that nothing was done
+				::wxBell();
+			}
+			else
+			{
+				// update 'in place' -- but we can't really do so because the respelling
+				// may have altered its place in the sort order, so we'll only update the
+				// struct and then remove the entry and re-insert it
+				wxString str = m_pEditBox->GetValue();
+				str.Trim();
+				str.Trim(FALSE);
+				m_pCurKBUpdateRec->updatedString = str; // the struct is uptodate
+
+// *** FIX ***
+				// remove the item from the list box, and the struct from the sorted array
+				m_pUpdateListBox->Delete(m_nCurUpdateListIndex); // also deletes data
+				m_pUpdateRecordArray->RemoveAt(m_nCurUpdateListIndex);
+
+				// now get the reinsertion done -- get a new index etc
+				KBUpdateRecord* pUR = m_pCurKBUpdateRec;
+				int itsIndex = m_pUpdateRecordArray->Add(pUR);
+				if (itsIndex == 0 && (m_pUpdateListBox->GetCount() == 0))
+				{
+					m_pUpdateListBox->Append(pUR->updatedString,(void*)pUR);
+				}
+				else
+				{
+					m_pUpdateListBox->Insert(pUR->updatedString,(unsigned int)itsIndex,(void*)pUR);
+				}
+				m_nCurUpdateListIndex = itsIndex;
+				m_pUpdateListBox->SetSelection(itsIndex);
+
+				//m_pUpdateListBox->SetString(m_nCurUpdateListIndex,str);
+				//m_pUpdateListBox->SetSelection(m_nCurUpdateListIndex);
+			}
+		}
+		else
+		{
+            // there has been a respelling, so continue processing, and this is a first
+            // time edit, not an edit of a respelling
+			KBUpdateRecord* pUR = new KBUpdateRecord;
+			wxASSERT(pUR);
+			pUR->updatedString = m_pEditBox->GetValue();
+			pUR->updatedString.Trim(); // trim right end
+			pUR->updatedString.Trim(FALSE); // trim left end
+			pUR->nMatchRecordIndex = m_nCurMatchListIndex; // index the KBMatchRecord
+							// associated with this respelling, in m_pMatchRecordArray
+			// now set the pointer to this update record, in the KBMatchRecord instance which
+			// is associated with it; and set the class's member too
+			m_pCurKBMatchRec->pUpdateRecord = pUR;
+			m_pCurKBUpdateRec = pUR;
+
+			// now add this update record to the sorted array, m_pUpdateRecordArray -- it's
+			// position will flop about as new records are added due to other edits which the
+			// user does, so we've no interest in storing the return index value for the
+			// position long term, we use it only for inserting the label string into the
+			// m_pUpdateListBox (note, sorted arrays can only use Add(), never Insert(); but
+			// m_pUpdateListBox is not sorted, we do the sorting only in the
+			// m_pUpdateRecordArray and just mirror the array's contents in the list box)
+			int itsIndex = m_pUpdateRecordArray->Add(pUR);
+			if (itsIndex == 0 && (m_pUpdateListBox->GetCount() == 0))
+			{
+				m_pUpdateListBox->Append(pUR->updatedString,(void*)pUR);
+			}
+			else
+			{
+				m_pUpdateListBox->Insert(pUR->updatedString,(unsigned int)itsIndex,(void*)pUR);
+			}
+			m_nCurUpdateListIndex = itsIndex;
+
+			// show the just inserted entry selected, (the matched list's associated entry
+			// should still be selected)
+			m_pUpdateListBox->SetSelection(itsIndex);
+		}
+	}
+}
 
 void KBEditSearch::OnMatchListDoubleclickItem(wxCommandEvent& event)
 {
 }
 
-
 void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 {
 }
-
 
 void KBEditSearch::OnUpdateListDoubleclickItem(wxCommandEvent& event)
 {

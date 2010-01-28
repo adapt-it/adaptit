@@ -64,7 +64,7 @@ public:
 				// macro and storing struct KBUpdateRecord pointers (see Adapt_It.h)
 	wxArrayString* m_pMatchStrArray; // on heap, label strings for the Matched listbox
 									 // (obtained from KBMatchRecord.strOriginal values)
-	wxArrayString* m_pUpdateStrArray; // on heap, labels for Updated listbox
+	//wxArrayString* m_pUpdateStrArray; // on heap, labels for Updated listbox
 									 // (obtained from KBUpdateRecord.updatedString values)
 	KBMatchRecord* m_pDummyMatchRecord;
 	 
@@ -82,11 +82,16 @@ public:
 							  // (or gloss)
 	wxString m_strNumRefs; // number of references to the matched adaption (or gloss) string
 
+	KBMatchRecord* m_pCurKBMatchRec;
+	KBUpdateRecord* m_pCurKBUpdateRec;
+	int	m_nCurMatchListIndex;
+	int m_nCurUpdateListIndex;
+
 
 protected:
 
-	void EnableUpdateButton(bool bEnableFlag);
 	void EnableFindNextButton(bool bEnableFlag);
+	void EnableUpdateButton(bool bEnableFlag);
 	void EnableRestoreOriginalSpellingButton(bool bEnableFlag);
 	void EnableRemoveUpdateButton(bool bEnableFlag);
 
