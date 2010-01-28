@@ -111,12 +111,14 @@ protected:
 
 private:
 	bool m_bMatchesExist;
+	unsigned int GetUpdateListIndexFromDataPtr(KBUpdateRecord* pCurRecord);
+	// unsigned int GetMatchListIndexFromDataPtr(KBMatchRecord* pCurRecord); <- unneeded
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void SetupMatchArray(wxArrayString* pArrSearches,	// pass in pointer to app's m_arrSearches
 						CKB* pKB, // the knowledge base instance whose contents we are testing
 						KBMatchRecordArray* pMatchRecordArray, // return matched strings here
 						bool* pbIsGlossing); // need this boolean, it defines how many maps we test
-	void InsertInUpdateList(KBUpdateRecordArray* pMatchRecordArray, KBUpdateRecord* bRec, int index);
+	//void InsertInUpdateList(KBUpdateRecordArray* pMatchRecordArray, KBUpdateRecord* bRec, int index);
 	bool TestForMatch(wxArrayPtrVoid* pSubStringSet, wxString& testStr);
 	void PopulateMatchedList(wxArrayString* pMatchStrArray, KBMatchRecordArray* pMatchRecordArray, 
 						wxListBox* pListBox);
