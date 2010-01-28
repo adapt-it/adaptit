@@ -1250,17 +1250,31 @@ typedef struct
 } EditRecord;
 
 /// The following struct (one of two) supports the search functionality within the KB
+/// Editor dialog; instances of this struct are stored in their own wxSortedArray
+typedef struct
+{
+	wxString	updatedString;	  // either an 'adaptation' or a 'gloss' depending on which KB
+	wxUint32	nMatchRecordIndex; // index to the KBMatchRecord instance which resulted from
+                                  // a successful match in the KB; the KBMatchRecord has a
+                                  // constant index in the array which stores it
+} KBUpdateRecord;
+
+/// Define a sorted array of void* for storing instances of KBUpdateRecord
+WX_DEFINE_SORTED_ARRAY(KBUpdateRecord*, KBUpdateRecordArray);
+
+
+/// The following struct (one of two) supports the search functionality within the KB
 /// Editor dialog;  instances of this struct are stored in their own wxSortedArray
 typedef struct
 {
 	wxString		strOriginal;	 // adapatation (or gloss) which was matched, before
 									 // any spelling changes have been done
-	wxUint32		nUpdateIndex;	 // index in the sorted array which has the
-									 // KBUpdateRecord ptr for the user's edit of this
-									 // entry, & hence the index also is to the item
-									 // in the list which displays the updated 
-									 // spellings; store 0xFFFF if this item is not
-									 // edited
+	KBUpdateRecord*	pUpdateRecord;	 // pointer to the KBUpdateRecord which stores the
+									 // respelling of this entry; we use a pointer as
+									 // the pointed at struct will flop around in the
+									 // sorted array as the user edits matched items, so
+									 // while the index of it will flop abount, the pointer 
+									 // in memory will remain constant
 	wxUint32		nIndexToMap;	 // values in range 0 to (MAX_WORDS -1) inclusive
 	wxString		strMapKey;		 // key string (i.e. source text) for the 
 									 // CTargetUnit* which stores the matched adaptation
@@ -1274,19 +1288,6 @@ typedef struct
 
 /// Define a sorted array of void* for storing instances of KBMatchRecord
 WX_DEFINE_SORTED_ARRAY(KBMatchRecord*, KBMatchRecordArray);
-
-/// The following struct (one of two) supports the search functionality within the KB
-/// Editor dialog; instances of this struct are stored in their own wxSortedArray
-typedef struct
-{
-	wxString		updatedString; // either an 'adaptation' or a 'gloss' depending on which KB
-	wxUint32		nIndexToMatchItem; // 0-based index to the "matched" item and therefore also
-									   // to that items associated KBMatchRecord instance in
-									   // the sorted array which stores the latter 
-} KBUpdateRecord; 
-
-/// Define a sorted array of void* for storing instances of KBUpdateRecord
-WX_DEFINE_SORTED_ARRAY(KBUpdateRecord*, KBUpdateRecordArray);
 
 int CompareMatchRecords(KBMatchRecord* struct1Ptr, KBMatchRecord* struct2Ptr);
 int CompareUpdateRecords(KBUpdateRecord* struct1Ptr, KBUpdateRecord* struct2Ptr);
