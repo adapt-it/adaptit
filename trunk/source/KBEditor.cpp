@@ -750,6 +750,11 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 			{
 				gpApp->m_arrOldSearches.Add(gpApp->m_arrSearches.Item(index));
 			}
+
+// *** TODO *** - make them be displayed in the combobox; and empty m_pEditSearches,
+			// and add a handler for clicking on a combobox line to have it re-entered into
+			// m_pEditSearches
+
 		}
 		else
 		{

@@ -7048,7 +7048,7 @@ wxSizer *KBEditSearchFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticText *item22 = new wxStaticText( parent, ID_TEXT, _("Edit:"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item22, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_EDITBOX, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
+    wxTextCtrl *item23 = new wxTextCtrl( parent, ID_TEXTCTRL_EDITBOX, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_PROCESS_ENTER );
     item21->Add( item23, 1, wxALIGN_CENTER|wxALL, 5 );
 
     item15->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 0 );
