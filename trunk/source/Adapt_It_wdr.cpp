@@ -4166,7 +4166,7 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item8 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs9 = (wxString*) NULL;
-    wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(400,330), 0, strs9, wxLB_SINGLE|wxLB_SORT|wxLB_HSCROLL );
+    wxListBox *item9 = new wxListBox( parent, IDC_LIST_SRC_KEYS, wxDefaultPosition, wxSize(400,280), 0, strs9, wxLB_SINGLE|wxLB_SORT );
     item9->SetToolTip( _("Source words or phrases that have existing translations in the knowledge base") );
     item8->Add( item9, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
@@ -4188,7 +4188,7 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item13 = new wxBoxSizer( wxVERTICAL );
 
     wxString *strs14 = (wxString*) NULL;
-    wxListBox *item14 = new wxListBox( parent, IDC_LIST_EXISTING_TRANSLATIONS, wxDefaultPosition, wxSize(-1,130), 0, strs14, wxLB_SINGLE );
+    wxListBox *item14 = new wxListBox( parent, IDC_LIST_EXISTING_TRANSLATIONS, wxDefaultPosition, wxSize(-1,80), 0, strs14, wxLB_SINGLE );
     item14->SetToolTip( _("Existing translation(s) for the source phrase selected in list at left") );
     item13->Add( item14, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
