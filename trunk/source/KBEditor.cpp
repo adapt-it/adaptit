@@ -764,6 +764,10 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 		gpApp->m_arrSearches.Empty();
 
 		// ** TODO ** other actions ??
+		
+
+
+		delete pKBSearchDlg;
 	}
 }
 
