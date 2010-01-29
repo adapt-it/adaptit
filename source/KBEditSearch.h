@@ -103,6 +103,8 @@ protected:
 	void OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRemoveUpdate(wxCommandEvent& WXUNUSED(event));
 
+	void OnEnterInEditBox(wxCommandEvent& WXUNUSED(event));
+
 	void OnMatchListSelectItem(wxCommandEvent& event);
 	void OnMatchListDoubleclickItem(wxCommandEvent& event);
 

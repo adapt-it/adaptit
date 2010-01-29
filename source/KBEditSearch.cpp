@@ -62,6 +62,7 @@ BEGIN_EVENT_TABLE(KBEditSearch, AIModalDialog)
 	EVT_BUTTON(wxID_CANCEL, KBEditSearch::OnBnClickedCancel)
 
 	//EVT_SIZE(KBEditSearch::OnSize)
+	EVT_TEXT_ENTER(ID_TEXTCTRL_EDITBOX, KBEditSearch::OnEnterInEditBox)
 
 	EVT_LISTBOX(ID_LISTBOX_MATCHED, KBEditSearch::OnMatchListSelectItem)
 	EVT_LISTBOX_DCLICK(ID_LISTBOX_MATCHED, KBEditSearch::OnMatchListDoubleclickItem)
@@ -236,7 +237,7 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pTUList = m_pKB->m_pTargetUnits;
 	wxASSERT(m_pTUList != NULL);
 
-	m_pUpdateListBox->Clear();
+	m_pMatchListBox->Clear();
 	m_pUpdateListBox->Clear();
 
 	// *** TODO **** set up a progress dialog here
@@ -254,9 +255,6 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 
 
 	//  *** TODO **** end the progress dialog here
-	
-
-
 
 }
 
@@ -731,6 +729,14 @@ void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
 		}
 		else
 		{
+			// check for an existing selection in the update list, and if there is one,
+			// deselect it
+			int nSelIndex = m_pUpdateListBox->GetSelection();
+			if (nSelIndex != wxNOT_FOUND)
+			{
+				m_pUpdateListBox->Deselect(nSelIndex);
+			}
+
 			// put the strLabel (the adaptation or gloss that was matched) into the edit box
 			// to permit the user to change its spelling; use ChangeValue() in order not to
 			// generate a wxEVT_TEXT event; and clear the pointer to the current update record,
@@ -866,35 +872,55 @@ void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 	// get the index of the selection
 	m_nCurUpdateListIndex = event.GetSelection();
 
-    // we have a valid selection index, so get the label string (to put it into the edit
-    // box) and the data ptr (the KBUpdateRecord ptr) associated with it, and from the
-    // latter, get the index in the m_pMatchListBox where the associated KBMatchRecord ptr
-    // is stored, and then select that list item
-	wxString strLabel = m_pUpdateListBox->GetStringSelection();
-	m_pCurKBUpdateRec = (KBUpdateRecord*)m_pUpdateListBox->GetClientData(m_nCurUpdateListIndex);
-	m_nCurMatchListIndex = m_pCurKBUpdateRec->nMatchRecordIndex;
-	m_pMatchListBox->SetSelection(m_nCurMatchListIndex);
-	m_pEditBox->ChangeValue(strLabel);
+	if (m_nCurUpdateListIndex != wxNOT_FOUND)
+	{
+        // we have a valid selection index, so get the label string (to put it into the
+        // edit box) and the data ptr (the KBUpdateRecord ptr) associated with it, and from
+        // the latter, get the index in the m_pMatchListBox where the associated
+        // KBMatchRecord ptr is stored, and then select that list item
+		wxString strLabel = m_pUpdateListBox->GetStringSelection();
+		m_pCurKBUpdateRec = (KBUpdateRecord*)m_pUpdateListBox->GetClientData(m_nCurUpdateListIndex);
+		m_nCurMatchListIndex = m_pCurKBUpdateRec->nMatchRecordIndex;
+		// the next line gets the pointer from the parallel match record (sorted) array,
+		// but we could equally well get it from the m_pMatchListBox item's data ptr at
+		// the same index - but the former is easier
+		m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
+		m_pMatchListBox->SetSelection(m_nCurMatchListIndex);
+		m_pEditBox->ChangeValue(strLabel);
+	}
+	else
+	{
+		::wxBell();
+	}
 }
 
 void KBEditSearch::OnBnClickedRemoveUpdate(wxCommandEvent& WXUNUSED(event))
 {
-	m_pCurKBUpdateRec = (KBUpdateRecord*)m_pUpdateListBox->GetClientData(m_nCurUpdateListIndex);
-	m_pUpdateRecordArray->RemoveAt(m_nCurUpdateListIndex); // get rid of the entry in the sorted
-														   // array of KBUpdateRecord pointers
-	m_nCurMatchListIndex = m_pCurKBUpdateRec->nMatchRecordIndex; // get the match record index for
-							// the associated KBMatchRecord pointer in the m_pMatchRecordArray
-	m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
-	m_pCurKBMatchRec->pUpdateRecord = NULL; // clear the pointer to the struct we are deleting 
-	m_pUpdateListBox->Delete(m_nCurUpdateListIndex); // delete the entry from the update list
-	delete m_pCurKBUpdateRec; // delete its struct too
-	m_pEditBox->ChangeValue(_T("")); // clear the edit box
-	m_pMatchListBox->Deselect(m_nCurMatchListIndex); // deselect the match list's item
-	// the above handles all the visible stuff, now clear out the relevant member variables
-	m_nCurMatchListIndex = -1;
-	m_nCurUpdateListIndex = -1;
-	m_pCurKBUpdateRec = NULL;
-	m_pCurKBMatchRec = NULL;
+	// do it provided there is a selection and m_nCurUpdateListIndex is not -1
+	int nSelection = m_pUpdateListBox->GetSelection();
+	if (nSelection != wxNOT_FOUND && m_nCurUpdateListIndex != -1)
+	{
+		m_pCurKBUpdateRec = (KBUpdateRecord*)m_pUpdateListBox->GetClientData(m_nCurUpdateListIndex);
+		m_pUpdateRecordArray->RemoveAt(m_nCurUpdateListIndex); // get rid of the entry in the sorted
+															   // array of KBUpdateRecord pointers
+		m_nCurMatchListIndex = m_pCurKBUpdateRec->nMatchRecordIndex; // get the match record index for
+								// the associated KBMatchRecord pointer in the m_pMatchRecordArray
+		m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
+		m_pCurKBMatchRec->pUpdateRecord = NULL; // clear the pointer to the struct we are deleting 
+		m_pUpdateListBox->Delete(m_nCurUpdateListIndex); // delete the entry from the update list
+		delete m_pCurKBUpdateRec; // delete its struct too
+		m_pEditBox->ChangeValue(_T("")); // clear the edit box
+		m_pMatchListBox->Deselect(m_nCurMatchListIndex); // deselect the match list's item
+		// the above handles all the visible stuff, now clear out the relevant member variables
+		m_nCurMatchListIndex = -1;
+		m_nCurUpdateListIndex = -1;
+		m_pCurKBUpdateRec = NULL;
+		m_pCurKBMatchRec = NULL;
+	}
+	else
+	{
+		::wxBell();
+	}
 }
 
 void KBEditSearch::OnUpdateListDoubleclickItem(wxCommandEvent& event)
@@ -909,5 +935,10 @@ void KBEditSearch::OnMatchListDoubleclickItem(wxCommandEvent& event)
 	OnMatchListSelectItem(event);
 }
 
-
+void KBEditSearch::OnEnterInEditBox(wxCommandEvent& WXUNUSED(event))
+{
+	// treat as a click on Update button
+	wxCommandEvent dummyEvent;
+	OnBnClickedUpdate(dummyEvent);
+}
 
