@@ -1282,8 +1282,10 @@ typedef struct
 	CTargetUnit*	pTU;			 // pointer to the CTargetUnit instance which stores
 									 // the CRefString which stores the string stored
 									 // here as strMapOldString
-	int				nRefStrIndex;	 // index to the cCRefString instance in pTU which
+	int				nRefStrIndex;	 // index to the CRefString instance in pTU which
 									 // stores the ref count and  strMapOldString string
+	CRefString*		pRefString;		 // pointer to the CRefString instance whose index in
+									 // the pTU CTargetUnit instance is nRefStrIndex
 } KBMatchRecord;
 
 /// Define a sorted array of void* for storing instances of KBMatchRecord

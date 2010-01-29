@@ -340,7 +340,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 	KBMatchRecord* pMatchRec = NULL;
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefStr = NULL;
-	int nRefCount = 0;
+	int nTUListNodeIndex;
 	size_t numWords;
 	wxString testStr; // string from each CRefString instance is put here prior to testing
 					  // for any search substring matches within it (it could be a gloss,
@@ -382,9 +382,9 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					posRef = pTU->m_pTranslations->GetFirst(); 
 					wxASSERT(posRef != NULL);
 					pRefStr = (CRefString*)posRef->GetData();
+					nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
 					posRef = posRef->GetNext(); // prepare for possibility of another CRefString*
 					testStr = pRefStr->m_translation;
-					nRefCount = pRefStr->m_refCount;
 
 					// reject empty strings - we can't match anything in one
 					if (testStr.IsEmpty())
@@ -422,7 +422,8 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						pMatchRec->nIndexToMap = numWords-1;
 						pMatchRec->strMapKey = key;
 						pMatchRec->pTU = pTU;
-						pMatchRec->nRefStrIndex = nRefCount;
+						pMatchRec->nRefStrIndex = nTUListNodeIndex;
+						pMatchRec->pRefString = pRefStr;
 
 						// store it
 						pMatchRecordArray->Add(pMatchRec);
@@ -433,10 +434,10 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					while (posRef != NULL)
 					{
 						pRefStr = (CRefString*)posRef->GetData();
+						nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
 						wxASSERT(pRefStr != NULL); 
 						posRef = posRef->GetNext(); // prepare for possibility of yet another
 						testStr = pRefStr->m_translation;
-						nRefCount = pRefStr->m_refCount;
 
 						// reject empty strings - we can't match anything in one
 						if (testStr.IsEmpty())
@@ -463,7 +464,8 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 							pMatchRec->nIndexToMap = numWords-1;
 							pMatchRec->strMapKey = key;
 							pMatchRec->pTU = pTU;
-							pMatchRec->nRefStrIndex = nRefCount;
+							pMatchRec->nRefStrIndex = nTUListNodeIndex;
+							pMatchRec->pRefString = pRefStr;
 
 							// store it
 							pMatchRecordArray->Add(pMatchRec);
@@ -749,6 +751,15 @@ void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
 		EnableRestoreOriginalSpellingButton(TRUE);
 		EnableRemoveUpdateButton(TRUE);
 
+		// show the source text word or phrase in the box under the left list, and below
+		// that, the number of times the adaptation (or gloss) has so far been referenced
+		// within documents
+		m_strSourceText = m_pCurKBMatchRec->strMapKey;
+		m_pSrcPhraseBox->ChangeValue(m_strSourceText);
+		int nRefCount = m_pCurKBMatchRec->pRefString->m_refCount;
+		wxString strNum;
+		strNum = strNum.Format(_T("%d"),nRefCount);
+		m_pNumReferencesBox->ChangeValue(strNum);
 	}
 }
 
@@ -887,6 +898,16 @@ void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 		m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
 		m_pMatchListBox->SetSelection(m_nCurMatchListIndex);
 		m_pEditBox->ChangeValue(strLabel);
+
+		// show the source text word or phrase in the box under the left list, and below
+		// that, the number of times the adaptation (or gloss) has so far been referenced
+		// within documents
+		m_strSourceText = m_pCurKBMatchRec->strMapKey;
+		m_pSrcPhraseBox->ChangeValue(m_strSourceText);
+		int nRefCount = m_pCurKBMatchRec->pRefString->m_refCount;
+		wxString strNum;
+		strNum = strNum.Format(_T("%d"),nRefCount);
+		m_pNumReferencesBox->ChangeValue(strNum);
 	}
 	else
 	{
