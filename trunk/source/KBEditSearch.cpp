@@ -63,6 +63,7 @@ BEGIN_EVENT_TABLE(KBEditSearch, AIModalDialog)
 
 	//EVT_SIZE(KBEditSearch::OnSize)
 	EVT_TEXT_ENTER(ID_TEXTCTRL_EDITBOX, KBEditSearch::OnEnterInEditBox)
+	EVT_TEXT(ID_TEXTCTRL_LOCAL_SEARCH, OnChangeLocalSearchText)
 
 	EVT_LISTBOX(ID_LISTBOX_MATCHED, KBEditSearch::OnMatchListSelectItem)
 	EVT_LISTBOX_DCLICK(ID_LISTBOX_MATCHED, KBEditSearch::OnMatchListDoubleclickItem)
@@ -632,10 +633,69 @@ void KBEditSearch::OnBnClickedCancel(wxCommandEvent& event)
 
 void KBEditSearch::OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event))
 {
+	// get the text in the edit control
+	wxString strSearch = m_pLocalSearchBox->GetValue();
 
+	// get the currently selected position (if none, get the top of list position and show
+	// it selected -- searching starts with the element following current selection)
+	int nCurSel = m_pMatchListBox->GetSelection();
+	unsigned int count = m_pMatchListBox->GetCount();
+	if (nCurSel == wxNOT_FOUND)
+	{
+		nCurSel = 0;
+		SetMatchListSelection(nCurSel,FALSE); // sets m_nCurMatchListIndex to passed in 
+				// nSel value; and FALSE means 'set the list item selection ourselves'
+		if (nCurSel == (int)count - 1)
+		{
+			// can't search a list which only has one item
+			::wxBell();
+			return;
+		}
+		nCurSel++;
+	}
+	else
+	{
+		if (nCurSel < (int)(count - 1))
+		{
+			// there is at least one item below the selection
+			nCurSel++;
+		}
+		else
+		{
+			// beep, and reposition the selection to the top of the list (there will be at
+			// least two items in the list, otherwise the Find Next button is disabled)
+			::wxBell();
+			m_nCurMatchListIndex = 0;
+			SetMatchListSelection(m_nCurMatchListIndex,FALSE); // sets m_nCurMatchListIndex
+				// to passed in  nSel value; FALSE means 'set the list item selection ourselves'
+			return;
+		}
+	}
 
-// *** TODO ***
+	// search
+	unsigned int index;
+	wxString strLabel = _T("");
+	for (index = nCurSel; index < count; index++)
+	{
+		// get the list's label string at index & check for a match; return with the
+		// matched item selected; but if not matched, continue to iterate thru the list
+		strLabel = m_pMatchListBox->GetString(index);
+		int offset = strLabel.Find(strSearch);
+		if (offset == wxNOT_FOUND)
+			continue;
+		else
+		{
+			SetMatchListSelection(index, FALSE); // sets m_nCurMatchListIndex to index 
+				// value, FALSE means 'set the list item selection ourselves'
+			return;
+		}
+	} // end of search loop
 
+	// when the end has been reached, beep and put the selection back at the top
+	::wxBell();
+	m_nCurMatchListIndex = 0;
+	SetMatchListSelection(m_nCurMatchListIndex,FALSE); // sets m_nCurMatchListIndex
+		// to passed in  nSel value; FALSE means 'set the list item selection ourselves'
 }
 
 void KBEditSearch::OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(event))
@@ -699,11 +759,20 @@ unsigned int KBEditSearch::GetUpdateListIndexFromDataPtr(KBUpdateRecord* pCurRec
 	return index;
 }
 
-void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
+// if bUserClicked is TRUE, the user has clicked on a list item, and the call to
+// this function will be in an event handler, so this function does not have to
+// do the item selection itself, but if bUserClicked is FALSE, the we are using
+// this function to programmatically set the selection to the passed in index, and so
+// internal code is required to make the list item selection be seen
+void KBEditSearch::SetMatchListSelection(int nSelectionIndex, bool bUserClicked)
 {
-	// get the index to the KBMatchRecord pointer stored in m_pKBMatchRecordArray
-	m_nCurMatchListIndex = event.GetSelection();
+	m_nCurMatchListIndex = nSelectionIndex;
 	m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
+	if (bUserClicked == FALSE)
+	{
+		// make the list item selection ourselves
+		m_pMatchListBox->SetSelection(nSelectionIndex,TRUE); // TRUE means 'select' (not 'deselect')
+	}
 	wxString strLabel = m_pMatchListBox->GetStringSelection();
 	if (!strLabel.IsEmpty() && (strLabel == m_pCurKBMatchRec->strOriginal))
 	{
@@ -761,6 +830,20 @@ void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
 		strNum = strNum.Format(_T("%d"),nRefCount);
 		m_pNumReferencesBox->ChangeValue(strNum);
 	}
+}
+
+void KBEditSearch::OnChangeLocalSearchText(wxCommandEvent& WXUNUSED(event))
+{
+	unsigned int count = m_pMatchListBox->GetCount();
+	bool bEnableFlag = count >= 2 ? TRUE : FALSE;
+	EnableFindNextButton(bEnableFlag);
+}
+
+void KBEditSearch::OnMatchListSelectItem(wxCommandEvent& event)
+{
+	// get the index to the KBMatchRecord pointer stored in m_pKBMatchRecordArray
+	m_nCurMatchListIndex = event.GetSelection();
+	SetMatchListSelection(m_nCurMatchListIndex);
 }
 
 void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
