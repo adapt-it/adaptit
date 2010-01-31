@@ -215,6 +215,9 @@ caused a crash.
 text into the phrase box at the end of the document.
 * In Review mode, text entered in the phrase box at the document
 end was not retained.
+* Pointing My Documents (in XP) or Documents (in Vista & above)
+at a partition such as D:\ caused a bad path to the basic configuration
+file to be produced, leading to a error messages, or worse.
 
 ----------------------------------------------
 Bug fixes in 5.1.4

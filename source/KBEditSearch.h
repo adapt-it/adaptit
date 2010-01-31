@@ -104,6 +104,7 @@ protected:
 	void OnBnClickedRemoveUpdate(wxCommandEvent& WXUNUSED(event));
 
 	void OnEnterInEditBox(wxCommandEvent& WXUNUSED(event));
+	void OnChangeLocalSearchText(wxCommandEvent& WXUNUSED(event));
 
 	void OnMatchListSelectItem(wxCommandEvent& event);
 	void OnMatchListDoubleclickItem(wxCommandEvent& event);
@@ -125,6 +126,7 @@ private:
 	void PopulateMatchedList(wxArrayString* pMatchStrArray, KBMatchRecordArray* pMatchRecordArray, 
 						wxListBox* pListBox);
 	bool PopulateMatchLabelsArray(KBMatchRecordArray* pMatchRecordArray, wxArrayString* pMatchStrArray);
+	void SetMatchListSelection(int nSelectionIndex, bool bUserClicked = TRUE);
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
