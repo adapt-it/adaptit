@@ -11481,7 +11481,7 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	// command-line 
 	if (!m_wf_forced_workFolderPath.IsEmpty())
 	{
-		// Insure that the user supplied work folder path does not end with a path separator
+		// Ensure that the user supplied work folder path does not end with a path separator
 		// character 
 		if (m_wf_forced_workFolderPath.GetChar(m_wf_forced_workFolderPath.Length() - 1) 
 			== PathSeparator)
@@ -11497,6 +11497,16 @@ void CAdapt_ItApp::EnsureWorkFolderPresent()
 	}
 	else
 	{
+		// check that dirPath doesn't end with a PathSeparator character, eg. on Windows
+		// the user may have pointed Documents at D:\, and so adding an additional separator
+		// would generate a wrong path... this check will have to be done in 
+		// MakeForeignBasicConfigFileSafe() too. Easiest thing to do is just remove the
+		// final separator if it is there...  BEW added 31Jan10
+		if (dirPath.GetChar(dirPath.Length() - 1) == PathSeparator)
+		{
+			dirPath.RemoveLast(); // remove the PathSeparator char 
+								  // at the end of the path string
+		}
 		workFolderPath = dirPath + PathSeparator + workFolder;
 	}
 
@@ -25140,6 +25150,12 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 											  // wxWidgets version 2.7.0
 		#endif
 		// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
+		if (folderPath.GetChar(folderPath.Length() - 1) == PathSeparator)
+		{
+			folderPath.RemoveLast(); // remove the PathSeparator char 
+				// at the end of the path string, so next line won't give two contiguous
+				
+		}
 		wxString configPath = folderPath + PathSeparator + configFName;
 		basePath = m_localPathPrefix; // m_localPathPrefix was set 
 					// in EnsureWorkFolderPresent, and it is relevant in 
@@ -25198,6 +25214,15 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// whm modified 5Jun09. If the user is forcing the work folder to be what s/he wants
 		// then we won't suffix the forced path with m_theWorkFolder ("Adapt It <Unicode>
 		// Work").
+		// BEW added 31Jan10; code here assumes a PathSeparator will not be at end of basePath
+		// so if so, whether Windows (e.g. D:\ or Linux or Mac / root folder), remove it as
+		// code further below should add a PathSeparator automatically before appending a
+		// child folder name...
+		if (basePath.GetChar(basePath.Length() - 1) == PathSeparator)
+		{
+			basePath.RemoveLast(); // remove the PathSeparator char 
+				// at the end of the path string, so next line won't give two contiguous	
+		}
 		wxString localPath;
 		if (m_wf_forced_workFolderPath.IsEmpty())
 		{
