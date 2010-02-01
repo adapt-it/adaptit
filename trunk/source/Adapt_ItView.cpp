@@ -20748,6 +20748,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 			pApp->SaveGlossingKB(FALSE);
 		else
 			pApp->SaveKB(FALSE);
+
 	}
 
 	// restore focus to the targetBox
@@ -20775,6 +20776,14 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 		GetLayout()->Redraw();
 		GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
 	}
+
+	if (pApp->m_bForceFullConsistencyCheck)
+	{
+		// actually, let user choose current doc only, or full check
+		wxCommandEvent dummy;
+		OnEditConsistencyCheck(dummy);
+	}
+	pApp->m_bForceFullConsistencyCheck = FALSE; // restore default value
 }
 
 // the rpRec value will be undefined if FALSE is returned, if TRUE is returned, rpRec will

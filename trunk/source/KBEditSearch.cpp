@@ -60,11 +60,8 @@ BEGIN_EVENT_TABLE(KBEditSearch, AIModalDialog)
 	EVT_BUTTON(ID_BUTTON_RESTORE, KBEditSearch::OnBnClickedRestoreOriginalSpelling)
 	EVT_BUTTON(ID_BUTTON_REMOVE_UPDATE, KBEditSearch::OnBnClickedRemoveUpdate)
 	EVT_BUTTON(wxID_CANCEL, KBEditSearch::OnBnClickedCancel)
-
-	//EVT_SIZE(KBEditSearch::OnSize)
 	EVT_TEXT_ENTER(ID_TEXTCTRL_EDITBOX, KBEditSearch::OnEnterInEditBox)
 	EVT_TEXT(ID_TEXTCTRL_LOCAL_SEARCH, OnChangeLocalSearchText)
-
 	EVT_LISTBOX(ID_LISTBOX_MATCHED, KBEditSearch::OnMatchListSelectItem)
 	EVT_LISTBOX_DCLICK(ID_LISTBOX_MATCHED, KBEditSearch::OnMatchListDoubleclickItem)
 	EVT_LISTBOX(ID_LISTBOX_UPDATED, KBEditSearch::OnUpdateListSelectItem)
@@ -142,9 +139,6 @@ KBEditSearch::~KBEditSearch() // destructor
 
 	m_pMatchStrArray->Clear();
 	delete m_pMatchStrArray;
-	//m_pUpdateStrArray->Clear();
-	//delete m_pUpdateStrArray;
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -152,8 +146,6 @@ KBEditSearch::~KBEditSearch() // destructor
 ///    START OF GUI FUNCTIONS 
 ///
 ///////////////////////////////////////////////////////////////////////////////////
-
-
 
 // InitDialog is method of wxWindow
 void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
@@ -341,7 +333,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 	KBMatchRecord* pMatchRec = NULL;
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefStr = NULL;
-	int nTUListNodeIndex;
+//	int nTUListNodeIndex;
 	size_t numWords;
 	wxString testStr; // string from each CRefString instance is put here prior to testing
 					  // for any search substring matches within it (it could be a gloss,
@@ -383,7 +375,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					posRef = pTU->m_pTranslations->GetFirst(); 
 					wxASSERT(posRef != NULL);
 					pRefStr = (CRefString*)posRef->GetData();
-					nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
+					//nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
 					posRef = posRef->GetNext(); // prepare for possibility of another CRefString*
 					testStr = pRefStr->m_translation;
 
@@ -420,10 +412,10 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						// fill it out
 						pMatchRec->strOriginal = testStr; // adaptation, or gloss
 						pMatchRec->pUpdateRecord = NULL; // as yet, undefined
-						pMatchRec->nIndexToMap = numWords-1;
+						//pMatchRec->nIndexToMap = numWords-1;
 						pMatchRec->strMapKey = key;
-						pMatchRec->pTU = pTU;
-						pMatchRec->nRefStrIndex = nTUListNodeIndex;
+						//pMatchRec->pTU = pTU;
+						//pMatchRec->nRefStrIndex = nTUListNodeIndex;
 						pMatchRec->pRefString = pRefStr;
 
 						// store it
@@ -435,7 +427,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					while (posRef != NULL)
 					{
 						pRefStr = (CRefString*)posRef->GetData();
-						nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
+						//nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
 						wxASSERT(pRefStr != NULL); 
 						posRef = posRef->GetNext(); // prepare for possibility of yet another
 						testStr = pRefStr->m_translation;
@@ -462,10 +454,10 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
 							pMatchRec->pUpdateRecord = NULL; // as yet, undefined
-							pMatchRec->nIndexToMap = numWords-1;
+							//pMatchRec->nIndexToMap = numWords-1;
 							pMatchRec->strMapKey = key;
-							pMatchRec->pTU = pTU;
-							pMatchRec->nRefStrIndex = nTUListNodeIndex;
+							//pMatchRec->pTU = pTU;
+							//pMatchRec->nRefStrIndex = nTUListNodeIndex;
 							pMatchRec->pRefString = pRefStr;
 
 							// store it
@@ -599,15 +591,6 @@ void KBEditSearch::EnableRemoveUpdateButton(bool bEnableFlag)
 		m_pRemoveUpdateButton->Enable(FALSE);
 }
 
-//void KBEditSearch::OnSize(wxSizeEvent& event)
-//{
-//	if (this == event.GetEventObject())
-//	{
-//	}
-//	event.Skip();
-//}
-
-
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -616,12 +599,33 @@ void KBEditSearch::OnOK(wxCommandEvent& event)
 {
 	if (m_bMatchesExist)
 	{
-	// *** TODO ***   update all the respelled adaptations or glosses from the list
-	
+        // Update, in the in-memory KB, all the respelled adaptations or glosses from the
+        // list if any. Returning to the parent dialog's caller, the OnButtonGo() handler,
+        // the rest of the tidy up is done there - which includes puting the search strings
+        // (line by line) into the combobox of the parent for potential reuse by the user,
+        // clearing the parent's m_arrSearches array (the combobox, and the m_pEditSearches
+        // wxTextCtrl, use the Adapt_It.h wxArrayString members, m_arrOldSearches, and
+        // m_arrSeaches, respectively), and a forced full KB update to disk to make the
+        // changes persistent (the user may otherwise think they have been made persistent
+        // and Cancel from the parent, and thus lose the spelling updates, so we prevent
+        // this by obligatorily doing the save to disk)
+		wxListBox* pLB = m_pUpdateListBox;
+		wxASSERT(pLB);
+		unsigned int count = pLB->GetCount();
+		int index = -1;
+		if (count > 0)
+		{
+			for (index = 0; index < (int)count; index++)
+			{
+				m_pCurKBUpdateRec = (KBUpdateRecord*)pLB->GetClientData(index);
+				m_nCurMatchListIndex = m_pCurKBUpdateRec->nMatchRecordIndex;
+				m_pCurKBMatchRec = m_pMatchRecordArray->Item(m_nCurMatchListIndex);
 
-
-
-
+				// use the KBMatchRecord to update the spelling stored on the CRefString
+				// instance in the CTargetUnit instance
+				m_pCurKBMatchRec->pRefString->m_translation = m_pCurKBUpdateRec->updatedString;
+			}
+		}
 	}
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
@@ -899,9 +903,6 @@ void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
 				}
 				m_nCurUpdateListIndex = itsIndex;
 				m_pUpdateListBox->SetSelection(itsIndex);
-
-				//m_pUpdateListBox->SetString(m_nCurUpdateListIndex,str);
-				//m_pUpdateListBox->SetSelection(m_nCurUpdateListIndex);
 			}
 		}
 		else
@@ -944,22 +945,6 @@ void KBEditSearch::OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 }
-/* don't need this
-unsigned int KBEditSearch::GetMatchListIndexFromDataPtr(KBMatchRecord* pCurRecord)
-{
-	unsigned int index;
-	unsigned int count = m_pMatchListBox->GetCount();
-	KBMatchRecord* pMatchRec = NULL;
-	for (index = 0; index < count; index++)
-	{
-		pMatchRec = (KBMatchRecord*)m_pMatchListBox->GetClientData(index);
-		wxASSERT(pMatchRec);
-		if (pMatchRec == pCurRecord)
-			break;
-	}
-	return index;
-}
-*/
 
 void KBEditSearch::OnUpdateListSelectItem(wxCommandEvent& event)
 {

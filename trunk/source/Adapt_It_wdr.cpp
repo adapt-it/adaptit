@@ -4313,7 +4313,8 @@ wxSizer *KBEditorPanelFunc( wxWindow *parent, bool call_fit, bool set_sizer )
     {
         wxT("")
     };
-    wxComboBox *item42 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(200,-1), 1, strs42, wxCB_DROPDOWN );
+    wxComboBox *item42 = new wxComboBox( parent, ID_COMBO_OLD_SEARCHES, wxT(""), wxDefaultPosition, wxSize(200,-1), 1, strs42, wxCB_DROPDOWN|wxCB_READONLY );
+    item42->SetToolTip( _("Click to add the line to the search box") );
     item35->Add( item42, 2, wxALIGN_CENTER|wxALL, 5 );
 
     item1->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );

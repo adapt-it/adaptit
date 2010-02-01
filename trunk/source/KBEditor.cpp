@@ -128,7 +128,7 @@ BEGIN_EVENT_TABLE(CKBEditor, AIModalDialog)
 
 	EVT_BUTTON(ID_BUTTON_GO, CKBEditor::OnButtonGo)
 	EVT_BUTTON(ID_BUTTON_ERASE_ALL_LINES, CKBEditor::OnButtonEraseAllLines)
-
+	EVT_COMBOBOX(ID_COMBO_OLD_SEARCHES, CKBEditor::OnComboItemSelected)
 END_EVENT_TABLE()
 
 
@@ -176,6 +176,7 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_curKey = _T("");
 
 	m_nCurPage = 0; // default to first page (1 Word)
+	m_bRemindUserToDoAConsistencyCheck = FALSE; // set TRUE if user does searches and respellings
 	
 	bKBEntryTemporarilyAddedForLookup = FALSE;
 
@@ -735,7 +736,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 	{
 		// one or more search strings have been defined
 		
-		DoRetain();
+		DoRetain(); // populates the contents of m_arrSearches
 
 		// put up the KBEditSearch dialog, and in its InitDialog() method do the search and
 		// populate the m_pMatchRecordArray of that class's instance
@@ -743,31 +744,92 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 		if (pKBSearchDlg->ShowModal() == wxID_OK)
 		{
 			// the search and any needed editing were done; so accumulate the search
-			// string(s) into the m_arrOldSearches before deleting them
+			// string(s) into the m_arrOldSearches before deleting them (the array
+			// CAdapt_ItApp::m_arrOldSearches is not cleared until OnFileCloseProject()
+			// is called, so the combobox contents persist until then)
 			size_t count = gpApp->m_arrSearches.GetCount();
-			size_t index;
-			for (index = 0; index < count; index++)
+			if (count > 0)
 			{
-				gpApp->m_arrOldSearches.Add(gpApp->m_arrSearches.Item(index));
+				// the user has typed some search strings, so we want to add them to the
+				// combobox, and to do that we have to temporarily remove the read-only
+				// style (and restore it after adding the search strings to it)
+				//long style = m_pComboOldSearches->GetWindowStyleFlag();
+				//long readonly_mask = wxCB_READONLY;
+				//style &= ~readonly_mask ;
+				//m_pComboOldSearches->SetWindowStyle(style);
+
+				size_t index;
+				for (index = 0; index < count; index++)
+				{
+					gpApp->m_arrOldSearches.Add(gpApp->m_arrSearches.Item(index));
+				}
+
+				count = gpApp->m_arrOldSearches.GetCount(); // has new count value now
+				m_pComboOldSearches->Clear(); 
+				// refill with the longer set of items
+				for (index = 0; index < count; index++)
+				{
+					m_pComboOldSearches->Append(gpApp->m_arrOldSearches.Item(index));
+				}
+				// select the top
+				m_pComboOldSearches->SetSelection(0);
+
+				// restore read-only style
+				//style |= readonly_mask ;
+				//m_pComboOldSearches->SetWindowStyle(style);
+
+				// now empty the multiline text control of the user's typed search strings
+				m_pEditSearches->ChangeValue(_T(""));
+
+				// force a KB save to disk (without backup)
+				bool bOK = TRUE;
+				wxString mess;
+				if (gbIsGlossing)
+				{
+					bOK = gpApp->SaveGlossingKB(FALSE); // don't want backup produced of the glossing KB
+				}
+				else
+				{
+					bOK = gpApp->SaveKB(FALSE); // don't want backup produced
+				}
+				if (!bOK)
+				{
+					// we don't expect to ever see this message, but it's needed, just in case
+					mess = _("Saving the knowledge base failed. However, your respellings are still in the knowledge base in memory, so exit from the knowledge base editor with the OK button - doing that will try the save operation again and it might succeed.");
+				}
+
+				// finally, the user must be given a reminder -- do it on exit of the KB
+				// Editor dialog, but set a flag here which indicates the need for the message
+				m_bRemindUserToDoAConsistencyCheck = TRUE;
+
+// and add a handler for clicking on a combobox line to have it re-entered into
+// m_pEditSearches
 			}
-
-// *** TODO *** - make them be displayed in the combobox; and empty m_pEditSearches,
-			// and add a handler for clicking on a combobox line to have it re-entered into
-			// m_pEditSearches
-
 		}
 		else
 		{
-			// user cancelled
+			// user cancelled (leave the m_pEditSearches text box unchanged, as the user
+			// may have wanted to come back to modify the search strings a bit before
+			// retrying the search, so we don't want to make him retype them all)
 			;
 		}
 		gpApp->m_arrSearches.Empty();
-
-		// ** TODO ** other actions ??
-		
-
-
 		delete pKBSearchDlg;
+	}
+}
+
+void CKBEditor::MessageForConsistencyCheck()
+{
+	wxString msg;
+	msg = msg.Format(_("You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do an inconsistency check of all documents as soon as you dismiss this message. Do you want the inconsistency check to start automatically?"));
+	wxString title = _("Do Consistency Check Now?");
+	long style = wxYES_NO | wxICON_QUESTION | wxCENTRE;
+	int answer = ::wxMessageBox(msg.c_str(),title.c_str(),style);
+	if (answer == wxYES)
+	{
+		// when the handler for the KBEditor dialog returns, a full consistency check will
+		// be done if the following flag is found to be TRUE, none is done if it is FALSE
+		gpApp->m_bForceFullConsistencyCheck = TRUE;
 	}
 }
 
@@ -1333,6 +1395,9 @@ void CKBEditor::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is
 	{
 		LoadDataForPage(m_nCurPage,0);	
 	}
+
+	// make the combobox have nothing in it
+	m_pComboOldSearches->Clear();
 }
 
 
@@ -1409,6 +1474,14 @@ void CKBEditor::OnOK(wxCommandEvent& event)
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
+
+	if (m_bRemindUserToDoAConsistencyCheck)
+	{
+		// give yes/no message, and set app boolean member m_bForceFullConsistencyCheck if
+		// the user responds with a Yes button click (to have consistency check started
+		// after the KBEditor dialog goes away)
+		MessageForConsistencyCheck();
+	}
 }
 
 void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event)) 
@@ -1434,6 +1507,14 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted
+
+	if (m_bRemindUserToDoAConsistencyCheck)
+	{
+		// give yes/no message, and set app boolean member m_bForceFullConsistencyCheck if
+		// the user responds with a Yes button click (to have consistency check started
+		// after the KBEditor dialog goes away)
+		MessageForConsistencyCheck();
+	}
 }
 
 // other class methods
@@ -1444,7 +1525,7 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
     // (nbPage) in our wxNotebook. We need to associate the pointers with the correct
     // controls here within LoadDataForPage() which is called initially and for each tab
     // page selected. The pointers to controls will differ for each page, hence they need
-    // to be reassociated for each page. Note the nbPage-> pefix on FindWindowById(). I
+    // to be reassociated for each page. Note the nbPage-> prefix on FindWindowById(). I
     // chosen not to use Validators here because of the complications of having pointers to
     // controls differ on each page of the notebook; instead we manually transfer data
     // between dialog controls and their variables.
@@ -1581,9 +1662,11 @@ void CKBEditor::LoadDataForPage(int pageNumSel,int nStartingSelection)
 	// search strings put there by the OnTabSelChange() function, then restore them
 	// to the wxTextCtrl, m_pEditSearches on the new page & then erase the m_arrSearches -
 	// we will leave it populated only when the Go button was pressed (to do the searching)
-	// now erase the storage in the array
+	// now erase the storage in the array; similarly, restore combobox contents, but we
+	// won't clear the m_arrOldSearches array (it's done when we leave the project)
 	DoRestoreSearchStrings();
 	gpApp->m_arrSearches.Empty();
+	UpdateComboInEachPage();
 
 	// get the list of source keys filled
 	if (pMap->size() > 0)
@@ -1883,4 +1966,40 @@ bool CKBEditor::IsInListBox(wxListBox* listBox, wxString str)
 		}
 	}
 	return found;
+}
+
+void CKBEditor::OnComboItemSelected(wxCommandEvent& event)
+{
+	// add combobox item selected to the multiline wxTextCtrl which is for the set of
+	// user-defined search strings to be used for searching the KB
+	DoRetain();
+	wxString strSearch = m_pComboOldSearches->GetStringSelection();
+	gpApp->m_arrSearches.Add(strSearch);
+
+	m_pEditSearches->ChangeValue(_T("")); // clear it
+	int count = gpApp->m_arrSearches.GetCount();
+	wxString eol = _T("\n");
+	wxString str;
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		str = gpApp->m_arrSearches.Item(index);
+		str += eol;
+		m_pEditSearches->AppendText(str);
+	}
+	event.Skip();
+}
+
+void CKBEditor::UpdateComboInEachPage()
+{
+	int count = gpApp->m_arrOldSearches.GetCount(); // has new count value now
+	m_pComboOldSearches->Clear(); 
+	// refill with the longer set of items
+	int index;
+	for (index = 0; index < count; index++)
+	{
+		m_pComboOldSearches->Append(gpApp->m_arrOldSearches.Item(index));
+	}
+	// select the top
+	m_pComboOldSearches->SetSelection(0);
 }

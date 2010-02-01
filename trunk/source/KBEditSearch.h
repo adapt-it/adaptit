@@ -64,8 +64,6 @@ public:
 				// macro and storing struct KBUpdateRecord pointers (see Adapt_It.h)
 	wxArrayString* m_pMatchStrArray; // on heap, label strings for the Matched listbox
 									 // (obtained from KBMatchRecord.strOriginal values)
-	//wxArrayString* m_pUpdateStrArray; // on heap, labels for Updated listbox
-									 // (obtained from KBUpdateRecord.updatedString values)
 	KBMatchRecord* m_pDummyMatchRecord;
 	 
 	// data transfer of the user's choice of search string, or search strings, is via a
@@ -87,7 +85,6 @@ public:
 	int	m_nCurMatchListIndex;
 	int m_nCurUpdateListIndex;
 
-
 protected:
 
 	void EnableFindNextButton(bool bEnableFlag);
@@ -97,7 +94,6 @@ protected:
 
 	void OnOK(wxCommandEvent& event);
 	void OnBnClickedCancel(wxCommandEvent& event);
-	//void OnSize(wxSizeEvent& event);
 	void OnBnClickedUpdate(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedFindNext(wxCommandEvent& WXUNUSED(event));
 	void OnBnClickedRestoreOriginalSpelling(wxCommandEvent& WXUNUSED(event));
@@ -115,13 +111,11 @@ protected:
 private:
 	bool m_bMatchesExist;
 	unsigned int GetUpdateListIndexFromDataPtr(KBUpdateRecord* pCurRecord);
-	// unsigned int GetMatchListIndexFromDataPtr(KBMatchRecord* pCurRecord); <- unneeded
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
 	void SetupMatchArray(wxArrayString* pArrSearches,	// pass in pointer to app's m_arrSearches
 						CKB* pKB, // the knowledge base instance whose contents we are testing
 						KBMatchRecordArray* pMatchRecordArray, // return matched strings here
 						bool* pbIsGlossing); // need this boolean, it defines how many maps we test
-	//void InsertInUpdateList(KBUpdateRecordArray* pMatchRecordArray, KBUpdateRecord* bRec, int index);
 	bool TestForMatch(wxArrayPtrVoid* pSubStringSet, wxString& testStr);
 	void PopulateMatchedList(wxArrayString* pMatchStrArray, KBMatchRecordArray* pMatchRecordArray, 
 						wxListBox* pListBox);

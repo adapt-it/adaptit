@@ -1275,15 +1275,9 @@ typedef struct
 									 // sorted array as the user edits matched items, so
 									 // while the index of it will flop abount, the pointer 
 									 // in memory will remain constant
-	wxUint32		nIndexToMap;	 // values in range 0 to (MAX_WORDS -1) inclusive
 	wxString		strMapKey;		 // key string (i.e. source text) for the 
 									 // CTargetUnit* which stores the matched adaptation
 									 // (or gloss)
-	CTargetUnit*	pTU;			 // pointer to the CTargetUnit instance which stores
-									 // the CRefString which stores the string stored
-									 // here as strMapOldString
-	int				nRefStrIndex;	 // index to the CRefString instance in pTU which
-									 // stores the ref count and  strMapOldString string
 	CRefString*		pRefString;		 // pointer to the CRefString instance whose index in
 									 // the pTU CTargetUnit instance is nRefStrIndex
 } KBMatchRecord;
@@ -2295,6 +2289,7 @@ public:
 				// there is an extensive explanation of the need for this boolean at the end
 				// of Adapt_ItDoc::OnNewDocument() - it suppresses setting read-only protection
 				// while OnInit() is running
+	bool	m_bForceFullConsistencyCheck;
 
 	public:
 
@@ -2637,8 +2632,7 @@ public:
 	// members for support of KB search functionality added Jan-Feb 2010 by BEW
 	wxArrayString m_arrSearches; // set of search strings for dialog's multiline wxTextCtrl
 	wxArrayString m_arrOldSearches; // old search strings accumulated while in this project, this
-					// array (and the one above)should be cleared when the project is exitted
-						
+					// array (and the one above)should be cleared when the project is exitted				
 };
 
 DECLARE_APP(CAdapt_ItApp);

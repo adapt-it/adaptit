@@ -88,6 +88,7 @@ public:
 	CTargetUnit*	pCurTgtUnit;
 	CRefString*		pCurRefString;
 	MapKeyStringToTgtUnit* pMap;
+	bool m_bRemindUserToDoAConsistencyCheck;
 
 	void LoadDataForPage(int pageNumSel,int nStartingSelection);
 	bool IsInListBox(wxListBox* listBox, wxString str);
@@ -115,11 +116,14 @@ protected:
 
 	void OnButtonGo(wxCommandEvent& WXUNUSED(event));
 	void OnButtonEraseAllLines(wxCommandEvent& WXUNUSED(event));
+	void OnComboItemSelected(wxCommandEvent& event);
 
 private:
 	void DoRetain();
+	void UpdateComboInEachPage();
 	void DoRestoreSearchStrings();
 	bool bKBEntryTemporarilyAddedForLookup;
+	void MessageForConsistencyCheck();
 
 	DECLARE_EVENT_TABLE() // MFC uses DECLARE_MESSAGE_MAP()
 };
