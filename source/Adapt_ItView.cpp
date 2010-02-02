@@ -47,7 +47,7 @@
 								// The MSDN docs for warning C4428 are also misleading!
 #endif
 
-#define _Trace_DrawFreeTrans
+//#define _Trace_DrawFreeTrans
 
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
@@ -38443,6 +38443,7 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
     // crash the app, so we won't allow lengthening if there is no array defined yet
 	if (gpCurFreeTransSectionPileArray->IsEmpty()) // && !IsFreeTranslationSrcPhrase(m_pActivePile))
 	{
+		wxLogDebug(_T("OnUpdateLengthenButton: exit at test for empty pile array"));
 		event.Enable(FALSE);
 		return;
 	}
@@ -38452,6 +38453,7 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 	pPile = GetNextPile(pPile); // get the pile immediately after the current end
 	if (pPile == NULL)
 	{
+		wxLogDebug(_T("OnUpdateLengthenButton: exit at test for next pile empty"));
 		// if at the end of bundle or doc, disable the button
 		event.Enable(FALSE);
 		return;
@@ -38468,16 +38470,22 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
             // markers or filtered stuff must end the section (for example, we can't
             // allow the possibility of unfiltering producing new content within a free
             // translation section)
+			wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
 			event.Enable(FALSE);
 			return;
 		}
 		// also, we can't lengthen if there is a defined section following
 		if (pPile->GetSrcPhrase()->m_bStartFreeTrans)
+		{
+			wxLogDebug(_T("OnUpdateLengthenButton: exit at test for ft section starting at next pile"));
 			event.Enable(FALSE);
+		}
 		else
+		{
 			event.Enable(TRUE); // but we can lengthen provided it is extending the 
                             // section into an undefined free translation area and none
                             // of the above end-conditions applies
+		}
 	}
 }
 
@@ -40074,6 +40082,12 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 	nCurStripIndex = nCurStripIndex - (numVisibleStrips / 2 + 2);
 	if (nCurStripIndex < 0)
 		nCurStripIndex = 0;
+	// protect also, at doc end - ensure we start drawing before whatever is visible in
+	// the client area
+	int stripCount = pLayout->GetStripArray()->GetCount();
+	if (nCurStripIndex > stripCount - (numVisibleStrips + 1))
+		nCurStripIndex = stripCount - (numVisibleStrips + 1);
+	// now get the strip pointer and find it's first pile to return to the caller
 	CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
 #ifdef _ALT_LAYOUT_
 	pStartPile = pStrip->GetPileByIndexInStrip(0);
@@ -40136,8 +40150,12 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	FreeTrElement* pElement;
 	wxSize extent;
 	bool bSectionIntersects = FALSE;
-	// get an offscreen pile from which to scan forwards for the anchor pile
+
+    // get an offscreen pile from which to scan forwards for the anchor pile (this helps
+    // keep draws snappy when docs get large; we don't draw below the bottom of the window
+    // either)
 	pPile = GetStartingPileForScan(pApp->m_nActiveSequNum);
+
 	// get it's CSourcePhrase instance
 	pSrcPhrase = pPile->GetSrcPhrase(); // its pointed at sourcephrase
 
@@ -40196,7 +40214,13 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	// one call of DrawFreeTranslations(); we need to use this value in some tests,
 	// because grectViewClient.GetBottom() only gives what we want when the view is
 	// unscrolled
-	int logicalViewClientBottom = (int)pDC->DeviceToLogicalY(grectViewClient.GetBottom());
+	// 
+	// BEW changed 2Feb10, as the LHS value was way too far below the visible strips
+	// (sluggish free translation response reported by Lisbeth Fritzell, late Jan 2010)
+	//int logicalViewClientBottom = (int)pDC->DeviceToLogicalY(grectViewClient.GetBottom());
+	int logicalViewClientBottom = (int)grectViewClient.GetBottom();
+
+
 	// use the thumb position to adjust the Y coordinate of testRect, so it has the
 	// correct logical coordinates value given the amount that the view is currently
 	// scrolled 
@@ -40213,7 +40237,7 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	//  STARTING FROM A PRECEDING OFFSCREEN CPile INSTANCE, BEGINS HERE
 
 	#ifdef _Trace_DrawFreeTrans
-	#ifdef _Trace_DrawFreeTrans
+	#ifdef __WXDEBUG__
 	wxLogDebug(_T("\n BEGIN - Loop About To Start in DrawFreeTranslations()\n"));
 	#endif
 	#endif
@@ -40290,7 +40314,7 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		// the bottom coord (in logical coord space) of the view window - when it is TRUE,
 		// we break out of the loop. Otherwise, if the document has no free translations
 		// ahead, the scan goes to the end of the document - and for documents with
-		// 30,000+ piles, this can take a minute or more!
+		// 30,000+ piles, this can take a very very long time!
 		if (pPile == NULL)
 		{
 			// at doc end, so destroy the elements and we are done, so return
@@ -40300,23 +40324,27 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		CStrip* pStrip = pPile->GetStrip();
 		int nStripTop = pStrip->Top();
 
-#ifdef DrawFT_Bug
-	wxLogDebug(_T(" a: scan in visible part: srcPhrase %s , sequ num %d, strip index %d , nStripTop (logical) %d , grectViewClient bottom %d"),
-		pPile->GetSrcPhrase()->m_srcPhrase, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetStripIndex(),
-		nStripTop,logicalViewClientBottom);
-#endif
+		#ifdef _Trace_DrawFreeTrans
+		#ifdef __WXDEBUG__
+		wxLogDebug(_T(" a: scan in visible part: srcPhrase %s , sequ num %d, strip index %d , nStripTop (logical) %d \n              grectViewClient bottom %d logicalViewClientBottom %d"),
+			pPile->GetSrcPhrase()->m_srcPhrase, pPile->GetSrcPhrase()->m_nSequNumber, pPile->GetStripIndex(),
+			nStripTop,grectViewClient.GetBottom(),logicalViewClientBottom);
+		#endif
+		#endif
 
 		// when scrolled, grecViewClient is unchanged as it is device coords, so we have
 		// to convert the Top coord (ie. y value) to logical coords for the tests
-		if (nStripTop > logicalViewClientBottom)
+		if (nStripTop >= logicalViewClientBottom)
 		{
 			// the strip is below the bottom of the view rectangle, stop searching forward
 			DestroyElements(gpFreeTransArray); // don't leak memory
 			
-#ifdef DrawFT_Bug
-			wxLogDebug(_T(" a: RETURNING;  nStripTop  %d ,  logicalViewClientBottom  %d"),
+			#ifdef _Trace_DrawFreeTrans
+			#ifdef __WXDEBUG__
+			wxLogDebug(_T(" a: RETURNING because OFF WINDOW now;  nStripTop  %d ,  logicalViewClientBottom  %d"),
 				nStripTop, logicalViewClientBottom);
-#endif
+			#endif
+			#endif
 			return;
 		}
 	}
@@ -40668,8 +40696,8 @@ b:	if (!bSectionIntersects)
 
 		if (pElement->subRect.GetTop() > logicalViewClientBottom) 
 		{
-			#ifdef __WXDEBUG__
 			#ifdef _Trace_DrawFreeTrans
+			#ifdef __WXDEBUG__
 			wxLogDebug(_T("No intersection, *** and below bottom of client rect, so return ***"));
 			#endif
 			#endif
@@ -40682,8 +40710,8 @@ b:	if (!bSectionIntersects)
 		}
 		else
 		{
-			#ifdef __WXDEBUG__
 			#ifdef _Trace_DrawFreeTrans
+			#ifdef __WXDEBUG__
 			wxLogDebug(_T(" NO INTERSECTION block:  top is still above grectViewClient's bottom, so goto c: then to a: and iterate"));
 			//wxLogDebug(_T("No intersection, so iterating loop..."));
 			#endif
@@ -40721,8 +40749,8 @@ b:	if (!bSectionIntersects)
 	// offset is the position of the free trans string within the m_markers member
 	gnOffsetInMarkersStr = offset;
 
-	#ifdef __WXDEBUG__
 	#ifdef _Trace_DrawFreeTrans
+	#ifdef __WXDEBUG__
 	wxLogDebug(_T("(Line 40726)Sequ Num  %d  ,  Free Trans:  %s "), pSrcPhrase->m_nSequNumber, ftStr.c_str());
 	#endif
 	#endif
@@ -40809,8 +40837,8 @@ b:	if (!bSectionIntersects)
         // passed in frStr cut up into appropriately sized segments (whole words in each
         // segment), truncating the last segment if not all the ftStr data can be fitted
         // into the available drawing rectangles
-		#ifdef __WXDEBUG__
 		#ifdef _Trace_DrawFreeTrans
+		#ifdef __WXDEBUG__
 		wxLogDebug(_T("call  ** SegmentFreeTranslation() **  Free Trans:  %s "), ftStr.c_str());
 		#endif
 		#endif
@@ -40818,8 +40846,8 @@ b:	if (!bSectionIntersects)
 		SegmentFreeTranslation(pDC,ftStr,ellipsis,extent.GetWidth(),nTotalHorizExtent,
 								gpFreeTransArray,&subStrings,totalRects);
 
-		#ifdef __WXDEBUG__
 		#ifdef _Trace_DrawFreeTrans
+		#ifdef __WXDEBUG__
 			wxLogDebug(_T("returned from:  SegmentFreeTranslation() *** MultiStrip Draw *** "));
 		#endif
 		#endif
@@ -40873,8 +40901,8 @@ b:	if (!bSectionIntersects)
 		}
 
 		subStrings.Clear(); // clear the array ready for the next iteration
-		#ifdef __WXDEBUG__
 		#ifdef _Trace_DrawFreeTrans
+		#ifdef __WXDEBUG__
 			wxLogDebug(_T("subStrings drawn - finished them "));
 		#endif
 		#endif
@@ -40894,10 +40922,16 @@ c:	pPile = GetNextPile(pPile);
 		pSrcPhrase = pPile->GetSrcPhrase();
 	DestroyElements(gpFreeTransArray);
 
-#ifdef DrawFT_Bug
-	wxLogDebug(_T(" At c: next pPile is --  srcphrase %s, sn = %d, going now to a:"),
-		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
-#endif
+		#ifdef DrawFT_Bug
+			wxLogDebug(_T(" At c: next pPile is --  srcphrase %s, sn = %d, going now to a:"),
+				pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
+		#endif
+		#ifdef _Trace_DrawFreeTrans
+		#ifdef __WXDEBUG__
+			wxLogDebug(_T(" At c: next pPile is --  srcphrase %s, sn = %d, going now to a:"),
+				pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
+		#endif
+		#endif
 
 	goto a;
 }
