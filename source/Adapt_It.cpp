@@ -24599,7 +24599,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 	if (!f.Open(theFilename,wxFile::write))
 	{
 		// don't expect a failure, but if we get one, just tell the developer & abort
-		wxMessageBox(_(
+		wxMessageBox(_T(
 		"Failed to open the CustomWorkFolderLocation file at default work folder location. Aborting..."),
 		_T(""), wxICON_ERROR);
 		abort();
@@ -24609,7 +24609,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 	// tell the developer and abort
 	if (m_customWorkFolderPath.IsEmpty())
 	{
-		wxMessageBox(_(
+		wxMessageBox(_T(
 			"Making paths safe: m_customWorkFolderPath is empty when trying to save it to CustomWorkFolderLocation file. Aborting..."),
 		_T(""), wxICON_ERROR);
 		abort();

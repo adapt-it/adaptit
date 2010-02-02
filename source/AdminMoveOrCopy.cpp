@@ -1443,8 +1443,8 @@ void AdminMoveOrCopy::RemoveFilesAndFolders(wxString destFolderPath,
 			if (!bOK)
 			{
 				wxString msg;
-				msg = msg.Format(_T("Failed to remove directory %s "),destFolderPath2.c_str());
-				wxMessageBox(msg,_T("Could not remove directory"),wxICON_WARNING);
+				msg = msg.Format(_("Failed to remove directory %s "),destFolderPath2.c_str());
+				wxMessageBox(msg,_("Could not remove directory"),wxICON_WARNING);
 				m_bUserCancelled = TRUE;
 			}
 //			else

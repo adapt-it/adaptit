@@ -729,7 +729,7 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 	{
 		::wxBell();
 		wxMessageBox(_("You have not yet typed something to search for."),
-		_T("No search strings defined"), wxICON_WARNING);
+		_("No search strings defined"), wxICON_WARNING);
 		return;
 	}
 	else

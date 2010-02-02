@@ -117,6 +117,9 @@ void CWaitDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 		case 12: 
 			WaitMsg = _("Please wait while Adapt It prepares the document for printing");
 			break;
+		case 13: 
+			WaitMsg = _("Searching...");
+			break;
 		default:
 			WaitMsg = _("Please wait. This may take a while...");
 	}
