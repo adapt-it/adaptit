@@ -47,6 +47,8 @@
 								// The MSDN docs for warning C4428 are also misleading!
 #endif
 
+#define _Trace_DrawFreeTrans
+
 #include <wx/docview.h>	// includes wxWidgets doc/view framework
 #include <wx/file.h>
 #include <wx/clipbrd.h>
@@ -38778,6 +38780,9 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 		// phrase box is not defined, no active location is valid, so return
 		return;
 
+#ifdef __WXDEBUG__
+	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
+#endif
 	pApp->m_pActivePile = GetPile(activeSequNum); // has to be set here, because at
 							// end of RecalcLayout's legacy code it is still undefined
 	bool bEditBoxHasText = FALSE; // to help with initializing the ComposeBar's contents,
@@ -38823,7 +38828,11 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 			// store this pile in the global array
 			gpCurFreeTransSectionPileArray->Add(pile);
 
-            // there might be only one pile in the section, if so, this one would also
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("Storing sequ num %d in gpCurFreeTransSectionPileArray, count = %d"),
+				pile->GetSrcPhrase()->m_nSequNumber, gpCurFreeTransSectionPileArray->GetCount());
+#endif
+           // there might be only one pile in the section, if so, this one would also
             // have the m_bEndFreeTrans flag set TRUE, so check for this and if so,
             // break out here
 			if (pile->GetSrcPhrase()->m_bEndFreeTrans)
@@ -38915,6 +38924,10 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 			// store this pile in the global array
 			gpCurFreeTransSectionPileArray->Add(pile);
 
+#ifdef __WXDEBUG__
+			wxLogDebug(_T("Empty area:  Storing sequ num %d in gpCurFreeTransSectionPileArray, count = %d"),
+				pile->GetSrcPhrase()->m_nSequNumber, gpCurFreeTransSectionPileArray->GetCount());
+#endif
 			// count the pile's words (BEW changed 28Apr06)
 			wordcount += pile->GetSrcPhrase()->m_nSrcWords;
 
@@ -40127,6 +40140,14 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	pPile = GetStartingPileForScan(pApp->m_nActiveSequNum);
 	// get it's CSourcePhrase instance
 	pSrcPhrase = pPile->GetSrcPhrase(); // its pointed at sourcephrase
+
+#ifdef __WXDEBUG__
+#ifdef _Trace_DrawFreeTrans
+	wxLogDebug(_T("\nDrawFreeTrans: starting pile sn = %d  srcPhrase = %s"),
+		pSrcPhrase->m_nSequNumber, pSrcPhrase->m_srcPhrase.c_str());
+#endif
+#endif
+
 	wxString ellipsis = _T("...");
 	wxString ftStr;
 	wxArrayString subStrings;
@@ -40192,7 +40213,9 @@ void CAdapt_ItView::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	//  STARTING FROM A PRECEDING OFFSCREEN CPile INSTANCE, BEGINS HERE
 
 	#ifdef _Trace_DrawFreeTrans
-	TRACE0("\n\n BEGIN - Loop About To Start in DrawFreeTranslations()\n\n");
+	#ifdef _Trace_DrawFreeTrans
+	wxLogDebug(_T("\n BEGIN - Loop About To Start in DrawFreeTranslations()\n"));
+	#endif
 	#endif
 
 	// whm: I moved the following declarations and initializations here
@@ -40255,11 +40278,9 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 		#ifdef __WXDEBUG__
 		if (pPile)
 		{
-			TRACE2("while     sn = %d  ,  word =  %s\n", 
-						pPile->GetSrcPhrase()->m_nSequNumber,
+			wxLogDebug(_T("while   sn = %d  ,  word =  %s"), pPile->GetSrcPhrase()->m_nSequNumber,
 						pPile->GetSrcPhrase()->m_srcPhrase.c_str());
-			TRACE2("  Has?   %d   ,   Start?   %d\n",
-								pPile->GetSrcPhrase()->m_bHasFreeTrans,
+			wxLogDebug(_T("  Has? %d , Start? %d\n"), pPile->GetSrcPhrase()->m_bHasFreeTrans,
 								pPile->GetSrcPhrase()->m_bStartFreeTrans);
 		}
 		#endif
@@ -40304,7 +40325,9 @@ a:	while ((pPile != NULL) && (!pPile->GetSrcPhrase()->m_bStartFreeTrans))
 ed:	if (pPile == NULL)
 	{
 		#ifdef _Trace_DrawFreeTrans
-		TRACE0("** exiting due to null pile while scanning ahead **\n");
+		#ifdef __WXDEBUG__
+		wxLogDebug(_T("** EXITING due to null pile while scanning ahead **\n"));
+		#endif
 		#endif
 
 		// there are as yet no free translations in this doc, or we've come to its end
@@ -40342,8 +40365,10 @@ ed:	if (pPile == NULL)
 	bSectionIntersects = FALSE; // TRUE when the section being laid out intersects 
 								// the window's client area
 	#ifdef _Trace_DrawFreeTrans
-	TRACE3("curPileIndex  %d  , curStripIndex  %d   , curPileCount %d  \n",
+	#ifdef __WXDEBUG__
+	wxLogDebug(_T("curPileIndex  %d  , curStripIndex  %d  , curPileCount %d  "),
 				curPileIndex,curStripIndex,curPileCount);
+	#endif
 	#endif
 
 	if (gbRTL_Layout)
@@ -40643,8 +40668,10 @@ b:	if (!bSectionIntersects)
 
 		if (pElement->subRect.GetTop() > logicalViewClientBottom) 
 		{
+			#ifdef __WXDEBUG__
 			#ifdef _Trace_DrawFreeTrans
-			TRACE0("No intersection, *** and below bottom of client rect, so return ***\n");
+			wxLogDebug(_T("No intersection, *** and below bottom of client rect, so return ***"));
+			#endif
 			#endif
 			DestroyElements(gpFreeTransArray); // don't leak memory
 
@@ -40655,8 +40682,11 @@ b:	if (!bSectionIntersects)
 		}
 		else
 		{
+			#ifdef __WXDEBUG__
 			#ifdef _Trace_DrawFreeTrans
-			TRACE0("No intersection, so iterating loop...\n");
+			wxLogDebug(_T(" NO INTERSECTION block:  top is still above grectViewClient's bottom, so goto c: then to a: and iterate"));
+			//wxLogDebug(_T("No intersection, so iterating loop..."));
+			#endif
 			#endif
 
 			DestroyElements(gpFreeTransArray); // don't leak memory
@@ -40691,8 +40721,10 @@ b:	if (!bSectionIntersects)
 	// offset is the position of the free trans string within the m_markers member
 	gnOffsetInMarkersStr = offset;
 
+	#ifdef __WXDEBUG__
 	#ifdef _Trace_DrawFreeTrans
-	TRACE2("Sequ Num  %d  ,  Free Trans:  %s \n", pSrcPhrase->m_nSequNumber, ftStr.c_str());
+	wxLogDebug(_T("(Line 40726)Sequ Num  %d  ,  Free Trans:  %s "), pSrcPhrase->m_nSequNumber, ftStr.c_str());
+	#endif
 	#endif
 
     // whm changed 24Aug06 when called from OnEnChangedEditBox, we need to be able to allow
@@ -40777,8 +40809,21 @@ b:	if (!bSectionIntersects)
         // passed in frStr cut up into appropriately sized segments (whole words in each
         // segment), truncating the last segment if not all the ftStr data can be fitted
         // into the available drawing rectangles
+		#ifdef __WXDEBUG__
+		#ifdef _Trace_DrawFreeTrans
+		wxLogDebug(_T("call  ** SegmentFreeTranslation() **  Free Trans:  %s "), ftStr.c_str());
+		#endif
+		#endif
+
 		SegmentFreeTranslation(pDC,ftStr,ellipsis,extent.GetWidth(),nTotalHorizExtent,
 								gpFreeTransArray,&subStrings,totalRects);
+
+		#ifdef __WXDEBUG__
+		#ifdef _Trace_DrawFreeTrans
+			wxLogDebug(_T("returned from:  SegmentFreeTranslation() *** MultiStrip Draw *** "));
+		#endif
+		#endif
+
 
 #ifdef DrawFT_Bug
 			wxLogDebug(_T(" Drawing ftSstr *** MultiStrip Draw ***"));
@@ -40828,6 +40873,12 @@ b:	if (!bSectionIntersects)
 		}
 
 		subStrings.Clear(); // clear the array ready for the next iteration
+		#ifdef __WXDEBUG__
+		#ifdef _Trace_DrawFreeTrans
+			wxLogDebug(_T("subStrings drawn - finished them "));
+		#endif
+		#endif
+
 	}
 
 	if (drawFTCaller == call_from_edit)

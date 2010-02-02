@@ -43,6 +43,7 @@
 #include "TargetUnit.h"
 #include "RefString.h"
 #include "KB.h"
+#include "WaitDlg.h"
 #include "KBEditSearch.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -233,9 +234,15 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	m_pMatchListBox->Clear();
 	m_pUpdateListBox->Clear();
 
-	// *** TODO **** set up a progress dialog here
-
-
+	{
+	// put up a Wait dialog
+	CWaitDlg waitDlg(this);
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 13;	// 13 is "Searching..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
 
 	// find the matches -- all search strings are tested against all of KB contents in the
 	// m_pTUList list of CTargetUnit pointer instances
@@ -244,11 +251,7 @@ void KBEditSearch::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 	// populate the Matched array
 	m_bMatchesExist = PopulateMatchLabelsArray(m_pMatchRecordArray, m_pMatchStrArray);
 	PopulateMatchedList(m_pMatchStrArray, m_pMatchRecordArray, m_pMatchListBox);
-
-
-
-	//  *** TODO **** end the progress dialog here
-
+	} // waitDlg goes out of scope here
 }
 
 bool KBEditSearch::PopulateMatchLabelsArray(KBMatchRecordArray* pMatchRecordArray, 
@@ -333,7 +336,6 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 	KBMatchRecord* pMatchRec = NULL;
 	CTargetUnit* pTU = NULL;
 	CRefString* pRefStr = NULL;
-//	int nTUListNodeIndex;
 	size_t numWords;
 	wxString testStr; // string from each CRefString instance is put here prior to testing
 					  // for any search substring matches within it (it could be a gloss,
@@ -375,7 +377,6 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					posRef = pTU->m_pTranslations->GetFirst(); 
 					wxASSERT(posRef != NULL);
 					pRefStr = (CRefString*)posRef->GetData();
-					//nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
 					posRef = posRef->GetNext(); // prepare for possibility of another CRefString*
 					testStr = pRefStr->m_translation;
 
@@ -412,10 +413,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						// fill it out
 						pMatchRec->strOriginal = testStr; // adaptation, or gloss
 						pMatchRec->pUpdateRecord = NULL; // as yet, undefined
-						//pMatchRec->nIndexToMap = numWords-1;
 						pMatchRec->strMapKey = key;
-						//pMatchRec->pTU = pTU;
-						//pMatchRec->nRefStrIndex = nTUListNodeIndex;
 						pMatchRec->pRefString = pRefStr;
 
 						// store it
@@ -427,7 +425,6 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					while (posRef != NULL)
 					{
 						pRefStr = (CRefString*)posRef->GetData();
-						//nTUListNodeIndex = pTU->m_pTranslations->IndexOf(pRefStr);
 						wxASSERT(pRefStr != NULL); 
 						posRef = posRef->GetNext(); // prepare for possibility of yet another
 						testStr = pRefStr->m_translation;
@@ -454,10 +451,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
 							pMatchRec->pUpdateRecord = NULL; // as yet, undefined
-							//pMatchRec->nIndexToMap = numWords-1;
 							pMatchRec->strMapKey = key;
-							//pMatchRec->pTU = pTU;
-							//pMatchRec->nRefStrIndex = nTUListNodeIndex;
 							pMatchRec->pRefString = pRefStr;
 
 							// store it
