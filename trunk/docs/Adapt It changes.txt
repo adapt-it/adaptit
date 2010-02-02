@@ -1,4 +1,4 @@
-Version 5.2.0 update ??November2009:
+Version 5.2.0 update ?? mid February2010:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
 ----------------------------------------------
@@ -70,7 +70,12 @@ thrown away, any new spellings in the Updated Spellings list are ignored.
 (i) on return to the parent dialog (and provided the Cancel button was not
 clicked), the set of typed search string "lines" are added to the contents of
 the combo box, so that at a later time it is easy to search for any of those
-"lines" again.
+"lines" again. Also, a message reminds the user that spellings were
+changed and that has made the knowledge base inconsistent with the 
+adaptation documents. It suggests that a consistency check of the whole
+set of documents be done when the parent dialog closes, and if the Yes
+button is clicked, the user is shown the dialog for choosing to consistency 
+check either the current document, or all documents.
 * Added support for an automated export (default options used)
 of the adaptation line's text, using the command line. The command
 line requires four parameters, all must be present, and in the
@@ -218,6 +223,8 @@ end was not retained.
 * Pointing My Documents (in XP) or Documents (in Vista & above)
 at a partition such as D:\ caused a bad path to the basic configuration
 file to be produced, leading to a error messages, or worse.
+* Free translating a large file become progressively more sluggish as 
+free translations were entered. It's now speedy and responsive.
 
 ----------------------------------------------
 Bug fixes in 5.1.4
