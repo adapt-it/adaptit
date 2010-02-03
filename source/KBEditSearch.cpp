@@ -400,7 +400,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 					#ifdef __WXDEBUG__
 					wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
 					anItemsCount++;
-					#endif __WXDEBUG__
+					#endif //__WXDEBUG__
 
 					bool bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
 					if (bSuccessfulMatch)
@@ -408,7 +408,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						pMatchRec = new KBMatchRecord;
 						#ifdef __WXDEBUG__
 						wxLogDebug(_T("Matched:  %s"),testStr.c_str());
-						#endif __WXDEBUG__
+						#endif //__WXDEBUG__
 
 						// fill it out
 						pMatchRec->strOriginal = testStr; // adaptation, or gloss
@@ -439,7 +439,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 						#ifdef __WXDEBUG__
 						wxLogDebug(_T("KB (map=%d):  %s"),numWords,testStr.c_str());
 						anItemsCount++;
-						#endif __WXDEBUG__
+						#endif //__WXDEBUG__
 
 						bSuccessfulMatch = TestForMatch(&arrSubStringSet, testStr); 
 						if (bSuccessfulMatch)
@@ -447,7 +447,7 @@ void KBEditSearch::SetupMatchArray(wxArrayString* pArrSearches,
 							pMatchRec = new KBMatchRecord;
 							#ifdef __WXDEBUG__
 							wxLogDebug(_T("Matched:  %s"),testStr.c_str());
-							#endif __WXDEBUG__
+							#endif //__WXDEBUG__
 							// fill it out
 							pMatchRec->strOriginal = testStr; // adaptation, or gloss
 							pMatchRec->pUpdateRecord = NULL; // as yet, undefined
