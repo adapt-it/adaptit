@@ -1759,4 +1759,22 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 	return TRUE;
 }
 
+wxString RemoveHyphens(wxString& name)
+{
+	// filter out any hyphens, return the resulting string
+	wxString newName = _T("");
+	size_t length = name.Len();
+	size_t index;
+	wxChar chr;
+	for (index = 0; index < length; index++)
+	{
+		chr = name.GetChar(index);
+		if (chr != _T('-'))
+		{
+			newName += chr;
+		}
+	}
+	return newName;
+}
+
 
