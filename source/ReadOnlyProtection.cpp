@@ -40,6 +40,7 @@
 #include <wx/filename.h>
 
 #include "Adapt_It.h"
+#include "helpers.h"
 #include "ReadOnlyProtection.h"
 
 // Define type safe pointer lists
@@ -70,24 +71,6 @@ ReadOnlyProtection::~ReadOnlyProtection()
 }
 
 // implementation
-
-wxString ReadOnlyProtection::RemoveHyphens(wxString& name)
-{
-	// filter out any hyphens, return the resulting string
-	wxString newName = _T("");
-	size_t length = name.Len();
-	size_t index;
-	wxChar chr;
-	for (index = 0; index < length; index++)
-	{
-		chr = name.GetChar(index);
-		if (chr != _T('-'))
-		{
-			newName += chr;
-		}
-	}
-	return newName;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

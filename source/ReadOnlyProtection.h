@@ -91,7 +91,6 @@ public:
                     // set to TRUE the app member m_bReadOnlyAccess, according to whether
                     // the attempt at removal succeeded or not, respectively
 private:
-	wxString	RemoveHyphens(wxString& name); // remove any hyphen characters
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
 	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got

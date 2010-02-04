@@ -96,6 +96,9 @@ bool IsReadOnlyProtection_LockFile(wxString& filename);
 
 long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
 					  bool bStoreEmptyStringsToo = TRUE);
+wxString RemoveHyphens(wxString& name); // remove any hyphen characters, used in
+										// ReadOnlyProtection.cpp
+
 
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
