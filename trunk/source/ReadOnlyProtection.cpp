@@ -653,7 +653,11 @@ _("You have READ-ONLY access to this project folder."),_("Another process owns w
 		m_strOwningReadOnlyProtectionFilename = m_strReadOnlyProtectionFilename;
 		wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
 												m_strReadOnlyProtectionFilename;
-		m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write);
+		bool bOpenOK; // whm added 4Feb10
+		bOpenOK = m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
+#ifdef __WXDEBUG__ // whm added 4Feb10
+		wxLogDebug(_T("m_pROPwxFile Open(readOnlyProtectionFilePath,wxFile::write_excl) was %u where 1=true and 0=false"),bOpenOK);
+#endif
 		wxASSERT(m_pApp->m_pROPwxFile->IsOpened()); // check it got opened
 	}
 #ifdef _DEBUG_ROP
