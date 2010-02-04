@@ -110,8 +110,8 @@ void ReadOnlyProtection::Initialize()
 /// \return		the current user id, or an empty string if it cannot be determined
 /// \remarks	Obtain from wxWidgets "Network, user and OS functions" calls; if empty string
 ///				returned, the caller should set up a default string such as "UnknownUser"
-/// BEW added 4Feb10: the filter function RemoveHyphens which ensures all machine names and
-/// user names do not have any hyphens. (Then we can safely use hyphen for name
+/// BEW added 4Feb10: the filter function ChangeHyphensToUnderscores which ensures all machine
+/// names and user names do not have any hyphens. (Then we can safely use hyphen for name
 /// delimitation and safe parsing of the lock file's name.)
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::GetLocalUsername()
@@ -120,7 +120,7 @@ wxString ReadOnlyProtection::GetLocalUsername()
 	if (!theName.IsEmpty())
 	{
 		// filter out of the name any hyphens
-		theName = RemoveHyphens(theName);	
+		theName = ChangeHyphensToUnderscores(theName);	
 	}
 	return theName;
 }
@@ -129,8 +129,8 @@ wxString ReadOnlyProtection::GetLocalUsername()
 /// \return		the host machine's name, or an empty string if it cannot be determined
 /// \remarks	Obtain from wxWidgets "Network, user and OS functions" calls; if empty string
 ///				returned, the caller should set up a default string such as "UnknownMachine"
-/// BEW added 4Feb10: the filter function RemoveHyphens which ensures all machine names and
-/// user names do not have any hyphens. (Then we can safely use hyphen for name
+/// BEW added 4Feb10: the filter function ChangeHyphensToUnderscores which ensures all machine
+/// names and user names do not have any hyphens. (Then we can safely use hyphen for name
 /// delimitation and safe parsing of the lock file's name.)
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::GetLocalMachinename()
@@ -140,7 +140,7 @@ wxString ReadOnlyProtection::GetLocalMachinename()
 	if (!theMachine.IsEmpty())
 	{
 		// filter out of the name any hyphens
-		theMachine = RemoveHyphens(theMachine);	
+		theMachine = ChangeHyphensToUnderscores(theMachine);	
 	}
 	return theMachine;
 }

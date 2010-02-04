@@ -1759,7 +1759,7 @@ _("Failed to make the directory  %s  the current working directory prior to gett
 	return TRUE;
 }
 
-wxString RemoveHyphens(wxString& name)
+wxString ChangeHyphensToUnderscores(wxString& name)
 {
 	// filter out any hyphens, return the resulting string
 	wxString newName = _T("");
@@ -1772,6 +1772,10 @@ wxString RemoveHyphens(wxString& name)
 		if (chr != _T('-'))
 		{
 			newName += chr;
+		}
+		else
+		{
+			newName += _T('_');
 		}
 	}
 	return newName;
