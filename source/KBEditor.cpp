@@ -707,6 +707,7 @@ void CKBEditor::DoRetain()
 	// SmartTokenize always first clears the passed in wxArrayString
 	long numSearchStrings = SmartTokenize(delims, contents, gpApp->m_arrSearches, 
 					  bStoreEmptyStringsToo);
+	numSearchStrings = numSearchStrings; // avoid compiler warning
 	// check what we got
 #ifdef __WXDEBUG__
 	long index;
