@@ -71,12 +71,30 @@ ReadOnlyProtection::~ReadOnlyProtection()
 
 // implementation
 
+wxString ReadOnlyProtection::RemoveHyphens(wxString& name)
+{
+	// filter out any hyphens, return the resulting string
+	wxString newName = _T("");
+	size_t length = name.Len();
+	size_t index;
+	wxChar chr;
+	for (index = 0; index < length; index++)
+	{
+		chr = name.GetChar(index);
+		if (chr != _T('-'))
+		{
+			newName += chr;
+		}
+	}
+	return newName;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \remarks	Initialize the ReadOnlyProtection class. Specifically, for the local
 /// running Adapt It instance, and local user, on the local machine, create a suitable
 /// read-only protection file with .lock extension to be kept ready for use for as long as
-/// this session lasts. Called from CAdapt_ItApp::OnInit() only.
+/// this session lasts. Called from CAdapt_ItApp::OnInit() only. 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void ReadOnlyProtection::Initialize()
 {
@@ -85,12 +103,12 @@ void ReadOnlyProtection::Initialize()
 
 	// obtain the host machine's name, and the current user's id (ie. the name used
 	// in path specifications);  set defaults if either or both can't be determined
-	m_strLocalUsername = GetLocalUsername();
+	m_strLocalUsername = GetLocalUsername(); // hyphens have been filtered out
 	if (m_strLocalUsername.IsEmpty())
 	{
 		m_strLocalUsername = _T("UnknownUser"); // not localizable, just need 'something'
 	}
-	m_strLocalMachinename = GetLocalMachinename();
+	m_strLocalMachinename = GetLocalMachinename(); // hyphens have been filtered out
 	if (m_strLocalMachinename.IsEmpty())
 	{
 		m_strLocalMachinename = _T("UnknownMachine"); // ditto
@@ -103,19 +121,24 @@ void ReadOnlyProtection::Initialize()
 
 	// at launch, this one should be empty
 	m_strOwningReadOnlyProtectionFilename.Empty();
-
-	// make the file descriptor integer default to stderr for a safe useless value
-	//ropFD = wxFile::fd_stderr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		the current user id, or an empty string if it cannot be determined
 /// \remarks	Obtain from wxWidgets "Network, user and OS functions" calls; if empty string
 ///				returned, the caller should set up a default string such as "UnknownUser"
+/// BEW added 4Feb10: the filter function RemoveHyphens which ensures all machine names and
+/// user names do not have any hyphens. (Then we can safely use hyphen for name
+/// delimitation and safe parsing of the lock file's name.)
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::GetLocalUsername()
 {
 	wxString theName = ::wxGetUserId(); // returns empty string if not found
+	if (!theName.IsEmpty())
+	{
+		// filter out of the name any hyphens
+		theName = RemoveHyphens(theName);	
+	}
 	return theName;
 }
 
@@ -123,11 +146,19 @@ wxString ReadOnlyProtection::GetLocalUsername()
 /// \return		the host machine's name, or an empty string if it cannot be determined
 /// \remarks	Obtain from wxWidgets "Network, user and OS functions" calls; if empty string
 ///				returned, the caller should set up a default string such as "UnknownMachine"
+/// BEW added 4Feb10: the filter function RemoveHyphens which ensures all machine names and
+/// user names do not have any hyphens. (Then we can safely use hyphen for name
+/// delimitation and safe parsing of the lock file's name.)
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::GetLocalMachinename()
 {
 	// get's the host machine's name (ignores domain name)
 	wxString theMachine = ::wxGetHostName(); // returns empty string if not found
+	if (!theMachine.IsEmpty())
+	{
+		// filter out of the name any hyphens
+		theMachine = RemoveHyphens(theMachine);	
+	}
 	return theMachine;
 }
 
@@ -153,6 +184,9 @@ wxString ReadOnlyProtection::GetLocalProcessID()
 /// \remarks	extract the username string from the filename; pass filename by value so
 ///				we can play with the string internally with impunity
 ///				Internally accesses the CAdapt_ItApp class's wxString member m_strLock_Suffix
+///				BEW note, 4Feb10, this use of hyphen as a delimiter for parsing is safe
+///				because hyphens are filtered out of machinename and username strings
+///				before thsy are used to construct the lock file's name
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::ExtractUsername(wxString strFilename)
 {
@@ -175,6 +209,9 @@ wxString ReadOnlyProtection::ExtractUsername(wxString strFilename)
 /// \remarks	extract the process ID string from the filename; pass filename by value so
 ///				we can play with the string internally with impunity
 ///				Internally accesses the CAdapt_ItApp class's wxString member m_strLock_Suffix
+///				BEW note, 4Feb10, this use of hyphen as a delimiter for parsing is safe
+///				because hyphens are filtered out of machinename and username strings
+///				before thsy are used to construct the lock file's name
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::ExtractProcessID(wxString strFilename)
 {
@@ -198,6 +235,9 @@ wxString ReadOnlyProtection::ExtractProcessID(wxString strFilename)
 ///	\param		strFilename		->	the read-only protect filename that was found
 /// \remarks	extract the machinename string from the filename; pass filename by value so
 ///				we can play with the string internally with impunity
+///				BEW note, 4Feb10, this use of hyphen as a delimiter for parsing is safe
+///				because hyphens are filtered out of machinename and username strings
+///				before thsy are used to construct the lock file's name
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::ExtractMachinename(wxString strFilename)
 {

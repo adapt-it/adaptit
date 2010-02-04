@@ -46,9 +46,9 @@ public:
 	// attributes
 	CAdapt_ItApp* m_pApp; // pointer to the running application instance
 private:
-	wxString	m_strLocalUsername; // whoever is the user running this instance
-	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance
-	wxString	m_strLocalProcessID; // the running instance's PID converted to a wxString
+	wxString	m_strLocalUsername; // whoever is the user running this instance (hyphens removed)
+	wxString	m_strLocalMachinename; // name of the machine running this Adapt It instance (hyphens removed)
+	wxString	m_strLocalProcessID; // the number which is the running instance's PID converted to a wxString
 
 	wxString	m_strOwningUsername; // a holder for the Username parsed from the filename, and
 				// set to empty string whenever the target project folder is owned by nobody
@@ -59,7 +59,9 @@ private:
 	wxString	m_strAIROP_Prefix; // first part of the filename (see OnInit())
 	wxString	m_strLock_Suffix; // the suffix to add to the filename's end (see OnInit())
 	wxString	m_strReadOnlyProtectionFilename; // has the form ~AIROP*.lock where * will
-						// be machinename followed by username, delimited by single hyphens
+							// be machinename followed by username, delimited by single
+							// hyphens (and hyphens have been filtered from the machinename
+							// and username, if present on the owning machine and user names)
 	wxString	m_strOwningReadOnlyProtectionFilename; // stores the one found in a targetted
 						// project folder - possibly on a remote machine, but could be on the
 						// local machine and so could be the same as what is in the member
@@ -89,6 +91,7 @@ public:
                     // set to TRUE the app member m_bReadOnlyAccess, according to whether
                     // the attempt at removal succeeded or not, respectively
 private:
+	wxString	RemoveHyphens(wxString& name); // remove any hyphen characters
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
 	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
