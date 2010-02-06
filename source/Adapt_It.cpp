@@ -71,6 +71,7 @@
 #include <wx/propdlg.h> // for wxPropertySheetDialog
 #include <wx/stdpaths.h> // for GetResourcesDir and GetLocalizedResourcesDir
 #include <wx/tooltip.h>
+#include <wx/process.h> // for wxProcess::Exists()
 
 // the next are for wxHtmlHelpController (wxWidgets chooses the appropriate help controller
 // class) 
@@ -4988,6 +4989,14 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_pROP = new ReadOnlyProtection(this);
 	m_pROP->Initialize();
 	
+	// test wxProcess functions
+	//unsigned long tempPID = ::wxGetProcessId(); 
+	//bool bPIDExists;
+	//bPIDExists = wxProcess::Exists(tempPID);
+	//bPIDExists = wxProcess::Exists(9000);
+	// result: wxProcess::Exists() returns true for an existing process, false if the pid isn't assigned
+	// end of wxProcess function testing
+
 	// test read-only access functionality
 	/* successful, m_pROPwxFile on heap, if open, stays open until explicitly Close()-ed
 	wxString projectFolderPath = _T("C:\\Card1");
