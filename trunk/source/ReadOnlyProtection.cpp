@@ -434,18 +434,43 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 {
 	wxString pathToFile = folderPath + m_pApp->PathSeparator + ropFile;
 	wxASSERT(::wxFileExists(pathToFile));
-    // The file can be removed only if it is a (closed) one, that is, a zombie left over
-    // from a crash or power loss (regardless of whoever was the former owner for writing)
-	bool bRemoved = ::wxRemoveFile(pathToFile);
-	if (bRemoved)
+
+	// whm modified 5Feb10 with alternative test for for checking for a zombie on Linux and
+	// Mac systems in which we check whether the lock file's PID is a current process or
+	// not. If not, we assume that it is a zombie, and remove it only in that case. We don't
+	// try to remove the file as the test on Linux or the Mac, because on those systems, 
+	// even a file which is open-for-writing can be removed via ::wxRemoveFile().
+	// TODO: Eventually I think we want to set the file attributes of the lock file or find
+	// a suitable alternative so that the test on Linux and Mac are able to distinguish a
+	// true zombie from a file which might be "owned" by a different computer elsewhere
+	// across a LAN.
+	
+	// Is the local process ID different from the PID in the ropFile?
+	if (GetLocalProcessID() != ExtractProcessID(ropFile))
 	{
-		// we were able to remove it, so it's a zombie
+#ifdef __WXMSW__
+		// The file can be removed only if it is a (closed) one, that is, a zombie left over
+		// from a crash or power loss (regardless of whoever was the former owner for writing)
+		bool bRemoved = ::wxRemoveFile(pathToFile);
+		if (bRemoved)
+		{
+			// we were able to remove it, so it's a zombie
+			return TRUE;
+		}
+		else
+		{
+			// we could not remove it, so it is already opened by someone else's process, (even
+			// the original one I initiated myself)
+			return FALSE;
+		}
+#else
+		// On non-Windows systems assume it is a zombie without trying to remove it
 		return TRUE;
+#endif
 	}
 	else
 	{
-        // we could not remove it, so it is already opened by someone else's process, (even
-        // the original one I initiated myself)
+		// the current process owns the lock file - it is not a zombie
 		return FALSE;
 	}
 }
