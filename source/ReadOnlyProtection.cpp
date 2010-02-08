@@ -162,7 +162,7 @@ wxString ReadOnlyProtection::GetLocalProcessID()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-/// \return		the username part of "~AIROP-machinename-username.lock"
+/// \return		the username part of "~AIROP-machinename-username-processID.lock"
 ///	\param		strFilename		->	the read-only protect filename that was found
 /// \remarks	extract the username string from the filename; pass filename by value so
 ///				we can play with the string internally with impunity
@@ -214,7 +214,7 @@ wxString ReadOnlyProtection::ExtractProcessID(wxString strFilename)
 	return theID;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
-/// \return		the machinename part of "~AIROP-machinename-username.lock"
+/// \return		the machinename part of "~AIROP-machinename-username-processID.lock"
 ///	\param		strFilename		->	the read-only protect filename that was found
 /// \remarks	extract the machinename string from the filename; pass filename by value so
 ///				we can play with the string internally with impunity
@@ -235,11 +235,12 @@ wxString ReadOnlyProtection::ExtractMachinename(wxString strFilename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-/// \return		the composed filename, of form "~AIROP-machinename-username.lock"
+/// \return		the composed filename, of form "~AIROP-machinename-username-processID.lock"
 ///	\param		prefix		->	"~AIROP" always
 /// \param		suffix		->	".lock" always
 ///	\param		machinename	->	local computer's name
 /// \param		username	->	local user's name
+/// \param		processID	->	local running instance's PID value
 /// \remarks	compose the read-only protection filename, for the local machine & user
 ///////////////////////////////////////////////////////////////////////////////////////////
 wxString ReadOnlyProtection::MakeReadOnlyProtectionFilename(
@@ -258,17 +259,18 @@ wxString ReadOnlyProtection::MakeReadOnlyProtectionFilename(
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-/// \return		return TRUE if users or machines or both don't match; return FALSE when both
-///				users and machines are the same (that is, FALSE means the running instance
-///				making the test has ownership of the project folder already, and so writing of
-///				KB and documents should not be prevented, also return FALSE if noone currently
-///				owns the folder being checked
+/// \return		return TRUE if users or machines or PIDs don't match; return FALSE when
+///             all of users, machines and PIDs are the same (that is, FALSE means the
+///             running instance making the test has ownership of the project folder
+///             already, and so writing of KB and documents should not be prevented, also
+///             return FALSE if noone currently owns the folder being checked
 ///	\param		localMachine	->	local computer's name
 /// \param		localUser		->	local user's name
-///	\param		theOtherMachine	->	target folder's computer's name (can be local machine)
-/// \param		theOtherUser	->	target folder's user's name (can be the local user)
+///	\param		theOtherMachine	->	the other computer's name (can be local machine)
+/// \param		theOtherUser	->	the other user's name (can be the local user)
+/// \param      theOwningProcessID -> the other machine's running instance's PID
 /// \remarks	Test to determine whether or not the target folder is owned currently, and if
-///				it is, then who owns it - whether myself, or someone else. Returning a FALSe
+///				it is, then who owns it - whether myself, or someone else. Returning a FALSE
 ///				value tells the caller that I can safely take possession of the target folder
 ///				for writing
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -429,13 +431,14 @@ projectFolderPath.c_str());
 /// \remarks	Builds the path to the protection filename and attempts to remove the file.
 ///             This will succeed only if the file is not open for writing. A side-effect
 ///             therefore is the successful removal of the file if in fact it was a zombie.
+///             whm modified 5Feb10
 ///////////////////////////////////////////////////////////////////////////////////////////
 bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 {
 	wxString pathToFile = folderPath + m_pApp->PathSeparator + ropFile;
 	wxASSERT(::wxFileExists(pathToFile));
 
-	// whm modified 5Feb10 with alternative test for for checking for a zombie on Linux and
+	// whm modified 5Feb10 with alternative test for checking for a zombie on Linux and
 	// Mac systems in which we check whether the lock file's PID is a current process or
 	// not. If not, we assume that it is a zombie, and remove it only in that case. We don't
 	// try to remove the file as the test on Linux or the Mac, because on those systems, 
