@@ -580,10 +580,16 @@ bool ReadOnlyProtection::IsTheProjectFolderOwnedForWriting(wxString& projectFold
 	if (m_strOwningReadOnlyProtectionFilename.IsEmpty())
 	{
 		// there is no read-only protection file in this project folder
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsTheProjectFolderOwnedForWriting: There is no read-only protection file in project folder")); 
+#endif
 		return FALSE; // tell caller I now have qualified to own it for writing
 	}
 	else
 	{
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsTheProjectFolderOwnedForWriting: There is a read-only protection file in project folder")); 
+#endif
 		// there is a read-only protection file in this project, and so there
 		// are two possibilities:
 		// (1) it's a zombie left over after a crash or power loss - in which case we
