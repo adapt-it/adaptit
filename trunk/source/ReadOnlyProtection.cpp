@@ -333,7 +333,7 @@ projectFolderPath.c_str());
 	bool bDirectoryExists = ::wxDirExists(projectFolderPath);
 #ifdef _DEBUG_ROP
 	wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: projectFolderPath %s ,  exists? = %s"), 
-		projectFolderPath, bDirectoryExists ? _T("TRUE") : _T("FALSE"));
+		projectFolderPath.c_str(), bDirectoryExists ? _T("TRUE") : _T("FALSE"));
 #endif
 	if (bDirectoryExists)
 	{
@@ -383,9 +383,9 @@ projectFolderPath.c_str());
 				aFile = fn.GetFullName();
 			}
 #ifdef _DEBUG_ROP
-			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: theFileSpec:  %s "),theFileSpec);
+			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: theFileSpec:  %s "),theFileSpec.c_str());
 			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: ::wxFindFirstFile returns:  %s "),
-				aFile.IsEmpty() ? _T("Empty String") : aFile);
+				aFile.IsEmpty() ? _T("Empty String") : aFile.c_str());
 #endif
 			if (!aFile.IsEmpty())
 			{
