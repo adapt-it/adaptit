@@ -38,6 +38,7 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 #include <wx/dir.h>
 #include <wx/filename.h>
+#include <wx/snglinst.h> // for wxSingleInstanceChecker
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -449,13 +450,19 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	// across a LAN.
 	
 	// Is the local process ID different from the PID in the ropFile?
-#ifndef __WXMSW__
-	bool bItsNotMe = IsItNotMe(m_pApp->m_curProjectPath);
-	if (bItsNotMe) //(GetLocalProcessID() != ExtractProcessID(ropFile))
+#ifndef __WXMSW__ // Additional tests on Linux and Mac systems required
+	if (!IamRunningAnotherInstance() && m_strLocalProcessID != ExtractProcessID(ropFile)) //(GetLocalProcessID() != ExtractProcessID(ropFile))
 	{
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsZombie - Not running another instance and local PID differs from ropFile PID")); 
 #endif
-		// The file can be removed only if it is a (closed) one, that is, a zombie left over
-		// from a crash or power loss (regardless of whoever was the former owner for writing)
+#endif
+		// On Windows the file can be removed only if it is a (closed) one, that is, a zombie 
+		// left over from a crash or power loss (regardless of whoever was the former owner 
+		// for writing)
+		// On Linux/Mac the file can be removed whether it is open-for-writing or not, so we
+		// test (above) on Linux/Mac whether another instance is being run by the same user.
+		// If not, and the process (PID) is not running on the local machine
 		bool bRemoved = ::wxRemoveFile(pathToFile);
 		if (bRemoved)
 		{
@@ -478,7 +485,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	}
 	else
 	{
-		// the current process owns the lock file - it is not a zombie
+		// Another instance is running and  owns the lock file - it is not a zombie
 #ifdef _DEBUG_ROP
 		wxLogDebug(_T("In IsZombie bItsNotMe is FALSE, returning FALSE")); 
 #endif
@@ -528,6 +535,15 @@ bool ReadOnlyProtection::RemoveROPFile(wxString& projectFolderPath, wxString& ro
 		bRemoved = ::wxRemoveFile(pathToFile); // may fail
 	}
 	return bRemoved;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if user is running another instance of Adapt It locally
+/// \remarks	Uses the wxSingleInstanceChecker class
+///////////////////////////////////////////////////////////////////////////////////////////
+bool ReadOnlyProtection::IamRunningAnotherInstance()
+{
+	return m_pApp->m_pChecker->IsAnotherRunning();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

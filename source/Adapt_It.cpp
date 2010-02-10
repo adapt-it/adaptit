@@ -5708,22 +5708,20 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	
 	m_pChecker = (wxSingleInstanceChecker*)NULL;
  	
-    // Note: If we decide to prevent more than one instance of Adapt It WX from running at
-    // the same time we can uncomment the code block below
-	//{ // begin block for wxLogNull()
-	//	wxLogNull logNo; // eliminates spurious "Deleted stale lock file 
-	//	                 // '/home/user/Adapt_ItApp-wmartin' on Linux
-	//	m_pChecker = new wxSingleInstanceChecker(name); // must delete m_checker in OnExit()
-	//	wxASSERT(m_pChecker != NULL);
-	//	if ( m_pChecker->IsAnotherRunning() )
-	//	{
-	//		wxMessageBox(_(
-	//	"Another program instance is already running for the current user, aborting."),
-	//	_T(""),	wxICON_ERROR);
-
-	//		return FALSE;
-	//	}
-	//} // end of block for wxLogNull(), the ~wxLogNull destructor is called here
+    // Note: The wxSingleInstanceChecker class determines if another instance of Adapt It 
+    // is running by the same user on the same local machine.
+	{ // begin block for wxLogNull()
+		wxLogNull logNo; // eliminates spurious "Deleted stale lock file 
+		                 // '/home/user/Adapt_ItApp-wmartin' on Linux
+		m_pChecker = new wxSingleInstanceChecker(name); // must delete m_checker in OnExit()
+		wxASSERT(m_pChecker != NULL);
+		if ( m_pChecker->IsAnotherRunning() )
+		{
+			wxLogDebug(_T("Another program instance is already running for the current user."));
+			// If only a single instance is to be allowed, we could return FALSE here 
+			// from OnInit().
+		}
+	} // end of block for wxLogNull(), the ~wxLogNull destructor is called here
 
 	// Is CoInitialize (initializes COM) available on Linux and Mac???
 //#ifdef _UNICODE
