@@ -118,6 +118,9 @@ private:
                         // the same (that is, FALSE means the running instance making the
                         // test has ownership of the project folder already, and so writing
                         // of KB and documents should not be prevented)
+
+	bool		IamRunningAnotherInstance(); // whm added 10Feb10
+
 	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
                         // process which owns the write privilege to the project folder is
                         // different from me on my machine running my process which gained
