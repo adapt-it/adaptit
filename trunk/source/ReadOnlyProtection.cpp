@@ -439,7 +439,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	wxASSERT(::wxFileExists(pathToFile));
 
 	// whm modified 5Feb10 with alternative test for checking for a zombie on Linux and
-	// Mac systems in which we check whether the lock file's PID is a current process or
+	// Mac systems in which we check to see if the lock file's PID is a current process or
 	// not. If not, we assume that it is a zombie, and remove it only in that case. We don't
 	// try to remove the file as the test on Linux or the Mac, because on those systems, 
 	// even a file which is open-for-writing can be removed via ::wxRemoveFile().
@@ -450,7 +450,8 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	
 	// Is the local process ID different from the PID in the ropFile?
 #ifndef __WXMSW__
-	if (GetLocalProcessID() != ExtractProcessID(ropFile))
+	bool bItsNotMe = IsItNotMe(pApp->m_curProjectPath);
+	if (bItsNotMe) //(GetLocalProcessID() != ExtractProcessID(ropFile))
 	{
 #endif
 		// The file can be removed only if it is a (closed) one, that is, a zombie left over
