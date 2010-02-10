@@ -450,8 +450,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	
 	// Is the local process ID different from the PID in the ropFile?
 #ifndef __WXMSW__
-	CAdapt_ItApp* pApp = GetApp();
-	bool bItsNotMe = IsItNotMe(pApp->m_curProjectPath);
+	bool bItsNotMe = IsItNotMe(m_pApp->m_curProjectPath);
 	if (bItsNotMe) //(GetLocalProcessID() != ExtractProcessID(ropFile))
 	{
 #endif
