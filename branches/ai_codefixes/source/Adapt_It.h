@@ -25,7 +25,7 @@
 // boolean removal efforts with existing xml adaptation documents, and Bruce needs to test
 // his version 5 parsing of xml documents - so Bruce will wrap his code changes in a
 // conditional #define using the following symbol
-#define _DOCVER5
+//#define _DOCVER5
 
 class AIPrintout;
 // for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...
