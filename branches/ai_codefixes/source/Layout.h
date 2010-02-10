@@ -383,7 +383,9 @@ public:
 	bool		CreatePiles(SPList* pSrcPhrases); // RecalcLayout() calls this
 	void		CreateStrips(int nStripWidth, int gap); // RecalcLayout() calls this
 	bool		AdjustForUserEdits(int nStripWidth, int gap); // RecalcLayout() calls this
-	bool		RecalcLayout(SPList* pList, enum layout_selector selector);
+//GDLC Added third parameter to RecalcLayout with default value steadyAsSheGoes
+	bool		RecalcLayout(SPList* pList, enum layout_selector selector,
+					enum phraseBoxWidthAdjustMode = steadyAsSheGoes);
 	void		RelayoutActiveStrip(CPile* pActivePile, int nActiveStripIndex, int gap,
 									int nStripWidth); // doesn't change the pile composition,
 											// just lays them out, ensuring  proper spacing

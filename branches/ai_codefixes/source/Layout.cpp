@@ -157,11 +157,13 @@ extern wxRect grectViewClient;
 /// This global is defined in Adapt_ItView.h.
 extern int gnBoxCursorOffset;
 
-/// This global is defined in PhraseBox.cpp
-extern bool gbExpanding;
+//GDLC removed 2010-02-09
+// This global is defined in PhraseBox.cpp
+//extern bool gbExpanding;
 
-/// This global is defined in PhraseBox.cpp
-extern bool	gbContracting;
+//GDLC removed 2010-02-09
+// This global is defined in PhraseBox.cpp
+//extern bool	gbContracting;
 
 // whm NOTE: wxDC::DrawText(const wxString& text, wxCoord x, wxCoord y) does not have an
 // equivalent to the nFormat parameter, but wxDC has a SetLayoutDirection(wxLayoutDirection
@@ -581,7 +583,7 @@ void CLayout::PlaceBox()
 		//interval within the execution of FixBox() when a box expansion happens (and
 		//immediately after a call to RecalcLayout() or later to AdjustForUserEdits()), since
 		//then the CalcPhraseBoxGapWidth() call in RecalcLayout() or in AdjustForUserEdits()
-		//will use that stored value when gbExpanding == TRUE to test for largest of
+		//will use the phraseBoxWidthAdjustMode parameter passed to it to test for largest of
 		//m_curBoxWidth and a value based on text extent plus slop, and use the larger -
 		//setting result in m_nWidth, so the ResizeBox() calls here in PlacePhraseBoxInLayout()
 		//should always expect m_nWidth for the active pile will have been correctly set, and
@@ -1522,7 +1524,8 @@ void CLayout::RestoreLogicalDocSizeFromSavedSize()
 // bar in the status bar in window bottom) The default value of the passed in flag
 // bRecreatePileListAlso is FALSE The ptr value for the passed in pList is usually the
 // application's m_pSourcePhrases list, but it can be a sublist copied from that
-bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
+//GDLC Added third parameter 2010-02-09
+bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum phraseBoxWidthAdjustMode boxMode)
 {
     // RecalcLayout() is the refactored equivalent to the former view class's RecalcLayout()
     // function - the latter built only a bundle's-worth of strips, but the new design must build
@@ -1698,12 +1701,10 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 	// size returned by this call to a size based on the physical page's printable width
     // before building or tweaking the strips, we want to ensure that the gap left for the
     // phrase box to be drawn in the layout is as wide as the phrase box is going to be
-    // when it is made visible by CLayout::Draw(). When RecalcLayout() is called,
-    // gbExpanding global bool may be TRUE, or FALSE (it's set by FixBox() and cleared in
-    // FixBox() at the end after layout adjustments are done - including a potential call
-    // to RecalcLayout(), it's also cleared to default as a safety first measure at start
-    // of each OnChar() call. If we destroyed and recreated the piles in the block above,
-    // CreatePile() will, at the active location, made use of the gbExpanding value and set
+    // when it is made visible by CLayout::Draw(). When RecalcLayout() is called with its
+	// third parameter phraseBoxWidthAdjustMode equal to expanding, if we destroyed and
+	// recreated the piles in the block above,
+    // CreatePile() will, at the active location, made use of the expanding value and set
     // the "hole" for the phrase box to be the appropriate width. But if piles were not
     // destroyed and recreated then the box may be about to be drawn expanded, and so we
     // must make sure that the strip rebuilding about to be done below has the right box
@@ -1713,6 +1714,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
     // CPile:CalcPhraseBoxGapWidth() to set CPile's m_nWidth value to the right width, and
     // then the strip layout code below can use that value via a call to
     // GetPhraseBoxGapWidth() to make the active pile's width have the right value.
+	//TODO: Is the above paragraph completly correct??
     if (!bAtDocEnd)
 	{
 		// when not at the end of the document, we will have a valid pile pointer for the
@@ -1726,7 +1728,7 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			pActivePile = GetPile(m_pApp->m_nActiveSequNum);
 			wxASSERT(pActivePile);
 			CSourcePhrase* pSrcPhrase = pActivePile->GetSrcPhrase();
-			if (gbContracting)
+			if (boxMode == contracting)
 			{
 				// phrase box is meant to contract for this recalculation, so suppress the
 				// size calculation internally for the active location because it would be
@@ -1746,9 +1748,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 		// we have no active active location currently, and the box is hidden, the active
 		// pile is null and the active sequence number is -1, so we want a layout that has
 		// no place provided for a phrase box, and we'll draw the end of the document
-		gbExpanding = FALSE; // has to be restored to default value
+		//GDLC Removed setting of gbExpanding 2010-02-09
+		//gbExpanding = FALSE; // has to be restored to default value
 	}
-	gbContracting = FALSE; // restore default value
+	//GDLC Removed setting of gbContracting 2010-02-09
+	//gbContracting = FALSE; // restore default value
 /*
 #ifdef __WXDEBUG__
 	{
@@ -1801,7 +1805,8 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 			// with the input parameter create_strips_keep_piles, and will have already
 			// done the layout recalculation by destroying and recreating all the strips,
 			// and so we've nothing to do here except return immediately
-			gbContracting = FALSE;
+			//GDLC Removed setting of gbContracting 2010-02-09
+			//gbContracting = FALSE;
 			return TRUE;
 		}
 	}
@@ -1821,8 +1826,9 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector)
 #endif
 */
 
-	gbExpanding = FALSE; // has to be restored to default value
-	gbContracting = FALSE; // restore default value (also done above)
+	//GDLC Removed setting of gbExpanding & gb Contracting 2010-02-09
+	//gbExpanding = FALSE; // has to be restored to default value
+	//gbContracting = FALSE; // restore default value (also done above)
 
 	if (!gbIsPrinting)
 	{

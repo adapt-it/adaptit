@@ -736,7 +736,8 @@ extern bool		gbEnterTyped;			 // see CPhraseBox for explanation
 
 extern  wxString	gSaveTargetPhrase; // for use by the SHIFT+END shortcut for unmerging a phrase
 
-extern	bool	gbExpanding; // see use in CalcPileWidth // defined in CPhraseBox // changed int to bool
+//GDLC Removed 2010-02-09
+//extern	bool	gbExpanding; // see use in CalcPileWidth // defined in CPhraseBox // changed int to bool
 
 /// This global is defined in Adapt_It.cpp.
 extern  int		nSequNumForLastAutoSave;

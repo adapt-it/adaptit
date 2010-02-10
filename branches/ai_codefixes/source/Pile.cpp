@@ -126,9 +126,9 @@ extern const wxChar* filterMkr;
 // globals relevant to the phrase box  (usually defined in Adapt_ItView.cpp)
 extern short gnExpandBox; // set to 8
 
-
-/// This global is defined in PhraseBox.cpp.
-extern bool gbExpanding;
+//GDLC Removed 2010-02-10
+// This global is defined in PhraseBox.cpp.
+//extern bool gbExpanding;
 
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
@@ -337,9 +337,10 @@ void CPile::SetMinWidth()
 	m_nMinWidth = CalcPileWidth();
 }
 
-void CPile::SetPhraseBoxGapWidth()
+//GDLC 2010-02-10 Added parameter to SetPhraseBoxGapWidth with default value steadyAsSheGoes
+void CPile::SetPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
-	m_nWidth = CalcPhraseBoxGapWidth();
+	m_nWidth = CalcPhraseBoxGapWidth(widthMode);
 }
 
 int	CPile::GetMinWidth()
@@ -393,7 +394,8 @@ int CPile::CalcPileWidth()
 	return pileWidth;
 }
 
-int CPile::CalcPhraseBoxGapWidth()
+//GDLC 2010-02-10 Added parameter to CalcPhraseBoxGapWidth with default value steadyAsSheGoes
+int CPile::CalcPhraseBoxGapWidth(enum phraseBoxWidthAdjustMode widthMode)
 {
     // is this pile the active one? If so, get a pile width using m_pApp->m_targetPhrase
     // (the phrase box contents) for the pile extent (plus some slop), because at the
@@ -439,6 +441,7 @@ int CPile::CalcPhraseBoxGapWidth()
             // a new phrase box width already and stored that width in
             // CLayout::m_curBoxWidth, so we must now check, if the box is expanding, to
             // see if that stored width is greater than the one so far calculated, and if
+			//****GDLC CHECK NEEDED on how widthMode gets to this function
             // so, use the greater value - and if expanding, FixBox() sets gbExpanding to
             // TRUE. If not expanding (the box could be contracting) we just use the
             // unadjusted value. FixBox() also clears the gbExpanding flag before exitting,
@@ -451,7 +454,9 @@ int CPile::CalcPhraseBoxGapWidth()
 			// AdjustForUserEdits(), then the latter would have to be called instead.
 			// CalcPhraseBoxGapWidth() therefore does not clear the gbExpanding flag, it
 			// just uses it for the following test
-			if (gbExpanding)
+//GDLC Changed test 2010-02-10
+			if (widthMode == expanding)
+//			if (gbExpanding)
 			{
 				if (m_pLayout->m_curBoxWidth > boxGapWidth)
 					boxGapWidth = m_pLayout->m_curBoxWidth;

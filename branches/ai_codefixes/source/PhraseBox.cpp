@@ -236,11 +236,17 @@ bool gbUserCancelledChooseTranslationDlg = FALSE;
 long gnSaveStart; //int gnSaveStart; // these two are for implementing Undo() for a backspace operation
 long gnSaveEnd; //int gnSaveEnd; 
 
-bool		gbExpanding = FALSE; // set TRUE when an expansion of phrase box was just done
+//GDLC Removed definitions of gbExpanding & gbContracting 2010-02-09
+//bool		gbExpanding = FALSE; // set TRUE when an expansion of phrase box was just done
 					// (and used in view's CalcPileWidth to enable an extra pileWidth adjustment
 					// and therefore to disable this adjustment when the phrase box is contracting
 					// due to deleting some content - otherwise it won't contract)
-bool		gbContracting = FALSE; // BEW added 25Jun09, set to TRUE when a backspace 
+				// GDLC The above comment appears to mean:
+				// Set TRUE when an expansion of the phrase box was just done.
+				// In this case the view's CalcPileWidth will add some extra pileWidth adjustment.
+				// In all other cases no extra pileWidth adjustment will be done (and this will allow the
+				// phrase box to contract when necessary).
+//bool		gbContracting = FALSE; // BEW added 25Jun09, set to TRUE when a backspace 
 					// keypress has reduced the length of the phrase box's string to the
 					// point where a reduction in size is required. We need this in
 					// RecalcLayout() so that the ResetPartnerPileWidth() call at the 
@@ -2653,6 +2659,9 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	// (2) prior to making the RecalcLayout() call, or other strip tweaking call, the new
 	// phrase box width must be calculated and stored in CLayout::m_curBoxWidth so that
 	// RecalcLayout() will have access to it when it is setting the width of the active pile.
+
+	//GDLC Added 2010-02-09
+	enum phraseBoxWidthAdjustMode nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
 	
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -2713,14 +2722,8 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	{
 		// a width change is required....therefore set m_curBoxWidth and call RecalcLayout()
 		if (nSelector < 2)
-			gbExpanding = TRUE; // it is cleared before the function exits, so it must
-								// be used for setting the active pile width when the
-								// layout is adjusted within FixBox() below (either by
-								// a RecalcLayout() call or an AdjustForUserEdits() call,
-								// so a call is built into these latter functions by
-								// calling the doc class's ResetPartnerPileWidth(), passing
-								// in the active CSourcePhrase's pointer, just before the
-								// strips are rebuilt, or adjusted, respectively
+			nPhraseBoxWidthAdjustMode = expanding; // this is passed on to the functions that
+								// calculate the new width of the phrase box
 								
 		// make sure the activeSequNum is set correctly, we need it to be able
 		// to restore the pActivePile pointer after the layout is recalculated
@@ -2774,14 +2777,19 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 				{
 					// we are contracting too much, so set to minWidth instead
 					pLayout->m_curBoxWidth = minWidth;
-					gbContracting = FALSE;
+					//GDLC 2010-02-09
+					nPhraseBoxWidthAdjustMode = steadyAsSheGoes;
 				}
 				else
 				{
 					// newWidth is larger than minWidth, so we can do the full contraction
 					pLayout->m_curBoxWidth = newWidth;
-					gbContracting = TRUE;
+					//GDLC 2010-02-09
+					nPhraseBoxWidthAdjustMode = contracting;
 				}
+				//GDLC I think that the normal SetPhraseBoxGapWidth() should be called with
+				// nPhraseBoxWidthAdjustmentModepassed to it as a parameter instead of simply
+				// using newWidth.				
 				pApp->m_pActivePile->SetPhraseBoxGapWidth(newWidth); // sets m_nWidth to newWidth
                 // The gbContracting flag used above? RecalcLayout() will override
                 // m_curBoxWidth if we leave this flag FALSE; setting it makes the
@@ -2806,7 +2814,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		if (bUpdateOfLayoutNeeded)
 		{
 #ifdef _NEW_LAYOUT
-			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles, nPhraseBoxWidthAdjustMode);
 #else
 			pLayout->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -2838,7 +2846,8 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 		if (bWasMadeDirty)
 			pApp->m_pTargetBox->MarkDirty(); // TRUE (restore modified status)
 
-		gbExpanding = FALSE;
+		//GDLC Removed 2010-02-09
+		//gbExpanding = FALSE;
 //#ifdef Do_Clipping
 //		// support clipping
 //		if (!bUpdateOfLayoutNeeded)
@@ -2989,7 +2998,8 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		}
 	}
 
-	gbExpanding = FALSE;
+	//GDLC Removed 2010-02-09
+	//gbExpanding = FALSE;
 
 	// wxWidgets Note: The wxTextCtrl does not have a virtual OnChar() method, 
 	// so we'll just call .Skip() for any special handling of the WXK_RETURN and WXK_TAB 
