@@ -131,6 +131,13 @@ CSourcePhrase::CSourcePhrase()
 	m_bHasNote = FALSE;
 	m_bHasBookmark = FALSE;
 
+	#ifdef _DOCVER5
+	m_endMarkers = _T("");
+	m_freeTrans = _T("");
+	m_note = _T("");
+	m_collectedBackTrans = _T("");
+	#endif
+
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
 	wxASSERT(m_pSavedWords != NULL);
@@ -144,389 +151,6 @@ CSourcePhrase::~CSourcePhrase()
 {
 
 }
-
-//void CSourcePhrase::Serialize(CArchive& ar)
-
-/*
-// MFC's Serialize() above is replaced by SaveObject() here and LoadObject() below
-wxOutputStream& CSourcePhrase::SaveObject(wxOutputStream& stream,
-							bool bParentCall)
-{
-	wxDataOutputStream ar( stream );
-
-	//CObject::Serialize(ar); // serialize base class – not
-	// available in wxWidgets
-	//
-	// The Adapt_ItDoc::SaveObject() method has called this
-	// CSourcePhrase::SaveObject() method on the list of 
-	// m_pSourcePhrases. 
-
-	// In our wxWidgets version, we do not really need to store
-	// the name of the class or tags indicating whether the 
-	// data is the first instance of its class. The only thing
-	// that would be helpful is storing a VERSION_NUMBER. 
-	//
-	// The VERSION_NUMBER for the wxWidgets version will be
-	// totally different from the MFC accounting of the same.
-	// We'll use something like wxUint32 90 (0x5a000000) as 
-	// our starting version number (defined in 
-	// AdaptItConstants.h).
-	// 
-	// Note: Archiving of the version number could well be
-	// placed in the Doc's SaveObject() method so that it 
-	// is only placed at the beginning of the archive, 
-	// rather than repeated here before each CSourcePhrase 
-	// getting serialized. I'll leave it here for the time 
-	// being so we don't get involved in too many structural
-	// changes during the conversion to wxWidgets. The 5a 
-	// hex ('Z...') will also help to flag the beginning of
-	// each CSourcePhrase's data when examining the archive
-	// file with a hex editor.
-
-	// First, serialize the data schema version number
-	ar.Write32(VERSION_NUMBER); //ar << wxUint32(VERSION_NUMBER); // Data file version 90 
-							// or 0x5a000000 ('Z...')
-
-	// At this point MFC had m_pMedialPuncts->Serialize(ar);
-	// MFC used CStringList*, wxWidgets uses wxArrayString*
-	// Under wxWidgets we need to serialize each wxArrayString
-	// item individually
-	wxUint32 count;
-	count = m_pMedialPuncts->GetCount();
-	// First, stream out a count value so the equivalent
-	// LoadObject counterpart will know how many strings to
-	// read back into the wxArrayString.
-	ar.Write32(count); //ar << wxUint32(count);
-	// stream out all items in the wxArrayString
-	for ( size_t n = 0; n < count; n++ )
-	{
-		// stream out the item
-		ar << m_pMedialPuncts->Item(n);
-	}
-
-	// MFC code here had m_pMedialMarkers->Serialize(ar);
-	// Again serialize each wxArrayString item individually
-	count = m_pMedialMarkers->GetCount();
-	// First, stream out a count value so the equivalent
-	// LoadObject counterpart will know how many strings to
-	// read back into the wxArrayString.
-	ar.Write32(count); //ar << wxUint32(count);
-	// stream out all items in the wxArrayString
-	for ( size_t s = 0; s < count; s++ )
-	{
-		// stream out the item
-		ar << m_pMedialMarkers->Item(s);
-	}
-
-	// MFC code had m_pSavedWords->Serialize(ar);
-	// Note: m_pSavedWords is a list (SPList) of CSourcePhrase
-	// instances which is embedded within the CSourcePhrase
-	// instance we are currently serializing out to persistent
-	// storage. Under wxWidgets we need to serialize each 
-	// SPList CSourcePhrase item individually. In the MFC
-	// design the nesting or embedding is supposed to never 
-	// be more than 1 level deep. We will make a recursive 
-	// call here to CSourcePhrase::SaveObject() (recursing
-	// only one level deeper than we are currenly executing)
-	// for each item in m_pSavedWords.
-	// If bParentCall == TRUE in the call to SaveObject, we 
-	// are saving a parent object and we will save all of 
-	// its children m_pSavedWords. 
-	// If bParentCall == FALSE, we are saving children 
-	// CSourcePhrases and won't save any grandchildren 
-	// CSourcePhrase objects from our children m-pSavedWords.
-	if (bParentCall)
-	{
-		// First, stream out a count value so the equivalent
-		// LoadObject counterpart will know how many CSourcePhrase
-		// objects to read back into the SPList when serializing
-		// back in.
-		count = m_pSavedWords->GetCount();
-		ar.Write32(count); //ar << wxUint32(count);
-		// stream out all CSourcePhrase children in the SPList
-		for ( SPList::Node *node = m_pSavedWords->GetFirst(); node; node = node->GetNext() )
-		{
-			CSourcePhrase *pData = node->GetData();
-			// stream out the embedded CSourcePhrase object
-			pData->SaveObject (stream, FALSE);  
-			// FALSE in the above call means this is a child
-			// CSourcePhrase object. This recursive call to
-			// SaveObject will not recurse to any grandchildren.
-		}
-	}
-	else
-	{
-		// for child CSourcePhrases we won't save any next
-		// generation children (grandchildren)
-		count = 0;
-		ar.Write32(count); //ar << wxUint32(count);
-	}
-
-	// Now continue serializing the parent CSourcePhrase's
-	// other members
-	// Serialize the booleans first
-	ar.Write16(m_bFirstOfType); //ar << wxUint16(m_bFirstOfType); // MFC has (WORD) (2 bytes)
-	ar.Write16(m_bFootnoteEnd); // MFC has (WORD)
-	ar.Write16(m_bFootnote); // MFC has (WORD)
-	ar.Write16(m_bChapter); // MFC has (WORD)
-	ar.Write16(m_bVerse); // MFC has (WORD)
-	ar.Write16(m_bParagraph); // MFC has (WORD)
-	ar.Write16(m_bSpecialText); // MFC has (WORD)
-	ar.Write16(m_bBoundary); // MFC has (WORD)
-	ar.Write16(m_bHasInternalMarkers); // MFC has (WORD)
-	ar.Write16(m_bHasInternalPunct); // MFC has (WORD)
-	ar.Write16(m_bRetranslation); // MFC has (WORD)
-	ar.Write16(m_bNotInKB); // MFC has (WORD)
-	ar.Write16(m_bNullSourcePhrase); // MFC has (WORD)
-	ar.Write16(m_bHasKBEntry); // MFC has (WORD)
-	// now the ints & texttype
-	ar.Write32(m_nSrcWords); //ar << wxInt32(m_nSrcWords); // int (4 bytes)
-	ar.Write32(m_nSequNumber); //ar << wxInt32(m_nSequNumber);// int
-	ar.Write16(m_curTextType); //ar << wxUint16(m_curTextType); // MFC has (WORD) (2 bytes)
-	// now the strings
-	ar << m_inform;
-	ar << m_chapterVerse;
-	ar << m_adaption;
-	ar << m_markers;
-	ar << m_follPunct;
-	ar << m_precPunct;
-	ar << m_srcPhrase;
-	ar << m_key;
-	ar << m_targetStr;
-	// now the extra flags for version_number == 2
-	ar.Write16(m_bBeginRetranslation); //ar << wxUint16(m_bBeginRetranslation); // MFC has (WORD)
-	ar.Write16(m_bEndRetranslation); //ar << wxUint16(m_bEndRetranslation); // MFC has (WORD)
-	// VERSION_NUMBER == 3, the m_gloss attribute
-	ar.Write16(m_bHasGlossingKBEntry); //ar << wxUint16(m_bHasGlossingKBEntry); // MFC has (WORD)
-	ar << m_gloss;
-
-	// wxWidgets Notes: 
-	// 1. Stream errors should be dealt with in the caller of Adapt_ItDoc::SaveObject()
-	//    which would be either DoFileSave(), or DoTransformedDocFileSave().
-	// 2. Streams automatically close their file descriptors when they
-	//    go out of scope. 
-	return stream;
-}
-
-// MFC's Serialize() is replaced by LoadObject() here and SaveObject() above
-wxInputStream& CSourcePhrase::LoadObject(wxInputStream& stream,
-						 bool bParentCall)
-{
-	wxDataInputStream ar( stream );
-
-	//CObject::Serialize(ar);	// serialize base class
-	// (See notes for SaveObject() above)
-
-	// First we'll read the data version number
-	wxUint32 nSchema;
-	ar >> nSchema; // read 4 byte int into nSchema
-
-	// MFC code had m_pMedialPuncts->Serialize(ar);
-	// Under wxWidgets we need to serialize in each item
-	// individually
-	// First get the number of Strings we can expect
-	wxUint32 count;
-	wxString Item;
-	ar >> count;
-	for ( size_t n = 0; n < count; n++ )
-    {
-		// stream in the item
-		ar >> Item;
-		// Add item to array
-		m_pMedialPuncts->Add(Item);
-	}
-
-
-	// MFC code had m_pMedialMarkers->Serialize(ar);
-	// Under wxWidgets we need to serialize each item
-	// individually
-	// First get the number of Strings we can expect
-	ar >> count;
-	for ( size_t s = 0; s < count; s++ )
-    {
-		// stream in the item
-		ar >> Item;
-		// Add item to array
-		m_pMedialMarkers->Add(Item);
-	}
-
-	// MFC code had m_pSavedWords->Serialize(ar);
-	// Note: m_pSavedWords is a list (SPList) of CSourcePhrase
-	// instances which is embedded within the CSourcePhrase
-	// instance we are currently serializing in from persistent
-	// storage. Under wxWidgets we need to serialize each 
-	// SPList CSourcePhrase item individually. In the MFC
-	// design the nesting or embedding is supposed to never 
-	// be more than 1 level deep. We will make a recursive 
-	// call here to CSourcePhrase::LoadObject() (recursing
-	// only one level deeper than we are currenly executing)
-	// for each item in m_pSavedWords.
-	// If bParentCall == TRUE in the call to LoadObject, we 
-	// are loading a parent object and we will load all of 
-	// its children m_pSavedWords. 
-	// If bParentCall == FALSE, we are loading children 
-	// CSourcePhrases and won't load any grandchildren 
-	// CSourcePhrase objects from our children m-pSavedWords.
-	if (bParentCall)
-	{
-		ar >> count;
-		for ( size_t n = 0; n < count; n++ )
-		{
-			CSourcePhrase* pData = new CSourcePhrase;
-			wxASSERT(pData != NULL);
-			// stream in the item
-			pData->LoadObject(stream, FALSE); 
-			// FALSE in the call above means this is a child
-			// CSourcePhrase object
-			// Add item to array
-			m_pSavedWords->Append(pData);
-		}
-	}
-	else
-	{
-		ar >> count;
-		wxASSERT(count == 0); // it should be zero, but make sure
-	}
-
-	// The MFC version retrieved the versionable schema number
-	// here with the following call:
-	//UINT nSchema = ar.GetObjectSchema();
-	// In the wxWidgets version we retrieved our own nSchema
-	// above, and our wxWidgets version cannot be made
-	// compatible with earlier MFC versions, so we’ve started
-	// our first version with a unique versionable schema
-	// number. The code below reflects the same data as the
-	// MFC version 3.
-
-	switch(nSchema)
-	{
-		case 90:	// wxWidgets' first data version 
-				// (same as MFC version 3)
-		{
-			// serialize the booleans first
-			wxUint16 a,b,c,d; // MFC has WORD
-			wxUint16 g; // MFC has WORD
-
-			ar >> a;
-			if (a == 0)
-				m_bFirstOfType = FALSE;
-			else
-				m_bFirstOfType = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bFootnoteEnd = FALSE;
-			else
-				m_bFootnoteEnd = TRUE;
-			ar >> c;
-			if (c == 0)
-				m_bFootnote = FALSE;
-			else
-				m_bFootnote = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bChapter = FALSE;
-			else
-				m_bChapter = TRUE;
-			ar >> a;
-			if (a == 0)
-				m_bVerse = FALSE;
-			else
-				m_bVerse = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bParagraph= FALSE;
-			else
-				m_bParagraph = TRUE;
-			ar >> c;
-			if (c == 0)
-				m_bSpecialText = FALSE;
-			else
-				m_bSpecialText = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bBoundary = FALSE;
-			else
-				m_bBoundary = TRUE;
-			ar >> a;
-			if (a == 0)
-				m_bHasInternalMarkers = FALSE;
-			else
-				m_bHasInternalMarkers = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bHasInternalPunct = FALSE;
-			else
-				m_bHasInternalPunct = TRUE;
-			ar >> c;
-			if (c == 0)
-				m_bRetranslation = FALSE;
-			else
-				m_bRetranslation = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bNotInKB = FALSE;
-			else
-				m_bNotInKB = TRUE;
-			ar >> a;
-			if (a == 0)
-				m_bNullSourcePhrase = FALSE;
-			else
-				m_bNullSourcePhrase = TRUE;
-			ar >> b;
-			if (b == 0)
-				m_bHasKBEntry = FALSE;
-			else
-				m_bHasKBEntry = TRUE;
-			// then the ints & texttype
-			ar >> m_nSrcWords;
-			ar >> m_nSequNumber;
-			ar >> g;
-			m_curTextType = (TextType)g;
-			// then the strings
-			ar >> m_inform;
-			ar >> m_chapterVerse;
-			ar >> m_adaption;
-			ar >> m_markers;
-			ar >> m_follPunct;
-			ar >> m_precPunct;
-			ar >> m_srcPhrase;
-			ar >> m_key;
-			ar >> m_targetStr;
-
-			// now the two new booleans for the
-			// version_number == 2 schema,
-			// then flag and m_gloss for version == 3
-			ar >> c;
-			if (c == 0)
-				m_bBeginRetranslation = FALSE;
-			else
-				m_bBeginRetranslation = TRUE;
-			ar >> d;
-			if (d == 0)
-				m_bEndRetranslation = FALSE;
-			else
-				m_bEndRetranslation = TRUE;
-
-			// for schema 3
-			ar >> c;
-			if (c == 0)
-				m_bHasGlossingKBEntry = FALSE;
-			else
-				m_bHasGlossingKBEntry = TRUE;
-			ar >> m_gloss;
-			break;
-		}
-		default:
-			//IDS_UNKNOWN_VERSION
-			wxMessageBox(_("Sorry, Adapt It does not recognize the version for the file format you are trying to read in."), _T(""), wxICON_ERROR);
-			//AfxAbort();
-			wxExit();
-			break;
-	}
-	return stream;
-}
-*/
-
 
 CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 {
@@ -569,6 +193,14 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bEndFreeTrans = sp.m_bEndFreeTrans;
 	m_bHasNote = sp.m_bHasNote;
 	m_bHasBookmark = sp.m_bHasBookmark;
+
+	// the doc version 5 new members
+	#ifdef _DOCVER5
+	m_endMarkers = sp.m_endMarkers;
+	m_freeTrans = sp.m_freeTrans;
+	m_note = sp.m_note;
+	m_collectedBackTrans = sp.m_collectedBackTrans;
+	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
@@ -666,6 +298,14 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bEndFreeTrans = sp.m_bEndFreeTrans;
 	m_bHasNote = sp.m_bHasNote;
 	m_bHasBookmark = sp.m_bHasBookmark;
+
+	// the doc version 5 new members
+	#ifdef _DOCVER5
+	m_endMarkers = sp.m_endMarkers;
+	m_freeTrans = sp.m_freeTrans;
+	m_note = sp.m_note;
+	m_collectedBackTrans = sp.m_collectedBackTrans;
+	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	if (m_pSavedWords == NULL)
@@ -853,6 +493,23 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_pMedialMarkers->Add(pSrcPhrase->m_markers);
 	}
 
+	// for doc version 5, we'll assume any endmarkers on pSrcPhrase are also medial, and
+	// have them "placed" - even if they eventually end up at the phrase end
+	#ifdef _DOCVER5
+	if (!pSrcPhrase->m_endMarkers.IsEmpty())
+	{
+		m_bHasInternalMarkers = TRUE;
+
+		// make a string list to hold it, if none exists yet
+		if (m_pMedialMarkers == NULL)
+			m_pMedialMarkers = new wxArrayString;
+		wxASSERT(m_pMedialMarkers != NULL);
+
+		// accumulate it
+		m_pMedialMarkers->Add(pSrcPhrase->m_endMarkers);
+	}
+	#endif
+
 	// if there is punctuation, some or all may become phrase-internal, so check it out and
 	// accumulate as necessary and then set the flag if there is internal punctuation
 	if (!m_follPunct.IsEmpty())
@@ -929,6 +586,21 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	{
 			m_gloss = m_gloss + _T(" ") + pSrcPhrase->m_gloss;
 	}
+
+	// the doc version 5 new members
+	#ifdef _DOCVER5
+	// free translations, notes, or collected back translations are only allowed on the
+	// first CSourcePhrase in a merger; so we can just append the strings involved to give
+	// a behaviour that makes sense (ie. accumulating two notes, or two free translations,
+	// etc if any such should slip through our net of filters to prevent this
+	if (!pSrcPhrase->m_freeTrans.IsEmpty())
+		m_freeTrans = m_freeTrans + _T(" ") + pSrcPhrase->m_freeTrans;
+	if (!pSrcPhrase->m_note.IsEmpty())
+		m_note = m_note + _T(" ") + pSrcPhrase->m_note;
+	if (!pSrcPhrase->m_collectedBackTrans.IsEmpty())
+		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
+	#endif
+
 
 	// increment the number of words in the phrase
 	m_nSrcWords += pSrcPhrase->m_nSrcWords; // do it this way, which will be correct if it is a
@@ -1110,22 +782,110 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		}
 	}
 
-	// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
-	// because if present it may be very long (eg. it may contain filtered material)
+    // fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
+    // absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
+	// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
+	// will be elsewhere), so em can be on same line as m
+#ifdef _DOCVER5
+	if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
+#else
 	if (!m_markers.IsEmpty())
+#endif
 	{
 		// there is something on this line, so form the line
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+		bool bStarted = FALSE;
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
-		bstr += "m=\"";
-		btemp = gpApp->Convert16to8(m_markers);
-		InsertEntities(btemp);
-		bstr += btemp; // add m_markers string
-		bstr += "\"";
+		if (!m_markers.IsEmpty())
+		{
+			bstr += "m=\"";
+			btemp = gpApp->Convert16to8(m_markers);
+#ifndef _DOCVER5
+			InsertEntities(btemp); // not needed for version 5
+#endif
+			bstr += btemp; // add m_markers string
+			bstr += "\"";
+			bStarted = TRUE;
+		}
+#ifdef _DOCVER5
+		if (!m_endMarkers.IsEmpty())
+		{
+			if (bStarted)
+				bstr += " em=\"";
+			else
+				bstr += "em=\"";
+			btemp = gpApp->Convert16to8(m_endMarkers);
+			bstr += btemp; // add m_endMarkers string
+			bstr += "\"";
+		}
+#endif
 	}
+
+#ifdef _DOCVER5
+	// fifth, sixth and seventh lines -- 1 attribute each, each is possibly absent
+	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty())
+	{
+		// there is something in this group, so form the needed lines
+		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+		bool bStarted = FALSE;
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+		if (!m_freeTrans.IsEmpty())
+		{
+			bstr += "ft=\"";
+			btemp = gpApp->Convert16to8(m_freeTrans);
+			InsertEntities(btemp);
+			bstr += btemp; // add m_freeTrans string
+			bstr += "\"";
+			bStarted = TRUE;
+		}
+		// sixth line... (possibly, or fifth)
+		if (!m_note.IsEmpty())
+		{
+			if (bStarted)
+			{
+				// we need to start a new line (the sixth)
+				bstr += "\r\n";
+				for (i = 0; i < nTabLevel; i++)
+				{
+					bstr += "\t"; // tab the start of the line
+				}
+				bStarted = FALSE; // reset, so logic will work for next line
+			}
+			bstr += "no=\"";
+			btemp = gpApp->Convert16to8(m_note);
+			InsertEntities(btemp);
+			bstr += btemp; // add m_note string
+			bstr += "\"";
+			bStarted = TRUE;
+		}
+		// seventh line... (possibly, or sixth, or fifth)
+		if (!m_collectedBackTrans.IsEmpty())
+		{
+			if (bStarted)
+			{
+				// we need to start a new line (the seventh or sixth)
+				bstr += "\r\n";
+				for (i = 0; i < nTabLevel; i++)
+				{
+					bstr += "\t"; // tab the start of the line
+				}
+				bStarted = FALSE; // reset, so logic will work for any nexts lines
+			}
+			bstr += "bt=\"";
+			btemp = gpApp->Convert16to8(m_collectedBackTrans);
+			InsertEntities(btemp);
+			bstr += btemp; // add m_collectedBackTrans string
+			bstr += "\"";
+			//bStarted = TRUE; // uncomment out if we add more attributes to this block
+		}
+	}
+#endif
 
 	// we can now close off the S opening tag
 	bstr += ">";
@@ -1335,22 +1095,111 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		}
 	}
 
-	// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
-	// because if present it may be very long (eg. it may contain filtered material)
+    // fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
+    // absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
+	// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
+	// will be elsewhere), so em can be on same line as m
+#ifdef _DOCVER5
+	if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
+#else
 	if (!m_markers.IsEmpty())
+#endif
 	{
 		// there is something on this line, so form the line
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+		bool bStarted = FALSE;
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
-		bstr += "m=\"";
-		btemp = m_markers;
-		InsertEntities(btemp);
-		bstr += btemp; // add m_markers string
-		bstr += "\"";
+		if (!m_markers.IsEmpty())
+		{
+			bstr += "m=\"";
+			btemp = m_markers;
+#ifndef _DOCVER5
+			InsertEntities(btemp); // not needed for version 5
+#endif
+			bstr += btemp; // add m_markers string
+			bstr += "\"";
+			bStarted = TRUE;
+		}
+#ifdef _DOCVER5
+		if (!m_endMarkers.IsEmpty())
+		{
+			if (bStarted)
+				bstr += " em=\"";
+			else
+				bstr += "em=\"";
+			//btemp = m_endMarkers;
+			//bstr += btemp; // add m_endMarkers string
+			bstr += m_endMarkers; // this is quicker
+			bstr += "\"";
+		}
+#endif
 	}
+
+#ifdef _DOCVER5
+	// fifth, sixth and seventh lines -- 1 attribute each, each is possibly absent
+	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty())
+	{
+		// there is something in this group, so form the needed lines
+		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+		bool bStarted = FALSE;
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+		if (!m_freeTrans.IsEmpty())
+		{
+			bstr += "ft=\"";
+			btemp = m_freeTrans;
+			InsertEntities(btemp);
+			bstr += btemp; // add m_freeTrans string
+			bstr += "\"";
+			bStarted = TRUE;
+		}
+		// sixth line... (possibly, or fifth)
+		if (!m_note.IsEmpty())
+		{
+			if (bStarted)
+			{
+				// we need to start a new line (the sixth)
+				bstr += "\r\n";
+				for (i = 0; i < nTabLevel; i++)
+				{
+					bstr += "\t"; // tab the start of the line
+				}
+				bStarted = FALSE; // reset, so logic will work for next line
+			}
+			bstr += "no=\"";
+			btemp = m_note;
+			InsertEntities(btemp);
+			bstr += btemp; // add m_note string
+			bstr += "\"";
+			bStarted = TRUE;
+		}
+		// seventh line... (possibly, or sixth, or fifth)
+		if (!m_collectedBackTrans.IsEmpty())
+		{
+			if (bStarted)
+			{
+				// we need to start a new line (the seventh or sixth)
+				bstr += "\r\n";
+				for (i = 0; i < nTabLevel; i++)
+				{
+					bstr += "\t"; // tab the start of the line
+				}
+				bStarted = FALSE; // reset, so logic will work for any nexts lines
+			}
+			bstr += "bt=\"";
+			btemp = m_collectedBackTrans;
+			InsertEntities(btemp);
+			bstr += btemp; // add m_collectedBackTrans string
+			bstr += "\"";
+			//bStarted = TRUE; // uncomment out if we add more attributes to this block
+		}
+	}
+#endif
 
 	// we can now close off the S opening tag
 	bstr += ">";

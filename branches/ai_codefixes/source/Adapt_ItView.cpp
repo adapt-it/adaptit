@@ -759,7 +759,8 @@ extern bool		gbUserWantsSelection; // carries value from CPhraseBox to caller of
 extern bool		gbUserCancelledChooseTranslationDlg;
 extern bool		gbSuppressLookup; // see CPhraseBox globals for explanation
 
-// global to make source phrase accessible to dialogs
+// global to make source phrase accessible to dialogs and to the callback functions of the
+// xml parser (so this has multiple uses - beware)
 CSourcePhrase* gpSrcPhrase;
 
 SPList gSrcPhrases; // for list of CSourcePhrase instances in the retranslation
