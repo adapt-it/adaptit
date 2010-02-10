@@ -459,6 +459,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 		bool bRemoved = ::wxRemoveFile(pathToFile);
 		if (bRemoved)
 		{
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsZombie bRemoved is TRUE, returning TRUE")); 
+#endif
 			// we were able to remove it, so it's a zombie
 			return TRUE;
 		}
@@ -466,6 +469,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 		{
 			// we could not remove it, so it is already opened by someone else's process, (even
 			// the original one I initiated myself)
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsZombie bRemoved is FALSE, returning FALSE")); 
+#endif
 			return FALSE;
 		}
 #ifndef __WXMSW__
@@ -473,6 +479,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	else
 	{
 		// the current process owns the lock file - it is not a zombie
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsZombie bItsNotMe is FALSE, returning FALSE")); 
+#endif
 		return FALSE;
 	}
 #endif
