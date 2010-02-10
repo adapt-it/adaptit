@@ -8702,17 +8702,18 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
 /// \param		nStartingSequNum	-> the initial sequence number
-/// \param		pList				<- list of source phrases populated with word tokens
+/// \param		pList				<- list of CSourcePhrase instances, each populated with 
+///                                    a word token
 /// \param		rBuffer				-> the buffer from which words are tokenized and stored 
-///										as source phrases in pList
+///									   as CSourcePhrase instances in pList
 /// \param		nTextLength			-> the initial text length
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), the View's TokenizeTextString(),
 /// DoExtendedSearch(), DoSrcOnlyFind(), DoTgtOnlyFind(), DoSrcAndTgtFind().
-/// Intelligently parses the input text (rBuffer) and builds a list of source phrases from
-/// the tokens. All the input text's source phrases are analyzed in the process to
-/// determine each source phrase's many attributes and flags, stores any filtered
-/// information in its m_markers member.
+/// Intelligently parses the input text (rBuffer) and builds a list of CSourcePhrase
+/// instances from the tokens. All the input text's source phrases are analyzed in the
+/// process to determine each source phrase's many attributes and flags, stores any
+/// filtered information in its m_filteredInfo member.
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
 							   int nTextLength)

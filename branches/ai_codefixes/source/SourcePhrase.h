@@ -175,15 +175,17 @@ public:
 								// marker \note and endmarker \note*)
 	bool			m_bHasBookmark; // TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
 
-	// BEW added 9Feb10, extra wxString members for refactoring support for free
-	// translations, notes, collected back translations -- we put these in a conditional
-	// compile directive for now, as Graeme needs the older system for testing his work,
-	// and Bruce needs the new system for his own
+    // BEW added 9Feb10, extra wxString members for refactoring support for free
+    // translations, notes, collected back translations, endMarkers, and filtered
+    // information -- we put these in a conditional compile directive for now, as Graeme
+    // needs the older system for testing his work, and Bruce needs the new system for his
+    // own
 	#ifdef _DOCVER5
 	wxString		m_endMarkers;
 	wxString		m_freeTrans;
 	wxString		m_note;
 	wxString		m_collectedBackTrans;
+	wxString		m_filteredInfo;
 	#endif
 
 // Operations

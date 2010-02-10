@@ -136,6 +136,7 @@ CSourcePhrase::CSourcePhrase()
 	m_freeTrans = _T("");
 	m_note = _T("");
 	m_collectedBackTrans = _T("");
+	m_filteredInfo = _T("");
 	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
@@ -200,6 +201,7 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
+	m_filteredInfo = sp.m_filteredInfo;
 	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
@@ -305,6 +307,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
+	m_filteredInfo = sp.m_filteredInfo;
 	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
@@ -587,18 +590,23 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 			m_gloss = m_gloss + _T(" ") + pSrcPhrase->m_gloss;
 	}
 
-	// the doc version 5 new members
+	// doc version 5, these new members (an additional one is above)
 	#ifdef _DOCVER5
-	// free translations, notes, or collected back translations are only allowed on the
-	// first CSourcePhrase in a merger; so we can just append the strings involved to give
-	// a behaviour that makes sense (ie. accumulating two notes, or two free translations,
-	// etc if any such should slip through our net of filters to prevent this
+    // free translations, notes, collected back translations or filtered information are
+    // only allowed on the first CSourcePhrase in a merger - we filter any attempt to merge
+    // across a CSourcePhrase which carries such information, warn the user and abort the
+    // merge attempt. But just in case something goes wrong and a merge is attempted in
+    // such a scenario, here we can just append the strings involved to give a behaviour
+    // that makes sense (ie. accumulating two notes, or two free translations, etc if any
+    // such should slip through our net of checks to prevent this)
 	if (!pSrcPhrase->m_freeTrans.IsEmpty())
 		m_freeTrans = m_freeTrans + _T(" ") + pSrcPhrase->m_freeTrans;
 	if (!pSrcPhrase->m_note.IsEmpty())
 		m_note = m_note + _T(" ") + pSrcPhrase->m_note;
 	if (!pSrcPhrase->m_collectedBackTrans.IsEmpty())
 		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
+	if (!pSrcPhrase->m_filteredInfo.IsEmpty())
+		m_filteredInfo = m_filteredInfo + _T(" ") + pSrcPhrase->m_filteredInfo;
 	#endif
 
 
@@ -825,8 +833,9 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 	}
 
 #ifdef _DOCVER5
-	// fifth, sixth and seventh lines -- 1 attribute each, each is possibly absent
-	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty())
+	// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
+		|| !m_filteredInfo.IsEmpty())
 	{
 		// there is something in this group, so form the needed lines
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
@@ -875,12 +884,32 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				{
 					bstr += "\t"; // tab the start of the line
 				}
-				bStarted = FALSE; // reset, so logic will work for any nexts lines
+				bStarted = FALSE; // reset, so logic will work for any next lines
 			}
 			bstr += "bt=\"";
 			btemp = gpApp->Convert16to8(m_collectedBackTrans);
 			InsertEntities(btemp);
 			bstr += btemp; // add m_collectedBackTrans string
+			bstr += "\"";
+			bStarted = TRUE; // uncomment out if we add more attributes to this block
+		}
+		// eighth line... (possibly, or seventh or sixth, or fifth)
+		if (!m_filteredInfo.IsEmpty())
+		{
+			if (bStarted)
+			{
+				// we need to start a new line (the eigth or seventh or sixth)
+				bstr += "\r\n";
+				for (i = 0; i < nTabLevel; i++)
+				{
+					bstr += "\t"; // tab the start of the line
+				}
+				bStarted = FALSE; // reset, so logic will work for any next lines
+			}
+			bstr += "fi=\"";
+			btemp = gpApp->Convert16to8(m_filteredInfo);
+			InsertEntities(btemp);
+			bstr += btemp; // add m_filteredInfo string
 			bstr += "\"";
 			//bStarted = TRUE; // uncomment out if we add more attributes to this block
 		}
@@ -1139,8 +1168,9 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 	}
 
 #ifdef _DOCVER5
-	// fifth, sixth and seventh lines -- 1 attribute each, each is possibly absent
-	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty())
+	// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
+		|| !m_filteredInfo.IsEmpty())
 	{
 		// there is something in this group, so form the needed lines
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
@@ -1189,12 +1219,32 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 				{
 					bstr += "\t"; // tab the start of the line
 				}
-				bStarted = FALSE; // reset, so logic will work for any nexts lines
+				bStarted = FALSE; // reset, so logic will work for any next lines
 			}
 			bstr += "bt=\"";
 			btemp = m_collectedBackTrans;
 			InsertEntities(btemp);
 			bstr += btemp; // add m_collectedBackTrans string
+			bstr += "\"";
+			bStarted = TRUE; // uncomment out if we add more attributes to this block
+		}
+		// eighth line... (possibly, or seventh or sixth, or fifth)
+		if (!m_filteredInfo.IsEmpty())
+		{
+			if (bStarted)
+			{
+				// we need to start a new line (the eigth or seventh or sixth)
+				bstr += "\r\n";
+				for (i = 0; i < nTabLevel; i++)
+				{
+					bstr += "\t"; // tab the start of the line
+				}
+				bStarted = FALSE; // reset, so logic will work for any next lines
+			}
+			bstr += "fi=\"";
+			btemp = m_filteredInfo;
+			InsertEntities(btemp);
+			bstr += btemp; // add m_filteredInfo string
 			bstr += "\"";
 			//bStarted = TRUE; // uncomment out if we add more attributes to this block
 		}
