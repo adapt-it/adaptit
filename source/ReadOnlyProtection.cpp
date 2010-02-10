@@ -449,9 +449,10 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	// across a LAN.
 	
 	// Is the local process ID different from the PID in the ropFile?
+#ifndef __WXMSW__
 	if (GetLocalProcessID() != ExtractProcessID(ropFile))
 	{
-#ifdef __WXMSW__
+#endif
 		// The file can be removed only if it is a (closed) one, that is, a zombie left over
 		// from a crash or power loss (regardless of whoever was the former owner for writing)
 		bool bRemoved = ::wxRemoveFile(pathToFile);
@@ -466,16 +467,14 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 			// the original one I initiated myself)
 			return FALSE;
 		}
-#else
-		// On non-Windows systems assume it is a zombie without trying to remove it
-		return TRUE;
-#endif
+#ifndef __WXMSW__
 	}
 	else
 	{
 		// the current process owns the lock file - it is not a zombie
 		return FALSE;
 	}
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
