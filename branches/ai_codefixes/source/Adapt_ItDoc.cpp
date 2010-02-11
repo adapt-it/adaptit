@@ -8018,11 +8018,12 @@ a:				if (IsPrevCharANewline(pChar,pBufStart))
 /// \return		TRUE if pChar is pointing at a standard format marker which is also an end 
 ///				marker (ends with an asterisk), FALSE otherwise.
 /// \param		pChar	-> a pointer to a character in a buffer
-/// \param		pEnd	<- a pointer to the end of the buffer
+/// \param		pEnd	-> a pointer to the end of the buffer
 /// \remarks
 /// Called from: the Doc's GetMarkersAndTextFromString(), AnalyseMarker(), the View's
 /// FormatMarkerBufferForOutput(), DoExportInterlinearRTF(), ProcessAndWriteDestinationText().
 /// Determines if the marker at pChar is a USFM end marker (ends with an asterisk). 
+/// BEW added to it, 11Feb10, to handle SFM endmarkers \F or \fe for 'footnote end'
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -8033,6 +8034,19 @@ bool CAdapt_ItDoc::IsEndMarker(wxChar *pChar, wxChar* pEnd)
 	// 2. ptr points to a space (return FALSE)
 	// 3. ptr points to another marker (return FALSE)
 	// 4. ptr points to a * (return TRUE)
+	
+	// First, handle the PngOnly special case of \fe or \F footnote end markers
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		wxString tempStr1(ptr,2);
+		if (tempStr1 == _T("\\F"))
+			return TRUE;
+		wxString tempStr2(ptr,3);
+		if (tempStr2 == _T("\\fe"))
+			return TRUE;
+	}
+
+	// neither of those, so must by USFM endmarker if it is one at all
 	while (ptr < pEnd)
 	{
 		ptr++;
@@ -8135,8 +8149,8 @@ bool CAdapt_ItDoc::IsCorresEndMarker(wxString wholeMkr, wxChar *pChar, wxChar* p
 	{
 		wxString tempStr = GetWholeMarker(ptr);
 		// debug
-		int len;
-		len = tempStr.Length();
+		//int len;
+		//len = tempStr.Length();
 		// debug
 		if (tempStr == _T("\\fe") || tempStr == _T("\\F"))
 		{
@@ -8699,6 +8713,98 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 #endif
 #endif
 
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if the passed in (U)SFM marker is \free, \note, or \bt or a derivative
+///             FALSE otherwise
+/// \param		mkr     ->  the augmented marker (augmented means it ends with a space)
+/// \remarks
+/// Called from: the Doc's TokenizeText().
+/// Test for one of the custom Adapt It markers which require the filtered information to
+/// be stored on m_freeTrans, m_note, or m_collectedBackTrans string members used for 
+/// document version 5 (see docVersion in the xml)
+///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr)
+{
+	if (mkr == _T("\\free "))
+	{
+		return TRUE;
+	}
+	else if (mkr == _T("\\note "))
+	{
+		return TRUE;
+	}
+	else
+	{
+		int offset = mkr.Find(_T("\\bt"));
+		if (offset == 0)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr,
+								size_t itemLen, CSourcePhrase* pSrcPhrase)
+{
+	// if it is one of the three custom markers, set the relevent
+	// CSourcePhrase member directly here
+	wxString filterStr(ptr,(size_t)itemLen);
+	size_t len;
+	wxChar aChar;
+	if (mkr == _T("\\free"))
+	{
+		filterStr = filterStr.Mid(6); // start from after "\free "
+		// remove |@number@| string -- don't bother to return the number value because it
+		// is done later in TokenizeText() after this present function returns
+		int nFound = filterStr.Find(_T("|@"));
+		if (nFound != wxNOT_FOUND)
+		{
+			// there is the src word count number substring present, remove it and its
+			// following space
+			int nFound2 = filterStr.Find(_T("@| "));
+			wxASSERT(nFound2 - nFound < 10);
+			filterStr.Remove(nFound, nFound2 + 3 - nFound);
+		}
+		len = filterStr.Len();
+		// end of filterStr will be "\free*" == 6 characters
+		filterStr = filterStr.Left((size_t)len - 6);
+		// it may also end in a space now, so remove it if there
+		filterStr.Trim();
+		// we now have the free translation text, so store it
+		pSrcPhrase->m_freeTrans = filterStr;
+	}
+	else if (mkr == _T("\\note"))
+	{
+		filterStr = filterStr.Mid(6); // start from after "\note "
+		len = filterStr.Len();
+		// end of filterStr will be "\note*" == 6 characters
+		filterStr = filterStr.Left((size_t)len - 6);
+		// it may also end in a space now, so remove it if there
+		filterStr.Trim();
+		// we now have the note text, so store it
+		pSrcPhrase->m_note = filterStr;
+	}
+	else
+	{
+		// could be \bt, or longer markers beginning with those 3 chars
+		aChar = filterStr.GetChar(0);
+		while (!IsWhiteSpace(&aChar))
+		{
+			// trim off from the front the marker info, a character at
+			// a time
+			filterStr = filterStr.Mid(1);
+			aChar = filterStr.GetChar(0);
+		}
+		filterStr.Trim(FALSE); // trim any initial white space
+		// it may also end in a space now, so remove it if there
+		filterStr.Trim();
+		// we now have the back trans text, so store it
+		pSrcPhrase->m_collectedBackTrans = filterStr;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
 /// \param		nStartingSequNum	-> the initial sequence number
@@ -8833,6 +8939,10 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 	USFMAnalysis* pUsfmAnalysis = NULL; // whm added 11Feb05
 
+#ifdef _DOCVER5
+	bool bIsFreeTransOrNoteOrBackTrans = FALSE;
+#endif
+
 	wxString bdrySet = gpApp->m_punctuation[0];
 	// Note: wxString::Remove must have the second param as 1 otherwise it will truncate
 	// the remainder of the string
@@ -8892,6 +9002,11 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// are we pointing at a standard format marker?
 b:		if (IsMarker(ptr,pBufStart))
 		{
+#ifdef _DOCVER5
+			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before 
+									// checking which marker it is
+#endif
+
 			bHitMarker = TRUE;
 			int nMkrLen = 0;
 			// its a marker of some kind
@@ -9072,8 +9187,25 @@ b:		if (IsMarker(ptr,pBufStart))
                     // signature (the new version is no slower, because while it has to
                     // copy the local string to return it, the old version did an internal
                     // copy anyway and I've removed that)
+#ifdef _DOCVER5
+					bIsFreeTransOrNoteOrBackTrans = 
+						IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr);
+					if (bIsFreeTransOrNoteOrBackTrans)
+					{
+						SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
+						wxString aTempStr(ptr,itemLen);
+						temp = aTempStr; // don't need to wrap with \~FILTER etc, get just enough
+						// for the code further down to work out the value between |@ and @|
+					}
+					else
+					{
+						// other filterable markers go in m_filteredInfo, and have to be
+						// wrapped with \~FILTER and \~FILTER* and put into m_filteredInfo
+						temp = GetFilteredItemBracketed(ptr,itemLen);
+					}
+#else
 					temp = GetFilteredItemBracketed(ptr,itemLen);
-
+#endif
                     // BEW added 06Jun06; if we just filtered out a footnote or cross
                     // reference, then code later on for turning off bFootnoteIsCurrent
                     // when \f* is encountered, or for turning off bCrossRefIsCurrent when
@@ -9138,10 +9270,26 @@ b:		if (IsMarker(ptr,pBufStart))
 						}
 					}
 
+#ifdef _DOCVER5
+					if (!bIsFreeTransOrNoteOrBackTrans)
+					{
+						// other filtered stuff needs to be saved here (not later), it has
+						// been wrapped with \~FILTER and \~FILTER*
+						if (pSrcPhrase->m_filteredInfo.IsEmpty())
+						{
+							pSrcPhrase->m_filteredInfo = temp;
+						}
+						else
+						{
+							pSrcPhrase->m_filteredInfo += _T(" ") + temp;
+						}
+					}
+#else
                     // we can append the temp string to buffer now, because any count
                     // within it has just been removed
 					AppendFilteredItem(tokBuffer,temp); // temp might have been emptied 
 												// because of a zero nFreeTransWordCount
+#endif
 					if (wholeMkr == _T("\\note"))
 					{
 						pSrcPhrase->m_bHasNote = TRUE;
@@ -9286,6 +9434,24 @@ b:		if (IsMarker(ptr,pBufStart))
 
 				itemLen = ParseWhiteSpace(ptr); // parse white space following it
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
+#ifdef _DOCVER5
+				// bleed off any endmarkers into the m_endMarkers member of CSourcePhrase,
+				// but it has to go into pLastScrPhrase's member, not pSrcPhrase's
+				const wxChar* pBuffer2 = tokBuffer.GetData();
+				wxChar* pBufStart2 = (wxChar*)pBuffer2;
+				int tokBufferLen = tokBuffer.Len();
+				wxChar* pEnd2 = pBufStart2 + tokBufferLen; // bound past which we must not go
+				bool bIsEndMkr = IsEndMarker(pBufStart2,pEnd2);
+				if (bIsEndMkr)
+				{
+					// take the lot, including any final whitespace, if present; but if
+					// none is present then don't add any; clear out tokBuffer if there is
+					// an endmarker that has been found there and stored in m_endMarkers
+					wxString endMkrStr(pBufStart2,tokBufferLen);
+					pLastSrcPhrase->m_endMarkers += endMkrStr;
+					tokBuffer.Empty();
+				}
+#endif
 				ptr += itemLen; // point past it
 
 				goto b; // check if another marker follows
@@ -9347,6 +9513,11 @@ b:		if (IsMarker(ptr,pBufStart))
             // the ParseWord() call above.
 			
 			tokBuffer = NormalizeToSpaces(tokBuffer);
+			// in the next call, doc version 4 puts all filtered and non-filted marker
+			// stuff into m_markers, but version 5 saves filtered stuff in m_filteredInfo
+			// and free translations, notes and collected back translations (each without
+			// any markers, just the bare text) in member variables m_freeTrans, m_note,
+			// and m_collectedBackTrans, before getting to this point
 			pSrcPhrase->m_markers = tokBuffer;
 			tokBuffer.Empty(); //strLen = ClearBuffer();
 

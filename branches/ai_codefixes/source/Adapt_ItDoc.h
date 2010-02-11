@@ -34,7 +34,6 @@ class CAdapt_ItApp;
 class CAdapt_ItDoc;
 class CLayout;
 
-
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
 // the SrcPList class that is declared by the macro to declare 
@@ -263,6 +262,10 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
+
+	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr);
+	void SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
+					size_t itemLen, CSourcePhrase* pSrcPhrase);
 
 	DECLARE_EVENT_TABLE()
 };
