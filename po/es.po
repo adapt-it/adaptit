@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-02-04 12:21-0800\n"
-"PO-Revision-Date: 2010-02-05 17:14-0800\n"
+"PO-Revision-Date: 2010-02-10 15:13-0800\n"
 "Last-Translator: \n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -658,21 +658,18 @@ msgstr "Buscar y Reemplazar...\tCtrl-Shift-F"
 #: source/Adapt_It.cpp:7058
 #: source/Adapt_ItView.cpp:25547
 #: source/Adapt_ItView.cpp:25610
-#, fuzzy
 msgid "Layout Window Right To Left\tCtrl-Shift-1"
-msgstr "Establecer la Ventana de Derecha a Izquierda\tCtrl-1"
+msgstr "Establecer la Ventana de Derecha a Izquierda\tCtrl-Shift-1"
 
 # Priority 1
 #: source/Adapt_It.cpp:6571
-#, fuzzy
 msgid "Help Topics\tCtrl-Shift-/"
-msgstr "&Temas de Ayuda"
+msgstr "&Temas de Ayuda\tCtrl-Shift-/"
 
 # Priority 1
 #: source/Adapt_It.cpp:6576
-#, fuzzy
 msgid "Help Topics\tF1"
-msgstr "&Temas de Ayuda"
+msgstr "&Temas de Ayuda\tF1"
 
 #: source/Adapt_It.cpp:6665
 msgid "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."
@@ -2217,7 +2214,7 @@ msgstr "El programa provee herramientas para traducir textos de un idioma conoci
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1270
 msgid "Do &not show this window in future"
-msgstr "Que no me muestre más, este aviso"
+msgstr "No me muestre más esta ventana"
 
 #: source/Adapt_It_wdr.cpp:1271
 msgid "Check this box to avoid displaying this welcome message each time Adapt It runs"
@@ -2235,7 +2232,7 @@ msgstr "Elija un documento"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1307
 msgid "If you want to create a new document, double click <New Document>. If you want to continue work on a document you created previously, you will see its name in the list - double click the name to open that document."
-msgstr "Si desea crear un nuevo documento, haga doble clic en <Nuevo documento>. Si desea continuar trabajando en un documento creado anteriormente, verá su nombre en la lista - doble click en el nombre para abrir el documento."
+msgstr "Si desea crear un nuevo documento, haga doble clic en <Documento Nuevo>. Si desea continuar trabajando en un documento creado anteriormente, verá su nombre en la lista - doble click en el nombre para abrir el documento."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1320
@@ -2298,7 +2295,7 @@ msgstr "Seleccione un proyecto"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1409
 msgid "If you do not have your project set up yet, double click <New Project>. If it is already set up, you will see its name in the list - double click the name to open that project."
-msgstr "Si usted no ha definido su proyecto, haga doble clic en <Nuevo proyecto>. Si ya está configurado, podrás ver su nombre en la lista - doble click en el nombre para abrir ese proyecto."
+msgstr "Si usted no ha definido su proyecto, haga doble clic en <Proyecto Nuevo>. Si ya está configurado, podrás ver su nombre en la lista - doble click en el nombre para abrir ese proyecto."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1416
@@ -5184,7 +5181,7 @@ msgstr "Desembalaje de un documento que ha sido envasado en otro equipo"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7114
 msgid "&Print...\tCtrl-P"
-msgstr "&Imprimir..."
+msgstr "&Imprimir...\tCtrl-P"
 
 #: source/Adapt_It_wdr.cpp:7114
 #: source/Adapt_It_wdr.cpp:7259
@@ -5194,7 +5191,7 @@ msgstr "Imprimir Documento Activo"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7115
 msgid "Print Pre&view"
-msgstr "Imprimir Pre&visto"
+msgstr "&Vista Previa"
 
 #: source/Adapt_It_wdr.cpp:7115
 msgid "Show what printed pages will look like (without printing)"
@@ -5203,7 +5200,7 @@ msgstr "Mostrar como se verán las páginas impresas (sin impresión)"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7116
 msgid "P&age Setup..."
-msgstr "P&ágina Setup..."
+msgstr "Ajustar P&ágina..."
 
 #: source/Adapt_It_wdr.cpp:7116
 msgid "Change the printing options"
@@ -5234,7 +5231,7 @@ msgstr "Cambiar a otra carpeta del libro para almacenar el documento (el ‘Modo
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7122
 msgid "Save &Knowledge Base"
-msgstr "Guarda &Base de Conocimientos"
+msgstr "Guardar &Base de Conocimientos"
 
 #: source/Adapt_It_wdr.cpp:7122
 msgid "Update the knowledge base file for this project"
@@ -5261,7 +5258,7 @@ msgstr "Emplear todos los documentos ya grabados para rectificar la Base de Cono
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7126
 msgid "E&xit"
-msgstr "Sa&lida"
+msgstr "Sa&lir de Adapt It"
 
 #: source/Adapt_It_wdr.cpp:7126
 msgid "Quit the application; prompts to save documents"
@@ -5419,7 +5416,7 @@ msgstr "Comenzar una línea nueva siempre que se encuentra un marcador homologad
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7153
 msgid "&Units of Measurement..."
-msgstr "¿O &Pulgadas o Centímetros?..."
+msgstr "&Unidades de Medida..."
 
 #: source/Adapt_It_wdr.cpp:7153
 msgid "Units to be used when printing"
@@ -5428,16 +5425,16 @@ msgstr "Unidades que se utilizarán en la impresión"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7155
 msgid "Change Interface Language..."
-msgstr "cambio de idioma de la interfaz"
+msgstr "Cambiar el idioma de la interfaz..."
 
 #: source/Adapt_It_wdr.cpp:7155
 msgid "Change the language of the program interface. You may need to restart Adapt It for the change to take effect"
-msgstr "Cambiar el idioma de la interfaz del programa. Puede que tenga que reiniciar para que los cambios surtan efecto"
+msgstr "Cambiar el idioma de la interfaz del programa. Es posible que tiene que reiniciar la programa para que los cambios surtan efecto."
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7156
 msgid "&View"
-msgstr "&Vista"
+msgstr "&Visualización"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7159
@@ -5620,9 +5617,8 @@ msgstr "Recoge el contenido de todas las secciones de traducción libre, añadie
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7188
-#, fuzzy
 msgid "Export Knowledge &Base..."
-msgstr "Exp&ortar Base de Conocimientos..."
+msgstr "Exp&ortar la Base de Conocimientos..."
 
 #: source/Adapt_It_wdr.cpp:7188
 msgid "Export knowledge base in SIL standard format"
@@ -5769,7 +5765,6 @@ msgstr "Seleccione este elemento para adaptarlo a causa de desplazamiento en la 
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7213
-#, fuzzy
 msgid "&Advanced"
 msgstr "Advan&zado"
 
@@ -5780,13 +5775,11 @@ msgstr "Establecer la Ventana de Derecha a Izquierda"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7217
-#, fuzzy
 msgid "&Layout"
-msgstr "Establecer la Ventana"
+msgstr "&Disposición"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7220
-#, fuzzy
 msgid "&Help Topics\tShift-Ctrl-/"
 msgstr "&Temas de Ayuda"
 
@@ -5797,9 +5790,8 @@ msgstr "Ver Temas De Ayuda"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7221
-#, fuzzy
 msgid "Online Help (Requires Internet Access)"
-msgstr "ayuda en línea (requiere acceso a Internet)"
+msgstr "Ayuda en Línea (requiere acceso a Internet)"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7221
@@ -5809,7 +5801,7 @@ msgstr "Obtener ayuda de la Internet en su navegador"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7222
 msgid "User Forum (Requires Internet Access)"
-msgstr "Foro de usuarios (requiere acceso a Internet)"
+msgstr "Foro de Usuarios (requiere acceso a Internet)"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7224
@@ -5833,7 +5825,7 @@ msgstr "Mostrar Datos Sobre El Programa, Versión Y Copyright"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:7227
 msgid "&Help"
-msgstr "Ayu&da"
+msgstr "&Help"
 
 #: source/Adapt_It_wdr.cpp:7230
 msgid "&Custom Work Folder Location"
@@ -7322,14 +7314,13 @@ msgstr "Error en CCSetUTR8Encoding (): Código de error:%d."
 
 #: source/DocPage.cpp:287
 msgid "You must Select a document (or <New Document>) from the list before continuing."
-msgstr "Debe seleccionar un documento (o <Nueva documento>) de la lista antes de continuar."
+msgstr "Debe seleccionar un documento (o <Documento Nuevo>) de la lista antes de continuar."
 
 # Priority 1
 # Should be translated as a short string equivalend for ON referring to a mode being active as in "Book folder mode is %s"
 #: source/DocPage.cpp:458
-#, fuzzy
 msgid "ON"
-msgstr "SÍ"
+msgstr "ACTIVA"
 
 # Priority 1
 #: source/DocPage.cpp:460
@@ -8253,7 +8244,7 @@ msgstr "En la lista de abajo, si el proyecto aún no se le ha establecido, pinch
 # Priority 1
 #: source/ProjectPage.cpp:387
 msgid "You must Select a project (or <New Project>) from the list before continuing."
-msgstr "O seleccione un proyecto o haga clic en <Nuevo Proyecto> de la lista antes de continuar."
+msgstr "O seleccione un proyecto o haga clic en <Proyecto Nuevo> de la lista antes de continuar."
 
 #: source/ProjectPage.cpp:568
 msgid "Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."
