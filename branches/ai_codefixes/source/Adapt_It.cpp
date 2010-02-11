@@ -317,10 +317,11 @@ wxPoint gptLastClick;
 
 // BEW added 24Jun05; globals for free translation support
 
+///GDLC removed 2010-02-12 because it is no longer used anywhere
 /// BEW added 27Jun05 for free trans support, make sure it is always FALSE when
 /// OnLButtonDown() is entered. Default FALSE, TRUE if pile pointer is NULL on
 /// GetPrevPile() call.
-bool gbBundleStartIteratingBack;
+//bool gbBundleStartIteratingBack;
 
 /// The offset to the current free translation string in pSrcPhrase->m_markers.
 int gnOffsetInMarkersStr; 

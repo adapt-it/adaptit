@@ -678,6 +678,4 @@ private:
 inline CAdapt_ItDoc* CAdapt_ItView::GetDocument()
    { return (CAdapt_ItDoc*)m_viewDocument; }
 
-
-
 #endif /* Adapt_ItView_h */

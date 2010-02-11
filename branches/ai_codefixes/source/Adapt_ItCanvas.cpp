@@ -94,6 +94,7 @@ extern CPile* gpNotePile;
 /// This global is defined in Adapt_It.cpp.
 extern wxPoint gptLastClick;
 
+///GDLC Removed 2010-02-12 because it is no longer used anywhere
 /// This global is defined in Adapt_It.cpp.
 //extern bool gbBundleStartIteratingBack;
 
