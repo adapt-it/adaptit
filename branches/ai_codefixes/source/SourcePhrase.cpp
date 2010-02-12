@@ -43,6 +43,7 @@
 #endif
 
 #include "Adapt_It.h"
+#include "helpers.h"
 #include "SourcePhrase.h"
 #include "AdaptitConstants.h"
 #include "RefString.h" // needed here???
@@ -56,6 +57,12 @@
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
+
+extern const wxChar* filterMkr;
+extern const wxChar* filterMkrEnd;
+const int filterMkrLen = 8;
+const int filterMkrEndLen = 9;
+
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -131,13 +138,13 @@ CSourcePhrase::CSourcePhrase()
 	m_bHasNote = FALSE;
 	m_bHasBookmark = FALSE;
 
-	#ifdef _DOCVER5
+#ifdef _DOCVER5
 	m_endMarkers = _T("");
 	m_freeTrans = _T("");
 	m_note = _T("");
 	m_collectedBackTrans = _T("");
 	m_filteredInfo = _T("");
-	#endif
+#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
@@ -1344,3 +1351,136 @@ bool CSourcePhrase::ChapterColonVerseStringIsNotEmpty()
 	return !this->m_chapterVerse.IsEmpty();
 }
 
+// some getters and setters
+wxString CSourcePhrase::GetFreeTrans()
+{
+	return m_freeTrans;
+}
+wxString CSourcePhrase::GetNote()
+{
+	return m_note;
+}
+wxString CSourcePhrase::GetCollectedBackTrans()
+{
+	return m_collectedBackTrans;
+}
+wxString CSourcePhrase::GetFilteredInfo()
+{
+	return m_filteredInfo;
+    // *** TODO *** later it may be better to return this member as two wxArrayString in
+    // parallel, one with the set of markers, and the other with the set of markers'
+    // content strings; this would make the \~FILTER and \~FILTER* wrappers invisible
+    // to the rest of the code which wants to use any of this info
+}
+// return TRUE if there is something filtered, FALSE if nothing is there; the two arrays
+// work in parallel - for a given index, the returned marker in the first and second are
+// the wrapping markers for the content; some filtered info may have no endmarker, in which
+// case the pFilteredEndMarkers will have an empty string at the appropriate index
+bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
+											wxArrayString* pFilteredEndMarkers,
+											wxArrayString* pFilteredContent)
+{
+	pFilteredMarkers->Empty();
+	pFilteredContent->Empty();
+	pFilteredEndMarkers->Empty();
+	int offsetToStart = 0;
+	int offsetToEnd = 0;
+	if (m_filteredInfo.IsEmpty())
+		return FALSE;
+
+	// get the first wrapping
+	wxString info = m_filteredInfo;
+	offsetToStart = info.Find(filterMkr);
+	offsetToEnd = info.Find(filterMkrEnd);
+	while (offsetToStart != wxNOT_FOUND && offsetToStart != wxNOT_FOUND)
+	{
+		offsetToStart += filterMkrLen + 1; // point at USFM or SFM
+		int earlierEnd = offsetToEnd - 1; // don't want the delimiting space char
+		int length = earlierEnd - offsetToStart;
+		wxString markersAndContent = info.Mid(offsetToStart,length);
+
+		// we now have a string of the form:
+        // \somemarker some text content \somemarker* (endmarker may be absent, or \F, or
+        // \fe), so shorten the original string to prepare for the next extraction
+		info = info.Mid(offsetToEnd + filterMkrEndLen);
+
+		// now process markersAndContent to extract the marker and endmarker, and the
+		// content string, adding them to the respective arrays
+
+
+		// *** TODO ***  (use ParseFilteringSFM() etc, using scope resolution operator -- with a
+		// TODO for later change --- or use GetExistingMarkerContent() ??? <--- YES! but see next line
+		// support pngSet but only \fe  (test if \f and look for \fe only)
+
+
+
+		// prepare for next iteration
+		offsetToStart = info.Find(filterMkr);
+		offsetToEnd = info.Find(filterMkrEnd);
+	}
+	return TRUE;
+}
+wxString CSourcePhrase::GetEndmarkers()
+{
+	return m_endMarkers;
+}
+// return FALSE if empty, else TRUE (I'm not sure we'll ever need to get individual
+// endmarkers, I think we only need to add the member contents to the document export at
+// some point, but I'll provide this in case)
+bool CSourcePhrase::GetEndmarkersAsArray(wxArrayString* pEndmarkersArray)
+{
+	pEndmarkersArray->Empty();
+	if (m_endMarkers.IsEmpty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		wxString delimiter = _T(" ");
+		// bStoreEmptyStringsToo is FALSE in next call 
+		long count = SmartTokenize(delimiter, m_endMarkers, *pEndmarkersArray, FALSE);
+		count = count; // avoid compiler warning
+	}
+	return TRUE;
+}
+// the app never needs to get individual markers in m_markers, but just the whole lot as a
+// single string, so this is the only getter needed
+wxString CSourcePhrase::GetMarkers()
+{
+	return m_markers;
+}
+void CSourcePhrase::SetFreeTrans(wxString freeTrans)
+{
+	m_freeTrans = freeTrans;
+}
+void CSourcePhrase::SetNote(wxString note)
+{
+	m_note = note;
+}
+void CSourcePhrase::SetCollectedBackTrans(wxString collectedBackTrans)
+{
+	m_collectedBackTrans = collectedBackTrans;
+}
+void CSourcePhrase::SetFilteredInfo(wxString filteredInfo)
+{
+	m_filteredInfo = filteredInfo;
+	// *** TODO *** one to get it all as 2 arrays; another bit by bit
+}
+void CSourcePhrase::AddEndmarker(wxString endMarker)
+{
+	if (m_endMarkers.IsEmpty())
+		m_endMarkers = endMarker;
+	else
+		m_endMarkers += _T(" ") + endMarker;
+}
+
+void CSourcePhrase::SetEndmarkers(wxString endMarkers)
+{
+	m_endMarkers = endMarkers;
+}
+void CSourcePhrase::SetMarkers(wxString markers)
+{
+	m_markers = markers;
+}
+
+ 

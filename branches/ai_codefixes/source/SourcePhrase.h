@@ -213,6 +213,27 @@ public:
 	// BEW added 04Nov05
 	bool ChapterColonVerseStringIsNotEmpty();
 
+#ifdef _DOCVER5
+	// BEW added 12Feb10
+	wxString GetFreeTrans();
+	wxString GetNote();
+	wxString GetCollectedBackTrans();
+	wxString GetFilteredInfo();
+	bool	 GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
+									wxArrayString* pFilteredEndMarkers,
+									wxArrayString* pFilteredContent);
+	wxString GetEndmarkers();
+	bool	 GetEndmarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
+	wxString GetMarkers();
+
+	void SetFreeTrans(wxString freeTrans);
+	void SetNote(wxString note);
+	void SetCollectedBackTrans(wxString collectedBackTrans);
+	void SetFilteredInfo(wxString filteredInfo);
+	void SetEndmarkers(wxString endMarkers);
+	void AddEndmarker(wxString endMarker);
+	void SetMarkers(wxString markers);
+#endif
 
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)

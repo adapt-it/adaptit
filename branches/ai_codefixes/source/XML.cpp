@@ -2413,9 +2413,9 @@ bool AtDocTag(CBString& tag)
 					return FALSE; // unknown element, so signal the error to the caller
 				}
 				break;
-			}
-		}
-	}
+			} // end block for docVersion case 4:
+		} // end block for switch (gnDocVersion)
+	} // end else block for test: if (tag == xml_settings)
 	return TRUE; // no error
 }
 

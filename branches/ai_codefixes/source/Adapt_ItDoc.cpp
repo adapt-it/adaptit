@@ -8745,6 +8745,7 @@ bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr)
 	return FALSE;
 }
 
+#ifdef _DOCVER5
 void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr,
 								size_t itemLen, CSourcePhrase* pSrcPhrase)
 {
@@ -8804,6 +8805,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 		pSrcPhrase->m_collectedBackTrans = filterStr;
 	}
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
@@ -9274,15 +9276,9 @@ b:		if (IsMarker(ptr,pBufStart))
 					if (!bIsFreeTransOrNoteOrBackTrans)
 					{
 						// other filtered stuff needs to be saved here (not later), it has
-						// been wrapped with \~FILTER and \~FILTER*
-						if (pSrcPhrase->m_filteredInfo.IsEmpty())
-						{
-							pSrcPhrase->m_filteredInfo = temp;
-						}
-						else
-						{
-							pSrcPhrase->m_filteredInfo += _T(" ") + temp;
-						}
+						// been wrapped with \~FILTER and \~FILTER*; there is no need to
+						// use a delimiting space between the filter markers
+						pSrcPhrase->m_filteredInfo += temp;
 					}
 #else
                     // we can append the temp string to buffer now, because any count
