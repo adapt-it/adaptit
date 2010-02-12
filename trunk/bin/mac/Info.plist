@@ -2,12 +2,25 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>az</string>
+		<string>en</string>
+		<string>es</string>
+		<string>fr</string>
+		<string>id</string>
+		<string>pt</string>
+		<string>ru</string>
+		<string>swh</string>
+		<string>tpi</string>
+		<string>zh</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleGetInfoString</key>
-	<string>$(PRODUCT_NAME) version 5.1.4, (c) 2009 Bruce Waters, Bill Martin, SIL International</string>
+	<string>$(PRODUCT_NAME) version 5.2.0, (c) 2010 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleIconFile</key>
 	<string>Adapt It.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -15,22 +28,22 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
-	<string>5.1.4, (c) 2009 Bruce Waters, Bill Martin, SIL International</string>
+	<string>5.2.0, (c) 2010 Bruce Waters, Bill Martin, SIL International</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>5.1.4</string>
+	<string>5.2.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>5.1.4</string>
+	<string>5.2.0</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>LSRequiresCarbon</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2009 Bruce Waters, Bill Martin, SIL International</string>
+	<string>Copyright 2010 Bruce Waters, Bill Martin, SIL International</string>
 </dict>
 </plist>
