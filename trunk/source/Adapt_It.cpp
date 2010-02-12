@@ -15614,7 +15614,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 						// to intervene to set the user up again, after determining just why
 						// his access to the custom work folder location got lost.
 						wxMessageBox(_(
-"You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to located the required work folder."),
+"You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."),
 						_("One chance to relocate the work folder failed"), wxICON_ERROR);
 						abort();
 						return FALSE; // let caller do the abort() call
@@ -24594,7 +24594,7 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 	{
 		// only need a message for the developer here, once debugged this
 		// shouldn't fail
-		wxMessageBox(_(
+		wxMessageBox(_T(
 		"Failed to set the current working directory to default work folder location. Aborting..."),
 		_T(""), wxICON_ERROR);
 		abort();
