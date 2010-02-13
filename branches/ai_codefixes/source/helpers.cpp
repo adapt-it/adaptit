@@ -42,6 +42,9 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
+extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
+
+
 //  helper functions
 
 //////////////////////////////////////////////////////////////
@@ -1781,4 +1784,92 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 	return newName;
 }
 
+// the next 3 functions are similar or identical to member functions of the document class
+// which are used in the parsing of text files to produce a document; one (ParseMarker())
+// is a modification of the one in the doc class; these are needed here for use in
+// CSourcePhrase - later we could replace IsWhatSpace() and ParseWhiteSpace() in the doc
+// class with these ( *** TODO *** ?)
+bool IsWhiteSpace(const wxChar *pChar)
+{
+	// returns true for tab 0x09, return 0x0D or space 0x20
+	if (wxIsspace(*pChar) == 0)// _istspace not recognized by g++ under Linux
+		return FALSE;
+	else
+		return TRUE;
+}
+int ParseWhiteSpace(const wxChar *pChar)
+{
+	int	length = 0;
+	wxChar* ptr = (wxChar*)pChar;
+	while (IsWhiteSpace(ptr))
+	{
+		length++;
+		ptr++;
+	}
+	return length;
+}
+int ParseMarker(const wxChar *pChar)
+{
+	// this algorithm differs from the one in CAdapt_ItDoc class by not having the code to
+	// break immediately after an asterisk; we don't want the latter because this function
+	// will be used to parse over a reversed string, and a reversed endmarker will have an
+	// initial asterisk and we don't want to halt the loop there
+	int len = 0;
+	wxChar* ptr = (wxChar*)pChar;
+	wxChar* pBegin = ptr;
+	while (!IsWhiteSpace(ptr) && *ptr != _T('\0'))
+	{
+		if (ptr != pBegin && *ptr == gSFescapechar)
+			break; 
+		ptr++;
+		len++;
+	}
+	return len;
+}
+
+void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& content, wxString& endMkr)
+{
+	wxString str = mkrsAndContent;
+	const wxChar* ptr = str.GetData(); // the wxString's data buffer
+	int length;
+
+	// extract the starting marker, and then shorten str so that it starts at the content
+	// part of mkrsAndContent
+	length = ParseMarker(ptr);
+	wxString marker(ptr,length);
+	mkr = marker;
+	str = str.Mid(length); // chop of the initial marker
+	str.Trim(FALSE); // chop off initial white space 
+	
+	// reverse the string
+	wxString rev = MakeReverse(str);
+
+	//  extract the reversed endmarker, if one exists (code defensively, in case the
+	//  content string contains an embedded gFSescapechar)
+	int offset = rev.Find(gSFescapechar);
+	if (offset == wxNOT_FOUND)
+	{
+		// there is no endmarker
+		wxString endMarker = _T("");
+		endMkr = endMarker;
+		rev.Trim(FALSE); // trim any initial white space
+		str = MakeReverse(rev); // restore normal order, the result is the 'content' string
+		content = str;
+		return;
+	}
+	else
+	{
+		// there is an endmarker - what lies before it is the reversed characters of that
+		// endmarker 
+		const wxChar* ptr2 = rev.GetData(); // the gFSescapechar will cause premature exit of ParseMarker()
+							 // so allow for this below
+		length = ParseMarker(ptr2);
+		length++; // count the back slash (i.e. gFSescapechar)
+		wxString reversedEndMkr(rev,length);
+		endMkr = MakeReverse(reversedEndMkr);
+		rev = rev.Mid(length);
+		rev.Trim(FALSE); // trim any now-initial whitespace
+		content = MakeReverse(rev);
+	}
+}
 

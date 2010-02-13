@@ -180,13 +180,14 @@ public:
     // information -- we put these in a conditional compile directive for now, as Graeme
     // needs the older system for testing his work, and Bruce needs the new system for his
     // own
-	#ifdef _DOCVER5
+#ifdef _DOCVER5
+private:
 	wxString		m_endMarkers;
 	wxString		m_freeTrans;
 	wxString		m_note;
 	wxString		m_collectedBackTrans;
 	wxString		m_filteredInfo;
-	#endif
+#endif
 
 // Operations
 public:
@@ -214,7 +215,7 @@ public:
 	bool ChapterColonVerseStringIsNotEmpty();
 
 #ifdef _DOCVER5
-	// BEW added 12Feb10
+	// BEW added 12Feb10, getters and setters for the 5 new private wxString members
 	wxString GetFreeTrans();
 	wxString GetNote();
 	wxString GetCollectedBackTrans();
@@ -229,9 +230,12 @@ public:
 	void SetFreeTrans(wxString freeTrans);
 	void SetNote(wxString note);
 	void SetCollectedBackTrans(wxString collectedBackTrans);
-	void SetFilteredInfo(wxString filteredInfo);
-	void SetEndmarkers(wxString endMarkers);
-	void AddEndmarker(wxString endMarker);
+	void AddToFilteredInfo(wxString filteredInfo);
+	void SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
+									wxArrayString* pFilteredEndMarkers,
+									wxArrayString* pFilteredContent);
+	void SetEndMarkers(wxString endMarkers);
+	void AddEndMarker(wxString endMarker);
 	void SetMarkers(wxString markers);
 #endif
 

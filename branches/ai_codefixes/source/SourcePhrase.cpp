@@ -63,7 +63,6 @@ extern const wxChar* filterMkrEnd;
 const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
 
-
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
 
@@ -1380,6 +1379,9 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 											wxArrayString* pFilteredEndMarkers,
 											wxArrayString* pFilteredContent)
 {
+	wxString mkr = _T("");
+	wxString content = _T("");
+	wxString endMkr = _T("");
 	pFilteredMarkers->Empty();
 	pFilteredContent->Empty();
 	pFilteredEndMarkers->Empty();
@@ -1388,31 +1390,38 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 	if (m_filteredInfo.IsEmpty())
 		return FALSE;
 
-	// get the first wrapping
+	// get the each \~FILTER ... \~FILTER*  wrapped substring, each such contains one SF
+	// marked up content string, of form \marker <content> \endMarker (but no < or > chars)
 	wxString info = m_filteredInfo;
 	offsetToStart = info.Find(filterMkr);
 	offsetToEnd = info.Find(filterMkrEnd);
-	while (offsetToStart != wxNOT_FOUND && offsetToStart != wxNOT_FOUND)
+	while (offsetToStart != wxNOT_FOUND && offsetToStart != wxNOT_FOUND && !info.IsEmpty())
 	{
-		offsetToStart += filterMkrLen + 1; // point at USFM or SFM
-		int earlierEnd = offsetToEnd - 1; // don't want the delimiting space char
-		int length = earlierEnd - offsetToStart;
+		offsetToStart += filterMkrLen + 1; // point at USFM or SFM, +1 is for its 
+										   // trailing space
+        // a wrapping \~FILTER* endmarker always has a preceding space, so use Trim() to
+        // get rid of it
+		int length = offsetToEnd - offsetToStart;
 		wxString markersAndContent = info.Mid(offsetToStart,length);
+		markersAndContent.Trim(); // trim at right hand end
 
 		// we now have a string of the form:
-        // \somemarker some text content \somemarker* (endmarker may be absent, or \F, or
-        // \fe), so shorten the original string to prepare for the next extraction
+        // \somemarker some textual content \somemarker* (endmarker may be absent, or \F,
+        // or \fe, or a USFM marker of the type \xxx* and the space before the endmarker
+        // may not be present)
+ 
+        // Before extracting the markers and content from markersAndContent, shorten the
+        // original string's copy (i.e. info) to prepare for the next extraction
 		info = info.Mid(offsetToEnd + filterMkrEndLen);
 
-		// now process markersAndContent to extract the marker and endmarker, and the
-		// content string, adding them to the respective arrays
-
-
-		// *** TODO ***  (use ParseFilteringSFM() etc, using scope resolution operator -- with a
-		// TODO for later change --- or use GetExistingMarkerContent() ??? <--- YES! but see next line
-		// support pngSet but only \fe  (test if \f and look for \fe only)
-
-
+		// Now process markersAndContent to extract the marker and endmarker, and the
+		// content string, adding them to the respective arrays; the ParseMarkersAndContent()
+		// function handles initial marker and end marker, whether SFM set or USFM set,
+		// equally well
+		ParseMarkersAndContent(markersAndContent, mkr, content, endMkr); // defined in helpers.cpp
+		pFilteredMarkers->Add(mkr);
+		pFilteredContent->Add(content);
+		pFilteredEndMarkers->Add(endMkr);
 
 		// prepare for next iteration
 		offsetToStart = info.Find(filterMkr);
@@ -1461,20 +1470,89 @@ void CSourcePhrase::SetCollectedBackTrans(wxString collectedBackTrans)
 {
 	m_collectedBackTrans = collectedBackTrans;
 }
-void CSourcePhrase::SetFilteredInfo(wxString filteredInfo)
+void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 {
-	m_filteredInfo = filteredInfo;
-	// *** TODO *** one to get it all as 2 arrays; another bit by bit
+	// Use this for appending \~FILTER ... \~FILTER* wrapped filtered information into the
+	// private m_filteredInfo member string; no delimiting space is to be used between
+	// each such substring. The TokenizeText() parser will use this setter function, as
+	// will the other setter, SetFilteredInfoFromArrays()
+	m_filteredInfo += filteredInfo;
 }
-void CSourcePhrase::AddEndmarker(wxString endMarker)
+void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
+					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent)
 {
-	if (m_endMarkers.IsEmpty())
-		m_endMarkers = endMarker;
+	m_filteredInfo.Empty(); // clear out old contents
+	size_t index;
+	size_t count = pFilteredContent->GetCount();
+	if (count == 0)
+	{
+		return;
+	}
+	wxString markersAndContent;
+	markersAndContent.Empty();
+	wxString theRest;
+	theRest.Empty();
+	wxString aSpace = _T(" ");
+	for (index = 0; index < count; index++)
+	{
+		markersAndContent << filterMkr << aSpace << pFilteredMarkers->Item(index) \
+			<< aSpace << pFilteredContent->Item(index);
+        // if there is an endmarker, insert it, but with no space before it - a space is
+        // allowed, but in some publication scenarios punctuation might be wanted hard up
+        // against the end of a preceding word and followed after the endmarker with a
+        // textual note callout character -- so it's safer to not have any space before the
+        // endmarker, since parsers recognise a marker when the backslash is encountered,
+        // and LSDev, Paratext and Adapt It all accept the * of an endmarker as closing off
+        // an endmarker. What we won't support is a callout character positioned
+        // immediately after \fe or \F footnote end markers used in the old PNG SFM marker
+        // set - for these callout character or punctuation would be treated as part of the
+        // marker definition - leading to an "unknown marker" for Adapt It to handle. If
+        // that happened, the user would have to edit the source text (in Adapt It, using
+        // the Edit / Edit Source Text... command) and add the need post-endmarker space
+        // manually. However, we are a decade or more from the last use of the old 1998 PNG
+        // SFM marker set, everyone uses USFM these days, so we won't bother to do anything
+        // smart here to handle such a contingency within our code.
+		if (pFilteredEndMarkers->Item(index).IsEmpty())
+		{
+			// this content string takes no endMarker
+			theRest << aSpace << filterMkrEnd;
+		}
+		else
+		{
+			theRest << pFilteredEndMarkers->Item(index) << aSpace << filterMkrEnd;
+		}
+		markersAndContent += theRest;
+		AddToFilteredInfo(markersAndContent);
+		markersAndContent.Empty();
+		theRest.Empty();
+	}
+}
+void CSourcePhrase::AddEndMarker(wxString endMarker)
+{
+	if (gpApp->gCurrentSfmSet == PngOnly)
+	{
+		// for this marker set, the only endmarker is the footnote marker, officially \fe,
+		// but some branches (eg. PNG) used \F as an alternative. Since these have no
+		// final asterisk, we can't rely on an asterisk being present at the marker's end,
+		// and so we'll want to have a following space. But for USFM, which has all
+		// endmarkers with a final * character, we'll omit storing a delimiting space
+		// between consecutive endmarkers, because this gives the best possible results if
+		// additional textual apparatus (such as callouts like a, b, c superscripts, or
+		// numbers) are used in the USFM markup at the end of the section of text where
+		// the endMarkers are - such as at the end of a footnote
+		if (m_endMarkers.IsEmpty())
+			m_endMarkers = endMarker;
+		else
+			m_endMarkers += _T(" ") + endMarker;
+	}
 	else
-		m_endMarkers += _T(" ") + endMarker;
+	{
+		// its USFM set (or combined USFM and PNG, but we treat this as USFM)
+		m_endMarkers += endMarker;
+	}
 }
 
-void CSourcePhrase::SetEndmarkers(wxString endMarkers)
+void CSourcePhrase::SetEndMarkers(wxString endMarkers)
 {
 	m_endMarkers = endMarkers;
 }

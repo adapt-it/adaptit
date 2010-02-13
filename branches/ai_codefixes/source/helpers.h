@@ -82,24 +82,6 @@ wxString StripPath(wxString FullPath);
 
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep);
 
-wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet,
-		bool& bLacksAny, bool bCopyOnly = FALSE); // BEW added 15Aug07 for 3.5.0
-							 // & added 4th param on 19May08
-// next three for use in the AdminMoveOrCopy class, the handler for Administrator
-// menu item Move Or Copy Folders Or Files
-bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort = TRUE,
-					bool bSuppressMessage = FALSE);
-bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort = TRUE,
-				  bool bSuppressMessage = FALSE);
-int	 sortCompareFunc(const wxString& first, const wxString& second);
-bool IsReadOnlyProtection_LockFile(wxString& filename);
-
-long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
-					  bool bStoreEmptyStringsToo = TRUE);
-wxString ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
-				// to underscore characters, used in ReadOnlyProtection.cpp
-
-
 // functions added by whm
 wxString SpanIncluding(wxString inputStr, wxString charSet);
 
@@ -124,5 +106,30 @@ short DecimalToBinary(unsigned long decimalValue, char binaryValue[32]);
 bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox);
 
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum);
+
+// end of whm's additions
+ 
+// 2010 additions by BEW
+
+wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet,
+		bool& bLacksAny, bool bCopyOnly = FALSE); // BEW added 15Aug07 for 3.5.0
+							 // & added 4th param on 19May08
+// next three for use in the AdminMoveOrCopy class, the handler for Administrator
+// menu item Move Or Copy Folders Or Files
+bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort = TRUE,
+					bool bSuppressMessage = FALSE);
+bool GetFilesOnly(wxString& pathToFolder, wxArrayString* pFiles, bool bSort = TRUE,
+				  bool bSuppressMessage = FALSE);
+int	 sortCompareFunc(const wxString& first, const wxString& second);
+bool IsReadOnlyProtection_LockFile(wxString& filename);
+
+long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array, 
+					  bool bStoreEmptyStringsToo = TRUE);
+wxString ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
+				// to underscore characters, used in ReadOnlyProtection.cpp
+void ParseMarkersAndContent(wxString& str, wxString& mkr, wxString& content, wxString& endMkr);
+bool IsWhiteSpace(const wxChar *pChar);
+int ParseWhiteSpace(const wxChar *pChar); // returns a length (num chars of whitespace)
+int ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)
 
 #endif

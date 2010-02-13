@@ -8774,7 +8774,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 		// it may also end in a space now, so remove it if there
 		filterStr.Trim();
 		// we now have the free translation text, so store it
-		pSrcPhrase->m_freeTrans = filterStr;
+		pSrcPhrase->SetFreeTrans(filterStr);
 	}
 	else if (mkr == _T("\\note"))
 	{
@@ -8785,7 +8785,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 		// it may also end in a space now, so remove it if there
 		filterStr.Trim();
 		// we now have the note text, so store it
-		pSrcPhrase->m_note = filterStr;
+		pSrcPhrase->SetNote(filterStr);
 	}
 	else
 	{
@@ -8802,7 +8802,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 		// it may also end in a space now, so remove it if there
 		filterStr.Trim();
 		// we now have the back trans text, so store it
-		pSrcPhrase->m_collectedBackTrans = filterStr;
+		pSrcPhrase->SetCollectedBackTrans(filterStr);
 	}
 }
 #endif
@@ -9278,7 +9278,7 @@ b:		if (IsMarker(ptr,pBufStart))
 						// other filtered stuff needs to be saved here (not later), it has
 						// been wrapped with \~FILTER and \~FILTER*; there is no need to
 						// use a delimiting space between the filter markers
-						pSrcPhrase->m_filteredInfo += temp;
+						pSrcPhrase->AddToFilteredInfo(temp);
 					}
 #else
                     // we can append the temp string to buffer now, because any count
@@ -9444,7 +9444,7 @@ b:		if (IsMarker(ptr,pBufStart))
 					// none is present then don't add any; clear out tokBuffer if there is
 					// an endmarker that has been found there and stored in m_endMarkers
 					wxString endMkrStr(pBufStart2,tokBufferLen);
-					pLastSrcPhrase->m_endMarkers += endMkrStr;
+					pLastSrcPhrase->AddEndMarker(endMkrStr);
 					tokBuffer.Empty();
 				}
 #endif

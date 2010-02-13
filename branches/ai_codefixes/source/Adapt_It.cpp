@@ -7749,6 +7749,14 @@ while (resToken != "")
 	AfxMessageBox(fixesStr,MB_ICONINFORMATION);
 	ASSERT(FALSE);
 */
+/* for docVersion 5
+wxString mkr;
+wxString endMkr;
+wxString content;
+wxString filtered = _T("\\f + This is a footnote. \\f*");
+ParseMarkersAndContent(filtered, mkr, content, endMkr);
+int ii = 1;
+*/
 
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
