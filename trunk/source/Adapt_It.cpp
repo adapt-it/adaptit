@@ -15484,7 +15484,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			choices[0] = _("1. Plug in the missing external drive, then click OK here.");
 			choices[1] = _("2. Close the other application, or use a text editor to fix the path in the file CustomWorkFolderLocation; then click OK here.");
 			choices[2] = _("3. Ignore the custom work folder location, use the default location instead. (Then ask your administrator to help you.)");
-			choices[3] = _("4. Forget the custom work folder location. The command Custom Work Folder Location will then run, use it to relocate the folder.)");
+			choices[3] = _("4. Forget the custom work folder location. The command Custom Work Folder Location will then run, use it to relocate the folder.");
 			wxString myCaption = _("Choose Recovery Action or Cancel (to abort)");
 			wxString message = _("Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n1. Plug in the required external drive now, then click OK. \n2. Leave the dialog open, launch a text editor, open the CustomWorkFolderLocation file in it, edit the path, save, then click OK here. \n3. Forget (but do not delete) the custom work folder location, use the default location instead. \n4. Same as option 3. but also show the Administrator menu (helpful if you know what to do with it).");
 			int returnValue = wxGetSingleChoiceIndex(
