@@ -157,6 +157,9 @@
 #include "ChooseLanguageDlg.h"
 #include "Layout.h"
 #include "AdminMoveOrCopy.h"
+#ifdef	_FREETR
+#include "FreeTrans.h"
+#endif	// _FREETR
 
 
 #if !wxUSE_WXHTML_HELP
@@ -323,12 +326,20 @@ wxPoint gptLastClick;
 /// GetPrevPile() call.
 //bool gbBundleStartIteratingBack;
 
+#ifdef	_FREETR
+/// GDLC 2010-02-13 gnOffsetInMarkersStr and gnLengthInMarkersStr moved to CFreeTrans
+#else	// _FREETR
 /// The offset to the current free translation string in pSrcPhrase->m_markers.
 int gnOffsetInMarkersStr; 
-
 /// The free translation length, including final space if any, in pSrcPhrase->m_markers.
 int gnLengthInMarkersStr; 
+#endif	// _FREETR
 
+#ifdef	_FREETR
+//GDLC 2010-02-12
+// The array gpCurFreeTransSectionPileArray was moved to CFreeTrans
+// The array gpFreeTransArray was moved to CFreeTrans
+#else	_FREETR
 /// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
 /// and disposed of in OnExit().
 wxArrayPtrVoid*	gpCurFreeTransSectionPileArray;
@@ -339,6 +350,7 @@ wxArrayPtrVoid*	gpCurFreeTransSectionPileArray;
 /// single rectangle under a single strip.
 wxArrayPtrVoid*	gpFreeTransArray; // new creates on heap in InitInstance, 
 			// and disposes in ExitInstance
+#endif	_FREETR
 
 /// Pointer to first pile in a free translation section. gpLastPile points to the last pile
 /// in the same free translation section.
@@ -7455,11 +7467,16 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
 	gFactorySfmSet = UsfmOnly;
 
+#ifdef	_FREETR
+	//GDLC 2010-02-12
+	// Create the free translation display handler
+	m_pFreeTrans = new CFreeTrans(this);
+#else	// _FREETR
 	// set up data structures to be used for free translation support (ExitInstance 
 	// will delete them)
 	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
 	gpFreeTransArray = new wxArrayPtrVoid;
-
+#endif	// _FREETR
 	// Display message in status bar that startup initialization is complete
 	message = _("Initialization complete. Call Start Working...");
 	pStatusBar->SetStatusText(message,0); // use first field 0
@@ -7978,11 +7995,17 @@ int CAdapt_ItApp::OnExit(void)
 	delete pPrintData;
 	pPrintData = (wxPrintData*)NULL;
 
+#ifdef	_FREETR
+	//GDLC Added 2010-02-12
+	// Delete the CFreeTrans manager
+	delete m_pFreeTrans;
+#else	// _FREETR
 	// delete the stuff used for free translation support
 	gpCurFreeTransSectionPileArray->Clear();
 	delete gpCurFreeTransSectionPileArray;
 	gpFreeTransArray->Clear();
 	delete gpFreeTransArray;
+#endif	// _FREETR
 	
 	if (gpDocList != NULL)
 	{
@@ -11329,6 +11352,21 @@ CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 	wxASSERT(pDoc->IsKindOf(CLASSINFO(CAdapt_ItDoc)));
 	return pDoc;
 }
+
+#ifdef	_FREETR
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the free translations manager
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CFreeTrans 
+/// is required to call a function/method of the CFreeTrans.
+/// Gets a pointer to the current CFreeTrans.
+////////////////////////////////////////////////////////////////////////////////////////
+CFreeTrans*	CAdapt_ItApp::GetFreeTrans()
+{
+	wxASSERT(m_pFreeTrans);
+	return m_pFreeTrans;
+}
+#endif	// _FREETR
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view

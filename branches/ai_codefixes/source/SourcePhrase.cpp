@@ -1350,6 +1350,8 @@ bool CSourcePhrase::ChapterColonVerseStringIsNotEmpty()
 	return !this->m_chapterVerse.IsEmpty();
 }
 
+#ifdef _DOCVER5
+	// BEW added 12Feb10
 // some getters and setters
 wxString CSourcePhrase::GetFreeTrans()
 {
@@ -1560,5 +1562,5 @@ void CSourcePhrase::SetMarkers(wxString markers)
 {
 	m_markers = markers;
 }
-
+#endif	// _DOCVER5
  

@@ -44,6 +44,9 @@
 #include "MainFrm.h"
 #include "Adapt_ItView.h"
 #include "Adapt_ItCanvas.h"
+#ifdef	_FREETR
+#include "FreeTrans.h"
+#endif	// _FREETR
 #include "ComposeBarEditBox.h"
 
 /// This global is defined in Adapt_It.cpp.
@@ -84,7 +87,11 @@ void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 	if (event.GetKeyCode() == WXK_RETURN)
 	{
 		wxCommandEvent bevent;
+#ifdef	_FREETR
+		gpApp->GetFreeTrans()->OnAdvanceButton(bevent);
+#else	// _FREETR
 		pView->OnAdvanceButton(bevent);
+#endif	// _FREETR
 		return; // don't call skip - we don't want the end-of-line character entered
 				// into the edit box
 	}
@@ -106,17 +113,30 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			wxASSERT(pView != NULL);
 			wxClientDC dc((wxWindow*)gpApp->GetMainFrame()->canvas);
 			pView->canvas->DoPrepareDC(dc); // need to call this because we are drawing outside OnDraw()
+#ifdef	_FREETR
+			CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+			wxASSERT(pFreeTrans != NULL);
+#endif	// _FREETR
 			CPile* pOldActivePile; // set in StoreFreeTranslation but unused here
 			CPile* saveThisPilePtr; // set in StoreFreeTranslation but unused here
 			// StoreFreeTranslation uses the current (edited) content of the edit box
+#ifdef	_FREETR
+			pFreeTrans->StoreFreeTranslation(gpCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
+				retain_editbox_contents, this->GetValue());
+#else	// _FREETR
 			pView->StoreFreeTranslation(gpCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
 				retain_editbox_contents, this->GetValue());
+#endif	// _FREETR
 			// for wx version we need to set the background mode to wxSOLID and the text background 
 			// to white in order to clear the background as we write over it with spaces during
 			// real-time edits of free translation.
 			dc.SetBackgroundMode(gpApp->m_backgroundMode); // do not use wxTRANSPARENT here!!!
 			dc.SetTextBackground(wxColour(255,255,255)); // white
+#ifdef	_FREETR
+			pFreeTrans->DrawFreeTranslations(&dc, gpApp->m_pLayout, call_from_edit);
+#else	// _FREETR
 			pView->DrawFreeTranslations(&dc, gpApp->m_pLayout, call_from_edit);
+#endif	// _FREETR
 			// whm 4Apr09 note on problem of free translations in main window not being cleared for
 			// deletes or other edits the result in a shorter version: We need both Refresh and Update 
 			// here to force the edit updates to happen in the main window. Note, however, that we must
@@ -158,6 +178,10 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 	{
 		CAdapt_ItView* pView = gpApp->GetView();
 		wxASSERT(pView != NULL);
+#ifdef	_FREETR
+		CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+		wxASSERT(pFreeTrans != NULL);
+#endif	// _FREETR
 		wxCommandEvent bevent;
 		// the following block is a work-around to get the ALT+key short-cut keys to work 
 		// for the buttons on the composebar
@@ -170,23 +194,43 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 			}
 			else if (wxChar(key) == _T('L'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnLengthenButton(bevent);
+#else	// _FREETR
 				pView->OnLengthenButton(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('R'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnRemoveFreeTranslationButton(bevent);
+#else	// _FREETR
 				pView->OnRemoveFreeTranslationButton(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('P'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnPrevButton(bevent);
+#else	// _FREETR
 				pView->OnPrevButton(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('N'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnNextButton(bevent);
+#else	// _FREETR
 				pView->OnNextButton(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('V'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnAdvanceButton(bevent);
+#else	// _FREETR
 				pView->OnAdvanceButton(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('U'))
 			{

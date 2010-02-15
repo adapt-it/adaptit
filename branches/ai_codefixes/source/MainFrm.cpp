@@ -89,6 +89,9 @@
 #include "AdaptitConstants.h"
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
+#if	_FREETR
+#include "FreeTrans.h"
+#endif	// _FREETR
 // includes above
 
 extern bool gbRTL_Layout; // temporary for debugging only
@@ -580,6 +583,11 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 	CPhraseBox* pBox = NULL;
 	bool bGotPointersSuccessfully = gpApp->GetBasePointers(pDoc, pView, pBox);
 
+#ifdef	_FREETR
+	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
+	if (pFreeTrans == NULL) bGotPointersSuccessfully = FALSE;
+#endif	// _FREETR
+
 	// process the message only if valid pointers to the view, document and phrasebox classes are obtained
 	if (bGotPointersSuccessfully)
 	{
@@ -798,7 +806,11 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 									{
 										// free translation mode is on, so we must first turn it off
 										wxCommandEvent uevent;
+#ifdef	_FREETR
+										pFreeTrans->OnAdvancedFreeTranslationMode(uevent);
+#else	// _FREETR
 										pView->OnAdvancedFreeTranslationMode(uevent);
+#endif	// _FREETR
 									}
 									// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
 									pView->ClobberDocument();

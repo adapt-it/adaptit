@@ -152,6 +152,10 @@ public:
 	void		ClobberDocument();
 	void		CloseProject();
 	
+	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr); // BEW added 26Jun05
+					// moved to public GDLC 2010-02-15
+	bool		ContainsFreeTranslation(CPile* pPile); // BEW added 06Jul05
+					// moved to public GDLC 2010-02-15
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); 
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE); // BEW added 1Aug08
@@ -168,7 +172,11 @@ public:
 	void		DoRetranslation();
 	void		DoRetranslationByUpArrow();
 	void		DoStartupWizardOnLaunch();
+#ifdef	_FREETR
+// DrawFreeTranslations moved to CFreeTrans
+#else	// _FREETR
 	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, enum DrawFTCaller drawFTCaller);
+#endif	// _FREETR
 	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect); // BEW 9Feb09, a copy is now in CCell
 	void		EditSourceText(wxCommandEvent& event);
 	void		ExtendSelectionForFind(CCell* pAnchorCell, int nCount);
@@ -180,17 +188,25 @@ public:
 	int			FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pStrList, int numWords,
 									int& nStartOffset, int& nEndOffset);
 	void		FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSelectionExtension = TRUE);
+	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);	// moved to public GDLC 2010-02-15
 	wxString	GetAssocTextWithoutMarkers(wxString mkrStr); // whm added 18Nov05
 	wxPanel*	GetBar(enum VertEditBarType vertEditBarType); // BEW added 9Aug08
 	wxComboBox*	GetRemovalsComboBox(); // BEW added 18July08
 	wxString	GetChapterAndVerse(CSourcePhrase* pSrcPhrase);
 	bool		GetChapterAndVerse(SPList* pList, CSourcePhrase* pSrcPhrase, wxString& strChapVerse); // BEW added 12Mar07
 	CCell*		GetClickedCell(const wxPoint* pPoint);
+#ifdef	_FREETR
+// GetExistingMarkerContent moved to helpers
+#else	// _FREETR
 	wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
 									CSourcePhrase* pSrcPhrase, int& offset, int & length);
+#endif	// _FREETR
 	wxChar		GetFirstChar(wxString& strText);
 	CKB*		GetKB();
 	CLayout*	GetLayout();
+	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum, 
+							int nEndingFreeTransSequNum, bool bFreeTransPresent); // BEW added 01Oct08
+							// moved to public GDLC 2010-02-15
 	void		GetMarkerInventoryFromCurrentDoc(); // whm 17Nov05
 	CStrip*		GetNearestStrip(const wxPoint *pPoint); // moved here from protected
 	CPile*		GetNextEmptyPile(CPile* pPile);
@@ -207,14 +223,24 @@ public:
 	bool		GetSublist(SPList* pSaveList,SPList* pOriginalList,int nBeginSequNum,
 						int nEndSequNum);
 	int			GetSelectionWordCount();
+#ifdef	_FREETR
+// GetStartingPileForScan moved to CFreeTrans
+#else	// _FREETR
 	CPile*		GetStartingPileForScan(int activeSequNum);
+#endif		// _FREETR
 	void		GetVisibleStrips(int& nFirstStrip,int&nLastStrip);
 	wxString	GetWholeMarkerFromString(wxString mkrStr, int nBeginPos); // whm added 18Oct05
+	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet); // BEW modified 25Nov05
+							// moved to public GDLC 2010-02-15
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
 	void		InsertNullSrcPhraseBefore();
 	void		InsertNullSrcPhraseAfter();
+	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile); // BEW added 7Jul05
+						// moved to public GDLC 2010-02-15
+	bool		IsFreeTranslationSrcPhrase(CPile* pPile); // BEW added 24Jun05
+						// moved to public GDLC 2010-02-15
 	bool		IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsItNotInKB(CSourcePhrase* pSrcPhrase);
@@ -234,11 +260,16 @@ public:
 	void		MoveToAndOpenFirstNote();
 	void		MoveToAndOpenLastNote();
 	void		NewRetranslation();
+#ifdef	_FREETR
+// OnAdvanceButton, OnNextButton, OnPrevButton, OnRemoveFreeTranslationButton, OnLengthenButton
+// moved to CFreeTrans
+#else	// _FREETR
 	void		OnAdvanceButton(wxCommandEvent& event); // moved to public
 	void		OnPrevButton(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnNextButton(wxCommandEvent& WXUNUSED(event)); //moved to public
 	void		OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnLengthenButton(wxCommandEvent& WXUNUSED(event)); // moved to public
+#endif	// _FREETR
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event)); // moved to public
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event)); // moved to public
@@ -295,7 +326,11 @@ public:
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
 	bool		SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
+#ifdef	_FREETR
+// GDLC 2010-02-15 SetupCurrentFreeTransSection moved to CFreeTrans
+#else	// _FREETR
 	void		SetupCurrentFreeTransSection(int activeSequNum); // BEW added 24Jun05 for free translation support
+#endif	// _FREETR
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 					const int nToV,wxPrintData* WXUNUSED(pPrintData),
 					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE), 
@@ -303,8 +338,12 @@ public:
 	void		SetWhichBookPosition(wxDialog* pDlg); 
 	void		StatusBarMessage(wxString& message);
 	bool		StoreBeforeProceeding(CSourcePhrase* pSrcPhrase);
+#ifdef	_FREETR
+//GDLC 2010-02-13 Moved StoreFreeTranslation to CFreeTrans
+#else	// _FREETR
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
 					enum EditBoxContents editBoxContents, const wxString& mkrStr); //moved to public
+#endif	// _FREETR
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
 	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, 
 										bool bSupportNoAdaptationButton = FALSE);
@@ -345,9 +384,7 @@ protected:
 	void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
 	void		ClearSublistKBEntries(SPList* pSublist);
-	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr); // BEW added 26Jun05
 	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
-	bool		ContainsFreeTranslation(CPile* pPile); // BEW added 06Jul05
 	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
 	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
@@ -355,7 +392,9 @@ protected:
 	void		DeleteAllNotes();
 	void		DeleteTempList(SPList* pList);	// must be a list of ptrs to CSourcePhrase instances on the heap 
 	void		DeleteSavedSrcPhraseSublist(SPList* pSaveList); // this list's members can have members in sublists 
+#ifndef	_FREETR
 	void		DestroyElements(wxArrayPtrVoid* pArr);
+#endif	// _FREETR
 	wxString	DoConsistentChanges(wxString& str);
 	wxString	DoSilConvert(const wxString& str);
 	bool		DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
@@ -386,7 +425,6 @@ protected:
 								MapWholeMkrToFilterStatus* WXUNUSED(pMap), bool& bWasExtended); // BEW added 5July08
 	bool		ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSequNum,
 								int& nEndingSequNum, bool& bWasSuccessful); // BEW added 12Apr08
-	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
 	void		GetContext(const int nStartSequNum,const int nEndSequNum,wxString& strPre,
 							wxString& strFoll,wxString& strPreTgt,wxString& strFollTgt);
 	wxString	GetConvertedPunct(const wxString& rStr);
@@ -398,8 +436,6 @@ protected:
 	bool		GetEditSourceTextFreeTranslationSpan(SPList* pSrcPhrases, int& nStartingSequNum,
 							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
 							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
-	bool		GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases, int nStartingFreeTransSequNum, 
-							int nEndingFreeTransSequNum, bool bFreeTransPresent); // BEW added 01Oct08
 	bool		GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context); // BEW added 14Jun08
 	CCell*		GetNextCell(CCell* pCell,  const int cellIndex); // GetNextCell(const CCell* pCell,  const int cellIndex)
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
@@ -408,7 +444,6 @@ protected:
 													wxString& strSource,wxString& strAdapt);
 	CTargetUnit*  GetTargetUnit(CKB* pKB, int nSrcWords, wxString keyStr);
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
-	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet); // BEW modified 25Nov05
 	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
 	void		InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr); // BEW added 16Sep05
@@ -425,10 +460,8 @@ protected:
 	bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 																int& nSequNumLast);
 	bool		IsEndInCurrentSelection();
-	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile); // BEW added 7Jul05
 	bool		IsFreeTranslationInSelection(SPList* pList); // BEW added 21Nov05, (for edit source text support)
 	bool		IsFilteredInfoInSelection(SPList* pList); // whm added 14Aug06
-	bool		IsFreeTranslationSrcPhrase(CPile* pPile); // BEW added 24Jun05
 	bool		IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 					bool* pbHasGlosses);  // BEW added 29Apr08
 	bool		IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
@@ -468,13 +501,17 @@ protected:
 							wxArrayString* pNoteList); //BEW added 30Apr08
 	bool		ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, EditRecord* pRec,
 					int nStartingSN, int nEndingSN, wxString& strSource); //BEW added 5May08
+#ifndef	_FREETR
 	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
 					int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
+#endif	// _FREETR
 	wxString	SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent,float fScale,int& offset,
 							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
 	void		SetNotInKBFlag(SPList* pList,bool bValue = TRUE);
 	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);
+#ifndef	_FREETR
 	void		StoreFreeTranslationOnLeaving(); // BEW added 11Sep08
+#endif	// _FREETR
 	void		TransferCompletedSrcPhrases(SPList* pNewSrcPhrasesList,int nSaveSequNum);
 	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
@@ -644,7 +681,9 @@ public:
 	void OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event);
 	void OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event));
 	
+#ifndef	_FREETR
 	void OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
+#endif	// _FREETR
 	void OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
 	void OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event);

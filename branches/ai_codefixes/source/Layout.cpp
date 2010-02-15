@@ -71,6 +71,9 @@ gbBundleChanged  defined in CAdapt_ItView.cpp
 #include "Cell.h"
 #include "Adapt_ItCanvas.h"
 #include "Layout.h"
+#ifdef	_FREETR
+#include "FreeTrans.h"
+#endif	// _FREETR
 
 /// This global is defined in Adapt_It.cpp. (default is FALSE)
 extern bool gbDoingInitialSetup;
@@ -1911,7 +1914,11 @@ bool CLayout::RecalcLayout(SPList* pList, enum layout_selector selector, enum ph
 	{
 		if (!gbSuppressSetup)
 		{
+#ifdef	_FREETR
+			m_pApp->GetFreeTrans()->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
+#else	// _FREETR
 			m_pView->SetupCurrentFreeTransSection(m_pApp->m_nActiveSequNum);
+#endif	// _FREETR
 		}
 		wxTextCtrl* pEdit = (wxTextCtrl*)
 							m_pMainFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);

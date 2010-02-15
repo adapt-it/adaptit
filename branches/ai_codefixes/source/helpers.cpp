@@ -1432,7 +1432,11 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 		endMkr.Empty(); // back translation material has no endmarker
 		int offset = -1; // needed for next call, but we don't use the returned value
 		int length = 0;  // ditto
+#ifdef	_FREETR
+		wxString collectedStr = GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+#else	// _FREETR
 		wxString collectedStr = pView->GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+#endif	// _FREETR
 		// repurpose the offset local variable
 		offset = -1;
 		bool bAdaptionInCollectedStr = FALSE;
@@ -1783,6 +1787,92 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 	}
 	return newName;
 }
+
+// filtered fields functions moved from CAdapt_ItView
+#ifdef	_FREETR
+/////////////////////////////////////////////////////////////////////////////////
+/// \return             the text of the filtered content (such as a free translation) 
+///                     which is in the m_markers member
+///
+/// \param	mkr			->	reference to the SF marker string (including backslash) 
+///                         defining the content we are after
+///	\param	endMkr		->	reference to the matching endmarker string, including backslash 
+///	                        (could be empty)
+///	\param	pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers member
+///					        contains a substring such as:
+///	   "\~FILTER \free <text of free translation> \free* \~FILTER* " for free translation, or
+///	   "\~FILTER \note <text of note> \note* \~FILTER* " for a note, or
+///	   "\~FILTER \bt <text of backtranslation> \~FILTER* " or ...\btv ... or other \bt-derived 
+///	                        marker
+///	\param	offset		<-	character offset to the first word of the content string, 
+///	                        relative to the start of m_markers
+///	\param	length		<-	character length of the content string, including any final
+///	                        space 
+///
+/// Remarks:
+///    Used to extract the <text of free translation> part of the above substring, or <text
+///    of note>, or <text of backtranslation> as the case may be; and to return the offset
+///    to the character location at which this text starts, and its length including the
+///    final space before the end marker, if any -- it should be present always for a free
+///    translation or a note, and never present for a backtranslation marker. In the latter
+///    case, the endMkr parameter will be empty (backtranslation markers do not have
+///    endmarkers), and so the protocol we follow for determining the end of the content
+///    string is the following
+///	1. ends at the next backslash (typically, at a \~FILTER* marker, but may not be), 
+///	   otherwise
+///	2. ends at the end of m_markers string.
+///    This function is a generalization of an earlier GetExistingFreeTranslation()
+///    function, so that we can get not just free translation content, but notes or
+///    backtranslations. We can also use it for other filtered (or even non-filtered) SF
+///    marker content we wish to extract, by just passing in the relevant SF marker in the
+///    mkr parameter.
+///
+/////////////////////////////////////////////////////////////////////////////////
+wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
+						CSourcePhrase* pSrcPhrase, int& offset, int & length)
+{
+	int len = mkr.Length();
+	wxString contentStr;
+	wxString markers = pSrcPhrase->m_markers;
+	if (markers.IsEmpty())
+	{
+a:		offset = 0;
+		length = 0;
+		return wxString(_T(""));
+	}
+	int nFound = markers.Find(mkr);
+	if (nFound == -1)
+		goto a; // shouldn't happen, but play safe
+	offset = nFound + len + 1; // plus 1 for the following space
+	if (endMkr.IsEmpty())
+	{
+		// it's content which does not have an endmarker, so implement the
+		// protocol described above
+		len = markers.Length();
+		nFound = FindFromPos(markers,_T("\\"),offset);
+		if (nFound == -1)
+		{
+			// no subsequent SF marker, so length is the remainder of the string
+			length = len - offset;
+		}
+		else
+		{
+			// found a marker, so up to the start of it defines the content string
+			length = nFound - offset;
+		}
+	}
+	else
+	{
+		// there should be an endmarker, so it's location 
+		// determines where the content ends
+		nFound = markers.Find(endMkr);
+		wxASSERT(nFound >= 0);
+		length = nFound - offset;
+	}
+	contentStr = markers.Mid(offset,length);
+	return contentStr;
+}
+#endif	// _FREETR
 
 // the next 3 functions are similar or identical to member functions of the document class
 // which are used in the parsing of text files to produce a document; one (ParseMarker())

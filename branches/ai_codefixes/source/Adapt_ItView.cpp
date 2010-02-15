@@ -115,6 +115,9 @@
 #ifdef USE_SIL_CONVERTERS
 #include "ECDriver.h"
 #endif
+#ifdef	_FREETR
+#include "FreeTrans.h"
+#endif	// _FREETR
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -186,11 +189,14 @@ extern bool gbMovingToPreviousPile;
 
 // extern declarations for free translation support (whm moved these to the app)
 
+#ifdef	_FREETR
+/// GDLC 2010-02-13 gnOffsetInMarkersStr and gnLengthInMarkersStr moved to CFreeTrans
+#else	// _FREETR
 /// This global is defined in Adapt_It.cpp.
 extern int			gnOffsetInMarkersStr; // offset to current free translation string in pSrcPhrase->m_markers
-
 /// This global is defined in Adapt_It.cpp.
 extern int			gnLengthInMarkersStr; // free translation length, including final space if any, in pSrcPhrase->m_markers
+#endif	// _FREETR
 
 /// This global is defined in Adapt_It.cpp.
 extern wxArrayPtrVoid*	gpCurFreeTransSectionPileArray; // new creates on heap in InitInstance, and disposes in ExitInstance
@@ -990,7 +996,11 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_ADVANCED_GLOSSING_USES_NAV_FONT, CAdapt_ItView::OnUpdateAdvancedGlossingUsesNavFont)
 	EVT_MENU(ID_ADVANCED_DELAY, CAdapt_ItView::OnAdvancedDelay)
 	EVT_UPDATE_UI(ID_ADVANCED_DELAY, CAdapt_ItView::OnUpdateAdvancedDelay)
+#ifdef	_FREETR
+	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnAdvancedFreeTranslationMode)
+#else	// _FREETR
 	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CAdapt_ItView::OnAdvancedFreeTranslationMode)
+#endif	// _FREETR
 	EVT_UPDATE_UI(ID_ADVANCED_FREE_TRANSLATION_MODE, CAdapt_ItView::OnUpdateAdvancedFreeTranslationMode)
 	EVT_MENU(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CAdapt_ItView::OnAdvancedTargetTextIsDefault)
 	EVT_UPDATE_UI(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CAdapt_ItView::OnUpdateAdvancedTargetTextIsDefault)
@@ -1089,15 +1099,35 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_BUTTON(IDC_BUTTON_SELECT_ALL, CAdapt_ItView::OnSelectAllButton)
 
 	// Free Translation - Composebar Buttons
+#ifdef	_FREETR
+	EVT_BUTTON(IDC_BUTTON_APPLY, CFreeTrans::OnAdvanceButton)
+#else	// _FREETR
 	EVT_BUTTON(IDC_BUTTON_APPLY, CAdapt_ItView::OnAdvanceButton)
+#endif	// _FREETR
 	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CAdapt_ItView::OnUpdateNextButton)
+#ifdef	_FREETR
+	EVT_BUTTON(IDC_BUTTON_NEXT, CFreeTrans::OnNextButton)
+#else	// _FREETR
 	EVT_BUTTON(IDC_BUTTON_NEXT, CAdapt_ItView::OnNextButton)
+#endif	// _FREETR
 	EVT_UPDATE_UI(IDC_BUTTON_PREV, CAdapt_ItView::OnUpdatePrevButton)
+#ifdef	_FREETR
+	EVT_BUTTON(IDC_BUTTON_PREV, CFreeTrans::OnPrevButton)
+#else	// _FREETR
 	EVT_BUTTON(IDC_BUTTON_PREV, CAdapt_ItView::OnPrevButton)
+#endif	// _FREETR
 	EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CAdapt_ItView::OnUpdateRemoveFreeTranslationButton)
+#ifdef	_FREETR
+	EVT_BUTTON(IDC_BUTTON_REMOVE, CFreeTrans::OnRemoveFreeTranslationButton)
+#else	// _FREETR
 	EVT_BUTTON(IDC_BUTTON_REMOVE, CAdapt_ItView::OnRemoveFreeTranslationButton)
+#endif	// _FREETR
 	EVT_UPDATE_UI(IDC_BUTTON_LENGTHEN, CAdapt_ItView::OnUpdateLengthenButton)
+#ifdef	_FREETR
+	EVT_BUTTON(IDC_BUTTON_LENGTHEN, CFreeTrans::OnLengthenButton)
+#else	// _FREETR
 	EVT_BUTTON(IDC_BUTTON_LENGTHEN, CAdapt_ItView::OnLengthenButton)
+#endif	// _FREETR
 	EVT_UPDATE_UI(IDC_BUTTON_SHORTEN, CAdapt_ItView::OnUpdateShortenButton)
 	EVT_BUTTON(IDC_BUTTON_SHORTEN, CAdapt_ItView::OnShortenButton)
 	EVT_RADIOBUTTON(IDC_RADIO_PUNCT_SECTION, CAdapt_ItView::OnRadioDefineByPunctuation)
@@ -1171,7 +1201,11 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
     // the view)- but only when we are not currently printing
 	if (pApp->m_bFreeTranslationMode && !gbIsPrinting)
 	{
+#ifdef	_FREETR
+		pApp->GetFreeTrans()->DrawFreeTranslations(pDC, GetLayout(), call_from_ondraw);
+#else	// _FREETR
 		DrawFreeTranslations(pDC, GetLayout(), call_from_ondraw);
+#endif	// _FREETR
 	}
 }
 
@@ -5471,7 +5505,11 @@ void CAdapt_ItView::OnFileCloseProject(wxCommandEvent& event)
 	{
 		// free translation mode is on, so we must first turn it off
 		wxCommandEvent event;
+#ifdef	_FREETR
+		pApp->GetFreeTrans()->OnAdvancedFreeTranslationMode(event);
+#else	// _FREETR
 		OnAdvancedFreeTranslationMode(event);
+#endif	// _FREETR
 	}
 
 	if (!gbIgnoreScriptureReference_Receive)
@@ -34783,7 +34821,11 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 								  // the return, and the enum value later on
 				case nextStep:
 					{
+#ifdef	_FREETR
+						pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 						StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 						wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
 						wxPostEvent(pApp->GetMainFrame(), eventCustom); 
 									// the event handlers are in CMainFrame
@@ -34805,7 +34847,11 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 					return TRUE;
 				case endNow:
 					{
+#ifdef	_FREETR
+						pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 						StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 						wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 						wxPostEvent(pApp->GetMainFrame(), eventCustom); 
 									// the event handlers are in CMainFrame
@@ -34951,8 +34997,14 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 							  // the return, and the enum value later on
 			case nextStep:
 				{
+#ifdef	_FREETR
+					pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving(); // may result in
+							// re-storing an already stored f.t. but it's safety first
+
+#else	// _FREETR
 					StoreFreeTranslationOnLeaving(); // may result in re-storing an 
-										// already stored f.t. but its safety first
+										// already stored f.t. but it's safety first
+#endif	// _FREETR
 					wxCommandEvent eventCustom(wxEVT_Back_Translations_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom); 
 								// the event handlers are in CMainFrame
@@ -34976,8 +35028,14 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 				return TRUE;
 			case endNow:
 				{
-					StoreFreeTranslationOnLeaving();  // may result in re-storing an 
-										// already stored f.t. but its safety first
+#ifdef	_FREETR
+					pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving(); // may result in
+							// re-storing an already stored f.t. but it's safety first
+
+#else	// _FREETR
+					StoreFreeTranslationOnLeaving(); // may result in re-storing an 
+										// already stored f.t. but it's safety first
+#endif	// _FREETR
 					wxCommandEvent eventCustom(wxEVT_End_Vertical_Edit);
 					wxPostEvent(pApp->GetMainFrame(), eventCustom); 
 								// the event handlers are in CMainFrame
@@ -36625,6 +36683,13 @@ void CAdapt_ItView::OnUpdateAdvancedDelay(wxUpdateUIEvent& event)
 	}
 }
 
+#ifdef	_FREETR
+/////////////////////////////////////////////////////////////////////////////////
+///
+/// Free translation support moved to FreeTrans.h/.cpp
+///
+/////////////////////////////////////////////////////////////////////////////////
+#else	// _FREETR
 ///////////////////// FREE TRANSLATION MODE SUPPORT /////////////////////////////
 ///
 /// BEW addition 21Jun05, handlers for free translation supporting buttons in Compose Bar
@@ -36923,6 +36988,7 @@ void CAdapt_ItView::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event
 		GetLayout()->PlaceBox();
 	}
 }
+#endif	// _FREETR
 
 void CAdapt_ItView::ToggleFreeTranslationMode()
 {
@@ -37264,10 +37330,16 @@ void CAdapt_ItView::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 			// current section and reconstitute it as a Verse-based section
 			gbSuppressSetup = FALSE;
 			wxCommandEvent evt;
+#ifdef	_FREETR
+			pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and 
+                // any Compose bar edit box test;
+                // the OnRemoveFreeTranslationButton() call calls Invalidate()
+#else	// _FREETR
 			OnRemoveFreeTranslationButton(evt); // remove current section and 
                 // any Compose bar edit box test;
                 // the OnRemoveFreeTranslationButton() call calls Invalidate()
-			
+#endif	// _FREETR
+
             // To get SetupCurrenetFreeTranslationSection() called, we must call
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
             // resized smaller
@@ -37305,9 +37377,15 @@ void CAdapt_ItView::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 			// current section and reconstitute it as a Verse-based section
 			gbSuppressSetup = FALSE;
 			wxCommandEvent evt;
+#ifdef	_FREETR
+			pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and 
+                // any Compose bar edit box test;
+                // the OnRemoveFreeTranslationButton() call calls Invalidate()
+#else	// _FREETR
 			OnRemoveFreeTranslationButton(evt); // remove current section and 
 				// any Compose bar edit box test
 				// the OnRemoveFreeTranslationButton() call calls Invalidate()
+#endif	// _FREETR
 
             // To get SetupCurrentFreeTranslationSection() called, we must call
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
@@ -37325,6 +37403,7 @@ void CAdapt_ItView::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
+#ifndef	_FREETR
 /////////////////////////////////////////////////////////////////////////////////
 /// \return         nothing
 ///
@@ -37549,6 +37628,7 @@ void CAdapt_ItView::StoreFreeTranslationOnLeaving()
 		}
 	}
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return         nothing
@@ -37576,7 +37656,9 @@ void CAdapt_ItView::MakeAllPilesNonCurrent(CLayout* pLayout)
 	// makes them ALL false
 }
 
-
+#ifdef	_FREETR
+// OnAdvanceButton moved to CFreeTrans
+#else	// _FREETR
 // handler for the IDC_APPLY_BUTTON, renamed Advance after first being called Apply
 void CAdapt_ItView::OnAdvanceButton(wxCommandEvent& event)
 {
@@ -37672,7 +37754,11 @@ void CAdapt_ItView::OnAdvanceButton(wxCommandEvent& event)
 						// TRUE is bForceTransition
 					}
 					// make it 'stick' before returning
-					StoreFreeTranslationOnLeaving();
+#ifdef	_FREETR
+						pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
+						StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 					return;
 				}
 			}
@@ -37709,7 +37795,11 @@ void CAdapt_ItView::OnAdvanceButton(wxCommandEvent& event)
 																// TRUE is bForceTransition
 							}
 							// make it 'stick' before returning
+#ifdef	_FREETR
+							pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 							StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 							return;
 						}
 					}
@@ -37760,6 +37850,7 @@ void CAdapt_ItView::OnAdvanceButton(wxCommandEvent& event)
 		}
 	}
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -37788,6 +37879,9 @@ void CAdapt_ItView::OnUpdateNextButton(wxUpdateUIEvent& event)
 	event.Enable(TRUE);
 }
 
+#ifdef	_FREETR
+// OnNextButton moved to CFreeTrans
+#else	// _FREETR
 void CAdapt_ItView::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -37856,7 +37950,11 @@ void CAdapt_ItView::OnNextButton(wxCommandEvent& WXUNUSED(event))
 						return;
 					}
 					// make it 'stick' before returning
+#ifdef	_FREETR
+					pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 					StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 					return;
 				}
 			}
@@ -37910,6 +38008,7 @@ void CAdapt_ItView::OnNextButton(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 }
+#endif	//_FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -37945,6 +38044,8 @@ void CAdapt_ItView::OnUpdatePrevButton(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 }
 
+#ifdef	_FREETR
+#else	// _FREETR
 // whm revised 24Aug06 to allow Prev button to move back to the previous actual or
 // potential free translation segment in the text
 void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
@@ -38061,7 +38162,11 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 							if (bCommandPosted)
 							{
 								// make it 'stick' before returning
+#ifdef	_FREETR
+								pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 								StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 								return;
 							}
 						}
@@ -38118,7 +38223,11 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 							if (bCommandPosted)
 							{
 								// make it 'stick' before returning
+#ifdef	_FREETR
+								pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 								StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 								return;
 							}
 						}
@@ -38222,7 +38331,11 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 				if (bCommandPosted)
 				{
 					// make it 'stick' before returning
+#ifdef	_FREETR
+					pApp->GetFreeTrans()->StoreFreeTranslationOnLeaving();
+#else	// _FREETR
 					StoreFreeTranslationOnLeaving();
+#endif	// _FREETR
 					return;
 				}
 			}
@@ -38266,6 +38379,7 @@ void CAdapt_ItView::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return	nothing
@@ -38303,6 +38417,9 @@ void CAdapt_ItView::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 	}
 }
 
+#ifdef	_FREETR
+// OnRemoveFreeTranslationButton moved to CFreeTrans
+#else	// _FREETR
 void CAdapt_ItView::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -38411,6 +38528,7 @@ void CAdapt_ItView::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event
 		}
 	}
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -38491,6 +38609,9 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 	}
 }
 
+#ifdef	_FREETR
+// OnLengthenButton moved to CFreeTrans
+#else	// -FREETR
 void CAdapt_ItView::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 {
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from wiping
@@ -38555,6 +38676,7 @@ void CAdapt_ItView::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 }
+#endif	//_FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -38763,6 +38885,9 @@ bool CAdapt_ItView::ContainsFreeTranslation(CPile* pPile)
 	return curPos > 0;
 }
 
+#ifdef	_FREETR
+// SetupCurrentFreeTransSection, GetExistingMarkerContent moved to CFreeTrans
+#else	// _FREETR
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing
 ///
@@ -39037,7 +39162,11 @@ void CAdapt_ItView::SetupCurrentFreeTransSection(int activeSequNum)
 	pEdit->SetFocus();
 	pEdit->SetSelection(-1,-1); // -1,-1 selects all
 }
+#endif	// _FREETR
 
+#ifdef	_FREETR
+// GetExistingMarkerContent moved to helpers
+#else	// _FREETR
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             the text of the filtered content (such as a free translation) 
 ///                     which is in the m_markers member
@@ -39120,6 +39249,7 @@ a:		offset = 0;
 	contentStr = markers.Mid(offset,length);
 	return contentStr;
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return         the offset from the beginning of m_markers where the filtered 
@@ -39761,6 +39891,9 @@ bool CAdapt_ItView::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 	return TRUE; // anything else should halt scanning
 }
 
+#ifdef	_FREETR
+//GDLC 2010-02-12 DestroyElements() moved to FreeTrans.cpp
+#else	// _FREETR
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             nothing
 ///
@@ -39788,6 +39921,7 @@ void CAdapt_ItView::DestroyElements(wxArrayPtrVoid* pArr)
 	}
 	pArr->Clear();
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             TRUE if the passed in word or phrase has word-final punctuation 
@@ -40032,6 +40166,12 @@ wxString CAdapt_ItView::SegmentToFit(wxDC*		pDC,
 	}
 }
 
+#ifdef	_FREETR
+//GDLC 2010-02-12 Moved the following functions to FreeTrans.cpp
+//	GetStartingPileforScan
+//	DrawFreeTranslations
+//	SegmentFreeTranslations
+#else	// _FREETR
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             the CPile instance, safely earlier than where we are interested in
 ///                     and where the caller will start scanning ahead from to get the
@@ -41051,6 +41191,7 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 		}
 	}
 }
+#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
