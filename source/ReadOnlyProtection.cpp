@@ -39,6 +39,7 @@
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <wx/snglinst.h> // for wxSingleInstanceChecker
+#include <wx/process.h> // for wxProcess::Exists(PID)
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -490,7 +491,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 #endif
 		return FALSE;
 	}
-	else if (AnotherLocalProcessOwnsTheLock())
+	else if (AnotherLocalProcessOwnsTheLock(ropFile))
 	{
 		// Another instance of Adapt It owns the lock so it is not a zombie
 		// and no additional tests are needed, just return FALSE.
@@ -614,7 +615,7 @@ bool ReadOnlyProtection::RemoveROPFile(wxString& projectFolderPath, wxString& ro
 /// \return		TRUE if user is running another instance of Adapt It locally
 /// \remarks	Uses the wxSingleInstanceChecker class
 ///////////////////////////////////////////////////////////////////////////////////////////
-bool ReadOnlyProtection::IamRunningAnotherInstance()
+bool ReadOnlyProtection::IamRunningAnotherInstance() // currently unused
 {
 	return m_pApp->m_pChecker->IsAnotherRunning();
 }
@@ -653,14 +654,25 @@ bool ReadOnlyProtection::IOwnTheLock(wxString& projectFolderPath)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if another process on the local machine owns the lock, FALSE otherwise
+/// \param      ropFile             ->  filename for the read-only protection file
 /// \remarks This situation can only eventuate if an additional instance of Adapt It is
 /// running on the same machine (might be a different user on a Linux system). The 
 /// additional instance will have a different process id (PID).
 ///////////////////////////////////////////////////////////////////////////////////////////
-bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock()
+bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock(wxString& ropFile)
 {
-	// query the wxSingleInstanceChecker object m_pChecker->IsAnotherRunning()
-	if (IamRunningAnotherInstance())
+	wxString currProcessStr;
+	currProcessStr = GetLocalProcessID();
+	wxString ropFileProcessStr;
+	ropFileProcessStr = ExtractProcessID(ropFile);
+	int nRopFilePID;
+	nRopFilePID = wxAtoi(ropFileProcessStr);
+	// Although we might use the wxSingleInstanceChecker method IsAnotherRunning() 
+	// on m_pChecker we are interested in more directly checking against the PID 
+	// of another existing local process, so we check if the current PID and the
+	// PID of the ropFile differ, AND if the PID of the ropFile currently exists 
+	// as a process in the local system.
+	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID)) //if (IamRunningAnotherInstance())
 		return TRUE;
 	return FALSE;
 }
@@ -856,7 +868,7 @@ _("You have READ-ONLY access to this project folder."),_("Another process owns w
 /// permission for the passed in project folder; a second process coming along later cannot
 /// force the owner to relinquish ownership. The return value always be used for setting
 /// or clearing pApp->m_bReadOnlyAccess; TRUE is returned if Removal was successful, FALSE
-/// is returned if ownership is retained be someone else because this process does not qualify
+/// is returned if ownership is retained by someone else because this process does not qualify
 /// for removing of protection.
 /// Call this function when the running instance relinguishes the project
 //////////////////////////////////////////////////////////////////////////////////////////// 
