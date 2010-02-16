@@ -12,6 +12,8 @@
 #ifndef XML_h
 #define XML_h
 
+#include "Adapt_It.h"
+
 //#define Output_Default_Style_Strings	// uncomment to output default Unix-style usfm strings
 										// to books.txt and AI_USFM_full.txt. For this to work
 										// properly, the up-to-date AI_USFM_full.xml file should 
@@ -264,6 +266,14 @@ bool ReadDoc_XML(wxString& path, CAdapt_ItDoc* pDoc);
 // pKB is a pointer to the CKB instance which is being filled out by the
 // parsing of the XML file
 bool ReadKB_XML(wxString& path, CKB* pKB);
+
+// Conversion functions for converting between different xml formats for
+// VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5
+#ifdef _DOCVER5
+void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded);
+// returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
+bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase);
+#endif
 
 #endif // XML_h
 

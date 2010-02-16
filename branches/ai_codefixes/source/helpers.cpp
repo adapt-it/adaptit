@@ -44,6 +44,12 @@ extern CAdapt_ItApp* gpApp;
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
+#ifdef _DOCVER5
+extern const wxChar* filterMkr; // defined in the Doc
+extern const wxChar* filterMkrEnd; // defined in the Doc
+const int filterMkrLen = 8;
+const int filterMkrEndLen = 9;
+#endif
 
 //  helper functions
 
@@ -1874,6 +1880,94 @@ a:		offset = 0;
 }
 #endif	// _FREETR
 
+
+#ifdef _DOCVER5	
+
+wxString RemoveOuterWrappers(wxString wrappedStr)
+{
+	int offset = wrappedStr.Find(filterMkr);
+	wxASSERT(offset != wxNOT_FOUND);
+	offset += filterMkrLen;
+	wrappedStr = wrappedStr.Mid(offset);
+	wrappedStr.Trim(FALSE); // trim whitespace on left
+	offset = wrappedStr.Find(filterMkrEnd);
+	wxASSERT(offset != wxNOT_FOUND);
+	wrappedStr = wrappedStr.Left(offset);
+	wrappedStr.Trim(); // trim whitespace on right
+	return wrappedStr;
+}
+
+// currently this is called in XML.cpp only, but it could be useful elsewhere
+// The returned string keeps the filter marker wrappers and their markers and data
+// contents, but the strFreeTrans, strNote, and strCollectedBackTrans parameters return
+// their strings with markers, endmarkers and filter marker wrappers removed - that is,
+// just the raw free translation, note, or collected back translation text only
+wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
+				wxString& strNote, wxString& strCollectedBackTrans, wxString& strRemainder)
+{
+	wxString info = strTheRestOfMarkers;
+	strRemainder = strTheRestOfMarkers;
+	if (info.IsEmpty())
+	{
+		return info;
+	}
+	wxString strConcat = _T(""); // store each substring here
+	int offsetToStart = 0;
+	int offsetToEnd = 0;
+
+	// get the each \~FILTER ... \~FILTER*  wrapped substring, (each such contains one SF
+	// marked up content string, of form \marker <content> \endMarker (but no < or >
+	// chars)) and return the wrapped substring, concatenated to one string
+	
+	offsetToStart = info.Find(filterMkr);
+	offsetToEnd = info.Find(filterMkrEnd);
+	while (offsetToStart != wxNOT_FOUND && offsetToStart != wxNOT_FOUND && !info.IsEmpty())
+	{
+		offsetToEnd += filterMkrEndLen; // add length of \~FILTER*  (9 chars)
+		int length = offsetToEnd - offsetToStart;
+		wxString substring = info.Mid(offsetToStart,length);
+
+		// check for, and extract, any free trans, note, or collected back trans; but if
+		// it is none of these, concatenate it to whatever is going to be returned to the
+		// caller to go into the m_filteredInfo member of CSourcePhrase
+		wxString innerStr = RemoveOuterWrappers(substring);
+		wxString mkr;
+		wxString endMkr;
+		wxString content;
+		ParseMarkersAndContent(innerStr, mkr, content, endMkr);
+		if (mkr == _T("\\free") || mkr == _T("\\note") || (mkr.Find(_T("\\bt")) != wxNOT_FOUND))
+		{
+			if (mkr == _T("\\free"))
+			{
+				strFreeTrans = content;
+			}
+			else if (mkr == _T("\\note"))
+			{
+				strNote = content;
+			}
+			else 
+			{
+				strCollectedBackTrans = content;
+			}
+		}
+		else
+		{
+            // it's not one of the above 3 data types, so concatenate the substring to be
+            // returned in strConcat to go in the caller into the member m_filteredInfo
+			strConcat += substring;
+		}
+		// chop off the extracted substring from the info string, trim any whitespace at
+		// the left, and then get new starting and ending offsets and iterate
+		info = info.Mid(offsetToEnd);
+		info.Trim(FALSE); // trim at left hand end (in doc version 4 there is usually a
+						  // delimiting space needing to be chucked away here)
+		strRemainder = info; // it's trimmed at left
+		offsetToStart = info.Find(filterMkr);
+		offsetToEnd = info.Find(filterMkrEnd);
+	}
+	return strConcat;
+}
+
 // the next 3 functions are similar or identical to member functions of the document class
 // which are used in the parsing of text files to produce a document; one (ParseMarker())
 // is a modification of the one in the doc class; these are needed here for use in
@@ -1917,6 +2011,10 @@ int ParseMarker(const wxChar *pChar)
 	return len;
 }
 
+// Take a mkrsAndContent string of form:
+// \mkr some data content \mkr* (USFM, and \mkr* may be absent), or for the PNG SFM marker set,
+// \f footnote material \fe (or possibly: \F instead of \fe)
+// and return the separate bits by means of the formal parameters
 void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& content, wxString& endMkr)
 {
 	wxString str = mkrsAndContent;
@@ -1962,4 +2060,6 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		content = MakeReverse(rev);
 	}
 }
+
+#endif
 

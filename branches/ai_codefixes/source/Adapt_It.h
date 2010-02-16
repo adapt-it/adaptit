@@ -248,6 +248,19 @@ const char xml_m[] = "m"; // m_markers
 const char xml_mp[] = "mp"; // some medial punctuation
 /// Attribute name used in Adapt It XML documents
 const char xml_mm[] = "mm"; // one or more medial markers (no filtered stuff)
+#ifdef _DOCVER5
+// new ones, Feb 2010, for doc version = 5
+/// Attribute name used in Adapt It XML documents
+const char xml_em[] = "em"; // m_endMarkers
+/// Attribute name used in Adapt It XML documents
+const char xml_ft[] = "ft"; // m_freeTrans
+/// Attribute name used in Adapt It XML documents
+const char xml_no[] = "no"; // m_note
+/// Attribute name used in Adapt It XML documents
+const char xml_bt[] = "bt"; // m_collectedBackTrans
+/// Attribute name used in Adapt It XML documents
+const char xml_fi[] = "fi"; // m_filteredInfo
+#endif
 
 // tag & attribute names for KB i/o
 

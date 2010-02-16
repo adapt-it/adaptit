@@ -58,10 +58,12 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
+#ifdef _DOCVER5
 extern const wxChar* filterMkr;
 extern const wxChar* filterMkrEnd;
 const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
+#endif
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -1350,9 +1352,24 @@ bool CSourcePhrase::ChapterColonVerseStringIsNotEmpty()
 	return !this->m_chapterVerse.IsEmpty();
 }
 
+// some getters and setters...
+
+/* uncomment out when we make m_markers a private member
+// the app never needs to get individual markers in m_markers, but just the whole lot as a
+// single string, so this is the only getter needed
+wxString CSourcePhrase::GetMarkers()
+{
+	return m_markers;
+}
+*/
+/* we've not yet made m_markers private, uncomment out when we do
+void CSourcePhrase::SetMarkers(wxString markers)
+{
+	m_markers = markers;
+}
+*/
 #ifdef _DOCVER5
-	// BEW added 12Feb10
-// some getters and setters
+
 wxString CSourcePhrase::GetFreeTrans()
 {
 	return m_freeTrans;
@@ -1368,10 +1385,6 @@ wxString CSourcePhrase::GetCollectedBackTrans()
 wxString CSourcePhrase::GetFilteredInfo()
 {
 	return m_filteredInfo;
-    // *** TODO *** later it may be better to return this member as two wxArrayString in
-    // parallel, one with the set of markers, and the other with the set of markers'
-    // content strings; this would make the \~FILTER and \~FILTER* wrappers invisible
-    // to the rest of the code which wants to use any of this info
 }
 // return TRUE if there is something filtered, FALSE if nothing is there; the two arrays
 // work in parallel - for a given index, the returned marker in the first and second are
@@ -1453,12 +1466,6 @@ bool CSourcePhrase::GetEndmarkersAsArray(wxArrayString* pEndmarkersArray)
 		count = count; // avoid compiler warning
 	}
 	return TRUE;
-}
-// the app never needs to get individual markers in m_markers, but just the whole lot as a
-// single string, so this is the only getter needed
-wxString CSourcePhrase::GetMarkers()
-{
-	return m_markers;
 }
 void CSourcePhrase::SetFreeTrans(wxString freeTrans)
 {
@@ -1558,9 +1565,11 @@ void CSourcePhrase::SetEndMarkers(wxString endMarkers)
 {
 	m_endMarkers = endMarkers;
 }
-void CSourcePhrase::SetMarkers(wxString markers)
+void CSourcePhrase::SetFilteredInfo(wxString filteredInfo)
 {
-	m_markers = markers;
+	m_filteredInfo = filteredInfo;
 }
+
 #endif	// _DOCVER5
+
  

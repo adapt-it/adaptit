@@ -180,8 +180,8 @@ public:
     // information -- we put these in a conditional compile directive for now, as Graeme
     // needs the older system for testing his work, and Bruce needs the new system for his
     // own
-#ifdef _DOCVER5
 private:
+#ifdef _DOCVER5
 	wxString		m_endMarkers;
 	wxString		m_freeTrans;
 	wxString		m_note;
@@ -225,19 +225,23 @@ public:
 									wxArrayString* pFilteredContent);
 	wxString GetEndmarkers();
 	bool	 GetEndmarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
-	wxString GetMarkers();
 
 	void SetFreeTrans(wxString freeTrans);
 	void SetNote(wxString note);
 	void SetCollectedBackTrans(wxString collectedBackTrans);
 	void AddToFilteredInfo(wxString filteredInfo);
+	void SetFilteredInfo(wxString filteredInfo);
 	void SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
 									wxArrayString* pFilteredEndMarkers,
 									wxArrayString* pFilteredContent);
 	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);
-	void SetMarkers(wxString markers);
 #endif
+
+/* uncomment out when we make m_markers a private member
+	wxString GetMarkers();
+	void SetMarkers(wxString markers);
+*/
 
 private:
 	DECLARE_DYNAMIC_CLASS(CSourcePhrase)

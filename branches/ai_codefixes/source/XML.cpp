@@ -73,6 +73,11 @@
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
+#ifdef _DOCVER5
+extern const wxChar* filterMkr; // defined in the Doc
+extern const wxChar* filterMkrEnd; // defined in the Doc
+#endif
+
 #ifdef _UNICODE
 static unsigned char szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
 static unsigned char szU16BOM[nU16BOMLen] = {0xFF, 0xFE};
@@ -2367,6 +2372,10 @@ bool AtDocTag(CBString& tag)
 			case 2:
 			case 3:
 			case 4:
+#ifdef _DOCVER5
+			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5
+			case 5:
+#endif
 			{
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -2413,7 +2422,7 @@ bool AtDocTag(CBString& tag)
 					return FALSE; // unknown element, so signal the error to the caller
 				}
 				break;
-			} // end block for docVersion case 4:
+			} // end block for docVersion case 4: or 5:
 		} // end block for switch (gnDocVersion)
 	} // end else block for test: if (tag == xml_settings)
 	return TRUE; // no error
@@ -2442,6 +2451,9 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 		case 2:
 		case 3:
 		case 4:
+#ifdef _DOCVER5
+		case 5:
+#endif
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
@@ -2561,6 +2573,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpEmbeddedSrcPhrase->m_chapterVerse = attrValue;
 					}
+#ifdef _DOCVER5
+					else if (attrName == xml_em)
+					{
+						gpEmbeddedSrcPhrase->SetEndMarkers(attrValue);
+					}
+#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2598,6 +2616,24 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpEmbeddedSrcPhrase->m_markers = attrValue;
 						}
+#ifdef _DOCVER5
+						else if (attrName == xml_ft)
+						{
+							gpEmbeddedSrcPhrase->SetFreeTrans(attrValue);
+						}
+						else if (attrName == xml_no)
+						{
+							gpEmbeddedSrcPhrase->SetNote(attrValue);
+						}
+						else if (attrName == xml_bt)
+						{
+							gpEmbeddedSrcPhrase->SetCollectedBackTrans(attrValue);
+						}
+						else if (attrName == xml_fi)
+						{
+							gpEmbeddedSrcPhrase->SetFilteredInfo(attrValue);
+						}
+#endif
 						else
 						{
 							// unknown attribute
@@ -2607,10 +2643,11 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				}
 				else
 				{
-					// we are constructing an unmerged instance, to be saved in the doc's m_pSourcePhrases member
-					// do the number attributes first, since these don't need entity replacement
-					// and then the couple of strings which also don't need it, then the ones
-					// needing it do them last
+                    // we are constructing an unmerged instance, or a parent to two or more
+                    // originals involved in a merger, to be saved in the doc's
+                    // m_pSourcePhrases member do the number attributes first, since these
+                    // don't need entity replacement and then the couple of strings which
+                    // also don't need it, then the ones needing it do them last
 					if (attrName == xml_f)
 					{
 						MakeBOOLs(gpSrcPhrase,attrValue);
@@ -2635,6 +2672,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpSrcPhrase->m_chapterVerse = attrValue;
 					}
+#ifdef _DOCVER5
+					else if (attrName == xml_em)
+					{
+						gpSrcPhrase->SetEndMarkers(attrValue);
+					}
+#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2672,6 +2715,24 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpSrcPhrase->m_markers = attrValue;
 						}
+#ifdef _DOCVER5
+						else if (attrName == xml_ft)
+						{
+							gpSrcPhrase->SetFreeTrans(attrValue);
+						}
+						else if (attrName == xml_no)
+						{
+							gpSrcPhrase->SetNote(attrValue);
+						}
+						else if (attrName == xml_bt)
+						{
+							gpSrcPhrase->SetCollectedBackTrans(attrValue);
+						}
+						else if (attrName == xml_fi)
+						{
+							gpSrcPhrase->SetFilteredInfo(attrValue);
+						}
+#endif
 						else
 						{
 							// unknown attribute
@@ -2804,6 +2865,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpEmbeddedSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
 					}
+#ifdef _DOCVER5
+					else if (attrName == xml_em)
+					{
+						gpEmbeddedSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+					}
+#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2841,6 +2908,24 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpEmbeddedSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
 						}
+#ifdef _DOCVER5
+						else if (attrName == xml_ft)
+						{
+							gpEmbeddedSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+						}
+						else if (attrName == xml_no)
+						{
+							gpEmbeddedSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+						}
+						else if (attrName == xml_bt)
+						{
+							gpEmbeddedSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+						}
+						else if (attrName == xml_fi)
+						{
+							gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+						}
+#endif
 						else
 						{
 							// unknown attribute
@@ -2850,10 +2935,11 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 				}
 				else
 				{
-					// we are constructing an unmerged instance, to be saved in the doc's m_pSourcePhrases member
-					// do the number attributes first, since these don't need entity replacement
-					// and then the couple of strings which also don't need it, then the ones
-					// needing it do them last
+                    // we are constructing an unmerged instance, or a parent to two or more
+                    // originals involved in a merger, to be saved in the doc's
+                    // m_pSourcePhrases member do the number attributes first, since these
+                    // don't need entity replacement and then the couple of strings which
+                    // also don't need it, then the ones needing it do them last
 					if (attrName == xml_f)
 					{
 						MakeBOOLs(gpSrcPhrase,attrValue);
@@ -2878,6 +2964,12 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
 					}
+#ifdef _DOCVER5
+					else if (attrName == xml_em)
+					{
+						gpSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
+					}
+#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2915,6 +3007,24 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
 						}
+#ifdef _DOCVER5
+						else if (attrName == xml_ft)
+						{
+							gpSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
+						}
+						else if (attrName == xml_no)
+						{
+							gpSrcPhrase->SetNote(gpApp->Convert8to16(attrValue));
+						}
+						else if (attrName == xml_bt)
+						{
+							gpSrcPhrase->SetCollectedBackTrans(gpApp->Convert8to16(attrValue));
+						}
+						else if (attrName == xml_fi)
+						{
+							gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
+						}
+#endif
 						else
 						{
 							// unknown attribute
@@ -2992,6 +3102,15 @@ bool AtDocEndTag(CBString& tag)
 		case 2:
 		case 3:
 		case 4:
+#ifdef _DOCVER5
+		// case 5: for gnDocVersion = 4 requires, if we are to read version 4 documents
+		// and convert them to version 5, a conversion function which is to be called on
+		// each of gpEmbeddedSrcPhrase and gpSrcPhrase before they are inserted in the
+		// list; the difference is that the contents of m_markers in version 4 is split
+		// between 4 members in version 5, m_endMarkers, m_freeTrans, m_note,
+		// m_collectedBackTrans, and m_filteredInfo
+		case 5:
+#endif
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
@@ -3005,6 +3124,12 @@ bool AtDocEndTag(CBString& tag)
 					// to be stored in the m_pSavedWords member of a merged sourcephrase which is
 					// pointed at by gpSrcPhrase, so add it to the list & then clear the pointer
 					wxASSERT(gpSrcPhrase);
+#ifdef _DOCVER5
+					if (gnDocVersion == 4)
+					{
+						FromDocVersion4ToDocVersion5(gpSrcPhrase->m_pSavedWords, gpEmbeddedSrcPhrase, TRUE);
+					}
+#endif
 					gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
 					gpEmbeddedSrcPhrase = NULL;
 				}
@@ -3013,9 +3138,25 @@ bool AtDocEndTag(CBString& tag)
 					// gpEmbeddedSrcPhrase is NULL, so we've been constructing an unmerged one,
 					// so now we can add it to the doc member m_pSourcePhrases and clear the pointer
 					if (gbSyncMsgReceived_DocScanInProgress)
+					{
+#ifdef _DOCVER5
+						if (gnDocVersion == 4)
+						{
+							FromDocVersion4ToDocVersion5(gpDocList, gpSrcPhrase, FALSE);
+						}
+#endif
 						gpDocList->Append(gpSrcPhrase);
+					}
 					else
+					{
+#ifdef _DOCVER5
+						if (gnDocVersion == 4)
+						{
+							FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
+						}
+#endif
 						gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
+					}
 					gpSrcPhrase = NULL;
 				}
 
@@ -3036,6 +3177,223 @@ bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
 	// we don't have any PCDATA in the document XML files
 	return TRUE;
 }
+
+#ifdef _DOCVER5
+void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded)
+{
+	if (pSrcPhrase->m_markers.IsEmpty())
+		return; // no conversions needed for this one
+
+	// If the pList list is empty on entry, then the GetLast() call will return NULL
+	// rather than a valid pos value
+	wxString strModifiers = pSrcPhrase->m_markers;
+	CSourcePhrase* pLastSrcPhrase = NULL;
+	SPList::Node* pos = pList->GetLast();
+
+    // The list, on entry, is either the m_pSavedWords SPList* member in CSourcePhrase, or
+    // the m_pSourcePhrases list in the document CAdapt_ItDoc class
+    // 
+	// Note 1: in a merger, the endmarkers, if any, are on the second or later
+	// CSourcePhrase instances of a merger, never the first, so the stuff below won't
+	// break due to the fact that we don't try to access m_endMarkers member on the
+	// first CSourcePhrase
+	
+    // Note 2: When the list is m_pSourcePhrases member of the CAdapt_ItDoc class...
+    // docVersion = 4 would not have any endmarkers in the very first CSourcePhrase
+    // instance in m_pSourcePhrases list, and so we can be sure that not trying to convert
+    // to endmarkers on the first instance will not cause loss of data So this block not
+    // only has to handle moving of the endmarkers from the current CSourcePhrase instance
+    // to a preceding non-merged one's m_endMarkers member, but also when the preceding one
+    // is a merger, it must do that and then in addition look at the m_pSavedWords member
+    // and find the last of the original instances that comprised the merger, and add the
+    // endmarkers to that one's m_endMarkers member as well - any earlier ones in the
+    // m_pSavedWords list will have been handled by an earlier call. This extra transfer is
+    // handled below by a block which tests for bIsEmbedded == FALSE
+		
+	bool bSomethingTransferred = FALSE;
+	if (pos != NULL)
+	{
+		// there might be endmarkers, so deal with them; endmarkers, if they occur,
+		// will always be at the start of the pSrcPhrase->m_markers member in version 4,
+		// and since we might be using a legacy SFM set, we can't assume an endmarker
+		// will end with an asterisk
+		pLastSrcPhrase = pos->GetData();
+		bSomethingTransferred = TransferEndMarkers(strModifiers, pLastSrcPhrase); // parent
+		if (bSomethingTransferred)
+		{
+			// since one or more endMarkers were transferred, strModifiers has been
+			// shortened by these having been removed from its start, and any initial
+			// whitespace trimmed off, so update the original storage CSourcePhrase
+			// instance to have the shorter string
+			pSrcPhrase->m_markers = strModifiers;
+		}
+		if (!bIsEmbedded)
+		{
+			// the list is not the m_pSavedWords SPList* member in CSourcePhrase
+			// Note: in a merger, the endmarkers, if any, are on the second or later
+			// CSourcePhrase instances of a merger, never the first, so the stuff below won't
+			// break due to the fact that we don't try to access m_endMarkers member on the
+			// first CSourcePhrase
+
+			wxString strEndmarkersTransferred = pLastSrcPhrase->GetEndmarkers(); // use below
+			// if we did it at the parent level, then do it on last of the sublist's instances
+			if (!pLastSrcPhrase->m_pSavedWords->IsEmpty() && bSomethingTransferred)
+			{
+				// this CSourcePhrase instance is a merger, so also transfer to its last
+				// saved instance in the m_pSavedWords list
+				SPList::Node* pos = pLastSrcPhrase->m_pSavedWords->GetLast();
+				wxASSERT(pos != NULL);
+				CSourcePhrase* pLastInSublist = pos->GetData();
+				wxASSERT(pLastInSublist != NULL);	
+				pLastInSublist->SetEndMarkers(strEndmarkersTransferred);
+			}
+		} // end TRUE block for text: if (!bIsEmbedded)
+	}
+	// If pList is not empty, then the current CSourcePhrase instance that is passed
+	// in is at least the second or later instance in the doc's list. Now that
+	// endmarkers have been bled out of the strModifiers string, deal with the rest of
+	// the transfers for the new storage strings
+	strModifiers.Trim(FALSE); // a precautionary trim whitespace from left
+	if (!strModifiers.IsEmpty())
+	{
+		// there is content to be dealt with still - there could be filtered material,
+		// and or other markers (such as chapter, verse, subheading, poetry, etc) to
+		// bleed out any filtered material (each info type of any filtered stuff is 
+		// always wrapped, in version 4 docs, with \~FILTER and \~FILTER* wrappers;
+		// and whatever follows such info then is left in the m_markers member), but
+		// deal separately with free trans, notes, collected back trans
+		int offset = strModifiers.Find(filterMkr); // look for \~FILTER (if present
+									// it will now be at the start of strModifiers)
+
+		if (offset == wxNOT_FOUND)
+		{
+			// there is no filtered info needing to be dealt with, so the rest
+			// remains in m_markers
+			pSrcPhrase->m_markers = strModifiers;
+		}
+		else
+		{
+            // extract all the wrapped filtered info into its own string, deal
+            // separately with free translations, notes, and collected back
+            // translations, and the rest belongs in m_markers
+            // (ExtractWrappedFilteredInfor() is defined in helpers.cpp)
+			wxString strRemainder;
+			wxString strFreeTrans;
+			wxString strNote;
+			wxString strCollectedBackTrans;
+			// the next call strips of \~FILTER and \~FILTER* and any marker and endmarker
+			// wrapped by these wrapper markers, if returning data via strFreeTrans, strNote,
+			// and/or strCollectedBackTrans; but the normal return string which goes to
+			// filteredInfo will have neither the filter marker wrappers, not neither
+			// wrapped marker and (if present) endmarker removed - because Adapt It makes
+			// no use of the m_filteredInfo content in version 5, that member is just
+			// there as a catch all for all filtered stuff needing to be kept in case the
+			// use calls for an export - in which case it needs to be put into the export
+			// at the appropriate places, but until then we just squirrel it away and
+			// forget about it
+			wxString filteredInfo = ExtractWrappedFilteredInfo(strModifiers, strFreeTrans,
+				strNote, strCollectedBackTrans, strRemainder);
+			if (!strFreeTrans.IsEmpty())
+			{
+				// transfer the unwrapped content (with \free and \free* markers removed)
+				// to the m_freeTrans member
+				pSrcPhrase->SetFreeTrans(strFreeTrans);
+			}
+			if (!strNote.IsEmpty())
+			{
+				// transfer the unwrapped content (with \note and \note* markers removed)
+				// to the m_note member
+				pSrcPhrase->SetNote(strNote);
+			}
+			if (!strCollectedBackTrans.IsEmpty())
+			{
+				// transfer the unwrapped content (with \bt, or any \bit-initial marker, removed)
+				// to the m_collectedBackTrans member
+				pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
+			}
+			// transfer filteredInfo returned string to m_filteredInfo member (& it may
+			// be an empty string)
+			pSrcPhrase->SetFilteredInfo(filteredInfo);
+
+			// update m_markers to have whatever remains of strModifiers (it could be nothing)
+			pSrcPhrase->m_markers = strRemainder;
+		}
+	}
+}
+
+// returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
+bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase)
+{
+	bool bTransferred = FALSE;
+	modifiers.Trim(FALSE); // trim at left, but should never be necessary
+	int length;									// the wxString's data buffer
+	bool bWasEndMarker = FALSE;
+	do {
+		const wxChar* ptr = modifiers.GetData(); // point at first possible marker in modifiers
+		length = ParseMarker(ptr);
+		wxString marker(ptr,length);
+		if (!marker.IsEmpty() && marker.GetChar(0) == _T('\\'))
+		{
+			// it's a marker of some type (but may not be an endmarker)
+			if (gpApp->gCurrentSfmSet == PngOnly && (marker == _T("\\fe") || marker == _T("\\F")))
+			{
+				// it's the 1998 PNG marker set's endmarker for footnote, either \fe
+				// or \F (there are never two of these in succession)
+				bWasEndMarker = TRUE;
+			}
+			else if (marker.Find(_T('*')) != wxNOT_FOUND)
+			{
+				// it's a USFM endmarker (there can be two or more of these in succession)
+				bWasEndMarker = TRUE;
+			}
+			else
+			{
+				bWasEndMarker = FALSE;
+			}
+			// test whether we have an endmarker or not
+			if (!bWasEndMarker)
+			{
+				// it was not an endmarker - so no more endmarkers can follow so
+				// break out of loop
+				break;
+			}
+			else
+			{
+				// transfer the endmarker to m_endMarkers and prepare for next iteration,
+				// and then iterate the loop
+				if (gpApp->gCurrentSfmSet == PngOnly)
+				{
+					// these need delimiting spaces (but unlikely to be two, so the else
+					// block is almost certainly never going to be entered -- but two
+					// consecutive footnotes in a legacy PngOnly SFM set could cause it to
+					// happen)
+					wxString currentEndMkrs = pLastSrcPhrase->GetEndmarkers();
+					if (currentEndMkrs.IsEmpty())
+						currentEndMkrs = marker;
+					else
+						currentEndMkrs += _T(" ") + marker;
+					pLastSrcPhrase->SetEndMarkers(currentEndMkrs);
+					bTransferred = TRUE;
+				}
+				else
+				{
+					// for USFM ones, we don't need delimiting spaces between them
+					pLastSrcPhrase->AddEndMarker(marker);
+					bTransferred = TRUE;
+				}
+				modifiers = modifiers.Mid(length);
+				modifiers.Trim(FALSE); // ready to test for another
+			}
+		} // end of block for test: if (!marker.IsEmpty() && marker.GetChar(0) == _T('\\'))
+		else
+		{
+			// isn't a marker of any kind, so break out of loop
+			break;
+		}
+	} while (TRUE);
+	return bTransferred;
+}
+#endif
 
 /**************************************************************************************
 *   MakeBOOLs
