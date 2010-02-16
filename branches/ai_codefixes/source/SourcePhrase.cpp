@@ -504,22 +504,51 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_pMedialMarkers->Add(pSrcPhrase->m_markers);
 	}
 
-	// for doc version 5, we'll assume any endmarkers on pSrcPhrase are also medial, and
-	// have them "placed" - even if they eventually end up at the phrase end
-	#ifdef _DOCVER5
+	// for doc version 5, we'll assume any endmarkers on pSrcPhrase are not medial; but if
+	// they are present at a later iteration on the CSourcePhrase which is pointed at by
+	// this, then they are medial and have to be later 'placed'
+#ifdef _DOCVER5
+	bool bAddedSomething = FALSE;
 	if (!pSrcPhrase->m_endMarkers.IsEmpty())
 	{
-		m_bHasInternalMarkers = TRUE;
+		if (m_endMarkers.IsEmpty())
+		{
+			// not medial (or at least, not medial yet) so just copy it
+			SetEndMarkers(pSrcPhrase->GetEndMarkers());
+		}
+		else
+		{
+			// endMarkers already on 'this' pointer, so these are medial now
+			wxString oldEndMkrs = GetEndMarkers();
 
-		// make a string list to hold it, if none exists yet
-		if (m_pMedialMarkers == NULL)
-			m_pMedialMarkers = new wxArrayString;
-		wxASSERT(m_pMedialMarkers != NULL);
+			// deal with the endmarkers that have just become 'old' ie. medial to the phrase
+			// (the following call tests for m_pMedialMarkers = NULL, and if so creates a
+			// string array for it on the heap, so the use of m_pMedialMarkers further below 
+			// is safe)
+			SetEndMarkersAsNowMedial(m_pMedialMarkers); // sets m_bHasInternalMarkers = TRUE;
+			
+			// now deal with the ones in pSrcPhrase; by this stage, m_pMedialMarkers exists
+			wxArrayString newEndMarkersArray;
+			pSrcPhrase->GetEndMarkersAsArray(&newEndMarkersArray);
 
-		// accumulate it
-		m_pMedialMarkers->Add(pSrcPhrase->m_endMarkers);
+			// add any not already in the array
+			bAddedSomething = AddNewStringsToArray(m_pMedialMarkers, &newEndMarkersArray);
+
+			// update the merged CSourcePhrase's m_endMarkers member
+			wxString endMkrs = pSrcPhrase->GetEndMarkers();
+			oldEndMkrs +=endMkrs;
+			SetEndMarkers(oldEndMkrs);
+		}
 	}
-	#endif
+	else if (!this->m_endMarkers.IsEmpty())
+	{
+		// these endmarkers have become medial now, but pSrcPhrase has none to contribute;
+		// here we have the possibility that endmarkers have just been made non-final, and
+		// so have become internal to the phrase, so we must update the medial markers array
+		SetEndMarkersAsNowMedial(m_pMedialMarkers);
+	}
+
+#endif
 
 	// if there is punctuation, some or all may become phrase-internal, so check it out and
 	// accumulate as necessary and then set the flag if there is internal punctuation
@@ -1444,14 +1473,14 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 	}
 	return TRUE;
 }
-wxString CSourcePhrase::GetEndmarkers()
+wxString CSourcePhrase::GetEndMarkers()
 {
 	return m_endMarkers;
 }
 // return FALSE if empty, else TRUE (I'm not sure we'll ever need to get individual
 // endmarkers, I think we only need to add the member contents to the document export at
 // some point, but I'll provide this in case)
-bool CSourcePhrase::GetEndmarkersAsArray(wxArrayString* pEndmarkersArray)
+bool CSourcePhrase::GetEndMarkersAsArray(wxArrayString* pEndmarkersArray)
 {
 	pEndmarkersArray->Empty();
 	if (m_endMarkers.IsEmpty())
@@ -1569,6 +1598,41 @@ void CSourcePhrase::SetFilteredInfo(wxString filteredInfo)
 {
 	m_filteredInfo = filteredInfo;
 }
+
+void CSourcePhrase::SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray)
+{
+	bool bAddedSomething = FALSE;
+
+	// make a string array to hold it or them, if no string array exists yet
+	if (pMedialsArray == NULL)
+		pMedialsArray = new wxArrayString;
+	wxASSERT(pMedialsArray != NULL);
+
+	wxString oldEndMkrs = GetEndMarkers();
+	m_bHasInternalMarkers = TRUE;
+
+	wxArrayString oldEndMarkersArray;
+	this->GetEndMarkersAsArray(&oldEndMarkersArray);
+
+	// anything not already in it, add to it
+	if (pMedialsArray->IsEmpty())
+	{
+		// it's just been created, so add the "old" ones
+		int count = oldEndMarkersArray.GetCount();
+		int index;
+		for (index = 0; index < count; index++)
+		{
+			wxString endmarker = oldEndMarkersArray.Item(index);
+			pMedialsArray->Add(endmarker);
+		}
+	}
+	else
+	{
+		// it already exists, so add the unique ones
+		bAddedSomething = AddNewStringsToArray(pMedialsArray, &oldEndMarkersArray);
+	}
+}
+
 
 #endif	// _DOCVER5
 

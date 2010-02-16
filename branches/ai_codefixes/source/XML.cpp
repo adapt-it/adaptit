@@ -3235,7 +3235,7 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, boo
 			// break due to the fact that we don't try to access m_endMarkers member on the
 			// first CSourcePhrase
 
-			wxString strEndmarkersTransferred = pLastSrcPhrase->GetEndmarkers(); // use below
+			wxString strEndmarkersTransferred = pLastSrcPhrase->GetEndMarkers(); // use below
 			// if we did it at the parent level, then do it on last of the sublist's instances
 			if (!pLastSrcPhrase->m_pSavedWords->IsEmpty() && bSomethingTransferred)
 			{
@@ -3367,7 +3367,7 @@ bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase)
 					// block is almost certainly never going to be entered -- but two
 					// consecutive footnotes in a legacy PngOnly SFM set could cause it to
 					// happen)
-					wxString currentEndMkrs = pLastSrcPhrase->GetEndmarkers();
+					wxString currentEndMkrs = pLastSrcPhrase->GetEndMarkers();
 					if (currentEndMkrs.IsEmpty())
 						currentEndMkrs = marker;
 					else

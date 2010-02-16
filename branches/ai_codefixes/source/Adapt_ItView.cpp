@@ -9363,7 +9363,15 @@ bool CAdapt_ItView::IsFilteredMaterialNonInitial(SPList* pList)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
+#ifdef _DOCVER5
+		if (!bIsFirst && 
+			(	(pSrcPhrase->GetFreeTrans().IsEmpty() && !pSrcPhrase->m_bStartFreeTrans) &&
+				(!pSrcPhrase->m_bHasNote && pSrcPhrase->GetNote().IsEmpty()) &&
+				pSrcPhrase->GetCollectedBackTrans().IsEmpty() &&
+				pSrcPhrase->GetFilteredInfo().IsEmpty()	)	)
+#else
 		if (!bIsFirst && (pSrcPhrase->m_markers.Find(filterMkr) != -1))
+#endif
 			return TRUE;
 		bIsFirst = FALSE;
 	}
@@ -9372,13 +9380,14 @@ bool CAdapt_ItView::IsFilteredMaterialNonInitial(SPList* pList)
 
 // IsSelectionAcrossFreeTranslationEnd() -- BEW added 22Jul05, to be used in
 // OnButtonMerge() in order to abort the merge operation if the user is trying to merge
-// CSourcePhrase instances the selection begins before a sourcephrase which is the end of a
-// free translation section and extends further into a part of the document in which no
-// free translation is defined (the case where what follows is another free translation
-// section is already blocked by the requirement that no merge can be done across filtered
-// material)
+// CSourcePhrase instances where the selection begins before a sourcephrase which is the
+// end of a free translation section and extends further into a part of the document in
+// which no free translation is defined (the case where what follows is another free
+// translation section is already blocked by the requirement that no merge can be done
+// across filtered material); pList is the list of selected CSourcePhrase instances
 bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 {
+	// For doc version 5, no change is needed herein
 	CSourcePhrase* pSrcPhrase;
 	SPList::Node* pos = pList->GetFirst();
 	if (pos == NULL)
@@ -9403,6 +9412,7 @@ bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 	return bExtendsBeyondFreeTranslation;
 }
 
+// BEW updated OnButtonMerge() 16Feb10, for support of _DOCVER5
 void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 {
 	// 25Mar09 added partner pile updating
@@ -9981,7 +9991,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		wxASSERT(pSrcPhrase->m_nSrcWords == 1 || 
 								pSrcPhrase->m_nSrcWords == 0); // no phrases allowed
 
-		pFirstSrcPhrase->Merge(this, pSrcPhrase);
+		pFirstSrcPhrase->Merge(this, pSrcPhrase); // Merge() is updated for _DOCVER5
 
 		// compose a default adaptation string, as best we can
 		if (strOldAdaptation.IsEmpty())
@@ -10025,8 +10035,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// cell pointers are still valid and they aren't. So here we just set the source text
 	// line's first CCell of the selection to have m_bSelected set to FALSE, and Clear()
 	// the m_selection list, and appropriately set the other selection parameters to
-	// indicate there is no longer any selection. Then the StoreSelection() call in
-	// RecalcLayout() will not crash, and we don't need to call RemoveSelection() here
+	// indicate there is no longer any selection.
 	{
 		int nFirstSequNum = pFirstSrcPhrase->m_nSequNumber;
 		CPile* pFirstPile = GetPile(nFirstSequNum);
@@ -10205,7 +10214,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// set up the m_inform attribute, if there are medial markers
 	if (pFirstSrcPhrase->m_bHasInternalMarkers)
 	{
-		wxString s = _T(" Medial markers: "); // English for this string might be a problem?
+		wxString s = _(" Medial markers: "); // BEW changed 16Feb10 to make this localizable
 		if (!pFirstSrcPhrase->m_pMedialMarkers->IsEmpty())
 		{
 			// m_pMedialMarkers is a wxArrayString so let iterate 
@@ -10260,6 +10269,7 @@ void CAdapt_ItView::UpdateSequNumbers(int nFirstSequNum)
 	}
 }
 
+// BEW 16Feb10, updated RestoreOriginalMinPhrases for _DOCVER5
 int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nStartingSequNum)
 {
 	// The following note is copied from Layout.cpp... it is very important
@@ -10308,24 +10318,50 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
     // after the merge was done); or alternatively, there may have been a free translation
     // defined on the original sourcephrase instances in the merger (because the user
     // merged after doing the free translating -- and if the latter is the case then the
-    // first of the original sourcephrases may, or may not contain a non-empty m_markers
-    // member which stores the filtered free translation -- but we can be sure that no
-    // medial sourcephrase instance stores a free translation because the app will not
-    // allow merging across filtered material, the filtered material can only be on the
-    // first sourcephrase of the merge, or there must be no filtered material on any
+    // first of the original sourcephrases will contain a free translation -- and we can be
+    // sure that no medial sourcephrase instance stores a free translation because the app
+    // will not allow merging across filtered material, the filtered material can only be
+    // on the first sourcephrase of the merge, or there must be no filtered material on any
     // sourcephrase in the merge -- this protocol simplifies what we must test for). If the
     // merged source phrase starts a free translation, we will make all the restored
     // original sourcephrases be within that free translation, and if it also ends the free
     // translation, then the last of the restored ones will also end the retranslation
+#ifdef _DOCVER5
+	// in docVersion 4 & earlier, m_markers stored all filtered info, but in 5, it is
+	// split between 4 string members; we'll retain the bool's name, but set or clear it
+	// by updated criteria
+	bool bHasNonEmptyM_Markers = FALSE;
+	// any one of the following tests succeeding is enough to set the flag
+	if (!pBigOne->GetFilteredInfo().IsEmpty())
+	{
+		bHasNonEmptyM_Markers = TRUE;
+	}
+	else if (!pBigOne->GetFreeTrans().IsEmpty())
+	{
+		bHasNonEmptyM_Markers = TRUE; 
+	}
+	else if (!pBigOne->GetNote().IsEmpty())
+	{
+		bHasNonEmptyM_Markers = TRUE;
+	}
+	else if (!pBigOne->GetCollectedBackTrans().IsEmpty())
+	{
+		bHasNonEmptyM_Markers = TRUE;
+	}	
+#else
 	bool bHasNonEmptyM_Markers = !pBigOne->m_markers.IsEmpty() ? TRUE : FALSE;
-	bool bHasFreeTrans = pBigOne->m_bHasFreeTrans ? TRUE : FALSE;
+#endif
+	bool bHasFreeTrans = pBigOne->m_bHasFreeTrans ? TRUE : FALSE; // keep this in doc version 5
+					// because the m_freeTrans member may have an empty string, but the bool
+					// may be TRUE
 	bool bStartsAFreeTranslation = pBigOne->m_bStartFreeTrans ? TRUE : FALSE;
 	bool bEndsAFreeTranslation = pBigOne->m_bEndFreeTrans ? TRUE : FALSE;
 
     // BEW added 27Dec07: to handle preservation of any Note's m_bHasNote == TRUE value
     // across the unmerge; since we now allow a merge if filtered info is on the first word
     // or phrase in the selection
-	bool bHasNote = pBigOne->m_bHasNote ? TRUE : FALSE; // the value is used below
+	bool bHasNote = pBigOne->m_bHasNote ? TRUE : FALSE; // the value is used below (retain in
+					// doc version 5, for same reason as for bHasFreeTrans)
 
 	// set the first in the saved original srcPhrase objects to have sequ number as passed in
 	SPList::Node* pos1;
@@ -10343,6 +10379,40 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 
 	// handle any initial filtered material, including any free translation which is filtered
 	// and any Note's flag
+#ifdef _DOCVER5
+	if (bHasNote)
+	{
+		pSP->m_bHasNote = pBigOne->m_bHasNote; // transfer the Note flag's value when TRUE
+		pSP->SetNote(pBigOne->GetNote()); // transfer text of the note
+	}
+	if (bHasNonEmptyM_Markers)
+	{
+		// this block needs to handle collected back trans, and m_filteredInfo, and m_markers
+		if (!pBigOne->GetFilteredInfo().IsEmpty())
+		{
+			pSP->SetFilteredInfo(pBigOne->GetFilteredInfo());
+		}
+		if (!pBigOne->GetCollectedBackTrans().IsEmpty())
+		{
+			pSP->SetCollectedBackTrans(pBigOne->GetCollectedBackTrans());
+		}
+		// m_markers is not yet private, so it has no getter or setter
+		pSP->m_markers = pBigOne->m_markers; // transfer the material in m_markers to the first one
+	}
+	// handle the flag for commencement of a free translation section
+	if (bStartsAFreeTranslation)
+	{
+		pSP->m_bStartFreeTrans = TRUE;
+		// and since it starts here, transfer it's string as well
+		pSP->SetFreeTrans(pBigOne->GetFreeTrans());
+	}
+	else
+	{
+		// only clear the flag, the free translation itself is stored on an instance
+		// preceding the selected span of CSourcePhrase instances
+		pSP->m_bStartFreeTrans = FALSE;
+	}
+#else
 	if (bHasNote)
 	{
 		pSP->m_bHasNote = pBigOne->m_bHasNote; // transfer the Note flag's value when TRUE
@@ -10360,7 +10430,7 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 	{
 		pSP->m_bStartFreeTrans = FALSE;
 	}
-
+#endif
 	// insert, starting from tail, after the pBigOne, 
 	// thereby preserving original element order
 	pos1 = pSaved->GetLast(); 

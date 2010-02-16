@@ -1880,6 +1880,43 @@ a:		offset = 0;
 }
 #endif	// _FREETR
 
+#ifdef	_DOCVER5
+/////////////////////////////////////////////////////////////////////////////////
+/// \return             the text of the stored content (such as a free translation,
+///                     or a note, or a collected back translation) 
+///                     
+///
+/// \param	mkr			->	reference to the SF marker string (including backslash) 
+///                         defining the content we are after
+///	\param	endMkr		->	reference to the matching endmarker string, including backslash 
+///	                        (could be empty)
+///	\param	pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_freeTrans, m_note,
+///					        or m_collectedBackTrans member contains the data we want
+///	\param	offset		<-	character offset to the first word of the content string, 
+///	                        relative to the start of m_markers
+///	\param	length		<-	character length of the content string, including any final
+///	                        space (in doc version 5 we don't store a final space)
+///
+/// Remarks:
+///    OBSOLETE
+///    Was used for obtaining the stored free translation, or note, or collected back
+///    translation, as the case may be; and to return the offset to the character location
+///    at which this text starts, and its length including the final space before the end
+///    marker, if any
+///    
+///    NOTE: this function is obsolete -- we can get these data types directly now
+///
+/////////////////////////////////////////////////////////////////////////////////
+wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
+						CSourcePhrase* pSrcPhrase, int& offset, int & length)
+{
+	// ****** NOTE ******
+	// In doc version 5 we don't need this function, we can use CSourcePhrase getters to
+	// grab the m_freeTrans, m_note, or m_collectedBackTrans member string 
+	wxString contentStr = _T("");
+	return contentStr;
+}
+#endif	// _DOCVER5
 
 #ifdef _DOCVER5	
 
@@ -2060,6 +2097,28 @@ void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& c
 		content = MakeReverse(rev);
 	}
 }
+
+// Any strings in pPossiblesArray not already in pBaseStrArray, append them to
+// pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
+bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray)
+{
+	bool bAddedSomething = FALSE;
+	int possIndex;
+	int possCount = pPossiblesArray->GetCount();
+	for (possIndex = 0; possIndex < possCount; possIndex++)
+	{
+		wxString aString = pPossiblesArray->Item(possIndex);
+		int nFoundIndex = pBaseStrArray->Index(aString); // uses case sensitive compare
+		if (nFoundIndex == wxNOT_FOUND)
+		{
+			// add this one to pBaseStrArray
+			pBaseStrArray->Add(aString);
+			bAddedSomething = TRUE;
+		}
+	}
+	return bAddedSomething;
+}
+
 
 #endif
 

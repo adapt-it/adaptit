@@ -223,8 +223,8 @@ public:
 	bool	 GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
 									wxArrayString* pFilteredEndMarkers,
 									wxArrayString* pFilteredContent);
-	wxString GetEndmarkers();
-	bool	 GetEndmarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
+	wxString GetEndMarkers();
+	bool	 GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
 
 	void SetFreeTrans(wxString freeTrans);
 	void SetNote(wxString note);
@@ -236,6 +236,7 @@ public:
 									wxArrayString* pFilteredContent);
 	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);
+	void SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray);
 #endif
 
 /* uncomment out when we make m_markers a private member
