@@ -119,7 +119,7 @@ private:
                         // test has ownership of the project folder already, and so writing
                         // of KB and documents should not be prevented)
 
-	bool		IamRunningAnotherInstance(); // whm added 10Feb10
+	bool		IamRunningAnotherInstance(); // whm added 10Feb10  // currently unused
 
 	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
                         // process which owns the write privilege to the project folder is
@@ -127,7 +127,7 @@ private:
                         // ownership of write privileges earlier
 
 	bool		IOwnTheLock(wxString& projectFolderPath); // whm added 13Feb10
-	bool		AnotherLocalProcessOwnsTheLock(); // whm added 13Feb10
+	bool		AnotherLocalProcessOwnsTheLock(wxString& ropFile); // whm added 13Feb10
 	bool		ARemoteMachineMadeTheLock(wxString& ropFile); // whm added 13Feb10
 
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
