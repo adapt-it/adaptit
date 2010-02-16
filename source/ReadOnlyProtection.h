@@ -125,6 +125,11 @@ private:
                         // process which owns the write privilege to the project folder is
                         // different from me on my machine running my process which gained
                         // ownership of write privileges earlier
+
+	bool		IOwnTheLock(wxString& projectFolderPath); // whm added 13Feb10
+	bool		AnotherLocalProcessOwnsTheLock(); // whm added 13Feb10
+	bool		ARemoteMachineMadeTheLock(wxString& ropFile); // whm added 13Feb10
+
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
 	bool		IsZombie(wxString& folderPath, wxString& ropFile); // return
 						// TRUE if it is not open(it must be left over after an abnormal
