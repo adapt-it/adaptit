@@ -47,7 +47,7 @@
 // Define type safe pointer lists
 //#include "wx/listimpl.cpp"
 
-//#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
+#define _DEBUG_ROP // comment out when wxLogDebug calls no longer needed
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -385,8 +385,8 @@ projectFolderPath.c_str());
 			}
 #ifdef _DEBUG_ROP
 			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: theFileSpec:  %s "),theFileSpec.c_str());
-			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: ::wxFindFirstFile returns:  %s "),
-				aFile.IsEmpty() ? _T("Empty String") : aFile.c_str());
+			wxLogDebug(_T("GetReadOnlyProtectionFileInProjectFolder: ::wxFindFirstFile returns:  %s [local PID = %s]"),
+				aFile.IsEmpty() ? _T("Empty String") : aFile.c_str(),GetLocalProcessID().c_str());
 #endif
 			if (!aFile.IsEmpty())
 			{
@@ -424,74 +424,147 @@ projectFolderPath.c_str());
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if the protection file (with form ~AIROP-*.lock, where * is
-///             machinename-username-processID) is not open for writing. This would only
-///             be the case if it is a zombie left over when the app died or power was lost.
-///             Return FALSE if it is open for writing.
+///             machinename-username-processID) is a zombie lock file, left over when an
+///             instance of Adapt It died or power was lost either by the current user or
+///             another user on same or different machine on network. Return FALSE if the
+///             lock file is currently being used by Adapt It (see remakrs below on how
+///             we determine if the lock file is currently being used).
 ///	\param		projectFolderPath  ->  absolute path to the project folder being checked
 ///	\param      ropFile            ->  the read-only protection filename (see above)
-/// \remarks	Builds the path to the protection filename and attempts to remove the file.
-///             This will succeed only if the file is not open for writing. A side-effect
-///             therefore is the successful removal of the file if in fact it was a zombie.
-///             whm modified 5Feb10
+/// \remarks
+/// Called from: ReadOnlyProtection::IsTheProjectFolderOwnedForWriting().
+/// A side effect of IsZombie is that any lock file (ropFile) located in the project 
+/// folder is deleted if this function determines that it is a zombie file. This function
+/// builds the path to the protection filename and attempts to determine if the lock file 
+/// is a zombie by means of the following steps: (1) Determine if the current instance of
+/// Adapt It owns the lock file. If it does the lock file is not a zombie - return FALSE;
+/// (2) Determine if another local process owns the lock. If it does the lock file is not
+/// a zombie - return FALSE; (3) Determine if the lock file was created by a different
+/// computer accessing the project over the network. If so, we have no reliable way to 
+/// know if the lock is a zombie other than asking the user if someone else on the network
+/// currently has ownership (is accessing the same project). We ask if the user wants to
+/// go ahead anyway and take ownership of the project folder. If YES, we remove the lock 
+/// file and return TRUE. If NO, we don't touch the lock file and return FALSE.
+/// In (3) there are potential data loss/corruption consequences if the user responds YES 
+/// and forces the removal of the lock file even though another computer has ownership of 
+/// the same project at the same time.
+/// TODO: Add code to the remainder of the project that would handle the situation where
+/// a the user mistakenly removes a lock file made by a remote instance of Adapt It that 
+/// actually has current ownership of the folder (from elsewhere on the network). The 
+/// implementation would need to switch Adapt It (running as the remote instance) into 
+/// read-only mode upon detecting that its lock file had been removed and replaced by a 
+/// different lock file. The switch to read-only in this situation should only occur for 
+/// the program instance which is non-local (i.e., when the path to its own lock file is 
+/// a UNC type path). Detecting the need for switching is somewhat complicated, and could 
+/// have performance implications since it would require the application to be constantly 
+/// polling the state of the lock file (it thinks is its own) in the project folder.
 ///////////////////////////////////////////////////////////////////////////////////////////
 bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 {
+	// IsZombie() revised by whm 13Feb10. The function originally used the technique of 
+	// simply calling wxRemoveFile() on the lock file. If that call resulted in success
+	// (returned true), it assumed that the removal of the lock file was sufficient proof
+	// that the lock file was a "stale" left-over from a program crash or power 
+	// interruption, and the project was actually "unowned" by some current local or 
+	// remote process). Only if the wxRemoveFile() call failed (returned false), it 
+	// assumed that another local or remote process owned the project folder. That 
+	// technique, however, only works on Windows systems where the OS "protects" files 
+	// open-for-writing by putting them in a "denial of access" state for any process 
+	// that attempts to remove the file. On Linux and Mac systems, however, a file that
+	// is open-for-writing can be successfully deleted by wxRemoveFile(). Therefore, we
+	// cannot use the failure of wxRemoveFile() as a sufficient test for determining if
+	// a lock file is stale (unowned). Instead, we have to take other positive steps to 
+	// determine if the project folder is owned, and only when we are fairly certain that
+	// no other local or remote process has ownership, we then consider the lock file to
+	// be a zombie and call wxRemoveFile() to remove it.
+
 	wxString pathToFile = folderPath + m_pApp->PathSeparator + ropFile;
 	wxASSERT(::wxFileExists(pathToFile));
 
-	// whm modified 5Feb10 with alternative test for checking for a zombie on Linux and
-	// Mac systems in which we check to see if the lock file's PID is a current process or
-	// not. If not, we assume that it is a zombie, and remove it only in that case. We don't
-	// try to remove the file as the test on Linux or the Mac, because on those systems, 
-	// even a file which is open-for-writing can be removed via ::wxRemoveFile().
-	// TODO: Eventually I think we want to set the file attributes of the lock file or find
-	// a suitable alternative so that the test on Linux and Mac are able to distinguish a
-	// true zombie from a file which might be "owned" by a different computer elsewhere
-	// across a LAN.
-	
-	// Is the local process ID different from the PID in the ropFile?
-#ifndef __WXMSW__ // Additional tests on Linux and Mac systems required
-	if (!IamRunningAnotherInstance() && m_strLocalProcessID != ExtractProcessID(ropFile)) //(GetLocalProcessID() != ExtractProcessID(ropFile))
+	if (IOwnTheLock(folderPath))
 	{
+		// I own the lock on the folder so it is not a zombie and
+		// no additional tests are needed, just return FALSE.
 #ifdef _DEBUG_ROP
-		wxLogDebug(_T("In IsZombie - Not running another instance and local PID differs from ropFile PID")); 
-#endif
-#endif
-		// On Windows the file can be removed only if it is a (closed) one, that is, a zombie 
-		// left over from a crash or power loss (regardless of whoever was the former owner 
-		// for writing)
-		// On Linux/Mac the file can be removed whether it is open-for-writing or not, so we
-		// test (above) on Linux/Mac whether another instance is being run by the same user.
-		// If not, and the process (PID) is not running on the local machine
-		bool bRemoved = ::wxRemoveFile(pathToFile);
-		if (bRemoved)
-		{
-#ifdef _DEBUG_ROP
-		wxLogDebug(_T("In IsZombie bRemoved is TRUE, returning TRUE")); 
-#endif
-			// we were able to remove it, so it's a zombie
-			return TRUE;
-		}
-		else
-		{
-			// we could not remove it, so it is already opened by someone else's process, (even
-			// the original one I initiated myself)
-#ifdef _DEBUG_ROP
-		wxLogDebug(_T("In IsZombie bRemoved is FALSE, returning FALSE")); 
-#endif
-			return FALSE;
-		}
-#ifndef __WXMSW__
-	}
-	else
-	{
-		// Another instance is running and  owns the lock file - it is not a zombie
-#ifdef _DEBUG_ROP
-		wxLogDebug(_T("In IsZombie bItsNotMe is FALSE, returning FALSE")); 
+			wxLogDebug(_T("In IsZombie() at IOwnTheLock(folderPath): We already have ownership so return FALSE."));
 #endif
 		return FALSE;
 	}
+	else if (AnotherLocalProcessOwnsTheLock())
+	{
+		// Another instance of Adapt It owns the lock so it is not a zombie
+		// and no additional tests are needed, just return FALSE.
+#ifdef _DEBUG_ROP
+			wxLogDebug(_T("In IsZombie() at AnotherLocalProcessOwnsTheLock(): We can't take ownership so return FALSE."));
 #endif
+		return FALSE;
+	}
+	else if (ARemoteMachineMadeTheLock(ropFile))
+	{
+		// Another machine on the network created the lock file.
+		// We handle it differently depending on whether we are that remote computer or 
+		// not. If folderPath has a URI, we are viewing the project folder remotely. When
+		// that is the case we don't this remote instance to "take ownership".
+		if (m_pApp->IsURI(folderPath))
+		{
+			// We can't take ownership, so we consider the ropFile is not a zombie
+			// and no additional tests are needed - return FALSE
+#ifdef _DEBUG_ROP
+			wxLogDebug(_T("In IsZombie() at ARemoteMachineMadeTheLock(): The folderPath is a URI path. We can't take ownership so return FALSE."));
+#endif
+			return FALSE;
+		}
+		else
+		{
+			// We allow the user to verify whether we can take ownership.
+			wxString message;
+			message = _("Another computer put a lock on this project folder previously. Does that other computer still have this project open in Adapt It?");
+			int response = wxMessageBox(message, _T(""), wxYES_NO | wxICON_WARNING);
+			if (response == wxNO)
+			{
+				// User says no other computer owns the project folder, so the
+				// lock file is a zombie. We do nothing here but allow control to fall 
+				// through to the ::RemoveFile() block below
+#ifdef _DEBUG_ROP
+			wxLogDebug(_T("In IsZombie() at ARemoteMachineMadeTheLock() after NO response at Query: user considers it a zombie, fall through to wxRemoveFile."));
+#endif
+				;
+			}
+			else
+			{
+				// the user cancelled or answered "Yes" indicating that another computer 
+				// owns the project and the lock file is not a zombie
+#ifdef _DEBUG_ROP
+			wxLogDebug(_T("In IsZombie() at ARemoteMachineMadeTheLock() after YES (or Cancel) response at Query: user considers lock file genuine, return FALSE."));
+#endif
+				return FALSE; // 
+			}
+		}
+	}
+
+	// If we get here the lock file is either not owned by anybody we care about, or else
+	// the user says that no other computer currently owns it, so we consider it 
+	// must be a zombie file, we remove it and return TRUE
+	bool bRemoved = ::wxRemoveFile(pathToFile);
+	if (bRemoved)
+	{
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("In IsZombie after wxRemoveFile(pathToFile): bRemoved is TRUE, returning TRUE")); 
+#endif
+		// we were able to remove it, so it's a zombie
+		return TRUE;
+	}
+	else
+	{
+		// we don't expect this but it could happen on Windows if some other program 
+		// has locked the file (denied access) in which case we have to return FALSE 
+		// and consider it represents a real lock.
+		// TODO: Add error message for user
+#ifdef _DEBUG_ROP
+		wxLogDebug(_T("Warning: In IsZombie  after wxRemoveFile(pathToFile): bRemoved is unexpectedly FALSE, returning FALSE (need Error message?)")); 
+#endif
+		return FALSE;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -551,6 +624,7 @@ bool ReadOnlyProtection::IamRunningAnotherInstance()
 ///             write permission, is different from my (local) username, machinename, and/or
 ///             running process; if FALSE is returned, then my process on my machine is the
 ///             owner of write permission
+/// \param      projectFolderPath   ->  absolute path to the project folder
 /// \remarks	Encapsulates the test for whether or not I and my process & machine is the
 ///             one that originally gained ownership of the project folder for writing
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -565,6 +639,53 @@ bool ReadOnlyProtection::IsItNotMe(wxString& projectFolderPath)
 						m_strLocalUsername, m_strLocalProcessID, m_strOwningMachinename, 
 						m_strOwningUsername, m_strOwningProcessID);
 	return bItsNotMe;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if user owns the lock, FALSE otherwise
+/// \param      projectFolderPath   ->  absolute path to the project folder
+/// \remarks Simply negates the result of the IsItNotMe() function
+///////////////////////////////////////////////////////////////////////////////////////////
+bool ReadOnlyProtection::IOwnTheLock(wxString& projectFolderPath)
+{
+	return !IsItNotMe(projectFolderPath);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if another process on the local machine owns the lock, FALSE otherwise
+/// \remarks This situation can only eventuate if an additional instance of Adapt It is
+/// running on the same machine (might be a different user on a Linux system). The 
+/// additional instance will have a different process id (PID).
+///////////////////////////////////////////////////////////////////////////////////////////
+bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock()
+{
+	// query the wxSingleInstanceChecker object m_pChecker->IsAnotherRunning()
+	if (IamRunningAnotherInstance())
+		return TRUE;
+	return FALSE;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if machinename of the lock differs from the local machinename, FALSE 
+/// if the machinenames are identical.
+/// \param      ropFile             ->  filename for the read-only protection file
+///                                     it's title includes the name of the machine, user, 
+///                                     and the running process's integer ID.
+/// \remarks This situation requires a response from the user before proceeding. In the 
+/// caller the user should be queried, "Another computer put a lock on this project folder 
+/// previously. Does that other computer still have this project open in Adapt It?" If the 
+/// user responds "No" the caller should consider the lock file to be a zombie, delete it 
+/// and return FALSE. If the user responds "Yes" the lock file should still still owned 
+/// by the other computer.
+///////////////////////////////////////////////////////////////////////////////////////////
+bool ReadOnlyProtection::ARemoteMachineMadeTheLock(wxString& ropFile)
+{
+	// Test if machinenames differ. If so it was a remote machine that made the lock
+	if (GetLocalMachinename() != ExtractMachinename(ropFile))
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
