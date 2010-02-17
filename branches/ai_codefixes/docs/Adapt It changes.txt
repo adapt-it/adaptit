@@ -1,7 +1,96 @@
-Version 5.2.0 update ?? mid February2010:
+Version 5.2.0 update 19February2010:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
 ----------------------------------------------
+* Added a hidden password protected Administrator menu. The 
+menu can be made visible by Edit / Preferences / View page, and
+click the checkbox labelled "Show Administrator Menu (Password
+protected)". The password admin will always work. You can set
+some other password. Your password is stored in the basic 
+configuration file. The Administrator menu supports extra 
+capabilities of interest to the administrator of a number of 
+machines running Adapt It on a LAN, setting up a work folder in 
+a custom location, or customizing the Adapt It interface. Not 
+all features intended for this menu will be available initially. 
+Priority for initial features is for features which allow the 
+administrator to access any of several work folders on any of 
+several machines, and to move data to or from the accessed 
+custom work folders (e.g. for archiving in a version control 
+repository, etc.)
+* Added a Custom Work Folder Location command to the 
+Administrator menu. Permits the administrator to set (1) a temporary 
+custom work folder location on the local machine, a peripheral device, 
+or a remote machine - including a remote machine running a different 
+operating system; the setting lasts until the end of the session. (2) A 
+permanent custom work folder location on the local machine or on a 
+peripheral device attached to the local machine. (If the administrator
+accesses a project on a remote machine and that project is already
+being accessed by a user on that machine, the administrator's running
+Adapt It will detect the fact and only allow read-only access to the
+remote machine's project. Likewise, if the administrator gains full
+access to a project on a remote machine, and a user on the remote
+machine later tries to open that project for work, he will be granted
+read-only access, and will not be able to write KB or documents to
+disk until the administrator has relinquished ownership of the project
+and the remote user reenters the project.) That is, whoever opens
+the project first, gets ownership; whoever arrives second, only gets
+read-only access. This protocol prevents inadvertent loss of data.
+* Added a Change Password command to the Administrator menu.
+* Added a Return To Default Work Folder command which restores
+the default work folder location (including returning to the use of a
+work folder location set up earlier by the -wf command line switch).
+If this command is used when a custom work folder location has
+previously been made persistent, then Adapt It does an implicit
+call of the Unlock Custom Location as part of the process of returning
+to the use of the default work folder at the default location. (Note:
+there may not be any projects at the default location, so returning
+there may also require moving project folders back there from the
+former custom work folder; that task can be done by Administrator
+menu commands, or with a file browser application outside of
+Adapt It.)
+* Added a Lock Custom Location command to the Administrator 
+menu, enabled provided the path to the custom folder is not a path
+accessible as a network share, so that the work folder at the custom 
+location becomes permanent, until explicitly changed at some future 
+time.
+* Added an Unlock Custom Location command to the Administrator
+menu, enabled provided the path to the custom folder is not a path
+accessible as a network share, so that the persistent work folder 
+custom location becomes temporary - i.e. the path will be forgotten 
+when the current session ends.
+* Added a read-only protection functionality, so that if the local
+user navigates, using the Custom Work Folder Location command,
+to a remote machine's Adapt It project folder which is currently
+in use by the remote user, any kb or document saving attempts
+by the local user will not do anything; the local user will only obtain
+read-only access. Whichever of the two users first accesses a given
+project will get ownership write privileges within the project folder,
+the user who arrives at the project folder second, will only get
+read-only access (actually, he will be able to do things normally on
+the local copy in memory from the remote machine's drive, but any
+attempt to save work to the remote machine will only simulate 
+a successful save, in actual fact, no save is done. This protects the
+remote user from unknowingly losing work because of actions done
+by a snooping administrator from a different machine somewhere on
+the local network. Whoever gets ownership of the project folder
+for writing, Adapt It will save a file with name
+"~AIROP-machinename-username-processID.lock" in that folder, and open
+it for writing. Adapt It will fill in machinename, username, and
+processID with the appropriate names automatically retreived from 
+the machine which is running the Adapt It instance that succeeded 
+in obtaining ownership for writing. When no such file is present in 
+a folder, the next person entering that folder will get ownership of 
+it. The management of this functionality is totally automatic, no 
+user or administrator need do anything in normal operation. Ownerhip 
+is lost when you leave the project folder. It is gained when entering
+the project folder, provided noone else alrealdy has ownership.
+Whenever you open a new document in the project, an attempt
+is made to give you ownership rights - but you won't get them
+unless the previous owner has relinquished the project folder.
+This protection functionality is "always turned on". It can't be 
+turned off. It works whether or not you are trying to access
+a folder on a remote machine, or just doing your normal work
+on your own machine.
 * Added support for knowledge base searches. To do this, the
 dialog for the Edit Knowledge Base command has some extra
 controls at the bottom -
@@ -122,92 +211,6 @@ you do, be sure that the normal way to launch Adapt It does not
 have the -frm switch used, otherwise you'll lock the user (or
  yourself) out of essential adaptation functionalities at every launch.
  You've been warned!
-* Added a hidden password protected Administrator menu. The 
-menu can be made visible by Edit / Preferences / View page, and
-click the checkbox labelled "Show Administrator Menu (Password
-protected)". The password admin will always work. You can set
-some other password. Your password is stored in the basic 
-configuration file. The Administrator menu supports extra capabilities
-of interest to the administrator of a number of machines running
-Adapt It on a LAN, setting up a work folder in a custom location,
-or customizing the Adapt It interface. Not all features intended for
-this menu will be available initially. Priority for initial features is for 
-features which allow the administrator to access any of several
-work folders on any of several machines, and to move data to or
-from the accessed custom work folders (e.g. for archiving in a
-version control repository, etc.)
-* Added a Custom Work Folder Location command to the 
-Administrator menu. Permits the administrator to set (1) a temporary 
-custom work folder location on the local machine, a peripheral device, 
-or a remote machine - including a remote machine running a different 
-operating system; the setting lasts until the end of the session. (2) A 
-permanent custom work folder location on the local machine or on a 
-peripheral device attached to the local machine. (If the administrator
-accesses a project on a remote machine and that project is already
-being accessed by a user on that machine, the administrator's running
-Adapt It will detect the fact and only allow read-only access to the
-remote machine's project. Likewise, if the administrator gains full
-access to a project on a remote machine, and a user on the remote
-machine later tries to open that project for work, he will be granted
-read-only access, and will not be able to write KB or documents to
-disk until the administrator has relinquished ownership of the project
-and the remote user reenters the project.) That is, whoever opens
-the project first, gets ownership; whoever arrives second, only gets
-read-only access. This protocol prevents inadvertent loss of data.
-* Added a Change Password command to the Administrator menu.
-* Added a Return To Default Work Folder command which restores
-the default work folder location (including returning to the use of a
-work folder location set up earlier by the -wf command line switch).
-If this command is used when a custom work folder location has
-previously been made persistent, then Adapt It does an implicit
-call of the Unlock Custom Location as part of the process of returning
-to the use of the default work folder at the default location. (Note:
-there may not be any projects at the default location, so returning
-there may also require moving project folders back there from the
-former custom work folder; that task can be done by Administrator
-menu commands, or with a file browser application outside of
-Adapt It.)
-* Added a Lock Custom Location command to the Administrator 
-menu, enabled provided the path to the custom folder is not a URI, 
-so that the work folder at the custom location becomes permanent, 
-until explicitly changed at some future time.
-* Added an Unlock Custom Location command to the Administrator
-menu, enabled provided the path to the custom folder is not a URI,
-so that the persistent work folder custom location becomes temporary
-- i.e. the path will be forgotten when the current session ends.
-* Added a read-only protection functionality, so that if the local
-user navigates, using the Custom Work Folder Location command,
-to a remote machine's Adapt It project folder which is currently
-in use by the remote user, any kb or document saving attempts
-by the local user will not do anything; the local user will only obtain
-read-only access. Whichever of the two users first accesses a given
-project will get ownership write privileges within the project folder,
-the user who arrives at the project folder second, will only get
-read-only access (actually, he will be able to do things normally on
-the local copy in memory from the remote machine's drive, but any
-attempt to save work to the remote machine will only simulate 
-a successful save, in actual fact, no save it done This protects the
-remote user from unknowingly losing work because of actions done
-by a snooping administrator from a different machine somewhere on
-the local network. Whoever gets ownership of the project folder
-for writing, Adapt It will save a file with name
-"~AIROP-machinename-username.lock" in that folder, and open
-it for writing. Adapt It will fill in machinename and username with
-the appropriate names automatically retreived from the machine
-which is running the Adapt It instance that succeeded in obtaining
-ownership for writing. When no such file is present in a folder,
-the next person entering that folder will get ownership of it. The
-management of this functionality is totally automatic, no user or
-administrator need do anything in normal operation. Ownerhip is 
-lost when you leave the project folder. It is gained when entering
-the project folder, provided noone else alrealdy has ownership.
-Whenever you open a new document in the project, an attempt
-is made to give you ownership rights - but you won't get them
-unless the previous owner has relinquished the project folder.
-This protection functionality is "always turned on". It can't be 
-turned off. It works whether or not you are trying to access
-a folder on a remote machine, or just doing your normal work
-on your own machine.
 
 ----------------------------------------------
 Bug fixes in 5.2.0
@@ -222,7 +225,7 @@ text into the phrase box at the end of the document.
 end was not retained.
 * Pointing My Documents (in XP) or Documents (in Vista & above)
 at a partition such as D:\ caused a bad path to the basic configuration
-file to be produced, leading to a error messages, or worse.
+file to be produced, leading to error messages, or worse.
 * Free translating a large file become progressively more sluggish as 
 free translations were entered. It's now speedy and responsive.
 
