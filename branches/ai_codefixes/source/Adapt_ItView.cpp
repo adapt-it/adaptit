@@ -14103,7 +14103,13 @@ CSourcePhrase* CAdapt_ItView::ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node
 	return pSrcPhrase;
 }
 
-// BEW additions 22Jul05 for support of free translations when placeholder insertions are done
+// BEW additions 22Jul05 for support of free translations when placeholder insertions are 
+// done
+// BEW additions 17Feb10 in support of _DOCVER5 (a previous, or at end of retranslation,
+// CSourcePhrase with a non-empty m_endMarkers must move to the final placeholder in the
+// retranslation, or in the case of manual placeholder insertion, must move to the
+// placeholder if there is a leftward association stipulated when the message box asks the
+// user 
 void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
 										   CPile* pInsertLocPile,const int nCount,
 										   bool bRestoreTargetBox,bool bForRetranslation,
@@ -14159,6 +14165,7 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 	// non-retranslation placeholder insertion following a CSourcePhrase with m_endMarkers
 	// with content and the association is leftwards (if rightwards, the endmarkers stay put)
 	wxString endmarkersToTransfer = _T("");
+	wxString emptyStr = _T("");
 	bool bTransferEndMarkers = FALSE;
 #endif
 	CSourcePhrase* pOldLastSrcPhrase; // the sourcephrase which lies before the first 
@@ -14179,9 +14186,21 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 		if (!pOldLastSrcPhrase->GetEndMarkers().IsEmpty())
 		{
 			endmarkersToTransfer = pOldLastSrcPhrase->GetEndMarkers();
-			bTransferEndMarkers = TRUE;
-			wxString emptyStr = _T("");
-			pOldLastSrcPhrase->SetEndMarkers(emptyStr);
+			if (bForRetranslation)
+			{
+				bTransferEndMarkers = TRUE;
+				pOldLastSrcPhrase->SetEndMarkers(emptyStr);
+			}
+			else
+			{
+                // when it is not for padding of a long retranslation, we will defer the
+                // decision about removal of the marker content and setting of the flag
+                // until further below, when the code deals with inserting a placeholder by
+                // user-choice within the document - for that scenario we have to consider
+                // whether we are associating leftwards or rightwards, and rightwards
+                // associations don't require the moving of the endmarkers
+				;
+			}
 		}
 #endif
 	}
@@ -14298,17 +14317,27 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
     // we must check if there is preceding punctuation on the following source phrase, or a
     // marker; or following punctuation on the preceding source phrase. If one of these
     // conditions (or several conditions) obtain, then we must ask the user whether the
-    // null source phrase associates with the end of the previous one, or with the
-    // following one; and do the appropriate transfer of punctuation and or marker to the
-    // first null src phrase (if association is to the right), or the last null source
-    // phrase (if the association is to the left) - but all of this only provided we are
-    // not doing rendering of a retranslation. If inserting before the first pile, we don't
-    // have to worry about any preceding context.
+    // placeholder associates with the end of the previous one, or with the following one;
+    // and do the appropriate transfer of punctuation and or marker (ie. a non-endMarker)
+    // to the first placeholder (if association is to the right), or the last placeholder
+    // (if the association is to the left) - but all of this only provided we are not doing
+    // rendering of a retranslation. If inserting before the first pile, we don't have to
+    // worry about any preceding context.
+    // From 17Feb10 we have to consider association direction when there is also a non-empty
+	// m_endMarkers member preceding the inserted placeholder; if association is to the
+	// left, then we must move the content on to the inserted placeholder; if to the
+	// right, then we can leave it untouched; a copy of the endMarkers on the preceding
+	// CSourcePhrase has already been obtained above, it is in the local variable
+	// endmarkersToTransfer (as of docVersion = 5)
 	bool bAssociationRequired = FALSE; // it will be set true if the message box for 
-				// associating to the left or right is required at punctuation
+	// associating to the left or right is required at punctuation, or a
+	// preceding non-empty m_endMarkers member (the latter for docVersion = 5 or above)
 	bool bPreviousFollPunct = FALSE;
 	bool bFollowingPrecPunct = FALSE;
 	bool bFollowingMarkers = FALSE;
+#ifdef _DOCVER5
+	bool bEndMarkersPrecede = FALSE; // set true when preceding srcPhrase has endmarkers
+#endif
 	int nPrevSequNum = nStartingSequNum - 1; // remember, this could be -ve
 	if (!bForRetranslation)
 	{
@@ -14319,6 +14348,10 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 			pPrevSrcPhrase = pPrevPile->GetSrcPhrase();
 			if (!pPrevSrcPhrase->m_follPunct.IsEmpty())
 				bPreviousFollPunct = TRUE;
+#ifdef _DOCVER5
+			if (!pPrevSrcPhrase->GetEndMarkers().IsEmpty())
+				bEndMarkersPrecede = TRUE;
+#endif
 		}
 		else
 		{
@@ -14373,6 +14406,7 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 					else
 					{
 						// it's a known marker
+#ifndef _DOCVER5
 						wxString endMkr = pAnalysis->endMarker; // could return an empty string
 						if (pAnalysis->textType == none)
 						{
@@ -14393,13 +14427,22 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 							// it needs to trigger the message box
 							bFollowingMarkers = TRUE;
 						}
+#else // _DOCVER5 is #defined
+						// for docVersion = 5, we'll allow any startmarker, including
+						// those with textType = none, to be fronted to the placeholder
+						bFollowingMarkers = TRUE;
+#endif
 					}
 				}
 			}
 		}
 
 		// if one of the flags is true, ask the user for the direction of association
+#ifdef _DOCVER5
+		if (bFollowingMarkers || bFollowingPrecPunct || bPreviousFollPunct || bEndMarkersPrecede)
+#else
 		if (bFollowingMarkers || bFollowingPrecPunct || bPreviousFollPunct)
+#endif
 		{
 			// association leftwards or rightwards will be required, so set the flag
 			// for this
@@ -14493,6 +14536,15 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 				// to the last in the list
 a:				bAssociatingRightwards = FALSE;
 
+#ifdef _DOCVER5
+				if (bEndMarkersPrecede)
+				{
+					// these have to be moved
+					pPrevSrcPhrase->SetEndMarkers(emptyStr);
+					pSrcPhrase->SetEndMarkers(endmarkersToTransfer);
+					goto a;
+				}
+#endif
 				if (bPreviousFollPunct)
 				{
 					pLastOne->m_follPunct = pPrevSrcPhrase->m_follPunct; // transfer 
@@ -14520,13 +14572,14 @@ a:				bAssociatingRightwards = FALSE;
 				}
 			}
 		}
-	}
-	else
+	} // end of TRUE block for test: if (!bForRetranslation)
+	else 
 	{
         // we are inserting to pad out a retranslation, so if the last of the selected
-        // source phrases has following punctuation, we need to move it to the last null
-        // source phrase inserted (note, the case of moving free-translation-supporting
-        // BOOL values is done above)
+        // source phrases has following punctuation, we need to move it to the last
+        // placeholder inserted (note, the case of moving free-translation-supporting BOOL
+        // values is done above, as also is the moving of the content of a final non-empty
+        // m_endMarkers member to the last placeholder)
 		CSourcePhrase* pPrevSrcPhrase2 = NULL;	// whm initialized to NULL
 		if (nPrevSequNum != -1)
 		{
@@ -18568,6 +18621,7 @@ void CAdapt_ItView::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrases
 	}
 }
 
+// BEW 17Feb10 updated to support _DOCVER5 (no changes were needed)
 void CAdapt_ItView::BuildRetranslationSourcePhraseInstances(SPList* pRetransList,
 						int nStartSequNum,int nNewCount,int nCount,int& nFinish)
 {
@@ -18768,6 +18822,7 @@ void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItAp
 		; // no padding needed
 }
 
+// BEW 17Feb10, updated for support of _DOCVER5 (no changes needed)
 void CAdapt_ItView::ClearSublistKBEntries(SPList* pSublist)
 {
 	SPList::Node* pos = pSublist->GetFirst();
@@ -18785,6 +18840,7 @@ void CAdapt_ItView::ClearSublistKBEntries(SPList* pSublist)
 	}
 }
 
+// BEW 17Feb10, updated for support of _DOCVER5 (no changes needed)
 void CAdapt_ItView::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -18842,6 +18898,8 @@ void CAdapt_ItView::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, in
 // nStartingSequNum is where the checking will start for doing the removals of those
 // determined to be unwanted, and pSublist is the pointer to the sublist which stores the
 // original elements we are in the process of restoring to the main list on the app
+// 
+// BEW 17Feb10, updated for support of _DOCVER5 (no changes needed)
 void CAdapt_ItView::RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,
 									 int nCurCount, int nStartingSequNum,SPList* pSublist)
 {
@@ -19016,6 +19074,10 @@ void CAdapt_ItView::RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& str
 	}
 }
 
+// BEW 17Feb10, updated for support of _DOCVER5 (no changes needed, but the
+// InsertNullSourcePhrase() function called from PadWithNullSourcePhrasesAtEnd() had to
+// have a number of changes to handle placeholder inserts for retranslation and for manual
+// placeholder inserting & the left or right association choice)
 void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 {
 	// refactored 16Apr09
@@ -19478,7 +19540,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
         // this list's source phrases have not had their KB refString entries removed/count
         // decremented, whichever is required, so we must do so now - otherwise, if they
         // are storing some adaptions, when we try to re-store them in the KB, the
-        // StoreAdapation assert at 1st line will trip.
+        // StoreAdaptation assert at 1st line will trip.
 		ClearSublistKBEntries(pSaveList);
 
 		// insert the original (saved) source phrases after the nEndSequNum one
