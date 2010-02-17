@@ -237,7 +237,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(WXWIN)\include&quot;;&quot;$(WXWIN)\contrib\include&quot;;&quot;$(WXWIN)\lib\vc_lib\mswud&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;_DOCVER5"
+				PreprocessorDefinitions="WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;_WINDOWS;NOPCH;_CRT_NONSTDC_NO_DEPRECATE;_UNICODE;UNICODE;_FREETR"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile="$(IntDir)/Adapt_It.pch"
@@ -560,6 +560,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\FontPage.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\FreeTrans.cpp"
 				>
 			</File>
 			<File
@@ -921,6 +925,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\FontPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\FreeTrans.h"
 				>
 			</File>
 			<File

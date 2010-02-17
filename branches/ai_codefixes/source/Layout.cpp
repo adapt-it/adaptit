@@ -1284,13 +1284,8 @@ void CLayout::DestroyStrip(int index)
 	// CStrip now does not store pointers, so the only memory it owns are the blocks for
 	// the two wxArrayInt arrays - so Clear() these and then delete the strip
 	CStrip* pStrip = (CStrip*)m_stripArray.Item(index);
-#ifdef _ALT_LAYOUT_
-	pStrip->m_arrPileIndices.Clear();
-	pStrip->m_arrPileOffsets.Clear();
-#else
 	pStrip->m_arrPiles.Clear();
 	pStrip->m_arrPileOffsets.Clear();
-#endif
  	delete pStrip;
 	// don't try to delete CCell array, because the cell objects are managed 
     // by the persistent pile pointers in the CLayout array m_pPiles, and the 
@@ -2118,30 +2113,6 @@ wxArrayInt* CLayout::GetInvalidStripArray()
 
 void CLayout::CreateStrips(int nStripWidth, int gap)
 {
-#ifdef _ALT_LAYOUT_
-    // layout is built, we should call Shrink()
-	int index = 0;
-	wxASSERT(!m_pileList.IsEmpty());
-	CStrip* pStrip = NULL;
-
-	 //loop to create the strips, add them to CLayout::m_stripArray
-	 int maxIndex = m_pApp->GetMaxIndex(); // determined from m_pSourcePhrases list,
-					// but since there is one CPile for each CSourcePhrase, the max
-					// value is appropriate for m_pileList too
-	int nStripIndex = 0;
-	while (index <= maxIndex)
-	{
-		pStrip = new CStrip(this);
-		pStrip->m_nStrip = nStripIndex; // set it's index
-		m_stripArray.Add(pStrip); // add the new strip to the strip array
-		// set up the strip's pile (and cells) contents; return the index value which is
-		// to be used for the next iteration's call of CreateStrip()
-		index = pStrip->CreateStrip(index, nStripWidth, gap);	// fill out with piles 
-		nStripIndex++;
-	}
-	m_stripArray.Shrink();
-#else
-
 	int nIndexOfFirstPile = 0;
 	wxASSERT(!m_pileList.IsEmpty());
 	PileList::Node* pos = m_pileList.Item(nIndexOfFirstPile);
@@ -2188,7 +2159,6 @@ void CLayout::CreateStrips(int nStripWidth, int gap)
 	}
     // layout is built, we should call Shrink() to reclaim memory space unused
 	m_stripArray.Shrink();
-#endif
 }
 
 // starting from the passed in index value, update the index of succeeding strip instances

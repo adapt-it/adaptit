@@ -5851,17 +5851,6 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 	else
 	{
 		// find which pile of the strip the click was in
-#ifdef _ALT_LAYOUT_
-		pileCountInStrip = pStrip->GetPileIndicesCount();
-		for (pileIndexInStrip = 0; pileIndexInStrip < pileCountInStrip; pileIndexInStrip++)
-		{
-			pPile = pStrip->GetPileByIndexInStrip(pileIndexInStrip);
-			pPile->GetPileRect(rect);
-			rect = NormalizeRect(rect); // use our own from helpers.h
-			if (rect.Contains(point))
-				break;
-		}
-#else
 		wxArrayPtrVoid*	pPilesArray = pStrip->GetPilesArray(); // gets ptr to m_arrPiles
 		pileCountInStrip = pPilesArray->GetCount();
 		for (pileIndexInStrip = 0; pileIndexInStrip < pileCountInStrip; pileIndexInStrip++)
@@ -5872,7 +5861,6 @@ CCell* CAdapt_ItView::GetClickedCell(const wxPoint *pPoint)
 			if (rect.Contains(point))
 				break;
 		}
-#endif
 		if (pileIndexInStrip == pileCountInStrip || pPile == NULL)
 			return NULL; // did not click within a pile - clicked in a gap, or at end, or in margin
 		else
@@ -9323,7 +9311,8 @@ void CAdapt_ItView::OnUpdateCopySource(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
-
+ 
+// BEW 16Feb10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsNullSrcPhraseInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -9340,6 +9329,7 @@ bool CAdapt_ItView::IsNullSrcPhraseInSelection(SPList* pList)
 	return FALSE;
 }
 
+// BEW 16Feb10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsRetranslationInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -9360,6 +9350,8 @@ bool CAdapt_ItView::IsRetranslationInSelection(SPList* pList)
 // order to abort the merge operation if the user is trying to merge CSourcePhrase
 // instances and one of those which is not the initial one contains filtered material in
 // its m_markers member
+// 
+// BEW 16Feb10, updated for support of _DOCVER5
 bool CAdapt_ItView::IsFilteredMaterialNonInitial(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -9393,6 +9385,8 @@ bool CAdapt_ItView::IsFilteredMaterialNonInitial(SPList* pList)
 // which no free translation is defined (the case where what follows is another free
 // translation section is already blocked by the requirement that no merge can be done
 // across filtered material); pList is the list of selected CSourcePhrase instances
+// 
+// BEW 16Feb10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsSelectionAcrossFreeTranslationEnd(SPList* pList)
 {
 	// For doc version 5, no change is needed herein
@@ -10682,6 +10676,8 @@ void CAdapt_ItView::UnmergePhrase()
 // BEW changed 27Dec07: unmerging when there was a note stored on the merger did not retain
 // the m_bHasNote flag value by setting it on the first CSourcePhrase instance in the
 // unmerged sequence, so I fixed it so it would do so
+// 
+// BEW updated OnButtonRestore() 16Feb10 for support of _DOCVER5 (nothing needed to be done)
 void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 {
     // Since the Restore (Unmerge) toolbar button has an accelerator table hot key (CTRL-U
@@ -10787,11 +10783,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
 				{
 					CStrip* pFormerStrip = (CStrip*)
 										GetLayout()->GetStripArray()->Item(nFormerStrip);
-#ifdef _ALT_LAYOUT_
-					CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
-#else
 					CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
-#endif
 					CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 					// also mark the former strip invalid (ensures we include all piles
 					// that might require updating)
@@ -14160,6 +14152,15 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 	SPList* pList = pApp->m_pSourcePhrases;
 	SPList::Node* insertPos	= pList->Item(nStartingSequNum); // the position before
 												// which we will make the insertion
+#ifdef _DOCVER5
+	// BEW added to, 17Feb10, to support _DOCVER5 -- if the final instance's m_endMarkers
+	// member has content, then that content has to be cleared out and transferred to the
+	// last of the inserted placeholders - this is true in retranslations, and also for
+	// non-retranslation placeholder insertion following a CSourcePhrase with m_endMarkers
+	// with content and the association is leftwards (if rightwards, the endmarkers stay put)
+	wxString endmarkersToTransfer = _T("");
+	bool bTransferEndMarkers = FALSE;
+#endif
 	CSourcePhrase* pOldLastSrcPhrase; // the sourcephrase which lies before the first 
         // inserted ellipsis, we have to check this one for a m_bEndFreeTrans == TRUE flag
         // and move that BOOL value to the end of the insertions
@@ -14174,6 +14175,15 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 			pOldLastSrcPhrase->m_bEndFreeTrans = FALSE;
 			bMoveEndOfFreeTrans = TRUE;
 		}
+#ifdef _DOCVER5
+		if (!pOldLastSrcPhrase->GetEndMarkers().IsEmpty())
+		{
+			endmarkersToTransfer = pOldLastSrcPhrase->GetEndMarkers();
+			bTransferEndMarkers = TRUE;
+			wxString emptyStr = _T("");
+			pOldLastSrcPhrase->SetEndMarkers(emptyStr);
+		}
+#endif
 	}
 
 	// get the sequ num for the insertion location 
@@ -14243,7 +14253,16 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
 				wxASSERT(pLastOne);
 				pLastOne->m_bEndFreeTrans = TRUE;
 			}
-		}
+#ifdef _DOCVER5
+			if ((i == nCount - 1) && bTransferEndMarkers)
+			{
+                // move the endMarkers to this last one (old m_endMarkers
+                // location is already cleared above in anticipation of this)
+				wxASSERT(pLastOne);
+				pLastOne->SetEndMarkers(endmarkersToTransfer);
+			}
+#endif
+		} // end of TRUE block for test:  if (bForRetranslation)
 
         // set the footnote TextType if the flag is TRUE; the flag can be set TRUE within
         // the handlers for retranslation, edit of a retranslation, edit of source text,
@@ -15466,6 +15485,7 @@ void CAdapt_ItView::GetContext(const int nStartSequNum,const int nEndSequNum,wxS
 	}
 }
 
+// BEW 16Feb10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsConstantType(SPList* pList)
 {
 	SPList::Node* pos = pList->GetFirst(); 
@@ -18159,6 +18179,8 @@ void CAdapt_ItView::NewRetranslation()
 // maintained on the app; strSource is the accumulated source text, strAdapt is the
 // accumulated target text (both with punctuation). The pList will only contain copies of
 // the pointers to the CSourcePhrase instances on the heap.
+// 
+// BEW 16Feb10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::GetSelectedSourcePhraseInstances(SPList*& pList,
 										 wxString& strSource, wxString& strAdapt)
 {
@@ -18336,10 +18358,11 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 }
 
 // pList is the sublist of (formerly) selected source phrase instances, pSrcPhrases is the
-// document's list (the whole lot), endIndex upperIndex, maxIndex are references to member
-// indices on the view, nCount is the count of elements in pList (it will be reduced as
-// each null source phrase is eliminated), bActiveLocAfterSelection is a flag in the
-// caller, nSaveActiveSequNum is the caller's saved value for the active sequence number
+// document's list (the whole lot), nCount is the count of elements in pList (it will be
+// reduced as each null source phrase is eliminated), bActiveLocAfterSelection is a flag in
+// the caller, nSaveActiveSequNum is the caller's saved value for the active sequence
+// number
+// BEW updated 17Feb10 for support of _DOCVER5 (no changes were needed)
 void CAdapt_ItView::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,
 							int& nCount,int& nEndSequNum,bool bActiveLocAfterSelection,
 							int& nSaveActiveSequNum)
@@ -18404,6 +18427,8 @@ void CAdapt_ItView::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhr
 // parameter - for a retranslation we don't update it, because the caller will make no more
 // use of it; but for an edit of the source text, the caller needs it updated because it
 // will be used later when the transfer of standard format markers, if any, is done.
+// 
+// BEW updated 17Feb10 for support of _DOCVER5 (no changes were needed)
 void CAdapt_ItView::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrases, 
 							int& nCount, int& nEndSequNum, bool bActiveLocAfterSelection, 
 							int& nSaveActiveSequNum, bool bWantRetranslationFlagSet, 
@@ -18453,8 +18478,8 @@ void CAdapt_ItView::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrases
             // RestoreOriginalMinPhrases above, so that the caluculated pileWidth values
             // will be correct. So we do it now, where it makes sense - though it could
             // instead be done just once before the RecalcLayout call.
-            // RestoreOriginalMinPhrases does its own KB clearance of the translations for
-            // the phrases being unmerged.
+			// RestoreOriginalMinPhrases restores to the KB the adaptations, if any,
+			// removed from there at the merger.
 			pApp->m_targetPhrase.Empty();
 
 			// update nCount etc.
@@ -18661,11 +18686,13 @@ void CAdapt_ItView::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 // words in the target text than the source piles can accomodate). nNewCount is the number
 // of target text words - it could be less, more, or the same as the number piles selected
 // (we test internally and act accordingly), and nCount is the number of CSourcePhrase
-// instances after all nulls removed, and mergers unmerged. We have to be careful if
-// nEndSequNumber is equal to GetMaxIndex() value, because insertion of null source phrases
-// has to take place before a sourcephrase instance which would not exist, so we must
-// detect this and temporarily add an extra CSourcePhrase instance at the end of the main
-// list, do the insertions preceding it, then remove it.
+// instances after all nulls removed, and mergers unmerged - both of which were done in the
+// caller beforehand. We have to be careful if nEndSequNumber is equal to GetMaxIndex()
+// value, because insertion of null source phrases has to take place before a sourcephrase
+// instance which would not exist, so we must detect this and temporarily add an extra
+// CSourcePhrase instance at the end of the main list, do the insertions preceding it, then
+// remove it.
+// BEW updated 17Feb10 for support of _DOCVER5 (no changes were needed)
 void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int nEndSequNum,int nNewCount,int nCount)
 {
@@ -19168,11 +19195,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 			if (nCurStripIndex != nFormerStrip)
 			{
 				CStrip* pFormerStrip = (CStrip*)GetLayout()->GetStripArray()->Item(nFormerStrip);
-#ifdef _ALT_LAYOUT_
-				CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
-#else
 				CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
-#endif
 				CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 				pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase,TRUE); // TRUE is 
 													// bNoActiveLocationCalculation
@@ -19888,11 +19911,7 @@ h:				wxMessageBox(_(
 					if (nCurStripIndex != nFormerStrip)
 					{
 						CStrip* pFormerStrip = (CStrip*)GetLayout()->GetStripArray()->Item(nFormerStrip);
-#ifdef _ALT_LAYOUT_
-						CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
-#else
 						CPile* pItsFirstPile = (CPile*)pFormerStrip->GetPilesArray()->Item(0);
-#endif
 						CSourcePhrase* pItsFirstSrcPhrase = pItsFirstPile->GetSrcPhrase();
 						// mark this strip invalid too (a little extra insurance)
 						pDoc->ResetPartnerPileWidth(pItsFirstSrcPhrase, TRUE); // TRUE
@@ -20536,12 +20555,8 @@ h:				wxMessageBox(_(
 					{
 						CStrip* pFormerStrip = (CStrip*)
 							GetLayout()->GetStripArray()->Item(nFormerStrip);
-#ifdef _ALT_LAYOUT_
-						CPile* pItsFirstPile = pFormerStrip->GetPileByIndexInStrip(0);
-#else
 						CPile* pItsFirstPile = (CPile*)
 							pFormerStrip->GetPilesArray()->Item(0);
-#endif
 						CSourcePhrase* pItsFirstSrcPhrase = 
 												pItsFirstPile->GetSrcPhrase();
 						// mark this strip as invalid too (some extra insurance)
@@ -21651,11 +21666,7 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 	// set the above local variables from pAnchorCell
 	pCurPile = pAnchorCell->GetPile();
 	pCurStrip = pCurPile->GetStrip();
-#ifdef _ALT_LAYOUT_
-	nCurPileCount = pCurStrip->GetPileIndicesCount();
-#else
 	nCurPileCount = pCurStrip->GetPileCount();
-#endif
 	nCurPile = pCurPile->GetPileIndex();
 	nCurStrip = pCurStrip->GetStripIndex();
 
@@ -38650,7 +38661,7 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
     // crash the app, so we won't allow lengthening if there is no array defined yet
 	if (gpCurFreeTransSectionPileArray->IsEmpty()) // && !IsFreeTranslationSrcPhrase(m_pActivePile))
 	{
-		wxLogDebug(_T("OnUpdateLengthenButton: exit at test for empty pile array"));
+		//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for empty pile array"));
 		event.Enable(FALSE);
 		return;
 	}
@@ -38660,7 +38671,7 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 	pPile = GetNextPile(pPile); // get the pile immediately after the current end
 	if (pPile == NULL)
 	{
-		wxLogDebug(_T("OnUpdateLengthenButton: exit at test for next pile empty"));
+		//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for next pile empty"));
 		// if at the end of bundle or doc, disable the button
 		event.Enable(FALSE);
 		return;
@@ -38677,14 +38688,14 @@ void CAdapt_ItView::OnUpdateLengthenButton(wxUpdateUIEvent& event)
             // markers or filtered stuff must end the section (for example, we can't
             // allow the possibility of unfiltering producing new content within a free
             // translation section)
-			wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
+			//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
 			event.Enable(FALSE);
 			return;
 		}
 		// also, we can't lengthen if there is a defined section following
 		if (pPile->GetSrcPhrase()->m_bStartFreeTrans)
 		{
-			wxLogDebug(_T("OnUpdateLengthenButton: exit at test for ft section starting at next pile"));
+			//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for ft section starting at next pile"));
 			event.Enable(FALSE);
 		}
 		else
@@ -40309,11 +40320,7 @@ CPile* CAdapt_ItView::GetStartingPileForScan(int activeSequNum)
 		nCurStripIndex = stripCount - (numVisibleStrips + 1);
 	// now get the strip pointer and find it's first pile to return to the caller
 	CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
-#ifdef _ALT_LAYOUT_
-	pStartPile = pStrip->GetPileByIndexInStrip(0);
-#else
 	pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
-#endif
 	wxASSERT(pStartPile);
 	return pStartPile;
 }
@@ -40601,11 +40608,7 @@ ed:	if (pPile == NULL)
 	curStripIndex = pStrip->GetStripIndex();
 	curPileIndex = pPile->GetPileIndex();
 
-#ifdef _ALT_LAYOUT_
-	curPileCount = pStrip->GetPileIndicesCount();
-#else
 	curPileCount = pStrip->GetPileCount();
-#endif
 	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
 	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
 									   // and reduce as required below
@@ -40720,11 +40723,7 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 					// reinitialize the strip and pile parameters for this new strip
 					pStrip = pPile->GetStrip();
 					curStripIndex = pStrip->GetStripIndex();
-#ifdef _ALT_LAYOUT_
-					curPileCount = pStrip->GetPileIndicesCount();
-#else
 					curPileCount = pStrip->GetPileCount();
-#endif
 					curPileIndex = pPile->GetPileIndex();
 					// get a new element
 					pElement = new FreeTrElement;
@@ -40866,11 +40865,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 					// reinitialize the strip and pile parameters for this new strip
 					pStrip = pPile->GetStrip();
 					curStripIndex = pStrip->GetStripIndex();
-#ifdef _ALT_LAYOUT_
-					curPileCount = pStrip->GetPileIndicesCount();
-#else
 					curPileCount = pStrip->GetPileCount();
-#endif
 					curPileIndex = pPile->GetPileIndex();
 					// get a new element
 					pElement = new FreeTrElement;

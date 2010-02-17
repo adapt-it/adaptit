@@ -482,12 +482,7 @@ ed:	if (pPile == NULL)
 	pStrip = pPile->GetStrip();
 	curStripIndex = pStrip->GetStripIndex();
 	curPileIndex = pPile->GetPileIndex();
-
-#ifdef _ALT_LAYOUT_
-	curPileCount = pStrip->GetPileIndicesCount();
-#else
 	curPileCount = pStrip->GetPileCount();
-#endif
 	pElement = new FreeTrElement; // this struct is defined in CAdapt_ItView.h
 	rect = pStrip->GetFreeTransRect(); // start with the full rectangle, 
 									   // and reduce as required below
@@ -602,11 +597,7 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 					// reinitialize the strip and pile parameters for this new strip
 					pStrip = pPile->GetStrip();
 					curStripIndex = pStrip->GetStripIndex();
-#ifdef _ALT_LAYOUT_
-					curPileCount = pStrip->GetPileIndicesCount();
-#else
 					curPileCount = pStrip->GetPileCount();
-#endif
 					curPileIndex = pPile->GetPileIndex();
 					// get a new element
 					pElement = new FreeTrElement;
@@ -748,11 +739,7 @@ d:		if (pSrcPhrase->m_bEndFreeTrans)
 					// reinitialize the strip and pile parameters for this new strip
 					pStrip = pPile->GetStrip();
 					curStripIndex = pStrip->GetStripIndex();
-#ifdef _ALT_LAYOUT_
-					curPileCount = pStrip->GetPileIndicesCount();
-#else
 					curPileCount = pStrip->GetPileCount();
-#endif
 					curPileIndex = pPile->GetPileIndex();
 					// get a new element
 					pElement = new FreeTrElement;
@@ -1343,6 +1330,11 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	gbSuppressSetup = FALSE; // setdefault value
 	CLayout* pLayout = GetLayout();
 	CAdapt_ItView* pView = pApp->GetView();
+
+	// BEW added 17Feb10, because for some reason the canvass class's pView and pFrame
+	// pointers are not set
+	//pLayout->m_pCanvas->pFrame = pFrame;
+	//pLayout->m_pCanvas->pView = pView;
 
     // determine if the document is unstructured or not -- we'll need this set or cleared
     // as appropriate because in free translation mode the user may elect to end sections
@@ -4114,11 +4106,7 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 		nCurStripIndex = stripCount - (numVisibleStrips + 1);
 	// now get the strip pointer and find it's first pile to return to the caller
 	CStrip* pStrip = (CStrip*)pLayout->GetStripArray()->Item(nCurStripIndex);
-#ifdef _ALT_LAYOUT_
-	pStartPile = pStrip->GetPileByIndexInStrip(0);
-#else
 	pStartPile = (CPile*)pStrip->GetPilesArray()->Item(0); // ptr of 1st pile in strip
-#endif
 	wxASSERT(pStartPile);
 	return pStartPile;
 }

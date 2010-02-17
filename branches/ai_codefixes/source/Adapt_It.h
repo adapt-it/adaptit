@@ -68,10 +68,6 @@ class AIPrintout;
 #define VERSION_DATE_MONTH 02
 #define VERSION_DATE_YEAR 2010
 
-//#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
-                       // strips, indices used instead; if not defined, CPile* copies are
-					   // in strips -- our final design requires the CPile pointers to be
-					   // stored in the strips
 #define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
                       // never kept & tweaked; if #defined, piles & strips are retained &
                       // tweaked where necessary to update after user editing -- our final
