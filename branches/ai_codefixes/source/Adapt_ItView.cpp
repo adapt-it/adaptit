@@ -19813,6 +19813,9 @@ void CAdapt_ItView::ReplaceMatchedSubstring(wxString strSearch, wxString& strRep
 		strAdapt = left + strReplace + right;
 }
 
+// BEW 18Feb10, modified for support of _DOCVER5 (some code added to handle transferring
+// endmarker content from the last placeholder back to end of the CSourcePhrase list of
+// non-placeholders, prior to showing the dialog)
 void CAdapt_ItView::OnButtonEditRetranslation(wxCommandEvent& event)
 {
     // Since the Edit Retranslation toolbar button has an accelerator table hot key (CTRL-E
@@ -20056,6 +20059,15 @@ h:				wxMessageBox(_(
     // pSrcPhrase remaining in the list after all the null ones have been deleted. We do
     // this by setting a flag in the block below, and then using the set flag value in the
     // block which follows it
+#ifdef _DOCVER5
+	// BEW 18Feb10, for docVersion = 5, the m_endMarkers member of CSourcePhrase will have
+	// had an final endmarkers moved to the last placeholder, so we have to check for a
+	// non-empty member on the last placeholder, and if non-empty, save it's contents to a
+	// wxString, set a flag to signal this condition obtained, and in the block which
+	// follows put the endmarkers back on the last CSourcePhrase which is not a placeholder
+	wxString endmarkersStr = _T("");
+	bool bEndHasEndMarkers = FALSE;
+#endif
 	bool bEndIsAlsoFreeTransEnd = FALSE;
 	while (pos != NULL)
 	{
@@ -20068,7 +20080,15 @@ h:				wxMessageBox(_(
             // on every one, or if not so, then only the last will have a TRUE value
 			if (pSrcPhrase->m_bEndFreeTrans)
 				bEndIsAlsoFreeTransEnd = TRUE;
-
+#ifdef _DOCVER5
+			// likewise, test for a non-empty m_endMarkers member at the end - there can
+			// only be one such member which has content - the last one
+			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				endmarkersStr = pSrcPhrase->GetEndMarkers();
+				bEndHasEndMarkers = TRUE;
+			}
+#endif
             // null source phrases in a retranslation are never stored in the KB, so we
             // need only remove their pointers from the lists and delete them from the heap
 			SPList::Node* pos1 = pSrcPhrases->Find(pSrcPhrase);
@@ -20104,6 +20124,15 @@ h:				wxMessageBox(_(
 		CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
 		pSPend->m_bEndFreeTrans = TRUE;
 	}
+#ifdef _DOCVER5
+	// handle transferring of m_endMarkers content
+	if (bEndHasEndMarkers)
+	{
+		SPList::Node* tpos = pList->GetLast();
+		CSourcePhrase* pSPend = (CSourcePhrase*)tpos->GetData();
+		pSPend->SetEndMarkers(endmarkersStr);
+	}
+#endif
 
     // update the sequence number in the whole source phrase list on the app & update
     // indices for bounds
@@ -20494,9 +20523,12 @@ h:				wxMessageBox(_(
 	gbInsertingWithinFootnote = FALSE; // restore default value
 }
 
-// Invalid function when glossing is ON, so it just returns.
+// BEW 18Feb10, modified for support of _DOCVER5 (some code added to handle transferring
+// endmarker content from the last placeholder back to end of the CSourcePhrase list of
+// non-placeholders)
 void CAdapt_ItView::OnRemoveRetranslation(wxCommandEvent& event)
 {
+	// Invalid function when glossing is ON, so it just returns.
 	if (gbIsGlossing)
 	{
 		// IDS_NOT_WHEN_GLOSSING
@@ -20680,6 +20712,15 @@ h:				wxMessageBox(_(
     // pSrcPhrase remaining in the list after all the null ones have been deleted. We do
     // this by setting a flag in the block below, and then using the set flag value in the
     // block which follows it
+#ifdef _DOCVER5
+	// BEW 18Feb10, for docVersion = 5, the m_endMarkers member of CSourcePhrase will have
+	// had an final endmarkers moved to the last placeholder, so we have to check for a
+	// non-empty member on the last placeholder, and if non-empty, save it's contents to a
+	// wxString, set a flag to signal this condition obtained, and in the block which
+	// follows put the endmarkers back on the last CSourcePhrase which is not a placeholder
+	wxString endmarkersStr = _T("");
+	bool bEndHasEndMarkers = FALSE;
+#endif
 	bool bEndIsAlsoFreeTransEnd = FALSE;
 	while (pos != NULL)
 	{
@@ -20692,7 +20733,15 @@ h:				wxMessageBox(_(
             // on every one, or if not so, then only the last will have a TRUE value
 			if (pSrcPhrase->m_bEndFreeTrans)
 				bEndIsAlsoFreeTransEnd = TRUE;
-
+#ifdef _DOCVER5
+			// likewise, test for a non-empty m_endMarkers member at the end - there can
+			// only be one such member which has content - the last one
+			if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+			{
+				endmarkersStr = pSrcPhrase->GetEndMarkers();
+				bEndHasEndMarkers = TRUE;
+			}
+#endif
             // null source phrases in a retranslation are never stored in the KB, so we
             // need only remove their pointers from the lists and delete them from the heap
 			nDeletions++; // count it
@@ -20746,7 +20795,15 @@ h:				wxMessageBox(_(
 			CSourcePhrase* pSPend = (CSourcePhrase*)spos->GetData();
 			pSPend->m_bEndFreeTrans = TRUE;
 		}
-
+#ifdef _DOCVER5
+		// handle transferring of m_endMarkers content
+		if (bEndHasEndMarkers)
+		{
+			SPList::Node* pos = pList->GetLast();
+			CSourcePhrase* pSPend = (CSourcePhrase*)pos->GetData();
+			pSPend->SetEndMarkers(endmarkersStr);
+		}
+#endif
 		// update the sequence numbers to be consecutive across the deletion location
 		UpdateSequNumbers(nStartingSequNum);
 	}
