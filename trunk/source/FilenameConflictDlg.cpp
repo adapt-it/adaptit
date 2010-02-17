@@ -80,6 +80,12 @@ FilenameConflictDlg::FilenameConflictDlg(wxWindow* parent,
 	FilenameConflictFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 	
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
+	bool bOK;
+	bOK = pApp->ReverseOkCancelButtonsForMac(this);
+	
+	
 	m_pAdminMoveOrCopy = (AdminMoveOrCopy*)parent; // establish link to parent dialog
 	wxASSERT(m_pAdminMoveOrCopy != NULL);
 	// point to the parent's source and destination folder paths (no path separator at end
