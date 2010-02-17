@@ -52,8 +52,12 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
 
-/// This global is defined in Adapt_It.cpp.
+#ifdef	_FREETR
+/// The global gpCurFreeTransSectionPileArray was defined in Adapt_It.cpp, but was changed to a member variable
+/// of the class CFreeTrans. GDLC 2010-02-16
+#else	// _FREETR
 extern wxArrayPtrVoid* gpCurFreeTransSectionPileArray; // new creates on heap in InitInstance, and disposes in ExitInstance
+#endif	// _FREETR
 
 IMPLEMENT_DYNAMIC_CLASS(CComposeBarEditBox, wxTextCtrl)
 
@@ -121,7 +125,7 @@ void CComposeBarEditBox::OnEditBoxChanged(wxCommandEvent& WXUNUSED(event))
 			CPile* saveThisPilePtr; // set in StoreFreeTranslation but unused here
 			// StoreFreeTranslation uses the current (edited) content of the edit box
 #ifdef	_FREETR
-			pFreeTrans->StoreFreeTranslation(gpCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
+			pFreeTrans->StoreFreeTranslation(pFreeTrans->m_pCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
 				retain_editbox_contents, this->GetValue());
 #else	// _FREETR
 			pView->StoreFreeTranslation(gpCurFreeTransSectionPileArray,pOldActivePile,saveThisPilePtr,
@@ -190,7 +194,11 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 			int key = event.GetKeyCode();
 			if (wxChar(key) == _T('S'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnShortenButton(bevent);
+#else	// _FREETR
 				pView->OnShortenButton(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('L'))
 			{
@@ -234,11 +242,19 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 			}
 			else if (wxChar(key) == _T('U'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnRadioDefineByPunctuation(bevent);
+#else	// _FREETR
 				pView->OnRadioDefineByPunctuation(bevent);
+#endif	// _FREETR
 			}
 			else if (wxChar(key) == _T('E'))
 			{
+#ifdef	_FREETR
+				pFreeTrans->OnRadioDefineByVerse(bevent);
+#else	// _FREETR
 				pView->OnRadioDefineByVerse(bevent);
+#endif	// _FREETR
 			}
 		}
 	}

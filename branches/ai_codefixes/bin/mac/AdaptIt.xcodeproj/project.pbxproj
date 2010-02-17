@@ -764,6 +764,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					_13STRIPS_DOC,
+					_FREETR,
 					"wxUSE_UNICODE=1",
 					NO_GCC_PRAGMA,
 					__WXMAC__,
@@ -789,7 +791,7 @@
 					"-lz",
 					"-lwx_mac_static",
 				);
-				PREBINDING = YES;
+				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
 				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
 				USE_HEADERMAP = "";

@@ -1702,6 +1702,7 @@ public:
 #ifdef	_FREETR
 	// GDLC 2010-02-12
 	// Pointer to the free translation display manager
+	// Set by the return value from CFreeTrans creator
 	CFreeTrans*	m_pFreeTrans;
 #endif	// _FREETR
 

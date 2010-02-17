@@ -66,24 +66,58 @@ public:
 	
 	// Public free translation drawing functions
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
-	void	DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
+	wxString	ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr);
+	bool		ContainsFreeTranslation(CPile* pPile);
+	void		DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
 										 enum DrawFTCaller drawFTCaller);
+	void		FixKBEntryFlag(CSourcePhrase* pSrcPhr);
+	bool		HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, wxString& punctSet);
+	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile);
+	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
+	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
+	void		OnAdvanceButton(wxCommandEvent& event);
+	void		OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
+	void		OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
+	void		OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event));
+	void		OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
+	void		OnLengthenButton(wxCommandEvent& WXUNUSED(event));
+	void		OnNextButton(wxCommandEvent& WXUNUSED(event));
+	void		OnPrevButton(wxCommandEvent& WXUNUSED(event));
+	void		OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event));
+	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event));
+	void		OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event));
+	void		OnShortenButton(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
+	void		OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
+	void		OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event);
+	void		OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event);
+	void		OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event);
+	void		OnUpdateLengthenButton(wxUpdateUIEvent& event);
+	void		OnUpdateNextButton(wxUpdateUIEvent& event);
+	void		OnUpdatePrevButton(wxUpdateUIEvent& event);
+	void		OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event);
+	void		OnUpdateShortenButton(wxUpdateUIEvent& event);
+	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
+					enum EditBoxContents editBoxContents, const wxString& mkrStr);
+	void		StoreFreeTranslationOnLeaving();
+	void		ToggleFreeTranslationMode();
 
 	// Private free translation drawing functions
-	void	StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
-					enum EditBoxContents editBoxContents, const wxString& mkrStr);
-	void	DestroyElements(wxArrayPtrVoid* pArr);
-	CPile*	GetStartingPileForScan(int activeSequNum);
-	void	OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
-	void	SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
-				int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
-	void	SetupCurrentFreeTransSection(int activeSequNum);
-	void	StoreFreeTranslationOnLeaving();
-	void	OnAdvanceButton(wxCommandEvent& event);
-	void	OnNextButton(wxCommandEvent& WXUNUSED(event));
-	void	OnPrevButton(wxCommandEvent& WXUNUSED(event));
-	void	OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event));
-	void	OnLengthenButton(wxCommandEvent& WXUNUSED(event));
+private:
+	void		DestroyElements(wxArrayPtrVoid* pArr);
+	CPile*		GetStartingPileForScan(int activeSequNum);
+	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
+					int totalHExtent, wxArrayPtrVoid* pElementsArray, wxArrayString* pSubstrings, int totalRects);
+	wxString	SegmentToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent,float fScale,int& offset,
+							int nIteration,int nIterBound,bool& bTryAgain,bool bUseScale);
+	void		SetupCurrentFreeTransSection(int activeSequNum);
+	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
+public:
+	/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
+	/// and disposed of in OnExit().
+	/// Made public so OnLButtonDown() in CAdapt_ItCanvas can access it.
+	/// TODO: consider moving the free translation related functionality out of canvas' OnLButtonDown.
+	wxArrayPtrVoid*	m_pCurFreeTransSectionPileArray;
 
 private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
@@ -97,17 +131,8 @@ private:
 	/// single rectangle under a single strip.
 	wxArrayPtrVoid*	m_pFreeTransArray; 
 
-	/// Pointer to first pile in a free translation section. gpLastPile points to the last pile
-	/// in the same free translation section.
+	/// Pointer to first pile in a free translation section.
 	CPile* m_pFirstPile;
-
-	/// Pointer to last pile in the free translation section. gpFirstPile points to the first
-	/// pile in the same free translation section.
-	CPile* m_pLastPile;
-
-	/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
-	/// and disposed of in OnExit().
-	wxArrayPtrVoid*	m_pCurFreeTransSectionPileArray;
 
 	/// GDLC 2010-02-13 Moved from CAdapt_It (soon to become obsolete)
 	/// The offset to the current free translation string in pSrcPhrase->m_markers.

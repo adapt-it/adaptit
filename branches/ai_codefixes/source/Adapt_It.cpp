@@ -336,9 +336,10 @@ int gnLengthInMarkersStr;
 #endif	// _FREETR
 
 #ifdef	_FREETR
-//GDLC 2010-02-12
-// The array gpCurFreeTransSectionPileArray was moved to CFreeTrans
-// The array gpFreeTransArray was moved to CFreeTrans
+//GDLC 2010-02-12,16
+// The arrays gpCurFreeTransSectionPileArray and gpFreeTransArray were changed to
+// member variables of CFreeTrans; as was the pointer gpFirstPile; the pointer
+// gpLastPile was deleted because it is no longer used anywhere.
 #else	_FREETR
 /// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
 /// and disposed of in OnExit().
@@ -350,15 +351,10 @@ wxArrayPtrVoid*	gpCurFreeTransSectionPileArray;
 /// single rectangle under a single strip.
 wxArrayPtrVoid*	gpFreeTransArray; // new creates on heap in InitInstance, 
 			// and disposes in ExitInstance
-#endif	_FREETR
 
-/// Pointer to first pile in a free translation section. gpLastPile points to the last pile
-/// in the same free translation section.
+/// Pointer to first pile in a free translation section.
 CPile* gpFirstPile;
-
-/// Pointer to last pile in the free translation section. gpFirstPile points to the first
-/// pile in the same free translation section.
-CPile* gpLastPile;
+#endif	_FREETR
 
 /// The contents of App's m_punctuation[1] string with spaces removed.
 wxString gSpacelessTgtPunctuation;
@@ -11363,6 +11359,8 @@ CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 ////////////////////////////////////////////////////////////////////////////////////////
 CFreeTrans*	CAdapt_ItApp::GetFreeTrans()
 {
+	// The member function m_pFreeTrans was set when the app's OnInit() created the
+	// CFreeTrans object.
 	wxASSERT(m_pFreeTrans);
 	return m_pFreeTrans;
 }

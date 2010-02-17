@@ -61,7 +61,9 @@
 #include "Layout.h"
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
-
+#ifdef	_FREETR
+#include "FreeTrans.h"
+#endif	// _FREETR
 
 /// This global is defined in Adapt_ItView.cpp (for vertical edit functionality)
 extern bool gbVerticalEditInProgress;
@@ -115,8 +117,12 @@ extern bool gbSuppressSetup;
 /// This global is defined in PhraseBox.cpp.
 extern wxString translation;
 
-/// This global is defined in Adapt_It.cpp.
+#ifdef	_FREETR
+/// The global gpCurFreeTransSectionPileArray was defined in Adapt_It.cpp, but was changed to a member variable
+/// of the class CFreeTrans. GDLC 2010-02-16
+#else	// _FREETR
 extern wxArrayPtrVoid* gpCurFreeTransSectionPileArray; // new creates on heap in InitInstance, and disposes in ExitInstance
+#endif	// _FREETR
 
 extern bool	gbFindIsCurrent;
 extern bool gbFindOrReplaceCurrent;
@@ -179,7 +185,7 @@ CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame,
 {
 	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' 
 				  // view pointer point to incoming view pointer
-	pFrame = NULL; // pFrame is set in CMainFrame's 
+	pFrame = NULL; // pFrame is set in CMainFrame's
 }
 
 CAdapt_ItCanvas::~CAdapt_ItCanvas(void)
@@ -503,6 +509,12 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = (CAdapt_ItView*) pApp->GetView();
 	wxASSERT(pView != NULL);
+#ifdef	_FREETR
+	// GDLC 2010-02-16 Pointer to the CFreeTrans class because it is needed in OnLButtonDown().
+	// Ideally, the parts of OnLButtonDown() that relate to free translations would be moved
+	// to the CFreeTrans class and this local variable of OnLButtonDown would be removed.
+	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
+#endif	// _FREETR
 
 	wxPoint point;	// MFC passes CPoint point as second parameter to OnLButtonDown; wx gets it from the
 					// wxMouseEvent via GetPosition. Both specify x an y coordinates relative to the upper
@@ -1687,7 +1699,11 @@ t:	if (pCell == NULL)
 					}
 
 					// mark the current section
+#ifdef	_FREETR
+					pFreeTrans->MarkFreeTranslationPilesForColoring(pFreeTrans->m_pCurFreeTransSectionPileArray);
+#else	// _FREETR
 					pView->MarkFreeTranslationPilesForColoring(gpCurFreeTransSectionPileArray);
+#endif	// _FREETR
 					if (pApp->m_nActiveSequNum >= 0 && 
 											pApp->m_nActiveSequNum <= pApp->GetMaxIndex())
 					{
