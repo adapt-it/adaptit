@@ -3214,7 +3214,7 @@ bool CLayout::AdjustForUserEdits(int nStripWidth, int gap)
 				indices[anIndex] = ((CStrip*)m_stripArray.Item(anIndex))->GetStripIndex();
 			}
 			wxLogDebug(_T("Adjust... 3. strip count %d , strip indices: [0] %d [1] %d [2] %d [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d [9] %d [10] %d [11] %d [12] %d"),
-				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7]),indices[8],indices[9],indices[10],indices[11],indices[12];
+				count,indices[0],indices[1],indices[2],indices[3],indices[4],indices[5],indices[6],indices[7]),indices[8],indices[9],indices[10],indices[11],indices[12]);
 		}
 	#endif
 #endif

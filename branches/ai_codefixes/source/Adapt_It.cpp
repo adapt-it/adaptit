@@ -11356,6 +11356,7 @@ CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 /// Called from: many places throughout the application where a pointer to the CFreeTrans 
 /// is required to call a function/method of the CFreeTrans.
 /// Gets a pointer to the current CFreeTrans.
+/// NOTE: Needs to be called with reference to the app object e.g. pApp->GetFreeTrans()
 ////////////////////////////////////////////////////////////////////////////////////////
 CFreeTrans*	CAdapt_ItApp::GetFreeTrans()
 {
@@ -11364,13 +11365,27 @@ CFreeTrans*	CAdapt_ItApp::GetFreeTrans()
 	wxASSERT(m_pFreeTrans);
 	return m_pFreeTrans;
 }
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the Layout
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the Layout 
+/// is required to call a function/method of the Layout.
+/// Gets a pointer to the current Layout.
+/// NOTE: Needs to be called with reference to the app object e.g. pApp->GetLayout()
+////////////////////////////////////////////////////////////////////////////////////////
+CLayout*	CAdapt_ItApp::GetLayout()
+{
+	// The member function m_pLayout was set during app startup
+	wxASSERT(m_pLayout);
+	return m_pLayout;
+}
 #endif	// _FREETR
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
 /// \remarks
 /// Called from: many places throughout the application where a pointer to the view is 
-/// requited to call a function/method of the View.
+/// required to call a function/method of the View.
 /// Gets a pointer to the current view.
 ////////////////////////////////////////////////////////////////////////////////////////
 CAdapt_ItView* CAdapt_ItApp::GetView()

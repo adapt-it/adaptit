@@ -1696,6 +1696,8 @@ public:
 	CLayout* m_pLayout;
 
 #ifdef	_FREETR
+	// GDLC 2010-02-17
+	
 	// GDLC 2010-02-12
 	// Pointer to the free translation display manager
 	// Set by the return value from CFreeTrans creator
@@ -2480,6 +2482,7 @@ public:
 	CAdapt_ItDoc* GetDocument();	// convenience function for accessing the Doc
 #ifdef	_FREETR
 	CFreeTrans*	GetFreeTrans();		// convenience function for accessing the free translations manager
+	CLayout*	GetLayout();		// convenience function for accessing the CLayout object
 #endif	// _FREETR
 	int		GetPageOrientation();
 	void	GetPossibleAdaptionDocuments(wxArrayString* pList, wxString dirPath);

@@ -141,19 +141,6 @@ CFreeTrans::~CFreeTrans()
 	delete m_pFreeTransArray;
 }
 
-// Utility functions
-CLayout* CFreeTrans::GetLayout()
-{
-	m_pLayout = m_pApp->m_pLayout;
-	return m_pLayout;
-}
-
-CAdapt_ItView* CFreeTrans::GetView()	// ON APP
-{
-	m_pLayout = m_pApp->m_pLayout;
-	return m_pLayout->m_pView;
-}
-
 wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -1328,7 +1315,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 						pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
 	wxASSERT(pAdvancedMenuFTMode != NULL);
 	gbSuppressSetup = FALSE; // setdefault value
-	CLayout* pLayout = GetLayout();
+	CLayout* pLayout = pApp->GetLayout();
 	CAdapt_ItView* pView = pApp->GetView();
 
 	// BEW added 17Feb10, because for some reason the canvass class's pView and pFrame
@@ -1612,7 +1599,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
 		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
 		pView->Invalidate();
-		GetLayout()->PlaceBox();
+		pApp->GetLayout()->PlaceBox();
 	}
 }
 
@@ -1706,7 +1693,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		} // end block for non-empty m_markers
 	} // end while loop
 	pView->Invalidate();
-	GetLayout()->PlaceBox();
+	pApp->GetLayout()->PlaceBox();
 
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
@@ -2733,7 +2720,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			gbSuppressSetup = FALSE; // make sure it is off
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			pView->MakeAllPilesNonCurrent(GetLayout());
+			pView->MakeAllPilesNonCurrent(pApp->GetLayout());
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
@@ -2754,7 +2741,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			// make sure we can see the phrase box
 			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 			pView->Invalidate();
-			GetLayout()->PlaceBox();
+			pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus back into compose bar's text control
 		}
 	}
@@ -2848,7 +2835,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			pView->MakeAllPilesNonCurrent(GetLayout());
+			pView->MakeAllPilesNonCurrent(pApp->GetLayout());
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
@@ -2869,7 +2856,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			// make sure we can see the phrase box
 			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 			pView->Invalidate(); // gets the view redrawn & phrase box shown
-			GetLayout()->PlaceBox();
+			pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus back into the compose bar's edit control
 
 			// if there is text in the pEdit box, put the cursor after it
@@ -3014,7 +3001,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						pApp->GetMainFrame()->canvas->ScrollIntoView(
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						pView->Invalidate();
-						GetLayout()->PlaceBox();
+						pApp->GetLayout()->PlaceBox();
 						pEdit->SetFocus(); // put focus back into 
 										   // compose bar's edit control
 						return;
@@ -3071,7 +3058,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						pApp->GetMainFrame()->canvas->ScrollIntoView(
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						pView->Invalidate();
-						GetLayout()->PlaceBox();
+						pApp->GetLayout()->PlaceBox();
 						pEdit->SetFocus(); // put focus back into the 
 										   // compose bar's edit control
 						return;
@@ -3172,7 +3159,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			pApp->m_nActiveSequNum = pPrevPile->GetSrcPhrase()->m_nSequNumber;
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			pView->MakeAllPilesNonCurrent(GetLayout());
+			pView->MakeAllPilesNonCurrent(pApp->GetLayout());
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPrevPile->GetCell(1);
@@ -3193,7 +3180,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
 
 			pView->Invalidate(); // gets the view redrawn
-			GetLayout()->PlaceBox();
+			pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus back into compose bar's edit control
 
 			// if there is text in the pEdit box, put the cursor after it
@@ -3312,7 +3299,7 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 				pPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
 			}
 			pView->Invalidate(); // cause redraw, and so a call to SetupCurrentFreeTransSection()
-			GetLayout()->PlaceBox();
+			pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus in compose bar's edit control
 			pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
 		}
@@ -3382,7 +3369,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the window updated
 			pView->Invalidate();
-			GetLayout()->PlaceBox();
+			pApp->GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -3505,7 +3492,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the window updated
 			pView->Invalidate();
-			GetLayout()->PlaceBox();
+			pApp->GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -3830,7 +3817,7 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
             // resized smaller
 #ifdef _NEW_LAYOUT
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
 			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -3878,7 +3865,7 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
             // resized larger
 #ifdef _NEW_LAYOUT
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
 			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
@@ -4079,7 +4066,8 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 {
-	CLayout* pLayout = GetLayout();
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CLayout* pLayout = pApp->GetLayout();
 	CPile* pStartPile = NULL;
 	if (activeSequNum < 0)
 	{

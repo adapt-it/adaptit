@@ -59,10 +59,6 @@ public:
 	CFreeTrans(CAdapt_ItApp* app); // use this one
 
 	virtual ~CFreeTrans();// destructor // whm added always make virtual
-
-	// Utility functions
-	CLayout* CFreeTrans::GetLayout();
-	CAdapt_ItView*	CFreeTrans::GetView();
 	
 	// Public free translation drawing functions
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
