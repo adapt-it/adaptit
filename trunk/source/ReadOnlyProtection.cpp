@@ -100,6 +100,11 @@ void ReadOnlyProtection::Initialize()
 	}
 	m_strLocalProcessID = GetLocalProcessID();
 	m_strOSHostname = GetLocalOSHostname();
+	m_bOverrideROPGetWriteAccess = FALSE;	// default is FALSE, TRUE only if local user
+											// decides to have write access over a project
+											// that is currently locked by a remote user
+											// where one or both users are on non-Windows
+											// systems.
 	// set up the filename for read only protection, which is for this particular user
 	// and host machine and process ID; it remains unchanged for the session
 	m_strReadOnlyProtectionFilename = MakeReadOnlyProtectionFilename(m_strAIROP_Prefix,
@@ -588,8 +593,9 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	else
 	{
 		// The instance that created the lock file and the local instance are/were diverse
-		// operating systems. Therefore, we cannot use the same test we use in the if block above
-		// where both systems are Windows systems.
+		// operating systems (one or both of the systems are/were non-Windows). Therefore, 
+		// we cannot use the same test we use in the if block above where both systems are 
+		// Windows systems.
 		if (IOwnTheLock(folderPath))
 		{
 			// I own the lock on the folder so it is not a zombie and
@@ -608,45 +614,55 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 	#endif
 			return FALSE;
 		}
-		else if (ARemoteMachineMadeTheLock(ropFile))
+		else if (ADifferentMachineMadeTheLock(ropFile))
 		{
 			// Another machine on the network created the lock file.
 			// We handle it differently depending on whether we are that remote computer or 
 			// not. If folderPath has a URI, we are viewing the project folder remotely. When
-			// that is the case we don't this remote instance to "take ownership".
-			if (!m_pApp->m_bReadOnlyAccess && m_pApp->IsURI(folderPath))
+			// that is the case we don't allow this remote instance to "take ownership".
+			if (IamAccessingTheProjectRemotely(folderPath))
 			{
-				// We can't take ownership, so we consider the ropFile is not a zombie
+				// The folderPath is a URI path (i.e., we are looking at a remote path on a
+				// different computer on the network).
+				// By design, we can't take ownership, so we consider the ropFile is not a zombie
 				// and no additional tests are needed - return FALSE
 	#ifdef _DEBUG_ROP
-				wxLogDebug(_T("In IsZombie() at ARemoteMachineMadeTheLock(): The folderPath is a URI path. We can't take ownership so return FALSE."));
+				wxLogDebug(_T("In IsZombie() at ADifferentMachineMadeTheLock(): The folderPath is a URI path. We can't take ownership so return FALSE."));
 	#endif
 				return FALSE;
 			}
 			else
 			{
-				// We allow the user to verify whether we can take ownership.
-				wxString message;
-				message = _("Someone has your project folder open already, so you have read-only access.\nIf you need to be able to save your work, you can gain write access now.\nDoing so will force the other person to have read-only access.\n\nDo you to want to have write access now?");
-				int response = wxMessageBox(message, _T(""), wxYES_NO | wxICON_WARNING);
-				if (response == wxYES)
+				// The folderPath is NOT a URI path, i.e., we NOT not looking at a remote path
+				// but at a path on our own computer. 
+				// We allow the user to verify whether we can take ownership. But only display this query
+				// once
+				if (!m_bOverrideROPGetWriteAccess)
 				{
-					// User responded "YES", i.e., wants to have immediate write access so the
-					// lock file is considered the same as a zombie. We do nothing here but allow control to fall 
-					// through to the ::RemoveFile() block below
-	#ifdef _DEBUG_ROP
-				wxLogDebug(_T("In IsZombie() at ARemoteMachineMadeTheLock() after YES response at Query: user wants immediate write access, lock file considered a zombie fall through to wxRemoveFile."));
-	#endif
-					;
-				}
-				else
-				{
-					// User cancelled or answered "NO" indicating that another computer 
-					// owns the project and the lock file is not a zombie
-	#ifdef _DEBUG_ROP
-				wxLogDebug(_T("In IsZombie() at ARemoteMachineMadeTheLock() after YES (or Cancel) response at Query: user considers lock file genuine, return FALSE."));
-	#endif
-					return FALSE; // 
+					wxString message;
+					message = _("Someone has your project folder open already, so you have READ-ONLY access.\nIf you need to be able to save your work, you can gain write access now.\nDoing so will force the other person to have read-only access.\n\nDo you to want to have write access now?");
+					int response = wxMessageBox(message, _T("Another process owns write permission"), wxYES_NO | wxICON_WARNING);
+					if (response == wxYES)
+					{
+						// User responded "YES", i.e., wants to have immediate write access so the
+						// lock file is considered the same as a zombie. We do nothing here but 
+						// set m_bOverrideROPGetWriteAccess to TRUE and allow control to fall 
+						// through to the ::RemoveFile() block below.
+		#ifdef _DEBUG_ROP
+					wxLogDebug(_T("In IsZombie() at ADifferentMachineMadeTheLock() after YES response at Query: user wants immediate write access, lock file considered a zombie fall through to wxRemoveFile."));
+		#endif
+						m_bOverrideROPGetWriteAccess = TRUE;
+					}
+					else
+					{
+						// User cancelled or answered "NO" indicating that another computer 
+						// owns the project and the lock file is not a zombie
+		#ifdef _DEBUG_ROP
+					wxLogDebug(_T("In IsZombie() at ADifferentMachineMadeTheLock() after YES (or Cancel) response at Query: user considers lock file genuine, return FALSE."));
+		#endif
+						m_bOverrideROPGetWriteAccess = FALSE;
+						return FALSE; // 
+					}
 				}
 			}
 		}
@@ -730,6 +746,18 @@ bool ReadOnlyProtection::IamRunningAnotherInstance() // currently unused
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		TRUE if user is accessing the project folder from a remote machine on the
+/// network, FALSE otherwise
+/// \param      folderPath   ->  absolute path to the project folder
+/// \remarks	Tests if the projectFolderPath is a URI path. If so we know the user is
+/// accessing the project folder from a remote machine on the network.
+///////////////////////////////////////////////////////////////////////////////////////////
+bool ReadOnlyProtection::IamAccessingTheProjectRemotely(wxString& folderPath)
+{
+	return m_pApp->IsURI(folderPath);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if the owning username, or owning machine, or owning process which owns
 ///             write permission, is different from my (local) username, machinename, and/or
 ///             running process; if FALSE is returned, then my process on my machine is the
@@ -792,14 +820,9 @@ bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock(wxString& ropFile)
 /// \param      ropFile             ->  filename for the read-only protection file
 ///                                     it's title includes the name of the machine, user, 
 ///                                     running process's integer ID, and oshostname.
-/// \remarks This situation requires a response from the user before proceeding. In the 
-/// caller the user should be queried, "Another computer put a lock on this project folder 
-/// previously. Does that other computer still have this project open in Adapt It?" If the 
-/// user responds "No" the caller should consider the lock file to be a zombie, delete it 
-/// and return FALSE. If the user responds "Yes" the lock file should still still owned 
-/// by the other computer.
+/// \remarks This simply determines if the .
 ///////////////////////////////////////////////////////////////////////////////////////////
-bool ReadOnlyProtection::ARemoteMachineMadeTheLock(wxString& ropFile)
+bool ReadOnlyProtection::ADifferentMachineMadeTheLock(wxString& ropFile)
 {
 	// Test if machinenames differ. If so it was a remote machine that made the lock
 	if (GetLocalMachinename() != ExtractMachinename(ropFile))
@@ -935,12 +958,14 @@ bool ReadOnlyProtection::SetReadOnlyProtection(wxString& projectFolderPath)
 			// or created in that project folder; so we don't want to have this
 			// message shown more than once - so wrap it in a test so that once
 			// in the read-only folder, the user doesn't see it again
-			if (!m_pApp->m_bReadOnlyAccess)
+			if (!m_pApp->m_bReadOnlyAccess && !m_bOverrideROPGetWriteAccess)
 			{
 				// I don't qualify to own this project folder, I can only have read-only
 				// access (this message is localizable)
+				// whm added 18Feb10. If another machinename created the lock and we are
+				// trying to access the project folder on our own local machine, we can
 				wxMessageBox(
-_("You have READ-ONLY access to this project folder."),_("Another process owns write permission"),
+_("Someone has your project folder open already, so you have READ-ONLY access."),_("Another process owns write permission"),
 				wxICON_INFORMATION);
 			}
 			return TRUE; // return TRUE to app member m_bReadOnlyAccess
@@ -1030,5 +1055,10 @@ bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath)
 		m_strOwningReadOnlyProtectionFilename.Empty();
 		bRemoved = TRUE;
 	}
+	m_bOverrideROPGetWriteAccess = FALSE;	// default is FALSE, TRUE only if local user
+											// decides to have write access over a project
+											// that is currently locked by a remote user
+											// where one or both users are on non-Windows
+											// systems.
 	return bRemoved; 
 }

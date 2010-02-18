@@ -83,6 +83,7 @@ private:
 					// host operating system. It is used as a component substring in the 
 					// m_strReadOnlyProtectionFilename and used to determine what type of OS
 					// created the ~AIROP*.lock file.
+	bool		m_bOverrideROPGetWriteAccess;
 
 	// member functions supporting Read-Only access
 public:
@@ -127,6 +128,7 @@ private:
                         // of KB and documents should not be prevented)
 
 	bool		IamRunningAnotherInstance(); // whm added 10Feb10  // currently unused
+	bool		IamAccessingTheProjectRemotely(wxString& folderPath); // whm added 18Feb10
 
 	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
                         // process which owns the write privilege to the project folder is
@@ -135,7 +137,7 @@ private:
 
 	bool		IOwnTheLock(wxString& projectFolderPath); // whm added 13Feb10
 	bool		AnotherLocalProcessOwnsTheLock(wxString& ropFile); // whm added 13Feb10
-	bool		ARemoteMachineMadeTheLock(wxString& ropFile); // whm added 13Feb10
+	bool		ADifferentMachineMadeTheLock(wxString& ropFile); // whm added 13Feb10
 	bool		WeAreBothWindowsProcesses(wxString& ropFile); // whm added 17Feb10
 
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
