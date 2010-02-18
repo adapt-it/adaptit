@@ -160,7 +160,9 @@
 #ifdef	_FREETR
 #include "FreeTrans.h"
 #endif	// _FREETR
-
+#ifdef _NOTES
+#include "Notes.h"
+#endif
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -7473,6 +7475,11 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
 	gpFreeTransArray = new wxArrayPtrVoid;
 #endif	// _FREETR
+	
+#ifdef _NOTES
+	m_pNotes = new CNotes(this);
+#endif
+	
 	// Display message in status bar that startup initialization is complete
 	message = _("Initialization complete. Call Start Working...");
 	pStatusBar->SetStatusText(message,0); // use first field 0
@@ -8002,6 +8009,10 @@ int CAdapt_ItApp::OnExit(void)
 	gpFreeTransArray->Clear();
 	delete gpFreeTransArray;
 #endif	// _FREETR
+#ifdef _NOTES
+	// delete the CNotes object
+	delete m_pNotes;
+#endif
 	
 	if (gpDocList != NULL)
 	{
@@ -11380,6 +11391,21 @@ CLayout*	CAdapt_ItApp::GetLayout()
 	return m_pLayout;
 }
 #endif	// _FREETR
+
+#ifdef _NOTES
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the CNotes object instance
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CNotes 
+/// object is required to call a function/method of CNotes.
+/// Gets a pointer to the current CNotes object.
+////////////////////////////////////////////////////////////////////////////////////////
+CNotes*	CAdapt_ItApp::GetNotes()
+{
+	wxASSERT(m_pNotes);
+	return m_pNotes;
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the view
