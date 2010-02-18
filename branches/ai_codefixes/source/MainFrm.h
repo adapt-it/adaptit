@@ -31,6 +31,7 @@ class CAdapt_ItCanvas;
 class wxHelpControllerBase;
 class wxHtmlHelpController;
 class CFreeTrans;
+class CNotes;
 
 // global functions (FormatScriptureReference() is overloaded)
 class CSourcePhrase;
