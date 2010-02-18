@@ -79,6 +79,10 @@ private:
 				// Comparison is provided by a function called IsDifferentUserOrMachine() which 
 				// takes 4 wxString arguments, and returns TRUE if user or machine or both are 
 				// different, FALSE if the usernames and machinenames are the same
+	wxString	m_strOSHostname; // whm added 17Feb10 will be "WIN", "LIN" or "MAC" depending on the 
+					// host operating system. It is used as a component substring in the 
+					// m_strReadOnlyProtectionFilename and used to determine what type of OS
+					// created the ~AIROP*.lock file.
 
 	// member functions supporting Read-Only access
 public:
@@ -94,19 +98,22 @@ private:
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
 	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
+	wxString	GetLocalOSHostname(); // whm added 17Feb10
 
 	wxString	ExtractUsername(wxString strFilename); 
 	wxString	ExtractMachinename(wxString strFilename); 
-	wxString	ExtractProcessID(wxString strFilename); 
+	wxString	ExtractProcessID(wxString strFilename);
+	wxString	ExtractOSHostname(wxString strFilename); // whm added 17Feb10
 
 	wxString	MakeReadOnlyProtectionFilename(
 					const wxString prefix, // pass in m_strAIROP_Prefix
 					const wxString suffix, // pass in m_strLock_Suffix
 					const wxString machinename,
 					const wxString username,
-					const wxString processID); // return str of form ~AIROP*.lock where * will
+					const wxString processID,
+					const wxString oshostname); // return str of form ~AIROP*.lock where * will
 						// be machinename followed by username, followed by processID,
-						// delimited by single hyphens
+						// followed by oshostname, delimited by single hyphens
 	bool		IsDifferentUserOrMachineOrProcess(
 					wxString& localMachine,
 					wxString& localUser,
@@ -129,6 +136,7 @@ private:
 	bool		IOwnTheLock(wxString& projectFolderPath); // whm added 13Feb10
 	bool		AnotherLocalProcessOwnsTheLock(wxString& ropFile); // whm added 13Feb10
 	bool		ARemoteMachineMadeTheLock(wxString& ropFile); // whm added 13Feb10
+	bool		WeAreBothWindowsProcesses(wxString& ropFile); // whm added 17Feb10
 
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
 	bool		IsZombie(wxString& folderPath, wxString& ropFile); // return
