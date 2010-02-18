@@ -100,6 +100,33 @@ public:
 
 	// Private free translation drawing functions
 private:
+
+// These 22 functions are the bodies of the On... functions called from event handlers.
+// The On... functions get a pointer to the single instance of CFreeTrans and then call
+// the body function on that instance.
+	void		AdvanceButton(wxCommandEvent& event, CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		AdvancedFreeTranslationMode(CAdapt_ItApp* pApp, CMainFrame* pMainFrm,CAdapt_ItView* pView);
+	void		AdvancedGlossTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm);
+	void		AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView);
+	void		AdvancedTargetTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm);
+	void		LengthenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		NextButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		PrevButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		RadioDefineByPunctuation(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		RadioDefineByVerse(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		RemoveFreeTranslationButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		ShortenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
+	void		UpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView);
+	void		UpdateNextButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdatePrevButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView);
+	void		UpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+	void		UpdateShortenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+
 	void		DestroyElements(wxArrayPtrVoid* pArr);
 	CPile*		GetStartingPileForScan(int activeSequNum);
 	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
