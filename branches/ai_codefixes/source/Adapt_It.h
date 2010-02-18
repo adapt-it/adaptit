@@ -165,6 +165,9 @@ class SPList;
 // forward references for CFreeTrans support
 class CFreeTrans;
 
+// forward reference for CNotes support
+class CNotes;
+
 // forward reference for read-only support
 class ReadOnlyProtection;
 
@@ -1703,6 +1706,11 @@ public:
 	// Set by the return value from CFreeTrans creator
 	CFreeTrans*	m_pFreeTrans;
 #endif	// _FREETR
+	
+#ifdef _NOTES
+	// edb 17 Feb 2010
+	CNotes* m_pNotes;
+#endif
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup
@@ -2482,8 +2490,11 @@ public:
 	CAdapt_ItDoc* GetDocument();	// convenience function for accessing the Doc
 #ifdef	_FREETR
 	CFreeTrans*	GetFreeTrans();		// convenience function for accessing the free translations manager
-	CLayout*	GetLayout();		// convenience function for accessing the CLayout object
+	CLayout*	GetLayout();
 #endif	// _FREETR
+#ifdef _NOTES
+	CNotes* GetNotes();
+#endif
 	int		GetPageOrientation();
 	void	GetPossibleAdaptionDocuments(wxArrayString* pList, wxString dirPath);
 	void	GetPossibleAdaptionProjects(wxArrayString* pList);
