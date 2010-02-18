@@ -324,11 +324,19 @@ int CPile::GetStripIndex()
 
 CStrip* CPile::GetStrip()
 {
+	if ((wxUint32)m_pOwningStrip < 10000)
+	{
+		::wxBell();
+	}
 	return m_pOwningStrip;
 }
 
 void CPile::SetStrip(CStrip* pStrip)
 {
+	if ((wxUint32)pStrip <10000)
+	{
+		::wxBell();
+	}
 	m_pOwningStrip = pStrip; // can pass in NULL to set it to nothing
 }
 

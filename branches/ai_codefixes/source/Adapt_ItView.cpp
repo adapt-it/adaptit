@@ -13403,10 +13403,11 @@ void CAdapt_ItView::OnUpdateEditCut(wxUpdateUIEvent& event)
 	event.Enable(bComposeSel || bTargetBoxSel);
 }
 
-// this function is public, and it inserts before the active location, or before the
-// selection (called in PhraseBox.cpp)
+// BEW 18Feb10 updated for _DOCVER5 support (no changes needed)
 void CAdapt_ItView::InsertNullSrcPhraseBefore() 
 {
+    // this function is public, and it inserts before the active location, or before the
+    // selection (called in PhraseBox.cpp)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
 	// first save old sequ num for active location
@@ -13495,10 +13496,10 @@ void CAdapt_ItView::InsertNullSrcPhraseBefore()
 	Jump(pApp, pPile->GetSrcPhrase());
 }
 
-// this function is public
-// (called in PhraseBox.cpp)
+// BEW 18Feb10 updated for _DOCVER5 support (no changes needed)
 void CAdapt_ItView::InsertNullSrcPhraseAfter() 
 {
+	// this function is public (called in PhraseBox.cpp)
 	int nSequNum;
 	int nCount;
 	CAdapt_ItDoc* pDoc = GetDocument();
@@ -13675,6 +13676,7 @@ void CAdapt_ItView::InsertNullSrcPhraseAfter()
 	Jump(pApp, pPile->GetSrcPhrase());
 }
 
+// BEW 18Feb10 updated for _DOCVER5 support (no changes needed)
 void CAdapt_ItView::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 {
     // Since the Add placeholder toolbar button has an accelerator table hot key (CTRL-I
@@ -14940,6 +14942,7 @@ m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
 	gbInsertingWithinFootnote = FALSE; // make sure it is off (default) before exiting
 }
 
+// BEW 18Feb10 updated for _DOCVER5 support (no changes needed)
 void CAdapt_ItView::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 {
     // Since the Remove Placeholder toolbar button has an accelerator table hot key (CTRL-D
@@ -15091,8 +15094,13 @@ void CAdapt_ItView::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 	event.Enable(bCanDelete);
 }
 
+// BEW 18Feb10 updated for _DOCVER5 support (added code to restore endmarkers that were
+// moved to the placeholder when it was inserted, ie. moved from the preceding
+// CSourcePhrase instance)
 void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount)
 {
+	// while this function can handle nCount > 1, in actual fact we use it for creating
+	// (manually) only a single placeholder, and so nCount is always 1 on entry
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CPile* pPile			= pRemoveLocPile;
 	int nStartingSequNum	= pPile->GetSrcPhrase()->m_nSequNumber;
@@ -15173,6 +15181,18 @@ void CAdapt_ItView::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCoun
     // if the null source phrase(s) carry any punctuation or markers, then these have to be
     // first transferred to the appropriate normal source phrase in the context, whether
     // forwards or backwards, depending on what is stored.
+#ifdef _DOCVER5
+	// docVersion 5 has endmarkers stored on the CSourcePhrase they are pertinent to, in
+	// m_endMarkers, so we search for these on pFirst, and if the member is non-empty,
+	// transfer its contents to pPrevSrcPhrase (if the markers were automatically
+	// transferred to the placement earlier, then pPrevSrcPhrase is guaranteed to exist)
+	if (!pFirstOne->GetEndMarkers().IsEmpty() && pPrevSrcPhrase != NULL)
+	{
+		wxString emptyStr = _T("");
+		pPrevSrcPhrase->SetEndMarkers(pFirstOne->GetEndMarkers());
+		pFirstOne->SetEndMarkers(emptyStr);
+	}
+#endif
 	if (!pFirstOne->m_markers.IsEmpty() && !bNoneFollows)
 	{
         // BEW comment 25Jul05, if a TextType == none endmarker was initial in m_markers,

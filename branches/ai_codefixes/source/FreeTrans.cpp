@@ -2775,7 +2775,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
                 // the editedText parameter along with enum remove_editbox_contents to
                 // maintain legacy behavior when called from this handler
 				saveLastPilePtr = (CPile*)m_pCurFreeTransSectionPileArray->Item(
-										m_pCurFreeTransSectionPileArray->GetCount()-1);
+									m_pCurFreeTransSectionPileArray->GetCount()-1);
 				if (!gbFreeTranslationJustRemovedInVFMdialog)
 				{
 					wxString editedText;
