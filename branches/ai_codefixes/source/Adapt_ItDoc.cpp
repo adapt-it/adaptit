@@ -92,6 +92,9 @@
 #ifdef	_FREETR
 #include "FreeTrans.h"
 #endif	// _FREETR
+#ifdef _NOTES
+#include "Notes.h"
+#endif
 #include "ExportFunctions.h"
 #include "ReadOnlyProtection.h"
 
