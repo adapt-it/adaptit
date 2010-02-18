@@ -15451,7 +15451,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 						// and \free plus space is length 6, \free* plus space is length 7
 						int offset;
 						int len;
-#ifdef	_FREETR
+#if defined (_FREETR) || defined (_NOTES)
 						wxString freetransStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,offset,len);
 #else	// _FREETR
 						wxString freetransStr = pView->GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,offset,len);
