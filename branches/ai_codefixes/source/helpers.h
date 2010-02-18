@@ -143,7 +143,7 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 #endif
 
 // filtered fields functions moved from CAdapt_ItView
-#ifdef	_FREETR
+#if defined(_FREETR) || defined(_NOTES)
 wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
 						CSourcePhrase* pSrcPhrase, int& offset, int & length);
 #endif	// _FREETR

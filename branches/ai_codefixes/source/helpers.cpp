@@ -1441,7 +1441,11 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 #ifdef	_FREETR
 		wxString collectedStr = GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
 #else	// _FREETR
-		wxString collectedStr = pView->GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+#ifdef	_NOTES
+	wxString collectedStr = GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+#else	// _NOTES
+	wxString collectedStr = pView->GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+#endif
 #endif	// _FREETR
 		// repurpose the offset local variable
 		offset = -1;
@@ -1795,7 +1799,8 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 }
 
 // filtered fields functions moved from CAdapt_ItView
-#ifdef	_FREETR
+#if defined (_FREETR) || defined (_NOTES)
+
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             the text of the filtered content (such as a free translation) 
 ///                     which is in the m_markers member
