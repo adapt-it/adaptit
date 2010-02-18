@@ -34,6 +34,7 @@ class CAdapt_ItApp;
 class CAdapt_ItDoc;
 class CLayout;
 class CFreeTrans;
+class CNotes;
 
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
