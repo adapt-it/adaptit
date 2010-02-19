@@ -85,6 +85,7 @@
 #include <wx/dynlib.h> // for wxDynamicLibrary and ECDriver.dll on Windows
 #include <wx/filepicker.h> // for wxDirPickerCtrl
 #include <wx/log.h> // for wxLogStream
+#include <wx/timer.h> // for wxTimer
 
 #ifdef __WXGTK__
 #include <wx/dcps.h> // for wxPostScriptDC
@@ -2281,6 +2282,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItApp, wxApp)
 	EVT_MENU(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles)
 	EVT_UPDATE_UI(ID_MOVE_OR_COPY_FOLDERS_OR_FILES, CAdapt_ItApp::OnUpdateMoveOrCopyFoldersOrFiles)
 
+	EVT_TIMER(wxID_ANY, CAdapt_ItApp::OnTimer)
 
 	//EVT_WIZARD_PAGE_CHANGING(IDC_WIZARD,CAdapt_ItApp::WizardPageIsChanging)
 	//EVT_WIZARD_FINISHED(-1,CAdapt_ItApp::OnWizardFinish) // not needed, can handle directly
@@ -24729,6 +24731,42 @@ void CAdapt_ItApp::OnUnlockCustomLocation(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 	RefreshStatusBarInfo();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \remarks	Catches wxTimerEvent when m_timer is running. For each timer event it calls
+/// CheckLockFileOwnership().
+/// This OnTimer() handler is only called at 2 second intervals while the current instance
+/// of Adapt It owns a project folder on a remote computer. It does not get called in other
+/// circumstances. Its purpose is to enable automatic switching of the current instance to
+/// read-only mode in the event that an Instance of Adapt It local to that remote computer
+/// acquires write acces to its project folder.
+///////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::OnTimer(wxTimerEvent& WXUNUSED(event))
+{
+	CheckLockFileOwnership();
+}
+
+void CAdapt_ItApp::CheckLockFileOwnership()
+{
+	// The App class holds the m_pROP pointer to the ReadOnlyProtection object, so we can
+	// call m_pROP's public methods from here.
+	// Get the 
+	//wxString ropFile = m_pROP->GetReadOnlyProtectionFileInProjectFolder(m_curProjectPath);
+	if (m_pROP->IsItNotMe(m_curProjectPath))
+	{
+		if (!m_bReadOnlyAccess)
+		{
+			m_timer.Stop();
+			m_bReadOnlyAccess = TRUE;
+			// force a refresh of the main window so it changes to pink
+			GetView()->canvas->Refresh(); // force color change to pink 
+			wxMessageBox(
+	_("Someone just opened your project folder, so you have READ-ONLY access."),_("Another process owns write permission"),
+			wxICON_INFORMATION);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

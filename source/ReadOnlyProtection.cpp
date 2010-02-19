@@ -40,6 +40,7 @@
 #include <wx/filename.h>
 #include <wx/snglinst.h> // for wxSingleInstanceChecker
 #include <wx/process.h> // for wxProcess::Exists(PID)
+#include <wx/timer.h> // for wxTimer
 
 #include "Adapt_It.h"
 #include "helpers.h"
@@ -69,7 +70,7 @@ ReadOnlyProtection::ReadOnlyProtection(CAdapt_ItApp* pApp)  // use this one, it 
 
 ReadOnlyProtection::~ReadOnlyProtection()
 {
-
+	m_pApp->m_timer.Stop();
 }
 
 // implementation
@@ -637,6 +638,7 @@ bool ReadOnlyProtection::IsZombie(wxString& folderPath, wxString& ropFile)
 				// but at a path on our own computer. 
 				// We allow the user to verify whether we can take ownership. But only display this query
 				// once
+				m_pApp->m_timer.Stop();
 				if (!m_bOverrideROPGetWriteAccess)
 				{
 					wxString message;
@@ -977,6 +979,14 @@ _("Someone has your project folder open already, so you have READ-ONLY access.")
 #ifdef _DEBUG_ROP
 			wxLogDebug(_T("SetReadOnlyProtection:  Its ME,  so returning FALSE"));
 #endif
+			if (m_pApp->IsURI(projectFolderPath))
+			{
+				m_pApp->m_timer.Start(2000);
+			}
+			else
+			{
+				m_pApp->m_timer.Stop();
+			}
 			return FALSE;  // return FALSE to app member m_bReadOnlyAccess
 		}
 	}
@@ -998,6 +1008,7 @@ _("Someone has your project folder open already, so you have READ-ONLY access.")
 		m_strOwningReadOnlyProtectionFilename = m_strReadOnlyProtectionFilename;
 		wxString readOnlyProtectionFilePath = projectFolderPath + m_pApp->PathSeparator + 
 												m_strReadOnlyProtectionFilename;
+		wxLogNull nolog; // avoid spurious messages from the system during Open() below
 		bool bOpenOK; // whm added 4Feb10
 		bOpenOK = m_pApp->m_pROPwxFile->Open(readOnlyProtectionFilePath,wxFile::write_excl);
 #ifdef __WXDEBUG__ // whm added 4Feb10
@@ -1055,10 +1066,12 @@ bool ReadOnlyProtection::RemoveReadOnlyProtection(wxString& projectFolderPath)
 		m_strOwningReadOnlyProtectionFilename.Empty();
 		bRemoved = TRUE;
 	}
+	// whm added below 18Feb10
 	m_bOverrideROPGetWriteAccess = FALSE;	// default is FALSE, TRUE only if local user
 											// decides to have write access over a project
 											// that is currently locked by a remote user
 											// where one or both users are on non-Windows
 											// systems.
+	m_pApp->m_timer.Stop();
 	return bRemoved; 
 }
