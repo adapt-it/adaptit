@@ -128,6 +128,7 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 wxString ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
 				// to underscore characters, used in ReadOnlyProtection.cpp
 #ifdef _DOCVER5	
+
 // returns one or more substrings of form \~FILTER .... filtered info .... \~FILTER*,
 // concatenated without any space delimiter
 wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
@@ -140,6 +141,9 @@ int ParseMarker(const wxChar *pChar); // returns a length (num chars in the mark
 // Any strings in pPossiblesArray not already in pBaseStrArray, append them to
 // pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
 bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray);
+bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
+bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
+
 #endif
 
 // filtered fields functions moved from CAdapt_ItView

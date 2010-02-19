@@ -165,9 +165,6 @@ class SPList;
 // forward references for CFreeTrans support
 class CFreeTrans;
 
-// forward reference for CNotes support
-class CNotes;
-
 // forward reference for read-only support
 class ReadOnlyProtection;
 
@@ -951,7 +948,7 @@ typedef struct
     // or more retranslations in the user's selection, or overlapping the user's
     // selection.)
     // These subspans overlap, and involve an inclusion hierarchy: the editable span is
-    // equal to or included in the free translation span which is equal to or includeld in
+    // equal to or included in the free translation span which is equal to or included in
     // the (collected) back translations span.
     //
     // The modifications span is coextensive with the cancel span and contains deep copies
@@ -990,6 +987,17 @@ typedef struct
     // both locations, so that the user can be shown the most logically meaningful editable
     // text string, and to enable replacement of either or both endmarker strings after the
     // edit is done - if that is an appropriate editing operation for the user to do.
+#ifdef _DOCVER5
+	// For docVersion = 5, we no longer store endmarkers at the beggining of a following
+	// srcPhrase's m_markers member, but on the relevant one which ends the information
+	// type, on its new m_endMarkers member. This makes the comment for Note 5 above
+	// obsolete. At the start of the editable span, if the previous CSourcePhrase instance
+	// ends a information type with an endmarker, that endmarker is stored in the
+	// preceding context in that CSourcePhrase instance's m_endMarkers member. Also, if
+	// the editable span ends with endmarkers, they are now stored on the last
+	// CSourcePhrase instance of the editable span, again in its m_endMarkers member. So
+	// we don't have to make any adjustments for endmarker transfers any longer.
+#endif
 
     // Note 6: We also maintain an integer array to store the sequence numbers for the
     // storage locations of any Adapt It Notes which lie within the editable subspan. These
@@ -1706,11 +1714,6 @@ public:
 	// Set by the return value from CFreeTrans creator
 	CFreeTrans*	m_pFreeTrans;
 #endif	// _FREETR
-	
-#ifdef _NOTES
-	// edb 17 Feb 2010
-	CNotes* m_pNotes;
-#endif
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup
@@ -2490,11 +2493,8 @@ public:
 	CAdapt_ItDoc* GetDocument();	// convenience function for accessing the Doc
 #ifdef	_FREETR
 	CFreeTrans*	GetFreeTrans();		// convenience function for accessing the free translations manager
-	CLayout*	GetLayout();
+	CLayout*	GetLayout();		// convenience function for accessing the CLayout object
 #endif	// _FREETR
-#ifdef _NOTES
-	CNotes* GetNotes();
-#endif
 	int		GetPageOrientation();
 	void	GetPossibleAdaptionDocuments(wxArrayString* pList, wxString dirPath);
 	void	GetPossibleAdaptionProjects(wxArrayString* pList);

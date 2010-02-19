@@ -258,7 +258,7 @@ extern wxChar gcharSrcUC;
 bool	gbCallerIsRemoveButton = FALSE;
 
 // for getting source text updated after an edit
-int	gnOldMaxIndex = 0;
+//int	gnOldMaxIndex = 0;
 
 // next four are for version 2.0 which includes the option of a 3rd line for glossing
 
@@ -28551,6 +28551,7 @@ void CAdapt_ItView::OnUpdateEditSourceText(wxUpdateUIEvent& event)
 /// "Leftwards" in this function is to be interpretted as "to lower sequence numbers", & so
 /// if we are dealing with a right-to-left language data, it would be rightwards to the
 /// user.
+/// BEW checked 18Feb10, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::ExtendEditSourceTextSelection(SPList* pSrcPhrases, int& nStartingSN,
 												  int& nEndingSN, bool& bIsExtended)
@@ -32771,7 +32772,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
     // track the sequence number for the start of the (possibly extended programmatically)
     // selection (we don't actually extend the selection but just work out the new starting
     // and ending sequence number values)
-	gnOldMaxIndex = pApp->GetMaxIndex(); // store the old value 
+	//gnOldMaxIndex = pApp->GetMaxIndex(); // store the old value 
 										 // -- this global may not be needed
 	pRec->nNewSpanCount = -1; // -1 means "this value is undefined thus far"
 	wxString str; // a temporary storage string
@@ -32871,7 +32872,7 @@ void CAdapt_ItView::OnEditSourceText(wxCommandEvent& WXUNUSED(event))
 	int nSaveSequNum = pSrcPhrase->m_nSequNumber; // save the sequ number of the 
         // start of user's selection -- though we must update this value to a smaller value
         // if automatic selection extension to earlier sequence numbers happens below (for
-        // example, if user selectted some source text words in the middle of a
+        // example, if user selected some source text words in the middle of a
         // retranslation)... nSaveSequNum is from the legacy code, in this refactored 2008
         // code it is retained as an alias for nStartingSequNum
 
@@ -44102,101 +44103,6 @@ void CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXU
 
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return         TRUE if there is a \free marker in m_markers of pSrcPhrase, but with 
-///			        no content; else returns FALSE (and it also returns FALSE if there  
-///                 is no \free marker present)
-///
-///	\param pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers 
-///					        member may or may not contain a free translation (filtered)
-/// \remarks
-///    Used by the CCell.cpp Draw() function to control the colouring of the "green" wedge;
-///    if a free translation field is empty, the wedge will display khaki, if a
-///    backtranslation field is empty it will display a pastel blue, if both are empty it
-///    will display red -- the alternate colouring idea was suggested by John Nystrom in
-///    order to give the user visual feedback about when a \free or \bt field has no
-///    content, so he can enter it manually or by other means; a companion function to this
-///    present one is IsBackTranslationContentEmpty(), which works similarly but for a \bt
-///    or \bt derived marker's field.
-///
-/////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
-{
-	int offset;
-	int length;
-	wxString mkr = _T("\\free");
-	wxString endMkr = _T("\\free*");
-
-	// determine there is a free translation there first
-	// - exit FALSE if there is none
-	int curPos = pSrcPhrase->m_markers.Find(mkr);
-	if (curPos == -1)
-		return FALSE; // no \free is present, so we cannot claim 
-					  // it is empty of content
-
-	// there is a \free marker present, so determine its content
-	wxString contentStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,
-													offset,length);
-
-	// trim any spaces - since these are included in what the 
-	// GetExistingMarkerContent call returns
-	contentStr.Trim(FALSE); // trim left end
-	contentStr.Trim(TRUE); // trim right end
-
-	// if there were only spaces, then the field is contentless 
-	// & so return TRUE, else FALSE
-	return contentStr.IsEmpty();
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return         TRUE if there is a \bt or \bt derivative marker in m_markers of 
-///			        pSrcPhrase, but with no content, else returns FALSE (and it also 
-///			        returns FALSE if there is no \bt or \bt derivative marker present)
-///
-/// Parameters:
-///	pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers member
-///					may or may not contain a back translation (filtered)
-///
-/// Remarks:
-///    Used by the CCell.cpp Draw() function to control the colouring of the "green" wedge;
-///    if a free translation field is empty, the wedge will display khaki, if a
-///    backtranslation field is empty it will display a pastel blue, if both are empty it
-///    will display red -- the alternate colouring idea was suggested by John Nystrom in
-///    order to give the user visual feedback about when a \free or \bt field has no
-///    content, so he can enter it manually or by other means; a companion function to this
-///    present one is IsFreeTranslationContentEmpty(), which works similarly but for a
-///    \free field.
-///
-/////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
-{
-	int offset;
-	int length;
-	wxString mkr = _T("\\bt");
-	wxString endMkr = _T(""); // back translations do not have endmarkers
-
-	// determine there is a free translation there first 
-	// - exit FALSE if there is none
-	int curPos = pSrcPhrase->m_markers.Find(mkr);
-	if (curPos == -1)
-		return FALSE; // no \bt or \bt derived marker is present, so we 
-					  // cannot claim it is empty of content
-
-	// there is a \bt or a marker which is a derivative of \bt present, 
-	// so determine its content
-	wxString contentStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,
-													offset,length);
-
-	// trim any spaces - since these are included in what the 
-	// GetExistingMarkerContent call returns
-	contentStr.Trim(FALSE); // trim left end
-	contentStr.Trim(TRUE); // trim right end
-
-	// if there were only spaces, then the field is contentless 
-	// & so return TRUE, else FALSE
-	return contentStr.IsEmpty();
 }
 
 //////////////////////////// End backtranslation support /////////////////////////////

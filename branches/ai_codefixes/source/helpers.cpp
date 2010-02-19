@@ -1426,7 +1426,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum)
 {
-		CAdapt_ItView* pView = gpApp->GetView();
+		//CAdapt_ItView* pView = gpApp->GetView();
 		int nIteratorSN = nInitialSequNum;
 		SPList::Node* pos = pSrcPhrases->Item(nIteratorSN); //POSITION pos = pSrcPhrases->FindIndex(nIteratorSN);
 		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail, so just ASSERT for a debug mode check
@@ -1885,6 +1885,110 @@ a:		offset = 0;
 }
 #endif	// _FREETR
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return         TRUE if there is a \free marker in m_markers of pSrcPhrase, but with 
+///			        no content; else returns FALSE (and it also returns FALSE if there  
+///                 is no \free marker present)
+///
+///	\param pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers 
+///					        member may or may not contain a free translation (filtered)
+/// \remarks
+///    Used by the CCell.cpp Draw() function to control the colouring of the "green" wedge;
+///    if a free translation field is empty, the wedge will display khaki, if a
+///    backtranslation field is empty it will display a pastel blue, if both are empty it
+///    will display red -- the alternate colouring idea was suggested by John Nystrom in
+///    order to give the user visual feedback about when a \free or \bt field has no
+///    content, so he can enter it manually or by other means; a companion function to this
+///    present one is IsBackTranslationContentEmpty(), which works similarly but for a \bt
+///    or \bt derived marker's field.
+///    BEW 19Feb10, updated for _DOCVER5, and also moved it to helpers.cpp
+/////////////////////////////////////////////////////////////////////////////////
+bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
+{
+#ifdef _DOCVER5
+	return pSrcPhrase->GetFreeTrans().IsEmpty();
+#else
+	int offset;
+	int length;
+	wxString mkr = _T("\\free");
+	wxString endMkr = _T("\\free*");
+
+	// determine there is a free translation there first
+	// - exit FALSE if there is none
+	int curPos = pSrcPhrase->m_markers.Find(mkr);
+	if (curPos == -1)
+		return FALSE; // no \free is present, so we cannot claim 
+					  // it is empty of content
+
+	// there is a \free marker present, so determine its content
+	wxString contentStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,
+													offset,length);
+
+	// trim any spaces - since these are included in what the 
+	// GetExistingMarkerContent call returns
+	contentStr.Trim(FALSE); // trim left end
+	contentStr.Trim(TRUE); // trim right end
+
+	// if there were only spaces, then the field is contentless 
+	// & so return TRUE, else FALSE
+	return contentStr.IsEmpty();
+#endif
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return         TRUE if there is a \bt or \bt derivative marker in m_markers of 
+///			        pSrcPhrase, but with no content, else returns FALSE (and it also 
+///			        returns FALSE if there is no \bt or \bt derivative marker present)
+///
+/// Parameters:
+///	pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers member
+///					may or may not contain a back translation (filtered)
+///
+/// Remarks:
+///    Used by the CCell.cpp Draw() function to control the colouring of the "green" wedge;
+///    if a free translation field is empty, the wedge will display khaki, if a
+///    backtranslation field is empty it will display a pastel blue, if both are empty it
+///    will display red -- the alternate colouring idea was suggested by John Nystrom in
+///    order to give the user visual feedback about when a \free or \bt field has no
+///    content, so he can enter it manually or by other means; a companion function to this
+///    present one is IsFreeTranslationContentEmpty(), which works similarly but for a
+///    \free field.
+///    BEW 19Feb10, moved from view class, and updated to support _DOCVER5
+/////////////////////////////////////////////////////////////////////////////////
+bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
+{
+#ifdef _DOCVER5
+	return pSrcPhrase->GetCollectedBackTrans().IsEmpty();
+#else
+	int offset;
+	int length;
+	wxString mkr = _T("\\bt");
+	wxString endMkr = _T(""); // back translations do not have endmarkers
+
+	// determine there is a free translation there first 
+	// - exit FALSE if there is none
+	int curPos = pSrcPhrase->m_markers.Find(mkr);
+	if (curPos == -1)
+		return FALSE; // no \bt or \bt derived marker is present, so we 
+					  // cannot claim it is empty of content
+
+	// there is a \bt or a marker which is a derivative of \bt present, 
+	// so determine its content
+	wxString contentStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,
+													offset,length);
+
+	// trim any spaces - since these are included in what the 
+	// GetExistingMarkerContent call returns
+	contentStr.Trim(FALSE); // trim left end
+	contentStr.Trim(TRUE); // trim right end
+
+	// if there were only spaces, then the field is contentless 
+	// & so return TRUE, else FALSE
+	return contentStr.IsEmpty();
+#endif
+}
+
+
 #ifdef	_DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             the text of the stored content (such as a free translation,
@@ -1912,15 +2016,15 @@ a:		offset = 0;
 ///    NOTE: this function is obsolete -- we can get these data types directly now
 ///
 /////////////////////////////////////////////////////////////////////////////////
-wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
-						CSourcePhrase* pSrcPhrase, int& offset, int & length)
-{
+//wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
+//						CSourcePhrase* pSrcPhrase, int& offset, int & length)
+//{
 	// ****** NOTE ******
 	// In doc version 5 we don't need this function, we can use CSourcePhrase getters to
 	// grab the m_freeTrans, m_note, or m_collectedBackTrans member string 
-	wxString contentStr = _T("");
-	return contentStr;
-}
+//	wxString contentStr = _T("");
+//	return contentStr;
+//}
 #endif	// _DOCVER5
 
 #ifdef _DOCVER5	

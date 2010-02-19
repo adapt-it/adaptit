@@ -15333,7 +15333,7 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 // Note: This is a modification of Bruce's function of the same name, that can be employed in the
 // DoExportInterlinearRTF function. This modified version differs from the original function
 // in that it also composes and returns a source string (Sstr), a gloss string (Gstr), and a
-// navigation text string (Gstr), [all by reference] in addition to the target text (Tstr) that
+// navigation text string (Nstr), [all by reference] in addition to the target text (Tstr) that
 // the original non-overloaded version returned. Hence, with respect to the returned value of the
 // target string Tstr, this function is identical to original function. The return of the additional
 // string values is simply ignored in RebuildTargetText().
@@ -15341,7 +15341,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					SPList *pSrcPhrases, wxString& Tstr, wxString& Sstr, wxString& Gstr, wxString& Nstr)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	CAdapt_ItView* pView = gpApp->GetView();
+	//CAdapt_ItView* pView = gpApp->GetView();
 	if (gSrcPhrases.GetCount() > 0)
 		gSrcPhrases.Clear(); // clear the global sublist
 	SPList::Node* pos = firstPos;
@@ -15372,8 +15372,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 					Sstr = pSrcPhrase->m_srcPhrase; // added for Interlinear RTF output
 					Gstr = pSrcPhrase->m_gloss;		// added for Interlinear RTF output
 
-					// should "retranslation" be localized???
-					Nstr = _T("retranslation");		// added for Interlinear RTF output
+					// should "retranslation" be localized??? Yes!
+					Nstr = _("retranslation");		// added for Interlinear RTF output
 					if (!pSrcPhrase->m_inform.IsEmpty())
 						Nstr += _T(" ") + pSrcPhrase->m_inform;
 					if (!pSrcPhrase->m_chapterVerse.IsEmpty())
@@ -15381,8 +15381,8 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 				}
 				else
 				{
-					// should "retranslation" be localized???
-					Nstr = _T("retranslation");		// added for Interlinear RTF output
+					// should "retranslation" be localized??? Yes!
+					Nstr = _("retranslation");		// added for Interlinear RTF output
 					if (!pSrcPhrase->m_inform.IsEmpty())
 						Nstr += _T(" ") + pSrcPhrase->m_inform;
 					if (!pSrcPhrase->m_chapterVerse.IsEmpty())

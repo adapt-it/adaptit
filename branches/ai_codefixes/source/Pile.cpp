@@ -94,6 +94,7 @@
 #include <wx/docview.h> // needed for classes that reference wxView or wxDocument
 
 #include "Adapt_It.h"
+#include "helpers.h"
 //#include "SourceBundle.h"
 //#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
@@ -324,19 +325,11 @@ int CPile::GetStripIndex()
 
 CStrip* CPile::GetStrip()
 {
-	if ((wxUint32)m_pOwningStrip < 10000)
-	{
-		::wxBell();
-	}
 	return m_pOwningStrip;
 }
 
 void CPile::SetStrip(CStrip* pStrip)
 {
-	if ((wxUint32)pStrip <10000)
-	{
-		::wxBell();
-	}
 	m_pOwningStrip = pStrip; // can pass in NULL to set it to nothing
 }
 
@@ -660,11 +653,15 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
                 // BEW added 18Nov05, to colour the wedge differently if \free is
                 // contentless (as khaki), or if \bt is contentless (as pastel blue), or if
                 // both are contentless (as red)
+#ifdef _DOCVER5
+				bool bFreeHasNoContent = IsFreeTranslationContentEmpty(m_pSrcPhrase);
+				bool bBackHasNoContent = IsBackTranslationContentEmpty(m_pSrcPhrase);
+#else
 				bool bFreeHasNoContent = 
 					m_pLayout->m_pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
 				bool bBackHasNoContent = 
 					m_pLayout->m_pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
-
+#endif
 				#ifdef _RTL_FLAGS
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
 					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout

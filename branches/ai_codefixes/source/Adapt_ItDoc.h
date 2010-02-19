@@ -264,8 +264,11 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
-
+#ifdef _DOCVER5
+	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
+#else
 	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr);
+#endif
 	void SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
 

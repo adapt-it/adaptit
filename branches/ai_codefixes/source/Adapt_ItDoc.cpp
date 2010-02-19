@@ -8727,13 +8727,59 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if the passed in (U)SFM marker is \free, \note, or \bt or a derivative
 ///             FALSE otherwise
-/// \param		mkr     ->  the augmented marker (augmented means it ends with a space)
+/// \param		mkr                     ->  the augmented marker (augmented means it ends with a space)
+/// \param      bIsForeignBackTransMkr  <-  default FALSE, TRUE if the marker is \btxxx
+///                                         where xxx is one or more non-whitespace
+///                                         characters (such as \btv 'back trans of
+///                                         verse', \bts 'back trans of subtitle' or
+///                                         whatever - Bob Eaton uses such markers in SAG)
 /// \remarks
 /// Called from: the Doc's TokenizeText().
 /// Test for one of the custom Adapt It markers which require the filtered information to
 /// be stored on m_freeTrans, m_note, or m_collectedBackTrans string members used for 
 /// document version 5 (see docVersion in the xml)
+/// 
+/// BEW modified 19Feb10 for support of doc version = 5. Bob Eaton's markers will be
+/// parsed, and when identified, will be wrapped with filterMkr and filterMkrEnd, and
+/// stored in m_filteredInfo; and got from there for any exports where requested; but
+/// Adapt It will no longer attempt to treat such foreign markers as "collected", it will
+/// just ignore them - but they will be displayed in the Filtered Information dialog.
+/// Adapt It's \bt marker will have its content stored in m_collectedBackTrans member
+/// instead, and without any preceding \bt. So the added parameter allows us to determine
+/// when we are parsing a marker starting with \bt but is not our own because of extra
+/// characters in it.
 ///////////////////////////////////////////////////////////////////////////////
+#ifdef _DOCVER5
+bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr)
+{
+	bIsForeignBackTransMkr = FALSE; // initialize to default value
+	if (mkr == _T("\\free "))
+	{
+		return TRUE;
+	}
+	else if (mkr == _T("\\note "))
+	{
+		return TRUE;
+	}
+	else
+	{
+		int offset = mkr.Find(_T("\\bt"));
+		if (offset == 0)
+		{
+			// check for whether it is our own, or a foreign back trans marker
+			int length = mkr.Len();
+			if (length > 4)
+			{
+				// it has at least one extra character before the final space,
+				// so it is a foreign one
+				bIsForeignBackTransMkr = TRUE;
+			}	
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+#else
 bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr)
 {
 	if (mkr == _T("\\free "))
@@ -8754,6 +8800,7 @@ bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr)
 	}
 	return FALSE;
 }
+#endif
 
 #ifdef _DOCVER5
 void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr,
@@ -8953,6 +9000,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 #ifdef _DOCVER5
 	bool bIsFreeTransOrNoteOrBackTrans = FALSE;
+	bool bIsForeignBackTrans = FALSE;
 #endif
 
 	wxString bdrySet = gpApp->m_punctuation[0];
@@ -9017,6 +9065,7 @@ b:		if (IsMarker(ptr,pBufStart))
 #ifdef _DOCVER5
 			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before 
 									// checking which marker it is
+			bIsForeignBackTrans = FALSE;
 #endif
 
 			bHitMarker = TRUE;
@@ -9201,8 +9250,14 @@ b:		if (IsMarker(ptr,pBufStart))
                     // copy anyway and I've removed that)
 #ifdef _DOCVER5
 					bIsFreeTransOrNoteOrBackTrans = 
-						IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr);
-					if (bIsFreeTransOrNoteOrBackTrans)
+						IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr,bIsForeignBackTrans);
+					if (bIsForeignBackTrans)
+					{
+						// it's a back translation type of marker of foreign origin (extra
+						// chars after the t in \bt) so we just tuck it away in m_filteredInfo
+						temp = GetFilteredItemBracketed(ptr,itemLen);
+					}
+					else if (bIsFreeTransOrNoteOrBackTrans)
 					{
 						SetFreeTransOrNoteOrBackTrans(wholeMkr, ptr, (size_t)itemLen, pSrcPhrase);
 						wxString aTempStr(ptr,itemLen);
@@ -9283,7 +9338,7 @@ b:		if (IsMarker(ptr,pBufStart))
 					}
 
 #ifdef _DOCVER5
-					if (!bIsFreeTransOrNoteOrBackTrans)
+					if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
 					{
 						// other filtered stuff needs to be saved here (not later), it has
 						// been wrapped with \~FILTER and \~FILTER*; there is no need to
