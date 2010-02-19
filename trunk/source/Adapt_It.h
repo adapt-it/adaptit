@@ -1321,6 +1321,8 @@ class CAdapt_ItApp : public wxApp
 	virtual ~CAdapt_ItApp(); // whm make all destructors virtual
     CMainFrame* GetMainFrame();
 
+	wxTimer m_timer;
+
 	bool m_bAdminMoveOrCopyIsInitializing;
 
     /// The application's m_pDocManager member is one of the main players in the
@@ -2303,6 +2305,9 @@ public:
     // Exit and x App cancel to become unresponsive 
 
 // Declaration of event handlers
+
+	void OnTimer(wxTimerEvent& WXUNUSED(event));
+	void CheckLockFileOwnership();
 
 	void OnFileNew(wxCommandEvent& event);
 
