@@ -133,7 +133,6 @@ CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
 
 CFreeTrans::~CFreeTrans()
 {
-	//TODO: Is there any other clean up of free translation stuff that needs to be done?
 	// Clear and delete the arrays for FreeTrSections and Piles
 	m_pCurFreeTransSectionPileArray->Clear();
 	delete m_pCurFreeTransSectionPileArray;
@@ -141,6 +140,7 @@ CFreeTrans::~CFreeTrans()
 	delete m_pFreeTransArray;
 }
 
+// BEW 19Feb10 no changes needed for support of _DOCVER5
 wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -216,6 +216,8 @@ bool CFreeTrans::ContainsFreeTranslation(CPile* pPile)
 /// convoluted and difficult to follow - BEWARE!
 ///   TODO: Rewrite with simpler logic!
 /// whm added additional parameters on 24Aug06 and later on 31May07
+/// BEW 19Feb10, updated for support of _DOCVER5 (one change, elimination of
+/// GetExistingMarkerContent() call by making GetFreeTrans() call)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
 										 enum DrawFTCaller drawFTCaller)
@@ -564,7 +566,6 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
                 // are there more strips? (we may have come to the end of the doc) (for
                 // a partial section at doc end, we just show as much of it as we
                 // possibly can)
-				//if (curStripIndex == pBundle->m_nStripCount - 1)
 				if (curStripIndex == pLayout->GetStripCount() - 1)
 				{
                     // there are no more strips, so this free translation section will be
@@ -602,7 +603,6 @@ e:		if (pSrcPhrase->m_bEndFreeTrans)
 				pPile = m_pView->GetNextPile(pPile);
 				wxASSERT(pPile);
 				pSrcPhrase = pPile->GetSrcPhrase();
-				//curPileIndex = pPile->m_nPileIndex;
 				curPileIndex = pPile->GetPileIndex();
 				goto e;
 			}
@@ -807,13 +807,19 @@ b:	if (!bSectionIntersects)
 	pSrcPhrase = m_pFirstPile->GetSrcPhrase();
 	offset = 0;
 	length = 0;
+#ifdef _DOCVER5
+	ftStr = pSrcPhrase->GetFreeTrans();
+#else
 	ftStr = GetExistingMarkerContent(theMkr, theEndMkr, pSrcPhrase, offset, length);
+#endif
 
 #ifdef DrawFT_Bug
 	wxLogDebug(_T(" Drawing ftSstr =  %s ; for srcPhrase  %s  at sequ num  %d"), ftStr,
 		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber);
 #endif
-	
+
+#ifndef _DOCVER5
+
 	// whm note: length is the length of the free trans string within the m_markers member.
     // Since Bruce has globals tracking these, and since under certain circumstances (i.e.,
     // when an editing change is made by typing over and replacing a selection in which
@@ -824,6 +830,7 @@ b:	if (!bSectionIntersects)
 	m_nLengthInMarkersStr = length;
 	// offset is the position of the free trans string within the m_markers member
 	m_nOffsetInMarkersStr = offset;
+#endif
 
 	#ifdef _Trace_DrawFreeTrans
 	#ifdef __WXDEBUG__
@@ -1065,6 +1072,7 @@ void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 /// not yet been adapted, because then there is no target text to examine! So when the
 /// m_targetStr member is empty, we will indeed instead check for a non-empty m_follPunct
 /// member!
+/// BEW 19Feb120, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, 
 											wxString& punctSet)
@@ -1114,7 +1122,141 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 /// or \F) or \x* on the 'next' sourcephrase passed in. BEW changed 22Dec07: a filtered
 /// Note can be anywhere, and we don't want these to needlessly halt section delineation,
 /// so we'll ignore \note and \note* as well.
+/// 
+/// BEW modified 19Feb10, for support of _DOCVER5. New version does not have endmarkers in
+/// m_markers any more, but in m_endMarkers (and only endmarkers there, else it is empty)
 /////////////////////////////////////////////////////////////////////////////////
+#ifdef _DOCVER5
+bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	USFMAnalysis* pAnalysis = NULL;
+	wxString bareMkr;
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CSourcePhrase* pSrcPhrase = pThisPile->GetSrcPhrase();
+	wxString markers = pSrcPhrase->m_markers;
+	wxString endMarkers = pSrcPhrase->GetEndMarkers();
+	if (markers.IsEmpty() && endMarkers.IsEmpty())
+		return FALSE;
+
+	// anything filtered must halt scanning, except for a note's content (in m_note)
+	if (
+		!pSrcPhrase->GetFilteredInfo().IsEmpty() ||
+		!pSrcPhrase->GetFreeTrans().IsEmpty() ||
+		!pSrcPhrase->GetCollectedBackTrans().IsEmpty() )
+	{
+		return TRUE;
+	}
+
+	// handle any endmarker - it causes a halt unless it has TextType
+	// of none, or is an endmarker for embedded markers in a footnote or cross
+	// reference section
+	int mkrLen = 0;
+	wxString ftnoteMkr = _T("\\f");
+	wxString xrefMkr = _T("\\x");
+	wxString endnoteMkr = _T("\\fe"); // BEW added 16Jan06
+	wxArrayString arrEndMarkers;
+	pSrcPhrase->GetEndMarkersAsArray(&arrEndMarkers);
+	wxString mkr;
+	if (!arrEndMarkers.IsEmpty())
+	{
+		int count = arrEndMarkers.GetCount();
+		int index;
+		for (index = 0; index < count; index++)
+		{
+			mkr = arrEndMarkers.Item(index);
+
+			// is it \f* or \x* ? (or if PngOnly is current, \F or \fe ?)
+			if (mkr == ftnoteMkr + _T('*'))
+				return TRUE; // halt scanning
+			if (mkr == xrefMkr + _T('*'))
+				return TRUE;
+			if (pApp->gCurrentSfmSet == UsfmOnly && 
+					(mkr == endnoteMkr + _T('*')))
+				return TRUE;
+			if (pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || 
+					mkr == _T("\\F")))
+				return TRUE;
+
+			// find out if it is an embedded marker with TextType of none
+			// - we don't halt for these
+			mkrLen = mkr.Length();
+			bareMkr = mkr;
+			bareMkr = bareMkr.Left(mkrLen - 1);
+			bareMkr = bareMkr.Mid(1);
+			pAnalysis = pDoc->LookupSFM(bareMkr);
+			if (pAnalysis == NULL)
+				return TRUE; // halt for an unknown endmarker 
+							 // (never should be such a thing anyway)
+			if (pAnalysis->textType == none)
+				continue; // don't halt free translation scanning for these
+
+			// we don't halt for embedded endmarkers in footnotes or cross references 
+			// (USFM set only) either
+			int nFound = mkr.Find(ftnoteMkr); // if >= 0, \f is contained within mkr
+			if (nFound >= 0 && mkrLen > 2)
+				continue; // must be \fr*, \fk*, etc - so don't halt
+			nFound = mkr.Find(xrefMkr); // if >= 0, \x is contained within mkr
+			if (nFound >= 0 && mkrLen > 2)
+				continue; // must be \xr*, \xt*, \xo*, etc - so don't halt
+
+			// halt for any other endmarker
+			return TRUE;
+		}
+	}
+
+	// now deal with the m_markers member's content - look for halt-causing markers (it's
+	// sufficient to find just the first, and make our decision from that one)
+	if (!markers.IsEmpty())
+	{
+		// some kind of non-endmarker(s) is/are present so check it/them out
+		const wxChar* pBuff;
+		int bufLen = markers.Length();
+		wxChar* pBufStart;
+		wxChar* ptr;
+		int curPos = wxNOT_FOUND;
+		curPos = markers.Find(gSFescapechar);
+		if (curPos == wxNOT_FOUND)
+		{
+			// there are no SF markes left in the string
+			return FALSE; // don't halt free translation scanning
+		}
+
+		// we've a marker to deal with, and its not a filtered one 
+		// - so we'll halt now unless the marker is one like \k , or 
+		// \it , or \sc , or \bd etc - these have TextType none
+		bufLen = markers.Length();
+		pBuff = markers.GetData(); //GetWriteBuf(bufLen + 1);
+		pBufStart = (wxChar*)pBuff;
+		wxChar* pEnd;
+		pEnd = pBufStart + bufLen; // whm added
+		wxASSERT(*pEnd == _T('\0')); // whm added
+		ptr = pBufStart + curPos;
+		bareMkr = pDoc->GetBareMarkerForLookup(ptr);
+		pAnalysis = pDoc->LookupSFM(bareMkr);
+		if (pAnalysis == NULL)
+			// an unknown marker should halt scanning
+			return TRUE;
+		if (pAnalysis->textType == none)
+			return FALSE; // don't halt scanning for these
+
+		// if it's an embedded marker in a footnote or cross reference section,
+		// then these don't halt scanning
+		wxString mkr = _T("\\") + bareMkr; // this is genuine backslash not PathSeparator
+		mkrLen = mkr.Length();
+		int nFound = mkr.Find(ftnoteMkr); // if true, \f is contained within mkr
+		if (nFound >= 0 && mkrLen > 2)
+			return FALSE; // must be \fr, \fk, etc - so don't halt
+		nFound = mkr.Find(xrefMkr); // if true, \x is contained within mkr
+		if (nFound >= 0 && mkrLen > 2)
+			return FALSE; // must be \xr*, \xt*, \xo*, etc - so don't halt
+
+		return TRUE; // anything else should halt scanning
+	}
+	// otherwise we assume there is nothing of significance for causing a halt
+	return FALSE;
+}
+#else
 bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -1292,12 +1434,14 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pNextPile)
 
 	return TRUE; // anything else should halt scanning
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             TRUE if the sourcephrase's m_bStartFreeTrans BOOL is TRUE, 
 ///                     FALSE otherwise
 ///	\param pPile	->	pointer to the pile which stores the pSrcPhrase pointer being 
 ///	                    examined
+///	BEW 19Feb10, no change needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 {
@@ -1786,6 +1930,10 @@ void CFreeTrans::UpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& e
 ///	are not handled by this function.
 ///	Note: any call made in this function which results in a RecalcLayout() call
 ///	being done, will recursively cause SetupCurrentFreeTransSection() to be entered
+///	
+///	BEW 19Feb10, no changes needed for support of _DOCVER5 (but the function
+///	IsFreeTranslationEndDueToMarker() called internally has extensive changes for
+///	_DOCVER5)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
@@ -1827,6 +1975,9 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		// it already has a free translation stored in the sourcephrase
 		pile = pApp->m_pActivePile;
 
+#ifdef _DOCVER5
+		tempStr = pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+#else
         // before moving on from this pile, get the free translation text, and set the
         // globals for its offset and length so we can later easily update the filtered
         // free translation with any user edits done on it in the edit box of the
@@ -1836,6 +1987,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		tempStr = GetExistingMarkerContent(theMkr, theEndMkr, 
 										pApp->m_pActivePile->GetSrcPhrase(),
 										m_nOffsetInMarkersStr, m_nLengthInMarkersStr);
+#endif
 		pEdit->ChangeValue(tempStr);	// show it in the ComposeBar's edit box, but
 				// don't have it selected - too easy for user to mistakenly lose it
 
@@ -1965,6 +2117,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 					break; // halt scanning, we've bumped into a pre-existing 
 						   // free trans section, else continue the battery of tests
 			}
+			// BEW 19Feb10, IsFreeTranslationEndDueToMarker() modified to support _DOCVER5
 			if (IsFreeTranslationEndDueToMarker(pNextPile))
 				break; // halt scanning, we've bumped into a SF marker which is 
                        // significant enough for us to consider that something quite
@@ -2080,6 +2233,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 ///    here from what it found in the edit box, but with my revision StoreFreeTranslation()
 ///    always gets the string to be stored from the input parameter storeStr.
 ///	whm 23Aug06 added the last two parameters
+///	BEW 19Feb10, updated for support of _DOCVER5 (changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,
 	CPile*& pLastPile,enum EditBoxContents editBoxContents, const wxString& storeStr)
@@ -2098,6 +2252,11 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 		if (pEdit != 0 && pPileArray->GetCount() > 0) // whm added second condition 
 			// 1Apr09 as wxMac gets here on frame size event and pPileArray has 0 items
 		{
+#ifdef _DOCVER5
+			CPile* pPile;
+			pPile = pFirstPile;
+			pFirstPile->GetSrcPhrase()->SetFreeTrans(storeStr);
+#else
             // get the box's current contents & remove spaces at end or start (one will
             // be added by the InsertFilteredMaterial() call, at the end of the string,
             // automatically, if there is not already one at the end of the string)
@@ -2143,7 +2302,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
                 // rather than the otherwise unused gnFreeTransInsertionOffset.
 			pView->InsertFilteredMaterial(mkr, endMkr, storeStr, pPile->GetSrcPhrase(),
 									nFreeTransInsertionOffset, bContainsFreeTrans);
-
+#endif
             // whm added 22Aug06 the test below to remove or retain the contents of the
             // composebar's edit box and the items in pPileArray. The contents of the edit
             // box is cleared if the enum is remove_editbox_contents. The test evaluates to
@@ -2168,7 +2327,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 				// whm changed 24Aug06 - update edit box with updated string
 				pEdit->ChangeValue(tempStr);
 				pPileArray->RemoveAt(0); // first is dealt with
-
+#ifndef _DOCVER5
                 // do a reality check on m_markers - I noticed that the test document had
                 // sometimes an m_markers string ending with a SF marker, and no trailing
                 // space. The space should be present - so if we detect this, we can do an
@@ -2184,7 +2343,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 						pPile->GetSrcPhrase()->m_markers += _T(' ');
 					}
 				}
-
+#endif
                 // if we are at the end of the document, our Adavance will not be fruitful,
                 // so we'll just want to be able to automatically replace the phrase box
                 // here - and beep to alert the user that the Advance failed.
@@ -2232,8 +2391,8 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 					pPileArray->Clear();
 				}
 			} // end of if (editBoxContents == remove_editbox_contents)
-		}
-	}
+		} // end of TRUE block for test: if (pEdit != 0 && pPileArray->GetCount() > 0)
+	} //end of TRUE block for test: if (pBar != NULL && pBar->IsShown())
 }
 
 // the following is based on StoreFreeTranslation() and OnPrevButton() but tweaked for use
@@ -2291,6 +2450,7 @@ void CFreeTrans::StoreFreeTranslationOnLeaving()
 /// \remarks
 ///	Called in DrawFreeTranslations() when there is a need to shorten a text substring to fit
 ///	within the available drawing space in the layout
+///	BEW 19Feb10 no change needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 wxString CFreeTrans::TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,
 									  int totalHExtent)
@@ -3267,6 +3427,11 @@ void CFreeTrans::RemoveFreeTranslationButton(CAdapt_ItApp* pApp, CMainFrame* pMa
 			// make sure the kb entry flag is set correctly
 			FixKBEntryFlag(pSrcPhrase);
 
+#ifdef _DOCVER5
+			wxString emptyStr = _T("");
+			pSrcPhrase->SetFreeTrans(emptyStr);
+			wxString tempStr;
+#else
 			// the next part of the code aims to remove the
 			// "\~FILTER \free <free trans text> \free* \~FILTER* " string from m_markers
 			wxString theMkr = _T("\\free");
@@ -3323,6 +3488,7 @@ void CFreeTrans::RemoveFreeTranslationButton(CAdapt_ItApp* pApp, CMainFrame* pMa
 				markersStr.Remove(nStartingOffset,nFound - nStartingOffset); 
 				pSrcPhrase->m_markers = markersStr;
 			}
+#endif
 			// update the navigation text
 			pSrcPhrase->m_inform = pApp->GetDocument()->RedoNavigationText(pSrcPhrase);
 
@@ -4253,6 +4419,7 @@ CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 /// translation string passed in via the str parameter over a number of drawing rectangles
 /// in two or more consecutive strips - hence the size of the pSubstrings array must be the
 /// same as or less than totalRects.
+/// BEW 19Feb10, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SegmentFreeTranslation(	wxDC*			pDC,
 											wxString&		str, 

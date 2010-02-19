@@ -165,6 +165,9 @@ class SPList;
 // forward references for CFreeTrans support
 class CFreeTrans;
 
+// forward references for CNotes support
+class CNotes;
+
 // forward reference for read-only support
 class ReadOnlyProtection;
 
@@ -1714,6 +1717,13 @@ public:
 	// Set by the return value from CFreeTrans creator
 	CFreeTrans*	m_pFreeTrans;
 #endif	// _FREETR
+
+#ifdef _NOTES
+private:
+	CNotes* m_pNotes;
+public:
+	CNotes* GetNotes();
+#endif // _NOTES
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup

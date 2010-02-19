@@ -157,12 +157,14 @@ private:
 	/// Pointer to first pile in a free translation section.
 	CPile* m_pFirstPile;
 
+#ifndef _DOCVER5
 	/// GDLC 2010-02-13 Moved from CAdapt_It (soon to become obsolete)
 	/// The offset to the current free translation string in pSrcPhrase->m_markers.
 	int m_nOffsetInMarkersStr; 
 
 	/// The free translation length, including final space if any, in pSrcPhrase->m_markers.
 	int m_nLengthInMarkersStr; 
+#endif
 
 };
 

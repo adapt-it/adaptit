@@ -509,7 +509,13 @@ protected:
 					const int nCount,bool bRestoreTargetBox = TRUE,bool bForRetranslation = FALSE,
 					bool bInsertBefore = TRUE);
 	void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
+#if defined (_NOTES)
+public:
 	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
+protected:
+#else
+	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
+#endif
 	void		InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum);
 	bool		IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasAdaptations); // BEW added 15July08

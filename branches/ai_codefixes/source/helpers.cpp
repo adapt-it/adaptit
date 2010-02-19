@@ -1799,7 +1799,9 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 }
 
 // filtered fields functions moved from CAdapt_ItView
-#if defined (_FREETR) || defined (_NOTES)
+//#if defined (_FREETR) || defined (_NOTES) // we no longer need this function in _FREETR
+//wrapped code
+#if defined (_NOTES)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             the text of the filtered content (such as a free translation) 

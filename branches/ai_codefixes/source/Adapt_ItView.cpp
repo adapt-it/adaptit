@@ -28524,6 +28524,8 @@ bool CAdapt_ItView::IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStar
 /// than 15") we'll assume the flag was FALSE. Otherwise, we'll assume it was TRUE. (The
 /// value we return is the inverse of m_bDefineFreeTransByPunctuation value; i.e. if the
 /// latter was FALSE, meaning a verse-length section, then we return TRUE; and vise versa)
+/// 
+/// BEW 19Feb120, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::GetLikelyValueOfFreeTranslationSectioningFlag(SPList* pSrcPhrases,
 	int nStartingFreeTransSequNum, int nEndingFreeTransSequNum, bool bFreeTransPresent)
@@ -45012,6 +45014,7 @@ void CAdapt_ItView::Invalidate() // for MFC compatibility & flicker suppression
 }
 
 // whm added 12Jun07
+// BEW 19Feb10, no change needed for support of _DOCVER5
 void CAdapt_ItView::DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect)
 {
     // This function attempts to alieviate the limitations of wxDC::DrawText() which does
