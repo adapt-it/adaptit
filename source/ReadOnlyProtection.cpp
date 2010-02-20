@@ -179,13 +179,13 @@ wxString ReadOnlyProtection::GetLocalOSHostname()
 {
 	wxString strHostOS;
 #if defined(__WXMSW__)
-	strHostOS = _("WIN");
+	strHostOS = _T("WIN");
 #elif defined(__WXGTK__)
-	strHostOS = _("LIN");
+	strHostOS = _T("LIN");
 #elif defined(__WXMAC__)
-	strHostOS = _("MAC");
+	strHostOS = _T("MAC");
 #else
-	strHostOS = _("UNK");
+	strHostOS = _T("UNK");
 #endif
 	return strHostOS;
 }
