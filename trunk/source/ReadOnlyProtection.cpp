@@ -846,7 +846,7 @@ bool ReadOnlyProtection::ADifferentMachineMadeTheLock(wxString& ropFile)
 bool ReadOnlyProtection::WeAreBothWindowsProcesses(wxString& ropFile)
 {
 	// Test if oshostnames are the same. If so both AI instances are running on Windows
-	if (GetLocalOSHostname() == ExtractOSHostname(ropFile))
+	if (GetLocalOSHostname() == _T("WIN") && ExtractOSHostname(ropFile) == _T("WIN"))
 	{
 		return TRUE;
 	}
