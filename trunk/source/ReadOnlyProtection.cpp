@@ -811,7 +811,7 @@ bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock(wxString& ropFile)
 	// on m_pChecker. Or, we can check if the current PID and the
 	// PID of the ropFile differ, AND if the PID of the ropFile currently exists 
 	// as a process in the local system.
-	if (IamRunningAnotherInstance()) //if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID))
+	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID)) //if (IamRunningAnotherInstance()) 
 		return TRUE;
 	return FALSE;
 }
