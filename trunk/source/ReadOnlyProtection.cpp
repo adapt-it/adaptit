@@ -794,7 +794,8 @@ bool ReadOnlyProtection::IOwnTheLock(wxString& projectFolderPath)
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// \return		TRUE if another process on the local machine owns the lock, FALSE otherwise
 /// \param      ropFile             ->  filename for the read-only protection file
-/// \remarks This situation can only eventuate if an additional instance of Adapt It is
+/// \remarks Called from IsZombie() but only in cases where at least one non-Windows machine
+/// is involved. This situation can only eventuate if an additional instance of Adapt It is
 /// running on the same machine (might be a different user on a Linux system). The 
 /// additional instance will have a different process id (PID).
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -806,12 +807,11 @@ bool ReadOnlyProtection::AnotherLocalProcessOwnsTheLock(wxString& ropFile)
 	ropFileProcessStr = ExtractProcessID(ropFile);
 	int nRopFilePID;
 	nRopFilePID = wxAtoi(ropFileProcessStr);
-	// Although we might use the wxSingleInstanceChecker method IsAnotherRunning() 
-	// on m_pChecker we are interested in more directly checking against the PID 
-	// of another existing local process, so we check if the current PID and the
+	// We can use the wxSingleInstanceChecker method IsAnotherRunning() 
+	// on m_pChecker. Or, we can check if the current PID and the
 	// PID of the ropFile differ, AND if the PID of the ropFile currently exists 
 	// as a process in the local system.
-	if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID)) //if (IamRunningAnotherInstance())
+	if (IamRunningAnotherInstance()) //if (currProcessStr != ropFileProcessStr && wxProcess::Exists(nRopFilePID))
 		return TRUE;
 	return FALSE;
 }

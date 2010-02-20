@@ -24763,7 +24763,7 @@ void CAdapt_ItApp::CheckLockFileOwnership()
 			// force a refresh of the main window so it changes to pink
 			GetView()->canvas->Refresh(); // force color change to pink 
 			wxMessageBox(
-	_("Someone just opened your project folder, so you have READ-ONLY access."),_("Another process owns write permission"),
+	_("Someone just opened the project folder on the remote computer, so you have READ-ONLY access."),_("Another process owns write permission"),
 			wxICON_INFORMATION);
 		}
 	}
