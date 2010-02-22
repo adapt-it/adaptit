@@ -2073,6 +2073,7 @@ CSourcePhrase* CAdapt_ItView::GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase)
 // variable of the same name to be automatically updated too); nActiveSequNum is a ref to
 // the App's m_nActiveSequNum and we will set it from here; nFinish is the final number of
 // piles in the retranslation after all adjustments have been done.
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 bool CAdapt_ItView::SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 		SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish)
 {
@@ -2287,6 +2288,7 @@ void CAdapt_ItView::GetVisibleStrips(int& nFirstStrip,int&nLastStrip)
 // DoStore_ForPlacePhraseBox added 3Apr09; it factors out some of the incidental
 // complexity in the PlacePhraseBox() function, making the latter's design more
 // transparent and the function shorter
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 bool CAdapt_ItView::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targetPhrase)
 {
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
@@ -2768,6 +2770,7 @@ void CAdapt_ItView::FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSele
 // of an already complex function, but it is better than having a separate glossing version
 // which would bloat the app's size 
 // Ammended, July 2003, for auto-capitalization support
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
 {
 	// refactored 2Apr09
@@ -5764,6 +5767,7 @@ void CAdapt_ItView::OnUpdateFilePrintPreview(wxUpdateUIEvent& event)
 }
 
 // Modified by whm 14Feb05 to support USFM and SFM Filtering.
+// BEW 22Feb10, modified for support of _DOCVER5
 bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 {
 	// refactored 19Mar09 -- no changes needed
@@ -5775,7 +5779,19 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CAdapt_ItDoc* pDoc = GetDocument();
 	wxString markerStr = pSrcPhrase->m_markers;
-	wxString nonFilteredMkrs = pDoc->GetUnFilteredMarkers(markerStr);
+#if defined (_DOCVER5)
+	// combine m_markers (but ignore m_endMarkers) and the m_filteredInfo markers other
+	// than the filterMkr and filterMkrEnd ones - use for the tests below
+	wxString unwrappedMkrs = _T("");
+	if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
+	{
+		unwrappedMkrs = pSrcPhrase->GetFilteredInfo();
+		unwrappedMkrs = pDoc->GetUnFilteredMarkers(unwrappedMkrs);
+		markerStr += unwrappedMkrs;
+	}
+#else
+	markerStr = pDoc->GetUnFilteredMarkers(markerStr);
+#endif
 	// NormalizeToSpaces leaves the markers in m_markers delimited by spaces, at
 	// lease medially. We'll use the Tokenize CString method here.
 	wxString sfm;
@@ -5798,7 +5814,7 @@ bool CAdapt_ItView::IsWrapMarker(CSourcePhrase* pSrcPhrase)
 			sfm.Trim(TRUE); // trim right end
 			sfm += _T(' '); // insure the sfm is followed by a space for unique find in
 							// our wrap strings.
-			// If only one of the sfms within m_markers is a wrap marker, we should return TRUE.
+			// If only one of the sfms within markerStr is a wrap marker, we should return TRUE.
 			switch (pApp->gCurrentSfmSet)
 			{
 				case UsfmOnly:
@@ -11121,6 +11137,7 @@ void CAdapt_ItView::MergeWords()
 // MakeLineFourString() is not now called. See below.
 // 
 // Ammended, July 2003, for Auto-Capitalization support
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, 
 										bool bSupportNoAdaptationButton)
 {
@@ -11784,6 +11801,7 @@ void CAdapt_ItView::RemoveFinalSpaces(wxString& rStr)
 // will be saved to the KB when focus moves back.) TRUE if okay to go back, FALSE
 // otherwise. For glossing, pKB must point to the glossing KB, for adapting, to the normal
 // KB.
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, 
 									   wxString &tgtPhrase)
 {
@@ -21903,6 +21921,7 @@ void CAdapt_ItView::OnUpdateReplace(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
 // Called in DoFindNext() of view class, and DoCancelAndSelect() of CPhraseBox class
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
 		bool bIncludePunct, bool bSearchedInSrc, bool bDoRecalcLayout)
 {
@@ -25536,6 +25555,7 @@ void CAdapt_ItView::AdjustAlignmentMenu(bool bRTL,bool bLTR)
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsUnstructuredData(SPList* pList)
 {
 	// the markers below can just have terminating space, because we call the
@@ -33535,6 +33555,7 @@ wxComboBox* CAdapt_ItView::GetRemovalsComboBox()
 // repopulate the combobox list with whatever desired data we want, whether adaptations,
 // glosses, or free translations - by passing in the appropriate enum value, rather than
 // the current value in the global gEditStep
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 bool CAdapt_ItView::PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRec)
 {
 	wxComboBox* pCombo = GetRemovalsComboBox();
@@ -33805,6 +33826,7 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 ///    transition without checking if the active location is beyond the edit span or not; 
 /// 3. bundle end has been reached in the search for a "hole" to jump to, in which case
 ///    this really means we've moved into the gray area, so TRUE would be appropriate.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum, 
 							ActionSelector select, bool bForceTransition)
@@ -36739,8 +36761,8 @@ void CAdapt_ItView::StoreFreeTranslationOnLeaving()
 ///	through the whole bundle to FALSE. Use this prior, followed by
 ///	MarkFreeTranslationPilesForColoring(), when the current section changes
 ///	to a new location, so that colouring gets done correctly at the right places
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-//void CAdapt_ItView::MakeAllPilesNonCurrent(CSourceBundle* pBundle)
 void CAdapt_ItView::MakeAllPilesNonCurrent(CLayout* pLayout)
 {
 	PileList* pList = pLayout->GetPileList();

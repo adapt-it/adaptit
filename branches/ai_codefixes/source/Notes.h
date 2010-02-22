@@ -69,17 +69,30 @@ class CNotes : public wxEvtHandler
 		// (edb 17 Feb 2010) BUGBUG: these were protected in Adapt_ItView; does it make sense to friend
 		// the view class?
 		void OnButtonCreateNote(wxCommandEvent& WXUNUSED(event));
-		void OnUpdateButtonCreateNote(wxUpdateUIEvent& event);
-		void OnUpdateButtonPrevNote(wxUpdateUIEvent& event);
-		void OnUpdateButtonNextNote(wxUpdateUIEvent& event);
 		void OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event));
-		void OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event);
 		void OnButtonNextNote(wxCommandEvent& WXUNUSED(event));
 		void OnButtonPrevNote(wxCommandEvent& WXUNUSED(event));
 		void OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event));
-		void OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event);
 		void OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event));
+		// update handlers...
+		void OnUpdateButtonCreateNote(wxUpdateUIEvent& event);
+		void OnUpdateButtonPrevNote(wxUpdateUIEvent& event);
+		void OnUpdateButtonNextNote(wxUpdateUIEvent& event);
+		void OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event);
+		void OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event);
 		void OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event);
+
+	private:
+		// private body functions for the On...() update handlers - these need to be called
+		// on the actual instance of CNotes which the app maintains in its m_pNotes member
+		void UpdateButtonCreateNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+		void UpdateButtonPrevNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+		void UpdateButtonNextNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+		void UpdateButtonDeleteAllNotes(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+		void UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+		void UpdateEditMoveNoteBackward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
+
+
 		
 	private:
 		CAdapt_ItApp*	m_pApp;	// The app owns this

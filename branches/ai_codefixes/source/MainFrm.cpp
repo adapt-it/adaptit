@@ -2853,6 +2853,7 @@ void CMainFrame::OnViewComposeBar(wxCommandEvent& WXUNUSED(event))
 	ComposeBarGuts();
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CMainFrame::ComposeBarGuts()
 {
 	if (m_pComposeBar == NULL)

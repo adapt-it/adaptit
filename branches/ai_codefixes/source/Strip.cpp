@@ -73,6 +73,8 @@ extern bool		gbRTL_Layout;
 /// This global is defined in Adapt_It.cpp.
 extern struct PageOffsets pgOffsets;
 
+// BEW 22Feb10 no changes to any functions needed for support of _DOCVER5
+
 // *******************************************************************
 // Construction/Destruction
 // *******************************************************************
@@ -150,6 +152,7 @@ void CStrip::Draw(wxDC* pDC)
 // the document end has been reached (passing in the iterator avoids having to have a
 // PileList::Item() call at the start of the function, so time is saved when setting up the
 // strips for a whole document)
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -437,6 +440,7 @@ PileList::Node* CStrip::CreateStrip(PileList::Node*& pos, int nStripWidth, int g
 // The value returned is a count of how many CPile pointers were placed in the current
 // strip, there will always be at least one - empty strips are illegal; the function
 // should not be called if there are no more piles to be placed.
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 int CStrip::CreateStrip(int nInitialPileIndex, int nEndPileIndex, int nStripWidth, int gap)
 {
 	m_nFree = nStripWidth;
@@ -761,8 +765,6 @@ bool CStrip::GetValidityFlag()
 {
 	return m_bValid;
 }
-
-
 
 // use GetStripRect_CellsOnly() to set a local strip rectangle which bounds the enclosed
 // cells only, that is, omitting the free translation rectangle if gbFreeTranslationMode is

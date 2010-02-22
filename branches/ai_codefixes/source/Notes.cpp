@@ -80,6 +80,8 @@ CNotes::CNotes(CAdapt_ItApp* app)
 {
 	wxASSERT(app != NULL);
 	m_pApp = app;
+	m_pLayout = m_pApp->m_pLayout;
+	m_pView = m_pApp->GetView();
 }
 
 CNotes::~CNotes()
@@ -90,14 +92,15 @@ CNotes::~CNotes()
 // Utility functions
 CLayout* CNotes::GetLayout()
 {
-	m_pLayout = m_pApp->m_pLayout;
+	//m_pLayout = m_pApp->m_pLayout;
 	return m_pLayout;
 }
 
 CAdapt_ItView* CNotes::GetView()	// ON APP
 {
-	m_pLayout = m_pApp->m_pLayout;
-	return m_pLayout->m_pView;
+	//m_pLayout = m_pApp->m_pLayout;
+	//return m_pLayout->m_pView;
+	return m_pView;
 }
 
 
@@ -120,6 +123,8 @@ CAdapt_ItView* CNotes::GetView()	// ON APP
 bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, 
 								  wxString& strNote)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	// refactored 7Apr09 - only needed GetMaxIndex() call
     // pSrcPhrases has to be the m_pSourcePhrases list, or a list of CSourcePhrase
     // instances where the list index stays in synch with the stored m_nSequNumber value in
@@ -179,6 +184,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN,
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
+	m_pApp = &wxGetApp(); // needed
 	
 	// first check the editable span
 	int nStartAt = pRec->nStartingSequNum;
@@ -307,6 +313,8 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::DeleteAllNotes()
 {
+	m_pApp = &wxGetApp(); // needed
+
 	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
@@ -370,6 +378,8 @@ void CNotes::DeleteAllNotes()
 bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, 
 							  wxString& noteStr, int& nStartOffset, int& nEndOffset)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	// get a str variable containing the rest, beginning at the start 
 	// of the matched first word
 	wxString str = noteStr.Mid(nStartOffset);
@@ -510,6 +520,8 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards)
 {
+	m_pApp = &wxGetApp(); // needed?
+
 	// BEW created 29May08
 	wxString errStr;
 	// BEW changed 19Jun09, because of the possibility of editing resulting in the loss of
@@ -604,6 +616,8 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum,
 							  WordList*& pSearchList,int numWords, int& nStartOffset, 
 							  int& nEndOffset)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	int sn = nCurrentlyOpenNote_SequNum;
 	sn++; // start looking from the next pSrcPhrase in the list
 	
@@ -787,9 +801,10 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum,
 /// follNotesMoveSpanList and precNotesMoveSpanList members.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
 /////////////////////////////////////////////////////////////////////////////////
-bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, 
-							   WhichContextEnum context)
+bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	wxString errStr;
 	int nEditSpanStartingSN = pRec->nStartingSequNum;
 	int nEditSpanEndingSN;
@@ -925,6 +940,8 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec,
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 {
+	m_pApp = &wxGetApp(); // needed?
+
     // BEW added 30May08 in support of the source text editing step of the 
     // vertical editing process
     // BEW changed 19Jun09, because editing may have removed some of doc's end, including
@@ -959,6 +976,8 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit;
 	
@@ -1154,6 +1173,8 @@ else
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit;
 	
@@ -1322,6 +1343,8 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
 	wxString noteStr;
@@ -1374,7 +1397,9 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenFirstNote()
 {
-    // is a note dialog open, if so - close it (and invoke the OK button's handler) it's
+	m_pApp = &wxGetApp(); // needed
+
+	// is a note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look forward for the
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
@@ -1395,7 +1420,9 @@ void CNotes::MoveToAndOpenFirstNote()
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenLastNote()
 {
-    // is a note dialog open, if so - close it (and invoke the OK button's handler) it's
+	m_pApp = &wxGetApp(); // needed
+
+	// is a note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look backward for the
     // last one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
@@ -1437,9 +1464,10 @@ void CNotes::MoveToAndOpenLastNote()
 /// notes to be placed, the caller will attempt to move the note which is the right bound
 /// to the right to create the needed gaps.)
 /////////////////////////////////////////////////////////////////////////////////
-bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, 
-											int nLeftBoundSN)
+bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
+	m_pApp = &wxGetApp(); // needed?
+
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
 	int aSequNum;
@@ -1497,6 +1525,8 @@ bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList,
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	wxArrayInt arrUnsqueezedLocations; // for those locations for which the old sequence
 	// numbers are still valid, and in the edit span (in its final form)
 	wxArrayInt arrSqueezedLocations; // for those locations for which the old sequence
@@ -1984,6 +2014,8 @@ en:	;
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
 	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
@@ -2035,9 +2067,10 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 /// CSourcePhrase without a Note after the consecutive series ends. The function can be 
 /// used even when the location passed in is the only one which has a stored Note.
 /////////////////////////////////////////////////////////////////////////////////
-bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, 
-																 int nFirstNoteSN)
+bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
+	m_pApp = &wxGetApp(); // needed
+
 	// refactored 7Apr09 - only needed GetMaxIndex() call
     // BEW added 30May08 in support of the source text editing step of the vertical editing
     // process first compile an array of consecutive note locations which need to be
@@ -2112,6 +2145,8 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases,
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp = &wxGetApp(); // needed
+
 	CPile* pPile = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
 	gnOldSequNum = m_pApp->m_nActiveSequNum; // save it, to be safe
@@ -2191,6 +2226,13 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->UpdateButtonCreateNote(event, pApp);
+}
+
+void CNotes::UpdateButtonCreateNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
+{
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
@@ -2201,23 +2243,23 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pActivePile == NULL)
+	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pNoteDlg != NULL)
+	if (pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, 
 		// so we can't open another until it is closed
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
+		CCellList::Node* pos = pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
 			CPile* pPile = pos->GetData()->GetPile();
@@ -2240,7 +2282,7 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 		return;
 	}
-	if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
+	if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown())
 	{
 		// if the phrase box is visible, then enable
 		event.Enable(TRUE);
@@ -2256,6 +2298,7 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp = &wxGetApp(); // needed
 	
     // is the note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look forward for the
@@ -2293,12 +2336,19 @@ void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->UpdateButtonPrevNote(event, pApp);
+}
+
+void CNotes::UpdateButtonPrevNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
+{
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (!m_pApp->m_bNotesExist)
+	if (!pApp->m_bNotesExist)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2308,26 +2358,26 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_bFreeTranslationMode)
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
         // if there is a selection, then disable the button (doing the jump
         // and ignoring a selection might be confusing to some users)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pNoteDlg != NULL)
+	if (pApp->m_pNoteDlg != NULL)
 	{
 		// there is a note dialog open, but the button handler 
 		// will close it before jumping
 		event.Enable(TRUE);
 	}
-	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown()
-		&& m_pApp->m_bNotesExist)
+	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown()
+		&& pApp->m_bNotesExist)
 	{
 		// if the phrase box is visible and there are notes 
 		// in the document, then enable
@@ -2345,6 +2395,7 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp = &wxGetApp(); // needed
 	
     // is the note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look forward for the
@@ -2379,12 +2430,19 @@ void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->UpdateButtonNextNote(event, pApp);
+}
+
+void CNotes::UpdateButtonNextNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
+{
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (!m_pApp->m_bNotesExist)
+	if (!pApp->m_bNotesExist)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2394,26 +2452,26 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_bFreeTranslationMode)
+	if (pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
 		// if there is a selection, then disable the button (doing the jump
 		// and ignoring a selection might be confusing to some users)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pNoteDlg != NULL)
+	if (pApp->m_pNoteDlg != NULL)
 	{
 		// there is a note dialog open, but the button handler 
 		// will close it before jumping
 		event.Enable(TRUE);
 	}
-	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown()
-		&& m_pApp->m_bNotesExist)
+	if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown()
+		&& pApp->m_bNotesExist)
 	{
 		// if the phrase box is visible and there are notes 
 		// in the document, then enable
@@ -2431,6 +2489,8 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp = &wxGetApp(); // needed
+
 	// IDS_ABOUT_TO_DELETE_NOTES
 	if(wxMessageBox(_(
 					  "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
@@ -2464,12 +2524,19 @@ void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->UpdateButtonDeleteAllNotes(event, pApp);
+}
+
+void CNotes::UpdateButtonDeleteAllNotes(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
+{
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (!m_pApp->m_bNotesExist)
+	if (!pApp->m_bNotesExist)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2479,13 +2546,13 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pActivePile == NULL)
+	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown()
-		&& m_pApp->m_bNotesExist)
+	if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown()
+		&& pApp->m_bNotesExist)
 	{
 		// if the phrase box is visible and there are notes 
 		// in the document, then enable
@@ -2502,7 +2569,9 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 {
-    // Since the Move Note Forward menu item has an accelerator table hot key (CTRL-3 see
+	m_pApp = &wxGetApp(); // needed
+
+	// Since the Move Note Forward menu item has an accelerator table hot key (CTRL-3 see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
@@ -2658,12 +2727,19 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->UpdateEditMoveNoteForward(event, pApp);
+}
+
+void CNotes::UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
+{
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = pApp->m_pSourcePhrases;
 	SPList::Node* tgtPos; 
 	CSourcePhrase* pTgtSrcPhrase;
 	if (gbShowTargetOnly)
@@ -2671,23 +2747,23 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pActivePile == NULL)
+	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pNoteDlg != NULL)
+	if (pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, 
 		// so we can't move one until it is closed
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
+		CCellList::Node* pos = pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
 			CPile* pPile = ((CCell*)pos->GetData())->GetPile();
@@ -2697,7 +2773,7 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 			{
                 // has a note, so it can be moved forward, provided there is something
                 // forward to receive it and it does not already contain a note
-				if (pSrcPhrase->m_nSequNumber < m_pApp->GetMaxIndex())
+				if (pSrcPhrase->m_nSequNumber < pApp->GetMaxIndex())
 				{
 					tgtPos = pList->Item(pSrcPhrase->m_nSequNumber); 
 					pTgtSrcPhrase = (CSourcePhrase*)tgtPos->GetData(); // abandon this one
@@ -2731,14 +2807,14 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 	{
 		// check out if there is a note at the active location
 		
-		if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
+		if (pApp->m_pTargetBox != NULL && pApp->m_pTargetBox->IsShown())
 		{
             // enable the button only if there is a note at the active location and there
             // is at least one sourcephrase ahead to form the target one for the move
-			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
-				if (pSrcPhrase->m_nSequNumber < m_pApp->GetMaxIndex())
+				if (pSrcPhrase->m_nSequNumber < pApp->GetMaxIndex())
 				{
 					// there is an instance ahead
 					tgtPos = pList->Item(pSrcPhrase->m_nSequNumber); 
@@ -2778,6 +2854,8 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 {
+	m_pApp = &wxGetApp(); // needed
+
     // Since the Move Note Backward menu item has an accelerator table hot key (CTRL-2 see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.
@@ -2932,12 +3010,19 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->UpdateEditMoveNoteBackward(event, pApp);
+}
+
+void CNotes::UpdateEditMoveNoteBackward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
+{
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = pApp->m_pSourcePhrases;
 	SPList::Node* tgtPos;
 	CSourcePhrase* pTgtSrcPhrase;
 	if (gbShowTargetOnly)
@@ -2945,22 +3030,22 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pActivePile == NULL)
+	if (pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_pNoteDlg != NULL)
+	if (pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, so we can't move one until it is closed
 		event.Enable(FALSE);
 		return;
 	}
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note, enable the
         // button, but if it does then disable the button
-		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
+		CCellList::Node* pos = pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
 			CPile* pPile = ((CCell*)pos->GetData())->GetPile();
@@ -3006,11 +3091,11 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 	{
 		// check out if there is a note at the active location
 		
-		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
+		if (pApp->m_pTargetBox->GetHandle() != NULL && pApp->m_pTargetBox->IsShown())
 		{
             // enable the button only if there is a note at the active location and there
             // is at least one sourcephrase earlier to form the target one for the move
-			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
+			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
 				if (pSrcPhrase->m_nSequNumber > 0)

@@ -8318,6 +8318,7 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 /// that exist in the string. Strips out multiple sets of bracketing filter markers if found
 /// in the string. If src does not have any \~FILTER and \~FILTER* bracketing markers, src is
 /// returned unchanged. Trims off any remaining space at left end of the returned string.
+/// BEW 22Feb10, no changes for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 {

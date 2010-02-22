@@ -169,10 +169,10 @@ public:
 	// new attributes for VERSION_NUMBER 4, for supporting free translations, notes and bookmarks
 	bool			m_bHasFreeTrans; // TRUE whenever this sourcephrase is associated with a free translation
 	bool			m_bStartFreeTrans; // TRUE if this sourcephrase is the first in a free translation
-									   // section - this is the one which stores its text, filtered, in m_markers
+									   // section - this is the one which stores its text, in m_freeTrans
+									   // (considered filtered)
 	bool			m_bEndFreeTrans; // TRUE if this sourcephrase is the last in a free translation
-	bool			m_bHasNote; // TRUE if this sourcephrase contains a note (in m_markers, filtered, with
-								// marker \note and endmarker \note*)
+	bool			m_bHasNote; // TRUE if this sourcephrase contains a note (in m_note, considered filtered)
 	bool			m_bHasBookmark; // TRUE if this sourcephrase is bookmarked (this member is its sole exponent)
 
     // BEW added 9Feb10, extra wxString members for refactoring support for free

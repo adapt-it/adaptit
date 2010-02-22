@@ -1718,10 +1718,12 @@ public:
 	CFreeTrans*	m_pFreeTrans;
 #endif	// _FREETR
 
-#ifdef _NOTES
 private:
+#ifdef _NOTES
 	CNotes* m_pNotes;
+#endif
 public:
+#ifdef _NOTES
 	CNotes* GetNotes();
 #endif // _NOTES
 

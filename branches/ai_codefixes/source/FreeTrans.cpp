@@ -178,14 +178,26 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 ///                     marker FALSE otherwise
 /// \param	pPile	->	pointer to the pile which stores the pSrcPhrase pointer being 
 ///                     examined
+/// \remarks
+/// BEW 22Feb10 changes needed for support of _DOCVER5. To support empty free translation
+/// sections we need to also test for m_bHasFreeTrans with value TRUE; and for docVersion
+/// = 5, we look for content in the m_freeTrans member, no longer in m_markers
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::ContainsFreeTranslation(CPile* pPile)
 {
+#if defined (_DOCVER5)
+	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
+	if (pSrcPhrase->m_bHasFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+		return TRUE;
+	else
+		return FALSE;
+#else
 	wxString markers = pPile->GetSrcPhrase()->m_markers;
 	if (markers.IsEmpty())
 		return FALSE;
 	int curPos = markers.Find(_T("\\free"));
 	return curPos > 0;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1023,6 +1035,7 @@ c:	pPile = m_pView->GetNextPile(pPile);
 // or the m_bHasGlossingKBEntry flag when glossing mode is on, and if there is an
 // adaptation (or gloss) there when the phrase box is subsequently moved, we must make sure
 // the flag has the appropriate value
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 {
 	if (gbIsGlossing)
@@ -1072,7 +1085,7 @@ void CFreeTrans::FixKBEntryFlag(CSourcePhrase* pSrcPhr)
 /// not yet been adapted, because then there is no target text to examine! So when the
 /// m_targetStr member is empty, we will indeed instead check for a non-empty m_follPunct
 /// member!
-/// BEW 19Feb120, no changes needed for support of _DOCVER5
+/// BEW 19Feb10, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase, 
 											wxString& punctSet)
@@ -1457,6 +1470,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->AdvancedFreeTranslationMode(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::AdvancedFreeTranslationMode(CAdapt_ItApp* pApp, CMainFrame* pMainFrm,CAdapt_ItView* pView)
 {
 	wxASSERT(pMainFrm != NULL);
@@ -1467,11 +1481,6 @@ void CFreeTrans::AdvancedFreeTranslationMode(CAdapt_ItApp* pApp, CMainFrame* pMa
 	wxASSERT(pAdvancedMenuFTMode != NULL);
 	gbSuppressSetup = FALSE; // setdefault value
 	CLayout* pLayout = pApp->GetLayout();
-
-	// BEW added 17Feb10, because for some reason the canvass class's pView and pFrame
-	// pointers are not set
-	//pLayout->m_pCanvas->pFrame = pFrame;
-	//pLayout->m_pCanvas->pView = pView;
 
     // determine if the document is unstructured or not -- we'll need this set or cleared
     // as appropriate because in free translation mode the user may elect to end sections
@@ -1524,11 +1533,7 @@ void CFreeTrans::AdvancedFreeTranslationMode(CAdapt_ItApp* pApp, CMainFrame* pMa
         // free translation mode was just turned on. The phrase box might happen to be
         // located within a previously composed section of free translation, but not at
         // that section's anchor point, so we must check for this and if so, iterate back
-        // over the piles until we get to the anchor point - but we may come to the start
-        // of the bundle before we get there, so we have to do a bundle retreat in that
-        // event - all this is handled in the block below (comments will be minimal because
-        // this code is taken from the fully commented code for doing the same, in
-        // OnLButtonDown())
+        // over the piles until we get to the anchor point
 		CPile* pPile = pApp->m_pActivePile; // current box location
 		CSourcePhrase* pSP = pPile->GetSrcPhrase();
 		CKB* pKB;
@@ -1762,6 +1767,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	pFreeTrans->AdvancedRemoveFilteredFreeTranslations(pApp, pDoc, pView);
 }
 
+// BEW 22Feb10 some changes done for support of _DOCVER5
 void CFreeTrans::AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView)
 {
     // whm added 23Jan07 check below to determine if the doc has any free translations. If
@@ -1817,8 +1823,12 @@ void CFreeTrans::AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAda
 	SPList::Node* pos = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase;
 
+#if !defined (_DOCVER5)
 	wxString mkr = _T("\\free"); // enough for standard or derived 
 								 // backtranslation markers
+#else
+	wxString emptyStr = _T("");
+#endif
 
     // do the loop, removing the free translations, their filter marker wrappers also, and
     // clearing the document's free translation flags on the CSourcePhrase instances
@@ -1832,6 +1842,9 @@ void CFreeTrans::AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAda
 		pSrcPhrase->m_bStartFreeTrans = FALSE;
 		pSrcPhrase->m_bEndFreeTrans = FALSE;
 
+#if defined (_DOCVER5)
+		pSrcPhrase->SetFreeTrans(emptyStr);
+#else
 		// handle removal from m_markers member
 		if (pSrcPhrase->m_markers.IsEmpty())
 		{
@@ -1847,6 +1860,7 @@ void CFreeTrans::AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAda
 															// pointing past \free
 			}
 		} // end block for non-empty m_markers
+#endif
 	} // end while loop
 	pView->Invalidate();
 	pApp->GetLayout()->PlaceBox();
@@ -1864,6 +1878,7 @@ void CFreeTrans::AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAda
 /// and before the menu is displayed. The "Remove Filtered Back Translations" item on the
 /// Advanced menu is disabled if there are no source phrases in the App's m_pSourcePhrases
 /// list, or the active KB pointer is NULL, otherwise the menu item is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event)
 {
@@ -1872,6 +1887,7 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent&
 	pFreeTrans->UpdateAdvancedRemoveFilteredBacktranslations(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (gbVerticalEditInProgress)
@@ -1893,7 +1909,8 @@ void CFreeTrans::UpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& e
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
 /// and before the menu is displayed. The "Remove Filtered Free Translations" item on the
 /// Advanced menu is disabled if there are no source phrases in the App's m_pSourcePhrases
-/// list, or the active KB pointer is NULL, otherwise the menu item is enabled. 
+/// list, or the active KB pointer is NULL, otherwise the menu item is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event)
 {
@@ -1902,6 +1919,7 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 	pFreeTrans->UpdateAdvancedRemoveFilteredFreeTranslations(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (gbVerticalEditInProgress)
@@ -2253,8 +2271,9 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 			// 1Apr09 as wxMac gets here on frame size event and pPileArray has 0 items
 		{
 #ifdef _DOCVER5
-			CPile* pPile;
-			pPile = pFirstPile;
+			pLastPile = NULL; // set null for now, it is given its value at the end
+			pFirstPile = (CPile*)pPileArray->Item(0);
+			CPile* pPile = pFirstPile;
 			pFirstPile->GetSrcPhrase()->SetFreeTrans(storeStr);
 #else
             // get the box's current contents & remove spaces at end or start (one will
@@ -2398,6 +2417,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 // the following is based on StoreFreeTranslation() and OnPrevButton() but tweaked for use
 // at the point in the vertical edit process where control is about to leave the
 // freeTranslationsStep and so the current free translation needs to be made to 'stick'
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::StoreFreeTranslationOnLeaving()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -2522,6 +2542,7 @@ a:	text.Remove(text.Length() - 1,1);
 ///    by fScale being done - we want to do this when scaling has cut a free translation
 ///    string too early and the last rectangle's text got truncated - so we want a second
 ///    run with no scaling so that we minimize the possibility of truncation being needed
+///    BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 									 wxString&	str,
@@ -2634,6 +2655,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::ToggleFreeTranslationMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -2747,6 +2769,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 }
 
 // handler for the IDC_APPLY_BUTTON, renamed Advance after first being called Apply
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -2756,6 +2779,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 	pFreeTrans->AdvanceButton(event, pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::AdvanceButton(wxCommandEvent& event,
 							CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
@@ -2936,6 +2960,7 @@ void CFreeTrans::AdvanceButton(wxCommandEvent& event,
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -2945,6 +2970,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->NextButton(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::NextButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten or 
@@ -3068,6 +3094,7 @@ void CFreeTrans::NextButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItV
 
 // whm revised 24Aug06 to allow Prev button to move back to the previous actual or
 // potential free translation segment in the text
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3077,6 +3104,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->PrevButton(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::PrevButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten 
@@ -3396,6 +3424,7 @@ void CFreeTrans::PrevButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItV
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3405,6 +3434,7 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->RemoveFreeTranslationButton(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10, changes done for support of _DOCVER5
 void CFreeTrans::RemoveFreeTranslationButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
@@ -3519,6 +3549,7 @@ void CFreeTrans::RemoveFreeTranslationButton(CAdapt_ItApp* pApp, CMainFrame* pMa
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3528,6 +3559,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->LengthenButton(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::LengthenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from wiping
@@ -3575,8 +3607,7 @@ void CFreeTrans::LengthenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt
 				if (pApp->m_bTargetIsDefaultFreeTrans || pApp->m_bGlossIsDefaultFreeTrans)
 				{
 					// do the composition from the section's target text
-					tempStr = ComposeDefaultFreeTranslation(
-														m_pCurFreeTransSectionPileArray);
+					tempStr = ComposeDefaultFreeTranslation(m_pCurFreeTransSectionPileArray);
 					pEdit->ChangeValue(tempStr); // show it in the ComposeBar's edit box
 				}
 			}
@@ -3604,6 +3635,7 @@ void CFreeTrans::LengthenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt
 /// application is not in Free Translation mode, or if the active pile pointer is NULL, or
 /// if the active sequence number is negative (-1). But the button is enabled as long as
 /// there is at least one pile left.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 {
@@ -3612,6 +3644,7 @@ void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateShortenButton(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateShortenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (!pApp->m_bFreeTranslationMode)
@@ -3636,6 +3669,7 @@ void CFreeTrans::UpdateShortenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 		event.Enable(TRUE);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3645,6 +3679,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->ShortenButton(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::ShortenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from 
@@ -3727,7 +3762,6 @@ void CFreeTrans::ShortenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_
 	}
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the Update Idle 
@@ -3740,6 +3774,7 @@ void CFreeTrans::ShortenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_
 /// extend the next free translation segment past the end of a bundle or the doc, and if it
 /// won't extend beyond some significant marker, or encroach on an already defined free
 /// translation.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 {
@@ -3749,6 +3784,7 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateLengthenButton(event, pApp, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView)
 {
 	//bool bOwnsFreeTranslation;
@@ -3768,7 +3804,7 @@ void CFreeTrans::UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp
     // crash the app, so we won't allow lengthening if there is no array defined yet
 	if (m_pCurFreeTransSectionPileArray->IsEmpty()) // && !IsFreeTranslationSrcPhrase(m_pActivePile))
 	{
-		wxLogDebug(_T("OnUpdateLengthenButton: exit at test for empty pile array"));
+		//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for empty pile array"));
 		event.Enable(FALSE);
 		return;
 	}
@@ -3778,7 +3814,7 @@ void CFreeTrans::UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp
 	pPile = pView->GetNextPile(pPile); // get the pile immediately after the current end
 	if (pPile == NULL)
 	{
-		wxLogDebug(_T("OnUpdateLengthenButton: exit at test for next pile empty"));
+		//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for next pile empty"));
 		// if at the end of bundle or doc, disable the button
 		event.Enable(FALSE);
 		return;
@@ -3795,14 +3831,14 @@ void CFreeTrans::UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp
             // markers or filtered stuff must end the section (for example, we can't
             // allow the possibility of unfiltering producing new content within a free
             // translation section)
-			wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
+			//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for marker following"));
 			event.Enable(FALSE);
 			return;
 		}
 		// also, we can't lengthen if there is a defined section following
 		if (pPile->GetSrcPhrase()->m_bStartFreeTrans)
 		{
-			wxLogDebug(_T("OnUpdateLengthenButton: exit at test for ft section starting at next pile"));
+			//wxLogDebug(_T("OnUpdateLengthenButton: exit at test for ft section starting at next pile"));
 			event.Enable(FALSE);
 		}
 		else
@@ -3825,6 +3861,7 @@ void CFreeTrans::UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp
 /// target text, or there are no source phrases in the App's m_pSourcePhrases list. But, if
 /// m_curIndex is within a valid range and the composeBar was not already opened for
 /// another purpose (called from the View), the menu item is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 {
@@ -3833,6 +3870,7 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateAdvancedFreeTranslationMode(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (gbVerticalEditInProgress)
@@ -3869,6 +3907,7 @@ void CFreeTrans::UpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event, CAdap
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3877,6 +3916,7 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->AdvancedTargetTextIsDefault(pApp, pMainFrm);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::AdvancedTargetTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm)
 {
 	wxASSERT(pMainFrm != NULL);
@@ -3925,6 +3965,7 @@ void CFreeTrans::AdvancedTargetTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMa
 /// App's m_pSourcePhrases list. But, if m_curIndex is within a valid range and the
 /// composeBar was not already opened for another purpose (called from the View), the menu
 /// item is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 {
@@ -3933,6 +3974,7 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateAdvancedTargetTextIsDefault(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (pApp->m_pActivePile == NULL)
@@ -3960,6 +4002,7 @@ void CFreeTrans::UpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event, CAdap
 		event.Enable(FALSE);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -3968,6 +4011,7 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->AdvancedGlossTextIsDefault(pApp, pMainFrm);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::AdvancedGlossTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm)
 {
 	wxASSERT(pMainFrm != NULL);
@@ -4017,6 +4061,7 @@ void CFreeTrans::AdvancedGlossTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMai
 /// m_pSourcePhrases list. But, if m_curIndex is within a valid range and the composeBar
 /// was not already opened for another purpose (called from the View), the menu item is
 /// enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 {
@@ -4025,6 +4070,7 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateAdvancedGlossTextIsDefault(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (pApp->m_pActivePile == NULL)
@@ -4052,6 +4098,7 @@ void CFreeTrans::UpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event, CAdapt
 		event.Enable(FALSE);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -4061,6 +4108,7 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->RadioDefineByPunctuation(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::RadioDefineByPunctuation(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	wxASSERT(pMainFrm != NULL);
@@ -4101,6 +4149,7 @@ void CFreeTrans::RadioDefineByPunctuation(CAdapt_ItApp* pApp, CMainFrame* pMainF
 	}
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -4110,6 +4159,7 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 	pFreeTrans->RadioDefineByVerse(pApp, pMainFrm, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::RadioDefineByVerse(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
 {
 	wxASSERT(pMainFrm != NULL);
@@ -4165,6 +4215,7 @@ void CFreeTrans::RadioDefineByVerse(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CA
 /// is disabled if the application is not in Free Translation mode, or if the active pile
 /// pointer is NULL, or if the active sequence number is negative (-1), otherwise the
 /// button is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 {
@@ -4173,6 +4224,7 @@ void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateNextButton(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateNextButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	if (!pApp->m_bFreeTranslationMode)
@@ -4198,6 +4250,7 @@ void CFreeTrans::UpdateNextButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /// disabled if the application is not in Free Translation mode, or if the active pile
 /// pointer is NULL, or if the active sequence number is negative (-1), or if the pile
 /// previous to the active pile is NULL, otherwise the button is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 {
@@ -4207,6 +4260,7 @@ void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 	pFreeTrans->UpdatePrevButton(event, pApp, pView);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdatePrevButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView)
 {
 	if (!pApp->m_bFreeTranslationMode)
@@ -4239,6 +4293,7 @@ void CFreeTrans::UpdatePrevButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CA
 /// application is not in Free Translation mode, or if the active pile pointer is NULL, or
 /// if the active sequence number is negative (-1), or if the active pile does not own the
 /// free translation, otherwise the button is enabled.
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 {
@@ -4247,6 +4302,7 @@ void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 	pFreeTrans->UpdateRemoveFreeTranslationButton(event, pApp);
 }
 
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CFreeTrans::UpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 {
 	bool bOwnsFreeTranslation;
@@ -4282,6 +4338,7 @@ void CFreeTrans::UpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event, CAdap
 ///	Draw() is called on the CCell instances) -- use after making a call to
 ///	MakeAllPilesNonCurrent() when the current section moves to a new location
 ///	or is changed in size
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray)
 {
@@ -4312,6 +4369,7 @@ void CFreeTrans::MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray)
 ///    free translation text in the client area, and so we need this function to clear out
 ///    the array each time we come to the next section of the free translation. 
 ///    Used by DrawFreeTranslations().
+///    BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 {
@@ -4357,6 +4415,7 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /// strips from the kick off location, so care must be exercised in coding the free
 /// translation functionality to ensure this constraint is never violated. (see change of
 /// 14July below, for example)
+/// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 {

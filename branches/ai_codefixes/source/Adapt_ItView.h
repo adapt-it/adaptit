@@ -261,8 +261,11 @@ public:
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile); // BEW added 24Jun05
 						// moved to public GDLC 2010-02-15
 #endif	// _FREETR
+#ifndef _DOCVER5
+	// moved to helpers.cpp
 	bool		IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
 	bool		IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
+#endif
 	bool		IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool		IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	bool		IsUnstructuredData(SPList* pList);

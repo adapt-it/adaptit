@@ -71,6 +71,10 @@ public:
 	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile);
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
+
+	// the next group are the 22 event handlers (the body of each has been made into a
+	// private function - called after the pointer to the single instance of CFreeTrans
+	// has been computed)
 	void		OnAdvanceButton(wxCommandEvent& event);
 	void		OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
@@ -93,6 +97,7 @@ public:
 	void		OnUpdatePrevButton(wxUpdateUIEvent& event);
 	void		OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event);
 	void		OnUpdateShortenButton(wxUpdateUIEvent& event);
+
 	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
 					enum EditBoxContents editBoxContents, const wxString& mkrStr);
 	void		StoreFreeTranslationOnLeaving();

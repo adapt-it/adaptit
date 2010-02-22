@@ -215,9 +215,30 @@ int CPile::GetPileIndex()
 	return m_nPile;
 }
 
+// BEW 22Feb10 changes done for support of _DOCVER5 
+// (The function is now slightly misnamed because no longer is all that is considered
+// "filtered" actually stored with an SF marker. Notes, free translations and collected
+// back translations are now just stored as simple strings - we only put a marker with
+// these info types when/if we export them or show them in the view filtered material
+// dialog. However, we'll keep the old name unchanged; but if we do someday change it, we
+// should call it HasFilteredInfo())
 bool CPile::HasFilterMarker()
 {
+#if defined (_DOCVER5)
+	if (
+		!m_pSrcPhrase->GetFilteredInfo().IsEmpty() ||
+		!m_pSrcPhrase->GetFreeTrans().IsEmpty() ||
+		!m_pSrcPhrase->GetNote().IsEmpty() ||
+		!m_pSrcPhrase->GetCollectedBackTrans().IsEmpty() ||
+		m_pSrcPhrase->m_bStartFreeTrans ||
+		m_pSrcPhrase->m_bHasNote
+		)
+		return TRUE;
+	else
+		return FALSE;
+#else
 	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
+#endif
 }
 
 void CPile::SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection)
@@ -486,6 +507,7 @@ void CPile::SetPhraseBoxGapWidth(int nNewWidth)
 	m_nWidth = nNewWidth; // a useful overload, for when the phrase box is contracting
 }
 
+// BEW 22Feb10 some changes done for support of _DOCVER5
 void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 {
 	bool bRTLLayout;
@@ -595,10 +617,17 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 		// next stuff is for the green wedge - it should be shown at the left or the right
 		// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather
 		// than using the nav text's directionality
+#if defined (_DOCVER5)
+		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
+			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
+			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
+			|| bHasFilterMarker)
+#else
 		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
 			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
 			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
 			|| m_pSrcPhrase->m_markers.Find(filterMkr) != -1)
+#endif
 		{
 			wxPoint pt;
 			TopLeft(pt); //pt = m_ptTopLeft;
@@ -654,6 +683,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
                 // contentless (as khaki), or if \bt is contentless (as pastel blue), or if
                 // both are contentless (as red)
 #ifdef _DOCVER5
+				// these functions are now defined in helpers.cpp
 				bool bFreeHasNoContent = IsFreeTranslationContentEmpty(m_pSrcPhrase);
 				bool bBackHasNoContent = IsBackTranslationContentEmpty(m_pSrcPhrase);
 #else
@@ -893,6 +923,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 // return TRUE if the CSourcePhrase pointed at by this CPile is one which has a marker
 // which causes text wrap in a USFM-marked up document (eg. \p, \m, etc)
+// BEW 22Feb10, no changes for support of _DOCVER5 (but the called function,
+// IsWrapMarker() does have changes for _DOCVER5)
 bool CPile::IsWrapPile()
 {
 	CSourcePhrase* pSrcPhrase = this->m_pSrcPhrase;
@@ -912,6 +944,7 @@ bool CPile::IsWrapPile()
 	return FALSE;
 }
 
+// BEW 22Feb10, no changes for support of _DOCVER5
 void CPile::PrintPhraseBox(wxDC* pDC)
 {
 	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
@@ -979,6 +1012,7 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 	}
 }
 
+// BEW 22Feb10, no changes for support of _DOCVER5
 void CPile::Draw(wxDC* pDC)
 {
 	// draw the cells this CPile instance owns, MAX_CELLS = 3

@@ -4822,6 +4822,7 @@ bool CPhraseBox::GetModify()
 }
 
 // the pPile pointer passed it must be the pointer to the active pile
+// BEW 22Feb10 no changes needed for support of _DOCVER5
 void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
 {
 	// refactored 2Apr09
