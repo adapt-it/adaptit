@@ -14140,12 +14140,20 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFac
             // (!m_bConfigFileHasFontEncodingInfo)" block above will have mapped the MFC
             // fi.fCharset to an equivalent wx font encoding (stored in fi.fEncoding).
 			// set the font encoding of the actual font on the App
-			if (fi.fLangType.GetChar(0)  == _T('S'))
-				m_pSourceFont->SetEncoding(fi.fEncoding);
-			else if (fi.fLangType.GetChar(0)  == _T('T'))
-				m_pTargetFont->SetEncoding(fi.fEncoding);
-			else if (fi.fLangType.GetChar(0)  == _T('N'))
-				this->m_pNavTextFont->SetEncoding(fi.fEncoding);
+			// whm added 22Feb10 test to forego calling SetEncoding when the current instance
+			// is snooping on a different computer on the network
+			// TODO: It might be better to handle the font problem earlier when the 
+			// MakeForeignBasicConfigFilesSafe() function is called in the 
+			// SetupCustomWorkFolderLocation() function. 
+			if (!IsURI(m_curProjectPath))
+			{
+				if (fi.fLangType.GetChar(0)  == _T('S'))
+					m_pSourceFont->SetEncoding(fi.fEncoding);
+				else if (fi.fLangType.GetChar(0)  == _T('T'))
+					m_pTargetFont->SetEncoding(fi.fEncoding);
+				else if (fi.fLangType.GetChar(0)  == _T('N'))
+					this->m_pNavTextFont->SetEncoding(fi.fEncoding);
+			}
 		}
 		else if (name == szFaceName)
 		{
@@ -17041,12 +17049,15 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename, 
 										  wxString destinationFolder,int selector)
 {
-	if (m_bReadOnlyAccess)
+	if (m_bReadOnlyAccess || IsURI(destinationFolder))
 	{
 		// BEW added 13Nov09, we don't allow the local user, if he has read-only access
 		// to a remote project folder, to cause project or basic config files on the
 		// remote machine to be written because of actions done on the local machine
-		return TRUE;
+		// whm added 22Feb10, we also don't allow the local user, if he has access to a
+		// remote project folder, to write project or basic config files on the remote
+		// machine.
+		return TRUE; // TRUE to only simulate successful write in WriteConfigurationFile().
 	}
 
 	// BEW added 17Aug09, to allow OnExit() to be called without having config files
@@ -25282,6 +25293,10 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		}
 		// do the actual path fixes
 		FixBasicConfigPaths(defaultPathsFix, &f, basePath, localPath);
+
+		// whm 23Feb10. TODO: Add a helper function here called FixBasicConfigFonts() that 
+		// deals intelligently with mismatch between fonts contained in the foreign config
+		// file and those available on the local machine
 
 		#ifndef _UNICODE
 		// ANSI
