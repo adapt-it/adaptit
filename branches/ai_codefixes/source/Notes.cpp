@@ -89,7 +89,9 @@ CNotes::~CNotes()
 	//TODO: Is there any other clean up of free translation stuff that needs to be done?
 }
 
-// Utility functions
+// Utility functions (these will provide correct pointer values only when called from
+// within the class functions belonging to the single CNotes instantiation within the app
+// class)
 CLayout* CNotes::GetLayout()
 {
 	//m_pLayout = m_pApp->m_pLayout;
@@ -103,6 +105,10 @@ CAdapt_ItView* CNotes::GetView()	// ON APP
 	return m_pView;
 }
 
+CAdapt_ItApp* CNotes::GetApp()
+{
+	return m_pApp;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Methods
@@ -123,8 +129,13 @@ CAdapt_ItView* CNotes::GetView()	// ON APP
 bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, 
 								  wxString& strNote)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	return pNotes->PrivateCreateNoteAtLocation(pSrcPhrases, nLocationSN, strNote);
+}
 
+bool CNotes::PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
+{
 	// refactored 7Apr09 - only needed GetMaxIndex() call
     // pSrcPhrases has to be the m_pSourcePhrases list, or a list of CSourcePhrase
     // instances where the list index stays in synch with the stored m_nSequNumber value in
@@ -136,7 +147,8 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN,
     // defensively and return FALSE so that bailout can be done instead
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
-	if (nLocationSN > m_pApp->GetMaxIndex())
+
+	if (nLocationSN > GetApp()->GetMaxIndex())
 		return FALSE;
 	bool bHasNote = IsNoteStoredHere(pSrcPhrases, nLocationSN);
 	if (bHasNote)
@@ -144,7 +156,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN,
 		// this location has a Note already, (the caller should have checked for
 		// this and not made the call)
 		wxString errStr = _T(
-							 "There is already a Note at the passed in index, in CreateNoteAtLocation.");
+		"There is already a Note at the passed in index, in CreateNoteAtLocation.");
 		wxMessageBox(errStr, _T(""), wxICON_WARNING);
 		return FALSE;
 	}
@@ -162,7 +174,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN,
 							   nInsertionOffset,bInsertContentOnly);
 		pToSrcPhrase->m_bHasNote = TRUE;
 		// mark its owning strip as invalid
-		m_pApp->GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
+		GetApp()->GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
 	}
 	return TRUE;
 }
@@ -184,8 +196,13 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN,
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
-	m_pApp = &wxGetApp(); // needed
-	
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateCheckAndFixNoteFlagInSpans(pSrcPhrases, pRec);
+}
+
+void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
+{
 	// first check the editable span
 	int nStartAt = pRec->nStartingSequNum;
 	int nEndAt = nStartAt + pRec->nNewSpanCount - 1;
@@ -193,7 +210,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
     // this code base for next release so I've not informed him) the span may not exist, if
     // at the end of the document we deleted the source text and the phrase box was located
     // within the deleted section, so check and skip this span if it has gone
-	int maxIndex = m_pApp->GetMaxIndex();
+	int maxIndex = GetApp()->GetMaxIndex();
 	bool bDoEditSpanCheck = TRUE;
     if (nStartAt > maxIndex)
 	{
@@ -2145,29 +2162,34 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->ButtonCreateNote(pApp);
+}
 
+void CNotes::ButtonCreateNote(CAdapt_ItApp* pApp)
+{
 	CPile* pPile = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
-	gnOldSequNum = m_pApp->m_nActiveSequNum; // save it, to be safe
+	gnOldSequNum = pApp->m_nActiveSequNum; // save it, to be safe
 	
     // create the note attached to the first sourcephrase of a selection if there is one,
     // else do it at the active location
 	int nSequNum = -1;
 	CCellList* pCellList;
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of 
 		// the selection list's first element
-		pCellList = &m_pApp->m_selection;
+		pCellList = &pApp->m_selection;
 		CCellList::Node* fpos = pCellList->GetFirst();
 		pPile = fpos->GetData()->GetPile();
 		if (pPile == NULL)
 		{
 			// unlikely, so an English message will do
 			wxMessageBox(_T(
-							"A zero pile pointer was returned, the note dialog cannot be put up."),
-						 _T(""), wxICON_EXCLAMATION);
+			"A zero pile pointer was returned, the note dialog cannot be put up."),
+			_T(""), wxICON_EXCLAMATION);
 			return;
 		}
 		wxASSERT(pPile != NULL);
@@ -2179,13 +2201,13 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
         // usually wherever the phraseBox currently is located; but in the case of free
         // translation mode being current, or a note in a retranslation, the caller may
         // calculate a different pile than the active one
-		pPile = m_pApp->m_pActivePile;
+		pPile = pApp->m_pActivePile;
 		if (pPile == NULL)
 		{
 			// unlikely, so an English message will do
 			wxMessageBox(_T(
-							"A zero pile pointer was returned, the note dialog cannot be put up."),
-						 _T(""), wxICON_EXCLAMATION);
+			"A zero pile pointer was returned, the note dialog cannot be put up."),
+			_T(""), wxICON_EXCLAMATION);
 			return;
 		}
 	}
@@ -2196,21 +2218,21 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
     // set m_nSequNumBeingViewed, as the note dialog also uses it, not just the View
     // Filtered Material dialog (both dialogs cannot be open at the one time and so we can
     // safely use the one variable for the same purpose in the two functionalities)
-	m_pApp->m_nSequNumBeingViewed = nSequNum;
+	pApp->m_nSequNumBeingViewed = nSequNum;
 	GetView()->Invalidate();
 	GetLayout()->PlaceBox();
 	
 	// open the dialog so the user can type in a note
-	wxASSERT(m_pApp->m_pNoteDlg == NULL);
-	m_pApp->m_pNoteDlg = new CNoteDlg(m_pApp->GetMainFrame()); 
+	wxASSERT(pApp->m_pNoteDlg == NULL);
+	pApp->m_pNoteDlg = new CNoteDlg(pApp->GetMainFrame()); 
     // whm using the ...ByClick form of the function here doesn't make sense to me unless
     // the user purposely clicks near the phrase box location of the note and avoids
     // scrolling afterwards positioning the phrasebox. AdjustDialogPositionByClick doesn't
     // appear to avoid the phrasebox location very well which I think is more important, so
     // I'm changing the call below to use AdjustDialogPosition() which better avoids the
     // phrasebox even with scrolling. (Bill didn't do what he said. I'll leave it.)
-	GetView()->AdjustDialogPositionByClick(m_pApp->m_pNoteDlg,gptLastClick); // avoid click location
-	m_pApp->m_pNoteDlg->Show(TRUE);
+	GetView()->AdjustDialogPositionByClick(pApp->m_pNoteDlg,gptLastClick); // avoid click location
+	pApp->m_pNoteDlg->Show(TRUE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -2298,21 +2320,26 @@ void CNotes::UpdateButtonCreateNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp = &wxGetApp(); // needed
-	
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->ButtonPrevNote(pApp);
+}
+
+void CNotes::ButtonPrevNote(CAdapt_ItApp* pApp)
+{
     // is the note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look forward for the
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
-	int nJumpOffSequNum = m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-	if (m_pApp->m_pNoteDlg != NULL)
+	int nJumpOffSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	if (pApp->m_pNoteDlg != NULL)
 	{
         // the note dialog is still open, so save the note and close the dialog and reset
         // the jump off value to the pSrcPhase where the note was attached
-		nJumpOffSequNum = m_pApp->m_nSequNumBeingViewed;
+		nJumpOffSequNum = pApp->m_nSequNumBeingViewed;
 		wxCommandEvent oevent(wxID_OK);
-		m_pApp->m_pNoteDlg->OnOK(oevent);
-		m_pApp->m_pNoteDlg = NULL;
+		pApp->m_pNoteDlg->OnOK(oevent);
+		pApp->m_pNoteDlg = NULL;
 	}
 	
 	// find the previous note
@@ -2395,21 +2422,26 @@ void CNotes::UpdateButtonPrevNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp = &wxGetApp(); // needed
-	
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->ButtonNextNote(pApp);
+}
+
+void CNotes::ButtonNextNote(CAdapt_ItApp* pApp)
+{
     // is the note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look forward for the
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
-	int nJumpOffSequNum = m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-	if (m_pApp->m_pNoteDlg != NULL)
+	int nJumpOffSequNum = pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	if (pApp->m_pNoteDlg != NULL)
 	{
 		// the note dialog is still open, so save the note and close the dialog
 		// and reset the jump off value to the pSrcPhase where the note was attached
-		nJumpOffSequNum = m_pApp->m_nSequNumBeingViewed;
+		nJumpOffSequNum = pApp->m_nSequNumBeingViewed;
 		wxCommandEvent oevent(wxID_OK);
-		m_pApp->m_pNoteDlg->OnOK(oevent);
-		m_pApp->m_pNoteDlg = NULL;
+		pApp->m_pNoteDlg->OnOK(oevent);
+		pApp->m_pNoteDlg = NULL;
 	}
 	
 	// find the next note
@@ -2489,26 +2521,31 @@ void CNotes::UpdateButtonNextNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->ButtonDeleteAllNotes(pApp);
+}
 
+void CNotes::ButtonDeleteAllNotes(CAdapt_ItApp* pApp)
+{
 	// IDS_ABOUT_TO_DELETE_NOTES
 	if(wxMessageBox(_(
-					  "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
-					_T(""),wxYES_NO | wxICON_EXCLAMATION) == wxID_YES )
+	"You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"),
+	_T(""),wxYES_NO | wxICON_EXCLAMATION) == wxID_YES )
 	{
 		GetView()->RemoveSelection();
 		
 		// close any open note
-		if (m_pApp->m_pNoteDlg)
+		if (pApp->m_pNoteDlg)
 		{
 			wxCommandEvent cevent(wxID_CANCEL);
-			m_pApp->m_pNoteDlg->OnCancel(cevent);
-			m_pApp->m_pNoteDlg = NULL;
+			pApp->m_pNoteDlg->OnCancel(cevent);
+			pApp->m_pNoteDlg = NULL;
 		}
 		
 		// delete them all
 		DeleteAllNotes(); // calls Invalidate() and PlaceBox() internally
-		m_pApp->GetDocument()->Modify(TRUE);
+		pApp->GetDocument()->Modify(TRUE);
 	}
 }
 
@@ -2569,15 +2606,20 @@ void CNotes::UpdateButtonDeleteAllNotes(wxUpdateUIEvent& event, CAdapt_ItApp* pA
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->EditMoveNoteForward(pApp);
+}
 
+void CNotes::EditMoveNoteForward(CAdapt_ItApp* pApp)
+{
 	// Since the Move Note Forward menu item has an accelerator table hot key (CTRL-3 see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
-	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	if (!pMenuBar->IsEnabled(ID_EDIT_MOVE_NOTE_FORWARD))
@@ -2587,7 +2629,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	CPile* pPile = NULL;
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = pApp->m_pSourcePhrases;
 	CSourcePhrase* pSrcPhrase = NULL;
 	
 	// determine which pSrcPhrase has the note - if unable, return, doing nothing
@@ -2595,20 +2637,20 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 	CCellList* pCellList;
 	CCellList::Node* cpos;
 	CCell* pCell;
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of 
 		// the selection list's first element
-		pCellList = &m_pApp->m_selection;
+		pCellList = &pApp->m_selection;
 		cpos = pCellList->GetFirst();
 		pCell = cpos->GetData();
 		pPile = pCell->GetPile();
 		if (pPile == NULL)
 		{
 			// unlikely, so an English message will do
-		a:			wxMessageBox(_T(
-									"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
-								 _T(""), wxICON_EXCLAMATION);
+		a:	wxMessageBox(_T(
+			"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
+			_T(""), wxICON_EXCLAMATION);
 			return;
 		}
 		wxASSERT(pPile != NULL);
@@ -2618,7 +2660,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 	{
 		// no selection, so just assume the note is on the sourcephrase where 
 		// the phrase box is
-		pPile = m_pApp->m_pActivePile;
+		pPile = pApp->m_pActivePile;
 		if (pPile == NULL)
 		{
 			goto a;
@@ -2672,7 +2714,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
                 // can do it only if showing source text and nav text whiteboard, (but
                 // update handler blocks otherwise, but having this test documents things
                 // better so we'll use it, though unnecessary)
-				wxASSERT(m_pApp->m_selection.IsEmpty());
+				wxASSERT(pApp->m_selection.IsEmpty());
 				int nNewSequNum = nSequNum + 1;
 				CPile* pNewPile = GetView()->GetPile(nNewSequNum);
 				if (pNewPile == NULL)
@@ -2686,17 +2728,17 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 				{
                     // the pile pointer is known, we can assume it is valid; we'll create
                     // the selection in the cell with index = 0
-					m_pApp->m_selectionLine = gnSelectionLine = 0;
+					pApp->m_selectionLine = gnSelectionLine = 0;
 					CCell* pCell = pNewPile->GetCell(0);
-					m_pApp->m_selection.Insert(pCell);
-					m_pApp->m_pAnchor = pCell;
-					m_pApp->m_curDirection = right;
-					m_pApp->m_bSelectByArrowKey = FALSE;
+					pApp->m_selection.Insert(pCell);
+					pApp->m_pAnchor = pCell;
+					pApp->m_curDirection = right;
+					pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
-					wxClientDC aDC(m_pApp->GetMainFrame()->canvas); // get a temporary 
+					wxClientDC aDC(pApp->GetMainFrame()->canvas); // get a temporary 
 					// client device context for this view window
-					aDC.SetBackgroundMode(m_pApp->m_backgroundMode);
+					aDC.SetBackgroundMode(pApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 					pCell->DrawCell(&aDC, GetLayout()->GetSrcColor());
 					pCell->SetSelected(TRUE);
@@ -2854,15 +2896,20 @@ void CNotes::UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pAp
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->EditMoveNoteBackward(pApp);
+}
 
+void CNotes::EditMoveNoteBackward(CAdapt_ItApp* pApp)
+{
     // Since the Move Note Backward menu item has an accelerator table hot key (CTRL-2 see
     // CMainFrame) and wxWidgets accelerator keys call menu and toolbar handlers even when
     // they are disabled, we must check for a disabled button and return if disabled.
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
-	CMainFrame* pFrame = m_pApp->GetMainFrame();
+	CMainFrame* pFrame = pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	if (!pMenuBar->IsEnabled(ID_EDIT_MOVE_NOTE_BACKWARD))
@@ -2872,26 +2919,26 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	CPile* pPile = NULL;
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = pApp->m_pSourcePhrases;
 	CSourcePhrase* pSrcPhrase = NULL;
 	
 	// determine which pSrcPhrase has the note - if unable, return, doing nothing
 	int nSequNum = -1;
 	CCellList* pCellList;
 	CCellList::Node* cpos;
-	if (m_pApp->m_selectionLine != -1)
+	if (pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of the selection list's 
 		// first element
-		pCellList = &m_pApp->m_selection;
+		pCellList = &pApp->m_selection;
 		cpos = pCellList->GetFirst();
 		pPile = ((CCell*)cpos->GetData())->GetPile();
 		if (pPile == NULL)
 		{
 			// unlikely, so an English message will do
-		a:			wxMessageBox(_T(
-									"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
-								 _T(""), wxICON_EXCLAMATION);
+		a:	wxMessageBox(_T(
+			"A zero pile pointer was returned, the sourcephrase with the note is indeterminate."),
+			_T(""), wxICON_EXCLAMATION);
 			return;
 		}
 		wxASSERT(pPile != NULL);
@@ -2901,7 +2948,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 	{
 		// no selection, so just assume the note is on the sourcephrase
 		// where the phrase box is
-		pPile = m_pApp->m_pActivePile;
+		pPile = pApp->m_pActivePile;
 		if (pPile == NULL)
 		{
 			goto a;
@@ -2954,7 +3001,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
                 // can do it only if showing source text and nav text whiteboard, (but
                 // update handler blocks otherwise, but having this test documents things
                 // better so we'll use it, though unnecessary)
-				wxASSERT(m_pApp->m_selection.IsEmpty());
+				wxASSERT(pApp->m_selection.IsEmpty());
 				int nNewSequNum = nSequNum - 1;
 				CPile* pNewPile = GetView()->GetPile(nNewSequNum);
 				if (pNewPile == NULL)
@@ -2968,17 +3015,17 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 				{
                     // the pile pointer is known, we can assume it is valid; we'll create
                     // the selection in the cell with index = 0 
-					m_pApp->m_selectionLine = gnSelectionLine = 0;
+					pApp->m_selectionLine = gnSelectionLine = 0;
 					CCell* pCell = pNewPile->GetCell(0);
-					m_pApp->m_selection.Insert(pCell);
-					m_pApp->m_pAnchor = pCell;
-					m_pApp->m_curDirection = left;
-					m_pApp->m_bSelectByArrowKey = FALSE;
+					pApp->m_selection.Insert(pCell);
+					pApp->m_pAnchor = pCell;
+					pApp->m_curDirection = left;
+					pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
-					wxClientDC aDC(m_pApp->GetMainFrame()->canvas); // get a temporary client 
+					wxClientDC aDC(pApp->GetMainFrame()->canvas); // get a temporary client 
 					// device context for this view window
-					aDC.SetBackgroundMode(m_pApp->m_backgroundMode);
+					aDC.SetBackgroundMode(pApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 					pCell->DrawCell(&aDC, GetLayout()->GetTgtColor());
 					pCell->SetSelected(TRUE);

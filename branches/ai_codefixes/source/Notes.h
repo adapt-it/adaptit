@@ -42,9 +42,10 @@ class CNotes : public wxEvtHandler
 		// Utility functions
 		CLayout* CNotes::GetLayout();
 		CAdapt_ItView*	CNotes::GetView();
+		CAdapt_ItApp* CNotes::GetApp();
 
 		// Items from Adapt_ItView
-		bool		CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
+		bool		CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote); // done
 		void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
 		void		DeleteAllNotes();
 		bool		DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
@@ -92,8 +93,22 @@ class CNotes : public wxEvtHandler
 		void UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
 		void UpdateEditMoveNoteBackward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
 
+		void ButtonCreateNote(CAdapt_ItApp* pApp);
+		void ButtonDeleteAllNotes(CAdapt_ItApp* pApp);
+		void ButtonNextNote(CAdapt_ItApp* pApp);
+		void ButtonPrevNote(CAdapt_ItApp* pApp);
+		void EditMoveNoteForward(CAdapt_ItApp* pApp);
+		void EditMoveNoteBackward(CAdapt_ItApp* pApp);
 
-		
+		// private body functions for the other functions moved from the view. These too
+		// need to be called from the instance of CNotes which has been instantiated, and
+		// if that is not done, any calls within them to the utility functions or directly
+		// to m_pApp, m_pView, m_pLayout will give bogus pointers to unallocated memory.
+		// These can be named by the same name but with prefix Private added
+		bool PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
+		void PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);	
+
+
 	private:
 		CAdapt_ItApp*	m_pApp;	// The app owns this
 		
