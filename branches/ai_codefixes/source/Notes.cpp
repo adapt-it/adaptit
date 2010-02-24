@@ -126,8 +126,7 @@ CAdapt_ItApp* CNotes::GetApp()
 /// nLocationSN for the sequence number. It is the caller's responsibility to ensure there
 /// is no note already present there.
 /////////////////////////////////////////////////////////////////////////////////
-bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, 
-								  wxString& strNote)
+bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CNotes* pNotes = pApp->GetNotes();
@@ -330,9 +329,14 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::DeleteAllNotes()
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateDeleteAllNotes();
+}
 
-	SPList* pList = m_pApp->m_pSourcePhrases;
+void CNotes::PrivateDeleteAllNotes()
+{
+	SPList* pList = GetApp()->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	CSourcePhrase* pSrcPhrase;
@@ -395,8 +399,14 @@ void CNotes::DeleteAllNotes()
 bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, 
 							  wxString& noteStr, int& nStartOffset, int& nEndOffset)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	return pNotes->PrivateDoesTheRestMatch(pSearchList, firstWord, noteStr, nStartOffset, nEndOffset);
+}
 
+bool CNotes::PrivateDoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
+									 int& nStartOffset, int& nEndOffset)
+{
 	// get a str variable containing the rest, beginning at the start 
 	// of the matched first word
 	wxString str = noteStr.Mid(nStartOffset);
@@ -422,7 +432,7 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 	// (it will be pointing at whitespace)
 	wxChar* pEnd = pBufStart + buflen; // get the bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // whm added
-	CAdapt_ItDoc* pDoc = m_pApp->GetDocument(); // we'll use the doc's functions 
+	CAdapt_ItDoc* pDoc = GetApp()->GetDocument(); // we'll use the doc's functions 
 	// IsWhiteSpace() and ParseWhiteSpace()
 	WordList::Node* pos = pSearchList->GetFirst(); 
 	wxString nextWord = *pos->GetData(); // we've already matched this one, 
@@ -537,8 +547,6 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards)
 {
-	m_pApp = &wxGetApp(); // needed?
-
 	// BEW created 29May08
 	wxString errStr;
 	// BEW changed 19Jun09, because of the possibility of editing resulting in the loss of
@@ -560,9 +568,9 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 	{
 		// unexpected error, the location should be findable
 		errStr = _T(
-					"Error in helper function FindNote(); the POSITION value returned from ");
+		"Error in helper function FindNote(); the POSITION value returned from ");
 		errStr += _T(
-					 "FindIndex() was null. The current operation will be abandoned.");
+		"FindIndex() was null. The current operation will be abandoned.");
 		wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 		return FALSE;
 	}
@@ -630,15 +638,23 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 ///	number is returned to the caller
 /////////////////////////////////////////////////////////////////////////////////
 int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, 
-							  WordList*& pSearchList,int numWords, int& nStartOffset, 
-							  int& nEndOffset)
+					WordList*& pSearchList, int numWords, int& nStartOffset, 
+					int& nEndOffset)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	int sequNum = pNotes->PrivateFindNoteSubstring(nCurrentlyOpenNote_SequNum, pSearchList,
+									  numWords, nStartOffset, nEndOffset);
+	return sequNum;
+}
 
+int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearchList,
+									  int numWords, int& nStartOffset, int& nEndOffset)
+{
 	int sn = nCurrentlyOpenNote_SequNum;
 	sn++; // start looking from the next pSrcPhrase in the list
 	
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = GetApp()->m_pSourcePhrases;
 	SPList::Node* pos;
 	CSourcePhrase* pSrcPhrase;
 	wxString noteContentStr;
@@ -820,8 +836,13 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum,
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	return pNotes->PrivateGetMovedNotesSpan(pSrcPhrases, pRec, context);
+}
 
+bool CNotes::PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
+{
 	wxString errStr;
 	int nEditSpanStartingSN = pRec->nStartingSequNum;
 	int nEditSpanEndingSN;
@@ -903,7 +924,7 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 			nStartAt = nEditSpanEndingSN;
 		else
 			nStartAt = nEditSpanEndingSN + 1;
-		if (nStartAt > m_pApp->GetMaxIndex())
+		if (nStartAt > GetApp()->GetMaxIndex())
 		{
 			// there is no following context, so return
 			return TRUE;
@@ -957,8 +978,6 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 {
-	m_pApp = &wxGetApp(); // needed?
-
     // BEW added 30May08 in support of the source text editing step of the 
     // vertical editing process
     // BEW changed 19Jun09, because editing may have removed some of doc's end, including
@@ -993,13 +1012,18 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateJumpBackwardToNote_CoreCode(nJumpOffSequNum);
+}
 
+void CNotes::PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum)
+{
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit;
 	
 	SPList::Node* pos;
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = GetApp()->m_pSourcePhrases;
 	pos = pList->Item(nJumpOffSequNum);
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nNoteSequNum = nJumpOffSequNum; // for iterating back from the jump origin
@@ -1039,11 +1063,11 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		nNoteSequNum = pSrcPhrase->m_nSequNumber;
 		nBoxSequNum = nNoteSequNum; // default, at least until we know it is not safe 
 		// and adjust it
-		if (m_pApp->m_bFreeTranslationMode)
+		if (GetApp()->m_bFreeTranslationMode)
 		{
             // free translation mode is on, which limits the phrase box locations so
             // disallow the jump
-			pFrame = m_pApp->GetMainFrame();
+			pFrame = GetApp()->GetMainFrame();
 			wxASSERT(pFrame);
 			wxASSERT(&pFrame->m_pComposeBar);
 			pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -1060,7 +1084,7 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 			
 			// since we are in free translation mode, we want the focus to be in the
 			// Compose Bar's edit box
-			if (m_pApp->m_bFreeTranslationMode)
+			if (GetApp()->m_bFreeTranslationMode)
 			{
 				pEdit->SetFocus();
 			}
@@ -1072,13 +1096,13 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
             // retranslation so the box location will end up different than the note
             // location, so set the note location (ie. its sequence number) since we
             // already know it
-			m_pApp->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs 
+			GetApp()->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs 
 			// this value to be correct
             // now work out where the active location (ie. phrase box location) should
             // be
-			m_pApp->m_nActiveSequNum = nNoteSequNum;
-			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(m_pApp->m_pActivePile);
+			GetApp()->m_nActiveSequNum = nNoteSequNum;
+			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(GetApp()->m_pActivePile);
 			
             // this 'active' location is invalid, because the phrase box can't be put in
             // a retranslation, so we'll try put the box after the retranslation, if not,
@@ -1096,9 +1120,9 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 				}
 			}
 			pSrcPhrase = pSafeSrcPhrase;
-			m_pApp->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
-			m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
-			wxASSERT(m_pApp->m_pActivePile);
+			GetApp()->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
+			GetApp()->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+			wxASSERT(GetApp()->m_pActivePile);
 			
 			// now do the stuff common to all three of these possibilities
 			goto a;
@@ -1107,10 +1131,10 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		{
             // there should be no restraint against us placing the box
             // at the same location as the note
-			m_pApp->m_nActiveSequNum = nNoteSequNum;
-			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(m_pApp->m_pActivePile);
-			m_pApp->m_nSequNumBeingViewed = m_pApp->m_nActiveSequNum; // the note
+			GetApp()->m_nActiveSequNum = nNoteSequNum;
+			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(GetApp()->m_pActivePile);
+			GetApp()->m_nSequNumBeingViewed = GetApp()->m_nActiveSequNum; // the note
 			// dialog needs this value to be correct
 			// now do the stuff common to each of these above three possibilities
 		} // end of block for not in a retranslation and not in 
@@ -1124,28 +1148,28 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	// this ensures user has to explicitly type into the box and explicitly check
 	// the checkbox if he wants to override the "not in kb" earlier setting at this
 	// location
-	m_pApp->m_bSaveToKB = FALSE;
-	m_pApp->m_targetPhrase.Empty();
-	m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+	GetApp()->m_bSaveToKB = FALSE;
+	GetApp()->m_targetPhrase.Empty();
+	GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
 }
 else
 {
 	if (!pSrcPhrase->m_adaption.IsEmpty())
 	{
-		m_pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-		m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+		GetApp()->m_targetPhrase = pSrcPhrase->m_adaption;
+		GetApp()->m_pTargetBox->m_bAbandonable = FALSE;
 	}
 	else
 	{
-		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
-		if (m_pApp->m_bCopySource)
+		GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
+		if (GetApp()->m_bCopySource)
 		{
-			m_pApp->m_targetPhrase = GetView()->CopySourceKey(pSrcPhrase,
-												 m_pApp->m_bUseConsistentChanges);
+			GetApp()->m_targetPhrase = GetView()->CopySourceKey(pSrcPhrase,
+												 GetApp()->m_bUseConsistentChanges);
 		}
 		else
 		{
-			m_pApp->m_targetPhrase.Empty();
+			GetApp()->m_targetPhrase.Empty();
 		}
 	}
 }
@@ -1162,10 +1186,10 @@ else
 #endif
 	
 	// recalculate the active pile
-	m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+	GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
 	
 	// scroll the active location into view, if necessary
-	m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
+	GetApp()->GetMainFrame()->canvas->ScrollIntoView(GetApp()->m_nActiveSequNum);
 	
 	GetLayout()->m_docEditOperationType = default_op;
 	
@@ -1176,11 +1200,11 @@ else
 	GetLayout()->PlaceBox();
 	
 	// now put up the note dialog at the m_nSequNumBeingViewed location
-	wxASSERT(m_pApp->m_pNoteDlg == NULL);
-	m_pApp->m_pNoteDlg = new CNoteDlg(m_pApp->GetMainFrame());
+	wxASSERT(GetApp()->m_pNoteDlg == NULL);
+	GetApp()->m_pNoteDlg = new CNoteDlg(GetApp()->GetMainFrame());
 	// wx version: we don't need the Create() call for modeless notes dialog
-	GetView()->AdjustDialogPosition(m_pApp->m_pNoteDlg); // show it lower, not at top left
-	m_pApp->m_pNoteDlg->Show(TRUE);
+	GetView()->AdjustDialogPosition(GetApp()->m_pNoteDlg); // show it lower, not at top left
+	GetApp()->m_pNoteDlg->Show(TRUE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1190,14 +1214,19 @@ else
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateJumpForwardToNote_CoreCode(nJumpOffSequNum);
+}
 
+void CNotes::PrivateJumpForwardToNote_CoreCode(int nJumpOffSequNum)
+{
 	CMainFrame* pFrame;
 	wxTextCtrl* pEdit;
 	
 	// find the first note
 	SPList::Node* pos; 
-	SPList* pList = m_pApp->m_pSourcePhrases;
+	SPList* pList = GetApp()->m_pSourcePhrases;
 	pos = pList->Item(nJumpOffSequNum); 
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nNoteSequNum = nJumpOffSequNum; // for iterating forward from the jump origin
@@ -1207,7 +1236,7 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 	GetView()->RemoveSelection();
 	
 	// jump only if there is a possibility of a note being ahead
-	if (nNoteSequNum <= m_pApp->GetMaxIndex())
+	if (nNoteSequNum <= GetApp()->GetMaxIndex())
 	{
 		// loop until the next note's pSrcPhrase is found
 		while (pos != NULL)
@@ -1222,10 +1251,10 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		}
 		
 		// store the adaptation in the KB before moving the phrase box
-		wxASSERT(m_pApp->m_pActivePile); // the old value is still valid, and it's 
+		wxASSERT(GetApp()->m_pActivePile); // the old value is still valid, and it's 
 		// pile has the old sourcephrase
 		bool bOK;
-		bOK = GetView()->StoreBeforeProceeding(m_pApp->m_pActivePile->GetSrcPhrase());
+		bOK = GetView()->StoreBeforeProceeding(GetApp()->m_pActivePile->GetSrcPhrase());
 		
         // Otherwise, we have found one, so it can be opened. However, we have to exercise
         // care with the phrase box - if the note is in a retranslation while adaptation
@@ -1237,11 +1266,11 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		nNoteSequNum = pSrcPhrase->m_nSequNumber;
 		nBoxSequNum = nNoteSequNum; // default, at least until we know it is not safe 
 		// and adjust it
-		if (m_pApp->m_bFreeTranslationMode)
+		if (GetApp()->m_bFreeTranslationMode)
 		{
             // free translation mode is on, which limits the phrase box locations so
             // disallow the jump
-			pFrame = m_pApp->GetMainFrame();
+			pFrame = GetApp()->GetMainFrame();
 			wxASSERT(pFrame);
 			wxASSERT(&pFrame->m_pComposeBar);
 			pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -1261,7 +1290,7 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 			
 			// since we are in free translation mode, we want the focus to be in the
 			// Compose Bar's edit box
-			if (m_pApp->m_bFreeTranslationMode)
+			if (GetApp()->m_bFreeTranslationMode)
 			{
 				pEdit->SetFocus();
 			}
@@ -1273,12 +1302,12 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
             // retranslation so the box location will end up different than the note
             // location, so set the note location (ie. its sequence number) since we
             // already know it
-			m_pApp->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs this 
+			GetApp()->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs this 
 			// value to be correct
             // now work out where the active location (ie. phrase box) should be
-			m_pApp->m_nActiveSequNum = nNoteSequNum;
-			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(m_pApp->m_pActivePile);
+			GetApp()->m_nActiveSequNum = nNoteSequNum;
+			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(GetApp()->m_pActivePile);
 			
             // this 'active' location is invalid, because the phrase box can't be put in a
             // retranslation, so we'll try put the box before the retranslation, if not,
@@ -1296,9 +1325,9 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 				}
 			}
 			pSrcPhrase = pSafeSrcPhrase;
-			m_pApp->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
-			m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
-			wxASSERT(m_pApp->m_pActivePile);
+			GetApp()->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
+			GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
+			wxASSERT(GetApp()->m_pActivePile);
 			
 			// now do the stuff common to all three of these possibilities
 			goto a;
@@ -1307,10 +1336,10 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		{
             // there should be no restraint against us placing the box at the same location
             // as the note
-			m_pApp->m_nActiveSequNum = nNoteSequNum;
-			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(m_pApp->m_pActivePile);
-			m_pApp->m_nSequNumBeingViewed = m_pApp->m_nActiveSequNum; // note dialog needs this
+			GetApp()->m_nActiveSequNum = nNoteSequNum;
+			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(GetApp()->m_pActivePile);
+			GetApp()->m_nSequNumBeingViewed = GetApp()->m_nActiveSequNum; // note dialog needs this
 			// value be to correct
 			// now do the stuff common to each of these above three possibilities
 		} // end of block for not in a retranslation and not in free translation mode
@@ -1323,28 +1352,28 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		// this ensures user has to explicitly type into the box and explicitly check the
 		// checkbox if he wants to override the "not in kb" earlier setting at this
 		// location
-		m_pApp->m_bSaveToKB = FALSE;
-		m_pApp->m_targetPhrase.Empty();
-		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+		GetApp()->m_bSaveToKB = FALSE;
+		GetApp()->m_targetPhrase.Empty();
+		GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
 	}
 	else
 	{
 		if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
-			m_pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
+			GetApp()->m_targetPhrase = pSrcPhrase->m_adaption;
+			GetApp()->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 		else
 		{
-			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
-			if (m_pApp->m_bCopySource)
+			GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
+			if (GetApp()->m_bCopySource)
 			{
-				m_pApp->m_targetPhrase = 
-				GetView()->CopySourceKey(pSrcPhrase,m_pApp->m_bUseConsistentChanges);
+				GetApp()->m_targetPhrase = 
+				GetView()->CopySourceKey(pSrcPhrase,GetApp()->m_bUseConsistentChanges);
 			}
 			else
 			{
-				m_pApp->m_targetPhrase.Empty();
+				GetApp()->m_targetPhrase.Empty();
 			}
 		}
 	}
@@ -1358,10 +1387,15 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 // note, and it must exist, and the sourcephrase passed in as pFromSrcPhrase must have a
 // note (caller must bleed out any situations where this is not the case)
 /////////////////////////////////////////////////////////////////////////////////
-void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase)
+void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateMoveNote(pFromSrcPhrase, pToSrcPhrase);
+}
 
+void CNotes::PrivateMoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
+{
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
 	wxString noteStr;
@@ -1414,19 +1448,24 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenFirstNote()
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateMoveToAndOpenFirstNote();
+}
 
+void CNotes::PrivateMoveToAndOpenFirstNote()
+{
 	// is a note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look forward for the
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
 	int nJumpOffSequNum = 0;
-	if (m_pApp->m_pNoteDlg != NULL)
+	if (GetApp()->m_pNoteDlg != NULL)
 	{
 		// the note dialog is still open, so save the note and close the dialog
 		wxCommandEvent oevent(wxID_OK);
-		m_pApp->m_pNoteDlg->OnOK(oevent);
-		m_pApp->m_pNoteDlg = NULL;
+		GetApp()->m_pNoteDlg->OnOK(oevent);
+		GetApp()->m_pNoteDlg = NULL;
 	}
 	JumpForwardToNote_CoreCode(nJumpOffSequNum);
 }
@@ -1437,19 +1476,24 @@ void CNotes::MoveToAndOpenFirstNote()
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenLastNote()
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	pNotes->PrivateMoveToAndOpenLastNote();
+}
 
+void CNotes::PrivateMoveToAndOpenLastNote()
+{
 	// is a note dialog open, if so - close it (and invoke the OK button's handler) it's
     // location defines the starting sequence number from which we look backward for the
     // last one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
-	int nJumpOffSequNum = m_pApp->GetMaxIndex();
-	if (m_pApp->m_pNoteDlg != NULL)
+	int nJumpOffSequNum = GetApp()->GetMaxIndex();
+	if (GetApp()->m_pNoteDlg != NULL)
 	{
 		// the note dialog is still open, so save the note and close the dialog
 		wxCommandEvent event(wxID_OK);
-		m_pApp->m_pNoteDlg->OnOK(event);
-		m_pApp->m_pNoteDlg = NULL;
+		GetApp()->m_pNoteDlg->OnOK(event);
+		GetApp()->m_pNoteDlg = NULL;
 	}
 	JumpBackwardToNote_CoreCode(nJumpOffSequNum);
 }
@@ -1483,8 +1527,6 @@ void CNotes::MoveToAndOpenLastNote()
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
-	m_pApp = &wxGetApp(); // needed?
-
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
 	int aSequNum;
@@ -1542,8 +1584,13 @@ bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLef
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	return pNotes->PrivateRestoreNotesAfterSourceTextEdit(pSrcPhrases, pRec);
+}
 
+bool CNotes::PrivateRestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
+{
 	wxArrayInt arrUnsqueezedLocations; // for those locations for which the old sequence
 	// numbers are still valid, and in the edit span (in its final form)
 	wxArrayInt arrSqueezedLocations; // for those locations for which the old sequence
@@ -1611,7 +1658,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 	{
 		// no forwards note was found, so the right bound is the end of the document
 		// (otherwise, it is the value returned in nRightBound)
-		nRightBound = m_pApp->GetMaxIndex();
+		nRightBound = GetApp()->GetMaxIndex();
 	}
 	
     // loop to handle the cases where note replacement can occur without location changes
@@ -1675,7 +1722,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
                     // there are more to replace, but no more document space at the end on
                     // which to store them, so now try leftshifting as explained above
 					bool bLeftwardsOK = MoveNoteLocationsLeftwardsOnce(
-																	   &arrSqueezedLocations, nLeftBound);
+											&arrSqueezedLocations, nLeftBound);
 					if (bLeftwardsOK)
 					{
 						// exploit the gap we created by the above call
@@ -1712,12 +1759,10 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 						int nRemainder = nNumRemoved - index;
 						wxString aStr; 
 						// IDS_UNPLACEABLE_NOTES
-						aStr = aStr.Format(_(
-											 "Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %d"),
-										   nRemainder);
-						wxString message;
-						//message.Format((LPCTSTR)aStr,buff);
-						wxMessageBox(message, _T(""), wxICON_INFORMATION);
+						aStr = aStr.Format(
+_("Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %d"),
+						nRemainder);
+						wxMessageBox(aStr, _T(""), wxICON_INFORMATION);
 						break; // break out of the loop and let the rest of the 
 						// function do the replacements of those that were successfully
 						// relocated and stored in arrSqueezedLocations
@@ -1757,9 +1802,9 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
             // some would not fit in the edit span, so try fit the other ones within it at
             // its end, failing that, create gaps by left shifting and try fit at the end
 			bool bRelocatedThemAll = GetView()->BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(
-																						  pRec->nStartingSequNum, pRec->nNewSpanCount,
-																						  &arrUnsqueezedLocations, &arrSqueezedLocations, 
-																						  nRightBound);
+									  pRec->nStartingSequNum, pRec->nNewSpanCount,
+									  &arrUnsqueezedLocations, &arrSqueezedLocations, 
+									  nRightBound);
 			if (!bRelocatedThemAll)
 			{
                 // not all were successfully re-located, the remainder which are as yet
@@ -1778,7 +1823,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 				int nStartAt = pRec->nStartingSequNum + pRec->nNewSpanCount; // the first 
 				// location following the edit span
 				// check this is a valid index within the document's list
-				if (nStartAt <= m_pApp->GetMaxIndex())
+				if (nStartAt <= GetApp()->GetMaxIndex())
 				{
                     // the location is within the document; so we check for the presence of
                     // an existing Note, and if there is none, we use the location as a
@@ -1800,8 +1845,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
                             // document, so we have to move it righwards (any any
                             // consecutives which follow it) if we can...
 							bool bMoveRightWorked = 
-							ShiftASeriesOfConsecutiveNotesRightwardsOnce(pSrcPhrases, 
-																		 aNoteSN);
+							ShiftASeriesOfConsecutiveNotesRightwardsOnce(pSrcPhrases, aNoteSN);
 							if (bMoveRightWorked)
 							{
                                 // we've created a gap at aNoteSN location, so set this
@@ -1848,17 +1892,18 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 										break;
 								}
 								bool bResult = GetView()->InsertSublistAtHeadOfList(pRemList, 
-																		 freeTranslationsList, pRec);
+																freeTranslationsList, pRec);
 								if (!bResult)
 								{
-									// there was an error (an unknown list was 
-									// requested in the switch)
-									wxString errStr = _T(
-														 "InsertSublistAtHeadOfList(), for storing un-restorable ");
-									errStr += _T(
-												 "Notes in the free translations list (just some from tail), failed. ");
-									errStr += _T(
-												 "Edit process abandoned. Document restored to pre-edit state.");
+									// there was an error (an unknown list was requested in
+									// the switch) - message not localizable (not likely
+									// to be ever seen)
+									wxString errStr = 
+									_T("InsertSublistAtHeadOfList(), for storing un-restorable ");
+									errStr += 
+									_T("Notes in the free translations list (just some from tail), failed. ");
+									errStr += 
+									_T("Edit process abandoned. Document restored to pre-edit state.");
 									wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 									pRemList->Clear();
 									delete pRemList;
@@ -1924,14 +1969,14 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 					bool bResult = GetView()->InsertSublistAtHeadOfList(pRemList, freeTranslationsList, pRec);
 					if (!bResult)
 					{
-						// there was an error (an unknown list was 
-						// requested in the switch)
-						wxString errStr = _T(
-											 "InsertSublistAtHeadOfList(), for storing un-restorable ");
-						errStr += _T(
-									 "Notes in the free translations list (all the removed ones), failed. ");
-						errStr += _T(
-									 "Edit process abandoned. Document restored to pre-edit state.");
+						// there was an error (an unknown list was requested in
+						// the switch)
+						wxString errStr = 
+						_T("InsertSublistAtHeadOfList(), for storing un-restorable ");
+						errStr += 
+						_T("Notes in the free translations list (all the removed ones), failed. ");
+						errStr += 
+						_T("Edit process abandoned. Document restored to pre-edit state.");
 						wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 						pRemList->Clear();
 						delete pRemList;
@@ -1979,11 +2024,11 @@ en:	;
 		strNoteText = pRec->storedNotesList.Item(index); // get the next note's text
 		if (IsNoteStoredHere(pSrcPhrases, aNoteSN))
 		{
-			// error, so cause bailout after showing the user a message
+			// error, so cause bailout after showing the developer a message
 			wxString errStr = _T(
-								 "Error in RestoreNotesAfterSourceTextEdit(), attempted to restore ");
+			"Error in RestoreNotesAfterSourceTextEdit(), attempted to restore ");
 			errStr += _T(
-						 "a Note at a location where there was supposed to be no Note already stored. ");
+			"a Note at a location where there was supposed to be no Note already stored. ");
 			errStr += _T("Edit process abandoned. Document restored to pre-edit state.");
 			wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 			return FALSE;
@@ -1997,14 +2042,14 @@ en:	;
 				// there was an unexpected error - either a bounds error, 
 				// or a note already present
 				wxString errStr = _T(
-									 "Error in RestoreNotesAfterSourceTextEdit(), the CreateNoteAtLocation() ");
+				"Error in RestoreNotesAfterSourceTextEdit(), the CreateNoteAtLocation() ");
 				errStr += _T(
-							 "function returned FALSE, either because of a bounds error (past doc end) or ");
+				"function returned FALSE, either because of a bounds error (past doc end) or ");
 				errStr += _T(
-							 "there really was a Note already stored at this location when all the many ");
+				"there really was a Note already stored at this location when all the many ");
 				errStr += _T("previous checks said there wasn't!! ");
 				errStr += _T(
-							 "Edit process abandoned. Document restored to pre-edit state.");
+				"Edit process abandoned. Document restored to pre-edit state.");
 				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
 				return FALSE;
 			}
@@ -2031,8 +2076,13 @@ en:	;
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	return pNotes->PrivateShiftANoteRightwardsOnce(pSrcPhrases, nNoteSN);
+}
 
+bool CNotes::PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
+{
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
 	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
@@ -2066,8 +2116,8 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 	// the shift is possible, so do it
 	MoveNote(pOriginalSrcPhrase,pDestSrcPhrase);
 	// mark the one or both owning strips invalid
-	m_pApp->GetDocument()->ResetPartnerPileWidth(pOriginalSrcPhrase); // mark its strip invalid
-	m_pApp->GetDocument()->ResetPartnerPileWidth(pDestSrcPhrase); // mark its strip invalid
+	GetApp()->GetDocument()->ResetPartnerPileWidth(pOriginalSrcPhrase); // mark its strip invalid
+	GetApp()->GetDocument()->ResetPartnerPileWidth(pDestSrcPhrase); // mark its strip invalid
 	return TRUE;
 }
 
@@ -2086,8 +2136,13 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
-	m_pApp = &wxGetApp(); // needed
+	CAdapt_ItApp* pApp = &wxGetApp();
+	CNotes* pNotes = pApp->GetNotes();
+	return pNotes->PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(pSrcPhrases, nFirstNoteSN);
+}
 
+bool CNotes::PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
+{
 	// refactored 7Apr09 - only needed GetMaxIndex() call
     // BEW added 30May08 in support of the source text editing step of the vertical editing
     // process first compile an array of consecutive note locations which need to be
@@ -2101,7 +2156,7 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 	while (TRUE)
 	{
 		anArrayIndex++;
-		if (locIndex > m_pApp->GetMaxIndex())
+		if (locIndex > GetApp()->GetMaxIndex())
 		{
 			// we've passed the end of the document without finding a location
 			// that does not have a note, so we cannot succeed

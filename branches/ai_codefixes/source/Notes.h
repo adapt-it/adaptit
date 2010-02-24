@@ -40,30 +40,34 @@ class CNotes : public wxEvtHandler
 		virtual ~CNotes();	// destructor
 		
 		// Utility functions
-		CLayout* CNotes::GetLayout();
+		CLayout*		CNotes::GetLayout();
 		CAdapt_ItView*	CNotes::GetView();
-		CAdapt_ItApp* CNotes::GetApp();
+		CAdapt_ItApp*	CNotes::GetApp();
 
 		// Items from Adapt_ItView
-		bool		CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote); // done
-		void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
-		void		DeleteAllNotes();
-		bool		DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
+		bool	CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
+		void	CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
+		void	DeleteAllNotes();
+		bool	DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
 									 int& nStartOffset, int& nEndOffset);
-		bool		FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
-		int			FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pStrList, int numWords,
+		int		FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearchList, int numWords,
 									  int& nStartOffset, int& nEndOffset);
-		bool		GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context); // BEW added 14Jun08
-		bool		IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN);
-		void		JumpBackwardToNote_CoreCode(int nJumpOffSequNum);
-		void		JumpForwardToNote_CoreCode(int nJumpOffSequNum);
-		void		MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase);
-		void		MoveToAndOpenFirstNote();
-		void		MoveToAndOpenLastNote();
-		bool		MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN);
-		bool		RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 26May08
-		bool		ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN);
-		bool		ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
+		bool	GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context); // BEW added 14Jun08
+		void	JumpBackwardToNote_CoreCode(int nJumpOffSequNum);
+		void	JumpForwardToNote_CoreCode(int nJumpOffSequNum);
+		void	MoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase);
+		void	MoveToAndOpenFirstNote();
+		void	MoveToAndOpenLastNote();
+		bool	RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 26May08
+		bool	ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN);
+		bool	ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
+
+		// the following have no internal calls to functions or values on the app, layout
+		// or view class, and so do not need their bodies called from private functions in
+		// the app's m_pNotes member
+		bool	FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
+		bool	IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN);
+		bool	MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN);
 		
 	public:
 		// Items from Adapt_ItView
@@ -107,7 +111,20 @@ class CNotes : public wxEvtHandler
 		// These can be named by the same name but with prefix Private added
 		bool PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
 		void PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);	
-
+		void PrivateDeleteAllNotes();
+		bool PrivateDoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
+									 int& nStartOffset, int& nEndOffset);
+		int  PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pStrList, int numWords,
+									  int& nStartOffset, int& nEndOffset);
+		bool PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context);
+		void PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum);
+		void PrivateJumpForwardToNote_CoreCode(int nJumpOffSequNum);
+		void PrivateMoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase);
+		void PrivateMoveToAndOpenFirstNote();
+		void PrivateMoveToAndOpenLastNote();
+		bool PrivateRestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec);
+		bool PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN);
+		bool PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
 
 	private:
 		CAdapt_ItApp*	m_pApp;	// The app owns this
