@@ -335,6 +335,8 @@ public:
 #ifdef _NOTES
 // FindNote, MoveNoteLocationsLeftwardsOnce, ShiftANoteRightwardsOnce, IsNoteStoredHere,
 // ShiftASeriesOfConsecutiveNotesRightwardsOnce, CreateNoteAtLocation moved to ???
+//	bool		BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, int nEditSpanCount,
+//				wxArrayInt* pUnsqueezedArr, wxArrayInt* pSqueezedArr, int WXUNUSED(nRightBound));
 #else
 	bool		FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
 	bool		MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN);
@@ -343,8 +345,6 @@ public:
 	bool		ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
 	bool		CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
 #endif
-	bool		BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, int nEditSpanCount,
-				wxArrayInt* pUnsqueezedArr, wxArrayInt* pSqueezedArr, int WXUNUSED(nRightBound));
 	void		GetMarkerArrayFromString(wxArrayString* pStrArr, const wxString& str); // BEW added 17June08
 	bool		IsMarkerInArray(wxArrayString* pStrArr, const wxString& marker); // BEW added 17June08
 	bool		AreMarkerSetsDifferent(const wxString& str1, const wxString& str2, bool& bUnfilteringRequired,

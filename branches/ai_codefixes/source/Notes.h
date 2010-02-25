@@ -68,7 +68,9 @@ class CNotes : public wxEvtHandler
 		bool	FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
 		bool	IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN);
 		bool	MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN);
-		
+		bool	BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, 
+									int nEditSpanCount, wxArrayInt* pUnsqueezedArr, 
+									wxArrayInt* pSqueezedArr, int WXUNUSED(nRightBound));		
 	public:
 		// Items from Adapt_ItView
 		// (edb 17 Feb 2010) BUGBUG: these were protected in Adapt_ItView; does it make sense to friend

@@ -722,6 +722,7 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 /// Remarks:
 ///	If it finds a matching string in a subsequent note, that location's sequence 
 ///	number is returned to the caller
+/// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, 
 					WordList*& pSearchList, int numWords, int& nStartOffset, 
@@ -744,10 +745,12 @@ int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& 
 	SPList::Node* pos;
 	CSourcePhrase* pSrcPhrase;
 	wxString noteContentStr;
+#if !defined (_DOCVER5)
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
-	int curPos = -1;
+	int curPos = -1; // same as wxNOT_FOUND
 	int curEndPos = -1;
+#endif
 	int nFoundSequNum = -1;
 	
 	// get the starting POSITION from which to commence the scan
@@ -760,13 +763,112 @@ int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& 
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		sn = pSrcPhrase->m_nSequNumber; // update sn
+#if defined (_DOCVER5)
+		if (!pSrcPhrase->m_bHasNote) // support finding empty notes too, so just test the flag
+#else
 		if ( (curPos = pSrcPhrase->m_markers.Find(noteMkr)) == -1)
+#endif
 		{
 			// this sourcephrase instance contains no filtered note
 			continue;
 		}
 		else
 		{
+#if defined (_DOCVER5)
+			// this source phrase contains a note, so get content and put it into the
+			// string noteContentStr
+			noteContentStr = pSrcPhrase->GetNote();
+			if (noteContentStr.IsEmpty())
+			{
+				// no content, so continue looping
+				continue;
+			}
+			else
+			{
+				// Check out whether the search string is contained in the 
+				// content string
+				wxString aWord;
+				WordList::Node* fpos = pSearchList->GetFirst();
+				aWord = *fpos->GetData(); // get the first word in the passed in 
+				// search word list
+				
+                // How we proceed depends on the number of words to be searched for.
+                // When searching just for a single word, a match anywhere in
+                // noteContentStr constitutes a successful Find(); but when searching
+                // for two or more words, the first word must match all the way up to
+                // the end of a content string's word, and then subsequent non-final
+                // search words must match whole words exactly, and the final search
+                // word must match the next content word from its beginning (but does
+                // not necessarily have to match all the character in the word) --
+                // since the multi-word match is complex, we will do it in a function
+                // which will return the offsets to the matched substring as well when
+                // the match succeeded
+				int nFound;
+				if (numWords == 1)
+				{
+					// do a simple Find() for the word
+					nFound = noteContentStr.Find(aWord);
+					if (nFound == -1)
+					{
+						// no match, so continue iterating the pSrcPhrase loop
+						continue;
+					}
+					else
+					{
+						// it matched, so set the offsets to start and end locations
+						int len = aWord.Length();
+						nStartOffset = nFound;
+						nEndOffset = nStartOffset + len;
+						
+						// get the sequ number for this pSrcPhrase which we need to 
+						// return to the caller
+						nFoundSequNum = sn;
+						break;
+					}
+				}
+				else
+				{
+                    // we have a multiword match requested... find matches for the
+                    // first of the search word - (there could be more than one
+                    // matching location)
+					nFound = 0;
+					while ( (nFound = FindFromPos(noteContentStr,aWord,nFound)) != -1)
+					{
+						// we found a match for the first word
+						nStartOffset = nFound;
+						
+						// find out if the rest of the search string matches at 
+						// this location
+						bool bItMatches = DoesTheRestMatch(pSearchList,aWord,
+											noteContentStr,nStartOffset,nEndOffset);
+						if (!bItMatches)
+						{
+							// keep iterating when the whole search string was not
+							// matched
+							nFound++; // start from next character after 
+							// start of last match
+							nStartOffset = -1;
+							nEndOffset = -1;
+							continue; // iterate within this inner loop, to find
+							// another  matching location for the first
+							// word of the search string
+						}
+						else
+						{
+                            // the whole lot matches, so we can break out after
+                            // determining the sequence number for this location
+							nFoundSequNum = sn;
+							return nFoundSequNum;
+						}
+					}
+					
+					// there was no match for the whole search string
+					nFoundSequNum = wxNOT_FOUND; // equals -1
+					continue; // iterate the outer loop which 
+							  // scans pSrcPhrase instances
+				} // end block for testing for a multi-word match
+			} // end block for processing a non-empty noteContentStr
+#else
 			// this source phrase contains a note, so get the \note* endmarker
 			// and remove the intervening content into noteContentStr
 			curPos += 6; // point the offset to the first character 
@@ -875,6 +977,7 @@ int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& 
 					} // end block for testing for a multi-word match
 				} // end block for processing a non-empty noteContentStr
 			} // end block for having found a matching \note* endmarker
+#endif
 		} // end block for pSrcPhrase contains a note
 	} // end loop for scanning over the pSrcPhrase instances in m_pSourcePhrases
 	return nFoundSequNum;
@@ -904,7 +1007,7 @@ int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& 
 /// previous paragraph). The Note restoration process, if there are many notes, or the user
 /// removed source text where Notes were stored, may need to move unremoved notes in the
 /// preceding context leftwards, or in the following context rightwards, in order to make
-/// gaps for placing the temporarily removed Notes. Any such Note movements would
+/// gaps for re-placing the temporarily removed Notes. Any such Note movements would
 /// invalidate the Note placements in the cancel span, so that if the user asks for a
 /// Cancel, or there is an error requiring the original state of the document to be
 /// rebuilt, the Notes could end up duplicated in nearby locations, or worse. The solution
@@ -919,6 +1022,7 @@ int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& 
 /// the document restoration process. The EditRecord stores these two sublists in its
 /// follNotesMoveSpanList and precNotesMoveSpanList members.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
@@ -969,10 +1073,10 @@ bool CNotes::PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, Whi
 		pos = pSrcPhrases->Item(nStartAt); // initialize pos
 		if (pos == NULL)
 		{	
-			errStr = _T(
-						"FindIndex() failed in GetMovedNotesSpan(), preceding context, pos value is NULL.");
-			errStr += _T(
-						 " Abandoning the edit process. Will attempt to restore original document state.");
+			errStr = 
+			_T("FindIndex() failed in GetMovedNotesSpan(), preceding context, pos value is NULL.");
+			errStr += 
+			_T(" Abandoning the edit process. Will attempt to restore original document state.");
 			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION);
 			return FALSE;
 		}
@@ -1018,10 +1122,10 @@ bool CNotes::PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, Whi
 		pos = pSrcPhrases->Item(nStartAt); // initialize pos
 		if (pos == NULL)
 		{	
-			errStr = _T(
-						"FindIndex() failed in GetMovedNotesSpan(), following context, pos value is NULL.");
-			errStr += _T(
-						 " Abandoning the edit process. Will attempt to restore original document state.");
+			errStr = 
+			_T("FindIndex() failed in GetMovedNotesSpan(), following context, pos value is NULL.");
+			errStr += 
+			_T(" Abandoning the edit process. Will attempt to restore original document state.");
 			wxMessageBox( errStr, _T(""), wxICON_EXCLAMATION);
 			return FALSE;
 		}
@@ -1099,8 +1203,13 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
-/// \param      
+/// \param      nJumpOffSequNum ->  the sequence number of the CSoucePhrase instance which
+///                                 stores the currently open Note, or if no Note is open,
+///                                 the sequence number of the phrase box location
 /// \remarks	
+/// Implements the command to jump backwards in the document to the first note in the
+/// preceding context. Don't jump if there is no such Note in existence.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 {
@@ -1140,10 +1249,10 @@ void CNotes::PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		}
 		
 		// store the adaptation in the KB before moving the phrase box
-		wxASSERT(m_pApp->m_pActivePile); // the old value is still valid, and 
+		wxASSERT(GetApp()->m_pActivePile); // the old value is still valid, and 
 		// it's pile has the old sourcephrase
 		bool bOK;
-		bOK = GetView()->StoreBeforeProceeding(m_pApp->m_pActivePile->GetSrcPhrase());
+		bOK = GetView()->StoreBeforeProceeding(GetApp()->m_pActivePile->GetSrcPhrase());
 		
         // Otherwise, we have found one, so it can be opened. However, we have to exercise
         // care with the phrase box - if the note is in a retranslation while adaptation
@@ -1189,7 +1298,7 @@ void CNotes::PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum)
             // location, so set the note location (ie. its sequence number) since we
             // already know it
 			GetApp()->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs 
-			// this value to be correct
+														   // this value to be correct
             // now work out where the active location (ie. phrase box location) should
             // be
 			GetApp()->m_nActiveSequNum = nNoteSequNum;
@@ -1213,7 +1322,7 @@ void CNotes::PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 			}
 			pSrcPhrase = pSafeSrcPhrase;
 			GetApp()->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
-			GetApp()->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+			GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
 			wxASSERT(GetApp()->m_pActivePile);
 			
 			// now do the stuff common to all three of these possibilities
@@ -1227,10 +1336,9 @@ void CNotes::PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
 			wxASSERT(GetApp()->m_pActivePile);
 			GetApp()->m_nSequNumBeingViewed = GetApp()->m_nActiveSequNum; // the note
-			// dialog needs this value to be correct
+												// dialog needs this value to be correct
 			// now do the stuff common to each of these above three possibilities
-		} // end of block for not in a retranslation and not in 
-		// free translation mode
+		} // end of block for not in a retranslation and not in free translation mode
 	} // end of block for testing that a jump is possible
 	
     // get the phrase box contents appropriate for the new location & handle the
@@ -1301,8 +1409,13 @@ else
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
-/// \param      
+/// \param      nJumpOffSequNum ->  the sequence number of the CSoucePhrase instance which
+///                                 stores the currently open Note, or if no Note is open,
+///                                 the sequence number of the phrase box location
 /// \remarks	
+/// Implements the command to jump forwards in the document to the first note in the
+/// following context. Don't jump if there is no such Note in existence.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 {
@@ -1473,11 +1586,13 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
-/// \param      
+/// \param      pFromSrcPhrase  ->  the instance where the Note currently is
+/// \param      pToSrcPhrase    ->  the instance where the Note will be put
 /// \remarks	
 // it is the caller's responsibility to determine which sourcephrase is to receive the
 // note, and it must exist, and the sourcephrase passed in as pFromSrcPhrase must have a
 // note (caller must bleed out any situations where this is not the case)
+/// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
 {
@@ -1488,19 +1603,46 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase
 
 void CNotes::PrivateMoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
 {
+#if !defined (_DOCVER5)
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
-	wxString noteStr;
 	int noteOffset = 0;
 	int noteLen = 0;
 	int curPos = -1;
+#endif
+	wxString noteStr;
+#if defined (_DOCVER5)
+	if ( pFromSrcPhrase->m_bHasNote && pFromSrcPhrase->GetNote().IsEmpty())
+#else
 	if ( (curPos = pFromSrcPhrase->m_markers.Find(noteEndMkr)) == -1)
+#endif
 	{
 		// this sourcephrase instance contains no filtered note, so just return
 		return;
 	}
 	else
 	{
+#if defined (_DOCVER5)
+		// this source phrase contains a note (it may be empty)...
+		// first determine that the target sourcephrase has no note,
+		// since it is invalid to move a note to such a one
+		if (pToSrcPhrase->m_bHasNote || !pToSrcPhrase->GetNote().IsEmpty())
+		{
+            // it has a note, so do nothing (no message here, the GUI button's
+            // handler has a test for this and disables the command if necessary,
+            // but for programatic use of MoveNote, we want a silent return)
+			return;
+		}
+		
+		// get the note's content
+		noteStr = pFromSrcPhrase->GetNote();
+		pFromSrcPhrase->m_bHasNote = FALSE; // ensure the flag is cleared 
+											// on the old location
+		
+		// now create the note on the pToSrcPhrase instance
+		pToSrcPhrase->SetNote(noteStr);
+		pToSrcPhrase->m_bHasNote = TRUE;
+#else
 		// this source phrase contains a note, or the wrappers for a note...
 		// first determine that the target sourcephrase has no note,
 		// since it is invalid to move note to such a one
@@ -1519,9 +1661,9 @@ void CNotes::PrivateMoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSr
 		
 		// remove it and its wrappers
 		GetView()->RemoveContentWrappers(pFromSrcPhrase,noteMkr,curPos - 1); // -1 is not needed, 
-		// just ensures safety
+																			 // just ensures safety
 		pFromSrcPhrase->m_bHasNote = FALSE; // ensure the flag is cleared 
-		// on the old location
+											// on the old location
 		
 		// now create the note on the pToSrcPhrase instance
 		int nInsertionOffset = 
@@ -1531,12 +1673,14 @@ void CNotes::PrivateMoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSr
 		GetView()->InsertFilteredMaterial(noteMkr,noteEndMkr,noteStr,pToSrcPhrase,
 							   nInsertionOffset,bInsertContentOnly);
 		pToSrcPhrase->m_bHasNote = TRUE;
+#endif
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
 /// \remarks	Moves to the first note and opens it.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenFirstNote()
 {
@@ -1565,6 +1709,7 @@ void CNotes::PrivateMoveToAndOpenFirstNote()
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
 /// \remarks	Moves to the last note and opens it.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenLastNote()
 {
@@ -1616,6 +1761,7 @@ void CNotes::PrivateMoveToAndOpenLastNote()
 /// (If all the locations between left and right bounds are used up and still there are
 /// notes to be placed, the caller will attempt to move the note which is the right bound
 /// to the right to create the needed gaps.)
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
@@ -1673,6 +1819,7 @@ bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLef
 /// replaced near the end of the document so that not all can be replaced, then the
 /// unreplaceable ones are simply lost - but the user is given a message saying so.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -1693,10 +1840,10 @@ bool CNotes::PrivateRestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRec
 	int nNumRemoved = pRec->arrNotesSequNumbers.GetCount();
 	int nNumUnsqueezedLocations = -1;
 	int nEditSpanStartingSN = pRec->nStartingSequNum; // this could be the start of the
-	// 'following context' if the user's edit was to remove everything in
-	// the edit span
+					// 'following context' if the user's edit was to remove everything in
+					// the edit span
 	int nEditSpanEndingSN; // for the same reason this once can also be at the start
-	// of the former following context
+					// of the former following context
 	if (pRec->nNewSpanCount == 0)
 	{
 		nEditSpanEndingSN = pRec->nStartingSequNum;
@@ -1893,7 +2040,7 @@ _("Some temporarily removed Notes could not be restored to the document due to l
 		{
             // some would not fit in the edit span, so try fit the other ones within it at
             // its end, failing that, create gaps by left shifting and try fit at the end
-			bool bRelocatedThemAll = GetView()->BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(
+			bool bRelocatedThemAll = BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(
 									  pRec->nStartingSequNum, pRec->nNewSpanCount,
 									  &arrUnsqueezedLocations, &arrSqueezedLocations, 
 									  nRightBound);
@@ -2165,6 +2312,7 @@ en:	;
 /// Moves a note to the right one place.
 /// The move can be done only if not at the end of the document, and provided the next 
 /// CSourcePhrase does not already store a different Note.
+/// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
@@ -2177,8 +2325,10 @@ bool CNotes::PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
-	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
+#if !defined (_DOCVER5)
 	wxString strSFM = _T("\\note");
+#endif
+	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
 	CSourcePhrase* pOriginalSrcPhrase = pos->GetData();
 	pos = pos->GetNext();
 	// check the original src phrase actually has a note
@@ -2198,6 +2348,13 @@ bool CNotes::PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 	// if there is, we can't shift the note to this instance
 	CSourcePhrase* pDestSrcPhrase = pos->GetData(); // MFC used GetAt(pos);
 	wxASSERT(pDestSrcPhrase != NULL);
+#if defined (_DOCVER5)
+	if (pDestSrcPhrase->m_bHasNote || !pDestSrcPhrase->GetNote().IsEmpty())
+	{
+		// it contains a note already, so we can't move another to here
+		return FALSE;
+	}
+#else
 	int offset = -1;
 	offset = pDestSrcPhrase->m_markers.Find(strSFM);
 	if (offset != -1)
@@ -2205,6 +2362,7 @@ bool CNotes::PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 		// it contains a note already, so we can't move another to here
 		return FALSE;
 	}
+#endif
 	// the shift is possible, so do it
 	MoveNote(pOriginalSrcPhrase,pDestSrcPhrase);
 	// mark the one or both owning strips invalid
@@ -2225,6 +2383,7 @@ bool CNotes::PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 /// The move can be done only if not at the end of the document, and provided there is a 
 /// CSourcePhrase without a Note after the consecutive series ends. The function can be 
 /// used even when the location passed in is the only one which has a stored Note.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
@@ -2297,6 +2456,398 @@ bool CNotes::PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhr
 	return TRUE;
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     TRUE if all Notes were relocated, FALSE if not
+/// \param      nStartOfEditSpan -> 
+/// \param      nEditSpanCount   -> 
+/// \param      pUnsqueezedArr   <- 
+/// \param      pSqueezedArr     <- 
+/// \param      nRightBound      -> is used to make sure that when locating notes
+///                                 consecutively, we don't transgress the bound and so
+///                                 cause a note reordering
+/// \remarks
+/// Called from: the View's RestoreNotesAfterSourceTextEdit().
+/// This is sort of like a leftwards version of
+/// ShiftASeriesOfConsecutiveNotesRightwardsOnce() but with some important differences. 
+/// 1. It doesn't relocate notes, it just decrements note locations stored in the passed in
+/// pLocationsList.
+/// 2. The locations it operates on are not necessarily consecutive, because this function
+/// is intended to work with the "unsqueezed" array (ie. as many note locations as possible
+/// kept the same as they were before the edit of source text was commenced), and the idea
+/// is to start with locations at the end of the array and try to create a gap by moving
+/// the last leftwards one location, creating a gap. This iterative decrementing of the
+/// final location index may eventually bump up against a previous note's location also
+/// stored in the array, and if that is the case, then both those locations get moved left
+/// one location, creating a gap. Ultimately, if there are enough removed Notes to be
+/// replaced, all the stored locations might have been closed up leftwards to be
+/// consecutive after the first one - if that happens, and more gaps are needed, then the
+/// whole lot are decremented by one, -- that process can happen only so long as the first
+/// index in the list is greater in value than the passed in nStartOfEditSpan index value.
+/// We won't move the locations to precede the final edit span, but if we get to the point
+/// where we still need gaps, we'll try relocating the remainder in the following context,
+/// and if necessary, they can be created by moving real notes in the following context
+/// rightwards. If not all could be relocated, we will return FALSE to the caller and with
+/// the pSqueezedArr still containing unlocated stored indices for the Notes unable to be
+/// relocated by this function. The caller can then try moving unremoved Notes rightwards
+/// to make more gaps, and if that can't get enough, the remainder of the Notes text's will
+/// be stored in the top of the removed free translations list. So, return TRUE if all were
+/// relocated, FALSE if not. A second scenario is that there are no entries in the
+/// "unsqueezed" array, so that all the entries are in the squeezed array, with unchanged
+/// values, put there by the caller. When this is the case, the function will relocate them
+/// consecutively from the start of the following context to the start of the edit span;
+/// because we want removals (which are all done from within the old edit span) to be
+/// reconstituted within the new bounds of the edit span after the user's edit is done. The
+/// nRightBound parameter is the location of the first unremoved note in the following
+/// context, or if there are none, then the location of the last CSourcePhrase
+/// in the document. The nRightBound value is used to make sure that when locating notes
+/// consecutively, we don't transgress the bound and so cause a note reordering. If we come
+/// to this bound, we'll return to the caller to let the above algorithm for placing the
+/// remainder do its job.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/////////////////////////////////////////////////////////////////////////////////
+bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, 
+									int nEditSpanCount, wxArrayInt* pUnsqueezedArr, 
+									wxArrayInt* pSqueezedArr, int WXUNUSED(nRightBound))
+{
+	// BEW added 30May08 in support of the source text editing step of the 
+	// vertical editing process
+    // **** Note: in this function, the capital letter pair SN used in variable naming is
+    //     an acronym for 'sequence number', that is, the variable for which it is a part
+    //     of its name is an index value into the document's list, m_pSourcePhrases, which
+    //     stores CSourcePhrase instances ****
+
+	wxASSERT(nEditSpanCount > 0); // == 0 case should have been dealt with in the caller
+	int nNumInSqueezedArray = pSqueezedArr->GetCount();
+	wxASSERT(nNumInSqueezedArray != 0); // the function should never be called if there is
+									    // nothing needing to be relocated by it
+	int aNoteSN = 0; // whm: I've initialized it here to prevent warning, 
+					 // but see its use below
+	int index;
+	int nEditSpanEndLoc = nStartOfEditSpan + nEditSpanCount - 1;
+	int nLastLocInUnsqueezedArr;
+	int nNumInUnsqueezedArray = pUnsqueezedArr->GetCount();
+	if (nNumInUnsqueezedArray == 0)
+	{
+        // nothing was relocated within the edit span, so the location indices are in the
+        // "squeezed" array and unlocated as yet ('unlocated' means they have their old,
+        // invalid, sequence numbers unchanged as yet, but are at least in the squeezed
+        // array); and the new edit span has at least one CSourcePhrase instance in it.
+        // We'll just locate them consecutively within the edit span, rightwards so that
+        // the last to be relocated is at the end of the edit span - if if necessary
+        // starting the sequence from the start of the edit span, but no earlier; so if any
+        // are still are unrelocated at that stage, we return FALSE to the caller so that
+        // the caller can handle those that remain (which didn't fit within the span)
+		if (nNumInSqueezedArray > nEditSpanCount)
+		{
+			// not all will fit, so relocate starting from nStartOfEditSpan index value,
+			//as many as will fit
+			for (index = 0; index < nEditSpanCount; index++)
+			{
+				pSqueezedArr->RemoveAt(0);
+				// create an alternative location for that location just removed
+				aNoteSN = nStartOfEditSpan + index;
+                // whm note: wxArrayInt's Insert method reverses the parameters! Caution:
+                // wx docs also says of wxArray::Insert() "Insert the given number of
+                // copies of the item into the array before the existing item n. This
+                // resulted in incorrect ordering of source phrases, so we use array[] =
+                // assignment notation instead. Bruce's note indicates that it is going to
+                // "insert at the array's end", so to be safe we insure that the array has
+                // at least nNumInUnsqueezedArray elements by calling SetCount()
+				if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
+					pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
+				(*pUnsqueezedArr)[nNumInUnsqueezedArray] = aNoteSN; // insert at the array's end
+				nNumInUnsqueezedArray = pUnsqueezedArr->GetCount(); // update its value
+				nNumInSqueezedArray = pSqueezedArr->GetCount(); // update its value
+			}
+		}
+		else
+		{
+            // all will fit, so relocate starting from wherever in the span will result in
+            // them all being bunched up at the end of the span
+			int nBeginAt = nEditSpanEndLoc - nNumInSqueezedArray + 1;
+			int nHowManyToDo = nNumInSqueezedArray;
+			for (index = 0; index < nHowManyToDo; index++)
+			{
+				pSqueezedArr->RemoveAt(0);
+				// create an alternative location for that location just removed
+				aNoteSN = nBeginAt + index;
+				// whm: See note in block above
+				if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
+					pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
+				(*pUnsqueezedArr)[nNumInUnsqueezedArray] = aNoteSN; // insert at the array's end
+				nNumInUnsqueezedArray = pUnsqueezedArr->GetCount(); // update its value
+				nNumInSqueezedArray = pSqueezedArr->GetCount(); // update its value
+				if (nNumInSqueezedArray == 0)
+				{
+					return TRUE; // success, all are relocated now within the final edit span
+				}
+			}
+		}
+        // if control gets here, then there is still at least one unrelocated index
+        // remaining in pSqueezedArr, in which case we'll return FALSE and let the caller
+        // deal with what remains
+		return FALSE;
+	}
+	else
+	{
+        // there is at least one replacement location within the edit span; this suggests
+        // that the edit span may be large enough for the ones which didn't fit within the
+        // span resulting from the user's edit to be squeezed in there at its end, so now
+        // we attempt to do that, leftshifting as necessary.
+		nLastLocInUnsqueezedArr = (*pUnsqueezedArr)[nNumInUnsqueezedArray - 1];
+
+        // find the number of locations in the gap betwen the last in the unsqueezed array,
+        // and the end of the edit span - if we can place all of the ones in the squeezed
+        // array there using successive locations, then do so; otherwise, we'll need to
+        // uses a left-shifting strategy to open up gaps; anything we successfully relocate
+        // will be added at the tail of the unsqueezed array and removed from the squeezed
+        // array, so that the final content of the squeezed array is what remains to be
+        // relocated somewhere
+		int nNumberPossibleAtEnd = nEditSpanEndLoc - nLastLocInUnsqueezedArr; // size of 
+																		// the gap there
+		// if an end gap exists try to fill it to whatever extent is possible
+		if (nNumberPossibleAtEnd > 0 )
+		{
+            // do as many as possible by filling the gap, and then exit the loop to use a
+            // left-shifting strategy for as many of the remainders as possible - unless
+            // there are no remainders in which case we are done
+			for (index = 0; index < nNumberPossibleAtEnd; index++)
+			{
+				// remove the first of those remaining in the squeezed list
+				pSqueezedArr->RemoveAt(0);
+				// create an alternative location for that location just removed
+				aNoteSN = nLastLocInUnsqueezedArr + 1 + index;
+                // store it at the end of the unsqueezed array - (forming one or more
+                // consecutive locations there, depending on how many iterations this loop
+                // can do before it exits)
+                // whm note: wxArrayInt's Insert method reverses the parameters! Caution:
+                // wx docs also says of wxArray::Insert() "Insert the given number of
+                // copies of the item into the array before the existing item n. This
+                // resulted in incorrect ordering of source phrases, so we use array[] =
+                // assignment notation instead. Bruce's note indicates that it is going to
+                // "insert at the array's end", so to be safe we insure that the array has
+                // at least nNumInUnsqueezedArray elements by calling SetCount()
+				if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
+					pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
+				(*pUnsqueezedArr)[nNumInUnsqueezedArray] = aNoteSN;
+				nNumInUnsqueezedArray = pUnsqueezedArr->GetCount(); // update its value
+				nNumInSqueezedArray = pSqueezedArr->GetCount(); // update its value
+				if (nNumInSqueezedArray == 0)
+				{
+					return TRUE; // success, all are relocated now within the final edit span
+				}
+			}
+		}
+        // If control gets here, we've more to locate, so use left-shifts to do it, at
+        // least until the leftshifts bring the replacement locations to the start of the
+        // final edit span - and if that happens we won't let leftshifting go any further,
+        // but rather we exit and let the caller relocate those remaining in the squeezed
+        // array by a filling strategy for the immediate context of CSourcePhrase instances
+        // which follow the end of the final edit span
+		wxASSERT(nNumInSqueezedArray > 0);
+		int nNumberToRelocate = nNumInSqueezedArray;
+		int nPotentialGapSN;
+		int nBackIndex;
+		int anUnsqueezedArrIndex;
+		while(nNumberToRelocate > 0) // loop for how many times we have to try
+		{
+            // inner loop iterates backwards over the relocation SN values stored in the
+            // unsqueezed array now, looking for gaps and leftshifting rightmost stored
+            // values as necessary to create gaps
+			for (anUnsqueezedArrIndex = 0; anUnsqueezedArrIndex < nNumInUnsqueezedArray; 
+				anUnsqueezedArrIndex++)
+			{
+				nBackIndex = nNumInUnsqueezedArray - 1 - anUnsqueezedArrIndex; // indexing 
+															// from the end of the array
+				// find next gap
+				nPotentialGapSN = (*pUnsqueezedArr)[nBackIndex] - 1; // subtract 1 from 
+																	 // the stored value
+				if (nPotentialGapSN < nStartOfEditSpan)
+				{
+					// we can't go back that far in SN values, so break out of loop, 
+					// the caller must finish it
+					return FALSE;
+				}
+                // we have not gone past the bounding nStartOfEditSpan sequ number value,
+                // so the nPotentialGapSN value is still a potential gap; it won't be a gap
+                // if the previously stored SN value in the pUnsqeezedArr has the same
+                // value as nPotentialGapSN, in which case we keep iterating back over
+                // stored values in the unsqueezed array; but if there is no previous
+                // entry, we have come to the gap region (it could be empty) from the
+                // nStartOfEditSpan value (inclusive) to the SN value immediately preceding
+                // the first stored SN value in the pUnsqueezedArr array - where we can
+                // shift left as often as we like provided no shifted stored SN value
+                // becomes less than the nStartOfEditSpan. So we have to test for these
+                // conditions etc.
+  				if (nBackIndex == 0)
+				{
+                    // there isn't any earlier stored SN entry, so we've come to the region
+                    // we potentially multiple leftshifts can be done, to create multiple
+                    // gaps at the end of the list of leftshifted stored SN values; either
+                    // we can do enough leftshifts in this code block to relocate those
+                    // that remain in pSqueezedArr and return TRUE, or we do as many as
+                    // possible here and return FALSE, so that the caller can handle the
+                    // remainder -- either we control will return to the caller at the end
+                    // of this code block
+					int nVacantLocations = (*pUnsqueezedArr)[nBackIndex] - nStartOfEditSpan;
+					if (nVacantLocations > 0 )
+					{
+                        // do as many as possible by leftshifting, and fill the gaps
+                        // created at the end and then return TRUE or FALSE depending on
+                        // whether or not all were handled
+						int index3;
+						int nDecrementBy;
+						nNumInSqueezedArray = pSqueezedArr->GetCount(); // make sure the 
+																		// value is uptodate
+						if (nNumInSqueezedArray <= nVacantLocations)
+						{
+							// we can handle all of those that remain
+							nDecrementBy = nNumInSqueezedArray;
+							pSqueezedArr->Clear(); // abandon these, as we'll calculate new 
+                                // loc'n values decrement the pUnsqueezedArr stored values
+                                // so as to leftshift into the gap
+							for (index3 = 0; index3 < nNumInUnsqueezedArray; index3++)
+							{
+								// decrement the unsqueezed array stored SN values, 
+								// creating a gap at the end
+								aNoteSN = (*pUnsqueezedArr)[index3]; // get next
+								aNoteSN -= nDecrementBy; // decrement its stored value 
+														 // by nDecrementBy
+								(*pUnsqueezedArr)[index3] = aNoteSN; // restore the new value
+																	 // at same index
+							}
+                            // the aNoteSN value on exit of the preceding loop is the last
+                            // stored SN value, in pUnsqueezedArr, and so there are
+                            // nDecrementBy locations available for creating the new
+                            // consecutive entries required for handling the rest of the
+                            // needed replacement locations not yet assigned
+							int nNewSN;
+							int nItsLocation;
+							for (index3 = 0; index3 < nDecrementBy; index3++)
+							{
+                                // store the new ones at the end of the unsqueezed array
+                                // whm Note: aNoteSN here is "potentially uninitialized
+                                // local variable" I've initialized it at the top of this
+                                // function to 0, but the logic should be checked. TODO:
+								nNewSN = aNoteSN + 1 + index3; // the SN value to be stored
+								nItsLocation = nNumInUnsqueezedArray + index3;
+								// whm: See notes above on MFC's InsertAt vs wx Insert
+								if (nItsLocation+1 > (int)pUnsqueezedArr->GetCount())
+									pUnsqueezedArr->SetCount(nItsLocation+1);
+								(*pUnsqueezedArr)[nItsLocation] = nNewSN;
+							}
+							return TRUE;
+						}
+						else
+						{
+							// we can handle only some of those that remain
+							nDecrementBy = nVacantLocations;
+                            // whm Note: the STL erase doesn't have a second parameter for
+                            // number of removals, so we'll do it in a for loop
+							int ct;
+							for (ct = 0; ct < nDecrementBy; ct++)
+								pSqueezedArr->RemoveAt(0);
+                            // this many new loc'n values by decrementing all the
+                            // pUnsqueezedArr stored values so as to leftshift into the
+                            // this gap, and the remainder will be the caller's job
+							for (index3 = 0; index3 < nNumInUnsqueezedArray; index3++)
+							{
+								// decrement the unsqueezed array stored SN values, 
+								// creating a gap at the end
+								aNoteSN = (*pUnsqueezedArr)[index3]; // get next
+								aNoteSN -= nDecrementBy; // decrement its stored value 
+														 // by nDecrementBy
+								(*pUnsqueezedArr)[index3] = aNoteSN; // restore the 
+														// new value at same index
+							}
+							// create and store the required new SN indices at the end 
+							// of the edit span
+							int nNewSN;
+							int nItsLocation;
+							for (index3 = 0; index3 < nDecrementBy; index3++)
+							{
+								// store the new ones at the end of the unsqueezed array
+								nNewSN = aNoteSN + 1 + index3; // the SN value to be stored
+								nItsLocation = nNumInUnsqueezedArray + index3;
+								// whm: See notes above on MFC's InsertAt vs wx Insert
+								if (nItsLocation+1 > (int)pUnsqueezedArr->GetCount())
+									pUnsqueezedArr->SetCount(nItsLocation+1);
+								(*pUnsqueezedArr)[nItsLocation] = nNewSN;
+							}						
+						}
+						return FALSE;
+					}
+					else
+					{
+                        // the stored SN value at nBackIndex == 0 is already the value
+                        // nStartOfEditSpan and so we can't relocate any more, so hand it
+                        // back to the caller to do
+						return FALSE;
+					}
+				} // end of block for loop end condition being satisfied, that is,
+				  // nBackIndex having reached 0 with at least one more not yet relocated
+				else
+				{
+                    // there is at least one earlier stored SN entry, so get it's value so
+                    // we can compare it with the nPotentialGapSN value (reuse the aNoteSN
+                    // variable for this purpose)
+					aNoteSN = (*pUnsqueezedArr)[nBackIndex - 1];
+					if (aNoteSN < nPotentialGapSN)
+					{
+                        // nPotentialGapSN is a genuine gap, so we can leftshift entry
+                        // values by one to fill this gap, and then we can fill the opened
+                        // gap at the nEditSpanEndLoc SN value by removing the next first
+                        // element from the pSqueezedArr array, and storing a
+                        // nEditSpanEndLoc as the new relation value for it in the tail of
+                        // the pUnsqueezedArr array; then adjust the appropriate values to
+                        // comply, and then iterate the outer loop
+						int index2;
+						for (index2 = nNumInUnsqueezedArray - 1; index2 >= nBackIndex; index2--)
+						{
+                            // decrement by 1 the stored values at the end of the
+                            // unsqueezed array (aNoteSN can be reused here for this too
+							aNoteSN = (*pUnsqueezedArr)[index2];
+							aNoteSN--; // decrement it, leftshifting thereby by 1
+							(*pUnsqueezedArr)[index2] = aNoteSN; // overwrite with the 
+																 // decremented SN value
+						}
+                        // now we have a 'gap' at the sequence number nEditSpanEndLoc which
+                        // we can use for the next so-far-unrelocated Note index, so do the
+                        // relocation etc
+						pSqueezedArr->RemoveAt(0); // chuck this one
+                        // whm note: wxArrayInt's Insert method reverses the parameters!
+                        // Caution: wx docs also says of wxArray::Insert() "Insert the
+                        // given number of copies of the item into the array before the
+                        // existing item n. This resulted in incorrect ordering of source
+                        // phrases, so we use array[] = assignment notation instead.
+                        // Bruce's note indicates that it is going to "insert at the
+                        // array's end", so to be safe we insure that the array has at
+                        // least nNumInUnsqueezedArray elements by calling SetCount()
+						if (nNumInUnsqueezedArray+1 > (int)pUnsqueezedArr->GetCount())
+							pUnsqueezedArr->SetCount(nNumInUnsqueezedArray+1);
+						(*pUnsqueezedArr)[nNumInUnsqueezedArray] = nEditSpanEndLoc; // store 
+																// the relocation sequ number
+						nNumInUnsqueezedArray = pUnsqueezedArr->GetCount(); // update size
+						nNumInSqueezedArray = pSqueezedArr->GetCount(); // update size
+						nNumberToRelocate--; // decrement the count of how many remain to be
+											 // handled by the outer loop
+						break; // iterate in the outer loop
+					}
+					else
+					{
+                        // aNoteSN must equal nPotentialGapSN, so these entries are
+                        // consecutive, so keep iterating the inner loop to look for a gap
+                        // into which we can leftshift
+						continue;
+					}
+				} // end of the test for whether or not there is an earlier stored 
+				  // SN value preceding the currently accessed one
+			} // end of inner loop
+		} // end of outer loop
+	}
+	return FALSE; // we didn't manage to relocate them all, caller can do the rest
+}
 	
 ///////////////////////////////////////////////////////////////////////////////
 // Event handlers
@@ -2306,6 +2857,7 @@ bool CNotes::PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhr
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Create Note button pressed event.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
@@ -2392,6 +2944,7 @@ void CNotes::ButtonCreateNote(CAdapt_ItApp* pApp)
 /// pointer is NULL, a Note dialog is already open (the m_pNoteDlg is not NULL), if there
 /// already is a note on the first source phrase of any selection, or if the targetBox is
 /// not shown. Otherwise the toolbar button is enabled.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 {
@@ -2464,6 +3017,7 @@ void CNotes::UpdateButtonCreateNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Previous Note button click event.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 {
@@ -2507,6 +3061,7 @@ void CNotes::ButtonPrevNote(CAdapt_ItApp* pApp)
 /// to), The application is only showing the target text, the application is in free
 /// translation mode, there is a selection current, or the targetBox is not being shown.
 /// Otherwise the toolbar button is enabled.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 {
@@ -2566,6 +3121,7 @@ void CNotes::UpdateButtonPrevNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Next Note button click event.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 {
@@ -2606,6 +3162,7 @@ void CNotes::ButtonNextNote(CAdapt_ItApp* pApp)
 /// The application is only showing the target text, the application is in free translation
 /// mode, there is a selection current, or the targetBox is not being shown. Otherwise the
 /// toolbar button is enabled.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 {
@@ -2665,6 +3222,7 @@ void CNotes::UpdateButtonNextNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Delete All Notes button click event.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
@@ -2705,6 +3263,7 @@ void CNotes::ButtonDeleteAllNotes(CAdapt_ItApp* pApp)
 /// toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump to),
 /// The application is only showing the target text, the active pile pointer is NULL.
 /// Otherwise, if the targetBox is showing the toolbar button is enabled.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 {
@@ -2750,6 +3309,7 @@ void CNotes::UpdateButtonDeleteAllNotes(wxUpdateUIEvent& event, CAdapt_ItApp* pA
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 {
@@ -2913,6 +3473,7 @@ void CNotes::EditMoveNoteForward(CAdapt_ItApp* pApp)
 /// be closed first), the first source phrase of any selection already has a Note.
 /// Otherwise, if there is a Note at the active location and there is an eligible source
 /// phrase ahead to move to, the menu item is enabled, otherwise the menu item is disabled.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 {
@@ -3040,6 +3601,7 @@ void CNotes::UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pAp
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 {
@@ -3201,6 +3763,7 @@ void CNotes::EditMoveNoteBackward(CAdapt_ItApp* pApp)
 /// source phrase of any selection already has a Note. Otherwise, if there is a Note at the
 /// active location and there is an eligible source phrase previous to the current location
 /// to move to, the menu item is enabled, otherwise the menu item is disabled.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 {
@@ -3326,5 +3889,6 @@ void CNotes::UpdateEditMoveNoteBackward(wxUpdateUIEvent& event, CAdapt_ItApp* pA
 	}
 	event.Enable(FALSE);
 }
+
 
 #endif

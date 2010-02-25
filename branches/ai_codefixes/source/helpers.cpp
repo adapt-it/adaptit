@@ -1112,6 +1112,7 @@ wxString MakeReverse(wxString inputStr)
 /// \remarks
 /// The wxWidgets wxString class has no second parameter in its Find() method, so
 /// this function can be used to Find starting at a certain position in the string.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos)
 {
@@ -1135,7 +1136,7 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 			// we're at a char which matches first char of subStr, so look ahead in the buffer and
 			// see if remainder of subStr also matches.
 			ct = 0;
-			while (ct < (int)subStr.Length() && pStartChar < pEnd) //while (ct < (int)subStr.Length() && pStartChar < pEnd)
+			while (ct < (int)subStr.Length() && pStartChar < pEnd)
 			{
 				if (*(pStartChar+ct) != subStr.GetChar(ct))
 				{
@@ -1155,22 +1156,6 @@ int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos
 	}
 	// if we get here there are no matches, so return -1
 	return -1;
-/*
-// original slow implementation
-	wxString strToSearch = inputStr.Mid(startAtPos);
-	int posInRemainingStr = strToSearch.Find(subStr);
-	if (posInRemainingStr == -1)
-	{
-		// the subStr was not found in the specified range of the string
-		return -1;
-	}
-	else
-	{
-		// the subStr was found. We return its position PLUS the original
-		// startAtPos
-		return posInRemainingStr + startAtPos;
-	}
-*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
