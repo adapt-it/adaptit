@@ -125,6 +125,8 @@ CAdapt_ItApp* CNotes::GetApp()
 /// Creates a filtered note on the CSourcePhrase instance in pSrcPhrases which has location
 /// nLocationSN for the sequence number. It is the caller's responsibility to ensure there
 /// is no note already present there.
+/// 
+/// BEW 24Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
@@ -155,7 +157,7 @@ bool CNotes::PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 		// this location has a Note already, (the caller should have checked for
 		// this and not made the call)
 		wxString errStr = _T(
-		"There is already a Note at the passed in index, in CreateNoteAtLocation.");
+		"There is already a Note at the passed in index, within CreateNoteAtLocation(), so the attempt was abandoned.");
 		wxMessageBox(errStr, _T(""), wxICON_WARNING);
 		return FALSE;
 	}
@@ -165,12 +167,16 @@ bool CNotes::PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 		CSourcePhrase* pToSrcPhrase = NULL;
 		SPList::Node* pos = pSrcPhrases->Item(nLocationSN);
 		wxASSERT(pos != NULL);
-		pToSrcPhrase = pos->GetData(); // MFC has GetAt(pos)
+		pToSrcPhrase = pos->GetData();
+#if defined (_DOCVER5)
+		pToSrcPhrase->SetNote(strNote);
+#else
 		int nInsertionOffset = GetView()->FindFilteredInsertionLocation(pToSrcPhrase->m_markers,noteMkr);
 		bool bInsertContentOnly = FALSE; // need the whole lot done, 
 		// including wrapping filter markers
 		GetView()->InsertFilteredMaterial(noteMkr,noteEndMkr,strNote,pToSrcPhrase,
 							   nInsertionOffset,bInsertContentOnly);
+#endif
 		pToSrcPhrase->m_bHasNote = TRUE;
 		// mark its owning strip as invalid
 		GetApp()->GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
@@ -192,6 +198,7 @@ bool CNotes::PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, w
 /// contains a \note marker in its m_markers member. If the flag is not set and should be,
 /// it sets it.
 /// 20June08 created by BEW
+/// BEW 24Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -226,9 +233,11 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 		// beyond the document's end, so shorten it to end at the document's end
 		nEndAt = maxIndex;
 	}
+#if !defined (_DOCVER5)
 	wxString mkr = _T("\\note");
-	CSourcePhrase* pSrcPhrase = NULL;
 	int offset = -1;
+#endif
+	CSourcePhrase* pSrcPhrase = NULL;
 	SPList::Node* pos = NULL;
 	if (bDoEditSpanCheck)
 	{
@@ -239,6 +248,15 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
+#if defined (_DOCVER5)
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				// there is a note stored here
+				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged 
+				// in case the user edited a typo SF resulting
+				// in a Note which got filtered
+			}
+#else
 			offset = pSrcPhrase->m_markers.Find(mkr);
 			if (offset != -1)
 			{
@@ -247,6 +265,7 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 				// in case the user edited a typo SF resulting
 				// in a Note which got filtered
 			}
+#endif
 			// break out of the loop once we've checked the last in the span
 			if (pSrcPhrase->m_nSequNumber >= nEndAt)
 				break; 
@@ -266,8 +285,8 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 		delta = wxMin(5,pRec->arrNotesSequNumbers.GetCount());
 		if (delta < 5) delta = 5;
 		nNextEndAt = nNextStartAt + delta - 1;
-		if (nNextEndAt > m_pApp->GetMaxIndex())
-			nNextEndAt = m_pApp->GetMaxIndex();
+		if (nNextEndAt > GetApp()->GetMaxIndex())
+			nNextEndAt = GetApp()->GetMaxIndex();
 		// now do the check of these
 		SPList::Node* pos = pSrcPhrases->Item(nNextStartAt);
 		wxASSERT(pos != NULL);
@@ -276,6 +295,15 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
+#if defined (_DOCVER5)
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				// there is a note stored here
+				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged 
+				// in case the user edited a typo SF resulting
+				// in a Note which got filtered
+			}
+#else
 			offset = pSrcPhrase->m_markers.Find(mkr);
 			if (offset != -1)
 			{
@@ -284,6 +312,7 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 				// in case the user edited a typo SF resulting
 				// in a Note which got filtered
 			}
+#endif
 			// break out of the loop once we've checked the last in the span
 			if (pSrcPhrase->m_nSequNumber >= nNextEndAt)
 				break; 
@@ -308,6 +337,15 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
+#if defined (_DOCVER5)
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				// there is a note stored here
+				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged 
+				// in case the user edited a typo SF resulting
+				// in a Note which got filtered
+			}
+#else
 			offset = pSrcPhrase->m_markers.Find(mkr);
 			if (offset != -1)
 			{
@@ -316,6 +354,7 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 				// in case the user edited a typo SF resulting in a Note
 				// which got filtered
 			}
+#endif
 			// break out of the loop once we've checked the last in the span
 			if (pSrcPhrase->m_nSequNumber >= nNextEndAt)
 				break; 
@@ -326,6 +365,7 @@ void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
 /// \remarks	Removes all notes.
+/// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::DeleteAllNotes()
 {
@@ -340,15 +380,26 @@ void CNotes::PrivateDeleteAllNotes()
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	CSourcePhrase* pSrcPhrase;
+#if defined (_DOCVER5)
+	wxString emptyStr = _T("");
+#else
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
 	int curPos = -1;
+#endif
 	
 	// do the deleting
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
+#if defined (_DOCVER5)
+		if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
+		{
+			pSrcPhrase->SetNote(emptyStr);
+			pSrcPhrase->m_bHasNote = FALSE;
+		}
+#else
 		if ( (curPos = pSrcPhrase->m_markers.Find(noteEndMkr)) == -1)
 		{
 			// this sourcephrase instance contains no filtered note
@@ -364,6 +415,7 @@ void CNotes::PrivateDeleteAllNotes()
 			GetView()->RemoveContentWrappers(pSrcPhrase, noteMkr, curPos);
 			pSrcPhrase->m_bHasNote = FALSE; // ensure the flag agrees
 		}
+#endif
 	}
 	GetView()->Invalidate(); // get the view redrawn, so the note icons disappear too
 	GetLayout()->PlaceBox();
@@ -378,8 +430,8 @@ void CNotes::PrivateDeleteAllNotes()
 ///	firstWord		->	the first word in pSearchList - the caller will already have 
 ///	                    matched this one
 ///	noteStr			->	the full content of the note, as stored on the pSrcPhrase 
-///	                    currently being examined and typically this string will end in 
-///	                    a space (if the filtering was done right)
+///	                    currently being examined (and this string may, or may not, 
+///	                    end in a space)
 ///	nStartOffset	<->	starting offset in noteStr for the already matched part 
 ///	                    (ie. firstWord)
 ///	nEndOffset		<-	ending offset (ie. the character immediately after the matched 
@@ -395,6 +447,7 @@ void CNotes::PrivateDeleteAllNotes()
 ///    differences are ignored (which we expect is what the user would always want). The
 ///    returned offsets are used by the caller (ie. CNoteDlg) for highlighting purposes
 ///    when there was a successful match.
+/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, 
 							  wxString& noteStr, int& nStartOffset, int& nEndOffset)
@@ -544,6 +597,7 @@ bool CNotes::PrivateDoesTheRestMatch(WordList* pSearchList, wxString& firstWord,
 /// CSourcePhrase instances because it returns the stored m_nSequNumber value for the found
 /// note in the CSourcePhrase which stores it, not the index value in pList at which that
 /// CSourcePhrase was located.
+/// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards)
 {
@@ -561,9 +615,11 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		nStartLoc = count - 1;
 	}
 	CSourcePhrase* pSrcPhrase = NULL;
+#if !defined (_DOCVER5)
 	wxString strSFM = _T("\\note");
-	SPList::Node* pos = pList->Item(nStartLoc);
 	int offset = -1;
+#endif
+	SPList::Node* pos = pList->Item(nStartLoc);
 	if (pos == NULL)
 	{
 		// unexpected error, the location should be findable
@@ -579,6 +635,15 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		// examine the starting location first
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
+#if defined (_DOCVER5)
+		if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
+		{
+			// there is one at the current POSITION
+			pSrcPhrase->m_bHasNote = TRUE; // ensure the flag is set
+			nFoundAt = pSrcPhrase->m_nSequNumber;
+			return TRUE;
+		}
+#else
 		offset = pSrcPhrase->m_markers.Find(strSFM);
 		if (offset >= 0)
 		{
@@ -586,10 +651,20 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 			nFoundAt = pSrcPhrase->m_nSequNumber;
 			return TRUE;
 		}
+#endif
 		while (pos != NULL)
 		{
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
+#if defined (_DOCVER5)
+			if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
+			{
+				// there is one at the current POSITION
+				pSrcPhrase->m_bHasNote = TRUE; // ensure the flag is set
+				nFoundAt = pSrcPhrase->m_nSequNumber;
+				return TRUE;
+			}
+#else
 			offset = pSrcPhrase->m_markers.Find(strSFM);
 			if (offset >= 0)
 			{
@@ -597,6 +672,7 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 				nFoundAt = pSrcPhrase->m_nSequNumber;
 				return TRUE;
 			}
+#endif
 		}
 	}
 	else
@@ -609,6 +685,15 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		{
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetPrevious();
+#if defined (_DOCVER5)
+			if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
+			{
+				// there is one at the current POSITION
+				pSrcPhrase->m_bHasNote = TRUE; // ensure the flag is set
+				nFoundAt = pSrcPhrase->m_nSequNumber;
+				return TRUE;
+			}
+#else
 			offset = pSrcPhrase->m_markers.Find(strSFM);
 			if (offset >= 0)
 			{
@@ -616,6 +701,7 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 				nFoundAt = pSrcPhrase->m_nSequNumber;
 				return TRUE;
 			}
+#endif
 		}
 	}
 	// none was found, so return -1
@@ -975,6 +1061,8 @@ bool CNotes::PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, Whi
 /// \remarks
 /// Called from: the View's RestoreNotesAfterSourceTextEdit().
 /// Determines is a Note is stored at nNoteSN location in the pSrcPhrases list.
+/// 
+/// BEW 24Feb10 changed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 {
@@ -990,9 +1078,12 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 	if (nNoteSN > maxIndex)
 		return FALSE; // beyond document's end, so certainly can't store a note there!!
 	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
-	wxString strSFM = _T("\\note");
 	CSourcePhrase* pSrcPhrase = pos->GetData();
-	pos = pos->GetNext();
+#if defined (_DOCVER5)
+	return (!pSrcPhrase->GetNote().IsEmpty() || pSrcPhrase->m_bHasNote);
+#else
+	wxString strSFM = _T("\\note");
+	//pos = pos->GetNext();
 	// check if the src phrase has a note, return FALSE if it hasn't got one, 
 	// TRUE if it has
 	int offset = -1;
@@ -1003,6 +1094,7 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 		return FALSE;
 	}
 	return TRUE;
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
