@@ -185,7 +185,7 @@ CAdapt_ItCanvas::CAdapt_ItCanvas(CMainFrame *frame,
 {
 	pView = NULL; // pView is set in the View's OnCreate() method Make CAdapt_ItCanvas' 
 				  // view pointer point to incoming view pointer
-	pFrame = NULL; // pFrame is set in CMainFrame's
+	pFrame = NULL; // pFrame is set in CMainFrame's creator
 }
 
 CAdapt_ItCanvas::~CAdapt_ItCanvas(void)

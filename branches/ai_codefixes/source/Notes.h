@@ -23,14 +23,17 @@
 #pragma interface "FreeTrans.h"
 #endif
 
+
 //////////////////////////////////////////////////////////////////////////////////
 /// The CNotes class presents free translation fields to the user. 
 /// The functionality in the CNotes class was originally contained in
 /// the CAdapt_ItView class.
-/// \derivation		The CNotes class is derived from wxObject.
+/// \derivation		The CNotes class is derived from wxEvtHandler.
 /////////////////////////////////////////////////////////////////////////////
 class CNotes : public wxEvtHandler
 	{
+		//DECLARE_DYNAMIC_CLASS(CNotes)
+
 		friend class CLayout;
 	public:
 		

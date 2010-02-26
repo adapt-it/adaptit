@@ -72,6 +72,8 @@ extern wxPoint gptLastClick;
 // Constructors / destructors
 ///////////////////////////////////////////////////////////////////////////////
 
+//IMPLEMENT_DYNAMIC_CLASS(CNotes,wxEvtHandler)
+
 CNotes::CNotes()
 {
 }
@@ -2862,6 +2864,10 @@ bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEd
 void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
+
+	CAdapt_ItView* pView = pApp->GetView(); // remove later
+
+
 	CNotes* pNotes = pApp->GetNotes();
 	pNotes->ButtonCreateNote(pApp);
 }

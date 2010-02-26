@@ -7475,7 +7475,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
 	gpFreeTransArray = new wxArrayPtrVoid;
 #endif	// _FREETR
-	
+
 #ifdef _NOTES
 	m_pNotes = new CNotes(this);
 #endif
