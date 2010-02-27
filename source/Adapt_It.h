@@ -302,6 +302,14 @@ enum ConfigFixType
     customPathsFix
 };
 
+/// An enum for selecting which configuration file type in GetConfigurationFile()
+/// whether basic configuration file, or project configuration file. 
+enum ConfigFileType
+{
+    basicConfigFile,
+    projectConfigFile
+};
+
 /// An enum for the indices for the top level menus
 /// Note: item0 is the menubar itself, but that does not mean that the File menu is 
 /// at index 1; the menus in a menu bar are indexed from the first (File menu) starting
@@ -2357,6 +2365,7 @@ protected:
 						wxString& bookFolderName, bool bSuppressStatistics = FALSE);
 	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
 						wxString& basePath, wxString& localPath);
+	void	FixConfigFileFonts(wxTextFile* pf); // whm added 24Feb10
 	void	GetForceAskList(CKB* pKB, KPlusCList* pKeys);
 	void	GetValue(const wxString strReadIn, wxString& strValue, wxString& name);
 	wxSize	GetExtentOfLongestSfm(wxDC* pDC);
@@ -2511,8 +2520,7 @@ public:
     // version wxTextFile is Unicode enabled, so we should only need a single version of
     // these in the wxWidgets code.
 	void	GetBasicSettingsConfiguration(wxTextFile* pf);
-	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf, bool& bFaceNameFound, 
-				wxString& faceName);
+	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf);
 	void	GetProjectSettingsConfiguration(wxTextFile* pf);
 #ifdef _UNICODE
 	void	ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding),wxFile* pFile,
@@ -2526,7 +2534,7 @@ public:
 	void	DoInputConversion(wxString& pBuf,const char* pbyteBuff,
 				wxFontEncoding eEncoding,bool bHasBOM = FALSE); // for unicode conversions
 #endif
-	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, int selector);
+	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, ConfigFileType configType);
 	void	GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, wxString& srcName, 
 				wxString& tgtName);
 	

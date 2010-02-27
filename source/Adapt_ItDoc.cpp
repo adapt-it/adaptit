@@ -3820,7 +3820,7 @@ void CAdapt_ItDoc::GetProjectConfiguration(wxString sourceFolderPath)
 	{
 		// shift key is not down, so load the config file keys for fonts & settings
 		// this version of the function uses configuration file, not registry
-		pApp->GetConfigurationFile(szProjectConfiguration,sourceFolderPath,2);
+		pApp->GetConfigurationFile(szProjectConfiguration,sourceFolderPath,projectConfigFile);
 	}
 	else
 	{
@@ -6957,7 +6957,18 @@ int CAdapt_ItDoc::ParseWord(wxChar *pChar, wxString& precedePunct, wxString& fol
 				// on and the end of it is at the current location (ie. preceding SF escape
 				// character), then we have to put the final punctuation into followPunct
 				// so the caller can do what it has to do with word-final punctuation
-m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 
+				// 
+				// whm 26Feb10. Removed the (wxUint32) casts from the pPunctEnd and pPunctStart
+				// pointers in the if test and assignment of numChars below. They are not needed
+				// for correct pointer math. The math works correctly without dividing by
+				// sizeof(wxChar). I verified this by testing on both Unicode and ANSI builds.
+				// While enclosing everything in (wxUint32) casts also works, it does NOT
+				// work if the app is compiled for 64 bit systems (a fact reported by David 
+				// Gardner who successfully compiled the sources for 64-bit AMD64, but only
+				// by removing the (wxUint32) casts.
+//m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0 
+//					&& pPunctEnd == ptr)
+m:				if (bStarted && (pPunctEnd - pPunctStart) > 0 
 					&& pPunctEnd == ptr)
 				{
 					// there is word-final punctuation content to be dealt with
@@ -6965,8 +6976,9 @@ m:				if (bStarted && ((wxUint32)pPunctEnd - (wxUint32)pPunctStart) > 0
 					// two bytes long, so setting numChars to the pointer difference will
 					// double the correct value; we have to therefore divide by sizeof(wxChar)
 					// to get numChars right in regular and unicode apps
-					int numChars = (int)((wxUint32)pPunctEnd - (wxUint32)pPunctStart) / 
-											(wxUint32)sizeof(wxChar);
+					//int numChars = (int)((wxUint32)pPunctEnd - (wxUint32)pPunctStart) / 
+					//						(wxUint32)sizeof(wxChar);
+					int numChars = (int)(pPunctEnd - pPunctStart); // / sizeof(wxChar);
 					wxString finals(pPunctStart,numChars);
 					followPunct = finals;
 				}
