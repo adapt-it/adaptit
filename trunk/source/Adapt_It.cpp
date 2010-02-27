@@ -8758,14 +8758,14 @@ bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature
 			// file is being read in from the custom location which has been made
 			// persistent with a click of the Lock Custom Path command
 			if (m_bLockedCustomWorkFolderPath)
-				bReturn = GetConfigurationFile(szBasicConfiguration,m_customWorkFolderPath,1 );
+				bReturn = GetConfigurationFile(szBasicConfiguration,m_customWorkFolderPath,basicConfigFile);
 			else
-				bReturn = GetConfigurationFile(szAdminBasicConfiguration,m_workFolderPath,1 );
+				bReturn = GetConfigurationFile(szAdminBasicConfiguration,m_workFolderPath,basicConfigFile);
 		}
 		else
 		{
 			// 1 is app level .aic
-			bReturn = GetConfigurationFile(szBasicConfiguration,m_workFolderPath,1 );
+			bReturn = GetConfigurationFile(szBasicConfiguration,m_workFolderPath,basicConfigFile);
 		}
 		if (!bReturn)
 		{
@@ -13831,9 +13831,6 @@ inline wxString convertFromLocalCharset(const wxString& str)
 ///                         in from the configuration files
 /// \param      pf   ->     pointer to the wxTextFile that is being read as the 
 ///                         config file
-/// \param      bFaceNameFound   ->     TRUE if the font's face name was found on the 
-///                                     local machine, otherwise FALSE if the face name
-///                                     was not found
 /// \remarks
 /// Called from: the App's GetConfigurationFile(). 
 /// Reads the font configuration part of a configuration file. GetFontConfiguration() gets
@@ -13841,9 +13838,10 @@ inline wxString convertFromLocalCharset(const wxString& str)
 /// and navigation text language. The text file is opened by the caller and remains open
 /// after each call to GetFontConfiguration(). Note: wxTextFile is processed entirely in
 /// memory.
+/// whm 25Feb10 modified - moved font mismatch (facename not found) messages to another
+/// function FixConfigFileFonts().
 /////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFaceNameFound,
-										wxString& faceName)
+bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf)
 // Note: wxTextFile is Unicode enabled when _UNICODE is defined
 // This function accepts the config file entries in any order, as long as the format of
 // each line's entry is correct: that is, a name, tab, string value, and \n at the end. For
@@ -14115,10 +14113,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFac
 				num = 0; // allow only possible values, default to 0 
 						 // (wxFONTENCODING_DEFAULT) if value corrupted out of range
 			fi.fEncoding = (wxFontEncoding)num;
-            // Note: setting the font encoding of the actual font is done after CharSet is
-            // read (below) because if the config file was produced by the MFC app, it
-            // won't have this szFontEncoding field and this else if block will not
-            // execute, but the CharSet block will execute
+            // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
 		}
 		else if (name == szCharSet)
 		{
@@ -14139,21 +14134,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFac
             // If this config file was produced by the MFC app, the "if
             // (!m_bConfigFileHasFontEncodingInfo)" block above will have mapped the MFC
             // fi.fCharset to an equivalent wx font encoding (stored in fi.fEncoding).
-			// set the font encoding of the actual font on the App
-			// whm added 22Feb10 test to forego calling SetEncoding when the current instance
-			// is snooping on a different computer on the network
-			// TODO: It might be better to handle the font problem earlier when the 
-			// MakeForeignBasicConfigFilesSafe() function is called in the 
-			// SetupCustomWorkFolderLocation() function. 
-			if (!IsURI(m_curProjectPath))
-			{
-				if (fi.fLangType.GetChar(0)  == _T('S'))
-					m_pSourceFont->SetEncoding(fi.fEncoding);
-				else if (fi.fLangType.GetChar(0)  == _T('T'))
-					m_pTargetFont->SetEncoding(fi.fEncoding);
-				else if (fi.fLangType.GetChar(0)  == _T('N'))
-					this->m_pNavTextFont->SetEncoding(fi.fEncoding);
-			}
+            // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
 		}
 		else if (name == szFaceName)
 		{
@@ -14170,7 +14151,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFac
 			//faceNames = fe.GetFacenames();
 			//int ct,nFaceNames;
 			//wxString fname;
-			bool bFoundFaceName = FALSE;
+			//bool bFoundFaceName = FALSE;
 			//nFaceNames = fe.GetFacenames().GetCount();
             // the following for loop is way too time consuming, sometimes taking 5-10
             // seconds so we'll just try to assigne the facename. SetFaceName() returns a
@@ -14185,83 +14166,7 @@ bool CAdapt_ItApp::GetFontConfiguration(fontInfo& fi, wxTextFile* pf, bool& bFac
 			//		break;
 			//	}
 			//}
-            // set the face name of the actual font on the App to the exact or compatible
-            // value
-			if (fi.fLangType.GetChar(0)  == _T('S'))
-			{
-				bFoundFaceName = m_pSourceFont->SetFaceName(fi.fFaceName);
-				if (!bFoundFaceName)
-				{
-					faceName = fi.fFaceName;
-					bFaceNameFound = FALSE; // notify caller that m_pSourceFont's face name
-											// wasn't found and we're substituting system font
-					// revert to using a system font (for face name)
-					wxFont* tempFont = new wxFont(*wxNORMAL_FONT);
-					fi.fFaceName = tempFont->GetFaceName();
-					if (!m_pSourceFont->SetFaceName(fi.fFaceName))
-					{
-						;
-						wxASSERT(FALSE);
-					}
-					m_pSourceFont->SetPointSize(12); // use a reasonable size for 
-													 // the system font
-                    // TODO: we also need a way to inform the user that we substituted a
-                    // system font for this font that came from the config file.
-					delete tempFont;
-					tempFont = (wxFont*)NULL;
-				}
-					
-			}
-			else if (fi.fLangType.GetChar(0)  == _T('T'))
-			{
-				bFoundFaceName = m_pTargetFont->SetFaceName(fi.fFaceName);
-				if (!bFoundFaceName)
-				{
-					faceName = fi.fFaceName;
-					bFaceNameFound = FALSE; // notify caller that m_pTargetFont's face name 
-                                            // wasn't found and we're substituting system
-                                            // font revert to using a system font (for face
-                                            // name)
-					wxFont* tempFont = new wxFont(*wxNORMAL_FONT);
-					fi.fFaceName = tempFont->GetFaceName();
-					if (!m_pTargetFont->SetFaceName(fi.fFaceName))
-					{
-						;
-						wxASSERT(FALSE);
-					}
-					m_pTargetFont->SetPointSize(12); // use a reasonable size 
-													 // for the system font
-                    // TODO: we also need a way to inform the user that we substituted a
-                    // system font for this font that came from the config file.
-					delete tempFont;
-					tempFont = (wxFont*)NULL;
-				}
-			}
-			else if (fi.fLangType.GetChar(0)  == _T('N'))
-			{
-				bFoundFaceName = m_pNavTextFont->SetFaceName(fi.fFaceName);
-				if (!bFoundFaceName)
-				{
-					faceName = fi.fFaceName;
-					bFaceNameFound = FALSE; // notify caller that m_pNavTextFont's face name 
-                                            // wasn't found and we're substituting system
-                                            // font revert to using a system font (for face
-                                            // name)
-					wxFont* tempFont = new wxFont(*wxNORMAL_FONT);
-					fi.fFaceName = tempFont->GetFaceName();
-					if (!m_pNavTextFont->SetFaceName(fi.fFaceName))
-					{
-						;
-						wxASSERT(FALSE);
-					}
-					m_pNavTextFont->SetPointSize(12); // use a reasonable size 
-													  // for the system font
-                    // TODO: we also need a way to inform the user that we substituted a
-                    // system font for this font that came from the config file.
-					delete tempFont;
-					tempFont = (wxFont*)NULL;
-				}
-			}
+            // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
 		}
 		else if (name == szColor)
 		{
@@ -17195,17 +17100,17 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 ///                                     .aic extension)
 /// \param      sourceFolder       ->   the path location where the configuration file 
 ///                                     is to be read
-/// \param      selector           ->   1 if reading the Basic config file; 2 if reading
-///                                      the Project config file
+/// \param      configType         ->   either the basicConfigFile or projectConfigFile
 /// \remarks
 /// Called from: the App's GetBasicConfigFileSettings() and the Doc's
 /// GetProjectConfiguration(). 
 /// Reads the whole config file into memory and from there it decomposes it line-by-line
 /// (as a wxTextFile) by calling the appropriate helper functions: GetFontConfiguration()
 /// and either GetBasicSettingsConfiguration() or GetProjectSettingsConfiguration().
+/// whm 24Feb10 modified to move the font mismatch checking to FixConfigFileFonts(). 
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString sourceFolder,
-										int selector)
+										ConfigFileType configType)
 {
 	wxString fname;
 	fname.Empty();
@@ -17251,9 +17156,9 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	if (!bSuccessful)
 	{
 		wxString configType,msg;
-		if (selector == 1)
+		if (configType == basicConfigFile)
 			configType = _("basic");
-		else if (selector == 2)
+		else if (configType == projectConfigFile)
 			configType = _("project");
 		msg = msg.Format(_(
 "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"),
@@ -17305,21 +17210,15 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
     // color is also assigned there using wxFontData::SetColour(). If GetFontConfiguration
     // fails here the default values will be used
 	wxString configFileType,errMsg,msg;
-	if (selector == 1)
+	if (configType == basicConfigFile)
 		configFileType = _("basic");
 	else
 		configFileType = _("project");
 	msg = _(
 "Unable to read %s font data from the %s configuration file. Default values will be used instead.");
 	
-	bool bSrcFontFaceNameFound = TRUE;
-	bool bTgtFontFaceNameFound = TRUE;
-	bool bNavFontFaceNameFound = TRUE;
-	wxString srcFontFaceName = _T("");
-	wxString tgtFontFaceName = _T("");
-	wxString navFontFaceName = _T("");
 	// get the source font's SrcFInfo data from the configFileType config file
-	bOK = GetFontConfiguration(SrcFInfo,&f,bSrcFontFaceNameFound,srcFontFaceName);
+	bOK = GetFontConfiguration(SrcFInfo,&f);
 	if (!bOK)
 	{
 		wxString fontType = _("source");
@@ -17329,7 +17228,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	// get the target font's TgtFInfo data from the configFileType config file
-	bOK = GetFontConfiguration(TgtFInfo,&f,bTgtFontFaceNameFound,tgtFontFaceName);
+	bOK = GetFontConfiguration(TgtFInfo,&f);
 	if (!bOK)
 	{
 		wxString fontType = _("target");
@@ -17339,7 +17238,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	}
 
 	// get the nav font's NavFInfo data from the configFileType config file
-	bOK = GetFontConfiguration(NavFInfo, &f,bNavFontFaceNameFound,navFontFaceName);
+	bOK = GetFontConfiguration(NavFInfo, &f);
 	if (!bOK)
 	{
 		wxString fontType = _("navigation");
@@ -17347,54 +17246,9 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 			fontType.c_str(), configFileType.c_str());
 		wxMessageBox(errMsg,_T(""),wxICON_WARNING);
 	}
-	if (selector == 2)
-	{
-		// We've read the "project" config file's fonts.
-        // Notify the user if project config file fonts were not found and a system font
-        // face name was substituted.
-		wxString errMsg,sysFontName;
-		errMsg.Empty();
-		sysFontName.Empty();
-		if (!bSrcFontFaceNameFound)
-		{
-			errMsg += _T("\n   ");
-			errMsg += _("Source Font Name");
-			errMsg += _T(": ");
-			errMsg += srcFontFaceName;
-			sysFontName = SrcFInfo.fFaceName; // a system font should have the 
-											  // same face name in all cases
-		}
-		if (!bTgtFontFaceNameFound)
-		{
-			errMsg += _T("\n   ");
-			errMsg += _("Target Font Name");
-			errMsg += _T(": ");
-			errMsg += tgtFontFaceName;
-			sysFontName = SrcFInfo.fFaceName; // a system font should have the 
-											  // same face name in all cases
-		}
-		if (!bNavFontFaceNameFound)
-		{
-			errMsg += _T("\n   ");
-			errMsg += _("Navigation Font Name");
-			errMsg += _T(": ");
-			errMsg += navFontFaceName;
-			sysFontName = SrcFInfo.fFaceName; // a system font should have the 
-											  // same face name in all cases
-		}
-		if (!errMsg.IsEmpty())
-		{
-			wxString errMsg2;
-			errMsg2 = _(
-"The following fonts (in the project configuration file) cannot be found on your computer:");
-			errMsg2 += errMsg;
-			errMsg2 = errMsg2 + _(
-"\nA system font (%s) will be used instead. You may need to install the appropriate font, then select it from the Fonts tab of the Preferences... dialog (on the Edit menu).");
-			errMsg2 = errMsg2.Format(errMsg2,sysFontName.c_str());
-			wxMessageBox(errMsg2,_("Font name in configuration file not found"),
-			wxICON_WARNING);
-		}
-	}
+
+    // whm 25Feb10 Note: See FixConfigFileFonts() where font mismatches are dealt with.
+	
 	// get the section heading from our in-memory config file
 	data = f.GetNextLine(); // data should be "Settings" for basic config file 
 							// or "ProjectSettings" for proj config file
@@ -17404,7 +17258,7 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	// now get the rest of the settings parameters from the config file
 	// wx note: The wxTextFile remains open during the following calls which
 	// simply continue reading the configuration data from memory
-	if (selector == 1) // app level
+	if (configType == basicConfigFile) // app level
 	{
 		GetBasicSettingsConfiguration(&f);
 	}
@@ -24782,7 +24636,7 @@ void CAdapt_ItApp::CheckLockFileOwnership()
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
-/// \param      pathType            -> an enum, either defaultPathsFix, or customPathsFixe
+/// \param      pathType            -> an enum, either defaultPathsFix, or customPathsFix
 /// \param      pf                  -> pointer to an opened wxTextFile for the config file
 /// \param      basePath            -> reference to the part of the path up to the work
 ///                                    folder when processing for a default folder
@@ -25125,6 +24979,375 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 	}
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pf                  -> pointer to an opened wxTextFile for the config file
+/// \remarks
+/// Called from MakeForeignBasicConfigFileSafe().
+/// This function fixes, or attempts to fix the font information in a basic config file 
+/// when a foreign config file is read. The font characteristics at the beginning of the 
+/// config file that are checked for needed adjustment are the CharSet, FontEncoding, 
+/// and FaceName - for each of the three main fonts: SourceFont, TargetFont and NavTextFont. 
+/// All other font characteristics especially Height, Width, Weight, PitchAndFamily, 
+/// Italic, Underline and Color are not changed.
+/// FixConfigFileFonts() parallels FixBasicConfigPaths() but deals with font mismatches 
+/// encountered when a foreign config file is processed. Like FixBasicConfigPaths(),
+/// it only makes font adjustments to the in-memory wxTextFile pf, therefore it is the 
+/// responsibility of the caller MakeForeignBasicConfigFileSafe() to write any changes 
+/// made here to the persistent media.
+void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
+{
+	// whm added 24Feb10. 
+	// This function consolidates some font error handling previously done in 
+	// GetConfigurationFile(). 
+	//wxString errStr = fontErrInfoStr; // a local copy
+	wxString tab = _T('\t');
+	wxString fileLine;
+	wxString Encoding[3];
+	wxString Charset[3];
+	wxString Facename[3];
+
+	// In the first for loop below we collect the three font characteristics for
+	// the three fonts; in the second for loop we save back any changed values
+	
+	int nFontEncodingIndex = 0;
+	int nCharSetIndex = 0;
+	int nFaceNameIndex = 0;
+	// scan the in-memory file line-by-line and collect the font characteristics
+	for ( fileLine = pf->GetFirstLine(); !pf->Eof(); fileLine = pf->GetNextLine() )
+	{
+		if(fileLine.Find(szFontEncoding) != wxNOT_FOUND)
+		{
+			// we're at a line with "FontEncoding" in it
+			Encoding[nFontEncodingIndex] = fileLine.Mid(fileLine.Find(tab)+1);
+			nFontEncodingIndex++;
+		}
+		else if (fileLine.Find(szCharSet) != wxNOT_FOUND)
+		{
+			// we're at a line with "CharSet" in it
+			Charset[nCharSetIndex] = fileLine.Mid(fileLine.Find(tab)+1);
+			nCharSetIndex++;
+		}
+		else if (fileLine.First(szFaceName) != wxNOT_FOUND)
+		{
+			// we're at a line with "FaceName" in i
+			Facename[nFaceNameIndex] = fileLine.Mid(fileLine.Find(tab)+1);
+			nFaceNameIndex++;
+		}
+	}
+	wxASSERT(nFontEncodingIndex == 3);
+	wxASSERT(nCharSetIndex == 3);
+	wxASSERT(nFaceNameIndex == 3);
+
+	// #####################processing any needed font changes below ############################
+
+	// following was originally from GetFontConfiguration() "else if (name == szFaceName)" block
+	wxString errMsg,sysFontName;
+	errMsg.Empty();
+	sysFontName.Empty();
+	bool bFoundFaceName = FALSE;
+
+	int srcPointSize = m_pSourceFont->GetPointSize();
+	int srcFamily = m_pSourceFont->GetFamily();
+	int srcStyle = m_pSourceFont->GetStyle();
+	int srcWeight = m_pSourceFont->GetWeight();
+	bool srcUnderlined = m_pSourceFont->GetUnderlined();
+
+	bFoundFaceName = m_pSourceFont->SetFaceName(Facename[0]);
+	if (!bFoundFaceName)
+	{
+		// There isn't a font on the local system by the exact FaceName, so
+		// try finding any font in the given Encoding
+		if (wxFontMapper::Get()->IsEncodingAvailable((wxFontEncoding)wxAtoi(Encoding[0]),wxEmptyString))
+		{
+			// create the font using wxFont's full constructor which takes the encoding
+			// name and doesn't have to have a facename in the constructor - after the
+			// font is created store the face name it creates in fi.fFaceName and call
+			// SetFaceName() on the appropriate AI font.
+			wxFont* tempFont = new wxFont(srcPointSize,srcFamily,srcStyle,
+				srcWeight,srcUnderlined,wxEmptyString,(wxFontEncoding)wxAtoi(Encoding[0]));
+			SrcFInfo.fFaceName = tempFont->GetFaceName(); // keep the fontInfo struct up to date
+			if (!m_pSourceFont->SetFaceName(SrcFInfo.fFaceName))
+			{
+				;
+				wxASSERT(FALSE);
+			}
+			delete tempFont;
+			tempFont = (wxFont*)NULL;
+		}
+		else
+		{
+			wxFontEncoding alt_encoding;
+			if (wxFontMapper::Get()->GetAltForEncoding((wxFontEncoding)wxAtoi(Encoding[0]),&alt_encoding,wxEmptyString,FALSE)) // FALSE = non-interactive
+			{
+				// create the font using wxFont's full constructor which takes the encoding
+				// name and doesn't have to have a facename in the constructor - after the
+				// font is created store the face name it creates in fi.fFaceName and call
+				// SetFaceName() on the appropriate AI font.
+				wxFont* tempFont = new wxFont(srcPointSize,srcFamily,srcStyle,
+					srcWeight,srcUnderlined,wxEmptyString,alt_encoding);
+				SrcFInfo.fFaceName = tempFont->GetFaceName(); // keep the fontInfo struct up to date
+				if (!m_pSourceFont->SetFaceName(SrcFInfo.fFaceName))
+				{
+					;
+					wxASSERT(FALSE);
+				}
+				delete tempFont;
+				tempFont = (wxFont*)NULL;
+			}
+			else
+			{
+				// revert to using a system font (for face name)
+				wxFont* tempFont = new wxFont(*wxSWISS_FONT); //wxFont(*wxNORMAL_FONT);
+				SrcFInfo.fFaceName = tempFont->GetFaceName();
+				if (!m_pSourceFont->SetFaceName(SrcFInfo.fFaceName))
+				{
+					;
+					wxASSERT(FALSE);
+				}
+				m_pSourceFont->SetPointSize(12); // use a reasonable size for 
+												 // the system font
+				delete tempFont;
+				tempFont = (wxFont*)NULL;
+				
+				errMsg += _T("\n   ");
+				errMsg += _("Source Font Name");
+				errMsg += _T(": ");
+				errMsg += Facename[0];
+				sysFontName = SrcFInfo.fFaceName;	// a system font should have the
+													// same face name in all cases
+			}
+		}
+	}
+		
+	int tgtPointSize = m_pTargetFont->GetPointSize();
+	int tgtFamily = m_pTargetFont->GetFamily();
+	int tgtStyle = m_pTargetFont->GetStyle();
+	int tgtWeight = m_pTargetFont->GetWeight();
+	bool tgtUnderlined = m_pTargetFont->GetUnderlined();
+	
+	bFoundFaceName = m_pTargetFont->SetFaceName(Facename[1]);
+	if (!bFoundFaceName)
+	{
+		// There isn't a font on the local system by the exact FaceName, so
+		// try finding any font in the given Encoding
+		if (wxFontMapper::Get()->IsEncodingAvailable((wxFontEncoding)wxAtoi(Encoding[1]),wxEmptyString))
+		{
+			// create the font using wxFont's full constructor which takes the encoding
+			// name and doesn't have to have a facename in the constructor - after the
+			// font is created store the face name it creates in fi.fFaceName and call
+			// SetFaceName() on the appropriate AI font.
+			wxFont* tempFont = new wxFont(tgtPointSize,tgtFamily,tgtStyle,
+				tgtWeight,tgtUnderlined,wxEmptyString,(wxFontEncoding)wxAtoi(Encoding[1]));
+			TgtFInfo.fFaceName = tempFont->GetFaceName(); // keep the fontInfo struct up to date
+			if (!m_pTargetFont->SetFaceName(TgtFInfo.fFaceName))
+			{
+				;
+				wxASSERT(FALSE);
+			}
+			delete tempFont;
+			tempFont = (wxFont*)NULL;
+		}
+		else
+		{
+			wxFontEncoding alt_encoding;
+			if (wxFontMapper::Get()->GetAltForEncoding((wxFontEncoding)wxAtoi(Encoding[1]),&alt_encoding,wxEmptyString,FALSE)) // FALSE = non-interactive
+			{
+				// create the font using wxFont's full constructor which takes the encoding
+				// name and doesn't have to have a facename in the constructor - after the
+				// font is created store the face name it creates in fi.fFaceName and call
+				// SetFaceName() on the appropriate AI font.
+				wxFont* tempFont = new wxFont(tgtPointSize,tgtFamily,tgtStyle,
+					tgtWeight,tgtUnderlined,wxEmptyString,alt_encoding);
+				TgtFInfo.fFaceName = tempFont->GetFaceName(); // keep the fontInfo struct up to date
+				if (!m_pTargetFont->SetFaceName(TgtFInfo.fFaceName))
+				{
+					;
+					wxASSERT(FALSE);
+				}
+				delete tempFont;
+				tempFont = (wxFont*)NULL;
+			}
+			else
+			{
+				// revert to using a system font (for face name)
+				wxFont* tempFont = new wxFont(*wxSWISS_FONT); //wxFont(*wxNORMAL_FONT);
+				TgtFInfo.fFaceName = tempFont->GetFaceName();
+				if (!m_pTargetFont->SetFaceName(TgtFInfo.fFaceName))
+				{
+					;
+					wxASSERT(FALSE);
+				}
+				m_pTargetFont->SetPointSize(12); // use a reasonable size 
+												 // for the system font
+				delete tempFont;
+				tempFont = (wxFont*)NULL;
+				
+				errMsg += _T("\n   ");
+				errMsg += _("Target Font Name");
+				errMsg += _T(": ");
+				errMsg += Facename[1];
+				sysFontName = TgtFInfo.fFaceName; // a system font should have the 
+												  // same face name in all cases
+			}
+		}
+	}
+
+	int navPointSize = m_pNavTextFont->GetPointSize();
+	int navFamily = m_pNavTextFont->GetFamily();
+	int navStyle = m_pNavTextFont->GetStyle();
+	int navWeight = m_pNavTextFont->GetWeight();
+	bool navUnderlined = m_pNavTextFont->GetUnderlined();
+	
+	bFoundFaceName = m_pNavTextFont->SetFaceName(Facename[2]);
+	if (!bFoundFaceName)
+	{
+		// There isn't a font on the local system by the exact fFaceName, so
+		// try finding any font in the given fEncoding
+		if (wxFontMapper::Get()->IsEncodingAvailable((wxFontEncoding)wxAtoi(Encoding[2]),wxEmptyString))
+		{
+			// create the font using wxFont's full constructor which takes the encoding
+			// name and doesn't have to have a facename in the constructor - after the
+			// font is created store the face name it creates in fi.fFaceName and call
+			// SetFaceName() on the appropriate AI font.
+			wxFont* tempFont = new wxFont(navPointSize,navFamily,navStyle,
+				navWeight,navUnderlined,wxEmptyString,(wxFontEncoding)wxAtoi(Encoding[2]));
+			NavFInfo.fFaceName = tempFont->GetFaceName(); // keep the fontInfo struct up to date
+			if (!m_pNavTextFont->SetFaceName(NavFInfo.fFaceName))
+			{
+				;
+				wxASSERT(FALSE);
+			}
+			delete tempFont;
+			tempFont = (wxFont*)NULL;
+		}
+		else
+		{
+			wxFontEncoding alt_encoding;
+			if (wxFontMapper::Get()->GetAltForEncoding((wxFontEncoding)wxAtoi(Encoding[2]),&alt_encoding,wxEmptyString,FALSE)) // FALSE = non-interactive
+			{
+				// create the font using wxFont's full constructor which takes the encoding
+				// name and doesn't have to have a facename in the constructor - after the
+				// font is created store the face name it creates in fi.fFaceName and call
+				// SetFaceName() on the appropriate AI font.
+				wxFont* tempFont = new wxFont(navPointSize,navFamily,navStyle,
+					navWeight,navUnderlined,wxEmptyString,alt_encoding);
+				NavFInfo.fFaceName = tempFont->GetFaceName(); // keep the fontInfo struct up to date
+				if (!m_pNavTextFont->SetFaceName(NavFInfo.fFaceName))
+				{
+					;
+					wxASSERT(FALSE);
+				}
+				delete tempFont;
+				tempFont = (wxFont*)NULL;
+			}
+			else
+			{
+				// revert to using a system font (for face name)
+				wxFont* tempFont = new wxFont(*wxSWISS_FONT); //wxFont(*wxNORMAL_FONT);
+				NavFInfo.fFaceName = tempFont->GetFaceName();
+				if (!m_pNavTextFont->SetFaceName(NavFInfo.fFaceName))
+				{
+					;
+					wxASSERT(FALSE);
+				}
+				m_pNavTextFont->SetPointSize(12); // use a reasonable size 
+												  // for the system font
+				delete tempFont;
+				tempFont = (wxFont*)NULL;
+				
+				errMsg += _T("\n   ");
+				errMsg += _("Navigation Font Name");
+				errMsg += _T(": ");
+				errMsg += Facename[2];
+				sysFontName = NavFInfo.fFaceName; // a system font should have the 
+												  // same face name in all cases
+			}
+		}
+	}
+
+	// previously the following error message only appeared when a project config 
+	// file was being processed.
+	// TODO: determine whether it should also be done for the basic config file.
+	if (!errMsg.IsEmpty())
+	{
+		wxString errMsg2;
+		errMsg2 = _(
+"The following fonts (in the project configuration file) cannot be found on your computer:");
+		errMsg2 += errMsg;
+		errMsg2 = errMsg2 + _(
+"\nA system font (%s) will be used instead. You may need to install the appropriate font, then select it from the Fonts tab of the Preferences... dialog (on the Edit menu).");
+		errMsg2 = errMsg2.Format(errMsg2,sysFontName.c_str());
+		wxMessageBox(errMsg2,_("Font name in configuration file not found"),
+		wxICON_WARNING);
+	}
+	
+	// Note: In GetFontConfiguration() in the "else if (name == szFontEncoding)" 
+	// block FontEncoding values read in from the configuration file are 
+	// restricted to values between -1 and 255, and set to 0 if outside that range.
+
+	// Note: In GetFontConfiguration() in the "else if (name == szCharSet)" block
+	// the CharSet values read in from the configuration file are restricted 
+	// to values between 0 and 255, and set to 0 if outside that range.
+
+	// Call SetEncoding() only if the encoding is available on this system
+	wxFontEncoding nEnc;
+	nEnc = (wxFontEncoding)wxAtoi(Encoding[0]);
+	if (wxFontMapper::Get()->IsEncodingAvailable(nEnc,wxEmptyString))
+		m_pSourceFont->SetEncoding(nEnc);
+	nEnc = (wxFontEncoding)wxAtoi(Encoding[1]);
+	if (wxFontMapper::Get()->IsEncodingAvailable(nEnc,wxEmptyString))
+		m_pTargetFont->SetEncoding(nEnc);
+	nEnc = (wxFontEncoding)wxAtoi(Encoding[2]);
+	if (wxFontMapper::Get()->IsEncodingAvailable(nEnc,wxEmptyString))
+		m_pNavTextFont->SetEncoding(nEnc);
+
+	// #####################processing any needed font changes above ############################
+
+	nFontEncodingIndex = 0;
+	nCharSetIndex = 0;
+	nFaceNameIndex = 0;
+	// scan the in-memory file line-by-line and process those needing font updates
+	for ( fileLine = pf->GetFirstLine(); !pf->Eof(); fileLine = pf->GetNextLine() )
+	{
+		if(fileLine.Find(szFontEncoding) != wxNOT_FOUND)
+		{
+			// we're at a line with "FontEncoding" in it
+			// build the required config file encoding for this line
+			fileLine = szFontEncoding + tab + Encoding[nFontEncodingIndex]; // make the fixed fileLine string
+			nFontEncodingIndex++;
+			size_t lineNum = pf->GetCurrentLine(); // get the line number
+			pf->RemoveLine(lineNum); // remove the old line from the in-memory file
+			pf->InsertLine(fileLine, lineNum); // replace it with the fixed line
+		}
+		else if (fileLine.Find(szCharSet) != wxNOT_FOUND)
+		{
+			// we're at a line with "CharSet" in it
+			// build the required config file charset for this line
+			fileLine = szCharSet + tab + Charset[nCharSetIndex]; // the fix
+			nCharSetIndex++;
+			size_t lineNum = pf->GetCurrentLine();
+			pf->RemoveLine(lineNum);
+			pf->InsertLine(fileLine, lineNum);
+		}
+		else if (fileLine.First(szFaceName) != wxNOT_FOUND)
+		{
+			// we're at a line with "FaceName" in i
+			// build the required config file facename for this line
+			fileLine = szFaceName + tab + Facename[nFaceNameIndex];
+			nFaceNameIndex++;
+			size_t lineNum = pf->GetCurrentLine();
+			pf->RemoveLine(lineNum);
+			pf->InsertLine(fileLine, lineNum);
+		}
+	}
+	wxASSERT(nFontEncodingIndex == 3);
+	wxASSERT(nCharSetIndex == 3);
+	wxASSERT(nFaceNameIndex == 3);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \param      configFName         -> the default name of the basic config file (this
@@ -25143,9 +25366,11 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 ///									   AI-AdminBasicConfiguration.aic)
 /// \remarks
 /// BEW modified 18Aug09 in support of custom work folder locations.
-/// Called from: the App's OnInit(), or from the Administrator menu's handler for the
-/// Locate Custom Work Folder menu item, or from OnRestoreDefaultWorkFolderLocation(), or 
-/// from the function DealWithThePossibilityOfACustomWorkFolderLocation().
+/// whm modified 24Feb10 to incorporate font mismatch handling via helper function called
+/// FixConfigFileFonts() which parallels Bruce's FixBasicConfigPaths().
+/// 
+/// Called from: the App's OnInit(), SetupCustomWorkFolderLocation(), OnLockCustomLocation(),
+/// OnRestoreDefaultWorkFolderLocation(), DealWithThePossibilityOfACustomWorkFolderLocation().
 /// 
 /// Compares the "home" directory part of the current user's path to the "(My) Documents"
 /// folder (or the "Adapt It Work" folder for non-Win systems), with the paths in the
@@ -25160,7 +25385,8 @@ void CAdapt_ItApp::FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* 
 /// 4. An administrator is pointing the running Adapt It at a custom work folder location.
 /// The function then fixes these paths so as to get safe defaults for the current machine,
 /// and the subsequent read of the updated config file will not cause an app crash due to
-/// bad paths
+/// bad paths. 
+/// 
 /// The passed in path at folderPath can be m_workFolderPath when
 /// m_bUseCustomWorkFolderPath is FALSE, or when TRUE a local wxString is used instead
 /// which is nice as the code is not dependent on something being set in the caller; the 
@@ -25294,9 +25520,13 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// do the actual path fixes
 		FixBasicConfigPaths(defaultPathsFix, &f, basePath, localPath);
 
-		// whm 23Feb10. TODO: Add a helper function here called FixBasicConfigFonts() that 
+		// whm 23Feb10 Added a helper function here called FixConfigFileFonts() that 
 		// deals intelligently with mismatch between fonts contained in the foreign config
 		// file and those available on the local machine
+		// In this case we are not dealing with a custom work folder location, but we may
+		// still have to deal with a foreign basic config file that gets copied from
+		// a "foreign" machine that has fonts not found on the local machine.
+		FixConfigFileFonts(&f);
 
 		#ifndef _UNICODE
 		// ANSI
@@ -25453,6 +25683,14 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
 
 			// do the actual path fixes
 			FixBasicConfigPaths(customPathsFix, &f, basePath, localPath);
+
+			// whm 23Feb10 Added a helper function here called FixConfigFileFonts() that 
+			// deals intelligently with mismatch between fonts contained in the foreign config
+			// file and those available on the local machine
+			// In this case the custom work folder location is used but it is NOT locked,
+			// so we are likely to get references to fonts that are different from the fonts
+			// installed on the local machine. 
+			FixConfigFileFonts(&f);
 
 			#ifndef _UNICODE
 			// ANSI
@@ -25611,6 +25849,15 @@ _T("MakeForeignConfigFileSafe(): forcing write of a temporary admin basic config
 
 			// do the actual path fixes
 			FixBasicConfigPaths(customPathsFix, &f, basePath, localPath);
+
+			// whm 23Feb10 Added a helper function here called FixConfigFileFonts() that 
+			// deals intelligently with mismatch between fonts contained in the foreign config
+			// file and those available on the local machine
+			// In this case the custom work folder location is used and IS locked,
+			// so it is possible we may get references to fonts that are different from the 
+			// fonts installed on the local machine, at least when custom work folder location
+			// is initially locked. 
+			FixConfigFileFonts(&f);
 
 			#ifndef _UNICODE
 			// ANSI
