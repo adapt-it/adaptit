@@ -171,6 +171,8 @@ private:
 	int m_nLengthInMarkersStr; 
 #endif
 
+	DECLARE_EVENT_TABLE()
+
 };
 
 #endif	// _FREETR

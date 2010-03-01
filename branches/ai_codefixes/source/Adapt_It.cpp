@@ -7465,20 +7465,9 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	gFactoryFilterMarkersStr = UsfmFilterMarkersStr;
 	gFactorySfmSet = UsfmOnly;
 
-#ifdef	_FREETR
-	//GDLC 2010-02-12
-	// Create the free translation display handler
-	m_pFreeTrans = new CFreeTrans(this);
-#else	// _FREETR
-	// set up data structures to be used for free translation support (ExitInstance 
-	// will delete them)
-	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
-	gpFreeTransArray = new wxArrayPtrVoid;
-#endif	// _FREETR
-
-#ifdef _NOTES
-	m_pNotes = new CNotes(this);
-#endif
+	// using PushEventHandler() here appears to be too early (there is no 'previous' event
+	// handler yet), so try at end of OnInit()
+	
 	
 	// Display message in status bar that startup initialization is complete
 	message = _("Initialization complete. Call Start Working...");
@@ -7853,6 +7842,28 @@ int ii = 1;
 		GetDocument()->OnOpenDocument(fullPath);
 	}
 	m_bControlIsWithinOnInit = FALSE;
+
+#ifdef	_FREETR
+	//GDLC 2010-02-12
+	// Create the free translation display handler
+	m_pFreeTrans = new CFreeTrans(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans); // pushed first, so pop last in OnExit()
+#else	// _FREETR
+	// set up data structures to be used for free translation support (ExitInstance 
+	// will delete them)
+	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
+	gpFreeTransArray = new wxArrayPtrVoid;
+#endif	// _FREETR
+
+#ifdef _NOTES
+	m_pNotes = new CNotes(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pNotes); // pushed first, so pop last in OnExit()
+#endif
+	
+
+
     return TRUE;
 }
 
@@ -7911,6 +7922,48 @@ int CAdapt_ItApp::OnExit(void)
     // deleted by the time OnExit() finishes. In particular, do NOT destroy them from the
     // application class destructor!"
 
+	// BEW 1Mar10: it turns out that one or all of view, canvas or frame are undefined at
+	// this point, and so the call to PopEventHandler() can't be made here. But I also
+	// found out that not making the call does not leak memory, and presumably wxWidgets
+	// itself cleans up what is on its event stack, so we don't need to do it here
+	// ourselves. (Next 6 lines of comments now don't apply)
+	// Our "new" classes need to have their event tables popped off the stack of windows
+	// event handlers - so do them in reverse order in which they were pushed.
+	// (Alternatively, we could pass the param TRUE to the pop call, and then the pop will
+	// do the class instance deletion from the heap for us. Do that if we ever suspect the
+	// order below is not correct, and remove our explicit delete statements, and add the
+	// appropriate casts on the RHS and the appropriate class pointer on the left.)
+	// 
+	// The push order is so far:
+	// 1. CFreeTrans
+	// 2. CNotes
+	// 3. 
+	//wxEvtHandler* pHdlr = NULL;
+
+#ifdef _NOTES
+	// Delete the CFreeTrans manager after popping its event table off the stack of
+	// windows event handlers
+	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
+								// (meaning that we'll do the deleting ourselves)
+	// delete the CNotes object
+	delete m_pNotes;
+#endif
+
+#ifdef	_FREETR
+	//GDLC Added 2010-02-12
+	// Delete the CFreeTrans manager after popping its event table off the stack of
+	// windows event handlers
+	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
+								// (meaning that we'll do the deleting ourselves)
+	delete m_pFreeTrans;
+#else	// _FREETR
+	// delete the stuff used for free translation support
+	gpCurFreeTransSectionPileArray->Clear();
+	delete gpCurFreeTransSectionPileArray;
+	gpFreeTransArray->Clear();
+	delete gpFreeTransArray;
+#endif	// _FREETR
+		
 	delete m_pROP; // delete the ReadOnlyProtection class's only instance
 	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
 	delete m_pROPwxFile; // delete the wxFile object on the heap for support of an
@@ -7998,22 +8051,6 @@ int CAdapt_ItApp::OnExit(void)
 	delete pPrintData;
 	pPrintData = (wxPrintData*)NULL;
 
-#ifdef	_FREETR
-	//GDLC Added 2010-02-12
-	// Delete the CFreeTrans manager
-	delete m_pFreeTrans;
-#else	// _FREETR
-	// delete the stuff used for free translation support
-	gpCurFreeTransSectionPileArray->Clear();
-	delete gpCurFreeTransSectionPileArray;
-	gpFreeTransArray->Clear();
-	delete gpFreeTransArray;
-#endif	// _FREETR
-#ifdef _NOTES
-	// delete the CNotes object
-	delete m_pNotes;
-#endif
-	
 	if (gpDocList != NULL)
 	{
 		// delete the object, it's contents should already have been removed
@@ -8144,6 +8181,7 @@ int CAdapt_ItApp::OnExit(void)
 		delete m_pDocManager; // deleting this 
 		m_pDocManager = (wxDocManager*)NULL;
 	}
+
 	return 0;
 }
 

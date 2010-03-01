@@ -768,8 +768,8 @@ public:
 // OnAdvancedFreeTranslationMode, OnUpdateAdvancedFreeTranslationMode
 // moved to CFreeTrans
 #else	//_FREETR
-	void OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
+	//void OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
+	//void OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
 	void OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event);
 	void OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));

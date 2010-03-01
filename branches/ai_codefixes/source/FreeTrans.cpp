@@ -113,6 +113,32 @@ extern const wxChar* filterMkrEnd; // defined in the Doc, used in free translati
 extern	wxRect			grectViewClient;
 
 // *******************************************************************
+// Event handlers
+// *******************************************************************
+
+BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
+
+	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnAdvancedFreeTranslationMode)
+	EVT_UPDATE_UI(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnUpdateAdvancedFreeTranslationMode)
+
+	EVT_BUTTON(IDC_BUTTON_APPLY, CFreeTrans::OnAdvanceButton)
+	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CFreeTrans::OnUpdateNextButton)
+	EVT_BUTTON(IDC_BUTTON_NEXT, CFreeTrans::OnNextButton)
+	EVT_UPDATE_UI(IDC_BUTTON_PREV, CFreeTrans::OnUpdatePrevButton)
+	EVT_BUTTON(IDC_BUTTON_PREV, CFreeTrans::OnPrevButton)
+	EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CFreeTrans::OnUpdateRemoveFreeTranslationButton)
+	EVT_BUTTON(IDC_BUTTON_REMOVE, CFreeTrans::OnRemoveFreeTranslationButton)
+	EVT_UPDATE_UI(IDC_BUTTON_LENGTHEN, CFreeTrans::OnUpdateLengthenButton)
+	EVT_BUTTON(IDC_BUTTON_LENGTHEN, CFreeTrans::OnLengthenButton)
+	EVT_UPDATE_UI(IDC_BUTTON_SHORTEN, CFreeTrans::OnUpdateShortenButton)
+	EVT_BUTTON(IDC_BUTTON_SHORTEN, CFreeTrans::OnShortenButton)
+	EVT_RADIOBUTTON(IDC_RADIO_PUNCT_SECTION, CFreeTrans::OnRadioDefineByPunctuation)
+	EVT_RADIOBUTTON(IDC_RADIO_VERSE_SECTION, CFreeTrans::OnRadioDefineByVerse)
+
+END_EVENT_TABLE()
+
+
+// *******************************************************************
 // Construction/Destruction
 // *******************************************************************
 

@@ -756,7 +756,8 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 	{
 		// the string was not found in any subsequent note - so tell this to the user
 		//IDS_NO_MATCHING_NOTE
-		wxMessageBox(_("Searching forward did not find a note with text matching that which you typed into the box."), _T(""), wxICON_INFORMATION);
+		wxMessageBox(_("Searching forward did not find a note with text matching that which you typed into the box."),
+		_T(""), wxICON_INFORMATION);
 		delete pWordList;
 		gnStartOffset = gnEndOffset = -1; // ensure the 'no match' condition is restored
 		// BEW changed 6Mar08, so that search string is retained until user explicitly deletes it

@@ -32,8 +32,6 @@
 /////////////////////////////////////////////////////////////////////////////
 class CNotes : public wxEvtHandler
 	{
-		//DECLARE_DYNAMIC_CLASS(CNotes)
-
 		friend class CLayout;
 	public:
 		
@@ -91,7 +89,7 @@ class CNotes : public wxEvtHandler
 		void OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event);
 		void OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event);
 		void OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event);
-
+/*
 	private:
 		// private body functions for the On...() update handlers - these need to be called
 		// on the actual instance of CNotes which the app maintains in its m_pNotes member
@@ -130,13 +128,13 @@ class CNotes : public wxEvtHandler
 		bool PrivateRestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec);
 		bool PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN);
 		bool PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
-
+*/
 	private:
 		CAdapt_ItApp*	m_pApp;	// The app owns this
-		
 		CLayout*		m_pLayout;
 		CAdapt_ItView*	m_pView;
-				
+
+		//DECLARE_EVENT_TABLE()
 	};
 
 

@@ -1010,8 +1010,6 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_MENU(ID_ADVANCED_DELAY, CAdapt_ItView::OnAdvancedDelay)
 	EVT_UPDATE_UI(ID_ADVANCED_DELAY, CAdapt_ItView::OnUpdateAdvancedDelay)
 #ifdef	_FREETR
-	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnAdvancedFreeTranslationMode)
-	EVT_UPDATE_UI(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnUpdateAdvancedFreeTranslationMode)
 	EVT_MENU(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedTargetTextIsDefault)
 	EVT_UPDATE_UI(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedTargetTextIsDefault)
 	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedGlossTextIsDefault)
@@ -1138,19 +1136,8 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 
 	// Free Translation - Composebar Buttons
 #ifdef	_FREETR
-	EVT_BUTTON(IDC_BUTTON_APPLY, CFreeTrans::OnAdvanceButton)
-	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CFreeTrans::OnUpdateNextButton)
-	EVT_BUTTON(IDC_BUTTON_NEXT, CFreeTrans::OnNextButton)
-	EVT_UPDATE_UI(IDC_BUTTON_PREV, CFreeTrans::OnUpdatePrevButton)
-	EVT_BUTTON(IDC_BUTTON_PREV, CFreeTrans::OnPrevButton)
-	EVT_UPDATE_UI(IDC_BUTTON_REMOVE, CFreeTrans::OnUpdateRemoveFreeTranslationButton)
-	EVT_BUTTON(IDC_BUTTON_REMOVE, CFreeTrans::OnRemoveFreeTranslationButton)
-	EVT_UPDATE_UI(IDC_BUTTON_LENGTHEN, CFreeTrans::OnUpdateLengthenButton)
-	EVT_BUTTON(IDC_BUTTON_LENGTHEN, CFreeTrans::OnLengthenButton)
-	EVT_UPDATE_UI(IDC_BUTTON_SHORTEN, CFreeTrans::OnUpdateShortenButton)
-	EVT_BUTTON(IDC_BUTTON_SHORTEN, CFreeTrans::OnShortenButton)
-	EVT_RADIOBUTTON(IDC_RADIO_PUNCT_SECTION, CFreeTrans::OnRadioDefineByPunctuation)
-	EVT_RADIOBUTTON(IDC_RADIO_VERSE_SECTION, CFreeTrans::OnRadioDefineByVerse)
+	/*
+	*/
 #else	// _FREETR
 	EVT_BUTTON(IDC_BUTTON_APPLY, CAdapt_ItView::OnAdvanceButton)
 	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CAdapt_ItView::OnUpdateNextButton)
