@@ -59,6 +59,12 @@ public:
 	CFreeTrans(CAdapt_ItApp* app); // use this one
 
 	virtual ~CFreeTrans();// destructor // whm added always make virtual
+
+	// utility functions for hooking up to view, app, layout, and frame
+	CAdapt_ItApp* CFreeTrans::GetApp();
+	CAdapt_ItView* CFreeTrans::GetView();
+	CMainFrame* CFreeTrans::GetFrame();
+	CLayout* CFreeTrans::GetLayout();
 	
 	// Public free translation drawing functions
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
@@ -109,6 +115,7 @@ private:
 // These 22 functions are the bodies of the On... functions called from event handlers.
 // The On... functions get a pointer to the single instance of CFreeTrans and then call
 // the body function on that instance.
+/*
 	void		AdvanceButton(wxCommandEvent& event, CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView);
 	void		AdvancedFreeTranslationMode(CAdapt_ItApp* pApp, CMainFrame* pMainFrm,CAdapt_ItView* pView);
 	void		AdvancedGlossTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm);
@@ -131,7 +138,7 @@ private:
 	void		UpdatePrevButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView);
 	void		UpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
 	void		UpdateShortenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
-
+*/
 	void		DestroyElements(wxArrayPtrVoid* pArr);
 	CPile*		GetStartingPileForScan(int activeSequNum);
 	void		SegmentFreeTranslation(wxDC* pDC,wxString& str, wxString& ellipsis, int textHExtent,
@@ -152,6 +159,7 @@ private:
 
 	CLayout*		m_pLayout;
 	CAdapt_ItView*	m_pView;
+	CMainFrame*		m_pFrame;
 
 	/// An array of pointers used as a scratch array, for composing the free translations which
 	/// are written to screen. Element pointers point to FreeTrElement structs - each of which
