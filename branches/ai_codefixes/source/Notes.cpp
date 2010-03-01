@@ -68,6 +68,29 @@ extern bool gbVerticalEditInProgress;
 extern int	gnOldSequNum;
 extern wxPoint gptLastClick;
 
+// *******************************************************************
+// Event handlers
+// *******************************************************************
+
+BEGIN_EVENT_TABLE(CNotes, wxEvtHandler)
+
+	EVT_MENU(ID_EDIT_MOVE_NOTE_FORWARD, CNotes::OnEditMoveNoteForward)
+	EVT_UPDATE_UI(ID_EDIT_MOVE_NOTE_FORWARD, CNotes::OnUpdateEditMoveNoteForward)
+	EVT_MENU(ID_EDIT_MOVE_NOTE_BACKWARD, CNotes::OnEditMoveNoteBackward)
+	EVT_UPDATE_UI(ID_EDIT_MOVE_NOTE_BACKWARD, CNotes::OnUpdateEditMoveNoteBackward)
+
+	EVT_TOOL(ID_BUTTON_CREATE_NOTE, CNotes::OnButtonCreateNote)
+	EVT_UPDATE_UI(ID_BUTTON_CREATE_NOTE, CNotes::OnUpdateButtonCreateNote)
+	EVT_TOOL(ID_BUTTON_PREV_NOTE, CNotes::OnButtonPrevNote)
+	EVT_UPDATE_UI(ID_BUTTON_PREV_NOTE, CNotes::OnUpdateButtonPrevNote)
+	EVT_TOOL(ID_BUTTON_NEXT_NOTE, CNotes::OnButtonNextNote)
+	EVT_UPDATE_UI(ID_BUTTON_NEXT_NOTE, CNotes::OnUpdateButtonNextNote)
+	EVT_TOOL(ID_BUTTON_DELETE_ALL_NOTES, CNotes::OnButtonDeleteAllNotes)
+	EVT_UPDATE_UI(ID_BUTTON_DELETE_ALL_NOTES, CNotes::OnUpdateButtonDeleteAllNotes)
+
+END_EVENT_TABLE()
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // Constructors / destructors
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,7 +109,7 @@ CNotes::CNotes(CAdapt_ItApp* app)
 
 CNotes::~CNotes()
 {
-	//TODO: Is there any other clean up of free translation stuff that needs to be done?
+	
 }
 
 // Utility functions (these will provide correct pointer values only when called from
@@ -94,14 +117,11 @@ CNotes::~CNotes()
 // class)
 CLayout* CNotes::GetLayout()
 {
-	//m_pLayout = m_pApp->m_pLayout;
 	return m_pLayout;
 }
 
 CAdapt_ItView* CNotes::GetView()	// ON APP
 {
-	//m_pLayout = m_pApp->m_pLayout;
-	//return m_pLayout->m_pView;
 	return m_pView;
 }
 
@@ -128,15 +148,6 @@ CAdapt_ItApp* CNotes::GetApp()
 /// 
 /// BEW 24Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	return pNotes->PrivateCreateNoteAtLocation(pSrcPhrases, nLocationSN, strNote);
-}
-*/
-//bool CNotes::PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
 	// refactored 7Apr09 - only needed GetMaxIndex() call
@@ -202,15 +213,6 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 /// 20June08 created by BEW
 /// BEW 24Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateCheckAndFixNoteFlagInSpans(pSrcPhrases, pRec);
-}
-*/
-//void CNotes::PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
 	// first check the editable span
@@ -371,15 +373,6 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 /// \remarks	Removes all notes.
 /// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::DeleteAllNotes()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateDeleteAllNotes();
-}
-*/
-//void CNotes::PrivateDeleteAllNotes()
 void CNotes::DeleteAllNotes()
 {
 	SPList* pList = GetApp()->m_pSourcePhrases;
@@ -455,16 +448,6 @@ void CNotes::DeleteAllNotes()
 ///    when there was a successful match.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, 
-							  wxString& noteStr, int& nStartOffset, int& nEndOffset)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	return pNotes->PrivateDoesTheRestMatch(pSearchList, firstWord, noteStr, nStartOffset, nEndOffset);
-}
-*/
-//bool CNotes::PrivateDoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
 bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
 									 int& nStartOffset, int& nEndOffset)
 {
@@ -732,19 +715,6 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 ///	number is returned to the caller
 /// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, 
-					WordList*& pSearchList, int numWords, int& nStartOffset, 
-					int& nEndOffset)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	int sequNum = pNotes->PrivateFindNoteSubstring(nCurrentlyOpenNote_SequNum, pSearchList,
-									  numWords, nStartOffset, nEndOffset);
-	return sequNum;
-}
-*/
-//int CNotes::PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearchList,
 int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearchList,
 									  int numWords, int& nStartOffset, int& nEndOffset)
 {
@@ -1034,15 +1004,6 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	return pNotes->PrivateGetMovedNotesSpan(pSrcPhrases, pRec, context);
-}
-*/
-//bool CNotes::PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
 	wxString errStr;
@@ -1223,15 +1184,6 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 /// preceding context. Don't jump if there is no such Note in existence.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateJumpBackwardToNote_CoreCode(nJumpOffSequNum);
-}
-*/
-//void CNotes::PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 {
 	CMainFrame* pFrame;
@@ -1432,15 +1384,6 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 /// following context. Don't jump if there is no such Note in existence.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateJumpForwardToNote_CoreCode(nJumpOffSequNum);
-}
-*/
-//void CNotes::PrivateJumpForwardToNote_CoreCode(int nJumpOffSequNum)
 void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 {
 	CMainFrame* pFrame;
@@ -1646,15 +1589,6 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 // note (caller must bleed out any situations where this is not the case)
 /// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateMoveNote(pFromSrcPhrase, pToSrcPhrase);
-}
-*/
-//void CNotes::PrivateMoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
 void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
 {
 #if !defined (_DOCVER5)
@@ -1736,15 +1670,6 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase
 /// \remarks	Moves to the first note and opens it.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::MoveToAndOpenFirstNote()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateMoveToAndOpenFirstNote();
-}
-*/
-//void CNotes::PrivateMoveToAndOpenFirstNote()
 void CNotes::MoveToAndOpenFirstNote()
 {
 	// is a note dialog open, if so - close it (and invoke the OK button's handler) it's
@@ -1767,15 +1692,6 @@ void CNotes::MoveToAndOpenFirstNote()
 /// \remarks	Moves to the last note and opens it.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::MoveToAndOpenLastNote()
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->PrivateMoveToAndOpenLastNote();
-}
-*/
-//void CNotes::PrivateMoveToAndOpenLastNote()
 void CNotes::MoveToAndOpenLastNote()
 {
 	// is a note dialog open, if so - close it (and invoke the OK button's handler) it's
@@ -1879,15 +1795,6 @@ bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLef
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	return pNotes->PrivateRestoreNotesAfterSourceTextEdit(pSrcPhrases, pRec);
-}
-*/
-//bool CNotes::PrivateRestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
 	wxArrayInt arrUnsqueezedLocations; // for those locations for which the old sequence
@@ -2374,15 +2281,6 @@ en:	;
 /// CSourcePhrase does not already store a different Note.
 /// BEW 25Feb10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	return pNotes->PrivateShiftANoteRightwardsOnce(pSrcPhrases, nNoteSN);
-}
-*/
-//bool CNotes::PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
 	// BEW added 30May08 in support of the source text editing step of the 
@@ -2447,15 +2345,6 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 /// used even when the location passed in is the only one which has a stored Note.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	return pNotes->PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(pSrcPhrases, nFirstNoteSN);
-}
-*/
-//bool CNotes::PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
 	// refactored 7Apr09 - only needed GetMaxIndex() call
@@ -2923,15 +2812,6 @@ bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEd
 /// \remarks	Handler for the Create Note button pressed event.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->ButtonCreateNote(pApp);
-}
-*/
-//void CNotes::ButtonCreateNote(CAdapt_ItApp* pApp)
 void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
 	CPile* pPile = NULL;
@@ -3012,15 +2892,6 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 /// not shown. Otherwise the toolbar button is enabled.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->UpdateButtonCreateNote(event, pApp);
-}
-*/
-//void CNotes::UpdateButtonCreateNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -3087,15 +2958,6 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 /// \remarks	Handler for the Previous Note button click event.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->ButtonPrevNote(pApp);
-}
-*/
-//void CNotes::ButtonPrevNote(CAdapt_ItApp* pApp)
 void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 {
     // is the note dialog open, if so - close it (and invoke the OK button's handler) it's
@@ -3133,15 +2995,6 @@ void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 /// Otherwise the toolbar button is enabled.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->UpdateButtonPrevNote(event, pApp);
-}
-*/
-//void CNotes::UpdateButtonPrevNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -3195,15 +3048,6 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 /// \remarks	Handler for the Next Note button click event.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->ButtonNextNote(pApp);
-}
-*/
-//void CNotes::ButtonNextNote(CAdapt_ItApp* pApp)
 void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 {
     // is the note dialog open, if so - close it (and invoke the OK button's handler) it's
@@ -3238,15 +3082,6 @@ void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 /// toolbar button is enabled.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->UpdateButtonNextNote(event, pApp);
-}
-*/
-//void CNotes::UpdateButtonNextNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -3300,15 +3135,6 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 /// \remarks	Handler for the Delete All Notes button click event.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->ButtonDeleteAllNotes(pApp);
-}
-*/
-//void CNotes::ButtonDeleteAllNotes(CAdapt_ItApp* pApp)
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
 	// IDS_ABOUT_TO_DELETE_NOTES
@@ -3343,15 +3169,6 @@ void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 /// Otherwise, if the targetBox is showing the toolbar button is enabled.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->UpdateButtonDeleteAllNotes(event, pApp);
-}
-*/
-//void CNotes::UpdateButtonDeleteAllNotes(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -3391,15 +3208,6 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 /// \remarks
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->EditMoveNoteForward(pApp);
-}
-*/
-//void CNotes::EditMoveNoteForward(CAdapt_ItApp* pApp)
 void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 {
 	// Since the Move Note Forward menu item has an accelerator table hot key (CTRL-3 see
@@ -3557,15 +3365,6 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 /// phrase ahead to move to, the menu item is enabled, otherwise the menu item is disabled.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->UpdateEditMoveNoteForward(event, pApp);
-}
-*/
-//void CNotes::UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)
@@ -3687,15 +3486,6 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 /// \remarks
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->EditMoveNoteBackward(pApp);
-}
-*/
-//void CNotes::EditMoveNoteBackward(CAdapt_ItApp* pApp)
 void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 {
     // Since the Move Note Backward menu item has an accelerator table hot key (CTRL-2 see
@@ -3851,15 +3641,6 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 /// to move to, the menu item is enabled, otherwise the menu item is disabled.
 /// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CNotes* pNotes = pApp->GetNotes();
-	pNotes->UpdateEditMoveNoteBackward(event, pApp);
-}
-*/
-//void CNotes::UpdateEditMoveNoteBackward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
 void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 {
 	if (gbVerticalEditInProgress)

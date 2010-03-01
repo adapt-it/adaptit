@@ -120,7 +120,16 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 
 	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnAdvancedFreeTranslationMode)
 	EVT_UPDATE_UI(ID_ADVANCED_FREE_TRANSLATION_MODE, CFreeTrans::OnUpdateAdvancedFreeTranslationMode)
-
+	EVT_MENU(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedTargetTextIsDefault)
+	EVT_UPDATE_UI(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedTargetTextIsDefault)
+	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedGlossTextIsDefault)
+	EVT_UPDATE_UI(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedGlossTextIsDefault)
+	// for collected back translations support
+	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredBacktranslations)
+	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations)
+	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
+	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
+	// end collected back translations support
 	EVT_BUTTON(IDC_BUTTON_APPLY, CFreeTrans::OnAdvanceButton)
 	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CFreeTrans::OnUpdateNextButton)
 	EVT_BUTTON(IDC_BUTTON_NEXT, CFreeTrans::OnNextButton)
@@ -1511,20 +1520,6 @@ CLayout* CFreeTrans::GetLayout()
 	return m_pLayout;
 }
 
-
-/*
-void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->AdvancedFreeTranslationMode(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::AdvancedFreeTranslationMode(CAdapt_ItApp* pApp, CMainFrame* pMainFrm,CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -1816,19 +1811,6 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	}
 }
 
-/*
-void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->AdvancedRemoveFilteredFreeTranslations(pApp, pDoc, pView);
-}
-
-// BEW 22Feb10 some changes done for support of _DOCVER5
-void CFreeTrans::AdvancedRemoveFilteredFreeTranslations(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -1945,17 +1927,6 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 /// list, or the active KB pointer is NULL, otherwise the menu item is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateAdvancedRemoveFilteredBacktranslations(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -1982,17 +1953,6 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent&
 /// list, or the active KB pointer is NULL, otherwise the menu item is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateAdvancedRemoveFilteredFreeTranslations(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -2333,8 +2293,6 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	wxASSERT(pMainFrm);
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
@@ -2499,12 +2457,6 @@ void CFreeTrans::StoreFreeTranslationOnLeaving()
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pFrame = GetFrame();
-	//CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
-
-	//CAdapt_ItApp* pApp = &wxGetApp();
-	//CMainFrame *pFrame = pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
 	if (pFrame->m_pComposeBar != NULL)
 	{
@@ -2742,10 +2694,7 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 void CFreeTrans::ToggleFreeTranslationMode()
 {
 	CAdapt_ItApp* pApp = GetApp();
-	//CMainFrame* pFrame = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	if (gbVerticalEditInProgress)
 	{
@@ -2856,27 +2805,11 @@ void CFreeTrans::ToggleFreeTranslationMode()
 
 // handler for the IDC_APPLY_BUTTON, renamed Advance after first being called Apply
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->AdvanceButton(event, pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::AdvanceButton(wxCommandEvent& event,
-		CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
     // BEW added 19Oct06; if the ENTER key is pressed when not in Free Translation mode and
     // focus is in the compose bar then it would invoke the OnAdvanceButton() handler even
@@ -3056,26 +2989,11 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->NextButton(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::NextButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten or 
 							 // Lengthen buttons were used
@@ -3199,26 +3117,11 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 // whm revised 24Aug06 to allow Prev button to move back to the previous actual or
 // potential free translation segment in the text
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->PrevButton(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::PrevButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	gbSuppressSetup = FALSE; // restore default value, in case Shorten 
 							 // or Lengthen buttons were used
@@ -3538,26 +3441,11 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->RemoveFreeTranslationButton(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10, changes done for support of _DOCVER5
-void CFreeTrans::RemoveFreeTranslationButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
 
@@ -3672,26 +3560,11 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->LengthenButton(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::LengthenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm= GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from wiping
             // out the action done below at the time that the view is updated (which
@@ -3767,17 +3640,6 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 /// there is at least one pile left.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateShortenButton(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateShortenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -3804,26 +3666,11 @@ void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->ShortenButton(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::ShortenButton(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	gbSuppressSetup = TRUE; // prevent SetupCurrentFreeTransSection() from 
             // wiping out the action done below at the time that the view is
@@ -3919,25 +3766,10 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 /// translation.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateLengthenButton(event, pApp, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateLengthenButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
-	//CMainFrame* pFrame = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	//bool bOwnsFreeTranslation;
 	if (!pApp->m_bFreeTranslationMode)
@@ -4015,17 +3847,6 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 /// another purpose (called from the View), the menu item is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateAdvancedFreeTranslationMode(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -4064,25 +3885,10 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->AdvancedTargetTextIsDefault(pApp, pMainFrm);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::AdvancedTargetTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm)
-*/
 void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
-	//CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	wxASSERT(pMainFrm != NULL);
 	wxMenuBar* pMenuBar = pMainFrm->GetMenuBar();
@@ -4132,17 +3938,6 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /// item is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateAdvancedTargetTextIsDefault(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -4172,25 +3967,10 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->AdvancedGlossTextIsDefault(pApp, pMainFrm);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::AdvancedGlossTextIsDefault(CAdapt_ItApp* pApp, CMainFrame* pMainFrm)
-*/
 void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
-	//CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	wxASSERT(pMainFrm != NULL);
 	wxMenuBar* pMenuBar = pMainFrm->GetMenuBar();
@@ -4241,17 +4021,6 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /// enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateAdvancedGlossTextIsDefault(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -4281,26 +4050,11 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->RadioDefineByPunctuation(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::RadioDefineByPunctuation(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	wxASSERT(pMainFrm != NULL);
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
@@ -4341,26 +4095,11 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 }
 
 // BEW 22Feb10 no changes needed for support of _DOCVER5
-/*
-void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CMainFrame* pMainFrm = pApp->GetMainFrame();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->RadioDefineByVerse(pApp, pMainFrm, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::RadioDefineByVerse(CAdapt_ItApp* pApp, CMainFrame* pMainFrm, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	wxASSERT(pMainFrm != NULL);
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
@@ -4417,17 +4156,6 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 /// button is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateNextButton(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateNextButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -4456,25 +4184,10 @@ void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 /// previous to the active pile is NULL, otherwise the button is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItView* pView = pApp->GetView();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdatePrevButton(event, pApp, pView);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdatePrevButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp, CAdapt_ItView* pView)
-*/
 void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
-	//CMainFrame* pFrame = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
-	//CLayout* pLayout = GetLayout();
 
 	if (!pApp->m_bFreeTranslationMode)
 	{
@@ -4508,17 +4221,6 @@ void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 /// free translation, otherwise the button is enabled.
 /// BEW 22Feb10 no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
-/*
-void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	pFreeTrans->UpdateRemoveFreeTranslationButton(event, pApp);
-}
-
-// BEW 22Feb10 no changes needed for support of _DOCVER5
-void CFreeTrans::UpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event, CAdapt_ItApp* pApp)
-*/
 void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 {
 	CAdapt_ItApp* pApp = GetApp();
@@ -4636,10 +4338,7 @@ void CFreeTrans::DestroyElements(wxArrayPtrVoid* pArr)
 /////////////////////////////////////////////////////////////////////////////////
 CPile* CFreeTrans::GetStartingPileForScan(int activeSequNum)
 {
-	//CAdapt_ItApp* pApp = GetApp();
-	//CMainFrame* pFrame = GetFrame();
 	CAdapt_ItView* pView = GetView();
-	//CAdapt_ItDoc* pDoc = GetView()->GetDocument();
 	CLayout* pLayout = GetLayout();
 
 	CPile* pStartPile = NULL;
@@ -4787,5 +4486,90 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 		}
 	}
 }
+
+void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
+{
+    // whm added 23Jan07 check below to determine if the doc has any back translations. If
+    // not an information message is displayed saying there are no back translations; then
+    // returns. Note: This check could be made in the OnIdle handler which could then
+    // disable the menu item rather than issuing the info message. However, if the user
+    // clicked the menu item, it may be because he/she though there might be one or more
+    // back translations in the document. The message below confirms to the user the actual
+    // state of affairs concerning any back translations in the current document.
+	CAdapt_ItApp* pApp = GetApp();
+	CAdapt_ItDoc* pDoc = GetApp()->GetDocument();
+	bool bBTfound = FALSE;
+	if (pDoc)
+	{
+		SPList* pList = pApp->m_pSourcePhrases;
+		if (pList->GetCount() > 0)
+		{
+			SPList::Node* pos = pList->GetFirst();
+			while (pos != NULL)
+			{
+				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+				pos = pos->GetNext();
+				if (!pSrcPhrase->m_markers.IsEmpty())
+				{
+					if (pSrcPhrase->m_markers.Find(_T("\\bt")) != -1)
+					bBTfound = TRUE; 
+					break; // don't need to check further
+				}
+			}
+		}
+	}
+	if (!bBTfound)
+	{
+		// there are no free translations in the document, so tell the user and return
+		wxMessageBox(_(
+		"The document does not contain any back translations."),
+		_T(""),wxICON_INFORMATION);
+		return;
+	}
+
+	// IDS_DELETE_ALL_BT_ASK
+	if( wxMessageBox(_(
+"You are about to delete all the back translations in the document. Is this what you want to do?"),
+	_T(""), wxYES_NO|wxICON_INFORMATION) == wxNO)
+	{
+		// user clicked the command by mistake, so exit the handler
+		return;
+	}
+
+	// initialize variables needed for the scan over the document's 
+	// sourcephrase instances
+	SPList* pList = pApp->m_pSourcePhrases;
+	SPList::Node* pos = pList->GetFirst(); 
+	CSourcePhrase* pSrcPhrase;
+	wxString mkr = _T("\\bt"); // enough for standard or derived 
+							   // backtranslation markers
+	// do the loop, halting to store each collection at appropriate (unfiltered) 
+	// SF markers
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_markers.IsEmpty())
+		{
+			continue;
+		}
+		else
+		{
+			int nFound = pSrcPhrase->m_markers.Find(mkr);
+			if (nFound > 0)
+			{
+				// there is a filtered backtranslation section to be deleted
+				GetView()->RemoveContentWrappers(pSrcPhrase,mkr,nFound + 3); // + 3 to 
+													// ensure pointing past \bt
+			}
+		} // end block for non-empty m_markers
+	} // end while loop
+	GetView()->Invalidate();
+	GetLayout()->PlaceBox();
+
+	// mark the doc as dirty, so that Save command becomes enabled
+	pDoc->Modify(TRUE);
+}
+
 
 #endif	// _FREETR

@@ -6627,6 +6627,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // whm - wxWidgets has its own memory leak facilities built into its library
 	//_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 
+
 	// some extra initializations, required for Adapt It
 	m_bKBReady = FALSE;
 //#ifdef _UNICODE
@@ -7843,12 +7844,13 @@ int ii = 1;
 	}
 	m_bControlIsWithinOnInit = FALSE;
 
-#ifdef	_FREETR
+ 
+	#ifdef	_FREETR
 	//GDLC 2010-02-12
 	// Create the free translation display handler
 	m_pFreeTrans = new CFreeTrans(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans); // pushed first, so pop last in OnExit()
+	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
 #else	// _FREETR
 	// set up data structures to be used for free translation support (ExitInstance 
 	// will delete them)
@@ -7859,12 +7861,10 @@ int ii = 1;
 #ifdef _NOTES
 	m_pNotes = new CNotes(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
-	GetView()->canvas->pFrame->PushEventHandler(m_pNotes); // pushed first, so pop last in OnExit()
+	GetView()->canvas->pFrame->PushEventHandler(m_pNotes);
 #endif
-	
 
-
-    return TRUE;
+   return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////

@@ -935,10 +935,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_EDIT_CONSISTENCY_CHECK, CAdapt_ItView::OnUpdateEditConsistencyCheck)
 
 #ifdef _NOTES
-	EVT_MENU(ID_EDIT_MOVE_NOTE_FORWARD, CNotes::OnEditMoveNoteForward)
-	EVT_UPDATE_UI(ID_EDIT_MOVE_NOTE_FORWARD, CNotes::OnUpdateEditMoveNoteForward)
-	EVT_MENU(ID_EDIT_MOVE_NOTE_BACKWARD, CNotes::OnEditMoveNoteBackward)
-	EVT_UPDATE_UI(ID_EDIT_MOVE_NOTE_BACKWARD, CNotes::OnUpdateEditMoveNoteBackward)
+	// this four moved to CNotes.cpp
 #else
 	EVT_MENU(ID_EDIT_MOVE_NOTE_FORWARD, CAdapt_ItView::OnEditMoveNoteForward)
 	EVT_UPDATE_UI(ID_EDIT_MOVE_NOTE_FORWARD, CAdapt_ItView::OnUpdateEditMoveNoteForward)
@@ -1010,10 +1007,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_MENU(ID_ADVANCED_DELAY, CAdapt_ItView::OnAdvancedDelay)
 	EVT_UPDATE_UI(ID_ADVANCED_DELAY, CAdapt_ItView::OnUpdateAdvancedDelay)
 #ifdef	_FREETR
-	EVT_MENU(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedTargetTextIsDefault)
-	EVT_UPDATE_UI(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedTargetTextIsDefault)
-	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedGlossTextIsDefault)
-	EVT_UPDATE_UI(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedGlossTextIsDefault)
+	// this 6 moved to CFreeTrans
 #else	// _FREETR
 	EVT_MENU(ID_ADVANCED_FREE_TRANSLATION_MODE, CAdapt_ItView::OnAdvancedFreeTranslationMode)
 	EVT_UPDATE_UI(ID_ADVANCED_FREE_TRANSLATION_MODE, CAdapt_ItView::OnUpdateAdvancedFreeTranslationMode)
@@ -1024,12 +1018,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 #endif	// _FREETR
 	EVT_UPDATE_UI(ID_ADVANCED_COLLECT_BACKTRANSLATIONS, CAdapt_ItView::OnUpdateAdvancedCollectBacktranslations)
 	EVT_MENU(ID_ADVANCED_COLLECT_BACKTRANSLATIONS, CAdapt_ItView::OnAdvancedCollectBacktranslations)
-	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations)
 #ifdef	_FREETR
-	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations)
-	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
-	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
+	// this 4 moved to CFreeTrans
 #else	// _FREETR
+	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CAdapt_ItView::OnUpdateAdvancedRemoveFilteredBacktranslations)
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CAdapt_ItView::OnAdvancedRemoveFilteredFreeTranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CAdapt_ItView::OnUpdateAdvancedRemoveFilteredFreeTranslations)
@@ -1081,14 +1073,7 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 
 	// Notes
 #ifdef _NOTES
-	EVT_TOOL(ID_BUTTON_CREATE_NOTE, CNotes::OnButtonCreateNote)
-	EVT_UPDATE_UI(ID_BUTTON_CREATE_NOTE, CNotes::OnUpdateButtonCreateNote)
-	EVT_TOOL(ID_BUTTON_PREV_NOTE, CNotes::OnButtonPrevNote)
-	EVT_UPDATE_UI(ID_BUTTON_PREV_NOTE, CNotes::OnUpdateButtonPrevNote)
-	EVT_TOOL(ID_BUTTON_NEXT_NOTE, CNotes::OnButtonNextNote)
-	EVT_UPDATE_UI(ID_BUTTON_NEXT_NOTE, CNotes::OnUpdateButtonNextNote)
-	EVT_TOOL(ID_BUTTON_DELETE_ALL_NOTES, CNotes::OnButtonDeleteAllNotes)
-	EVT_UPDATE_UI(ID_BUTTON_DELETE_ALL_NOTES, CNotes::OnUpdateButtonDeleteAllNotes)
+	// this 8 moved to CNotes
 #else
 	EVT_TOOL(ID_BUTTON_CREATE_NOTE, CAdapt_ItView::OnButtonCreateNote)
 	EVT_UPDATE_UI(ID_BUTTON_CREATE_NOTE, CAdapt_ItView::OnUpdateButtonCreateNote)
@@ -43711,6 +43696,7 @@ wxString CAdapt_ItView::WhichMarker(wxString& markers, int nAtPos)
 	return mkr;
 }
 
+#ifndef _FREETR
 void CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
     // whm added 23Jan07 check below to determine if the doc has any back translations. If
@@ -43794,6 +43780,7 @@ void CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXU
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
 }
+#endif
 
 //////////////////////////// End backtranslation support /////////////////////////////
 

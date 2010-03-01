@@ -32,7 +32,7 @@
 /////////////////////////////////////////////////////////////////////////////
 class CNotes : public wxEvtHandler
 	{
-		friend class CLayout;
+		//friend class CLayout; //BEW I don't think we need to make friends with CLayout
 	public:
 		
 		CNotes(); // default constructor
@@ -64,8 +64,7 @@ class CNotes : public wxEvtHandler
 		bool	ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
 
 		// the following have no internal calls to functions or values on the app, layout
-		// or view class, and so do not need their bodies called from private functions in
-		// the app's m_pNotes member
+		// or view class
 		bool	FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards = TRUE); // BEW added 29May08
 		bool	IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN);
 		bool	MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN);
@@ -75,7 +74,7 @@ class CNotes : public wxEvtHandler
 	public:
 		// Items from Adapt_ItView
 		// (edb 17 Feb 2010) BUGBUG: these were protected in Adapt_ItView; does it make sense to friend
-		// the view class?
+		// the view class? No real need.
 		void OnButtonCreateNote(wxCommandEvent& WXUNUSED(event));
 		void OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event));
 		void OnButtonNextNote(wxCommandEvent& WXUNUSED(event));
@@ -89,55 +88,14 @@ class CNotes : public wxEvtHandler
 		void OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event);
 		void OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event);
 		void OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event);
-/*
-	private:
-		// private body functions for the On...() update handlers - these need to be called
-		// on the actual instance of CNotes which the app maintains in its m_pNotes member
-		void UpdateButtonCreateNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
-		void UpdateButtonPrevNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
-		void UpdateButtonNextNote(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
-		void UpdateButtonDeleteAllNotes(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
-		void UpdateEditMoveNoteForward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
-		void UpdateEditMoveNoteBackward(wxUpdateUIEvent& event, CAdapt_ItApp* pApp);
 
-		void ButtonCreateNote(CAdapt_ItApp* pApp);
-		void ButtonDeleteAllNotes(CAdapt_ItApp* pApp);
-		void ButtonNextNote(CAdapt_ItApp* pApp);
-		void ButtonPrevNote(CAdapt_ItApp* pApp);
-		void EditMoveNoteForward(CAdapt_ItApp* pApp);
-		void EditMoveNoteBackward(CAdapt_ItApp* pApp);
-
-		// private body functions for the other functions moved from the view. These too
-		// need to be called from the instance of CNotes which has been instantiated, and
-		// if that is not done, any calls within them to the utility functions or directly
-		// to m_pApp, m_pView, m_pLayout will give bogus pointers to unallocated memory.
-		// These can be named by the same name but with prefix Private added
-		bool PrivateCreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
-		void PrivateCheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);	
-		void PrivateDeleteAllNotes();
-		bool PrivateDoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
-									 int& nStartOffset, int& nEndOffset);
-		int  PrivateFindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pStrList, int numWords,
-									  int& nStartOffset, int& nEndOffset);
-		bool PrivateGetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context);
-		void PrivateJumpBackwardToNote_CoreCode(int nJumpOffSequNum);
-		void PrivateJumpForwardToNote_CoreCode(int nJumpOffSequNum);
-		void PrivateMoveNote(CSourcePhrase* pFromSrcPhrase,CSourcePhrase* pToSrcPhrase);
-		void PrivateMoveToAndOpenFirstNote();
-		void PrivateMoveToAndOpenLastNote();
-		bool PrivateRestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec);
-		bool PrivateShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN);
-		bool PrivateShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN);
-*/
 	private:
 		CAdapt_ItApp*	m_pApp;	// The app owns this
 		CLayout*		m_pLayout;
 		CAdapt_ItView*	m_pView;
 
-		//DECLARE_EVENT_TABLE()
+		DECLARE_EVENT_TABLE()
 	};
-
-
 
 #endif // _NOTES
 
