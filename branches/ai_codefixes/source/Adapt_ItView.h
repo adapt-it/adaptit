@@ -160,8 +160,10 @@ public:
 	bool		ContainsFreeTranslation(CPile* pPile); // BEW added 06Jul05
 					// moved to public GDLC 2010-02-15
 #endif	// _FREETR
-	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE); 
+	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE);
+#if !defined (_FREETR)
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
+#endif
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE); // BEW added 1Aug08
 	void		DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc);
 	void		DoFileSaveKB();
@@ -346,6 +348,7 @@ public:
 	bool		CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);
 #endif
 	void		GetMarkerArrayFromString(wxArrayString* pStrArr, const wxString& str); // BEW added 17June08
+	void		GetSelectedSourcePhraseInstances(SPList*& pList,wxString& strSource,wxString& strAdapt);
 	bool		IsMarkerInArray(wxArrayString* pStrArr, const wxString& marker); // BEW added 17June08
 	bool		AreMarkerSetsDifferent(const wxString& str1, const wxString& str2, bool& bUnfilteringRequired,
 							bool& bFilteringRequired);  // created 17June08 BEW
@@ -406,8 +409,9 @@ public:
 	void		UpdateSequNumbers(int nFirstSequNum);
 	bool		VerticalEdit_CheckForEndRequiringTransition(int nSequNum, ActionSelector select,
 											bool bForceTransition = FALSE);
+#if !defined (_FREETR)
 	bool		GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
-
+#endif
 	// The following moved to public from protected
 	CCell*		GetPrevCell(CCell* pCell, int index); // moved to public
 	bool		IsBoundaryCell(CCell* pCell);
@@ -433,7 +437,9 @@ protected:
 #endif
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
 	void		ClearSublistKBEntries(SPList* pSublist);
+#if !defined (_FREETR)
 	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
+#endif
 	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
 	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
@@ -501,13 +507,13 @@ protected:
 	CCell*		GetNextCell(CCell* pCell,  const int cellIndex); // GetNextCell(const CCell* pCell,  const int cellIndex)
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
 													CPile*& pFirstPile,SPList* pList);
-	void		GetSelectedSourcePhraseInstances(SPList*& pList,
-													wxString& strSource,wxString& strAdapt);
 	CTargetUnit*  GetTargetUnit(CKB* pKB, int nSrcWords, wxString keyStr);
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
-	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
+#if !defined (_FREETR)
+	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
 	void		InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr); // BEW added 16Sep05
+#endif
 	void		InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,CPile* pInsertLocPile,
 					const int nCount,bool bRestoreTargetBox = TRUE,bool bForRetranslation = FALSE,
 					bool bInsertBefore = TRUE);
@@ -594,7 +600,9 @@ protected:
 	void		UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
 							int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum,
 							bool bWantRetranslationFlagSet = TRUE,bool bAlsoUpdateSublist = FALSE);
+#if !defined (_FREETR)
 	wxString	WhichMarker(wxString& markers, int nAtPos); // BEW added 17Sep05, for backtranslation support
+#endif
 
 protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));
@@ -775,13 +783,15 @@ public:
 	void OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
 #endif	// _FREETR
+#ifdef	_FREETR
+	// OnAdvancedRemoveFilteredBacktranslations, OnUpdateAdvancedRemoveFilteredBacktranslations, 
+	// OnAdvancedRemoveFilteredFreeTranslations, OnUpdateAdvancedRemoveFilteredFreeTranslations,
+	// OnUpdateAdvancedCollectBacktranslations, OnAdvancedCollectBacktranslations,
+	// moved to CFreeTrans
+#else	//_FREETR
 	void OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event);
 	void OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event));
 	void OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event));
-#ifdef	_FREETR
-// OnUpdateAdvancedRemoveFilteredBacktranslations, OnAdvancedRemoveFilteredFreeTranslations,
-// OnUpdateAdvancedRemoveFilteredFreeTranslations moved to CFreeTrans
-#else	//_FREETR
 	void OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event);
 	void OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event);

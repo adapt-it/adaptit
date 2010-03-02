@@ -1016,11 +1016,11 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CAdapt_ItView::OnAdvancedGlossTextIsDefault)
 	EVT_UPDATE_UI(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CAdapt_ItView::OnUpdateAdvancedGlossTextIsDefault)
 #endif	// _FREETR
+#ifdef	_FREETR
+	// this 6 moved to CFreeTrans
+#else	// _FREETR
 	EVT_UPDATE_UI(ID_ADVANCED_COLLECT_BACKTRANSLATIONS, CAdapt_ItView::OnUpdateAdvancedCollectBacktranslations)
 	EVT_MENU(ID_ADVANCED_COLLECT_BACKTRANSLATIONS, CAdapt_ItView::OnAdvancedCollectBacktranslations)
-#ifdef	_FREETR
-	// this 4 moved to CFreeTrans
-#else	// _FREETR
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations)
 	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CAdapt_ItView::OnUpdateAdvancedRemoveFilteredBacktranslations)
 	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CAdapt_ItView::OnAdvancedRemoveFilteredFreeTranslations)
@@ -28716,7 +28716,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
     // translation collection span and hence the place where the back translation text for
     // that span would be stored, so use ContainsBtMarker() to check for that possibility
     // as well
-	bIsHaltLocation = HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
+	bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
 	if (bIsHaltLocation)
 	{
         // its a halt location, so any bt span will either start here (if bFound_bt_mkr is
@@ -28740,7 +28740,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
         // must scan back to the first previous halt location to see if there is a \bt
         // stored there - if so, that would be the start of the bt deletion span we are
         // trying to delimit
-		bItsHereAnyway = ContainsBtMarker(pSrcPhrase);
+		bItsHereAnyway = pApp->m_pFreeTrans->ContainsBtMarker(pSrcPhrase);
 		if (bItsHereAnyway)
 		{
 			// the \bt deletion subspan starts here
@@ -28756,7 +28756,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 				pSrcPhrase = pos->GetData();
 				pos = pos->GetPrevious();
 				nIteratorSN = pSrcPhrase->m_nSequNumber;
-				bIsHaltLocation = HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
+				bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
 				if (bIsHaltLocation)
 				{
 					if (bFound_bt_mkr)
@@ -28779,7 +28779,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 				{
                     // it's not a halt location, but still check for storage of \bt
                     // manually forced to be here; otherwise do next iteration of the loop
-					bItsHereAnyway = ContainsBtMarker(pSrcPhrase);
+					bItsHereAnyway = pApp->m_pFreeTrans->ContainsBtMarker(pSrcPhrase);
 					if (bItsHereAnyway)
 					{
 						// the bt deletion span starts here
@@ -28832,7 +28832,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
 		nIteratorSN = pSrcPhrase->m_nSequNumber;
-		bIsHaltLocation = HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
+		bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
 		if (bIsHaltLocation)
 		{
 			// it's a halt location, so check out whether \bt is there, etc
@@ -28871,7 +28871,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 		{
             // not a halt location, but there may be a \bt marker nevertheless because the
             // user at some earlier time manually forced a collection to be stored here
-			bItsHereAnyway = ContainsBtMarker(pSrcPhrase);
+			bItsHereAnyway = pApp->m_pFreeTrans->ContainsBtMarker(pSrcPhrase);
 			if (bItsHereAnyway)
 			{
                 // a \bt marker was found here, so either the \bt deletion span starts
@@ -28991,7 +28991,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 						bCollectionLineTestCompleted = TRUE; // use TRUE value to suppress 
 													// subsequent calls of above function
 					}
-					bIsHaltLocation = HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
+					bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
 					if (bIsHaltLocation)
 					{
 						nEndingBackTransSequNum = nIteratorSN - 1; // the location 
@@ -30617,7 +30617,7 @@ bool CAdapt_ItView::ExtendEditableSpanForFiltering(
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
 		nIteratorSN = pSrcPhrase->m_nSequNumber;
-		bIsHaltLocation = HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
+		bIsHaltLocation = pApp->m_pFreeTrans->HaltCurrentCollection(pSrcPhrase, bFound_bt_mkr);
 		if (bIsHaltLocation)
 		{
 			// no further extension is needed, so exit the loop
@@ -33359,7 +33359,7 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 							nSelectionLine,TRUE);
 	// hand over to the function which does the collecting,
 	// using the selection defined above
-	DoCollectBacktranslations(pRec->bCollectedFromTargetText);
+	pApp->m_pFreeTrans->DoCollectBacktranslations(pRec->bCollectedFromTargetText);
 
 	// do cleanup housekeeping
 	gbUserWantsSelection = FALSE; // restore default value
@@ -43091,7 +43091,9 @@ void CAdapt_ItView::RemoveContentWrappers(CSourcePhrase*& pSrcPhrase, wxString m
 	// the caller should clear it
 }
 
-
+#if defined (_FREETR)
+	// moved back translation support to CFreeTrans for the present
+#else
 /////////////////////////////////////////////////////////////////////////////////
 ///
 ///	   Backtranslation Support
@@ -43145,7 +43147,9 @@ void CAdapt_ItView::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(e
 	Invalidate(); // get the view updated (so new icons (green wedges) get drawn)
 	GetLayout()->PlaceBox();
 }
+#endif
 
+#if !defined (_FREETR)
 /////////////////////////////////////////////////////////////////////////////////
 ///  GetPrevMarker
 ///
@@ -43222,7 +43226,9 @@ bool CAdapt_ItView::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 	}
 	return FALSE;
 }
+#endif
 
+#if !defined (_FREETR)
 /////////////////////////////////////////////////////////////////////////////////
 ///  HaltCurrentCollection
 ///
@@ -43259,8 +43265,7 @@ bool CAdapt_ItView::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 ///    which the TextType is 'none' such as \k* etc (see AI_USFM.xml for others)
 ///
 /////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItView::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, 
-										  bool& bFound_bt_mkr)
+bool CAdapt_ItView::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	// initialize
@@ -43330,7 +43335,9 @@ bool CAdapt_ItView::HaltCurrentCollection(CSourcePhrase* pSrcPhrase,
 	return TRUE;
 
 }
+#endif
 
+#if !defined (_FREETR)
 /////////////////////////////////////////////////////////////////////////////////
 ///  InsertCollectedBacktranslation
 ///
@@ -43405,7 +43412,9 @@ void CAdapt_ItView::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase,
 								nInsertionOffset,bInsertContentOnly);
 	}
 }
+#endif
 
+#if !defined (_FREETR)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return                 nothing
 ///
@@ -43661,7 +43670,9 @@ void CAdapt_ItView::DoCollectBacktranslations(bool bUseAdaptationsLine)
 b:	if (bSelectionExists)
 		RemoveSelection();
 }
+#endif
 
+#if !defined (_FREETR)
 /////////////////////////////////////////////////////////////////////////////////
 ///  WhichMarker
 ///
@@ -43695,6 +43706,7 @@ wxString CAdapt_ItView::WhichMarker(wxString& markers, int nAtPos)
 	}
 	return mkr;
 }
+#endif
 
 #ifndef _FREETR
 void CAdapt_ItView::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))

@@ -55,6 +55,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "Adapt_ItDoc.h"
+#include "CollectBacktranslations.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
@@ -124,12 +125,6 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_UPDATE_UI(ID_ADVANCED_TARGET_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedTargetTextIsDefault)
 	EVT_MENU(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnAdvancedGlossTextIsDefault)
 	EVT_UPDATE_UI(ID_ADVANCED_GLOSS_TEXT_IS_DEFAULT, CFreeTrans::OnUpdateAdvancedGlossTextIsDefault)
-	// for collected back translations support
-	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredBacktranslations)
-	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations)
-	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
-	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
-	// end collected back translations support
 	EVT_BUTTON(IDC_BUTTON_APPLY, CFreeTrans::OnAdvanceButton)
 	EVT_UPDATE_UI(IDC_BUTTON_NEXT, CFreeTrans::OnUpdateNextButton)
 	EVT_BUTTON(IDC_BUTTON_NEXT, CFreeTrans::OnNextButton)
@@ -143,6 +138,15 @@ BEGIN_EVENT_TABLE(CFreeTrans, wxEvtHandler)
 	EVT_BUTTON(IDC_BUTTON_SHORTEN, CFreeTrans::OnShortenButton)
 	EVT_RADIOBUTTON(IDC_RADIO_PUNCT_SECTION, CFreeTrans::OnRadioDefineByPunctuation)
 	EVT_RADIOBUTTON(IDC_RADIO_VERSE_SECTION, CFreeTrans::OnRadioDefineByVerse)
+	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations)
+	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_FREE_TRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations)
+
+	// for collected back translations support
+	EVT_MENU(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnAdvancedRemoveFilteredBacktranslations)
+	EVT_UPDATE_UI(ID_ADVANCED_REMOVE_FILTERED_BACKTRANSLATIONS, CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations)
+	EVT_UPDATE_UI(ID_ADVANCED_COLLECT_BACKTRANSLATIONS, CFreeTrans::OnUpdateAdvancedCollectBacktranslations)
+	EVT_MENU(ID_ADVANCED_COLLECT_BACKTRANSLATIONS, CFreeTrans::OnAdvancedCollectBacktranslations)
+	// end collected back translations support
 
 END_EVENT_TABLE()
 
@@ -4487,6 +4491,64 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 	}
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+///
+///	   Backtranslation Support
+///
+/////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \return		nothing
+/// \param      event   -> the wxUpdateUIEvent that is generated when the Advanced Menu 
+///                        is about to be displayed
+/// \remarks
+/// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected,
+/// and before the menu is displayed.
+/// The "Collect Back Translations..." item on the Edit menu is enabled if the applicable
+/// KB is not NULL and there are source phrases in the App's m_pSourcePhrases list,
+/// otherwise the menu item is disabled.
+/// BEW 2Mar10, updated for _DOCVER5 (no changes needed)
+/////////////////////////////////////////////////////////////////////////////////
+void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
+{
+	CAdapt_ItApp* pApp = GetApp();
+	if (gbVerticalEditInProgress)
+	{
+		event.Enable(FALSE);
+		return;
+	}
+	if (pApp->m_pKB != NULL && (int)pApp->m_pSourcePhrases->GetCount() > 0)
+		event.Enable(TRUE);
+	else
+		event.Enable(FALSE);
+}
+
+// BEW 2Mar10, updated for _DOCVER5 (no changes needed)
+void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event))
+{
+	CAdapt_ItApp* pApp = GetApp();
+	CCollectBacktranslations dlg(pApp->GetMainFrame());
+	dlg.Centre();
+	if (dlg.ShowModal() == wxID_OK)
+	{
+		// user clicked the OK button
+		DoCollectBacktranslations(dlg.m_bUseAdaptations);
+
+		// mark the doc as dirty, so that Save command becomes enabled
+		CAdapt_ItDoc* pDoc = pApp->GetDocument();
+		pDoc->Modify(TRUE);
+	}
+	else
+	{
+		// user clicked the Cancel button, so do nothing
+		;
+	}
+	GetView()->Invalidate(); // get the view updated (so new icons (green wedges) get drawn)
+	GetLayout()->PlaceBox();
+}
+
+
+// BEW 2Mar10; updated for support of _DOCVER5
 void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
     // whm added 23Jan07 check below to determine if the doc has any back translations. If
@@ -4509,12 +4571,20 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 			{
 				CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 				pos = pos->GetNext();
+#if defined (_DOCVER5)
+				if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+				{
+					bBTfound = TRUE; 
+					break; // don't need to check further
+				}
+#else
 				if (!pSrcPhrase->m_markers.IsEmpty())
 				{
 					if (pSrcPhrase->m_markers.Find(_T("\\bt")) != -1)
 					bBTfound = TRUE; 
 					break; // don't need to check further
 				}
+#endif
 			}
 		}
 	}
@@ -4541,14 +4611,28 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	SPList* pList = pApp->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst(); 
 	CSourcePhrase* pSrcPhrase;
+#if defined (_DOCVER5)
+	wxString emptyStr = _T("");
+#else
 	wxString mkr = _T("\\bt"); // enough for standard or derived 
 							   // backtranslation markers
+#endif
 	// do the loop, halting to store each collection at appropriate (unfiltered) 
 	// SF markers
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
+#if defined (_DOCVER5)
+		if (pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+		{
+			continue;
+		}
+		else
+		{
+			pSrcPhrase->SetCollectedBackTrans(emptyStr);
+		}
+#else
 		if (pSrcPhrase->m_markers.IsEmpty())
 		{
 			continue;
@@ -4563,6 +4647,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 													// ensure pointing past \bt
 			}
 		} // end block for non-empty m_markers
+#endif
 	} // end while loop
 	GetView()->Invalidate();
 	GetLayout()->PlaceBox();
@@ -4571,5 +4656,552 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 	pDoc->Modify(TRUE);
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+/// \return                 nothing
+///
+///	\param bUseAdaptationsLine	->	TRUE if m_targetStr is used for the collection, 
+///	                                FALSE if m_gloss is used
+///
+/// \remarks
+///    This function changes nothing in the GUI, so a message is put up to ask the user to
+///    wait for the function to finish. It then scans all the pSrcPhrase instances in the
+///    document's m_pSourcePhrases list, collecting the adaptation or gloss string from
+///    each, until it comes to a halt location. Halt locations are determined by calling
+///    HaltCurrentCollection() which looks at the passed in m_markers string to see if the
+///    string ends in a marker which should halt collection, or begin with an endmarker
+///    which should halt collection (such as \f* or \x*).
+///
+///    On 02Jan06 BEW changed the handling of footnotes and cross references to ignore
+///    their CSourcePhrase instances in the collection process (by checking for footnote or
+///    crossReference TextType); because these embedded information types should not be
+///    part of any backtranslation collection.
+///
+///    At each halt location, the collected backtranslation string is wrapped with a \bt
+///    marker and filter markers if there is no collected backtranslation already there,
+///    and inserted; but if there is a prexisting filtered backtranslation there, then its
+///    content is removed and just the newly collected backtranslation is inserted in its
+///    place.
+///    On 21Nov05 this algorithm was enhanced to optionally work with a selection. The
+///    collection operation is confined to the selection range - and works as follows.
+///	1.	If the first sourcephrase instance already has a filtered \bt (or derivative) marker,
+///     the collection erases the content of this already-collected section, and the
+///     collection replaces that section with the new content - which goes up to either the
+///     end of the selection, or until a sourcephrase with a new \bt marker (or derivative)
+///     is encountered. (Note, if the selection is not long enough, the collection may then
+///     not include all that should be there - but that is the user's responsibility to
+///     fix. He can check in the View Filtered Material dialog, and manually add the extra
+///     words if he wishes.) (Also note, if the selection is long enough, more than one
+///     back translation section may be defined before either the selection end is
+///     encountered, or another \bt marker is reached.)
+///	2.	If the first sourcephrase does not have a filtered \bt (or derivative) marker, then
+///     a new back translation section is commenced at that location - and ends according
+///     to the same criteria as in 1. above.
+///     (Note, if the first source phrase follows shortly after one on which a back
+///     translation is stored but occurs before the former one's extent ends, it is quite
+///     possible for the one currently being collected to have overlapping content with the
+///     former one. Again, this is the user's responsibility to check for and rectify if he
+///     wishes, and the View Filtered material dialog is again the way to do it.)
+/////////////////////////////////////////////////////////////////////////////////
+void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
+{
+    // whm note: The process of collecting back translations is done so quickly that there
+    // is probably no need for a wait or progress dialog. The user gets feedback by the
+    // appearance of wedges appearing on the screen.
+	CAdapt_ItApp* pApp = &wxGetApp();
+	bool bSelectionExists = FALSE;
+	SPList aList;	// list of selected CSourcePhrase objects, if any; else an alias for
+					// the document's m_pSourcePhrases list
+	SPList* pList = &aList;
 
+	SPList* pDocPhrases = pApp->m_pSourcePhrases; // the document's list
+
+	// determine if there is a selection, and get a list of the sourcephrase instances
+	// in it if it exists
+	if (pApp->m_selection.GetCount() > 0)
+	{
+        // collection only within a selection is wanted (and it doesn't matter if the
+        // selection has text of different types, because the collection mechanism handles
+        // that automatically)
+		wxString unwantedSrcText; // need this because the following call returns
+								  // strings we are not interested in
+		wxString unwantedOtherText; // need this because the following call returns
+								    // strings we are not interested in
+		GetView()->GetSelectedSourcePhraseInstances(pList, unwantedSrcText, unwantedOtherText);
+		// pList is now populated with pointers to the selected sourcephrase instances
+
+		bSelectionExists = TRUE;
+	}
+	else
+	{
+		// collection over the whole document is wanted, 
+		// so set pList to the whole list
+		pList = pDocPhrases;
+	}
+
+	// initialize variables needed for the scan over the document's 
+	// sourcephrase instances
+	wxString strCollect;
+	wxString abit; // BEW added 26Nov05 because from gloss lines we can 
+				   // collect copied ellipses, so exclude these
+	SPList::Node* iteratorPos = pList->GetFirst(); 
+	CSourcePhrase* pSrcPhrase;
+	SPList::Node* savePos = iteratorPos; 
+	bool bHalt;
+	CSourcePhrase* pLastSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
+
+	bool bHalted_at_bt_mkr = FALSE;
+    // BEW addition 02Jan06: collecting ignores footnotes, endnotes & cross references of
+    // any kind, so we must check if pLastSrcPhrase (which is where the collection is to be
+    // stored) actually has either kind of TextType value. If so, we must advance
+    // pLastSrcPhrase until it points to the first CSourcePhrase instance beyond the
+    // footnote, endnote or cross reference. In the case of a selection, this potentially
+    // might not be possible (if the user selects only footnote text for instance), so we
+    // must allow for such a possibility. (Note, the footnote endmarker, or cross reference
+    // endmarker, will be in m_markers on a CSourcePhrase instance which is not a footnote
+    // or endmarker, but that won't be a problem because our halt conditions will not cause
+    // a halt at any endmarker)
+	if (pLastSrcPhrase->m_curTextType == footnote || 
+		pLastSrcPhrase->m_curTextType == crossReference)
+	{
+		// we need to skip this material
+		while (iteratorPos != NULL)
+		{
+			savePos = iteratorPos; // needed for next loop after this one
+			pLastSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
+			iteratorPos = iteratorPos->GetNext();
+			if (pLastSrcPhrase->m_curTextType == footnote || 
+				pLastSrcPhrase->m_curTextType == crossReference)
+			{
+				pLastSrcPhrase = NULL;
+				continue; // skip it, try next one
+			}
+			else
+			{
+				// we have found one which we don't need to skip over
+				break;
+			}
+		}
+		if (pLastSrcPhrase == NULL)
+		{
+            // we got to the end of the list without finding one which was not a footnote,
+            // endnote or free translation, so don't do any collection, just remove the
+            // selection (if there is one) and return
+			goto b;
+		}
+	}
+
+    // do the loop, halting each collection at appropriate (unfiltered) SF markers (such as
+    // the start of the next verse if no other marker was encountered beforehand) and store
+    // the resulting collection at the starting place for this particular part of the
+    // collection (ie. at pLastSrcPhrase instance).
+	// BEW changed 02Jan06 to have the code ignore instances with TextType of footnote or 
+	// crossReference
+	bHalted_at_bt_mkr = FALSE;
+	iteratorPos = savePos; // restore POSITION for the pLastSrcPhrase instance, 
+						   // which is to start the loop
+	while (iteratorPos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)iteratorPos->GetData();
+		iteratorPos = iteratorPos->GetNext();
+
+		// skip any footnote or cross reference instances
+		if (pSrcPhrase->m_curTextType == footnote || 
+			pSrcPhrase->m_curTextType == crossReference)
+			continue;
+
+		if (pSrcPhrase == pLastSrcPhrase)
+		{
+			// we are just starting the next section, so don't try to halt, 
+			// just start collecting
+			abit = bUseAdaptationsLine ? pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
+			if (abit == _T("..."))
+				abit.Empty();
+			strCollect = abit;
+		}
+		else
+		{
+            // pSrcPhrase has advanced past pLastSrcPhrase, so we must check for halt
+            // condition as we do the collecting
+			if (pSrcPhrase->m_markers.IsEmpty())
+			{
+				// an empty m_markers means no halt is possible at this pSrcPhrase, so
+				// do the collection and then iterate
+				if (strCollect.IsEmpty())
+				{
+					abit = bUseAdaptationsLine ? 
+									pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
+					if (abit == _T("..."))
+						abit.Empty();
+					strCollect = abit;
+				}
+				else
+				{
+					abit = bUseAdaptationsLine ? 
+									pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
+					if (abit == _T("..."))
+					{
+						abit.Empty();
+					}
+					else
+					{
+						strCollect += _T(' ');
+						strCollect += abit;
+					}
+				}
+			}
+			else
+			{
+				bHalt = HaltCurrentCollection(pSrcPhrase,bHalted_at_bt_mkr);
+				if (bHalt)
+				{
+					// do the insertion
+					InsertCollectedBacktranslation(pLastSrcPhrase, strCollect);
+
+					// prepare for collection in the next document section
+					pLastSrcPhrase = pSrcPhrase;
+					strCollect.Empty();
+
+                    // collect this one's content before iterating, because
+                    // iteratorPos is already pointing at the next POSITION
+					strCollect = bUseAdaptationsLine ? 
+										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
+
+					if (bSelectionExists && bHalted_at_bt_mkr)
+					{
+						// we don't collect any further within the selection, 
+						// even if not at its end
+						goto b;
+					}
+				}
+				else
+				{
+					// collect here
+					if (strCollect.IsEmpty())
+					{
+						abit = bUseAdaptationsLine ? 	
+										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
+						if (abit == _T("..."))
+							abit.Empty();
+						strCollect = abit;
+					}
+					else
+					{
+						abit = bUseAdaptationsLine ? 
+										pSrcPhrase->m_targetStr : pSrcPhrase->m_gloss;
+						if (abit == _T("..."))
+						{
+							abit.Empty();
+						}
+						else
+						{
+							strCollect += _T(' ');
+							strCollect += abit;
+						}
+					}
+				}
+			} // end block for non-empty m_markers
+		} // end block for pSrcPhrase advanced past pLastSrcPhrase
+	} // end while loop
+
+	// do the final insertion
+	wxASSERT(pLastSrcPhrase);
+	InsertCollectedBacktranslation(pLastSrcPhrase, strCollect);
+
+	// remove the selection, if there is one
+b:	if (bSelectionExists)
+		GetView()->RemoveSelection();
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///  GetPrevMarker
+///
+/// Returns:        TRUE if ptr scanned back to the backslash of an SF marker, 
+///                 FALSE otherwise
+///
+/// Parameters:
+///	pBuff		->	pointer to the start of the pSrcPhrase->m_markers buffer
+///	ptr			<->	iterator, a reference to a pointer to TCHAR at which scanning 
+///	                is to commence
+///	mkrLen		<-	the length, in characters and including the backslash, of the
+///					marker scanned (this parameter has no meaning if FALSE is returned)
+/// Remarks:
+///    When looking for a marker which is to halt collection of adaptations or glosses as
+///    backtranslations, the markers we are interested in lie at or near the end of
+///    pSrcPhrase->m_markers, except for endmarkers which (provided they are not filtered)
+///    lie at the beginning of the string. So we want to start processing at the end of
+///    m_markers, and iterate backwards to find the last marker; but in some circumstances
+///    we may need to find the penultimate marker (eg. if the string ends with, say, \f \fr
+///    or maybe \x \xr ). So this function may need to be called more than once on the one
+///    m_markers string. We also return a count of consecutive non-space characters
+///    traversed, so the caller can construct the marker just traversed over. The marker
+///    may or may not be an endmarker, it's the caller's job to distinguish such
+///    differences. The way GetPrevMarker is coded means that any numbers are ignored,
+///    because when it exits TRUE, ptr will be pointing at the backslash of a marker, and
+///    mkrLen will have its length (a space will follow).
+///
+/////////////////////////////////////////////////////////////////////////////////
+bool CFreeTrans::GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
+{
+	int nCount = 0;
+	if (ptr > pBuff)
+		ptr--;
+	else
+	{
+		mkrLen = 0;
+		return FALSE;
+	}
+	while (*ptr != _T('\\'))
+	{
+		if (*ptr == _T(' '))
+			nCount = 0; // initialize the count when pointing at a space
+		else
+			nCount++; // count any non-space characters
+
+		// is there room in the buffer to go back further?
+		if (ptr > pBuff)
+			ptr--;
+		else
+		{
+			// we are at the start of the buffer, but we didn't find a marker
+			// so return FALSE
+			mkrLen = 0;
+			return FALSE;
+		}
+	}
+
+	// if we get here, we have not counted the backslash yet, so do so
+	nCount++;
+	mkrLen = nCount;
+	return TRUE;
+}
+
+// a utility to return TRUE if pSrcPhrase contains a \bt or \bt-prefixed marker -- fix
+// this, it has to look at m_filteredInfo as well as m_collectedBackTrans
+bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
+{
+	wxString btMkr = _T("\\bt");
+	int nFound = pSrcPhrase->m_markers.Find(btMkr);
+	if (nFound >= 0)
+	{
+		// there is a marker which commences with the 
+		// 3 characters \bt, so return TRUE
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///  WhichMarker
+///
+/// Returns: the full marker (including backslash) which is at the passed in location
+///
+/// Parameters:
+///	markers		->	the pSrcPhrase->m_markers string being checked for which kind 
+///					of backtranslation marker was found by the caller
+///	nAtPos		->	character offset to the backslash at the beginning of the marker, 
+///					the marker might be a standard \bt one, or a derived one like \btv etc; 
+///					but the function will return whatever marker is there - so it is not 
+///                 limited to backtranslation support
+/// Remarks:
+///	Comments above say it all. The function assumes and relies on there being a space
+/// following whatever marker it is
+///
+/////////////////////////////////////////////////////////////////////////////////
+wxString CFreeTrans::WhichMarker(wxString& markers, int nAtPos)
+{
+	wxString mkr;
+	int curPos = nAtPos;
+	wxChar ch;
+	ch = markers.GetChar(curPos);
+	wxASSERT(ch == _T('\\'));
+	mkr += ch;
+	curPos++;
+	while ((ch = markers.GetChar(curPos)) != _T(' '))
+	{
+		mkr += ch;
+		curPos++;
+	}
+	return mkr;
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///  InsertCollectedBacktranslation
+///
+/// Returns: nothing
+///
+/// Parameters:
+///	pSrcPhrase	->	pointer to the sourcephrase instance which is to receive the
+///					collected backtranslation string (filtered)
+///	btStr		->	the just-collected backtranslation content which is to be stored
+///                 filtered in the m_markers member of the passed in pSrcPhrase; if there
+///                 is no backtranslation there already, it is wrapped with the appropriate
+///                 markers first and then inserted, otherwise it replaces the content
+///                 already there from an earlier collection operation
+/// Remarks:
+///	The comments above should suffice.
+///
+/////////////////////////////////////////////////////////////////////////////////
+void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr)
+{
+	wxString markers = pSrcPhrase->m_markers;
+	wxString mkr = _T("\\bt");
+	wxString endMkr = _T(""); // there are no backtranslation endmarkers
+	wxString derivMkr; // to store derivative \bt markers, like \btv, etc, 
+                // when checking which kind of backtranslation marker is
+                // actually present on pSrcPhase
+
+    // we first must find out whether there is an existing backtranslation in markers, and
+    // if there is, is it just a \bt one (ie. standard), or is it a derived \bt marker such
+    // as \btv or \bts1 etc. (Adapt It does not automatically insert derived ones, but if
+    // they are already present due to (a) manual editing of the XML document, or (b)
+    // imported from adaptation exported from another project, then Adapt It will try to
+    // preserve them unchanged. Whenever it cannot be done, \bt will be used.
+	int nFound = markers.Find(mkr);
+	bool bInsertContentOnly;
+	int nInsertionOffset;
+	if (nFound == -1)
+	{
+        // there is no \bt marker, nor a derived one, in the markers string as yet - so we
+        // will be inserting standard \bt marker plus its content and filter marker
+        // wrappers
+
+		// we may have other content in m_markers, so we have to first find the proper
+		// insertion location
+		nInsertionOffset = GetView()->FindFilteredInsertionLocation(markers,mkr);
+
+        // now build the total string and insert it all (final BOOL being FALSE
+        // accomplishes the build of \~FILTER \bt <contents of btStr> \~FILTER* followed by
+        // a single space, which is done internally (and it ensures that btStr ends in a
+        // space too)
+		bInsertContentOnly = FALSE;
+		GetView()->InsertFilteredMaterial(mkr,endMkr,btStr,pSrcPhrase,
+								nInsertionOffset,bInsertContentOnly);
+	}
+	else
+	{
+		// there is either a standard \bt marker, or a derivative, present 
+		// -- find out which it is
+		derivMkr = WhichMarker(markers, nFound);
+
+		// remove the existing content - it could be already empty though
+		wxString oldBTStr;
+		int nContentLen;
+		oldBTStr = GetExistingMarkerContent(derivMkr,endMkr,pSrcPhrase,
+											nInsertionOffset,nContentLen);
+		pSrcPhrase->m_markers.Remove(nInsertionOffset,nContentLen);
+
+		// now put in the new content at nInsertionOffset -- and note that the function
+		// internally ensures that btStr ends in a space before it is inserted
+		bInsertContentOnly = TRUE;
+		GetView()->InsertFilteredMaterial(derivMkr,endMkr,btStr,pSrcPhrase,
+								nInsertionOffset,bInsertContentOnly);
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+///  HaltCurrentCollection
+///
+/// Returns: TRUE if the passed in pSrcPhrase->m_markers string contains an unfiltered
+///          marker which should halt collecting of the backtranslation text at the current
+///          pSrcPhrase; FALSE if collecting should continue BEW modified 21Nov05 to
+///          support collecting within the range of a selection by explicitly checking for
+///          \bt and immediately returning TRUE if it is in m_markers
+///
+/// Parameters:
+///	markers			->	the m_markers member of the current pSrcPhrase being examined
+///	bFound_bt_mkr	<-	TRUE if the reason we halt is because \bt or derivative was 
+///	                    encountered
+///
+/// Remarks:
+///	Where the halt happens is also where the collection starts for the next subsection,
+///	and the caller maintains a pointer to an earlier sourcephrase (pLastSrcPhrase) which
+///	is where the just-finished collected backtranslation text is to be stored filtered in
+///	its m_markers member.
+///
+///    We do the scanning for a marker to test by scanning backwards in m_markers. It is
+///    done backwards because (a) filtered material, if present, will be earlier in
+///    m_markers than at the end (and filtered material doesn't itself halt collecting -
+///    except for a \bt or derived \bt marker, which must halt collection because a new
+///    section commences at this CSourcePhrase instance), and (b) unfiltered markers define
+///    the text type which is visible in the main window and the marker which does that
+///    will typically be the last (unfiltered) one in m_markers.
+///
+///    Also, since from 02Nov06 we ignore footnotes, endnotes and cross references of any
+///    kind, we can ignore any unfiltered endmarker in m_markers (that is, such markers
+///    don't halt the collection process) - these markers would normally occur first in
+///    initial position in m_markers, and could be such things as \f*, \fe (for PNG SF
+///    set), \F (ditto), \x* -- all of which we want to ignore; but also endmarkers for
+///    which the TextType is 'none' such as \k* etc (see AI_USFM.xml for others)
+///
+/////////////////////////////////////////////////////////////////////////////////
+bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr)
+{
+	CAdapt_ItApp* pApp = &wxGetApp();
+	// initialize
+	bFound_bt_mkr = FALSE;
+	int mkrLen = 0;
+	wxString markers = pSrcPhrase->m_markers;
+	int bufLen = markers.Length();
+
+	// coming to an already existing \bt or derived \bt marker must immediately
+	// halt collection, so that we don't encroach on the next collected section
+	if (ContainsBtMarker(pSrcPhrase))
+	{
+		bFound_bt_mkr = TRUE;
+		return TRUE;
+	}
+
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	const wxChar* pBuff = markers.GetData();
+	wxChar* pBufStart = (wxChar*)pBuff;
+	wxChar* pEnd;
+	pEnd = pBufStart + bufLen; // whm added
+	wxASSERT(*pEnd == _T('\0')); // whm added
+	wxChar* ptr = pBufStart;
+	ptr += bufLen; // ptr starts at the end and scans backwards
+
+	ptr = pBufStart + bufLen; // ptr starts at the end and scans backwards
+	bool bGotMarkerOK = GetPrevMarker(pBufStart,ptr,mkrLen);
+	if (!bGotMarkerOK)
+	{
+		return FALSE; // keep collecting
+	}
+	wxString mkr(ptr,mkrLen);
+	wxASSERT(!mkr.IsEmpty());
+
+	// return FALSE if it's an endmarker
+	if ( mkr.Find(_T('*')) >= 0)
+	{
+		return FALSE; // keep collecting
+	}
+
+	// if it is an unknown marker, then it must halt collecting
+	wxString mkrPlusEqual = mkr + _T('=');
+	if (pApp->m_currentUnknownMarkersStr.Find(mkrPlusEqual) >= 0)
+	{
+		return TRUE; // halt
+	}
+
+	wxString bareMkr = pDoc->GetBareMarkerForLookup(ptr);
+	wxASSERT(!bareMkr.IsEmpty());
+	USFMAnalysis* pAnalysis = pDoc->LookupSFM(bareMkr);
+	if (pAnalysis)
+	{
+		if (pAnalysis->textType == none || pAnalysis->inLine)
+		{
+			return FALSE; // keep collecting
+		}
+		else
+		{
+			// all other markers, whether filtered or not, should halt collecting
+			return TRUE; // it halts collecting
+		}
+	}
+
+	// we get here only if pAnalysis was not valid, so assume it should halt
+	// -- this is the safest default for an unrecognized marker which is also
+	// not listed as an unknown marker
+	return TRUE;
+
+}
 #endif	// _FREETR

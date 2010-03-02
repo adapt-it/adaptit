@@ -78,14 +78,17 @@ public:
 	bool		IsFreeTranslationEndDueToMarker(CPile* pNextPile);
 	bool		IsFreeTranslationSrcPhrase(CPile* pPile);
 	void		MarkFreeTranslationPilesForColoring(wxArrayPtrVoid* pileArray);
+	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
+					enum EditBoxContents editBoxContents, const wxString& mkrStr);
+	void		StoreFreeTranslationOnLeaving();
+	void		ToggleFreeTranslationMode();
 
 	// the next group are the 22 event handlers
 	void		OnAdvanceButton(wxCommandEvent& event);
 	void		OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event));
-	void		OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event));
-	void		OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event));
 	void		OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event));
+	void		OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event));
 	void		OnLengthenButton(wxCommandEvent& WXUNUSED(event));
 	void		OnNextButton(wxCommandEvent& WXUNUSED(event));
 	void		OnPrevButton(wxCommandEvent& WXUNUSED(event));
@@ -93,9 +96,9 @@ public:
 	void		OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event));
 	void		OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event));
 	void		OnShortenButton(wxCommandEvent& WXUNUSED(event));
+
 	void		OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event);
-	void		OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event);
 	void		OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event);
 	void		OnUpdateLengthenButton(wxUpdateUIEvent& event);
@@ -104,10 +107,18 @@ public:
 	void		OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event);
 	void		OnUpdateShortenButton(wxUpdateUIEvent& event);
 
-	void		StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,CPile*& pLastPile, 
-					enum EditBoxContents editBoxContents, const wxString& mkrStr);
-	void		StoreFreeTranslationOnLeaving();
-	void		ToggleFreeTranslationMode();
+	// collecting back translations support
+	void		OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event);
+	void		OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUSED(event));
+	void		OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event);
+	void		OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event));
+	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
+	bool		GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
+	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
+	wxString	WhichMarker(wxString& markers, int nAtPos); // BEW added 17Sep05, for backtranslation support
+	void		InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr); // BEW added 16Sep05
+	bool		HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr); // BEW 21Nov05
+	// end of collecting back translations support
 
 	// Private free translation drawing functions
 private:
