@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /// \project		adaptit
-/// \file			FreeTrans.h
+/// \file			Notes.h
 /// \author			Erik Brommers
 /// \date_created	10 Februuary 2010
 /// \date_revised	10 Februuary 2010
@@ -20,13 +20,12 @@
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
-#pragma interface "FreeTrans.h"
+#pragma interface "Notes.h"
 #endif
 
 
 //////////////////////////////////////////////////////////////////////////////////
-/// The CNotes class presents free translation fields to the user. 
-/// The functionality in the CNotes class was originally contained in
+/// The CNotes class contains notes-related functionality originally found in
 /// the CAdapt_ItView class.
 /// \derivation		The CNotes class is derived from wxEvtHandler.
 /////////////////////////////////////////////////////////////////////////////
