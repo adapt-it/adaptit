@@ -19,13 +19,13 @@
 		7DC0390D0F4654B30047FCAF /* Adapt It.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7DC0390C0F4654B30047FCAF /* Adapt It.icns */; };
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
+		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
 		C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
-		C8F82E5E0F3F9CAB007579B8 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */; };
 		C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */; };
 		C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */; };
 		C8F82E610F3F9CAB007579B8 /* AIPrintout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC00F3F9CAB007579B8 /* AIPrintout.cpp */; };
@@ -134,6 +134,7 @@
 		7DE437ED10FA707E0036CC92 /* FilenameConflictDlg.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FilenameConflictDlg.h; path = ../../source/FilenameConflictDlg.h; sourceTree = SOURCE_ROOT; };
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItCanvas.cpp; path = ../../source/Adapt_ItCanvas.cpp; sourceTree = SOURCE_ROOT; };
 		C8141435112256EF006764C6 /* FreeTrans.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTrans.h; path = ../../source/FreeTrans.h; sourceTree = SOURCE_ROOT; };
 		C8141436112256EF006764C6 /* FreeTrans.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTrans.cpp; path = ../../source/FreeTrans.cpp; sourceTree = SOURCE_ROOT; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
@@ -145,7 +146,6 @@
 		C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It_wdr.h; path = ../../source/Adapt_It_wdr.h; sourceTree = SOURCE_ROOT; };
 		C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_It.cpp; path = ../../source/Adapt_It.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DB70F3F9CAB007579B8 /* Adapt_It.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_It.h; path = ../../source/Adapt_It.h; sourceTree = SOURCE_ROOT; };
-		C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItCanvas.cpp; path = ../../source/Adapt_ItCanvas.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItCanvas.h; path = ../../source/Adapt_ItCanvas.h; sourceTree = SOURCE_ROOT; };
 		C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItDoc.cpp; path = ../../source/Adapt_ItDoc.cpp; sourceTree = SOURCE_ROOT; };
 		C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Adapt_ItDoc.h; path = ../../source/Adapt_ItDoc.h; sourceTree = SOURCE_ROOT; };
@@ -360,7 +360,7 @@
 				C8F82DB50F3F9CAB007579B8 /* Adapt_It_wdr.h */,
 				C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */,
 				C8F82DB70F3F9CAB007579B8 /* Adapt_It.h */,
-				C8F82DB90F3F9CAB007579B8 /* Adapt_ItCanvas.cpp */,
+				C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */,
 				C8F82DBA0F3F9CAB007579B8 /* Adapt_ItCanvas.h */,
 				C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */,
 				C8F82DBC0F3F9CAB007579B8 /* Adapt_ItDoc.h */,
@@ -666,7 +666,6 @@
 			files = (
 				C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */,
 				C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */,
-				C8F82E5E0F3F9CAB007579B8 /* Adapt_ItCanvas.cpp in Sources */,
 				C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */,
 				C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */,
 				C8F82E610F3F9CAB007579B8 /* AIPrintout.cpp in Sources */,
@@ -751,6 +750,7 @@
 				7D820F891110B941005EDDC9 /* KBEditSearch.cpp in Sources */,
 				C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */,
 				03D7A719112A2601004F6D39 /* Notes.cpp in Sources */,
+				C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -770,6 +770,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					_DOCVER5,
+					_NOTES,
 					_FREETR,
 					"wxUSE_UNICODE=1",
 					NO_GCC_PRAGMA,
@@ -826,6 +828,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					_FREETR,
+					_NOTES,
+					_DOCVER5,
 					"wxUSE_UNICODE=1",
 					NO_GCC_PRAGMA,
 					__WXMAC__,
