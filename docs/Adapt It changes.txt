@@ -215,6 +215,9 @@ have the -frm switch used, otherwise you'll lock the user (or
 ----------------------------------------------
 Bug fixes in 5.2.0
 ----------------------------------------------
+* The Edit menu commands, Move Note Forward, and Move Note
+Backward, did their job but the window was not updated to show
+the changed location of the note.
 * Typing a '2' key into the phrase box, or the edit box used for free
 translations, no 2 character appeared in the box.
 * Unmerging a merger which located at the end of the document

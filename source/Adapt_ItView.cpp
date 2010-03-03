@@ -42556,8 +42556,6 @@ a:			wxMessageBox(_T(
 		{
 			// there is no note there yet
 			MoveNote(pSrcPhrase,pTgtSrcPhrase);
-			Invalidate();
-			GetLayout()->PlaceBox();
 
             // BEW added 19Dec07: establish a selection at the new location in case the
             // user wishes to use accelerator key combination in order to move the note
@@ -42597,6 +42595,16 @@ a:			wxMessageBox(_T(
 					pCell->SetSelected(TRUE);
 				}
 			}
+			// BEW 3Mar10 added RecalcLayout and moved Invalidate and PlaceBox calls to
+			// here because the move was being done but the window was not reflecting the
+			// change 
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 		else
 		{
@@ -42826,8 +42834,6 @@ a:			wxMessageBox(_T(
 		{
 			// there is no note there yet
 			MoveNote(pSrcPhrase,pTgtSrcPhrase);
-			Invalidate();
-			GetLayout()->PlaceBox();
 
             // BEW added 19Dec07: establish a selection at the new location in case the
             // user wishes to use accelerator key combination in order to move the note
@@ -42867,6 +42873,16 @@ a:			wxMessageBox(_T(
 					pCell->SetSelected(TRUE);
 				}
 			}
+			// BEW 3Mar10 added RecalcLayout and moved Invalidate and PlaceBox calls to
+			// here because the move was being done but the window was not reflecting the
+			// change 
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+			Invalidate();
+			GetLayout()->PlaceBox();
 		}
 		else
 		{
