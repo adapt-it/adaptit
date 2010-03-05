@@ -1742,6 +1742,8 @@ AboutDlg::AboutDlg(wxWindow *parent)
 #endif
 #if defined(__INTEL__) && defined(__IA64__)
 	strHostArchitecture = _T("Intel 64bit");
+#elif defined(__IA64__)
+	strHostArchitecture = _T("64bit");
 #endif
 #if defined(__POWERPC__)
 	strHostArchitecture = _T("PowerPC");
