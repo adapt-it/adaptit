@@ -1726,7 +1726,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	pVersionNum->SetLabel(strVersionNumber);
 
 	// Set About Dlg static texts for OS, system language and locale information
-	wxString strHostOS;
+	wxString strHostOS, strHostArchitecture;
 #if defined(__WXMSW__)
 	strHostOS = _("Microsoft Windows");
 #elif defined(__WXGTK__)
@@ -1737,9 +1737,22 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strHostOS = _("Unknown");
 #endif
 
+#if defined(__INTEL__) && !defined(__IA64__)
+	strHostArchitecture = _T("Intel 32bit");
+#endif
+#if defined(__INTEL__) && defined(__IA64__)
+	strHostArchitecture = _T("Intel 64bit");
+#endif
+#if defined(__POWERPC__)
+	strHostArchitecture = _T("PowerPC");
+#endif
+
+
 	strHostOS.Trim(FALSE);
 	strHostOS.Trim(TRUE);
 	strHostOS = _T(' ') + strHostOS;
+	if (!strHostArchitecture.IsEmpty())
+		strHostOS += _T('-') + strHostArchitecture;
 	wxStaticText* pStaticHostOS = (wxStaticText*)FindWindowById(ID_STATIC_HOST_OS);
 	wxASSERT(pStaticHostOS != NULL);
 	pStaticHostOS->SetLabel(strHostOS);
