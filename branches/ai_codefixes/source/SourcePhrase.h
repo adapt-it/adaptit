@@ -222,7 +222,8 @@ public:
 	wxString GetFilteredInfo();
 	bool	 GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
 									wxArrayString* pFilteredEndMarkers,
-									wxArrayString* pFilteredContent);
+									wxArrayString* pFilteredContent,
+									bool bUseSpaceForEmpty = FALSE);
 	wxString GetEndMarkers();
 	bool	 GetEndMarkersAsArray(wxArrayString* pEndmarkersArray); // return FALSE if empty, else TRUE
 
@@ -233,7 +234,8 @@ public:
 	void SetFilteredInfo(wxString filteredInfo);
 	void SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
 									wxArrayString* pFilteredEndMarkers,
-									wxArrayString* pFilteredContent);
+									wxArrayString* pFilteredContent,
+									bool bChangeSpaceToEmpty = FALSE);
 	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);
 	void SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray);

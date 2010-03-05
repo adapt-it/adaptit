@@ -625,8 +625,8 @@ void CNoteDlg::OnBnClickedDeleteBtn(wxCommandEvent& event)
 	m_strNote.Empty();
 	if (gpApp->m_pNoteDlg != NULL)
 	{
-		// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-		// event, which now deprecated SetValue() generates.
+        // whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate
+        // the wxEVT_COMMAND_TEXT_UPDATED event, which now deprecated SetValue() generates.
 		pEditNote->ChangeValue(m_strNote); // whm added 4Jul06
 		pEditSearch->ChangeValue(m_searchStr); // whm added 4Jul06
 	}
@@ -744,8 +744,8 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 	int nStartOffset;
 	int nEndOffset;
 #ifdef _NOTES
-	int nFoundSequNum = gpApp->GetNotes()->FindNoteSubstring(gpApp->m_nSequNumBeingViewed, pWordList, numWords,
-												 nStartOffset, nEndOffset);
+	int nFoundSequNum = gpApp->GetNotes()->FindNoteSubstring(gpApp->m_nSequNumBeingViewed, 
+										pWordList, numWords, nStartOffset, nEndOffset);
 #else
 	// get the search string updated
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -756,7 +756,8 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 	{
 		// the string was not found in any subsequent note - so tell this to the user
 		//IDS_NO_MATCHING_NOTE
-		wxMessageBox(_("Searching forward did not find a note with text matching that which you typed into the box."),
+		wxMessageBox(
+		_("Searching forward did not find a note with text matching that which you typed into the box."),
 		_T(""), wxICON_INFORMATION);
 		delete pWordList;
 		gnStartOffset = gnEndOffset = -1; // ensure the 'no match' condition is restored

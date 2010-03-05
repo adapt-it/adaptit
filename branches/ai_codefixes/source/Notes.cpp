@@ -1600,6 +1600,7 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase
 #endif
 	wxString noteStr;
 #if defined (_DOCVER5)
+	wxString emptyStr = _T("");
 	if ( pFromSrcPhrase->m_bHasNote && pFromSrcPhrase->GetNote().IsEmpty())
 #else
 	if ( (curPos = pFromSrcPhrase->m_markers.Find(noteEndMkr)) == -1)
@@ -1618,7 +1619,13 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase
 		{
             // it has a note, so do nothing (no message here, the GUI button's
             // handler has a test for this and disables the command if necessary,
-            // but for programatic use of MoveNote, we want a silent return)
+			// but for programatic use of MoveNote, we want a silent return and
+			// auto-fixing of the location)
+            if (!pToSrcPhrase->m_bHasNote)
+			{
+				// reset the flag, since m_note must be non-empty
+				pToSrcPhrase->m_bHasNote = TRUE;
+			}
 			return;
 		}
 		
@@ -1626,6 +1633,7 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase
 		noteStr = pFromSrcPhrase->GetNote();
 		pFromSrcPhrase->m_bHasNote = FALSE; // ensure the flag is cleared 
 											// on the old location
+		pFromSrcPhrase->SetNote(emptyStr); // clear old note
 		
 		// now create the note on the pToSrcPhrase instance
 		pToSrcPhrase->SetNote(noteStr);
@@ -3300,8 +3308,6 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 		{
 			// there is no note there yet
 			MoveNote(pSrcPhrase,pTgtSrcPhrase);
-			GetView()->Invalidate();
-			GetLayout()->PlaceBox();
 			
             // BEW added 19Dec07: establish a selection at the new location in case the
             // user wishes to use accelerator key combination in order to move the note
@@ -3341,6 +3347,13 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 					pCell->SetSelected(TRUE);
 				}
 			}
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+			GetView()->Invalidate();
+			GetLayout()->PlaceBox();
 		}
 		else
 		{
@@ -3349,6 +3362,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 			;
 		}
 	}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -3575,8 +3589,6 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 		{
 			// there is no note there yet
 			MoveNote(pSrcPhrase,pTgtSrcPhrase);
-			GetView()->Invalidate();
-			GetLayout()->PlaceBox();
 			
             // BEW added 19Dec07: establish a selection at the new location in case the
             // user wishes to use accelerator key combination in order to move the note
@@ -3616,6 +3628,13 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 					pCell->SetSelected(TRUE);
 				}
 			}
+#ifdef _NEW_LAYOUT
+			GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+#else
+			GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+#endif
+			GetView()->Invalidate();
+			GetLayout()->PlaceBox();
 		}
 		else
 		{

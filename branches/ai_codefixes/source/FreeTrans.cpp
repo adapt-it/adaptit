@@ -4912,74 +4912,26 @@ b:	if (bSelectionExists)
 		GetView()->RemoveSelection();
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-///  GetPrevMarker
-///
-/// Returns:        TRUE if ptr scanned back to the backslash of an SF marker, 
-///                 FALSE otherwise
-///
-/// Parameters:
-///	pBuff		->	pointer to the start of the pSrcPhrase->m_markers buffer
-///	ptr			<->	iterator, a reference to a pointer to TCHAR at which scanning 
-///	                is to commence
-///	mkrLen		<-	the length, in characters and including the backslash, of the
-///					marker scanned (this parameter has no meaning if FALSE is returned)
-/// Remarks:
-///    When looking for a marker which is to halt collection of adaptations or glosses as
-///    backtranslations, the markers we are interested in lie at or near the end of
-///    pSrcPhrase->m_markers, except for endmarkers which (provided they are not filtered)
-///    lie at the beginning of the string. So we want to start processing at the end of
-///    m_markers, and iterate backwards to find the last marker; but in some circumstances
-///    we may need to find the penultimate marker (eg. if the string ends with, say, \f \fr
-///    or maybe \x \xr ). So this function may need to be called more than once on the one
-///    m_markers string. We also return a count of consecutive non-space characters
-///    traversed, so the caller can construct the marker just traversed over. The marker
-///    may or may not be an endmarker, it's the caller's job to distinguish such
-///    differences. The way GetPrevMarker is coded means that any numbers are ignored,
-///    because when it exits TRUE, ptr will be pointing at the backslash of a marker, and
-///    mkrLen will have its length (a space will follow).
-///
-/////////////////////////////////////////////////////////////////////////////////
-bool CFreeTrans::GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
-{
-	int nCount = 0;
-	if (ptr > pBuff)
-		ptr--;
-	else
-	{
-		mkrLen = 0;
-		return FALSE;
-	}
-	while (*ptr != _T('\\'))
-	{
-		if (*ptr == _T(' '))
-			nCount = 0; // initialize the count when pointing at a space
-		else
-			nCount++; // count any non-space characters
-
-		// is there room in the buffer to go back further?
-		if (ptr > pBuff)
-			ptr--;
-		else
-		{
-			// we are at the start of the buffer, but we didn't find a marker
-			// so return FALSE
-			mkrLen = 0;
-			return FALSE;
-		}
-	}
-
-	// if we get here, we have not counted the backslash yet, so do so
-	nCount++;
-	mkrLen = nCount;
-	return TRUE;
-}
-
-// a utility to return TRUE if pSrcPhrase contains a \bt or \bt-prefixed marker -- fix
-// this, it has to look at m_filteredInfo as well as m_collectedBackTrans
+// a utility to return TRUE if pSrcPhrase contains a \bt or \bt-prefixed marker
+// BEW 2Mar10, updated for support of _DOCVER5
 bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 {
 	wxString btMkr = _T("\\bt");
+#if defined (_DOCVER5)
+	if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+	{
+		return TRUE; // m_collectedBackTrans has content (m_filteredInfo may have
+					 // derived \btmarker content too, but one or the other will do)
+	}
+	// no collected string, but we may be storing filtered derived bt marker content
+	int nFound = pSrcPhrase->GetFilteredInfo().Find(btMkr);
+	if (nFound >= 0)
+	{
+		// there is a marker in m_filteredInfo which commences with the 
+		// 3 characters \bt, so return TRUE
+		return TRUE;
+	}
+#else
 	int nFound = pSrcPhrase->m_markers.Find(btMkr);
 	if (nFound >= 0)
 	{
@@ -4987,6 +4939,7 @@ bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 		// 3 characters \bt, so return TRUE
 		return TRUE;
 	}
+#endif
 	return FALSE;
 }
 
@@ -5005,7 +4958,7 @@ bool CFreeTrans::ContainsBtMarker(CSourcePhrase* pSrcPhrase)
 /// Remarks:
 ///	Comments above say it all. The function assumes and relies on there being a space
 /// following whatever marker it is
-///
+/// BEW 2Mar10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 wxString CFreeTrans::WhichMarker(wxString& markers, int nAtPos)
 {
@@ -5025,24 +4978,32 @@ wxString CFreeTrans::WhichMarker(wxString& markers, int nAtPos)
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-///  InsertCollectedBacktranslation
+/// \returns                nothing
 ///
-/// Returns: nothing
-///
-/// Parameters:
-///	pSrcPhrase	->	pointer to the sourcephrase instance which is to receive the
-///					collected backtranslation string (filtered)
-///	btStr		->	the just-collected backtranslation content which is to be stored
-///                 filtered in the m_markers member of the passed in pSrcPhrase; if there
-///                 is no backtranslation there already, it is wrapped with the appropriate
-///                 markers first and then inserted, otherwise it replaces the content
-///                 already there from an earlier collection operation
-/// Remarks:
-///	The comments above should suffice.
-///
-/////////////////////////////////////////////////////////////////////////////////
+///	\param pSrcPhrase	->	pointer to the sourcephrase instance which is to receive the
+///					        collected backtranslation string (filtered)
+///	\param btStr	    ->	the just-collected backtranslation content which is to be stored
+///                         (regarded as "filtered") in the m_collectedBackTrans wxString
+///                         member of the passed in pSrcPhrase
+/// \remarks
+/// In docVersion 5, we insert in that member only back translations collected from the
+/// gloss or adaptation lines. If any \bt-derived markers were in a plain text SFM markup
+/// used for constructing the document, such as \btv, etc, these are stored, with their
+/// \bt-whatever marker, and wrapped in the \~FILTER and \~FILTER* markers, in the
+/// m_filteredInfo wxString member -- the latter member may therefore contain more than one
+/// such wrapped content string, it all depends what was in the plain text source text
+/// document used for parsing in the text. Since the collection operation makes no use of
+/// what is in m_filteredInfo (but it does halt scanning if a derived \bt marker is in
+/// there), the insertion this function does is just to the m_collectedBackTrans member. If
+/// there is already backtranslation content present, what is inserted replaces the content
+/// already there.
+/// BEW 2Mar10, updated for support of _DOCVER5
+//////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr)
 {
+#if defined (_DOCVER5)
+	pSrcPhrase->SetCollectedBackTrans(btStr);
+#else
 	wxString markers = pSrcPhrase->m_markers;
 	wxString mkr = _T("\\bt");
 	wxString endMkr = _T(""); // there are no backtranslation endmarkers
@@ -5096,55 +5057,231 @@ void CFreeTrans::InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxSt
 		GetView()->InsertFilteredMaterial(derivMkr,endMkr,btStr,pSrcPhrase,
 								nInsertionOffset,bInsertContentOnly);
 	}
+#endif
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+/// \returns        TRUE if ptr scanned back to the backslash of an SF marker, 
+///                 FALSE otherwise
+///
+///	\param pBuff		->	pointer to the start of the pSrcPhrase->m_markers buffer
+///	\param ptr			<->	iterator, a reference to a pointer to TCHAR at which scanning 
+///	                        is to commence, and on exit points either at a space or the
+///	                        end of the buffer
+///	\param mkrLen		<-	the length, in characters and including the backslash, of the
+///					        marker scanned (this parameter has no meaning if FALSE is
+///					        returned, and in that case it would equal wxNOT_FOUND (-1) )
+/// \remarks
+///    We use this function when looking for a marker which is to halt collection of
+///    adaptations or glosses as backtranslations. We scan forwards from the start of a
+///    string or the end of a previously found marker (a space), and continue on till we
+///    find the next marker or the end of the string. If we find a 'next' marker, we scan
+///    over it and return to the caller with the offset to its backslash, and the length
+///    (defined by character count up to the next space but not including the space). The
+///    caller can then extract the marker and use it for testing purposes.
+///    ,
+///    BEW 2Mar10, updated for support of _DOCVER5 (no changes needed) (the legacy version
+///    of this function was called GetPrevMarker() and it scanned backwards)
+/////////////////////////////////////////////////////////////////////////////////
+bool CFreeTrans::GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
+{
+	int totalLen = 0;
+	wxChar* pEnd = pBuff;
+	// get the end, so we don't overshoot
+	while (*pEnd != _T('\0'))
+	{
+		totalLen++;
+		pEnd++;
+	}
+	ptr = pBuff; // start at passed in location
+	// get the next backslash
+	while (*ptr != _T('\\') && ptr < pEnd)
+	{
+		ptr++;
+	}
+	if (ptr == pEnd)
+	{
+		// we didn't find a marker
+		mkrLen = wxNOT_FOUND;
+		return FALSE;
+	}
+	else
+	{
+		// we are at a backslash
+		wxChar* p = ptr; // use this one for iterating over the marker
+		mkrLen = 1;
+		p++;
+		// get the rest of the marker
+		while (*p != _T(' ') && p < pEnd)
+		{
+			p++;
+			mkrLen++;
+		}
+		if (mkrLen < 2)
+		{
+			// a marker consisting of just a backslash is ill-defined
+			mkrLen = wxNOT_FOUND;
+			return FALSE;
+		}
+	} // end of block for delimiting a SF marker
+	return TRUE;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 ///  HaltCurrentCollection
 ///
-/// Returns: TRUE if the passed in pSrcPhrase->m_markers string contains an unfiltered
+/// \returns TRUE if the passed in pSrcPhrase->m_markers string contains an unfiltered
 ///          marker which should halt collecting of the backtranslation text at the current
 ///          pSrcPhrase; FALSE if collecting should continue BEW modified 21Nov05 to
 ///          support collecting within the range of a selection by explicitly checking for
 ///          \bt and immediately returning TRUE if it is in m_markers
 ///
-/// Parameters:
-///	markers			->	the m_markers member of the current pSrcPhrase being examined
-///	bFound_bt_mkr	<-	TRUE if the reason we halt is because \bt or derivative was 
-///	                    encountered
+///	\param pSrcPhrase		->	the current pSrcPhrase being examined, we look at whether
+///	                            the m_collectedBackTrans member has text in it or not, and
+///	                            if it doesn't, then we look for derived \bt markers in the
+///	                            m_filteredInfo member
+///	\param bFound_bt_mkr	<-	TRUE if the reason we halt is because back translation
+///	                            content was encountered in m_collectedBackTrans, or
+///	                            derivative \bt marker type was found in m_filteredInfo
 ///
-/// Remarks:
-///	Where the halt happens is also where the collection starts for the next subsection,
-///	and the caller maintains a pointer to an earlier sourcephrase (pLastSrcPhrase) which
-///	is where the just-finished collected backtranslation text is to be stored filtered in
-///	its m_markers member.
+/// \remarks
+///    Where the halt happens is also where the collection starts for the next
+///    subsection, and the caller maintains a pointer to an earlier sourcephrase
+///    (pLastSrcPhrase) which is where the just-finished collected backtranslation text
+///    is to be stored filtered in its m_collectedBackTrans member.
 ///
-///    We do the scanning for a marker to test by scanning backwards in m_markers. It is
-///    done backwards because (a) filtered material, if present, will be earlier in
-///    m_markers than at the end (and filtered material doesn't itself halt collecting -
-///    except for a \bt or derived \bt marker, which must halt collection because a new
-///    section commences at this CSourcePhrase instance), and (b) unfiltered markers define
-///    the text type which is visible in the main window and the marker which does that
-///    will typically be the last (unfiltered) one in m_markers.
 ///
-///    Also, since from 02Nov06 we ignore footnotes, endnotes and cross references of any
-///    kind, we can ignore any unfiltered endmarker in m_markers (that is, such markers
-///    don't halt the collection process) - these markers would normally occur first in
-///    initial position in m_markers, and could be such things as \f*, \fe (for PNG SF
-///    set), \F (ditto), \x* -- all of which we want to ignore; but also endmarkers for
-///    which the TextType is 'none' such as \k* etc (see AI_USFM.xml for others)
-///
+///    What halts collection is any one of the following conditions satisfied, in top down
+///    order:
+///    1. m_collectedBackTrans has content
+///    2. m_filteredInfo contains a marker starting with "\bt"
+///    3. m_endMarkers contains either "\f*" or "\x*" or "\fe*" (implies end of unfiltered section
+///    of either footnote or cross reference or endnote) - anything else, can let collection
+///    continue one unhalted provided none of the following obtain (or successfully
+///    test for \F or \fe in the PNG SFM set when that SFM set is in use)
+///    4. any unknown marker type in m_markers
+///    5. any known marker type in m_markers which does not have the TextType of 'none'
+///    BEW 2Mar10, updated for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
+	CAdapt_ItApp* pApp = GetApp();
 	// initialize
 	bFound_bt_mkr = FALSE;
 	int mkrLen = 0;
 	wxString markers = pSrcPhrase->m_markers;
+
+#if defined (_DOCVER5)
+	int bufLen = markers.Len();
+
+    // coming to an already existing collected back translation in m_collectedBackTrans, or
+    // a derived \bt marker in m_filteredInfo, must immediately halt collection, so that we
+    // don't encroach on the next collected section
+	if (ContainsBtMarker(pSrcPhrase))
+	{
+		bFound_bt_mkr = TRUE;
+		return TRUE;
+	}
+	// tests 1 and 2 are done, now do 3
+	wxString endmarkers = pSrcPhrase->GetEndMarkers();
+	int nFound = wxNOT_FOUND;
+	if (!endmarkers.IsEmpty())
+	{
+		if (pApp->gCurrentSfmSet == PngOnly)
+		{
+			nFound = endmarkers.Find(_T("\\F"));
+			if (nFound >= 0)
+			{
+				return TRUE;
+			}
+			nFound = endmarkers.Find(_T("\\fe"));
+			if (nFound >= 0)
+			{
+				return TRUE;
+			}
+		}
+		else
+		{
+			// must be the USFM set, or we'll assume so
+			nFound = endmarkers.Find(_T("\\f*"));
+			if (nFound >= 0)
+			{
+				return TRUE;
+			}
+			nFound = endmarkers.Find(_T("\\fe*"));
+			if (nFound >= 0)
+			{
+				return TRUE;
+			}
+			nFound = endmarkers.Find(_T("\\x*"));
+			if (nFound >= 0)
+			{
+				return TRUE;
+			}
+		}
+	}
+	// test 3 is finished, now do tests 4 for an unknown marker, and 5 for a marker which
+	// does not have TextType equal to 'none'
+	if (markers.IsEmpty())
+		return FALSE; // nothing is in m_markers member
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	const wxChar* pBuff = markers.GetData();
+	wxChar* pBufStart = (wxChar*)pBuff;
+	wxChar* pEnd;
+	pEnd = pBufStart + bufLen; // whm added
+	wxASSERT(*pEnd == _T('\0')); // whm added
+	wxChar* ptr = pBufStart;
+	bool bGotMarkerOK = GetNextMarker(pBufStart,ptr,mkrLen);
+	if (!bGotMarkerOK)
+	{
+		return FALSE; // keep collecting
+	}
+	while (bGotMarkerOK && ptr < pEnd)
+	{
+		// get the marker we've delineated
+		wxString mkr(ptr,mkrLen);
+		wxASSERT(!mkr.IsEmpty());
+
+		// if it is an unknown marker, then it must halt collecting
+		wxString mkrPlusEqual = mkr + _T('=');
+		if (pApp->m_currentUnknownMarkersStr.Find(mkrPlusEqual) >= 0)
+		{
+			return TRUE; // halt
+		}
+		// that accounts for criterion 4. on this particular marker
+
+		// finally, do test 5 for this marker - if it fails, iterate the loop and test the
+		// next delineated marker for halt conditions 4 and 5
+		wxString bareMkr = pDoc->GetBareMarkerForLookup(ptr);
+		wxASSERT(!bareMkr.IsEmpty());
+		USFMAnalysis* pAnalysis = pDoc->LookupSFM(bareMkr);
+		if (pAnalysis)
+		{
+			if (pAnalysis->textType == none || pAnalysis->inLine)
+			{
+				; // this type does not cause a halt
+			}
+			else
+			{
+				// any other type of marker should halt collecting
+				return TRUE;
+			}
+		}
+
+		// prepare for iterating to find and test another marker
+		pBufStart = ptr + mkrLen;
+		ptr = pBufStart;
+		mkrLen = 0;
+		bGotMarkerOK = GetNextMarker(pBufStart,ptr,mkrLen);
+	} // end of while block
+	// if we haven't found a reason to halt, then continue on scanning forwards
+	return FALSE;
+#else
 	int bufLen = markers.Length();
 
-	// coming to an already existing \bt or derived \bt marker must immediately
-	// halt collection, so that we don't encroach on the next collected section
+    // coming to an already existing collected back translation in m_collectedBackTrans, or
+    // a derived \bt marker in m_filteredInfo, must immediately halt collection, so that we
+    // don't encroach on the next collected section
 	if (ContainsBtMarker(pSrcPhrase))
 	{
 		bFound_bt_mkr = TRUE;
@@ -5197,11 +5334,11 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 			return TRUE; // it halts collecting
 		}
 	}
-
 	// we get here only if pAnalysis was not valid, so assume it should halt
 	// -- this is the safest default for an unrecognized marker which is also
 	// not listed as an unknown marker
 	return TRUE;
-
+#endif
 }
+
 #endif	// _FREETR

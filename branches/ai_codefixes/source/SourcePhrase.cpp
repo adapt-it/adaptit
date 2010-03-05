@@ -1415,13 +1415,18 @@ wxString CSourcePhrase::GetFilteredInfo()
 {
 	return m_filteredInfo;
 }
-// return TRUE if there is something filtered, FALSE if nothing is there; the two arrays
+// return TRUE if there is something filtered, FALSE if nothing is there; the three arrays
 // work in parallel - for a given index, the returned marker in the first and second are
 // the wrapping markers for the content; some filtered info may have no endmarker, in which
-// case the pFilteredEndMarkers will have an empty string at the appropriate index
+// case the pFilteredEndMarkers will have an empty string (or space) at the appropriate index.
+// If bUseSpaceForEmpty is TRUE, any empty string for an endmarker is returned in the
+// pFilteredEndMarkers array as a single space character, rather than as the empty string.
+// Default is to leave the empty string for an endmarker as an empty string (ie. the
+// default bUseSpaceForEmpty value is FALSE)
 bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers, 
 											wxArrayString* pFilteredEndMarkers,
-											wxArrayString* pFilteredContent)
+											wxArrayString* pFilteredContent,
+											bool bUseSpaceForEmpty)
 {
 	wxString mkr = _T("");
 	wxString content = _T("");
@@ -1465,6 +1470,11 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 		ParseMarkersAndContent(markersAndContent, mkr, content, endMkr); // defined in helpers.cpp
 		pFilteredMarkers->Add(mkr);
 		pFilteredContent->Add(content);
+		if (bUseSpaceForEmpty)
+		{
+			if (endMkr.IsEmpty())
+				endMkr = _T(" ");  // a space
+		}
 		pFilteredEndMarkers->Add(endMkr);
 
 		// prepare for next iteration
@@ -1516,8 +1526,14 @@ void CSourcePhrase::AddToFilteredInfo(wxString filteredInfo)
 	// will the other setter, SetFilteredInfoFromArrays()
 	m_filteredInfo += filteredInfo;
 }
+
+// BEW changed 5Mar10, to support changing a space in the pFilteredEndMarkers .Item()
+// into an empty string; default is not to attempt the change (ie. assume the array will
+// have only an empty endmarker string rather than a placeholding space; it is the 
+// View Filtered Information dialog which uses a placeholding space)
 void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers, 
-					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent)
+					wxArrayString* pFilteredEndMarkers, wxArrayString* pFilteredContent,
+					bool bChangeSpaceToEmpty)
 {
 	m_filteredInfo.Empty(); // clear out old contents
 	size_t index;
@@ -1550,9 +1566,19 @@ void CSourcePhrase::SetFilteredInfoFromArrays(wxArrayString* pFilteredMarkers,
         // manually. However, we are a decade or more from the last use of the old 1998 PNG
         // SFM marker set, everyone uses USFM these days, so we won't bother to do anything
         // smart here to handle such a contingency within our code.
-		if (pFilteredEndMarkers->Item(index).IsEmpty())
+        if (bChangeSpaceToEmpty)
 		{
-			// this content string takes no endMarker
+			// caller wants a space changed to the empty string
+			if (pFilteredEndMarkers->Item(index) == aSpace)
+			{
+				// this content string takes no endMarker (but a delimiting space after
+				// the content string is probably a good idea)
+				theRest << aSpace << filterMkrEnd;
+			}
+		}
+		else if (pFilteredEndMarkers->Item(index).IsEmpty())
+		{
+			// this content string takes no endMarker (add a delimiting space though)
 			theRest << aSpace << filterMkrEnd;
 		}
 		else

@@ -113,7 +113,7 @@ public:
 	void		OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event);
 	void		OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event));
 	void		DoCollectBacktranslations(bool bUseAdaptationsLine);
-	bool		GetPrevMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
+	bool		GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen);
 	bool		ContainsBtMarker(CSourcePhrase* pSrcPhrase); // BEW added 23Apr08
 	wxString	WhichMarker(wxString& markers, int nAtPos); // BEW added 17Sep05, for backtranslation support
 	void		InsertCollectedBacktranslation(CSourcePhrase*& pSrcPhrase, wxString& btStr); // BEW added 16Sep05

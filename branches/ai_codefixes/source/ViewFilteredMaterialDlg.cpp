@@ -136,6 +136,7 @@ void CViewFilteredMaterialDlg::ReinterpretEnterKeyPress(wxCommandEvent& event)
 }
 
 #ifdef _UNICODE
+// BEW 3Mar10, no changes needed for support of _DOCVER5
 void CViewFilteredMaterialDlg::OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(event)) 
 {
 	wxASSERT(pMkrTextEdit != NULL); 
@@ -181,14 +182,9 @@ void CViewFilteredMaterialDlg::OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(e
 }
 #endif
 
-
-
 void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
-
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 
 	// get the strings to be used for the Remove... button's title
 	btnStr = _("Remove %s"); //IDS_REMOVE_BT_OR_FREE
@@ -291,8 +287,13 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 #endif
 
 	wxString markerStr;
-	wxString tempStr, bareMkrStr, initialMkrStr, tempMkr;
+	wxString tempStr, bareMkrStr, tempMkr;
+
+#if !defined (_DOCVER5)
 	int curPos;
+	wxString initialMkrStr;
+	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+#endif
 
 	// Locate the appropriate source phrase whose m_markers member is being
 	// displayed/edited. Its m_nSequNumber is stored in the m_nSequNumBeingViewed global
@@ -303,19 +304,129 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	// routine in OnLButtonDown() in the View.
 	// Parse it to get individual markers and associated text available for populating our 
 	// list boxes, edit box, and static text descriptions.
-	markers = pSrcPhrase->m_markers;
-	wxASSERT(!markers.IsEmpty());
 	pMarkers->Clear();
 	pEndMarkers->Clear();
 	bareMarkerArray.Clear();
-	markerLBIndexIntoAllMkrList.Clear();
 	assocTextArrayBeforeEdit.Clear();
 	assocTextArrayAfterEdit.Clear();
-
-	AllMkrsList.Clear(); // list of all markers in m_markers (both filtered and non-filtered)
-	AllMkrsFilteredFlags.Clear(); // array of ints that flag if marker in AllMkrsList is filtered (1) or not (0)
 	AllWholeMkrsArray.Clear(); // array of all bare markers encountered in m_markers
 	AllEndMkrsArray.Clear(); // array of all end markers encountered in m_markers (contains a space if no end marker)
+
+#if defined (_DOCVER5)
+
+	// first, 3 wxArrayString arrays for extracting from m_filteredInfo any marker &
+	// endmarker pairs and intervening text content (endmarker might be absent for some
+	// marker types) - use them to do the extractions, if there is stuff there
+	wxArrayString arrMkrs;
+	wxArrayString arrEndMkrs;
+	wxArrayString arrTextContent;
+	bool bHasFilteredInfo = !pSrcPhrase->GetFilteredInfo().IsEmpty();
+	if (bHasFilteredInfo)
+	{
+		// there is filtered info in m_filteredInfo - so get it all (TRUE means
+		// "use space for any endmarker which is the empty string"
+		bHasFilteredInfo = pSrcPhrase->GetFilteredInfoAsArrays(&arrMkrs, 
+							&arrEndMkrs, &arrTextContent, TRUE);
+	}
+	bool bHasFreeTrOrNoteOrBackTr = FALSE;
+	wxString strMkr;
+	wxString strEndMkr;
+	wxString strContent;
+	if (pSrcPhrase->m_bStartFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+	{
+		// empty free translation sections are permitted, so the string might be empty
+		bHasFreeTrOrNoteOrBackTr = TRUE;
+		strMkr = _T("\\free");
+		strEndMkr = strMkr + _T("*");
+		strContent = pSrcPhrase->GetFreeTrans();
+		AllWholeMkrsArray.Add(strMkr);
+		AllEndMkrsArray.Add(strEndMkr);
+		assocTextArrayBeforeEdit.Add(strContent);
+
+		// add marker to left list box, then make it a bare marker for lookup & add to list
+		pMarkers->Append(strMkr);
+		tempMkr = strMkr;
+		bareMkrStr = tempMkr.Remove(0,1); // delete the backslash
+		bareMarkerArray.Add(bareMkrStr);
+		// do the right list box entry
+		pEndMarkers->Append(strEndMkr);
+	}
+	// we'll code here as if empty notes are permitted, but actually currently if an empty
+	// note is created, it doesn't actually get created once the user returns to the
+	// caller; nevertheless, by allowing empties here, we'll not have to change this code
+	// if we later permit empty notes to be created
+	if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
+	{
+		bHasFreeTrOrNoteOrBackTr = TRUE;
+		strMkr = _T("\\note");
+		strEndMkr = strMkr + _T("*");
+		strContent = pSrcPhrase->GetNote();
+		AllWholeMkrsArray.Add(strMkr);
+		AllEndMkrsArray.Add(strEndMkr);
+		assocTextArrayBeforeEdit.Add(strContent);
+
+		// add marker to left list box, then make it a bare marker for lookup & add to list
+		pMarkers->Append(strMkr);
+		tempMkr = strMkr;
+		bareMkrStr = tempMkr.Remove(0,1); // delete the backslash
+		bareMarkerArray.Add(bareMkrStr);
+		// do the right list box entry
+		pEndMarkers->Append(strEndMkr);
+	}
+	// now, collected back translation -- always and only has an initial \bt marker, so use
+	// a space for the 'endmarker' - so that there is white space in the slot in the dialog
+	if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+	{
+		bHasFreeTrOrNoteOrBackTr = TRUE;
+		strMkr = _T("\\bt");
+		strEndMkr = _T(" ");
+		strContent = pSrcPhrase->GetCollectedBackTrans();
+		AllWholeMkrsArray.Add(strMkr);
+		AllEndMkrsArray.Add(strEndMkr);
+		assocTextArrayBeforeEdit.Add(strContent);
+
+		// add marker to left list box, then make it a bare marker for lookup & add to list
+		pMarkers->Append(strMkr);
+		tempMkr = strMkr;
+		bareMkrStr = tempMkr.Remove(0,1); // delete the backslash
+		bareMarkerArray.Add(bareMkrStr);
+		// do the right list box entry
+		pEndMarkers->Append(strEndMkr);
+	}
+	// All of the above may not be present, but if they are, they must be shown in the
+	// above order. Now we append any other filtered stuff from the m_filteredInfo member
+	if (bHasFilteredInfo)
+	{
+		int count = arrMkrs.GetCount();
+		if (count > 0)
+		{
+			int index;
+			for (index = 0; index < count; index++)
+			{
+				strMkr = arrMkrs.Item(index);
+				AllWholeMkrsArray.Add(strMkr);
+				strEndMkr = arrEndMkrs.Item(index);
+				AllEndMkrsArray.Add(strEndMkr);
+				assocTextArrayBeforeEdit.Add(arrTextContent.Item(index));
+
+				// add marker to left list box, then make it a bare marker for lookup & add to list
+				pMarkers->Append(strMkr);
+				tempMkr = strMkr;
+				bareMkrStr = tempMkr.Remove(0,1); // delete the backslash
+				bareMarkerArray.Add(bareMkrStr);
+				// do the right list box entry
+				pEndMarkers->Append(strEndMkr);
+			}
+		}
+	}
+
+#else
+
+	markers = pSrcPhrase->m_markers;
+	wxASSERT(!markers.IsEmpty());
+	markerLBIndexIntoAllMkrList.Clear();
+	AllMkrsList.Clear(); // list of all markers in m_markers (both filtered and non-filtered)
+	AllMkrsFilteredFlags.Clear(); // array of ints that flag if marker in AllMkrsList is filtered (1) or not (0)
 
 	// parse markers gathering all marker strings it contains into our CStringList
 	// AllMkrsList will contain only one marker-text-endmarker segment per stored string
@@ -493,12 +604,27 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 		indexIntoMkrList++;
 		wxASSERT((int)AllMkrsFilteredFlags.GetCount() == indexIntoMkrList);
 	}
+#endif
 
 	// the number of list entries should be the same in Markers and EndMarkers
 	wxASSERT(pMarkers->GetCount() == pEndMarkers->GetCount());
 
 	indexIntoMarkersLB = 0; // current selection index for Markers list box
 	prevMkrSelection = indexIntoMarkersLB;
+
+#if defined (_DOCVER5)
+
+    // Change the text in the CEdit to correspond to the marker clicked on in the Marker
+    // list box 
+    tempStr = assocTextArrayBeforeEdit.Item(indexIntoMarkersLB);
+	pMkrTextEdit->ChangeValue(tempStr);
+
+    // Look up the marker description of first item in the bareMarkerArray and place the
+    // description in the static text to the right of the "Marker Description:"
+	GetAndShowMarkerDescription(indexIntoMarkersLB);
+
+
+#else
 	// determine index of first item in list box as current selection
 	indexIntoAllMkrSelection = markerLBIndexIntoAllMkrList.Item(0);
 
@@ -512,10 +638,11 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	// in the static text to the right of the "Marker Description:"
 	GetAndShowMarkerDescription(indexIntoAllMkrSelection);
 
+#endif
+
 	// to detect editing changes copy the assocTextArrayBeforeEdit array to the
-	// assocTextArrayAfterEdit array so they start being identical
-	//assocTextArrayAfterEdit.Copy(assocTextArrayBeforeEdit);
-	// wxArrayInt has no copy method so do it manually below:
+	// assocTextArrayAfterEdit array so they start off as being identical
+	// (wxArrayInt has no copy method so do it manually below:)
 	int act;
 	assocTextArrayAfterEdit.Clear();
 	for (act = 0; act < (int)assocTextArrayBeforeEdit.GetCount(); act++)
@@ -558,6 +685,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 
 // event handling functions
 
+// BEW 5Mar10, updated for support of _DOCVER5
 void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED(event))
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
@@ -566,17 +694,15 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	if (!ListBoxPassesSanityCheck((wxControlWithItems*)pMarkers))
 		return;
 
-
 	// User clicked on a marker in Markers list box
 	newMkrSelection = pMarkers->GetSelection();
 	// don't do anything if user clicks on the currently selected marker
 	if (newMkrSelection == currentMkrSelection)
 		return; 
 
-	// BEW added 17Nov05: if the marker just clicked on was \free or \bt (or a marker
-	// beginning with \bt) then we have to make the Remove... button visible and set up
-	// its name correctly, so that the user can remove the back translation or the free
-	// translation if he wishes.
+    // BEW added 17Nov05: if the marker just clicked on was \free or \bt ( then we have to
+    // make the Remove... button visible and set up its name correctly, so that the user
+    // can remove the back translation or the free translation if he wishes.
 	SetRemoveButtonFlags(pMarkers,newMkrSelection,bCanRemoveFT,bCanRemoveBT);
 	if (bCanRemoveFT)
 	{
@@ -605,6 +731,18 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	// assocTextArrayAfterEdit.
 	wxString curText;
 	curText = pMkrTextEdit->GetValue();
+#if defined (_DOCVER5)
+	if (curText != assocTextArrayBeforeEdit.Item(currentMkrSelection))
+	{
+		changesMade = TRUE;
+		assocTextArrayAfterEdit[currentMkrSelection] = curText;
+	}
+
+	// Now update the text in the CEdit to correspond to the marker 
+	// clicked on (newMkrSelection) in the Marker list box
+	wxString tempStr;
+	tempStr = assocTextArrayAfterEdit.Item(newMkrSelection);
+#else
 	indexIntoAllMkrSelection = markerLBIndexIntoAllMkrList.Item(currentMkrSelection);
 	if (curText != assocTextArrayBeforeEdit.Item(indexIntoAllMkrSelection))
 	{
@@ -617,14 +755,19 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	wxString tempStr;
 	indexIntoAllMkrSelection = markerLBIndexIntoAllMkrList.Item(newMkrSelection);
 	tempStr = assocTextArrayAfterEdit.Item(indexIntoAllMkrSelection);
-	// whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the wxEVT_COMMAND_TEXT_UPDATED
-	// event, which now deprecated SetValue() generates.
+#endif
+    // whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the
+    // wxEVT_COMMAND_TEXT_UPDATED event, which now deprecated SetValue() generates.
 	pMkrTextEdit->ChangeValue(tempStr);
 
 	// Look up the marker description of selected item in the bareMarkerArray 
 	// and place the description in the static text to the right of the 
 	// "Marker Description:"
+#if defined (_DOCVER5)
+	GetAndShowMarkerDescription(newMkrSelection);
+#else
 	GetAndShowMarkerDescription(indexIntoAllMkrSelection);
+#endif
 
 	pMkrTextEdit->SetFocus();
 	pMkrTextEdit->SetSelection(0,0); // MFC uses -1,0 WX uses 0,0 for no selection
@@ -634,6 +777,7 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	pViewFilteredMaterialDlgSizer->Layout();
 }
 
+// BEW 5Mar10, no change required for _DOCVER5
 void CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd(wxCommandEvent& event)
 {
 	// wx note: Under Linux/GTK ...Selchanged... listbox events can be triggered after a call to Clear()
@@ -654,6 +798,8 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarkerEnd(wxCommandEvent& event
 	OnLbnSelchangeListMarker(event);
 }
 
+#if !defined (_DOCVER5)
+// BEW removed 5Mar10 - not needed for _DOCVER5
 void CViewFilteredMaterialDlg::UpdateContentOnRemove()
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -760,20 +906,128 @@ a:		CAdapt_ItView* pView = gpApp->GetView();
 	// update the dialog
 	pViewFilteredMaterialDlgSizer->Layout();
 }
+#endif
 
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
 // if the dialog is modeless.
+// BEW 5Mar10, updated for support of _DOCVER5
 void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event)) 
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 
+#if defined (_DOCVER5)
+
+	// get a pointer to the CSourcePhrase instance
+	CSourcePhrase* pSrcPhrase;
+	pSrcPhrase = pView->GetSrcPhrase(gpApp->m_nSequNumBeingViewed);
+
+	// test for no filtered information being present now (user may have removed any free
+	// translation or back translation present earlier, and they were all that was there)
+	int count = AllWholeMkrsArray.GetCount();
+	wxString emptyStr = _T("");
+	wxString strMkr, strEndMkr, strContent;
+	wxString strFree = _T("\\free");
+	wxString strNote = _T("\\note");
+	wxString strBT = _T("\\bt");
+	if (count == 0)
+	{
+		// nothing filtered any more on this pSrcPhrase instance
+		pSrcPhrase->m_bStartFreeTrans = FALSE;
+		pSrcPhrase->m_bHasFreeTrans = FALSE;
+		pSrcPhrase->m_bEndFreeTrans = FALSE; // OnBnClickedRemoveBtn() should have cleared these
+											 // 3 flags in the free translation section already
+		// notes can't be removed from within this dialog, so we know there was no note; so
+		// just clear out the other places where we squirrel away filtered information
+		pSrcPhrase->SetFreeTrans(emptyStr);
+		pSrcPhrase->SetCollectedBackTrans(emptyStr);
+		pSrcPhrase->SetFilteredInfo(emptyStr);
+	}
+	else
+	{
+		// there is filtered info, this could be information for the m_freeTrans member,
+		// and / or the m_note member, and / or the m_collectedBackTrans member, and / or
+		// the m_filteredInfo member. Handle each possibility in turn - in that order
+		if (count > 0)
+		{
+			strMkr = AllWholeMkrsArray.Item(0); // free trans, if present, is always first
+			if (strMkr == strFree)
+			{
+				// there is a free translation present, so store it's possibly new value
+				strContent = assocTextArrayAfterEdit.Item(0);
+				pSrcPhrase->m_bStartFreeTrans = TRUE; // redundant, but ensures safety
+				pSrcPhrase->m_bHasFreeTrans = TRUE;   // ditto
+				pSrcPhrase->SetFreeTrans(strContent);
+
+				// shorten the arrays
+				assocTextArrayAfterEdit.RemoveAt(0,1);
+				assocTextArrayBeforeEdit.RemoveAt(0,1);
+				AllWholeMkrsArray.RemoveAt(0,1);
+				AllEndMkrsArray.RemoveAt(0,1);
+				count = AllWholeMkrsArray.GetCount();
+			}
+		}
+		// handle a note, if present
+		if (count > 0)
+		{
+			strMkr = AllWholeMkrsArray.Item(0); // note, if present, follows free trans
+			if (strMkr == strNote)
+			{
+				// there is a note present, so store it's possibly new value
+				strContent = assocTextArrayAfterEdit.Item(0);
+				pSrcPhrase->m_bHasNote = TRUE; // redundant, but ensures safety
+				pSrcPhrase->SetNote(strContent);
+
+				// shorten the arrays
+				assocTextArrayAfterEdit.RemoveAt(0,1);
+				assocTextArrayBeforeEdit.RemoveAt(0,1);
+				AllWholeMkrsArray.RemoveAt(0,1);
+				AllEndMkrsArray.RemoveAt(0,1);
+				count = AllWholeMkrsArray.GetCount();
+			}
+		}
+		// handle a collected back translation, if present
+		if (count > 0)
+		{
+			strMkr = AllWholeMkrsArray.Item(0); // collected back trans, if present, follows note
+			if (strMkr == strBT)
+			{
+				// there is a collected back trans present, so store it's possibly new value
+				strContent = assocTextArrayAfterEdit.Item(0);
+
+				// shorten the arrays
+				assocTextArrayAfterEdit.RemoveAt(0,1);
+				assocTextArrayBeforeEdit.RemoveAt(0,1);
+				AllWholeMkrsArray.RemoveAt(0,1);
+				AllEndMkrsArray.RemoveAt(0,1);
+				count = AllWholeMkrsArray.GetCount();
+			}
+		}
+		if (count > 0)
+		{
+			// more remains, anything else belongs in m_filteredInfo (in the call below,
+			// TRUE means that a placeholding space character in any item in the endmarkers
+			// list should be ignored, and an empty endmarker string assumed instead)
+			pSrcPhrase->SetFilteredInfoFromArrays(&AllWholeMkrsArray, 
+							&AllEndMkrsArray, &assocTextArrayAfterEdit, TRUE);
+			assocTextArrayAfterEdit.Clear();
+			assocTextArrayBeforeEdit.Clear();
+			AllWholeMkrsArray.Clear();
+			AllEndMkrsArray.Clear();
+		}
+	}
+	gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
+										// ViewFilteredMaterialDlg dialog is active/inactive
+
+#else
+
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+
 	// If any edits were made, reassemble the edited markers text
 	// before returning to the caller.
-	wxString markersStr = _T("");
 	wxString tempStr;
+	wxString markersStr = _T("");
 	if (changesMade)
 	{
 		// mark the document dirty
@@ -870,7 +1124,7 @@ a:		CAdapt_ItView* pView = gpApp->GetView();
 		gpApp->m_nSequNumBeingViewed = -1;	// -1 can be used in the view to indicate if the 
 											// ViewFilteredMaterialDlg dialog is active/inactive
 	}
-
+#endif
 	Destroy();
 	// wx version: See note in OnCancel(). Here, however calling delete doesn't appear to be necessary.
 	// No memory leaks detected in the wx version.
@@ -884,11 +1138,11 @@ a:		CAdapt_ItView* pView = gpApp->GetView();
 }
 
 
-//The function either calls EndModal(wxID_CANCEL) if the dialog is modal, or sets the 
-//return value to wxID_CANCEL and calls Show(false) if the dialog is modeless.
+// The function either calls EndModal(wxID_CANCEL) if the dialog is modal, or sets the 
+// return value to wxID_CANCEL and calls Show(false) if the dialog is modeless.
+// BEW 5Mar10, no changes needed for support of _DOCVER5
 void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
-
 	CAdapt_ItView* pView = gpApp->GetView();
 	Destroy();
 	// wx version: Unless delete is called on the App's pointer to the dialog below, a "ghost" dialog
@@ -901,9 +1155,9 @@ void CViewFilteredMaterialDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 	gpApp->m_pLayout->PlaceBox();
 
 	//wxDialog::OnCancel(event); //don't call base class because we are modeless
-
 }
 
+// BEW 5Mar10, no changes needed for support of _DOCVER5
 void CViewFilteredMaterialDlg::OnEnChangeEditMarkerText(wxCommandEvent& WXUNUSED(event))
 {
 	// This OnEnChangeEditMarkerText is called every time SetValue() is called which happens
@@ -925,6 +1179,7 @@ void CViewFilteredMaterialDlg::OnEnChangeEditMarkerText(wxCommandEvent& WXUNUSED
 	}
 }
 
+// BEW 5Mar10, updated for support of _DOCVER5
 void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(event))
 {
 	// TODO: The "Remove Free Translation" button needs to be hidden again after removing
@@ -955,7 +1210,7 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// m_bHasFreeTrans flag in the doc's m_pSourcePhrases list for this particular
 		// free translation section, and also the m_bStartFreeTrans and m_bEndFreeTrans
 		// flags at its beginning and end as well.
-		SPList::Node* pos = gpApp->m_pSourcePhrases->Item(gpApp->m_nSequNumBeingViewed); //POSITION pos = gpApp->m_pSourcePhrases->FindIndex(pView->m_nSequNumBeingViewed);
+		SPList::Node* pos = gpApp->m_pSourcePhrases->Item(gpApp->m_nSequNumBeingViewed);
 		wxASSERT(pos);
 		while (pos)
 		{
@@ -970,6 +1225,79 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 			}
 		}
 	}
+
+#if defined (_DOCVER5)
+
+	// first remove the beginning marker, its content, and end marker from the dialog
+	// (if it doesn't have an end marker, there will be a space there - so we delete that instead)
+	pMarkers->Delete(currentMkrSelection);
+	int nNewCount = pMarkers->GetCount();
+    // whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate the
+    // wxEVT_COMMAND_TEXT_UPDATED event, which now deprecated SetValue() generates.
+	pMkrTextEdit->ChangeValue(_T(""));
+	pEndMarkers->Delete(currentMkrSelection);
+
+	// now do the needed deletions in the various arrays, so that the class's
+	// storage reflects the deletion just made in the dialog...
+
+	// do it for bareMarkerArray (it stores only the filter markers)
+	bareMarkerArray.RemoveAt(currentMkrSelection,1);
+
+	// now remove the stored strings at the index value in currentMkrSelection, from each
+	// of the arrays
+	assocTextArrayBeforeEdit.RemoveAt(currentMkrSelection,1);
+	assocTextArrayAfterEdit.RemoveAt(currentMkrSelection,1);
+	AllWholeMkrsArray.RemoveAt(currentMkrSelection,1);
+	AllEndMkrsArray.RemoveAt(currentMkrSelection,1);
+
+	// now take stock of what we've done. We may have just deleted the last, or the one
+	// and only marker, in which case we don't want to enter any code which assumes the
+	// storage arrays are non-empty, otherwise we'd crash.
+    // So if we have removed all filtered content, then the nNewCount value computed above
+    // will be zero; also we don't want the user to sit there looking at an empty dialog
+    // and not being sure what to do next, so we help him out by closing things down for
+    // him.
+	changesMade = TRUE; // ensure the CSourcePhrase updating gets done
+	if (nNewCount == 0)
+	{
+		// all filtered information has just been removed, so we'll close the dialog down
+		// -- this is most easily accomplished at the later call of OnBnClickedOk() it
+		// does the required updating
+		//UpdateContentOnRemove(); // <<-- no longer needed in docVersion 5
+		bRemovalDone = FALSE;
+		changesMade = FALSE;
+	}
+	else
+	{
+		// the dialog has filtered content remaining, so we need to update it; we'll put the
+		// selection at index zero, because this is always safe
+		currentMkrSelection = 0;
+		indexIntoMarkersLB = 0;
+		prevMkrSelection = 0;
+
+		// change the text in the CEdit to correspond to the marker chosen by the
+		// currentMkrSelection value
+		wxString tempStr = assocTextArrayAfterEdit.Item(currentMkrSelection);
+        // whm changed 1Apr09 SetValue() to ChangeValue() below so that is doesn't generate
+        // the wxEVT_COMMAND_TEXT_UPDATED event, which now deprecated SetValue() generates.
+		pMkrTextEdit->ChangeValue(tempStr);
+
+		// look up the marker description and place it in the static text
+		GetAndShowMarkerDescription(currentMkrSelection);
+
+		// update the dialog
+
+		// set the focus to the edit box, & no text selected
+		pMkrTextEdit->SetFocus();
+		pMkrTextEdit->SetSelection(0,0); // MFC uses -1,0 WX uses 0,0 for no selection
+		pMkrTextEdit->SetInsertionPointEnd(); // puts the caret at the end of any text in the edit box
+		pMarkers->SetSelection(currentMkrSelection);
+		pEndMarkers->SetSelection(currentMkrSelection);
+		// hide the "Remove Free Translation" button - whm added 25Oct06
+		pRemoveBtn->Show(FALSE);
+	}
+
+#else
 
 	int nAllMkrsListIndex = markerLBIndexIntoAllMkrList.Item(currentMkrSelection);
 
@@ -1071,6 +1399,7 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// hide the "Remove Free Translation" button - whm added 25Oct06
 		pRemoveBtn->Show(FALSE);
 	}
+#endif
 	bRemovalDone = FALSE;
 	gpApp->GetDocument()->Modify(TRUE); // mark the document dirty
 	pViewFilteredMaterialDlgSizer->Layout();
@@ -1086,6 +1415,12 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 // \bt or a longer marker beginning with \bt, then bCanRemoveBT is set TRUE, and bCanRemoveFT is
 // cleared to FALSE; if it is neither marker, then both flags are cleared to FALSE (and in the
 // interface both being FALSE results in the button being hidden).
+// 
+// BEW changed 5Mar10, in docVersion 5, only "collected" back translation information (ie.
+// back trans info with marker == \bt) can be removed; any other \bt-derived information
+// is stored in m_filteredInfo, and anything there we don't permit to be removed in this
+// dialog, so \btv, \bts, and so forth (as in Eaton's marking system used in SAG) is not
+// affected by this remove button - but still visible in the dialog if present
 void CViewFilteredMaterialDlg::SetRemoveButtonFlags(wxListBox* pMarkers, int nSelection, 
 													bool& bCanRemoveFT, bool& bCanRemoveBT)
 {
@@ -1104,11 +1439,70 @@ void CViewFilteredMaterialDlg::SetRemoveButtonFlags(wxListBox* pMarkers, int nSe
 	}
 	if (wxStrncmp(mkrStr,_T("\\bt"),3) == 0)
 	{
+#if defined (_DOCVER5)
+		int length = mkrStr.Len();
+		if (length == 3)
+		{
+			// it's our own \bt marker from a collection operation done earlier, so it is
+			// removable 
+			bCanRemoveBT = TRUE;
+		}
+		else
+		{
+			// its a longer marker than \bt, and so is not from our collection operation,
+			// so it is not removable
+			bCanRemoveBT = FALSE;
+		}
+	}
+	return;
+#else
 		bCanRemoveBT = TRUE;
 	}
 	return;
+#endif
 }
 
+#if defined (_DOCVER5)
+void CViewFilteredMaterialDlg::GetAndShowMarkerDescription(int indexIntoMarkersListBox)
+{
+	wxString tempStr;
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	USFMAnalysis* pUsfmAnalysis = NULL;
+	wxString newMkr, wholeMkr, statusStr;
+	newMkr = AllWholeMkrsArray.Item(indexIntoMarkersListBox);
+	wholeMkr = newMkr;
+	newMkr.Remove(0,1); // delete the backslash
+	pUsfmAnalysis = pDoc->LookupSFM(newMkr);
+	// BEW modified 18Nov05 to make the message easily localizable
+	wxString msg;
+	if (pUsfmAnalysis != NULL)
+	{
+		pMkrDescStatic->SetLabel(pUsfmAnalysis->description);
+		if (pUsfmAnalysis->userCanSetFilter)
+		{
+			msg = _("The text associated with  %s   can be made available for adaptation."); //IDS_ASSOC_TEXT_CAN
+			statusStr = statusStr.Format(msg.c_str(),wholeMkr.c_str());
+		}
+		else
+		{
+			msg = _("The text associated with  %s   cannot be made available for adaptation."); //IDS_ASSOC_TEXT_CANNOT
+			statusStr = statusStr.Format(msg.c_str(),wholeMkr.c_str());
+		}
+		pMkrStatusStatic->SetLabel(statusStr);
+	}
+	else
+	{
+		tempStr = _("[This Marker Unknown In Currently Selected SFM Set]"); //IDS_MKR_UNKNOWN_TO_CURRENT_SET
+		pMkrDescStatic->SetLabel(tempStr);
+		// unknown markers which are filtered are always userCanSetFilter and can
+		// therefore be made available for adaptation.
+		msg = _("The text associated with  %s   can be made available for adaptation."); //IDS_ASSOC_TEXT_CAN
+		statusStr = statusStr.Format(msg.c_str(),wholeMkr.c_str());
+		pMkrStatusStatic->SetLabel(statusStr);
+	}
+	pViewFilteredMaterialDlgSizer->Layout();
+}
+#else
 // GetAndShowMarkerDescription takes code formerly in OnInitDialog(), which shows the marker
 // description to the user; we need this in more than one place, so more efficient this way
 void CViewFilteredMaterialDlg::GetAndShowMarkerDescription(int indexIntoAllMkrSelection)
@@ -1150,4 +1544,5 @@ void CViewFilteredMaterialDlg::GetAndShowMarkerDescription(int indexIntoAllMkrSe
 	}
 	pViewFilteredMaterialDlgSizer->Layout();
 }
+#endif
 

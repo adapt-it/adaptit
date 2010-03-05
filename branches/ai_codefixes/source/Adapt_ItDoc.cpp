@@ -7500,14 +7500,15 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
 /// \param		pMkrList	<- a wxArrayString that holds standard format markers and 
-///								associated parsed from the input string str
+///							   associated content parsed from the input string str
 /// \param		str			-> the string containing standard format markers and associated text 
 /// \remarks
 /// Called from: the Doc's GetUnknownMarkersFromDoc(), the View's GetMarkerInventoryFromCurrentDoc(),
 /// CPlaceInternalMarkers::InitDialog(), CTransferMarkersDlg::InitDialog(), and
 /// CViewFilteredMaterialDlg::InitDialog().
 /// Scans str and collects all standard format markers and their associated text into 
-/// pMkrList, one marker and associated text per array item.
+/// pMkrList, one marker and associated content text per array item (and final endmarker
+/// if there is one).
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, 
 											   wxString str) // whm added 18Feb05
