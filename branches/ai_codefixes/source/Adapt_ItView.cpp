@@ -121,6 +121,9 @@
 #ifdef _NOTES
 #include "Notes.h"
 #endif // _NOTES
+#ifdef _RETRANS
+#include "Retranslation.h"
+#endif
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -976,8 +979,10 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_ACCEPT_CHANGES, CAdapt_ItView::OnUpdateAcceptChanges)
 	EVT_MENU(ID_TOOLS_KB_EDITOR, CAdapt_ItView::OnToolsKbEditor)
 	EVT_UPDATE_UI(ID_TOOLS_KB_EDITOR, CAdapt_ItView::OnUpdateToolsKbEditor)
+#ifndef _RETRANS
 	EVT_MENU(ID_RETRANS_REPORT, CAdapt_ItView::OnRetransReport) // uncomment to activate
 	EVT_UPDATE_UI(ID_RETRANS_REPORT, CAdapt_ItView::OnUpdateRetransReport)
+#endif
 	// End of Tools Menu
 
 	// Export-Import Menu
@@ -1099,12 +1104,14 @@ BEGIN_EVENT_TABLE(CAdapt_ItView, wxView)
 	EVT_UPDATE_UI(ID_BUTTON_MERGE, CAdapt_ItView::OnUpdateButtonMerge)
 	EVT_TOOL(ID_BUTTON_RESTORE, CAdapt_ItView::OnButtonRestore)
 	EVT_UPDATE_UI(ID_BUTTON_RESTORE, CAdapt_ItView::OnUpdateButtonRestore)
+#ifndef _RETRANS
 	EVT_TOOL(ID_BUTTON_RETRANSLATION, CAdapt_ItView::OnButtonRetranslation)
 	EVT_UPDATE_UI(ID_BUTTON_RETRANSLATION, CAdapt_ItView::OnUpdateButtonRetranslation)
 	EVT_TOOL(ID_BUTTON_EDIT_RETRANSLATION, CAdapt_ItView::OnButtonEditRetranslation)
 	EVT_UPDATE_UI(ID_BUTTON_EDIT_RETRANSLATION, CAdapt_ItView::OnUpdateButtonEditRetranslation)
 	EVT_TOOL(ID_REMOVE_RETRANSLATION, CAdapt_ItView::OnRemoveRetranslation)
 	EVT_UPDATE_UI(ID_REMOVE_RETRANSLATION, CAdapt_ItView::OnUpdateRemoveRetranslation)
+#endif
 	EVT_TOOL(ID_BUTTON_NULL_SRC, CAdapt_ItView::OnButtonNullSrc)
     EVT_UPDATE_UI(ID_BUTTON_NULL_SRC, CAdapt_ItView::OnUpdateButtonNullSrc)
 	EVT_TOOL(ID_BUTTON_REMOVE_NULL_SRCPHRASE, CAdapt_ItView::OnButtonRemoveNullSrcPhrase)
@@ -8556,6 +8563,7 @@ void CAdapt_ItView::OnUpdateCopySource(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 }
  
+#ifndef _RETRANS
 // BEW 16Feb10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsNullSrcPhraseInSelection(SPList* pList)
 {
@@ -8589,6 +8597,7 @@ bool CAdapt_ItView::IsRetranslationInSelection(SPList* pList)
 	}
 	return FALSE;
 }
+#endif // _RETRANS
 
 // IsFilteredMaterialNonInitial() -- BEW added 08June05, to be used in OnButtonMerge() in
 // order to abort the merge operation if the user is trying to merge CSourcePhrase
@@ -14340,6 +14349,7 @@ void CAdapt_ItView::OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event)
 	event.Enable(bCanDelete);
 }
 
+#ifndef _RETRANS
 // BEW 18Feb10 updated for _DOCVER5 support (added code to restore endmarkers that were
 // moved to the placeholder when it was inserted, ie. moved from the preceding
 // CSourcePhrase instance)
@@ -14734,6 +14744,7 @@ void CAdapt_ItView::SetRetranslationFlag(SPList* pList,bool bValue)
 		pSrcPhrase->m_bRetranslation = bValue;
 	}
 }
+#endif // _RETRANS
 
 // gets the preceding & following contexts for a 'retranslation' section of source text.
 // We cannot rely on the layout pointers being valid, because if there was an unmerge done,
@@ -14804,6 +14815,7 @@ void CAdapt_ItView::GetContext(const int nStartSequNum,const int nEndSequNum,wxS
 	}
 }
 
+#ifndef _RETRANS
 // BEW 16Feb10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsConstantType(SPList* pList)
 {
@@ -15034,6 +15046,7 @@ void CAdapt_ItView::DoRetranslationByUpArrow()
 	OnButtonRetranslation(dummyevent);
 }
 
+#endif // _RETRANS
 
 int CAdapt_ItView::GetSelectionWordCount()
 {
@@ -17433,6 +17446,7 @@ void CAdapt_ItView::DoFileSaveKB()
 	OnFileSaveKB(dummyevent); // protected, so make it accessible
 }
 
+#ifndef _RETRANS
 void CAdapt_ItView::NewRetranslation()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -17614,6 +17628,8 @@ void CAdapt_ItView::CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,
 	}
 }
 
+#endif // _RETRANS
+
 // BEW added 16Apr08; pList is a passed in list of CSourcePhrase pointers, such as
 // m_pSourcePhrases; parameters two and three define which part of the passed in list is
 // used for doing the deep copies, and the pCopiedSublist passes the sublist back to the
@@ -17676,6 +17692,7 @@ bool CAdapt_ItView::DeepCopySourcePhraseSublist(SPList* pList, int nStartingSequ
 	return TRUE;
 }
 
+#ifndef _RETRANS
 // pList is the sublist of (formerly) selected source phrase instances, pSrcPhrases is the
 // document's list (the whole lot), nCount is the count of elements in pList (it will be
 // reduced as each null source phrase is eliminated), bActiveLocAfterSelection is a flag in
@@ -17952,6 +17969,7 @@ void CAdapt_ItView::BuildRetranslationSourcePhraseInstances(SPList* pRetransList
 		}
 	}
 }
+#endif // _RETRANS
 
 // Tokenize the string str storing the CSourcePhrase instances (only m_strSource &
 // m_nSequNumber are set) in pNewList. nInitialSequNum is what will be used for the
@@ -17968,6 +17986,7 @@ int CAdapt_ItView::TokenizeTextString(SPList* pNewList, wxString& str, int nInit
 		return 0;
 }
 
+#ifndef _RETRANS
 void CAdapt_ItView::DeleteSavedSrcPhraseSublist(SPList* pSaveList)
 {
 	// refactor 13Mar09; these are shallow copies, and have no partner piles, 
@@ -20207,6 +20226,7 @@ void CAdapt_ItView::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
 		pSrcPhrase->m_key = tempStr;
 	}
 }
+#endif // _RETRANS
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -21746,6 +21766,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 	}
 }
 
+#ifndef _RETRANS
 // we allow this search whether glossing is on or not; as it might be a useful search when
 // glossing is ON
 bool CAdapt_ItView::DoFindRetranslation(int nStartSequNum, int& nSequNum, int& nCount)
@@ -21807,6 +21828,7 @@ bool CAdapt_ItView::DoFindRetranslation(int nStartSequNum, int& nSequNum, int& n
 	nSequNum = -1;
 	return FALSE;
 }
+#endif // _RETRANS
 
 // finds only those null src phases (ie. placeholders) which are not within a retranslation
 // for padding purposes; the search is also allowed when glossing is ON
@@ -22718,8 +22740,13 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		wxASSERT(pSrcPhrase != NULL);
 		if (pSrcPhrase->m_bRetranslation)
 		{
+#ifdef _RETRANS
+			bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+													nRetransFirst,nRetransLast);
+#else
 			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 													nRetransFirst,nRetransLast);
+#endif
 			if (bInRetrans)
 			{
 				// adjust values, so that the match is the whole retranslation
@@ -22837,8 +22864,13 @@ c: if (gbIsGlossing)
    // partially within a retranslation
 	if (pSrcPhrase->m_bRetranslation)
 	{
+#ifndef _RETRANS
+		bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+												nRetransFirst,nRetransLast);
+#else
 		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
+#endif
 		if (bInRetrans)
 		{
 			// adjust values, so that the match is the whole retranslation
@@ -22962,8 +22994,13 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		wxASSERT(pSrcPhrase != NULL); 
 		if (pSrcPhrase->m_bRetranslation)
 		{
+#ifdef _RETRANS
+			bInRetrans = pApp_>GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+												nRetransFirst,nRetransLast);
+#else
 			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
+#endif
 			if (bInRetrans)
 			{
 				// adjust values, so that the match is the whole retranslation
@@ -23128,8 +23165,13 @@ e:	if (gbIsGlossing)
 	// a retranslation - and fix things accordingly.
 	if (pSrcPhrase->m_bRetranslation)
 	{
+#ifdef _RETRANS
+		bInRetrans = pApp->GetRetranslation->IsContainedByRetranslation(nSequNum,nCount,
+												nRetransFirst,nRetransLast);
+#else
 		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
+#endif
 		if (bInRetrans)
 		{
 			// adjust values, so that the match is the whole retranslation
@@ -23266,8 +23308,13 @@ e:		while (pos != NULL)
 		wxASSERT(pSrcPhrase != NULL);
 		if (pSrcPhrase->m_bRetranslation)
 		{
+#ifdef _RETRANS
+			bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSaveSrcSequNum,nCount1,
+													nRetransFirst,nRetransLast);
+#else
 			bInRetrans = IsContainedByRetranslation(nSaveSrcSequNum,nCount1,
 													nRetransFirst,nRetransLast);
+#endif
 			if (bInRetrans)
 			{
                  // adjust values, so that the match is the whole retranslation
@@ -23392,8 +23439,13 @@ e:		while (pos != NULL)
 				wxASSERT(pSrcPhrase != NULL);
 				if (pSrcPhrase->m_bRetranslation && bSrcMatchIsRetrans)
 				{
+#ifdef _RETRANS
+					bInRetrans = pApp->GetRetranslation->IsContainedByRetranslation(nSequNum,nCount2,
+															nRetransFirst,nRetransLast);
+#else
 					bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,
 															nRetransFirst,nRetransLast);
+#endif
 					if (bInRetrans)
 					{
 						// the match is the whole retranslation
@@ -23586,7 +23638,11 @@ e:		while (pos != NULL)
             // block
 			if (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
 			{
+#ifdef _RETRANS
+				bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(sn,1,nRetransFirst,nRetransLast);
+#else
 				bInRetrans = IsContainedByRetranslation(sn,1,nRetransFirst,nRetransLast);
+#endif
 				if (bInRetrans)
 				{
 					// adjust values, so that the match is the whole retranslation
@@ -23654,8 +23710,13 @@ e:		while (pos != NULL)
 							wxASSERT(pSrcPhrase != NULL);
 							if (pSrcPhrase->m_bRetranslation && bSrcMatchIsRetrans)
 							{
+#ifdef _RETRANS
+								bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount2,
+															nRetransFirst,nRetransLast);
+#else
 								bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,
 															nRetransFirst,nRetransLast);
+#endif
 								if (bInRetrans)
 								{
 									// the match is the whole retranslation
@@ -24265,6 +24326,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 	}
 }
 
+#ifndef _RETRANS
 // determines if nFirstSequNum up to nFirstSequNum + nCount - 1 all lie within a
 // retranslation; if TRUE, then also returns the first and last sequence numbers for the
 // retranslation in the last 2 parameters; these parameters are not defined if FALSE is
@@ -25014,6 +25076,8 @@ void CAdapt_ItView::OnUpdateRetransReport(wxUpdateUIEvent& event)
 		event.Enable(FALSE); // disable if not got an open project
 	}
 }
+
+#endif // _RETRANS
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing

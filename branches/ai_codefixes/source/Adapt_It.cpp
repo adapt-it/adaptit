@@ -163,6 +163,9 @@
 #ifdef _NOTES
 #include "Notes.h"
 #endif
+#ifdef _RETRANS
+#include "Retranslation.h"
+#endif
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -7864,6 +7867,12 @@ int ii = 1;
 	GetView()->canvas->pFrame->PushEventHandler(m_pNotes);
 #endif
 
+#ifdef _RETRANS
+	m_pRetranslation = new CRetranslation(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pRetranslation);
+#endif
+	
    return TRUE;
 }
 
@@ -7941,14 +7950,16 @@ int CAdapt_ItApp::OnExit(void)
 	//wxEvtHandler* pHdlr = NULL;
 
 #ifdef _NOTES
-	// Delete the CFreeTrans manager after popping its event table off the stack of
-	// windows event handlers
 	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
 								// (meaning that we'll do the deleting ourselves)
 	// delete the CNotes object
 	delete m_pNotes;
 #endif
-
+	
+#ifdef _RETRANS
+	delete m_pRetranslation;
+#endif
+	
 #ifdef	_FREETR
 	//GDLC Added 2010-02-12
 	// Delete the CFreeTrans manager after popping its event table off the stack of
@@ -11442,6 +11453,21 @@ CNotes*	CAdapt_ItApp::GetNotes()
 {
 	wxASSERT(m_pNotes);
 	return m_pNotes;
+}
+#endif
+
+#ifdef _RETRANS
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the CRetranslation object instance
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CRetranslation 
+/// object is required to call a function/method of CRetranslation.
+/// Gets a pointer to the current CRetranslation object.
+////////////////////////////////////////////////////////////////////////////////////////
+CRetranslation*	CAdapt_ItApp::GetRetranslation()
+{
+	wxASSERT(m_pRetranslation);
+	return m_pRetranslation;
 }
 #endif
 
