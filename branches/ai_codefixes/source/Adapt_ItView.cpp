@@ -8953,7 +8953,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	RemovePunctuation(pDoc, &gOldConcatStrNoPunct, from_target_text);
 
 	// check for a retranslation in the selection, and abort the merge operation if there is one
+#ifdef _RETRANS
+	if (pApp->GetRetranslation()->IsRetranslationInSelection(pList))
+#else
 	if (IsRetranslationInSelection(pList))
+#endif
 	{
 		// IDS_NO_RETRANSLATION_IN_SEL
 		wxMessageBox(_(
@@ -8977,7 +8981,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 
     // check for a null source phrase in the selection, and abort the merge operation if
     // there is one
+#ifdef _RETRANS
+	if (pApp->GetRetranslation()->IsNullSrcPhraseInSelection(pList))
+#else
 	if (IsNullSrcPhraseInSelection(pList))
+#endif
 	{
 		// IDS_NO_NULL_SRCPHRASE_IN_SEL
 		wxMessageBox(_(
@@ -9068,7 +9076,11 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 	// if there are too many words in the selection, do a retranslation instead of a merge
 	if (GetSelectionWordCount() > MAX_WORDS)
 	{
+#ifdef _RETRANS
+		pApp->GetRetranslation()->DoRetranslation();
+#else
 		DoRetranslation();
+#endif
 		gbMergeSucceeded = FALSE;
 		return;
 	}
@@ -14271,7 +14283,11 @@ void CAdapt_ItView::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
     // that any access to CPile::m_pOwningStrip using the GetStrip() call, will not have an
     // m_pOwningStrip value set to NULL (or to a non-NULL value in the debugger which then
     // points at arbitrary memory)
+#ifdef _RETRANS
+	pApp->GetRetranslation()->RemoveNullSourcePhrase(pRemoveLocPile, nCount);
+#else
 	RemoveNullSourcePhrase(pRemoveLocPile, nCount);
+#endif
 
     // we don't do the next block at a deeper level because removing a retranslation which
     // is long uses lower level functions to do automated placeholder removals, and we
@@ -21653,7 +21669,11 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		// a special search is wanted
 		if (bFindRetranslation)
 		{
+#ifdef _RETRANS
+			bFound = pApp->GetRetranslation()->DoFindRetranslation(nCurSequNum+1,nSequNum,nCount);
+#else
 			bFound = DoFindRetranslation(nCurSequNum+1,nSequNum,nCount);
+#ifdef
 		}
 		else if (bFindNullSrcPhrase)
 		{
@@ -22864,7 +22884,7 @@ c: if (gbIsGlossing)
    // partially within a retranslation
 	if (pSrcPhrase->m_bRetranslation)
 	{
-#ifndef _RETRANS
+#ifdef _RETRANS
 		bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
 #else
@@ -22995,7 +23015,7 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		if (pSrcPhrase->m_bRetranslation)
 		{
 #ifdef _RETRANS
-			bInRetrans = pApp_>GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+			bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
 #else
 			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
@@ -23166,7 +23186,7 @@ e:	if (gbIsGlossing)
 	if (pSrcPhrase->m_bRetranslation)
 	{
 #ifdef _RETRANS
-		bInRetrans = pApp->GetRetranslation->IsContainedByRetranslation(nSequNum,nCount,
+		bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
 #else
 		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
@@ -23440,7 +23460,7 @@ e:		while (pos != NULL)
 				if (pSrcPhrase->m_bRetranslation && bSrcMatchIsRetrans)
 				{
 #ifdef _RETRANS
-					bInRetrans = pApp->GetRetranslation->IsContainedByRetranslation(nSequNum,nCount2,
+					bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount2,
 															nRetransFirst,nRetransLast);
 #else
 					bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,
@@ -23940,7 +23960,11 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 
 		// allow user to edit result
 		wxCommandEvent event;
+#ifdef _RETRANS
+		pApp->GetRetranslation()->OnButtonEditRetranslation(event);
+#else
 		OnButtonEditRetranslation(event);
+#endif
 
 		// clear the globals
 		pApp->m_bMatchedRetranslation = FALSE;

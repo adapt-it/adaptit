@@ -3046,7 +3046,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 		if (pView->GetSelectionWordCount() > MAX_WORDS)
 		{
 #ifdef _RETRANS
-			pApp->GetRetranslation->DoRetranslation();
+			pApp->GetRetranslation()->DoRetranslation();
 #else
 			pView->DoRetranslation();
 #endif
