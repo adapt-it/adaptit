@@ -58,6 +58,7 @@
 #include "Cell.h"
 #include "Pile.h"
 #include "Strip.h"
+#include "helpers.h"
 #include "Layout.h"
 #include "NoteDlg.h"
 #include "ViewFilteredMaterialDlg.h"
@@ -642,7 +643,11 @@ void CAdapt_ItCanvas::OnLButtonDown(wxMouseEvent& event)
 
                 // is there anything filtered here - if not, check for a note, if that
                 // fails too, then just continue the loop
+#if defined (_DOCVER5)
+				if (HasFilteredInfo(pPile->GetSrcPhrase()))
+#else
 				if (pPile->GetSrcPhrase()->m_markers.Find(filterMkr) >= 0)
+#endif
 				{
 					// there is some filtered material stored on this 
 					// CSourcePhrase instance

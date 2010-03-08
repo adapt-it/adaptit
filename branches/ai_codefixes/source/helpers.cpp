@@ -2215,6 +2215,26 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 	return bAddedSomething;
 }
 
+bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
+{
+	if (pSrcPhrase->m_bHasFreeTrans || !pSrcPhrase->GetFreeTrans().IsEmpty())
+	{
+		return TRUE;
+	}
+	if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
+	{
+		return TRUE;
+	}
+	if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+	{
+		return TRUE;
+	}
+	if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
 
 #endif
 

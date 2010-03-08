@@ -141,6 +141,7 @@ int ParseMarker(const wxChar *pChar); // returns a length (num chars in the mark
 // Any strings in pPossiblesArray not already in pBaseStrArray, append them to
 // pBaseStrArray, return TRUE if at least one was added, FALSE if none were added
 bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossiblesArray);
+bool HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 
