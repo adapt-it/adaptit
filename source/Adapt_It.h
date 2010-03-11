@@ -306,7 +306,7 @@ enum ConfigFixType
 /// whether basic configuration file, or project configuration file. 
 enum ConfigFileType
 {
-    basicConfigFile,
+    basicConfigFile = 1,
     projectConfigFile
 };
 
@@ -2372,6 +2372,8 @@ protected:
 	bool	IsAdaptitProjectDirectory(wxString title);
 	void	MakeForeignBasicConfigFileSafe(wxString& configFName,wxString& folderPath,
 											wxString* adminConfigFNamePtr);
+	void	MakeForeignProjectConfigFileSafe(wxString& configFName,wxString& folderPath,
+											wxString* adminConfigFNamePtr); // whm added 9Mar10
 	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void	RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
@@ -2513,9 +2515,9 @@ public:
 	void	WriteBasicSettingsConfiguration(wxTextFile* pf);
 	void	WriteProjectSettingsConfiguration(wxTextFile* pf);
 	bool	WriteConfigurationFile(wxString configFilename, wxString destinationFolder, 
-				int selector);
-
-	bool	GetBasicConfigFileSettings(); // whm 20Jan08 changed signature to return bool
+				ConfigFileType configType);
+	void	GetProjectConfiguration(wxString projectFolderPath); // whm moved here from the Doc
+	bool	GetBasicConfiguration(); // whm 20Jan08 changed signature to return bool
     // Note: The three methods below had _UNICODE and non Unicode equivalents in the MFC
     // version wxTextFile is Unicode enabled, so we should only need a single version of
     // these in the wxWidgets code.
@@ -2640,7 +2642,7 @@ public:
 					// DealWithThePossibilityOfACustomWorkFolderLocation() has called SetDefaults()
 					// because the custom work folder path failed to find the required basic config
 					// file at the custom work folder location; we use a TRUE value to suppress the
-					// GetBasicConfigFileSettings() call in OnInit() since SetDefaults() has done
+					// GetBasicConfiguration() call in OnInit() since SetDefaults() has done
 					// the setup job for us already
 	// members for support of KB search functionality added Jan-Feb 2010 by BEW
 	wxArrayString m_arrSearches; // set of search strings for dialog's multiline wxTextCtrl

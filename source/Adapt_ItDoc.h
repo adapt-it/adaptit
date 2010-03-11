@@ -168,7 +168,6 @@ public:
 	bool			GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString titleID, wxString filter,
 					wxString* fileTitle);
 	CPile*			GetPile(const int nSequNum);
-	void			GetProjectConfiguration(wxString sourceFolderPath);
 	wxString		GetUnFilteredMarkers(wxString& src);
 	wxString		GetWholeMarker(wxChar *pChar);
 	wxString		GetWholeMarker(wxString str);

@@ -2326,6 +2326,14 @@ wxString szBasicConfiguration = _T("AI-BasicConfiguration");
 /// unchanged when/if that work folder is checked out of DVCS to that someone else's machine
 wxString szAdminBasicConfiguration = _T("AI-AdminBasicConfiguration");
 
+/// The name of the administrator project configuration file without the .aic extension.
+/// This name is used for a modified project configuration file stored in a project folder
+/// at a custom location when the administrator is accessing it. The idea is not to
+/// modify the original project configuration file with the name given by
+/// szProjectConfiguration because the latter will be what the someone else will want to be
+/// unchanged when/if that work folder is checked out of DVCS to that someone else's machine
+wxString szAdminProjectConfiguration = _T("AI-AdminProjectConfiguration");
+
 /// The name that introduces the properties of the source font within both
 /// the basic and project configuration files.
 wxString szSourceFont = _T("SourceFont"); // don't need \n now
@@ -6774,7 +6782,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // normal reading of Adapt It's config file settings, forcing the program to load a set
     // of default settings instead.
 	// The following routines can be forced to defaults by the user holding down the SHIFT-KEY:
-	// 1. Basic Program-wide Adapt It Settings. See GetBasicConfigFileSettings() which is only
+	// 1. Basic Program-wide Adapt It Settings. See GetBasicConfiguration() which is only
 	//    called from this OnInit() method (see below), and from
 	//    app class's CustomWorkFolderLocation() command (available to administrator only)
 	// 2. Project Settings. See GetProjectConfiguration() which is called from OnOpenDocument(),
@@ -6788,17 +6796,17 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 		// DealWithThePossibilityOfACustomWorkFolderLocation() did not succeed in opening
 		// the AI-BasicConfiguration.aic file at the custom work folder location, and so
 		// SetDefaults() was instead called to set up default basic parameter values, and
-		// if that is the case we must not here call GetBasicConfigFileSettings() because
+		// if that is the case we must not here call GetBasicConfiguration() because
 		// it would fail. The app's next shut down will write a correct basic config file
 		// at the custom location (provided the user or admin doesn't change the location
 		// using the Administrator menu).
-		bConfigFilesRead = GetBasicConfigFileSettings(); // GetBasicConfigFileSettings 
+		bConfigFilesRead = GetBasicConfiguration(); // GetBasicConfiguration 
 														 // detects SHIFT-DOWN
 	}
 	m_bSkipBasicConfigFileCall = FALSE; // restore default value
 	if (bConfigFilesRead)
 	{
-		// this block won't be entered if the call of GetBasicConfigFileSettings() above
+		// this block won't be entered if the call of GetBasicConfiguration() above
 		// was skipped - see the comment above for the protocol at this point in OnInit()
 		int found = m_punctuation[0].Find(_T('\'')); // look for vertical ordinary 
 													 // quote (ie. apostrophe)
@@ -7840,19 +7848,17 @@ void CAdapt_ItApp::Terminate()
 	bool bOK;
 	if (m_bUseCustomWorkFolderPath && !m_customWorkFolderPath.IsEmpty())
 	{
-		// 1 = app level
 		// BEW 17Sep09, must save using what paths are current, but when the custom
 		// location has been locked in, the filename lacks "Admin" in it, so that it
 		// becomes a "normal" basic configuration file at the custom location
 		if (m_bLockedCustomWorkFolderPath)
-			bOK = WriteConfigurationFile(szBasicConfiguration, m_customWorkFolderPath,1);
+			bOK = WriteConfigurationFile(szBasicConfiguration, m_customWorkFolderPath,basicConfigFile);
 		else
-			bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_workFolderPath,1);
+			bOK = WriteConfigurationFile(szAdminBasicConfiguration, m_workFolderPath,basicConfigFile);
 	}
 	else
 	{
-		// 1 = app level
-		bOK = WriteConfigurationFile(szBasicConfiguration, m_workFolderPath,1);
+		bOK = WriteConfigurationFile(szBasicConfiguration, m_workFolderPath,basicConfigFile);
 	}
 }
 
@@ -7893,14 +7899,30 @@ int CAdapt_ItApp::OnExit(void)
 
 	bool bOK; // we won't care whether it succeeds or not, since the later 
 			  // Get... can use defaults
-	// WriteConfigurationFile selector 2 forces write of project config info
+	// WriteConfigurationFile projectConfigFile forces write of project config info
 	if (!m_bAutoExport)
 	{
 		// only write the project config file if we are not doing a command line export
-		if (::wxDirExists(m_curProjectPath))
+		if (m_bUseCustomWorkFolderPath && !m_customWorkFolderPath.IsEmpty())
 		{
-			bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,2);
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (m_bLockedCustomWorkFolderPath)
+				bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
+			else
+				bOK = WriteConfigurationFile(szAdminProjectConfiguration, m_curProjectPath,projectConfigFile);
 		}
+		else
+		{
+			bOK = WriteConfigurationFile(szProjectConfiguration, m_curProjectPath,projectConfigFile);
+		}
+		// below is original
+		//if (::wxDirExists(m_curProjectPath))
+		//{
+		//	bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
+		//}
 	}
     // clean up the help system
 	delete m_pHelpController;
@@ -8611,7 +8633,7 @@ void CAdapt_ItApp::InitializePunctuation()
 		m_twopunctPairs[i].twocharTgt[1] = '\0';
 	}
 
-    // whm moved following here from block after GetBasicConfigFileSettings() call in
+    // whm moved following here from block after GetBasicConfiguration() call in
     // OnInit() where bConfigFilesRead was false. This was done to simplify the handling of
     // default punctuation which should be consolidated in InitializePunctuation. 
     // if (m_punctuation[0].IsEmpty())
@@ -8720,14 +8742,17 @@ void CAdapt_ItApp::InitializePunctuation()
 ///             if the basic config file could not be read or if the user held the SHIFT key
 ///             down on application startup 
 /// \remarks
-/// Called from: the App's OnInit().
+/// Called from: the App's OnInit(), SetupCustomWorkFolderLocation(), and 
+/// OnRestoreDefaultWorkFolderLocation().
 /// Reads the basic configuration file (AI-BasicConfiguration.aic) by calling the 
 /// GetConfigurationFile() function with szBasicConfiguration passed as input parameter.
 /// If the user holds down the SHIFT key during application startup, or if the configuration
 /// file cannot be read, this function calls SetDefaults() instead.
 /// BEW modified 19Aug09 in support of adminstrator pointing app at custom work folder locations
 ////////////////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature to return bool
+bool CAdapt_ItApp::GetBasicConfiguration()	// whm 20Jan08 changed signature to return bool
+											// whm 9Mar10 changed name from GetBasicConfigFileSettings
+											// to GetBasicConfiguration
 {
 	// Called from OnInit() at program startup. Or from CustomWorkFolderLocation() command
 	// handler when administrator has Administrator menu showing
@@ -8747,8 +8772,8 @@ bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature
 		// This version of the function uses configuration file, not the registry.
 		if ((m_customWorkFolderPath != m_workFolderPath) && m_bUseCustomWorkFolderPath)
 		{
-			// 1 is app level .aic; before GetBasicConfigFileSettings() is called,
-			// MakeForeignConfigFileSafe() will have been called and the "foreign" basic
+			// Before GetBasicConfiguration() is called,
+			// MakeForeignBasicConfigFileSafe() will have been called and the "foreign" basic
 			// config file at the custom location will have been cloned, renamed, and 
 			// modified to have the appropriate paths for the custom location, so the
 			// following call will not fail; it's stored in the default work folder
@@ -8783,6 +8808,71 @@ bool CAdapt_ItApp::GetBasicConfigFileSettings() // whm 20Jan08 changed signature
 	}
 	return bReturn;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param		projectFolderPath -> the path/name of the project config file
+///                                  which is generally m_curProjectPath
+/// \remarks
+/// Called from: the Doc's OnOpenDocument() [via MRU call], DoUnpackDocument(), 
+/// the COpenExistingProjectDlg's OnOK() and OnDblclkListboxAdaptions(), the ProjectPage's 
+/// OnWizardPageChanging().
+/// Calls the App's GetConfigurationFile() function to retrieve the settings from the project 
+/// config file. If the user is holding the SHIFT key down, the function does not load
+/// settings from the project config file, but instead calls the App's 
+/// SetDefaultCaseEquivalences() function (the other defaults will have been done from the 
+/// application-level configuration file already).
+///////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::GetProjectConfiguration(wxString projectFolderPath)
+{
+	// attempt to set project source, target language fonts, and nav text font from the
+	// data in the project configuration file; but if SHIFT key is still down, then bypass it
+	// (the values set as defaults when the basic config file was bypassed will remain in 
+	// effect)
+	bool bReturn = FALSE;
+	if (!wxGetKeyState(WXK_SHIFT))
+	{
+		// whm added 9Mar10 to insure that a "foreign" project config file has been cloned, 
+		// renamed, and modified to have the appropriate (or compatible) fonts for the project.
+		// MakeForeignProjectConfigFileSafe() also deals with any font mismatches before  
+		// the appropriate GetConfigurationFile() is called below.
+		wxString configFName = szProjectConfiguration + _T(".aic");
+		wxString adminConfigFName = szAdminProjectConfiguration + _T(".aic");
+		MakeForeignProjectConfigFileSafe(configFName,projectFolderPath,&adminConfigFName);
+		// shift key is not down, so load the config file keys for fonts & settings
+		if ((m_customWorkFolderPath != m_workFolderPath) && m_bUseCustomWorkFolderPath)
+		{
+			// We are using a custom work folder path.
+			// MakeForeignProjectConfigFileSafe() (called above) insured that a "foreign" 
+			// project config file has been cloned, renamed, and modified to have the 
+			// appropriate (or compatible) fonts for the project. The project admin config 
+			// file is at m_curProjectPath if administrator is accessing a custom or remote 
+			// (non-persistent) work folder location and it is a custom work folder path that
+			// is not locked. If no custom work folder path is being used, or it a custom
+			// path is being used that is a locked (persistent) custom work folder path, then 
+			// the project admin config file is at the m_customWorkFolderPath. 
+			if (m_bLockedCustomWorkFolderPath)
+				bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
+			else
+				bReturn = GetConfigurationFile(szAdminProjectConfiguration,projectFolderPath,projectConfigFile);
+			// original code below
+			//bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
+		}
+		else
+		{
+			// We are NOT using a custom work folder path.
+			bReturn = GetConfigurationFile(szProjectConfiguration,projectFolderPath,projectConfigFile);
+		}
+	}
+	else
+	{
+		// shift key is still down, so get the default character case equivalents only
+		// for the project; the other defaults will have been done from the application-level
+		// configuration file already
+		SetDefaultCaseEquivalences();
+	}
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return    TRUE if the directory structure and KBs were created successfully 
@@ -13241,7 +13331,7 @@ void CAdapt_ItApp::WriteBasicSettingsConfiguration(wxTextFile* pf)
     // then do we want to record (ie. write) the custom work folder path; because if the
     // flag is false, the custom path was a temporary one used by the administrator and we
     // don't want to keep track of what he does - in that case, we set the path string to
-    // an empty string. Note, the GetBasicConfigFileSettings() function does NOT try, ever,
+    // an empty string. Note, the GetBasicConfiguration() function does NOT try, ever,
     // to read the flag value nor the custom work folder path from the basic configuration
     // file, because there is no way to determine where that folder is from configuration
 	// files alone - at least as long as we retain the model in which the basic config
@@ -15180,7 +15270,7 @@ void CAdapt_ItApp::SetDefaultCaseEquivalences()
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     nothing
 /// \remarks
-/// Called from: the App's GetBasicConfigFileSettings() if the SHIFT key is being held
+/// Called from: the App's GetBasicConfiguration() if the SHIFT key is being held
 /// down, or if the basic configuration file could not be read. Also called from
 /// DealWithThePossibilityOfACustomWorkFolderLocation() if the basic config file at the
 /// custom work folder location could not be read.
@@ -15285,7 +15375,7 @@ void CAdapt_ItApp::SetDefaults(bool bAllowCustomLocationCode)
 		// it exists, setting m_customWorkFolderLocation to it, and turning on the
 		// m_bLockedCustomWorkFolderPath boolean. So do that now. The code for this test is
 		// taken from OnInit() where the same check has to be made.
-		bool bDealtWithItOK = CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation();
+		bool bDealtWithItOK = DealWithThePossibilityOfACustomWorkFolderLocation();
 		if (!bDealtWithItOK)
 		{
 			// if we are supposed to have a persistent custom location but failed to setup for
@@ -15579,7 +15669,7 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 			SetDefaults(FALSE); // FALSE = bAllowCustomLocationCode (we want suppression)
 
 			// having set the default parameters with a SetDefaults() call, we must not let
-			// OnInit() subsequently call GetBasicConfigFileSettings(), because the latter
+			// OnInit() subsequently call GetBasicConfiguration(), because the latter
 			// would fail due to a path error; we can suppress the call by the following
 			// line
 			m_bSkipBasicConfigFileCall = TRUE;
@@ -16938,7 +17028,8 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 ///                                     .aic extension)
 /// \param      destinationFolder  ->   the path location where the configuration file 
 ///                                     is to be written
-/// \param      selector           ->   1 if writing the Basic config file; 2 if writing 
+/// \param      configType         ->   an enum of basicConfigFile when writing the 
+///                                     Basic config file; projectConfigFile if writing 
 ///                                     the Project config file
 /// \remarks
 /// Called from: the App's Terminate() and OnExit(), the Doc's OnNewDocument(),
@@ -16952,16 +17043,16 @@ void CAdapt_ItApp::AddWedgePunctPair(wxChar wedge)
 /// in-memory text file to its path/name destination.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename, 
-										  wxString destinationFolder,int selector)
+										  wxString destinationFolder,ConfigFileType configType)
 {
-	if (m_bReadOnlyAccess || IsURI(destinationFolder))
+	if (m_bReadOnlyAccess || (IsURI(destinationFolder) && configFilename.Find(_T("AI-Admin")) != 0))
 	{
 		// BEW added 13Nov09, we don't allow the local user, if he has read-only access
 		// to a remote project folder, to cause project or basic config files on the
 		// remote machine to be written because of actions done on the local machine
-		// whm added 22Feb10, we also don't allow the local user, if he has access to a
+		// whm modified 10Mar10, we also don't allow the local user, if he has access to a
 		// remote project folder, to write project or basic config files on the remote
-		// machine.
+		// machine, unless they are of the "AI-Admin..." type.
 		return TRUE; // TRUE to only simulate successful write in WriteConfigurationFile().
 	}
 
@@ -16970,8 +17061,8 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	if (m_bDoNotWriteConfigFiles)
 		return FALSE;
 
-    // WriteConfigurationFile(,,1) to Basic config file: called only in App's Terminate()
-    // WriteConfigurationFile(,,2) to Project config file: called in App's OnExit(),
+    // WriteConfigurationFile(,,basicConfigFile) to Basic config file: called only in App's Terminate()
+    // WriteConfigurationFile(,,projectConfigFile) to Project config file: called in App's OnExit(),
     // OnSaveModified() and OnFilePackDoc() BEW on 4Jan07 added change to
     // WriteConfiguration to save the external current work directory and reestablish it at
     // the end of the WriteConfiguration call, because the latter function resets the
@@ -17070,7 +17161,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	WriteFontConfiguration(NavFInfo,&f);
 	f.AddLine(end); // blank line as separator
 
-	if (selector == 1)
+	if (configType == basicConfigFile)
 	{
 		f.AddLine(szBasicSettings);
 		WriteBasicSettingsConfiguration(&f);
@@ -17102,8 +17193,7 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 ///                                     is to be read
 /// \param      configType         ->   either the basicConfigFile or projectConfigFile
 /// \remarks
-/// Called from: the App's GetBasicConfigFileSettings() and the Doc's
-/// GetProjectConfiguration(). 
+/// Called from: the App's GetBasicConfiguration() and GetProjectConfiguration(). 
 /// Reads the whole config file into memory and from there it decomposes it line-by-line
 /// (as a wxTextFile) by calling the appropriate helper functions: GetFontConfiguration()
 /// and either GetBasicSettingsConfiguration() or GetProjectSettingsConfiguration().
@@ -17265,6 +17355,9 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
 	else // project level
 	{
 		GetProjectSettingsConfiguration(&f);
+
+		FixConfigFileFonts(&f);
+
 		// whm added 3Dec08
         // The wx version adds a "SourceHasUpperCaseAndLowerCase" value to the project
         // config file. This value was not in the MFC version. Both the wx version and MFC
@@ -24054,7 +24147,7 @@ void CAdapt_ItApp::OnRestoreDefaultWorkFolderLocation(wxCommandEvent& WXUNUSED(e
 		}
 
 		// restore administrator's former local basic configuration settings
-		GetBasicConfigFileSettings();
+		GetBasicConfiguration();
 
 		//wxLogDebug(_T("7  m_workFolderPath = %s  flag = %d"), m_workFolderPath.c_str(), (int)m_bUseCustomWorkFolderPath);
 		//wxLogDebug(_T("7  m_curAdaptionsPath = %s "), m_curAdaptionsPath.c_str());
@@ -24339,7 +24432,7 @@ a:			wxString stdDocsDir = _T("");
     // now that the basic config file, whether foreign or not, and whether at the default
     // location or the custom location, is made safe for use, read it in and set up the app
     // for work folder access
-	GetBasicConfigFileSettings(); // distinguishes between custom & default locations 
+	GetBasicConfiguration(); // distinguishes between custom & default locations 
 				// internally, and for custom locations, it distinguishes between
 				// a persistent versus a non-persistent custom location
 
@@ -25120,6 +25213,15 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 													// same face name in all cases
 			}
 		}
+		// update values for XxxFInfo structs and three local wxString arrays used in 
+		// updating config file below
+		SrcFInfo.fEncoding = m_pSourceFont->GetEncoding();
+		Encoding[0].Empty();
+		Encoding[0] << SrcFInfo.fEncoding; // int to wxString
+		SrcFInfo.fCharset = MapWXFontEncodingToMFCCharset(SrcFInfo.fEncoding); // the wx encodings
+		Charset[0] << SrcFInfo.fCharset;
+		SrcFInfo.fFaceName = m_pSourceFont->GetFaceName();
+		Facename[0] = SrcFInfo.fFaceName;
 	}
 		
 	int tgtPointSize = m_pTargetFont->GetPointSize();
@@ -25193,6 +25295,15 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 												  // same face name in all cases
 			}
 		}
+		// update values for XxxFInfo structs and three local wxString arrays used in 
+		// updating config file below
+		TgtFInfo.fEncoding = m_pTargetFont->GetEncoding();
+		Encoding[1].Empty();
+		Encoding[1] << TgtFInfo.fEncoding; // int to wxString
+		TgtFInfo.fCharset = MapWXFontEncodingToMFCCharset(TgtFInfo.fEncoding); // the wx encodings
+		Charset[1] << TgtFInfo.fCharset;
+		TgtFInfo.fFaceName = m_pTargetFont->GetFaceName();
+		Facename[1] = TgtFInfo.fFaceName;
 	}
 
 	int navPointSize = m_pNavTextFont->GetPointSize();
@@ -25266,11 +25377,18 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 												  // same face name in all cases
 			}
 		}
+		// update values for XxxFInfo structs and three local wxString arrays used in 
+		// updating config file below
+		NavFInfo.fEncoding = m_pNavTextFont->GetEncoding();
+		Encoding[2].Empty();
+		Encoding[2] << NavFInfo.fEncoding; // int to wxString
+		NavFInfo.fCharset = MapWXFontEncodingToMFCCharset(NavFInfo.fEncoding); // the wx encodings
+		Charset[2] << NavFInfo.fCharset;
+		NavFInfo.fFaceName = m_pNavTextFont->GetFaceName();
+		Facename[2] = NavFInfo.fFaceName;
 	}
 
-	// previously the following error message only appeared when a project config 
-	// file was being processed.
-	// TODO: determine whether it should also be done for the basic config file.
+	// Display to user any font mismatches detected and the substituted font.
 	if (!errMsg.IsEmpty())
 	{
 		wxString errMsg2;
@@ -25375,7 +25493,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 /// Compares the "home" directory part of the current user's path to the "(My) Documents"
 /// folder (or the "Adapt It Work" folder for non-Win systems), with the paths in the
 /// AdaptItPath, ProjectFolderPath, DocumentsFolderPath, KnowledgeBasePath, and
-/// KBBackupsPath pathname strings in the current AI-BasicConfiguration.aic file. If its a
+/// KBBackupPath pathname strings in the current AI-BasicConfiguration.aic file. If its a
 /// foreign config file, this first part of these paths will differ for any of the
 /// following reasons:
 /// 1. The foreign machine uses a different drive letter, 
@@ -25520,13 +25638,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// do the actual path fixes
 		FixBasicConfigPaths(defaultPathsFix, &f, basePath, localPath);
 
-		// whm 23Feb10 Added a helper function here called FixConfigFileFonts() that 
-		// deals intelligently with mismatch between fonts contained in the foreign config
-		// file and those available on the local machine
-		// In this case we are not dealing with a custom work folder location, but we may
-		// still have to deal with a foreign basic config file that gets copied from
-		// a "foreign" machine that has fonts not found on the local machine.
-		FixConfigFileFonts(&f);
+		// whm 23Feb10 Note: FixConfigFileFonts() is called in the parallel MakeForeighProjectConfigFileSafe().
 
 		#ifndef _UNICODE
 		// ANSI
@@ -25589,13 +25701,13 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 				// and then use that, and remove the one we forced after the cloning is
 				// done further below; parameter 1 in the following call forces writing 
 				// of a basic config file rather than a project one
-				bool bWrittenOK = WriteConfigurationFile(configFName,basePath,1);
+				bool bWrittenOK = WriteConfigurationFile(configFName,basePath,basicConfigFile);
 				if (!bWrittenOK)
 				{
 					// fatal error, shouldn't happen, but if it does alert developer and
 					// exit app
 					wxMessageBox(
-	_T("MakeForeignConfigFileSafe(): forcing write of a temporary basic config file for cloning failed. Shutting down."));
+	_T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary basic config file for cloning failed. Shutting down."));
 					wxExit();
 					return;
 				}
@@ -25645,7 +25757,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			{
 				// eh!? We just got it, and now it's not there?! Tell developer and exit app
 				wxMessageBox(
-	_T("MakeForeignConfigFileSafe(): adminConfigPath's admin basic config file somehow doesn't exist!! Shutting down."));
+	_T("MakeForeignBasicConfigFileSafe(): adminConfigPath's admin basic config file somehow doesn't exist!! Shutting down."));
 				wxExit();
 				return;
 			}
@@ -25663,7 +25775,7 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 				// there was a problem opening the file, so we'll just shut down after warning
 				// developer 
 				wxMessageBox(
-_T("MakeForeignConfigFileSafe(): custom location block, could not open adminConfigPath file. Shutting down."));
+_T("MakeForeignBasicConfigFileSafe(): custom location block, could not open adminConfigPath file. Shutting down."));
 				wxExit();
 				return;
 			}
@@ -25684,13 +25796,7 @@ _T("MakeForeignConfigFileSafe(): custom location block, could not open adminConf
 			// do the actual path fixes
 			FixBasicConfigPaths(customPathsFix, &f, basePath, localPath);
 
-			// whm 23Feb10 Added a helper function here called FixConfigFileFonts() that 
-			// deals intelligently with mismatch between fonts contained in the foreign config
-			// file and those available on the local machine
-			// In this case the custom work folder location is used but it is NOT locked,
-			// so we are likely to get references to fonts that are different from the fonts
-			// installed on the local machine. 
-			FixConfigFileFonts(&f);
+			// whm 23Feb10 Note: FixConfigFileFonts() is called in the parallel MakeForeighProjectConfigFileSafe().
 
 			#ifndef _UNICODE
 			// ANSI
@@ -25781,13 +25887,13 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 					// one to be temporarily created there and clone from that
 					bRemoveCloneSource = TRUE;
 					basePath = m_workFolderPath;
-					bool bWrittenOK = WriteConfigurationFile(*adminConfigFNamePtr,basePath,1);
+					bool bWrittenOK = WriteConfigurationFile(*adminConfigFNamePtr,basePath,basicConfigFile);
 					if (!bWrittenOK)
 					{
 						// fatal error, shouldn't happen, but if it does alert developer and
 						// exit app
 						wxMessageBox(
-_T("MakeForeignConfigFileSafe(): forcing write of a temporary admin basic config file for cloning failed. Aborting..."));
+_T("MakeForeignBasicConfigFileSafe(): forcing write of a temporary admin basic config file for cloning failed. Aborting..."));
 						abort();
 						return;
 					}
@@ -25850,14 +25956,7 @@ _T("MakeForeignConfigFileSafe(): forcing write of a temporary admin basic config
 			// do the actual path fixes
 			FixBasicConfigPaths(customPathsFix, &f, basePath, localPath);
 
-			// whm 23Feb10 Added a helper function here called FixConfigFileFonts() that 
-			// deals intelligently with mismatch between fonts contained in the foreign config
-			// file and those available on the local machine
-			// In this case the custom work folder location is used and IS locked,
-			// so it is possible we may get references to fonts that are different from the 
-			// fonts installed on the local machine, at least when custom work folder location
-			// is initially locked. 
-			FixConfigFileFonts(&f);
+			// whm 23Feb10 Note: FixConfigFileFonts() is called in the parallel MakeForeighProjectConfigFileSafe().
 
 			#ifndef _UNICODE
 			// ANSI
@@ -25877,6 +25976,437 @@ _T("Unable to write adjusted basic config file for persistent custom location, s
 			}
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      configFName         -> the default name of the project config file (this
+///									   is always AI-ProjectConfiguration.aic)
+/// \param      folderPath          -> the project folder path m_curProjectPath
+/// \param      adminConfigFName    -> pointer to the name of the administor configuration 
+///                                    file name, for use when m_bUseCustomWorkFolderPath
+///                                    is TRUE, because administrator is looking into a
+///                                    work folder stored at a custom location on the
+///                                    machine or on a remote machine connected to the LAN
+///                                    (default is NULL, when accessing legacy location,
+///                                    and for that the m_bUseCustomWorkFolderPath flag is
+///                                    FALSE) (This name, if supplied, is always
+///									   AI-AdminProjectConfiguration.aic)
+/// \remarks
+/// Called from: The App's GetProjectConfiguration().
+/// whm created 24Feb10 to incorporate font mismatch handling via a helper function called
+/// FixConfigFileFonts() which parallels Bruce's FixBasicConfigPaths().
+/// This function parallels the MakeForeignBasicConfigFileSafe() function, but rather than 
+/// dealing with foreign paths that might be detected in the config file, this function 
+/// adjusts the font(s) if mismatches are detected in incoming project configuration files. 
+/// This function also creates an AI-AdminProjectConfiguration.aic file when necessary to 
+/// avoid modifying the regular project config files (both those of the remote user and of 
+/// the administrator) while the administrator is accessing the project remotely.
+/// 
+/// The AI-AdminProjectConfiguration.aic file, if created, will not exist in a project
+/// folder, but in the current work folder, and its contents are significant only during
+/// the time the administrator is accessing the remote project. The contents of the 
+/// AI-AdminProjectConfiguration.aic file are recreated for each project folder the 
+/// administrator accesses remotely. 
+////////////////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxString& folderPath,
+											wxString* adminConfigFNamePtr)
+{
+	wxString basePath = _T("");
+	if ((m_customWorkFolderPath == m_workFolderPath) || !m_bUseCustomWorkFolderPath)
+	{
+		// We are NOT using a custom work folder path.
+        // We can check for font mismatches in project config files even when we are not 
+        // using a custom work folder path, as there could be font mismatches because the
+        // project folder was copied from another computer to the current work folder at
+        // m_workFolderPath.
+		
+		// The PathSeparator becomes the appropriate symbol; \ on Windows, / on Linux
+		if (folderPath.GetChar(folderPath.Length() - 1) == PathSeparator)
+		{
+			folderPath.RemoveLast(); // remove the PathSeparator char 
+				// at the end of the path string, so next line won't give two contiguous
+				
+		}
+		wxString configPath = folderPath + PathSeparator + configFName;
+
+		// For small config type text files, wxTextFile is probably most convenient. A version
+		// of the Open() function also understands Unicode, so we don't need to distinguish 
+		// for example CStdioFile from CStdioFileEx. We just conditional compile with the
+		// appropriate methods for Unicode.
+
+		wxTextFile f;
+		// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
+		// call. It is set up so we can treat it as a line oriented text file while in memory,
+		// modifying it, then writing it back out to persistent storage with a single 
+		// call to Write().
+
+		// wx note: To avoid an annoying system message that pops up if Open is called on
+		// a non-existing file, we'll check for its existence first, and return immediately
+		// if it doesn't exist
+		if (!::wxFileExists(configPath))
+			return;
+		// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+		#ifndef _UNICODE
+		// ANSI
+		bool bSuccessful = f.Open(configPath); // read ANSI file into memory
+		#else
+		// UNICODE
+		bool bSuccessful = f.Open(configPath, wxConvUTF8); // read UNICODE file into memory
+		#endif
+		if (!bSuccessful)
+			// there was a problem opening the file, so we'll just return
+			return;
+
+		// The entire basic config file is now in memory and we can modify the lines we want 
+		// to change. 
+		// 
+		// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
+		// the foreign config file and those available on the local machine. In this case we 
+		// are not dealing with a custom work folder location, but we may still have to deal 
+		// with a foreign basic config file that gets copied from a "foreign" machine that 
+		// has fonts not found on the local machine.
+		// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
+		// be found.
+		FixConfigFileFonts(&f);
+
+		#ifndef _UNICODE
+		// ANSI
+		bSuccessful = f.Write(); // write ANSI file back to disk
+		#else
+		// UNICODE
+		bSuccessful = f.Write(); // write UNICODE file back to disk 
+								 // whm note: default is to use wxConvUTF8 in Unicode build
+		#endif
+		if (!bSuccessful)
+		{
+			// could not update the config file so inform user
+			wxMessageBox(_("Unable to write updated config file, so just did nothing"));
+			return;
+		}
+	}
+	else
+	{
+		// We are using a custom work folder path. If m_bLockedCustomWorkFolderPath if FALSE
+		// we are just looking at someone's project folder in a custom location and need to 
+		// set up and use an admin project config file. If m_bLockedCustomWorkFolderPath is 
+		// TRUE we can go ahead and use the project config file for that project's folder 
+		// itself. Note: When we are looking at a project folder over a network (as opposed 
+		// to a project folder at a custom work folder on the same computer) the custom work
+		// folder location cannot be locked and m_bLockedCustomWorkFolderPath will be FALSE.
+		if (!m_bLockedCustomWorkFolderPath)
+		{
+			// this block for when the administrator is looking at a project in someone's work 
+			// folder in a custom location, and an AI-AdminProjectConfiguration.aic file needs 
+			// to be found there to "fix". If an AI-AdminProjectConfiguration.aic file already
+			// exists in the project folder of the custom location we check it and fix it if 
+			// necessary. But if there is not an admin project config file yet in project folder 
+			// (in the custom location) being accessed, we resort to the expedient of generating
+			// a normal project config file from the administrator's own project config settings, 
+			// renaming it, and fixing the fonts in that one. Hence by one means or another we 
+			// obtain a configuration file for cloning, modify its contents and save them to a 
+			// different file called AI_AdminProjectConfiguration.aic, in the administrator's 
+			// default work folder location (the latter is always pointed at by the path in 
+			// m_workFolderLocation)
+			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
+											 // project config file saved to disk only for cloning 
+											 // purposes
+			wxString configPath = m_curProjectPath + PathSeparator + configFName; // use native separator
+			// construct the path for where to save the admin project config file from the
+			// administrator's machine's default work folder path (if he uses a custom work
+			// folder location, there won't be a project config file in the default location,
+			// but no matter, we can force one to be temporarily saved there for cloning
+			// purposes and then remove it afterwards)
+			wxString adminConfigPath = m_curProjectPath + PathSeparator + *adminConfigFNamePtr;
+			// now check if configPath contains a basic config file we can use for cloning, we
+			// can use a normal one, or an already existing administrator's one if such is present
+			bool bCloneableProjectConfigFilePresent = TRUE;
+			bCloneableProjectConfigFilePresent = ::wxFileExists(adminConfigPath); // best choice
+			bool bBestChoice = bCloneableProjectConfigFilePresent;
+			if (!bCloneableProjectConfigFilePresent)
+			{
+				// no admin project config file is present, and since project config files are
+				// not stored in m_workFolderPath there is
+				bCloneableProjectConfigFilePresent = ::wxFileExists(configPath);
+			}
+			basePath = m_curProjectPath;
+			if (!bCloneableProjectConfigFilePresent)
+			{
+				// none available, so force one to be written out to m_workFolderPath
+				// and then use that, and remove the one we forced after the cloning is
+				// done further below; parameter 2 in the following call forces writing 
+				// of a project config file rather than a basic one
+				bool bWrittenOK = WriteConfigurationFile(szProjectConfiguration,basePath,projectConfigFile);
+				if (!bWrittenOK)
+				{
+					// shouldn't happen, but if it does we'll quietly return without
+					// trying to mess with font mismatches
+					return;
+				}
+				bRemoveCloneSource = TRUE;
+			}
+			// once here, basePath has the path to whatever folder stores the project config file
+			// we are going to clone off; bBestChoice tells us which it will be. 
+			wxTextFile f;
+			// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
+			// call. It is set up so we can treat it as a line oriented text file while in memory,
+			// modifying it, then writing it back out to persistent storage with a single 
+			// call to Write().
+			 
+			// At this point we must clone the configPath file, and give the clone the
+			// adminConfigPath filename. But if an admin project config file already exists, we
+			// don't need to clone it, but just fix it's contents further below. 
+			bool bRemoved = TRUE;
+			if (!bBestChoice)
+			{
+				wxFileInputStream fis(configPath);
+				if (fis.IsOk())
+				{
+					wxFileOutputStream fos(adminConfigPath);
+					if (fos.IsOk())
+					{
+						// copy the input stream's data to the output streams file
+						fos.Write(fis);
+					}
+				}
+			}
+
+			// if we forced a cloneable project config file to be written, now remove it
+			if (bRemoveCloneSource)
+			{
+				if (::wxFileExists(configPath))
+					bRemoved = ::wxRemoveFile(configPath);
+				// we don't care if the removal didn't happen, so ignore a FALSE value
+				// returned (we don't expect to ever get FALSE returned here)
+			}
+
+			// now work exclusively with the adminConfigPath clone of the project config file,
+			// or with the previous admin project config file if one was already present
+			if (!::wxFileExists(adminConfigPath))
+			{
+				// eh!? We just got it, and now it's not there?! Tell developer and exit app
+				wxMessageBox(
+	_T("MakeForeignProjectConfigFileSafe(): adminConfigPath's admin project config file somehow doesn't exist!!"));
+				//wxExit(); // not serious enough in this case to shut down
+				return;
+			}
+			
+			// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+			#ifndef _UNICODE
+			// ANSI
+			bool bSuccessful = f.Open(adminConfigPath); // read ANSI file into memory
+			#else
+			// UNICODE
+			bool bSuccessful = f.Open(adminConfigPath, wxConvUTF8); // read UNICODE file into memory
+			#endif
+			if (!bSuccessful)
+			{
+				// there was a problem opening the file, so we'll just shut down after warning
+				// developer 
+				wxMessageBox(
+_T("MakeForeignProjectConfigFileSafe(): custom location block, could not open adminConfigPath file."));
+				//wxExit(); // not serious enough in this case to shut down
+				return;
+			}
+			// The entire cloned project config file is now in memory under the name
+			// adminConfigPath, and we can modify the lines we want to change. 
+
+			// FixConfigFileFonts() deals intelligently with mismatch between fonts contained 
+			// in the foreign config file and those available on the local machine.
+			// In this case the custom work folder location is used but it is NOT locked,
+			// so we are likely to get references to fonts that are different from the fonts
+			// installed on the local machine. 
+			FixConfigFileFonts(&f);
+
+			#ifndef _UNICODE
+			// ANSI
+			bSuccessful = f.Write(); // write ANSI file back to disk
+			#else
+			// UNICODE
+			bSuccessful = f.Write(); // write UNICODE file back to disk 
+									 // whm note: default is to use wxConvUTF8 in Unicode build
+			#endif
+			if (!bSuccessful)
+			{
+				// could not update the config file so inform developer
+				wxMessageBox(
+_T("Unable to write adjusted Administrator project config file for custom location"));
+				//wxExit(); // not serious enough in this case to shut down
+				return;
+			}
+		}
+		else
+		{
+			// whm TODO: !!Test!! below for project config when m_bLockedCustomWorkFolderPath is TRUE
+			// 
+			// This block for when m_bLockedCustomWorkFolderPath is TRUE
+			// If there is already an AI-ProjectConfiguration.aic file in a project folder
+			// of the custom work folder location, then use that - and fix its fonts; but if
+			// not, then clone any AI-AdminProjectConfiguration.aic file which is at the
+			// default work folder location (or generate one if necessary) and give it the 
+			// new name of AI-ProjectConfiguration.aic, but store it in the approproate 
+			// project folder at the custom work folder location - because code comes 
+			// through this block only when m_bLockedCustomWorkFolderPath is TRUE, as is 
+			// the case when Lock Custom Location is clicked for the first time, or when 
+			// returning in a later session to the permanently locked custom work folder 
+			// location.
+			
+			wxTextFile f;
+			// Under wxWidgets wxTextFile actually reads the entire file into memory at the Open()
+			// call. It is set up so we can treat it as a line oriented text file while in memory,
+			// modifying it, then writing it back out to persistent storage with a single 
+			// call to Write().
+			wxString configPath = m_curProjectPath + PathSeparator + configFName; // use native separator
+			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator 
+													+ *adminConfigFNamePtr;
+			if (::wxFileExists(configPath))
+			{
+				// There is a project config file at m_curProjectPath, so use it and adjust for
+				// font mismatches if necessary
+
+				// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+				#ifndef _UNICODE
+				// ANSI
+				bool bSuccessful = f.Open(configPath); // read ANSI file into memory
+				#else
+				// UNICODE
+				bool bSuccessful = f.Open(configPath, wxConvUTF8); // read UNICODE file into memory
+				#endif
+				if (!bSuccessful)
+					// there was a problem opening the file, so we'll just return
+					return;
+
+				// The entire project config file is now in memory and we can modify the lines we want 
+				// to change. 
+				// 
+				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
+				// the foreign config file and those available on the local machine. In this case we 
+				// are not dealing with a custom work folder location, but we may still have to deal 
+				// with a foreign project config file that gets copied from a "foreign" machine that 
+				// has fonts not found on the local machine.
+				// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
+				// be found.
+				FixConfigFileFonts(&f);
+
+				#ifndef _UNICODE
+				// ANSI
+				bSuccessful = f.Write(); // write ANSI file back to disk
+				#else
+				// UNICODE
+				bSuccessful = f.Write(); // write UNICODE file back to disk 
+										 // whm note: default is to use wxConvUTF8 in Unicode build
+				#endif
+				if (!bSuccessful)
+				{
+					// could not update the config file so inform user
+					wxMessageBox(_("Unable to write updated config file, so just did nothing"));
+					return;
+				}
+			}
+			// See if there is an admin project config file at m_workFolderPath that
+			// can be used
+			else if (::wxFileExists(configPath_Admin_DefaultLoc))
+			{
+				// A cloneable AI-AdminProjectConfiguration.aic file is at the default
+				// work folder location, so use that one for the clone operation.
+				wxFileInputStream fis(configPath_Admin_DefaultLoc);
+				if (fis.IsOk())
+				{
+					wxFileOutputStream fos(configPath);
+					if (fos.IsOk())
+					{
+						// copy the input stream's data to the output streams file
+						fos.Write(fis);
+					}
+				}
+
+				// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+				#ifndef _UNICODE
+				// ANSI
+				bool bSuccessful = f.Open(configPath); // read ANSI file into memory
+				#else
+				// UNICODE
+				bool bSuccessful = f.Open(configPath, wxConvUTF8); // read UNICODE file into memory
+				#endif
+				if (!bSuccessful)
+					// there was a problem opening the file, so we'll just return
+					return;
+
+				// The entire project config file is now in memory and we can modify the lines we want 
+				// to change. 
+				// 
+				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
+				// the foreign config file and those available on the local machine. In this case we 
+				// are not dealing with a custom work folder location, but we may still have to deal 
+				// with a foreign project config file that gets copied from a "foreign" machine that 
+				// has fonts not found on the local machine.
+				// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
+				// be found.
+				FixConfigFileFonts(&f);
+
+				#ifndef _UNICODE
+				// ANSI
+				bSuccessful = f.Write(); // write ANSI file back to disk
+				#else
+				// UNICODE
+				bSuccessful = f.Write(); // write UNICODE file back to disk 
+										 // whm note: default is to use wxConvUTF8 in Unicode build
+				#endif
+				if (!bSuccessful)
+				{
+					// could not update the config file so inform user
+					wxMessageBox(_("Unable to write updated config file, so just did nothing"));
+					return;
+				}
+			}
+			else
+			{
+				// There is no project config file we can clone, so we just generate one in
+				// m_curProjectPath (where the path to the file is configPath) using our current 
+				// instance's settings
+				bool bOK;
+				bOK = WriteConfigurationFile(szProjectConfiguration,m_curProjectPath,projectConfigFile);
+				// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
+				#ifndef _UNICODE
+				// ANSI
+				bool bSuccessful = f.Open(configPath); // read ANSI file into memory
+				#else
+				// UNICODE
+				bool bSuccessful = f.Open(configPath, wxConvUTF8); // read UNICODE file into memory
+				#endif
+				if (!bSuccessful)
+					// there was a problem opening the file, so we'll just return
+					return;
+
+				// The entire project config file is now in memory and we can modify the lines we want 
+				// to change. 
+				// 
+				// FixConfigFileFonts() deals intelligently with mismatch between fonts contained in 
+				// the foreign config file and those available on the local machine. In this case we 
+				// are not dealing with a custom work folder location, but we may still have to deal 
+				// with a foreign project config file that gets copied from a "foreign" machine that 
+				// has fonts not found on the local machine.
+				// FixConfigFilefonts() displays a message to the user if no suitable font(s) could
+				// be found.
+				FixConfigFileFonts(&f);
+
+				#ifndef _UNICODE
+				// ANSI
+				bSuccessful = f.Write(); // write ANSI file back to disk
+				#else
+				// UNICODE
+				bSuccessful = f.Write(); // write UNICODE file back to disk 
+										 // whm note: default is to use wxConvUTF8 in Unicode build
+				#endif
+				if (!bSuccessful)
+				{
+					// could not update the config file so inform user
+					wxMessageBox(_("Unable to write updated config file, so just did nothing"));
+					return;
+				}
+			}
+		}
+	} // end of else [using a custom work folder location]
 }
 
 void  CAdapt_ItApp::OnMoveOrCopyFoldersOrFiles(wxCommandEvent& WXUNUSED(event))
