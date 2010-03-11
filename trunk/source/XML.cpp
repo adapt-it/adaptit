@@ -264,6 +264,8 @@ static int numUSFMMarkersOutput = 0;
 // helper, for repetitive writing of elements to an arbitrary length FILE, utf-8, in TEXT mode
 void DoWrite(wxFile& file, CBString& str)
 {
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	Int32 len = str.GetLength();
 	char* pstr = (char*)str;
 	file.Write(pstr,len);

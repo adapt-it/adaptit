@@ -365,6 +365,8 @@ void DoExportSfmText(enum ExportType exportType, bool bForceUTF8Conversion)
 		return; // user cancelled file dialog so return to what user was doing previously
 	}
 
+	wxLogNull logNo; // avoid spurious messages from the system
+
     // get the user's desired path, & update m_lastExportPath or m_lastSrcExportPath or
     // m_lastGlossesExportPath or m_lastFreeTransExportPath, or in the case of rtf output,
     // m_rtfExportPath
@@ -10281,6 +10283,8 @@ wxString GetANSIorUnicodeRTFCharsFromString(wxString inStr)
 // whm added 21Jun03
 bool WriteOutputString(wxFile& f, wxFontEncoding Encoding, const wxString& OutStr)
 {
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	if (OutStr.Length() != 0)
 	{
 		// output the final form of the string

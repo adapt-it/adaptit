@@ -2073,6 +2073,9 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 	//wxASSERT(pMenuBar != NULL);
 	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
 	//wxASSERT(pUseToolTips != NULL);
+		
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	if (gpApp->m_bUseToolTips)
 	{
 		wxToolTip::Enable(FALSE);
@@ -2099,6 +2102,8 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 // TODO: uncomment EVT_MENU event handler for this function after figure out why SetDelay() disables tooltips
 void CMainFrame::OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event))
 {
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// we can only set the delay time if tooltips are in use
 	if (gpApp->m_bUseToolTips)
 	{
