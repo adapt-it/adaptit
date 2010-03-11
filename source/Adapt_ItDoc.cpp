@@ -3163,6 +3163,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// GUI interaction
 	if (pApp->m_bAutoExport)
 	{
+		wxLogNull logNo; // avoid spurious messages from the system
+
 		// set up output path using m_autoexport_outputpath
 		wxString docName = pApp->m_autoexport_docname;
 		docName = MakeReverse(docName);
@@ -11253,6 +11255,9 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 			gnFileNumber++; // get next value
 			path << gnFileNumber;
 			path << _T(".txt");
+		
+			wxLogNull logNo; // avoid spurious messages from the system
+
 			wxFile fout;
 			bool bOK;
 			bOK = fout.Open( path, wxFile::write );
@@ -13546,6 +13551,8 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 		bookInfoStr += _T("-1");
 	}
 
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// update and save the project configuration file
 	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
 	// BEW added flag to the following test on 25Nov09
@@ -13862,6 +13869,8 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
 		// GDLC wxOPEN weredeprecated in 2.8
 	fileDlg.Centre();
+
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	// open as modal dialog
 	int returnValue = fileDlg.ShowModal();
@@ -14355,6 +14364,9 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // and \r) because a config file written by CStdioFile's WriteString() won't be read
     // properly subsequently
 	wxFile ff;
+		
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	if(!ff.Open(projectPath, wxFile::write))
 	{
 		wxString msg;
@@ -14440,8 +14452,8 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // alternative paths which also get constructed in SetupKBPathsEtc().) The KBs have
     // already been loaded, or stubs created, so the SetupKBPathsEtc call here just has the
     // effect of getting paths set up for the xml form of KB i/o.
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	wxASSERT(pDoc != NULL);
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//wxASSERT(pDoc != NULL);
 	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as 
 															// noted in comments above
 	gpApp->SetupKBPathsEtc();

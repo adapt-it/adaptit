@@ -3901,6 +3901,8 @@ bool CAdapt_ItApp::InitializeLanguageLocale(wxString shortLangName, wxString lon
 void CAdapt_ItApp::SaveCurrentUILanguageInfoToConfig()
 {
 	// This function uses the data currently in the global struct currLocalizationInfo
+	
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	// save current CurrLocalizationInfo struct's member information in registry/hidden 
 	// settings file
@@ -4122,7 +4124,9 @@ void CAdapt_ItApp::SaveUserDefinedLanguageInfoStringToConfig(int &wxLangCode,
 	//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys get 
 					   //sorted to the end of the list)
 	
-    // Rewrite all 9 keys from keyArray[] back to the registry/hidden settings file. This
+ 	wxLogNull logNo; // avoid spurious messages from the system
+
+	// Rewrite all 9 keys from keyArray[] back to the registry/hidden settings file. This
     // is done even if we did not add a compositeStr language, but, since we did sort the
     // keyArray[], it may have changed the order.
 	int ctkey;
@@ -4251,6 +4255,8 @@ void CAdapt_ItApp::RemoveUserDefinedLanguageInfoStringFromConfig(const wxString 
 		//keyArray.Sort(); // sorts the array in ascending order (the unassigned keys 
 						   // get sorted to the end of the list)
 		
+		wxLogNull logNo; // avoid spurious messages from the system
+
 		// Finally, write the 9 keys back to the registry
 		for (ct = 0; ct < nKeys; ct++)
 		{
@@ -13015,6 +13021,9 @@ void CAdapt_ItApp::DoKBRestore(CKB* pKB, int& nCount, int& nTotal, int& nCumulat
 	}
 	if (bAnyDocChanged)
 	{
+	
+		wxLogNull logNo; // avoid spurious messages from the system
+
 		// The wxArrayString errors contains all the text to be written to the log file
 		errors.Add(_T("\n\nEnd of log."));
 		// Write out errors to external log file.
@@ -15393,6 +15402,9 @@ bool CAdapt_ItApp::DealWithThePossibilityOfACustomWorkFolderLocation() // BEW ad
 {
 	wxString customPathFilename = _T("CustomWorkFolderLocation"); // must NOT be localizable
 	wxString aPath = m_workFolderPath + PathSeparator + customPathFilename;
+	
+	wxLogNull logNo; // avoid spurious messages from the system
+	
 	bool bIsCustomLocationPersistent = ::FileExists(aPath);
 	if (bIsCustomLocationPersistent)
 	{
@@ -17089,6 +17101,8 @@ bool CAdapt_ItApp::WriteConfigurationFile(wxString configFilename,
 	wxString number;
 	//int color = 0; // default black - unused
 
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// open the config file for writing
 	bool bIsOK = TRUE;
 	wxTextFile f; 
@@ -17223,6 +17237,8 @@ bool CAdapt_ItApp::GetConfigurationFile(wxString configFilename, wxString source
     // call. It is set up so we can treat it as a line oriented text file while in memory,
     // modifying it, then if not just reading it, we can write it back out to persistent
 	// storage with a single call to Write().
+
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	// open the config file for reading
     // wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
@@ -18383,6 +18399,8 @@ void CAdapt_ItApp::ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding), wxFile* p
 	// source.UngetWriteBuf() call was not made to get the buffer back into shape before 
 	// passing the source string to ConvertAndWrite!!
 	
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// write it out
 	pFile->Write(tempBuf,nLen);
 	
@@ -21304,6 +21322,8 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 	// whm 5Sept09 Bob Eaton says we should now eliminate both aiKBEndStr and aiKBBeginStr
 	//aiKBEndStr = "</AdaptItKnowledgeBase>\r\n";
 	//buff.AppendData(aiKBEndStr,aiKBEndStr.GetLength());
+
+	wxLogNull logNo; // avoid spurious messages from the system
 
     const char *pByteStr = wx_static_cast(const char *, buff);
 	f.Write(pByteStr,buff.GetDataLen());
@@ -24549,6 +24569,9 @@ void CAdapt_ItApp::OnLockCustomLocation(wxCommandEvent& WXUNUSED(event))
 	// one that m_workFolderPath points at, even if nothing else is there)
 	bool bOK;
 	wxFile f; // create a wxFile instance with default constructor
+	
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	bOK = ::wxSetWorkingDirectory(m_workFolderPath); // the default work folder location
 	if (!bOK)
 	{
@@ -25581,6 +25604,8 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 		// modifying it, then writing it back out to persistent storage with a single 
 		// call to Write().
 
+		wxLogNull logNo; // avoid spurious messages from the system
+
 		// wx note: To avoid an annoying system message that pops up if Open is called on
 		// a non-existing file, we'll check for its existence first, and return immediately
 		// if it doesn't exist
@@ -25724,6 +25749,8 @@ void CAdapt_ItApp::MakeForeignBasicConfigFileSafe(wxString& configFName,wxString
 			// modifying it, then writing it back out to persistent storage with a single 
 			// call to Write().
 			 
+			wxLogNull logNo; // avoid spurious messages from the system
+
 			// At this point we must clone the configPath file, and give the clone the
 			// adminConfigPath filename. But if an admin basic config file already exists, we
 			// don't need to clone it, but just fix it's contents further below. 
@@ -25838,6 +25865,9 @@ _T("Unable to write adjusted Administrator basic config file for custom location
 			// the case when Lock Custom Location is clicked for the first time, or when
 			// returning in a later session to the permanently locked custom work folder
 			// location.
+		
+			wxLogNull logNo; // avoid spurious messages from the system
+
 			wxString configPath_Basic_CustomLoc = folderPath + PathSeparator + configFName;
 			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator 
 													+ *adminConfigFNamePtr;
@@ -26040,6 +26070,8 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 		// call. It is set up so we can treat it as a line oriented text file while in memory,
 		// modifying it, then writing it back out to persistent storage with a single 
 		// call to Write().
+			
+		wxLogNull logNo; // avoid spurious messages from the system
 
 		// wx note: To avoid an annoying system message that pops up if Open is called on
 		// a non-existing file, we'll check for its existence first, and return immediately
@@ -26108,6 +26140,9 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 			// different file called AI_AdminProjectConfiguration.aic, in the administrator's 
 			// default work folder location (the latter is always pointed at by the path in 
 			// m_workFolderLocation)
+			
+			wxLogNull logNo; // avoid spurious messages from the system
+			
 			bool bRemoveCloneSource = FALSE; // set TRUE if we need later to remove a temporary 
 											 // project config file saved to disk only for cloning 
 											 // purposes
@@ -26190,7 +26225,7 @@ void CAdapt_ItApp::MakeForeignProjectConfigFileSafe(wxString& configFName,wxStri
 				//wxExit(); // not serious enough in this case to shut down
 				return;
 			}
-			
+
 			// wxWidgets version we use appropriate version of Open() for ANSI or Unicode build
 			#ifndef _UNICODE
 			// ANSI
@@ -26237,8 +26272,6 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 		}
 		else
 		{
-			// whm TODO: !!Test!! below for project config when m_bLockedCustomWorkFolderPath is TRUE
-			// 
 			// This block for when m_bLockedCustomWorkFolderPath is TRUE
 			// If there is already an AI-ProjectConfiguration.aic file in a project folder
 			// of the custom work folder location, then use that - and fix its fonts; but if
@@ -26259,6 +26292,8 @@ _T("Unable to write adjusted Administrator project config file for custom locati
 			wxString configPath = m_curProjectPath + PathSeparator + configFName; // use native separator
 			wxString configPath_Admin_DefaultLoc = m_workFolderPath + PathSeparator 
 													+ *adminConfigFNamePtr;
+			wxLogNull logNo; // avoid spurious messages from the system
+			
 			if (::wxFileExists(configPath))
 			{
 				// There is a project config file at m_curProjectPath, so use it and adjust for

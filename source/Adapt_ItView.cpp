@@ -24929,6 +24929,8 @@ void CAdapt_ItView::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// get the user's desired path
 	wxString reportPath = fileDlg.GetPath();
 
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	wxFile f; //CStdioFile f;
 	if( !f.Open( reportPath, wxFile::write)) 
 	{
@@ -25294,6 +25296,8 @@ void CAdapt_ItView::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile)
 	prevIndexText.Empty();
 	CSourcePhrase* pSrcPhrase = NULL;
 	int count = 0;
+
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	// initialize the progress indicator window
 	int nTotal;
@@ -27158,6 +27162,8 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
     // Macintosh. The GetEOL function provides the correct line termination character(s).
     // wxString eolStr = wxTextFile::GetEOL(); done in the App's OnInit()
 	wxASSERT(pApp->m_eolStr.Find(_T('\n')) != -1 || pApp->m_eolStr.Find(_T('\r')) != -1);
+
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	int numWords;
 	MapKeyStringToTgtUnit::iterator iter;
