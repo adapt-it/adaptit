@@ -8954,7 +8954,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 
 	// check for a retranslation in the selection, and abort the merge operation if there is one
 #ifdef _RETRANS
-	if (pApp->GetRetranslation()->IsRetranslationInSelection(pList))
+	if (IsRetranslationInSelection(pList))
 #else
 	if (IsRetranslationInSelection(pList))
 #endif
@@ -8982,7 +8982,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
     // check for a null source phrase in the selection, and abort the merge operation if
     // there is one
 #ifdef _RETRANS
-	if (pApp->GetRetranslation()->IsNullSrcPhraseInSelection(pList))
+	if (IsNullSrcPhraseInSelection(pList))
 #else
 	if (IsNullSrcPhraseInSelection(pList))
 #endif
@@ -21673,7 +21673,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			bFound = pApp->GetRetranslation()->DoFindRetranslation(nCurSequNum+1,nSequNum,nCount);
 #else
 			bFound = DoFindRetranslation(nCurSequNum+1,nSequNum,nCount);
-#ifdef
+#endif
 		}
 		else if (bFindNullSrcPhrase)
 		{
@@ -22761,7 +22761,7 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		if (pSrcPhrase->m_bRetranslation)
 		{
 #ifdef _RETRANS
-			bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 													nRetransFirst,nRetransLast);
 #else
 			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
@@ -22885,7 +22885,7 @@ c: if (gbIsGlossing)
 	if (pSrcPhrase->m_bRetranslation)
 	{
 #ifdef _RETRANS
-		bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
 #else
 		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
@@ -23015,7 +23015,7 @@ d:		pSrcPhrase = (CSourcePhrase*)savePos->GetData();
 		if (pSrcPhrase->m_bRetranslation)
 		{
 #ifdef _RETRANS
-			bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
 #else
 			bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
@@ -23186,7 +23186,7 @@ e:	if (gbIsGlossing)
 	if (pSrcPhrase->m_bRetranslation)
 	{
 #ifdef _RETRANS
-		bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount,
+		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
 												nRetransFirst,nRetransLast);
 #else
 		bInRetrans = IsContainedByRetranslation(nSequNum,nCount,
@@ -23329,7 +23329,7 @@ e:		while (pos != NULL)
 		if (pSrcPhrase->m_bRetranslation)
 		{
 #ifdef _RETRANS
-			bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSaveSrcSequNum,nCount1,
+			bInRetrans = IsContainedByRetranslation(nSaveSrcSequNum,nCount1,
 													nRetransFirst,nRetransLast);
 #else
 			bInRetrans = IsContainedByRetranslation(nSaveSrcSequNum,nCount1,
@@ -23460,7 +23460,7 @@ e:		while (pos != NULL)
 				if (pSrcPhrase->m_bRetranslation && bSrcMatchIsRetrans)
 				{
 #ifdef _RETRANS
-					bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount2,
+					bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,
 															nRetransFirst,nRetransLast);
 #else
 					bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,
@@ -23659,7 +23659,7 @@ e:		while (pos != NULL)
 			if (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
 			{
 #ifdef _RETRANS
-				bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(sn,1,nRetransFirst,nRetransLast);
+				bInRetrans = IsContainedByRetranslation(sn,1,nRetransFirst,nRetransLast);
 #else
 				bInRetrans = IsContainedByRetranslation(sn,1,nRetransFirst,nRetransLast);
 #endif
@@ -23731,7 +23731,7 @@ e:		while (pos != NULL)
 							if (pSrcPhrase->m_bRetranslation && bSrcMatchIsRetrans)
 							{
 #ifdef _RETRANS
-								bInRetrans = pApp->GetRetranslation()->IsContainedByRetranslation(nSequNum,nCount2,
+								bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,
 															nRetransFirst,nRetransLast);
 #else
 								bInRetrans = IsContainedByRetranslation(nSequNum,nCount2,

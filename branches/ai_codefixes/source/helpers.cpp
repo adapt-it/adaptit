@@ -51,6 +51,10 @@ const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
 #endif
 
+#ifdef _RETRANS
+extern bool gbIsGlossing;
+#endif
+
 //  helper functions
 
 //////////////////////////////////////////////////////////////
@@ -2232,6 +2236,107 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 	if (!pSrcPhrase->GetFilteredInfo().IsEmpty())
 	{
 		return TRUE;
+	}
+	return FALSE;
+}
+
+#endif
+
+#ifdef _RETRANS
+// determines if nFirstSequNum up to nFirstSequNum + nCount - 1 all lie within a
+// retranslation; if TRUE, then also returns the first and last sequence numbers for the
+// retranslation in the last 2 parameters; these parameters are not defined if FALSE is
+// returned
+bool IsContainedByRetranslation(int	nFirstSequNum, 
+												int	nCount,
+												int& nSequNumFirst,
+												int& nSequNumLast)
+{
+	wxASSERT(!gbIsGlossing); // when glossing this should never be called
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
+	SPList* pList = pApp->m_pSourcePhrases;
+	wxASSERT(pList != NULL);
+	CSourcePhrase* pSrcPhrase;
+	
+	SPList::Node* pos = pList->Item(nFirstSequNum);
+	wxASSERT(pos != NULL);
+	int count = 0;
+	bool bFoundEnd = FALSE;
+	while(pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		wxASSERT(pSrcPhrase != NULL); 
+		count++;
+		if (pSrcPhrase->m_bEndRetranslation)
+			bFoundEnd = TRUE; // next iteration will go out of retranslation,
+		// or into a following one
+		if (!pSrcPhrase->m_bRetranslation || 
+			(pSrcPhrase->m_bBeginRetranslation && bFoundEnd))
+		{
+			return FALSE;
+		}
+		if (count >= nCount)
+			break;
+	}
+	
+	// lies within the retranslation, so get the bounds
+	nSequNumFirst = nFirstSequNum;
+	int nFirst = nFirstSequNum+1;
+	pos = pList->Item(nFirstSequNum);
+a:	pSrcPhrase = (CSourcePhrase*)pos->GetData(); 
+	pos = pos->GetPrevious();
+	if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
+	{
+		nSequNumFirst = --nFirst;
+		goto a;
+	}
+	nSequNumLast = nFirstSequNum + count - 1;
+	int nLast = nFirstSequNum + count - 1;
+b:	nLast += 1;
+	pos = pList->Item(nLast); 
+	pSrcPhrase = (CSourcePhrase*)pos->GetData();
+	pos = pos->GetNext();
+	if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bBeginRetranslation)
+	{
+		nSequNumLast = nLast;
+		goto b;
+	}
+	
+	return TRUE;
+}
+
+// BEW 16Feb10, no changes needed for support of _DOCVER5
+bool IsNullSrcPhraseInSelection(SPList* pList)
+{
+	CSourcePhrase* pSrcPhrase;
+	SPList::Node* pos = pList->GetFirst();
+	if (pos == NULL)
+		return FALSE; // there isn't any selection
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+		if (pSrcPhrase->m_bNullSourcePhrase)
+			return TRUE;
+	}
+	return FALSE;
+}
+
+// BEW 16Feb10, no changes needed for support of _DOCVER5
+bool IsRetranslationInSelection(SPList* pList)
+{
+	CSourcePhrase* pSrcPhrase;
+	SPList::Node* pos = pList->GetFirst(); 
+	if (pos == NULL)
+		return FALSE; // there isn't any selection
+	while (pos != NULL)
+	{
+		pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext(); 
+		if (pSrcPhrase->m_bRetranslation)
+			return TRUE;
 	}
 	return FALSE;
 }

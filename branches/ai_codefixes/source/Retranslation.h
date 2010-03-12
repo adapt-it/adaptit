@@ -50,10 +50,6 @@ public:
 	void		DoRetranslationByUpArrow();
 	void		GetSelectedSourcePhraseInstances(SPList*& pList,wxString& strSource,wxString& strAdapt);
 	void		NewRetranslation();
-	bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
-										   int& nSequNumLast);
-	bool		IsNullSrcPhraseInSelection(SPList* pList);
-	bool		IsRetranslationInSelection(SPList* pList);
 	void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
 
 protected:
