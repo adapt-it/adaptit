@@ -1,42 +1,44 @@
-Version 5.2.0 update 19February2010:
+Version 5.2.0 update 15March2010:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
 ----------------------------------------------
-* Added a hidden password protected Administrator menu. The 
-menu can be made visible by Edit / Preferences / View page, and
-click the checkbox labelled "Show Administrator Menu (Password
-protected)". The password admin will always work. You can set
-some other password. Your password is stored in the basic 
-configuration file. The Administrator menu supports extra 
-capabilities of interest to the administrator of a number of 
-machines running Adapt It on a LAN, setting up a work folder in 
-a custom location, or customizing the Adapt It interface. Not 
-all features intended for this menu will be available initially. 
-Priority for initial features is for features which allow the 
-administrator to access any of several work folders on any of 
-several machines, and to move data to or from the accessed 
-custom work folders (e.g. for archiving in a version control 
-repository, etc.)
-* Added a Custom Work Folder Location command to the 
-Administrator menu. Permits the administrator to set (1) a temporary 
+* Added a hidden password protected Administrator menu. The menu can 
+be made visible by Edit / Preferences / View tab, and click the 
+checkbox labelled "Show Administrator Menu (Password protected)". 
+The Administrator menu now supports extra capabilities of interest 
+to the administrator of a number of machines running Adapt It on a 
+LAN, such as setting up a work folder in a custom location, moving 
+data to or from the accessed custom work folders (e.g. for archiving 
+in a version control repository, etc.). We plan to add more features 
+to the Administrator menu in the future, including the ability to 
+customize the Adapt It interface and hide or disable certain Adapt It 
+menus and features. Our priority for this release has been to implement 
+the following features which now work on the Administrator menu: 
+(1) Custom Work Folder Location, (2) Lock Custom Location, (3) Unlock 
+Custom Location, (4) Restore Default Work Folder Location, (5) Set 
+Password, and (6) Move Or Copy Folders Or Files. 
+* Added a Custom Work Folder Location command to the Administrator 
+menu. This permits the administrator to set either (1) a temporary 
 custom work folder location on the local machine, a peripheral device, 
 or a remote machine - including a remote machine running a different 
-operating system; the setting lasts until the end of the session. (2) A 
-permanent custom work folder location on the local machine or on a 
-peripheral device attached to the local machine. (If the administrator
-accesses a project on a remote machine and that project is already
-being accessed by a user on that machine, the administrator's running
-Adapt It will detect the fact and only allow read-only access to the
-remote machine's project. Likewise, if the administrator gains full
-access to a project on a remote machine, and a user on the remote
-machine later tries to open that project for work, he will be granted
-read-only access, and will not be able to write KB or documents to
-disk until the administrator has relinquished ownership of the project
-and the remote user reenters the project.) That is, whoever opens
-the project first, gets ownership; whoever arrives second, only gets
-read-only access. This protocol prevents inadvertent loss of data.
-* Added a Change Password command to the Administrator menu.
-* Added a Return To Default Work Folder command which restores
+operating system; the setting lasts until the end of the session, or 
+(2) A permanent custom work folder location on the local machine or on 
+a peripheral device attached to the local machine. With this added
+feature, it is quite possible that more than one instance of Adapt It 
+may attempt to access the same project at the same time on a given
+computer. In such cases Adapt It now has a read-only projection
+mechanism in place (see next feature below).
+* Added a Lock Custom Location command to the Administrator menu. This 
+menu item is enabled provided the path to the custom folder is not a 
+path accessible as a network share. When activated the work folder at 
+the custom location becomes permanent, until explicitly changed at 
+some future time (see Unlock Custom Location feature below).
+* Added an Unlock Custom Location command to the Administrator menu.
+This item is enabled provided the path to the custom folder is not a 
+path accessible as a network share, so that the persistent work folder 
+custom location becomes temporary - i.e. the path will be forgotten 
+when the current session ends.
+* Added a Restore Default Work Folder Location command which restores
 the default work folder location (including returning to the use of a
 work folder location set up earlier by the -wf command line switch).
 If this command is used when a custom work folder location has
@@ -48,71 +50,104 @@ there may also require moving project folders back there from the
 former custom work folder; that task can be done by Administrator
 menu commands, or with a file browser application outside of
 Adapt It.)
-* Added a Lock Custom Location command to the Administrator 
-menu, enabled provided the path to the custom folder is not a path
-accessible as a network share, so that the work folder at the custom 
-location becomes permanent, until explicitly changed at some future 
-time.
-* Added an Unlock Custom Location command to the Administrator
-menu, enabled provided the path to the custom folder is not a path
-accessible as a network share, so that the persistent work folder 
-custom location becomes temporary - i.e. the path will be forgotten 
-when the current session ends.
-* Added a read-only protection functionality, so that if the local
-user navigates, using the Custom Work Folder Location command,
+* Added a Set Password command to the Administrator menu. The 
+failsafe password admin will always work. You can set some other 
+password. Your password is stored in the basic configuration file. 
+* Added a Move Or Copy Folders Or Files command to the Administrator 
+menu. This command brings up a dialog in which an administrator can 
+move, copy, rename and/or delete folders and files providing a
+flexible file and folder managing capability within Adapt It.
+* Added automatic read-only protection functionality, so that if the 
+local user navigates, using the Custom Work Folder Location command,
 to a remote machine's Adapt It project folder which is currently
 in use by the remote user, any kb or document saving attempts
 by the local user will not do anything; the local user will only obtain
-read-only access. Whichever of the two users first accesses a given
+read-only access. Whichever of the two users who first accesses a given
 project will get ownership write privileges within the project folder,
 the user who arrives at the project folder second, will only get
 read-only access (actually, he will be able to do things normally on
 the local copy in memory from the remote machine's drive, but any
 attempt to save work to the remote machine will only simulate 
-a successful save, in actual fact, no save is done. This protects the
+a successful save, in actual fact, no save is done). This protects the
 remote user from unknowingly losing work because of actions done
 by a snooping administrator from a different machine somewhere on
 the local network. Whoever gets ownership of the project folder
-for writing, Adapt It will save a file with name
-"~AIROP-machinename-username-processID.lock" in that folder, and open
-it for writing. Adapt It will fill in machinename, username, and
-processID with the appropriate names automatically retreived from 
-the machine which is running the Adapt It instance that succeeded 
+for writing, Adapt It will save a "lock" file with name
+"~AIROP-machinename-username-processID-SYS.lock" in that folder, and 
+open it for writing. Adapt It will fill in machinename, username,
+processID and SYS with the appropriate names automatically retreived 
+from the machine which is running the Adapt It instance that succeeded 
 in obtaining ownership for writing. When no such file is present in 
 a folder, the next person entering that folder will get ownership of 
 it. The management of this functionality is totally automatic, no 
 user or administrator need do anything in normal operation. Ownerhip 
 is lost when you leave the project folder. It is gained when entering
 the project folder, provided noone else alrealdy has ownership.
-Whenever you open a new document in the project, an attempt
-is made to give you ownership rights - but you won't get them
-unless the previous owner has relinquished the project folder.
-This protection functionality is "always turned on". It can't be 
-turned off. It works whether or not you are trying to access
-a folder on a remote machine, or just doing your normal work
-on your own machine.
-* Added support for knowledge base searches. To do this, the
-dialog for the Edit Knowledge Base command has some extra
-controls at the bottom -
-(a) a multiline text box where search strings can be typed
-(b) a Go button which initiates the search
-(c) an Erase All Lines button which clears out the multiline text
+Whenever you open a new document in the project, an attempt is made 
+to give you ownership rights - but you won't get them unless the 
+previous owner has relinquished the project folder. This protection 
+functionality is "always turned on". It can't be turned off. It works 
+whether or not you are trying to access a folder on a remote machine, 
+or just doing your normal work on your own machine. If you run two
+instances of Adapt It on the same computer, and both attempt to gain
+access to the same project, the first to gain access will have write
+access, the other will have read-only access. A special case ensues 
+if the administrator gains full access to a project on a remote 
+machine, and a user on the remote machine then tries to open that 
+project which exists on his own local machine. He will be allowed 
+to have either read-only access (the usual case), or if his computer 
+has a Linux or Mac operating system, he can gain full write access. 
+If he opts for full write access the administrator's access will 
+immediately switch to read-only access in order to protect data 
+integrity. When a user has read-only access (whether local user or 
+administrator a project remotely), he will not be able to write KB or 
+documents to disk until the other user having write access has 
+relinquished ownership of the project. Gaining write access after 
+having read-only access (and after the other user relinquishes 
+ownership of the project) requires that the current user close the 
+document or project first, then reenter the project. That is, whoever 
+opens the project first, gets ownership; whoever arrives second, only 
+gets read-only access and must close and reenter to gain write access 
+once the first user has left the project. This protocol prevents 
+inadvertent loss of data.
+* If a user accesses an Adapt It project located on a different
+computer over a network, Adapt It tries to substitute a suitable
+font to match what was used on the other computer. If no font with 
+the same face name exists on the user's own computer, Adapt It will
+attempt to find a font with a similar encoding. If that fails, the 
+user will be notified which fonts could not be found, and a system 
+font will be used instead. If the system font does not render the text 
+correctly, it may be necessary for the user to select a suitable font 
+from his own Preferences (on the Edit menu), or if no compatible font 
+is available on his computer, he may need to first install a font which 
+is compatible with the fonts used on the other machine on the network. 
+This may happen especially if the other machine being accessed uses a 
+different operating system - such as when a Windows computer accesses 
+an Adapt It project on a Linux or a Mac computer, or a Linux or Mac 
+user accesses an Adapt It project on a Windows computer, etc.
+* Added support for knowledge base searches. To do this, the dialog 
+for the Edit Knowledge Base command has some extra controls at the 
+bottom -
+   (a) a multiline text box where target text search strings can be 
+typed
+   (b) a Go button which initiates the search
+   (c) an Erase All Lines button which clears out the multiline text
 box's strings if the user does not want what he has typed and wants
 to start over by typing different strings
-(d) a Combobox control which lists all older search strings that the
+   (d) a Combobox control which lists all older search strings that the
 user typed while within the current project during the current
 session - this control is cleared automatically when the user leaves
 the project.
-Note: the search is "smart". In the multiline text box where search
-strings are typed, one or more words or parts of words, each
-separated by a space, can be typed. All the words in a "line" must
-match, in the order in which they were typed, for a KB adaptation
+Note: the KB search is "smart". In the multiline text box where target
+text search strings are typed, one or more words or parts of words, 
+each separated by a space, can be typed. All the words in a "line" 
+must match, in the order in which they were typed, for a KB adaptation
 (or gloss, if glossing mode is currently on) to be accepted as a
 successful match. The search text "line" can be longer than the width
 of the multiline text control - and although a long typed string may
-wrap over more than one physical line, it is still a single search string.
-The user must end the line by explicitly pressing the Enter key.
-Searching supports discontinuous matches. If the user wanted to
+wrap over more than one physical line, it is still a single search 
+string. The user must end the line by explicitly pressing the Enter 
+key. Searching supports discontinuous matches. If the user wanted to
 match all KB entries in which there is somewhere the string "ing" 
 followed somewhere, even if many words away, by the string "ed",
 then in the multiline text box he would type (without the doubequotes)
@@ -124,110 +159,115 @@ many search string "lines" can be typed for a single search operation
 as desired - the only thing to bear in mind is that if there are many
 search string lines, the searching will take longer. 
 After the matches have been collected internally, a dialog opens to 
-display the matched KB entries in a list. The list, on a Windows
-machine, will have a horizontal scroll bar if any of the matched entries
-exceed the width of the list; but on Mac or Linux, neither of which 
-support horizontal scroll bars within a list box, the user will need to
-drag the dialog's boundary to widen it sufficiently to see all of the
-contents of a long entry.
-The dialog provides the following features:
-(a) click on a matched entry, it then appears in an Edit box where
-it can be respelled if the user wishes
-(b) click on an Update button to cause a respelled adaptation (or
+display the matched KB entries in a list. The user may either use the
+horizontal scroll bar, or drag the dialog's boundary to widen it 
+sufficiently to see all of the contents of a long entry.
+The "Respell or Inspect Matched Knowledge Base Items" dialog provides 
+the following features:
+   (a) click on a matched entry, it then appears in an Edit box where
+it can be respelled if the user wishes.
+   (b) click on an Update button to cause a respelled adaptation (or
 gloss, if in glossing mode) to be added to an Updated Spellings list
 which is to the left of the list of matched KB entries.
-(c) the items in the two lists are linked, so clicking on an item in either
-causes the other list's corresponding item to be selected, and the Edit
-box to have the appropriate string placed in it.
-(d) a Remove Update button allows the user to reject a respelled item
-and it is removed from the Updated Spellings list and the formerlyu
-updated spelling is still shown in the Edit box, but the original spelling
-remains in the Matched list.
-(e) a Restore Original Spelling button does the same as the Remove
+   (c) the items in the two lists are linked, so clicking on an item 
+in either causes the other list's corresponding item to be selected, 
+and the Edit box to have the appropriate string placed in it.
+   (d) a Remove Update button allows the user to reject a respelled 
+item and it is removed from the Updated Spellings list and the 
+formerly updated spelling is still shown in the Edit box, but the 
+original spelling remains in the Matched list.
+   (e) a Restore Original Spelling button does the same as the Remove
 Update button, except the Edit box shows the original spelling.
-(f) because the Matched list may have many items in it, a text box is
-provided for a search string to be typed, and a Find Next button
-initiates the search, and if a matching item is found, it is scrolled into
-view. (This search is not smart, it tries to match the whole string 
-as typed, including any spaces within it.)
-(g) when the OK button is clicked, Adapt It looks at the contents of
-the Updated Spellings list, and updates the KB entries to which they
-belong.
-(h) the Cancel button rejects the whole of the current search - no KB
-entries are updated, the search string lines which the user had typed are
-thrown away, any new spellings in the Updated Spellings list are ignored.
-(i) on return to the parent dialog (and provided the Cancel button was not
-clicked), the set of typed search string "lines" are added to the contents of
-the combo box, so that at a later time it is easy to search for any of those
-"lines" again. Also, a message reminds the user that spellings were
-changed and that has made the knowledge base inconsistent with the 
-adaptation documents. It suggests that a consistency check of the whole
-set of documents be done when the parent dialog closes, and if the Yes
-button is clicked, the user is shown the dialog for choosing to consistency 
-check either the current document, or all documents.
-* Added support for an automated export (default options used)
-of the adaptation line's text, using the command line. The command
-line requires four parameters, all must be present, and in the
-following order: export  projectfoldername  documentname  
-pathtooutputfolder. Put doublequotes around any of these names
-or the path parameter, if there are spaces within. This feature is
-used by the SendIt utility which John Hatton has developed. SendIt
-allows the user to select a document from a list of documents
-currently in the project and it will then automatically generate the
-required export of the adaptation line's data to a file and attach
-the file to an email to be sent by HF radio using UUplus.
-* Added extra information to the status bar display, so that the
-user has feedback about which location the project is being
-accessed from. The information is in [ ] brackets, and there are
-three possibilities:
-Default Work Folder Location
-Temporary Work Folder Location
-Custom Work Folder Location
-The first of the above is for the legacy situation; the second is when
-the Custom Work Folder Location command is used from the
-Administrator menu to point Adapt It at a work folder in a non-
-standard location (and the folder name could be anything). The
-third is like the second, but the use has also used the command
-Lock Custom Location to make the new work folder location
-be persistent across sessions.
-Also, the status message now also distinguishes "Adapting" versus
-"Reviewing" modes, in the first word of the message.
-* Added support for a -frm  command line switch.
-frm stands for "force reviewing mode" to be turned on at launch.
-Do not use this switch unless you know what you are doing. It
+   (f) because the Matched list may have many items in it, a text box 
+is provided for a search string to be typed, and a Find Next button
+initiates the search, and if a matching item is found, it is scrolled 
+into view. (This search is not smart, it tries to match the whole 
+string as typed, including any spaces within it.)
+   (g) when the OK button is clicked, Adapt It looks at the contents 
+of the Updated Spellings list, and updates the KB entries to which 
+they belong.
+   (h) the Cancel button rejects the whole of the current search - no 
+KB entries are updated, the search string lines which the user had 
+typed are thrown away, any new spellings in the Updated Spellings list 
+are ignored.
+   (i) on return to the parent dialog (and provided the Cancel button 
+was not clicked), the set of typed search string "lines" are added to 
+the contents of the combo box, so that at a later time it is easy to 
+search for any of those "lines" again. Also, a message reminds the 
+user that spellings were changed and that has made the knowledge base 
+inconsistent with the adaptation documents. It suggests that a 
+consistency check of the whole set of documents be done when the 
+parent dialog closes, and if the Yes button is clicked, the user is 
+shown the dialog for choosing to consistency check either the current 
+document, or all documents.
+* Added support for a "force reviewing mode" to be turned on at 
+program launch. This can be activated by use of the -frm command line 
+switch. Do not use this switch unless you know what you are doing. It
 puts Adapt It into 'Reviewing mode' on launch, and hides both the
 Drafting and Reviewing radio buttons, so that in that session the
-user becomes locked in to reviewing mode. This is useful when
-a "dumb mode" for back translating is wanted. No lookup of the
-KB is done, the phrase box does not copy source text nor make
-an initial suggestion of any kind, and no auto insertions are done,
-but the KB still gets populated in the normal way as the user types
-back translations into the phrase box. This feature can be used
-with a shell script launch of Adapt It, to force this mode on on
-a per-session basis. That's one way this feature could
-be used. Another way is to setup a desktop shortcut and in the
-Target box, add the -frm switch to the end of the path. Whatever
-you do, be sure that the normal way to launch Adapt It does not
-have the -frm switch used, otherwise you'll lock the user (or
- yourself) out of essential adaptation functionalities at every launch.
- You've been warned!
-
+user becomes locked in to reviewing mode. This is useful when a 
+"dumb mode" for back translating is wanted. No lookup of the KB is 
+done, the phrase box does not copy source text nor make an initial 
+suggestion of any kind, and no auto insertions are done, but the KB 
+still gets populated in the normal way as the user types back 
+translations into the phrase box. This feature can be used with a 
+shell script launch of Adapt It, to force this mode on, on a per-session
+basis. That's one way this feature could be used. Another way is to 
+setup a desktop shortcut and in the shortcut properties' Target box, 
+add the -frm switch to the end of the path. Whatever you do, be sure 
+that the normal way to launch Adapt It does not have the -frm switch 
+used, otherwise you'll lock the user (or yourself) out of essential 
+adaptation functionalities at every launch. You've been warned!
+* Added support for an automated export (default options used) of the 
+adaptation line's text, using the command line. The command line 
+requires four parameters, and all must be present in the following 
+order: export  projectfoldername  documentname  pathtooutputfolder. 
+Put double quotes around any of these names or the path parameter, if 
+there are spaces within. This feature is used by the SendIt utility 
+which John Hatton has developed. SendIt allows the user to select a 
+document from a list of documents currently in the project and it 
+will then automatically generate the required export of the adaptation 
+line's data to a file and attach the file to an email to be sent by 
+HF radio using UUplus.
+* Added extra information to the status bar display, so that the
+user has feedback about which location the project is being accessed 
+from. The information is displayed in [ ] brackets, and there are 
+three possibilities:
+   [Default Work Folder Location]
+   [Temporary Work Folder Location]
+   [Custom Work Folder Location]
+The first of the above is for the legacy situation; the second is when
+the Custom Work Folder Location command is used from the Administrator 
+menu to point Adapt It at a work folder in a non-standard location 
+(and the folder name could be anything). The third is like the second, 
+but the use has also used the command Lock Custom Location to make the 
+new work folder location be persistent across sessions. Also, the 
+status message now also distinguishes "Adapting" versus "Reviewing" 
+modes, in the first word of the message.
+* Added a Swahili interface localization.
+* The Spanish language interface localization is more complete than in 
+previous releases, but the work of editing and correcting some text 
+strings is still in progress. Fully updated localizations are planned 
+for future updates, but we are dependent on help from others who can
+translate computer interface elements. Let us know if you can devote
+time to completing any of the existing language interface 
+localizations or preparing new ones.
 ----------------------------------------------
 Bug fixes in 5.2.0
 ----------------------------------------------
-* The Edit menu commands, Move Note Forward, and Move Note
-Backward, did their job but the window was not updated to show
-the changed location of the note.
+* The Edit menu commands, Move Note Forward, and Move Note Backward, 
+did their job but the window was not updated to show the changed 
+location of the note.
 * Typing a '2' key into the phrase box, or the edit box used for free
-translations, no 2 character appeared in the box.
-* Unmerging a merger which located at the end of the document
-caused a crash.
+translations, no 2 character appeared in the box. This is now fixed.
+* Unmerging a merger which located at the end of the document caused 
+a crash.
 * In Review mode, the application crashed after the user entered
 text into the phrase box at the end of the document.
-* In Review mode, text entered in the phrase box at the document
-end was not retained.
-* Pointing My Documents (in XP) or Documents (in Vista & above)
-at a partition such as D:\ caused a bad path to the basic configuration
+* In Review mode, text entered in the phrase box at the document end 
+was not retained.
+* Pointing My Documents (in XP) or Documents (in Vista & above) at a 
+partition such as D:\ caused a bad path to the basic configuration
 file to be produced, leading to error messages, or worse.
 * Free translating a large file become progressively more sluggish as 
 free translations were entered. It's now speedy and responsive.
