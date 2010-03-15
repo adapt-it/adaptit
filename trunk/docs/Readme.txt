@@ -1,7 +1,7 @@
 =====================================================================
 Adapt It WX
 =====================================================================
-Version 5.1.4
+Version 5.2.0
 Versions of Adapt It beginning with Version 4.0.0 are cross-platform 
 capable, being built with the wxWidgets cross-platform GUI framework 
 (hence the WX in the name). Packages are also available for Linux, 
@@ -296,6 +296,7 @@ The Adapt It Development Team:
 ---------------------------------------------------------------------
 Bill Martin   - bill_martin@sil.org
 Bruce Waters  - bruce_waters@sil.org
+Erik Brommers - erik_brommers@wycliffe.org
 Graeme Costin - adaptit@costincomputingservices.com.au (focus on
                    MacOSX)
 Bob Buss      - bob_buss@wycliffe.org (focus on HTML Help system)
