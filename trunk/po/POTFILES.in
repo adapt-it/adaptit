@@ -6,6 +6,7 @@
 ../../source/Adapt_ItDoc.cpp
 ../../source/Adapt_ItView.cpp
 ../../source/Adapt_It_wdr.cpp
+../../source/AdminMoveOrCopy.cpp
 ../../source/AutoSavingPage.cpp
 ../../source/BString.cpp
 ../../source/CCModule.cpp
@@ -29,6 +30,7 @@
 ../../source/ExportInterlinearDlg.cpp
 ../../source/ExportOptionsDlg.cpp
 ../../source/ExportSaveAsDlg.cpp
+../../source/FilenameConflictDlg.cpp
 ../../source/FilterPage.cpp
 ../../source/FindReplace.cpp
 ../../source/FontPage.cpp
@@ -36,6 +38,7 @@
 ../../source/JoinDialog.cpp
 ../../source/KB.cpp
 ../../source/KBEditor.cpp
+../../source/KBEditSearch.cpp
 ../../source/KBPage.cpp
 ../../source/LanguagesPage.cpp
 ../../source/Layout.cpp
@@ -55,6 +58,7 @@
 ../../source/PrintOptionsDlg.cpp
 ../../source/ProjectPage.cpp
 ../../source/PunctCorrespPage.cpp
+../../source/ReadOnlyProtection.cpp
 ../../source/RefString.cpp
 ../../source/RetranslationDlg.cpp
 ../../source/SetDelay.cpp

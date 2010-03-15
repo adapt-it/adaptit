@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-09-08 10:33-0600\n"
-"PO-Revision-Date: 2009-09-08 10:33-0600\n"
+"POT-Creation-Date: 2010-03-15 16:42-0600\n"
+"PO-Revision-Date: 2010-03-15 16:42-0600\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,569 +16,569 @@ msgstr ""
 "X-Poedit-Bookmarks: 1597,-1,-1,-1,-1,-1,-1,-1,-1,-1\n"
 "X-Poedit-SearchPath-0: source\n"
 
-#: source/Adapt_It.cpp:582
+#: source/Adapt_It.cpp:586
 msgid "Genesis"
 msgstr ""
 
-#: source/Adapt_It.cpp:584
+#: source/Adapt_It.cpp:588
 msgid "Exodus"
 msgstr ""
 
-#: source/Adapt_It.cpp:586
+#: source/Adapt_It.cpp:590
 msgid "Leviticus"
 msgstr ""
 
-#: source/Adapt_It.cpp:588
+#: source/Adapt_It.cpp:592
 msgid "Numbers"
 msgstr ""
 
-#: source/Adapt_It.cpp:590
+#: source/Adapt_It.cpp:594
 msgid "Deuteronomy"
 msgstr ""
 
-#: source/Adapt_It.cpp:592
+#: source/Adapt_It.cpp:596
 msgid "Joshua"
 msgstr ""
 
-#: source/Adapt_It.cpp:594
+#: source/Adapt_It.cpp:598
 msgid "Judges"
 msgstr ""
 
-#: source/Adapt_It.cpp:596
+#: source/Adapt_It.cpp:600
 msgid "Ruth"
 msgstr ""
 
-#: source/Adapt_It.cpp:598
+#: source/Adapt_It.cpp:602
 msgid "1 Samuel"
 msgstr ""
 
-#: source/Adapt_It.cpp:600
+#: source/Adapt_It.cpp:604
 msgid "2 Samuel"
 msgstr ""
 
-#: source/Adapt_It.cpp:602
+#: source/Adapt_It.cpp:606
 msgid "1 Kings"
 msgstr ""
 
-#: source/Adapt_It.cpp:604
+#: source/Adapt_It.cpp:608
 msgid "2 Kings"
 msgstr ""
 
-#: source/Adapt_It.cpp:606
+#: source/Adapt_It.cpp:610
 msgid "1 Chronicles"
 msgstr ""
 
-#: source/Adapt_It.cpp:608
+#: source/Adapt_It.cpp:612
 msgid "2 Chronicles"
 msgstr ""
 
-#: source/Adapt_It.cpp:610
+#: source/Adapt_It.cpp:614
 msgid "Ezra"
 msgstr ""
 
-#: source/Adapt_It.cpp:612
+#: source/Adapt_It.cpp:616
 msgid "Nehemiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:614
+#: source/Adapt_It.cpp:618
 msgid "Esther"
 msgstr ""
 
-#: source/Adapt_It.cpp:616
+#: source/Adapt_It.cpp:620
 msgid "Job"
 msgstr ""
 
-#: source/Adapt_It.cpp:618
+#: source/Adapt_It.cpp:622
 msgid "Psalms"
 msgstr ""
 
-#: source/Adapt_It.cpp:620
+#: source/Adapt_It.cpp:624
 msgid "Proverbs"
 msgstr ""
 
-#: source/Adapt_It.cpp:622
+#: source/Adapt_It.cpp:626
 msgid "Ecclesiastes"
 msgstr ""
 
-#: source/Adapt_It.cpp:624
+#: source/Adapt_It.cpp:628
 msgid "Song of Songs"
 msgstr ""
 
-#: source/Adapt_It.cpp:626
+#: source/Adapt_It.cpp:630
 msgid "Isaiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:628
+#: source/Adapt_It.cpp:632
 msgid "Jeremiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:630
+#: source/Adapt_It.cpp:634
 msgid "Lamentations"
 msgstr ""
 
-#: source/Adapt_It.cpp:632
+#: source/Adapt_It.cpp:636
 msgid "Ezekiel"
 msgstr ""
 
-#: source/Adapt_It.cpp:634
+#: source/Adapt_It.cpp:638
 msgid "Daniel"
 msgstr ""
 
-#: source/Adapt_It.cpp:636
+#: source/Adapt_It.cpp:640
 msgid "Hosea"
 msgstr ""
 
-#: source/Adapt_It.cpp:638
+#: source/Adapt_It.cpp:642
 msgid "Joel"
 msgstr ""
 
-#: source/Adapt_It.cpp:640
+#: source/Adapt_It.cpp:644
 msgid "Amos"
 msgstr ""
 
-#: source/Adapt_It.cpp:642
+#: source/Adapt_It.cpp:646
 msgid "Obadiah"
 msgstr ""
 
-#: source/Adapt_It.cpp:644
+#: source/Adapt_It.cpp:648
 msgid "Jonah"
 msgstr ""
 
-#: source/Adapt_It.cpp:646
+#: source/Adapt_It.cpp:650
 msgid "Micah"
 msgstr ""
 
-#: source/Adapt_It.cpp:648
+#: source/Adapt_It.cpp:652
 msgid "Nahum"
 msgstr ""
 
-#: source/Adapt_It.cpp:650
+#: source/Adapt_It.cpp:654
 msgid "Habakkuk"
 msgstr ""
 
-#: source/Adapt_It.cpp:652
+#: source/Adapt_It.cpp:656
 msgid "Zephaniah"
 msgstr ""
 
-#: source/Adapt_It.cpp:654
+#: source/Adapt_It.cpp:658
 msgid "Haggai"
 msgstr ""
 
-#: source/Adapt_It.cpp:656
+#: source/Adapt_It.cpp:660
 msgid "Zechariah"
 msgstr ""
 
-#: source/Adapt_It.cpp:658
+#: source/Adapt_It.cpp:662
 msgid "Malachi"
 msgstr ""
 
-#: source/Adapt_It.cpp:660
+#: source/Adapt_It.cpp:664
 msgid "Matthew"
 msgstr ""
 
-#: source/Adapt_It.cpp:662
+#: source/Adapt_It.cpp:666
 msgid "Mark"
 msgstr ""
 
-#: source/Adapt_It.cpp:664
+#: source/Adapt_It.cpp:668
 msgid "Luke"
 msgstr ""
 
-#: source/Adapt_It.cpp:666
+#: source/Adapt_It.cpp:670
 msgid "John"
 msgstr ""
 
-#: source/Adapt_It.cpp:668
+#: source/Adapt_It.cpp:672
 msgid "Acts"
 msgstr ""
 
-#: source/Adapt_It.cpp:670
+#: source/Adapt_It.cpp:674
 msgid "Romans"
 msgstr ""
 
-#: source/Adapt_It.cpp:672
+#: source/Adapt_It.cpp:676
 msgid "1 Corinthians"
 msgstr ""
 
-#: source/Adapt_It.cpp:674
+#: source/Adapt_It.cpp:678
 msgid "2 Corinthians"
 msgstr ""
 
-#: source/Adapt_It.cpp:676
+#: source/Adapt_It.cpp:680
 msgid "Galatians"
 msgstr ""
 
-#: source/Adapt_It.cpp:678
+#: source/Adapt_It.cpp:682
 msgid "Ephesians"
 msgstr ""
 
-#: source/Adapt_It.cpp:680
+#: source/Adapt_It.cpp:684
 msgid "Philippians"
 msgstr ""
 
-#: source/Adapt_It.cpp:682
+#: source/Adapt_It.cpp:686
 msgid "Colossians"
 msgstr ""
 
-#: source/Adapt_It.cpp:684
+#: source/Adapt_It.cpp:688
 msgid "1 Thessalonians"
 msgstr ""
 
-#: source/Adapt_It.cpp:686
+#: source/Adapt_It.cpp:690
 msgid "2 Thessalonians"
 msgstr ""
 
-#: source/Adapt_It.cpp:688
+#: source/Adapt_It.cpp:692
 msgid "1 Timothy"
 msgstr ""
 
-#: source/Adapt_It.cpp:690
+#: source/Adapt_It.cpp:694
 msgid "2 Timothy"
 msgstr ""
 
-#: source/Adapt_It.cpp:692
+#: source/Adapt_It.cpp:696
 msgid "Titus"
 msgstr ""
 
-#: source/Adapt_It.cpp:694
+#: source/Adapt_It.cpp:698
 msgid "Philemon"
 msgstr ""
 
-#: source/Adapt_It.cpp:696
+#: source/Adapt_It.cpp:700
 msgid "Hebrews"
 msgstr ""
 
-#: source/Adapt_It.cpp:698
+#: source/Adapt_It.cpp:702
 msgid "James"
 msgstr ""
 
-#: source/Adapt_It.cpp:700
+#: source/Adapt_It.cpp:704
 msgid "1 Peter"
 msgstr ""
 
-#: source/Adapt_It.cpp:702
+#: source/Adapt_It.cpp:706
 msgid "2 Peter"
 msgstr ""
 
-#: source/Adapt_It.cpp:704
+#: source/Adapt_It.cpp:708
 msgid "1 John"
 msgstr ""
 
-#: source/Adapt_It.cpp:706
+#: source/Adapt_It.cpp:710
 msgid "2 John"
 msgstr ""
 
-#: source/Adapt_It.cpp:708
+#: source/Adapt_It.cpp:712
 msgid "3 John"
 msgstr ""
 
-#: source/Adapt_It.cpp:710
+#: source/Adapt_It.cpp:714
 msgid "Jude"
 msgstr ""
 
-#: source/Adapt_It.cpp:712
+#: source/Adapt_It.cpp:716
 msgid "Revelation"
 msgstr ""
 
-#: source/Adapt_It.cpp:714
-#: source/Adapt_It.cpp:5116
+#: source/Adapt_It.cpp:718
+#: source/Adapt_It.cpp:5293
 msgid "Other Texts"
 msgstr ""
 
-#: source/Adapt_It.cpp:719
+#: source/Adapt_It.cpp:723
 msgid "GEN"
 msgstr ""
 
-#: source/Adapt_It.cpp:721
+#: source/Adapt_It.cpp:725
 msgid "EXO"
 msgstr ""
 
-#: source/Adapt_It.cpp:723
+#: source/Adapt_It.cpp:727
 msgid "LEV"
 msgstr ""
 
-#: source/Adapt_It.cpp:725
+#: source/Adapt_It.cpp:729
 msgid "NUM"
 msgstr ""
 
-#: source/Adapt_It.cpp:727
+#: source/Adapt_It.cpp:731
 msgid "DEU"
 msgstr ""
 
-#: source/Adapt_It.cpp:729
+#: source/Adapt_It.cpp:733
 msgid "JOS"
 msgstr ""
 
-#: source/Adapt_It.cpp:731
+#: source/Adapt_It.cpp:735
 msgid "JDG"
 msgstr ""
 
-#: source/Adapt_It.cpp:733
+#: source/Adapt_It.cpp:737
 msgid "RUT"
 msgstr ""
 
-#: source/Adapt_It.cpp:735
+#: source/Adapt_It.cpp:739
 msgid "1SA"
 msgstr ""
 
-#: source/Adapt_It.cpp:737
+#: source/Adapt_It.cpp:741
 msgid "2SA"
 msgstr ""
 
-#: source/Adapt_It.cpp:739
+#: source/Adapt_It.cpp:743
 msgid "1KI"
 msgstr ""
 
-#: source/Adapt_It.cpp:741
+#: source/Adapt_It.cpp:745
 msgid "2KI"
 msgstr ""
 
-#: source/Adapt_It.cpp:743
+#: source/Adapt_It.cpp:747
 msgid "1CH"
 msgstr ""
 
-#: source/Adapt_It.cpp:745
+#: source/Adapt_It.cpp:749
 msgid "2CH"
 msgstr ""
 
-#: source/Adapt_It.cpp:747
+#: source/Adapt_It.cpp:751
 msgid "EZR"
 msgstr ""
 
-#: source/Adapt_It.cpp:749
+#: source/Adapt_It.cpp:753
 msgid "NEH"
 msgstr ""
 
-#: source/Adapt_It.cpp:751
+#: source/Adapt_It.cpp:755
 msgid "EST"
 msgstr ""
 
-#: source/Adapt_It.cpp:753
+#: source/Adapt_It.cpp:757
 msgid "JOB"
 msgstr ""
 
-#: source/Adapt_It.cpp:755
+#: source/Adapt_It.cpp:759
 msgid "PSA"
 msgstr ""
 
-#: source/Adapt_It.cpp:757
+#: source/Adapt_It.cpp:761
 msgid "PRO"
 msgstr ""
 
-#: source/Adapt_It.cpp:759
+#: source/Adapt_It.cpp:763
 msgid "ECC"
 msgstr ""
 
-#: source/Adapt_It.cpp:761
+#: source/Adapt_It.cpp:765
 msgid "SNG"
 msgstr ""
 
-#: source/Adapt_It.cpp:763
+#: source/Adapt_It.cpp:767
 msgid "ISA"
 msgstr ""
 
-#: source/Adapt_It.cpp:765
+#: source/Adapt_It.cpp:769
 msgid "JER"
 msgstr ""
 
-#: source/Adapt_It.cpp:767
+#: source/Adapt_It.cpp:771
 msgid "LAM"
 msgstr ""
 
-#: source/Adapt_It.cpp:769
+#: source/Adapt_It.cpp:773
 msgid "EZK"
 msgstr ""
 
-#: source/Adapt_It.cpp:771
+#: source/Adapt_It.cpp:775
 msgid "DAN"
 msgstr ""
 
-#: source/Adapt_It.cpp:773
+#: source/Adapt_It.cpp:777
 msgid "HOS"
 msgstr ""
 
-#: source/Adapt_It.cpp:775
+#: source/Adapt_It.cpp:779
 msgid "JOL"
 msgstr ""
 
-#: source/Adapt_It.cpp:777
+#: source/Adapt_It.cpp:781
 msgid "AMO"
 msgstr ""
 
-#: source/Adapt_It.cpp:779
+#: source/Adapt_It.cpp:783
 msgid "OBA"
 msgstr ""
 
-#: source/Adapt_It.cpp:781
+#: source/Adapt_It.cpp:785
 msgid "JON"
 msgstr ""
 
-#: source/Adapt_It.cpp:783
+#: source/Adapt_It.cpp:787
 msgid "MIC"
 msgstr ""
 
-#: source/Adapt_It.cpp:785
+#: source/Adapt_It.cpp:789
 msgid "NAH"
 msgstr ""
 
-#: source/Adapt_It.cpp:787
+#: source/Adapt_It.cpp:791
 msgid "HAB"
 msgstr ""
 
-#: source/Adapt_It.cpp:789
+#: source/Adapt_It.cpp:793
 msgid "ZEP"
 msgstr ""
 
-#: source/Adapt_It.cpp:791
+#: source/Adapt_It.cpp:795
 msgid "HAG"
 msgstr ""
 
-#: source/Adapt_It.cpp:793
+#: source/Adapt_It.cpp:797
 msgid "ZEC"
 msgstr ""
 
-#: source/Adapt_It.cpp:795
+#: source/Adapt_It.cpp:799
 msgid "MAL"
 msgstr ""
 
-#: source/Adapt_It.cpp:797
+#: source/Adapt_It.cpp:801
 msgid "MAT"
 msgstr ""
 
-#: source/Adapt_It.cpp:799
+#: source/Adapt_It.cpp:803
 msgid "MRK"
 msgstr ""
 
-#: source/Adapt_It.cpp:801
+#: source/Adapt_It.cpp:805
 msgid "LUK"
 msgstr ""
 
-#: source/Adapt_It.cpp:803
+#: source/Adapt_It.cpp:807
 msgid "JHN"
 msgstr ""
 
-#: source/Adapt_It.cpp:805
+#: source/Adapt_It.cpp:809
 msgid "ACT"
 msgstr ""
 
-#: source/Adapt_It.cpp:807
+#: source/Adapt_It.cpp:811
 msgid "ROM"
 msgstr ""
 
-#: source/Adapt_It.cpp:809
+#: source/Adapt_It.cpp:813
 msgid "1CO"
 msgstr ""
 
-#: source/Adapt_It.cpp:811
+#: source/Adapt_It.cpp:815
 msgid "2CO"
 msgstr ""
 
-#: source/Adapt_It.cpp:813
+#: source/Adapt_It.cpp:817
 msgid "GAL"
 msgstr ""
 
-#: source/Adapt_It.cpp:815
+#: source/Adapt_It.cpp:819
 msgid "EPH"
 msgstr ""
 
-#: source/Adapt_It.cpp:817
+#: source/Adapt_It.cpp:821
 msgid "PHP"
 msgstr ""
 
-#: source/Adapt_It.cpp:819
+#: source/Adapt_It.cpp:823
 msgid "COL"
 msgstr ""
 
-#: source/Adapt_It.cpp:821
+#: source/Adapt_It.cpp:825
 msgid "1TH"
 msgstr ""
 
-#: source/Adapt_It.cpp:823
+#: source/Adapt_It.cpp:827
 msgid "2TH"
 msgstr ""
 
-#: source/Adapt_It.cpp:825
+#: source/Adapt_It.cpp:829
 msgid "1TI"
 msgstr ""
 
-#: source/Adapt_It.cpp:827
+#: source/Adapt_It.cpp:831
 msgid "2TI"
 msgstr ""
 
-#: source/Adapt_It.cpp:829
+#: source/Adapt_It.cpp:833
 msgid "TIT"
 msgstr ""
 
-#: source/Adapt_It.cpp:831
+#: source/Adapt_It.cpp:835
 msgid "PHM"
 msgstr ""
 
-#: source/Adapt_It.cpp:833
+#: source/Adapt_It.cpp:837
 msgid "HEB"
 msgstr ""
 
-#: source/Adapt_It.cpp:835
+#: source/Adapt_It.cpp:839
 msgid "JAS"
 msgstr ""
 
-#: source/Adapt_It.cpp:837
+#: source/Adapt_It.cpp:841
 msgid "1PE"
 msgstr ""
 
-#: source/Adapt_It.cpp:839
+#: source/Adapt_It.cpp:843
 msgid "2PE"
 msgstr ""
 
-#: source/Adapt_It.cpp:841
+#: source/Adapt_It.cpp:845
 msgid "1JN"
 msgstr ""
 
-#: source/Adapt_It.cpp:843
+#: source/Adapt_It.cpp:847
 msgid "2JN"
 msgstr ""
 
-#: source/Adapt_It.cpp:845
+#: source/Adapt_It.cpp:849
 msgid "3JN"
 msgstr ""
 
-#: source/Adapt_It.cpp:847
+#: source/Adapt_It.cpp:851
 msgid "JUD"
 msgstr ""
 
-#: source/Adapt_It.cpp:849
+#: source/Adapt_It.cpp:853
 msgid "REV"
 msgstr ""
 
-#: source/Adapt_It.cpp:851
+#: source/Adapt_It.cpp:855
 msgid "OTX"
 msgstr ""
 
-#: source/Adapt_It.cpp:853
+#: source/Adapt_It.cpp:857
 msgid "&Finish"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:855
+#: source/Adapt_It.cpp:859
 #, fuzzy
 msgid "< &Back"
 msgstr "跳回"
 
-#: source/Adapt_It.cpp:1850
+#: source/Adapt_It.cpp:1854
 #, c-format
 msgid "(Use system default language) [%s]"
 msgstr ""
 
-#: source/Adapt_It.cpp:4725
+#: source/Adapt_It.cpp:4848
 msgid "The user interface language change may not fully take effect until you restart Adapt It."
 msgstr ""
 
 # Do not translate.
-#: source/Adapt_It.cpp:4941
+#: source/Adapt_It.cpp:5117
 msgid "Adapt It Unicode"
 msgstr ""
 
 # Do not translate.
-#: source/Adapt_It.cpp:4942
+#: source/Adapt_It.cpp:5118
 msgid "Unicode "
 msgstr ""
 
@@ -587,125 +587,137 @@ msgstr ""
 # 2. In the Welcome splash screen.
 # 3. In the Help About Information.
 # It is probably best not to translate.
-#: source/Adapt_It.cpp:4944
+#: source/Adapt_It.cpp:5120
 #: source/Adapt_It_wdr.cpp:76
 #: source/Adapt_It_wdr.cpp:1249
 msgid "Adapt It"
 msgstr ""
 
 # This will be the name of the folder that contains all the adapted documents for a project.
-#: source/Adapt_It.cpp:4964
-#: source/Adapt_It.cpp:21165
-#: source/Adapt_It.cpp:21230
+#: source/Adapt_It.cpp:5141
+#: source/Adapt_It.cpp:21456
+#: source/Adapt_It.cpp:21521
 msgid "Adaptations"
 msgstr "对应转换"
 
 # Priority 1
-#: source/Adapt_It.cpp:5112
+#: source/Adapt_It.cpp:5289
 msgid "History books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:5113
+#: source/Adapt_It.cpp:5290
 msgid "Wisdom books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:5114
+#: source/Adapt_It.cpp:5291
 msgid "Prophecy books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:5115
+#: source/Adapt_It.cpp:5292
 msgid "New Testament books"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:6214
+#: source/Adapt_It.cpp:6530
 #, fuzzy
 msgid "Start Working...\tCtrl-Shift-O"
 msgstr "启动精灵..."
 
 # Priority 1
-#: source/Adapt_It.cpp:6225
+#: source/Adapt_It.cpp:6541
 #, fuzzy
 msgid "Close Project\tCtrl-W"
 msgstr "关闭工程"
 
 # Priority 1
-#: source/Adapt_It.cpp:6235
+#: source/Adapt_It.cpp:6551
 #, fuzzy
 msgid "Exit\tCtrl-Q"
 msgstr "剪切"
 
 # Priority 1
-#: source/Adapt_It.cpp:6244
+#: source/Adapt_It.cpp:6560
 #, fuzzy
 msgid "Edit Source Text...\tCtrl-Shift-E"
 msgstr "编辑源文..."
 
 # Priority 1
-#: source/Adapt_It.cpp:6250
+#: source/Adapt_It.cpp:6566
 #, fuzzy
 msgid "Move Note Backward\tCtrl-Shift-2"
 msgstr "后移注解"
 
 # Priority 1
-#: source/Adapt_It.cpp:6256
+#: source/Adapt_It.cpp:6572
 #, fuzzy
 msgid "Move Note Forward\tCtrl-Shift-3"
 msgstr "前移注解"
 
 # Priority 1
-#: source/Adapt_It.cpp:6265
+#: source/Adapt_It.cpp:6581
 #, fuzzy
 msgid "Find and Replace...\tCtrl-Shift-F"
 msgstr "查找并替换..."
 
 # Priority 1
-#: source/Adapt_It.cpp:6274
-#: source/Adapt_It.cpp:6684
-#: source/Adapt_ItView.cpp:25416
-#: source/Adapt_ItView.cpp:25479
+#: source/Adapt_It.cpp:6590
+#: source/Adapt_It.cpp:7081
+#: source/Adapt_ItView.cpp:25551
+#: source/Adapt_ItView.cpp:25614
 #, fuzzy
 msgid "Layout Window Right To Left\tCtrl-Shift-1"
 msgstr "由右至左布置窗口版面\tCtrl-1"
 
 # Priority 1
-#: source/Adapt_It.cpp:6278
+#: source/Adapt_It.cpp:6594
 #, fuzzy
 msgid "Help Topics\tCtrl-Shift-/"
 msgstr "帮助主题"
 
 # Priority 1
-#: source/Adapt_It.cpp:6283
+#: source/Adapt_It.cpp:6599
 #, fuzzy
 msgid "Help Topics\tF1"
 msgstr "帮助主题"
 
+#: source/Adapt_It.cpp:6688
+msgid "Locating the custom work folder location failed. Either recovery requires you to take action outside of Adapt It, or the recovery attempt failed, or you Cancelled in order to force the application to abort now."
+msgstr ""
+
+#: source/Adapt_It.cpp:6690
+#: source/Adapt_It.cpp:15427
+#: source/Adapt_It.cpp:15437
+#: source/Adapt_It.cpp:15551
+msgid "Error of file named CustomWorkFolderLocation"
+msgstr ""
+
 # Priority 1
-#: source/Adapt_It.cpp:6686
-#: source/Adapt_ItView.cpp:25418
-#: source/Adapt_ItView.cpp:25481
-#: source/Adapt_It_wdr.cpp:6780
+#: source/Adapt_It.cpp:7083
+#: source/Adapt_ItView.cpp:25553
+#: source/Adapt_ItView.cpp:25616
+#: source/Adapt_It_wdr.cpp:7216
 msgid "Layout Window Right To Left\tCtrl-1"
 msgstr "由右至左布置窗口版面\tCtrl-1"
 
-#: source/Adapt_It.cpp:6700
-#: source/Adapt_ItDoc.cpp:1137
+#: source/Adapt_It.cpp:7097
+#: source/Adapt_ItDoc.cpp:1247
 msgid "Untitled - Adapt It"
 msgstr ""
 
-#: source/Adapt_It.cpp:6706
+#: source/Adapt_It.cpp:7103
 msgid "Loading books.xml and AI_USFM.xml ..."
 msgstr ""
 
-#: source/Adapt_It.cpp:6715
-#: source/Adapt_It.cpp:6726
+#: source/Adapt_It.cpp:7115
+#: source/Adapt_It.cpp:7119
+#: source/Adapt_It.cpp:7131
 msgid "books.xml"
 msgstr ""
 
-#: source/Adapt_It.cpp:6773
+#: source/Adapt_It.cpp:7178
 msgid ""
 "Warning: book folder mode will be disabled until a books.xml file is stored \n"
 "in the work folder and it is read in and parsed correctly.\n"
@@ -713,38 +725,38 @@ msgid ""
 "before trying to do more work."
 msgstr "警告：当文件books.xml储存在工作文件夹、可读取且在语法分析上正确时，才可以使用书卷文件夹。你必须先关闭应用程序来解决books.xml文件的问题，然后再继续。"
 
-#: source/Adapt_It.cpp:6907
+#: source/Adapt_It.cpp:7324
 msgid "Could not remove the AI_USFM.xml file from the work folder."
 msgstr ""
 
-#: source/Adapt_It.cpp:6961
+#: source/Adapt_It.cpp:7378
 msgid "Warning: using default USFM styles until a AI_USFM.xml file is stored in the work folder and it is read in and parsed correctly. You should exit the application and fix the AI_USFM.xml file if you have previously told Adapt It to hide certain standard format markers."
 msgstr "警告：在文件 AI_USFM.xml储存到工作文件夹、可读取且在语法分析上正确前，都使用默认的USFM格式。如果之前你已告诉Adapt It要隐藏确定的标准格式标记，那么你必须先关闭应用程序来解决文件AI_USFM.xml的问题。"
 
-#: source/Adapt_It.cpp:7010
+#: source/Adapt_It.cpp:7427
 #, c-format
 msgid "Initializing help system file %s..."
 msgstr ""
 
-#: source/Adapt_It.cpp:7060
+#: source/Adapt_It.cpp:7477
 msgid "Initialization complete. Call Start Working..."
 msgstr ""
 
 # Do not translate the 'Adapt It %sWork' part of the sentence.
-#: source/Adapt_It.cpp:8335
+#: source/Adapt_It.cpp:8927
 #, c-format
 msgid "Sorry, there is a file named 'Adapt It %sWork'. Please delete or rename this file because Adapt It needs to use this name instead for a folder."
 msgstr "对不起，发现一名为'Adapt It %sWork'的文件。由于Adapt It需要使用它来命名文件夹，所以请删除或重命名此文件。"
 
 # Note: there are two instances of %s placeholders which should be preserved.
-#: source/Adapt_It.cpp:8354
+#: source/Adapt_It.cpp:8946
 #, fuzzy, c-format
 msgid ""
 "Sorry, there was an error creating the \"Adapt It %sWork\" folder in your <home user>/My Documents folder.\n"
 "Adapt It %s is not set up correctly and so must close down."
 msgstr "对不起，在你“我的文档”中创建文件夹\"\"Adapt It %sWork\"\"时出错。%s设置不正确，所以必须关闭。"
 
-#: source/Adapt_It.cpp:8410
+#: source/Adapt_It.cpp:9004
 #, c-format
 msgid "Warning: a project with the name \"%s\" already exists. Adapt It will therefore use the existing project."
 msgstr "警告：已经存在一个名为\"\"%s\"\"的工程。所以Adapt It将会使用这一现有的工程。"
@@ -752,204 +764,219 @@ msgstr "警告：已经存在一个名为\"\"%s\"\"的工程。所以Adapt It将
 # Do not translate  \"%s to %s adaptations\"
 # Also do not translate  Adapt It %sWork
 # Note that the %s place holders are filled with text in the same order as the original English text. Therefore it is important to translate the first sentence if possible so that the \"%s to %s adaptations\"  and the Adapt It %sWork parts remain in the same order, i.e., Adapt It %sWork should not precede \"%s to %s adaptations\" in the sentence.
-#: source/Adapt_It.cpp:8428
+#: source/Adapt_It.cpp:9022
 #, c-format
 msgid "Sorry, there is a file named \"%s to %s adaptations\" in your Adapt It %sWork folder. You must rename or delete this file because Adapt It needs to use this name for a folder."
 msgstr ""
 
 # Do not translate the \"s% to %s adaptions\" part.
-#: source/Adapt_It.cpp:8447
+#: source/Adapt_It.cpp:9045
 #, c-format
 msgid "Sorry, there was an error creating the \"%s to %s adaptations\" folder in your Adapt It %sWork folder. Adapt It is not set up correctly and so must close down."
 msgstr "对不起，在文件夹Adapt It %sWork中创建文件夹\"\"%s to %s adaptions\"\"时出错。Adapt It 设置不正确，所以必须关闭。"
 
-#: source/Adapt_It.cpp:8478
+#: source/Adapt_It.cpp:9083
 #, c-format
 msgid "Sorry, there is a file named \"Adaptations\" in your \"%s\" folder. Please delete or rename it because Adapt It needs to use that name for a directory instead."
 msgstr "对不起，在你的文件夹\"\"%s\"\"中有一名为\"\"Adaptations\"\"的文件，由于Adapt It 需要用它命名文件夹，所以请删除或更名此文件。"
 
 # Do not translate the \"Adaptations\" part of the sentence.
-#: source/Adapt_It.cpp:8496
+#: source/Adapt_It.cpp:9101
 msgid "Sorry, there was an error creating the \"Adaptations\" folder in your project folder. Adapt It is not set up properly and so must close down."
 msgstr "对不起，在你的工程文件夹中创建文件夹\"\"Adaptions\"\"时出错。Adapt It设置不正确，所以必须关闭。"
 
-#: source/Adapt_It.cpp:8570
-#: source/Adapt_It.cpp:8802
-#: source/Adapt_It.cpp:11266
-#: source/Adapt_ItView.cpp:1643
+#: source/Adapt_It.cpp:9175
+#: source/Adapt_It.cpp:9417
+#: source/Adapt_It.cpp:11983
+#: source/Adapt_ItView.cpp:1645
 msgid "Error: loading the glossing knowledge base failed. The application will now close."
 msgstr "错误：加载注释资料库失败。程序将被关闭。"
 
-#: source/Adapt_It.cpp:8582
-#: source/Adapt_It.cpp:8814
-#: source/Adapt_It.cpp:11299
-#: source/Adapt_ItView.cpp:1653
+#: source/Adapt_It.cpp:9187
+#: source/Adapt_It.cpp:9429
+#: source/Adapt_It.cpp:12016
+#: source/Adapt_ItView.cpp:1655
 msgid "Error: loading a knowledge base failed. The application will now close."
 msgstr "错误：载入资料库失败。程序现在将关闭。"
 
-#: source/Adapt_It.cpp:8622
-#: source/Adapt_It.cpp:8853
-#: source/Adapt_ItView.cpp:1691
+#: source/Adapt_It.cpp:9227
+#: source/Adapt_It.cpp:9468
+#: source/Adapt_ItView.cpp:1693
 msgid "Error: storing the glossing knowledge base to disk for the first time failed. The application will now close."
 msgstr "错误：首次将注释资料库存入磁盘失败。程序将被关闭。"
 
-#: source/Adapt_It.cpp:8634
-#: source/Adapt_It.cpp:8865
-#: source/Adapt_It.cpp:11194
-#: source/Adapt_It.cpp:11239
-#: source/Adapt_ItView.cpp:1701
+#: source/Adapt_It.cpp:9239
+#: source/Adapt_It.cpp:9480
+#: source/Adapt_It.cpp:11911
+#: source/Adapt_It.cpp:11956
+#: source/Adapt_ItView.cpp:1703
 msgid "Error: saving the knowledge base failed. The application will now close."
 msgstr "错误：保存资料库失败。程序现在将关闭。"
 
-#: source/Adapt_It.cpp:8729
+#: source/Adapt_It.cpp:9344
 msgid "SetupDirectories(): error creating the \"Adaptations\" folder. Abort now."
 msgstr ""
 
-#: source/Adapt_It.cpp:9644
+#: source/Adapt_It.cpp:10259
 msgid "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."
 msgstr "警告：没有找到用于存储注释的资料库。已创建一空资料库供替代使用。"
 
-#: source/Adapt_It.cpp:9731
+#: source/Adapt_It.cpp:10350
 msgid "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "
 msgstr "警告：没有找到用于存储对应转换内容的资料库。已创建一空资料库供替代使用。"
 
-#: source/Adapt_It.cpp:9846
+#: source/Adapt_It.cpp:10470
 msgid "Failed to set the current directory when getting existing adaptation documents"
 msgstr ""
 
-#: source/Adapt_It.cpp:9922
+#: source/Adapt_It.cpp:10546
 #, c-format
 msgid "Creating folder: \"%s\" failed. This folder will be skipped, processing will continue."
 msgstr ""
 
-#: source/Adapt_It.cpp:10119
-#: source/Adapt_It.cpp:10196
+#: source/Adapt_It.cpp:10757
+#: source/Adapt_It.cpp:10834
 msgid "Error opening glossing KB file for writing with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10121
-#: source/Adapt_It.cpp:10198
+#: source/Adapt_It.cpp:10759
+#: source/Adapt_It.cpp:10836
 msgid ""
 "\n"
 "The glossing knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
 
-#: source/Adapt_It.cpp:10173
-#: source/Adapt_It.cpp:10474
+#: source/Adapt_It.cpp:10811
+#: source/Adapt_It.cpp:11123
 msgid "Removing backup glossing kb file failed."
 msgstr ""
 
-#: source/Adapt_It.cpp:10185
+#: source/Adapt_It.cpp:10823
 msgid "Error renaming backup glossing KB file with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10187
+#: source/Adapt_It.cpp:10825
 msgid ""
 "\n"
 "Backup copy of glossing knowledge base was not created."
 msgstr ""
 
-#: source/Adapt_It.cpp:10231
+#: source/Adapt_It.cpp:10869
 msgid "Could not remove the *.BAK backup glossing knowledge base alternate file"
 msgstr ""
 
-#: source/Adapt_It.cpp:10274
-#: source/Adapt_It.cpp:10349
+#: source/Adapt_It.cpp:10915
+#: source/Adapt_It.cpp:10990
 msgid "Error opening KB file for writing with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10276
-#: source/Adapt_It.cpp:10351
+#: source/Adapt_It.cpp:10917
+#: source/Adapt_It.cpp:10992
 msgid ""
 "\n"
 "The knowledge base was not saved.\n"
 "Is your drive's free space low, or is the file open in another application?"
 msgstr ""
 
-#: source/Adapt_It.cpp:10307
+#: source/Adapt_It.cpp:10948
 msgid "Could not remove the *.KB knowledge base alternate file"
 msgstr ""
 
-#: source/Adapt_It.cpp:10328
-#: source/Adapt_It.cpp:10431
+#: source/Adapt_It.cpp:10969
+#: source/Adapt_It.cpp:11076
 msgid "Removing backup kb file failed."
 msgstr ""
 
-#: source/Adapt_It.cpp:10339
+#: source/Adapt_It.cpp:10980
 msgid "Error renaming backup KB file with path:\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:10340
+#: source/Adapt_It.cpp:10981
 msgid ""
 "\n"
 "Backup copy of knowledge base was not created."
 msgstr ""
 
-#: source/Adapt_It.cpp:10382
+#: source/Adapt_It.cpp:11023
 msgid "Could not remove the *.BAK backup knowledge base alternate file"
 msgstr ""
 
-#: source/Adapt_It.cpp:10609
+#: source/Adapt_It.cpp:11267
+msgid "No project folder defined yet. "
+msgstr ""
+
+#: source/Adapt_It.cpp:11270
+msgid ""
+"\n"
+"If you want to continue, you must choose a project or create a new project.\n"
+"Do you want to continue? "
+msgstr ""
+
+#: source/Adapt_It.cpp:11271
+msgid "Basic Configuration File Not Read"
+msgstr ""
+
+#: source/Adapt_It.cpp:11293
 #, c-format
 msgid "Failed to find the %s folder."
 msgstr ""
 
-#: source/Adapt_It.cpp:10612
+#: source/Adapt_It.cpp:11296
 msgid ""
 "\n"
 "If you want to continue, you must choose a different project or create a new project.\n"
 "Do you want to continue? "
 msgstr ""
 
-#: source/Adapt_It.cpp:10613
+#: source/Adapt_It.cpp:11297
 msgid "Bad path in config file"
 msgstr ""
 
-#: source/Adapt_It.cpp:10927
+#: source/Adapt_It.cpp:11631
 msgid "Adapt It cannot create its work folder: "
 msgstr ""
 
-#: source/Adapt_It.cpp:10928
+#: source/Adapt_It.cpp:11632
 msgid ""
 "\n"
 "Adapt It cannot continue and will now abort."
 msgstr ""
 
-#: source/Adapt_It.cpp:10929
+#: source/Adapt_It.cpp:11633
 msgid "Critical Error"
 msgstr ""
 
-#: source/Adapt_It.cpp:11141
-#: source/Adapt_It.cpp:11150
+#: source/Adapt_It.cpp:11858
+#: source/Adapt_It.cpp:11867
 #, c-format
 msgid "Warning: Did not remove bad knowledge base file %s."
 msgstr ""
 
-#: source/Adapt_It.cpp:11170
+#: source/Adapt_It.cpp:11887
 #, c-format
 msgid "Error renaming glossing KB Backup file, path %s, to be the new glossing KB file."
 msgstr ""
 
-#: source/Adapt_It.cpp:11211
+#: source/Adapt_It.cpp:11928
 #, c-format
 msgid "Error renaming KB Backup file with path %s to become the new KB file."
 msgstr ""
 
-#: source/Adapt_It.cpp:11277
+#: source/Adapt_It.cpp:11994
 msgid "Glossing KB file not found immediately after it was renamed!\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:11310
+#: source/Adapt_It.cpp:12027
 msgid "KB file not found immediately after it was renamed!\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:11469
+#: source/Adapt_It.cpp:12186
 #, c-format
 msgid "Warning: the consistent changes table number %d, and any further tables, were not loaded."
 msgstr "警告：协调转换表%d以及所属子表未被载入。"
 
-#: source/Adapt_It.cpp:11665
+#: source/Adapt_It.cpp:12382
 msgid ""
 "Use this command if the knowledge base has become corrupted.\n"
 "(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\n"
@@ -958,7 +985,7 @@ msgid ""
 "Do you wish to go ahead?"
 msgstr "当资料库损坏时，使用此命令恢复。（要恢复注释资料库，先开启注释，然后再使用此命令。）它将舍弃当前的资料库，然后用保存的文档文件重建一个新的资料库。你希望继续吗？"
 
-#: source/Adapt_It.cpp:11691
+#: source/Adapt_It.cpp:12408
 msgid ""
 "Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\n"
 "but it might result in a harmless crash. (If so, just run Adapt It again and take the \"No\" option.)\n"
@@ -966,54 +993,54 @@ msgid ""
 "Do you wish to try this extra rescue?"
 msgstr "Adapt It也可以尽量挽救“此项的强制选项”检验框的设定，只是有可能会程序崩溃，但这不会造成任何的损坏。（如果发生这种情况，只须重启Adapt It，然后选择“否”）是否希望尝试此额外挽救功能？"
 
-#: source/Adapt_It.cpp:11755
-#: source/Adapt_It.cpp:17984
-#: source/Adapt_ItView.cpp:17050
-#: source/Adapt_ItView.cpp:17107
-#: source/Adapt_ItView.cpp:24881
+#: source/Adapt_It.cpp:12472
+#: source/Adapt_It.cpp:18906
+#: source/Adapt_ItView.cpp:17154
+#: source/Adapt_ItView.cpp:17211
+#: source/Adapt_ItView.cpp:25014
 msgid "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."
 msgstr "对不起，目前还没有针对此工程所保存的文档文件。至少需要一个文档文件才可以恢复资料库。此命令将被忽略。"
 
-#: source/Adapt_It.cpp:11898
+#: source/Adapt_It.cpp:12615
 #, c-format
 msgid "Your rebuilt knowledge base is now in operation. It contains %d source words and phrases taken from %d  documents."
 msgstr "你所重建的资料库正在使用。它包含来自%d文档的 %d个源文单词和短语。"
 
-#: source/Adapt_It.cpp:12211
-#: source/Adapt_It.cpp:18251
-#: source/Adapt_ItDoc.cpp:2134
-#: source/Adapt_ItView.cpp:17206
-#: source/Adapt_ItView.cpp:25173
+#: source/Adapt_It.cpp:12928
+#: source/Adapt_It.cpp:19173
+#: source/Adapt_ItDoc.cpp:2255
+#: source/Adapt_ItView.cpp:17310
+#: source/Adapt_ItView.cpp:25308
 #, c-format
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "文件：%s 单词和短语总数：%d  的  %d"
 
-#: source/Adapt_It.cpp:12213
+#: source/Adapt_It.cpp:12930
 msgid "Restoring the Knowledge Base"
 msgstr ""
 
-#: source/Adapt_It.cpp:12301
+#: source/Adapt_It.cpp:13018
 msgid "Warning: something went wrong doing a save of the KB"
 msgstr ""
 
-#: source/Adapt_It.cpp:12328
+#: source/Adapt_It.cpp:13048
 #, c-format
 msgid ""
 "Adapt It changed the punctuation in one or more of your documents.\n"
 "See the %s file in your project folder for more information on what was changed."
 msgstr ""
 
-#: source/Adapt_It.cpp:13634
+#: source/Adapt_It.cpp:14302
 msgid "Unrecognized font attribute field; unmatched name is: "
 msgstr ""
 
-#: source/Adapt_It.cpp:13635
+#: source/Adapt_It.cpp:14303
 msgid "Error parsing font information"
 msgstr ""
 
-#: source/Adapt_It.cpp:13919
-#: source/Adapt_It.cpp:15374
-#: source/Adapt_ItDoc.cpp:8503
+#: source/Adapt_It.cpp:14595
+#: source/Adapt_It.cpp:16303
+#: source/Adapt_ItDoc.cpp:8721
 msgid ""
 "\n"
 "You should not use this non-Unicode version of Adapt It.\n"
@@ -1021,115 +1048,152 @@ msgid ""
 "and then you should use the Unicode version of Adapt It."
 msgstr ""
 
-#: source/Adapt_It.cpp:13921
+#: source/Adapt_It.cpp:14597
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Basic Configuration File's punctuation string (see below):"
 msgstr ""
 
-#: source/Adapt_It.cpp:13923
-#: source/Adapt_It.cpp:15378
-#: source/Adapt_ItDoc.cpp:8506
+#: source/Adapt_It.cpp:14599
+#: source/Adapt_It.cpp:16307
+#: source/Adapt_ItDoc.cpp:8724
 msgid "Warning: Invalid Characters Detected"
 msgstr ""
 
-#: source/Adapt_It.cpp:14559
+#: source/Adapt_It.cpp:15235
 #, c-format
 msgid "Warning: Unrecognized Basic settings field; unmatched name is: %s\n"
 msgstr ""
 
-#: source/Adapt_It.cpp:15376
+#: source/Adapt_It.cpp:15490
+#, c-format
+msgid ""
+"Adapt It did not find your work folder at\n"
+"   %s\n"
+"This error will occur either \n"
+"1. because your work folder is located on an external drive which is not currently plugged in, or \n"
+"2. because there is a typing error in the work folder path stored in the file named CustomWorkFolderLocation, or \n"
+"3. another application currently has the CustomWorkFolderLocation file open. \n"
+"You will have a chance to recover now."
+msgstr ""
+
+#: source/Adapt_It.cpp:15492
+msgid "Failed to find the custom work folder"
+msgstr ""
+
+#: source/Adapt_It.cpp:15501
+msgid "1. Plug in the missing external drive, then click OK here."
+msgstr ""
+
+#: source/Adapt_It.cpp:15502
+msgid "2. Close the other application, or use a text editor to fix the path in the file CustomWorkFolderLocation; then click OK here."
+msgstr ""
+
+#: source/Adapt_It.cpp:15503
+msgid "3. Ignore the custom work folder location, use the default location instead. (Then ask your administrator to help you.)"
+msgstr ""
+
+#: source/Adapt_It.cpp:15504
+msgid "4. Forget the custom work folder location. The command Custom Work Folder Location will then run, use it to relocate the folder."
+msgstr ""
+
+#: source/Adapt_It.cpp:15505
+msgid "Choose Recovery Action or Cancel (to abort)"
+msgstr ""
+
+#: source/Adapt_It.cpp:15506
+msgid ""
+"Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n"
+"1. Plug in the required external drive now, then click OK. \n"
+"2. Leave the dialog open, launch a text editor, open the CustomWorkFolderLocation file in it, edit the path, save, then click OK here. \n"
+"3. Forget (but do not delete) the custom work folder location, use the default location instead. \n"
+"4. Same as option 3. but also show the Administrator menu (helpful if you know what to do with it)."
+msgstr ""
+
+#: source/Adapt_It.cpp:15520
+msgid "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."
+msgstr ""
+
+#: source/Adapt_It.cpp:15521
+msgid "Recovery By Plugging In The Missing External Drive Failed"
+msgstr ""
+
+#: source/Adapt_It.cpp:15550
+msgid "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."
+msgstr ""
+
+#: source/Adapt_It.cpp:15559
+msgid "The path to the custom work folder did not find a directory with the required name. Did you check the path specification using a file browser, to make sure your edit of the path in the CustomWorkFolderLocation file resulted in a correct path to the custom work folder? Aborting now. Use a text editor again to get the path typed correctly before you re-launch Adapt It."
+msgstr ""
+
+#: source/Adapt_It.cpp:15560
+msgid "Recovery By Editing The Path Specificiation Failed"
+msgstr ""
+
+#: source/Adapt_It.cpp:15634
+msgid "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."
+msgstr ""
+
+#: source/Adapt_It.cpp:15635
+msgid "One chance to relocate the work folder failed"
+msgstr ""
+
+#: source/Adapt_It.cpp:16305
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Project Configuration File's punctuation string (see below):"
 msgstr ""
 
 # Note: leave a space after the colon.
-#: source/Adapt_It.cpp:15778
+#: source/Adapt_It.cpp:16707
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
 msgstr ""
 
-#: source/Adapt_It.cpp:15969
+#: source/Adapt_It.cpp:16898
 msgid "Sorry, Adapt It will not permit the < character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "对不起，Adapt It不允许将<作为造词符号来使用。它必须归入标点符号这一类别，现在就将其放入此类别中。"
 
-#: source/Adapt_It.cpp:15983
+#: source/Adapt_It.cpp:16912
 msgid "Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "对不起，Adapt It不允许将>作为造词符号来使用。它必须归入标点符号这一类别，现在就将其放入此类别中。"
 
-#: source/Adapt_It.cpp:16319
-#: source/Adapt_It.cpp:16373
+#: source/Adapt_It.cpp:17266
+#: source/Adapt_It.cpp:17320
 msgid "basic"
 msgstr ""
 
-#: source/Adapt_It.cpp:16321
-#: source/Adapt_It.cpp:16375
+#: source/Adapt_It.cpp:17268
+#: source/Adapt_It.cpp:17322
 msgid "project"
 msgstr ""
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:16323
+#: source/Adapt_It.cpp:17270
 #, fuzzy, c-format
 msgid "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"
 msgstr "无法打开有关阅读的配置文件。%s 将使用缺省值来替代。（如果你是第一次运行Adapt It,可以忽略此信息，因为还没有可用的配置文件。）"
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:16377
+#: source/Adapt_It.cpp:17324
 #, c-format
 msgid "Unable to read %s font data from the %s configuration file. Default values will be used instead."
 msgstr ""
 
-#: source/Adapt_It.cpp:16389
+#: source/Adapt_It.cpp:17330
 msgid "source"
 msgstr "源文"
 
-#: source/Adapt_It.cpp:16399
+#: source/Adapt_It.cpp:17340
 msgid "target"
 msgstr "目标"
 
-#: source/Adapt_It.cpp:16409
+#: source/Adapt_It.cpp:17350
 msgid "navigation"
 msgstr "导航"
 
-# Priority 1
-#: source/Adapt_It.cpp:16425
-#: source/Adapt_It_wdr.cpp:710
-#, fuzzy
-msgid "Source Font Name"
-msgstr "字体名称"
-
-# Priority 1
-#: source/Adapt_It.cpp:16434
-#: source/Adapt_It_wdr.cpp:782
-#, fuzzy
-msgid "Target Font Name"
-msgstr "字体名称"
-
-# Priority 1
-#: source/Adapt_It.cpp:16443
-#: source/Adapt_It_wdr.cpp:854
-#, fuzzy
-msgid "Navigation Font Name"
-msgstr "字体名称"
-
-#: source/Adapt_It.cpp:16453
-msgid "The following fonts (in the project configuration file) cannot be found on your computer:"
-msgstr ""
-
-#: source/Adapt_It.cpp:16456
-#, c-format
-msgid ""
-"\n"
-"A system font (%s) will be used instead. You may need to install the appropriate font, then select it from the Fonts tab of the Preferences... dialog (on the Edit menu)."
-msgstr ""
-
-#: source/Adapt_It.cpp:16458
-msgid "Font name in configuration file not found"
-msgstr ""
-
-#: source/Adapt_It.cpp:17769
+#: source/Adapt_It.cpp:18691
 #, fuzzy, c-format
 msgid ""
 "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\n"
@@ -1137,30 +1201,30 @@ msgid ""
 "Are you willing for this to happen?"
 msgstr "警告：当前工程资料库含有%d个词条，“转换对应转换内容为注释”命令将会清除其中的内容。注释资料库含有%d个词条，此命令也清楚其中的内容。希望执行此操作吗？"
 
-#: source/Adapt_It.cpp:17843
+#: source/Adapt_It.cpp:18765
 msgid "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."
 msgstr "错误：程序没有找到其它工程的资料库，或是在打开时出错。因而此命令被忽略。"
 
-#: source/Adapt_It.cpp:18254
+#: source/Adapt_It.cpp:19176
 msgid "Transformations To Glosses"
 msgstr ""
 
-#: source/Adapt_It.cpp:18333
+#: source/Adapt_It.cpp:19255
 #, c-format
 msgid "The document with pathname: %s, was not opened and therefore not processed."
 msgstr ""
 
-#: source/Adapt_It.cpp:18354
+#: source/Adapt_It.cpp:19276
 #, c-format
 msgid "The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents."
 msgstr "你从其它工程中选择的文档已经被转换和复制到当前工程。共转换了%d文档中的%d个源语单词和短语。"
 
-#: source/Adapt_It.cpp:18455
+#: source/Adapt_It.cpp:19377
 msgid "Automatic capitalization support will work only provided the source language distinguishes between upper case and lower case letters. A \"No\" response will prohibit auto-capitalization from being turned on. Does your source language have both upper and lower case letters?"
 msgstr "自动大写功能只有在源语区分大小写的情况下才会生效。选择“否”可以禁止启动自动大写功能。你的源语有大小写之分吗？"
 
-#: source/Adapt_It.cpp:18486
-#: source/Adapt_It.cpp:18506
+#: source/Adapt_It.cpp:19408
+#: source/Adapt_It.cpp:19428
 msgid ""
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\n"
 "You can set them up in the Edit Preferences menu selection on the \"Case\" tab."
@@ -1168,133 +1232,196 @@ msgstr ""
 "此源语的大小写字母对应不存在。在它们存在以前，无法启动自动大写功能。\n"
 " 你可以打开编辑菜单中的参数设定，选择其中的\"\"字母\"\"对话框来设置它们。"
 
-#: source/Adapt_It.cpp:18852
-msgid "Unable to write updated config file, so just did nothing"
-msgstr ""
-
-#: source/Adapt_It.cpp:19123
-#: source/Adapt_It.cpp:19260
+#: source/Adapt_It.cpp:19483
+#: source/Adapt_It.cpp:19620
 msgid "The Startup Wizard failed to open. Use the File menu's Open command to open a document."
 msgstr ""
 
-# Priority 1
-#: source/Adapt_It.cpp:21102
+#: source/Adapt_It.cpp:21367
 #, c-format
-msgid "Current Project: %s"
-msgstr "当前工程 %s"
+msgid "[Custom Work Folder Location]  Current Project: %s"
+msgstr ""
+
+#: source/Adapt_It.cpp:21372
+#, c-format
+msgid "[Temporary Work Folder Location]  Current Project: %s"
+msgstr ""
+
+#: source/Adapt_It.cpp:21378
+#, c-format
+msgid "[Default Work Folder Location]  Current Project: %s"
+msgstr ""
 
 # Priority 1
-#: source/Adapt_It.cpp:21134
-#: source/Adapt_ItView.cpp:26934
+#: source/Adapt_It.cpp:21411
+#: source/Adapt_ItView.cpp:27069
 #: source/Adapt_It_wdr.cpp:302
-#: source/Adapt_It_wdr.cpp:6645
+#: source/Adapt_It_wdr.cpp:6678
 msgid "Glossing"
 msgstr "注释"
 
 # Priority 1
-#: source/Adapt_It.cpp:21139
+#: source/Adapt_It.cpp:21422
 msgid "Adapting"
 msgstr "对应转换"
 
 # Priority 1
+#: source/Adapt_It.cpp:21429
+#, fuzzy
+msgid "Reviewing"
+msgstr "自动"
+
+# Priority 1
 # Leave two spaces at the beginning of the sentence.
-#: source/Adapt_It.cpp:21148
-#: source/Adapt_It.cpp:21158
-#: source/Adapt_It.cpp:21165
-#: source/Adapt_ItView.cpp:5482
+#: source/Adapt_It.cpp:21439
+#: source/Adapt_It.cpp:21449
+#: source/Adapt_It.cpp:21456
+#: source/Adapt_ItView.cpp:5539
 #, c-format
 msgid "  Current Folder: %s"
 msgstr " 当前文件夹：%s  "
 
 # Priority 1
-#: source/Adapt_It.cpp:21156
-#: source/Adapt_ItView.cpp:5480
+#: source/Adapt_It.cpp:21447
+#: source/Adapt_ItView.cpp:5537
 msgid " Undefined"
 msgstr "未定义"
 
-#: source/Adapt_It.cpp:21173
+#: source/Adapt_It.cpp:21464
 msgid "!! TRANSLITERATING !!"
 msgstr "!!  正在直译或音译  !!"
 
-#: source/Adapt_It.cpp:23038
-#: source/Adapt_It.cpp:23403
+#: source/Adapt_It.cpp:23387
+#: source/Adapt_It.cpp:23752
 msgid "Sorry, setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."
 msgstr "对不起，章节范围设置失败。当前的打印操作已取消。可能此文档中你所制定的范围内没有包含章节数字。"
 
-#: source/Adapt_It.cpp:23773
+#: source/Adapt_It.cpp:23968
 msgid "Locate the folder you wish to use for Adapt It work"
 msgstr ""
 
-#: source/Adapt_It.cpp:23818
+#: source/Adapt_It.cpp:24013
 msgid "Type A Password"
 msgstr ""
 
-#: source/Adapt_It.cpp:23820
+#: source/Adapt_It.cpp:24015
 msgid ""
 "The password can be a mix of letters, numbers or punctuation. Less than four characters will not be accepted.\n"
 "Emptying the box will remove an existing password."
 msgstr ""
 
-#: source/Adapt_It.cpp:23833
+#: source/Adapt_It.cpp:24028
 msgid "Too short."
 msgstr ""
 
-#: source/Adapt_It.cpp:24078
+#: source/Adapt_It.cpp:24320
 msgid "You failed to locate a valid work folder. Please try again."
 msgstr ""
 
-#: source/Adapt_ItCanvas.cpp:1069
-#: source/Adapt_ItCanvas.cpp:1082
-#: source/Adapt_ItCanvas.cpp:1096
-#: source/Adapt_ItView.cpp:37876
+#: source/Adapt_It.cpp:24747
+msgid "Someone just opened the project folder on the remote computer, so you have READ-ONLY access."
+msgstr ""
+
+#: source/Adapt_It.cpp:24747
+msgid "Another process owns write permission"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It.cpp:25232
+#: source/Adapt_It_wdr.cpp:710
+#, fuzzy
+msgid "Source Font Name"
+msgstr "字体名称"
+
+# Priority 1
+#: source/Adapt_It.cpp:25314
+#: source/Adapt_It_wdr.cpp:782
+#, fuzzy
+msgid "Target Font Name"
+msgstr "字体名称"
+
+# Priority 1
+#: source/Adapt_It.cpp:25396
+#: source/Adapt_It_wdr.cpp:854
+#, fuzzy
+msgid "Navigation Font Name"
+msgstr "字体名称"
+
+#: source/Adapt_It.cpp:25419
+msgid "The following fonts (in the project configuration file) cannot be found on your computer:"
+msgstr ""
+
+#: source/Adapt_It.cpp:25422
+#, c-format
+msgid ""
+"\n"
+"A system font (%s) will be used instead. You may need to install the appropriate font, then select it from the Fonts tab of the Preferences... dialog (on the Edit menu)."
+msgstr ""
+
+#: source/Adapt_It.cpp:25424
+msgid "Font name in configuration file not found"
+msgstr ""
+
+#: source/Adapt_It.cpp:25679
+#: source/Adapt_It.cpp:26116
+#: source/Adapt_It.cpp:26337
+#: source/Adapt_It.cpp:26393
+#: source/Adapt_It.cpp:26439
+msgid "Unable to write updated config file, so just did nothing"
+msgstr ""
+
+#: source/Adapt_ItCanvas.cpp:1081
+#: source/Adapt_ItCanvas.cpp:1094
+#: source/Adapt_ItCanvas.cpp:1108
+#: source/Adapt_ItView.cpp:38027
 msgid "Attempting to put the active location within the gray text area while updating information in Vertical Edit mode is illegal. The attempt has been ignored."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItCanvas.cpp:1210
+#: source/Adapt_ItCanvas.cpp:1222
 msgid "Sorry, but the application will not allow you to extend a selection forwards across any punctuation unless you use a technique for ignoring a boundary as well."
 msgstr "对不起，除非忽略边界，否则本程序不允许将选区扩展越过任何标点。"
 
 # Priority 1
-#: source/Adapt_ItCanvas.cpp:1342
+#: source/Adapt_ItCanvas.cpp:1354
 msgid "Sorry, it is not possible to extend the selection backwards at this location unless you use one of the methods for ignoring a boundary."
 msgstr "对不起，除非忽略边界，否则不能从此位置向后扩展选区。"
 
 # Priority 1
-#: source/Adapt_ItCanvas.cpp:1486
+#: source/Adapt_ItCanvas.cpp:1498
 msgid "Sorry, to edit or remove a retranslation you must use the toolbar buttons for those operations."
 msgstr "对不起，要编辑或删除重译你必须使用工具栏按钮。"
 
 # Priority 1
-#: source/Adapt_ItCanvas.cpp:1798
-#: source/Adapt_ItView.cpp:27182
-#: source/Adapt_ItView.cpp:27230
+#: source/Adapt_ItCanvas.cpp:1810
+#: source/Adapt_ItView.cpp:27319
+#: source/Adapt_ItView.cpp:27367
 msgid "Sorry, you are trying to select text of different types, such as a heading and verse text, or some other illegal combination. Combining verse text with poetry is acceptable, other combinations are not."
 msgstr "对不起，你正试图选择不同类型的文本，如标题和经文，或其它一些无效的组合。经文和诗歌可以进行组合，其它的则不允许。"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:480
+#: source/Adapt_ItDoc.cpp:489
 msgid "Input Text File For Adaptation"
 msgstr "输入需要对应转换的文本文件"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:494
+#: source/Adapt_ItDoc.cpp:503
 #, fuzzy
 msgid "Adapt It cannot do any useful work unless you select a source file to adapt. Please try again."
 msgstr "你不应当取消此对话框。只有选择一源语文件进行对应转换，Adapt It才能进行有效工作。请重试。"
 
-#: source/Adapt_ItDoc.cpp:578
+#: source/Adapt_ItDoc.cpp:596
 msgid "Invalid Data For Current Book Folder"
 msgstr "对当前书卷文件夹无效的数据"
 
-#: source/Adapt_ItDoc.cpp:582
+#: source/Adapt_ItDoc.cpp:600
 #, c-format
 msgid ""
 "The source text file's \\id line contains the 3-letter code %s which does not match the 3-letter \n"
 "code required for storing the document in the currently active %s book folder.\n"
 msgstr "源文本文件 \\id 行中的3字符代码%s，与当前激活的书卷文件夹中文档排序要求的3字符代码%s不匹配\n"
 
-#: source/Adapt_ItDoc.cpp:587
+#: source/Adapt_ItDoc.cpp:605
 msgid ""
 "\n"
 "Change to the correct book folder and try again, or try inputting a different source text file \n"
@@ -1304,225 +1431,232 @@ msgstr ""
 "打开正确的书卷文件夹，再试一遍；\n"
 "或是输入含有正确代码的不同源文本。"
 
-#: source/Adapt_ItDoc.cpp:630
+#: source/Adapt_ItDoc.cpp:648
 msgid "Sorry, Adapt It needs an output document name. (An .xml extension will be automatically added.) Please try the New... command again."
 msgstr "对不起，Adapt It需要一个输出文件名。（程序会自动为其添加扩展名.xml或.adt）请点“新建…”命令重试。"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:666
+#: source/Adapt_ItDoc.cpp:684
 msgid "Sorry, Adapt It will not work correctly unless you specify an output document name. Please try again."
 msgstr "对不起，请指定输出文档的名称Adapt It才能正确执行。请重试。"
 
-#: source/Adapt_ItDoc.cpp:756
+#: source/Adapt_ItDoc.cpp:774
 msgid "Sorry, but there was no source language data in the file you input, so there is nothing to be displayed. Try a different file."
 msgstr "对不起，你输入的文件中没有源语数据，所以没有可以显示的内容。请重试别的文件。"
 
-#: source/Adapt_ItDoc.cpp:858
-#: source/Adapt_ItDoc.cpp:885
-#: source/Adapt_ItDoc.cpp:910
+#: source/Adapt_ItDoc.cpp:876
+#: source/Adapt_ItDoc.cpp:903
+#: source/Adapt_ItDoc.cpp:928
 #, c-format
 msgid "Error opening file %s."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:869
+#: source/Adapt_ItDoc.cpp:887
 msgid "The file you selected for input appears to be a binary file."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:874
+#: source/Adapt_ItDoc.cpp:892
 msgid "Adapt It cannot use Microsoft Word Document (doc) files as input files."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:880
+#: source/Adapt_ItDoc.cpp:898
 msgid "Adapt It cannot use OpenOffice's Open Document Text (odt) files as input files."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:883
+#: source/Adapt_ItDoc.cpp:901
 msgid "Adapt It input files must be plain text files."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:895
+#: source/Adapt_ItDoc.cpp:913
 msgid "File read error: no data was read in"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:903
+#: source/Adapt_ItDoc.cpp:921
 msgid "The file you selected for input is a Unicode file."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:905
+#: source/Adapt_ItDoc.cpp:923
 msgid "This Regular version of Adapt It cannot process Unicode text files."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:908
+#: source/Adapt_ItDoc.cpp:926
 msgid "You should install and use the Unicode version of Adapt It to process Unicode text files."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:1034
+#: source/Adapt_ItDoc.cpp:1118
 msgid "There was an error parsing in the XML file. If you edited the XML file earlier, you may have introduced an error. Edit it in a word processor then try again."
 msgstr "XML文件中有一个短语错误。假若你提早编辑了XML文件，你可能会被告知有一个错误。请在一个文字处理器中编辑它，然后重试。"
 
-#: source/Adapt_ItDoc.cpp:1042
+#: source/Adapt_ItDoc.cpp:1126
 msgid "Sorry, the wxWidgets version of Adapt It does not read legacy .adt document format; it only reads the .xml format."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:1220
-#: source/Adapt_ItDoc.cpp:1224
+#: source/Adapt_ItDoc.cpp:1330
+#: source/Adapt_ItDoc.cpp:1334
 #, c-format
 msgid "Warning: document backup failed for the path:  %s   No backup was done."
 msgstr "警告：针对路径%s的文档备份失败。备份没有完成。"
 
-#: source/Adapt_ItDoc.cpp:1258
-#: source/Adapt_ItDoc.cpp:1274
-#: source/Adapt_ItDoc.cpp:1291
-#: source/Adapt_ItDoc.cpp:1308
+#: source/Adapt_ItDoc.cpp:1368
+#: source/Adapt_ItDoc.cpp:1384
+#: source/Adapt_ItDoc.cpp:1401
+#: source/Adapt_ItDoc.cpp:1418
 #, c-format
 msgid "Could not remove the backed up document file: %s; the application will continue"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:1322
+#: source/Adapt_ItDoc.cpp:1432
 #, c-format
 msgid "Warning: document backup failed because the following name is not valid: %s    No backup was done."
 msgstr "警告：由于文件名 %s 无效，所以文档备份失败。备份没有完成。"
 
-#: source/Adapt_ItDoc.cpp:1334
+#: source/Adapt_ItDoc.cpp:1444
 #, c-format
 msgid "Could not open a file stream for backup, in BackupDocument(), for file %s"
 msgstr ""
 
 # Translate but leave "Adaptations" in English.
-#: source/Adapt_ItDoc.cpp:2009
+#: source/Adapt_ItDoc.cpp:2130
 msgid "Failed to set the current directory to the Adaptations folder. Command aborted."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:2041
+#: source/Adapt_ItDoc.cpp:2162
 msgid "Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."
 msgstr "警告：此单词或短语没有被存入资料库。这一错误并非破坏性的，可以忽略。"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2144
+#: source/Adapt_ItDoc.cpp:2265
 msgid "Saving File"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:2222
+#: source/Adapt_ItDoc.cpp:2343
 #, fuzzy
 msgid "Please wait while Adapt It saves the KB..."
 msgstr "请稍等，Adapt It正在重新安排文档的布局。"
 
-#: source/Adapt_ItDoc.cpp:2233
+#: source/Adapt_ItDoc.cpp:2354
 msgid "Warning: the attempt to backup the current document failed."
 msgstr "警告：备份当前文档的操作失败。"
 
-#: source/Adapt_ItDoc.cpp:2323
+#: source/Adapt_ItDoc.cpp:2444
 #, c-format
 msgid "When transforming documents, the Open function failed, for the path: %s"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:2435
+#: source/Adapt_ItDoc.cpp:2581
 #, c-format
 msgid "The document %s has changed. Do you want to save it? "
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:2447
+#: source/Adapt_ItDoc.cpp:2593
 msgid "Warning: document save failed for some reason.\n"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:2716
+#: source/Adapt_ItDoc.cpp:2866
 msgid "The file you clicked could not be opened. It probably no longer exists. When you click OK the Start Working... wizard will open to let you open a project and document from there instead."
 msgstr "不能打开你所点击的文件。你可以点击OK按钮来打开启动精灵…向导，重新打开工程和所需文档。"
 
-#: source/Adapt_ItDoc.cpp:2727
+#: source/Adapt_ItDoc.cpp:2877
 msgid ""
 "There was an error parsing in the XML file.\n"
 "If you edited the XML file earlier, you may have introduced an error.\n"
 "Edit it in a word processor then try again."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:2834
+#: source/Adapt_ItDoc.cpp:2984
 #, fuzzy
 msgid "There is no data in this file. This document is not properly formed and so cannot be opened. Delete it."
 msgstr "对不起，此文件中没有数据。由于创建不正确，所以无法打开。请将其删除。"
 
-#: source/Adapt_ItDoc.cpp:2880
+#: source/Adapt_ItDoc.cpp:3030
 msgid "Sorry, while book folder mode is disabled, using the Most Recently Used menu to click a document saved earlier in book folder mode will not open that file."
 msgstr "对不起 ，当书卷文件夹不可用时，不可以直接在文件菜单中点击最近使用最多的文档，来打开以前保存在书卷文件夹中的文件。"
 
-#: source/Adapt_ItDoc.cpp:3939
+#: source/Adapt_ItDoc.cpp:3190
+#, c-format
+msgid ""
+"Unable to open the file for exporting the target text with path:\n"
+"%s"
+msgstr ""
+
+#: source/Adapt_ItDoc.cpp:4145
 #, c-format
 msgid "Pass 1 - File: %s  - %d of %d Total words and phrases"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:3941
+#: source/Adapt_ItDoc.cpp:4147
 msgid "Processing Filtering Change(s)"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:4693
+#: source/Adapt_ItDoc.cpp:4899
 #, c-format
 msgid "Pass 2 - File: %s  - %d of %d Total words and phrases"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:8504
+#: source/Adapt_ItDoc.cpp:8722
 msgid ""
 "Extended 8-bit ASCII characters were detected in your\n"
 "input document:"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:10794
+#: source/Adapt_ItDoc.cpp:11040
 msgid "There were places where automatic rebuilding did not fully succeed and so either adaptations were abandoned, or filtered material not made visible, or visible material not filtered. Please visually check the document and perhaps edit where necessary."
 msgstr "自动重建没有完全成功，是要放弃对应转换，还是要筛选不可见的资料，或是要材料可见但不可筛选。请仔细检查文档并做必要的可能编辑。"
 
-#: source/Adapt_ItDoc.cpp:10804
+#: source/Adapt_ItDoc.cpp:11050
 msgid "Please locate the following chapter:verse locations and perhaps manually edit any section where the original adaptation had to be abandoned, or filtered material was not made visible, or visible material was not filtered, in the rebuild of the document: "
 msgstr "文档重建时，请定位以下章节的位置；在已放弃的源对应转换资料、或筛选出的不可见资料、或不可筛选的可见资料中，做可能的手动编辑。"
 
-#: source/Adapt_ItDoc.cpp:11037
+#: source/Adapt_ItDoc.cpp:11286
 msgid " ... for additional later locations needing manual editing please check the document visually. The full list has been saved in your project folder in the file \"Rebuild Log.txt\""
 msgstr "...因为以下附加的位置需要做手动编辑，所以请在可视状态下检查此文档内容。完整的列表已被保存在工程文件夹的\"\"Rebuild Log.txt\"\"文件中。"
 
-#: source/Adapt_ItDoc.cpp:11045
+#: source/Adapt_ItDoc.cpp:11294
 msgid "    This list has been saved in your project folder in the file \"Rebuild Log.txt\""
 msgstr " 此列表已被保存在你的工程文件夹的\"\"Rebuild Log.txt\"\"文件中"
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
-#: source/Adapt_ItDoc.cpp:13462
-#: source/Adapt_ItDoc.cpp:13549
+#: source/Adapt_ItDoc.cpp:13773
+#: source/Adapt_ItDoc.cpp:13860
 msgid "Packed Documents (*.aip)|*.aip||"
 msgstr "打包文本 (*.aip)|*.aip||"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13466
+#: source/Adapt_ItDoc.cpp:13777
 msgid "Filename For Packed Document"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:13521
+#: source/Adapt_ItDoc.cpp:13832
 #, c-format
 msgid "Could not write to the packed/zipped file: %s"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13545
+#: source/Adapt_ItDoc.cpp:13856
 msgid "Load And Unpack The Compressed Document"
 msgstr "加载并解包此压缩文档"
 
-#: source/Adapt_ItDoc.cpp:13619
+#: source/Adapt_ItDoc.cpp:13932
 #, c-format
 msgid ""
 "Error uncompressing; cannot open the file: %s\n"
 " Make sure the file is not being used by another application and try again."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:13634
+#: source/Adapt_ItDoc.cpp:13947
 #, c-format
 msgid "Error removing %s after unpack document command."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13941
+#: source/Adapt_ItDoc.cpp:14254
 msgid "There is a document of the same name in an Adapt It project of the same name on this computer."
 msgstr "此Adapt It 工程的文档名与此计算机中的某个文档名相同。"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13942
+#: source/Adapt_ItDoc.cpp:14255
 #, c-format
 msgid ""
 "\n"
@@ -1530,7 +1664,7 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13943
+#: source/Adapt_ItDoc.cpp:14256
 #, c-format
 msgid ""
 "\n"
@@ -1538,7 +1672,7 @@ msgid ""
 msgstr ""
 
 # Do not translate the %s%s%s part
-#: source/Adapt_ItDoc.cpp:13945
+#: source/Adapt_ItDoc.cpp:14258
 #, c-format
 msgid ""
 "%s%s%s\n"
@@ -1547,293 +1681,293 @@ msgstr ""
 "%s%s%s\n"
 "你要解包文档，让它替换计算机中已有的文档吗？"
 
-#: source/Adapt_ItDoc.cpp:13962
+#: source/Adapt_ItDoc.cpp:14275
 #, c-format
 msgid "Failed removing %s before overwrite."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14038
+#: source/Adapt_ItDoc.cpp:14351
 #, c-format
 msgid "Error renaming earlier configuration file with path %s."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14040
+#: source/Adapt_ItDoc.cpp:14353
 msgid "  Aborting the command."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14058
+#: source/Adapt_ItDoc.cpp:14374
 #, c-format
 msgid ""
 "Unable to open the file for writing out the UTF-8 project configuration file, with path:\n"
 "%s"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14074
+#: source/Adapt_ItDoc.cpp:14390
 #, c-format
 msgid "Error restoring name of earlier configuration file with path %s."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14077
+#: source/Adapt_ItDoc.cpp:14393
 msgid "  Exit Adapt It and manually change .BAK to .aic for the project configuration file."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14092
+#: source/Adapt_ItDoc.cpp:14408
 msgid "Writing out the project configuration file's content failed."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14095
+#: source/Adapt_ItDoc.cpp:14411
 msgid " Exit Adapt It, and in Windows Explorer manually restore the .BAK extension on the renamed project configuration file to .aic before launching again. Beware, that configuration file may now be corrupted."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14112
+#: source/Adapt_ItDoc.cpp:14428
 msgid "Removing the renamed earlier project configuration file failed. Do it manually later in Windows Explorer - it has a .BAK extension."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14155
+#: source/Adapt_ItDoc.cpp:14471
 #, c-format
 msgid ""
 "Unable to open the xml text file for writing to doc folder, with path:\n"
 "%s"
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14167
+#: source/Adapt_ItDoc.cpp:14483
 msgid "Writing out the xml document file's content failed."
 msgstr ""
 
-#: source/Adapt_ItDoc.cpp:14185
+#: source/Adapt_ItDoc.cpp:14501
 msgid "Opening the xml document file for Unpack Document... failed. (It was stored successfully on disk. Try opening it with the Open command on the File menu.)"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:1772
+#: source/Adapt_ItView.cpp:1783
 msgid "Do you wish consistent changes to be applied to the text to be pasted?"
 msgstr "是否在要粘贴的文本中应用协调转换？"
 
-#: source/Adapt_ItView.cpp:1782
+#: source/Adapt_ItView.cpp:1793
 msgid "Do you wish the configured SILConverter to be applied to the text to be pasted?"
 msgstr "你要在所粘贴的文本中应用已配置的SIL转换器吗？"
 
-#: source/Adapt_ItView.cpp:1836
+#: source/Adapt_ItView.cpp:1847
 msgid "Sorry, the paste operation resulted in text which exceeded the maximum width of a strip, so the operation was aborted."
 msgstr "对不起，此粘贴操作导致文本超过一条带的最大宽度，操作失败。"
 
-#: source/Adapt_ItView.cpp:4160
-#: source/Adapt_ItView.cpp:4167
+#: source/Adapt_ItView.cpp:4171
+#: source/Adapt_ItView.cpp:4178
 msgid "Sorry, the range you specified is illegal. Try again."
 msgstr "对不起，你所制定的范围无效。请重试。"
 
-#: source/Adapt_ItView.cpp:4272
-#: source/Adapt_ItView.cpp:4393
-#: source/Adapt_ItView.cpp:4505
+#: source/Adapt_ItView.cpp:4283
+#: source/Adapt_ItView.cpp:4404
+#: source/Adapt_ItView.cpp:4516
 msgid "Error: a chapter number was specified, but this document does not appear to contain chapter specifications. The print operation has been aborted."
 msgstr "错误：此文档并不含有所制定的章号。打印操作失败。"
 
-#: source/Adapt_ItView.cpp:4340
+#: source/Adapt_ItView.cpp:4351
 msgid "Error: the specified chapter and verse for the start of the printing range could not be found. The print operation has been aborted."
 msgstr "错误：没有找到打印的起始章节。打印操作失败。"
 
-#: source/Adapt_ItView.cpp:4555
+#: source/Adapt_ItView.cpp:4566
 msgid "Error: the specified chapter and verse for the end of the printing range could not be found. The print operation has been aborted."
 msgstr "错误：没有找到打印的结束章节。打印操作失败。"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:5157
+#: source/Adapt_ItView.cpp:5168
 msgid "Edit Preferences"
 msgstr "参数设定"
 
-#: source/Adapt_ItView.cpp:5359
+#: source/Adapt_ItView.cpp:5382
 msgid "Failure when trying to save the glossing knowledge base. "
 msgstr ""
 
-#: source/Adapt_ItView.cpp:5367
+#: source/Adapt_ItView.cpp:5390
 msgid "Failure when trying to save the knowledge base. "
 msgstr ""
 
-#: source/Adapt_ItView.cpp:5374
+#: source/Adapt_ItView.cpp:5397
 msgid " You should immediately save the document, then try again."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:5375
+#: source/Adapt_ItView.cpp:5398
 msgid " If you have repeated failures, then exit the application "
 msgstr ""
 
-#: source/Adapt_ItView.cpp:5376
+#: source/Adapt_ItView.cpp:5399
 msgid "and try one of the recovery strategies (either use the backup one "
 msgstr ""
 
-#: source/Adapt_ItView.cpp:5377
+#: source/Adapt_ItView.cpp:5400
 msgid "or the Restore Knowledge Base command). DO NOT use "
 msgstr ""
 
-#: source/Adapt_ItView.cpp:5378
+#: source/Adapt_ItView.cpp:5401
 msgid "the Backup Knowledge Base command now!"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:5475
+#: source/Adapt_ItView.cpp:5532
 msgid "No project is currently active"
 msgstr "当前没有活动的工程"
 
-#: source/Adapt_ItView.cpp:7552
+#: source/Adapt_ItView.cpp:7609
 msgid "Cannot open the Clipboard"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:8734
+#: source/Adapt_ItView.cpp:8795
 msgid "Adapt It cannot step down to the beginning of the next chapter because it cannot find a legal place to put the phrase box, retranslations at the end of the document prevent it."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:9073
+#: source/Adapt_ItView.cpp:9134
 msgid "Adapt It cannot step up to the beginning of chapter, or to the beginning of the previous chapter because it cannot find a legal place to put the phrase box, retranslations at the beginning of the document prevent it."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:9319
-#: source/Adapt_ItView.cpp:10507
-#: source/Adapt_ItView.cpp:13488
-#: source/Adapt_ItView.cpp:14673
-#: source/Adapt_ItView.cpp:18782
-#: source/Adapt_ItView.cpp:19520
-#: source/Adapt_ItView.cpp:20191
-#: source/Adapt_ItView.cpp:24697
+#: source/Adapt_ItView.cpp:9380
+#: source/Adapt_ItView.cpp:10590
+#: source/Adapt_ItView.cpp:13588
+#: source/Adapt_ItView.cpp:14773
+#: source/Adapt_ItView.cpp:18895
+#: source/Adapt_ItView.cpp:19633
+#: source/Adapt_ItView.cpp:20304
+#: source/Adapt_ItView.cpp:24828
 msgid "This particular operation is not available when you are glossing."
 msgstr "当进行注释时此操作不可用"
 
-#: source/Adapt_ItView.cpp:9594
+#: source/Adapt_ItView.cpp:9655
 #, fuzzy
 msgid "This operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."
 msgstr "对不起，此操作不允许选区含有任何重译文的部分。先删除重译文，然后重试。"
 
-#: source/Adapt_ItView.cpp:9618
+#: source/Adapt_ItView.cpp:9679
 #, fuzzy
 msgid "Merging a selection which contains a placeholder (represented by ... dots) is not permitted."
 msgstr "对不起，不允许合并含有占位符（用...表示）的选区。"
 
-#: source/Adapt_ItView.cpp:9645
+#: source/Adapt_ItView.cpp:9706
 msgid "Merging words across filtered material is not allowed."
 msgstr "无法将不同筛选材料中的词语合并在一起。"
 
-#: source/Adapt_ItView.cpp:9668
+#: source/Adapt_ItView.cpp:9729
 msgid "Merging across the end of a free translation is not permitted. (You can merge up to the end of the free translation, but not beyond that point in the same merger.)"
 msgstr "不允许从头到尾地合并自由翻译。（但你可以在同一个合并范围内合并自由翻译。）"
 
-#: source/Adapt_ItView.cpp:10537
+#: source/Adapt_ItView.cpp:10620
 msgid "To undo a merger using a selection, select only one pile."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:10851
-#: source/Adapt_ItView.cpp:11070
+#: source/Adapt_ItView.cpp:10934
+#: source/Adapt_ItView.cpp:11153
 msgid "Error while trying to deselect a cell. Try selecting using the mouse instead.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:10908
-#: source/Adapt_ItView.cpp:10966
+#: source/Adapt_ItView.cpp:10991
+#: source/Adapt_ItView.cpp:11049
 msgid "Could not get a pointer to the next cell. Try selecting with the mouse instead.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:11123
-#: source/Adapt_ItView.cpp:11194
+#: source/Adapt_ItView.cpp:11206
+#: source/Adapt_ItView.cpp:11277
 msgid "Could not get a pointer to the previous cell. Try selecting with the mouse instead.\n"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:11564
-#: source/Adapt_ItView.cpp:12070
-#: source/Adapt_ItView.cpp:15468
+#: source/Adapt_ItView.cpp:11647
+#: source/Adapt_ItView.cpp:12153
+#: source/Adapt_ItView.cpp:15568
 msgid "Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."
 msgstr "警告：此短语包含的源语单词过多，对应转换结果无法存入资料库中。"
 
-#: source/Adapt_ItView.cpp:13255
-#: source/Adapt_ItView.cpp:13351
-#: source/Adapt_ItView.cpp:13750
+#: source/Adapt_ItView.cpp:13355
+#: source/Adapt_ItView.cpp:13451
+#: source/Adapt_ItView.cpp:13850
 msgid "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."
 msgstr "对不起，你不能在重译中插入占位符。此命令已经被忽略。"
 
-#: source/Adapt_ItView.cpp:13569
+#: source/Adapt_ItView.cpp:13669
 #, fuzzy
 msgid "You cannot insert a placeholder within a retranslation. The command has been ignored."
 msgstr "对不起，你不能在重译中插入占位符。此命令已经被忽略。"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:14179
+#: source/Adapt_ItView.cpp:14279
 msgid "Adapt It does not know whether the inserted placeholder is the end of the preceding text, or the beginning of what follows. Is it the start of what follows?"
 msgstr "Adapt It无法确定插入的占位符是前面文本的结尾还是所接内容的开头。它是所接内容的开头吗？"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:14391
-#: source/Adapt_ItView.cpp:14470
-#: source/Adapt_ItView.cpp:14586
+#: source/Adapt_ItView.cpp:14491
+#: source/Adapt_ItView.cpp:14570
+#: source/Adapt_ItView.cpp:14686
 msgid "Do you want the inserted placeholder to be considered as belonging to the free translation section which begins immediately following it?"
 msgstr "你想要已插入的占位符归属于其后的自由翻译部分吗？"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:14521
+#: source/Adapt_ItView.cpp:14621
 msgid "Do you want the inserted placeholder to be considered as belonging to the free translation section which immediately precedes it?"
 msgstr "你想要已插入的占位符归属于其前的自由翻译部分吗？"
 
-#: source/Adapt_ItView.cpp:15724
-#: source/Adapt_ItView.cpp:15811
+#: source/Adapt_ItView.cpp:15824
+#: source/Adapt_ItView.cpp:15911
 #, c-format
 msgid " Processing a CC table failed. Got error code %d with table having index %d."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:15934
+#: source/Adapt_ItView.cpp:16034
 msgid "Sorry, the knowledge base does not yet have an entry matching this source text, so the Choose Translation dialog cannot be shown."
 msgstr "对不起，资料库中还没有和此源文相对应的词条，因此“选择译文”对话框无法显示。"
 
-#: source/Adapt_ItView.cpp:16994
-#: source/Adapt_ItView.cpp:17030
+#: source/Adapt_ItView.cpp:17098
+#: source/Adapt_ItView.cpp:17134
 msgid "Could not save the current document. Consistency Check Command aborted."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:17208
+#: source/Adapt_ItView.cpp:17312
 msgid "Consistency Checking"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:17752
+#: source/Adapt_ItView.cpp:17856
 msgid "Warning: failure on document save operation."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:17783
+#: source/Adapt_ItView.cpp:17887
 #, c-format
 msgid "The consistency check was successful. There were %d source words and phrases  in %d  files."
 msgstr "协调性检查成功完成。%d个文件中含有%d个原始单词和短语。"
 
-#: source/Adapt_ItView.cpp:18816
+#: source/Adapt_ItView.cpp:18929
 msgid "Sorry, for a retranslation your selection must not include all the document contents - otherwise there would be no possible place for the phrase box afterwards. Shorten the selection then try again."
 msgstr "对不起，不能完全显示你所选定的重译部分的内容-原因可能是没有足够的空间。请减少所选内容，然后再重试。"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:18844
+#: source/Adapt_ItView.cpp:18957
 msgid "Sorry, the selection contains text of more than one type. Select only one text type at a time. The operation will be ignored."
 msgstr "对不起，此选区含有多种文本样式。每次只能选择一种文本样式。此操作将被忽略。"
 
-#: source/Adapt_ItView.cpp:18862
+#: source/Adapt_ItView.cpp:18975
 msgid "Sorry, but this operation is not permitted when the selection contains any part of a retranslation. First remove the retranslation and then try again."
 msgstr "对不起，此操作不允许选区含有任何重译文的部分。先删除重译文，然后重试。"
 
-#: source/Adapt_ItView.cpp:19156
-#: source/Adapt_ItView.cpp:19925
+#: source/Adapt_ItView.cpp:19269
+#: source/Adapt_ItView.cpp:20038
 msgid "Warning: your document is full up with retranslations. This makes it impossible to place the phrase box anywhere in the document."
 msgstr "警告：你的文档完全被重译占满。这样在其中的任何位置都无法放置短语框。"
 
-#: source/Adapt_ItView.cpp:19551
-#: source/Adapt_ItView.cpp:20222
+#: source/Adapt_ItView.cpp:19664
+#: source/Adapt_ItView.cpp:20335
 msgid "Sorry, the whole of the selection was not within a section of retranslated text, so the command has been ignored."
 msgstr "对不起，该选区的整体没有包含在重译文本的一个部分之内，所以此命令已被忽略。"
 
-#: source/Adapt_ItView.cpp:20884
-#: source/Adapt_ItView.cpp:20935
-#: source/Adapt_ItView.cpp:20988
-#: source/Adapt_ItView.cpp:21064
+#: source/Adapt_ItView.cpp:21006
+#: source/Adapt_ItView.cpp:21057
+#: source/Adapt_ItView.cpp:21110
+#: source/Adapt_ItView.cpp:21186
 msgid "Sorry, the Go To command failed. No valid location for the phrase box could be found before or after your chosen chapter and verse. (Are all your adaptations in the form of retranslations?)"
 msgstr "对不起，“转到”命令失败。在你所选定的章节前面或后面没有发现放置短语框的有效位置。（你所有对应转换的内容都是重译的形式吗？）"
 
-#: source/Adapt_ItView.cpp:21095
+#: source/Adapt_ItView.cpp:21217
 #, c-format
 msgid "Sorry, but the chapter and verse combination  %s  does not exist in this document. The command will be ignored."
 msgstr "对不起，  %s这样的章节组合在此文档中并不存在。此命令将被忽略。"
 
-#: source/Adapt_ItView.cpp:24717
+#: source/Adapt_ItView.cpp:24848
 msgid ""
 "The retranslation report will be based on this open document only.\n"
 "To get a report based on many or all documents,\n"
@@ -1842,246 +1976,246 @@ msgid ""
 msgstr "此重译报告将仅基于当前打开的文档。要获取基于多个或所有文档的报告，关闭当前文档，然后重新选择此命令。是否需要仅针对此文档的报告？"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:24743
+#: source/Adapt_ItView.cpp:24874
 msgid " report.txt"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:24749
+#: source/Adapt_ItView.cpp:24880
 msgid "retranslation report.txt"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:24764
+#: source/Adapt_ItView.cpp:24895
 #, fuzzy
 msgid "Adapt It Reports (*.txt)|*.txt||"
 msgstr "Adapt It 报告 (*.txt)|*txt||"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:24767
+#: source/Adapt_ItView.cpp:24898
 msgid "Filename For Retranslation Report"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:24805
+#: source/Adapt_ItView.cpp:24938
 msgid "Unable to open report file.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:24806
+#: source/Adapt_ItView.cpp:24939
 msgid "Unable to open report file."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:24822
-#: source/Adapt_ItView.cpp:25175
+#: source/Adapt_ItView.cpp:24955
+#: source/Adapt_ItView.cpp:25310
 msgid "Retranslation Report"
 msgstr "重译报告"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:24823
+#: source/Adapt_ItView.cpp:24956
 #, c-format
 msgid "File Path: %s"
 msgstr "文件路径： %s"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:25327
+#: source/Adapt_ItView.cpp:25462
 #, c-format
 msgid "***  There were no retranslations in the %s document. ***"
 msgstr "***  在文档 %s 中没有重译内容 ***"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:25430
-#: source/Adapt_ItView.cpp:25463
+#: source/Adapt_ItView.cpp:25565
+#: source/Adapt_ItView.cpp:25598
 #, fuzzy
 msgid "Layout Window Left To Right\tCtrl-Shift-1"
 msgstr "由左至右布置窗口版面\tCtrl-1"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:25432
-#: source/Adapt_ItView.cpp:25465
+#: source/Adapt_ItView.cpp:25567
+#: source/Adapt_ItView.cpp:25600
 msgid "Layout Window Left To Right\tCtrl-1"
 msgstr "由左至右布置窗口版面\tCtrl-1"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:25811
-#: source/Adapt_ItView.cpp:25819
+#: source/Adapt_ItView.cpp:25946
+#: source/Adapt_ItView.cpp:25954
 msgid "Stop Selection At Boundaries"
 msgstr "服从边界"
 
-#: source/Adapt_ItView.cpp:25812
-#: source/Adapt_ItView.cpp:25820
+#: source/Adapt_ItView.cpp:25947
+#: source/Adapt_ItView.cpp:25955
 msgid "Respect boundaries when selecting"
 msgstr "选取时服从边界"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:25889
-#: source/Adapt_ItView.cpp:25897
+#: source/Adapt_ItView.cpp:26024
+#: source/Adapt_ItView.cpp:26032
 #, fuzzy
 msgid "Ignore Boundaries"
 msgstr "忽略边界"
 
-#: source/Adapt_ItView.cpp:25890
-#: source/Adapt_ItView.cpp:25898
-#: source/Adapt_It_wdr.cpp:6826
-#: source/Adapt_It_wdr.cpp:6879
+#: source/Adapt_ItView.cpp:26025
+#: source/Adapt_ItView.cpp:26033
+#: source/Adapt_It_wdr.cpp:7266
+#: source/Adapt_It_wdr.cpp:7319
 msgid "Ignore boundaries when making selections"
 msgstr "选取时忽略边界"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26012
-#: source/Adapt_ItView.cpp:26020
+#: source/Adapt_ItView.cpp:26147
+#: source/Adapt_ItView.cpp:26155
 msgid "Show Punctuation"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:26013
-#: source/Adapt_ItView.cpp:26021
+#: source/Adapt_ItView.cpp:26148
+#: source/Adapt_ItView.cpp:26156
 msgid "Show text with punctuation"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26169
-#: source/Adapt_ItView.cpp:26177
-#: source/Adapt_It_wdr.cpp:6857
-#: source/Adapt_It_wdr.cpp:6910
+#: source/Adapt_ItView.cpp:26304
+#: source/Adapt_ItView.cpp:26312
+#: source/Adapt_It_wdr.cpp:7297
+#: source/Adapt_It_wdr.cpp:7350
 msgid "No Punctuation Copy"
 msgstr "暂时没有标点符号复制"
 
-#: source/Adapt_ItView.cpp:26170
-#: source/Adapt_ItView.cpp:26178
-#: source/Adapt_It_wdr.cpp:6857
-#: source/Adapt_It_wdr.cpp:6910
+#: source/Adapt_ItView.cpp:26305
+#: source/Adapt_ItView.cpp:26313
+#: source/Adapt_It_wdr.cpp:7297
+#: source/Adapt_It_wdr.cpp:7350
 msgid "Suppress the copying of source text punctuation temporarily"
 msgstr "暂时隐藏源标点符号复制功能"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26279
-#: source/Adapt_ItView.cpp:26287
+#: source/Adapt_ItView.cpp:26414
+#: source/Adapt_ItView.cpp:26422
 msgid "Enable Punctuation Copy"
 msgstr "有标点符号复制"
 
-#: source/Adapt_ItView.cpp:26280
-#: source/Adapt_ItView.cpp:26288
+#: source/Adapt_ItView.cpp:26415
+#: source/Adapt_ItView.cpp:26423
 msgid "Re-enable automatic copying of source text punctuation"
 msgstr "重新开启自动复制源文本标点符号功能"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26398
-#: source/Adapt_ItView.cpp:26406
-#: source/Adapt_It_wdr.cpp:6827
-#: source/Adapt_It_wdr.cpp:6880
+#: source/Adapt_ItView.cpp:26533
+#: source/Adapt_ItView.cpp:26541
+#: source/Adapt_It_wdr.cpp:7267
+#: source/Adapt_It_wdr.cpp:7320
 msgid "Hide Punctuation"
 msgstr "显示标点"
 
-#: source/Adapt_ItView.cpp:26399
-#: source/Adapt_ItView.cpp:26407
-#: source/Adapt_It_wdr.cpp:6827
-#: source/Adapt_It_wdr.cpp:6880
+#: source/Adapt_ItView.cpp:26534
+#: source/Adapt_ItView.cpp:26542
+#: source/Adapt_It_wdr.cpp:7267
+#: source/Adapt_It_wdr.cpp:7320
 msgid "Don't show punctuation with the text"
 msgstr "显示带标点的文本"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26562
-#: source/Adapt_ItView.cpp:26570
+#: source/Adapt_ItView.cpp:26697
+#: source/Adapt_ItView.cpp:26705
 msgid "Show normal view"
 msgstr "显示正常外观"
 
-#: source/Adapt_ItView.cpp:26563
-#: source/Adapt_ItView.cpp:26571
+#: source/Adapt_ItView.cpp:26698
+#: source/Adapt_ItView.cpp:26706
 msgid "Show Source And Target Text"
 msgstr "显示源文和目标文本"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26694
-#: source/Adapt_ItView.cpp:26702
-#: source/Adapt_It_wdr.cpp:6855
-#: source/Adapt_It_wdr.cpp:6908
+#: source/Adapt_ItView.cpp:26829
+#: source/Adapt_ItView.cpp:26837
+#: source/Adapt_It_wdr.cpp:7295
+#: source/Adapt_It_wdr.cpp:7348
 msgid "Show Target Text Only"
 msgstr "只显示目标文本"
 
-#: source/Adapt_ItView.cpp:26695
-#: source/Adapt_ItView.cpp:26703
-#: source/Adapt_It_wdr.cpp:6855
-#: source/Adapt_It_wdr.cpp:6908
+#: source/Adapt_ItView.cpp:26830
+#: source/Adapt_ItView.cpp:26838
+#: source/Adapt_It_wdr.cpp:7295
+#: source/Adapt_It_wdr.cpp:7348
 msgid "Show target text only"
 msgstr "只显示目标文本"
 
-#: source/Adapt_ItView.cpp:26843
+#: source/Adapt_ItView.cpp:26978
 msgid " Medial markers: "
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26940
+#: source/Adapt_ItView.cpp:27075
 msgid "dictionary records.txt"
 msgstr "词典记录 .txt"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26956
+#: source/Adapt_ItView.cpp:27091
 msgid "Adapt It knowledge base export (*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "导出 Adapt It 资料库 (*.txt)|*.txt|所有文件 (*.*)|*.*||"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:26959
+#: source/Adapt_ItView.cpp:27094
 msgid "Filename For KB Export"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:26987
+#: source/Adapt_ItView.cpp:27122
 msgid "Unable to open knowledge base export file.\n"
 msgstr ""
 
-#: source/Adapt_ItView.cpp:26988
+#: source/Adapt_ItView.cpp:27123
 msgid "Unable to open knowledge base export file."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27422
+#: source/Adapt_ItView.cpp:27559
 msgid "Extend the knowledge base by importing dictionary records"
 msgstr "通过导入词典记录扩展资料库"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:27425
+#: source/Adapt_ItView.cpp:27562
 msgid "Adapt It knowledge base import (*.txt)|*.txt|All Files (*.*)|*.*||"
 msgstr "Adapt It 资料库导入 (*.txt)|*.txt|所有文件 (*.*)|*.*||"
 
-#: source/Adapt_ItView.cpp:27498
+#: source/Adapt_ItView.cpp:27635
 msgid "Unable to open import file for reading."
 msgstr ""
 
-#: source/Adapt_ItView.cpp:31194
+#: source/Adapt_ItView.cpp:31338
 #, c-format
 msgid "Some temporarily removed Notes could not be restored to the document due to lack of space, so they have been discarded. Number of notes discarded: %d"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:40885
+#: source/Adapt_ItView.cpp:41119
 msgid "The document does not contain any free translations."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:40892
+#: source/Adapt_ItView.cpp:41126
 msgid "You are about to delete all the free translations in the document. Is this what you want to do?"
 msgstr "你这样做会删除文档中所有的自由翻译。这是你要做的吗?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:41321
+#: source/Adapt_ItView.cpp:41555
 msgid "You are about to cause all the notes in this document to be irreversibly deleted. Are you sure you want to do this?"
 msgstr "这样做会导致文档中的全部注解被删除，且删除后不可恢复。确定吗？"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:43475
+#: source/Adapt_ItView.cpp:43725
 msgid "The document does not contain any back translations."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_ItView.cpp:43482
+#: source/Adapt_ItView.cpp:43732
 msgid "You are about to delete all the back translations in the document. Is this what you want to do?"
 msgstr "你这样做会删除文档中所有的回译。这是你要做的吗?"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:43781
+#: source/Adapt_ItView.cpp:44031
 msgid "[UNKNOWN MARKER]"
 msgstr "[未知标记]"
 
 # Priority 1
-#: source/Adapt_ItView.cpp:43790
+#: source/Adapt_ItView.cpp:44040
 msgid "[FILTERED]"
 msgstr "[已筛选]"
 
@@ -2179,95 +2313,95 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:3766
 #: source/Adapt_It_wdr.cpp:3922
 #: source/Adapt_It_wdr.cpp:3983
-#: source/Adapt_It_wdr.cpp:4363
-#: source/Adapt_It_wdr.cpp:4818
-#: source/Adapt_It_wdr.cpp:5309
-#: source/Adapt_It_wdr.cpp:5563
-#: source/Adapt_It_wdr.cpp:5654
+#: source/Adapt_It_wdr.cpp:4396
+#: source/Adapt_It_wdr.cpp:4851
+#: source/Adapt_It_wdr.cpp:5342
+#: source/Adapt_It_wdr.cpp:5596
+#: source/Adapt_It_wdr.cpp:5687
 msgid "OK"
 msgstr "确定"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:266
-#: source/Adapt_It_wdr.cpp:6601
+#: source/Adapt_It_wdr.cpp:6634
 msgid "Drafting "
 msgstr "草稿"
 
 #: source/Adapt_It_wdr.cpp:268
-#: source/Adapt_It_wdr.cpp:6603
+#: source/Adapt_It_wdr.cpp:6636
 msgid "Use Drafting mode for initial drafting of your translation"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:271
-#: source/Adapt_It_wdr.cpp:6606
+#: source/Adapt_It_wdr.cpp:6639
 msgid "Reviewing "
 msgstr "自动"
 
 #: source/Adapt_It_wdr.cpp:272
-#: source/Adapt_It_wdr.cpp:6607
+#: source/Adapt_It_wdr.cpp:6640
 msgid "Use Reviewing mode to review your translation phrase by phrase without jumping ahead"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:275
-#: source/Adapt_It_wdr.cpp:6610
+#: source/Adapt_It_wdr.cpp:6643
 msgid "Automatic "
 msgstr "自动"
 
 #: source/Adapt_It_wdr.cpp:277
-#: source/Adapt_It_wdr.cpp:6612
+#: source/Adapt_It_wdr.cpp:6645
 msgid "When Automatic is selected, Adapt It looks up translations in the KB and enters them automatically without stopping"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:280
-#: source/Adapt_It_wdr.cpp:6615
+#: source/Adapt_It_wdr.cpp:6648
 msgid "Save To Knowledge Base "
 msgstr "保存到资料库"
 
 #: source/Adapt_It_wdr.cpp:281
-#: source/Adapt_It_wdr.cpp:6616
+#: source/Adapt_It_wdr.cpp:6649
 msgid "Uncheck this box only to prevent Adapt It from storing anything in the KB for this particular word or phrase"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:284
-#: source/Adapt_It_wdr.cpp:6633
+#: source/Adapt_It_wdr.cpp:6666
 msgid "Force Choice For This Item "
 msgstr "此项的强制性选项"
 
 #: source/Adapt_It_wdr.cpp:285
-#: source/Adapt_It_wdr.cpp:6634
+#: source/Adapt_It_wdr.cpp:6667
 msgid "Check this box to show the Choose Translation Dialog even if there is only one adaptation for this source word or phrase"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:288
-#: source/Adapt_It_wdr.cpp:6639
+#: source/Adapt_It_wdr.cpp:6672
 msgid "<no adaptation>"
 msgstr "<没有对应转换>"
 
 #: source/Adapt_It_wdr.cpp:289
-#: source/Adapt_It_wdr.cpp:6640
+#: source/Adapt_It_wdr.cpp:6673
 msgid "Press this button to store an \"empty translation\" for this particular word or phrase in the KB"
 msgstr ""
 
 # Priority 1
 # This refers to a short time delay that the user can set to slow down automatic insertions in the phrase box.
 #: source/Adapt_It_wdr.cpp:292
-#: source/Adapt_It_wdr.cpp:6619
+#: source/Adapt_It_wdr.cpp:6652
 msgid " Delay "
 msgstr "延时"
 
 #: source/Adapt_It_wdr.cpp:293
-#: source/Adapt_It_wdr.cpp:6620
+#: source/Adapt_It_wdr.cpp:6653
 msgid "To slow down automatic insertions of adaptations, enter a number from 1 to 300 here"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:303
-#: source/Adapt_It_wdr.cpp:6646
+#: source/Adapt_It_wdr.cpp:6679
 msgid "Select to toggle glossing mode on and off"
 msgstr ""
 
@@ -2383,8 +2517,8 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:479
-#: source/Adapt_It_wdr.cpp:6810
-#: source/Adapt_It_wdr.cpp:6870
+#: source/Adapt_It_wdr.cpp:7250
+#: source/Adapt_It_wdr.cpp:7310
 msgid "Open"
 msgstr "打开"
 
@@ -2411,14 +2545,15 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:3927
 #: source/Adapt_It_wdr.cpp:3989
 #: source/Adapt_It_wdr.cpp:4064
-#: source/Adapt_It_wdr.cpp:4367
-#: source/Adapt_It_wdr.cpp:4824
-#: source/Adapt_It_wdr.cpp:5104
-#: source/Adapt_It_wdr.cpp:5279
-#: source/Adapt_It_wdr.cpp:5316
-#: source/Adapt_It_wdr.cpp:5499
-#: source/Adapt_It_wdr.cpp:5567
-#: source/Adapt_It_wdr.cpp:5659
+#: source/Adapt_It_wdr.cpp:4400
+#: source/Adapt_It_wdr.cpp:4857
+#: source/Adapt_It_wdr.cpp:5137
+#: source/Adapt_It_wdr.cpp:5312
+#: source/Adapt_It_wdr.cpp:5349
+#: source/Adapt_It_wdr.cpp:5532
+#: source/Adapt_It_wdr.cpp:5600
+#: source/Adapt_It_wdr.cpp:5692
+#: source/Adapt_It_wdr.cpp:6950
 msgid "Cancel"
 msgstr "取消"
 
@@ -2449,7 +2584,7 @@ msgid "These characters are not allowed in the name"
 msgstr ""
 
 #: source/Adapt_It_wdr.cpp:557
-#: source/Adapt_It_wdr.cpp:5311
+#: source/Adapt_It_wdr.cpp:5344
 msgid "Click OK when you are finished"
 msgstr ""
 
@@ -2475,8 +2610,9 @@ msgstr "这将作为你工程的名称。"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:628
-#: source/Adapt_It_wdr.cpp:6400
-#: source/Adapt_It_wdr.cpp:6420
+#: source/Adapt_It_wdr.cpp:6433
+#: source/Adapt_It_wdr.cpp:6453
+#: source/Adapt_It_wdr.cpp:6862
 #: source/CaseEquivPage.cpp:816
 #: source/CaseEquivPage.cpp:1052
 msgid "Source"
@@ -2489,8 +2625,8 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:649
-#: source/Adapt_It_wdr.cpp:6406
-#: source/Adapt_It_wdr.cpp:6426
+#: source/Adapt_It_wdr.cpp:6439
+#: source/Adapt_It_wdr.cpp:6459
 #: source/CaseEquivPage.cpp:837
 #: source/CaseEquivPage.cpp:1074
 msgid "Target"
@@ -2690,13 +2826,13 @@ msgstr "只有这些文档文件会被使用"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1003
-#: source/Adapt_It_wdr.cpp:4508
+#: source/Adapt_It_wdr.cpp:4541
 msgid "Move to the unused list"
 msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1009
-#: source/Adapt_It_wdr.cpp:4514
+#: source/Adapt_It_wdr.cpp:4547
 msgid "Move to the used list"
 msgstr ""
 
@@ -2714,8 +2850,8 @@ msgid "Click OK to proceed"
 msgstr ""
 
 #: source/Adapt_It_wdr.cpp:1044
-#: source/Adapt_It_wdr.cpp:4526
-#: source/Adapt_It_wdr.cpp:5317
+#: source/Adapt_It_wdr.cpp:4559
+#: source/Adapt_It_wdr.cpp:5350
 msgid "Click Cancel to stop the process and return to what you were doing"
 msgstr ""
 
@@ -2944,7 +3080,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1369
-#: source/Adapt_It_wdr.cpp:6684
+#: source/Adapt_It_wdr.cpp:7120
 msgid "Change Folder..."
 msgstr "改变文件夹..."
 
@@ -2988,8 +3124,8 @@ msgstr ""
 #: source/Adapt_It_wdr.cpp:1451
 #: source/Adapt_It_wdr.cpp:1584
 #: source/Adapt_It_wdr.cpp:2878
-#: source/Adapt_It_wdr.cpp:4978
-#: source/Adapt_It_wdr.cpp:5179
+#: source/Adapt_It_wdr.cpp:5011
+#: source/Adapt_It_wdr.cpp:5212
 msgid "Source Text:"
 msgstr "源文:"
 
@@ -3079,7 +3215,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1634
 #: source/Adapt_It_wdr.cpp:4216
-#: source/Adapt_It_wdr.cpp:4565
+#: source/Adapt_It_wdr.cpp:4598
 msgid "Move &Up"
 msgstr "上移"
 
@@ -3090,7 +3226,7 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1638
 #: source/Adapt_It_wdr.cpp:4228
-#: source/Adapt_It_wdr.cpp:4560
+#: source/Adapt_It_wdr.cpp:4593
 msgid "Move &Down"
 msgstr "下移"
 
@@ -3128,12 +3264,14 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1664
 #: source/Adapt_It_wdr.cpp:4057
+#: source/Adapt_It_wdr.cpp:7073
 msgid "&OK"
 msgstr "确定"
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1670
-#: source/Adapt_It_wdr.cpp:4784
+#: source/Adapt_It_wdr.cpp:4817
+#: source/Adapt_It_wdr.cpp:7079
 msgid "&Cancel"
 msgstr "取消"
 
@@ -3274,9 +3412,11 @@ msgstr "到"
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1883
 #: source/Adapt_It_wdr.cpp:2796
-#: source/Adapt_It_wdr.cpp:4452
-#: source/Adapt_It_wdr.cpp:4580
-#: source/Adapt_It_wdr.cpp:4630
+#: source/Adapt_It_wdr.cpp:4485
+#: source/Adapt_It_wdr.cpp:4613
+#: source/Adapt_It_wdr.cpp:4663
+#: source/Adapt_It_wdr.cpp:6827
+#: source/Adapt_It_wdr.cpp:6944
 msgid "Close"
 msgstr "关闭"
 
@@ -3313,6 +3453,7 @@ msgstr "如果资料库中存储的源语和目标语言名损坏（检查基本
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:1937
+#: source/Adapt_It_wdr.cpp:6987
 msgid "Source:"
 msgstr "源文:"
 
@@ -3773,8 +3914,8 @@ msgstr ""
 # Priority 1
 # Refers to a list of documents in the folder represented by %s.
 #: source/Adapt_It_wdr.cpp:2762
-#: source/Adapt_It_wdr.cpp:4398
-#: source/Adapt_It_wdr.cpp:4620
+#: source/Adapt_It_wdr.cpp:4431
+#: source/Adapt_It_wdr.cpp:4653
 #, c-format
 msgid "Documents in the folder %s"
 msgstr "%s 文件夹中的文档"
@@ -3812,7 +3953,7 @@ msgid "Splitting...  Please wait."
 msgstr "正在分割...请稍后。"
 
 #: source/Adapt_It_wdr.cpp:2798
-#: source/Adapt_It_wdr.cpp:4454
+#: source/Adapt_It_wdr.cpp:4487
 msgid "Click this button to close this dialog"
 msgstr ""
 
@@ -3914,8 +4055,9 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:2971
-#: source/Adapt_It_wdr.cpp:5091
-#: source/Adapt_It_wdr.cpp:5260
+#: source/Adapt_It_wdr.cpp:5124
+#: source/Adapt_It_wdr.cpp:5293
+#: source/Adapt_It_wdr.cpp:7042
 msgid "Find Next"
 msgstr "查找下一个"
 
@@ -3961,6 +4103,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3005
+#: source/Adapt_It_wdr.cpp:6822
 msgid "Delete"
 msgstr "删除"
 
@@ -4312,7 +4455,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3466
-#: source/Adapt_It_wdr.cpp:5405
+#: source/Adapt_It_wdr.cpp:5438
 msgid "Chapter/Verse Range"
 msgstr "章/节范围"
 
@@ -4322,7 +4465,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3482
-#: source/Adapt_It_wdr.cpp:5415
+#: source/Adapt_It_wdr.cpp:5448
 msgid "from: chapter"
 msgstr "从:章"
 
@@ -4333,8 +4476,8 @@ msgstr ""
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3490
 #: source/Adapt_It_wdr.cpp:3506
-#: source/Adapt_It_wdr.cpp:5424
-#: source/Adapt_It_wdr.cpp:5440
+#: source/Adapt_It_wdr.cpp:5457
+#: source/Adapt_It_wdr.cpp:5473
 msgid "verse"
 msgstr "节"
 
@@ -4344,7 +4487,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:3498
-#: source/Adapt_It_wdr.cpp:5431
+#: source/Adapt_It_wdr.cpp:5464
 msgid "to: chapter"
 msgstr "到:章"
 
@@ -4737,6 +4880,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4212
+#: source/Adapt_It_wdr.cpp:7031
 msgid "&Update"
 msgstr "升级"
 
@@ -4804,6 +4948,7 @@ msgstr ""
 
 # Priority 1
 #: source/Adapt_It_wdr.cpp:4278
+#: source/Adapt_It_wdr.cpp:6997
 msgid "Number of references:"
 msgstr "参数号码:"
 
@@ -4812,767 +4957,791 @@ msgid "Number of references in the knowledge base (approximate)"
 msgstr ""
 
 # Priority 1
+#: source/Adapt_It_wdr.cpp:4291
+#, fuzzy
+msgid "&Search for:"
+msgstr "搜索在:"
+
+#: source/Adapt_It_wdr.cpp:4299
+msgid "Go"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:4302
+msgid "Erase All Lines"
+msgstr ""
+
+# Priority 1
 #: source/Adapt_It_wdr.cpp:4309
+#, fuzzy
+msgid "Old searches:"
+msgstr "特殊搜索:"
+
+#: source/Adapt_It_wdr.cpp:4317
+msgid "Click to add the line to the search box"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:4342
 msgid "Number of &Words: Select a Tab according to the number of words in the Source Phrase"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4321
+#: source/Adapt_It_wdr.cpp:4354
 msgid "1 Word"
 msgstr "一个词"
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4325
+#: source/Adapt_It_wdr.cpp:4358
 msgid "2 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4329
+#: source/Adapt_It_wdr.cpp:4362
 msgid "3 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4333
+#: source/Adapt_It_wdr.cpp:4366
 msgid "4 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4337
+#: source/Adapt_It_wdr.cpp:4370
 msgid "5 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4341
+#: source/Adapt_It_wdr.cpp:4374
 msgid "6 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4345
+#: source/Adapt_It_wdr.cpp:4378
 msgid "7 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4349
+#: source/Adapt_It_wdr.cpp:4382
 msgid "8 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4353
+#: source/Adapt_It_wdr.cpp:4386
 msgid "9 Words"
 msgstr ""
 
 # Priority 1
 # Needs to relatively short to allow 10 such tabs across the dialog.
-#: source/Adapt_It_wdr.cpp:4357
+#: source/Adapt_It_wdr.cpp:4390
 msgid "10 Words"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4403
-#: source/Adapt_It_wdr.cpp:4625
+#: source/Adapt_It_wdr.cpp:4436
+#: source/Adapt_It_wdr.cpp:4658
 msgid "Select the document in this list that you want to move"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4410
+#: source/Adapt_It_wdr.cpp:4443
 msgid "Move a document from one folder to another:"
 msgstr "把文档从一个文件夹移到另一个文件夹："
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:4415
+#: source/Adapt_It_wdr.cpp:4448
 msgid "From the Adaptations folder to the current book folder"
 msgstr "从对应转换文件夹到当前的书卷文件夹"
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:4417
+#: source/Adapt_It_wdr.cpp:4450
 msgid "Click this button to move the document from the Adaptations folder to the current book folder"
 msgstr ""
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:4420
+#: source/Adapt_It_wdr.cpp:4453
 msgid "From the current book folder to the Adaptations folder"
 msgstr "从当前的书卷文件夹到对应转换文件夹"
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:4421
+#: source/Adapt_It_wdr.cpp:4454
 msgid "Click this button to move the document from the current book folder to the Adaptations folder"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4432
+#: source/Adapt_It_wdr.cpp:4465
 msgid "View The Other Folder's Documents..."
 msgstr "查看其它文件夹中的文档..."
 
-#: source/Adapt_It_wdr.cpp:4433
+#: source/Adapt_It_wdr.cpp:4466
 msgid "Click this button to to view the names of the documents in the other folder"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4438
+#: source/Adapt_It_wdr.cpp:4471
 msgid "Rename Document..."
 msgstr "重命名文档..."
 
-#: source/Adapt_It_wdr.cpp:4439
+#: source/Adapt_It_wdr.cpp:4472
 msgid "Click this button to give the document a different name"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4446
+#: source/Adapt_It_wdr.cpp:4479
 msgid "Move Now"
 msgstr "开始移动"
 
-#: source/Adapt_It_wdr.cpp:4447
+#: source/Adapt_It_wdr.cpp:4480
 msgid "Click this button when you are ready to move the document"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4485
+#: source/Adapt_It_wdr.cpp:4518
 msgid "Select an unwanted file and then press the \"X\" button to move the file from the left list to the right. The Tick button can be used to move documents back to the left list."
 msgstr "选定不需要的文件，然后按 \"\" X \"\"按钮把它从左列表移到右列表。按打勾按钮可以把文件重新移回左列表。"
 
-#: source/Adapt_It_wdr.cpp:4500
+#: source/Adapt_It_wdr.cpp:4533
 msgid "Document files listed here will be appended to the open document starting from the top and working down"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4519
+#: source/Adapt_It_wdr.cpp:4552
 msgid "Move All &Right >>"
 msgstr "全部右移 >>"
 
-#: source/Adapt_It_wdr.cpp:4520
+#: source/Adapt_It_wdr.cpp:4553
 msgid "Click this button to move all documents to the ignore list (you can then move one or more back to the append list)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4525
+#: source/Adapt_It_wdr.cpp:4558
 msgid "<< Move All &Left"
 msgstr "<< 全部左移"
 
-#: source/Adapt_It_wdr.cpp:4535
+#: source/Adapt_It_wdr.cpp:4568
 msgid "Document files listed here will not be joined to the open document"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4542
+#: source/Adapt_It_wdr.cpp:4575
 msgid "Only these document files will be appended, starting from the top and working down."
 msgstr "只有这些文件可以追加，从最上面开始逐一往下。 "
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4551
+#: source/Adapt_It_wdr.cpp:4584
 msgid "All of these document files will be ignored"
 msgstr "这些文档文件都会被忽略"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4570
+#: source/Adapt_It_wdr.cpp:4603
 msgid "&Join Now"
 msgstr "开始合并"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4575
+#: source/Adapt_It_wdr.cpp:4608
 msgid "Joining...  Please wait."
 msgstr "正在合并...请稍后"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4588
+#: source/Adapt_It_wdr.cpp:4621
 #, fuzzy
 msgid "(Optional) Type a filename for the joined document. (If none is typed, the open document's name is used):"
 msgstr "（可选的）为合并的文档输入一个名称。（如果没有名称输入，就自动使用当前已打开的文档的名称）。"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4655
+#: source/Adapt_It_wdr.cpp:4688
 #, c-format
 msgid "View or Set Font Encoding for the %s Language Font"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4663
+#: source/Adapt_It_wdr.cpp:4696
 #, c-format
 msgid "The current encoding for the %s font is:"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4673
+#: source/Adapt_It_wdr.cpp:4706
 msgid "Note: If the current encoding and face name is correct for all characters in the Test Box and the Display Chart below do not change it. If the character encoding does not appear correct, you may try selecting different encodings and/or face names from the lists below. The test box shows the default punctuation characters including smart quotes. Type characters in the test box and watch the chart."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4684
+#: source/Adapt_It_wdr.cpp:4717
 msgid "Choose a &Font Face Name:"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4689
+#: source/Adapt_It_wdr.cpp:4722
 msgid "Select a face name for the encoding selected at left"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4694
+#: source/Adapt_It_wdr.cpp:4727
 msgid "Choose an &Encoding:"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4699
+#: source/Adapt_It_wdr.cpp:4732
 msgid "Select a different encoding if the current one does not display your characters correctly"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4704
+#: source/Adapt_It_wdr.cpp:4737
 msgid "Encoding &Test Box"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4708
+#: source/Adapt_It_wdr.cpp:4741
 msgid "Type the characters you use."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4712
+#: source/Adapt_It_wdr.cpp:4745
 msgid "Test the appearance of all your characters by typing them in this edit box"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4725
+#: source/Adapt_It_wdr.cpp:4758
 msgid "Chart of Assigned Characters 32-255 in the selected encoding and face name: (Note: The chart highlights characters you type in the Encoding Test Box)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4742
+#: source/Adapt_It_wdr.cpp:4775
 msgid "Adjust Chart Font Size"
 msgstr ""
 
 # Priority 1
 # "points" here refers to the font size (in points).
-#: source/Adapt_It_wdr.cpp:4755
+#: source/Adapt_It_wdr.cpp:4788
 msgid "points"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4768
+#: source/Adapt_It_wdr.cpp:4801
 msgid "This chart shows all the font's assigned characters and their positions in the font"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4779
+#: source/Adapt_It_wdr.cpp:4812
 #, c-format
 msgid "Apply &Selected Encoding and Face Name To The %s Font"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4780
+#: source/Adapt_It_wdr.cpp:4813
 msgid "Press this button to apply a different encoding and/or face name to the font"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4786
+#: source/Adapt_It_wdr.cpp:4819
 msgid "Click Cancel to close the dialog without changing the encoding or face name"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4852
+#: source/Adapt_It_wdr.cpp:4885
 msgid "&Select a Consistent Changes (CC) Table:"
 msgstr "选择一个CC表"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4855
+#: source/Adapt_It_wdr.cpp:4888
 msgid "The CC Table you have chosen is:"
 msgstr "你选择的CC表是:"
 
-#: source/Adapt_It_wdr.cpp:4860
+#: source/Adapt_It_wdr.cpp:4893
 msgid "A list of consistent changes (*.cct) files in the current folder path"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4866
+#: source/Adapt_It_wdr.cpp:4899
 msgid "The name of the consistent changes table that will be used"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4871
+#: source/Adapt_It_wdr.cpp:4904
 msgid "&Browse To Find CC Table..."
 msgstr "浏览查找CC表..."
 
-#: source/Adapt_It_wdr.cpp:4872
+#: source/Adapt_It_wdr.cpp:4905
 msgid "Click this button to browse for a different folder containing consistent changes (*.cct) files"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4875
+#: source/Adapt_It_wdr.cpp:4908
 msgid "&Create CC Table..."
 msgstr "创建CC表..."
 
-#: source/Adapt_It_wdr.cpp:4876
+#: source/Adapt_It_wdr.cpp:4909
 msgid "Click this button to create a new consistent changes table file"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4879
+#: source/Adapt_It_wdr.cpp:4912
 msgid "&Edit CC Table..."
 msgstr "编辑CC表..."
 
-#: source/Adapt_It_wdr.cpp:4880
+#: source/Adapt_It_wdr.cpp:4913
 msgid "Click on this button to open and edit the consistent changes files selected from the list at left"
 msgstr ""
 
 # Priority 1
 # Could be translated as "Remove Selection"
-#: source/Adapt_It_wdr.cpp:4883
+#: source/Adapt_It_wdr.cpp:4916
 msgid "Select &None"
 msgstr "不适用"
 
-#: source/Adapt_It_wdr.cpp:4884
+#: source/Adapt_It_wdr.cpp:4917
 msgid "Click this button to remove any previous selection of a consistent changes table"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4893
+#: source/Adapt_It_wdr.cpp:4926
 msgid "Folder path:"
 msgstr "文件夹路径:"
 
-#: source/Adapt_It_wdr.cpp:4901
+#: source/Adapt_It_wdr.cpp:4934
 msgid "This box shows the folder path or location from which consistent changes (*.cct) files are shown in the above list"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4935
-#: source/Adapt_It_wdr.cpp:5136
+#: source/Adapt_It_wdr.cpp:4968
+#: source/Adapt_It_wdr.cpp:5169
 msgid "Search In:"
 msgstr "搜索在:"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4938
-#: source/Adapt_It_wdr.cpp:5139
+#: source/Adapt_It_wdr.cpp:4971
+#: source/Adapt_It_wdr.cpp:5172
 msgid "Source Text Only"
 msgstr "仅源文"
 
-#: source/Adapt_It_wdr.cpp:4939
-#: source/Adapt_It_wdr.cpp:5140
+#: source/Adapt_It_wdr.cpp:4972
+#: source/Adapt_It_wdr.cpp:5173
 msgid "Find source text only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4944
-#: source/Adapt_It_wdr.cpp:5145
+#: source/Adapt_It_wdr.cpp:4977
+#: source/Adapt_It_wdr.cpp:5178
 msgid "Translated Text Only"
 msgstr "仅翻译文本"
 
-#: source/Adapt_It_wdr.cpp:4946
-#: source/Adapt_It_wdr.cpp:5147
+#: source/Adapt_It_wdr.cpp:4979
+#: source/Adapt_It_wdr.cpp:5180
 msgid "Find target text only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4951
-#: source/Adapt_It_wdr.cpp:5152
+#: source/Adapt_It_wdr.cpp:4984
+#: source/Adapt_It_wdr.cpp:5185
 msgid "Both Source Text and Translated Text"
 msgstr "源文和翻译文本"
 
-#: source/Adapt_It_wdr.cpp:4952
-#: source/Adapt_It_wdr.cpp:5153
+#: source/Adapt_It_wdr.cpp:4985
+#: source/Adapt_It_wdr.cpp:5186
 msgid "Find data with both source and translation text as typed"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4961
-#: source/Adapt_It_wdr.cpp:5162
+#: source/Adapt_It_wdr.cpp:4994
+#: source/Adapt_It_wdr.cpp:5195
 msgid "Ignore Case"
 msgstr "忽略大小写"
 
-#: source/Adapt_It_wdr.cpp:4962
-#: source/Adapt_It_wdr.cpp:5163
+#: source/Adapt_It_wdr.cpp:4995
+#: source/Adapt_It_wdr.cpp:5196
 msgid "Check this box to ignore upper and lower case differences during find"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:4984
-#: source/Adapt_It_wdr.cpp:5185
+#: source/Adapt_It_wdr.cpp:5017
+#: source/Adapt_It_wdr.cpp:5218
 msgid "Type source text to find here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:4993
-#: source/Adapt_It_wdr.cpp:5194
+#: source/Adapt_It_wdr.cpp:5026
+#: source/Adapt_It_wdr.cpp:5227
 msgid "With Translation:"
 msgstr "用译文:"
 
-#: source/Adapt_It_wdr.cpp:4999
-#: source/Adapt_It_wdr.cpp:5200
+#: source/Adapt_It_wdr.cpp:5032
+#: source/Adapt_It_wdr.cpp:5233
 msgid "Type translation text to find here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5016
-#: source/Adapt_It_wdr.cpp:5215
+#: source/Adapt_It_wdr.cpp:5049
+#: source/Adapt_It_wdr.cpp:5248
 #, fuzzy
 msgid "Search, retaining target text's punctuation"
 msgstr "在有标点的行中进行搜索"
 
-#: source/Adapt_It_wdr.cpp:5017
-#: source/Adapt_It_wdr.cpp:5216
+#: source/Adapt_It_wdr.cpp:5050
+#: source/Adapt_It_wdr.cpp:5249
 msgid "Search lines that include punctuation"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5022
-#: source/Adapt_It_wdr.cpp:5221
+#: source/Adapt_It_wdr.cpp:5055
+#: source/Adapt_It_wdr.cpp:5254
 msgid "Allow the search to occur in text spanning multiple piles"
 msgstr "允许在由多个堆所组成的跨卷文档中进行搜索"
 
-#: source/Adapt_It_wdr.cpp:5023
-#: source/Adapt_It_wdr.cpp:5222
+#: source/Adapt_It_wdr.cpp:5056
+#: source/Adapt_It_wdr.cpp:5255
 msgid "Include adjoining piles in search"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5034
+#: source/Adapt_It_wdr.cpp:5067
 msgid "Special Searches:"
 msgstr "特殊搜索:"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5040
+#: source/Adapt_It_wdr.cpp:5073
 msgid "Retranslation"
 msgstr "重译"
 
-#: source/Adapt_It_wdr.cpp:5042
+#: source/Adapt_It_wdr.cpp:5075
 msgid "Find retranslations only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5047
+#: source/Adapt_It_wdr.cpp:5080
 msgid "Placeholder"
 msgstr "占位符"
 
-#: source/Adapt_It_wdr.cpp:5048
+#: source/Adapt_It_wdr.cpp:5081
 msgid "Find placeholders only"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5053
+#: source/Adapt_It_wdr.cpp:5086
 msgid "Standard Format Marker"
 msgstr "标准格式标记"
 
-#: source/Adapt_It_wdr.cpp:5054
+#: source/Adapt_It_wdr.cpp:5087
 msgid "Find standard format marker location (select from list)"
 msgstr ""
 
 # Priority 1
 # Leave two spaces before the beginning of the sentence.
-#: source/Adapt_It_wdr.cpp:5063
+#: source/Adapt_It_wdr.cpp:5096
 msgid "   Select a standard format marker:"
 msgstr "  选择一个标准格式标记:"
 
-#: source/Adapt_It_wdr.cpp:5070
+#: source/Adapt_It_wdr.cpp:5103
 msgid "Select standard format marker from list"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5093
-#: source/Adapt_It_wdr.cpp:5262
+#: source/Adapt_It_wdr.cpp:5126
+#: source/Adapt_It_wdr.cpp:5295
 msgid "Find the next occurrence (if any)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5098
+#: source/Adapt_It_wdr.cpp:5131
 msgid "Special Search"
 msgstr "特殊搜索"
 
-#: source/Adapt_It_wdr.cpp:5099
+#: source/Adapt_It_wdr.cpp:5132
 msgid "Activate special search context buttons"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5105
-#: source/Adapt_It_wdr.cpp:5280
+#: source/Adapt_It_wdr.cpp:5138
+#: source/Adapt_It_wdr.cpp:5313
 msgid "Close the Find-Replace dialog"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5231
+#: source/Adapt_It_wdr.cpp:5264
 msgid "Replacement Text:"
 msgstr "替换文本:"
 
-#: source/Adapt_It_wdr.cpp:5239
+#: source/Adapt_It_wdr.cpp:5272
 msgid "Type replacement text here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5267
+#: source/Adapt_It_wdr.cpp:5300
 msgid "Replace"
 msgstr "替换"
 
-#: source/Adapt_It_wdr.cpp:5268
+#: source/Adapt_It_wdr.cpp:5301
 msgid "Replace once"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5273
+#: source/Adapt_It_wdr.cpp:5306
 msgid "Replace All"
 msgstr "替换全部"
 
-#: source/Adapt_It_wdr.cpp:5274
+#: source/Adapt_It_wdr.cpp:5307
 msgid "Replace all instances found"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5301
+#: source/Adapt_It_wdr.cpp:5334
 msgid "Type the filename (omit the extention) for the consistent changes table. Adapt it will automatically append a .cct extension; and the file will be created in the project folder."
 msgstr "输入要存储协调转换表的文件名（不带扩展名）。Adapt It 会自动为其加上扩展名 .cct, 放在工程文件夹当中。"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5342
+#: source/Adapt_It_wdr.cpp:5375
 msgid "Special Print Options"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5350
+#: source/Adapt_It_wdr.cpp:5383
 msgid "If you want to print a range, you may specify a range of pages, or a range of chapters/verses. You may also check boxes for any special handling of footer or section headings. Click on the \"Print >>\" button to proceed to the standard print dialog where you may adjust margins or the number of copies before actual printing."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5361
+#: source/Adapt_It_wdr.cpp:5394
 msgid "Print range"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5366
+#: source/Adapt_It_wdr.cpp:5399
 msgid "&All"
 msgstr "所有"
 
-#: source/Adapt_It_wdr.cpp:5368
+#: source/Adapt_It_wdr.cpp:5401
 msgid "Select this button if you want to print the whole document"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5373
+#: source/Adapt_It_wdr.cpp:5406
 msgid "&Selection"
 msgstr "选择"
 
-#: source/Adapt_It_wdr.cpp:5374
+#: source/Adapt_It_wdr.cpp:5407
 msgid "Select this button if you only want to print part of the document (specify what part below)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5381
+#: source/Adapt_It_wdr.cpp:5414
 msgid "Pa&ges"
 msgstr "页数"
 
-#: source/Adapt_It_wdr.cpp:5382
+#: source/Adapt_It_wdr.cpp:5415
 msgid "Select this button to indicate the pages to be printed"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5385
+#: source/Adapt_It_wdr.cpp:5418
 msgid "from:"
 msgstr "从:"
 
-#: source/Adapt_It_wdr.cpp:5389
+#: source/Adapt_It_wdr.cpp:5422
 msgid "Type the starting page number here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5392
+#: source/Adapt_It_wdr.cpp:5425
 msgid "to:"
 msgstr "到:"
 
-#: source/Adapt_It_wdr.cpp:5396
+#: source/Adapt_It_wdr.cpp:5429
 msgid "Type the ending page number here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5406
+#: source/Adapt_It_wdr.cpp:5439
 msgid "Select this button to print only a range of chapters/verses"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5419
+#: source/Adapt_It_wdr.cpp:5452
 msgid "Type the begining chapter to start printing here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5428
+#: source/Adapt_It_wdr.cpp:5461
 msgid "Type the beginning verse to start printing here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5435
+#: source/Adapt_It_wdr.cpp:5468
 msgid "Type the ending chapter to print here"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5444
+#: source/Adapt_It_wdr.cpp:5477
 msgid "Type the ending verse to print here"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5461
+#: source/Adapt_It_wdr.cpp:5494
 msgid "Margin elements"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5464
+#: source/Adapt_It_wdr.cpp:5497
 msgid "Section headings"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5467
+#: source/Adapt_It_wdr.cpp:5500
 msgid "Suppress a preceding section heading"
 msgstr "不包括前一区域的标题"
 
-#: source/Adapt_It_wdr.cpp:5468
+#: source/Adapt_It_wdr.cpp:5501
 msgid "Check this box if you do not want a section heading at the beginning of the selection to print along with the selection"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5471
+#: source/Adapt_It_wdr.cpp:5504
 msgid "Include a following section heading"
 msgstr "包括后一区域的标题"
 
-#: source/Adapt_It_wdr.cpp:5472
+#: source/Adapt_It_wdr.cpp:5505
 msgid "Check this box if you want a section heading that follows the printed selection to be printed also"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5477
+#: source/Adapt_It_wdr.cpp:5510
 msgid "Footer"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5480
+#: source/Adapt_It_wdr.cpp:5513
 msgid "Suppress printing of the footer"
 msgstr "不打印页脚"
 
-#: source/Adapt_It_wdr.cpp:5481
+#: source/Adapt_It_wdr.cpp:5514
 msgid "Check this box if you do not want Adapt It to include a footer on the page(s) of the printed selection"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5492
+#: source/Adapt_It_wdr.cpp:5525
 msgid "Print >>"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5494
+#: source/Adapt_It_wdr.cpp:5527
 msgid "Press this button to proceed to the standard print dialog (where you can set margins and do the actual printing)"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5500
+#: source/Adapt_It_wdr.cpp:5533
 msgid "Press this button to Cancel the printing and close this dialog"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5531
+#: source/Adapt_It_wdr.cpp:5564
 msgid "If you want to use only one consistent changes table select it using the Table 1 tab. If you want to use more than one consistent changes tables, select the first one in the Table 1 tab, the second in the Table 2 tab and so on, up to four Tables. Note: When using multiple consistent change tables, they are processed in sequence starting with Table 1."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5545
+#: source/Adapt_It_wdr.cpp:5578
 msgid "Table 1"
 msgstr "表 1"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5549
+#: source/Adapt_It_wdr.cpp:5582
 msgid "Table 2"
 msgstr "表 2"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5553
+#: source/Adapt_It_wdr.cpp:5586
 msgid "Table 3"
 msgstr "表 3"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5557
+#: source/Adapt_It_wdr.cpp:5590
 msgid "Table 4"
 msgstr "表 4"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5593
+#: source/Adapt_It_wdr.cpp:5626
 msgid "List of Interface Language Localizations found for Adapt It:"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5600
+#: source/Adapt_It_wdr.cpp:5633
 msgid "This is a list of interface languages found at the path below"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5609
+#: source/Adapt_It_wdr.cpp:5642
 msgid "Short (Canonical) language name:"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5621
+#: source/Adapt_It_wdr.cpp:5654
 msgid "Full (Descriptive) language name:"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5633
+#: source/Adapt_It_wdr.cpp:5666
 msgid "Path of Adapt It's Localization Files (click Browse to change path):"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5639
+#: source/Adapt_It_wdr.cpp:5672
 msgid "The path where Adapt It looks for localization folders containing .mo files. Use the \"Browse...\" button at right to designate a different path"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5642
+#: source/Adapt_It_wdr.cpp:5675
 msgid "Browse..."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5643
+#: source/Adapt_It_wdr.cpp:5676
 #, fuzzy
 msgid "Click this button to browse for a different localization path "
 msgstr "设定导航文本颜色..."
 
-#: source/Adapt_It_wdr.cpp:5656
+#: source/Adapt_It_wdr.cpp:5689
 msgid "Click OK to use a selected interface language"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5660
+#: source/Adapt_It_wdr.cpp:5693
 msgid "Click Cancel to make no changes to the interface language"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5685
+#: source/Adapt_It_wdr.cpp:5718
 #, fuzzy
 msgid "Removed:"
 msgstr "删除"
 
-#: source/Adapt_It_wdr.cpp:5702
+#: source/Adapt_It_wdr.cpp:5735
 msgid "Clicking on an item in the above list copies it to the Phrase Box, overwriting anything there."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5707
+#: source/Adapt_It_wdr.cpp:5740
 msgid "Undo Last Copy"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5741
+#: source/Adapt_It_wdr.cpp:5774
 msgid "Previous Step"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5746
+#: source/Adapt_It_wdr.cpp:5779
 #, fuzzy
 msgid "Next Step"
 msgstr "下一个>"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5751
+#: source/Adapt_It_wdr.cpp:5784
 #, fuzzy
 msgid "End Now"
 msgstr "开始合并"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5757
+#: source/Adapt_It_wdr.cpp:5790
 #, fuzzy
 msgid "Cancel All Steps"
 msgstr "删除所有注解"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5778
+#: source/Adapt_It_wdr.cpp:5811
 #, fuzzy
 msgid "Define Source and Target Punctuation Correspondences"
 msgstr "编辑源文同目标文本间的协调性"
 
-#: source/Adapt_It_wdr.cpp:5782
+#: source/Adapt_It_wdr.cpp:5815
 msgid "Enter single punctuation character correspondences in the list on the left tab."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:5785
+#: source/Adapt_It_wdr.cpp:5818
 msgid "Enter any double character correspondences in the list on the right tab."
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5792
+#: source/Adapt_It_wdr.cpp:5825
 msgid "Where there is no corresponding punctuation character, leave that cell empty - whether it is a source or a target cell."
 msgstr ""
 "没有对应标点字符时, 设定该格\n"
@@ -5580,1042 +5749,1289 @@ msgstr ""
 
 # Priority 1
 # Do not translate the U+nnnn
-#: source/Adapt_It_wdr.cpp:5799
+#: source/Adapt_It_wdr.cpp:5832
 msgid "Show U+nnnn"
 msgstr "显示 U+nnnn"
 
-#: source/Adapt_It_wdr.cpp:5800
+#: source/Adapt_It_wdr.cpp:5833
 msgid "Toggle between showing the Unicode nnnn hex value codes and the actual Unicode characters"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5816
+#: source/Adapt_It_wdr.cpp:5849
 #, fuzzy
 msgid "Single Punctuation Charaters"
 msgstr "有标点符号复制"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5820
+#: source/Adapt_It_wdr.cpp:5853
 #, fuzzy
 msgid "Double Punctuation Characters"
 msgstr "有标点符号复制"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:5844
+#: source/Adapt_It_wdr.cpp:5877
 msgid "SINGLE Punctuation Chars (up to 26 pairs):"
 msgstr ""
 
 # Priority 1
 # Abbreviate if necessary to keep the word short.
-#: source/Adapt_It_wdr.cpp:5872
-#: source/Adapt_It_wdr.cpp:5892
-#: source/Adapt_It_wdr.cpp:5912
+#: source/Adapt_It_wdr.cpp:5905
+#: source/Adapt_It_wdr.cpp:5925
+#: source/Adapt_It_wdr.cpp:5945
 msgid "Source  "
 msgstr "源文"
 
 # Priority 1
 # Leave two spaces before the beginning of the word. Abbreviate if necessary to keep the word short.
-#: source/Adapt_It_wdr.cpp:5878
-#: source/Adapt_It_wdr.cpp:5898
-#: source/Adapt_It_wdr.cpp:5918
+#: source/Adapt_It_wdr.cpp:5911
+#: source/Adapt_It_wdr.cpp:5931
+#: source/Adapt_It_wdr.cpp:5951
 msgid "  Target"
 msgstr "  目标"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6381
+#: source/Adapt_It_wdr.cpp:6414
 msgid "DOUBLE Punctuation Chars (up to 10 pairs):"
 msgstr ""
 
+#: source/Adapt_It_wdr.cpp:6705
+msgid "Warning: innappropriate use of this dialog may cause loss of data. The item, or items, being moved or copied may be file or folders or both. Moving or copying a folder moves or copies all its contents. The direction of the move or copy is always from the left list to the right list.  For moving or copying, first select the items you  want in the list on the left. Selections in the right hand list allow you to delete or rename what you select. Double-clicking a folder in the list open that folder and the list is updated to show the folder's contents. To reopen the parent folder click the green 'Up Arrow' button.  If there is a danger of overwriting a file, a dialog will open and allow you to choose to overwrite, not move or copy, or to have the file renamed and then moved or copied. Beware: deletions are unrecoverable. Be safe: first make a backup somewhere if you are unsure whether a file contains important data or not. Click Close when finished."
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6716
+#: source/AdminMoveOrCopy.cpp:570
+msgid "Locate the source folder"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6728
+msgid "Path to source folder (selections here can be copied or moved):"
+msgstr ""
+
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6671
+#: source/Adapt_It_wdr.cpp:6742
+#, fuzzy
+msgid "Contents of the source folder:"
+msgstr "其它文件夹中的文档"
+
+#: source/Adapt_It_wdr.cpp:6765
+#: source/AdminMoveOrCopy.cpp:597
+msgid "Locate the destination folder"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6777
+msgid "Path to destination folder (selections here can be deleted or renamed):"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6791
+#, fuzzy
+msgid "Contents of the destination folder:"
+msgstr "文档会被保存到对应转换文件夹中"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6807
+#, fuzzy
+msgid "Move"
+msgstr "上移"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6812
+#: source/Adapt_It_wdr.cpp:7255
+msgid "Copy"
+msgstr "复制"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6817
+#, fuzzy
+msgid "Rename"
+msgstr "删除"
+
+#: source/Adapt_It_wdr.cpp:6851
+msgid "There is already a file with the same name in the destination folder."
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:6879
+#, fuzzy
+msgid "Destination"
+msgstr "重译"
+
+#: source/Adapt_It_wdr.cpp:6904
+msgid "Move, or copy; and replace"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6908
+msgid "Replace the file in the destination folder with the file you are moving or copying."
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6915
+msgid "Do not move, or copy"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6918
+msgid "No move, nor copy, will be done. Leave the destination folder's file unchanged."
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6925
+msgid "Move, or copy, giving it a modified filename"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6928
+#, c-format
+msgid "The file you are moving, or copying will be renamed  %s"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6939
+msgid "Handle other filename confllicts the same way"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:6975
+msgid "Updated Spellings"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7011
+msgid "Matches for the one or more search strings"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7036
+msgid "Find in matched list:"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:7049
+#, fuzzy
+msgid "Edit:"
+msgstr "编辑"
+
+#: source/Adapt_It_wdr.cpp:7061
+msgid "Restore Original Spelling"
+msgstr ""
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:7068
+#, fuzzy
+msgid "&Remove Update"
+msgstr "删除"
+
+# Priority 1
+#: source/Adapt_It_wdr.cpp:7107
 msgid "&New\tCtrl-N"
 msgstr "新建"
 
-#: source/Adapt_It_wdr.cpp:6671
-#: source/Adapt_It_wdr.cpp:6808
-#: source/Adapt_It_wdr.cpp:6868
+#: source/Adapt_It_wdr.cpp:7107
+#: source/Adapt_It_wdr.cpp:7248
+#: source/Adapt_It_wdr.cpp:7308
 msgid "Create a new document"
 msgstr "创建一个新文档"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6672
+#: source/Adapt_It_wdr.cpp:7108
 msgid "&Open...\tCtrl-O"
 msgstr "打开..."
 
-#: source/Adapt_It_wdr.cpp:6672
-#: source/Adapt_It_wdr.cpp:6810
-#: source/Adapt_It_wdr.cpp:6870
+#: source/Adapt_It_wdr.cpp:7108
+#: source/Adapt_It_wdr.cpp:7250
+#: source/Adapt_It_wdr.cpp:7310
 msgid "Open an existing document"
 msgstr "打开一个旧文档"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6673
+#: source/Adapt_It_wdr.cpp:7109
 msgid "&Save\tCtrl-S"
 msgstr "保存"
 
-#: source/Adapt_It_wdr.cpp:6673
-#: source/Adapt_It_wdr.cpp:6812
-#: source/Adapt_It_wdr.cpp:6872
+#: source/Adapt_It_wdr.cpp:7109
+#: source/Adapt_It_wdr.cpp:7252
+#: source/Adapt_It_wdr.cpp:7312
 msgid "Save the active document"
 msgstr "保存当前活动文档"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6674
+#: source/Adapt_It_wdr.cpp:7110
 msgid "&Close"
 msgstr "关闭"
 
-#: source/Adapt_It_wdr.cpp:6674
+#: source/Adapt_It_wdr.cpp:7110
 msgid "Close the active document"
 msgstr "关闭当前活动文档"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6675
+#: source/Adapt_It_wdr.cpp:7111
 msgid "Pack Document..."
 msgstr "打包文档…"
 
-#: source/Adapt_It_wdr.cpp:6675
+#: source/Adapt_It_wdr.cpp:7111
 msgid "Pack document for transfer to another computer"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6676
+#: source/Adapt_It_wdr.cpp:7112
 msgid "Unpack Document..."
 msgstr "解包文档…"
 
-#: source/Adapt_It_wdr.cpp:6676
+#: source/Adapt_It_wdr.cpp:7112
 msgid "Unpack a document that was packed on another computer"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6678
+#: source/Adapt_It_wdr.cpp:7114
 msgid "&Print...\tCtrl-P"
 msgstr "打印..."
 
-#: source/Adapt_It_wdr.cpp:6678
-#: source/Adapt_It_wdr.cpp:6819
+#: source/Adapt_It_wdr.cpp:7114
+#: source/Adapt_It_wdr.cpp:7259
 msgid "Print the active document"
 msgstr "打印当前活动文档"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6679
+#: source/Adapt_It_wdr.cpp:7115
 msgid "Print Pre&view"
 msgstr "打印预览"
 
-#: source/Adapt_It_wdr.cpp:6679
+#: source/Adapt_It_wdr.cpp:7115
 #, fuzzy
 msgid "Show what printed pages will look like (without printing)"
 msgstr "整页显示"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6680
+#: source/Adapt_It_wdr.cpp:7116
 msgid "P&age Setup..."
 msgstr "页面设置..."
 
-#: source/Adapt_It_wdr.cpp:6680
+#: source/Adapt_It_wdr.cpp:7116
 msgid "Change the printing options"
 msgstr "改变打印选项"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6682
+#: source/Adapt_It_wdr.cpp:7118
 msgid "Start &Working...\tCtrl-W"
 msgstr "启动精灵..."
 
-#: source/Adapt_It_wdr.cpp:6682
+#: source/Adapt_It_wdr.cpp:7118
 msgid "Show the sequence of dialog windows used for accessing a project and working on documents"
 msgstr "显示用于访问工程以及操作文档的对话窗口的顺序"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6683
+#: source/Adapt_It_wdr.cpp:7119
 msgid "Close Pro&ject\tCtrl-J"
 msgstr "关闭工程"
 
-#: source/Adapt_It_wdr.cpp:6683
+#: source/Adapt_It_wdr.cpp:7119
 msgid "Save the knowledge base and document, then close this project"
 msgstr "保存资料库和文档，然后关闭此工程"
 
-#: source/Adapt_It_wdr.cpp:6684
+#: source/Adapt_It_wdr.cpp:7120
 msgid "Change to a different book folder for document storage (book mode must be ON)"
 msgstr "保存文档到另一个书卷文件夹（必须开启书卷模式）"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6686
+#: source/Adapt_It_wdr.cpp:7122
 msgid "Save &Knowledge Base"
 msgstr "保存资料库"
 
-#: source/Adapt_It_wdr.cpp:6686
+#: source/Adapt_It_wdr.cpp:7122
 msgid "Update the knowledge base file for this project"
 msgstr "更新此工程的资料库文件"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6687
+#: source/Adapt_It_wdr.cpp:7123
 msgid "&Backup Knowledge Base"
 msgstr "备份资料库"
 
-#: source/Adapt_It_wdr.cpp:6687
+#: source/Adapt_It_wdr.cpp:7123
 msgid "Make a new knowledge base backup immediately"
 msgstr "立即生成一个新的资料库备份"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6688
+#: source/Adapt_It_wdr.cpp:7124
 msgid "&Restore Knowledge Base..."
 msgstr "恢复资料库..."
 
-#: source/Adapt_It_wdr.cpp:6688
+#: source/Adapt_It_wdr.cpp:7124
 msgid "Use all the saved documents to rebuild the knowledge base file"
 msgstr "使用所有保存的文档重建资料库文件"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6690
+#: source/Adapt_It_wdr.cpp:7126
 msgid "E&xit"
 msgstr "退出"
 
-#: source/Adapt_It_wdr.cpp:6690
+#: source/Adapt_It_wdr.cpp:7126
 msgid "Quit the application; prompts to save documents"
 msgstr "退出程序；提示保存文档"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6691
+#: source/Adapt_It_wdr.cpp:7127
 msgid "&File"
 msgstr "文件"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6694
+#: source/Adapt_It_wdr.cpp:7130
 msgid "&Undo\tCtrl-Z"
 msgstr "撤销"
 
-#: source/Adapt_It_wdr.cpp:6694
+#: source/Adapt_It_wdr.cpp:7130
 msgid "Undo the last action"
 msgstr "取消前一步骤"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6696
+#: source/Adapt_It_wdr.cpp:7132
 msgid "Cu&t\tCtrl-X"
 msgstr "剪切"
 
-#: source/Adapt_It_wdr.cpp:6696
-#: source/Adapt_It_wdr.cpp:6814
+#: source/Adapt_It_wdr.cpp:7132
+#: source/Adapt_It_wdr.cpp:7254
 msgid "Cut the selection and put it on the Clipboard"
 msgstr "剪切选区并放入剪贴板"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6697
+#: source/Adapt_It_wdr.cpp:7133
 msgid "&Copy\tCtrl-C"
 msgstr "复制"
 
-#: source/Adapt_It_wdr.cpp:6697
-#: source/Adapt_It_wdr.cpp:6815
+#: source/Adapt_It_wdr.cpp:7133
+#: source/Adapt_It_wdr.cpp:7255
 msgid "Copy the selection and put it on the Clipboard"
 msgstr "复制选区并放入剪贴板"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6698
+#: source/Adapt_It_wdr.cpp:7134
 msgid "&Paste\tCtrl-V"
 msgstr "粘贴"
 
-#: source/Adapt_It_wdr.cpp:6698
-#: source/Adapt_It_wdr.cpp:6816
+#: source/Adapt_It_wdr.cpp:7134
+#: source/Adapt_It_wdr.cpp:7256
 msgid "Insert Clipboard contents"
 msgstr "插入剪贴板上的内容"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6700
+#: source/Adapt_It_wdr.cpp:7136
 msgid "&Go To...\tCtrl-G"
 msgstr "转到..."
 
-#: source/Adapt_It_wdr.cpp:6700
+#: source/Adapt_It_wdr.cpp:7136
 msgid "Go to a specific chapter and verse"
 msgstr "定位于指定章节"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6701
+#: source/Adapt_It_wdr.cpp:7137
 msgid "Edit &Source Text...\tCtrl-Q"
 msgstr "编辑源文..."
 
-#: source/Adapt_It_wdr.cpp:6701
+#: source/Adapt_It_wdr.cpp:7137
 msgid "Edit the selected source text"
 msgstr "编辑选定的源文"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6702
+#: source/Adapt_It_wdr.cpp:7138
 msgid "Consist&ency Check..."
 msgstr "协调性检查..."
 
-#: source/Adapt_It_wdr.cpp:6702
+#: source/Adapt_It_wdr.cpp:7138
 msgid "Check all translations with those in the knowledge base for consistency"
 msgstr "依据资料库中内容检查译文的协调性"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6704
+#: source/Adapt_It_wdr.cpp:7140
 msgid "Move Note Forward\tCtrl-3"
 msgstr "前移注解"
 
-#: source/Adapt_It_wdr.cpp:6704
+#: source/Adapt_It_wdr.cpp:7140
 msgid "Move the note forward in the document to the next word or phrase"
 msgstr "前移注解到文档中的下一个词语或短语"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6705
+#: source/Adapt_It_wdr.cpp:7141
 msgid "Move Note Backward\tCtrl-2"
 msgstr "后移注解"
 
-#: source/Adapt_It_wdr.cpp:6705
+#: source/Adapt_It_wdr.cpp:7141
 msgid "Move the note backward in the document to the previous word or phrase"
 msgstr "后移注解到文档中的前一个词语或短语"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6707
+#: source/Adapt_It_wdr.cpp:7143
 msgid "Pre&ferences..."
 msgstr "参数设定..."
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6707
+#: source/Adapt_It_wdr.cpp:7143
 msgid "Adapt It settings"
 msgstr "Adapt It设置"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6708
+#: source/Adapt_It_wdr.cpp:7144
 msgid "&Edit"
 msgstr "编辑"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6711
+#: source/Adapt_It_wdr.cpp:7147
 msgid "&Toolbar"
 msgstr "工具栏"
 
-#: source/Adapt_It_wdr.cpp:6711
+#: source/Adapt_It_wdr.cpp:7147
 msgid "Show or hide the toolbar"
 msgstr "显示或隐藏工具栏"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6712
+#: source/Adapt_It_wdr.cpp:7148
 msgid "&Status Bar"
 msgstr "状态栏"
 
-#: source/Adapt_It_wdr.cpp:6712
+#: source/Adapt_It_wdr.cpp:7148
 msgid "Show or hide the status bar"
 msgstr "显示或隐藏状态栏"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6713
+#: source/Adapt_It_wdr.cpp:7149
 msgid "&Compose Bar"
 msgstr "排版栏"
 
-#: source/Adapt_It_wdr.cpp:6713
+#: source/Adapt_It_wdr.cpp:7149
 msgid "Show or hide the bar for composing text"
 msgstr "显示或隐藏排版栏"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6715
+#: source/Adapt_It_wdr.cpp:7151
 msgid "Copy Sourc&e"
 msgstr "复制源文"
 
-#: source/Adapt_It_wdr.cpp:6715
+#: source/Adapt_It_wdr.cpp:7151
 msgid "Copy source text to phrase box as default translation"
 msgstr "将源文作为缺省译文复制到短语框"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6716
+#: source/Adapt_It_wdr.cpp:7152
 msgid "&Wrap At Standard Format Markers"
 msgstr "在标准格式标记处换行"
 
-#: source/Adapt_It_wdr.cpp:6716
+#: source/Adapt_It_wdr.cpp:7152
 msgid "Start a new strip whenever a standard format marker is encountered"
 msgstr "凡遇到标准格式标记即开始一条新的带"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6717
+#: source/Adapt_It_wdr.cpp:7153
 msgid "&Units of Measurement..."
 msgstr "尺寸单位..."
 
-#: source/Adapt_It_wdr.cpp:6717
+#: source/Adapt_It_wdr.cpp:7153
 msgid "Units to be used when printing"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6719
+#: source/Adapt_It_wdr.cpp:7155
 msgid "Change Interface Language..."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6719
+#: source/Adapt_It_wdr.cpp:7155
 msgid "Change the language of the program interface. You may need to restart Adapt It for the change to take effect"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6720
+#: source/Adapt_It_wdr.cpp:7156
 msgid "&View"
 msgstr "查看"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6723
+#: source/Adapt_It_wdr.cpp:7159
 msgid "&Find...\tCtrl-F"
 msgstr "查找..."
 
-#: source/Adapt_It_wdr.cpp:6723
+#: source/Adapt_It_wdr.cpp:7159
 msgid "Find text in source or target or both, or special search"
 msgstr "在源文或目标文本抑或两者中同时查找指定内容，或进行特殊搜索"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6724
+#: source/Adapt_It_wdr.cpp:7160
 msgid "Find and &Replace...\tCtrl-H"
 msgstr "查找并替换..."
 
-#: source/Adapt_It_wdr.cpp:6724
+#: source/Adapt_It_wdr.cpp:7160
 msgid "Replace in target text"
 msgstr "在目标文本中替换指定内容"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6726
+#: source/Adapt_It_wdr.cpp:7162
 msgid "&Load Consistent Changes..."
 msgstr "载入协调转换..."
 
-#: source/Adapt_It_wdr.cpp:6726
+#: source/Adapt_It_wdr.cpp:7162
 msgid "Define and load one or more consistent changes tables"
 msgstr "定义并加载一个或多个协调转换表"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6727
+#: source/Adapt_It_wdr.cpp:7163
 msgid "&Unload Consistent Changes"
 msgstr "卸载协调转换"
 
-#: source/Adapt_It_wdr.cpp:6727
+#: source/Adapt_It_wdr.cpp:7163
 msgid "Unload any loaded consistent changes tables"
 msgstr "卸载所有已经载入的协调转换表"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6728
+#: source/Adapt_It_wdr.cpp:7164
 msgid "Use &Consistent Changes"
 msgstr "使用协调转换"
 
-#: source/Adapt_It_wdr.cpp:6728
+#: source/Adapt_It_wdr.cpp:7164
 msgid "Use the consistent changes when copying source text"
 msgstr "复制源文时使用协调转换"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6729
+#: source/Adapt_It_wdr.cpp:7165
 msgid "&Accept Changes Without Stopping"
 msgstr "一直接受转换结果"
 
-#: source/Adapt_It_wdr.cpp:6729
+#: source/Adapt_It_wdr.cpp:7165
 msgid "Accept the changed source text as the translation and continue on"
 msgstr "接受改变后的源文为译文并继续"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6731
+#: source/Adapt_It_wdr.cpp:7167
 msgid "&SIL Converters..."
 msgstr "SIL转换器..."
 
-#: source/Adapt_It_wdr.cpp:6731
+#: source/Adapt_It_wdr.cpp:7167
 msgid "Load an SIL Converter"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6732
+#: source/Adapt_It_wdr.cpp:7168
 msgid "Use S&IL Converter"
 msgstr "使用SIL转换器"
 
-#: source/Adapt_It_wdr.cpp:6732
+#: source/Adapt_It_wdr.cpp:7168
 msgid "Use a loaded SIL Converter"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6734
+#: source/Adapt_It_wdr.cpp:7170
 msgid "&Knowledge Base Editor...\tCtrl-K"
 msgstr "资料库编辑器..."
 
-#: source/Adapt_It_wdr.cpp:6734
+#: source/Adapt_It_wdr.cpp:7170
 msgid "Display dialog for editing the knowledge base"
 msgstr "显示编辑资料库的对话框"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6736
+#: source/Adapt_It_wdr.cpp:7172
 msgid "Use Automatic Capitalization"
 msgstr "使用自动大写"
 
-#: source/Adapt_It_wdr.cpp:6736
+#: source/Adapt_It_wdr.cpp:7172
 msgid "Use automatic capitalization when copying source text"
 msgstr "复制源文时使用自动化大写"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6738
+#: source/Adapt_It_wdr.cpp:7174
 msgid "Re&translation Report..."
 msgstr "重译报告..."
 
-#: source/Adapt_It_wdr.cpp:6738
+#: source/Adapt_It_wdr.cpp:7174
 msgid "Output a file listing all retranslations"
 msgstr "输出文件列出所有重译内容"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6740
+#: source/Adapt_It_wdr.cpp:7176
 msgid "Split Document..."
 msgstr "分割文档..."
 
-#: source/Adapt_It_wdr.cpp:6740
+#: source/Adapt_It_wdr.cpp:7176
 msgid "Split the document into two or more documents"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6741
+#: source/Adapt_It_wdr.cpp:7177
 msgid "Join Documents..."
 msgstr "合并文档..."
 
-#: source/Adapt_It_wdr.cpp:6741
+#: source/Adapt_It_wdr.cpp:7177
 msgid "Join two or more documents into a single document"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6742
+#: source/Adapt_It_wdr.cpp:7178
 msgid "Move Document..."
 msgstr "移动文档..."
 
 # Priority 1
 # The word "Adaptations" should remain in English.
-#: source/Adapt_It_wdr.cpp:6742
+#: source/Adapt_It_wdr.cpp:7178
 msgid "Move documents between the Adaptations folder and a book folder location"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6743
+#: source/Adapt_It_wdr.cpp:7179
 msgid "&Tools"
 msgstr "工具"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6746
+#: source/Adapt_It_wdr.cpp:7182
 #, fuzzy
 msgid "Export &Source Text..."
 msgstr "导出源文..."
 
-#: source/Adapt_It_wdr.cpp:6746
+#: source/Adapt_It_wdr.cpp:7182
 msgid "Export the source language text as a *.txt file type"
 msgstr "以 *.txt 格式导出源语文本"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6747
+#: source/Adapt_It_wdr.cpp:7183
 #, fuzzy
 msgid "&Export Translation Text..."
 msgstr "导出译文文本..."
 
-#: source/Adapt_It_wdr.cpp:6747
+#: source/Adapt_It_wdr.cpp:7183
 msgid "Export the target language translation as a *.txt file type"
 msgstr "以 *.txt 格式导出目标语言译文"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6748
+#: source/Adapt_It_wdr.cpp:7184
 #, fuzzy
 msgid "Export Interlinear &Text..."
 msgstr "导出隔行对照式文本..."
 
-#: source/Adapt_It_wdr.cpp:6748
+#: source/Adapt_It_wdr.cpp:7184
 msgid "Export the Source and Target languages in interlinear form as an *.rtf file type"
 msgstr "将源语和目标语言以隔行对照的形式导出为 *.rtf 格式文件"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6749
+#: source/Adapt_It_wdr.cpp:7185
 #, fuzzy
 msgid "Export &Glosses As Text..."
 msgstr "导出源文..."
 
-#: source/Adapt_It_wdr.cpp:6749
+#: source/Adapt_It_wdr.cpp:7185
 msgid "Export the glossing lines' contents as text"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6750
+#: source/Adapt_It_wdr.cpp:7186
 #, fuzzy
 msgid "Export Free Translation..."
 msgstr "导出译文文本..."
 
-#: source/Adapt_It_wdr.cpp:6750
+#: source/Adapt_It_wdr.cpp:7186
 msgid "Collect all the free translation sections' contents, adding standard format markers, and export"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6752
+#: source/Adapt_It_wdr.cpp:7188
 #, fuzzy
 msgid "Export Knowledge &Base..."
 msgstr "导出资料库..."
 
-#: source/Adapt_It_wdr.cpp:6752
+#: source/Adapt_It_wdr.cpp:7188
 msgid "Export knowledge base in SIL standard format"
 msgstr "以SIL标准格式导出资料库"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6753
+#: source/Adapt_It_wdr.cpp:7189
 msgid "&Import to Knowledge Base..."
 msgstr "导入至资料库..."
 
-#: source/Adapt_It_wdr.cpp:6753
+#: source/Adapt_It_wdr.cpp:7189
 msgid "Extend knowledge base by importing dictionary records"
 msgstr "通过导入词典记录扩展资料库"
 
-#: source/Adapt_It_wdr.cpp:6754
+#: source/Adapt_It_wdr.cpp:7190
 msgid "E&xport-Import"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6757
+#: source/Adapt_It_wdr.cpp:7193
 msgid "See Glosses"
 msgstr "查看注释"
 
-#: source/Adapt_It_wdr.cpp:6757
+#: source/Adapt_It_wdr.cpp:7193
 msgid "Make glossing line visible on screen"
 msgstr "使注释线在屏幕上可见"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6758
+#: source/Adapt_It_wdr.cpp:7194
 msgid "Glossing Uses Navigation Text's Font"
 msgstr "注释使用导航文本字体"
 
-#: source/Adapt_It_wdr.cpp:6758
+#: source/Adapt_It_wdr.cpp:7194
 msgid "Use the navigation text font for glossing text"
 msgstr "将导航文本的对应字体用于注释文本"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6760
+#: source/Adapt_It_wdr.cpp:7196
 msgid "Transform Adaptations Into Glosses..."
 msgstr "将对应转换结果转换为注释..."
 
-#: source/Adapt_It_wdr.cpp:6760
+#: source/Adapt_It_wdr.cpp:7196
 msgid "Transform adaptations from another project into the current project's glosses"
 msgstr "将其它工程的对应转换资料转换为当前工程的注释"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6761
+#: source/Adapt_It_wdr.cpp:7197
 msgid "Delay..."
 msgstr "延时..."
 
-#: source/Adapt_It_wdr.cpp:6761
+#: source/Adapt_It_wdr.cpp:7197
 msgid "Slow automatic insertions down to a speed suitable for reading along"
 msgstr "将自动插入的速度降到适合同步阅读的速度"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6763
+#: source/Adapt_It_wdr.cpp:7199
 msgid "Storing Documents in Book Folders"
 msgstr "储存文档到书卷文件夹"
 
-#: source/Adapt_It_wdr.cpp:6763
+#: source/Adapt_It_wdr.cpp:7199
 msgid "Turn on, or off, storage of documents to book folders"
 msgstr "开启，关闭，保存文档到书卷文件夹中"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6765
+#: source/Adapt_It_wdr.cpp:7201
 msgid "Free Translation Mode"
 msgstr "自由翻译模式"
 
-#: source/Adapt_It_wdr.cpp:6765
+#: source/Adapt_It_wdr.cpp:7201
 msgid "Turn on, or off, typing of free translations in the Compose Bar and displaying them in the main window"
 msgstr "开启，关闭，在排版栏中输入自由翻译，使它们显示在主窗口中。"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6766
+#: source/Adapt_It_wdr.cpp:7202
 msgid "Use Target Text As Default Free Translation"
 msgstr "使用目标文本为默认的自由翻译"
 
-#: source/Adapt_It_wdr.cpp:6766
+#: source/Adapt_It_wdr.cpp:7202
 msgid "Turn on, or off, composition of a default free translation from the existing target text"
 msgstr "开启，关闭，一个已存在的目标文本的默认自由翻译组合"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6767
+#: source/Adapt_It_wdr.cpp:7203
 msgid "Use Gloss Text As Default Free Translation"
 msgstr "使用注解文本为默认的自由翻译"
 
-#: source/Adapt_It_wdr.cpp:6767
+#: source/Adapt_It_wdr.cpp:7203
 msgid "Turn on, or off, composition of a default free translation from the existing gloss text"
 msgstr "开启，关闭，一个默认的自由翻译组合"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6768
+#: source/Adapt_It_wdr.cpp:7204
 msgid "Remove Filtered Free Translations"
 msgstr "清空筛选出的自由翻译"
 
-#: source/Adapt_It_wdr.cpp:6768
+#: source/Adapt_It_wdr.cpp:7204
 msgid "Removes all the filtered free translations in the document"
 msgstr "清空文档中所有已筛选出的自由翻译"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6770
+#: source/Adapt_It_wdr.cpp:7206
 msgid "Collect Back Translations..."
 msgstr "收集回译..."
 
-#: source/Adapt_It_wdr.cpp:6770
+#: source/Adapt_It_wdr.cpp:7206
 msgid "Collect adaptations, or glosses, and store them with a back translation marker as filtered material"
 msgstr "收集对应转换资料和注释，以回译标记来存储为筛选资料"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6771
+#: source/Adapt_It_wdr.cpp:7207
 msgid "Remove Filtered Back Translations"
 msgstr "清空筛选出的回译"
 
-#: source/Adapt_It_wdr.cpp:6771
+#: source/Adapt_It_wdr.cpp:7207
 msgid "Deletes all the filtered back translations in the document"
 msgstr "删除文档中所有已筛选出的回译"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6773
+#: source/Adapt_It_wdr.cpp:7209
 msgid "Use Transliteration Mode"
 msgstr "使用直译或音译模式"
 
-#: source/Adapt_It_wdr.cpp:6773
+#: source/Adapt_It_wdr.cpp:7209
 msgid "Select this item to use SIL Converters in transliteration mode"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6775
+#: source/Adapt_It_wdr.cpp:7211
 msgid "Send Synchronized Scrolling Messages"
 msgstr "发送同步的卷轴信息"
 
-#: source/Adapt_It_wdr.cpp:6775
+#: source/Adapt_It_wdr.cpp:7211
 msgid "Select this item to cause applications such as Paratext and TW to automatically scroll to the same location"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6776
+#: source/Adapt_It_wdr.cpp:7212
 msgid "Receive Synchronized Scrolling Messages"
 msgstr "接收同步的卷轴信息"
 
-#: source/Adapt_It_wdr.cpp:6776
+#: source/Adapt_It_wdr.cpp:7212
 msgid "Select this item to cause Adapt It to scroll to the same location being displayed in other applications such as Paratext and TW"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6777
+#: source/Adapt_It_wdr.cpp:7213
 #, fuzzy
 msgid "&Advanced"
 msgstr "高级"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6780
+#: source/Adapt_It_wdr.cpp:7216
 msgid "Layout text in window from right to left"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6781
+#: source/Adapt_It_wdr.cpp:7217
 #, fuzzy
 msgid "&Layout"
 msgstr "版面布局"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6784
+#: source/Adapt_It_wdr.cpp:7220
 #, fuzzy
 msgid "&Help Topics\tShift-Ctrl-/"
 msgstr "帮助主题"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6784
+#: source/Adapt_It_wdr.cpp:7220
 msgid "List Help topics"
 msgstr "列出帮助主题"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6785
+#: source/Adapt_It_wdr.cpp:7221
 msgid "Online Help (Requires Internet Access)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6785
+#: source/Adapt_It_wdr.cpp:7221
 msgid "Get Adapt It Help from the Internet in your browser"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6786
+#: source/Adapt_It_wdr.cpp:7222
 msgid "User Forum (Requires Internet Access)"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6788
+#: source/Adapt_It_wdr.cpp:7224
 msgid "Use Tooltips"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6788
+#: source/Adapt_It_wdr.cpp:7224
 msgid "Select this item to turn on or turn off tooltip help messages"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6790
+#: source/Adapt_It_wdr.cpp:7226
 msgid "&About Adapt It..."
 msgstr "有关 Adapt It"
 
-#: source/Adapt_It_wdr.cpp:6790
+#: source/Adapt_It_wdr.cpp:7226
 msgid "Display program information, version number and copyright"
 msgstr "显示软件的有关信息、版本和版权"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6791
+#: source/Adapt_It_wdr.cpp:7227
 msgid "&Help"
 msgstr "帮助"
 
-#: source/Adapt_It_wdr.cpp:6794
-msgid "&Custom Work Folder Location"
+#: source/Adapt_It_wdr.cpp:7230
+msgid "&Custom Work Folder Location..."
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6794
+#: source/Adapt_It_wdr.cpp:7230
 msgid "Point Adapt It at a work folder in a non-standard location, and use that work folder until pointed elsewhere"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6795
-msgid "Set Password"
+#: source/Adapt_It_wdr.cpp:7231
+msgid "&Lock Custom Location"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6795
-msgid "Set a password, it will be stored in the clear in the basic configuration file"
+#: source/Adapt_It_wdr.cpp:7231
+msgid "Make the custom work folder location permanent until explicitly changed"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6796
-msgid "Return To Local Work Folder"
+#: source/Adapt_It_wdr.cpp:7232
+msgid "&Unlock Custom Location"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6796
+#: source/Adapt_It_wdr.cpp:7232
+msgid "Make the custom work folder location persist only until the end of the session"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7233
+msgid "&Restore Default Work Folder Location"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7233
 msgid "Point at the local machine's default work folder"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6797
+#: source/Adapt_It_wdr.cpp:7234
+msgid "Set &Password..."
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7234
+msgid "Set a password, it will be stored in the clear in the basic configuration file"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7236
+msgid "Move Or Copy Folders Or Files...\tShift-Ctrl-M"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7236
+msgid "Dialog for moving folders or files, or copying them, into a destination folder"
+msgstr ""
+
+#: source/Adapt_It_wdr.cpp:7237
 msgid "Ad&ministrator"
 msgstr ""
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6808
-#: source/Adapt_It_wdr.cpp:6868
+#: source/Adapt_It_wdr.cpp:7248
+#: source/Adapt_It_wdr.cpp:7308
 msgid "New"
 msgstr "新建"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6812
-#: source/Adapt_It_wdr.cpp:6872
+#: source/Adapt_It_wdr.cpp:7252
+#: source/Adapt_It_wdr.cpp:7312
 msgid "Save"
 msgstr "保存"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6814
+#: source/Adapt_It_wdr.cpp:7254
 msgid "Cut"
 msgstr "剪切"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6815
-msgid "Copy"
-msgstr "复制"
-
-# Priority 1
-#: source/Adapt_It_wdr.cpp:6816
+#: source/Adapt_It_wdr.cpp:7256
 msgid "Paste"
 msgstr "粘贴"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6819
+#: source/Adapt_It_wdr.cpp:7259
 msgid "Print"
 msgstr "打印"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6821
-#: source/Adapt_It_wdr.cpp:6874
+#: source/Adapt_It_wdr.cpp:7261
+#: source/Adapt_It_wdr.cpp:7314
 msgid "Open a Note dialog"
 msgstr "打开一个注解对话框"
 
-#: source/Adapt_It_wdr.cpp:6821
-#: source/Adapt_It_wdr.cpp:6874
+#: source/Adapt_It_wdr.cpp:7261
+#: source/Adapt_It_wdr.cpp:7314
 msgid "Create a note dialog and open it for typing"
 msgstr "创建一个注解对话框并打开它键入内容"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6822
-#: source/Adapt_It_wdr.cpp:6875
+#: source/Adapt_It_wdr.cpp:7262
+#: source/Adapt_It_wdr.cpp:7315
 msgid "Jump to the previous Note"
 msgstr "跳到前一个注解"
 
-#: source/Adapt_It_wdr.cpp:6822
-#: source/Adapt_It_wdr.cpp:6875
+#: source/Adapt_It_wdr.cpp:7262
+#: source/Adapt_It_wdr.cpp:7315
 msgid "Go back and open the previous note"
 msgstr "返回并打开前一个注解"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6823
-#: source/Adapt_It_wdr.cpp:6876
+#: source/Adapt_It_wdr.cpp:7263
+#: source/Adapt_It_wdr.cpp:7316
 msgid "Jump to the next Note"
 msgstr "跳到下一个注解"
 
-#: source/Adapt_It_wdr.cpp:6823
-#: source/Adapt_It_wdr.cpp:6876
+#: source/Adapt_It_wdr.cpp:7263
+#: source/Adapt_It_wdr.cpp:7316
 msgid "Go forward and open the next note"
 msgstr "往前并打开下一个注解"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6824
-#: source/Adapt_It_wdr.cpp:6877
+#: source/Adapt_It_wdr.cpp:7264
+#: source/Adapt_It_wdr.cpp:7317
 msgid "Delete All Notes"
 msgstr "删除所有注解"
 
-#: source/Adapt_It_wdr.cpp:6824
-#: source/Adapt_It_wdr.cpp:6877
+#: source/Adapt_It_wdr.cpp:7264
+#: source/Adapt_It_wdr.cpp:7317
 msgid "Delete all the notes currently in the document"
 msgstr "删除当前文档中的所有注解"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6826
-#: source/Adapt_It_wdr.cpp:6879
+#: source/Adapt_It_wdr.cpp:7266
+#: source/Adapt_It_wdr.cpp:7319
 msgid "Ignore  Boundaries"
 msgstr "忽略边界"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6829
-#: source/Adapt_It_wdr.cpp:6882
+#: source/Adapt_It_wdr.cpp:7269
+#: source/Adapt_It_wdr.cpp:7322
 msgid "Advance to End"
 msgstr "前进至结尾"
 
-#: source/Adapt_It_wdr.cpp:6829
-#: source/Adapt_It_wdr.cpp:6882
+#: source/Adapt_It_wdr.cpp:7269
+#: source/Adapt_It_wdr.cpp:7322
 msgid "Advance to the end of the data"
 msgstr "前进至数据结尾处"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6830
-#: source/Adapt_It_wdr.cpp:6883
+#: source/Adapt_It_wdr.cpp:7270
+#: source/Adapt_It_wdr.cpp:7323
 msgid "Back to Start"
 msgstr "返回至起点"
 
-#: source/Adapt_It_wdr.cpp:6830
-#: source/Adapt_It_wdr.cpp:6883
+#: source/Adapt_It_wdr.cpp:7270
+#: source/Adapt_It_wdr.cpp:7323
 msgid "Go back to the start of the data"
 msgstr "返回至数据起始处"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6832
-#: source/Adapt_It_wdr.cpp:6885
+#: source/Adapt_It_wdr.cpp:7272
+#: source/Adapt_It_wdr.cpp:7325
 msgid "Move Down One Step"
 msgstr "下移一步"
 
-#: source/Adapt_It_wdr.cpp:6832
-#: source/Adapt_It_wdr.cpp:6885
+#: source/Adapt_It_wdr.cpp:7272
+#: source/Adapt_It_wdr.cpp:7325
 msgid "Move the bundle down one step towards the bottom of the file"
 msgstr "将包向文件尾下移一步"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6833
-#: source/Adapt_It_wdr.cpp:6886
+#: source/Adapt_It_wdr.cpp:7273
+#: source/Adapt_It_wdr.cpp:7326
 msgid "Move Up One Step"
 msgstr "上移一步"
 
-#: source/Adapt_It_wdr.cpp:6833
-#: source/Adapt_It_wdr.cpp:6886
+#: source/Adapt_It_wdr.cpp:7273
+#: source/Adapt_It_wdr.cpp:7326
 msgid "Move bundle back up one step towards the start of the file"
 msgstr "将包往回向文件头上移一步"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6835
-#: source/Adapt_It_wdr.cpp:6888
+#: source/Adapt_It_wdr.cpp:7275
+#: source/Adapt_It_wdr.cpp:7328
 msgid "Jump Back"
 msgstr "跳回"
 
-#: source/Adapt_It_wdr.cpp:6835
-#: source/Adapt_It_wdr.cpp:6888
+#: source/Adapt_It_wdr.cpp:7275
+#: source/Adapt_It_wdr.cpp:7328
 msgid "Jump back to the last active location"
 msgstr "跳回到最后的活动位置"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6837
-#: source/Adapt_It_wdr.cpp:6890
+#: source/Adapt_It_wdr.cpp:7277
+#: source/Adapt_It_wdr.cpp:7330
 msgid "Make A Phrase"
 msgstr "制造短语"
 
-#: source/Adapt_It_wdr.cpp:6837
-#: source/Adapt_It_wdr.cpp:6890
+#: source/Adapt_It_wdr.cpp:7277
+#: source/Adapt_It_wdr.cpp:7330
 msgid "Merge selected words into a phrase"
 msgstr "将所选单词合并为一个短语"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6839
-#: source/Adapt_It_wdr.cpp:6892
+#: source/Adapt_It_wdr.cpp:7279
+#: source/Adapt_It_wdr.cpp:7332
 msgid "Unmake A Phrase"
 msgstr "拆分短语"
 
-#: source/Adapt_It_wdr.cpp:6839
-#: source/Adapt_It_wdr.cpp:6892
+#: source/Adapt_It_wdr.cpp:7279
+#: source/Adapt_It_wdr.cpp:7332
 msgid "Restore selected phrase to a sequence of word objects"
 msgstr "将所选短语恢复为独立单词"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6842
-#: source/Adapt_It_wdr.cpp:6895
+#: source/Adapt_It_wdr.cpp:7282
+#: source/Adapt_It_wdr.cpp:7335
 msgid "Do A Retranslation"
 msgstr "重译"
 
-#: source/Adapt_It_wdr.cpp:6842
-#: source/Adapt_It_wdr.cpp:6895
+#: source/Adapt_It_wdr.cpp:7282
+#: source/Adapt_It_wdr.cpp:7335
 msgid "The selected section is a retranslation, not an adaptation"
 msgstr "所选部分为重译文，非对应转换结果"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6844
-#: source/Adapt_It_wdr.cpp:6897
+#: source/Adapt_It_wdr.cpp:7284
+#: source/Adapt_It_wdr.cpp:7337
 msgid "Edit A Retranslation"
 msgstr "编辑重译"
 
-#: source/Adapt_It_wdr.cpp:6844
-#: source/Adapt_It_wdr.cpp:6897
+#: source/Adapt_It_wdr.cpp:7284
+#: source/Adapt_It_wdr.cpp:7337
 msgid "Edit the retranslation at the selection or at the active location"
 msgstr "在选区或当前活动位置编辑重译文"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6846
-#: source/Adapt_It_wdr.cpp:6899
+#: source/Adapt_It_wdr.cpp:7286
+#: source/Adapt_It_wdr.cpp:7339
 msgid "Remove A Retranslation"
 msgstr "删除一次重译"
 
-#: source/Adapt_It_wdr.cpp:6846
-#: source/Adapt_It_wdr.cpp:6899
+#: source/Adapt_It_wdr.cpp:7286
+#: source/Adapt_It_wdr.cpp:7339
 msgid "Remove the whole of the retranslation"
 msgstr "删除此重译文的所有内容"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6849
-#: source/Adapt_It_wdr.cpp:6902
+#: source/Adapt_It_wdr.cpp:7289
+#: source/Adapt_It_wdr.cpp:7342
 msgid "Insert A Placeholder"
 msgstr "插入占位符"
 
-#: source/Adapt_It_wdr.cpp:6849
-#: source/Adapt_It_wdr.cpp:6902
+#: source/Adapt_It_wdr.cpp:7289
+#: source/Adapt_It_wdr.cpp:7342
 msgid "Insert a placeholder into the source language text"
 msgstr "在源文中插入一个占位符"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6851
-#: source/Adapt_It_wdr.cpp:6904
+#: source/Adapt_It_wdr.cpp:7291
+#: source/Adapt_It_wdr.cpp:7344
 msgid "Remove A Placeholder"
 msgstr "删除占位符"
 
-#: source/Adapt_It_wdr.cpp:6851
-#: source/Adapt_It_wdr.cpp:6904
+#: source/Adapt_It_wdr.cpp:7291
+#: source/Adapt_It_wdr.cpp:7344
 msgid "Remove the placeholder and its adaptation text"
 msgstr "删除占位符以及它的对应转换文本"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6854
-#: source/Adapt_It_wdr.cpp:6907
+#: source/Adapt_It_wdr.cpp:7294
+#: source/Adapt_It_wdr.cpp:7347
 msgid "Show The Choose Translation Dialog"
 msgstr "显示“选择译文”对话框"
 
-#: source/Adapt_It_wdr.cpp:6854
-#: source/Adapt_It_wdr.cpp:6907
+#: source/Adapt_It_wdr.cpp:7294
+#: source/Adapt_It_wdr.cpp:7347
 msgid "Force the Choose Translation dialog to be shown"
 msgstr "强制显示“选择译文”对话框"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6856
-#: source/Adapt_It_wdr.cpp:6909
+#: source/Adapt_It_wdr.cpp:7296
+#: source/Adapt_It_wdr.cpp:7349
 #, fuzzy
 msgid "View Translation or Glosses Elsewhere in the Document"
 msgstr "显示先前的译文"
 
-#: source/Adapt_It_wdr.cpp:6856
-#: source/Adapt_It_wdr.cpp:6909
+#: source/Adapt_It_wdr.cpp:7296
+#: source/Adapt_It_wdr.cpp:7349
 #, fuzzy
 msgid "View  translation or glosses elsewhere in the document; locate them by chapter and verse"
 msgstr "在先前的章节处显示译文"
 
 # Priority 1
-#: source/Adapt_It_wdr.cpp:6858
+#: source/Adapt_It_wdr.cpp:7298
 msgid "Display Help Topics"
 msgstr ""
 
-#: source/Adapt_It_wdr.cpp:6858
+#: source/Adapt_It_wdr.cpp:7298
 msgid "Display Adapt It program help topics"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:93
+msgid "Move or Copy Folders Or Files"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:255
+msgid "The folder is empty (or maybe undefined)"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1067
+msgid "The source and destination folders must not be the same folder."
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1068
+msgid "Copy or Move is not permitted"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1256
+#, c-format
+msgid "The destination folder's file with the name %s would be overwritten if this move or copy were to go ahead. To avoid this unexpected possibility for data loss, the move or copy will now be cancelled. Do something appropriate with the destination folder's file, and then try again."
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1258
+msgid "Unexpected Filename Conflict During Copy Or Move"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1266
+#, c-format
+msgid "Moving or copying the file with path %s failed unexpectedly. Possibly you forgot to use the button for locating a destination folder. Do so then try again."
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1268
+msgid "Moving or copying failed"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1310
+#, c-format
+msgid "Removing the file with path %s failed. Removals have been halted. Possibly an application has the file still open. Close the file and then you can try the removal operation again."
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1312
+msgid "Removing a file failed"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1334
+msgid "You first need to select at least one item in the right hand list before clicking the Delete button"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1335
+#: source/AdminMoveOrCopy.cpp:1777
+#: source/AdminMoveOrCopy.cpp:1870
+msgid "No Files Or Folders Selected"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1446
+#, c-format
+msgid "Failed to remove directory %s "
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1447
+msgid "Could not remove directory"
+msgstr ""
+
+# Priority 1
+#: source/AdminMoveOrCopy.cpp:1481
+#, fuzzy
+msgid "Type the new folder name"
+msgstr "键入一个新的XXX:"
+
+#: source/AdminMoveOrCopy.cpp:1482
+msgid "Type Name For Folder (spaces permitted)"
+msgstr ""
+
+# Priority 1
+#: source/AdminMoveOrCopy.cpp:1505
+#, fuzzy
+msgid "Type the new file name"
+msgstr "键入一个新的XXX:"
+
+#: source/AdminMoveOrCopy.cpp:1506
+msgid "Type Name For File (spaces permitted)"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1657
+#, c-format
+msgid "Failed to create the destination directory  %s  for the Copy or Move operation. The parent dialog will now close. Files and folders already copied or moved will remain so. You may need to use your system's file browser to clean up before you try again."
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1659
+msgid "Error: could not make directory"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1757
+#: source/AdminMoveOrCopy.cpp:1850
+msgid "No destination folder is defined. Use the button 'Locate the destination folder' to first set a destination, then try again."
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1758
+#: source/AdminMoveOrCopy.cpp:1851
+msgid "Cannot move or copy"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1776
+msgid "You first need to select at least one item in the left list before clicking the Copy button"
+msgstr ""
+
+#: source/AdminMoveOrCopy.cpp:1869
+msgid "You first need to select at least one item in the left list before clicking the Move button"
 msgstr ""
 
 #: source/CaseEquivPage.cpp:470
@@ -6885,7 +7301,7 @@ msgstr "其他的电脑程序不能读取Adapt It 格式的文件。但你可使
 msgid "Warning: invalid path to the last new document: %s A safe default path will be used instead. "
 msgstr "警告：上一新文档的路径%s无效，将使用安全的缺省路径代替。"
 
-#: source/DocPage.cpp:915
+#: source/DocPage.cpp:921
 msgid "Sorry, loading the document failed. (The file may be in use by another application. Or the file has become corrupt and must be deleted.)"
 msgstr "对不起，载入资料库失败。（可能别的程序正在调用此文件，或者此文件已经损坏，必须删除。）"
 
@@ -6955,22 +7371,18 @@ msgid ""
 msgstr ""
 
 #: source/EditPreferencesDlg.cpp:364
-#: source/FontPage.cpp:680
 msgid "Sorry, the source font name cannot be left blank."
 msgstr ""
 
 #: source/EditPreferencesDlg.cpp:371
-#: source/FontPage.cpp:687
 msgid "Sorry, the target font name cannot be left blank."
 msgstr ""
 
 #: source/EditPreferencesDlg.cpp:378
-#: source/FontPage.cpp:694
 msgid "Sorry, the navigation font name cannot be left blank."
 msgstr ""
 
 #: source/EditPreferencesDlg.cpp:388
-#: source/FontPage.cpp:707
 #, c-format
 msgid "Sorry, the %s font size must be between %d and %d points. A default size of 12 points will be used instead."
 msgstr ""
@@ -7080,7 +7492,7 @@ msgstr "所有文件 (*.*)|*.*|输出的 Adapt It 文档 (*.txt)|*.txt||"
 
 # Priority 1
 #: source/ExportFunctions.cpp:285
-#: source/ExportFunctions.cpp:879
+#: source/ExportFunctions.cpp:881
 #, fuzzy
 msgid "Exported Adapt It RTF Documents (*.rtf)|*.rtf|All Files (*.*)|*.*||"
 msgstr "导出的 Adapt It RFT 文档 (*.rtf)|*rtf|所有文件 (*.*)|*.*||"
@@ -7090,14 +7502,7 @@ msgstr "导出的 Adapt It RFT 文档 (*.rtf)|*rtf|所有文件 (*.*)|*.*||"
 msgid "Filename For Export"
 msgstr ""
 
-#: source/ExportFunctions.cpp:529
-#, c-format
-msgid ""
-"Unable to open the file for exporting the target text with path:\n"
-"%s"
-msgstr ""
-
-#: source/ExportFunctions.cpp:538
+#: source/ExportFunctions.cpp:540
 #, c-format
 msgid ""
 "Unable to open the file for exporting the source text with path:\n"
@@ -7105,38 +7510,38 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: source/ExportFunctions.cpp:882
+#: source/ExportFunctions.cpp:884
 msgid "Filename For Exported Interlinear Document"
 msgstr ""
 
-#: source/ExportFunctions.cpp:907
+#: source/ExportFunctions.cpp:909
 msgid "Unable to open export file.\n"
 msgstr ""
 
-#: source/ExportFunctions.cpp:908
+#: source/ExportFunctions.cpp:910
 msgid "Unable to open export file."
 msgstr ""
 
 # Priority 1
-#: source/ExportFunctions.cpp:3138
+#: source/ExportFunctions.cpp:3140
 msgid "Export to Interlinear RTF"
 msgstr ""
 
-#: source/ExportFunctions.cpp:5584
+#: source/ExportFunctions.cpp:5586
 msgid "No text was found to output in the range you specified. The output file will exist but will be empty."
 msgstr "在所指定的范围中没有发现可输出的文本。输出的文本内容将会为空。"
 
-#: source/ExportFunctions.cpp:5618
+#: source/ExportFunctions.cpp:5620
 msgid "Unable to open export source text file"
 msgstr ""
 
-#: source/ExportFunctions.cpp:6548
+#: source/ExportFunctions.cpp:6550
 #, c-format
 msgid "%s  - %d of %d Total Steps"
 msgstr ""
 
 # Priority 1
-#: source/ExportFunctions.cpp:6550
+#: source/ExportFunctions.cpp:6552
 msgid "Exporting To Rich Text Format"
 msgstr ""
 
@@ -7158,6 +7563,26 @@ msgstr "导出筛选/选项"
 #: source/ExportSaveAsDlg.cpp:85
 msgid "Export Document"
 msgstr "导出文件"
+
+#: source/FilenameConflictDlg.cpp:73
+msgid "Resolve Filename Conflict"
+msgstr ""
+
+#: source/FilenameConflictDlg.cpp:147
+msgid "(newer)"
+msgstr ""
+
+#: source/FilenameConflictDlg.cpp:148
+msgid "(older)"
+msgstr ""
+
+#: source/FilenameConflictDlg.cpp:149
+msgid "(same time and date)"
+msgstr ""
+
+#: source/FilenameConflictDlg.cpp:150
+msgid "Last modified: "
+msgstr ""
 
 # Priority 1
 #: source/FilterPage.cpp:192
@@ -7257,6 +7682,33 @@ msgstr "导航文本"
 msgid "Go To"
 msgstr ""
 
+#: source/helpers.cpp:1558
+msgid "No path to a folder is defined. Perhaps you cancelled the dialog for setting the destination folder."
+msgstr ""
+
+#: source/helpers.cpp:1559
+msgid "Error, empty path specification"
+msgstr ""
+
+#: source/helpers.cpp:1574
+#, c-format
+msgid "Failed to make the directory  %s  the current working directory prior to getting the directory's child directories; perhaps try again."
+msgstr ""
+
+#: source/helpers.cpp:1576
+#: source/helpers.cpp:1708
+msgid "Error, no working directory"
+msgstr ""
+
+#: source/helpers.cpp:1604
+msgid "Error, not a directory"
+msgstr ""
+
+#: source/helpers.cpp:1706
+#, c-format
+msgid "Failed to make the directory  %s  the current working directory prior to getting the folder's files; perhaps try again."
+msgstr ""
+
 # Priority 1
 #: source/JoinDialog.cpp:72
 msgid "Join Documents By Appending To The Open Document"
@@ -7305,46 +7757,68 @@ msgid "Nothing selected."
 msgstr ""
 
 # Priority 1
-#: source/KBEditor.cpp:131
+#: source/KBEditor.cpp:136
 msgid "Edit or Examine the Knowledge Base"
 msgstr "编辑或检查资料库"
 
-#: source/KBEditor.cpp:239
+#: source/KBEditor.cpp:250
 msgid "Keys list box error when getting the current selection"
 msgstr ""
 
-#: source/KBEditor.cpp:460
+#: source/KBEditor.cpp:471
 #, fuzzy
 msgid "Editing this kind of entry is not permitted."
 msgstr "对不起，不允许编辑此类词条。"
 
-#: source/KBEditor.cpp:471
+#: source/KBEditor.cpp:482
 msgid "Changing the spelling in this editor will leave the instances in the document unchanged. (Do a  Consistency Check later to fix this problem.) Do you wish to go ahead with the spelling change?"
 msgstr "在此编辑器中改变拼写，文档中的实例不会改变。（稍后可进行协调性检查以修正此问题。）希望继续改变拼写吗？"
 
-#: source/KBEditor.cpp:480
+#: source/KBEditor.cpp:491
 msgid "You have made the translation nothing. This is okay, but is it what you want to do?"
 msgstr "你已使译文为空。此操作不会产生负面影响，但你确定要这样做吗？"
 
-#: source/KBEditor.cpp:498
+#: source/KBEditor.cpp:509
 #, fuzzy
 msgid "The translation you are attempting to associate with the current source phrase already exists."
 msgstr "对不起，你希望和当前源文短语进行关联的译文已经存在。"
 
-#: source/KBEditor.cpp:577
-#: source/KBEditor.cpp:647
+#: source/KBEditor.cpp:588
+#: source/KBEditor.cpp:658
 msgid "Error warning: Did not find the translation text just inserted!"
 msgstr ""
 
-#: source/KBEditor.cpp:621
+#: source/KBEditor.cpp:632
 msgid "You adding a translation which is nothing. That is okay, but is it what you want to do?"
 msgstr "你正在加入的译文内容为空。此操作不会产生负面影响，但你确定要这样做吗？"
 
-#: source/KBEditor.cpp:706
+#: source/KBEditor.cpp:732
+msgid "You have not yet typed something to search for."
+msgstr ""
+
+#: source/KBEditor.cpp:733
+msgid "No search strings defined"
+msgstr ""
+
+#: source/KBEditor.cpp:799
+msgid "Saving the knowledge base failed. However, your respellings are still in the knowledge base in memory, so exit from the knowledge base editor with the OK button - doing that will try the save operation again and it might succeed."
+msgstr ""
+
+#: source/KBEditor.cpp:825
+msgid "You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do an inconsistency check of all documents as soon as you dismiss this message. Do you want the inconsistency check to start automatically?"
+msgstr ""
+
+# Priority 1
+#: source/KBEditor.cpp:826
+#, fuzzy
+msgid "Do Consistency Check Now?"
+msgstr "协调性检查"
+
+#: source/KBEditor.cpp:887
 msgid "Sorry, you can only remove this kind of entry by putting the phrase box at the relevant location in the document, and then click the  \"Save To Knowledge Base\" checkbox back to ON."
 msgstr "对不起，删除此类词条的唯一方法是：先将短语框放在文档中的相应位置，然后点击“保存到资料库”检验框，使其恢复到“开启”状态。"
 
-#: source/KBEditor.cpp:747
+#: source/KBEditor.cpp:928
 #, c-format
 msgid ""
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with\n"
@@ -7352,19 +7826,29 @@ msgid ""
 "Do you want to go ahead and remove it?"
 msgstr ""
 
-#: source/KBEditor.cpp:889
-#: source/KBEditor.cpp:966
+#: source/KBEditor.cpp:1070
+#: source/KBEditor.cpp:1147
 msgid "Translations list box error when getting the current selection"
 msgstr ""
 
 # Priority 1
-#: source/KBEditor.cpp:1195
+#: source/KBEditor.cpp:1376
 msgid "All Gloss Words Or Phrases"
 msgstr "全部注释单词或短语"
 
-#: source/KBEditor.cpp:1249
+#: source/KBEditor.cpp:1433
 msgid "Sorry, the translation you are attempting to associate with the current source phrase already exists."
 msgstr "对不起，你希望和当前源文短语进行关联的译文已经存在。"
+
+# Priority 1
+#: source/KBEditSearch.cpp:74
+#, fuzzy
+msgid "Respell or Inspect Matched Knowledge Base Items"
+msgstr "编辑或检查资料库"
+
+#: source/KBEditSearch.cpp:104
+msgid "No Matches"
+msgstr ""
 
 #: source/LanguagesPage.cpp:249
 msgid "Sorry, the source language name cannot be left blank."
@@ -7379,42 +7863,42 @@ msgstr "对不起，目标语言名称不能为空。"
 msgid "Documents In Other Folder"
 msgstr "其它文件夹中的文档"
 
-#: source/MainFrm.cpp:1726
+#: source/MainFrm.cpp:1731
 msgid "Microsoft Windows"
 msgstr ""
 
-#: source/MainFrm.cpp:1728
+#: source/MainFrm.cpp:1733
 msgid "Linux"
 msgstr ""
 
-#: source/MainFrm.cpp:1730
+#: source/MainFrm.cpp:1735
 msgid "Mac OS X"
 msgstr ""
 
 # Priority 1
-#: source/MainFrm.cpp:1732
+#: source/MainFrm.cpp:1737
 msgid "Unknown"
 msgstr ""
 
 # Priority 1
-#: source/MainFrm.cpp:1837
+#: source/MainFrm.cpp:1857
 msgid "Left-to-Right"
 msgstr ""
 
 # Priority 1
-#: source/MainFrm.cpp:1840
+#: source/MainFrm.cpp:1860
 msgid "Right-to-Left"
 msgstr ""
 
-#: source/MainFrm.cpp:1843
+#: source/MainFrm.cpp:1863
 msgid "System Default"
 msgstr ""
 
-#: source/MainFrm.cpp:2087
+#: source/MainFrm.cpp:2112
 msgid "Change the amount of time tooltips are displayed"
 msgstr ""
 
-#: source/MainFrm.cpp:2088
+#: source/MainFrm.cpp:2113
 #, c-format
 msgid ""
 "The current tooltip display time is %d milliseconds which is %d seconds.\n"
@@ -7422,35 +7906,35 @@ msgid ""
 msgstr ""
 
 # Priority 1
-#: source/MainFrm.cpp:3473
+#: source/MainFrm.cpp:3491
 msgid "The end. Provided you have not missed anything earlier, there is nothing more to adapt in this file."
 msgstr "结束。如果先前没有任何遗漏的话，那此文件中就没有需要对应转换的内容了。"
 
-#: source/MainFrm.cpp:3719
-#: source/MainFrm.cpp:3834
-#: source/MainFrm.cpp:3982
-#: source/MainFrm.cpp:4161
+#: source/MainFrm.cpp:3737
+#: source/MainFrm.cpp:3852
+#: source/MainFrm.cpp:4000
+#: source/MainFrm.cpp:4179
 msgid "Vertical Editing - adaptations step: Type the needed adaptations in the editable region. Earlier adaptations are stored at the top of the Removed list. Gray text is not accessible. Adapting mode is currently on and all adaptation functionalities are enabled, including mergers, placeholder insertion and retranslations."
 msgstr ""
 
-#: source/MainFrm.cpp:4381
-#: source/MainFrm.cpp:4556
-#: source/MainFrm.cpp:4696
-#: source/MainFrm.cpp:4817
+#: source/MainFrm.cpp:4399
+#: source/MainFrm.cpp:4574
+#: source/MainFrm.cpp:4714
+#: source/MainFrm.cpp:4835
 msgid "Vertical Editing - glosses step: Type the needed glosses in the editable region. Earlier glosses are stored at the top of the Removed list. Gray text is not accessible. Glossing  mode is currently on."
 msgstr ""
 
-#: source/MainFrm.cpp:5100
-#: source/MainFrm.cpp:5346
+#: source/MainFrm.cpp:5118
+#: source/MainFrm.cpp:5364
 msgid "Vertical Editing - free translations step: Type the needed free translations in the editable region. Earlier free translations are stored at the top of the Removed list. Clicking on one copies it immediately into the Compose Bar's edit box, overwriting the default free translation there. Gray text is not accessible. Free translations mode is currently on and all free translation functionalities are enabled."
 msgstr ""
 
-#: source/MainFrm.cpp:5110
-#: source/MainFrm.cpp:5356
+#: source/MainFrm.cpp:5128
+#: source/MainFrm.cpp:5374
 msgid "Clicking on an item in the above list copies it to the Compose Bar's text box, overwriting anything there."
 msgstr ""
 
-#: source/MainFrm.cpp:5461
+#: source/MainFrm.cpp:5479
 msgid "Warning: recollecting the back translations did not succeed. Try doing it manually."
 msgstr ""
 
@@ -7533,7 +8017,7 @@ msgid "Searching forward did not find a note with text matching that which you t
 msgstr "往前查找 ，没有找到与你在框中所输入内容相匹配的注解文本。"
 
 # Priority 1
-#: source/OpenExistingProjectDlg.cpp:74
+#: source/OpenExistingProjectDlg.cpp:77
 msgid "Access An Existing Adaption Project"
 msgstr "访问一个现存的对应转换工程"
 
@@ -7550,7 +8034,7 @@ msgstr "文件名与已存在的文件名发生冲突。请给它指定另外的
 # Priority 1
 #: source/PhraseBox.cpp:2101
 #: source/PhraseBox.cpp:2329
-#: source/PhraseBox.cpp:4229
+#: source/PhraseBox.cpp:4235
 msgid "End of the file; nothing more to adapt."
 msgstr "文件尾；没有转换的内容。"
 
@@ -7573,26 +8057,26 @@ msgstr "对不起，你已处于文件顶端，无法再向后移。"
 msgid "To edit or remove a retranslation you must use the toolbar buttons for those operations."
 msgstr "对不起，要编辑或删除重译你必须使用工具栏按钮。"
 
-#: source/PhraseBox.cpp:3948
-#: source/PhraseBox.cpp:4603
+#: source/PhraseBox.cpp:3954
+#: source/PhraseBox.cpp:4623
 msgid "Transliteration mode is not yet turned on."
 msgstr "还未启用直译或音译模式"
 
-#: source/PhraseBox.cpp:3979
+#: source/PhraseBox.cpp:3985
 msgid "Sorry, you cannot extend the selection that far to the right unless you also use one of the techniques for ignoring boundaries."
 msgstr "对不起，除非忽略边界，否则不能将选区向右扩展那么远。"
 
-#: source/PhraseBox.cpp:4003
+#: source/PhraseBox.cpp:4009
 msgid "Sorry, you cannot extend the selection that far to the left unless you also use one of the techniques for ignoring boundaries. "
 msgstr "对不起，除非忽略边界，否则不能将选区向左扩展那么远。"
 
 # Priority 1
-#: source/PhraseBox.cpp:4226
+#: source/PhraseBox.cpp:4232
 msgid "End of the file; nothing more to gloss."
 msgstr "已是文件末尾，没有要注释的内容。"
 
-#: source/Pile.cpp:744
-#: source/Pile.cpp:748
+#: source/Pile.cpp:763
+#: source/Pile.cpp:767
 msgid "end fn"
 msgstr ""
 
@@ -7665,11 +8149,11 @@ msgstr "如在下面，并没有你的工程，请双击<新工程>。以完成�
 msgid "You must Select a project (or <New Project>) from the list before continuing."
 msgstr ""
 
-#: source/ProjectPage.cpp:556
+#: source/ProjectPage.cpp:568
 msgid "Sorry, loading the glossing knowledge base failed, and then the attempt to substitute a new (empty) one also failed. This error is fatal."
 msgstr "对不起，载入注释资料库失败，尝试用新（空）的资料库替换也失败。这是一个毁灭性的错误。"
 
-#: source/ProjectPage.cpp:573
+#: source/ProjectPage.cpp:585
 msgid ""
 "A reminder: backing up of the knowledge base is currently turned off.\n"
 "To turn it on again, see the Knowledge Base tab within the Preferences dialog."
@@ -7677,7 +8161,7 @@ msgstr ""
 "提示：资料库的备份功能当前处于关闭状态\n"
 "要重新打开此功能，请检查“参数设定”对话框中的“资料库”页卡。"
 
-#: source/ProjectPage.cpp:590
+#: source/ProjectPage.cpp:602
 msgid "Sorry, substituting a new empty knowledge base failed. Instead you should now try the Restore Knowledge Base command in the File menu. You need a valid knowledge base before doing any more work."
 msgstr "对不起，替换一个新的空资料库失败。你应当尝试使用“文件”菜单中的“恢复资料库”命令。在继续任何工作之前，你需要一个有效的资料库。"
 
@@ -7712,6 +8196,28 @@ msgstr ""
 #: source/PunctCorrespPage.cpp:831
 #, c-format
 msgid "Error, invalid hex digit: %s\n"
+msgstr ""
+
+#: source/ReadOnlyProtection.cpp:403
+#, c-format
+msgid "The project folder being tested, %s, is really a file. Adapt It will continue running, but you should next try to properly locate a project folder."
+msgstr ""
+
+#: source/ReadOnlyProtection.cpp:405
+msgid "Warning: Not a folder!"
+msgstr ""
+
+#: source/ReadOnlyProtection.cpp:645
+msgid ""
+"Someone has your project folder open already, so you have READ-ONLY access.\n"
+"If you need to be able to save your work, you can gain write access now.\n"
+"Doing so will force the other person to have read-only access.\n"
+"\n"
+"Do you to want to have write access now?"
+msgstr ""
+
+#: source/ReadOnlyProtection.cpp:970
+msgid "Someone has your project folder open already, so you have READ-ONLY access."
 msgstr ""
 
 # Priority 1
@@ -7938,11 +8444,11 @@ msgstr "与 %s 相关联的文本在对应转换中不可用。"
 msgid "[This Marker Unknown In Currently Selected SFM Set]"
 msgstr "[这个未知标记此刻选择的是SFM设置]"
 
-#: source/ViewPage.cpp:177
+#: source/ViewPage.cpp:178
 msgid "Access to Administrator privileges requires that you type a password"
 msgstr ""
 
-#: source/ViewPage.cpp:178
+#: source/ViewPage.cpp:179
 msgid "Type Administrator Password"
 msgstr ""
 
@@ -8005,7 +8511,13 @@ msgstr "请稍等，Adapt It正在重新安排文档的布局。"
 msgid "Please wait while Adapt It prepares the document for printing"
 msgstr "请稍等，Adapt It正在重新安排文档的布局。"
 
+# Priority 1
 #: source/WaitDlg.cpp:121
+#, fuzzy
+msgid "Searching..."
+msgstr "搜索在:"
+
+#: source/WaitDlg.cpp:124
 msgid "Please wait. This may take a while..."
 msgstr ""
 
@@ -8033,64 +8545,64 @@ msgstr "从列表中删除不需要的文件"
 msgid "Sorry, the left list must not be empty. Doing that makes it impossible to restore the knowledge base."
 msgstr "对不起，左侧的列表不能为空，这样才能恢复资料库。"
 
-#: source/XML.cpp:377
+#: source/XML.cpp:379
 msgid "Note: Using Microsoft WORD 2003 or later is not a good way to edit this xml file."
 msgstr "注：不宜使用Microsoft WORD 2003或更高的版本来编辑这个xml文件。"
 
-#: source/XML.cpp:379
+#: source/XML.cpp:381
 #, fuzzy
 msgid "Instead, use NotePad or WordPad."
 msgstr "可以用NotePad ，WordPad ，或Windows Explorer来代替。"
 
-#: source/XML.cpp:498
+#: source/XML.cpp:500
 msgid ""
 "Extended 8-bit ASCII characters were detected in your\n"
 "data files (see below):"
 msgstr ""
 
-#: source/XML.cpp:699
+#: source/XML.cpp:701
 msgid "XML markup error occurs in:\n"
 msgstr ""
 "在：\n"
 "中发生了XML markup错误\n"
 
-#: source/XML.cpp:708
+#: source/XML.cpp:710
 msgid "Unhandled data, or an error, occurs in:\n"
 msgstr "在:中发现未处理数据，或错误\n"
 
-#: source/XML.cpp:710
+#: source/XML.cpp:712
 msgid "unknown"
 msgstr ""
 
-#: source/XML.cpp:845
+#: source/XML.cpp:847
 msgid "Failed to allocate a buffer for parsing in the XML document's data"
 msgstr "为XML文档数据中的短语分配一个缓冲区失败"
 
-#: source/XML.cpp:915
+#: source/XML.cpp:917
 #, c-format
 msgid "Could not open the XML data file %s for reading. "
 msgstr ""
 
-#: source/XML.cpp:921
+#: source/XML.cpp:923
 msgid ""
 "\n"
 "If you wish you can try opening some other document and continue working."
 msgstr ""
 
 # Check location of %s
-#: source/XML.cpp:992
+#: source/XML.cpp:994
 #, c-format
 msgid "The XML file (%s) being loaded begins with a UTF-16 BOM (Byte Order Mark), so it is not UTF-8 data. Maybe you edited the file in a word processor and did not specify UTF-8 output. Please do that then try opening the document again."
 msgstr "%s XML文件以UTF-16 -16 BOM （字节顺序标记）被加载，所以它不是UTF-8数据。或许是你在一个不支持UTF-8输出的文字处理器中编辑了文件。请将文件以UTF-8的形式输出，然后再试着重新打开文件。"
 
 # Priority 1
-#: source/XML.cpp:3616
+#: source/XML.cpp:3618
 #, c-format
 msgid "Reading XML Data For: %s Please Wait..."
 msgstr ""
 
 # Priority 1
-#: source/XML.cpp:3618
+#: source/XML.cpp:3620
 msgid "Opening The Document"
 msgstr ""
 
@@ -8099,6 +8611,9 @@ msgstr ""
 msgid "XML Document Parsing Error"
 msgstr "XML文档的短语错误"
 
+# Priority 1
+#~ msgid "Current Project: %s"
+#~ msgstr "当前工程 %s"
 #~ msgid ""
 #~ "Please note: the order of the TU elements in this xml file might differ "
 #~ "each time the knowledge base is saved. This is not an error."
@@ -8114,7 +8629,6 @@ msgstr "XML文档的短语错误"
 #~ "对不起，由于没有放置短语框的有效位置，所以Adapt It无法向下移。打开“参数设"
 #~ "定”对话框的“查看”页卡，增大“最大源文单词显示数量”的参数值，然后再重试向下"
 #~ "移。"
-
 # Priority 1
 #~ msgid "File: "
 #~ msgstr "文件:"
