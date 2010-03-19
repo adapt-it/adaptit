@@ -12371,6 +12371,7 @@ BOOL CWinApp::OnOpenRecentFile(UINT nID)
 /// to work on contents not just of the Adaptations folder but also the contents of the set
 /// of all Bible book folders in the Adaptations folder (if book mode has at some previous
 /// time been turned on)
+/// BEW 19Mar10, fixed faulty logic in the book folders loop
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 {
@@ -12505,9 +12506,12 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			bool bWorking = finder.GetFirst(&str,_T("*.*"),wxDIR_FILES | wxDIR_DIRS);
 			while (bWorking)
 			{
-				bWorking = finder.GetNext(&str);
+				// BEW 19Mar10, added a call of finder.GetNext() so that iterating continues
 				if (str.IsEmpty())
+				{
+					bWorking = finder.GetNext(&str);
 					continue;
+				}
 
                 // whm note: in the MFC version's "if (finder.IsDirectory())" test below,
                 // the finder continues to use the directory path that was current when the
@@ -12555,39 +12559,72 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 			"Error returned by EnumerateDocFiles in Book Folder loop, directory %s skipped."),
 							folderPath.c_str());
 							wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
+
+							// BEW added 19Mar10, a call of wxSetWorkingDirectory() is
+							// needed here because EnumerateDocFiles() has been called
+							// and it has clobbered the setting of the working directory
+							// to the Adaptations folder & call finder.GetNext()
+							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath); 
+									// restore parent folder as current
+							wxASSERT(bOK);
+							bWorking = finder.GetNext(&str); // needed for the iteration
 							continue;
 						}
 						nCount = pList->GetCount();
 						nDocCount += nCount;
 						if (pList->GetCount() == 0)
 						{
-							// no documents to work on in this folder, so iterate
+							// no documents to work on in this folder, so iterate...
+							
+							// BEW added 19Mar10, a call of wxSetWorkingDirectory() is
+							// needed here because EnumerateDocFiles() has been called
+							// and it has clobbered the setting of the working directory
+							// to the Adaptations folder; and call finder.GetNext()
+							bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath); 
+									// restore parent folder as current
+							wxASSERT(bOK);
+							bWorking = finder.GetNext(&str); // needed for the iteration
 							continue;
 						}
 
 						// There are files to be processed. TRUE parameter suppresses the statistics
 						// dialog 
 						DoKBRestore(pKB, nCount, nTotal, nCumulativeTotal);
-                        // whm note: The following statement that sets the current working
-                        // directory will be skipped when there are no files within any
-                        // folder with the result that the OnFileRestoreKb will exit with
-                        // the current working directory set to "...\Zechariah" 
-                        // TODO: check if the following statement should be moved to near
-                        // the end of OnFileRestoreKb.
-						bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath)); 
-										// restore parent folder as current
+                        
+						//bOK = (::wxSetWorkingDirectory(m_curAdaptionsPath) && finder.Open(m_curAdaptionsPath));
+						// BEW altered 19Mar2010, because the reopening of finder by the
+						// above line of code destroyed the iterator, contributing to infinite 
+						// looping
+						bOK = ::wxSetWorkingDirectory(m_curAdaptionsPath); 
+								// restore parent folder as current
 						wxASSERT(bOK);
-					}
+					} // end of TRUE block for test IsDirectoryWithin(str,m_pBibleBooks)
 					else
 					{
-						continue;
+						// it's not a known directory for bible book folders, nor the
+						// "Other Texts" folder either, so ignore it
+						//continue; // BEW removed 19Mar10 - continue causes the finder.GetNext()
+						// call to be missed
+						; // working directory is unchanged, so don't reset it here
 					}
-				}
+				} // end of TRUE block for test: if (finder.Exists(m_curAdaptionsPath + PathSeparator + str))
+				  // which, if str is a child directory's name (rather than a filename),
+				  // then the contructed parameter will be the absolute path to that folder
 				else
 				{
 					// its a file, so ignore it
-					continue;
+					//continue; // BEW removed 19Mar10 - continue causes the finder.GetNext()
+					// call to be missed
+					; // working directory is unchanged, so don't reset it here
 				}
+
+                // BEW changed 19Mar10: moved the finder.GetNext() call from the top of the
+                // loop to here, because having it at the top of the loop meant that the
+                // directory contents already in str from the call finder.Open() preceding
+                // the loop is never processed; and on return to top of the loop, the
+                // GetNext() call then fails but str stays unchanged, contributing to
+                // infinite looping
+				bWorking = finder.GetNext(&str);				
 			} // end loop for FindFile() scanning all possible files in folder
 		}  // end block for bOK == TRUE
 	} // end block for test for gbHasBookFolders yielding TRUE
@@ -12612,7 +12649,7 @@ void CAdapt_ItApp::OnFileRestoreKb(wxCommandEvent& WXUNUSED(event))
 	wxString stats;
 	// IDS_RESTORE_KB_STATS
 	stats = stats.Format(_(
-"Your rebuilt knowledge base is now in operation. It contains %d source words and phrases taken from %d  documents."),
+"Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."),
 	nCumulativeTotal,nDocCount);
 	wxMessageBox(stats);
 
@@ -25148,7 +25185,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 		}
 		else if (fileLine.First(szFaceName) != wxNOT_FOUND)
 		{
-			// we're at a line with "FaceName" in i
+			// we're at a line with "FaceName" in it
 			Facename[nFaceNameIndex] = fileLine.Mid(fileLine.Find(tab)+1);
 			nFaceNameIndex++;
 		}
@@ -25475,7 +25512,7 @@ void CAdapt_ItApp::FixConfigFileFonts(wxTextFile* pf)
 		}
 		else if (fileLine.First(szFaceName) != wxNOT_FOUND)
 		{
-			// we're at a line with "FaceName" in i
+			// we're at a line with "FaceName" in it
 			// build the required config file facename for this line
 			fileLine = szFaceName + tab + Facename[nFaceNameIndex];
 			nFaceNameIndex++;
