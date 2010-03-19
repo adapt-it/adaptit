@@ -679,6 +679,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\Retranslation.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\RetranslationDlg.cpp"
 				>
 			</File>
@@ -1045,6 +1049,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\RefString.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\Retranslation.h"
 				>
 			</File>
 			<File
