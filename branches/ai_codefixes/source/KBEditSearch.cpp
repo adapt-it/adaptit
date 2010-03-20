@@ -591,6 +591,7 @@ void KBEditSearch::EnableRemoveUpdateButton(bool bEnableFlag)
 // if the dialog is modeless.
 void KBEditSearch::OnOK(wxCommandEvent& event) 
 {
+	pKBEditorDlg->m_bRemindUserToDoAConsistencyCheck = FALSE; // start off with default value
 	if (m_bMatchesExist)
 	{
         // Update, in the in-memory KB, all the respelled adaptations or glosses from the
@@ -618,6 +619,11 @@ void KBEditSearch::OnOK(wxCommandEvent& event)
 				// use the KBMatchRecord to update the spelling stored on the CRefString
 				// instance in the CTargetUnit instance
 				m_pCurKBMatchRec->pRefString->m_translation = m_pCurKBUpdateRec->updatedString;
+
+				// since there were respellings, a consistency check should be done (the flag for
+				// this is in the parent KBEditor dialog because it's when that dialog is
+				// closed that the message will be shown
+				pKBEditorDlg->m_bRemindUserToDoAConsistencyCheck = TRUE;
 			}
 		}
 	}
@@ -626,6 +632,8 @@ void KBEditSearch::OnOK(wxCommandEvent& event)
 
 void KBEditSearch::OnBnClickedCancel(wxCommandEvent& event)
 {
+	pKBEditorDlg->m_bRemindUserToDoAConsistencyCheck = FALSE; // don't want message shown
+													  // to do consistency check
 	event.Skip();
 }
 
