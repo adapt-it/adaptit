@@ -182,7 +182,7 @@ bool	gbRetainBoxContents = FALSE; // for version 1.4.2; we want deselection of c
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the NRoman version, using the extra Layout menu
-extern bool		gbSuppressRemovalOfRefString; // see the view's globals for a definition
+
 bool			gbByCopyOnly = FALSE; // will be set TRUE when the target text is the result of a 
 					// copy operation from the source, and if user types to modify it, it is 
 					// cleared to FALSE, and similarly, if a lookup succeeds, it is cleared to 
