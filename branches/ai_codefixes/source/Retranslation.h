@@ -92,6 +92,10 @@ protected:
 
 public: 
 	// TODO: these are public, but don't appear to be called from outside the class. Do we still need them public?
+	// BEW answer: Bill made them public as they are called by some access functions, in
+	// the view -- eg. DoRetranslation(), and DoRetranslationByUpArrow(), call
+	// OnButtonRetranslation(). So there will be some others... But those functions could/should
+	// be make public accessors within the Retranslation class itself
 	void OnButtonEditRetranslation(wxCommandEvent& event);
 	void OnButtonRetranslation(wxCommandEvent& event); // whm moved to public in wx version
 	void OnUpdateButtonRetranslation(wxUpdateUIEvent& event); // whm moved to public in wx version

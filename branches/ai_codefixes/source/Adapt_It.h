@@ -1156,8 +1156,14 @@ typedef struct
                 // after the user has completed his editing of the source text (or whatever
                 // the edit did, eg. removal of a merger - but this additional stuff will
                 // only be possible within the wxWidgets versions)
+#if !defined (_DOCVER5)
+                // BEW added comment 22Mar10 for doc version 5. These  3 members are no longer
+                // needed, because such endmarkers now are stored in the last CSourcePhrase
+                // instance within the edit span, and can be got directly from there, etc
+                
 	wxString strInitialEndmarkers; // store here the any endmarkers stripped off the 
                 // m_markers member of the editable subspan's first CSourcePhrase member
+
 	wxString strFinalEndmarkers;  // store here the any endmarkers stripped off the 
                 // m_markers member of the first CSourcePhrase member following the
                 // editable subspan (at the point in the code when we do this storage, the
@@ -1165,6 +1171,7 @@ typedef struct
                 // pSrcPhrase in the modifications list; and the substring needs to be
                 // added to the end of the string of source text and SFM markup which he is
                 // to see in the dialog, just prior to making the dialog visible)
+
 	wxString strNewFinalEndmarkers;   // store here the any endmarkers stripped off the 
                 // end of the user's edited source text string. His edit could change
                 // anything, and so it is conceivable that his new text may end with
@@ -1172,6 +1179,7 @@ typedef struct
                 // editable span when he first views the dialog, so we must store the new
                 // ones in case we must cancel out and restore the original document's
                 // state
+#endif
 	bool bSpecialText; // stores the m_bSpecialText boolean value for the first 
                 // CSourcePhrase instance in the editable span; TRUE if it was special
                 // text, FALSE if verse or poetry
@@ -1197,6 +1205,12 @@ typedef struct
                 // carrier CSourcePhrase; typically it would be the 'whole' rather than the
                 // 'end' because the user normally cannot select across a TextType boundary
                 // in the first place)
+#if defined (_DOCVER5)
+                // BEW added comment 22Mar10 for doc version 5. The above is still true
+                // except that there is not a single location for any transferred filtered
+                // stuff, but, depending on what info was there, it could be one or more of
+                // m_freeTrans, m_note, m_collectedBackTrans, or m_filteredInfo
+#endif
 	bool bDocEndPreventedTransfer; // FALSE by default; TRUE if there was created an empty
                 // carrier CSourcePhrase for storing final endmarker(s), or now-filtered
                 // information, and there is no following context to which transfer of this
@@ -1285,9 +1299,9 @@ typedef struct
 				// created with the radio button "Verse" turned on
 	SPList freeTranslationStep_SrcPhraseList; // we only need the initial list, because 
                 // the user is unable to return to this step once backTranslationsStep has
-                // been entered, and so and so the state of the span when
-                // freeTranslationsStep is first entered is actually the final state of the
-                // last step - that's what we are storing
+                // been entered, and so the state of the span when freeTranslationsStep is 
+                // first entered is actually the final state of the last step - that's 
+                // what we are storing
 	int			nFreeTranslationStep_StartingSequNum;
 	int			nFreeTranslationStep_EndingSequNum;
 	int 		nFreeTranslationStep_SpanCount;

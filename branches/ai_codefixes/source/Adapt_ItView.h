@@ -636,8 +636,9 @@ protected:
 	void		TransferCompletedSrcPhrases(SPList* pNewSrcPhrasesList,int nSaveSequNum);
 	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
-	bool		TransportWidowedEndmarkersToFollowingContext(SPList* pNewSrcPhrases, CSourcePhrase* pFollSrcPhrase,
-							EditRecord* pRec); //BEW added 7May08
+	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases, 
+							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
+							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
 #ifndef	_FREETR
 	wxString	TruncateToFit(wxDC* pDC,wxString& str,wxString& ellipsis,int totalHExtent);
 #endif	// _FREETR

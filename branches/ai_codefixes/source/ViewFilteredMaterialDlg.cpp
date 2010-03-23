@@ -13,13 +13,8 @@
 /// The CViewFilteredMaterialDlg is created as a Modeless dialog. It is created on the heap and
 /// is displayed with Show(), not ShowModal().
 /// \derivation		The CViewFilteredMaterialDlg class is derived from wxDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ViewFilteredMaterialDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// 
+/// BEW 22Mar10, updated for support of _DOCVER5 (some changes needed)
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -182,6 +177,7 @@ void CViewFilteredMaterialDlg::OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(e
 }
 #endif
 
+// BEW 3Mar10, updated for support of _DOCVER5 (changes needed)
 void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();

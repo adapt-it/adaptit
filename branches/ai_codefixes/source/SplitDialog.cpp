@@ -352,7 +352,6 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// Do the actual split.
 	pView->canvas->Freeze();
 	SPList *SourcePhrases2 = gpApp->m_pSourcePhrases;
-	//SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_curIndex);
 	SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_nActiveSequNum); // refactored 26Apr09
 
 	// BEW added test 02Nov05, to check the user actually advanced the phrasebox from the
@@ -426,6 +425,8 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	wxMessageBox(_("Splitting the document succeeded."),_T(""),wxICON_INFORMATION);
 }
 
+// the next is no longer needed
+#if !defined (_DOCVER5)
 /*************************************************************************************************
 *
 *	MoveFinalEndmarkersToEndOfLastChapter					(protected)
@@ -502,6 +503,7 @@ void CSplitDialog::MoveFinalEndmarkersToEndOfLastChapter(SPList* WXUNUSED(pDocSr
 		pChapter->SourcePhrases->Append(newSrcPhraseP); // append it, and we are done
 	}
 }
+#endif
 
 // Returns a list of Chapter objects.  Does not modify SourcePhrases.  This means that each SourcePhrase
 // ends up in _two_ SPList instances - SourcePhrases, and Chapter.SourcePhrases for one of the output 
@@ -581,7 +583,8 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 				c->Number = 0; // will get set later
 				c->SourcePhrases = new SPList();
 				rv->Append(c); // append the pointer to the chapter object to the end of the list of chapters
-
+// next bit is no longer needed
+#if !defined (_DOCVER5)
 				if (rv->GetCount() >= 2)
 				{
 					// move any final endmarkers to an appended CSourcePhrase at the end of the previous
@@ -589,8 +592,8 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 					// internally in the call of MoveFinalEndmarkersToEndOfLastChapter()
 					MoveFinalEndmarkersToEndOfLastChapter(SourcePhrases, save_pos, rv, gpApp->gCurrentSfmSet);
 				}
+#endif
 			}
-
 			// the second and subsequent lists of sourcephrases won't yet have an \id line with the book
 			// ID code included, so we need to insert a new sourcephrase to store that info in each such
 			// sublist, provided we indeed have found a valid book ID (if the string is non-empty, it 

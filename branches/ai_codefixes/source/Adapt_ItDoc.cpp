@@ -8893,6 +8893,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// instances from the tokens. All the input text's source phrases are analyzed in the
 /// process to determine each source phrase's many attributes and flags, stores any
 /// filtered information in its m_filteredInfo member.
+/// BEW Feb10, updated for support of _DOCVER5 (changes were needed)
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
 							   int nTextLength)

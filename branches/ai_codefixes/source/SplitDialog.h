@@ -80,9 +80,11 @@ protected:
 	bool GoToNextChapter_Interactive();
 	void SplitAtPhraseBoxLocation_Interactive();
 	void SplitIntoChapters_Interactive();
+// next function no longer needed
+#if !defined (_DOCVER5)
 	void MoveFinalEndmarkersToEndOfLastChapter(SPList* WXUNUSED(pDocSrcPhrases), SPList::Node*& pos,
 							ChList* pChaptersList, enum SfmSet currSfmSet); // BEW added 15Aug07 for 3.5.0
-
+#endif
 public:
 
 

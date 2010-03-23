@@ -406,6 +406,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 // duplicates of those pointed at by the m_pSavedWords list in oldSP
 // If the m_pSavedWords list is empty, the DeepCopy() operation does nothing
 // & the owning CSourcePhrase instance is already a deep copy
+// BEW 22Mar10, updated for support of _DOCVER5 (no changes needed)
 void CSourcePhrase::DeepCopy(void)
 {
 	SPList::Node* pos = m_pSavedWords->GetFirst(); //POSITION pos = m_pSavedWords->GetHeadPosition();

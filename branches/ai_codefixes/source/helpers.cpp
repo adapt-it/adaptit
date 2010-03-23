@@ -771,6 +771,7 @@ wxString StripPath(wxString FullPath)
 /// \remarks
 /// Creates a new Source Phrase List to hold the split-off portion, and returns a pointer to that new List.  
 /// MainList is modified by having the first FirstIndexToKeep entries removed into the new List.
+/// BEW 23Mar10 updated for support of _DOCVER5 (change needed)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 {
@@ -781,9 +782,10 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 	// a marker .... endmarker matched pair (eg. footnote)
 	SPList::Node* pos = MainList->Item(FirstIndexToKeep);
 	wxASSERT(pos != NULL);
+#if !defined (_DOCVER5)
 	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 	bool bAbortOperation = FALSE;
-
+#endif
 	// Jonathan's original code block (note: FirstIndexToKeep is only
 	// used as a counter so as to determine when to quit the loop, it 
 	// is not used for accessing list members)
@@ -795,6 +797,7 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 		rv->Append(pSrcPhrase);
 		--FirstIndexToKeep;
 	}
+#if !defined (_DOCVER5)
 	// the rest of the BEW addition of 15Aug07,
 	wxString endmarkers = RemoveInitialEndmarkers(pSrcPhrase, gpApp->gCurrentSfmSet,
 																bAbortOperation);
@@ -807,6 +810,7 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 		// the final task is to append this new CSourcePhrase to the end of the list in rv
 		rv->Append(newSrcPhraseP);
 	}
+#endif
 	return rv;
 }
 
@@ -1412,6 +1416,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 /// by just testing the first one or two instances, so certainly 5 should be plenty. If after five
 /// we still don't know, then default to returning TRUE. (
 /// BEW added 26Oct08
+/// BEW 22Mar10, updated for support of _DOCVER5 (no changes needed)
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum)
 {
