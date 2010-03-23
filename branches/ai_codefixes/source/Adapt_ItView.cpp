@@ -705,13 +705,17 @@ bool gbVerticalEdit_SynchronizedScrollReceiveBooleanWasON = FALSE;
 // for the refactored code for src text editing
 /////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef _RETRANS
 bool			gbInsertingWithinFootnote = FALSE; // TRUE if inserting a null sourcephrase
+#endif
 								// within a footnote; eg. if a retranslation is within a
 								// footnote and gets padded with null sourcephrases.
 								// We need to know this so that we can propagate the
 								// footnote TextType to the padding, or for any other insertion
 								// within a footnote.
+#ifndef _RETRANS
 bool			gbSuppressRemovalOfRefString = FALSE; // set TRUE in SetActivePilePointerSafely,
+#endif
 						// otherwise nested PlacePhraseBox call will result in a RemoveRefString
 						// spurious call before the phrasebox is rebuilt, which could remove a
 						// source to target translation association wrongly.
@@ -801,13 +805,17 @@ bool	gbFindOrReplaceCurrent = FALSE; // for use by CMainFrame's OnActive() funct
 
 // BEW added 20March07: for suppressing removal of KB entries when a retranslation or edit
 // of a retranslation is currently being done
+#ifndef _RETRANS
 bool	gbIsRetranslationCurrent = FALSE;
+#endif
 
 // globals for inserting a replacement target text into a retranslation, when the latter is
 // wholly or partly matched (invokes OnButtonEditRetranslation() which uses these globals)
 wxString gSrchStr = _T("");
 wxString gReplStr = _T("");
+#ifndef _RETRANS
 bool	 gbReplaceInRetranslation = FALSE;
+#endif
 
 // globals for handling advancement over a found retranslation
 //bool gbMatchedRetranslation = FALSE; BEW 3Aug09 changed it to be the app member 
@@ -2551,7 +2559,11 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
         // SetActivePilePointerSafely() call in the OnButtonRetranslation() call; since it
         // would then either decrement a refCount, or remove a translation association,
         // wrongly) - in such instances, we must suppress the removal
+#ifndef _RETRANS
 		if (!gbSuppressRemovalOfRefString)
+#else
+		if (pApp->GetRetranslation()->GetSuppressRemovalOfRefString() == FALSE)
+#endif
 		{
 			// remove the CRefString from the KB if it is referenced only once, otherwise
 			// decrement its reference count by one, so that if user edits the string the KB
@@ -6996,6 +7008,8 @@ void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcP
 		pSrcPhrase->m_bHasKBEntry = FALSE;
 		return; // return because nothing was put in KB for this source phrase anyway
 	}
+	
+	CAdapt_ItApp* pApp = GetDocument()->GetApp();
 
     // BEW added 06Sept06: the above tests handle what must be done to the document's
     // pSrcPhrase instance passed in, but it could be the case that the preceding
@@ -7037,7 +7051,11 @@ void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcP
         // knowledge of it, this does not affect the count of how many translations there
         // are, so m_bAlwaysAsk is unaffected. Version 2 has to test gbIsGlossing and set
         // the relevant flag to FALSE.
+#ifndef _RETRANS
 		if (!gbIsRetranslationCurrent)
+#else
+		if (!(pApp->GetRetranslation()->GetIsRetranslationCurrent()))
+#endif
 		{
 			// BEW 20Mar07: don't decrement if retranslation, or editing of same, 
 			// is currently happening
@@ -7089,7 +7107,11 @@ void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcP
                         // permit removal after the flag may have been used in previous
                         // block
 
+#ifndef _RETRANS
 		if (gbIsRetranslationCurrent)
+#else
+			if (pApp->GetRetranslation()->GetIsRetranslationCurrent())
+#endif
 		{
             // BEW 20Mar07: don't remove if retranslation, or editing of same, is currently
             // happening because we don't want retranslations to effect the 'dumbing down'
@@ -7109,7 +7131,6 @@ void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcP
 			// we are removing the only CRefString in the owning targetUnit, so the latter must
 			// go as well
 			CTargetUnit* pTgtUnit;
-			CAdapt_ItApp* pApp = GetDocument()->GetApp();
 			CKB* pKB;
 			if (gbIsGlossing)
 				pKB = pApp->m_pGlossingKB; // point to the glossing KB when glossing is on
@@ -13505,7 +13526,11 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
         // be considered here
 		if (pSrcPhraseInsLoc->m_curTextType == footnote && 
 			pSrcPhraseInsLoc->m_bFootnote == FALSE)
+#ifdef _RETRANS
+			pApp->GetRetranslation()->SetIsInsertingWithinFootnote(TRUE);
+#else
 			gbInsertingWithinFootnote = TRUE;
+#endif
 	}
 
     // create the needed null source phrases and insert them in the list; preserve pointers
@@ -13566,7 +13591,11 @@ void CAdapt_ItView::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp
         // right, because the user might output interlinear RTF with footnote suppression
         // wanted, so we have to ensure that these null source phrases have the footnote
         // TextType set so that the suppression will work properly
+#ifdef _RETRANS
+		if (pApp->GetRetranslation()->GetIsInsertingWithinFootnote())
+#else
 		if (gbInsertingWithinFootnote)
+#endif
 		{
 			pSrcPhrasePH->m_curTextType = footnote;
 			if (!pSrcPhrasePH->m_bRetranslation)
@@ -14214,7 +14243,11 @@ m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
 		Invalidate();
 		GetLayout()->PlaceBox();
 	}
-	gbInsertingWithinFootnote = FALSE; // make sure it is off (default) before exiting
+#ifdef _RETRANS
+	pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+#else
+	gbInsertingWithinFootnote = FALSE;
+#endif
 }
 
 // BEW 18Feb10 updated for _DOCVER5 support (no changes needed)
@@ -14866,11 +14899,17 @@ bool CAdapt_ItView::IsConstantType(SPList* pList)
 	}
 
     // if we get here, it's all one type; so if that type is also the footnote textType
-    // then set the gbInsertingWithinFootnote flag (we want to propragate a footnote type
+    // then set the CRetranslation.m_bInsertingWithinFootnote flag (we want to propragate a footnote type
     // into any padding with null source phrases, in case the user wants to get interlinear
     // RTF output with footnote text suppressed)
 	if (pSrcPhrase->m_curTextType == footnote)
+	{
+#ifdef _RETRANS
+		pApp->GetRetranslation()->SetIsInsertingWithinFootnote(TRUE);
+#else
 		gbInsertingWithinFootnote = TRUE;
+#endif
+	}
 	return TRUE;
 }
 
@@ -18524,7 +18563,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 	CopySourcePhraseList(pList,pSaveList);
 
 	// BEW added 20Mar07: to suppress KB entry removal during a retranslation or edit of same
-	gbIsRetranslationCurrent = TRUE;
+	gbIsRetranslationCurrent = TRUE; 
 
     // deliberately abandon contents of box at active loc'n - we'll reconstitute it as
     // necessary later, depending on where we want to place the targetBox. But before we
@@ -18771,12 +18810,22 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 		if (!gbVerticalEditInProgress)
 		{
 			// legacy behaviour
-			gbSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
-												 // PlacePhraseBox()
+			// suppress RemoveRefString() call within 
+			// PlacePhraseBox()
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = TRUE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(TRUE);
+#endif
 			bool bSetSafely = SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 															pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-												  // PlacePhraseBox() calls
+			// permit RemoveRefString() in subsequent 
+			// PlacePhraseBox() calls
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = FALSE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
+#endif
 			gbIsRetranslationCurrent = FALSE;
 			if(!bSetSafely)
 			{
@@ -18828,13 +18877,23 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 
 			nSaveActiveSequNum = nPotentialActiveSequNum; // we need a value to work with below
 										// even if we suppress reconstituting of the phrase box
-			gbSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
-												 // PlacePhraseBox()
+			// suppress RemoveRefString() call within 
+			// PlacePhraseBox()
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = TRUE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(TRUE);
+#endif
 			bool bSetSafely;
 			bSetSafely = SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 															pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-												  // PlacePhraseBox() calls
+			// permit RemoveRefString() in subsequent 
+			// PlacePhraseBox() calls
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = FALSE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
+#endif
 			gbIsRetranslationCurrent = FALSE;
 		}
 	}
@@ -18975,7 +19034,11 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 	// ensure respect for boundaries is turned back on
 	if (!pApp->m_bRespectBoundaries)
 		OnButtonFromIgnoringBdryToRespectingBdry(event);
-	gbInsertingWithinFootnote = FALSE; // restore default value
+#ifdef _RETRANS
+	pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+#else
+	gbInsertingWithinFootnote = FALSE;
+#endif
 	gnOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
 
@@ -19322,12 +19385,20 @@ h:				wxMessageBox(_(
     // if we are invoking this function because of a Find & Replace match within the
     // retranslation, then replace the portion of the strAdapt string which was matched
     // with the replacement string found in the global gReplStr
+#ifdef _RETRANS
+	if (pApp->GetRetranslation()->GetReplaceInTranslation() == TRUE)
+#else
 	if (gbReplaceInRetranslation)
+#endif
 	{
 		ReplaceMatchedSubstring(gSrchStr,gReplStr,strAdapt);
 
 		// clear the globals for next time
+#ifdef _RETRANS
+		pApp->GetRetranslation()->SetReplaceInTranslation(FALSE);
+#else
 		gbReplaceInRetranslation = FALSE;
+#endif
 		gSrchStr.Empty();
 		gReplStr.Empty();
 	}
@@ -19475,7 +19546,7 @@ h:				wxMessageBox(_(
 	pApp->m_pActivePile = GetPile(pApp->m_nActiveSequNum);
 
 	bool bConstType;
-	bConstType = IsConstantType(pList); // need this only in case gbInsertingWithinFootnote
+	bConstType = IsConstantType(pList); // need this only in case CRetranslation.m_bInsertingWithinFootnote
 										// needs to be set
 
 	// put up the CRetranslationDlg dialog
@@ -19569,8 +19640,13 @@ h:				wxMessageBox(_(
 			// legacy behaviour
 			bool bSetSafely = SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 															pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-												  // PlacePhraseBox() calls
+			// permit RemoveRefString() in subsequent 
+			// PlacePhraseBox() calls
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = FALSE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
+#endif
 			gbIsRetranslationCurrent = FALSE;
 			if(!bSetSafely)
 			{
@@ -19616,13 +19692,23 @@ h:				wxMessageBox(_(
 			}
 			nSaveActiveSequNum = nPotentialActiveSequNum; // we need a value to work with below
 										// even if we suppress reconstituting of the phrase box
-			gbSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
-												 // PlacePhraseBox()
+			// suppress RemoveRefString() call within 
+			// PlacePhraseBox()
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = TRUE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(TRUE);
+#endif
 			bool bSetSafely;
 			bSetSafely = SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 														pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
-												  // PlacePhraseBox() calls
+			// permit RemoveRefString() in subsequent 
+			// PlacePhraseBox() calls
+#ifdef _RETRANS
+			gbSuppressRemovalOfRefString = FALSE;
+#else
+			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
+#endif
 			gbIsRetranslationCurrent = FALSE;
 		}
 	}
@@ -19833,7 +19919,11 @@ h:				wxMessageBox(_(
 	// ensure respect for boundaries is turned back on
 	if (!pApp->m_bRespectBoundaries)
 		OnButtonFromIgnoringBdryToRespectingBdry(event);
-	gbInsertingWithinFootnote = FALSE; // restore default value
+#ifdef _RETRANS
+	pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+#else
+	gbInsertingWithinFootnote = FALSE;
+#endif
 }
 
 // BEW 18Feb10, modified for support of _DOCVER5 (some code added to handle transferring
@@ -20178,7 +20268,11 @@ h:				wxMessageBox(_(
 	// ensure respect for boundaries is turned back on
 	if (!pApp->m_bRespectBoundaries)
 		OnButtonFromIgnoringBdryToRespectingBdry(event);
-	gbInsertingWithinFootnote = FALSE; // restore default value
+#ifdef _RETRANS
+	pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+#else
+	gbInsertingWithinFootnote = FALSE;
+#endif
 }
 
 // old code was based on code in TokenizeText in doc file; new code is based on code in
@@ -23966,7 +24060,11 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
         // the dialog is shown, user can edit it before dismissing the dialog, or just
         // accept what was done; initialize the globals that OnButtonEditRetranslation()
         // will use
+#ifdef _RETRANS
+		pApp->GetRetranslation()->SetReplaceInTranslation(TRUE);
+#else
 		gbReplaceInRetranslation = TRUE;
+#endif
 		gSrchStr = tgt;
 		gReplStr = replStr;
 
@@ -30769,8 +30867,11 @@ void CAdapt_ItView::BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec
 		wxCommandEvent ev;
 		OnButtonFromIgnoringBdryToRespectingBdry(ev);
 	}
-	gbInsertingWithinFootnote = FALSE; // restore default 
-					// (it can be set in IsConstantType( ) )
+#ifdef _RETRANS
+	pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
+#else
+	gbInsertingWithinFootnote = FALSE;
+#endif
 	
 	// scroll into view if necessary
 	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
