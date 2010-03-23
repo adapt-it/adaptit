@@ -7,8 +7,8 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="UnicodeDebug">
-				<Option output="build/UnicodeDebug/Adapt It" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../../trunk" />
+				<Option output="build/UnicodeDebug/Adapt It.app" prefix_auto="1" extension_auto="0" />
+				<Option working_dir="../../../ai_codefixes" />
 				<Option object_output="obj/UnicodeDebug/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
@@ -582,6 +582,8 @@
 		<Unit filename="../../source/JoinDialog.h" />
 		<Unit filename="../../source/KB.cpp" />
 		<Unit filename="../../source/KB.h" />
+		<Unit filename="../../source/KBEditSearch.cpp" />
+		<Unit filename="../../source/KBEditSearch.h" />
 		<Unit filename="../../source/KBEditor.cpp" />
 		<Unit filename="../../source/KBEditor.h" />
 		<Unit filename="../../source/KBPage.cpp" />
@@ -693,7 +695,9 @@
 		<Extensions>
 			<code_completion />
 			<envvars />
-			<debugger />
+			<debugger>
+				<search_path add="build/UnicodeDebug" />
+			</debugger>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
