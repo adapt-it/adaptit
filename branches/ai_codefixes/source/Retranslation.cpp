@@ -81,20 +81,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 // External globals
 ///////////////////////////////////////////////////////////////////////////////
-extern bool gbIsRetranslationCurrent;
 extern bool gbIsGlossing;
 extern bool gbInhibitLine4StrCall;
 extern bool gbAutoCaps;
 extern bool gbUnmergeJustDone;
-extern bool gbAutoCaps;
 extern bool gbSourceIsUpperCase;
 extern bool gbNonSourceIsUpperCase;
 extern bool gbShowTargetOnly;
 extern bool gbVerticalEditInProgress;
 extern bool gbHasBookFolders;
-extern bool gbInsertingWithinFootnote;
-extern bool gbSuppressRemovalOfRefString;
-extern bool gbReplaceInRetranslation;
 extern int gnOldSequNum;
 extern char gcharNonSrcUC;
 extern wxString gSrchStr;
@@ -134,6 +129,7 @@ CRetranslation::CRetranslation(CAdapt_ItApp* app)
 	m_pApp = app;
 	m_pLayout = m_pApp->m_pLayout;
 	m_pView = m_pApp->GetView();
+	m_bIsRetranslationCurrent = FALSE;
 }
 
 CRetranslation::~CRetranslation()
@@ -1545,11 +1541,11 @@ bool CRetranslation::IsConstantType(SPList* pList)
 	}
 	
     // if we get here, it's all one type; so if that type is also the footnote textType
-    // then set the gbInsertingWithinFootnote flag (we want to propragate a footnote type
+    // then set the m_bInsertingWithinFootnote flag (we want to propragate a footnote type
     // into any padding with null source phrases, in case the user wants to get interlinear
     // RTF output with footnote text suppressed)
 	if (pSrcPhrase->m_curTextType == footnote)
-		gbInsertingWithinFootnote = TRUE;
+		m_bInsertingWithinFootnote = TRUE;
 	return TRUE;
 }
 
@@ -2092,7 +2088,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	CopySourcePhraseList(pList,pSaveList);
 	
 	// BEW added 20Mar07: to suppress KB entry removal during a retranslation or edit of same
-	gbIsRetranslationCurrent = TRUE;
+	m_bIsRetranslationCurrent = TRUE;
 	
     // deliberately abandon contents of box at active loc'n - we'll reconstitute it as
     // necessary later, depending on where we want to place the targetBox. But before we
@@ -2123,7 +2119,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		gbInhibitLine4StrCall = FALSE;
 		if (!bOK)
 		{
-			gbIsRetranslationCurrent = FALSE;
+			m_bIsRetranslationCurrent = FALSE;
 			return; // can't proceed until a valid adaption (which could be null) is
 			// supplied for the former active pile's srcPhrase
 		}
@@ -2339,13 +2335,13 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		if (!gbVerticalEditInProgress)
 		{
 			// legacy behaviour
-			gbSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
+			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
 			// PlacePhraseBox()
 			bool bSetSafely = GetView()->SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 														 pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
+			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-			gbIsRetranslationCurrent = FALSE;
+			m_bIsRetranslationCurrent = FALSE;
 			if(!bSetSafely)
 			{
 				// IDS_ALL_RETRANSLATIONS
@@ -2396,20 +2392,20 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			
 			nSaveActiveSequNum = nPotentialActiveSequNum; // we need a value to work with below
 			// even if we suppress reconstituting of the phrase box
-			gbSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
+			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
 			// PlacePhraseBox()
 			bool bSetSafely;
 			bSetSafely = GetView()->SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 													pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
+			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-			gbIsRetranslationCurrent = FALSE;
+			m_bIsRetranslationCurrent = FALSE;
 		}
 	}
 	else
 	{
 		// user cancelled, so we have to restore the original state
-		gbIsRetranslationCurrent = FALSE;
+		m_bIsRetranslationCurrent = FALSE;
 		wxASSERT(pSaveList);
 		int nCurCount = nEndSequNum - nSaveSequNum + 1; // what the selection now numbers,
 		// after unmerge etc.
@@ -2543,7 +2539,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// ensure respect for boundaries is turned back on
 	if (!pApp->m_bRespectBoundaries)
 		GetView()->OnButtonFromIgnoringBdryToRespectingBdry(event);
-	gbInsertingWithinFootnote = FALSE; // restore default value
+	m_bInsertingWithinFootnote = FALSE; // restore default value
 	gnOldSequNum = nSaveOldSequNum; // restore the value we set earlier
 }
 
@@ -2678,7 +2674,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		
 		// BEW added 20Mar07: to suppress removing of KB entries during edit
 		// of the retranslation
-		gbIsRetranslationCurrent = TRUE;
+		m_bIsRetranslationCurrent = TRUE;
 		
 		if (!bInSelection)
 		{
@@ -2694,7 +2690,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 				gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
 				{
-					gbIsRetranslationCurrent = FALSE;
+					m_bIsRetranslationCurrent = FALSE;
 					return; // can't proceed until a valid adaption (which could be null) 
 					// is supplied for the former active pile's srcPhrase
 				}
@@ -2743,12 +2739,12 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
     // if we are invoking this function because of a Find & Replace match within the
     // retranslation, then replace the portion of the strAdapt string which was matched
     // with the replacement string found in the global gReplStr
-	if (gbReplaceInRetranslation)
+	if (m_bReplaceInRetranslation)
 	{
 		ReplaceMatchedSubstring(gSrchStr,gReplStr,strAdapt);
 		
 		// clear the globals for next time
-		gbReplaceInRetranslation = FALSE;
+		m_bReplaceInRetranslation = FALSE;
 		gSrchStr.Empty();
 		gReplStr.Empty();
 	}
@@ -2896,7 +2892,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	pApp->m_pActivePile = GetView()->GetPile(pApp->m_nActiveSequNum);
 	
 	bool bConstType;
-	bConstType = IsConstantType(pList); // need this only in case gbInsertingWithinFootnote
+	bConstType = IsConstantType(pList); // need this only in case m_bInsertingWithinFootnote
 	// needs to be set
 	
 	// put up the CRetranslationDlg dialog
@@ -2990,9 +2986,9 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			// legacy behaviour
 			bool bSetSafely = GetView()->SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 														 pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
+			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-			gbIsRetranslationCurrent = FALSE;
+			m_bIsRetranslationCurrent = FALSE;
 			if(!bSetSafely)
 			{
 				// IDS_ALL_RETRANSLATIONS
@@ -3037,14 +3033,14 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			}
 			nSaveActiveSequNum = nPotentialActiveSequNum; // we need a value to work with below
 			// even if we suppress reconstituting of the phrase box
-			gbSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
+			m_bSuppressRemovalOfRefString = TRUE; // suppress RemoveRefString() call within 
 			// PlacePhraseBox()
 			bool bSetSafely;
 			bSetSafely = GetView()->SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
 													pApp->m_nActiveSequNum,nFinish);
-			gbSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
+			m_bSuppressRemovalOfRefString = FALSE; // permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-			gbIsRetranslationCurrent = FALSE;
+			m_bIsRetranslationCurrent = FALSE;
 		}
 	}
 	else
@@ -3060,7 +3056,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
         // may be in the dialog)
 		int nExtras = nOldCount - nCurCount; // needed for adjusting indices
 		wxASSERT(nExtras >= 0); // cannot be negative
-		gbIsRetranslationCurrent = FALSE;
+		m_bIsRetranslationCurrent = FALSE;
 		
         // insert the original (saved) source phrases after the nEndSequNum one (the layout
         // may be different than at start, ie. null ones were removed) - nEndSequNum was
@@ -3254,7 +3250,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	// ensure respect for boundaries is turned back on
 	if (!pApp->m_bRespectBoundaries)
 		GetView()->OnButtonFromIgnoringBdryToRespectingBdry(event);
-	gbInsertingWithinFootnote = FALSE; // restore default value
+	m_bInsertingWithinFootnote = FALSE; // restore default value
 }
 
 // BEW 18Feb10, modified for support of _DOCVER5 (some code added to handle transferring
@@ -3599,7 +3595,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 	// ensure respect for boundaries is turned back on
 	if (!pApp->m_bRespectBoundaries)
 		GetView()->OnButtonFromIgnoringBdryToRespectingBdry(event);
-	gbInsertingWithinFootnote = FALSE; // restore default value
+	m_bInsertingWithinFootnote = FALSE; // restore default value
 }
 
 void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))

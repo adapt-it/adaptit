@@ -51,7 +51,17 @@ public:
 	void		GetSelectedSourcePhraseInstances(SPList*& pList,wxString& strSource,wxString& strAdapt);
 	void		NewRetranslation();
 	void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
-
+	
+	// getters/setters for deglobalified globals
+	inline bool GetIsRetranslationCurrent() {return m_bIsRetranslationCurrent; }
+	inline void SetIsRetranslationCurrent(bool bNewValue) {m_bIsRetranslationCurrent = bNewValue; }
+	inline bool GetIsInsertingWithinFootnote() {return m_bInsertingWithinFootnote; }
+	inline void SetIsInsertingWithinFootnote(bool bNewValue) {m_bInsertingWithinFootnote = bNewValue; }
+	inline bool GetSuppressRemovalOfRefString() {return m_bSuppressRemovalOfRefString; }
+	inline void SetSuppressRemovalOfRefString(bool bNewValue) {m_bSuppressRemovalOfRefString = bNewValue; }
+	inline bool GetReplaceInTranslation() {return m_bReplaceInRetranslation; }
+	inline void SetReplaceInTranslation(bool bNewValue) {m_bReplaceInRetranslation = bNewValue; }
+	
 protected:
 	void		AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt);
 	void		BuildRetranslationSourcePhraseInstances(SPList* pRetransList,int nStartSequNum,
@@ -91,7 +101,6 @@ protected:
 	void OnUpdateRetransReport(wxUpdateUIEvent& event);
 
 public: 
-	// TODO: these are public, but don't appear to be called from outside the class. Do we still need them public?
 	// BEW answer: Bill made them public as they are called by some access functions, in
 	// the view -- eg. DoRetranslation(), and DoRetranslationByUpArrow(), call
 	// OnButtonRetranslation(). So there will be some others... But those functions could/should
@@ -104,7 +113,23 @@ private:
 	CAdapt_ItApp*	m_pApp;	// The app owns this
 	CLayout*		m_pLayout;
 	CAdapt_ItView*	m_pView;
-		
+	
+	// deglobalified globals
+	bool m_bIsRetranslationCurrent;
+	bool m_bInsertingWithinFootnote;	// TRUE if inserting a null sourcephrase
+										// within a footnote; eg. if a retranslation is within a
+										// footnote and gets padded with null sourcephrases.
+										// We need to know this so that we can propagate the
+										// footnote TextType to the padding, or for any other insertion
+										// within a footnote.
+	bool m_bSuppressRemovalOfRefString;	// set TRUE in SetActivePilePointerSafely,
+										// otherwise nested PlacePhraseBox call will result in a RemoveRefString
+										// spurious call before the phrasebox is rebuilt, which could remove a
+										// source to target translation association wrongly.	
+	bool m_bReplaceInRetranslation;
+
+	
+	
 	DECLARE_EVENT_TABLE()
 };
 
