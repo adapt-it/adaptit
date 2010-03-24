@@ -52,7 +52,7 @@
 //extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
 // the following globals make it easy to access the sublists and their counts; for use in 
-// CEditSourceTextDlg and in the subsequent CTransferMarkersDlg especialy
+// CEditSourceTextDlg
 //extern SPList* gpOldSrcPhraseList;
 //extern SPList* gpNewSrcPhraseList;
 extern int gnCount;    // count of old srcphrases (user selected these) after unmerges, etc

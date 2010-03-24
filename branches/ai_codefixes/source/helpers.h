@@ -111,9 +111,11 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
  
 // 2010 additions by BEW
 
+#if !defined (_DOCVER5)
 wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet,
 		bool& bLacksAny, bool bCopyOnly = FALSE); // BEW added 15Aug07 for 3.5.0
-							 // & added 4th param on 19May08
+												  // & added 4th param on 19May08
+#endif
 // next three for use in the AdminMoveOrCopy class, the handler for Administrator
 // menu item Move Or Copy Folders Or Files
 bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort = TRUE,

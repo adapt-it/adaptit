@@ -255,10 +255,9 @@ extern wxString szProjectConfiguration;
 extern bool gbHackedDataCharWarningGiven;
 
 // support for USFM and SFM Filtering
-// Since these special filter markers will be visible to the user in certain
-// dialog controls such as the CTransferMarkersDlg dialog, I've opted to use 
-// marker labels that should be unique (starting with \~) and yet still 
-// recognizable by containing the word 'FILTER' as part of their names.
+// Since these special filter markers will be visible to the user in certain dialog
+// controls, I've opted to use marker labels that should be unique (starting with \~) and
+// yet still recognizable by containing the word 'FILTER' as part of their names.
 
 /// A marker string used to signal the beginning of filtered material stored in a source phrase's
 /// m_markers member.
@@ -6379,6 +6378,8 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 	return length;
 }
 
+// doc version 5 does not need this
+#if !defined (_DOCVER5)
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of characters parsed
 /// \param		wholeMkr	-> the whole marker (including backslash) to be parsed
@@ -6400,7 +6401,7 @@ int CAdapt_ItDoc::ParseFilteredMarkerText(const wxString wholeMkr, wxChar *pChar
 	// whm added 10Feb2005 in support of USFM and SFM Filtering support
 	// This function differs from ParseFilteringSFM() in that this
 	// ParseFilteredMarkerText() expects to be pointing to a programatically
-	// added \~FILER marker as would be the case in DoMarkerHouseKeeping().
+	// added \~FILTER marker as would be the case in DoMarkerHouseKeeping().
 	// Upon entry pChar must point to a \~FILTER marker determined
 	// by prior call to IsFilteredBracketMarker().
 	// ParseFilteredMarkerText advances the ptr until the following
@@ -6435,6 +6436,7 @@ int CAdapt_ItDoc::ParseFilteredMarkerText(const wxString wholeMkr, wxChar *pChar
 	}
 	return length;
 }
+#endif
 
 /* // currently unused
 ///////////////////////////////////////////////////////////////////////////////
@@ -6517,9 +6519,10 @@ bool CAdapt_ItDoc::IsVerseMarker(wxChar *pChar, int& nCount)
 /// \param		pChar		-> a pointer to the first character to be examined (a backslash)
 /// \param		pEnd		-> a pointer to the end of the buffer
 /// \remarks
-/// Called from: the Doc's GetMarkersAndTextFromString() and DoMarkerHousekeeping(), 
+/// Called from: the Doc's GetMarkersAndTextFromString() 
 /// Determines if the marker being pointed at is a \~FILTER marking the beginning of filtered
 /// material.
+/// BEW 24Mar10 no changes needed for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -6544,6 +6547,7 @@ bool CAdapt_ItDoc::IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd)
 /// Called from: the Doc's GetMarkersAndTextFromString().
 /// Determines if the marker being pointed at is a \~FILTER* marking the end of filtered
 /// material.
+/// BEW 24Mar10 no changes needed for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -7504,11 +7508,11 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 /// \param		str			-> the string containing standard format markers and associated text 
 /// \remarks
 /// Called from: the Doc's GetUnknownMarkersFromDoc(), the View's GetMarkerInventoryFromCurrentDoc(),
-/// CPlaceInternalMarkers::InitDialog(), CTransferMarkersDlg::InitDialog(), and
-/// CViewFilteredMaterialDlg::InitDialog().
+/// CPlaceInternalMarkers::InitDialog().
 /// Scans str and collects all standard format markers and their associated text into 
 /// pMkrList, one marker and associated content text per array item (and final endmarker
 /// if there is one).
+/// BEW 24Mar10 no changes needed for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, 
 											   wxString str) // whm added 18Feb05
@@ -9033,6 +9037,13 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 	while (ptr < pEnd)
 	{
 		// we are not at the end, so we must have a new CSourcePhrase instance ready
+		// BEWARE - for doc version 5, if the end of the buffer has endmarkers, pSrcPhrase
+		// will receive them, but there will be empty m_key and m_srcPhrase members - we
+		// have to test for this possibility and when it happens, move the endmarkers to
+		// the preceding CSourcePhrase's m_endMarkers member, then delete the empty last
+		// CSourcePhrase instance which then is no longer needed (provided it's
+		// m_precPunct member is also empty, if not, we have to leave it to carry that
+		// punctuation)
 		CSourcePhrase* pSrcPhrase = new CSourcePhrase;
 		wxASSERT(pSrcPhrase != NULL);
 		sequNumber++;
@@ -9052,17 +9063,48 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// are we at the end of the text?
 		if (IsEnd(ptr) || ptr >= pEnd)
 		{
+#if defined (_DOCVER5)
+			// check for an incomplete CSourcePhrase, it may need endmarkers moved, etc
+			if (pSrcPhrase != NULL)
+			{
+				if (pSrcPhrase->m_key.IsEmpty())
+				{
+					if (!pSrcPhrase->GetEndMarkers().IsEmpty())
+					{
+						// there are endmarkers which belong on the previous instance, so
+						// transfer them
+						if (pLastSrcPhrase != NULL)
+						{
+							pLastSrcPhrase->SetEndMarkers(pSrcPhrase->GetEndMarkers());
+						}
+					}
+				}
+			}
+#endif
 			// BEW added 05Oct05
 			if (bFreeTranslationIsCurrent)
 			{
                 // we default to always turning off a free translation section at the end
                 // of the document if it hasn't been done already
-				if (pLastSrcPhrase)
+				if (pLastSrcPhrase != NULL)
 				{
 					pLastSrcPhrase->m_bEndFreeTrans = TRUE;
 				}
 			}
-
+#if defined (_DOCVER5)
+			// delete only if there is nothing in m_precPunct
+			if (pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				delete pSrcPhrase->m_pSavedWords;
+				pSrcPhrase->m_pSavedWords = (SPList*)NULL;
+				delete pSrcPhrase->m_pMedialMarkers;
+				pSrcPhrase->m_pMedialMarkers = (wxArrayString*)NULL;
+				delete pSrcPhrase->m_pMedialPuncts;
+				pSrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
+				delete pSrcPhrase;
+				pSrcPhrase = (CSourcePhrase*)NULL;
+			}
+#else
 			delete pSrcPhrase->m_pSavedWords;
 			pSrcPhrase->m_pSavedWords = (SPList*)NULL;
 			delete pSrcPhrase->m_pMedialMarkers;
@@ -9071,6 +9113,7 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 			pSrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
 			delete pSrcPhrase;
 			pSrcPhrase = (CSourcePhrase*)NULL;
+#endif
 			goto d;
 		}
 
@@ -9174,7 +9217,6 @@ b:		if (IsMarker(ptr,pBufStart))
 			{
 				// neither verse nor chapter, but some other marker
 				pUsfmAnalysis = LookupSFM(ptr); // NULL if unknown marker
-
 			
                 // if we filter something out, we must delay advancing over that stuff
                 // because we want AnalyseMarker() to set the m_inform member of the
@@ -9686,11 +9728,44 @@ b:		if (IsMarker(ptr,pBufStart))
 				}
 			}
 
+#if defined (_DOCVER5)
+			// if endmarkers are at the end of the buffer, code further up will have put
+			// them into the m_endMarkers member of pLastSrcPhrase, and any punctuation
+			// following that would be in the m_precPunt member of pSrcPhrase, but if the
+			// buffer has been reached, m_key in pSrcPhrase will be empty. So, providing
+			// m_precPunct is empty, pSrcPhrase is not a valid CSourcePhrase instance. We
+			// need to check and remove it.
+			if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_precPunct.IsEmpty())
+			{
+				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
+						// delete a partner pile'
+				pSrcPhrase = NULL;
+				if (bFreeTranslationIsCurrent)
+				{
+					// we default to always turning off a free translation section at the end
+					// of the document if it hasn't been done already
+					if (pLastSrcPhrase != NULL)
+					{
+						if (pLastSrcPhrase->m_bEndFreeTrans == FALSE)
+						{
+							pLastSrcPhrase->m_bEndFreeTrans = TRUE;
+						}
+					}
+				}
+
+			}
+			// store the pointer in the SPList (in order of occurrence in text)
+			if (pSrcPhrase != NULL)
+			{
+				pList->Append(pSrcPhrase);
+			}
+#else
 			// store the pointer in the SPList (in order of occurrence in text)
 			pList->Append(pSrcPhrase);
+#endif
 
 			// make this one be the "last" one for next time through
-			pLastSrcPhrase = pSrcPhrase;
+			pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
 		}// end of else when not a marker
 	}; // end of while (ptr < pEndText)
 
@@ -9706,7 +9781,7 @@ d:	tokBuffer.Empty();
 /// \return		nothing
 /// \param		useSfmSet		-> an enum of type SfmSet: UsfmOnly, PngOnly, or UsfmAndPng
 /// \param		pUnkMarkers		<- a wxArrayString that gets populated with unknown (whole) markers,
-///									always poopulated in parallel with pUnkMkrsFlags.
+///									always populated in parallel with pUnkMkrsFlags.
 /// \param		pUnkMkrsFlags	<- a wxArrayInt of flags that gets populated with ones or zeros, 
 ///									always populated in parallel with pUnkMarkers.
 /// \param		unkMkrsStr		-> a wxString containing the current unknown (whole) markers within
@@ -9718,13 +9793,13 @@ d:	tokBuffer.Empty();
 /// \remarks
 /// Called from: the Doc's OnNewDocument(), CFilterPageCommon::AddUnknownMarkersToDocArrays()
 /// and CFilterPagePrefs::OnOK().
-/// Scans all the doc's source phrase m_markers members and inventories
-/// all the unknown markers used in the current document; it stores all unique
-/// markers in pUnkMarkers, stores a flag (1 or 0) indicating the filtering status
-/// of the marker in pUnkMkrsFlags, and maintains a string called unkMkrsStr which 
-/// contains the unknown markers delimited by following spaces.
-/// An unknown marker may occur more than once in a given document, but is only 
-/// stored once in the unknown marker inventory arrays and string. 
+/// Scans all the doc's source phrase m_markers and m_filteredInfo members and inventories
+/// all the unknown markers used in the current document; it stores all unique markers in
+/// pUnkMarkers, stores a flag (1 or 0) indicating the filtering status of the marker in
+/// pUnkMkrsFlags, and maintains a string called unkMkrsStr which contains the unknown
+/// markers delimited by following spaces.
+/// An unknown marker may occur more than once in a given document, but is only stored once
+/// in the unknown marker inventory arrays and string.
 /// The SetInitialFilterStatus enum values can be used as follows:
 ///	  The setAllUnfiltered enum would gather the unknown markers into m_unknownMarkers 
 ///      and set them all to unfiltered state in m_filterFlagsUnkMkrs (currently
@@ -9738,6 +9813,7 @@ d:	tokBuffer.Empty();
 ///     the filter state of an unknown marker in the Doc, i.e., set m_filterFlagsUnkMkrs 
 ///     to TRUE if the unknown marker in the Doc was within \~FILTER ... \~FILTER* brackets, 
 ///     otherwise sets the flag in the array to FALSE.
+/// BEW 24Mar10 updated for support of _DOCVER5 (some changes were needed)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 											wxArrayString* pUnkMarkers,
@@ -9803,9 +9879,13 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 		pSrcPhrase = (CSourcePhrase*)posn->GetData();
 		posn = posn->GetNext();
 		wxASSERT(pSrcPhrase);
+#if defined (_DOCVER5)
+		if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetFilteredInfo().IsEmpty())
+#else
 		if (!pSrcPhrase->m_markers.IsEmpty())
+#endif
 		{
-			// m_markers for this source phrase has content to examine
+			// m_markers and/or m_filteredInfo for this source phrase has content to examine
 			pMarkerList->Empty(); // start with an empty marker list
 
             // The GetMarkersAndTextFromString function below fills the CStringList
@@ -9814,8 +9894,11 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
             // Filtered material enclosed within \~FILTER...\~FILTER* brackets will also be
             // listed as a single item (even though there may be other markers embedded
             // within the filtering brackets.
+#if defined (_DOCVER5)
+			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+#else
 			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers);
-
+#endif
             // Now iterate through the strings in pMarkerList, check if the markers they
             // contain are known or unknown.
 			wxString resultStr;
@@ -9999,8 +10082,7 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///												is encountered, otherwise FALSE (no propagation 
 ///												needed)
 /// \remarks
-/// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and 
-/// CTransferMarkersDlg::OnOK()
+/// Called from: the Doc's RetokenizeText(), the View's ReconcileLists() and OnEditSourceText()
 /// There are two uses for this function:
 ///   (1) To do navigation text, special text colouring, and TextType value cleanup 
 ///         after the user has edited the source text - which potentially allows the user
@@ -10016,6 +10098,7 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///         the navigation text and text colouring and (cryptic) TextType assignments.
 /// NOTE: m_FilterStatusMap.Clear(); is done early in DoMarkerHousekeeping(), so the prior
 ///         contents of the former will be lost.
+/// BEW 24Mar10, updated for support of _DOCVER5 (changes needed - just a block of code removed)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired)
@@ -10236,6 +10319,9 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 
 							goto b; // check if another marker follows:
 						}
+// doc version 5 never has \~FILTER or \~FILTER* markers in the m_markers member of
+// CSourcePhrase so this block is no longer needed
+#if !defined (_DOCVER5)
 						// whm added for USFM and SFM Filtering support
 						else if (IsFilteredBracketMarker(ptr,pEndMkrBuff))
 						{
@@ -10257,6 +10343,7 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 
 							goto b; // check if another marker follows
 						}
+#endif
 						else
 						{
 							// some other kind of marker - perhaps its a chapter marker?

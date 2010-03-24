@@ -88,6 +88,7 @@ CPlaceInternalMarkers::~CPlaceInternalMarkers() // destructor
 	
 }
 
+// BEW 24Mar10, no changes needed for support of _DOCVER5
 void CPlaceInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	//InitDialog() is not virtual, no call needed to a base class

@@ -443,7 +443,9 @@ protected:
 #else
 	void		CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec);
 #endif
+#if !defined (_DOCVER5)
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
+#endif
 #ifndef _RETRANS
 	void		ClearSublistKBEntries(SPList* pSublist);
 #endif

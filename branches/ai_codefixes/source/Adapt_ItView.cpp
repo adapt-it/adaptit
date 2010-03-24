@@ -30073,7 +30073,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
     // scan over the list, and test for pRscPhrase pointers within the editable span; for
     // those, we collect the source text with its punctuation (if any), and precede it with
 	// the contents of any non-empty m_filteredInfo member, and then the contents of any
-	// non-empty m_markers member.
+	// non-empty m_markers member, and follow it with any non-empty m_endMarkers member
 #if !defined (_DOCVER5)
     // The first CSourcePhrase instance is given special attention because it may need
     // initial endmarkers removed.
@@ -30094,7 +30094,8 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 #if defined (_DOCVER5)
            // do the source text reconstrution; any material in m_markers must come first,
             // and we do consider m_markers if the CSourcePhrase instance is a
-            // placeholder one because inserted placeholders might store marker info
+			// placeholder one because inserted placeholders might store marker info; and
+			// any info in m_endMarkers must come last
 #else
            // do the source text reconstrution; any material in m_markers must come first,
             // and we don't consider m_markers if the CSourcePhrase instance is a
@@ -30122,6 +30123,7 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 				wxString emptyStr; emptyStr.Empty();
 				pSrcPhrase->SetFilteredInfo(emptyStr);
 			}
+			// put the markers next
 			wxString markers = pSrcPhrase->m_markers;
 			if (!markers.IsEmpty())
 			{
@@ -30135,7 +30137,6 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 					strSource += markers;
 				}
 			}
-
             // always collect the m_srcPhrase member (which has any punctuation), and
             // append a following space each time; but only provided we are not at a
             // placeholder
@@ -30151,6 +30152,13 @@ bool CAdapt_ItView::ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases,
 					strSource = strSource + _T(" ") + pSrcPhrase->m_srcPhrase;
 				}
 			}
+			// append any endmarkers
+			wxString endMarkers = pSrcPhrase->GetEndMarkers();
+			if (!endMarkers.IsEmpty())
+			{
+				strSource += endMarkers;
+			}
+
 			if (nThisSN >= nEndingSN)
 			{
 				// we are at the end of the editable span, so break out of the loop
@@ -32966,35 +32974,6 @@ bailout:	pAdaptList->Clear();
 				BailOutFromEditProcess(pSrcPhrases,pRec);
 				goto exit;
 			}
-
-#ifdef _NOTES
-			bGotSpanSuccessfully = pApp->GetNotes()->GetMovedNotesSpan(pSrcPhrases, pRec, followingContext);
-#else
-			bGotSpanSuccessfully = GetMovedNotesSpan(pSrcPhrases, pRec, followingContext);
-#endif
-			if (!bGotSpanSuccessfully)
-			{
-                // remove the contents of the arrNotesSequNumbers array first, before
-                // bailout is attempted, and also the follNotesMoveSpanList and prec
-                // NotesMoveSpanList need to be cleared, as one or the other may have not
-                // yet been cleared; and since Note restoration has not yet been attempted,
-                // no Notes in either preceing or final context can possibly have been
-                // moved as yet, so Bailout doesn't need these lists if done from before
-                // the RestorNotesAfterSourceTextEdit() function is called
-				pRec->arrNotesSequNumbers.Clear();
-				pDoc->DeleteSourcePhrases(&pRec->follNotesMoveSpanList);
-				pDoc->DeleteSourcePhrases(&pRec->precNotesMoveSpanList);
-				// create the user message
-				errStr = _T("Notes restoration unexpectedly failed when ");
-				errStr += _T(
-				"getting the potential moved notes (following context) span. ");
-				errStr += _T("Vertical edit process abandoned. "); 
-				errStr += _T(
-				"Will try now to restore the document to its pre-edit state.");
-				wxMessageBox(errStr,_T(""), wxICON_EXCLAMATION);
-				BailOutFromEditProcess(pSrcPhrases,pRec);
-				goto exit;
-			}
 			
 #ifdef _NOTES
 			// do the restoration of the removed Notes
@@ -33154,8 +33133,10 @@ bailout:	pAdaptList->Clear();
 		gEntryPoint = noEntryPoint;
 		gEditStep = noEditStep;
 		gbEditingSourceAndDocNotYetChanged = TRUE;
+		GetLayout()->Redraw();
 	}
 }
+
 #if defined (_DOCVER5)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     TRUE if filtered information (from m_filteredInfo only) was transferred, 
@@ -34554,6 +34535,7 @@ bool CAdapt_ItView::VerticalEdit_CheckForEndRequiringTransition(int nSequNum,
 /// nBeginAtSN and nFinishAtSN are the same and index the first CSourcePhrase instance of
 /// the context following the editable span.)
 /// BEW added 8May08 to support refactored Edit Source Text functionality
+/// BEW 24Mar10, updated for support of _DOCVER5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec, 
 									SPList* pNewSrcPhrasesList, SPList* pSrcPhrases, 
@@ -34576,7 +34558,7 @@ void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec,
     SPList::Node* posSaved = NULL;
 	int index;
 	CSourcePhrase* pSP = NULL;
-	posMain = pMainList->Item(nBeginAt); // MFC used FindIndex
+	posMain = pMainList->Item(nBeginAt);
 	wxASSERT(posMain != 0);
 	for (index = 0; index < nHowManyToDelete; index++)
 	{
@@ -34686,6 +34668,7 @@ void CAdapt_ItView::TransferCompletedSrcPhrases(EditRecord* pRec,
 	}
 }
 
+#if !defined (_DOCVER5)
 // checks the list of unmerged sourcephrase instances corresponding to the former
 // selection, as required for editing some source text, to see if there are any standard
 // format markers stored on any of the sourcephase instances. In particular, we want to
@@ -34727,6 +34710,7 @@ void CAdapt_ItView::CheckForMarkers(SPList* pList,bool& bHasInitialMarker,
 		}
 	}
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return		nothing
@@ -44575,16 +44559,16 @@ bool CAdapt_ItView::PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffSt
 	return FALSE;
 }
 
+// BEW 24Mar10, updated for support of _DOCVER5 (some changes needed)
 void CAdapt_ItView::GetMarkerInventoryFromCurrentDoc()
 {
-	// Scans all the doc's source phrase m_markers members and inventories
-	// all the markers used in the current document, storing all unique
-	// markers in m_exportBareMarkers, the full markers and their descriptions
-	// in the CStringArray called m_exportMarkerAndDescriptions, and their
-	// corresponding include/exclude states (boolean flags) in the
-	// CUIntArray called m_exportFilterFlagsBeforeEdit. A given marker may occur
-	// more than once in a given document, but is only stored once in these
-	// inventory arrays.
+    // Scans all the doc's source phrase m_markers and m_filteredInfo members and
+    // inventories all the markers used in the current document, storing all unique markers
+    // in m_exportBareMarkers, the full markers and their descriptions in the CStringArray
+    // called m_exportMarkerAndDescriptions, and their corresponding include/exclude states
+    // (boolean flags) in the CUIntArray called m_exportFilterFlagsBeforeEdit. A given
+    // marker may occur more than once in a given document, but is only stored once in
+    // these inventory arrays.
 	// All the boolean flags in the m_exportFilterFlagsBeforeEdit array
 	// are initially set to FALSE indicating that no markers are to be
 	// filtered out of the export by default. If the user accesses and/or
@@ -44612,24 +44596,67 @@ void CAdapt_ItView::GetMarkerInventoryFromCurrentDoc()
 	MapSfmToUSFMAnalysisStruct* pSfmMap;
 	pSfmMap = pApp->GetCurSfmMap(pApp->gCurrentSfmSet);
 
-	// Gather markers from all source phrase m_markers strings
+	// Gather markers from all source phrase m_marker strings
+	// BEW 24Mar10 changes for support of doc version 5: markers are now stored in
+	// m_markers and in m_filteredInfo (markers and content wrapped, in the latter, with
+	// \~FILTER and \~FILTER* bracketing markers). Also, in the legacy versions, free
+	// translations, collected back translations, and notes, were stored likewise in
+	// m_markers and wrapped with filter bracket markers, but now for doc version 5 these
+	// three information types have dedicated wxString member storage in CSourcePhrase. So
+	// for correct behaviour with the functionalities dependent on
+	// GetMarkerInventoryFromCurrentDoc() we have to here treat those three information
+	// types as logically "filtered" and supply \free & \free* wrapping markers to the
+	// free translation string we recover, and \note & \note* to the note string we
+	// recover, and \bt for any collected back translation string, when any of these is
+	// present in m_freeTrans, m_note, and m_collectedBackTrans, respectively. We do that
+	// below after the call to GetMarkersAndTextFromString(), as the latter can handle the
+	// m_markers added to m_filteredInfo in the parameter list. 
 	posn = pList->GetFirst();
 	wxASSERT(posn != NULL);
 	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)posn->GetData();
-	//posn = posn->GetNext();
-	// whm 27Nov07 modification: The above GetNext() line causes the
-	// function to skip the first pSrcPhrase - there is the possibility 
-	// that a \note, \bt and \free markers could reside in the first 
-	// source phrase position, so I've commented out the extra GetNext
-	// line from GetMarkerInventoryFromCurrentDoc() so that it now
-	// includes the first source phrase in the inventory.
 	wxASSERT(pSrcPhrase);
+	wxString str;
+	str.Empty();
+	wxString filtermkr = wxString(filterMkr);
+	wxString filtermkrend = wxString(filterMkrEnd);
 	while (posn != 0)
 	{
 		pSrcPhrase = (CSourcePhrase*)posn->GetData();
 		posn = posn->GetNext();
 		wxASSERT(pSrcPhrase);
-		// retrieve sfms used from pSrcPhrase->m_markers
+		// retrieve sfms used from pSrcPhrase->m_markers & m_filteredInfo, etc
+#if defined (_DOCVER5)
+		if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetFilteredInfo().IsEmpty())
+		{
+            // GetMarkersAndTextFromString() retrieves each marker and its associated
+            // string and places them in the CStringList. Any Filtered markers are stored
+            // as a list item bracketed by \~FILTER ... \~FILTER* markers.
+			// To avoid a large CStringList developing we'll process the markers in each
+			// m_markers string individually, so empty the list. Information in
+			// m_freeTrans, m_note, or m_collectedBackTrans is handled after the
+			// GetMarkersAndTextFromString() call
+			pMarkerList->Clear();
+			pDoc->GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
+			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\free ") + pSrcPhrase->GetFreeTrans() + _T("\\free* ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\note ") + pSrcPhrase->GetNote() + _T("\\note* ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+			if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+			{
+				str = filtermkr + _T(" ") + _T("\\bt ") + pSrcPhrase->GetCollectedBackTrans() + _T(" ") + filtermkrend;
+				pMarkerList->Add(str);
+				str.Empty();
+			}
+
+#else
 		if (!pSrcPhrase->m_markers.IsEmpty())
 		{
             // GetMarkersAndTextFromString() retrieves each marker and its associated
@@ -44639,7 +44666,7 @@ void CAdapt_ItView::GetMarkerInventoryFromCurrentDoc()
 			// m_markers string individually, so empty the list.
 			pMarkerList->Clear();
 			pDoc->GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers);
-
+#endif
 			wxString resultStr;
 			resultStr.Empty();
 			wxString displayStr;
