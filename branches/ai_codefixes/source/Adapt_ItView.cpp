@@ -18812,7 +18812,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 			// legacy behaviour
 			// suppress RemoveRefString() call within 
 			// PlacePhraseBox()
-#ifdef _RETRANS
+#ifndef _RETRANS
 			gbSuppressRemovalOfRefString = TRUE;
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(TRUE);
@@ -18821,7 +18821,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 															pApp->m_nActiveSequNum,nFinish);
 			// permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-#ifdef _RETRANS
+#ifndef _RETRANS
 			gbSuppressRemovalOfRefString = FALSE;
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
@@ -18879,7 +18879,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 										// even if we suppress reconstituting of the phrase box
 			// suppress RemoveRefString() call within 
 			// PlacePhraseBox()
-#ifdef _RETRANS
+#ifndef _RETRANS
 			gbSuppressRemovalOfRefString = TRUE;
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(TRUE);
@@ -18889,7 +18889,7 @@ void CAdapt_ItView::OnButtonRetranslation(wxCommandEvent& event)
 															pApp->m_nActiveSequNum,nFinish);
 			// permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-#ifdef _RETRANS
+#ifndef _RETRANS
 			gbSuppressRemovalOfRefString = FALSE;
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
@@ -19642,7 +19642,7 @@ h:				wxMessageBox(_(
 															pApp->m_nActiveSequNum,nFinish);
 			// permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-#ifdef _RETRANS
+#ifndef _RETRANS
 			gbSuppressRemovalOfRefString = FALSE;
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
@@ -19694,7 +19694,7 @@ h:				wxMessageBox(_(
 										// even if we suppress reconstituting of the phrase box
 			// suppress RemoveRefString() call within 
 			// PlacePhraseBox()
-#ifdef _RETRANS
+#ifndef _RETRANS
 			gbSuppressRemovalOfRefString = TRUE;
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(TRUE);
@@ -19704,8 +19704,8 @@ h:				wxMessageBox(_(
 														pApp->m_nActiveSequNum,nFinish);
 			// permit RemoveRefString() in subsequent 
 			// PlacePhraseBox() calls
-#ifdef _RETRANS
-			gbSuppressRemovalOfRefString = FALSE;
+#ifndef _RETRANS
+			gbSuppressRemovalOfRefString = FALSE; 
 #else
 			pApp->GetRetranslation()->SetSuppressRemovalOfRefString(FALSE);
 #endif
