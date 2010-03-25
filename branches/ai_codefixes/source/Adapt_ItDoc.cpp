@@ -8962,12 +8962,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
     // should no longer be filtered, they and their associated text are processed normally.
 	// 
 	bool bIsUnstructured = IsUnstructuredPlainText(rBuffer);
-#ifdef __WXDEBUG__
-			if (gbVerticalEditInProgress)
-			{
-				int i = 1;
-			}
-#endif
 
 	// if unstructured plain text, add a paragraph marker after any newline, to preserve 
 	// user's paragraphing updating nTextLength for each one added
@@ -9753,14 +9747,34 @@ b:		if (IsMarker(ptr,pBufStart))
             // TransportWidowedFilteredInfoToFollowingContext() and if there is a following
             // context, the transfer can be done, but if not, we must just leave the source
             // phrase there in the document to carry the filtered information.
+            // A further complication of similar kind is when the user types in
+            // non-endmarker information at the end of the string. When editing the source
+            // text, this will end up in m_markers but m_key will be empty, and so we need
+            // to leave it to TransportWidowedFilteredInfoToFollowingContext() to handle
+            // transfer of this information to the following context, or if there is no
+            // following context, in this case we abandon the marker info typed because it
+            // would make no sense to keep it - that's what to do whether we are at the
+            // document end when parsing in a new source text USFM text file, or when
+            // editing source text - the gbVerticalEditInProgress global boolean can help
+            // in testing for this.
             wxString someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
 			bool bHasFilteredInfo = !someFilteredInfo.IsEmpty();
+			bool bHasNonEndMarkers = !pSrcPhrase->m_markers.IsEmpty();
 			if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_precPunct.IsEmpty())
 			{
-				if ( !bHasFilteredInfo)
+				if ( (!bHasFilteredInfo && !bHasNonEndMarkers) ||
+					(!bHasFilteredInfo && bHasNonEndMarkers && !gbVerticalEditInProgress))
 				{
-					// don't remove it if it is a carrier for filtered information in its
-					// m_filteredInfo member (see the more detailed explanation above)
+					// remove it if it is not a carrier for filtered information in its
+					// m_filteredInfo member (see the more detailed explanation above) nor
+					// non-endmarkers information in its m_markers member; OR, it has no
+					// filtered information but it does have non-endmarkers in m_markers
+					// but vertical edit (ie. we aren't in OnEditSourceText()) is not
+					// current (ie. we are creating a document by parsing in a USFM plain
+					// text file). The other possibilities can be left for
+					// TransportWidowedFilteredInfoToFollowingContext() in
+					// OnEditSourceText() to work out, and do deletion of of the carrier if
+					// warranted.
 					DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
 							// delete a partner pile'
 					pSrcPhrase = NULL;

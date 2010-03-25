@@ -18132,6 +18132,9 @@ void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItAp
 			// we need a valid layout which includes the new dummy element on its own pile
 			pApp->m_nActiveSequNum = nEndIndex; // temporary location only
 #ifdef _NEW_LAYOUT
+			pDoc->CreatePartnerPile(pDummySrcPhrase); // must have a CPile instance for
+											// index of pDummySrcPhrase, or GetPile() call
+											// below will fail 
 			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
 			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
@@ -18146,6 +18149,9 @@ void CAdapt_ItView::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItAp
 				// bInsertBefore flag at end
 
 			// now remove the dummy element, and make sure memory is not leaked!
+#ifdef _NEW_LAYOUT
+			pDoc->DeletePartnerPile(pDummySrcPhrase);
+#endif
 			delete pDummySrcPhrase->m_pSavedWords;
 			pDummySrcPhrase->m_pSavedWords = (SPList*)NULL;
 			delete pDummySrcPhrase->m_pMedialMarkers;
@@ -33259,9 +33265,6 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
     // the dialog, after the user's edit, there is only non-endmarkers in the edit box, or,
     // at the end of the edited string he adds final non-endmarkers for some reason) -- we
     // need a bHasNonEndmarkers bool flag, and a code block for processing any such
-	bool bHasNonEndmarkers = FALSE; // default; BEW added 24Jan09
-	wxString nonEndmarkers; // BEW added 24Jan09
-	nonEndmarkers.Empty();
 	wxString filteredInfo;
 	bool bFilteredInfoToBeTransferred = FALSE;
 	pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // start off assuming there 
@@ -33274,20 +33277,23 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
         // and m_follPunct CString members are both empty
 		bFilteredInfoToBeTransferred = TRUE;
 		filteredInfo = pLastSrcPhrase->GetFilteredInfo();
-
-		// if there are final non-endmarkers, they'll be within m_markers, so that being
-		// non-empty is sufficient for setting the boolean
-		bHasNonEndmarkers = !pLastSrcPhrase->m_markers.IsEmpty();
-		if (bHasNonEndmarkers)
-		{
-			nonEndmarkers = pLastSrcPhrase->m_markers; // these may need to be transferred
-							// to the first CSourcePhrase instance of the following context
-		}
+	}
+	// if there are final non-endmarkers, they'll be within m_markers, so that being
+	// non-empty is sufficient for setting the boolean
+	bool bHasNonEndmarkers = FALSE; // default; BEW added 24Jan09
+	wxString nonEndmarkers; // BEW added 24Jan09
+	bHasNonEndmarkers = !pLastSrcPhrase->m_markers.IsEmpty();
+	if (bHasNonEndmarkers)
+	{
+		nonEndmarkers = pLastSrcPhrase->m_markers; // these may need to be transferred
+						// to the first CSourcePhrase instance of the following context
 	}
 
+
     // we have some filtered info (in m_filteredInfo) and/or non-endmarkers to transfer -
-    // do so, but only provided pLastSrcPhrase's m_key and m_follPunct CString members are
+    // do so, but only provided pLastSrcPhrase's m_key and m_precPunct CString members are
     // both empty
+    bool bRemoveSrcPhrase = FALSE;
 	if (bFilteredInfoToBeTransferred || bHasNonEndmarkers)
 	{
         // only do the transfer provided there is something there to be transferred in the
@@ -33320,67 +33326,73 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 				}
 				// record, in the EditRecord, what we just did
 				pRec->bTransferredFilterStuffFromCarrierSrcPhrase = TRUE;
+				bRemoveSrcPhrase = TRUE;
+			}
+			// now transfer non-endmarkers, if any
+			if (bHasNonEndmarkers)
+			{
+				pFollSrcPhrase->m_markers = nonEndmarkers + pFollSrcPhrase->m_markers;
 
-				// Because the user may have edited a bogus (ie. misspelled) marker, we
-				// need to search for the nav text marking with wrapping ? characters.
-                // So clear the "?\mkr?" string from m_inform. Even if we don't manage
-                // to make the navigation text show the corrected marker name, at worse
-                // that is benign and does not affect the integrity of the document (and if
-                // RetokenizeText() is later called by the caller, which it should be, that
-                // should fix up the navigation text to be what it should be - I think
-				int anOffset = -1;
-				wxString accumulateStr;
-				wxString inform = pFollSrcPhrase->m_inform;
+				// make sure the marker info we are transferring ends with a space
+				// delimiter, to ensure we don't do something bad like butting a verse
+				// number right at the start of a word which is supposed to be adapted
+				nonEndmarkers.Trim();
+				nonEndmarkers += _T(" ");
+
+				// pFollSrcPhrase may or may not have information in m_inform, and so
+				// might pLastSrcPhrase, so transfer that information too
+				pFollSrcPhrase->m_inform = pLastSrcPhrase->m_inform + pFollSrcPhrase->m_inform;
+			}
+
+			// Because the user may have edited a bogus (ie. misspelled) marker, we
+			// need to search for the nav text marking with wrapping ? characters.
+            // So clear the "?\mkr?" string from m_inform. Even if we don't manage
+            // to make the navigation text show the corrected marker name, at worse
+            // that is benign and does not affect the integrity of the document (and if
+            // RetokenizeText() is later called by the caller, which it should be, that
+            // should fix up the navigation text to be what it should be - I think
+			int anOffset = -1;
+			wxString accumulateStr;
+			wxString inform = pFollSrcPhrase->m_inform;
+			anOffset = inform.Find(_T('?'));
+			if (anOffset != -1)
+			{
+				// there is a bogus marker name to be removed
+				accumulateStr += inform.Left(anOffset);
+				anOffset++; // get past the first ? character
+				inform = inform.Mid(anOffset); // use the remainder for next test
 				anOffset = inform.Find(_T('?'));
 				if (anOffset != -1)
 				{
-					// there is a bogus marker name to be removed
-					accumulateStr += inform.Left(anOffset);
-					anOffset++; // get past the first ? character
-					inform = inform.Mid(anOffset); // use the remainder for next test
-					anOffset = inform.Find(_T('?'));
-					if (anOffset != -1)
-					{
-						// go through with the rest only provided we have found the
-						// matching ? which delimits the end of the "?\mkr?" substring
-						anOffset++; // get past the final ? character
-						inform = inform.Mid(anOffset); // get whatever remains, 
-													   // possibly nothing
-						accumulateStr += inform; // add it to the initial material
-                        // we have done this just in case there is also the name of one or
-                        // more non-bogus markers in the m_inform member; we want to retain
-                        // those
-						pFollSrcPhrase->m_inform = accumulateStr;
-					}
-
-					// since the bogus marker may be now fixed and the filtered info
-					// transferred could be just-filtered because of that, we'll assume so,
-					// and make the TextType which precedes that just-filtered stuff
-					// propagatable by clearing the m_bFirstOfType flag
-					pFollSrcPhrase->m_bFirstOfType = FALSE;
+					// go through with the rest only provided we have found the
+					// matching ? which delimits the end of the "?\mkr?" substring
+					anOffset++; // get past the final ? character
+					inform = inform.Mid(anOffset); // get whatever remains, 
+												   // possibly nothing
+					accumulateStr += inform; // add it to the initial material
+                    // we have done this just in case there is also the name of one or
+                    // more non-bogus markers in the m_inform member; we want to retain
+                    // those
+					pFollSrcPhrase->m_inform = accumulateStr;
 				}
 
-				// now transfer non-endmarkers, if any
-				if (bHasNonEndmarkers)
-				{
-					pFollSrcPhrase->m_markers = nonEndmarkers + pFollSrcPhrase->m_markers;
+				// since the bogus marker may be now fixed and the filtered info
+				// transferred could be just-filtered because of that, we'll assume so,
+				// and make the TextType which precedes that just-filtered stuff
+				// propagatable by clearing the m_bFirstOfType flag
+				pFollSrcPhrase->m_bFirstOfType = FALSE;
+			}
 
-					// these can be expected to have content in m_inform, so transfer that
-					// information too
-					pFollSrcPhrase->m_inform = pLastSrcPhrase->m_inform + pFollSrcPhrase->m_inform;
-				}
-
-				if (bHasNonEndmarkers || bFilteredInfoToBeTransferred)
-				{
-					// delete the carrier, pLastSrcPhrase, which is no longer needed & update
-					// the count value stored in pRec to comply with this deletion; remove the
-					// pointer at the tail of the list too
-					pApp->GetDocument()->DeleteSingleSrcPhrase(pLastSrcPhrase);
-					pRec->nNewSpanCount -= 1;
-					SPList::Node* spLast = pNewSrcPhrases->GetLast();
-					pNewSrcPhrases->DeleteNode(spLast);
-					pRec->bDocEndPreventedTransfer = FALSE; // make sure we get value correct
-				}
+			if (bHasNonEndmarkers || bRemoveSrcPhrase)
+			{
+				// delete the carrier, pLastSrcPhrase, which is no longer needed & update
+				// the count value stored in pRec to comply with this deletion; remove the
+				// pointer at the tail of the list too
+				pApp->GetDocument()->DeleteSingleSrcPhrase(pLastSrcPhrase);
+				pRec->nNewSpanCount -= 1;
+				SPList::Node* spLast = pNewSrcPhrases->GetLast();
+				pNewSrcPhrases->DeleteNode(spLast);
+				pRec->bDocEndPreventedTransfer = FALSE; // make sure we get value correct
 			}
 
             // reset the partner pile & its width - not strictly necessary as probably

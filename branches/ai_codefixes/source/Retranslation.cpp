@@ -1403,6 +1403,9 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItA
 			// we need a valid layout which includes the new dummy element on its own pile
 			pApp->m_nActiveSequNum = nEndIndex; // temporary location only
 #ifdef _NEW_LAYOUT
+			pDoc->CreatePartnerPile(pDummySrcPhrase); // must have a CPile instance for
+											// index of pDummySrcPhrase, or GetPile() call
+											// below will fail 
 			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
 			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
@@ -1417,6 +1420,9 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItA
 			// bInsertBefore flag at end
 			
 			// now remove the dummy element, and make sure memory is not leaked!
+#ifdef _NEW_LAYOUT
+			pDoc->DeletePartnerPile(pDummySrcPhrase);
+#endif
 			delete pDummySrcPhrase->m_pSavedWords;
 			pDummySrcPhrase->m_pSavedWords = (SPList*)NULL;
 			delete pDummySrcPhrase->m_pMedialMarkers;
