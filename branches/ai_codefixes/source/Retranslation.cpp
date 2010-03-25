@@ -92,8 +92,6 @@ extern bool gbVerticalEditInProgress;
 extern bool gbHasBookFolders;
 extern int gnOldSequNum;
 extern char gcharNonSrcUC;
-extern wxString gSrchStr;
-extern wxString gReplStr;
 extern EditRecord gEditRecord;
 /// This global is defined in PhraseBox.cpp.
 extern wxString		translation; // translation, for a matched source phrase key
@@ -2744,15 +2742,16 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 	
     // if we are invoking this function because of a Find & Replace match within the
     // retranslation, then replace the portion of the strAdapt string which was matched
-    // with the replacement string found in the global gReplStr
+    // with the replacement string returned by the View's GetReplacementString()
 	if (m_bReplaceInRetranslation)
 	{
-		ReplaceMatchedSubstring(gSrchStr,gReplStr,strAdapt);
+		wxString replStr = GetView()->GetReplacementString();
+		ReplaceMatchedSubstring(GetView()->GetSearchString(), replStr, strAdapt);
 		
-		// clear the globals for next time
+		// clear the variables for next time
 		m_bReplaceInRetranslation = FALSE;
-		gSrchStr.Empty();
-		gReplStr.Empty();
+		GetView()->SetSearchString(_T(""));
+		GetView()->SetReplacementString(_T(""));
 	}
 	
     // determine the value for the active sequ number on exit, so we will know where to

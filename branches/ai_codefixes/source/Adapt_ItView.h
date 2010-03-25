@@ -429,6 +429,12 @@ public:
 	void		RemoveLaterSelForShortening(wxClientDC* pDC, CCell* pEndCell);
 	void		Invalidate(); // our own for wxWidgets (see cpp file notes)
 	
+	// property getters / setters
+	inline wxString GetSearchString() {return m_SearchStr; }
+	inline wxString GetReplacementString() {return m_ReplaceStr; }
+	inline void SetSearchString(wxString s) {m_SearchStr = s; }
+	inline void SetReplacementString(wxString s) {m_ReplaceStr = s; }
+	
 // helper functions (protected)
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing
 protected:
@@ -861,6 +867,12 @@ public:
 
 private:
 	wxFrame* pCanvasFrame;
+	
+	// search and replace strings
+	// These are used for inserting a replacement target text into a retranslation, when the latter is
+	// wholly or partly matched (CRetranslation::OnButtonEditRetranslation() makes use of these vars)
+	wxString m_SearchStr;
+	wxString m_ReplaceStr;
 
 	DECLARE_DYNAMIC_CLASS(CAdapt_ItView)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to 

@@ -809,10 +809,6 @@ bool	gbFindOrReplaceCurrent = FALSE; // for use by CMainFrame's OnActive() funct
 bool	gbIsRetranslationCurrent = FALSE;
 #endif
 
-// globals for inserting a replacement target text into a retranslation, when the latter is
-// wholly or partly matched (invokes OnButtonEditRetranslation() which uses these globals)
-wxString gSrchStr = _T("");
-wxString gReplStr = _T("");
 #ifndef _RETRANS
 bool	 gbReplaceInRetranslation = FALSE;
 #endif
@@ -19390,14 +19386,14 @@ h:				wxMessageBox(_(
 
     // if we are invoking this function because of a Find & Replace match within the
     // retranslation, then replace the portion of the strAdapt string which was matched
-    // with the replacement string found in the global gReplStr
+    // with the replacement string found in m_ReplaceStr
 #ifdef _RETRANS
 	if (pApp->GetRetranslation()->GetReplaceInTranslation() == TRUE)
 #else
 	if (gbReplaceInRetranslation)
 #endif
 	{
-		ReplaceMatchedSubstring(gSrchStr,gReplStr,strAdapt);
+		ReplaceMatchedSubstring(m_SearchStr, m_ReplaceStr, strAdapt);
 
 		// clear the globals for next time
 #ifdef _RETRANS
@@ -19405,8 +19401,8 @@ h:				wxMessageBox(_(
 #else
 		gbReplaceInRetranslation = FALSE;
 #endif
-		gSrchStr.Empty();
-		gReplStr.Empty();
+		m_SearchStr.Empty();
+		m_ReplaceStr.Empty();
 	}
 
     // determine the value for the active sequ number on exit, so we will know where to
@@ -24071,8 +24067,8 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 #else
 		gbReplaceInRetranslation = TRUE;
 #endif
-		gSrchStr = tgt;
-		gReplStr = replStr;
+		m_SearchStr = tgt;
+		m_ReplaceStr = replStr;
 
 		// allow user to edit result
 		wxCommandEvent event;
