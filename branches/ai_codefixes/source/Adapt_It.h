@@ -1197,14 +1197,16 @@ typedef struct
                 // clicks Cancel)
 	bool bTransferredFilterStuffFromCarrierSrcPhrase; // FALSE, except it is TRUE in the 
                 // special circumstance that the user's edit resulted in a single
-                // CSourcePhrase with empty key, and m_follPunct empty and m_markers
+                // CSourcePhrase with empty key, and m_precPunct empty and m_filteredInfo
                 // containing filtered information (this can only happen when he edited a
                 // misspelled marker and the final marker form matches one designated as
                 // "to be filtered out") and the whole, or end, of the user's edit string
-                // was then filtered and placed in the m_markers member of the final
+                // was then filtered and placed in the m_filteredInfo member of the final
                 // carrier CSourcePhrase; typically it would be the 'whole' rather than the
                 // 'end' because the user normally cannot select across a TextType boundary
-                // in the first place)
+				// in the first place) This boolean is advisory only, it gets set TRUE
+				// only if transfer of filtered info was done; it isn't used in a test in
+				// order to govern how some part of the code should work
 #if defined (_DOCVER5)
                 // BEW added comment 22Mar10 for doc version 5. The above is still true
                 // except that there is not a single location for any transferred filtered

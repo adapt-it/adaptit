@@ -32578,7 +32578,7 @@ bailout:	pAdaptList->Clear();
 		else
 		{
             // record the fact that there is no following context available for any
-            // transfer of information to m_markers in a following CSourcePhrase instance
+            // transfer of information to a following CSourcePhrase instance
 			pRec->bDocEndPreventedTransfer = TRUE;
 		}
 		// note, we must set gpFollSrcPhrase because our later DoMarkerHousekeeping() call
@@ -32666,9 +32666,9 @@ bailout:	pAdaptList->Clear();
 							&pRec->editableSpan_NewSrcPhraseList, gpFollSrcPhrase, pRec);
 		if (bNonEndmarkersOrFilteredInfoTransferred)
 		{
-            // the list is shorter, so adjust the local count value which we set earlier
-            // (note: the list could actually have been made empty -- see below for a
-            // discussion of where that matters, before the DoMarkerHousekeeping() call)
+            // the list is shorter, so adjust the local count value which we set
+            // earlier (note: the list could actually have been made empty -- see below for
+            // a discussion of where that matters, before the DoMarkerHousekeeping() call)
 			nNewCount = pRec->nNewSpanCount;
 		}
 
@@ -33210,30 +33210,34 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (pFollSrcPhrase == NULL)
 	{
-        // there is no following context, so no marker transfer can be done, so the carrier
+        // there is no following context, so no transfer can be done, so the carrier
         // CSourcePhrase (if there is one) must be retained as it is - so we've nothing to
         // do but tell the caller no transfer was done
+		pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // none to transfer
+		pRec->bDocEndPreventedTransfer = TRUE;
 		return FALSE;
 	}
 
     // get the final CSourcePhrase in the list; but if the list is empty (ie. the user used
-    // the edit source text dialog to remove all the displayed source text) then there will
+    // the edit source text dialog to remove all the displayed source text) then there may
     // not be anything to transfer (otherwise the list would have at least one
-    // entry), so return FALSE
+	// entry), so return FALSE
 	int nCount = pNewSrcPhrases->GetCount();
 	if (nCount == 0)
 	{
 		pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // none to transfer
 		pRec->bDocEndPreventedTransfer = FALSE; // a TRUE value is pointless if nothing 
-												// is there
+												// is there to transfer
 		return FALSE;
 	}
 	SPList::Node* lastPos = pNewSrcPhrases->GetLast();
 	CSourcePhrase* pLastSrcPhrase = lastPos->GetData();
 	wxASSERT(pLastSrcPhrase != NULL);
-	if (pLastSrcPhrase->GetFilteredInfo().IsEmpty())
+	/*
+	if (pLastSrcPhrase->GetFilteredInfo().IsEmpty() && pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_precPunct.IsEmpty())
 	{
-		// no final endmarkers to transfer, and no now-filtered information to transfer
+		// no now-filtered information to transfer, and no prededing punctuation which
+		// would require the CSourcePhrase instance to remain
 		pRec->bTransferredFilterStuffFromCarrierSrcPhrase = FALSE; // none to transfer
 		pRec->bDocEndPreventedTransfer = FALSE; // a TRUE value is pointless if 
 												// m_filteredInfo is empty
@@ -33248,8 +33252,8 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 		return FALSE; // this punctuation prevents widow CSourcePhrase instance removal, 
 					  // see description above for why
 	}
-
-    // m_filteredInfo has some content. We handle filtered info first.
+	*/
+    // m_filteredInfo may have some content. We handle filtered info first.
     // BEW added 24Jan09: support for non-endmarker(s) in m_markers of a carrier
     // CSourcePhrase with m_srcPhrase and m_follPunct members empty (this can happen if, in
     // the dialog, after the user's edit, there is only non-endmarkers in the edit box, or,
@@ -33289,7 +33293,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
         // only do the transfer provided there is something there to be transferred in the
         // first place; and only if the relevant members are empty (which indicates a
         // CSourcePhrase otherwise unwanted)
-		if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_follPunct.IsEmpty())
+		if (pLastSrcPhrase->m_key.IsEmpty() && pLastSrcPhrase->m_precPunct.IsEmpty())
 		{
             // if we are transferring something, then transfer a m_bFirstOfType == TRUE
             // value, provided the pFollSrcPhrase member of same name is not itself TRUE
@@ -33386,7 +33390,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 			pApp->GetDocument()->ResetPartnerPileWidth(pFollSrcPhrase);
 
 			return TRUE;
-		} // end of TRUE block for test of empty m_key and empty m_follPunct members
+		} // end of TRUE block for test of empty m_key and empty m_precPunct members
 	}
 	// if control gets to here, we've done no transfers, so inform the caller
 	return FALSE;

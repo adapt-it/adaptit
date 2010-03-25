@@ -8962,6 +8962,12 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
     // should no longer be filtered, they and their associated text are processed normally.
 	// 
 	bool bIsUnstructured = IsUnstructuredPlainText(rBuffer);
+#ifdef __WXDEBUG__
+			if (gbVerticalEditInProgress)
+			{
+				int i = 1;
+			}
+#endif
 
 	// if unstructured plain text, add a paragraph marker after any newline, to preserve 
 	// user's paragraphing updating nTextLength for each one added
@@ -9577,6 +9583,8 @@ b:		if (IsMarker(ptr,pBufStart))
 		}
 		else
 		{
+
+
 			// not a marker
 			if (!bHitMarker)
 			{
@@ -9729,17 +9737,34 @@ b:		if (IsMarker(ptr,pBufStart))
 			}
 
 #if defined (_DOCVER5)
-			// if endmarkers are at the end of the buffer, code further up will have put
-			// them into the m_endMarkers member of pLastSrcPhrase, and any punctuation
-			// following that would be in the m_precPunt member of pSrcPhrase, but if the
-			// buffer has been reached, m_key in pSrcPhrase will be empty. So, providing
-			// m_precPunct is empty, pSrcPhrase is not a valid CSourcePhrase instance. We
-			// need to check and remove it.
+            // if endmarkers are at the end of the buffer, code further up will have put
+            // them into the m_endMarkers member of pLastSrcPhrase, and any punctuation
+            // following that would be in the m_precPunt member of pSrcPhrase, but if the
+            // buffer has been reached, m_key in pSrcPhrase will be empty. So, providing
+            // m_precPunct is empty, pSrcPhrase is not a valid CSourcePhrase instance. We
+            // need to check and remove it. 
+            // But a complication is the possibility of filtered information at the end of
+            // the parse buffer - it would be in the m_filteredInfo member. Our solution
+            // for this complication is: don't remove the pSrcPhrase here - so if parsing a
+            // source text file, the widow CSourcePhrase will just remain at the document
+            // end but be unseen, while if we are parsing just-edited source text in
+            // OnEditSourceText(), we can leave the widow there after moving endmarkers of
+            // it, because OnEditSourceText() will later call
+            // TransportWidowedFilteredInfoToFollowingContext() and if there is a following
+            // context, the transfer can be done, but if not, we must just leave the source
+            // phrase there in the document to carry the filtered information.
+            wxString someFilteredInfo = pSrcPhrase->GetFilteredInfo(); // could be empty
+			bool bHasFilteredInfo = !someFilteredInfo.IsEmpty();
 			if (pSrcPhrase->m_key.IsEmpty() && pSrcPhrase->m_precPunct.IsEmpty())
 			{
-				DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
-						// delete a partner pile'
-				pSrcPhrase = NULL;
+				if ( !bHasFilteredInfo)
+				{
+					// don't remove it if it is a carrier for filtered information in its
+					// m_filteredInfo member (see the more detailed explanation above)
+					DeleteSingleSrcPhrase(pSrcPhrase, FALSE); // FALSE means 'don't try to
+							// delete a partner pile'
+					pSrcPhrase = NULL;
+				}
 				if (bFreeTranslationIsCurrent)
 				{
 					// we default to always turning off a free translation section at the end
@@ -9752,7 +9777,6 @@ b:		if (IsMarker(ptr,pBufStart))
 						}
 					}
 				}
-
 			}
 			// store the pointer in the SPList (in order of occurrence in text)
 			if (pSrcPhrase != NULL)
