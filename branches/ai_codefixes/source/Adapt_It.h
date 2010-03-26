@@ -1727,13 +1727,8 @@ public:
 	CFreeTrans*	m_pFreeTrans;
 
 //private: // <- BEW removed 1Mar10, because for unknown reason compiler fails to 'see' it otherwise
-#ifdef _NOTES
 	CNotes* m_pNotes;
-#endif
-//public:
-#ifdef _NOTES
 	CNotes* GetNotes();
-#endif // _NOTES
 
 #ifdef _RETRANS
 	CRetranslation* m_pRetranslation;

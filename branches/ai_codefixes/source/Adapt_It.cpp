@@ -158,9 +158,7 @@
 #include "Layout.h"
 #include "AdminMoveOrCopy.h"
 #include "FreeTrans.h"
-#ifdef _NOTES
 #include "Notes.h"
-#endif
 #ifdef _RETRANS
 #include "Retranslation.h"
 #endif
@@ -7829,11 +7827,9 @@ int ii = 1;
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
 
-#ifdef _NOTES
 	m_pNotes = new CNotes(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pNotes);
-#endif
 
 #ifdef _RETRANS
 	m_pRetranslation = new CRetranslation(this);
@@ -7917,12 +7913,8 @@ int CAdapt_ItApp::OnExit(void)
 	// 3. 
 	//wxEvtHandler* pHdlr = NULL;
 
-#ifdef _NOTES
-	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
-								// (meaning that we'll do the deleting ourselves)
 	// delete the CNotes object
 	delete m_pNotes;
-#endif
 	
 #ifdef _RETRANS
 	delete m_pRetranslation;
@@ -11399,7 +11391,6 @@ CLayout*	CAdapt_ItApp::GetLayout()
 	return m_pLayout;
 }
 
-#ifdef _NOTES
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the CNotes object instance
 /// \remarks
@@ -11412,7 +11403,6 @@ CNotes*	CAdapt_ItApp::GetNotes()
 	wxASSERT(m_pNotes);
 	return m_pNotes;
 }
-#endif
 
 #ifdef _RETRANS
 ////////////////////////////////////////////////////////////////////////////////////////

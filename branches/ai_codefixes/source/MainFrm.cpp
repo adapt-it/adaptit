@@ -571,10 +571,8 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	if (pFreeTrans == NULL) bGotPointersSuccessfully = FALSE;
 	
-#ifdef _NOTES
 	CNotes* pNotes = gpApp->GetNotes();
 	if (pNotes == NULL) bGotPointersSuccessfully = FALSE;
-#endif // _NOTES
 
 	// process the message only if valid pointers to the view, document and phrasebox classes are obtained
 	if (bGotPointersSuccessfully)

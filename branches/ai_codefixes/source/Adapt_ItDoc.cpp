@@ -90,9 +90,7 @@
 #include "UnpackWarningDlg.h"
 #include "Layout.h"
 #include "FreeTrans.h"
-#ifdef _NOTES
 #include "Notes.h"
-#endif
 #include "ExportFunctions.h"
 #include "ReadOnlyProtection.h"
 

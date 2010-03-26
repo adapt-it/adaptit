@@ -16,8 +16,6 @@
 #ifndef NOTES_H
 #define NOTES_H
 
-#ifdef	_NOTES
-
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
 #pragma interface "Notes.h"
@@ -95,7 +93,5 @@ class CNotes : public wxEvtHandler
 
 		DECLARE_EVENT_TABLE()
 	};
-
-#endif // _NOTES
 
 #endif // NOTES_H

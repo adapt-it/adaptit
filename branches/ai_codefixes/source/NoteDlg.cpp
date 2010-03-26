@@ -52,9 +52,7 @@
 #include "Adapt_ItView.h"
 #include "helpers.h"
 #include "Adapt_ItDoc.h"
-#ifdef _NOTES
 #include "Notes.h"
-#endif
 
 /// This global is defined in Adapt_It.cpp.
 extern CPile* gpNotePile;
@@ -603,13 +601,8 @@ void CNoteDlg::OnBnClickedNextBtn(wxCommandEvent& event)
 		// if there is a selection, then remove the selection too
 		pView->RemoveSelection();
 	}
-#ifdef _NOTES
 	// the rest of the possible scenarios should be okay
 	gpApp->GetNotes()->OnButtonNextNote(event);
-#else
-	// the rest of the possible scenarios should be okay
-	pView->OnButtonNextNote(event);
-#endif
 }
 
 void CNoteDlg::OnBnClickedDeleteBtn(wxCommandEvent& event)
@@ -638,13 +631,8 @@ void CNoteDlg::OnBnClickedPrevBtn(wxCommandEvent& event)
 		// if there is a selection, then remove the selection too
 		pView->RemoveSelection();
 	}
-#ifdef _NOTES
 	// the rest of the possible scenarios should be okay
 	gpApp->GetNotes()->OnButtonPrevNote(event);
-#else
-	// the rest of the possible scenarios should be okay
-	pView->OnButtonPrevNote(event);
-#endif
 }
 
 void CNoteDlg::OnBnClickedFirstBtn(wxCommandEvent& WXUNUSED(event))
@@ -660,13 +648,8 @@ void CNoteDlg::OnBnClickedFirstBtn(wxCommandEvent& WXUNUSED(event))
 		// if there is a selection, then remove the selection too
 		pView->RemoveSelection();
 	}
-#ifdef _NOTES
 	// the rest of the possible scenarios should be okay
 	gpApp->GetNotes()->MoveToAndOpenFirstNote();
-#else
-	// the rest of the possible scenarios should be okay
-	pView->MoveToAndOpenFirstNote();
-#endif
 }
 
 void CNoteDlg::OnBnClickedLastBtn(wxCommandEvent& WXUNUSED(event))
@@ -682,13 +665,8 @@ void CNoteDlg::OnBnClickedLastBtn(wxCommandEvent& WXUNUSED(event))
 		// if there is a selection, then remove the selection too
 		pView->RemoveSelection();
 	}
-#ifdef _NOTES
 	// the rest of the possible scenarios should be okay
 	gpApp->GetNotes()->MoveToAndOpenLastNote();
-#else
-	// the rest of the possible scenarios should be okay
-	pView->MoveToAndOpenLastNote();
-#endif
 }
 
 void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
@@ -735,15 +713,8 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 	// first and last of which might be subparts of a word)
 	int nStartOffset;
 	int nEndOffset;
-#ifdef _NOTES
 	int nFoundSequNum = gpApp->GetNotes()->FindNoteSubstring(gpApp->m_nSequNumBeingViewed, 
 										pWordList, numWords, nStartOffset, nEndOffset);
-#else
-	// get the search string updated
-	CAdapt_ItView* pView = gpApp->GetView();
-	int nFoundSequNum = pView->FindNoteSubstring(gpApp->m_nSequNumBeingViewed, pWordList, numWords,
-												nStartOffset, nEndOffset);
-#endif
 	if (nFoundSequNum == -1)
 	{
 		// the string was not found in any subsequent note - so tell this to the user
@@ -772,13 +743,8 @@ void CNoteDlg::OnBnClickedFindNextBtn(wxCommandEvent& event)
 		gpApp->m_pNoteDlg = NULL;
 		delete pWordList;
 	
-#ifdef _NOTES
 		// jump to the found note and open it
 		gpApp->GetNotes()->JumpForwardToNote_CoreCode(nJumpOffSequNum);
-#else
-		// jump to the found note and open it
-		pView->JumpForwardToNote_CoreCode(nJumpOffSequNum);
-#endif
 		
 		// clear the offsets so subsequent openings of the dialog don't wrongly select
 		// a spurious substring

@@ -14,8 +14,6 @@
 /// \derivation		The CNotes class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef	_NOTES
-
 #if defined(__GNUG__) && !defined(__APPLE__)
 #pragma implementation "Notes.h"
 #endif
@@ -3778,5 +3776,3 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 	event.Enable(FALSE);
 }
 
-
-#endif

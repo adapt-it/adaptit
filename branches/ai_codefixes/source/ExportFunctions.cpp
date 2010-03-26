@@ -15451,11 +15451,7 @@ SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
 						// and \free plus space is length 6, \free* plus space is length 7
 						int offset;
 						int len;
-#ifdef _NOTES
 						wxString freetransStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,offset,len);
-#else	// _NOTES
-						wxString freetransStr = pView->GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,offset,len);
-#endif	// _NOTES
 						// now remove the filtered section from m_markers
 						int nMoveBack = lenStart + 1 + 6; // +1 is for the space following \~FILTER
 						int nAddToEnd = lenEnd + 1 + 7; // +1 is for the space following \~FILTER*
