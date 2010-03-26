@@ -2294,12 +2294,13 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 {
 	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
-	CAdapt_ItView* pView = GetView();
+// GDLC 2010-03-27 pView no longer used
+//	CAdapt_ItView* pView = GetView();
 
 	wxASSERT(pMainFrm);
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
 	wxASSERT(pBar);
-	wxASSERT(pView);
+//	wxASSERT(pView);
 
 	if (pBar != NULL && pBar->IsShown())
 	{

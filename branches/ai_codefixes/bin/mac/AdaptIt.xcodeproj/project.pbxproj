@@ -22,11 +22,11 @@
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
+		C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
 		C850F3A810C75D19008739FF /* AdminMoveOrCopy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C850F3A710C75D19008739FF /* AdminMoveOrCopy.cpp */; };
 		C8A3E1F510C759E90077FBB5 /* ReadOnlyProtection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8A3E1F410C759E90077FBB5 /* ReadOnlyProtection.cpp */; };
 		C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB40F3F9CAB007579B8 /* Adapt_It_wdr.cpp */; };
-		C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBB0F3F9CAB007579B8 /* Adapt_ItDoc.cpp */; };
 		C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DBD0F3F9CAB007579B8 /* Adapt_ItView.cpp */; };
 		C8F82E610F3F9CAB007579B8 /* AIPrintout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DC00F3F9CAB007579B8 /* AIPrintout.cpp */; };
@@ -670,7 +670,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				C8F82E5B0F3F9CAB007579B8 /* Adapt_It_wdr.cpp in Sources */,
-				C8F82E5C0F3F9CAB007579B8 /* Adapt_It.cpp in Sources */,
 				C8F82E5F0F3F9CAB007579B8 /* Adapt_ItDoc.cpp in Sources */,
 				C8F82E600F3F9CAB007579B8 /* Adapt_ItView.cpp in Sources */,
 				C8F82E610F3F9CAB007579B8 /* AIPrintout.cpp in Sources */,
@@ -757,6 +756,7 @@
 				03D7A719112A2601004F6D39 /* Notes.cpp in Sources */,
 				C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */,
 				0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */,
+				C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -776,10 +776,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					_RETRANS,
 					_DOCVER5,
-					_NOTES,
-					_FREETR,
 					"wxUSE_UNICODE=1",
 					NO_GCC_PRAGMA,
 					__WXMAC__,
@@ -835,9 +832,6 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(WXWIN)/include/wx/wxprec.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					_RETRANS,
-					_FREETR,
-					_NOTES,
 					_DOCVER5,
 					"wxUSE_UNICODE=1",
 					NO_GCC_PRAGMA,

@@ -11185,8 +11185,9 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	CPhraseBox* pBox;
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
-	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
-	wxASSERT(pFreeTrans);
+// GDLC 2010-03-27 pFreeTrans is now unused in this function
+//	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
+//	wxASSERT(pFreeTrans);
 
 	if (pApp->m_nActiveSequNum == -1)
 		pApp->m_nActiveSequNum = 0;

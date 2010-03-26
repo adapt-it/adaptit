@@ -78,10 +78,11 @@ CComposeBarEditBox::~CComposeBarEditBox() // destructor
 // event handling functions
 void CComposeBarEditBox::OnChar(wxKeyEvent& event)
 {
-	CAdapt_ItView* pView = gpApp->GetView();
-	wxASSERT(pView != NULL);
-	// intercept the Enter key and make it call the OnAdvanceButton() handler
+// GDLC 2010-03-27 pView no longer used
+//	CAdapt_ItView* pView = gpApp->GetView();
+//	wxASSERT(pView != NULL);
 
+	// intercept the Enter key and make it call the OnAdvanceButton() handler
 	if (event.GetKeyCode() == WXK_RETURN)
 	{
 		wxCommandEvent bevent;
@@ -159,8 +160,9 @@ void CComposeBarEditBox::OnKeyUp(wxKeyEvent& event)
 	*/
 	if (gpApp->m_bFreeTranslationMode)
 	{
-		CAdapt_ItView* pView = gpApp->GetView();
-		wxASSERT(pView != NULL);
+// GDLC 2010-03-27 pView no longer used
+//		CAdapt_ItView* pView = gpApp->GetView();
+//		wxASSERT(pView != NULL);
 		CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 		wxASSERT(pFreeTrans != NULL);
 		wxCommandEvent bevent;
