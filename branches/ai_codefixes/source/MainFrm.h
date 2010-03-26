@@ -207,8 +207,6 @@ class CMainFrame : public wxDocParentFrame
 	void OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event));
 	void OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event));
 
-	void OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateEditConsistencyCheck(wxUpdateUIEvent& event);
     void RecreateToolBar();
 	void DoCreateStatusBar();
 	void OnMRUFile(wxCommandEvent& event);

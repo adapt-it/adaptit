@@ -1228,6 +1228,7 @@ void CAdapt_ItView::OnDraw(wxDC *pDC)
 
 // return the CPile* at the passed in index, or NULL if the index is out of bounds;
 // the pile list is at CLayout::m_pileList
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 CPile* CAdapt_ItView::GetPile(const int nSequNum)
 {
 	// refactored 10Mar09, for new view layout design
@@ -1246,6 +1247,7 @@ CPile* CAdapt_ItView::GetPile(const int nSequNum)
 	return pos->GetData();
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 CCell* CAdapt_ItView::GetNextCell(CCell *pCell, const int cellIndex)
 {
     // returns the next cell at the level specified by cellIndex (note: switching levels is
@@ -1272,6 +1274,7 @@ CCell* CAdapt_ItView::GetNextCell(CCell *pCell, const int cellIndex)
 
 
 // returns a pointer to the next pile, or NULL if there is none
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 {
 	// refactored 17Mar09; BEW modified 25Oct09 as pPile can be NULL
@@ -1296,6 +1299,7 @@ CPile* CAdapt_ItView::GetNextPile(CPile *pPile)
 	return pNextPile;
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 CPile* CAdapt_ItView::GetPrevPile(CPile *pPile)
 // returns a pointer to the previous pile, or NULL if there is none
 {
@@ -1339,6 +1343,7 @@ CPile* CAdapt_ItView::GetPrevPile(CPile *pPile)
 // TODO: Splitting of the main window in the wxWidgets version is not yet implemented, but
 // if/when it is implemented it should be tested to see if OnInitialUpdate should be
 // called for that situation too.
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::OnInitialUpdate()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -1586,6 +1591,7 @@ void CAdapt_ItView::OnInitialUpdate()
 	}
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of wxView
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -9954,6 +9960,7 @@ void CAdapt_ItView::OnUpdateButtonRestore(wxUpdateUIEvent& event)
 	}
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::UnmergePhrase()
 {
 	wxCommandEvent dummyevent;
@@ -21176,6 +21183,7 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 // the selection (there is always one in existence, the first, when this function is
 // entered) Because the caller supports selections in src and phrase box line (either tgt
 // or gloss), the pAnchorCell's m_nCell index value may be 0 or 1)
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 {
 	// refactored 17Apr09
@@ -29259,6 +29267,7 @@ bool CAdapt_ItView::GetEditSourceTextBackTranslationSpan(
 /// "unset"), for TextType the default is verse, and empty for lists (except the deletion
 /// lists, which are empty only at the point that the document has just been created or
 /// reopened, and emptied again when it is closed).
+/// BEW 26Mar10, some changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::InitializeEditRecord(EditRecord& editRec)
 {
@@ -31115,6 +31124,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 	}
 }
 
+/// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::RestoreBoxOnFinishVerticalMode()
 {
 	EditRecord* pRec = &gEditRecord;
@@ -33723,6 +33733,7 @@ bool CAdapt_ItView::TransportWidowedFilteredInfoToFollowingContext(SPList* pNewS
 ///	
 ///	BEW created 1Aug08, for support of vertical editing in the refactored 
 ///	Edit Source Text handler
+/// BEW 26Mar10, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RestoreMode(bool WXUNUSED(bSeeGlossesEnabled), 
 								bool WXUNUSED(bIsGlossing), EditRecord* pRec)
@@ -33947,7 +33958,7 @@ bool CAdapt_ItView::PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRe
 	// the pRec list has content to be put in the combo box... first remove old content
 	pCombo->Clear();
 	// and now loop over the stored list, adding its strings to the combo's list --
-    // the pRec lists are maintained eternally with a maximum of 100 entries, so we can
+    // the pRec lists are maintained externally with a maximum of 100 entries, so we can
     // safely loop over all there are (#define DELETIONS_LIST_MAX_ENTRIES 100 at top of
     // Adapt_ItView.cpp)
 	int ct;
@@ -33974,6 +33985,7 @@ bool CAdapt_ItView::PopulateRemovalsComboBox(enum EditStep step, EditRecord* pRe
 	return TRUE;
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 {
 	wxPanel* pBar;
@@ -33985,6 +33997,7 @@ void CAdapt_ItView::SetVerticalEditModeMessage(wxString messageText)
 }
 
 // use the following when placing the phrase box in vertical editing moode's steps
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), 
 												   int nSequNum)
 {
@@ -34033,6 +34046,7 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec),
 ///                         translations pertinent to the editable span for the current
 ///                         vertical edit operation
 /// \remarks
+/// Called only once, in OnCustomEventBackTranslationsEdit() in MainFrm.cpp.
 /// The last step in the vertical edit process is to restore any collected
 /// backtranslations, using the updated adaptation or gloss information resulting from
 /// earlier user-interactive steps in the vertical edit process. This restoration is done
@@ -34045,6 +34059,8 @@ void CAdapt_ItView::PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec),
 /// without a selection, the collection would be done over the whole document which would
 /// be overkill. The work of doing the recollection is then given to the
 /// DoCollectBacktranslations() function.
+/// BEW 26Mar10, no changes needed for support of _DOCVER5 (but a couple of called
+/// functions do have some changes)
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* pRec, 
 														enum EntryPoint anEntryPoint)
@@ -34893,6 +34909,7 @@ void CAdapt_ItView::OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event)
 }
 
 // BEW added 19Sep08 in support of mode changing within the vertical edit process
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::ToggleSeeGlossesMode()
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -35096,6 +35113,7 @@ a:	CMainFrame *pFrame = wxGetApp().GetMainFrame();
 }
 
 // BEW added 19Sep08, for support of mode transitions within vertical edit mode
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::ToggleGlossingMode() 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

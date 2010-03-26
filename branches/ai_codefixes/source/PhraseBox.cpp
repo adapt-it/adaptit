@@ -2481,6 +2481,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 // returns TRUE if a matching KB entry found; when glossing, pKB points to the glossing KB, when
 // adapting it points to the normal KB
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CAdapt_ItView* pView = pApp->GetView();
@@ -4730,6 +4731,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 	event.Skip(); // allow processing of the keystroke event to continue
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 {
 	// refactored 2Apr09
@@ -4916,6 +4918,7 @@ void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 // below); return FALSE if there was no match; based on LookAhead(), but only looks up a
 // single src word at pNewPile; assumes that the app member, m_nActiveSequNum is set and
 // that the CPile which is at that index is the pNewPile which was passed in
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 {
 	// refactored 2Apr09
@@ -5022,7 +5025,6 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 		// from overriding lookup of a single word by going immediately to a selection for
 		// merger, so I've made the button be shown in this situation
 		bool bOK = ChooseTranslation(); // default for param bHideCancelAndSelectButton is FALSE
-		//bool bOK = ChooseTranslation(TRUE);
 		pCurTargetUnit = (CTargetUnit*)NULL; // ensure the global var is cleared 
 											 // after the dialog has used it
 		curKey.Empty(); // ditto for the current key string (global)

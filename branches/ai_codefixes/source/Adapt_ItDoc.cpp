@@ -3270,6 +3270,7 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// OnCustomEventAdaptationsEdit(), and OnCustomEventGlossesEdit().
 /// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
 /// list.
+/// BEW 26Mar10, no changes needed for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso)
 {

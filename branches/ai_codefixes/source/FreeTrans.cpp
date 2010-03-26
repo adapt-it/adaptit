@@ -4701,6 +4701,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 ///     possible for the one currently being collected to have overlapping content with the
 ///     former one. Again, this is the user's responsibility to check for and rectify if he
 ///     wishes, and the View Filtered material dialog is again the way to do it.)
+/// BEW 26Mar10, changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 {
@@ -4760,10 +4761,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
     // pLastSrcPhrase until it points to the first CSourcePhrase instance beyond the
     // footnote, endnote or cross reference. In the case of a selection, this potentially
     // might not be possible (if the user selects only footnote text for instance), so we
-    // must allow for such a possibility. (Note, the footnote endmarker, or cross reference
-    // endmarker, will be in m_markers on a CSourcePhrase instance which is not a footnote
-    // or endmarker, but that won't be a problem because our halt conditions will not cause
-    // a halt at any endmarker)
+    // must allow for such a possibility.
 	if (pLastSrcPhrase->m_curTextType == footnote || 
 		pLastSrcPhrase->m_curTextType == crossReference)
 	{
@@ -4824,9 +4822,16 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 		}
 		else
 		{
-            // pSrcPhrase has advanced past pLastSrcPhrase, so we must check for halt
-            // condition as we do the collecting
+            // pSrcPhrase has advanced beyond the anchor instance, pLastSrcPhrase, so we
+            // must check for halt condition as we do the collecting
+#if defined (_DOCVER5)
+			if (pSrcPhrase->m_markers.IsEmpty()&&
+				pSrcPhrase->GetFreeTrans().IsEmpty() &&
+				pSrcPhrase->GetCollectedBackTrans().IsEmpty()
+			)
+#else
 			if (pSrcPhrase->m_markers.IsEmpty())
+#endif
 			{
 				// an empty m_markers means no halt is possible at this pSrcPhrase, so
 				// do the collection and then iterate
