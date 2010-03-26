@@ -3046,11 +3046,7 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	{
 		if (pView->GetSelectionWordCount() > MAX_WORDS)
 		{
-#ifdef _RETRANS
 			pApp->GetRetranslation()->DoRetranslation();
-#else
-			pView->DoRetranslation();
-#endif
 		}
 		else
 		{
@@ -4041,11 +4037,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 			{
 				// if there is at least one source phrase with m_bRetranslation == TRUE, 
 				// then then use the selection and put up the dialog
-#ifdef _RETRANS
 				pApp->GetRetranslation()->DoRetranslationByUpArrow();
-#else
-				pView->DoRetranslationByUpArrow();
-#endif
 			}
 			else
 			{
@@ -4069,11 +4061,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 				wxToolBarBase* pToolBar = pFrame->GetToolBar();
 				wxASSERT(pToolBar != NULL);
 				pToolBar->EnableTool(ID_BUTTON_RETRANSLATION,TRUE);
-#ifdef _RETRANS
 				pApp->GetRetranslation()->DoRetranslationByUpArrow();
-#else
-				pView->DoRetranslationByUpArrow();
-#endif
 			}
 		}
 		else if (event.GetKeyCode() == WXK_DOWN)
@@ -4389,11 +4377,7 @@ void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 		else
 #ifdef __WXMAC__
 			// On Macs F9 is reserved for "Tile or untile all open windows".
-#ifdef _RETRANS
 			pApp->GetRetranslation()->NewRetranslation();
-#else
-			pView->NewRetranslation();
-#endif
 #endif
 		return;
 	}

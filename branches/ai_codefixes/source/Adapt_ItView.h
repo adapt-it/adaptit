@@ -166,10 +166,6 @@ public:
 	void		DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
 	bool		DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& tgt, wxString& replStr,
 						int nCount);
-#ifndef _RETRANS
-	void		DoRetranslation();
-	void		DoRetranslationByUpArrow();
-#endif
 	void		DoStartupWizardOnLaunch();
 // DrawFreeTranslations moved to CFreeTrans
 	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect); // BEW 9Feb09, a copy is now in CCell
@@ -236,9 +232,6 @@ public:
 	bool		MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxString& wantedEndMkr); // whm added 18Nov05
 	void		MakeLineFourString(CSourcePhrase* pSrcPhrase, wxString targetStr);
 	void		MergeWords();
-#ifndef _RETRANS
-	void		NewRetranslation();
-#endif
 
 // OnAdvanceButton, OnNextButton, OnPrevButton, OnRemoveFreeTranslationButton, OnLengthenButton,
 // OnShortenButton, OnRadioDefineByPunctuation, OnRadioDefineByVerse
@@ -267,9 +260,6 @@ public:
 	bool		ReplaceCSourcePhrasesInSpan(SPList* pMasterList, int nStartAt, int nHowMany,
 											SPList*  pReplacementsList, int nReplaceStartAt, int nReplaceCount); // BEW added 27May08
 	void		GetMarkerArrayFromString(wxArrayString* pStrArr, const wxString& str); // BEW added 17June08
-#ifndef _RETRANS
-	void		GetSelectedSourcePhraseInstances(SPList*& pList,wxString& strSource,wxString& strAdapt);
-#endif
 	bool		IsMarkerInArray(wxArrayString* pStrArr, const wxString& marker); // BEW added 17June08
 	bool		AreMarkerSetsDifferent(const wxString& str1, const wxString& str2, bool& bUnfilteringRequired,
 							bool& bFilteringRequired);  // created 17June08 BEW
@@ -337,46 +327,24 @@ public:
 // helper functions (protected)
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing
 protected:
-#ifndef _RETRANS
-	void		AccumulateText(SPList* pList,wxString& strSource,wxString& strAdapt);
-	void		BuildRetranslationSourcePhraseInstances(SPList* pRetransList,int nStartSequNum,
-													int nNewLength,int nCount,int& nFinish);
-#endif
 	void		BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 30Apr08
 #if !defined (_DOCVER5)
 	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
 #endif
-#ifndef _RETRANS
-	void		ClearSublistKBEntries(SPList* pSublist);
-#endif
 	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
-#ifndef _RETRANS
-	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
-#endif
 	int			CountSourceWords(wxString& rStr);
 public: // edb 05 March 2010 - set to public (this is called from CRetranslation)
 	void		DeleteTempList(SPList* pList);	// must be a list of ptrs to CSourcePhrase instances on the heap 
 protected:
-#ifndef _RETRANS
-	void		DeleteSavedSrcPhraseSublist(SPList* pSaveList); // this list's members can have members in sublists 
-#endif
 	wxString	DoConsistentChanges(wxString& str);
 	wxString	DoSilConvert(const wxString& str);
 	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc, 
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
 	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int& nCount);
-#ifndef _RETRANS
-	bool		DoFindRetranslation(int nStartSequNum, int& nSequNum, int& nCount);
-#endif
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
 	void		DoKBExport(CKB* pKB, wxFile* pFile);
 	void		DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile);
-#ifndef _RETRANS
-	void		DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile);
-	void		DoRetranslationReport(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, wxString& name,
-									wxArrayString* pFileList,SPList* pList, wxFile* pFile);
-#endif
 	bool		DoSrcAndTgtFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 						wxString& src,wxString& tgt, bool bIgnoreCase, int& nSequNum, int& nCount);
 	bool		DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
@@ -407,10 +375,6 @@ protected:
 							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
 							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
 	CCell*		GetNextCell(CCell* pCell,  const int cellIndex); // GetNextCell(const CCell* pCell,  const int cellIndex)
-#ifndef _RETRANS
-	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
-													CPile*& pFirstPile,SPList* pList);
-#endif
 	CTargetUnit*  GetTargetUnit(CKB* pKB, int nSrcWords, wxString keyStr);
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
@@ -423,28 +387,15 @@ protected:
 public:
 	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
 protected:
-#ifndef _RETRANS
-	void		InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum);
-#endif
 	bool		IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasAdaptations); // BEW added 15July08
 	bool		IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
-#ifndef _RETRANS
-	bool		IsConstantType(SPList* pList);
-	bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
-																int& nSequNumLast);
-	bool		IsEndInCurrentSelection();
-#endif
 	bool		IsFreeTranslationInSelection(SPList* pList); // BEW added 21Nov05, (for edit source text support)
 	bool		IsFilteredInfoInSelection(SPList* pList); // whm added 14Aug06
 	bool		IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 					bool* pbHasGlosses);  // BEW added 29Apr08
 	bool		IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 	int			IsMatchedToEnd(wxString& strSearch, wxString& strTarget);
-#ifndef _RETRANS
-	bool		IsNullSrcPhraseInSelection(SPList* pList);
-	bool		IsRetranslationInSelection(SPList* pList);
-#endif
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
@@ -454,54 +405,27 @@ protected:
 	void		PadOrShortenAtEnd(SPList* pSrcPhrases,
 					int nStartSequNum,int nEndSequNum,int nNewLength,int nCount,TextType myTextType,
 					bool& bDelayRemovals);
-#ifndef _RETRANS
-	void		PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
-							SPList* pSrcPhrases,int nEndSequNum,int nNewLength,int nCount);
-#endif
 	void		RemoveFinalSpaces(wxString& rStr); // overload of the public function, BEW added 30Apr08
 	bool		RemoveInformationDuringEdit(CSourcePhrase* pSrcPhrase, int nSequNum, EditRecord* pRec, 
 					wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 					wxArrayString* pNoteList, bool remAd, bool remGl, bool remNt,
 					bool remFT, bool remBT); // BEW added 27Apr08
-#ifndef _RETRANS
-	void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
-	void		RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
-					int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum);
-	void		RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,int nCurCount,
-														int nStartingSequNum,SPList* pSublist);
-#endif
 	void		RemoveUnwantedSrcPhrasesInDocList(int nSaveSequNum,int nNewCount,int nCount);
-#ifndef _RETRANS
-	void		ReplaceMatchedSubstring(wxString strSearch, wxString& strReplace, wxString& strAdapt);
-#endif
 	void		RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 27May08
 public: // edb 05 March 2010 - need this public in order to call it from CRetranslation
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
 protected:
-#ifndef _RETRANS
-	void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase);
-	void		RestoreTargetBoxText(CSourcePhrase* pSrcPhrase,wxString& str);
-#endif
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
 							wxArrayString* pNoteList); //BEW added 30Apr08
 	bool		ScanSpanDoingSourceTextReconstruction(SPList* pSrcPhrases, EditRecord* pRec,
 					int nStartingSN, int nEndingSN, wxString& strSource); //BEW added 5May08
-#ifndef _RETRANS
-	void		SetNotInKBFlag(SPList* pList,bool bValue = TRUE);
-	void		SetRetranslationFlag(SPList* pList,bool bValue = TRUE);
-#endif
 	void		TransferCompletedSrcPhrases(SPList* pNewSrcPhrasesList,int nSaveSequNum);
 	void		TransferCompletedSrcPhrases(EditRecord* pRec, SPList* pNewSrcPhrasesList,
 							SPList* pSrcPhrases, int nBeginAtSN, int nFinishAtSN);
 	bool		TransportWidowedFilteredInfoToFollowingContext(SPList* pNewSrcPhrases, 
 							CSourcePhrase* pFollSrcPhrase, EditRecord* pRec); //BEW added 7May08
 							// 22Mar10, name changed from TransportWidowedEndmarkersToFollowingContext
-#ifndef _RETRANS
-	void		UnmergeMergersInSublist(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
-							int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum,
-							bool bWantRetranslationFlagSet = TRUE,bool bAlsoUpdateSublist = FALSE);
-#endif
 
 protected:
 	void OnEditPreferences(wxCommandEvent& WXUNUSED(event));
@@ -544,12 +468,6 @@ protected:
 	void OnUpdateButtonNullSrc(wxUpdateUIEvent& event);
 	void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event);
-#ifndef _RETRANS
-	void OnRemoveRetranslation(wxCommandEvent& event);
-	void OnUpdateRemoveRetranslation(wxUpdateUIEvent& event);
-	void OnUpdateButtonEditRetranslation(wxUpdateUIEvent& event);
-	void OnButtonEditRetranslation(wxCommandEvent& event);
-#endif
 	void OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event);
 	void OnFileExport(wxCommandEvent& WXUNUSED(event));
@@ -564,10 +482,6 @@ protected:
 	void OnUpdateFind(wxUpdateUIEvent& event);
 	void OnReplace(wxCommandEvent& event);
 	void OnUpdateReplace(wxUpdateUIEvent& event);
-#ifndef _RETRANS
-	void OnRetransReport(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateRetransReport(wxUpdateUIEvent& event);
-#endif
 	void OnAlignment(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAlignment(wxUpdateUIEvent& event);
 	void OnSize(wxSizeEvent& event); //See OnSize in CMainFrame.
@@ -639,10 +553,6 @@ public:
 	void OnFromShowingTargetOnlyToShowingAll(wxCommandEvent& WXUNUSED(event));
 	void OnUseConsistentChanges(wxCommandEvent& WXUNUSED(event));
 	void OnUseSilConverter(wxCommandEvent& WXUNUSED(event));
-#ifndef _RETRANS
-	void OnButtonRetranslation(wxCommandEvent& event); // whm moved to public in wx version
-	void OnUpdateButtonRetranslation(wxUpdateUIEvent& event); // whm moved to public in wx version
-#endif
 	void OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedEnableglossing(wxUpdateUIEvent& event);
 	void OnAdvancedGlossingUsesNavFont(wxCommandEvent& WXUNUSED(event));

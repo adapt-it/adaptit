@@ -51,9 +51,7 @@ const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
 #endif
 
-#ifdef _RETRANS
 extern bool gbIsGlossing;
-#endif
 
 //  helper functions
 
@@ -2122,7 +2120,6 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 
 #endif
 
-#ifdef _RETRANS
 // determines if nFirstSequNum up to nFirstSequNum + nCount - 1 all lie within a
 // retranslation; if TRUE, then also returns the first and last sequence numbers for the
 // retranslation in the last 2 parameters; these parameters are not defined if FALSE is
@@ -2220,6 +2217,4 @@ bool IsRetranslationInSelection(SPList* pList)
 	}
 	return FALSE;
 }
-
-#endif	// _RETRANS
 

@@ -124,9 +124,7 @@ class AIPrintout;
 
 #include "PhraseBox.h"
 #include "FindReplace.h"
-#ifdef _RETRANS
 #include "Retranslation.h"
-#endif
 
 // forward references (added to wxWidgets version):
 class wxSingleInstanceChecker;
@@ -171,9 +169,8 @@ class CFreeTrans;
 // forward references for CNotes support
 class CNotes;
 
-#ifdef _RETRANS
+// forward references for CRetranslation support
 class CRetranslation;
-#endif
 
 // forward reference for read-only support
 class ReadOnlyProtection;
@@ -1730,10 +1727,8 @@ public:
 	CNotes* m_pNotes;
 	CNotes* GetNotes();
 
-#ifdef _RETRANS
 	CRetranslation* m_pRetranslation;
 	CRetranslation* GetRetranslation();
-#endif
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup

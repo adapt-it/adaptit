@@ -4719,11 +4719,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 								  // strings we are not interested in
 		wxString unwantedOtherText; // need this because the following call returns
 								    // strings we are not interested in
-#ifdef _RETRANS
 		GetApp()->GetRetranslation()->GetSelectedSourcePhraseInstances(pList, unwantedSrcText, unwantedOtherText);
-#else
-		GetView()->GetSelectedSourcePhraseInstances(pList, unwantedSrcText, unwantedOtherText);
-#endif
 		// pList is now populated with pointers to the selected sourcephrase instances
 
 		bSelectionExists = TRUE;

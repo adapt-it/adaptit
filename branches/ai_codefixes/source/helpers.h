@@ -149,12 +149,10 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAd
 
 #endif
 
-#ifdef _RETRANS
 bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);
 bool		IsNullSrcPhraseInSelection(SPList* pList);
 bool		IsRetranslationInSelection(SPList* pList);
-#endif
 
 // filtered fields functions moved from CAdapt_ItView
 wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,

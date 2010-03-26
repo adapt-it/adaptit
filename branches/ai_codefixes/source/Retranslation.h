@@ -16,8 +16,6 @@
 #ifndef RETRANS_H
 #define RETRANS_H
 
-#ifdef	_RETRANS
-
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
 #pragma interface "Retranslation.h"
@@ -132,7 +130,5 @@ private:
 	
 	DECLARE_EVENT_TABLE()
 };
-
-#endif // _RETRANS
 
 #endif // RETRANS_H

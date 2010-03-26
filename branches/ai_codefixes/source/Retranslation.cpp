@@ -14,8 +14,6 @@
 /// \derivation		The CNotes class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef	_RETRANS
-
 #if defined(__GNUG__) && !defined(__APPLE__)
 #pragma implementation "Retranslation.h"
 #endif
@@ -4243,4 +4241,3 @@ void CRetranslation::OnUpdateButtonRetranslation(wxUpdateUIEvent& event)
 	event.Enable(FALSE);
 }
 
-#endif
