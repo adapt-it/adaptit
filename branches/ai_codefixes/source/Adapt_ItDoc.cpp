@@ -89,9 +89,7 @@
 #include "JoinDialog.h"
 #include "UnpackWarningDlg.h"
 #include "Layout.h"
-#ifdef	_FREETR
 #include "FreeTrans.h"
-#endif	// _FREETR
 #ifdef _NOTES
 #include "Notes.h"
 #endif
@@ -1181,11 +1179,7 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	if (gpApp->m_bFreeTranslationMode)
 	{
 		// free translation mode is on, so we must first turn it off
-#ifdef	_FREETR
 		gpApp->GetFreeTrans()->OnAdvancedFreeTranslationMode(event);
-#else	// _FREETR
-		gpApp->GetView()->OnAdvancedFreeTranslationMode(event);
-#endif	// _FREETR
 	}
 	
 	bUserCancelled = FALSE; // default
@@ -11193,10 +11187,8 @@ bool CAdapt_ItDoc::OnCloseDocument()
 	CPhraseBox* pBox;
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	wxASSERT(pView);
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = pApp->GetFreeTrans();
 	wxASSERT(pFreeTrans);
-#endif	// _FREETR
 
 	if (pApp->m_nActiveSequNum == -1)
 		pApp->m_nActiveSequNum = 0;

@@ -25,9 +25,7 @@
 // Forward references
 class CMainFrame;
 class CAdapt_ItView;
-#ifdef	_FREETR
 class CFreeTrans;
-#endif	// _FREETR
 
 #ifdef _USE_SPLITTER_WINDOW
 class wxSplitterWindow;

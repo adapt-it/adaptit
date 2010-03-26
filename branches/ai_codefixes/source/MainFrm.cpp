@@ -78,9 +78,7 @@
 #include "AdaptitConstants.h"
 #include "XML.h"
 #include "ComposeBarEditBox.h" // BEW added 15Nov08
-#if	_FREETR
 #include "FreeTrans.h"
-#endif	// _FREETR
 // includes above
 
 extern bool gbRTL_Layout; // temporary for debugging only
@@ -570,10 +568,8 @@ bool SyncScrollReceive(const wxString& strThreeLetterBook, int nChap, int nVerse
 	CPhraseBox* pBox = NULL;
 	bool bGotPointersSuccessfully = gpApp->GetBasePointers(pDoc, pView, pBox);
 
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	if (pFreeTrans == NULL) bGotPointersSuccessfully = FALSE;
-#endif	// _FREETR
 	
 #ifdef _NOTES
 	CNotes* pNotes = gpApp->GetNotes();
@@ -798,11 +794,7 @@ scan:			gbSyncMsgReceived_DocScanInProgress = TRUE; // turn on, so XML parsing g
 									{
 										// free translation mode is on, so we must first turn it off
 										wxCommandEvent uevent;
-#ifdef	_FREETR
 										pFreeTrans->OnAdvancedFreeTranslationMode(uevent);
-#else	// _FREETR
-										pView->OnAdvancedFreeTranslationMode(uevent);
-#endif	// _FREETR
 									}
 									// erase the document, emtpy its m_pSourcePhrases list, delete its CSourcePhrase instances, etc
 									pView->ClobberDocument();
@@ -3342,10 +3334,8 @@ void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pApp != NULL);
 	CAdapt_ItView* pView = pApp->GetView();
 	wxASSERT(pView != NULL);
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
-#endif	// _FREETR
 	if (m_pVertEditBar == NULL)
 	{
 		wxMessageBox(_T("Failure to obtain pointer to the vertical edit control bar in \
@@ -3883,11 +3873,7 @@ _("Vertical Editing - adaptations step: Type the needed adaptations in the edita
 						pView->ToggleGlossingMode();
 					}
 					// toggle free translation mode off
-#ifdef	_FREETR
 					pFreeTrans->ToggleFreeTranslationMode();
-#else	// _FREETR
-					pView->ToggleFreeTranslationMode();
-#endif	// _FREETR
                     // If the user removed all the CSourcePhrase instances of the editable
                     // span, there are no adaptations to be updated, because the span has
                     // no extent. We will try to externally catch and prevent a user
@@ -4036,10 +4022,8 @@ void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 	
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxASSERT(pView != NULL);
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
-#endif	// _FREETR
 
 	if (m_pVertEditBar == NULL)
 	{
@@ -4278,11 +4262,7 @@ _("Vertical Editing - glosses step: Type the needed glosses in the editable regi
 
                     // we know we are coming from free translations mode being currently
                     // on, so we have to switch to glossing mode
-#ifdef	_FREETR
 					pFreeTrans->ToggleFreeTranslationMode();
-#else	// _FREETR
-					pView->ToggleFreeTranslationMode();
-#endif	// _FREETR
                     // free translation step is usually has adapting mode set ON on entry,
                     // and we are wanting to be in glossingStep, so check gbIsGlossing and
                     // set up appropriately
@@ -4672,10 +4652,8 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
 		_T(""), wxICON_EXCLAMATION);
 		return;
 	}
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
-#endif	// _FREETR
 
     // determine what setup is required: control is coming from either adaptationsStep or
     // glossesStep, the former when the order is adaptations before glosses; but if the
@@ -4824,11 +4802,7 @@ _T("Failure to obtain pointer to the vertical edit control bar in OnCustomEventA
                     // determine whether or not free translations mode was turned on at the
                     // earlier step so as to make sure we turn it off only because we know
                     // it was turned on earlier!
-#ifdef	_FREETR
 					pFreeTrans->ToggleFreeTranslationMode();
-#else	// _FREETR
-					pView->ToggleFreeTranslationMode();
-#endif	// _FREETR
                     // Initializing must be done only once (the user can return to this
                     // step using interface buttons) -- initializing is done the first time
                     // glossesStep is entered in the vertical edit, so it is put within a
@@ -5095,11 +5069,7 @@ _("Clicking on an item in the above list copies it to the Compose Bar's text box
                     // determine whether or not free translations mode was turned on at the
                     // earlier step so as to make sure we turn it off only because we know
                     // it was turned on earlier!
-#ifdef	_FREETR
 					pFreeTrans->ToggleFreeTranslationMode();
-#else	// _FREETR
-					pView->ToggleFreeTranslationMode();
-#endif	// _FREETR
                     // Initializing must be done only once (the user can return to this
                     // step using interface buttons) -- initializing is done the first time
                     // glossesStep is entered in the vertical edit, so it is put within a
@@ -5269,10 +5239,8 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 {
 	CAdapt_ItView* pView = gpApp->GetView();
 	wxASSERT(pView != NULL);
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
-#endif	// _FREETR
 
 	if (gpApp->m_bFreeTranslationMode)
 	{
@@ -5280,11 +5248,7 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 		// (a call to StoreFreeTranslationOnLeaving() should have been done
 		// prior to entry, and if not  then the final free translation would not have
 		// been stored filtered at the anchor location)
-#ifdef	_FREETR
 		pFreeTrans->ToggleFreeTranslationMode();
-#else	// _FREETR
-		pView->ToggleFreeTranslationMode();
-#endif	// _FREETR
 	}
 	bool bOK;
 	bOK = pView->RecreateCollectedBackTranslationsInVerticalEdit(&gEditRecord, sourceTextEntryPoint);
@@ -5308,10 +5272,8 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	EditRecord* pRec = &gEditRecord;
 	CLayout* pLayout = gpApp->m_pLayout;
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
 	wxASSERT(pFreeTrans != NULL);
-#endif	// _FREETR
 	
 	wxASSERT(m_pVertEditBar != NULL);
 	wxASSERT(m_pRemovalsBar != NULL);
@@ -5334,11 +5296,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 		// if free translations mode is still ON, turn it off
 		if (gpApp->m_bFreeTranslationMode)
 		{
-#ifdef	_FREETR
 			pFreeTrans->ToggleFreeTranslationMode();
-#else	// _FREETR
-			pView->ToggleFreeTranslationMode();
-#endif	// _FREETR
 		}
 
 		// hide the toolbar with the vertical edit process control buttons and user message,
@@ -5429,9 +5387,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
 	bool bWasOK = TRUE;
 	CAdapt_ItView* pView = gpApp->GetView();
-#ifdef	_FREETR
 	CFreeTrans* pFreeTrans = gpApp->GetFreeTrans();
-#endif	// _FREETR
 	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
 	wxASSERT(pSrcPhrases != NULL);
 	EditRecord* pRec = &gEditRecord;
@@ -5501,11 +5457,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
-#ifdef	_FREETR
 					pFreeTrans->ToggleFreeTranslationMode(); // turn off free translation mode
-#else	// _FREETR
-					pView->ToggleFreeTranslationMode(); // turn off free translation mode
-#endif	// _FREETR
 				} // fall through
 			case glossesStep:
 				if (gEntryPoint == glossesEntryPoint)
@@ -5724,11 +5676,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 							pRec->nFreeTranslationStep_SpanCount);
 						pView->UpdateSequNumbers(0); // make sure all are in proper sequence in the doc
 					}
-#ifdef	_FREETR
 					pFreeTrans->ToggleFreeTranslationMode(); // turn off free translation mode
-#else	// _FREETR
-					pView->ToggleFreeTranslationMode(); // turn off free translation mode
-#endif	// _FREETR
 				} // fall through
 			case adaptationsStep:
 				if (gEntryPoint == adaptationsEntryPoint)

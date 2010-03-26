@@ -14,8 +14,6 @@
 /// \derivation		The CFreeTrans class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
 
-#ifdef	_FREETR
-
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "FreeTrans.h"
 #endif
@@ -4122,15 +4120,9 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 			// current section and reconstitute it as a Verse-based section
 			gbSuppressSetup = FALSE;
 			wxCommandEvent evt;
-#ifdef	_FREETR
 			OnRemoveFreeTranslationButton(evt); // remove current section and 
                 // any Compose bar edit box test;
                 // the OnRemoveFreeTranslationButton() call calls Invalidate()
-#else	// _FREETR
-			OnRemoveFreeTranslationButton(evt); // remove current section and 
-				// any Compose bar edit box test
-				// the OnRemoveFreeTranslationButton() call calls Invalidate()
-#endif	// _FREETR
 
             // To get SetupCurrentFreeTranslationSection() called, we must call
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
@@ -5349,5 +5341,3 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 	return TRUE;
 #endif
 }
-
-#endif	// _FREETR

@@ -157,9 +157,7 @@
 #include "ChooseLanguageDlg.h"
 #include "Layout.h"
 #include "AdminMoveOrCopy.h"
-#ifdef	_FREETR
 #include "FreeTrans.h"
-#endif	// _FREETR
 #ifdef _NOTES
 #include "Notes.h"
 #endif
@@ -331,35 +329,12 @@ wxPoint gptLastClick;
 /// GetPrevPile() call.
 //bool gbBundleStartIteratingBack;
 
-#ifdef	_FREETR
 /// GDLC 2010-02-13 gnOffsetInMarkersStr and gnLengthInMarkersStr moved to CFreeTrans
-#else	// _FREETR
-/// The offset to the current free translation string in pSrcPhrase->m_markers.
-int gnOffsetInMarkersStr; 
-/// The free translation length, including final space if any, in pSrcPhrase->m_markers.
-int gnLengthInMarkersStr; 
-#endif	// _FREETR
 
-#ifdef	_FREETR
 //GDLC 2010-02-12,16
 // The arrays gpCurFreeTransSectionPileArray and gpFreeTransArray were changed to
 // member variables of CFreeTrans; as was the pointer gpFirstPile; the pointer
 // gpLastPile was deleted because it is no longer used anywhere.
-#else	_FREETR
-/// An array of pointers to CPile instances. It is created on the heap in OnInit(), 
-/// and disposed of in OnExit().
-wxArrayPtrVoid*	gpCurFreeTransSectionPileArray;
-
-/// An array of pointers used as a scratch array, for composing the free translations which
-/// are written to screen. Element pointers point to FreeTrElement structs - each of which
-/// contains the information relevant to writing a subpart of the free translation in a
-/// single rectangle under a single strip.
-wxArrayPtrVoid*	gpFreeTransArray; // new creates on heap in InitInstance, 
-			// and disposes in ExitInstance
-
-/// Pointer to first pile in a free translation section.
-CPile* gpFirstPile;
-#endif	_FREETR
 
 /// The contents of App's m_punctuation[1] string with spaces removed.
 wxString gSpacelessTgtPunctuation;
@@ -7848,18 +7823,11 @@ int ii = 1;
 	m_bControlIsWithinOnInit = FALSE;
 
  
-	#ifdef	_FREETR
 	//GDLC 2010-02-12
 	// Create the free translation display handler
 	m_pFreeTrans = new CFreeTrans(this);
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pFreeTrans);
-#else	// _FREETR
-	// set up data structures to be used for free translation support (ExitInstance 
-	// will delete them)
-	gpCurFreeTransSectionPileArray = new wxArrayPtrVoid;
-	gpFreeTransArray = new wxArrayPtrVoid;
-#endif	// _FREETR
 
 #ifdef _NOTES
 	m_pNotes = new CNotes(this);
@@ -7960,20 +7928,12 @@ int CAdapt_ItApp::OnExit(void)
 	delete m_pRetranslation;
 #endif
 	
-#ifdef	_FREETR
 	//GDLC Added 2010-02-12
 	// Delete the CFreeTrans manager after popping its event table off the stack of
 	// windows event handlers
 	//pHdlr = GetView()->canvas->pFrame->PopEventHandler(); // default param is FALSE 
 								// (meaning that we'll do the deleting ourselves)
 	delete m_pFreeTrans;
-#else	// _FREETR
-	// delete the stuff used for free translation support
-	gpCurFreeTransSectionPileArray->Clear();
-	delete gpCurFreeTransSectionPileArray;
-	gpFreeTransArray->Clear();
-	delete gpFreeTransArray;
-#endif	// _FREETR
 		
 	delete m_pROP; // delete the ReadOnlyProtection class's only instance
 	m_pROPwxFile->Close(); // may already be closed, but no harm in the call even so
@@ -11409,7 +11369,6 @@ CAdapt_ItDoc* CAdapt_ItApp::GetDocument()
 	return pDoc;
 }
 
-#ifdef	_FREETR
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return     pointer to the free translations manager
 /// \remarks
@@ -11439,7 +11398,6 @@ CLayout*	CAdapt_ItApp::GetLayout()
 	wxASSERT(m_pLayout);
 	return m_pLayout;
 }
-#endif	// _FREETR
 
 #ifdef _NOTES
 ////////////////////////////////////////////////////////////////////////////////////////

@@ -17,8 +17,6 @@
 #ifndef FreeTrans_h
 #define FreeTrans_h
 
-#ifdef	_FREETR
-
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma interface "FreeTrans.h"
@@ -165,7 +163,5 @@ private:
 	DECLARE_EVENT_TABLE()
 
 };
-
-#endif	// _FREETR
 
 #endif /* FreeTrans_h */

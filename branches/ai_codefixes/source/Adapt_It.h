@@ -27,12 +27,12 @@
 // conditional #define using the following symbol
 //#define _DOCVER5  I moved this to a preprocessor #define
 //
-// Likewise, so that Bruce's testing can go ahead before the CFreeTrans class is completed
-// but Graeme wants to prepare the hooks in FreeTrans.h/.cpp while work on FreeTrans.h/.cpp
-// proceeds, Graeme will compile his incomplete changes with
-//#define _FREETR  I moved this to a preprocessor #define
-// Once CFreeTrans is completed, a search and destroy operation can be carried out to remove
-// the old code wherever _FREETR is found
+// Likewise, so that Bruce's testing could go ahead before the CFreeTrans class is completed
+// but Graeme wanted to prepare the hooks in FreeTrans.h/.cpp while work on FreeTrans.h/.cpp
+// proceeded, Graeme compiled his incomplete changes with
+//#define _FREETR  This was moved this to a preprocessor #define
+// Once CFreeTrans is completed, a search and destroy operation was carried out to remove
+// the old code wherever _FREETR was found
 
 class AIPrintout;
 // for debugging m_bNoAutoSave not getting preserved across app closure and relaunch...
@@ -320,18 +320,7 @@ WX_DECLARE_LIST(CCell, CCellList); // see list definition macro in .cpp file
 
 // globals
 
-#ifdef	_FREETR
 //GDLC 2010-02-12 Definition of FreeTrElement moved to FreeTrans.h
-#else	// _FREETR
-/// A struct containing the information relevant to writing a subpart of the free
-/// translation in a single rectangle under a single strip. Struct members include:
-/// horizExtent and subRect.
-struct FreeTrElement 
-{
-	int horizExtent;
-	wxRect subRect;
-};
-#endif	// _FREETR
 
 /// An enum for selecting which code block to use within the FixBasicConfigPaths()
 /// function, called from MakeForeignBasicConfigFilesSafe()
@@ -1732,14 +1721,10 @@ public:
 	// BEW added 10Feb09 for refactored view layout support
 	CLayout* m_pLayout;
 
-#ifdef	_FREETR
-	// GDLC 2010-02-17
-	
 	// GDLC 2010-02-12
 	// Pointer to the free translation display manager
 	// Set by the return value from CFreeTrans creator
 	CFreeTrans*	m_pFreeTrans;
-#endif	// _FREETR
 
 //private: // <- BEW removed 1Mar10, because for unknown reason compiler fails to 'see' it otherwise
 #ifdef _NOTES
@@ -2531,10 +2516,8 @@ public:
 	bool	GetBasePointers(CAdapt_ItDoc*& pDoc, CAdapt_ItView*& pView, CPhraseBox*& pBox);
 	MapSfmToUSFMAnalysisStruct* GetCurSfmMap(enum SfmSet sfmSet);
 	CAdapt_ItDoc* GetDocument();	// convenience function for accessing the Doc
-#ifdef	_FREETR
 	CFreeTrans*	GetFreeTrans();		// convenience function for accessing the free translations manager
 	CLayout*	GetLayout();		// convenience function for accessing the CLayout object
-#endif	// _FREETR
 	int		GetPageOrientation();
 	void	GetPossibleAdaptionDocuments(wxArrayString* pList, wxString dirPath);
 	void	GetPossibleAdaptionProjects(wxArrayString* pList);

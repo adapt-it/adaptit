@@ -157,9 +157,7 @@ bool		IsRetranslationInSelection(SPList* pList);
 #endif
 
 // filtered fields functions moved from CAdapt_ItView
-#if defined(_FREETR) || defined(_NOTES)
 wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
 						CSourcePhrase* pSrcPhrase, int& offset, int & length);
-#endif	// _FREETR
 
-#endif
+#endif	// helpers_h

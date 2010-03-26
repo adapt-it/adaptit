@@ -232,7 +232,7 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		// get the existing Note text
 		m_strNote = pSrcPhrase->GetNote();
 		m_saveText = m_strNote;
-#else
+#else	// _DOCVER5
 		// extract the existing Note text (the view variable m_note will store the string)
 		// (extraction removes the note contents and trailing space from between the \note
 		// and \note* markers, so that when we exit the dialog, we can copy in the text
@@ -253,20 +253,12 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 		{
 			// the marker is present, so extract the note content, setting its offset and length,
 			// and then clear its space in m_markers
-#ifdef	_FREETR
 			m_strNote = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,m_noteOffset,m_noteLen);
-#else	// _FREETR
-#ifdef _NOTES
-			m_strNote = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,m_noteOffset,m_noteLen);
-#else
-			m_strNote = pView->GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,m_noteOffset,m_noteLen);
-#endif // _NOTES
-#endif	// _FREETR
 			m_saveText = m_strNote;
 			markers.Remove(m_noteOffset,m_noteLen);
 			pSrcPhrase->m_markers = markers; // update it
 		}
-#endif
+#endif	// _DOCVER5
 	}
 	else
 	{

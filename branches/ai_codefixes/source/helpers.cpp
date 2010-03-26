@@ -1318,15 +1318,8 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
 		endMkr.Empty(); // back translation material has no endmarker
 		int offset = -1; // needed for next call, but we don't use the returned value
 		int length = 0;  // ditto
-#ifdef	_FREETR
 		wxString collectedStr = GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
-#else	// _FREETR
-#ifdef	_NOTES
-	wxString collectedStr = GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
-#else	// _NOTES
-	wxString collectedStr = pView->GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
-#endif
-#endif	// _FREETR
+
 		// repurpose the offset local variable
 		offset = -1;
 		bool bAdaptionInCollectedStr = FALSE;
@@ -1679,9 +1672,6 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 }
 
 // filtered fields functions moved from CAdapt_ItView
-//#if defined (_FREETR) || defined (_NOTES) // we no longer need this function in _FREETR
-//wrapped code
-#if defined (_NOTES)
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return             the text of the filtered content (such as a free translation) 
@@ -1765,7 +1755,6 @@ a:		offset = 0;
 	contentStr = markers.Mid(offset,length);
 	return contentStr;
 }
-#endif	// _FREETR
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return         TRUE if there is a \free marker in m_markers of pSrcPhrase, but with 
@@ -2232,5 +2221,5 @@ bool IsRetranslationInSelection(SPList* pList)
 	return FALSE;
 }
 
-#endif
+#endif	// _RETRANS
 
