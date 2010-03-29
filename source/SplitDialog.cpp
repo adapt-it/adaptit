@@ -352,7 +352,6 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// Do the actual split.
 	pView->canvas->Freeze();
 	SPList *SourcePhrases2 = gpApp->m_pSourcePhrases;
-	//SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_curIndex);
 	SPList *SourcePhrases1 = SplitOffStartOfList(SourcePhrases2, gpApp->m_nActiveSequNum); // refactored 26Apr09
 
 	// BEW added test 02Nov05, to check the user actually advanced the phrasebox from the
@@ -378,7 +377,13 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	// that info before saving, provided we indeed have found a valid book ID (if the string
 	// is non-empty, it will be a valid one)
 	gpApp->m_pSourcePhrases = SourcePhrases2;
-	if (!bookID.IsEmpty())
+	// BEW 29Mar10, add a check for an existing book ID string (3-letter code) at the
+	// start of the second document - if there is one there, assume the user is splitting
+	// a composite document made up of bible books, and so retain what is there instead of
+	// copying the split off part's book id.
+	wxString bookID2 = gpApp->GetBookID(); // the check uses IsCalidBookID() 
+										   // which converts to lower case first
+	if (!bookID.IsEmpty() && bookID2.IsEmpty())
 	{
 		gpApp->AddBookIDToDoc(gpApp->m_pSourcePhrases, bookID);
 	}
@@ -584,17 +589,24 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 
 				if (rv->GetCount() >= 2)
 				{
-					// move any final endmarkers to an appended CSourcePhrase at the end of the previous
-					// chapter's content; if done, the CSourcePhrase to append is created in
-					// internally in the call of MoveFinalEndmarkersToEndOfLastChapter()
+                    // move any final endmarkers to an appended CSourcePhrase at the end of
+                    // the previous chapter's content; if done, the CSourcePhrase to append
+                    // is created in internally in the call of
+                    // MoveFinalEndmarkersToEndOfLastChapter()
 					MoveFinalEndmarkersToEndOfLastChapter(SourcePhrases, save_pos, rv, gpApp->gCurrentSfmSet);
 				}
 			}
 
-			// the second and subsequent lists of sourcephrases won't yet have an \id line with the book
-			// ID code included, so we need to insert a new sourcephrase to store that info in each such
-			// sublist, provided we indeed have found a valid book ID (if the string is non-empty, it 
-			// will be a valid one)
+            // the second and subsequent lists of sourcephrases won't yet have an \id line
+            // with the book ID code included, so we need to insert a new sourcephrase to
+            // store that info in each such sublist, provided we indeed have found a valid
+            // book ID (if the string is non-empty, it will be a valid one) Note (29Mar10)
+            // we assume the document being split into chapters is all from one Bible book,
+            // so that the book ID code is the same for each chapter, so we don't make any
+            // test here (unlike the other 2 options) for the possibility of a "chapter"
+            // starting with an \id field with a different book ID code in it - that would
+            // be a crazy situation and we can discount it as a realistic possibility; just
+            // use what is in bookID if it is non-empty
 			if (rv->GetCount() >= 2)
 			{
 				if (!bookID.IsEmpty())

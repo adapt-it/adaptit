@@ -176,8 +176,8 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_curKey = _T("");
 
 	m_nCurPage = 0; // default to first page (1 Word)
-	m_bRemindUserToDoAConsistencyCheck = FALSE; // set TRUE if user does searches and respellings
-	
+	m_bRemindUserToDoAConsistencyCheck = FALSE; // set TRUE if user does respellings
+												// using the KBEditSearch dialog
 	bKBEntryTemporarilyAddedForLookup = FALSE;
 
 	KBEditorDlgFunc(this, TRUE, TRUE);
@@ -801,10 +801,12 @@ void CKBEditor::OnButtonGo(wxCommandEvent& WXUNUSED(event))
 
 				// finally, the user must be given a reminder -- do it on exit of the KB
 				// Editor dialog, but set a flag here which indicates the need for the message
-				m_bRemindUserToDoAConsistencyCheck = TRUE;
-
-// and add a handler for clicking on a combobox line to have it re-entered into
-// m_pEditSearches
+				// BEW changed 20Mar10, we don't want this message unilaterally, because
+				// no respellings may have been done in the KBEditSearch dialog, and it's
+				// only KB changes that should cause the message about a consistency check
+				// to be shown. So we let the child dialog set this flag only when the
+				// update list has content
+				//m_bRemindUserToDoAConsistencyCheck = TRUE;
 			}
 		}
 		else
