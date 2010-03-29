@@ -47,11 +47,21 @@ class AIPrintout;
 
 // ******************************* my #defines *********************************************
 
+// whm Note: When changing the following defines for version number, you should also change
+// the FileVersion and ProductVersion strings in the Adapt_It.rc file in bin/win32.
+// Warning: Do NOT edit the Adapt_It.rc file using the Visual Studio 2008 IDE's Resource View
+// editor directly - doing so will recreate the Adatp_It.rc file adding Windows stuff we 
+// don't want in it and obliterating the wx stuff we do want in it.
+// Instead, CLOSE Visual Studio 2008 and edit the Adapt_It.rc file in a plain 
+// text editor such as Notepad. If Visual Studio 2008 is open during the editing of 
+// Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
+// Adapt_It.rc file after sensing that it was changed by the external program. 
+// 
 #define VERSION_MAJOR_PART 5
 #define VERSION_MINOR_PART 2
 #define VERSION_BUILD_PART 1
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 20
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 29
 #define VERSION_DATE_MONTH 03
 #define VERSION_DATE_YEAR 2010
 
