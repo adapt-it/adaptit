@@ -13273,9 +13273,14 @@ void CAdapt_ItDoc::MakeOutputBackupFilenames(wxString& curOutputFilename, bool b
 /// \remarks
 /// Called from: the Tools menu "Split Document..." command.
 /// Invokes the CSplitDialog dialog.
+/// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
+/// upon immediately after, say, a Find which gets the wanted location and shows it
+/// selected, a later RemoveSelection() call will try remove m_selection data which by
+/// then will contain only hanging CCell pointers - giving a crash
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->GetView()->RemoveSelection();
 	CSplitDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
 }
@@ -13286,9 +13291,14 @@ void CAdapt_ItDoc::OnSplitDocument(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the Tools menu "Join Document..." command.
 /// Invokes the CJoinDialog dialog.
+/// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
+/// upon immediately after, say, a Find which gets the wanted location and shows it
+/// selected, a later RemoveSelection() call will try remove m_selection data which by
+/// then will contain only hanging CCell pointers - giving a crash
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->GetView()->RemoveSelection();
 	CJoinDialog d(gpApp->GetMainFrame());
 	d.ShowModal();
 }
@@ -13299,9 +13309,14 @@ void CAdapt_ItDoc::OnJoinDocuments(wxCommandEvent& WXUNUSED(event))
 /// \remarks
 /// Called from: the Tools menu "Move Document..." command.
 /// Invokes the CMoveDialog dialog.
+/// BEW 29Mar10, added RemoveSelection() call, because if the command is entered and acted
+/// upon immediately after, say, a Find which gets the wanted location and shows it
+/// selected, a later RemoveSelection() call will try remove m_selection data which by
+/// then will contain only hanging CCell pointers - giving a crash
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnMoveDocument(wxCommandEvent& WXUNUSED(event))
 {
+	gpApp->GetView()->RemoveSelection();
 	CMoveDialog d(gpApp->GetMainFrame());
 	d.ShowModal(); // We don't care about the results of the dialog - 
 				   // it does all it's own work.

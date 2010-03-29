@@ -1,3 +1,28 @@
+Version 5.2.1 update ??March2010:
+----------------------------------------------
+Feature changes and new features in 5.2.1
+----------------------------------------------
+* Up until 5.2.1, 3-letter book codes needed to be in all upper case. 
+For example, HAG for  the book of Haggai, and it would not recognise 
+hag or Hag as a 3-letter book code; similarly for other 3-letter codes in 
+lower or mixed case. From now on, however, upper, lower or mixed 
+case 3-letter book codes are all recognised correctly.
+* After using the KB Editor Search feature, the message suggesting
+that a consistency check be done does not come up now unless the
+user actually changed at least one adaptation (or, if in glossing mode,
+at least one gloss).
+
+----------------------------------------------
+Bug fixes in 5.2.1
+----------------------------------------------
+* Having source text selected when invoking any of the Split Document 
+or Join Document commands resulted in a crash when the application
+tried to remove the selection at the end of the operation.
+* Reatranslating a footnote at the end of the document with a longer 
+footnote caused a crash.
+* Doing Restore Knowledge Base when in book folder mode, when the
+restore starts working through the book folders it fell into an infinite loop.
+
 Version 5.2.0 update 15March2010:
 ----------------------------------------------
 Feature changes and new features in 5.2.0
