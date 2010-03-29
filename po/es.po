@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Adapt It\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-15 16:40-0600\n"
-"PO-Revision-Date: 2010-03-15 16:40-0600\n"
+"POT-Creation-Date: 2010-03-29 15:55-0600\n"
+"PO-Revision-Date: 2010-03-29 15:55-0600\n"
 "Last-Translator: Bill Martin <bill_martin@sil.org>\n"
 "Language-Team: Bill Martin, Bruce Waters <bill_martin@sil.org>\n"
 "MIME-Version: 1.0\n"
@@ -593,8 +593,8 @@ msgstr "Adapt It"
 
 # This will be the name of the folder that contains all the adapted documents for a project.
 #: source/Adapt_It.cpp:5141
-#: source/Adapt_It.cpp:21456
-#: source/Adapt_It.cpp:21521
+#: source/Adapt_It.cpp:21493
+#: source/Adapt_It.cpp:21558
 msgid "Adaptations"
 msgstr "Adaptaciones"
 
@@ -676,9 +676,9 @@ msgid "Locating the custom work folder location failed. Either recovery requires
 msgstr "No se puede localizar el lugar de trabajo personalizado carpeta. O la recuperación requiere que se actúe fuera de Adapt It, o el intento de recuperación fue exitosa o le obligó a cancelar la programa ahora."
 
 #: source/Adapt_It.cpp:6690
-#: source/Adapt_It.cpp:15427
-#: source/Adapt_It.cpp:15437
-#: source/Adapt_It.cpp:15551
+#: source/Adapt_It.cpp:15464
+#: source/Adapt_It.cpp:15474
+#: source/Adapt_It.cpp:15588
 #, fuzzy
 msgid "Error of file named CustomWorkFolderLocation"
 msgstr "&Ubicación de la carpeta de trabajo personalizado"
@@ -986,7 +986,7 @@ msgstr "Base de conocimientos no se encuentra el archivo inmediatamente después
 msgid "Warning: the consistent changes table number %d, and any further tables, were not loaded."
 msgstr "¡Ojo!: Empezando con la tabla %d, de los demás Cambios a Textos no fueron cargados. "
 
-#: source/Adapt_It.cpp:12382
+#: source/Adapt_It.cpp:12383
 msgid ""
 "Use this command if the knowledge base has become corrupted.\n"
 "(To restore a glossing knowledge base, turn glossing ON and then choose this command again.)\n"
@@ -995,7 +995,7 @@ msgid ""
 "Do you wish to go ahead?"
 msgstr "Utilice este mandato si la Base de Conocimientos ha llegado a ser corrupta. (Para restaurar glosas de una Base de Conocimientos, ponga la opción ‘Permitir Glosar’ en afirmativo y entonces vuélvase intentar con este mismo mandato otra vez.) Le dejará tirar su Base de Conocimientos actual, y entonces utilizando sus documentos guardados se la construirá nuevo. ¿Desea usted seguir adelante?"
 
-#: source/Adapt_It.cpp:12408
+#: source/Adapt_It.cpp:12409
 #, fuzzy
 msgid ""
 "Adapt It can also try to rescue your settings for the \"Force Choice For This Item\" checkbox,\n"
@@ -1004,21 +1004,21 @@ msgid ""
 "Do you wish to try this extra rescue?"
 msgstr "Adapt It puede tratar también de rescatar sus parámetros del renglón \"Mandar Seleccionar para este Artículo\" pero quizás tener como resultado un choque inofensivo. (Si eso es el caso, arranca Adapt It otra vez y teclee el \"no\" en la opción.) ¿Desea usted intentar rescatar estos parámetros?"
 
-#: source/Adapt_It.cpp:12472
-#: source/Adapt_It.cpp:18906
+#: source/Adapt_It.cpp:12473
+#: source/Adapt_It.cpp:18943
 #: source/Adapt_ItView.cpp:17154
 #: source/Adapt_ItView.cpp:17211
 #: source/Adapt_ItView.cpp:25014
 msgid "Sorry, there are no saved document files yet for this project. At least one document file is required for the operation you chose to be successful. The command will be ignored."
 msgstr "AVISO: no han ningunos archivos de documento guardados todavía para este proyecto. Restaurar la Base de Conocimientos no es posible si no hay por lo menos un archivo de documento. El mandato se ignorará."
 
-#: source/Adapt_It.cpp:12615
-#, c-format
-msgid "Your rebuilt knowledge base is now in operation. It contains %d source words and phrases taken from %d  documents."
+#: source/Adapt_It.cpp:12652
+#, fuzzy, c-format
+msgid "Your rebuilt knowledge base is now in operation. It was built from %d source words and phrases taken from %d documents."
 msgstr "El rectificado Base de Conocimientos ya funciona. Contiene %d palabras y cláusulas llevadas de %d  documentos."
 
-#: source/Adapt_It.cpp:12928
-#: source/Adapt_It.cpp:19173
+#: source/Adapt_It.cpp:12965
+#: source/Adapt_It.cpp:19210
 #: source/Adapt_ItDoc.cpp:2255
 #: source/Adapt_ItView.cpp:17310
 #: source/Adapt_ItView.cpp:25308
@@ -1026,15 +1026,15 @@ msgstr "El rectificado Base de Conocimientos ya funciona. Contiene %d palabras y
 msgid "%s  - %d of %d Total words and phrases"
 msgstr "Archivo:   %s  Total de palabras y cláusulas: %d  de  %d"
 
-#: source/Adapt_It.cpp:12930
+#: source/Adapt_It.cpp:12967
 msgid "Restoring the Knowledge Base"
 msgstr "Restaurar la base de conocimientos"
 
-#: source/Adapt_It.cpp:13018
+#: source/Adapt_It.cpp:13055
 msgid "Warning: something went wrong doing a save of the KB"
 msgstr "Advertencia: detectado un error al guardar la base de conocimientos"
 
-#: source/Adapt_It.cpp:13048
+#: source/Adapt_It.cpp:13085
 #, c-format
 msgid ""
 "Adapt It changed the punctuation in one or more of your documents.\n"
@@ -1043,16 +1043,16 @@ msgstr ""
 "Adapt It cambió la puntuacion en uno o más de sus documentos. \n"
 "Ver el fichero %s en la carpeta de proyecto para obtener más información sobre lo que ha cambiado."
 
-#: source/Adapt_It.cpp:14302
+#: source/Adapt_It.cpp:14339
 msgid "Unrecognized font attribute field; unmatched name is: "
 msgstr "No reconocido campo de atributo de tipo de letra, nombre sin par es el siguiente:"
 
-#: source/Adapt_It.cpp:14303
+#: source/Adapt_It.cpp:14340
 msgid "Error parsing font information"
 msgstr "Error al analizar la información del tipo de letra"
 
-#: source/Adapt_It.cpp:14595
-#: source/Adapt_It.cpp:16303
+#: source/Adapt_It.cpp:14632
+#: source/Adapt_It.cpp:16340
 #: source/Adapt_ItDoc.cpp:8721
 msgid ""
 "\n"
@@ -1065,7 +1065,7 @@ msgstr ""
 "Sus primeros datos deben ser convertidos a Unicode utilizando TecKit\n"
 "y luego usar la versión Unicode de Adapt It."
 
-#: source/Adapt_It.cpp:14597
+#: source/Adapt_It.cpp:14634
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Basic Configuration File's punctuation string (see below):"
@@ -1073,18 +1073,18 @@ msgstr ""
 "El siguiente extendido caracteres de 8-bit ASCII se detectaron en el \n"
 "frase de puntuacion de la configuración básica del archivo:"
 
-#: source/Adapt_It.cpp:14599
-#: source/Adapt_It.cpp:16307
+#: source/Adapt_It.cpp:14636
+#: source/Adapt_It.cpp:16344
 #: source/Adapt_ItDoc.cpp:8724
 msgid "Warning: Invalid Characters Detected"
 msgstr "Aviso: se han detectado algunos caracteres no válidos"
 
-#: source/Adapt_It.cpp:15235
+#: source/Adapt_It.cpp:15272
 #, c-format
 msgid "Warning: Unrecognized Basic settings field; unmatched name is: %s\n"
 msgstr "Advertencia: el tema no reconocidos en la configuración básica, nombre sin par es: %s\n"
 
-#: source/Adapt_It.cpp:15490
+#: source/Adapt_It.cpp:15527
 #, fuzzy, c-format
 msgid ""
 "Adapt It did not find your work folder at\n"
@@ -1103,33 +1103,33 @@ msgstr ""
 "3. Otra aplicación tiene actualmente la CustomWorkFolderLocation archivo abierto. \n"
 "Usted tendrá la oportunidad de recuperarse ahora."
 
-#: source/Adapt_It.cpp:15492
+#: source/Adapt_It.cpp:15529
 msgid "Failed to find the custom work folder"
 msgstr "No se ha podido encontrar la carpeta personalizada de trabajo "
 
-#: source/Adapt_It.cpp:15501
+#: source/Adapt_It.cpp:15538
 msgid "1. Plug in the missing external drive, then click OK here."
 msgstr "1. Conecte el disco externo que falta, a continuación, haga clic en Aceptar aquí."
 
-#: source/Adapt_It.cpp:15502
+#: source/Adapt_It.cpp:15539
 msgid "2. Close the other application, or use a text editor to fix the path in the file CustomWorkFolderLocation; then click OK here."
 msgstr "2. Cierre la otra aplicación, o usar un editor de texto para fijar la ruta en el archivo CustomWorkFolderLocation, y luego haga clic en Aceptar aquí."
 
-#: source/Adapt_It.cpp:15503
+#: source/Adapt_It.cpp:15540
 #, fuzzy
 msgid "3. Ignore the custom work folder location, use the default location instead. (Then ask your administrator to help you.)"
 msgstr "3. No haga caso del lugar de trabajo carpeta personalizada, utilice la ubicación predeterminada en su lugar. (Luego, pregúntele a su administrador que le ayude.)"
 
-#: source/Adapt_It.cpp:15504
+#: source/Adapt_It.cpp:15541
 #, fuzzy
 msgid "4. Forget the custom work folder location. The command Custom Work Folder Location will then run, use it to relocate the folder."
 msgstr "4. Olvídese de la costumbre lugar de trabajo de carpetas. El comando personalizado Ubicación de la carpeta de trabajo se ejecutará, lo utilizan para reubicar la carpeta."
 
-#: source/Adapt_It.cpp:15505
+#: source/Adapt_It.cpp:15542
 msgid "Choose Recovery Action or Cancel (to abort)"
 msgstr "Elige o Acción para la Recuperación o Cancelar"
 
-#: source/Adapt_It.cpp:15506
+#: source/Adapt_It.cpp:15543
 msgid ""
 "Select from the list of recovery actions, then click OK. The Cancel button will abort the application. \n"
 "1. Plug in the required external drive now, then click OK. \n"
@@ -1143,39 +1143,39 @@ msgstr ""
 "3. Forget (pero no eliminar) el lugar de trabajo personalizado carpeta, utilice la ubicación predeterminada en su lugar. \n"
 "4. Igual que la opción 3. sino también mostrar el menú de administrador (de gran ayuda si usted sabe qué hacer con él)."
 
-#: source/Adapt_It.cpp:15520
+#: source/Adapt_It.cpp:15557
 #, fuzzy
 msgid "The path to the custom work folder did not find a directory with the required name. Did you plug in the external drive containing the work folder before clicking OK in the dialog? Aborting now. Make the custom work folder's location accessible on your machine before you re-launch Adapt It."
 msgstr "La ruta a la carpeta de trabajo de encargo no encontramos un directorio con el nombre requerido. ¿Sabía usted que conectar el disco duro externo que contiene la carpeta de trabajo antes de hacer clic en Aceptar en el cuadro de diálogo? Abortar ahora. Hacer accesible la ubicación de la carpeta de trabajo personalizado en su máquina antes de volver a lanzar Adapt It."
 
-#: source/Adapt_It.cpp:15521
+#: source/Adapt_It.cpp:15558
 #, fuzzy
 msgid "Recovery By Plugging In The Missing External Drive Failed"
 msgstr "Al conectar la recuperación de la fallida falta la unidad externa"
 
-#: source/Adapt_It.cpp:15550
+#: source/Adapt_It.cpp:15587
 #, fuzzy
 msgid "Failed to open the CustomWorkFolderLocation file at default work folder location. Is the CustomWorkFolderLocation file still open in another application? Is the path within it an incorrect path to the custom work folder on your machine? Check and fix such errors before you re-launch Adapt It. Aborting now."
 msgstr "No se pudo abrir el archivo CustomWorkFolderLocation en el trabajo, ubicación de la carpeta por defecto. Es el CustomWorkFolderLocation archivo sigue abierto en otra aplicación? Es el camino dentro de ella una ruta incorrecta en la carpeta de trabajo personalizado en su máquina? Comprobar y corregir estos errores antes de volver a lanzar adaptarlo. Abortar ahora."
 
-#: source/Adapt_It.cpp:15559
+#: source/Adapt_It.cpp:15596
 msgid "The path to the custom work folder did not find a directory with the required name. Did you check the path specification using a file browser, to make sure your edit of the path in the CustomWorkFolderLocation file resulted in a correct path to the custom work folder? Aborting now. Use a text editor again to get the path typed correctly before you re-launch Adapt It."
 msgstr "La ruta a la carpeta de trabajo de encargo no encontramos un directorio con el nombre requerido. ¿Ha comprobado la especificación de la ruta usando un explorador de archivos, para asegurarse que su edición de la ruta en el archivo CustomWorkFolderLocation resultó en una ruta correcta de la carpeta de trabajo personalizado? Abortar ahora. Utilice un editor de texto de nuevo para obtener la ruta escrito correctamente antes de volver a lanzar Adapt It."
 
-#: source/Adapt_It.cpp:15560
+#: source/Adapt_It.cpp:15597
 msgid "Recovery By Editing The Path Specificiation Failed"
 msgstr "Error al intentar la recuperación mediante la edición de la ruta de acceso"
 
-#: source/Adapt_It.cpp:15634
+#: source/Adapt_It.cpp:15671
 #, fuzzy
 msgid "You did not succeed in locating the work folder location. Aborting now. Next time you launch, you or your administrator will need to use the Administrator menu to locate the required work folder."
 msgstr "No tuvo éxito en la localización de la ubicación de la carpeta de trabajo. El programa se cerrará ahora. La próxima vez que inicie, usted o su administrador tendrá que utilizar el menú de administrador encuentra la carpeta de trabajo requerido."
 
-#: source/Adapt_It.cpp:15635
+#: source/Adapt_It.cpp:15672
 msgid "One chance to relocate the work folder failed"
 msgstr "Falló una oportunidad para reubicar la carpeta de trabajo"
 
-#: source/Adapt_It.cpp:16305
+#: source/Adapt_It.cpp:16342
 msgid ""
 "Extended 8-bit ASCII characters were detected in the\n"
 "Project Configuration File's punctuation string (see below):"
@@ -1184,55 +1184,55 @@ msgstr ""
 "frase de puntuacion en el archivo de configuración del proyecto:"
 
 # Note: leave a space after the colon.
-#: source/Adapt_It.cpp:16707
+#: source/Adapt_It.cpp:16744
 msgid "Warning: Unrecognized project settings field; unmatched name is: "
 msgstr "Advertencia: una opción de configuración del proyecto no se reconoce. Nombre sin par: "
 
-#: source/Adapt_It.cpp:16898
+#: source/Adapt_It.cpp:16935
 msgid "Sorry, Adapt It will not permit the < character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "AVISO: No se permitirá el ‘<’ ser utilizado como un carácter para formar palabras. Se debe incluir en la lista de las letras para puntuar, y se colocará allí ahora."
 
-#: source/Adapt_It.cpp:16912
+#: source/Adapt_It.cpp:16949
 msgid "Sorry, Adapt It will not permit the > character to be used as a word-building character. It must be included with the punctuation characters, and it will be placed there now."
 msgstr "AVISO: No se permitirá el ‘>’ ser utilizado como un carácter para formar palabras. Se debe incluir en la lista de las letras para puntuar, y se colocará allí ahora."
 
-#: source/Adapt_It.cpp:17266
-#: source/Adapt_It.cpp:17320
+#: source/Adapt_It.cpp:17303
+#: source/Adapt_It.cpp:17357
 msgid "basic"
 msgstr "basico"
 
-#: source/Adapt_It.cpp:17268
-#: source/Adapt_It.cpp:17322
+#: source/Adapt_It.cpp:17305
+#: source/Adapt_It.cpp:17359
 msgid "project"
 msgstr "proyecto"
 
 # Priority 1
 # The %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:17270
+#: source/Adapt_It.cpp:17307
 #, fuzzy, c-format
 msgid "Unable to open the %s configuration file for reading. Default values will be used instead. (Ignore this message if you have just launched Adapt It for the first time, or have just created a new project, because no configuration file exists yet.)"
 msgstr "AVISO: Incapaz de abrir para leer el archivo de configuración. %s  En lugar de ello se utilizarán valores por defecto. (Ignore este mensaje si usted ha acabado de lanzar Adapt It por primera vez, porque ningún archivo de configuración existe todavía.)"
 
 # The first %s placeholder will receive the translation of "source" or "target" or "navigation" (see below).
 # The second %s placeholder will receive the translation for the word "basic" or the translation for the word "project" (see above)
-#: source/Adapt_It.cpp:17324
+#: source/Adapt_It.cpp:17361
 #, c-format
 msgid "Unable to read %s font data from the %s configuration file. Default values will be used instead."
 msgstr "No se puede leer de los datos del tipo de letra %s del archivo de configuración %s. Los valores preseleccionados se utilizará en su lugar."
 
-#: source/Adapt_It.cpp:17330
+#: source/Adapt_It.cpp:17367
 msgid "source"
 msgstr "original"
 
-#: source/Adapt_It.cpp:17340
+#: source/Adapt_It.cpp:17377
 msgid "target"
 msgstr "final"
 
-#: source/Adapt_It.cpp:17350
+#: source/Adapt_It.cpp:17387
 msgid "navigation"
 msgstr "navegar"
 
-#: source/Adapt_It.cpp:18691
+#: source/Adapt_It.cpp:18728
 #, fuzzy, c-format
 msgid ""
 "Warning: the Transform Adaptations Into Glosses command will clear out the contents of the current project's knowledge base, which contains %d entries.\n"
@@ -1240,30 +1240,30 @@ msgid ""
 "Are you willing for this to happen?"
 msgstr "AVISO: La opción; ‘Transformar Adaptaciones a Glosas’, quitará el contenido de la Base de Conocimientos, que contiene %d registros. Igualmente para la Base de Glosas, que contiene %d registros. ¿Usted está dispuesto para que esto acontezca?"
 
-#: source/Adapt_It.cpp:18765
+#: source/Adapt_It.cpp:18802
 msgid "Error: the application could not find the other project's knowledge base, or failed to open and load it. The command has therefore been ignored."
 msgstr "ERROR: O el programa no podría encontrar el otro Base de Conocimientos o falló de abrirlo. El mandato, por lo tanto, fue ignorado."
 
-#: source/Adapt_It.cpp:19176
+#: source/Adapt_It.cpp:19213
 msgid "Transformations To Glosses"
 msgstr "Transformaciones a Glosas"
 
-#: source/Adapt_It.cpp:19255
+#: source/Adapt_It.cpp:19292
 #, c-format
 msgid "The document with pathname: %s, was not opened and therefore not processed."
 msgstr "El documento en el directorio %s no se abrió y por lo tanto no se procesan."
 
-#: source/Adapt_It.cpp:19276
+#: source/Adapt_It.cpp:19313
 #, c-format
 msgid "The documents you chose from the other project have been transformed and copied to the current project. A total of %d source words and phrases were transformed, and these occur in %d  documents."
 msgstr "Los documentos que se escogen del otro proyecto se han transformado y han sido copiados al proyecto actual. Un suma de %d palabras de texto y cláusulas fueron transformados, y éstos ocurren en %d documentos."
 
-#: source/Adapt_It.cpp:19377
+#: source/Adapt_It.cpp:19414
 msgid "Automatic capitalization support will work only provided the source language distinguishes between upper case and lower case letters. A \"No\" response will prohibit auto-capitalization from being turned on. Does your source language have both upper and lower case letters?"
 msgstr "El manejo de las letras mayúsculas y minúsculas (Mayúsculasación Automática) solamente funciona si el texto original se distingue entre o la una o la otra.  A decir \"\"no\"\", prohibirá que el ‘Mayúsculasación Automática’ será prendido. ¿Tiene el lenguaje original tanto las mayúsculas como minúsculas?"
 
-#: source/Adapt_It.cpp:19408
-#: source/Adapt_It.cpp:19428
+#: source/Adapt_It.cpp:19445
+#: source/Adapt_It.cpp:19465
 msgid ""
 "The source language upper and lower case correspondences do not yet exist. Until they do, automatic captialization cannot be turned on.\n"
 "You can set them up in the Edit Preferences menu selection on the \"Case\" tab."
@@ -1271,28 +1271,28 @@ msgstr ""
 "Aún no existen correspondencias entre minúscula y mayúscula.  Entonces, no se puede iniciar Mayúsculasación Automatizada.\n"
 "Se puede establecer correspondencias en Equivalencias - Mayúscula y Minúscula."
 
-#: source/Adapt_It.cpp:19483
-#: source/Adapt_It.cpp:19620
+#: source/Adapt_It.cpp:19520
+#: source/Adapt_It.cpp:19657
 msgid "The Startup Wizard failed to open. Use the File menu's Open command to open a document."
 msgstr "El Asistente de arranque no pudo abrir. Utilice el Comando Abrir del menú Archivo para abrir un documento."
 
-#: source/Adapt_It.cpp:21367
+#: source/Adapt_It.cpp:21404
 #, fuzzy, c-format
 msgid "[Custom Work Folder Location]  Current Project: %s"
 msgstr "&Ubicación de la carpeta de trabajo personalizado"
 
-#: source/Adapt_It.cpp:21372
+#: source/Adapt_It.cpp:21409
 #, c-format
 msgid "[Temporary Work Folder Location]  Current Project: %s"
 msgstr "[Trabajo Temporal Ubicación de la carpeta] Proyecto actual: %s"
 
-#: source/Adapt_It.cpp:21378
+#: source/Adapt_It.cpp:21415
 #, c-format
 msgid "[Default Work Folder Location]  Current Project: %s"
 msgstr "[Ubicación de la carpeta predeterminada de trabajo] Proyecto actual: %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:21411
+#: source/Adapt_It.cpp:21448
 #: source/Adapt_ItView.cpp:27069
 #: source/Adapt_It_wdr.cpp:302
 #: source/Adapt_It_wdr.cpp:6678
@@ -1300,49 +1300,49 @@ msgid "Glossing"
 msgstr "GLOSAR"
 
 # Priority 1
-#: source/Adapt_It.cpp:21422
+#: source/Adapt_It.cpp:21459
 msgid "Adapting"
 msgstr "ADAPTAR"
 
 # Priority 1
-#: source/Adapt_It.cpp:21429
+#: source/Adapt_It.cpp:21466
 msgid "Reviewing"
 msgstr "Revisando"
 
 # Priority 1
 # Leave two spaces at the beginning of the sentence.
-#: source/Adapt_It.cpp:21439
-#: source/Adapt_It.cpp:21449
-#: source/Adapt_It.cpp:21456
+#: source/Adapt_It.cpp:21476
+#: source/Adapt_It.cpp:21486
+#: source/Adapt_It.cpp:21493
 #: source/Adapt_ItView.cpp:5539
 #, c-format
 msgid "  Current Folder: %s"
 msgstr "  Carpeta Actual %s"
 
 # Priority 1
-#: source/Adapt_It.cpp:21447
+#: source/Adapt_It.cpp:21484
 #: source/Adapt_ItView.cpp:5537
 msgid " Undefined"
 msgstr "Indefinido"
 
-#: source/Adapt_It.cpp:21464
+#: source/Adapt_It.cpp:21501
 msgid "!! TRANSLITERATING !!"
 msgstr "¡¡ Transliterando !!"
 
-#: source/Adapt_It.cpp:23387
-#: source/Adapt_It.cpp:23752
+#: source/Adapt_It.cpp:23436
+#: source/Adapt_It.cpp:23801
 msgid "Sorry, setup of the chapter and verse range failed. This printing operation has been aborted. Perhaps the document does not contain chapter or verse numbers within the range you specified."
 msgstr "AVISO: Los parámetros que especifican la gama del capítulo y de versículo han fallado. Esta operación de imprimir ha sido abortada. Quizás el documento no contenga capítulos ni versículos enumerados dentro del rango especificado."
 
-#: source/Adapt_It.cpp:23968
+#: source/Adapt_It.cpp:24017
 msgid "Locate the folder you wish to use for Adapt It work"
 msgstr "Busque la carpeta que desea utilizar para trabajo"
 
-#: source/Adapt_It.cpp:24013
+#: source/Adapt_It.cpp:24062
 msgid "Type A Password"
 msgstr "Escriba Una Contraseña"
 
-#: source/Adapt_It.cpp:24015
+#: source/Adapt_It.cpp:24064
 msgid ""
 "The password can be a mix of letters, numbers or punctuation. Less than four characters will not be accepted.\n"
 "Emptying the box will remove an existing password."
@@ -1350,48 +1350,48 @@ msgstr ""
 "La contraseña puede ser una combinación de letras, números o puntuacion. Menos de cuatro caracteres no serán aceptadas.\n"
 " Vacia la caja para eliminar una contraseña existente."
 
-#: source/Adapt_It.cpp:24028
+#: source/Adapt_It.cpp:24077
 msgid "Too short."
 msgstr "Demasiado corto."
 
-#: source/Adapt_It.cpp:24320
+#: source/Adapt_It.cpp:24369
 msgid "You failed to locate a valid work folder. Please try again."
 msgstr "Por favor, especifique una carpeta de trabajo válido."
 
-#: source/Adapt_It.cpp:24747
+#: source/Adapt_It.cpp:24796
 msgid "Someone just opened the project folder on the remote computer, so you have READ-ONLY access."
 msgstr ""
 
-#: source/Adapt_It.cpp:24747
+#: source/Adapt_It.cpp:24796
 msgid "Another process owns write permission"
 msgstr "Otro proceso tiene permiso de escritura"
 
 # Priority 1
-#: source/Adapt_It.cpp:25232
+#: source/Adapt_It.cpp:25281
 #: source/Adapt_It_wdr.cpp:710
 #, fuzzy
 msgid "Source Font Name"
 msgstr "Tipo de letra del texto original"
 
 # Priority 1
-#: source/Adapt_It.cpp:25314
+#: source/Adapt_It.cpp:25363
 #: source/Adapt_It_wdr.cpp:782
 #, fuzzy
 msgid "Target Font Name"
 msgstr "Tipo de letra del texto de destino"
 
 # Priority 1
-#: source/Adapt_It.cpp:25396
+#: source/Adapt_It.cpp:25445
 #: source/Adapt_It_wdr.cpp:854
 #, fuzzy
 msgid "Navigation Font Name"
 msgstr "Tipo de letra del texto de navegación"
 
-#: source/Adapt_It.cpp:25419
+#: source/Adapt_It.cpp:25468
 msgid "The following fonts (in the project configuration file) cannot be found on your computer:"
 msgstr "Los tipos de letras siguientes (en la configuración del archivo de proyecto) no se puede encontrar:"
 
-#: source/Adapt_It.cpp:25422
+#: source/Adapt_It.cpp:25471
 #, c-format
 msgid ""
 "\n"
@@ -1400,15 +1400,15 @@ msgstr ""
 "\n"
 "Un tipo de letra de sistema (%s) se utilizará en su lugar. Puede que necesite instalar el tipo de letra adecuada, a continuación, selecciónela en la ficha Tipos de las preferencias ... de diálogo (en el menú Edición)."
 
-#: source/Adapt_It.cpp:25424
+#: source/Adapt_It.cpp:25473
 msgid "Font name in configuration file not found"
 msgstr "Nombre de tipo de letra en el archivo de configuración no encontrado"
 
-#: source/Adapt_It.cpp:25679
-#: source/Adapt_It.cpp:26116
-#: source/Adapt_It.cpp:26337
-#: source/Adapt_It.cpp:26393
-#: source/Adapt_It.cpp:26439
+#: source/Adapt_It.cpp:25728
+#: source/Adapt_It.cpp:26165
+#: source/Adapt_It.cpp:26386
+#: source/Adapt_It.cpp:26442
+#: source/Adapt_It.cpp:26488
 msgid "Unable to write updated config file, so just did nothing"
 msgstr "No se puede escribir el archivo de configuración actualizada"
 
@@ -1670,27 +1670,27 @@ msgstr "    Esta lista completa ha sido grabada a la carpeta del proyecto en el 
 
 # Priority 1
 # Do not translate the (*.aip)|*.aip|| part.
-#: source/Adapt_ItDoc.cpp:13773
-#: source/Adapt_ItDoc.cpp:13860
+#: source/Adapt_ItDoc.cpp:13788
+#: source/Adapt_ItDoc.cpp:13875
 msgid "Packed Documents (*.aip)|*.aip||"
 msgstr "Documentos Embalados (*.aip)|*.aip||"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13777
+#: source/Adapt_ItDoc.cpp:13792
 msgid "Filename For Packed Document"
 msgstr "Nombre de archivo de documento comprimido"
 
-#: source/Adapt_ItDoc.cpp:13832
+#: source/Adapt_ItDoc.cpp:13847
 #, c-format
 msgid "Could not write to the packed/zipped file: %s"
 msgstr "No se pudo escribir en el archivo comprimido: %s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:13856
+#: source/Adapt_ItDoc.cpp:13871
 msgid "Load And Unpack The Compressed Document"
 msgstr "Cargar y Desembalar el Documento Comprimido"
 
-#: source/Adapt_ItDoc.cpp:13932
+#: source/Adapt_ItDoc.cpp:13947
 #, c-format
 msgid ""
 "Error uncompressing; cannot open the file: %s\n"
@@ -1699,18 +1699,18 @@ msgstr ""
 "Error al descomprimir, no puede abrir el archivo: %s\n"
 " Asegúrese de que el archivo no está siendo utilizado por otra aplicación y vuelva a intentarlo."
 
-#: source/Adapt_ItDoc.cpp:13947
+#: source/Adapt_ItDoc.cpp:13962
 #, c-format
 msgid "Error removing %s after unpack document command."
 msgstr "Error al eliminar %s después de comando documento descomprimir."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14254
+#: source/Adapt_ItDoc.cpp:14269
 msgid "There is a document of the same name in an Adapt It project of the same name on this computer."
 msgstr "Se ha encontrado un Documento del mismo nombre en otro proyecto de Adapt It en los archivos ya existentes."
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14255
+#: source/Adapt_ItDoc.cpp:14270
 #, c-format
 msgid ""
 "\n"
@@ -1720,7 +1720,7 @@ msgstr ""
 "      Nombre del documento: %s"
 
 # Priority 1
-#: source/Adapt_ItDoc.cpp:14256
+#: source/Adapt_ItDoc.cpp:14271
 #, c-format
 msgid ""
 "\n"
@@ -1730,7 +1730,7 @@ msgstr ""
 "      Directorio del Proyecto: %s"
 
 # Do not translate the %s%s%s part
-#: source/Adapt_ItDoc.cpp:14258
+#: source/Adapt_ItDoc.cpp:14273
 #, c-format
 msgid ""
 "%s%s%s\n"
@@ -1739,21 +1739,21 @@ msgstr ""
 "%s%s%s\n"
 "¿Quiere que se deja el nuevo desembalado reemplazar el que ya existe?"
 
-#: source/Adapt_ItDoc.cpp:14275
+#: source/Adapt_ItDoc.cpp:14290
 #, c-format
 msgid "Failed removing %s before overwrite."
 msgstr "No se pudo eliminar %s antes de sobrescribir."
 
-#: source/Adapt_ItDoc.cpp:14351
+#: source/Adapt_ItDoc.cpp:14366
 #, c-format
 msgid "Error renaming earlier configuration file with path %s."
 msgstr "Error al cambiar el nombre anterior del archivo de configuración en el directorio %s."
 
-#: source/Adapt_ItDoc.cpp:14353
+#: source/Adapt_ItDoc.cpp:14368
 msgid "  Aborting the command."
 msgstr "Cancelando la orden."
 
-#: source/Adapt_ItDoc.cpp:14374
+#: source/Adapt_ItDoc.cpp:14389
 #, c-format
 msgid ""
 "Unable to open the file for writing out the UTF-8 project configuration file, with path:\n"
@@ -1762,28 +1762,28 @@ msgstr ""
 "No se puede abrir el archivo para escribir el UTF-8 archivo de configuración del proyecto: \n"
 "%s"
 
-#: source/Adapt_ItDoc.cpp:14390
+#: source/Adapt_ItDoc.cpp:14405
 #, c-format
 msgid "Error restoring name of earlier configuration file with path %s."
 msgstr "Error al restablecer el nombre de archivo de configuración anterior con ruta de acceso %s."
 
-#: source/Adapt_ItDoc.cpp:14393
+#: source/Adapt_ItDoc.cpp:14408
 msgid "  Exit Adapt It and manually change .BAK to .aic for the project configuration file."
 msgstr "Por favor salga de adaptación y cambiar manualmente la extensión de la configuración del proyecto de archivo de .BAK a .aic."
 
-#: source/Adapt_ItDoc.cpp:14408
+#: source/Adapt_ItDoc.cpp:14423
 msgid "Writing out the project configuration file's content failed."
 msgstr "No se puede escribir el contenido del archivo de configuración del proyecto."
 
-#: source/Adapt_ItDoc.cpp:14411
+#: source/Adapt_ItDoc.cpp:14426
 msgid " Exit Adapt It, and in Windows Explorer manually restore the .BAK extension on the renamed project configuration file to .aic before launching again. Beware, that configuration file may now be corrupted."
 msgstr "Por favor salga de este programa, y en el Explorador de Windows restaurar manualmente la extensión .BAK de la configuración del proyecto de nombre de archivo a .aic antes de iniciar el Adapt It de nuevo. ¡Cuidado, que el archivo de configuración ahora puede estar dañado."
 
-#: source/Adapt_ItDoc.cpp:14428
+#: source/Adapt_ItDoc.cpp:14443
 msgid "Removing the renamed earlier project configuration file failed. Do it manually later in Windows Explorer - it has a .BAK extension."
 msgstr "Eliminar el nombre de archivo de configuración de proyecto anterior fracasó. Hacerlo manualmente más tarde en el Explorador de Windows - que tiene una extensión. Bak."
 
-#: source/Adapt_ItDoc.cpp:14471
+#: source/Adapt_ItDoc.cpp:14486
 #, c-format
 msgid ""
 "Unable to open the xml text file for writing to doc folder, with path:\n"
@@ -1792,11 +1792,11 @@ msgstr ""
 "No se puede abrir el archivo XML de texto para escribir en la carpeta de documentos, con la ruta: \n"
 "%s"
 
-#: source/Adapt_ItDoc.cpp:14483
+#: source/Adapt_ItDoc.cpp:14498
 msgid "Writing out the xml document file's content failed."
 msgstr "Escribir el contenido del archivo xml falló."
 
-#: source/Adapt_ItDoc.cpp:14501
+#: source/Adapt_ItDoc.cpp:14516
 msgid "Opening the xml document file for Unpack Document... failed. (It was stored successfully on disk. Try opening it with the Open command on the File menu.)"
 msgstr "No se puede abrir el archivo de documento XML para el documento Desempaquete ... comando. (El archivo se almacena en el disco. Por favor, intente abrir con el comando Abrir del menú Archivo.)"
 
@@ -7899,21 +7899,21 @@ msgstr "No hay frases de búsqueda definidos"
 msgid "Saving the knowledge base failed. However, your respellings are still in the knowledge base in memory, so exit from the knowledge base editor with the OK button - doing that will try the save operation again and it might succeed."
 msgstr "No se puede guardar el archivo de base de conocimientos. Sin embargo, los cambios en la ortografía todavía están en la base de conocimientos en la memoria. Para resolver este problema, haga clic en el botón Aceptar para salir del editor de base de conocimientos. Esto se inicia la operación de guardar de nuevo."
 
-#: source/KBEditor.cpp:825
+#: source/KBEditor.cpp:827
 #, fuzzy
 msgid "You have respelled some knowledge base entries. This has made the knowledge base inconsistent with the current documents. You should do an inconsistency check of all documents as soon as you dismiss this message. Do you want the inconsistency check to start automatically?"
 msgstr "Ha cambiado la ortografía de algunas entradas de la base de conocimientos. Esto ha hecho que la base de conocimientos incompatibles con los documentos actuales. Usted debe hacer una verificación de la inconsistencia de todos los documentos tan pronto como usted omitir este mensaje. ¿Quieres que la inconsistencia de verificación para iniciar automáticamente?"
 
 # Priority 1
-#: source/KBEditor.cpp:826
+#: source/KBEditor.cpp:828
 msgid "Do Consistency Check Now?"
 msgstr "Comience la comprobación de coherencia ahora?"
 
-#: source/KBEditor.cpp:887
+#: source/KBEditor.cpp:889
 msgid "Sorry, you can only remove this kind of entry by putting the phrase box at the relevant location in the document, and then click the  \"Save To Knowledge Base\" checkbox back to ON."
 msgstr "AVISO: Para quitar esta clase de texto se debe colocar el renglón de cláusulas en la posición correcta en el documento, y luego tache la cajita \"\" Guardar al Base de Conocimientos \"\" con el ratón."
 
-#: source/KBEditor.cpp:928
+#: source/KBEditor.cpp:930
 #, c-format
 msgid ""
 "Removing: \"%s\", will make %d occurrences of it in the document files inconsistent with\n"
@@ -7924,17 +7924,17 @@ msgstr ""
 "con la base de conocimientos. (Usted puede arreglar que más tarde mediante el comando\n"
 " Comprobar Coherencia.) ¿Quieres seguir adelante y eliminarlo?"
 
-#: source/KBEditor.cpp:1070
-#: source/KBEditor.cpp:1147
+#: source/KBEditor.cpp:1072
+#: source/KBEditor.cpp:1149
 msgid "Translations list box error when getting the current selection"
 msgstr "Error en el cuadro de lista de traducciones al conseguir la selección actual"
 
 # Priority 1
-#: source/KBEditor.cpp:1376
+#: source/KBEditor.cpp:1378
 msgid "All Gloss Words Or Phrases"
 msgstr "Todas las Palabras Glosas o las Cláusulas"
 
-#: source/KBEditor.cpp:1433
+#: source/KBEditor.cpp:1435
 msgid "Sorry, the translation you are attempting to associate with the current source phrase already exists."
 msgstr "AVISO: La traducción que usted procura asociarse con la Cláusula actual, ya existe."
 
@@ -8418,32 +8418,32 @@ msgstr ""
 msgid "WARNING: a document called  %s  already exists and you have specified that the second document-part, which is to remain open, has the same name.\n"
 msgstr "AVISO: El documento  %s  existe ya y a la vez se ha pedido que la segunda parte del documento emplea el mismo nombre.  No está permitido.  Cambie el nombre pedido.\n"
 
-#: source/SplitDialog.cpp:367
+#: source/SplitDialog.cpp:366
 msgid "The split was aborted because the phrase box was still at the start of the document."
 msgstr "En que el renglón de cláusulas se ubicó al frente del documento, el pedido de dividir fue abortado."
 
 # Priority 1
-#: source/SplitDialog.cpp:426
-#: source/SplitDialog.cpp:732
+#: source/SplitDialog.cpp:431
+#: source/SplitDialog.cpp:744
 msgid "Splitting the document succeeded."
 msgstr "Se ha terminado el dividir del documento. "
 
 # Priority 1
-#: source/SplitDialog.cpp:661
+#: source/SplitDialog.cpp:673
 msgid "Please supply the file name base."
 msgstr "Hay que teclear el nombre de la base del archivo."
 
 # Priority 1
-#: source/SplitDialog.cpp:672
+#: source/SplitDialog.cpp:684
 msgid "There is only one chapter in this document."
 msgstr "Hay solamente un capítulo en este documento. "
 
-#: source/SplitDialog.cpp:684
+#: source/SplitDialog.cpp:696
 msgid "There is a name conflict with an existing file.  Please specify a different file name base."
 msgstr "El nombre del archivo ya existe.  Teclee otro nombre. "
 
 # Priority 1
-#: source/SplitDialog.cpp:913
+#: source/SplitDialog.cpp:925
 msgid "(Obligatory) Type a generic name to which each chapter number can be added"
 msgstr "(Obligatorio) Teclee un nuevo nombre genérico para conectar a los números de los capítulos"
 
