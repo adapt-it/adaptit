@@ -89,7 +89,7 @@ extern bool gbShowTargetOnly;
 extern bool gbVerticalEditInProgress;
 extern bool gbHasBookFolders;
 extern int gnOldSequNum;
-extern char gcharNonSrcUC;
+extern wxChar gcharNonSrcUC;
 extern EditRecord gEditRecord;
 /// This global is defined in PhraseBox.cpp.
 extern wxString		translation; // translation, for a matched source phrase key
