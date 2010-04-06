@@ -5351,26 +5351,27 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
     // Turn off system message "Failed to load shared library...(error 126: the specified
     // module could not be found", which pops up in idle time if following .Load() call
     // fails. We have our own message.
-	{ // block below for wxLogNull
-	wxLogNull logNo;	// eliminates any spurious messages from the system while 
-						// reading read-only folders/files
-	bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(LIB_NAME);
-	if (!ecDriverDynamicLibrary.IsLoaded())
+    if (wxGetWinVersion() >= wxWinVersion_5)
 	{
-		// the ECDriver.dll file was not found
-		bECDriverDLLLoaded = FALSE;
-		wxString msg;
-		// This error shouldn't happen with normal install, so it can remain in English
-		msg = msg.Format(_T(
-"Could not find the %s dynamic library file. SIL Converters will not be available. You may need to reinstall Adapt It WX."),
-		LIB_NAME);
-		wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
+		wxLogNull logNo;	// eliminates any spurious messages from the system while 
+							// reading read-only folders/files
+		bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(LIB_NAME);
+		if (!ecDriverDynamicLibrary.IsLoaded())
+		{
+			// the ECDriver.dll file was not found
+			bECDriverDLLLoaded = FALSE;
+			wxString msg;
+			// This error shouldn't happen with normal install, so it can remain in English
+			msg = msg.Format(_T(
+	"Could not find the %s dynamic library file. SIL Converters will not be available. You may need to reinstall Adapt It WX."),
+			LIB_NAME);
+			wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
+		}
+		else
+		{
+			bECDriverDLLLoaded = TRUE;
+		}
 	}
-	else
-	{
-		bECDriverDLLLoaded = TRUE;
-	}
-	} // end of block for wxLogNull
 #else
 	bECDriverDLLLoaded = bECDriverDLLLoaded; // avoids "local variable is initialized but 
 										// not referenced" warning when define is not set
