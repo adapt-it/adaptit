@@ -81,6 +81,32 @@ CPlaceInternalMarkers::CPlaceInternalMarkers(wxWindow* parent) // dialog constru
 	wxColor backgrndColor = this->GetBackgroundColour();
 	pTextCtrlAsStaticPlaceIntMkrs->SetBackgroundColour(backgrndColor);
 
+#if defined (_DOCVER5)
+
+	// **** the following initializations were moved from InitDialog() to ****
+	// **** here, see comments in that function body's top for an         ****
+	// **** explanation of the reason                                     ****
+	
+	// make the fonts show user's desired point size in the dialog
+	#ifdef _RTL_FLAGS
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pEditDisabled, NULL,
+								NULL, NULL, gpApp->m_pDlgSrcFont, gpApp->m_bSrcRTL);
+	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pSourceFont, pEditDisabled, NULL, 
+								NULL, NULL, gpApp->m_pDlgSrcFont);
+	#endif
+
+	pListBox = (wxListBox*)FindWindowById(IDC_LIST_MARKERS);
+	pEditTarget = (wxTextCtrl*)FindWindowById(IDC_EDIT_TGT);
+
+	#ifdef _RTL_FLAGS
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pEditTarget, NULL,
+								pListBox, NULL, gpApp->m_pDlgTgtFont, gpApp->m_bTgtRTL);
+	#else // Regular version, only LTR scripts supported, so use default FALSE for last parameter
+	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pEditTarget, NULL, 
+								pListBox, NULL, gpApp->m_pDlgTgtFont);
+	#endif
+#endif // _DOCVER5
 }
 
 CPlaceInternalMarkers::~CPlaceInternalMarkers() // destructor
@@ -91,8 +117,17 @@ CPlaceInternalMarkers::~CPlaceInternalMarkers() // destructor
 // BEW 24Mar10, no changes needed for support of _DOCVER5
 void CPlaceInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
+    // BEW note 1Apr10, for doc version 5 and support of removing the data input using
+    // globals in favour of doing it with public access functions, ... on investigation it
+    // turns out to be the case that OnInit() is not called at instantiation of the
+    // instance, but rather when ShowModal() is called. Hence, because the setters must be
+    // called earlier than that than ShowModal(), the pointers to the controls will not be
+    // initialized if we leave it for InitDialog() to do it. So, I've moved these
+    // initializations to the creator instead.
 	
+#if defined (_DOCVER5)
+	
+	/*	
 	// make the edit boxes & list box use the correct fonts, use default size
 	// use the current target language font for the list box, etc
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -119,7 +154,8 @@ void CPlaceInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pEditTarget, NULL, 
 								pListBox, NULL, gpApp->m_pDlgTgtFont);
 	#endif
-
+	*/
+#else
 	// set up edit boxes and list box
 	wxString markers;
 	wxString markerStr;
@@ -185,6 +221,7 @@ void CPlaceInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // In
 	m_tgtPhrase = tgtStr;
 	pEditDisabled->SetValue(m_srcPhrase);
 	pEditTarget->SetValue(m_tgtPhrase);
+#endif
 }
 
 // event handling functions
@@ -232,11 +269,6 @@ void CPlaceInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 	ptr += nStartChar;
 	// whm Note: If m_tgtPhrase is not preceded by a space the following loop
 	// could become infinite, so I've recoded it below to be safe.
-//a:	if (*ptr != _T(' '))
-//	{
-//		ptr--;
-//		goto a;
-//	}
 	while (ptr > pBufStart && *ptr != _T(' '))
 	{
 		ptr--;
@@ -264,6 +296,77 @@ void CPlaceInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
 		pListBox->SetSelection(0);
 }
 
+
+#if defined (_DOCVER5)
+
+// getters and setters
+
+// sets m_srcPhrase
+void CPlaceInternalMarkers::SetNonEditableString(wxString str) 
+{
+	// set the storage for the non-editable string, and put it in the wxTextCtrl
+	m_srcPhrase = str;
+    // put the data in the source edit box (Note: any initial filtered markers information
+    // is not shown, as placement within it is not possible anyway, and so the caller
+    // withholds it, and inserts it at the end of the calling function "in place" after the
+    // dialog is dismissed)
+	pEditDisabled->SetValue(m_srcPhrase);
+}
+
+// sets m_tgtPhrase
+void CPlaceInternalMarkers::SetUserEditableString(wxString str) 
+{
+	m_tgtPhrase = str;
+
+	// first ensure that the editable string starts and ends with a space - this
+	// ensures our placement algorithm will be safe
+	m_tgtPhrase.Trim();
+	m_tgtPhrase.Trim(FALSE);
+	m_tgtPhrase = _T(" ") + m_tgtPhrase;
+	m_tgtPhrase += _T(" ");
+
+    // put the data in the target edit box (Note: any initial filtered markers information
+    // is not shown, as placement within it is not possible anyway, and so the caller
+    // withholds it, and inserts it at the end of the calling function "in place" after the
+    // dialog is dismissed)
+	pEditTarget->SetValue(m_tgtPhrase);
+}
+
+// populates m_markersToPlaceArray
+void CPlaceInternalMarkers::SetPlaceableDataStrings(wxArrayString* pMarkerDataArray) 
+{
+	// set up the list box from the passed in string array
+	int count = pMarkerDataArray->GetCount();
+	wxASSERT(count > 0);
+	int index;
+	wxString stuff;
+	// populate the list control
+	for (index = 0; index < count; index++)
+	{
+		stuff = pMarkerDataArray->Item((size_t)index);
+		wxASSERT(!stuff.IsEmpty());
+		pListBox->Append(stuff);
+	}
+	// hilight first in the listbox
+	if (pListBox->GetCount() > 0)
+		pListBox->SetSelection(0);
+}
+
+// for returning m_tgtStr data, after placements, to the caller
+wxString CPlaceInternalMarkers::GetPostPlacementString()
+{
+	return m_tgtPhrase;
+}
+
+void CPlaceInternalMarkers::OnOK(wxCommandEvent& event) 
+{
+	m_tgtPhrase = pEditTarget->GetValue();
+	// the caller can get the value of m_tgtPhrase using the public 
+	// getter function, GetPostPlacementString() 
+	event.Skip();
+}
+
+#else
 // OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
 // If this returns TRUE, the function either calls EndModal(wxID_OK) if the
 // dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
@@ -275,7 +378,7 @@ void CPlaceInternalMarkers::OnOK(wxCommandEvent& event)
 
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
-
+#endif
 
 // other class methods
 

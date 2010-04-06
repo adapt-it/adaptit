@@ -102,18 +102,21 @@ extern const wxChar* filterMkrEnd;
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
-	
+
+#if defined (_DOCVER5)
+// BEW 31Mar10 comment: to Bill's four I added two, to store markers and any filtered
+// stuff prefixed to the word from the first CSourcePhrase instance in a retranslation,
+// the prefix strings below won't have their contents shown in the Place... dialog for
+// markers within the retranslation, which saves the user from seeing a lot of clutter.
+// They can be added after the place dialog closes. Also, ultimately these 6 globals
+// should be removed, and instead, private members of dialog handler classes used to do
+// the same storage and data passing from function to the instantiated dialog(s)
+#endif
 wxString tgtStr;
 wxString srcStr; // whm added 17Jun03
-wxString navStr; // whm added 17Jun03
-wxString glsStr; // whm added 26Jun03
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
-// The following lists are used in DoExportInterlinearRTF
-//WX_DEFINE_LIST(CellxNList); // a list to store the cell number string N of RTF table's CellxN for src, tgt, gls & nav rows
-//WX_DEFINE_LIST(CellxNListFree); // a list to store the cell number string N of RTF table's CellxN for free trans rows
-//WX_DEFINE_LIST(CellxNListBT); // a list to store the cell number string N of RTF table's CellxN for back trans rows
 
 /// This macro together with the macro list declaration in the .h file
 /// complete the definition of a new safe pointer list class called SrcList.
@@ -13727,15 +13730,19 @@ int RebuildGlossesText(wxString& glosses)
 			// place the markers in the gloss phrase....
 			if (pSrcPhrase->m_bHasInternalMarkers)
 			{
+#if defined (_DOCVER5)
+				str = FromMergerMakeTstr(pSrcPhrase, pSrcPhrase->m_gloss);
+#else
 				gpSrcPhrase = pSrcPhrase; // set the global, for access by dlg
 				tgtStr = pSrcPhrase->m_gloss; // set the global for the gloss string
 				CPlaceInternalMarkers dlg(gpApp->GetMainFrame());
-
+				
 				// show the dialog
 				dlg.ShowModal();
 
 				// update the str from result of dialog, using the global tgtStr
 				str = tgtStr;
+#endif
 			}
 			else
 			{
@@ -14469,7 +14476,9 @@ int RebuildFreeTransText(wxString& freeTrans)
 // BEW revised 31Oct05
 int RebuildTargetText(wxString& target)
 {
+#if !defined (_DOCVER5)
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+#endif
 	SPList* pList = gpApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
 
@@ -14491,11 +14500,15 @@ int RebuildTargetText(wxString& target)
 
 		if (pSrcPhrase->m_bRetranslation)
 		{
+#if defined (_DOCVER5)
+			pos = DoPlacementOfMarkersInRetranslation(savePos,pList,str); // str gets assigned internal markers
+#else
 			wxString dummySrcStr;
 			wxString dummyGlsStr;
 			wxString dummyNavStr;
 			pos = DoPlacementOfMarkersInRetranslation(savePos,pList,str, // str gets assigned internal markers
 				dummySrcStr, dummyGlsStr, dummyNavStr); // dummy strings unused here
+#endif
 		}
 		else
 		{
@@ -14505,7 +14518,27 @@ int RebuildTargetText(wxString& target)
 			// handle any stnd format markers, including internal ones --
 			// most stnd format markers can be handled silently. Place the
 			// phrase initial ones silently, then if there are any phrase medial
-			// ones we need to later use a dialog to place those
+			// ones we need to internally use a dialog to place those; distinguist mergers
+			// from single CSourcePhrase instances, the former needs more complex code -
+			// and encapsulate the processing in a function for each, for doc version 5
+#if defined (_DOCVER5)
+			if (pSrcPhrase->m_nSrcWords > 1)
+			{
+				// this pSrcPhrase stores a merger
+				str = FromMergerMakeTstr(pSrcPhrase, str);
+			}
+			else
+			{
+				// this pSrcPhrase stores a single CSourcePhrase instance for a single
+				// target text word (which could be the empty string)
+				str = FromSingleMakeTstr(pSrcPhrase, str);
+			}
+#else
+			// _DOCVER5 fixes needed here....
+            // *** replace this code with two functions, depending on merger or not, in the
+            //     the first case, call FromMergerMakeTstr() and for a single srcphrase
+            //     call FromSingleMakeTstr()
+            // 
 			if (!pSrcPhrase->m_markers.IsEmpty())
 			{
 				wxString tempStr = pSrcPhrase->m_markers;
@@ -14568,15 +14601,17 @@ int RebuildTargetText(wxString& target)
 				tgtStr = str; // set the global for the target string
 				CPlaceInternalMarkers dlg(gpApp->GetMainFrame());
 
+
 				// show the dialog
 				dlg.ShowModal();
 
 				// update the str from result of dialog, using the global tgtStr
 				str = tgtStr;
 			}
+#endif
 		}
 
-		// The retranslation test's block can present us with a str with no initial space, and
+		// The retranslation text's block can present us with a str with no initial space, and
         // targetstr may not end with a space, so we have to check for no space and add one if
         // needed; but the check is only wanted if targetstr has something in it and str is not
         // empty. BEW added 30May07
@@ -15250,29 +15285,31 @@ void FormatUnstructuredTextBufferForOutput(wxString& text, bool bRTFOutput)
 
 // BEW added 06Oct05 for support of free translation propagation across an export of the target text
 // and subsequent import into a new project
-/**********************************************************************
-*  CountWordsInFreeTranslationSection
-*
-* Returns: a 1-based count of the number of words of either source text, or target text, in the section
-*
-* Parameters:
-*	bCountInTargetTest	->	TRUE if the count is to made in the target text; FALSE has it done in the
-*							source text instead
-*	pList				->	pointer to the document's m_pSourcePhrases list of pSrcPhrase pointers
-*	pos					->	the current POSITION in the pList list which has the pSrcPhrase with the
-*							m_markers member which contains the filtered \free ... \free* section
-*							which begins at this anchor location (there is no determinate relation
-*							between the number of words to be counted, and the number of words in
-*							the content delimited by \free and \free*)
-* Remarks:
-*	Called only when exporting either the source text as (U)SFM plain text, or the target text as the
-*	same file type. We need to store the returned count in the exported material which occurs between
-*	the \free and \free* markers, so that if that file of text is subsequently used as source text for
-*	creating a document in another project, we will be able to extract the word counts and use them to
-*	set the m_bEndFreeTrans boolean in pSrcPhrase to TRUE so as to define where the end of that particular
-*	section of free translation occurs.
-*
-***********************************************************************/
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return             a 1-based count of the number of words of either source text, 
+///                     or target text, in the section
+///	\param bCountInTargetText	->	TRUE if the count is to made in the target text;  
+///	                                FALSE has it done in the source text instead
+///	\param pList			    ->	pointer to the document's m_pSourcePhrases list 
+///	                                of pSrcPhrase pointers
+///	\param nAnchorSequNum		->	index to the CSourcePhrase in the pList list which
+///	                                is the anchor for the (considered-to-be-filtered) 
+///                                 \free ... \free* section - although in doc version 5
+///                                 the free translation is stored without any wrapping
+///                                 \free or \free* markers. Note: there is no
+///                                 determinate relation between the number of words to
+///                                 be counted, and the number of words in the content
+///                                 delimited by \free and \free*)
+/// \remarks  
+/// Called only when exporting either the source text as (U)SFM plain text, or the target
+/// text as the same file type. We need to store the returned count in the exported
+/// material which occurs between the \free and \free* markers, so that if that file of
+/// text is subsequently used as source text for creating a document in another project, we
+/// will be able to extract the word counts and use them to set the m_bEndFreeTrans boolean
+/// in pSrcPhrase to TRUE so as to define where the end of that particular section of free
+/// translation occurs.
+/// BEW 31Mar10, updated for support of _DOCVER5 (no changes needed)
+/////////////////////////////////////////////////////////////////////////////////////////
 int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, int nAnchorSequNum)
 {
 	int nCount = 0;
@@ -15283,6 +15320,8 @@ int CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, i
 	wxString phrase;
 	CSourcePhrase* pSrcPhrase;
 	pSrcPhrase = (CSourcePhrase*)anchorPos->GetData();
+	// if the anchor location is also the end of the free translation section, we look
+	// only at this one CSourcePhrase instance which stores it
 	if (pSrcPhrase->m_bEndFreeTrans)
 	{
 		if (bCountInTargetText)
@@ -15329,271 +15368,441 @@ a:		if (pSrcPhrase->m_bEndFreeTrans)
 	return nCount;
 }
 
+// Note: This is a modification of Bruce's function of the same name, that can be employed
+// in the DoExportInterlinearRTF function. This modified version differs from the original
+// function in that it also composes and returns a source string (Sstr), a gloss string
+// (Gstr), and a navigation text string (Nstr), [all by reference] in addition to the
+// target text (Tstr) that the original non-overloaded version returned. Hence, with
+// respect to the returned value of the target string Tstr, this function is identical to
+// original function. The return of the additional string values is simply ignored in
+// RebuildTargetText().
 // whm Revised 10Nov05
-// Note: This is a modification of Bruce's function of the same name, that can be employed in the
-// DoExportInterlinearRTF function. This modified version differs from the original function
-// in that it also composes and returns a source string (Sstr), a gloss string (Gstr), and a
-// navigation text string (Nstr), [all by reference] in addition to the target text (Tstr) that
-// the original non-overloaded version returned. Hence, with respect to the returned value of the
-// target string Tstr, this function is identical to original function. The return of the additional
-// string values is simply ignored in RebuildTargetText().
-SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
-					SPList *pSrcPhrases, wxString& Tstr, wxString& Sstr, wxString& Gstr, wxString& Nstr)
+// BEW note 31Mar10: despite the above comment, this function is only called in
+// RebuildTargetText() and so the collection of Sstr, Gstr, Nstr currently is never used.
+// 
+// BEW 1Apr10, completely rewritten, with elimination of 5 globals, and encapsulation of
+// the dialog for placement, which needs to be called if there were medial markers in the
+// retranslation, and supporting _DOCVER5
+#if defined (_DOCVER5)
+
+//SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,
+//	SPList *pSrcPhrases, wxString& Tstr, wxString& Sstr, wxString& Gstr, wxString& Nstr)
+
+SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
+				wxString& Tstr)
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	//CAdapt_ItView* pView = gpApp->GetView();
-	if (gSrcPhrases.GetCount() > 0)
-		gSrcPhrases.Clear(); // clear the global sublist
 	SPList::Node* pos = firstPos;
 	wxASSERT(pos != 0);
-	bool bFirst = TRUE;
 	bool bHasInternalMarkers = FALSE; // assume none for default
 	SPList::Node* savePos = NULL; // whm initialized to NULL
+
+	// undo what Bill did, they are not used
+	wxString Sstr; // needed only for the placement dialog, not for returning to caller
+	//wxString Gstr; // unused, so we can remove this
+	//wxString Nstr; // ditto
+
+	// markers needed, since doc version 5 doesn't store some filtered 
+	// stuff using them
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
+    // prefixStr is a place where we'll temporarily store any filtered information from the
+    // first CSourcePhrase of the retranslation, and withhold it from the placement dialog,
+    // as the user doesn't need to see any of that filtered stuff when doing the medial
+    // marker placements. Any retranslation-internal filtered stuff has to be put "in
+    // place" within the target text being composed, however, and so will get shown in the
+    // placement dialog (but in nearly all circumstances there will never be any such stuff
+    // in a retranslation, so no big deal)
+	wxString markersPrefix; // hide initial filtered and markers stuff in this
+							// temporarily and prefix them after the dialog closes
+	markersPrefix.Empty();
+	wxArrayString markersToPlaceArray; // accumulate marker strings here, for transfer to dialog
+	markersToPlaceArray.Empty(); 
+	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
+	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content to be added at loop end
+
+	wxString retranstr = _("retranslation"); // make this localizable
+	wxString aSpace = _T(" ");
+	wxString markersStr; 
+	wxString endMarkersStr;
+	wxString freeTransStr;
+	wxString noteStr;
+	wxString collBackTransStr;
+	wxString filteredInfoStr;
+	wxString unfilteredStr; // any unfiltered medial stuff which has to be shown in the
+							// Place... dialog can be accumulated in this local string on
+							// a per-pSrcPhrase basis (empty on each iteration)
+	// loop over each CSourcePhrase instance in the retranslation
+	bool bFirst = TRUE;
 	while (pos != 0)
 	{
 		savePos = pos;
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		if (!pSrcPhrase->m_bRetranslation ||
-			(pSrcPhrase->m_bRetranslation && pSrcPhrase->m_bBeginRetranslation &&
-															savePos != firstPos))
+		// break out of the loop if we reach the end of the retranslation, or if we reach
+		// the beginning of an immediately following (but different) retranslation
+		if (!pSrcPhrase->m_bRetranslation || ((pSrcPhrase->m_bRetranslation && 
+				pSrcPhrase->m_bBeginRetranslation && savePos != firstPos)))
+		{
 			break;
+		}
 		else
 		{
-			gSrcPhrases.Append(pSrcPhrase); // add it to the sublist (global)
+			// empty the scratch strings
+			EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
+											collBackTransStr, filteredInfoStr);
+			// get the other string information we want, putting it in the scratch strings
+			GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
+							freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
+			// remove any filter bracketing markers if filteredInfoStr has content
+			if (!filteredInfoStr.IsEmpty())
+			{
+				filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+			}
 
-			// we can compose the initial form of the target string as well
+			// we compose the pre-user-edit form of the target string, and the source
+			// string, and the gloss and nav strings, even though the app doesn't yet use
+			// the latter two
 			if (bFirst)
 			{
-				bFirst = FALSE;
-				if (pSrcPhrase->m_markers.IsEmpty())
-				{
-					Tstr = pSrcPhrase->m_targetStr;
-					Sstr = pSrcPhrase->m_srcPhrase; // added for Interlinear RTF output
-					Gstr = pSrcPhrase->m_gloss;		// added for Interlinear RTF output
+				bFirst = FALSE; // prevent this block from being re-entered
 
-					// should "retranslation" be localized??? Yes!
-					Nstr = _("retranslation");		// added for Interlinear RTF output
-					if (!pSrcPhrase->m_inform.IsEmpty())
-						Nstr += _T(" ") + pSrcPhrase->m_inform;
-					if (!pSrcPhrase->m_chapterVerse.IsEmpty())
-						Nstr += _T(" ") + pSrcPhrase->m_chapterVerse;
+				// for the first CSourcePhrase, we store any filtered info within the
+				// prefix string, as we'll not show that stuff in the Place... dialog;
+				// likewise for free translation, or a note, or collected back translation
+				// on the first CSourcePhrase instance; and any content in m_markers -
+				// this, if present, must come last; remove LHS whitespace when done
+				if (!collBackTransStr.IsEmpty())
+				{
+					// add the marker too
+					markersPrefix.Trim();
+					markersPrefix += backTransMkr;
+					markersPrefix += aSpace + collBackTransStr;
 				}
-				else
+				if (!freeTransStr.IsEmpty())
 				{
-					// should "retranslation" be localized??? Yes!
-					Nstr = _("retranslation");		// added for Interlinear RTF output
-					if (!pSrcPhrase->m_inform.IsEmpty())
-						Nstr += _T(" ") + pSrcPhrase->m_inform;
-					if (!pSrcPhrase->m_chapterVerse.IsEmpty())
-						Nstr += _T(" ") + pSrcPhrase->m_chapterVerse;
-					Sstr = pSrcPhrase->m_srcPhrase; // added for Interlinear RTF output
-					Gstr = pSrcPhrase->m_gloss;		// added for Interlinear RTF output
+					markersPrefix.Trim();
+					markersPrefix += aSpace + freeMkr;
 
-					// if m_markers has filtered material the filter brackets should be removed
-					// for export, so make sure they get removed; and any free translation's
-					// associated target text words counted
-					wxString tempStr = pSrcPhrase->m_markers;
-					tempStr = pDoc->RemoveAnyFilterBracketsFromString(tempStr);
-					// BEW addition 06Oct05; a \free .... \free* section pertains to a certain
-					// number of consecutive sourcephrases starting at this one if m_markers contains
-					// the \free marker, but the knowledge of how many sourcephrases is marked in the
-					// latter instances by which ones have the m_bStartFreeTrans == TRUE and m_bEndFreeTrans
-					// == TRUE, and if we just export the filtered free translation content we will lose
-					// all information about its extent in the document. So we have to compute how many
-					// target words are involved in the section, and store that count in the exported file --
-					// and the obvious place to do it is after the \free marker and its following space. We
-					// will store it as follows:  |@nnnn@|<space>  so that we can search for the number
-					// and find it quickly and remove it if we later import the exported file into a project
-					// as source text.
-					int nCurPos = tempStr.Find(_T("\\free"));
-					if (nCurPos != -1)
-					{
-						// there is some free translation present in tempStr, so store the word count at its start
-						int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
-														pSrcPhrase->m_nSequNumber); // TRUE means 'tgt text count'
+                    // BEW addition 06Oct05; a \free .... \free* section pertains to a
+                    // certain number of consecutive sourcephrases starting at this one if
+                    // m_markers contains the \free marker, but the knowledge of how many
+                    // sourcephrases is marked in the latter instances by which ones have
+                    // the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+                    // just export the filtered free translation content we will lose all
+                    // information about its extent in the document. So we have to compute
+                    // how many target words are involved in the section, and store that
+                    // count in the exported file -- and the obvious place to do it is
+                    // after the \free marker and its following space. We will store it as
+                    // follows: |@nnnn@|<space> so that we can search for the number and
+                    // find it quickly and remove it if we later import the exported file
+					// into a project as source text. 
+                    // (Note: the following call has to do its word counting in the SPList,
+                    // because only there is the filtered information, if any, still hidden
+                    // and therefore unable to mess up the word count.)
+					int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+							pSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+					// construct an easily findable unique string containing the number
+					wxString entry = _T("|@");
+					entry << nWordCount; // converts int to string automatically
+					entry << _T("@| ");
+					// append it after a delimiting space
+					markersPrefix += aSpace + entry;
 
-						// construct an easily findable unique string containing the number
-						wxString entry = _T("|@");
-						entry << nWordCount;
-						entry << _T("@| ");
-
-						// insert it following the marker and its delimiting space
-						tempStr = InsertInString(tempStr, nCurPos + 6, entry);
-					}
-					Tstr = tempStr + pSrcPhrase->m_targetStr;
+					// now the free translation string itself & endmarker
+					markersPrefix += aSpace + freeTransStr;
+					markersPrefix += freeEndMkr; // don't need space too
 				}
-			}
-			else
-			{
-				// ignore any subsequent markers - they will have to be placed
-				// manually using the dialog;
-				// BEW added 07Oct05; but we will here have to remove any filtered free translation from
-				// m_markers and place it at the current pSrcPhrase silently, leaving any other filtered
-				// and/or unfiltered marker content in m_markers for the subsequent placement dialog to
-				// show it to the user for placement. Since the latter won't involve any free translation,
-				// the word counts for free translations won't be mucked up by the placement in the dialog;
-				// and to keep those counts correct, we have to do the free translation insertion here now
-				// -- assuming there is some to be placed -- and that's what we check for below, etc.
-				if (!pSrcPhrase->m_markers.IsEmpty())
+				if (!noteStr.IsEmpty())
 				{
-					// is there some free translation in m_markers?
-					int nCurPos = pSrcPhrase->m_markers.Find(_T("\\free"));
-					if (nCurPos != -1)
+					markersPrefix.Trim();
+					markersPrefix += aSpace + noteMkr;
+					markersPrefix += aSpace + noteStr;
+					markersPrefix += noteEndMkr; // don't need space too
+				}
+				if (!filteredInfoStr.IsEmpty())
+				{
+					// this data has any markers and endmarkers already 'in place'
+					markersPrefix.Trim();
+					markersPrefix += aSpace + filteredInfoStr;
+				}
+				markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+
+				if (!markersStr.IsEmpty())
+				{
+					// this data has any markers and endmarkers already 'in place', and
+					// we'll show this m_markers content to the user because it may
+					// contain a marker for which there is a later 'medial' matching
+					// endmarker which has to be placed by the Place... dialog, so it
+					// helps to be able to see what the matching marker is and where it
+					// is; this stuff will be the first, if it exists, in Sstr, Tstr, Gstr
+					Sstr = markersStr;
+					Tstr = markersStr;
+					//Gstr = markersStr; // unused, fortunately, & retranslations don't apply
+									   // when glossing anyway
+				}
+
+				// any endmarkers on the first CSourcePhrase are therefore "medial", and
+				// any endmarkers on the last one are not medial and so can be added
+				// without recourse to the Place... dialog; the last CSourcePhrase of the
+				// retranslation will have the m_bEndRetranslation flag set; beware when
+				// the retraslation is one word only and so it has m_bBeginRetranslation
+				// and m_bEndRetranslation both set; note: the position of the endmarkers
+				// is determinate for the Sstr accumulation, so we place them here for
+				// that - but only for CSourcePhrase instances other than then end one, as
+				// we handle case of endmarkers at the very end lower down in the code
+				// after the loop ends
+				bool bNonFinalEndmarkers = FALSE;
+				if (!endMarkersStr.IsEmpty())
+				{
+					// we've endmarkers we have to deal with
+					if (pSrcPhrase->m_bBeginRetranslation ||
+						(pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation))
 					{
-						// yep, we need to extract it and handle it here
-						wxString fltrMkr = filterMkr;
-						wxString fltrEndMkr = filterMkrEnd;
-						int lenStart = fltrMkr.Length();
-						int lenEnd = fltrEndMkr.Length();
-						wxString mkr = _T("\\free");
-						wxString endMkr = _T("\\free*");
-						// and \free plus space is length 6, \free* plus space is length 7
-						int offset;
-						int len;
-						wxString freetransStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,offset,len);
-						// now remove the filtered section from m_markers
-						int nMoveBack = lenStart + 1 + 6; // +1 is for the space following \~FILTER
-						int nAddToEnd = lenEnd + 1 + 7; // +1 is for the space following \~FILTER*
-						offset -= nMoveBack;
-						wxASSERT(offset >= 0);
-						int nTotal;
-						nTotal = pSrcPhrase->m_markers.Length();
-						int newLen = nMoveBack + len + nAddToEnd;
-						wxASSERT(nTotal - newLen >= 0);
-						pSrcPhrase->m_markers.Remove(offset,newLen); //pSrcPhrase->m_markers.Delete(offset,newLen);
-
-						// check m_markers for valid content, if so, leave it there, if not, delete whatever remains
-						if (!pSrcPhrase->m_markers.IsEmpty())
-						{
-							int nFound = pSrcPhrase->m_markers.Find(_T("\\")); // look for a marker
-							if (nFound == -1)
-							{
-								// no marker is present, so there might be a residual space or other rubbish
-								// so just clear m_markers so that the placement dialog won't be opened here
-								pSrcPhrase->m_markers.Empty();
-								bHasInternalMarkers = FALSE;
-							}
-							else
-							{
-								// a marker is present, so the manual placement of markers in the dialog
-								// will be required, so flag this fact
-								bHasInternalMarkers = TRUE;
-							}
-						}
-
-						// get the word count for the free translation section
-						int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
-														pSrcPhrase->m_nSequNumber); // TRUE means 'tgt text count'
-
-						// construct an easily findable unique string containing the number
-						wxString entry = _T("|@");
-						entry << nWordCount;
-						entry << _T("@| ");
-
-						// insert it preceding the free translation content, that is, at the start of
-						// the freetransStr
-						freetransStr.Empty();
-						freetransStr << entry << freetransStr;
-
-						// now construct the marker, content, and endmarker (but we don't want a terminating
-						// space because each word added has a space added first, so that will do the job)
-						// which is to be inserted into the text stream at this point
-						wxString insertStr = _T(' '); // initial space
-						insertStr << mkr << _T(' '); // \free plus a following space
-						insertStr << freetransStr; // freetransStr has a terminating space already
-						insertStr << endMkr; // \free* and no terminating space
-
-						// insert the free translation into Tstr
-						Tstr << insertStr;
+						// these endmarkers become medial, so append to the list for
+						// showing in the dialog; but place them at their known location in
+						// Sstr and Gstr
+						markersToPlaceArray.Add(endMarkersStr);
+						bHasInternalMarkers = TRUE;
+						bNonFinalEndmarkers = TRUE;
 					}
 					else
 					{
-						// non-empty m_markers content but no filtered free translation means there is something
-						// to be placed manually in the placement dialog further down, so flag this fact
-						bHasInternalMarkers = TRUE;
+                        // we've a one-CSourcePhrase-only retranslation with endmarkers at
+                        // its end... so we can place these automatically (don't need to
+                        // use the Place... dialog)
+						bFinalEndmarkers = TRUE; // use this below to do the final append
+						finalSuffixStr = endMarkersStr;
 					}
 				}
 
-				// add the sourcephrase's word, if it is not an empty string
-				if (!pSrcPhrase->m_targetStr.IsEmpty())
-					Tstr << _T(" ") << pSrcPhrase->m_targetStr;
+				Tstr += pSrcPhrase->m_targetStr;
+				Sstr += pSrcPhrase->m_srcPhrase;
+				if (bNonFinalEndmarkers)
+				{
+					Sstr += endMarkersStr;
+				}
+				//Gstr += pSrcPhrase->m_gloss;	// added for Interlinear RTF output (but unused)
+				//if (bNonFinalEndmarkers)
+				//{
+				//	Gstr += endMarkersStr;
+				//}
+				// Nstr is added for Interlinear RTF output (but unused)
+				//if (!pSrcPhrase->m_chapterVerse.IsEmpty())
+				//	Nstr = pSrcPhrase->m_chapterVerse;
+				//if (Nstr.IsEmpty())
+				//	Nstr = retranstr; 
+				//else
+				//	Nstr += aSpace + retranstr;
+				//if (!pSrcPhrase->m_inform.IsEmpty())
+				//	Nstr += aSpace + pSrcPhrase->m_inform;
+			} // end TRUE block for test: if (bFirst)
+			else
+			{
+                // We cannot automatically place any subsequent markers after those on the
+                // first CSourcePhrase instance - they will be "medial" and so will have to
+				// be placed manually using the dialog; this block handles non-first
+				// CSourcePhrase instances, as we collect the Tstr, etc within the loop...
+				unfilteredStr.Empty(); // empty our scratch string
+                
+				// BEW added revised comment 31MAR10: if there is medial filtered info
+				// (and there might be because it is legal to select over filtered info
+				// and create a retranslation - the medial filtered stuff that results give no
+				// problems, will be considered to be at the same CSourcePhrase for each
+				// of src text, adaptation text, and gloss text, and so won't be presented
+				// as placeable in the dialog, but will be seen there which would allow
+				// the user to manually shift its location if he wants. Info in m_markers,
+				// however, is relocatable and so its markers (and any content following)
+				// will be listed in the Place... dialog's list, and is placeable - but it
+				// doesn't have to have its location resolved until export time - which is
+				// why we only need to worry about it in this present function
+				if (!collBackTransStr.IsEmpty())
+				{
+					// add the marker too
+					unfilteredStr.Trim();
+					unfilteredStr += backTransMkr;
+					unfilteredStr += aSpace + collBackTransStr;
+				}
+				if (!freeTransStr.IsEmpty())
+				{
+					unfilteredStr.Trim();
+					unfilteredStr += aSpace + freeMkr;
 
-				// below added for Interlinear RTF output
-				if (!pSrcPhrase->m_srcPhrase.IsEmpty())
-					Sstr << _T(" ") << pSrcPhrase->m_srcPhrase;
-				if (!pSrcPhrase->m_gloss.IsEmpty())
-					Gstr << _T(" ") << pSrcPhrase->m_gloss;
-				if (!pSrcPhrase->m_inform.IsEmpty())
-					Nstr << _T(" ") << pSrcPhrase->m_inform;
-				if (!pSrcPhrase->m_chapterVerse.IsEmpty())
-					Nstr << _T(" ") << pSrcPhrase->m_chapterVerse;
-				if (!pSrcPhrase->m_markers.IsEmpty())
+                    // see comments in TRUE block above for what is happening here
+					int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+							pSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+					wxString entry = _T("|@");
+					entry << nWordCount; // converts int to string automatically
+					entry << _T("@| ");
+					// append it after a delimiting space
+					unfilteredStr += aSpace + entry;
+
+					// now the free translation string itself & endmarker
+					unfilteredStr += aSpace + freeTransStr;
+					unfilteredStr += freeEndMkr; // don't need space too
+				}
+				if (!noteStr.IsEmpty())
+				{
+					unfilteredStr.Trim();
+					unfilteredStr += aSpace + noteMkr;
+					unfilteredStr += aSpace + noteStr;
+					unfilteredStr += noteEndMkr; // don't need space too
+				}
+				if (!filteredInfoStr.IsEmpty())
+				{
+					// this data has any markers and endmarkers already 'in place'
+					unfilteredStr.Trim();
+					unfilteredStr += aSpace + filteredInfoStr;
+				}
+ 				unfilteredStr.Trim(FALSE); // finally, remove any LHS whitespace
+           
+				// m_markers material, however, belongs in the list for later placement in
+				// Tstr, but for Sstr we must place it automatically because its position
+				// is determinate and not subject to relocation in the placement dialog
+				if (!markersStr.IsEmpty())
+				{
+					markersToPlaceArray.Add(markersStr);
 					bHasInternalMarkers = TRUE;
+					Sstr += markersStr; 
+				}
+
+				// any m_endMarkers material will either be medial and so need to be put 
+				// in the list, or final (if this is the last CSourcePhrase of the
+				// retranslation, that is, if m_bEndRetranslation is TRUE)
+				bool bNonFinalEndmarkers = FALSE;
+				if (!endMarkersStr.IsEmpty())
+				{
+					// we've endmarkers we have to deal with
+					if (pSrcPhrase->m_bRetranslation && !pSrcPhrase->m_bEndRetranslation)
+					{
+						// these endmarkers become medial, so append to the list for
+						// showing in the dialog
+						markersToPlaceArray.Add(endMarkersStr);
+						bHasInternalMarkers = TRUE;
+						bNonFinalEndmarkers = TRUE;
+					}
+					else
+					{
+                        // the endmarkers are at the end of the retranslation so we can
+                        // place these automatically (don't need to use the Place...
+                        // dialog)
+						bFinalEndmarkers = TRUE; // use this below to do the final append
+						finalSuffixStr = endMarkersStr;
+					}
+				}
+
+				// insert any non-empty unfiltered material "in place" in the strings
+				// which the user will see (source & target, but we'll do so also in the
+				// gloss one too, even though it is currently unused
+				//bool bMedialsOnThisOne = FALSE;
+				if (!unfilteredStr.IsEmpty())
+				{
+					Tstr << aSpace << unfilteredStr;
+					Sstr << aSpace << unfilteredStr;
+					//Gstr << aSpace << unfilteredStr;
+					//bMedialsOnThisOne = TRUE;
+				}
+
+                // add the sourcephrase's target text word or phrase, if it is not an empty
+                // string; likewise for the source text word or phrase
+				if (!pSrcPhrase->m_targetStr.IsEmpty())
+					Tstr << aSpace << pSrcPhrase->m_targetStr;
+				if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+					Sstr << aSpace << pSrcPhrase->m_srcPhrase;
+				// add any needed endmarkers
+				if (bNonFinalEndmarkers)
+				{
+					Sstr << endMarkersStr;
+				}
+				// below added for Interlinear RTF output
+				//if (!pSrcPhrase->m_gloss.IsEmpty())
+				//	Gstr << aSpace << pSrcPhrase->m_gloss;
+				//if (bNonFinalEndmarkers)
+				//{
+				//	Gstr << endMarkersStr;
+				//}
+                // BEWARE - faulty logic below: I've protected the flaw to some extent by
+                // wrapping the additions to Nstr with a test for bMedialsOnThisOne (that
+                // is, additions from this particular pSrcPhrase as we scan through the
+                // retranslation) but nevertheless, if the test is TRUE then extra material
+                // from medial information would end up appended to anything (possibly
+                // nothing) already put in Nstr at the first CSourcePhrase - and such a
+                // concatenation is not likely to be very helpful in an interlinear RTF
+                // tabled display - it might push a cell of the table to be very wide and
+                // the one affected may be the wrong one anyway. Fortunately, Bill never
+                // got to use the Nstr constructed here, so at the moment this problem can
+                // remain uncorrected
+				//if (bMedialsOnThisOne)
+				//{
+				//	if (!pSrcPhrase->m_chapterVerse.IsEmpty())
+				//		Nstr << aSpace << pSrcPhrase->m_chapterVerse;
+				//	if (!pSrcPhrase->m_inform.IsEmpty())
+				//		Nstr << aSpace << pSrcPhrase->m_inform;
+				//}
 			}
+		} // end of else block for testing we aren't at the end or start of another
+
+		// finally, add any final endmarkers (but not, of course, to nav text)
+		if (bFinalEndmarkers)
+		{
+			Tstr += finalSuffixStr;
+			Sstr += finalSuffixStr;
+			//Gstr += finalSuffixStr;
 		}
 
-		// if we got to the end of the file, pos will now be null, so we have to check and if it is,
-		// set savePos to null because it is savePos that we return to the caller
+        // if we got to the end of the file, pos will now be null, so we have to check and
+        // if it is, set savePos to null because it is savePos that we return to the caller
 		if (pos == 0)
 			savePos = NULL;
-	}
-
-	// set the global string for the target text, if we need to use a dialog
-	// we will get the initial form of the target translation from this global
-	tgtStr = Tstr;
-
-	// set the global strings below for source, nav text, and gloss,
-	// added for Interlinear RTF output
-	srcStr = Sstr;
-	navStr = Nstr;
-	glsStr = Gstr;
+	} // end of while loop
 
 	// if there are internal markers, put up the dialog to place them
 	if (bHasInternalMarkers)
 	{
+		// Note: because the setters are called before ShowModal() is called,
+		// initialization of the internal controls' pointers etc has to be done in the
+		// creator, rather than as is normally done (ie. in InitDialog()) because the
+		// latter is called from ShowModal(, which is too late
 		CPlaceRetranslationInternalMarkers dlg(gpApp->GetMainFrame());
+
+		// set up the text controls and list box with their data; these setters enable the
+		// data passing to be done without the use of globals
+		dlg.SetNonEditableString(Sstr);
+		dlg.SetUserEditableString(Tstr);
+		dlg.SetPlaceableDataStrings(&markersToPlaceArray);
 
 		// show the dialog
 		dlg.ShowModal();
 
-		// update the str from result of dialog, using the global
-		// whm Note: If the user uses the dlg to place filtered material we need to remove
-		// the filter brackets here for export.
+		// get the post-placement resulting string
+		Tstr = dlg.GetPostPlacementString();
+
 		// BEW added test, 07Oct05
-		if (tgtStr[0] != _T(' '))
+		if (Tstr[0] != _T(' '))
 		{
 			// need to add an initial space if there is not one there already
-			tgtStr = _T(" ") + tgtStr;
+			Tstr = _T(" ") + Tstr;
 		}
-		wxString tempStr = tgtStr;
 
-		// BEW added comment 07Oct05; we don't need to count any words in a free translation
-		// here because filtered free translations get handled above, at the storage sourcephrase,
-		// and may therefore not be manually moved by the user using the placement dialog (else, if
-		// they could be moved, the word counts for the free translation section extents would be
-		// messed up, providing a place for other code to fail and crash the app in Free Translation
-		// mode). So in the code further above, any filtered free translation is automatically placed
-		// where it is (invisibly to the user), and if there is anything left over (either filtered
-		// stuff and or other markers) that stuff is left in m_markers so it gets passed to the
-		// placement dialog for the user to place it where he wants. (This could mean that the user
-		// might place it in the middle of a free translation section, but we'll have to live with
-		// that - the app will handle that fact okay since it looks at the flags on the sourcephrases
-		// when opening free translation sections already composed. If necessary, the user could remove
-		// the free translation and redo it as two - one either side of the placed material, doing
-		// this job manually in Free Translation mode.)
-		tempStr = pDoc->RemoveAnyFilterBracketsFromString(tempStr);
-		Tstr = tempStr;
+	}
 
-		// stuff below added for Interlinear RTF output only
-		tempStr = Sstr;
-		tempStr = pDoc->RemoveAnyFilterBracketsFromString(tempStr);
-		Sstr = tempStr; 
-		Nstr = navStr;  // no internal markers possible in nav text
+	// now add the prefix string material not shown in the Place... dialog, 
+	// if it is not empty
+	if (!markersPrefix.IsEmpty())
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace; // ensure a final space
+		Tstr = markersPrefix + Tstr;
+		//Sstr = markersPrefix + Sstr;
+		//Gstr = markersPrefix + Gstr;
 	}
 
 	return savePos; // return position of first srcPhrase after retranslation, or null
 }
+#endif // _DOCVER5
 
 // wx version addition: This is a version of the MFC function of the same name. The MFC function
 // (see above) did the punctuation tuck leftward from within the text as a CString; this version does
@@ -15690,6 +15899,7 @@ bool DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, wxChar* pPos
 // and subsequent import into a new project; the function uses the CString Tokenize() function to count
 // the words in str and return the count; if pStrList is NULL, just the word count is returned, but if
 // a CStringList pointer is passed in, then it is populated with the individual words
+// BEW 31Mar10, no changes needed for support of _DOCVER5
 int GetWordCount(wxString& str, wxArrayString* pStrList)
 {
 	if (pStrList)

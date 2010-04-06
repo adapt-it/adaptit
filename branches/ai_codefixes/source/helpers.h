@@ -130,7 +130,27 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 wxString ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
 				// to underscore characters, used in ReadOnlyProtection.cpp
 #ifdef _DOCVER5	
-
+// the following returns the members m_markers, m_endMarkers, m_freeTrans, m_Note,
+// m_collectedBackTrans, m_filteredInfo, "as is" - the filteredInfoStr will include the
+// wrapping filter bracket markers, and freeTransStr and the two following won't have any
+// markers at all. We just get what's in the members, and let the caller decide how to
+// process the returned strings
+void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
+								  wxString& markersStr, 
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr);
+// use the following to empty the caller's local wxString variables for storing these info
+// types 
+void EmptyMarkersAndFilteredStrings(
+								  wxString& markersStr, 
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr);
 // returns one or more substrings of form \~FILTER .... filtered info .... \~FILTER*,
 // concatenated without any space delimiter
 wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
@@ -147,6 +167,9 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 
+wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr);
+wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr);
+
 #endif
 
 bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
@@ -154,8 +177,10 @@ bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFir
 bool		IsNullSrcPhraseInSelection(SPList* pList);
 bool		IsRetranslationInSelection(SPList* pList);
 
-// filtered fields functions moved from CAdapt_ItView
-wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
-						CSourcePhrase* pSrcPhrase, int& offset, int & length);
+#if !defined (_DOCVER5)
+// filtered fields functions moved from CAdapt_ItView - and now removed
+//wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
+//						CSourcePhrase* pSrcPhrase, int& offset, int & length);
+#endif
 
 #endif	// helpers_h

@@ -275,8 +275,10 @@ public:
 	void		RestoreBoxOnFinishVerticalMode(); // BEW added 8Sept08
 	void		SelectDragRange(CCell* pAnchor,CCell* pCurrent);
 	void		SelectAnchorOnly();
+#if !defined (_DOCVER5)
 	void		SelectFoundSrcPhrases(int nNewSequNum, int nCount, bool bIncludePunct, 
 									bool bSearchedInSrc, bool bDoRecalcLayout);
+#endif
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
@@ -382,6 +384,7 @@ public: // edb 05 March 2010 - set to public (called from CRetranslation)
 	void		InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,CPile* pInsertLocPile,
 					const int nCount,bool bRestoreTargetBox = TRUE,bool bForRetranslation = FALSE,
 					bool bInsertBefore = TRUE);
+	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, bool bDoRecalcLayout);
 protected:
 	void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
 public:
@@ -399,8 +402,6 @@ protected:
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
 	bool		IsSelectionAcrossFreeTranslationEnd(SPList* pList);
-	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
-					bool bDoRecalcLayoutInternally);
 	bool		MatchAutoFixItem(AFList* pList, CSourcePhrase* pSrcPhrase, AutoFixRecord*& rpRec); // MFC CPtrList*
 	void		PadOrShortenAtEnd(SPList* pSrcPhrases,
 					int nStartSequNum,int nEndSequNum,int nNewLength,int nCount,TextType myTextType,

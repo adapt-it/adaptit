@@ -22,6 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 //#define DrawFT_Bug
+//#define FINDNXT
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItView.h"
@@ -739,9 +740,10 @@ bool bSuppressDefaultAdaptation = FALSE;	// normally FALSE, but set TRUE wheneve
         // ensures cons.changes won't be done on the typing) - actually more complex than
         // this, see CPhraseBox OnChar()
 bool   gbInspectTranslations = FALSE;	// TRUE when user manually opens CChooseTranslation
-										// to inspect adaptions
+		// to inspect adaptions
+#if !defined (_DOCVER5)
 extern bool		gbUserWantsSelection; // carries value from CPhraseBox to caller of LookAhead()
-									  // - see there
+#endif
 extern bool		gbUserCancelledChooseTranslationDlg;
 extern bool		gbSuppressLookup; // see CPhraseBox globals for explanation
 
@@ -3101,13 +3103,25 @@ a:	pApp->m_targetPhrase = str; // it will lack punctuation, because of BEW chang
     // RecalcLayout() calls will clobber any selection we try to make beforehand, so do the
     // selecting now; do it also before recalculating the phrase box, since if anything
     // moves, we want the phrase box location to be correct
+#if defined (_DOCVER5)
+	if (pApp->m_pTargetBox->GetCancelAndSelectFlag())
+	{
+		// this block is entered when the user places the phrase box with a click at a
+		// hole and lookup is done and there is more than one KB adaptation (or gloss)
+		// available and he clicks the Cancel & Select button; DoCancelAndSelect clears
+		// the private bool m_bCancelAndSelectButtonPressed in the CPhraseBox instance
+		pApp->m_pTargetBox->DoCancelAndSelect(this, pApp->m_pActivePile);
+		pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
+	}
+#else
     // *** TODO *** test new design to see if this block is still needed and works right
 	if (gbUserWantsSelection)
 	{
 		pApp->m_pTargetBox->DoCancelAndSelect(this, pApp->m_pActivePile);
 		gbUserWantsSelection = FALSE; // must be turned off before we do anything else!
 		pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-	}	
+	}
+#endif
 	gbCompletedMergeAndMove = FALSE;
 //#ifdef __WXDEBUG__
 //	wxLogDebug(_T("PlacePhraseBox at %d ,  Active Sequ Num  %d"),14,pApp->m_nActiveSequNum);
@@ -17485,20 +17499,36 @@ void CAdapt_ItView::OnUpdateGoTo(wxUpdateUIEvent& event)
 // Called from CAdapt_ItView::DoFindNext() and CPhraseBox::DoCancelAndSelect().
 // CPhraseBox::DoCancelAndSelect() requires that a RecalcLayout() call, and resetting of
 // the active sequence number and active pile be done internally, but DoFindNext() doesn't
-// require these calls because they are done further up in the call hierarchy - and in
-// fact if done when a match is made for text in a retranslation, the active location
-// would be set wrongly if done here. So we use the bDoRecalcLayoutInternally flag to
-// suppress the unwanted code when used in the context of a Find operation.
-// BEW added 2Aug09, the bDoRecalcLayoutInternally flag
+// require these calls because they are done further up in the call hierarchy - and in fact
+// if done when a match is made for text in a retranslation, the active location would be
+// set wrongly if done here. So we use the bDoRecalcLayout flag to suppress the unwanted
+// code when used in the context of a Find operation.
+// BEW added 2Aug09, the bDoRecalcLayout flag
+// BEW 26Mar10 updated for support of _DOCVER5 (changes needed, and also did removal of a
+// global boolean, gbUserWantsSelection which was default FALSE, throughout the app -- it
+// made the logic unnecessarily convoluted here and elsewhere)
 void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
-														bool bDoRecalcLayoutInternally)
+											bool bDoRecalcLayout)
 {
 	// refactored 17Apr09
-	wxASSERT(nSelectionLine == 0 || nSelectionLine == 1);
+	wxASSERT(nSelectionLine == 0);
 	CAdapt_ItApp* pApp = &wxGetApp();
 	CLayout* pLayout = GetLayout();
 	wxASSERT(pApp != NULL);
-	if (!gbUserWantsSelection && bDoRecalcLayoutInternally)
+#if defined (_DOCVER5)
+	// BEW 26Mar10, added the second param to the test, this makes a match in a
+	// retranslation automatically skip the recalc layout and placement
+	if (bDoRecalcLayout)
+	{
+        // the above flag is never TRUE when this function is being called in association
+        // with a Find Next operation; but since this function is also used for making a
+        // selection when user hits the "Cancel And Select" button in CChooseTranslation
+        // dialog when called from LookAhead(), the flag will be TRUE when that happens
+        // BEW added 19Dec08: also we will use this function witht TRUE passed to create
+        // the needed selection, along with a recalc of the layout, within the
+        // RecreateCollectedBackTranslationsInVerticalEdit() function
+#else
+	if (!gbUserWantsSelection && bDoRecalcLayout)
 	{
         // the above flag is never TRUE when this function is being called in association
         // with a Find Next operation; but since this function is also used for making a
@@ -17510,7 +17540,14 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
         // BEW comment 17Apr09 for refactored view layout: since the bundle concept is gone
         // now, no advance is possible and all piles are accessible, so just reset the
         // active location, recalculate the layout and scroll into view
-		pApp->m_nActiveSequNum = nNewSequNum;
+#endif
+#if defined (_DOCVER5)
+		if (!pApp->m_bMatchedRetranslation)
+			// don't put the active location at the match location if the match was in a
+			// retranslation
+#endif
+			pApp->m_nActiveSequNum = nNewSequNum;
+
 #ifdef _NEW_LAYOUT
 		pLayout->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
@@ -17523,22 +17560,34 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 	CCell* pCell;
 	if (pApp->m_bMatchedRetranslation)
 	{
-		// active pile is outside the retranslation, so the cell must be the first in the
-		// retranslation 
+		// active pile is outside the retranslation, so the matched location will be the
+		// first cell of the retranslation, but we must put the phrase box there - put it
+		// at the previous CSourcePhrase, if it exists
 		CPile* pFirstPileInRetrans = GetPile(nNewSequNum);
 		pCell = pFirstPileInRetrans->GetCell(nSelectionLine);
+		CPile* pPrevPile = GetPile( nNewSequNum - 1);
+		if (pPrevPile != NULL)
+		{
+			pApp->m_pActivePile = pPrevPile;
+			pApp->m_nActiveSequNum = nNewSequNum - 1;
+		}
+		else
+		{
+			// for no previous pile, we have to use the pFirstPileInRetrans one instead
+			pApp->m_pActivePile = pFirstPileInRetrans;
+			pApp->m_nActiveSequNum = nNewSequNum;
+
+		}
 	}
 	else
 	{
-		// it's okay to use the active pile as the first to select
+		// the new active location needs to be at the match location
+		pApp->m_pActivePile = GetPile(nNewSequNum);
+		pApp->m_nActiveSequNum = nNewSequNum;
 		pCell = pApp->m_pActivePile->GetCell(nSelectionLine);
 	}
 
-
-    // make the selection (remember, this code can make a selection in line index 1 as well
-    // as in 0; so if we click on the view, we will have to transform it to a legal
-    // selection for the view - so we would want to make it an index 0 selection in that
-    // event, for max flexibility) first, get rid of any old selection
+    // make the selection; first, get rid of any old selection
 	wxClientDC aDC(pApp->GetMainFrame()->canvas); // make a device context
 	if (pApp->m_selection.GetCount() != 0)
 	{
@@ -17581,8 +17630,9 @@ void CAdapt_ItView::MakeSelectionForFind(int nNewSequNum, int nCount, int nSelec
 		// single cell shown selected
 		GetLayout()->Redraw();
 	}
-
-	gbUserWantsSelection = FALSE; // appropriate place to turn it back off
+#if !defined (_DOCVER5)
+	//gbUserWantsSelection = FALSE; // appropriate place to turn it back off
+#endif
 	Invalidate();
 	GetLayout()->PlaceBox();
 }
@@ -17645,6 +17695,7 @@ void CAdapt_ItView::ExtendSelectionForFind(CCell* pAnchorCell, int nCount)
 	}
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::OnFind(wxCommandEvent& event)
 {
 	// refactored 17Apr09
@@ -18061,6 +18112,8 @@ void CAdapt_ItView::OnUpdateReplace(wxUpdateUIEvent& event)
 	else
 		event.Enable(FALSE);
 }
+
+#if !defined (_DOCVER5)
 // Called in DoFindNext() of view class, and DoCancelAndSelect() of CPhraseBox class
 // BEW 22Feb10 no changes needed for support of _DOCVER5
 void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
@@ -18102,14 +18155,18 @@ void CAdapt_ItView::SelectFoundSrcPhrases(int nNewSequNum, int nCount,
 
 	// update the active sequ number, if the MakeSelectionForFind did an internal
 	// RecalcLayout() call, etc.
+	// update the active sequ number, if the MakeSelectionForFind did an internal
+	// RecalcLayout() call, etc.
 	if (bDoRecalcLayout)
 		pApp->m_nActiveSequNum = nNewSequNum;
 }
+#endif
 
 // All parameters relevant when glossing is OFF. When glossing is ON, the following
 // applies: bIncludePunct and bSpanSrcPhrases will be FALSE, since the checkboxes 
 // for those flags are hidden; tgt parameter will hold, if relevant, text to be searched
 // for in the m_gloss line; and nCount should never be anything except 1 when glossing.
+// BEW 26Mar10, some changes needed for support of _DOCVER5
 bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 						bool bSpecialSearch,bool bSrcOnly, bool bTgtOnly,
 						bool bSrcAndTgt, bool bFindRetranslation, bool bFindNullSrcPhrase,
@@ -18207,6 +18264,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 				::wxBell(); 
 				wxASSERT(FALSE);
 			}
+			// the following function had changes for support of doc version 5
 			bFound = DoFindSFM(sfm,nCurSequNum+1,nSequNum,nCount);
 		}
 		if (!bFound)
@@ -18221,11 +18279,32 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 		}
 		else
 		{
+#if !defined (_DOCVER5)
 			// found a matching string, in the srcPhrase with sequ num nSequNum
 			// BEW 9Aug09 added last parameter bDoRecalcLayoutInternally = FALSE
 			// to suppress unhelpful RecalcLayout, resetting of active sequ num etc in the
 			// internal function MakeSelectionForFind()
 			SelectFoundSrcPhrases(nSequNum,nCount,TRUE,TRUE,FALSE);
+#else
+			if (gbIsGlossing)
+			{
+				wxASSERT(nCount == 1);
+			}
+			// BEW changed 3Aug09 to always have the selection display be on the source
+			// text line for Find Next - this makes the interface more consistent
+			int nSelLineIndex = 0;
+
+			// make the appropriate selection... recalc of layout not wanted yet (that's
+			// the meaning of FALSE param in the call), MakeSelectionForFind()
+			// automatically refrains from putting the active location at the match point
+			// if the app boolean flag m_bMatchedRetranslation is TRUE
+			MakeSelectionForFind(nSequNum,nCount,nSelLineIndex, FALSE);
+
+			// update the active sequ number, only if not matching text in a pile of a
+			// retranslation (because we can't put the phrase box at such a pile)
+			if (!pApp->m_bMatchedRetranslation)
+				pApp->m_nActiveSequNum = nSequNum;
+#endif
 			return TRUE;
 		}
 	}
@@ -18289,26 +18368,48 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			// found a matching string, in the srcPhrase with sequ num nSequNum
 			FindNextHasLanded(nSequNum); // bSuppressSelectionExtention is default TRUE
 										 // because SelectFoundSrcPhrases() will do it
-
+#if !defined (_DOCVER5)
  			// BEW 2Aug09 added last parameter bDoRecalcLayoutInternally = FALSE
 			// to suppress unhelpful RecalcLayout, resetting of active sequ num etc in the
 			// internal function MakeSelectionForFind()
-           // BEW changed 3Aug09, SelectFoundSrcPhrases() conditionally does a
+            // BEW changed 3Aug09, SelectFoundSrcPhrases() conditionally does a
             // RecalcLayout() & if it does it resets the active sequence number to the
             // nSequNum value passed in. A test of two flags prevents this leading to an
             // error in the circumstance where the phrase box needs to be not at the
             // matched location within a retranslation. It also sets the selection of the
             // source text to show what was matched. For a match within a retranslation,
-            // the whole retranslation is shown selected.
+			// the whole retranslation is shown selected. (so relies on
+			// gbUserWantsSelection being default false in order to get the recalc layout
+			// done) 
 			SelectFoundSrcPhrases(nSequNum,nCount,bIncludePunct,bInSrc,FALSE);
+#else
+			if (gbIsGlossing)
+			{
+				wxASSERT(nCount == 1);
+			}
+			// BEW changed 3Aug09 to always have the selection display be on the source
+			// text line for Find Next - this makes the interface more consistent
+			int nSelLineIndex = 0;
+
+			// make the appropriate selection... recalc of layout not wanted yet (that's
+			// the meaning of FALSE param in the call), MakeSelectionForFind()
+			// automatically refrains from putting the active location at the match point
+			// if the app boolean flag m_bMatchedRetranslation is TRUE
+			MakeSelectionForFind(nSequNum,nCount,nSelLineIndex, FALSE);
+
+			// update the active sequ number, only if not matching text in a pile of a
+			// retranslation (because we can't put the phrase box at such a pile)
+			if (!pApp->m_bMatchedRetranslation)
+				pApp->m_nActiveSequNum = nSequNum;
+#endif
 			return TRUE;
 		}
 	}
 }
 
-
 // finds only those null src phases (ie. placeholders) which are not within a retranslation
 // for padding purposes; the search is also allowed when glossing is ON
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int& nCount)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -18341,6 +18442,7 @@ bool CAdapt_ItView::DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int& n
 	return FALSE;
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::IsSameMarker(int str1Len, int nFirstChar, const wxString& str1,
 								 const wxString& testStr)
 {
@@ -18369,8 +18471,11 @@ bool CAdapt_ItView::IsSameMarker(int str1Len, int nFirstChar, const wxString& st
 }
 
 // we allow this search when glossing or when adapting
+// BEW 26Mar10, some changes needed for support of _DOCVER5
 bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount)
 {
+	// nCount just returns how many were found, this is a bit of a white elephant as we
+	// only ever find one instance at a time, so just return 1
 	CAdapt_ItApp* pApp = &wxGetApp();
 	SPList* pList = pApp->m_pSourcePhrases;
 	wxASSERT(pList != NULL);
@@ -18379,6 +18484,11 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 	int sn = nStartSequNum;
 	CSourcePhrase* pSrcPhrase = NULL;
 	int len = sfm.Length();
+#if defined (_DOCVER5)
+	wxString freeTransMkr = _T("\\free");
+	wxString noteMkr = _T("\\note");
+	wxString backTransMkr = _T("\\bt");
+#endif
 
 	int nFound = -1; // assume not found
 	while (pos != NULL)
@@ -18386,7 +18496,131 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
-
+#if defined (_DOCVER5)
+		// For doc version 5, we don't actually have \free, \free*, \note, \note*, nor \bt
+		// markers actually stored with the content of free translations, notes, or
+		// collected back translations. The list which the user saw lists the \free,
+		// \note, and \bt as findable markers - but the list was populated from
+		// AI_USFM.xml, and we are keeping our custom markers in that file. We'll trick
+		// the user - he or she doesn't need to know that in the data model for version
+		// these data types are stored in wxString members with name m_freeTrans, m_note,
+		// and m_collectedBackTrans, and hence our GUI stuff will show the markers, but
+		// our search will actually check for non-empty member strings as above. Also, our
+		// filtered markers are now stored in m_filteredInfo, not m_markers, and so we'll
+		// also have to search in there too. We'll do these searches before we hand over
+		// to the legacy code which just checks the m_markers member. (When checking the
+		// wxString members for non-empty content, we don't need to make the call to
+		// IsSameMarker(), as there is no possibility of a spurious 'find'.)
+		if (sfm == freeTransMkr)
+		{
+			if (!pSrcPhrase->GetFreeTrans().IsEmpty())
+			{
+#if defined __WXDEBUG__
+#if defined FINDNXT
+				//wxLogDebug(_T("Found free translation: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+				// found location where a free translation commences
+				nSequNum = sn;
+				nCount = 1;
+				return TRUE;
+			}
+		}
+		if (sfm == noteMkr)
+		{
+			if (!pSrcPhrase->GetNote().IsEmpty())
+			{
+				// found location where a note is stored
+#if defined __WXDEBUG__
+#if defined FINDNXT
+				//wxLogDebug(_T("Found note: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+				nSequNum = sn;
+				nCount = 1;
+				return TRUE;
+			}
+		}
+		wxString filteredInfo = pSrcPhrase->GetFilteredInfo();
+		if (sfm == backTransMkr)
+		{
+			if (!pSrcPhrase->GetCollectedBackTrans().IsEmpty())
+			{
+#if defined __WXDEBUG__
+#if defined FINDNXT
+				//wxLogDebug(_T("Found back trans: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+				// found location where a collected back translation is stored
+				nSequNum = sn;
+				nCount = 1;
+				return TRUE;
+			}
+			else
+			{
+				// We have to search also for a \bt-derived marker - any of these would be
+				// stored in the m_filteredInfo member, each wrapped with \~FILTER and
+				// \~FILTER* filter markers. So we'll have to search.
+				if (!filteredInfo.IsEmpty())
+				{
+					nFound = filteredInfo.Find(sfm); // we search just for \bt because we
+													 // don't know what the inventory of
+													 // such custom markers might be - eg.
+													 // \btv \bth and so forth
+					if (nFound >= 0)
+					{
+#if defined __WXDEBUG__
+#if defined FINDNXT
+						//wxLogDebug(_T("Found bt-derived marker in m_filteredInfo: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+						// we'll make the reasonable assumption that the marker will not
+						// be in any content string for some other marker, and so not try
+						// test for this - we just assume we've found one
+						nSequNum = sn;
+						nCount = 1;
+						return TRUE;
+					}
+				}
+			}
+		}
+		else
+		{
+            // if control gets to here, we know we have not located a \free, \note, \bt nor
+            // \bt-derived marker, so all that remains is to check any other marker passed
+            // in. We must here check if the passed in marker occurs in the filteredInfo
+            // string. If it does, we handle it like the legacy code below (ie. call
+            // IsSameMarker() etc), but if we don't match anything, then only m_markers
+            // remains to be checked, and we can leave that for the legacy code further
+            // below
+			if (!filteredInfo.IsEmpty())
+			{
+				nFound = filteredInfo.Find(sfm);
+				if (nFound >= 0)
+				{
+                    // we can assume m_filteredInfo does not have two markers one of which
+                    // is a substring of the other (if that was the case, and the longer
+                    // was first and we were looking for the shorter, we'd never find the
+                    // shorter one with the following code)
+					bool bSame = IsSameMarker(len,nFound,sfm,filteredInfo);
+					if (bSame)
+					{
+#if defined __WXDEBUG__
+#if defined FINDNXT
+						//wxLogDebug(_T("Found chosen filterable marker in m_filteredInfo: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+						// we found a matching standard format marker
+						nSequNum = sn;
+						nCount = 1;
+						return TRUE;
+					}
+				}
+			}
+		}
+#endif
+		// this is the legacy code, before doc version 5; if control reaches here, no
+		// target marker has been matched yet, so we check for it in m_markers
 		nFound = pSrcPhrase->m_markers.Find(sfm); // nFound is index of first 
 												  // char of matched str
 		if (nFound >= 0)
@@ -18400,6 +18634,18 @@ bool CAdapt_ItView::DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, i
 			{
 				nFound = -1;
 				goto b;
+			}
+			else
+			{
+#if defined __WXDEBUG__
+#if defined FINDNXT
+				//wxLogDebug(_T("Found the chosen marker in m_markers: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+				// we found a matching standard format marker in m_markers
+				nSequNum = sn;
+				nCount = 1;
+				return TRUE;
 			}
 		}
 		else
@@ -18420,7 +18666,16 @@ b:			if (pSrcPhrase->m_nSrcWords > 1)
 							bool bSame = IsSameMarker(len,nFound,sfm,markers);
 							if (bSame)
 							{
-								break;
+#if defined __WXDEBUG__
+#if defined FINDNXT
+								//wxLogDebug(_T("Found the marker among medial markers: at sn = %d  word is:  %s"),sn,pSrcPhrase->m_srcPhrase);
+#endif
+#endif
+								// we found a matching standard format marker,in the
+								// stored medial markers for a merger 
+								nSequNum = sn;
+								nCount = 1;
+								return TRUE;
 							}
 							else
 							{
@@ -18430,10 +18685,12 @@ b:			if (pSrcPhrase->m_nSrcWords > 1)
 					}
 				}
 			}
-		}
+		} // end else block for last nFound >= 0 test
+		sn++; // increment index for next CSourcePhrase instance to be searched
+		/*
 		if (nFound >= 0)
 		{
-			// we found a matching standard format marker
+			// we found a matching standard format marker, 
 			nSequNum = sn;
 			nCount = 1;
 			return TRUE;
@@ -18442,7 +18699,8 @@ b:			if (pSrcPhrase->m_nSrcWords > 1)
 		{
 			sn++; // index for next CSourcePhrase instance to be searched
 		}
-	}
+		*/
+	} // end of loop
 
 	// if we get here, we didn't find a match
 	return FALSE;
@@ -18493,6 +18751,7 @@ void CAdapt_ItView::DeleteTempList(SPList* pList)
 // coextensive with the end of the strTarget string; returns the offset to the first
 // matched character if it finds such a match, or -1 otherwise (mimicking CString's Find()
 // function)
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 int CAdapt_ItView::IsMatchedToEnd(wxString& strSearch, wxString& strTarget)
 {
 	int nTargetLen = strTarget.Length();
@@ -18574,6 +18833,7 @@ a:	nFirstChar = FindFromPos(strTarget,strSearch,nStart);
 /// TRUE value would be returned.
 /// This is a complex function, BEWARE.
 /// If glossing is ON, this function should never get called.
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItView::DoExtendedSearch(int			selector, 
 									 SPList::Node*&	pos, 
@@ -19137,6 +19397,7 @@ b:			if (nCount == 1)
 // to use it with glossing ON and at the same time want a punctuated search in the source text,
 // I figure I can get this past muster without anyone ever discovering it! In other words, when
 // glossing is ON, the search will be in source text where punctuation has been excluded.
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 								  wxString& src,bool bIgnoreCase, int& nSequNum, int& nCount)
 {
@@ -29625,11 +29886,13 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
     // m_pSourcePhrases list in the document need to be programmatically set as selected &
     // create the selection; MakeSelectionForFind() can be used to make the selection even
     // though we are not doing a Find command
-	gbUserWantsSelection = TRUE; // TODO do we still need this global??  check someday
 	int nSelectionLine = 0; // select in the punctuated source text line
+#if !defined (_DOCVER5)
+	//gbUserWantsSelection = TRUE;
     // BEW 2Aug09 added bool bDoRecalcLayoutInternally parameter to end of signature, because it
-    // is needed (with FALSE value) for helping Find Next do its job properly when a match
+    // was needed (with FALSE value) for helping Find Next do its job properly when a match
     // is made in a retranslation, but here it just needs to be TRUE
+#endif
 	MakeSelectionForFind(pRec->nBackTrans_StartingSequNum, nBackTranslationSpanExtent, 
 							nSelectionLine,TRUE);
 	// hand over to the function which does the collecting,
@@ -29637,7 +29900,9 @@ bool CAdapt_ItView::RecreateCollectedBackTranslationsInVerticalEdit(EditRecord* 
 	pApp->m_pFreeTrans->DoCollectBacktranslations(pRec->bCollectedFromTargetText);
 
 	// do cleanup housekeeping
-	gbUserWantsSelection = FALSE; // restore default value
+#if !defined (_DOCVER5)
+	//gbUserWantsSelection = FALSE; // restore default value
+#endif
 	RemoveSelection();
 	pApp->m_pActivePile = GetPile(nSaveActiveSequNum);
 	

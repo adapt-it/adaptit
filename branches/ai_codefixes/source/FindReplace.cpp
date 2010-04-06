@@ -15,13 +15,8 @@
 /// the heap and are displayed with Show(), not ShowModal().
 /// \derivation		The CFindDlg and CReplaceDlg classes are derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in FindReplace.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
+// BEW 26Mar10, these classes are updated for support of _DOCVER5
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -123,6 +118,7 @@ CFindDlg::~CFindDlg()
 {
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	: wxDialog(parent, -1, _("Find"),
 		wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
@@ -211,6 +207,7 @@ CFindDlg::CFindDlg(wxWindow* parent) // dialog constructor
 	m_pComboSFM->SetValidator(wxGenericValidator(&m_marker)); // use validator
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
 	gbFound = FALSE;
@@ -409,6 +406,7 @@ void CFindDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 }
 // initdialog here above
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CFindDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -1208,6 +1206,7 @@ void CReplaceDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog i
 	pReplaceDlgSizer->Layout(); // force the sizers to resize the dialog
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CReplaceDlg::DoFindNext() 
 {
 	// this handles the wxID_OK special identifier assigned to the "Find Next" button
@@ -1655,6 +1654,7 @@ bool CReplaceDlg::OnePassReplace()
 		return FALSE;
 }
 
+// BEW 26Mar10, no changes needed for support of _DOCVER5
 void CReplaceDlg::OnCancel(wxCommandEvent& WXUNUSED(event)) 
 {
 	CAdapt_ItView* pView = gpApp->GetView();

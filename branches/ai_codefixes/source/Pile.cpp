@@ -222,6 +222,7 @@ int CPile::GetPileIndex()
 // these info types when/if we export them or show them in the view filtered material
 // dialog. However, we'll keep the old name unchanged; but if we do someday change it, we
 // should call it HasFilteredInfo())
+// 2BEW Feb10 updated for support of _DOCVER5
 bool CPile::HasFilterMarker()
 {
 #if defined (_DOCVER5)
@@ -664,18 +665,27 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
             // do with it is to append this information to str containing n:m if the latter
             // is pertinent here, or fill str with m_inform if there is no chapter or verse
             // info here. The construction of a wedge for signallying presence of filtered
-            // info in m_markers is also handled here, but independently of m_inform
+            // info is also handled here, but independently of m_inform
 			wxString str = _T("");
 
 			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
-                // if \~FILTERED is anywhere in the m_markers member of the sourcephrase
+ #ifdef _DOCVER5
+               // if bHasFilteredMarker is TRUE member then we require a wedge
+                // to be drawn here.
+                // BEW modified 18Nov05; to have variable colours, also the colours
+                // differences are hard to pick up with a simple wedge, so the top of the
+                // wedge has been extended up two more pixels to form a column with a point
+                // at the bottom, which can show more colour
+#else
+               // if \~FILTERED is anywhere in the m_markers member of the sourcephrase
                 // stored which has its pointer stored in m_pPile, then we require a wedge
                 // to be drawn here.
                 // BEW modified 18Nov05; to have variable colours, also the colours
                 // differences are hard to pick up with a simple wedge, so the top of the
                 // wedge has been extended up two more pixels to form a column with a point
                 // at the bottom, which can show more colour
+#endif
 				wxPoint ptWedge;
 				TopLeft(ptWedge);
 
@@ -733,6 +743,38 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
                 // colour to indicate when free translation or back translation fields are
                 // contentless
 
+				if (!bBackHasNoContent)
+				{
+					// BEW 27Mar10, a new use for pastel blue, filtered info which
+					// includes collected back translation information
+					pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
+				}
+				else if (bFreeHasNoContent && bBackHasNoContent && m_pSrcPhrase->m_bHasNote)
+				{
+					// no free trans nor back trans, but a note -- red grabs attention best
+					pDC->SetPen(*wxRED_PEN);
+				}
+				else if (bFreeHasNoContent && m_pSrcPhrase->m_bStartFreeTrans)
+				{
+					// khaki for an empty free translation
+					if (bFreeHasNoContent)
+					{
+						// colour it khaki
+						pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
+					}
+				}
+				else if (bFreeHasNoContent && bBackHasNoContent && !m_pSrcPhrase->m_bHasNote)
+				{
+					// a new colour, cyan wedge if the only filtered information is in the
+					// m_filteredInfo member
+					pDC->SetPen(*wxCYAN_PEN);
+				}
+				else
+				{
+					// if not one of the special situations, colour it green
+					pDC->SetPen(*wxGREEN_PEN);
+				}
+/* BEW 27Mar10 commented out, the logic is wrong for the new storage regime
 				if (!bFreeHasNoContent && !bBackHasNoContent)
 				{
 					// make whole inner part of wedge green
@@ -761,6 +803,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 						}
 					}
 				}
+*/
 				// draw the two extra lines for the short column's colour
 				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6);
 				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 5, ptWedge.x + 4, ptWedge.y - 5);

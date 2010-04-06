@@ -34,10 +34,13 @@
 #include "Adapt_It.h"
 #include "helpers.h"
 #include "Adapt_ItView.h"
+#include "Adapt_ItDoc.h"
 #include "SourcePhrase.h"
 #include "BString.h"
 #include "SplitDialog.h"
 #include "SourcePhrase.h"
+#include "ExportFunctions.h"
+#include "PlaceInternalMarkers.h"
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -1298,25 +1301,25 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 /// list pSrcPhrases, was taken from the target text line -- but we check only as far as five
 /// consecutive pSrcPhrase instances because we should be able to always detect which is the case
 /// by just testing the first one or two instances, so certainly 5 should be plenty. If after five
-/// we still don't know, then default to returning TRUE. (
+/// we still don't know, then default to returning TRUE. 
 /// BEW added 26Oct08
-/// BEW 22Mar10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 30Mar10, updated for support of _DOCVER5 (some changes needed)
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum)
 {
-		//CAdapt_ItView* pView = gpApp->GetView();
 		int nIteratorSN = nInitialSequNum;
-		SPList::Node* pos = pSrcPhrases->Item(nIteratorSN); //POSITION pos = pSrcPhrases->FindIndex(nIteratorSN);
-		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail, so just ASSERT for a debug mode check
-		CSourcePhrase* pSrcPhrase = pos->GetData(); // this is the one which has the \bt marker
+		SPList::Node* pos = pSrcPhrases->Item(nIteratorSN);
+		wxASSERT(pos != NULL); // we'll assume FindIndex() won't fail, 
+							   // so just ASSERT for a debug mode check
+		CSourcePhrase* pSrcPhrase = pos->GetData(); // this has the \bt marker
 		pos = pos->GetNext();
-		//CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pSrcPhrases->GetNext(pos);
-		wxString mkr = _T("\\bt");
-		wxString endMkr;
-		endMkr.Empty(); // back translation material has no endmarker
-		int offset = -1; // needed for next call, but we don't use the returned value
-		int length = 0;  // ditto
-		wxString collectedStr = GetExistingMarkerContent(mkr, endMkr, pSrcPhrase, offset, length);
+		int offset = -1;
+		wxString collectedStr = pSrcPhrase->GetCollectedBackTrans();
+		if (collectedStr.IsEmpty())
+		{
+			// unexpected, so return default TRUE & process with 'verse' assumption
+			return TRUE;
+		}
 
 		// repurpose the offset local variable
 		offset = -1;
@@ -1669,91 +1672,6 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 	return newName;
 }
 
-// filtered fields functions moved from CAdapt_ItView
-
-/////////////////////////////////////////////////////////////////////////////////
-/// \return             the text of the filtered content (such as a free translation) 
-///                     which is in the m_markers member
-///
-/// \param	mkr			->	reference to the SF marker string (including backslash) 
-///                         defining the content we are after
-///	\param	endMkr		->	reference to the matching endmarker string, including backslash 
-///	                        (could be empty)
-///	\param	pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_markers member
-///					        contains a substring such as:
-///	   "\~FILTER \free <text of free translation> \free* \~FILTER* " for free translation, or
-///	   "\~FILTER \note <text of note> \note* \~FILTER* " for a note, or
-///	   "\~FILTER \bt <text of backtranslation> \~FILTER* " or ...\btv ... or other \bt-derived 
-///	                        marker
-///	\param	offset		<-	character offset to the first word of the content string, 
-///	                        relative to the start of m_markers
-///	\param	length		<-	character length of the content string, including any final
-///	                        space 
-///
-/// Remarks:
-///    Used to extract the <text of free translation> part of the above substring, or <text
-///    of note>, or <text of backtranslation> as the case may be; and to return the offset
-///    to the character location at which this text starts, and its length including the
-///    final space before the end marker, if any -- it should be present always for a free
-///    translation or a note, and never present for a backtranslation marker. In the latter
-///    case, the endMkr parameter will be empty (backtranslation markers do not have
-///    endmarkers), and so the protocol we follow for determining the end of the content
-///    string is the following
-///	1. ends at the next backslash (typically, at a \~FILTER* marker, but may not be), 
-///	   otherwise
-///	2. ends at the end of m_markers string.
-///    This function is a generalization of an earlier GetExistingFreeTranslation()
-///    function, so that we can get not just free translation content, but notes or
-///    backtranslations. We can also use it for other filtered (or even non-filtered) SF
-///    marker content we wish to extract, by just passing in the relevant SF marker in the
-///    mkr parameter.
-///
-/////////////////////////////////////////////////////////////////////////////////
-wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
-						CSourcePhrase* pSrcPhrase, int& offset, int & length)
-{
-	int len = mkr.Length();
-	wxString contentStr;
-	wxString markers = pSrcPhrase->m_markers;
-	if (markers.IsEmpty())
-	{
-a:		offset = 0;
-		length = 0;
-		return wxString(_T(""));
-	}
-	int nFound = markers.Find(mkr);
-	if (nFound == -1)
-		goto a; // shouldn't happen, but play safe
-	offset = nFound + len + 1; // plus 1 for the following space
-	if (endMkr.IsEmpty())
-	{
-		// it's content which does not have an endmarker, so implement the
-		// protocol described above
-		len = markers.Length();
-		nFound = FindFromPos(markers,_T("\\"),offset);
-		if (nFound == -1)
-		{
-			// no subsequent SF marker, so length is the remainder of the string
-			length = len - offset;
-		}
-		else
-		{
-			// found a marker, so up to the start of it defines the content string
-			length = nFound - offset;
-		}
-	}
-	else
-	{
-		// there should be an endmarker, so it's location 
-		// determines where the content ends
-		nFound = markers.Find(endMkr);
-		wxASSERT(nFound >= 0);
-		length = nFound - offset;
-	}
-	contentStr = markers.Mid(offset,length);
-	return contentStr;
-}
-
 /////////////////////////////////////////////////////////////////////////////////
 /// \return         TRUE if there is a \free marker in m_markers of pSrcPhrase, but with 
 ///			        no content; else returns FALSE (and it also returns FALSE if there  
@@ -1857,46 +1775,495 @@ bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 #endif
 }
 
-
-#ifdef	_DOCVER5
-/////////////////////////////////////////////////////////////////////////////////
-/// \return             the text of the stored content (such as a free translation,
-///                     or a note, or a collected back translation) 
-///                     
-///
-/// \param	mkr			->	reference to the SF marker string (including backslash) 
-///                         defining the content we are after
-///	\param	endMkr		->	reference to the matching endmarker string, including backslash 
-///	                        (could be empty)
-///	\param	pSrcPhrase	->	pointer to the CSourcePhrase instance whose m_freeTrans, m_note,
-///					        or m_collectedBackTrans member contains the data we want
-///	\param	offset		<-	character offset to the first word of the content string, 
-///	                        relative to the start of m_markers
-///	\param	length		<-	character length of the content string, including any final
-///	                        space (in doc version 5 we don't store a final space)
-///
-/// Remarks:
-///    OBSOLETE
-///    Was used for obtaining the stored free translation, or note, or collected back
-///    translation, as the case may be; and to return the offset to the character location
-///    at which this text starts, and its length including the final space before the end
-///    marker, if any
-///    
-///    NOTE: this function is obsolete -- we can get these data types directly now
-///
-/////////////////////////////////////////////////////////////////////////////////
-//wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
-//						CSourcePhrase* pSrcPhrase, int& offset, int & length)
-//{
-	// ****** NOTE ******
-	// In doc version 5 we don't need this function, we can use CSourcePhrase getters to
-	// grab the m_freeTrans, m_note, or m_collectedBackTrans member string 
-//	wxString contentStr = _T("");
-//	return contentStr;
-//}
-#endif	// _DOCVER5
-
 #ifdef _DOCVER5	
+
+void GetMarkersAndFilteredStrings(CSourcePhrase* pSrcPhrase,
+								  wxString& markersStr, 
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr)
+{
+	markersStr = pSrcPhrase->m_markers;
+	endMarkersStr = pSrcPhrase->GetEndMarkers();
+	freeTransStr = pSrcPhrase->GetFreeTrans();
+	noteStr = pSrcPhrase->GetNote();
+	collBackTransStr = pSrcPhrase->GetCollectedBackTrans();
+	filteredInfoStr = pSrcPhrase->GetFilteredInfo();
+}
+
+void EmptyMarkersAndFilteredStrings(
+								  wxString& markersStr, 
+								  wxString& endMarkersStr,
+								  wxString& freeTransStr,
+								  wxString& noteStr,
+								  wxString& collBackTransStr,
+								  wxString& filteredInfoStr)
+{
+	markersStr.Empty();
+	endMarkersStr.Empty();
+	freeTransStr.Empty();
+	noteStr.Empty();
+	collBackTransStr.Empty();
+	filteredInfoStr.Empty();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return                     the modified value of the passed in Tstr
+/// \param  pMergedSrcPhrase -> a merger, which may have non-empty m_pMedialMarkers member
+/// \param  Tstr            -> the string into which there might need to be
+///                             placed markers and endmarkers, possibly a placement dialog
+///                             invoked on it
+/// \remarks
+/// This function is used in the preparation of source text data (Sstr), and editable data
+/// (Tstr), and if necessary it will call the PlaceInternalMarkers class to place medial
+/// markers into the editable string. It is used in RebuildTargetText() and in
+/// RebuildGlossesText(), to compose non-editable and editable strings, typically these are
+/// source text and either target text or gloss, from a merger (in the case of glosses, the
+/// glass would have been added after the merger since glossing mode does not permit
+/// mergers). Mergers are illegal across filtered info, such info may only occur on the
+/// first CSourcePhrase in a merger, and so we know there cannot be any medial filtered
+/// information to be dealt with - we only have to consider m_markers and m_endMarkers.
+/// Also, since a placement dialog doesn't need to do placement in any of the stored
+/// initial filtered information, if present, we separate that information in markersPrefix
+/// and don't present it to the user if the dialog is made visible, but just add it in
+/// after the dialog is dismissed.
+/// Note: we only produce Sstr in order to support a reference source text in the top
+/// edit box of the placement dialog - which won't be called if there are no medial
+/// markers stored in the merged src phrase. Tstr is what we return (it could be
+/// adaptation text, or gloss text, depending on what Tstr contains when passed in)
+/// BEW 1Apr10, written for support of _DOCVER5
+/////////////////////////////////////////////////////////////////////////////////////////
+wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	wxASSERT(pMergedSrcPhrase->m_pSavedWords->GetCount() > 1); // must be a genuine merger
+	SPList* pSrcPhraseSublist = pMergedSrcPhrase->m_pSavedWords;
+	SPList::Node* pos = pSrcPhraseSublist->GetFirst();
+	wxASSERT(pos != 0);
+	SPList::Node* posLast = pSrcPhraseSublist->GetLast();
+	wxASSERT(posLast != 0);
+	bool bHasInternalMarkers = FALSE;
+
+    // store here any string of filtered information stored on pMergedSrcPhrase (in any or
+    // all of m_freeTrans, m_note, m_collectedBackTrans, m_filteredInfo) which is on the
+    // first CSourcePhrase instance
+	wxString markersPrefix; markersPrefix.Empty();
+	wxString Sstr; Sstr.Empty(); // Sstr needed only if internally we must use the placement
+								 // dialog; we don't need to return it to the caller
+
+	// markers needed, since doc version 5 may store some filtered stuff without using them
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
+	markersPrefix.Empty(); // clear it out
+	Sstr.Empty(); // clear it out
+
+	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
+	bool bFinalEndmarkers = FALSE; // set TRUE when finalSuffixStr has content to be added at loop end
+
+	wxString aSpace = _T(" ");
+	wxString markersStr; 
+	wxString endMarkersStr;
+	wxString freeTransStr;
+	wxString noteStr;
+	wxString collBackTransStr;
+	wxString filteredInfoStr;
+
+	// loop over each of the original CSourcePhrase instances in the merger, the first has
+	// to be given special treatment; compose Sstr, but Tstr is passed in, and at most
+	// only needs markers and endmarkers added, and any filtered info for both is returned
+	// via markersPrefix - with special handling for any free translation
+	bool bFirst = TRUE;
+	while (pos <= posLast && pos != NULL)
+	{
+		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
+		pos = pos->GetNext();
+	
+		// empty the scratch strings
+		EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
+										collBackTransStr, filteredInfoStr);
+		// get the other string information we want, putting it in the scratch strings
+		GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
+						freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
+		// remove any filter bracketing markers if filteredInfoStr has content
+		if (!filteredInfoStr.IsEmpty())
+		{
+			filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+		}
+
+		// we compose the prefix string, and the original source string, but the prefix
+		// string is built only from what is stored filtered on the first CSourcePhrase
+		if (bFirst)
+		{
+			bFirst = FALSE; // prevent this block from being re-entered
+
+            // for the first CSourcePhrase, we store any filtered info within the prefix
+            // string, and any content in m_markers, if present, must be put at the start
+            // of Tstr and Sstr; remove LHS whitespace when done
+			if (!collBackTransStr.IsEmpty())
+			{
+				// add the marker too
+				markersPrefix.Trim();
+				markersPrefix += backTransMkr;
+				markersPrefix += aSpace + collBackTransStr;
+			}
+			if (!freeTransStr.IsEmpty())
+			{
+				markersPrefix.Trim();
+				markersPrefix += aSpace + freeMkr;
+
+                // BEW addition 06Oct05; a \free .... \free* section pertains to a
+                // certain number of consecutive sourcephrases starting at this one if
+                // m_markers contains the \free marker, but the knowledge of how many
+                // sourcephrases is marked in the latter instances by which ones have
+                // the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+                // just export the filtered free translation content we will lose all
+                // information about its extent in the document. So we have to compute
+                // how many target words are involved in the section, and store that
+                // count in the exported file -- and the obvious place to do it is
+                // after the \free marker and its following space. We will store it as
+                // follows: |@nnnn@|<space> so that we can search for the number and
+                // find it quickly and remove it if we later import the exported file
+				// into a project as source text. 
+                // (Note: the following call has to do its word counting in the SPList,
+                // because only there is the filtered information, if any, still hidden
+                // and therefore unable to mess up the word count.)
+				int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+						pMergedSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+				// construct an easily findable unique string containing the number
+				wxString entry = _T("|@");
+				entry << nWordCount; // converts int to string automatically
+				entry << _T("@| ");
+				// append it after a delimiting space
+				markersPrefix += aSpace + entry;
+
+				// now the free translation string itself & endmarker
+				markersPrefix += aSpace + freeTransStr;
+				markersPrefix += freeEndMkr; // don't need space too
+			}
+			if (!noteStr.IsEmpty())
+			{
+				markersPrefix.Trim();
+				markersPrefix += aSpace + noteMkr;
+				markersPrefix += aSpace + noteStr;
+				markersPrefix += noteEndMkr; // don't need space too
+			}
+			if (!filteredInfoStr.IsEmpty())
+			{
+				// this data has any markers and endmarkers already 'in place'
+				markersPrefix.Trim();
+				markersPrefix += aSpace + filteredInfoStr;
+			}
+			markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+			// make sure it ends with a space
+			markersPrefix.Trim();
+			markersPrefix << aSpace;
+
+			if (!markersStr.IsEmpty())
+			{
+                // this data has any markers and endmarkers already 'in place', and we'll
+                // put this in Tstr, so it may be shown to the user - because it may
+                // contain a marker for which there is a later 'medial' matching endmarker
+                // which has to be placed by the dialog, so it helps to be able to see what
+                // the matching marker is and where it is; this stuff will be the first, if
+                // it exists, in Sstr and Tstr
+				Sstr << markersStr;
+				Tstr = markersStr + Tstr;
+			}
+
+			// any endmarkers on the first CSourcePhrase are therefore "medial", and
+			// any endmarkers on the last one are not medial and so can be added
+			// without recourse to the Place... dialog; the last CSourcePhrase of the
+			// retranslation will have the m_bEndRetranslation flag set; beware when
+			// the retraslation is one word only and so it has m_bBeginRetranslation
+			// and m_bEndRetranslation both set; note: the position of the endmarkers
+			// is determinate for the Sstr accumulation, so we place them here for
+			// that - but only for CSourcePhrase instances other than then end one, as
+			// we handle case of endmarkers at the very end lower down in the code
+			// after the loop ends
+			bool bNonFinalEndmarkers = FALSE;
+			if (!endMarkersStr.IsEmpty())
+			{
+				// we've endmarkers we have to deal with
+				if (pos != NULL)
+				{
+                    // we are not at the last CSourcePhrase instance, so these endmarkers
+                    // become medial, so they will already by in m_pMedialMarkers; but
+                    // place them here at their known location in Sstr
+					bHasInternalMarkers = TRUE;
+					bNonFinalEndmarkers = TRUE;
+				}
+				else
+				{
+                    // we are at the phrase's last original CSourcePhrase instance ... so
+                    // we can place these automatically (don't need to use the Place...
+                    // dialog)
+					bFinalEndmarkers = TRUE; // use this below to do the final append
+					finalSuffixStr = endMarkersStr;
+				}
+			}
+
+			Sstr << pSrcPhrase->m_srcPhrase;
+			if (bNonFinalEndmarkers)
+			{
+				Sstr << endMarkersStr;
+			}
+		} // end TRUE block for test: if (bFirst)
+		else
+		{
+			// this block is for m_markers and m_endMarkers stuff only, and accumulation
+			// for Sstr (no filtered info can be in the remaining CSourcePhrase instances)
+       
+            // m_markers material belongs in the list for later placement in Tstr, but the
+            // list is medial markers is already populated correctly before entry, however
+            // for Sstr we must place m_markers content automatically because its position
+            // is determinate and not subject to relocation in the placement dialog
+			if (!markersStr.IsEmpty())
+			{
+				bHasInternalMarkers = TRUE;
+				Sstr << markersStr; 
+			}
+
+			// any m_endMarkers material will either be medial and so need to be put 
+			// in the list, or final (if this is the last CSourcePhrase of the
+			// retranslation, that is, if m_bEndRetranslation is TRUE)
+			bool bNonFinalEndmarkers = FALSE;
+			if (!endMarkersStr.IsEmpty())
+			{
+				// we've endmarkers we have to deal with
+				if (pos != NULL)
+				{
+					// not at the list's end, so these endmarkers are medial, but we only
+					// need to ensure that they are added to Sstr, m_pMedialMarkers is
+					// already correctly populated
+					bHasInternalMarkers = TRUE;
+					bNonFinalEndmarkers = TRUE;
+				}
+				else
+				{
+                    // the endmarkers are at the end of the list so we can
+                    // place these automatically (don't need to use the dialog)
+					bFinalEndmarkers = TRUE; // use this below to do the final append
+					finalSuffixStr = endMarkersStr;
+				}
+			}
+
+            // add the source text's word, if it is not an empty string
+			if (!pSrcPhrase->m_srcPhrase.IsEmpty())
+				Sstr << aSpace << pSrcPhrase->m_srcPhrase;
+			// add any needed endmarkers
+			if (bNonFinalEndmarkers)
+			{
+				Sstr << endMarkersStr;
+			}
+		}
+
+	} // end of while loop
+
+	// finally, add any final endmarkers
+	Sstr << finalSuffixStr;
+	Tstr << finalSuffixStr;
+
+	// if there are internal markers, put up the dialog to place them
+	if (bHasInternalMarkers)
+	{
+		// Note: because the setters are called before ShowModal() is called,
+		// initialization of the internal controls' pointers etc has to be done in the
+		// creator, rather than as is normally done (ie. in InitDialog()) because the
+		// latter is called from ShowModal(, which is too late; once the dialog is called,
+		// we no longer care about what is within Sstr
+		CPlaceInternalMarkers dlg((wxWindow*)gpApp->GetMainFrame());
+
+		// BEW added test, 07Oct05
+		if (Tstr[0] != _T(' '))
+		{
+			// need to add an initial space if there is not one there already, to make the
+			// dialog's placement algorithm fail-safe
+			Tstr = _T(" ") + Tstr;
+		}
+
+		// set up the text controls and list box with their data; these setters enable the
+		// data passing to be done without the use of globals
+		dlg.SetNonEditableString(Sstr);
+		dlg.SetUserEditableString(Tstr);
+		dlg.SetPlaceableDataStrings(pMergedSrcPhrase->m_pMedialMarkers);
+
+		// show the dialog
+		dlg.ShowModal();
+
+		// get the post-placement resulting string
+		Tstr = dlg.GetPostPlacementString();
+
+		/* this one should not be needed
+		if (Tstr[0] != _T(' '))
+		{
+			// need to add an initial space if there is not one there already
+			Tstr = _T(" ") + tgtStr;
+		}
+		*/
+	}
+
+	// now add the prefix string material not shown in the Place... dialog, 
+	// if it is not empty
+	if (!markersPrefix.IsEmpty())
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace; // ensure a final space
+		Tstr = markersPrefix + Tstr;
+	}
+	Tstr.Trim();
+	Tstr << aSpace; // have a final space
+	return Tstr;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+/// \return                     the modified value of Tstr
+/// \param  pSingleSrcPhrase -> a single CSourcePhrase instance which therefore cannot have
+///                             a non-empty m_pMedialMarkers member; so no placement dialog
+///                             will need to be called
+/// \param  Tstr            -> the string into which there might need to be
+///                             placed m_markers and m_endmarkers material, and prefixed
+///                             with any filtered information
+/// \remarks
+/// This function is used for reconstituting markers and endmarkers, and preceding that,
+/// any filtered out information (which always comes first, if present), and the result is
+/// return to the caller as the modified Tstr. (Tstr may be passed in containing
+/// adaptation text, or gloss text.)
+/// BEW 1Apr10, written for support of _DOCVER5
+/////////////////////////////////////////////////////////////////////////////////////////
+wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
+{
+	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	SPList* pSrcPhrases = gpApp->m_pSourcePhrases;
+	wxASSERT(pSingleSrcPhrase->m_pSavedWords->IsEmpty()); // must be a nnon-merger
+
+    // store here any string of filtered information stored on pSingleSrcPhrase (in any or
+    // all of m_freeTrans, m_note, m_collectedBackTrans, m_filteredInfo)
+	wxString markersPrefix; markersPrefix.Empty();
+
+	// markers needed, since doc version 5 may store some filtered stuff without using them
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
+	markersPrefix.Empty(); // clear it out
+
+	wxString finalSuffixStr; finalSuffixStr.Empty(); // put collected-string-final endmarkers here
+
+	wxString aSpace = _T(" ");
+	wxString markersStr; 
+	wxString endMarkersStr;
+	wxString freeTransStr;
+	wxString noteStr;
+	wxString collBackTransStr;
+	wxString filteredInfoStr;
+
+	// empty the scratch strings
+	EmptyMarkersAndFilteredStrings(markersStr, endMarkersStr, freeTransStr, noteStr,
+									collBackTransStr, filteredInfoStr);
+	// get the other string information we want, putting it in the scratch strings
+	GetMarkersAndFilteredStrings(pSingleSrcPhrase, markersStr, endMarkersStr,
+					freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
+	// remove any filter bracketing markers if filteredInfoStr has content
+	if (!filteredInfoStr.IsEmpty())
+	{
+		filteredInfoStr = pDoc->RemoveAnyFilterBracketsFromString(filteredInfoStr);
+	}
+
+    // for the one and only CSourcePhrase, we store any filtered info within the prefix
+    // string, and any content in m_markers, if present, must be put at the start
+    // of Tstr; remove LHS whitespace when done
+	if (!collBackTransStr.IsEmpty())
+	{
+		// add the marker too
+		markersPrefix.Trim();
+		markersPrefix += backTransMkr;
+		markersPrefix += aSpace + collBackTransStr;
+	}
+	if (!freeTransStr.IsEmpty())
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + freeMkr;
+
+        // BEW addition 06Oct05; a \free .... \free* section pertains to a
+        // certain number of consecutive sourcephrases starting at this one if
+        // m_markers contains the \free marker, but the knowledge of how many
+        // sourcephrases is marked in the latter instances by which ones have
+        // the m_bStartFreeTrans == TRUE and m_bEndFreeTrans == TRUE, and if we
+        // just export the filtered free translation content we will lose all
+        // information about its extent in the document. So we have to compute
+        // how many target words are involved in the section, and store that
+        // count in the exported file -- and the obvious place to do it is
+        // after the \free marker and its following space. We will store it as
+        // follows: |@nnnn@|<space> so that we can search for the number and
+        // find it quickly and remove it if we later import the exported file
+		// into a project as source text. 
+        // (Note: the following call has to do its word counting in the SPList,
+        // because only there is the filtered information, if any, still hidden
+        // and therefore unable to mess up the word count.)
+		int nWordCount = CountWordsInFreeTranslationSection(TRUE,pSrcPhrases,
+				pSingleSrcPhrase->m_nSequNumber); // TRUE means 'count in tgt text'
+		// construct an easily findable unique string containing the number
+		wxString entry = _T("|@");
+		entry << nWordCount; // converts int to string automatically
+		entry << _T("@| ");
+		// append it after a delimiting space
+		markersPrefix += aSpace + entry;
+
+		// now the free translation string itself & endmarker
+		markersPrefix += aSpace + freeTransStr;
+		markersPrefix += freeEndMkr; // don't need space too
+	}
+	if (!noteStr.IsEmpty())
+	{
+		markersPrefix.Trim();
+		markersPrefix += aSpace + noteMkr;
+		markersPrefix += aSpace + noteStr;
+		markersPrefix += noteEndMkr; // don't need space too
+	}
+	if (!filteredInfoStr.IsEmpty())
+	{
+		// this data has any markers and endmarkers already 'in place'
+		markersPrefix.Trim();
+		markersPrefix += aSpace + filteredInfoStr;
+	}
+	markersPrefix.Trim(FALSE); // finally, remove any LHS whitespace
+	// make sure it ends with a space
+	markersPrefix.Trim();
+	markersPrefix << aSpace;
+
+	if (!markersStr.IsEmpty())
+	{
+        // this data has any markers and endmarkers already 'in place',
+        // and we'll put this in Tstr
+		Tstr = markersStr + Tstr;
+	}
+
+    // any endmarkers on pSingleSrcPhrase are not "medial", and can be added
+    // automatically too
+	if (!endMarkersStr.IsEmpty())
+	{
+		Tstr << endMarkersStr;
+	}
+
+    // now add the prefix string material if it is not empty
+	if (!markersPrefix.IsEmpty())
+	{
+		markersPrefix.Trim();
+		markersPrefix << aSpace; // ensure a final space
+		Tstr = markersPrefix + Tstr;
+	}
+	Tstr.Trim();
+	Tstr << aSpace; // have a final space
+	return Tstr;
+}
+
 
 wxString RemoveOuterWrappers(wxString wrappedStr)
 {
@@ -1949,6 +2316,15 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 		wxString mkr;
 		wxString endMkr;
 		wxString content;
+		// we have to discern between \bt and a \bt-derived marker, the former's content
+		// goes in m_collectedBackTrans member, the latter into m_filteredInfo; we can do
+		// this by searching for "\\bt " - the space will be present if collected back
+		// translation informion is in this unwrapped string
+		bool bIsOurBTMkr = FALSE;
+		if (innerStr.Find(_T("\\bt ")) != wxNOT_FOUND)
+		{
+			bIsOurBTMkr = TRUE;
+		}
 		ParseMarkersAndContent(innerStr, mkr, content, endMkr);
 		if (mkr == _T("\\free") || mkr == _T("\\note") || (mkr.Find(_T("\\bt")) != wxNOT_FOUND))
 		{
@@ -1962,7 +2338,13 @@ wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strF
 			}
 			else 
 			{
-				strCollectedBackTrans = content;
+				if (bIsOurBTMkr)
+					strCollectedBackTrans = content;
+				else
+				{
+					// it's a \bt=derived marker, such as one of \btv, \bth, \bts, etc
+					strConcat += substring; // RHS is the string with filter marker wrappers still in place
+				}
 			}
 		}
 		else

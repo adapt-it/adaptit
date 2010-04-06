@@ -2576,7 +2576,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 #ifdef _DOCVER5
 					else if (attrName == xml_em)
 					{
-						gpEmbeddedSrcPhrase->SetEndMarkers(attrValue);
+						gpEmbeddedSrcPhrase->SetEndMarkers((char*)attrValue);
 					}
 #endif
 					else
@@ -2619,19 +2619,19 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 #ifdef _DOCVER5
 						else if (attrName == xml_ft)
 						{
-							gpEmbeddedSrcPhrase->SetFreeTrans(attrValue);
+							gpEmbeddedSrcPhrase->SetFreeTrans((char*)attrValue);
 						}
 						else if (attrName == xml_no)
 						{
-							gpEmbeddedSrcPhrase->SetNote(attrValue);
+							gpEmbeddedSrcPhrase->SetNote((char*)attrValue);
 						}
 						else if (attrName == xml_bt)
 						{
-							gpEmbeddedSrcPhrase->SetCollectedBackTrans(attrValue);
+							gpEmbeddedSrcPhrase->SetCollectedBackTrans((char*)attrValue);
 						}
 						else if (attrName == xml_fi)
 						{
-							gpEmbeddedSrcPhrase->SetFilteredInfo(attrValue);
+							gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
 						}
 #endif
 						else
@@ -2675,7 +2675,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 #ifdef _DOCVER5
 					else if (attrName == xml_em)
 					{
-						gpSrcPhrase->SetEndMarkers(attrValue);
+						gpSrcPhrase->SetEndMarkers((char*)attrValue);
 					}
 #endif
 					else
@@ -2718,19 +2718,19 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 #ifdef _DOCVER5
 						else if (attrName == xml_ft)
 						{
-							gpSrcPhrase->SetFreeTrans(attrValue);
+							gpSrcPhrase->SetFreeTrans((char*)attrValue);
 						}
 						else if (attrName == xml_no)
 						{
-							gpSrcPhrase->SetNote(attrValue);
+							gpSrcPhrase->SetNote((char*)attrValue);
 						}
 						else if (attrName == xml_bt)
 						{
-							gpSrcPhrase->SetCollectedBackTrans(attrValue);
+							gpSrcPhrase->SetCollectedBackTrans((char*)attrValue);
 						}
 						else if (attrName == xml_fi)
 						{
-							gpSrcPhrase->SetFilteredInfo(attrValue);
+							gpSrcPhrase->SetFilteredInfo((char*)attrValue);
 						}
 #endif
 						else
@@ -3304,10 +3304,11 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, boo
 				// transfer the unwrapped content (with \note and \note* markers removed)
 				// to the m_note member
 				pSrcPhrase->SetNote(strNote);
+				pSrcPhrase->m_bHasNote = TRUE; // make sure it's set
 			}
 			if (!strCollectedBackTrans.IsEmpty())
 			{
-				// transfer the unwrapped content (with \bt, or any \bit-initial marker, removed)
+				// transfer the unwrapped content (with \bt, or any \bt-initial marker, removed)
 				// to the m_collectedBackTrans member
 				pSrcPhrase->SetCollectedBackTrans(strCollectedBackTrans);
 			}
@@ -3554,6 +3555,7 @@ CBString MakeFlags(CSourcePhrase* pSP)
 // change requires no change here in XML.cpp, but only in the DoKBSaveAsXML() function in the
 // Adapt_It.cpp file, so we there used KB rather than GKB for the element name, a very trivial change
 
+// BEW 27Mar10 updated for support of _DOCVER5 (extra case needed)
 bool AtKBTag(CBString& tag)
 {
 	if (tag == xml_kb || tag == xml_gkb) // if it's a "KB" or "GKB" tag
@@ -3575,6 +3577,10 @@ bool AtKBTag(CBString& tag)
 		case 2:
 		case 3:
 		case 4:
+#if defined (_DOCVER5)
+		default:
+		case 5:
+#endif
 		{
 			if (tag == xml_map)
 			{
@@ -3617,6 +3623,7 @@ bool AtKBEmptyElemClose(CBString& WXUNUSED(tag))
 	return TRUE;
 }
 
+// BEW 27Mar10 updated for support of _DOCVER5 (extra case needed)
 bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 {
 	int num;
@@ -3635,6 +3642,10 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 		case 2:
 		case 3:
 		case 4:
+#if defined (_DOCVER5)
+		default:
+		case 5:
+#endif
 		{
 			// put the more commonly encountered tags at the top, for speed
 #ifndef _UNICODE // ANSI version (ie. regular)
@@ -3844,6 +3855,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 	return TRUE; // no error
 }
 
+// BEW 27Mar10 updated for support of _DOCVER5 (extra case needed)
 bool AtKBEndTag(CBString& tag)
 {
 	switch (gnDocVersion) 
@@ -3853,6 +3865,10 @@ bool AtKBEndTag(CBString& tag)
 		case 2:
 		case 3:
 		case 4:
+#if defined (_DOCVER5)
+		default:
+		case 5:
+#endif
 		{
 			if (tag == xml_tu)
 			{

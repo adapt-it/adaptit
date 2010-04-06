@@ -291,7 +291,7 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	CAdapt_ItDoc* pDoc = pApp->GetDocument();
 #endif
 
-	// Locate the appropriate source phrase whose m_markers member is being
+	// Locate the appropriate source phrase whose filtering members are being
 	// displayed/edited. Its m_nSequNumber is stored in the m_nSequNumBeingViewed global
 	CAdapt_ItView* pView = gpApp->GetView();
 	CSourcePhrase* pSrcPhrase;

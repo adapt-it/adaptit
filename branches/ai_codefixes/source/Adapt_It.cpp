@@ -21958,7 +21958,10 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 	int nOldCount = m_pSourcePhrases->GetCount();
 
 	// test for match of book ID codes here, return if they don't match
+	wxString lowerPassedInID = curBookID;
+	lowerPassedInID.MakeLower(); // it's now lower case
 	wxString appendingDoc_BookID;
+	wxString lowerAppendingBookID;
 	SPList::Node* pos = ol->GetFirst();
 	CSourcePhrase* pFirstSrcPhrase = (CSourcePhrase*)pos->GetData();
 	wxASSERT(pFirstSrcPhrase);
@@ -21970,7 +21973,9 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 		if (IsValidBookID(appendingDoc_BookID))
 		{
 			// check if we have matching book IDs
-			if (curBookID != appendingDoc_BookID)
+			lowerAppendingBookID = appendingDoc_BookID;
+			lowerAppendingBookID.MakeLower(); // it's now lower case too
+			if (lowerPassedInID != lowerAppendingBookID)
 			{
 				// mismatched
 				return FALSE;
@@ -22361,6 +22366,7 @@ void CAdapt_ItApp::SetCurrentSourcePhraseByIndex(int Index)
 /// Determines if the string represented by id is a valid book ID contained in the
 /// m_pBibleBooks list of pointers to BookNamePair structs. It is valid if it is the
 /// same as a bookCode member in the list.
+/// BEW 29Mar10, changed to accept lower, upper or mixed case for the book code
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::IsValidBookID(wxString& id)
 {
@@ -22368,9 +22374,14 @@ bool CAdapt_ItApp::IsValidBookID(wxString& id)
 	int nArraySize = pBooks->GetCount();
 	int index;
 	bool bFoundIt = FALSE;
+	wxString lowerId = id;
+	lowerId.MakeLower(); // change only the local copy
+	wxString lowerBookCode;
 	for (index = 0; index < nArraySize; index++)
 	{
-		if (id == ((BookNamePair*)pBooks->Item(index))->bookCode)
+		lowerBookCode = (((BookNamePair*)pBooks->Item(index))->bookCode);
+		lowerBookCode.MakeLower(); // change only the local copy
+		if (lowerId == lowerBookCode)
 		{
 			bFoundIt = TRUE;
 			break;
