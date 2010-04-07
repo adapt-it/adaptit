@@ -160,6 +160,7 @@
 #include "FreeTrans.h"
 #include "Notes.h"
 #include "Retranslation.h"
+#include "Placeholder.h"
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -7833,6 +7834,10 @@ int ii = 1;
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pRetranslation);
 	
+	m_pPlaceholder = new CPlaceholder(this);
+	// push it on to the stack of window event handlers (otherwise, it won't receive events)
+	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
+	
    return TRUE;
 }
 
@@ -7914,6 +7919,9 @@ int CAdapt_ItApp::OnExit(void)
 
 	// delete the CRetranslation object
 	delete m_pRetranslation;
+	
+	// delete the CPlaceholder object
+	delete m_pPlaceholder;
 	
 	//GDLC Added 2010-02-12
 	// Delete the CFreeTrans manager after popping its event table off the stack of
@@ -11410,6 +11418,19 @@ CRetranslation*	CAdapt_ItApp::GetRetranslation()
 {
 	wxASSERT(m_pRetranslation);
 	return m_pRetranslation;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+/// \return     pointer to the CPlaceholder object instance
+/// \remarks
+/// Called from: many places throughout the application where a pointer to the CPlaceholder 
+/// object is required to call a function/method of CPlaceholder.
+/// Gets a pointer to the current CPlaceholder object.
+////////////////////////////////////////////////////////////////////////////////////////
+CPlaceholder*	CAdapt_ItApp::GetPlaceholder()
+{
+	wxASSERT(m_pPlaceholder);
+	return m_pPlaceholder;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////

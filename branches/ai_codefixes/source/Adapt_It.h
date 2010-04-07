@@ -172,6 +172,9 @@ class CNotes;
 // forward references for CRetranslation support
 class CRetranslation;
 
+// forward references for CPlaceholder support
+class CPlaceholder;
+
 // forward reference for read-only support
 class ReadOnlyProtection;
 
@@ -1729,6 +1732,9 @@ public:
 
 	CRetranslation* m_pRetranslation;
 	CRetranslation* GetRetranslation();
+	
+	CPlaceholder* m_pPlaceholder;
+	CPlaceholder* GetPlaceholder();
 
 	// values for members of printing support structures
 	wxPageSetupDialogData* pPgSetupDlgData; // for page setup

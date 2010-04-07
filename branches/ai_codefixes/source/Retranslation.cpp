@@ -74,6 +74,7 @@
 #include "Adapt_ItCanvas.h"
 #include "Adapt_ItDoc.h"
 #include "WaitDlg.h"
+#include "Placeholder.h"
 #include "RetranslationDlg.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -789,323 +790,6 @@ void CRetranslation::CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,
 	}
 }
 
-// BEW 18Feb10 updated for _DOCVER5 support (added code to restore endmarkers that were
-// moved to the placeholder when it was inserted, ie. moved from the preceding
-// CSourcePhrase instance)
-void CRetranslation::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount)
-{
-	// while this function can handle nCount > 1, in actual fact we use it for creating
-	// (manually) only a single placeholder, and so nCount is always 1 on entry
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	CPile* pPile			= pRemoveLocPile;
-	int nStartingSequNum	= pPile->GetSrcPhrase()->m_nSequNumber;
-	SPList* pList			= pApp->m_pSourcePhrases;
-	SPList::Node* removePos = pList->Item(nStartingSequNum); // the position at
-	// which we will do the removal
-	SPList::Node* savePos = removePos; // we will alter removePos & need to restore it
-	wxASSERT(removePos != NULL);
-	int nActiveSequNum = pApp->m_nActiveSequNum; // save, so we can restore later on, 
-	// since the call to RecalcLayout will clobber some pointers
-	
-    // we may be removing the m_pActivePile, so get parameters useful for setting up a
-    // temporary active pile for the RecalcLayout() call below
-	int nRemovedPileIndex = pRemoveLocPile->GetSrcPhrase()->m_nSequNumber;
-	
-    // get the preceding source phrase, if it exists, whether null or not - we may have to
-    // transfer punctuation to it
-	CSourcePhrase* pPrevSrcPhrase = NULL;
-	if (nStartingSequNum > 0)
-	{
-		// there is a preceding one, so get it
-		CPile* pPile = GetView()->GetPrevPile(pRemoveLocPile);
-		wxASSERT(pPile != NULL);
-		pPrevSrcPhrase = pPile->GetSrcPhrase();
-		wxASSERT(pPrevSrcPhrase != NULL);
-	}
-	
-	// ensure that there are nCount null source phrases which can be removed from this location
-	int count = 0;
-	CSourcePhrase* pFirstOne = NULL; // whm initialized to NULL
-	CSourcePhrase* pLastOne = NULL; // whm initialized to NULL
-	while( removePos != 0 && count < nCount)
-	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)removePos->GetData();
-		removePos = removePos->GetNext();
-		wxASSERT(pSrcPhrase != NULL);
-		if (count == 0)
-			pFirstOne = pSrcPhrase;
-		pLastOne = pSrcPhrase;
-		count++;
-		if (!pSrcPhrase->m_bNullSourcePhrase)
-		{
-			//IDS_TOO_MANY_NULL_SRCPHRASES
-			wxMessageBox(_T(
-							"Warning: you are trying to remove more empty source phrases than exist at that location: the command will be ignored."),
-						 _T(""),wxICON_EXCLAMATION);
-			if (pApp->m_selectionLine != -1)
-				GetView()->RemoveSelection();
-			GetView()->Invalidate();
-			GetLayout()->PlaceBox();
-			return;
-		}
-	}
-	
-    // a null source phrase can (as of version 1.3.0) be last in the list, so we can no
-    // longer assume there will be a non-null one following, if we are at the end we must
-    // restore the active location to an earlier sourcephrase, otherwise, to a following
-    // one
-	bool bNoneFollows = FALSE;
-	CSourcePhrase* pSrcPhraseFollowing = 0;
-	if (nStartingSequNum + nCount > pApp->GetMaxIndex())
-	{
-		// we are at the very end, or wanting to remove more at the end than is possible
-		bNoneFollows = TRUE; // flag this condition
-	}
-	
-	if (bNoneFollows)
-		pSrcPhraseFollowing = 0;
-	else
-	{
-		pSrcPhraseFollowing = (CSourcePhrase*)removePos->GetData();
-		removePos = removePos->GetNext();
-		wxASSERT(pSrcPhraseFollowing != NULL);
-	}
-	
-	wxASSERT(pFirstOne != NULL); // whm added; note: if pFirstOne can ever be NULL there
-	// should be more code added here to deal with it
-    // if the null source phrase(s) carry any punctuation or markers, then these have to be
-    // first transferred to the appropriate normal source phrase in the context, whether
-    // forwards or backwards, depending on what is stored.
-#ifdef _DOCVER5
-	// docVersion 5 has endmarkers stored on the CSourcePhrase they are pertinent to, in
-	// m_endMarkers, so we search for these on pFirst, and if the member is non-empty,
-	// transfer its contents to pPrevSrcPhrase (if the markers were automatically
-	// transferred to the placement earlier, then pPrevSrcPhrase is guaranteed to exist)
-	if (!pFirstOne->GetEndMarkers().IsEmpty() && pPrevSrcPhrase != NULL)
-	{
-		wxString emptyStr = _T("");
-		pPrevSrcPhrase->SetEndMarkers(pFirstOne->GetEndMarkers());
-		pFirstOne->SetEndMarkers(emptyStr);
-	}
-#endif
-	if (!pFirstOne->m_markers.IsEmpty() && !bNoneFollows)
-	{
-        // BEW comment 25Jul05, if a TextType == none endmarker was initial in m_markers,
-        // it will have been moved to the placeholder; so the next line handles other
-        // situations as well as moving an endmarker back on to the following sourcephrase
-        // which formerly owned it
-		pSrcPhraseFollowing->m_markers = pFirstOne->m_markers; // don't clear original
-		
-		// now all the other things which depend on markers
-		pSrcPhraseFollowing->m_inform = pFirstOne->m_inform;
-		pSrcPhraseFollowing->m_chapterVerse = pFirstOne->m_chapterVerse;
-		pSrcPhraseFollowing->m_bVerse = pFirstOne->m_bVerse;
-		pSrcPhraseFollowing->m_bParagraph = pFirstOne->m_bParagraph;
-		pSrcPhraseFollowing->m_bChapter = pFirstOne->m_bChapter;
-		pSrcPhraseFollowing->m_bSpecialText = pFirstOne->m_bSpecialText;
-		pSrcPhraseFollowing->m_bFootnote = pFirstOne->m_bFootnote;
-		pSrcPhraseFollowing->m_bFirstOfType = pFirstOne->m_bFirstOfType;
-		pSrcPhraseFollowing->m_curTextType = pFirstOne->m_curTextType;
-		
-		// BEW 05Jan06 if there was a moved note we must ensure that the following
-		// sourcephrase gets the note flag set (it might already be TRUE anyway)
-		pSrcPhraseFollowing->m_bHasNote = pFirstOne->m_bHasNote;
-	}
-	// block ammended by BEW 25Jul05
-	if (!pFirstOne->m_precPunct.IsEmpty() && !bNoneFollows)
-	{
-		pSrcPhraseFollowing->m_precPunct = pFirstOne->m_precPunct;
-		
-		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-		GetView()->MakeLineFourString(pSrcPhraseFollowing,pSrcPhraseFollowing->m_targetStr);
-		
-		// anything else
-		pSrcPhraseFollowing->m_bFirstOfType = pFirstOne->m_bFirstOfType;
-	}
-	// BEW added 25Jul05
-    // a m_bHasFreeTrans = TRUE value can be ignored provided m_bStartFreeTrans value is
-    // FALSE, if the latter is TRUE, then we must move the value to the following
-    // sourcephrase
-	if (pFirstOne->m_bStartFreeTrans && !bNoneFollows)
-	{
-		pSrcPhraseFollowing->m_bStartFreeTrans = TRUE;
-		pSrcPhraseFollowing->m_bHasFreeTrans = TRUE;
-	}
-	wxASSERT(pLastOne != NULL); // whm added; note: if pLastOne can ever be NULL there
-	// should be more code added here to deal with it
-	if (!pLastOne->m_follPunct.IsEmpty() && nStartingSequNum > 0)
-	{
-		pPrevSrcPhrase->m_follPunct = pLastOne->m_follPunct;
-		
-		// now the other stuff
-		pPrevSrcPhrase->m_bFootnoteEnd = pLastOne->m_bFootnoteEnd;
-		pPrevSrcPhrase->m_bBoundary = pLastOne->m_bBoundary;
-		
-		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-		GetView()->MakeLineFourString(pPrevSrcPhrase,pPrevSrcPhrase->m_targetStr);
-	}
-	// BEW added 25Jul05...
-    // a m_bHasFreeTrans = TRUE value can be ignored provided m_bEndFreeTrans value is
-    // FALSE, if the latter is TRUE, then we must move the value to the preceding
-    // sourcephrase
-	if (pLastOne->m_bEndFreeTrans && nStartingSequNum > 0)
-	{
-		pPrevSrcPhrase->m_bEndFreeTrans = TRUE;
-		pPrevSrcPhrase->m_bHasFreeTrans = TRUE;
-	}
-	
-	// remove the null source phrases from the list, after removing their 
-	// translations from the KB
-	CRefString* pRefString = NULL;
-	removePos = savePos;
-	count = 0;
-	while (removePos != NULL && count < nCount)
-	{
-		SPList::Node* pos2 = removePos; // save current position for RemoveAt call
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)removePos->GetData();
-		
-		// BEW added 13Mar09 for refactored layout
-		GetView()->GetDocument()->DeletePartnerPile(pSrcPhrase);
-		removePos = removePos->GetNext();
-		wxASSERT(pSrcPhrase != NULL);
-		pRefString = GetView()->GetRefString(GetView()->GetKB(),pSrcPhrase->m_nSrcWords,
-								  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-		count++;
-		if (pRefString != NULL)
-			// don't need to worry about m_bHasKBEntry flag, since pSrcPhrase
-			// will be deleted next
-			GetView()->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
-		delete pSrcPhrase;
-		pList->DeleteNode(pos2); 
-	}
-	
-    // calculate the new active sequ number - it could be anywhere, but all we need to know
-    // is whether or not the last removal of the sequence was done preceding the former
-    // active sequ number's location
-	if (nStartingSequNum + nCount < nActiveSequNum)
-		pApp->m_nActiveSequNum = nActiveSequNum - nCount;
-	else
-	{
-		if (bNoneFollows)
-			pApp->m_nActiveSequNum = nStartingSequNum - 1;
-		else
-			pApp->m_nActiveSequNum = nStartingSequNum;
-	}
-	
-    // update the sequence numbers, starting from the location of the first one removed;
-    // but if we removed at the end, no update is needed
-	if (!bNoneFollows)
-		GetView()->UpdateSequNumbers(nStartingSequNum);
-	
-	// for getting over the hump of the call below to RecalcLayout() we only need a temporary
-	// reasonably accurate active pile pointer set, and only if the removal was done at the
-	// active location - if it wasn't, then RecalcLayout() will set things up correctly
-	// without a failure
-	if (nRemovedPileIndex == nActiveSequNum)
-	{
-		// set a temporary one, we'll use the pile which is now at nRemovedPileIndex
-		// location, which typically is the one immediately following the placeholder's
-		// old location; but if deleted from the doc's end, we'll use the last valid
-		// document location
-		int nMaxDocIndex = pApp->GetMaxIndex();
-		if (nRemovedPileIndex > nMaxDocIndex)
-			pApp->m_pActivePile = GetView()->GetPile(nMaxDocIndex);
-		else
-			pApp->m_pActivePile = GetView()->GetPile(nRemovedPileIndex);
-	}
-	
-    // in case the active location is going to be a retranslation, check and if so, advance
-    // past it; but if at the end, then back up to a valid preceding location
-	CSourcePhrase* pSP = GetView()->GetSrcPhrase(pApp->m_nActiveSequNum);
-	CPile* pNewPile;
-	if (pSP->m_bRetranslation)
-	{
-		CPile* pPile = GetView()->GetPile(pApp->m_nActiveSequNum);
-		do {
-			pNewPile = GetView()->GetNextPile(pPile);
-			if (pNewPile == NULL)
-			{
-				// move backwards instead, and find a suitable location
-				pPile = GetView()->GetPile(pApp->m_nActiveSequNum);
-				do {
-					pNewPile = GetView()->GetPrevPile(pPile);
-					pPile = pNewPile;
-				} while (pNewPile->GetSrcPhrase()->m_bRetranslation);
-				goto b;
-			}
-			pPile = pNewPile;
-		} while (pNewPile->GetSrcPhrase()->m_bRetranslation);
-	b:		pApp->m_pActivePile = pNewPile;
-		pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
-	}
-	
-    // we need to set m_targetPhrase to what it will be at the new active location, else if
-    // the old string was real long, the CalcPileWidth() call will compute enormous and
-    // wrong box width at the new location
-	pSP = GetView()->GetSrcPhrase(pApp->m_nActiveSequNum);
-	if (!pApp->m_bHidePunctuation) // BEW 8Aug09, removed deprecated m_bSuppressLast from test
-		pApp->m_targetPhrase = pSP->m_targetStr;
-	else
-		pApp->m_targetPhrase = pSP->m_adaption;
-	
-	// recalculate the layout
-#ifdef _NEW_LAYOUT
-	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
-#else
-	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
-#endif
-	
-	// get a new (valid) active pile pointer, now that the layout is recalculated
-	pApp->m_pActivePile = GetView()->GetPile(pApp->m_nActiveSequNum);
-	wxASSERT(pApp->m_pActivePile);
-	
-	// create the phraseBox at the active pile, do it using PlacePhraseBox()...
-	CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-	wxASSERT(pSrcPhrase != NULL);
-	
-    // renumber its sequ number, as its now in a new location because of the deletion (else
-    // the PlacePhraseBox call below will get the wrong number when it reads its
-    // m_nSequNumber attribute)
-	pSrcPhrase->m_nSequNumber = pApp->m_nActiveSequNum;
-	GetView()->UpdateSequNumbers(pApp->m_nActiveSequNum);
-	
-	// set m_targetPhrase to the appropriate string
-	if (!pSrcPhrase->m_adaption.IsEmpty())
-	{
-		if (!pApp->m_bHidePunctuation) // BEW 8Aug09, removed deprecated m_bSuppressLast from test
-			pApp->m_targetPhrase = pSrcPhrase->m_targetStr;
-		else
-			pApp->m_targetPhrase = pSrcPhrase->m_adaption;
-	}
-	else
-	{
-		pApp->m_targetPhrase.Empty(); // empty string will have to do
-	}
-	
-    // we must remove the source phrase's translation from the KB as if we
-    // had clicked here (otherwise PlacePhraseBox will assert)
-	pRefString = GetView()->GetRefString(GetView()->GetKB(),pSrcPhrase->m_nSrcWords,
-							  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-	
-    // it is okay to do the following call with pRefString == NULL, in fact, it must be
-    // done whether NULL or not; since if it is NULL, RemoveRefString will clear
-    // pSrcPhrase's m_bHasKBEntry to FALSE, which if not done, would result in a crash if
-    // the user clicked on a source phrase which had its reference string manually removed
-    // from the KB and then clicked on another source phrase. (The StoreAdaption call in
-    // the second click would trip the first line's ASSERT.)
-	GetView()->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
-	
-    // save old sequ number in case required for toolbar's Back button - but since it
-    // probably has been lost (being the null source phrase location), to be safe we must
-    // set it to the current active location
-	gnOldSequNum = pApp->m_nActiveSequNum;
-	
-	// scroll into view, just in case a lot were inserted
-	pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
-	GetView()->Invalidate();
-	// now place the box
-	GetLayout()->PlaceBox();
-}
 
 // same parameters as for RemoveNullSourcePhraseFromLists(), except the second last boolean
 // is added in order to control whether m_bRetranslation gets set or not; for
@@ -1411,7 +1095,7 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItA
 			// now we can do the insertions, preceding the dummy end pile
 			CPile* pPile = GetView()->GetPile(nEndIndex);
 			wxASSERT(pPile != NULL);
-			GetView()->InsertNullSourcePhrase(pDoc,pApp,pPile,nExtras,FALSE,TRUE); // FALSE for restoring
+			pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pApp,pPile,nExtras,FALSE,TRUE); // FALSE for restoring
 			// the phrase box, TRUE for doing it for a retranslation, and default TRUE for
 			// bInsertBefore flag at end
 			
@@ -1438,7 +1122,7 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItA
             // pile pointer
 			CPile* pPile = GetView()->GetPile(nEndSequNum + 1); // nEndIndex is out of scope here
 			wxASSERT(pPile != NULL);
-			GetView()->InsertNullSourcePhrase(pDoc,pApp,pPile,nExtras,FALSE,TRUE); // FALSE is for 
+			pApp->GetPlaceholder()->InsertNullSourcePhrase(pDoc,pApp,pPile,nExtras,FALSE,TRUE); // FALSE is for 
 			// restoring the phrase box, TRUE is for doing it for a retranslation
 			pApp->m_nActiveSequNum = nSaveActiveSN;
 		}
@@ -1806,69 +1490,6 @@ void CRetranslation::SetRetranslationFlag(SPList* pList,bool bValue)
 	}
 }
 
-// pList is the sublist of (formerly) selected source phrase instances, pSrcPhrases is the
-// document's list (the whole lot), nCount is the count of elements in pList (it will be
-// reduced as each null source phrase is eliminated), bActiveLocAfterSelection is a flag in
-// the caller, nSaveActiveSequNum is the caller's saved value for the active sequence
-// number
-// BEW updated 17Feb10 for support of _DOCVER5 (no changes were needed)
-void CRetranslation::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,
-												 int& nCount,int& nEndSequNum,bool bActiveLocAfterSelection,
-												 int& nSaveActiveSequNum)
-{
-	// refactored 16Apr09
-	// find the null source phrase in the sublist
-	CRefString* pRefString = 0;
-	SPList::Node* pos = pList->GetFirst();
-	while (pos != NULL)
-	{
-		SPList::Node* savePos = pos;
-		CSourcePhrase* pSrcPhraseCopy = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext(); 
-		wxASSERT(pSrcPhraseCopy != NULL);
-		if (pSrcPhraseCopy->m_bNullSourcePhrase)
-		{
-            // we've found a null source phrase in the sublist, so get rid of its KB
-            // presence, then delete it from the (temporary) sublist, and its instance from
-            // the heap
-			pRefString = GetView()->GetRefString(GetView()->GetKB(),pSrcPhraseCopy->m_nSrcWords,
-									  pSrcPhraseCopy->m_key,pSrcPhraseCopy->m_adaption);
-			if (pRefString != NULL)
-			{
-				// don't care about m_bHasKBEntry flag value, since pSrcPhraseCopy will be
-				// deleted next
-				GetView()->RemoveRefString(pRefString,pSrcPhraseCopy,pSrcPhraseCopy->m_nSrcWords);
-			}
-			delete pSrcPhraseCopy;
-			pSrcPhraseCopy = (CSourcePhrase*)NULL;
-			pList->DeleteNode(savePos); 
-			
-            // the main list on the app still stores the (now hanging) pointer, so find
-            // where it is and remove it from that list too
-			SPList::Node* mainPos = pSrcPhrases->GetFirst();
-			wxASSERT(mainPos != 0);
-			mainPos = pSrcPhrases->Find(pSrcPhraseCopy); // search from the beginning
-			wxASSERT(mainPos != NULL); // it must be there somewhere
-			
-			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
-			GetView()->GetDocument()->DeletePartnerPile(pSrcPhraseCopy);
-			pSrcPhrases->DeleteNode(mainPos); 
-			
-			nCount -= 1; // since there is one less source phrase in the selection now
-			nEndSequNum -= 1;
-			if (bActiveLocAfterSelection)
-				nSaveActiveSequNum -= 1;
-			
-            // now we have to renumber the source phrases' sequence number values - since
-            // the temp sublist list has pointer copies, we need only do this in the main
-            // list using a call to UpdateSequNumbers, and so the value of nSaveSequNum
-            // will still be correct for the first element in the sublist - even if there
-            // were deletions at the start of the sublist
-			GetView()->UpdateSequNumbers(0); // start from the very first in the list to be safe
-		}
-	}
-}
-
 // old code was based on code in TokenizeText in doc file; new code is based on code in
 // RemovePunctuation() which is much smarter & handles word-building punctuation properly
 void CRetranslation::RestoreOriginalPunctuation(CSourcePhrase *pSrcPhrase)
@@ -2167,7 +1788,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 	// temporary list (pList), and from the original source phrases list on the app (see above)
 	while (IsNullSrcPhraseInSelection(pList))
 	{
-		RemoveNullSrcPhraseFromLists(pList, pSrcPhrases, nCount, nEndSequNum,
+		pApp->GetPlaceholder()->RemoveNullSrcPhraseFromLists(pList, pSrcPhrases, nCount, nEndSequNum,
 									 bActiveLocAfterSelection, nSaveActiveSequNum);
 	}
 	

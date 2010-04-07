@@ -213,8 +213,6 @@ public:
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
-	void		InsertNullSrcPhraseBefore();
-	void		InsertNullSrcPhraseAfter();
 // IsFreeTranslationEndDueToMarker, IsFreeTranslationSrcPhrase moved to CFreeTrans
 #ifndef _DOCVER5
 	// moved to helpers.cpp
@@ -239,8 +237,6 @@ public:
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);	
-	CSourcePhrase*	ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*& insertPos,
-											bool bForRetranslation = FALSE);
 	void		ReDoMerge(int nSequNum,SPList* pNewList,SPList::Node* posNext,
 						CSourcePhrase* pFirstSrcPhrase, int nCount);
 	void		RemoveContentWrappers(CSourcePhrase*& pSrcPhrase, wxString mkr, int offset); // BEW 12 Sept05
@@ -343,7 +339,6 @@ protected:
 	wxString	DoSilConvert(const wxString& str);
 	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc, 
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
-	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int& nCount);
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
 	void		DoKBExport(CKB* pKB, wxFile* pFile);
 	void		DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile);
@@ -380,13 +375,9 @@ protected:
 	CTargetUnit*  GetTargetUnit(CKB* pKB, int nSrcWords, wxString keyStr);
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
-public: // edb 05 March 2010 - set to public (called from CRetranslation)
-	void		InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,CPile* pInsertLocPile,
-					const int nCount,bool bRestoreTargetBox = TRUE,bool bForRetranslation = FALSE,
-					bool bInsertBefore = TRUE);
-	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, bool bDoRecalcLayout);
 protected:
 	void		InsertSourcePhrases(CPile* pInsertLocPile, const int nCount,TextType myTextType);
+	bool		DoFindNullSrcPhrase(int nStartSequNum, int& nSequNum, int&   nCount); 
 public:
 	bool		InsertSublistAtHeadOfList(wxArrayString* pSublist, ListEnum whichList, EditRecord* pRec); // BEW added 29Apr08
 protected:
@@ -415,6 +406,8 @@ protected:
 	void		RestoreDocAfterSrcTextEditModifiedIt(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 27May08
 public: // edb 05 March 2010 - need this public in order to call it from CRetranslation
 	int			RestoreOriginalMinPhrases(CSourcePhrase* pSrcPhrase, int nStartingSequNum);
+	void		MakeSelectionForFind(int nNewSequNum, int nCount, int nSelectionLine, 
+									 bool bDoRecalcLayoutInternally);
 protected:
 	bool		ScanSpanDoingRemovals(SPList* pSrcPhrases, EditRecord* pRec,
 							wxArrayString* pAdaptList, wxArrayString* pGlossList, wxArrayString* pFTList,
@@ -465,10 +458,6 @@ protected:
 	void OnUpdateEditPaste(wxUpdateUIEvent& event);
 	void OnEditCut(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditCut(wxUpdateUIEvent& event);
-	void OnButtonNullSrc(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonNullSrc(wxUpdateUIEvent& event);
-	void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateButtonRemoveNullSrcPhrase(wxUpdateUIEvent& event);
 	void OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateButtonChooseTranslation(wxUpdateUIEvent& event);
 	void OnFileExport(wxCommandEvent& WXUNUSED(event));

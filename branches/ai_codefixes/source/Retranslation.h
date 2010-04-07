@@ -48,7 +48,6 @@ public:
 	void		DoRetranslationByUpArrow();
 	void		GetSelectedSourcePhraseInstances(SPList*& pList,wxString& strSource,wxString& strAdapt);
 	void		NewRetranslation();
-	void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
 	
 	// getters/setters for deglobalified globals
 	inline bool GetIsRetranslationCurrent() {return m_bIsRetranslationCurrent; }
@@ -78,8 +77,6 @@ protected:
 	void		PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
 											  SPList* pSrcPhrases,int nEndSequNum,int nNewLength,int nCount);
 	void		ReplaceMatchedSubstring(wxString strSearch, wxString& strReplace, wxString& strAdapt);
-	void		RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
-											 int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum);
 	void		RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,int nCurCount,
 																  int nStartingSequNum,SPList* pSublist);
 	void		RestoreOriginalPunctuation(CSourcePhrase* pSrcPhrase);

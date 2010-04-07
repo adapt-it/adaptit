@@ -60,6 +60,7 @@
 #include "TargetUnit.h"
 #include "ChooseTranslation.h" 
 #include "MainFrm.h"
+#include "Placeholder.h"
 #include "helpers.h"
 // Other includes uncomment as implemented
 
@@ -4233,7 +4234,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 
 			// now do the 'insert before'
 			gnOldSequNum = pApp->m_nActiveSequNum;
-			pView->InsertNullSrcPhraseBefore();
+			pApp->GetPlaceholder()->InsertNullSrcPhraseBefore();
 		}
 		// BEW added 26Sep05, to implement Roland Fumey's request that the shortcut for unmerging
 		// not be SHIFT+End as in the legacy app, but something else; so I'll make it ALT+Delete
@@ -4632,7 +4633,7 @@ c:		SetFocus();
 			// If glossing is ON, we don't allow the insertion, and just return instead
 			gnOldSequNum = pApp->m_nActiveSequNum;
 			if (!gbIsGlossing)
-				pView->InsertNullSrcPhraseAfter();
+				pApp->GetPlaceholder()->InsertNullSrcPhraseAfter();
 #endif
 			return;
 		}
