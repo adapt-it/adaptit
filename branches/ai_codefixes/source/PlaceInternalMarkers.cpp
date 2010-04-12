@@ -50,7 +50,6 @@
 // globals
 
 extern CSourcePhrase* gpSrcPhrase; // defined in Adapt_ItView.cpp
-extern wxString tgtStr; // ditto
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast

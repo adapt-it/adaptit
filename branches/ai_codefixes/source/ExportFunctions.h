@@ -124,8 +124,10 @@ wxString	GetStyleNumberStrFromRTFTagStr(wxString tagStr, int& startPos, int& end
 bool		MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup); // whm added 18Nov05
 wxString	GetANSIorUnicodeRTFCharsFromString(wxString inStr);
 bool		WriteOutputString(wxFile& f, wxFontEncoding Encoding, const wxString& OutStr);
+#if !defined (_DOCVER5)
 wxString	GetStringWithoutMarkerAndAssocText(wxString wholeMkr, wxString wholeEndMkr, 
 							wxString inStr, wxString& assocText, wxString& wholeMkrRemoved);
+#endif
 int			ParseMarkerRTF(wxChar* pChar, wxChar* pEndChar); // whm added 22Nov05
 bool		IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart); // whm added 22Nov05
 int			ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart, 

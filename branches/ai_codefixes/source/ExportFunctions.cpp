@@ -6,9 +6,10 @@
 /// \date_revised	31 January 2008
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
-/// \description	This is the implementation file containing export functions used by Adapt It. 
+/// \description	This is the implementation file containing export functions used by Adapt It.
+/// BEW 12Apr10, all needed changes for supporting _DOCVER5 have been done for this file
 /////////////////////////////////////////////////////////////////////////////
-//
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "ExportFunctions.h"
@@ -102,18 +103,6 @@ extern const wxChar* filterMkrEnd;
 /// This global is defined in Adapt_It.cpp.
 extern bool	gbRTL_Layout;	// ANSI version is always left to right reading; this flag can only
 							// be changed in the Unicode version, using the extra Layout menu
-
-#if defined (_DOCVER5)
-// BEW 31Mar10 comment: to Bill's four I added two, to store markers and any filtered
-// stuff prefixed to the word from the first CSourcePhrase instance in a retranslation,
-// the prefix strings below won't have their contents shown in the Place... dialog for
-// markers within the retranslation, which saves the user from seeing a lot of clutter.
-// They can be added after the place dialog closes. Also, ultimately these 6 globals
-// should be removed, and instead, private members of dialog handler classes used to do
-// the same storage and data passing from function to the instantiated dialog(s)
-#endif
-wxString tgtStr;
-wxString srcStr; // whm added 17Jun03
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -10794,7 +10783,7 @@ b:						// b: is exit point to write the last columns of data
 // whm revised November 2007 to improve reliability with Word 2003
 // gets marker/style attribute information from the external AI_USFM.xml file
 // at program startup.
-//void DoExportSrcOrTgtRTF(bool OutputSrc, wxString exportPath, wxString exportName, wxString& Buffer)
+// BEW no changes needed for support of _DOCVER5
 void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString exportName, wxString& Buffer)
 {
 	// Buffer contains the entire Source or Target text, depending on value of exportType.
@@ -11473,8 +11462,6 @@ void DoExportTextToRTF(enum ExportType exportType, wxString exportPath, wxString
 	// our case).
 
 	wxString DocName = exportName;
-
-
 
 	// Note: The original MFC version (before 3.5.2) used CTime::GetLocalTm which changed in
     // behavior and required rewriting to compile and run on VS 2005. The rewrite there was
@@ -16676,6 +16663,7 @@ wxString BuildColorTableFromUSFMColorAttributes(MapMkrToColorStr& colorMap)
 	return ColorTable;
 }
 
+// BEW 12Apr10, no changes needed for _DOCVER5
 void DetermineRTFDestinationMarkerFlagsFromBuffer(wxString& textStr,
 		bool& bDocHasFootnotes,
 		bool& bDocHasEndnotes,
