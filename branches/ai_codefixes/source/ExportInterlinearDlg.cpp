@@ -13,13 +13,8 @@
 /// button to access that sub-dialog.
 /// \derivation		The CExportInterlinearDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ExportInterlinearDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
+// BEW 10Apr10, no changes for support of _DOCVER5
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)

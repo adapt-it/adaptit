@@ -101,8 +101,8 @@ CPlaceholder::~CPlaceholder()
 }
 
 // Utility functions (these will provide correct pointer values only when called from
-// within the class functions belonging to the single CPlaceholder instantiation within the app
-// class)
+// within the class functions belonging to the single CPlaceholder instantiation within the
+// app class)
 CLayout* CPlaceholder::GetLayout()
 {
 	return m_pLayout;

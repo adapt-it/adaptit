@@ -7763,6 +7763,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// Looks up the bareMkr in the MapSfmToUSFMAnalysisStruct hash map. If the marker has an
 /// association in the map it returns a pointer to the USFMAnalysis struct. NULL is
 /// returned if the marker could not be found in the hash map.
+/// BEW 10Apr10, no changes for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 {

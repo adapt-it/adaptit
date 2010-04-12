@@ -166,9 +166,12 @@ bool AddNewStringsToArray(wxArrayString* pBaseStrArray, wxArrayString* pPossible
 bool HasFilteredInfo(CSourcePhrase* pSrcPhrase);
 bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
 bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase); // moved from CAdapt_ItView
+wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, bool bCountInTargetText);
 
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr);
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr);
+wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
+wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 
 #endif
 
@@ -176,11 +179,5 @@ bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFir
 									   int& nSequNumLast);
 bool		IsNullSrcPhraseInSelection(SPList* pList);
 bool		IsRetranslationInSelection(SPList* pList);
-
-#if !defined (_DOCVER5)
-// filtered fields functions moved from CAdapt_ItView - and now removed
-//wxString	GetExistingMarkerContent(wxString& mkr, wxString& endMkr,
-//						CSourcePhrase* pSrcPhrase, int& offset, int & length);
-#endif
 
 #endif	// helpers_h

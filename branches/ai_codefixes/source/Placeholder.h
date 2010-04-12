@@ -44,15 +44,27 @@ class CPlaceholder : public wxEvtHandler
 		// methods
 		void		InsertNullSrcPhraseBefore();
 		void		InsertNullSrcPhraseAfter();
-		void		InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,CPile* pInsertLocPile,
-										   const int nCount,bool bRestoreTargetBox = TRUE,bool bForRetranslation = FALSE,
-										   bool bInsertBefore = TRUE);
-		CSourcePhrase*	ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*& insertPos,
-												bool bForRetranslation = FALSE);
-		void		RemoveNullSourcePhrase(CPile* pInsertLocPile, const int nCount);
-		void		RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhrases,int& nCount,
-												 int& nEndSequNum,bool bActiveLocAfterSelection,int& nSaveActiveSequNum);
-
+		void		InsertNullSourcePhrase(
+							CAdapt_ItDoc*		pDoc,
+							CAdapt_ItApp*		pApp,
+							CPile*				pInsertLocPile,
+							const int			nCount,
+							bool				bRestoreTargetBox = TRUE,
+							bool				bForRetranslation = FALSE,
+							bool bInsertBefore = TRUE);
+		CSourcePhrase*	ReDoInsertNullSrcPhrase(
+							SPList*				pList,
+							SPList::Node*&		insertPos,
+							bool				bForRetranslation = FALSE);
+		void		RemoveNullSourcePhrase(
+							CPile*				pInsertLocPile, 
+							const				int nCount);
+		void		RemoveNullSrcPhraseFromLists(
+							SPList*&			pList,
+							SPList*&			pSrcPhrases,int& nCount,
+							int&				nEndSequNum,
+							bool				bActiveLocAfterSelection,
+							int&				nSaveActiveSequNum);
 	protected:
 		// event handlers
 		void OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event));

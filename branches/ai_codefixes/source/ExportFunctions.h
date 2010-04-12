@@ -85,8 +85,19 @@ wxString	ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 int			CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, 
 											   int nAnchorSequNum);
 #if defined (_DOCVER5)
+
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
 				wxString& Tstr);
+// the following added, for _DOCVER5 support, to hide implementation details 
+// for the information storage in CSourcePhrase
+bool AreMarkersOrFilteredInfoStoredHere(CSourcePhrase* pSrcPhrase, bool bIgnoreEndMarkers = TRUE);
+bool IsFootnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredFootnotes = FALSE);
+bool IsEndnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredEndnotes = FALSE);
+bool IsFreeTransInDoc(CSourcePhrase* pSrcPhrase);
+bool IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
+bool IsNoteInDoc(CSourcePhrase* pSrcPhrase);
+
+
 #else
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
 				wxString& Tstr, wxString& Sstr, wxString& Gstr, wxString& Nstr);

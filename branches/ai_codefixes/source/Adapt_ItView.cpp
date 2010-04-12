@@ -15677,6 +15677,7 @@ b:		CRefString* pRefStr = NULL;
 	}
 }
 
+// BEW 10Apr10, no changes for support of _DOCVER5
 bool CAdapt_ItView::AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,
 									 int& vLast,int nWantedVerse)
 {
@@ -29784,7 +29785,7 @@ void CAdapt_ItView::OnFileExportToRtf(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItView::OnUpdateFileExportToRtf(wxUpdateUIEvent& event)
 {
 	// added by Bill Martin 1June2003
-	// make sure there are some SourcePhrases to work with
+	// make sure there are some CSourcePhrase instances to work with
 	CAdapt_ItApp* pApp = &wxGetApp();
 	if (gbVerticalEditInProgress)
 	{
