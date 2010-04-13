@@ -15,12 +15,6 @@
 /// This schema is an implementation of the document/view framework. 
 /// \derivation		The CAdapt_ItDoc class is derived from wxDocument.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
-// 1.
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "Adapt_ItDoc.h"
@@ -255,12 +249,12 @@ extern bool gbHackedDataCharWarningGiven;
 // controls, I've opted to use marker labels that should be unique (starting with \~) and
 // yet still recognizable by containing the word 'FILTER' as part of their names.
 
-/// A marker string used to signal the beginning of filtered material stored in a source phrase's
-/// m_markers member.
+/// A marker string used to signal the beginning of filtered material stored in a source
+/// phrase's m_filteredInfo member.
 const wxChar* filterMkr = _T("\\~FILTER");
 
 /// A marker string used to signal the end of filtered material stored in a source phrase's
-/// m_markers member.
+/// m_filteredInfo member.
 const wxChar* filterMkrEnd = _T("\\~FILTER*");
 
 /////////////////////////////////////////////////////////////////////////////
@@ -13839,6 +13833,7 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 /// source language name; target language name; Bible book information; current output
 /// filename for the document; the current project configuration file contents; the
 /// document in xml format.
+/// BEW 12Apr10, no changes needed for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 {
@@ -14188,6 +14183,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 /// extracted from the packed file.
 /// The .aip files pack with the Unicode version of Adapt It cannot be unpacked with the regular
 /// version of Adapt It, nor vice versa.
+/// BEW 12Apr10, no changes needed for support of _DOCVER5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 {

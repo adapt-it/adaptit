@@ -21959,6 +21959,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// effectively joining two documents. Tests to make sure book IDs are valid and that they
 /// match, and does other housekeeping to make sure end markers and sequence numbers are
 /// handled properly.
+/// BEW 12Apr10, changed for support of _DOCVER5
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID, 
 												 bool IsLastAppendUsingThisMethodRightNow)
@@ -22021,7 +22022,10 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 		// so don't make any book ID check
 		;
 	}
-
+#if !defined (_DOCVER5)
+	// it should never be necessary to move endmarkers now, as they don't occur at the
+	// start of m_markers in doc version 5 any more
+	
     // BEW added 15Aug07: check for final endmarkers that were moved to the doc end, and if
     // so, remove them and put them back in the m_markers member first (after book ID
     // element is removed) in the joined part
@@ -22052,6 +22056,7 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 			pHeadSPhr->m_markers = markers + pHeadSPhr->m_markers;
 		}
 	}
+#endif
 	// Jonathan's code continues here...
 	//m_pSourcePhrases->Append(ol);
     // wx doesn't have a wxList method for appending one list onto another list, so we'll

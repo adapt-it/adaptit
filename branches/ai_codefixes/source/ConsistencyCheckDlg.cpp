@@ -14,13 +14,7 @@
 /// (to be fixed later). For any fixes the user can also check a box to "Auto-fix later
 /// instances the same way." 
 /// \derivation		The CConsistencyCheckDlg class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in ConsistencyCheckDlg.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, no changes needed for support of _DOCVER5 in this file
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance

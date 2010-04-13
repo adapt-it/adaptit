@@ -14,13 +14,7 @@
 /// The interface resources for the page/panel are defined in USFMPageFunc() 
 /// which was developed and is maintained by wxDesigner.
 /// \derivation		CUSFMPageWiz is derived from wxWizardPage, CUSFMPagePrefs from wxPanel, and CUSFMPageCommon from wxPanel.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in USFMPage.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, no changes needed for supporting _DOCVER5 in this file
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance

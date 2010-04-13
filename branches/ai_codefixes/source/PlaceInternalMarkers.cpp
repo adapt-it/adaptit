@@ -11,13 +11,7 @@
 /// during export of the target text in the event that RebuildTargetText() needs user
 /// input as to the final placement of markers that were merged together during adaptation.
 /// \derivation		The CPlaceInternalMarkers class is derived from AIModalDialog.
-/////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in PlaceInternalMarkers.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
+/// BEW 12Apr10, completed all changes needed for support of _DOCVER5 in this file
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance

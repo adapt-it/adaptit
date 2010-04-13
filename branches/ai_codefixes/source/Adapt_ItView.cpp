@@ -17,9 +17,6 @@
 /// framework.
 /// \derivation		The CAdapt_ItView class is derived from wxView.
 /////////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
-// 
-/////////////////////////////////////////////////////////////////////////////////
 
 //#define DrawFT_Bug
 //#define FINDNXT
@@ -8477,7 +8474,7 @@ void CAdapt_ItView::OnUpdateCopySource(wxUpdateUIEvent& event)
 // IsFilteredMaterialNonInitial() -- BEW added 08June05, to be used in OnButtonMerge() in
 // order to abort the merge operation if the user is trying to merge CSourcePhrase
 // instances and one of those which is not the initial one contains filtered material in
-// its m_markers member
+// its m_filteredInfo, or m_freeTrans, or m_collectedBackTrans, or m_note member
 // 
 // BEW 16Feb10, updated for support of _DOCVER5
 bool CAdapt_ItView::IsFilteredMaterialNonInitial(SPList* pList)
@@ -8492,11 +8489,22 @@ bool CAdapt_ItView::IsFilteredMaterialNonInitial(SPList* pList)
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 #ifdef _DOCVER5
+		// this test assumes empty notes will never occur in the document (currently, if a
+		// note is left empty, it doesn't get stored), empty free translations are permitted
 		if (!bIsFirst && 
-			(	(pSrcPhrase->GetFreeTrans().IsEmpty() && !pSrcPhrase->m_bStartFreeTrans) &&
-				(!pSrcPhrase->m_bHasNote && pSrcPhrase->GetNote().IsEmpty()) &&
-				pSrcPhrase->GetCollectedBackTrans().IsEmpty() &&
-				pSrcPhrase->GetFilteredInfo().IsEmpty()	)	)
+			(	
+			(!pSrcPhrase->GetFreeTrans().IsEmpty() || pSrcPhrase->m_bStartFreeTrans) ||
+			!pSrcPhrase->GetNote().IsEmpty() ||
+			!pSrcPhrase->GetCollectedBackTrans().IsEmpty() ||
+			!pSrcPhrase->GetFilteredInfo().IsEmpty()	
+			)
+		)
+		/* use this if we ever allow storage of empty notes
+			(!pSrcPhrase->GetFreeTrans().IsEmpty() || pSrcPhrase->m_bStartFreeTrans) ||
+			(pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty()) ||
+			!pSrcPhrase->GetCollectedBackTrans().IsEmpty() ||
+			!pSrcPhrase->GetFilteredInfo().IsEmpty()	
+		*/
 #else
 		if (!bIsFirst && (pSrcPhrase->m_markers.Find(filterMkr) != -1))
 #endif
@@ -12120,6 +12128,7 @@ void CAdapt_ItView::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 /// punctuation but just returns the punctuation-less string to the call via the pointer
 /// passed in
 /// New version coded on 02April05 by BEW
+/// BEW 12Apr10, no changes needed for support of _DOCVER5
 /////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItView::RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex)
 {
@@ -13693,6 +13702,7 @@ void CAdapt_ItView::CloseProject()
 // button on the command bar - so this flag was added to support this new functionality.
 // The flag is automatically reset TRUE once the phrase box moves to a different location
 // by any method.
+// BEW 12Apr10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::MakeLineFourString(CSourcePhrase *pSrcPhrase, wxString targetStr)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -14086,6 +14096,7 @@ b:		if (bMatchedTwo)
 // alternatively, select multiple documents from the project to check for consistency. If a
 // document is open when call is made to this routine, the consistency check is completed
 // and the user can continue working from the same position in the open document.
+// BEW 12Apr10, no changes for support of _DOCVER5
 void CAdapt_ItView::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 {
 	// the 'accepted' list holds the document filenames to be used
@@ -14281,6 +14292,7 @@ void CAdapt_ItView::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
 // this function assumes that the current directory will have already been set correctly
 // before being called. Modified, July 2003, for support of Auto Capitalization
+// BEW 12Apr10, no changes needed for support of _DOCVER5
 void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 {
 	gbConsistencyCheckCurrent = TRUE; // turn on Flag to inhibit placement of phrase box
@@ -15214,6 +15226,7 @@ void CAdapt_ItView::OnToolsKbEditor(wxCommandEvent& WXUNUSED(event))
 // are coming from the sourcephrase instances in the documents, they will have upper or
 // lower case as appropriate; but we will need to allow the user to just type lower case
 // strings when correcting in the context of AutoCaps being turned ON, so be careful!
+// BEW 12Apr10, no change needed for support of _DOCVER5
 bool CAdapt_ItView::MatchAutoFixItem(AFList* pList,CSourcePhrase *pSrcPhrase,
 									 AutoFixRecord*& rpRec)
 {
@@ -29994,6 +30007,7 @@ bool CAdapt_ItView::SetCaseParameters(wxString& strText, bool bIsSrcText)
 // poiner. This function, as the name suggests, has the smarts for AutoCapitalization being
 // On or Off.
 // WX Note: Changed second parameter to CTargetUnit*& pTU.
+// BEW 12Apr10, no changes needed for support of _DOCVER5
 bool CAdapt_ItView::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU,
 								   wxString keyStr)
 {
@@ -30142,6 +30156,7 @@ CRefString* CAdapt_ItView::AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString 
 // have all the smarts for determining if a change of case for first character
 // is needed, and return the string, the same or suitably ammended, back to the
 // caller. bIsSrc parameter is TRUE by default.
+// BEW 12Apr10, no changes needed for support of _DOVCER5
 wxString CAdapt_ItView::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
 {
 	bool bNoError = TRUE;

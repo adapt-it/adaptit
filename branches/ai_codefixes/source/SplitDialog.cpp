@@ -22,13 +22,6 @@
 /// class.
 /// \derivation		SplitDialog is derived from AIModalDialog and the supporting Chapter class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in SplitDialog.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)

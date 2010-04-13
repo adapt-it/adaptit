@@ -12,6 +12,7 @@
 /// The functionality in the CFreeTrans class was originally contained in
 /// the CAdapt_ItView class.
 /// \derivation		The CFreeTrans class is derived from wxObject.
+/// BEW 12Apr10 all changes needed for support of _DOVCER5 in this file are done
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -1873,8 +1874,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	CSourcePhrase* pSrcPhrase;
 
 #if !defined (_DOCVER5)
-	wxString mkr = _T("\\free"); // enough for standard or derived 
-								 // backtranslation markers
+	wxString mkr = _T("\\free");
 #else
 	wxString emptyStr = _T("");
 #endif

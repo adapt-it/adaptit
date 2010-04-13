@@ -11,13 +11,7 @@
 /// target box where the user enters and/or edits translations while adapting text.
 /// \derivation		The PhraseBox class derives from the wxTextCtrl class.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in MainFrm (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "PhraseBox.h"
@@ -316,11 +310,12 @@ CPhraseBox::~CPhraseBox(void)
 {
 }
 
-int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSourcePhrases)
 // returns number of phrases built; a return value of zero means that we have a halt condition
 // and so none could be built (eg. source phrase is a merged one would halt operation)
 // When glossing is ON, the build is constrained to phrases[0] only, and return value would then
 // be 1 always.
+// BEW 13Apr10, no changes needed for support of _DOCVER5
+int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSourcePhrases)
 {
 	// refactored 25Mar09, -- nothing needs to be done
 	// clear the phrases array
@@ -409,7 +404,9 @@ CLayout* CPhraseBox::GetLayout()
 // shows an informative message to the user, enables the button for copying punctuation,
 // and returns FALSE
 // (4) if within a retranslation, the global bool gbEnterTyped is cleared to FALSE
-bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, CPile* pNextEmptyPile, CPile* pCurPile)
+// BEW 13Apr10, no changes needed for support of _DOCVER5
+bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, 
+												CPile* pNextEmptyPile, CPile* pCurPile)
 {
 	// created for refactored view layout, 24Mar09
 	wxASSERT(pNextEmptyPile);
@@ -468,6 +465,7 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 // returns nothing
 // restores a correct <Not_In_KB> entry for the pile pCurPile, if the user has edited it
 // out of the KB within the KB editor - which is not the correct way to do it
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, 
 											CAdapt_ItView* pView, CPile* pCurPile)
 {
@@ -516,6 +514,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 // returns nothing
 // this is a helper function to do some housecleaning tasks prior to the caller (which is
 // a pile movement function such as MoveToNextPile(), returning FALSE to its caller 
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pView, 
 										   CPile* pNextEmptyPile)
 {
@@ -533,16 +532,17 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 	gTemporarilySuspendAltBKSP = FALSE;
 	gbSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
 
-	// if vertical editing is in progress, the store failure may occur with the active location
-	// within the editable span, (in which case we don't want a step transition), or having 
-	// determined the jump location's pile is either NULL (a bundle boundary was reached before
-	// an empty pile could be located - in which case a step transition should be forced), or
-	// a pile located which is beyond the editable span, in the gray area, in which case transition
-	// is wanted; so handle these options using the value for pNextEmptyPile obtained above 
-	// Note: doing a transition in this circumstance means the KB does not get the phrase box
-	// contents added, but the document still has the adaptation or gloss, so the impact of the 
-	// failure to store is minimal (ie. if the box contents were unique, the adaptation or gloss
-	// will need to occur later somewhere for it to make its way into the KB)
+    // if vertical editing is in progress, the store failure may occur with the active
+    // location within the editable span, (in which case we don't want a step transition),
+    // or having determined the jump location's pile is either NULL (a bundle boundary was
+    // reached before an empty pile could be located - in which case a step transition
+    // should be forced), or a pile located which is beyond the editable span, in the gray
+    // area, in which case transition is wanted; so handle these options using the value
+    // for pNextEmptyPile obtained above Note: doing a transition in this circumstance
+    // means the KB does not get the phrase box contents added, but the document still has
+    // the adaptation or gloss, so the impact of the failure to store is minimal (ie. if
+    // the box contents were unique, the adaptation or gloss will need to occur later
+    // somewhere for it to make its way into the KB)
 	if (gbVerticalEditInProgress)
 	{
 		// bForceTransition is TRUE in the next call
@@ -571,6 +571,7 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 
 // return TRUE if there were no problems encountered with the store, FALSE if there were
 // (this function calls DealWithUnsuccessfulStore() if there was a problem with the store)
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc,
 		 CAdapt_ItView* pView, CPile* pCurPile, bool bIsTransliterateMode)
 {
@@ -672,7 +673,7 @@ void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 }
 #endif
 
-
+// BEW 13Apr10, changes needed for support of _DOCVER5
 void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, 
 					CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
 {
@@ -759,6 +760,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 	}
 }
 
+// BEW 13Apr10, changes needed for support of _DOCVER5
 void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
 								CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
 {
@@ -857,8 +859,9 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 // MoveToNextPile() is called only when CAdapt_ItApp::m_bTransliterationMode is FALSE, so
 // this value can be assumed. The global boolean gbIsGlossing, however, may be either FALSE
 // (adapting mode) or TRUE (glossing mode)
-bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 // Ammended July 2003 for auto-capitalization support
+// BEW 13Apr10, changes needed for support of _DOCVER5
+bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 {
 	//bool bNoError = TRUE;
 	bool bWantSelect = FALSE; // set TRUE if any initial text in the new location is to be 
@@ -1300,6 +1303,7 @@ void CPhraseBox::ChangeCancelAndSelectFlag(bool bValue)
 // assumed; likewise the global boolean gbIsGlossing will be FALSE (because
 // transliteration mode is not available when glossing mode is turned ON), and so that too
 // can be assumed
+// BEW 13Apr10, changes needed for support of _DOCVER5
 bool CPhraseBox::MoveToNextPile_InTransliterationMode(CAdapt_ItView* pView, CPile* pCurPile)
 {
 	//bool bNoError = TRUE;
@@ -1809,7 +1813,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 	}
 }
 
-
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -1838,6 +1842,7 @@ bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView)
 // passed in is the active pile, and that CAdapt_ItApp::m_nActiveSequNum is the correct
 // index within the m_pSourcePhrases list for the CSourcePhrase instance pointed at by the
 // m_pSrcPhrase member of pNewPile
+// BEW 13Apr10, a small change needed for support of _DOCVER5
 bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 {
 	// refactored 25Mar09 (old code is at end of file)
@@ -2153,7 +2158,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 	return TRUE;
 }
 
-
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
 	#ifdef _FIND_DELAY
@@ -2614,10 +2619,11 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 	#endif
 }
 
-bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 // returns TRUE if a matching KB entry found; when glossing, pKB points to the glossing KB, when
 // adapting it points to the normal KB
 // BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of _DOCVER5
+bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	CAdapt_ItView* pView = pApp->GetView();
@@ -2637,6 +2643,7 @@ bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetU
 // called for every EVT_TEXT posted to event queue); it is not called for selector = 2
 // value because OnChar() has a case statement that handles box contraction there, and for
 // selector = 1 this function is only called elsewhere in the app within OnEditUndo()
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 {
 	// whm Note: This phrasebox handler is necessary in the wxWidgets version because the
@@ -2773,10 +2780,12 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 // currently called only in the following CPhraseBox functions: OnPhraseBoxChanged() with
 // selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
 // OnEditUndo() with selector 1 passed in.
+// refactored 26Mar09
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 						wxSize& textExtent,int nSelector)
 {
-	// refactored 26Mar09
+	
 	
     // destroys the phrase box and recreates it with a different size, depending on the
     // nSelector value. 
@@ -3018,7 +3027,6 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 	//pView->RemakePhraseBox(pView->m_pActivePile, pView->m_targetPhrase); // also doesn't work.
 }
 
-
 // MFC docs say about CWnd::OnChar "The framework calls this member function when
 // a keystroke translates to a nonsystem character. This function is called before
 // the OnKeyUp member function and after the OnKeyDown member function are called.
@@ -3045,6 +3053,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // entry zone, for example.
 
 // OnChar is called via EVT_CHAR(OnChar) in our CPhraseBox Event Table.
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
 	// whm Note: OnChar() is called before OnPhraseBoxChanged()
@@ -3375,9 +3384,10 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 	}
 }
 
-bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 // returns TRUE if the move was successful, FALSE if not successful
 // Ammended July 2003 for auto-capitalization support
+// BEW 13Apr10, no changes needed for support of _DOCVER5
+bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 {
 	//gbMovingToPreviousPile = TRUE; // set here, but we clear it after the ReDoPhraseBox( ) 
 					// calls in the relevant part (2 calls) in OnChar( ) after the
@@ -3674,13 +3684,6 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		{
 			pDoc->ResetPartnerPileWidth(pNewPile->GetSrcPhrase());
 		}
-
-		/* removed 30Mar09
-		// recalculate from the beginning
-		//pApp->m_curBoxWidth = 2; // make very small so it doesn't push the next word/phrase
-									// to the right before the next word/phrase can be measured
-		pView->RecalcLayout(pApp->m_pSourcePhrases,0,pApp->m_pBundle);
-		*/
 		
         pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
@@ -3726,6 +3729,7 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 	}
 }
 
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 // returns TRUE if the move was successful, FALSE if not successful
 // Ammended, July 2003, for auto capitalization support
@@ -4038,6 +4042,7 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 	}
 }
 
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnSysKeyUp(wxKeyEvent& event) 
 {
 	// wx Note: This routine handles Adapt It's AltDown key events
@@ -4296,6 +4301,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 // return TRUE if we traverse this function without being at the end of the file, or
 // failing in the LookAhead function (such as when there was no match); otherwise, return
 // FALSE so as to be able to exit from the caller's loop
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 {
 	#ifdef _FIND_DELAY
@@ -4440,6 +4446,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 // This OnKeyUp function is called via the EVT_KEY_UP event in our CPhraseBox
 // Event Table.
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
 	//wxLogDebug(_T("OnKeyUp() %d called from PhraseBox"),event.GetKeyCode());
@@ -4738,12 +4745,12 @@ d:		SetFocus();
 	}
 	else if (!gbIsGlossing && pApp->m_bTransliterationMode && event.GetKeyCode() == WXK_RETURN)
 	{
-		// CTRL + ENTER is a JumpForward() to do transliteration; bleed this possibility out
-		// before allowing for any keypress to halt automatic insertion; one side effect is that
-		// MFC rings the bell for each such key press and I can't find a way to stop it. So
-		// Alt + Backspace can be used instead, for the same effect; or the sound can be turned
-		// off at the keyboard if necessary. This behaviour is only available when
-		// transliteration mode is turned on.
+        // CTRL + ENTER is a JumpForward() to do transliteration; bleed this possibility
+        // out before allowing for any keypress to halt automatic insertion; one side
+        // effect is that MFC rings the bell for each such key press and I can't find a way
+        // to stop it. So Alt + Backspace can be used instead, for the same effect; or the
+        // sound can be turned off at the keyboard if necessary. This behaviour is only
+        // available when transliteration mode is turned on.
 		if (event.ControlDown()) 
 		{				
 			// save old sequ number in case required for toolbar's Back button
@@ -4781,6 +4788,7 @@ d:		SetFocus();
 
 // This OnKeyDown function is called via the EVT_KEY_DOWN event in our CPhraseBox
 // Event Table.
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
 	// refactored 2Apr09
@@ -4851,7 +4859,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 	event.Skip(); // allow processing of the keystroke event to continue
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, some changes needed for support of _DOCVER5
 bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 {
 	// refactored 2Apr09
@@ -5009,6 +5017,7 @@ void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
 }
 #endif
 
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event) 
 {	
 	// This mouse event is only activated when user clicks mouse L button within
@@ -5061,6 +5070,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnLButtonUp(wxMouseEvent& event) 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5224,6 +5234,7 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 	return TRUE;
 }
 
+// BEW 13Apr10, no changes needed for support of _DOCVER5
 void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event)) 
 // no changes needed for support of glossing or adapting
 {
