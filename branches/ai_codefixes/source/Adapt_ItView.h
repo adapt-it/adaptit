@@ -152,8 +152,6 @@ public:
 	void		ClobberDocument();
 	void		CloseProject();
 
-// ComposeDefaultFreeTranslation, ContainsFreeTranslation, DoCollectBacktranslations
-// moved to CFreeTrans
 	wxString	CopySourceKey(CSourcePhrase* pSrcPhrase, bool bUseConsistentChanges = FALSE);
 	void		DoConditionalStore(bool bOnlyWithinSpan = TRUE); // BEW added 1Aug08
 	void		DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc);
@@ -167,7 +165,6 @@ public:
 	bool		DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& tgt, wxString& replStr,
 						int nCount);
 	void		DoStartupWizardOnLaunch();
-// DrawFreeTranslations moved to CFreeTrans
 	void		DrawTextRTL(wxDC* pDC, wxString& str, wxRect& rect); // BEW 9Feb09, a copy is now in CCell
 	void		EditSourceText(wxCommandEvent& event);
 	void		ExtendSelectionForFind(CCell* pAnchorCell, int nCount);
@@ -177,7 +174,6 @@ public:
 									bool& bIsVerseRange,int& nFinalVerse);
 	int			FindFilteredInsertionLocation(wxString& rStr, wxString& mkr);
 	void		FindNextHasLanded(int nLandingLocSequNum, bool bSuppressSelectionExtension = TRUE);
-// FixKBEntryFlag moved to CFreeTrans
 	wxString	GetAssocTextWithoutMarkers(wxString mkrStr); // whm added 18Nov05
 	wxPanel*	GetBar(enum VertEditBarType vertEditBarType); // BEW added 9Aug08
 	wxComboBox*	GetRemovalsComboBox(); // BEW added 18July08
@@ -206,19 +202,12 @@ public:
 	bool		GetSublist(SPList* pSaveList,SPList* pOriginalList,int nBeginSequNum,
 						int nEndSequNum);
 	int			GetSelectionWordCount();
-// GetStartingPileForScan moved to CFreeTrans
 	void		GetVisibleStrips(int& nFirstStrip,int&nLastStrip);
 	wxString	GetWholeMarkerFromString(wxString mkrStr, int nBeginPos); // whm added 18Oct05
-// HasWordFinalPunctuation moved to CFreeTrans
 	void		InitializeEditRecord(EditRecord& editRec); // BEW added 17Apr08
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
-// IsFreeTranslationEndDueToMarker, IsFreeTranslationSrcPhrase moved to CFreeTrans
-#ifndef _DOCVER5
-	// moved to helpers.cpp
-	bool		IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
-	bool		IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase);
-#endif
+
 	bool		IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool		IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	bool		IsUnstructuredData(SPList* pList);
@@ -226,14 +215,10 @@ public:
 	void		Jump(CAdapt_ItApp* pApp, CSourcePhrase* pNewSrcPhrase);
 	void		RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& errorStr);
 	void		MakeAllPilesNonCurrent(CLayout* pLayout); // moved here from protected
-// MarkFreeTranslationPilesForColoring moved to CFreeTrans
 	bool		MarkerTakesAnEndMarker(wxString bareMarkerForLookup, wxString& wantedEndMkr); // whm added 18Nov05
 	void		MakeLineFourString(CSourcePhrase* pSrcPhrase, wxString targetStr);
 	void		MergeWords();
 
-// OnAdvanceButton, OnNextButton, OnPrevButton, OnRemoveFreeTranslationButton, OnLengthenButton,
-// OnShortenButton, OnRadioDefineByPunctuation, OnRadioDefineByVerse
-// moved to CFreeTrans
 	void		PlacePhraseBox(CCell* pCell, int selector = 0); // use selector to enable/disable code
 	bool		PrecedingWhitespaceHadNewLine(wxChar* pChar, wxChar* pBuffStart); // whm added 11Nov05
 	void		PutPhraseBoxAtSequNumAndLayout(EditRecord* WXUNUSED(pRec), int nSequNum);	
@@ -271,15 +256,10 @@ public:
 	void		RestoreBoxOnFinishVerticalMode(); // BEW added 8Sept08
 	void		SelectDragRange(CCell* pAnchor,CCell* pCurrent);
 	void		SelectAnchorOnly();
-#if !defined (_DOCVER5)
-	void		SelectFoundSrcPhrases(int nNewSequNum, int nCount, bool bIncludePunct, 
-									bool bSearchedInSrc, bool bDoRecalcLayout);
-#endif
 	void		SendScriptureReferenceFocusMessage(SPList* pList, CSourcePhrase*);
 	bool		SetActivePilePointerSafely(CAdapt_ItApp* pApp,
 						SPList* pSrcPhrases,int& nSaveActiveSequNum,int& nActiveSequNum,int nFinish);
 	bool		SetCaseParameters(wxString& strText, bool bIsSrcText = TRUE);
-// GDLC 2010-02-15 SetupCurrentFreeTransSection moved to CFreeTrans
 	bool		SetupRangePrintOp(const int nFromCh, const int nFromV, const int nToCh,
 					const int nToV,wxPrintData* WXUNUSED(pPrintData),
 					bool WXUNUSED(bSuppressPrecedingHeadingInRange=FALSE), 
@@ -287,12 +267,10 @@ public:
 	void		SetWhichBookPosition(wxDialog* pDlg); 
 	void		StatusBarMessage(wxString& message);
 	bool		StoreBeforeProceeding(CSourcePhrase* pSrcPhrase);
-//GDLC 2010-02-13 Moved StoreFreeTranslation to CFreeTrans
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
 	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, 
 										bool bSupportNoAdaptationButton = FALSE);
 	bool		StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
-//GDLC 2010-02-16 Moved ToggleFreeTranslationMode to CFreeTrans
 	void		ToggleGlossingMode(); // BEW added 19Sep08
 	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
 	int			TokenizeTextString(SPList* pNewList,wxString& str,int nInitialSequNum);
@@ -326,9 +304,6 @@ public:
 // BEW changed order 19Jul05 to try have something close to alphabetic order in the listing
 protected:
 	void		BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 30Apr08
-#if !defined (_DOCVER5)
-	void		CheckForMarkers(SPList* pList,bool& bHasInitialMarker,bool& bHasNoninitialMarker);
-#endif
 	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
 	int			CountSourceWords(wxString& rStr);
@@ -552,12 +527,6 @@ public:
 	void OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event);
 	void OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event));
 	
-// OnAdvancedFreeTranslationMode, OnUpdateAdvancedFreeTranslationMode
-// moved to CFreeTrans
-	// OnAdvancedRemoveFilteredBacktranslations, OnUpdateAdvancedRemoveFilteredBacktranslations, 
-	// OnAdvancedRemoveFilteredFreeTranslations, OnUpdateAdvancedRemoveFilteredFreeTranslations,
-	// OnUpdateAdvancedCollectBacktranslations, OnAdvancedCollectBacktranslations,
-	// moved to CFreeTrans
 	void OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event);
 	void OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event));

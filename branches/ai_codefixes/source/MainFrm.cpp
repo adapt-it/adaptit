@@ -2077,7 +2077,7 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 
 // TODO: uncomment EVT_MENU event handler for this function after figure out 
 // why SetDelay() disables tooltips
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event))
 {
 	// we can only set the delay time if tooltips are in use
@@ -2111,7 +2111,7 @@ _("The current tooltip display time is %d milliseconds which is %d seconds.\nEnt
 	
 // TODO: uncomment EVT_MENU event handler for this function after figure out 
 // why SetDelay() disables tooltips
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnUpdateSetToolTipDelayTime(wxUpdateUIEvent& event)
 {
 	// enable the Set Time for Displaying ToolTips... menu item only if
@@ -2261,7 +2261,7 @@ void CMainFrame::ShowHelp(int commandId, wxHelpControllerBase& helpController)
 }
 */
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnClose(wxCloseEvent& event)
 {
 	// OnClose() is always called regardless of how the user closes the program. It is called
@@ -2277,7 +2277,7 @@ void CMainFrame::OnClose(wxCloseEvent& event)
 					// to effect the closedown process
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 #ifdef _USE_SPLITTER_WINDOW
 // Creat a canvas for the splitter window held on the main frame.
 CAdapt_ItCanvas *CMainFrame::CreateCanvas(wxSplitterWindow *parent)
@@ -2334,7 +2334,7 @@ CAdapt_ItCanvas *CMainFrame::CreateCanvas(CMainFrame *parent)
 // composeBar (if present). It assumes that calling GetClientSize() on the frame returns
 // a value that already accounts for the presence/absence of the menuBar, toolBar,
 // and statusBar.
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 wxSize CMainFrame::GetCanvasClientSize()
 {
 	wxSize frameClientSize, canvasSize;
@@ -2368,7 +2368,7 @@ wxSize CMainFrame::GetCanvasClientSize()
 
 /////////////////////////////////////////////////////////////////////////////
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 {
     wxToolBar *tbar = GetToolBar();
@@ -2396,7 +2396,7 @@ void CMainFrame::OnViewToolBar(wxCommandEvent& WXUNUSED(event))
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
 /// The "Toolbar" item on the View menu is always enabled by this handler.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateViewToolBar(wxUpdateUIEvent& event)
 {
@@ -2404,7 +2404,7 @@ void CMainFrame::OnUpdateViewToolBar(wxUpdateUIEvent& event)
     event.Enable(TRUE);
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
 {
     wxStatusBar *statbarOld = GetStatusBar();
@@ -2438,7 +2438,7 @@ void CMainFrame::OnViewStatusBar(wxCommandEvent& WXUNUSED(event))
 /// Called from: The wxUpdateUIEvent mechanism when the associated menu item is selected, and before
 /// the menu is displayed.
 /// The "Status Bar" item on the View menu is always enabled by this handler.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateViewStatusBar(wxUpdateUIEvent& event)
 {
@@ -2446,7 +2446,7 @@ void CMainFrame::OnUpdateViewStatusBar(wxUpdateUIEvent& event)
     event.Enable(TRUE);
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
     // wx version notes about frame size changes:
@@ -2669,7 +2669,7 @@ void CMainFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 	}
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::RecreateToolBar()
 {
     // delete and recreate the toolbar
@@ -2727,7 +2727,7 @@ void CMainFrame::RecreateToolBar()
 	//toolBar->Realize(); // called in AIToolBarFunc() above - done by wxDesigner
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::DoCreateStatusBar()
 {
     wxStatusBar *statbarOld = GetStatusBar();
@@ -2752,7 +2752,7 @@ void CMainFrame::DoCreateStatusBar()
 /// Called from: The wxUpdateUIEvent mechanism during idle time processing. 
 /// This update handler insures that the "Automatic" checkbox is checked when the App's 
 /// m_bSingleStep flag is FALSE, and unchecked when the flag is TRUE.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateCheckSingleStep(wxUpdateUIEvent& event)
 {
@@ -2777,7 +2777,7 @@ void CMainFrame::OnUpdateCheckSingleStep(wxUpdateUIEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism during idle time processing. 
 /// This update handler insures that the "Save To Knowledge Base" checkbox is checked when the 
 /// App's m_bSaveToKB flag is TRUE, and unchecked when the flag is FALSE.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateCheckKBSave(wxUpdateUIEvent& event)
 {
@@ -2799,7 +2799,7 @@ void CMainFrame::OnUpdateCheckKBSave(wxUpdateUIEvent& event)
 /// Called from: The wxUpdateUIEvent mechanism during idle time processing. 
 /// This update handler insures that the "Force Choice For This Item" checkbox is checked when the 
 /// App's m_bForceAsk flag is TRUE, and unchecked when the flag is FALSE.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateCheckForceAsk(wxUpdateUIEvent& event)
 {
@@ -2814,14 +2814,14 @@ void CMainFrame::OnUpdateCheckForceAsk(wxUpdateUIEvent& event)
 	}
 }
 
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnViewComposeBar(wxCommandEvent& WXUNUSED(event))
 {
 	gpApp->m_bComposeBarWasAskedForFromViewMenu = TRUE;
 	ComposeBarGuts();
 }
 
-// BEW 22Feb10 no changes needed for support of _DOCVER5
+// BEW 22Feb10 no changes needed for support of doc version 5
 void CMainFrame::ComposeBarGuts()
 {
 	if (m_pComposeBar == NULL)
@@ -2990,7 +2990,7 @@ void CMainFrame::ComposeBarGuts()
 /// This handler insures that the "Compose Bar" item on the View menu is enabled and checked when 
 /// the App's m_bComposeWndVisible flag is TRUE, and unchecked when m_bComposeWndVisible is FALSE.
 /// The "Compose Bar" menu item will be disabled if the application is in free translation mode.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////////
 void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event) 
 {
@@ -3025,7 +3025,7 @@ void CMainFrame::OnUpdateViewComposeBar(wxUpdateUIEvent& event)
 //void CMainFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) // MFC version
 // NOTE: wxFrame::OnActivate() is MS Windows only. It is not a virtual function
 // under wxWidgets, and takes a single wxActivateEvent& event parameter.
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnActivate(wxActivateEvent& event) 
 {
 	// NOTE: Setting a breakpoint in this type of function will be problematic
@@ -3064,7 +3064,7 @@ void CMainFrame::OnActivate(wxActivateEvent& event)
 
 // OnIdle moved here from the App. When it was in the App it was causing
 // the File | Exit and App x cancel commands to not be responsive there
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnIdle(wxIdleEvent& event)
 {	
 	idleCount++; // unused, may want to use this later
@@ -3319,7 +3319,7 @@ void CMainFrame::OnIdle(wxIdleEvent& event)
 // event table macro EVT_ADAPTATIONS_EDIT.
 // The wxEVT_Adaptations_Edit event is sent to the window event loop by a 
 // wxPostEvent() call in OnEditSourceText().
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnCustomEventAdaptationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// adaptations updating is required
@@ -4009,7 +4009,7 @@ cancel:		;
 
 // The following is the handler for a custom wxEVT_Glosses_Edit event message, sent
 // to the window event loop by a wxPostEvent() call
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnCustomEventGlossesEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// glosses updating is potentially required
@@ -4632,7 +4632,7 @@ cancel:		;
 
 // The following is the handler for a custom wxEVT_Free_Translations_Edit event message,
 // sent to the window event loop by a wxPostEvent call
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnCustomEventFreeTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// free translations updating is potentially required
@@ -5232,7 +5232,7 @@ cancel:		;
 
 // The following is the handler for a CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT event message, sent
 // to the window event loop by a PostMessage(CUSTOM_EVENT_BACK_TRANSLATIONS_EDIT,0,0) call
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItView* pView = gpApp->GetView();
@@ -5264,7 +5264,7 @@ void CMainFrame::OnCustomEventBackTranslationsEdit(wxCommandEvent& WXUNUSED(even
 	return;
 }
 
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
@@ -5367,7 +5367,7 @@ void CMainFrame::OnCustomEventEndVerticalEdit(wxCommandEvent& WXUNUSED(event))
 	return;
 }
 
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event))
 {
 	// turn receiving of synchronized scrolling messages back on, if we temporarily have
@@ -5887,7 +5887,7 @@ void CMainFrame::OnCustomEventCancelVerticalEdit(wxCommandEvent& WXUNUSED(event)
 // (whm note: Bruce tried using a OnRemovalsComboSetFocus() handler, which worked, but
 // blocked dropping down the list) so apparently the user will have to drop the list down
 // manually rather than be able to just click on the text in the combo box window).
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnRemovalsComboSelChange(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = &wxGetApp();

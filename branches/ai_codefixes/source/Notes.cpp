@@ -144,7 +144,7 @@ CAdapt_ItApp* CNotes::GetApp()
 /// nLocationSN for the sequence number. It is the caller's responsibility to ensure there
 /// is no note already present there.
 /// 
-/// BEW 24Feb10, updated for support of _DOCVER5
+/// BEW 24Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote)
 {
@@ -179,15 +179,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 		SPList::Node* pos = pSrcPhrases->Item(nLocationSN);
 		wxASSERT(pos != NULL);
 		pToSrcPhrase = pos->GetData();
-#if defined (_DOCVER5)
 		pToSrcPhrase->SetNote(strNote);
-#else
-		int nInsertionOffset = GetView()->FindFilteredInsertionLocation(pToSrcPhrase->m_markers,noteMkr);
-		bool bInsertContentOnly = FALSE; // need the whole lot done, 
-		// including wrapping filter markers
-		GetView()->InsertFilteredMaterial(noteMkr,noteEndMkr,strNote,pToSrcPhrase,
-							   nInsertionOffset,bInsertContentOnly);
-#endif
 		pToSrcPhrase->m_bHasNote = TRUE;
 		// mark its owning strip as invalid
 		GetApp()->GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
@@ -209,7 +201,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 /// contains a \note marker in its m_markers member. If the flag is not set and should be,
 /// it sets it.
 /// 20June08 created by BEW
-/// BEW 24Feb10, updated for support of _DOCVER5
+/// BEW 24Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -237,10 +229,6 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 		// beyond the document's end, so shorten it to end at the document's end
 		nEndAt = maxIndex;
 	}
-#if !defined (_DOCVER5)
-	wxString mkr = _T("\\note");
-	int offset = -1;
-#endif
 	CSourcePhrase* pSrcPhrase = NULL;
 	SPList::Node* pos = NULL;
 	if (bDoEditSpanCheck)
@@ -252,7 +240,6 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
-#if defined (_DOCVER5)
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
 				// there is a note stored here
@@ -260,16 +247,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 				// in case the user edited a typo SF resulting
 				// in a Note which got filtered
 			}
-#else
-			offset = pSrcPhrase->m_markers.Find(mkr);
-			if (offset != -1)
-			{
-				// there is a note stored here
-				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged 
-				// in case the user edited a typo SF resulting
-				// in a Note which got filtered
-			}
-#endif
+
 			// break out of the loop once we've checked the last in the span
 			if (pSrcPhrase->m_nSequNumber >= nEndAt)
 				break; 
@@ -299,7 +277,6 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
-#if defined (_DOCVER5)
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
 				// there is a note stored here
@@ -307,16 +284,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 				// in case the user edited a typo SF resulting
 				// in a Note which got filtered
 			}
-#else
-			offset = pSrcPhrase->m_markers.Find(mkr);
-			if (offset != -1)
-			{
-				// there is a note stored here
-				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged 
-				// in case the user edited a typo SF resulting
-				// in a Note which got filtered
-			}
-#endif
+
 			// break out of the loop once we've checked the last in the span
 			if (pSrcPhrase->m_nSequNumber >= nNextEndAt)
 				break; 
@@ -341,7 +309,6 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
 			wxASSERT(pSrcPhrase != NULL);
-#if defined (_DOCVER5)
 			if (!pSrcPhrase->GetNote().IsEmpty())
 			{
 				// there is a note stored here
@@ -349,16 +316,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 				// in case the user edited a typo SF resulting
 				// in a Note which got filtered
 			}
-#else
-			offset = pSrcPhrase->m_markers.Find(mkr);
-			if (offset != -1)
-			{
-				// there is a note stored here
-				pSrcPhrase->m_bHasNote = TRUE; // ensure the note is flagged 
-				// in case the user edited a typo SF resulting in a Note
-				// which got filtered
-			}
-#endif
+
 			// break out of the loop once we've checked the last in the span
 			if (pSrcPhrase->m_nSequNumber >= nNextEndAt)
 				break; 
@@ -369,7 +327,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
 /// \remarks	Removes all notes.
-/// BEW 25Feb10, updated for support of _DOCVER5
+/// BEW 25Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::DeleteAllNotes()
 {
@@ -377,42 +335,18 @@ void CNotes::DeleteAllNotes()
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	CSourcePhrase* pSrcPhrase;
-#if defined (_DOCVER5)
 	wxString emptyStr = _T("");
-#else
-	wxString noteMkr = _T("\\note");
-	wxString noteEndMkr = noteMkr + _T('*');
-	int curPos = -1;
-#endif
 	
 	// do the deleting
 	while (pos != NULL)
 	{
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-#if defined (_DOCVER5)
 		if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 		{
 			pSrcPhrase->SetNote(emptyStr);
 			pSrcPhrase->m_bHasNote = FALSE;
 		}
-#else
-		if ( (curPos = pSrcPhrase->m_markers.Find(noteEndMkr)) == -1)
-		{
-			// this sourcephrase instance contains no filtered note
-			pSrcPhrase->m_bHasNote = FALSE; // ensure the flag agrees
-			continue;
-		}
-		else
-		{
-            // this source phrase contains a note, or the wrappers for a note if the
-            // content happens to have been removed; RemoveContentWrappers also removes
-            // the content if it has not already been removed, as well as removing the
-            // content's wrapping markers and filter markers
-			GetView()->RemoveContentWrappers(pSrcPhrase, noteMkr, curPos);
-			pSrcPhrase->m_bHasNote = FALSE; // ensure the flag agrees
-		}
-#endif
 	}
 	GetView()->Invalidate(); // get the view redrawn, so the note icons disappear too
 	GetLayout()->PlaceBox();
@@ -444,7 +378,7 @@ void CNotes::DeleteAllNotes()
 ///    differences are ignored (which we expect is what the user would always want). The
 ///    returned offsets are used by the caller (ie. CNoteDlg) for highlighting purposes
 ///    when there was a successful match.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxString& noteStr,
 									 int& nStartOffset, int& nEndOffset)
@@ -586,7 +520,7 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxStri
 /// CSourcePhrase instances because it returns the stored m_nSequNumber value for the found
 /// note in the CSourcePhrase which stores it, not the index value in pList at which that
 /// CSourcePhrase was located.
-/// BEW 25Feb10, updated for support of _DOCVER5
+/// BEW 25Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindForwards)
 {
@@ -604,10 +538,6 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		nStartLoc = count - 1;
 	}
 	CSourcePhrase* pSrcPhrase = NULL;
-#if !defined (_DOCVER5)
-	wxString strSFM = _T("\\note");
-	int offset = -1;
-#endif
 	SPList::Node* pos = pList->Item(nStartLoc);
 	if (pos == NULL)
 	{
@@ -624,7 +554,6 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		// examine the starting location first
 		pSrcPhrase = pos->GetData();
 		pos = pos->GetNext();
-#if defined (_DOCVER5)
 		if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 		{
 			// there is one at the current POSITION
@@ -632,20 +561,10 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 			nFoundAt = pSrcPhrase->m_nSequNumber;
 			return TRUE;
 		}
-#else
-		offset = pSrcPhrase->m_markers.Find(strSFM);
-		if (offset >= 0)
-		{
-			// there is one at the current location
-			nFoundAt = pSrcPhrase->m_nSequNumber;
-			return TRUE;
-		}
-#endif
 		while (pos != NULL)
 		{
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetNext();
-#if defined (_DOCVER5)
 			if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 			{
 				// there is one at the current POSITION
@@ -653,15 +572,6 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 				nFoundAt = pSrcPhrase->m_nSequNumber;
 				return TRUE;
 			}
-#else
-			offset = pSrcPhrase->m_markers.Find(strSFM);
-			if (offset >= 0)
-			{
-				// there is one at the current POSITION
-				nFoundAt = pSrcPhrase->m_nSequNumber;
-				return TRUE;
-			}
-#endif
 		}
 	}
 	else
@@ -674,7 +584,6 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 		{
 			pSrcPhrase = pos->GetData();
 			pos = pos->GetPrevious();
-#if defined (_DOCVER5)
 			if (pSrcPhrase->m_bHasNote || !pSrcPhrase->GetNote().IsEmpty())
 			{
 				// there is one at the current POSITION
@@ -682,15 +591,6 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 				nFoundAt = pSrcPhrase->m_nSequNumber;
 				return TRUE;
 			}
-#else
-			offset = pSrcPhrase->m_markers.Find(strSFM);
-			if (offset >= 0)
-			{
-				// there is one at the current POSITION
-				nFoundAt = pSrcPhrase->m_nSequNumber;
-				return TRUE;
-			}
-#endif
 		}
 	}
 	// none was found, so return -1
@@ -711,7 +611,7 @@ bool CNotes::FindNote(SPList* pList, int nStartLoc, int& nFoundAt, bool bFindFor
 /// Remarks:
 ///	If it finds a matching string in a subsequent note, that location's sequence 
 ///	number is returned to the caller
-/// BEW 25Feb10, updated for support of _DOCVER5
+/// BEW 25Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearchList,
 									  int numWords, int& nStartOffset, int& nEndOffset)
@@ -723,12 +623,6 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 	SPList::Node* pos;
 	CSourcePhrase* pSrcPhrase;
 	wxString noteContentStr;
-#if !defined (_DOCVER5)
-	wxString noteMkr = _T("\\note");
-	wxString noteEndMkr = noteMkr + _T('*');
-	int curPos = -1; // same as wxNOT_FOUND
-	int curEndPos = -1;
-#endif
 	int nFoundSequNum = -1;
 	
 	// get the starting POSITION from which to commence the scan
@@ -741,18 +635,13 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 		pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 		sn = pSrcPhrase->m_nSequNumber; // update sn
-#if defined (_DOCVER5)
 		if (!pSrcPhrase->m_bHasNote) // support finding empty notes too, so just test the flag
-#else
-		if ( (curPos = pSrcPhrase->m_markers.Find(noteMkr)) == -1)
-#endif
 		{
 			// this sourcephrase instance contains no filtered note
 			continue;
 		}
 		else
 		{
-#if defined (_DOCVER5)
 			// this source phrase contains a note, so get content and put it into the
 			// string noteContentStr
 			noteContentStr = pSrcPhrase->GetNote();
@@ -846,116 +735,6 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 							  // scans pSrcPhrase instances
 				} // end block for testing for a multi-word match
 			} // end block for processing a non-empty noteContentStr
-#else
-			// this source phrase contains a note, so get the \note* endmarker
-			// and remove the intervening content into noteContentStr
-			curPos += 6; // point the offset to the first character 
-			// after the space after \note
-			curEndPos = curPos;
-			curEndPos = FindFromPos(pSrcPhrase->m_markers,noteEndMkr,curEndPos);
-			if ( curEndPos == -1)
-			{
-				// no matching endmarker, so an ill-formed note - so ignore it
-				continue;
-			}
-			else
-			{
-                // curEndPos is the offset pointing to \note*, which defines the end of the
-                // content string and its trailing space - so we can now extract the
-                // content
-				noteContentStr = pSrcPhrase->m_markers.Mid(curPos, curEndPos - curPos);
-				if (noteContentStr.IsEmpty())
-				{
-					// no content, so continue
-					continue;
-				}
-				else
-				{
-					// Check out whether the search string is contained in the 
-					// content string
-					wxString aWord;
-					WordList::Node* fpos = pSearchList->GetFirst();
-					aWord = *fpos->GetData(); // get the first word in the passed in 
-					// search word list
-					
-                    // How we proceed depends on the number of words to be searched for.
-                    // When searching just for a single word, a match anywhere in
-                    // noteContentStr constitutes a successful Find(); but when searching
-                    // for two or more words, the first word must match all the way up to
-                    // the end of a content string's word, and then subsequent non-final
-                    // search words must match whole words exactly, and the final search
-                    // word must match the next content word from its beginning (but does
-                    // not necessarily have to match all the character in the word) --
-                    // since the multi-word match is complex, we will do it in a function
-                    // which will return the offsets to the matched substring as well when
-                    // the match succeeded
-					int nFound;
-					if (numWords == 1)
-					{
-						// do a simple Find() for the word
-						nFound = noteContentStr.Find(aWord);
-						if (nFound == -1)
-						{
-							// no match, so continue iterating the pSrcPhrase loop
-							continue;
-						}
-						else
-						{
-							// it matched, so set the offsets to start and end locations
-							int len = aWord.Length();
-							nStartOffset = nFound;
-							nEndOffset = nStartOffset + len;
-							
-							// get the sequ number for this pSrcPhrase which we need to 
-							// return to the caller
-							nFoundSequNum = sn;
-							break;
-						}
-					}
-					else
-					{
-                        // we have a multiword match requested... find matches for the
-                        // first of the search word - (there could be more than one
-                        // matching location)
-						nFound = 0;
-						while ( (nFound = FindFromPos(noteContentStr,aWord,nFound)) != -1)
-						{
-							// we found a match for the first word
-							nStartOffset = nFound;
-							
-							// find out if the rest of the search string matches at 
-							// this location
-							bool bItMatches = DoesTheRestMatch(pSearchList,aWord,
-															   noteContentStr,nStartOffset,nEndOffset);
-							if (!bItMatches)
-							{
-								// keep iterating when the whole search string was not
-								// matched
-								nFound++; // start from next character after 
-								// start of last match
-								nStartOffset = -1;
-								nEndOffset = -1;
-								continue; // iterate within this inner loop, to find
-								// another  matching location for the first
-								// word of the search string
-							}
-							else
-							{
-                                // the whole lot matches, so we can break out after
-                                // determining the sequence number for this location
-								nFoundSequNum = sn;
-								return nFoundSequNum;
-							}
-						}
-						
-						// there was no match for the whole search string
-						nFoundSequNum = -1;
-						continue; // iterate the outer loop which 
-						// scans pSrcPhrase instances
-					} // end block for testing for a multi-word match
-				} // end block for processing a non-empty noteContentStr
-			} // end block for having found a matching \note* endmarker
-#endif
 		} // end block for pSrcPhrase contains a note
 	} // end loop for scanning over the pSrcPhrase instances in m_pSourcePhrases
 	return nFoundSequNum;
@@ -1000,7 +779,7 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 /// the document restoration process. The EditRecord stores these two sublists in its
 /// follNotesMoveSpanList and precNotesMoveSpanList members.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichContextEnum context)
 {
@@ -1137,7 +916,7 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 /// Called from: the View's RestoreNotesAfterSourceTextEdit().
 /// Determines is a Note is stored at nNoteSN location in the pSrcPhrases list.
 /// 
-/// BEW 24Feb10 changed for support of _DOCVER5
+/// BEW 24Feb10 changed for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 {
@@ -1154,22 +933,7 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 		return FALSE; // beyond document's end, so certainly can't store a note there!!
 	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
 	CSourcePhrase* pSrcPhrase = pos->GetData();
-#if defined (_DOCVER5)
 	return (!pSrcPhrase->GetNote().IsEmpty() || pSrcPhrase->m_bHasNote);
-#else
-	wxString strSFM = _T("\\note");
-	//pos = pos->GetNext();
-	// check if the src phrase has a note, return FALSE if it hasn't got one, 
-	// TRUE if it has
-	int offset = -1;
-	offset = pSrcPhrase->m_markers.Find(strSFM);
-	if (offset == -1)
-	{
-		// no Note stored here
-		return FALSE;
-	}
-	return TRUE;
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1180,7 +944,7 @@ bool CNotes::IsNoteStoredHere(SPList* pSrcPhrases, int nNoteSN)
 /// \remarks	
 /// Implements the command to jump backwards in the document to the first note in the
 /// preceding context. Don't jump if there is no such Note in existence.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 {
@@ -1380,7 +1144,7 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 /// \remarks	
 /// Implements the command to jump forwards in the document to the first note in the
 /// following context. Don't jump if there is no such Note in existence.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 {
@@ -1585,31 +1349,19 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 // it is the caller's responsibility to determine which sourcephrase is to receive the
 // note, and it must exist, and the sourcephrase passed in as pFromSrcPhrase must have a
 // note (caller must bleed out any situations where this is not the case)
-/// BEW 25Feb10, updated for support of _DOCVER5
+/// BEW 25Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase)
 {
-#if !defined (_DOCVER5)
-	wxString noteMkr = _T("\\note");
-	wxString noteEndMkr = noteMkr + _T('*');
-	int noteOffset = 0;
-	int noteLen = 0;
-	int curPos = -1;
-#endif
 	wxString noteStr;
-#if defined (_DOCVER5)
 	wxString emptyStr = _T("");
 	if ( pFromSrcPhrase->m_bHasNote && pFromSrcPhrase->GetNote().IsEmpty())
-#else
-	if ( (curPos = pFromSrcPhrase->m_markers.Find(noteEndMkr)) == -1)
-#endif
 	{
 		// this sourcephrase instance contains no filtered note, so just return
 		return;
 	}
 	else
 	{
-#if defined (_DOCVER5)
 		// this source phrase contains a note (it may be empty)...
 		// first determine that the target sourcephrase has no note,
 		// since it is invalid to move a note to such a one
@@ -1636,45 +1388,13 @@ void CNotes::MoveNote(CSourcePhrase* pFromSrcPhrase, CSourcePhrase* pToSrcPhrase
 		// now create the note on the pToSrcPhrase instance
 		pToSrcPhrase->SetNote(noteStr);
 		pToSrcPhrase->m_bHasNote = TRUE;
-#else
-		// this source phrase contains a note, or the wrappers for a note...
-		// first determine that the target sourcephrase has no note,
-		// since it is invalid to move note to such a one
-		int nFound = pToSrcPhrase->m_markers.Find(_T("\\note*"));
-		if (nFound > 0)
-		{
-            // it has a note, so do nothing (no message here, the GUI button's
-            // handler has a test for this and disables the command if necessary,
-            // but for programatic use of MoveNote, we want a silent return)
-			return;
-		}
-		
-		// get the note's content
-		noteStr = GetExistingMarkerContent(noteMkr,noteEndMkr,pFromSrcPhrase,
-										   noteOffset,noteLen);
-		
-		// remove it and its wrappers
-		GetView()->RemoveContentWrappers(pFromSrcPhrase,noteMkr,curPos - 1); // -1 is not needed, 
-																			 // just ensures safety
-		pFromSrcPhrase->m_bHasNote = FALSE; // ensure the flag is cleared 
-											// on the old location
-		
-		// now create the note on the pToSrcPhrase instance
-		int nInsertionOffset = 
-		GetView()->FindFilteredInsertionLocation(pToSrcPhrase->m_markers,noteMkr);
-		bool bInsertContentOnly = FALSE; // need the whole lot done, 
-		// including wrapping filter markers
-		GetView()->InsertFilteredMaterial(noteMkr,noteEndMkr,noteStr,pToSrcPhrase,
-							   nInsertionOffset,bInsertContentOnly);
-		pToSrcPhrase->m_bHasNote = TRUE;
-#endif
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
 /// \remarks	Moves to the first note and opens it.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenFirstNote()
 {
@@ -1696,7 +1416,7 @@ void CNotes::MoveToAndOpenFirstNote()
 /////////////////////////////////////////////////////////////////////////////////
 /// \return     void
 /// \remarks	Moves to the last note and opens it.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::MoveToAndOpenLastNote()
 {
@@ -1741,7 +1461,7 @@ void CNotes::MoveToAndOpenLastNote()
 /// (If all the locations between left and right bounds are used up and still there are
 /// notes to be placed, the caller will attempt to move the note which is the right bound
 /// to the right to create the needed gaps.)
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLeftBoundSN)
 {
@@ -1799,7 +1519,7 @@ bool CNotes::MoveNoteLocationsLeftwardsOnce(wxArrayInt* pLocationsList, int nLef
 /// replaced near the end of the document so that not all can be replaced, then the
 /// unreplaceable ones are simply lost - but the user is given a message saying so.
 /// BEW 26May08	function created as part of refactoring the Edit Source Text functionality
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pRec)
 {
@@ -2285,15 +2005,12 @@ en:	;
 /// Moves a note to the right one place.
 /// The move can be done only if not at the end of the document, and provided the next 
 /// CSourcePhrase does not already store a different Note.
-/// BEW 25Feb10, updated for support of _DOCVER5
+/// BEW 25Feb10, updated for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 {
 	// BEW added 30May08 in support of the source text editing step of the 
 	// vertical editing process
-#if !defined (_DOCVER5)
-	wxString strSFM = _T("\\note");
-#endif
 	SPList::Node* pos = pSrcPhrases->Item(nNoteSN);
 	CSourcePhrase* pOriginalSrcPhrase = pos->GetData();
 	pos = pos->GetNext();
@@ -2314,21 +2031,11 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 	// if there is, we can't shift the note to this instance
 	CSourcePhrase* pDestSrcPhrase = pos->GetData(); // MFC used GetAt(pos);
 	wxASSERT(pDestSrcPhrase != NULL);
-#if defined (_DOCVER5)
 	if (pDestSrcPhrase->m_bHasNote || !pDestSrcPhrase->GetNote().IsEmpty())
 	{
 		// it contains a note already, so we can't move another to here
 		return FALSE;
 	}
-#else
-	int offset = -1;
-	offset = pDestSrcPhrase->m_markers.Find(strSFM);
-	if (offset != -1)
-	{
-		// it contains a note already, so we can't move another to here
-		return FALSE;
-	}
-#endif
 	// the shift is possible, so do it
 	MoveNote(pOriginalSrcPhrase,pDestSrcPhrase);
 	// mark the one or both owning strips invalid
@@ -2349,7 +2056,7 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 /// The move can be done only if not at the end of the document, and provided there is a 
 /// CSourcePhrase without a Note after the consecutive series ends. The function can be 
 /// used even when the location passed in is the only one which has a stored Note.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, int nFirstNoteSN)
 {
@@ -2463,7 +2170,7 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 /// consecutively, we don't transgress the bound and so cause a note reordering. If we come
 /// to this bound, we'll return to the caller to let the above algorithm for placing the
 /// remainder do its job.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEditSpan, 
 									int nEditSpanCount, wxArrayInt* pUnsqueezedArr, 
@@ -2816,7 +2523,7 @@ bool CNotes::BunchUpUnsqueezedLocationsLeftwardsFromEndByOnePlace(int nStartOfEd
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Create Note button pressed event.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
@@ -2896,7 +2603,7 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 /// pointer is NULL, a Note dialog is already open (the m_pNoteDlg is not NULL), if there
 /// already is a note on the first source phrase of any selection, or if the targetBox is
 /// not shown. Otherwise the toolbar button is enabled.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 {
@@ -2962,7 +2669,7 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Previous Note button click event.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 {
@@ -2999,7 +2706,7 @@ void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
 /// to), The application is only showing the target text, the application is in free
 /// translation mode, there is a selection current, or the targetBox is not being shown.
 /// Otherwise the toolbar button is enabled.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 {
@@ -3052,7 +2759,7 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Next Note button click event.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 {
@@ -3086,7 +2793,7 @@ void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
 /// The application is only showing the target text, the application is in free translation
 /// mode, there is a selection current, or the targetBox is not being shown. Otherwise the
 /// toolbar button is enabled.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 {
@@ -3139,7 +2846,7 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks	Handler for the Delete All Notes button click event.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 {
@@ -3173,7 +2880,7 @@ void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 /// toolBar button: The App's m_bNotesExist flag is FALSE (there are no Notes to jump to),
 /// The application is only showing the target text, the active pile pointer is NULL.
 /// Otherwise, if the targetBox is showing the toolbar button is enabled.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 {
@@ -3212,7 +2919,7 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 {
@@ -3375,7 +3082,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 /// be closed first), the first source phrase of any selection already has a Note.
 /// Otherwise, if there is a Note at the active location and there is an eligible source
 /// phrase ahead to move to, the menu item is enabled, otherwise the menu item is disabled.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 {
@@ -3496,7 +3203,7 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 /// \return		nothing
 /// \param      event   -> the wxUpdateUIEvent that is generated by the app's Idle handler
 /// \remarks
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 {
@@ -3656,7 +3363,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 /// source phrase of any selection already has a Note. Otherwise, if there is a Note at the
 /// active location and there is an eligible source phrase previous to the current location
 /// to move to, the menu item is enabled, otherwise the menu item is disabled.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 {

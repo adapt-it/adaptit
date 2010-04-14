@@ -47,7 +47,6 @@ public:
 	wxButton* pRemoveBtn;
 	wxString markers;
 
-#if defined (_DOCVER5)
 	// For docVersion = 5, there are significant changes. The legacy code extracted all
 	// markers from m_markers, both filtered and non-filtered, which produced
 	// complications because the index obtained for a user click in the dialog's markers
@@ -87,28 +86,6 @@ public:
 	wxArrayString assocTextArrayAfterEdit;
 
 	int indexIntoMarkersLB;
-#else
-	// the following are indexed in parallel and contain info from all markers, filtered and not filtered
-	wxArrayString AllMkrsList; // list of all markers in m_markers (both filtered and non-filtered)
-	wxArrayInt AllMkrsFilteredFlags; // array of ints that flag if marker in AllMkrsList is filtered (1) or not (0)
-	wxArrayString AllWholeMkrsArray; // array of all whole markers encountered in m_markers
-	wxArrayString AllEndMkrsArray; // array of all end markers encountered in m_markers (contains a space if no end marker)
-
-	// the following are indexed in parallel
-	wxArrayString bareMarkerArray;
-	// BEW added comment for clarity 17Nov05; because AllMkrsList, and the parallel array AllMkrsFilteredFlags
-	// potentially contain information for markers which are not filtered, and therefore which are not visible
-	// in the View Filtered pMarkers dialog, we cannot assume that the index returned by a click in a marker list
-	// in the dialog will also index the appropriate marker in AllMkrsList, nor the appropriate flag in
-	// AllMkrsFilteredFlags; hence we maintain a CUIntArray called markerLBIndexIntoAllMkrList which, given a
-	// returned index from a marker list (either the initial one, or the end markers list) entry click in the
-	// dialog, we can look up the index we need for AllMkrsList in the CUIntArray markerLBIndexIntoAllMkrList.
-	wxArrayInt markerLBIndexIntoAllMkrList;
-	wxArrayString assocTextArrayBeforeEdit;
-	wxArrayString assocTextArrayAfterEdit;
-	int indexIntoAllMkrSelection;
-	int indexIntoMarkersLB;
-#endif
 	int currentMkrSelection;
 	int prevMkrSelection;
 	int newMkrSelection;

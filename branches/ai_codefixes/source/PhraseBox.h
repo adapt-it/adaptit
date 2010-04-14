@@ -66,16 +66,13 @@ protected:
 	void FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty, wxSize& textExtent,
 							int nSelector);
 	void HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
-							CPile* pNewPile, bool& bWantSelect); // BEW added 24Mar09, to simplify MoveToNextPile()
+							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect); 
+							// BEW added 24Mar09, to simplify MoveToNextPile()
 	void HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
-							CPile* pNewPile, bool& bWantSelect); // BEW added 24Mar09, to simplify MoveToNextPile()
-#if defined (_DOCVER5)
-	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool bWantSelect);
-							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
-#else
+							CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect); 
+							// BEW added 24Mar09, to simplify MoveToNextPile()
 	void MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect);
 							// BEW added MakeCopyOrSetNothing() 24Mar09,  to simplify MoveToNextPile()
-#endif
 	bool MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile);
 	bool MoveToNextPile_InTransliterationMode(CAdapt_ItView* pView, CPile* pCurPile); // BEW added 24Mar09
 							// to simplify the syntax for MoveToNextPile()
@@ -98,10 +95,8 @@ public:
 	//SPList::Node* GetSrcPhrasePos(int nSequNum, SPList* pSourcePhrases);
 	void SetModify(bool modify);
 	bool GetModify();
-#if defined (_DOCVER5)
 	bool GetCancelAndSelectFlag(); // accessor for private bool m_bCancelAndSelectButtonPressed getting
 	void ChangeCancelAndSelectFlag(bool bValue); // accessor to change private bool m_bCancelAndSelectButtonPressed
-#endif
 	// Generated message map functions
 protected:
 	void OnChar(wxKeyEvent& event);
@@ -116,12 +111,10 @@ public:
 	void OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event));
 
 private:
-#if defined (_DOCVER5)
-	// BEW added 26Mar10, for _DOCVER5, ChooseTranslation() and DoCancelAndSelect() use
-	// this, the former sets it if the relevant button is pressed, the latter uses  it snf
-	// then clears it
+    // BEW added 26Mar10, for doc version 5, ChooseTranslation() and DoCancelAndSelect()
+    // use this, the former sets it if the relevant button is pressed, the latter uses it
+    // snf then clears it
 	bool m_bCancelAndSelectButtonPressed;
-#endif
 
 	DECLARE_DYNAMIC_CLASS(CPhraseBox)
 	// DECLARE_DYNAMIC_CLASS() is used inside a class declaration to 

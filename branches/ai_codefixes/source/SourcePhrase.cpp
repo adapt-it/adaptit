@@ -17,14 +17,6 @@
 /// and following punctuation, its sequence number, text type, etc.
 /// \derivation		The CSourcePhrase class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items (in order of importance): (search for "TODO")
-// 1. NONE. Current with MFC version 3.2.2
-//
-// Unanswered questions: (search for "???")
-// 
-// 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
     #pragma implementation "SourcePhrase.h"
@@ -58,12 +50,10 @@
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
 
-#ifdef _DOCVER5
 extern const wxChar* filterMkr;
 extern const wxChar* filterMkrEnd;
 const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
-#endif
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -139,13 +129,11 @@ CSourcePhrase::CSourcePhrase()
 	m_bHasNote = FALSE;
 	m_bHasBookmark = FALSE;
 
-#ifdef _DOCVER5
 	m_endMarkers = _T("");
 	m_freeTrans = _T("");
 	m_note = _T("");
 	m_collectedBackTrans = _T("");
 	m_filteredInfo = _T("");
-#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
@@ -204,13 +192,11 @@ CSourcePhrase::CSourcePhrase(const CSourcePhrase& sp)// copy constructor
 	m_bHasBookmark = sp.m_bHasBookmark;
 
 	// the doc version 5 new members
-	#ifdef _DOCVER5
 	m_endMarkers = sp.m_endMarkers;
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
 	m_filteredInfo = sp.m_filteredInfo;
-	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	m_pSavedWords = new SPList;
@@ -310,13 +296,11 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 	m_bHasBookmark = sp.m_bHasBookmark;
 
 	// the doc version 5 new members
-	#ifdef _DOCVER5
 	m_endMarkers = sp.m_endMarkers;
 	m_freeTrans = sp.m_freeTrans;
 	m_note = sp.m_note;
 	m_collectedBackTrans = sp.m_collectedBackTrans;
 	m_filteredInfo = sp.m_filteredInfo;
-	#endif
 
 	// create the stored lists, so that serialization won't crash if one is unused
 	if (m_pSavedWords == NULL)
@@ -406,7 +390,7 @@ CSourcePhrase& CSourcePhrase::operator =(const CSourcePhrase &sp)
 // duplicates of those pointed at by the m_pSavedWords list in oldSP
 // If the m_pSavedWords list is empty, the DeepCopy() operation does nothing
 // & the owning CSourcePhrase instance is already a deep copy
-// BEW 22Mar10, updated for support of _DOCVER5 (no changes needed)
+// BEW 22Mar10, updated for support of doc version 5 (no changes needed)
 void CSourcePhrase::DeepCopy(void)
 {
 	SPList::Node* pos = m_pSavedWords->GetFirst(); //POSITION pos = m_pSavedWords->GetHeadPosition();
@@ -508,7 +492,6 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	// for doc version 5, we'll assume any endmarkers on pSrcPhrase are not medial; but if
 	// they are present at a later iteration on the CSourcePhrase which is pointed at by
 	// this, then they are medial and have to be later 'placed'
-#ifdef _DOCVER5
 	bool bAddedSomething = FALSE;
 	if (!pSrcPhrase->m_endMarkers.IsEmpty())
 	{
@@ -548,8 +531,6 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		// so have become internal to the phrase, so we must update the medial markers array
 		SetEndMarkersAsNowMedial(m_pMedialMarkers);
 	}
-
-#endif
 
 	// if there is punctuation, some or all may become phrase-internal, so check it out and
 	// accumulate as necessary and then set the flag if there is internal punctuation
@@ -629,7 +610,6 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 	}
 
 	// doc version 5, these new members (an additional one is above)
-	#ifdef _DOCVER5
     // free translations, notes, collected back translations or filtered information are
     // only allowed on the first CSourcePhrase in a merger - we filter any attempt to merge
     // across a CSourcePhrase which carries such information, warn the user and abort the
@@ -645,7 +625,6 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 		m_collectedBackTrans = m_collectedBackTrans + _T(" ") + pSrcPhrase->m_collectedBackTrans;
 	if (!pSrcPhrase->m_filteredInfo.IsEmpty())
 		m_filteredInfo = m_filteredInfo + _T(" ") + pSrcPhrase->m_filteredInfo;
-	#endif
 
 
 	// increment the number of words in the phrase
@@ -832,11 +811,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
     // absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
 	// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
 	// will be elsewhere), so em can be on same line as m
-#ifdef _DOCVER5
 	if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
-#else
-	if (!m_markers.IsEmpty())
-#endif
 	{
 		// there is something on this line, so form the line
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
@@ -849,14 +824,10 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		{
 			bstr += "m=\"";
 			btemp = gpApp->Convert16to8(m_markers);
-#ifndef _DOCVER5
-			InsertEntities(btemp); // not needed for version 5
-#endif
 			bstr += btemp; // add m_markers string
 			bstr += "\"";
 			bStarted = TRUE;
 		}
-#ifdef _DOCVER5
 		if (!m_endMarkers.IsEmpty())
 		{
 			if (bStarted)
@@ -867,10 +838,8 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += btemp; // add m_endMarkers string
 			bstr += "\"";
 		}
-#endif
 	}
 
-#ifdef _DOCVER5
 	// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
 	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
 		|| !m_filteredInfo.IsEmpty())
@@ -952,7 +921,6 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			//bStarted = TRUE; // uncomment out if we add more attributes to this block
 		}
 	}
-#endif
 
 	// we can now close off the S opening tag
 	bstr += ">";
@@ -1166,11 +1134,7 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
     // absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
 	// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
 	// will be elsewhere), so em can be on same line as m
-#ifdef _DOCVER5
 	if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
-#else
-	if (!m_markers.IsEmpty())
-#endif
 	{
 		// there is something on this line, so form the line
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
@@ -1183,14 +1147,10 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 		{
 			bstr += "m=\"";
 			btemp = m_markers;
-#ifndef _DOCVER5
-			InsertEntities(btemp); // not needed for version 5
-#endif
 			bstr += btemp; // add m_markers string
 			bstr += "\"";
 			bStarted = TRUE;
 		}
-#ifdef _DOCVER5
 		if (!m_endMarkers.IsEmpty())
 		{
 			if (bStarted)
@@ -1202,10 +1162,8 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			bstr += m_endMarkers; // this is quicker
 			bstr += "\"";
 		}
-#endif
 	}
 
-#ifdef _DOCVER5
 	// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
 	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
 		|| !m_filteredInfo.IsEmpty())
@@ -1287,7 +1245,6 @@ CBString CSourcePhrase::MakeXML(int nTabLevel)
 			//bStarted = TRUE; // uncomment out if we add more attributes to this block
 		}
 	}
-#endif
 
 	// we can now close off the S opening tag
 	bstr += ">";
@@ -1398,7 +1355,6 @@ void CSourcePhrase::SetMarkers(wxString markers)
 	m_markers = markers;
 }
 */
-#ifdef _DOCVER5
 
 wxString CSourcePhrase::GetFreeTrans()
 {
@@ -1659,8 +1615,3 @@ void CSourcePhrase::SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray)
 		bAddedSomething = AddNewStringsToArray(pMedialsArray, &oldEndMarkersArray);
 	}
 }
-
-
-#endif	// _DOCVER5
-
- 

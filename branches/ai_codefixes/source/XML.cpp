@@ -73,10 +73,8 @@
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
-#ifdef _DOCVER5
 extern const wxChar* filterMkr; // defined in the Doc
 extern const wxChar* filterMkrEnd; // defined in the Doc
-#endif
 
 #ifdef _UNICODE
 static unsigned char szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
@@ -2372,10 +2370,8 @@ bool AtDocTag(CBString& tag)
 			case 2:
 			case 3:
 			case 4:
-#ifdef _DOCVER5
 			// no changes in AtDocTag() for VERSION_NUMBER #defined as 5
 			case 5:
-#endif
 			{
 				if (tag == xml_scap) // if it's an "S" tag
 				{
@@ -2451,9 +2447,7 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 		case 2:
 		case 3:
 		case 4:
-#ifdef _DOCVER5
 		case 5:
-#endif
 		{
 			if (tag == xml_settings) // it's a "Settings" tag
 			{
@@ -2573,12 +2567,10 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpEmbeddedSrcPhrase->m_chapterVerse = attrValue;
 					}
-#ifdef _DOCVER5
 					else if (attrName == xml_em)
 					{
 						gpEmbeddedSrcPhrase->SetEndMarkers((char*)attrValue);
 					}
-#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2616,7 +2608,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpEmbeddedSrcPhrase->m_markers = attrValue;
 						}
-#ifdef _DOCVER5
 						else if (attrName == xml_ft)
 						{
 							gpEmbeddedSrcPhrase->SetFreeTrans((char*)attrValue);
@@ -2633,7 +2624,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpEmbeddedSrcPhrase->SetFilteredInfo((char*)attrValue);
 						}
-#endif
 						else
 						{
 							// unknown attribute
@@ -2672,12 +2662,10 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpSrcPhrase->m_chapterVerse = attrValue;
 					}
-#ifdef _DOCVER5
 					else if (attrName == xml_em)
 					{
 						gpSrcPhrase->SetEndMarkers((char*)attrValue);
 					}
-#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2715,7 +2703,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpSrcPhrase->m_markers = attrValue;
 						}
-#ifdef _DOCVER5
 						else if (attrName == xml_ft)
 						{
 							gpSrcPhrase->SetFreeTrans((char*)attrValue);
@@ -2732,7 +2719,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpSrcPhrase->SetFilteredInfo((char*)attrValue);
 						}
-#endif
 						else
 						{
 							// unknown attribute
@@ -2865,12 +2851,10 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpEmbeddedSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
 					}
-#ifdef _DOCVER5
 					else if (attrName == xml_em)
 					{
 						gpEmbeddedSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
 					}
-#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -2908,7 +2892,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpEmbeddedSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
 						}
-#ifdef _DOCVER5
 						else if (attrName == xml_ft)
 						{
 							gpEmbeddedSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
@@ -2925,7 +2908,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpEmbeddedSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 						}
-#endif
 						else
 						{
 							// unknown attribute
@@ -2964,12 +2946,10 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 					{
 						gpSrcPhrase->m_chapterVerse = gpApp->Convert8to16(attrValue);
 					}
-#ifdef _DOCVER5
 					else if (attrName == xml_em)
 					{
 						gpSrcPhrase->SetEndMarkers(gpApp->Convert8to16(attrValue));
 					}
-#endif
 					else
 					{
 						// The rest of the string ones may potentially contain " or > (though unlikely),
@@ -3007,7 +2987,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpSrcPhrase->m_markers = gpApp->Convert8to16(attrValue);
 						}
-#ifdef _DOCVER5
 						else if (attrName == xml_ft)
 						{
 							gpSrcPhrase->SetFreeTrans(gpApp->Convert8to16(attrValue));
@@ -3024,7 +3003,6 @@ bool AtDocAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 						{
 							gpSrcPhrase->SetFilteredInfo(gpApp->Convert8to16(attrValue));
 						}
-#endif
 						else
 						{
 							// unknown attribute
@@ -3102,7 +3080,6 @@ bool AtDocEndTag(CBString& tag)
 		case 2:
 		case 3:
 		case 4:
-#ifdef _DOCVER5
 		// case 5: for gnDocVersion = 4 requires, if we are to read version 4 documents
 		// and convert them to version 5, a conversion function which is to be called on
 		// each of gpEmbeddedSrcPhrase and gpSrcPhrase before they are inserted in the
@@ -3110,7 +3087,6 @@ bool AtDocEndTag(CBString& tag)
 		// between 4 members in version 5, m_endMarkers, m_freeTrans, m_note,
 		// m_collectedBackTrans, and m_filteredInfo
 		case 5:
-#endif
 		{
 			// the only one we are interested in is the "</S>" endtag, so we can
 			// determine whether to save to a parent sourcephrase's m_pSavedWords list, 
@@ -3124,12 +3100,10 @@ bool AtDocEndTag(CBString& tag)
 					// to be stored in the m_pSavedWords member of a merged sourcephrase which is
 					// pointed at by gpSrcPhrase, so add it to the list & then clear the pointer
 					wxASSERT(gpSrcPhrase);
-#ifdef _DOCVER5
 					if (gnDocVersion == 4)
 					{
 						FromDocVersion4ToDocVersion5(gpSrcPhrase->m_pSavedWords, gpEmbeddedSrcPhrase, TRUE);
 					}
-#endif
 					gpSrcPhrase->m_pSavedWords->Append(gpEmbeddedSrcPhrase);
 					gpEmbeddedSrcPhrase = NULL;
 				}
@@ -3139,22 +3113,18 @@ bool AtDocEndTag(CBString& tag)
 					// so now we can add it to the doc member m_pSourcePhrases and clear the pointer
 					if (gbSyncMsgReceived_DocScanInProgress)
 					{
-#ifdef _DOCVER5
 						if (gnDocVersion == 4)
 						{
 							FromDocVersion4ToDocVersion5(gpDocList, gpSrcPhrase, FALSE);
 						}
-#endif
 						gpDocList->Append(gpSrcPhrase);
 					}
 					else
 					{
-#ifdef _DOCVER5
 						if (gnDocVersion == 4)
 						{
 							FromDocVersion4ToDocVersion5(gpApp->m_pSourcePhrases, gpSrcPhrase, FALSE);
 						}
-#endif
 						gpApp->m_pSourcePhrases->Append(gpSrcPhrase);
 					}
 					gpSrcPhrase = NULL;
@@ -3178,7 +3148,6 @@ bool AtDocPCDATA(CBString& WXUNUSED(tag),CBString& WXUNUSED(pcdata))
 	return TRUE;
 }
 
-#ifdef _DOCVER5
 void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded)
 {
 	if (pSrcPhrase->m_markers.IsEmpty())
@@ -3394,7 +3363,6 @@ bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase)
 	} while (TRUE);
 	return bTransferred;
 }
-#endif
 
 /**************************************************************************************
 *   MakeBOOLs
@@ -3555,7 +3523,7 @@ CBString MakeFlags(CSourcePhrase* pSP)
 // change requires no change here in XML.cpp, but only in the DoKBSaveAsXML() function in the
 // Adapt_It.cpp file, so we there used KB rather than GKB for the element name, a very trivial change
 
-// BEW 27Mar10 updated for support of _DOCVER5 (extra case needed)
+// BEW 27Mar10 updated for support of doc version 5 (extra case needed)
 bool AtKBTag(CBString& tag)
 {
 	if (tag == xml_kb || tag == xml_gkb) // if it's a "KB" or "GKB" tag
@@ -3577,10 +3545,8 @@ bool AtKBTag(CBString& tag)
 		case 2:
 		case 3:
 		case 4:
-#if defined (_DOCVER5)
 		default:
 		case 5:
-#endif
 		{
 			if (tag == xml_map)
 			{
@@ -3623,7 +3589,7 @@ bool AtKBEmptyElemClose(CBString& WXUNUSED(tag))
 	return TRUE;
 }
 
-// BEW 27Mar10 updated for support of _DOCVER5 (extra case needed)
+// BEW 27Mar10 updated for support of doc version 5 (extra case needed)
 bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 {
 	int num;
@@ -3642,10 +3608,8 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 		case 2:
 		case 3:
 		case 4:
-#if defined (_DOCVER5)
 		default:
 		case 5:
-#endif
 		{
 			// put the more commonly encountered tags at the top, for speed
 #ifndef _UNICODE // ANSI version (ie. regular)
@@ -3855,7 +3819,7 @@ bool AtKBAttr(CBString& tag,CBString& attrName,CBString& attrValue)
 	return TRUE; // no error
 }
 
-// BEW 27Mar10 updated for support of _DOCVER5 (extra case needed)
+// BEW 27Mar10 updated for support of doc version 5 (extra case needed)
 bool AtKBEndTag(CBString& tag)
 {
 	switch (gnDocVersion) 
@@ -3865,10 +3829,8 @@ bool AtKBEndTag(CBString& tag)
 		case 2:
 		case 3:
 		case 4:
-#if defined (_DOCVER5)
 		default:
 		case 5:
-#endif
 		{
 			if (tag == xml_tu)
 			{

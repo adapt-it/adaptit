@@ -269,11 +269,9 @@ bool ReadKB_XML(wxString& path, CKB* pKB);
 
 // Conversion functions for converting between different xml formats for
 // VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5
-#ifdef _DOCVER5
 void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded);
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
 bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase);
-#endif
 
 #endif // XML_h
 

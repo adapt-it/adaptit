@@ -84,24 +84,17 @@ wxString	ApplyOutputFilterToText(wxString& textStr, wxArrayString& bareMarkerArr
 									wxArrayInt& filterFlagsArray, bool bRTFOutput);
 int			CountWordsInFreeTranslationSection(bool bCountInTargetText, SPList* pList, 
 											   int nAnchorSequNum);
-#if defined (_DOCVER5)
-
 SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
 				wxString& Tstr);
-// the following added, for _DOCVER5 support, to hide implementation details 
+// the following 6 added, for doc version 5 support, to hide implementation details 
 // for the information storage in CSourcePhrase
-bool AreMarkersOrFilteredInfoStoredHere(CSourcePhrase* pSrcPhrase, bool bIgnoreEndMarkers = TRUE);
-bool IsFootnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredFootnotes = FALSE);
-bool IsEndnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredEndnotes = FALSE);
-bool IsFreeTransInDoc(CSourcePhrase* pSrcPhrase);
-bool IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
-bool IsNoteInDoc(CSourcePhrase* pSrcPhrase);
+bool		AreMarkersOrFilteredInfoStoredHere(CSourcePhrase* pSrcPhrase, bool bIgnoreEndMarkers = TRUE);
+bool		IsFootnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredFootnotes = FALSE);
+bool		IsEndnoteInDoc(CSourcePhrase* pSrcPhrase, bool bIgnoreFilteredEndnotes = FALSE);
+bool		IsFreeTransInDoc(CSourcePhrase* pSrcPhrase);
+bool		IsBackTransInDoc(CSourcePhrase* pSrcPhrase);
+bool		IsNoteInDoc(CSourcePhrase* pSrcPhrase);
 
-
-#else
-SPList::Node* DoPlacementOfMarkersInRetranslation(SPList::Node* firstPos,SPList* pSrcPhrases,
-				wxString& Tstr, wxString& Sstr, wxString& Gstr, wxString& Nstr);
-#endif
 bool		DetachedNonQuotePunctuationFollows(wxChar* pOld, wxChar* pEnd, 
 											   wxChar* pPosAfterMkr, wxString& spacelessPuncts);
 int			GetWordCount(wxString& str, wxArrayString* pStrList);
@@ -124,10 +117,6 @@ wxString	GetStyleNumberStrFromRTFTagStr(wxString tagStr, int& startPos, int& end
 bool		MarkerIsToBeFilteredFromOutput(wxString bareMarkerForLookup); // whm added 18Nov05
 wxString	GetANSIorUnicodeRTFCharsFromString(wxString inStr);
 bool		WriteOutputString(wxFile& f, wxFontEncoding Encoding, const wxString& OutStr);
-#if !defined (_DOCVER5)
-wxString	GetStringWithoutMarkerAndAssocText(wxString wholeMkr, wxString wholeEndMkr, 
-							wxString inStr, wxString& assocText, wxString& wholeMkrRemoved);
-#endif
 int			ParseMarkerRTF(wxChar* pChar, wxChar* pEndChar); // whm added 22Nov05
 bool		IsMarkerRTF(wxChar *pChar, wxChar* pBuffStart); // whm added 22Nov05
 int			ParseMarkerAndAnyAssociatedText(wxChar* pChar, wxChar* pBuffStart, 

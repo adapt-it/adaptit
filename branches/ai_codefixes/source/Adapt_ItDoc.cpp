@@ -3256,7 +3256,7 @@ void CAdapt_ItDoc::Modify(bool mod) // from wxWidgets mdi sample
 /// OnCustomEventAdaptationsEdit(), and OnCustomEventGlossesEdit().
 /// If pList has any items this function calls DeleteSingleSrcPhrase() for each item in the 
 /// list.
-/// BEW 26Mar10, no changes needed for support of _DOCVER5
+/// BEW 26Mar10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso)
 {
@@ -6365,85 +6365,6 @@ int CAdapt_ItDoc::ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar,
 	return length;
 }
 
-// doc version 5 does not need this
-#if !defined (_DOCVER5)
-///////////////////////////////////////////////////////////////////////////////
-/// \return		the number of characters parsed
-/// \param		wholeMkr	-> the whole marker (including backslash) to be parsed
-/// \param		pChar		-> pointer to the backslash character at the beginning of the marker
-/// \param		pBufStart	-> pointer to the start of the buffer
-/// \param		pEnd		-> pointer at the end of the buffer
-/// \remarks
-/// Called from: the Doc's DoMarkerHousekeeping().
-/// Parses through the filtered material beginning at the initial backslash of \~FILTER
-/// and ending when ptr points just past the asterisk of the corresponding \~FILTER* end marker.
-/// Upon entry pChar must point to a \~FILTER marker  as determined by a prior call 
-/// to IsFilteredBracketMarker().
-/// ParseFilteredMarkerText advances the ptr until ptr points just past a
-/// corresponding \~FILTER* end marker.
-///////////////////////////////////////////////////////////////////////////////
-int CAdapt_ItDoc::ParseFilteredMarkerText(const wxString wholeMkr, wxChar *pChar, 
-									wxChar *pBufStart, wxChar *pEnd)
-{
-	// whm added 10Feb2005 in support of USFM and SFM Filtering support
-	// This function differs from ParseFilteringSFM() in that this
-	// ParseFilteredMarkerText() expects to be pointing to a programatically
-	// added \~FILTER marker as would be the case in DoMarkerHouseKeeping().
-	// Upon entry pChar must point to a \~FILTER marker determined
-	// by prior call to IsFilteredBracketMarker().
-	// ParseFilteredMarkerText advances the ptr until the following
-	// conditions is true:
-	// 1. ptr points just past a corresponding \~FILTER* end marker.
-	int	length = 0;
-	int endMkrLength = 0;
-	wxChar* ptr = pChar;
-	if (ptr < pEnd)
-	{
-		// advance pointer one to point past wholeMkr's initial backslash
-		length++;
-		ptr++;
-	}
-	while (ptr != pEnd)
-	{
-		if (IsMarker(ptr,pBufStart))
-		{
-			if (IsCorresEndMarker(wholeMkr,ptr,pEnd))
-			{
-				// it is the corresponding end marker so parse it
-				// Since end markers may not be followed by a space we cannot
-				// use ParseMarker to reliably parse the endmarker, so
-				// we'll just add the length of the end marker to the length
-				// of the filtered text up to the end marker
-				endMkrLength = wholeMkr.Length() + 1; // add 1 for *
-				return length + endMkrLength;
-			}
-		}
-		length++;
-		ptr++;
-	}
-	return length;
-}
-#endif
-
-/* // currently unused
-///////////////////////////////////////////////////////////////////////////////
-/// \return		TRUE if the character pointed to by pChar is a number, FALSE otherwise.
-/// \param		pChar		-> pointer to the first character to be examined
-/// \remarks
-/// Called from: 
-/// Determines if the character at pChar is a number. Called after determining that a character
-/// sequence was a verse marker followed by whitespace.
-///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::IsVerseNumber(wxChar *pChar)
-{
-	// test for digits
-	if (wxIsdigit(*pChar) == 0)
-		return FALSE;
-	else
-		return TRUE;
-}
-*/
-
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of numeric characters parsed
 /// \param		pChar		-> pointer to the first numeric character
@@ -6509,7 +6430,7 @@ bool CAdapt_ItDoc::IsVerseMarker(wxChar *pChar, int& nCount)
 /// Called from: the Doc's GetMarkersAndTextFromString() 
 /// Determines if the marker being pointed at is a \~FILTER marking the beginning of filtered
 /// material.
-/// BEW 24Mar10 no changes needed for support of _DOCVER5
+/// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -6534,7 +6455,7 @@ bool CAdapt_ItDoc::IsFilteredBracketMarker(wxChar *pChar, wxChar* pEnd)
 /// Called from: the Doc's GetMarkersAndTextFromString().
 /// Determines if the marker being pointed at is a \~FILTER* marking the end of filtered
 /// material.
-/// BEW 24Mar10 no changes needed for support of _DOCVER5
+/// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItDoc::IsFilteredBracketEndMarker(wxChar *pChar, wxChar* pEnd)
 {
@@ -7499,7 +7420,7 @@ wxString CAdapt_ItDoc::GetBareMarkerForLookup(wxChar *pChar)
 /// Scans str and collects all standard format markers and their associated text into 
 /// pMkrList, one marker and associated content text per array item (and final endmarker
 /// if there is one).
-/// BEW 24Mar10 no changes needed for support of _DOCVER5
+/// BEW 24Mar10 no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetMarkersAndTextFromString(wxArrayString* pMkrList, 
 											   wxString str) // whm added 18Feb05
@@ -7757,7 +7678,7 @@ USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxChar *pChar)
 /// Looks up the bareMkr in the MapSfmToUSFMAnalysisStruct hash map. If the marker has an
 /// association in the map it returns a pointer to the USFMAnalysis struct. NULL is
 /// returned if the marker could not be found in the hash map.
-/// BEW 10Apr10, no changes for support of _DOCVER5
+/// BEW 10Apr10, no changes for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 USFMAnalysis* CAdapt_ItDoc::LookupSFM(wxString bareMkr)
 {
@@ -8323,7 +8244,7 @@ wxString CAdapt_ItDoc::GetFilteredItemBracketed(const wxChar* ptr, int itemLen)
 /// that exist in the string. Strips out multiple sets of bracketing filter markers if found
 /// in the string. If src does not have any \~FILTER and \~FILTER* bracketing markers, src is
 /// returned unchanged. Trims off any remaining space at left end of the returned string.
-/// BEW 22Feb10, no changes for support of _DOCVER5
+/// BEW 22Feb10, no changes for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItDoc::GetUnFilteredMarkers(wxString& src)
 {
@@ -8755,7 +8676,6 @@ void CAdapt_ItDoc::OverwriteSmartQuotesWithRegularQuotes(wxString*& pstr)
 /// when we are parsing a marker starting with \bt but is not our own because of extra
 /// characters in it.
 ///////////////////////////////////////////////////////////////////////////////
-#ifdef _DOCVER5
 bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr)
 {
 	bIsForeignBackTransMkr = FALSE; // initialize to default value
@@ -8785,30 +8705,8 @@ bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool&
 	}
 	return FALSE;
 }
-#else
-bool CAdapt_ItDoc::IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr)
-{
-	if (mkr == _T("\\free "))
-	{
-		return TRUE;
-	}
-	else if (mkr == _T("\\note "))
-	{
-		return TRUE;
-	}
-	else
-	{
-		int offset = mkr.Find(_T("\\bt"));
-		if (offset == 0)
-		{
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-#endif
 
-#ifdef _DOCVER5
+// BEW March 2010 for support of doc version 5
 void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr,
 								size_t itemLen, CSourcePhrase* pSrcPhrase)
 {
@@ -8868,7 +8766,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 		pSrcPhrase->SetCollectedBackTrans(filterStr);
 	}
 }
-#endif
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return		the number of elements/tokens in the list of source phrases (pList)
@@ -8885,7 +8783,7 @@ void CAdapt_ItDoc::SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* pt
 /// instances from the tokens. All the input text's source phrases are analyzed in the
 /// process to determine each source phrase's many attributes and flags, stores any
 /// filtered information in its m_filteredInfo member.
-/// BEW Feb10, updated for support of _DOCVER5 (changes were needed)
+/// BEW Feb10, updated for support of doc version 5 (changes were needed)
 ///////////////////////////////////////////////////////////////////////////////
 int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer, 
 							   int nTextLength)
@@ -9005,10 +8903,8 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 
 	USFMAnalysis* pUsfmAnalysis = NULL; // whm added 11Feb05
 
-#ifdef _DOCVER5
 	bool bIsFreeTransOrNoteOrBackTrans = FALSE;
 	bool bIsForeignBackTrans = FALSE;
-#endif
 
 	wxString bdrySet = gpApp->m_punctuation[0];
 	// Note: wxString::Remove must have the second param as 1 otherwise it will truncate
@@ -9051,7 +8947,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 		// are we at the end of the text?
 		if (IsEnd(ptr) || ptr >= pEnd)
 		{
-#if defined (_DOCVER5)
 			// check for an incomplete CSourcePhrase, it may need endmarkers moved, etc
 			if (pSrcPhrase != NULL)
 			{
@@ -9068,7 +8963,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					}
 				}
 			}
-#endif
 			// BEW added 05Oct05
 			if (bFreeTranslationIsCurrent)
 			{
@@ -9079,7 +8973,6 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 					pLastSrcPhrase->m_bEndFreeTrans = TRUE;
 				}
 			}
-#if defined (_DOCVER5)
 			// delete only if there is nothing in m_precPunct
 			if (pSrcPhrase->m_precPunct.IsEmpty())
 			{
@@ -9092,28 +8985,15 @@ int CAdapt_ItDoc::TokenizeText(int nStartingSequNum, SPList* pList, wxString& rB
 				delete pSrcPhrase;
 				pSrcPhrase = (CSourcePhrase*)NULL;
 			}
-#else
-			delete pSrcPhrase->m_pSavedWords;
-			pSrcPhrase->m_pSavedWords = (SPList*)NULL;
-			delete pSrcPhrase->m_pMedialMarkers;
-			pSrcPhrase->m_pMedialMarkers = (wxArrayString*)NULL;
-			delete pSrcPhrase->m_pMedialPuncts;
-			pSrcPhrase->m_pMedialPuncts = (wxArrayString*)NULL;
-			delete pSrcPhrase;
-			pSrcPhrase = (CSourcePhrase*)NULL;
-#endif
-			goto d;
+		goto d;
 		}
 
 		// are we pointing at a standard format marker?
 b:		if (IsMarker(ptr,pBufStart))
 		{
-#ifdef _DOCVER5
 			bIsFreeTransOrNoteOrBackTrans = FALSE; // clear before 
 									// checking which marker it is
 			bIsForeignBackTrans = FALSE;
-#endif
-
 			bHitMarker = TRUE;
 			int nMkrLen = 0;
 			// its a marker of some kind
@@ -9293,7 +9173,6 @@ b:		if (IsMarker(ptr,pBufStart))
                     // signature (the new version is no slower, because while it has to
                     // copy the local string to return it, the old version did an internal
                     // copy anyway and I've removed that)
-#ifdef _DOCVER5
 					bIsFreeTransOrNoteOrBackTrans = 
 						IsMarkerFreeTransOrNoteOrBackTrans(augmentedWholeMkr,bIsForeignBackTrans);
 					if (bIsForeignBackTrans)
@@ -9315,9 +9194,6 @@ b:		if (IsMarker(ptr,pBufStart))
 						// wrapped with \~FILTER and \~FILTER* and put into m_filteredInfo
 						temp = GetFilteredItemBracketed(ptr,itemLen);
 					}
-#else
-					temp = GetFilteredItemBracketed(ptr,itemLen);
-#endif
                     // BEW added 06Jun06; if we just filtered out a footnote or cross
                     // reference, then code later on for turning off bFootnoteIsCurrent
                     // when \f* is encountered, or for turning off bCrossRefIsCurrent when
@@ -9381,8 +9257,6 @@ b:		if (IsMarker(ptr,pBufStart))
 							temp.Empty();
 						}
 					}
-
-#ifdef _DOCVER5
 					if (!bIsFreeTransOrNoteOrBackTrans || bIsForeignBackTrans)
 					{
 						// other filtered stuff needs to be saved here (not later), it has
@@ -9390,12 +9264,6 @@ b:		if (IsMarker(ptr,pBufStart))
 						// use a delimiting space between the filter markers
 						pSrcPhrase->AddToFilteredInfo(temp);
 					}
-#else
-                    // we can append the temp string to buffer now, because any count
-                    // within it has just been removed
-					AppendFilteredItem(tokBuffer,temp); // temp might have been emptied 
-												// because of a zero nFreeTransWordCount
-#endif
 					if (wholeMkr == _T("\\note"))
 					{
 						pSrcPhrase->m_bHasNote = TRUE;
@@ -9540,7 +9408,7 @@ b:		if (IsMarker(ptr,pBufStart))
 
 				itemLen = ParseWhiteSpace(ptr); // parse white space following it
 				AppendItem(tokBuffer,temp,ptr,itemLen); // add it to buffer
-#ifdef _DOCVER5
+
 				// bleed off any endmarkers into the m_endMarkers member of CSourcePhrase,
 				// but it has to go into pLastScrPhrase's member, not pSrcPhrase's
 				const wxChar* pBuffer2 = tokBuffer.GetData();
@@ -9557,16 +9425,12 @@ b:		if (IsMarker(ptr,pBufStart))
 					pLastSrcPhrase->AddEndMarker(endMkrStr);
 					tokBuffer.Empty();
 				}
-#endif
 				ptr += itemLen; // point past it
-
 				goto b; // check if another marker follows
 			}
 		}
 		else
 		{
-
-
 			// not a marker
 			if (!bHitMarker)
 			{
@@ -9717,8 +9581,6 @@ b:		if (IsMarker(ptr,pBufStart))
 					
 				}
 			}
-
-#if defined (_DOCVER5)
             // if endmarkers are at the end of the buffer, code further up will have put
             // them into the m_endMarkers member of pLastSrcPhrase, and any punctuation
             // following that would be in the m_precPunt member of pSrcPhrase, but if the
@@ -9785,10 +9647,6 @@ b:		if (IsMarker(ptr,pBufStart))
 			{
 				pList->Append(pSrcPhrase);
 			}
-#else
-			// store the pointer in the SPList (in order of occurrence in text)
-			pList->Append(pSrcPhrase);
-#endif
 
 			// make this one be the "last" one for next time through
 			pLastSrcPhrase = pSrcPhrase; // note: pSrcPhrase might be NULL
@@ -9839,7 +9697,7 @@ d:	tokBuffer.Empty();
 ///     the filter state of an unknown marker in the Doc, i.e., set m_filterFlagsUnkMkrs 
 ///     to TRUE if the unknown marker in the Doc was within \~FILTER ... \~FILTER* brackets, 
 ///     otherwise sets the flag in the array to FALSE.
-/// BEW 24Mar10 updated for support of _DOCVER5 (some changes were needed)
+/// BEW 24Mar10 updated for support of doc version 5 (some changes were needed)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 											wxArrayString* pUnkMarkers,
@@ -9905,11 +9763,7 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
 		pSrcPhrase = (CSourcePhrase*)posn->GetData();
 		posn = posn->GetNext();
 		wxASSERT(pSrcPhrase);
-#if defined (_DOCVER5)
 		if (!pSrcPhrase->m_markers.IsEmpty() || !pSrcPhrase->GetFilteredInfo().IsEmpty())
-#else
-		if (!pSrcPhrase->m_markers.IsEmpty())
-#endif
 		{
 			// m_markers and/or m_filteredInfo for this source phrase has content to examine
 			pMarkerList->Empty(); // start with an empty marker list
@@ -9920,11 +9774,8 @@ void CAdapt_ItDoc::GetUnknownMarkersFromDoc(enum SfmSet useSfmSet,
             // Filtered material enclosed within \~FILTER...\~FILTER* brackets will also be
             // listed as a single item (even though there may be other markers embedded
             // within the filtering brackets.
-#if defined (_DOCVER5)
 			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers + pSrcPhrase->GetFilteredInfo());
-#else
-			GetMarkersAndTextFromString(pMarkerList, pSrcPhrase->m_markers);
-#endif
+
             // Now iterate through the strings in pMarkerList, check if the markers they
             // contain are known or unknown.
 			wxString resultStr;
@@ -10124,7 +9975,7 @@ wxString CAdapt_ItDoc::GetUnknownMarkerStrFromArrays(wxArrayString* pUnkMarkers,
 ///         the navigation text and text colouring and (cryptic) TextType assignments.
 /// NOTE: m_FilterStatusMap.Clear(); is done early in DoMarkerHousekeeping(), so the prior
 ///         contents of the former will be lost.
-/// BEW 24Mar10, updated for support of _DOCVER5 (changes needed - just a block of code removed)
+/// BEW 24Mar10, updated for support of doc version 5(changes needed - just a block of code removed)
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired)
@@ -10345,31 +10196,6 @@ b:					if (IsMarker(ptr,pBufStart)) // pBuffer added for v1.4.1
 
 							goto b; // check if another marker follows:
 						}
-// doc version 5 never has \~FILTER or \~FILTER* markers in the m_markers member of
-// CSourcePhrase so this block is no longer needed
-#if !defined (_DOCVER5)
-						// whm added for USFM and SFM Filtering support
-						else if (IsFilteredBracketMarker(ptr,pEndMkrBuff))
-						{
-                            // When doing marker housekeeping, we'll just skip over any
-                            // filtered material residing in m_markers. All such filtered
-                            // material in m_markers is marked or bracketed between special
-                            // markers \~FILTER and \~FILTER* by TokenizeText when text is
-                            // input. ParseFilteredMarkerText below advances the pointer to
-                            // point past the end-of-filtered-text marker \~FILTER* which
-                            // prevents it from being seen again by AnalyseMarker.
-							itemLen = ParseFilteredMarkerText(filterMkr,ptr,pBufStart,pEndMkrBuff);
-							AppendItem(gpApp->buffer,temp,ptr,itemLen);
-							ptr += itemLen;
-
-							itemLen = ParseWhiteSpace(ptr); // past any white space after 
-															// the filtered material
-							AppendItem(gpApp->buffer,temp,ptr,itemLen); // add it to the buffer
-							ptr += itemLen; // point past the white space
-
-							goto b; // check if another marker follows
-						}
-#endif
 						else
 						{
 							// some other kind of marker - perhaps its a chapter marker?
@@ -13833,7 +13659,7 @@ void CAdapt_ItDoc::OnUpdateFileUnpackDoc(wxUpdateUIEvent& event)
 /// source language name; target language name; Bible book information; current output
 /// filename for the document; the current project configuration file contents; the
 /// document in xml format.
-/// BEW 12Apr10, no changes needed for support of _DOCVER5
+/// BEW 12Apr10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 {
@@ -14183,7 +14009,7 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 /// extracted from the packed file.
 /// The .aip files pack with the Unicode version of Adapt It cannot be unpacked with the regular
 /// version of Adapt It, nor vice versa.
-/// BEW 12Apr10, no changes needed for support of _DOCVER5
+/// BEW 12Apr10, no changes needed for support of doc version 5
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 {

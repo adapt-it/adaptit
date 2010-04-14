@@ -12,13 +12,7 @@
 /// input as to the final placement of markers that were merged together during Retranslation.
 /// \derivation		The CPlaceRetranslationInternalMarkers class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in PlaceRetranslationInternalMarkers.cpp (in order of importance): (search for "TODO")
-// 1. 
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
+
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -47,19 +41,6 @@
 #include "helpers.h"
 
 // globals
-
-#if !defined (_DOCVER5)
-extern CSourcePhrase* gpSrcPhrase; // defined in Adapt_ItView.cpp
-extern SPList gSrcPhrases; // ditto
-#endif
-
-//extern wxString tgtStr; // ditto
-
-#if defined (_DOCVER5)
-//extern wxString srcStr; // ditto
-//extern wxString markersPrefix; // defined in ExportFunctions.cpp
-//extern wxArrayString markersToPlaceArray; // ditto
-#endif
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp; // if we want to access it fast
@@ -96,7 +77,6 @@ CPlaceRetranslationInternalMarkers::CPlaceRetranslationInternalMarkers(wxWindow*
 	// use the current target language font for the list box, etc
 	pEditDisabled = (wxTextCtrl*)FindWindowById(IDC_EDIT_SRC);
 
-#if defined (_DOCVER5)
 	// **** the following initializations were moved from InitDialog() to ****
 	// **** here, see comments in that function body's top for an         ****
 	// **** explanation of the reason                                     ****
@@ -120,7 +100,6 @@ CPlaceRetranslationInternalMarkers::CPlaceRetranslationInternalMarkers(wxWindow*
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pTargetFont, pEditTarget, NULL, 
 								pListBox, NULL, gpApp->m_pDlgTgtFont);
 	#endif
-#endif // _DOCVER5
 }
 
 CPlaceRetranslationInternalMarkers::~CPlaceRetranslationInternalMarkers() // destructor
@@ -128,7 +107,7 @@ CPlaceRetranslationInternalMarkers::~CPlaceRetranslationInternalMarkers() // des
 	
 }
 
-void CPlaceRetranslationInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
+void CPlaceRetranslationInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(event))
 {
     // BEW note 1Apr10, for doc version 5 and support of removing the data input using
     // globals in favour of doing it with public access functions, ... on investigation it
@@ -137,117 +116,7 @@ void CPlaceRetranslationInternalMarkers::InitDialog(wxInitDialogEvent& WXUNUSED(
     // called earlier than that than ShowModal(), the pointers to the controls will not be
     // initialized if we leave it for InitDialog() to do it. So, I've moved these
     // initializations to the creator instead.
-	
-#if defined (_DOCVER5)
-	/*
-	// set up edit boxes and list box (markersToPlaceArray is a global wxArrayString)
-	int count = markersToPlaceArray.GetCount();
-	wxASSERT(count > 0);
-	int index;
-	wxString stuff;
-	// populate the list control
-	for (index = 0; index < count; index++)
-	{
-		stuff = markersToPlaceArray.Item((size_t)index);
-		wxASSERT(!stuff.IsEmpty());
-		pListBox->Append(stuff);
-	}
-	// hilight first in the listbox
-	if (pListBox->GetCount() > 0)
-		pListBox->SetSelection(0);
-
-	// first ensure that the global tgtStr contents start and end with a space - this
-	// ensures our placement algorithm will be safe
-	tgtStr.Trim();
-	tgtStr.Trim(FALSE);
-	tgtStr = _T(" ") + tgtStr;
-	tgtStr += _T(" ");
-	
-	// finally, put the data in the source and target edit boxes (Note: any initial
-	// filtered markers information is not shown, as placement within it is not possible
-	// anyway, and so the caller withholds it, and inserts it at the end of the calling
-	// function "in place" after the dialog is dismissed)
-	m_srcPhrase = srcStr; // rhs is a global
-	m_tgtPhrase = tgtStr; // rhs is a global
-	pEditDisabled->SetValue(m_srcPhrase);
-	pEditTarget->SetValue(m_tgtPhrase);
-	*/
-
-#else
-
-	// set up edit boxes and list box
-	wxString markers;
-	wxString src = _T("");
-	SPList* pList = &gSrcPhrases;
-	SPList::Node* pos = pList->GetFirst();
-	wxASSERT(pos != NULL);
-	bool bFirst = TRUE;
-
-	//** TODO ** 31Mar10 -- the code below is faulty, bFirst is not used properly, and we need
-	//to document better, and we need to put aside the filtered stuff from the first
-	//CSourcePhrase and append it after the dialog closes as it doesn't need to be placed,
-	//and eventually gSrcPhrases pointer to SPList needs to be private in a class, but
-	//until we have a suitable class it will need to remain a global -- or instantiate
-	//this class early in the body of the function DoPlacementOfMarkersInRetranslation(),
-	//and then the sublist pointer can be a a private member, (but
-	//PlaceInternalMarkers.cpp also uses the sublist, so would need similar treatment)
-	//
-    //Note: the src is computed here, even though caller calcs it and puts in the global
-    //srcStr, I guess I did it this way because I had to collect the list of markers for
-    //placement -- note, the simplistic collection below does not have filter markers
-    //removed and I verified they appear in the top edit box - YUCK! fix this; also the
-    //global tgtStr passes the caller's collected Tstr to this dialog's m_targetPhrase
-    //member for display (it has filter markers removed already) lots of work needed to fix
-    //all this
-	while (pos != NULL)
-	{
-		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-		pos = pos->GetNext();
-
-		// compose the original source text
-		if (pSrcPhrase->m_markers.IsEmpty())
-		{
-			if (src.IsEmpty())
-			{
-				if (!pSrcPhrase->m_bNullSourcePhrase)
-					src += pSrcPhrase->m_srcPhrase;
-			}
-			else
-			{
-				if (!pSrcPhrase->m_bNullSourcePhrase)
-					src += _T(" ") + pSrcPhrase->m_srcPhrase;
-			}
-		}
-		else
-		{
-			src += pSrcPhrase->m_markers;
-			if (!pSrcPhrase->m_bNullSourcePhrase)
-				src += pSrcPhrase->m_srcPhrase;
-		}
-
-		// accumulate the list of internal markers
-		if (bFirst)
-		{
-			bFirst = FALSE; // markers of first have been placed already, if any
-		}
-		else
-		{
-			markers = pSrcPhrase->m_markers;
-			if (!markers.IsEmpty())
-				pListBox->Append(markers);
-		}
-	}
-
-	// hilight first in the listbox
-	if (pListBox->GetCount() > 0)
-		pListBox->SetSelection(0);
-
-	// set the dialog's member strings for source and target
-	m_srcPhrase = src;
-	m_tgtPhrase = tgtStr;
-	pEditDisabled->SetValue(m_srcPhrase);
-	pEditTarget->SetValue(m_tgtPhrase);
-#endif
+	;
 }
 
 void CPlaceRetranslationInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(event))
@@ -316,8 +185,6 @@ void CPlaceRetranslationInternalMarkers::OnButtonPlace(wxCommandEvent& WXUNUSED(
 		pListBox->SetSelection(0);
 }
 
-#if defined (_DOCVER5)
-
 // getters and setters
 
 // sets m_srcPhrase
@@ -384,17 +251,3 @@ void CPlaceRetranslationInternalMarkers::OnOK(wxCommandEvent& event)
 	// getter function, GetPostPlacementString() 
 	event.Skip();
 }
-
-#else
-// OnOK() calls wxWindow::Validate, then wxWindow::TransferDataFromWindow.
-// If this returns TRUE, the function either calls EndModal(wxID_OK) if the
-// dialog is modal, or sets the return value to wxID_OK and calls Show(FALSE)
-// if the dialog is modeless.
-void CPlaceRetranslationInternalMarkers::OnOK(wxCommandEvent& event) 
-{
-	m_tgtPhrase = pEditTarget->GetValue();
-	tgtStr = m_tgtPhrase;
-	event.Skip();
-}
-#endif
-

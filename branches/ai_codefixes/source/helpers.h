@@ -111,11 +111,6 @@ bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum
  
 // 2010 additions by BEW
 
-#if !defined (_DOCVER5)
-wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet,
-		bool& bLacksAny, bool bCopyOnly = FALSE); // BEW added 15Aug07 for 3.5.0
-												  // & added 4th param on 19May08
-#endif
 // next three for use in the AdminMoveOrCopy class, the handler for Administrator
 // menu item Move Or Copy Folders Or Files
 bool GetFoldersOnly(wxString& pathToFolder, wxArrayString* pFolders, bool bSort = TRUE,
@@ -129,7 +124,7 @@ long SmartTokenize(wxString& delimiters, wxString& str, wxArrayString& array,
 					  bool bStoreEmptyStringsToo = TRUE);
 wxString ChangeHyphensToUnderscores(wxString& name); // change any hyphen characters 
 				// to underscore characters, used in ReadOnlyProtection.cpp
-#ifdef _DOCVER5	
+
 // the following returns the members m_markers, m_endMarkers, m_freeTrans, m_Note,
 // m_collectedBackTrans, m_filteredInfo, "as is" - the filteredInfoStr will include the
 // wrapping filter bracket markers, and freeTransStr and the two following won't have any
@@ -172,8 +167,6 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr);
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr);
 wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
-
-#endif
 
 bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);

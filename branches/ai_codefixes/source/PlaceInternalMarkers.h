@@ -32,7 +32,6 @@ public:
 	virtual ~CPlaceInternalMarkers(void); // destructor
 	// other methods
 
-#if defined (_DOCVER5)
 	// getters and setters
 	void	SetNonEditableString(wxString str); // sets m_srcPhrase
 	void	SetUserEditableString(wxString str); // sets m_tgtPhrase
@@ -42,7 +41,6 @@ public:
 private:
 	// the next 3 are for accepting data from outside using the setters
 	wxArrayString m_markersToPlaceArray;
-#endif
 	wxString	m_srcPhrase;
 	wxString	m_tgtPhrase;
 	wxString	m_markers;

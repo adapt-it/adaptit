@@ -17,9 +17,16 @@
     #pragma interface "AdaptitConstants.h"
 #endif
 
-#ifdef _DOCVER5
+// version 5 stores endmarkers on the CSourcePhrase they belong on, rather than the next,
+// in a new member called m_endMarkers. It also stores the filtered info formerly put in
+// m_markers and wrapped by filter bracket markers, into separate members: m_freeTrans,
+// m_note, m_collectedBackTrans, (these last three store just the string, no markers such
+// as \free & \free*, \note & \note*, \bt - although these are explicitly added in
+// exports) and other filtered info is in m_filteredInfo, and each filtered string and any
+// markers there are wrapped by filter bracket markers, \~FILTER and \~FILTER* with no
+// delimiting space between each such pair
 #define VERSION_NUMBER		5
-#else
+/*
 #define VERSION_NUMBER		4 // version 2: from 3rd Jan 2001, flags on CSourcePhrase for start
 							  // and end of a retranslation; from 14th May 2003, capacity to do
 							  // and see a glossing line as well as adapting line is version 3
@@ -27,7 +34,8 @@
 							  // support of free translations (3), notes (1) and bookmarks (1).
 							  // whm Note: Since the wx version only reads xml data we are 100%
 							  // compatible with the MFC version number scheme for version 4.
-#endif
+*/
+
 #define VERT_SPACE			4
 #define MAX_WORDS			10	// maximum # of words allowed in a src phrase before Adapt It chokes
 #define MAX_STRIPS			6000

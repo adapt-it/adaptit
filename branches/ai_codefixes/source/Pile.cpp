@@ -18,13 +18,6 @@
 /// by the user. The fifth CCell displays the Gloss when used.
 /// \derivation		The CPile class is derived from wxObject.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items (in order of importance): (search for "TODO")
-// 1. Conditional compile HWND below for other platforms in the Draw method.
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // whm NOTES CONCERNING RTL and LTR Rendering in wxWidgets: 
 // (BEW moved here from deprecated CText)
@@ -215,17 +208,15 @@ int CPile::GetPileIndex()
 	return m_nPile;
 }
 
-// BEW 22Feb10 changes done for support of _DOCVER5 
 // (The function is now slightly misnamed because no longer is all that is considered
 // "filtered" actually stored with an SF marker. Notes, free translations and collected
 // back translations are now just stored as simple strings - we only put a marker with
 // these info types when/if we export them or show them in the view filtered material
 // dialog. However, we'll keep the old name unchanged; but if we do someday change it, we
 // should call it HasFilteredInfo())
-// 2BEW Feb10 updated for support of _DOCVER5
+// BEW 22Feb10 changes done for support of doc version 5 
 bool CPile::HasFilterMarker()
 {
-#if defined (_DOCVER5)
 	if (
 		!m_pSrcPhrase->GetFilteredInfo().IsEmpty() ||
 		!m_pSrcPhrase->GetFreeTrans().IsEmpty() ||
@@ -237,9 +228,6 @@ bool CPile::HasFilterMarker()
 		return TRUE;
 	else
 		return FALSE;
-#else
-	return m_pSrcPhrase->m_markers.Find(filterMkr) >= 0;
-#endif
 }
 
 void CPile::SetIsCurrentFreeTransSection(bool bIsCurrentFreeTransSection)
@@ -508,7 +496,7 @@ void CPile::SetPhraseBoxGapWidth(int nNewWidth)
 	m_nWidth = nNewWidth; // a useful overload, for when the phrase box is contracting
 }
 
-// BEW 22Feb10 some changes done for support of _DOCVER5
+// BEW 22Feb10 some changes done for support of doc version 5
 void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 {
 	bool bRTLLayout;
@@ -618,17 +606,10 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 		// next stuff is for the green wedge - it should be shown at the left or the right
 		// of the pile depending on the gbRTL_Layout flag (FALSE or TRUE, respectively), rather
 		// than using the nav text's directionality
-#if defined (_DOCVER5)
 		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
 			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
 			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
 			|| bHasFilterMarker)
-#else
-		if (m_pSrcPhrase->m_bFirstOfType || m_pSrcPhrase->m_bVerse
-			|| m_pSrcPhrase->m_bChapter || m_pSrcPhrase->m_bParagraph
-			|| m_pSrcPhrase->m_bFootnoteEnd || m_pSrcPhrase->m_bHasInternalMarkers
-			|| m_pSrcPhrase->m_markers.Find(filterMkr) != -1)
-#endif
 		{
 			wxPoint pt;
 			TopLeft(pt); //pt = m_ptTopLeft;
@@ -670,38 +651,22 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 			if (bHasFilterMarker && !gbShowTargetOnly)
 			{
- #ifdef _DOCVER5
                // if bHasFilteredMarker is TRUE member then we require a wedge
                 // to be drawn here.
                 // BEW modified 18Nov05; to have variable colours, also the colours
                 // differences are hard to pick up with a simple wedge, so the top of the
                 // wedge has been extended up two more pixels to form a column with a point
                 // at the bottom, which can show more colour
-#else
-               // if \~FILTERED is anywhere in the m_markers member of the sourcephrase
-                // stored which has its pointer stored in m_pPile, then we require a wedge
-                // to be drawn here.
-                // BEW modified 18Nov05; to have variable colours, also the colours
-                // differences are hard to pick up with a simple wedge, so the top of the
-                // wedge has been extended up two more pixels to form a column with a point
-                // at the bottom, which can show more colour
-#endif
 				wxPoint ptWedge;
 				TopLeft(ptWedge);
 
                 // BEW added 18Nov05, to colour the wedge differently if \free is
                 // contentless (as khaki), or if \bt is contentless (as pastel blue), or if
                 // both are contentless (as red)
-#ifdef _DOCVER5
 				// these functions are now defined in helpers.cpp
 				bool bFreeHasNoContent = IsFreeTranslationContentEmpty(m_pSrcPhrase);
 				bool bBackHasNoContent = IsBackTranslationContentEmpty(m_pSrcPhrase);
-#else
-				bool bFreeHasNoContent = 
-					m_pLayout->m_pView->IsFreeTranslationContentEmpty(m_pSrcPhrase);
-				bool bBackHasNoContent = 
-					m_pLayout->m_pView->IsBackTranslationContentEmpty(m_pSrcPhrase);
-#endif
+
 				#ifdef _RTL_FLAGS
 				if (m_pLayout->m_pApp->m_bRTL_Layout)
 					ptWedge.x += rectBounding.GetWidth(); // align right if RTL layout
@@ -774,36 +739,7 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 					// if not one of the special situations, colour it green
 					pDC->SetPen(*wxGREEN_PEN);
 				}
-/* BEW 27Mar10 commented out, the logic is wrong for the new storage regime
-				if (!bFreeHasNoContent && !bBackHasNoContent)
-				{
-					// make whole inner part of wedge green
-					pDC->SetPen(*wxGREEN_PEN);	
-				}
-				else
-				{
-					if (bFreeHasNoContent && bBackHasNoContent)
-					{
-						// use a third colour - red grabs attention best
-						pDC->SetPen(*wxRED_PEN);
-					}
-					else
-					{
-						// both are not together contentless, so only one of them is
-						// so do the one which it is in the appropriate colour
-						if (bFreeHasNoContent)
-						{
-							// colour it khaki
-							pDC->SetPen(wxPen(wxColour(160,160,0), 1, wxSOLID));
-						}
-						if (bBackHasNoContent)
-						{
-							// colour it pastel blue
-							pDC->SetPen(wxPen(wxColour(145,145,255), 1, wxSOLID));
-						}
-					}
-				}
-*/
+
 				// draw the two extra lines for the short column's colour
 				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 6, ptWedge.x + 4, ptWedge.y - 6);
 				pDC->DrawLine(ptWedge.x - 3, ptWedge.y - 5, ptWedge.x + 4, ptWedge.y - 5);
@@ -966,8 +902,8 @@ void CPile::DrawNavTextInfoAndIcons(wxDC* pDC)
 
 // return TRUE if the CSourcePhrase pointed at by this CPile is one which has a marker
 // which causes text wrap in a USFM-marked up document (eg. \p, \m, etc)
-// BEW 22Feb10, no changes for support of _DOCVER5 (but the called function,
-// IsWrapMarker() does have changes for _DOCVER5)
+// BEW 22Feb10, no changes for support of doc version 5 (but the called function,
+// IsWrapMarker() does have changes for doc version 5)
 bool CPile::IsWrapPile()
 {
 	CSourcePhrase* pSrcPhrase = this->m_pSrcPhrase;
@@ -987,7 +923,7 @@ bool CPile::IsWrapPile()
 	return FALSE;
 }
 
-// BEW 22Feb10, no changes for support of _DOCVER5
+// BEW 22Feb10, no changes for support of doc version 5
 void CPile::PrintPhraseBox(wxDC* pDC)
 {
 	wxTextCtrl* pBox = m_pLayout->m_pApp->m_pTargetBox;
@@ -1055,7 +991,7 @@ void CPile::PrintPhraseBox(wxDC* pDC)
 	}
 }
 
-// BEW 22Feb10, no changes for support of _DOCVER5
+// BEW 22Feb10, no changes for support of doc version 5
 void CPile::Draw(wxDC* pDC)
 {
 	// draw the cells this CPile instance owns, MAX_CELLS = 3

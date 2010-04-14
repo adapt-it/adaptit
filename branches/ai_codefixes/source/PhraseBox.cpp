@@ -264,10 +264,6 @@ extern bool		bSuppressDefaultAdaptation; // normally FALSE, but set TRUE wheneve
 				    // ensures cons.changes won't be done on the typing)
 extern bool		gbInspectTranslations; // when TRUE suppresses the "Cancel and Select" button 
 					// in the CChooseTranslation dialog
-#if !defined (_DOCVER5)
-//bool			gbUserWantsSelection = FALSE; // carries CChooseTranslation's 
-//					// m_bCancelAndSelect value back to the caller of LookAhead()
-#endif
 /// This global is defined in Adapt_ItView.cpp.
 extern int		gnOldSequNum;
 
@@ -314,7 +310,7 @@ CPhraseBox::~CPhraseBox(void)
 // and so none could be built (eg. source phrase is a merged one would halt operation)
 // When glossing is ON, the build is constrained to phrases[0] only, and return value would then
 // be 1 always.
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 int CPhraseBox::BuildPhrases(wxString phrases[10], int nNewSequNum, SPList* pSourcePhrases)
 {
 	// refactored 25Mar09, -- nothing needs to be done
@@ -404,7 +400,7 @@ CLayout* CPhraseBox::GetLayout()
 // shows an informative message to the user, enables the button for copying punctuation,
 // and returns FALSE
 // (4) if within a retranslation, the global bool gbEnterTyped is cleared to FALSE
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pView, 
 												CPile* pNextEmptyPile, CPile* pCurPile)
 {
@@ -465,7 +461,7 @@ bool CPhraseBox::CheckPhraseBoxDoesNotLandWithinRetranslation(CAdapt_ItView* pVi
 // returns nothing
 // restores a correct <Not_In_KB> entry for the pile pCurPile, if the user has edited it
 // out of the KB within the KB editor - which is not the correct way to do it
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, 
 											CAdapt_ItView* pView, CPile* pCurPile)
 {
@@ -514,7 +510,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 // returns nothing
 // this is a helper function to do some housecleaning tasks prior to the caller (which is
 // a pile movement function such as MoveToNextPile(), returning FALSE to its caller 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pView, 
 										   CPile* pNextEmptyPile)
 {
@@ -571,7 +567,7 @@ void CPhraseBox::DealWithUnsuccessfulStore(CAdapt_ItApp* pApp, CAdapt_ItView* pV
 
 // return TRUE if there were no problems encountered with the store, FALSE if there were
 // (this function calls DealWithUnsuccessfulStore() if there was a problem with the store)
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc,
 		 CAdapt_ItView* pView, CPile* pCurPile, bool bIsTransliterateMode)
 {
@@ -613,12 +609,17 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	return bOK;
 }
 
-// BEW 27Mar10 a change needed for support of _DOCVER5
-#if defined (_DOCVER5)
+// BEW 27Mar10 a change needed for support of doc version 5
 void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, 
-									  CPile* pNewPile, bool bWantSelect)
+									  CPile* pNewPile, bool& bWantSelect)
 {
-	bWantSelect = bWantSelect; // avoid compiler warning
+    // BEW 14Apr10, pass back bWantSelect as TRUE, because this will be used in caller to
+    // pass the TRUE value to MoveToNextPile() which uses it to set the app members
+    // m_nStartChar, m_nEndChar, to -1 and -1, and then when CLayout::PlaceBox()is called,
+    // it internally calls ResizeBox() and the latter is what uses the m_nStartChar and
+    // m_nEndChar values to set the phrase box content's selection. BEW 14Apr10
+	bWantSelect = TRUE;
+
 	// don't clear the private m_bCancelAndSelectButtonPressed flag here, otherwise when
 	// the caller returns to it's caller and control advances to the delayed block for
 	// testing the flag in order to call DoCancelAndSelect(), the function would be skipped
@@ -643,39 +644,10 @@ void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView,
 		pApp->m_targetPhrase.Empty();
 	}
 }
-#else
-void CPhraseBox::MakeCopyOrSetNothing(CAdapt_ItApp* pApp, CAdapt_ItView* pView, 
-									  CPile* pNewPile, bool& bWantSelect)
-{
-	bWantSelect = TRUE;
-	if (pApp->m_bCopySource)
-	{
-		if (!pNewPile->GetSrcPhrase()->m_bNullSourcePhrase)
-		{
-			pApp->m_targetPhrase = pView->CopySourceKey(pNewPile->GetSrcPhrase(), 
-									pApp->m_bUseConsistentChanges);
-		}
-		else
-		{
-            // its a null source phrase, so we can't copy anything; and if we are glossing,
-            // we just leave these empty whenever we meet them
-			pApp->m_targetPhrase.Empty(); // this will cause pile's m_nMinWidth to be
-										   // used for box width
-			bWantSelect = FALSE;
-		}
-	}
-	else
-	{
-		// no copy of source wanted, so just make it an empty string
-		pApp->m_targetPhrase.Empty();
-		bWantSelect = FALSE;
-	}
-}
-#endif
 
-// BEW 13Apr10, changes needed for support of _DOCVER5
+// BEW 13Apr10, changes needed for support of doc version 5
 void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_ItApp* pApp, 
-					CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
+	CAdapt_ItView* pView, CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect)
 {
 	pApp->m_pTargetBox->m_bAbandonable = TRUE;
 
@@ -684,11 +656,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 	// depending on the m_bCopySource flag, either initialize the targetPhrase to
 	// an empty string, or to a copy of the sourcePhrase's key string
 	bool bGotTranslation = FALSE;
-#if defined (_DOCVER5)
-	if (!gbIsGlossing && bWantSelect)
-#else
-	if (!gbIsGlossing && gbUserWantsSelection)
-#endif
+	if (!gbIsGlossing && m_bCancelAndSelect)
 	{
 		// in ChooseTranslation dialog the user wants the 'cancel and select'
 		// option, and since no adaptation is therefore to be retrieved, it
@@ -760,17 +728,12 @@ void CPhraseBox::HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(CAdapt_It
 	}
 }
 
-// BEW 13Apr10, changes needed for support of _DOCVER5
+// BEW 13Apr10, changes needed for support of doc version 5
 void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItApp* pApp,
-								CAdapt_ItView* pView, CPile* pNewPile, bool& bWantSelect)
+	CAdapt_ItView* pView, CPile* pNewPile, bool m_bCancelAndSelect, bool& bWantSelect)
 {
 	pApp->m_bAutoInsert = FALSE; // cause halt
-
-#if defined (_DOCVER5)
-	if (!gbIsGlossing && bWantSelect)
-#else
-	if (!gbIsGlossing && gbUserWantsSelection)
-#endif
+	if (!gbIsGlossing && m_bCancelAndSelect)
 	{
 		// user cancelled CChooseTranslation dialog because he wants instead to
 		// select for a merger of two or more source words
@@ -860,7 +823,7 @@ void CPhraseBox::HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(CAdapt_ItA
 // this value can be assumed. The global boolean gbIsGlossing, however, may be either FALSE
 // (adapting mode) or TRUE (glossing mode)
 // Ammended July 2003 for auto-capitalization support
-// BEW 13Apr10, changes needed for support of _DOCVER5
+// BEW 13Apr10, changes needed for support of doc version 5
 bool CPhraseBox::MoveToNextPile(CAdapt_ItView* pView, CPile* pCurPile)
 {
 	//bool bNoError = TRUE;
@@ -1119,9 +1082,8 @@ b:	pApp->m_bSaveToKB = TRUE;
 		else // the lookup determined that no adaptation (or gloss when glossing), or
 			 // <Not In KB> entry, is available
 		{
-			// refactored code -- next line may not be needed -- check  **** TODO ****
-			pNewPile = pApp->m_pActivePile; // ensure its valid, we may get here after a 
-#if defined (_DOCVER5)
+			pNewPile = pApp->m_pActivePile;
+
             // RecalcLayout call when there is no adaptation available from the LookAhead,
             // (or user cancelled when shown the Choose Translation dialog from within the
             // LookAhead() function, having matched) we must cause auto lookup and
@@ -1132,39 +1094,16 @@ b:	pApp->m_bSaveToKB = TRUE;
             // m_bCancelAndSelectButtonPressed is TRUE, then the first two words are
             // selected instead ready for a merger or for extending the selection - if both
             // flags are TRUE, the m_bCancelAndSelectButtonPressed is to have priority
-#else
-            // RecalcLayout call when there is no adaptation available from the LookAhead,
-            // (or user cancelled when shown the Choose Translation dialog from within the
-            // LookAhead() function, having matched) we must cause auto lookup and
-            // inserting to be turned off, so that the user can do a manual adaptation; but
-            // if the m_bAcceptDefaults flag is on, then the copied source (having been
-            // through c.changes) is accepted without user input, the m_bAutoInsert flag is
-            // turned back on, so processing will continue; while if gbUserWantsSelection
-            // is TRUE, then the first two words are selected instead ready for a merger or
-            // for extending the selection - if both flags are TRUE, the
-            // gbUserWantsSelection is to have priority - but the code for handling it will
-            // have to be in OnChar() because recalcs wipe out any selections
-#endif
             pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
 			if (!pApp->m_bSingleStep)
 			{
-#if defined (_DOCVER5)
 				HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(
-								pApp, pView, pNewPile, m_bCancelAndSelectButtonPressed);
-#else
-				HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(
-													pApp, pView, pNewPile, bWantSelect);
-#endif
+						pApp, pView, pNewPile, m_bCancelAndSelectButtonPressed, bWantSelect);
 			}
 			else // it's single step mode
 			{
-#if defined (_DOCVER5)
 				HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(
-								pApp, pView, pNewPile, m_bCancelAndSelectButtonPressed);
-#else
-				HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(
-													pApp, pView, pNewPile, bWantSelect);
-#endif
+						pApp, pView, pNewPile, m_bCancelAndSelectButtonPressed, bWantSelect);
 			}
             // get a widened pile pointer for the new active location, and we want the
             // pile's strip to be marked as invalid and the strip index added to the
@@ -1217,22 +1156,12 @@ b:	pApp->m_bSaveToKB = TRUE;
         // the selecting now; do it also before recalculating the phrase box, since if
         // anything moves, we want its location to be correct. When glossing, Cancel
         // and Select is not allowed, so we skip this block
-#if defined (_DOCVER5)
 		if (!gbIsGlossing && m_bCancelAndSelectButtonPressed)
 
 		{
 			DoCancelAndSelect(pView, pApp->m_pActivePile); // clears m_bCancelAndSelectButtonPressed
 			pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-		}
-#else
-		if (!gbIsGlossing && gbUserWantsSelection)
-
-		{
-			DoCancelAndSelect(pView, pApp->m_pActivePile);
-			gbUserWantsSelection = FALSE; // must be turned off before we do anything else!
-			pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-		}
-#endif		
+		}		
 		// update status bar with project name
 		pApp->RefreshStatusBarInfo();
 
@@ -1282,7 +1211,6 @@ b:	pApp->m_bSaveToKB = TRUE;
 	}
 }
 
-#if defined (_DOCVER5)
 bool CPhraseBox::GetCancelAndSelectFlag()
 {
 	return m_bCancelAndSelectButtonPressed;
@@ -1292,7 +1220,6 @@ void CPhraseBox::ChangeCancelAndSelectFlag(bool bValue)
 {
 	m_bCancelAndSelectButtonPressed = bValue;
 }
-#endif
 
 // returns TRUE if all was well, FALSE if something prevented the move
 // Note: this is based on MoveToNextPile(), but with added code for transliterating - and
@@ -1303,7 +1230,7 @@ void CPhraseBox::ChangeCancelAndSelectFlag(bool bValue)
 // assumed; likewise the global boolean gbIsGlossing will be FALSE (because
 // transliteration mode is not available when glossing mode is turned ON), and so that too
 // can be assumed
-// BEW 13Apr10, changes needed for support of _DOCVER5
+// BEW 13Apr10, changes needed for support of doc version 5
 bool CPhraseBox::MoveToNextPile_InTransliterationMode(CAdapt_ItView* pView, CPile* pCurPile)
 {
 	//bool bNoError = TRUE;
@@ -1642,7 +1569,6 @@ b:	pApp->m_bSaveToKB = TRUE;
 				gSaveTargetPhrase.Empty();
 			gbSuppressStoreForAltBackspaceKeypress = FALSE; // make sure it's off before returning
 
-#if defined (_DOCVER5)
 			pNewPile = pApp->m_pActivePile; // ensure its valid, we may get here after a 
             // RecalcLayout call when there is no adaptation available from the LookAhead,
             // (or user cancelled when shown the Choose Translation dialog from within the
@@ -1658,12 +1584,12 @@ b:	pApp->m_bSaveToKB = TRUE;
 			if (!pApp->m_bSingleStep)
 			{
 				HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(pApp, pView, pNewPile,
-															m_bCancelAndSelectButtonPressed);
+										m_bCancelAndSelectButtonPressed, bWantSelect);
 			}
 			else // it's single step mode
 			{
 				HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(pApp, pView, pNewPile, 
-															m_bCancelAndSelectButtonPressed);
+										m_bCancelAndSelectButtonPressed, bWantSelect);
 			}
 
             // get a widened pile pointer for the new active location, and we want the
@@ -1674,38 +1600,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 				pDoc->ResetPartnerPileWidth(pNewPile->GetSrcPhrase());
 			}
 		}
-#else
-			pNewPile = pApp->m_pActivePile; // ensure its valid, we may get here after a 
-            // RecalcLayout call when there is no adaptation available from the LookAhead,
-            // (or user cancelled when shown the Choose Translation dialog from within the
-            // LookAhead() function, having matched) we must cause auto lookup and
-            // inserting to be turned off, so that the user can do a manual adaptation; but
-            // if the m_bAcceptDefaults flag is on, then the copied source (having been
-            // through c.changes) is accepted without user input, the m_bAutoInsert flag is
-            // turned back on, so processing will continue; while if gbUserWantsSelection
-            // is TRUE, then the first two words are selected instead ready for a merger or
-            // for extending the selection - if both flags are TRUE, the
-            // gbUserWantsSelection is to have priority - but the code for handling it will
-            // have to be in OnChar() because recalcs wipe out any selections
-            pApp->m_nActiveSequNum = pNewPile->GetSrcPhrase()->m_nSequNumber;
-			if (!pApp->m_bSingleStep)
-			{
-				HandleUnsuccessfulLookup_InAutoAdaptMode_AsBestWeCan(pApp, pView, pNewPile, bWantSelect);
-			}
-			else // it's single step mode
-			{
-				HandleUnsuccessfulLookup_InSingleStepMode_AsBestWeCan(pApp, pView, pNewPile, bWantSelect);
-			}
 
-            // get a widened pile pointer for the new active location, and we want the
-            // pile's strip to be marked as invalid and the strip index added to the
-            // CLayout::m_invalidStripArray
-			if (pNewPile != NULL)
-			{
-				pDoc->ResetPartnerPileWidth(pNewPile->GetSrcPhrase());
-			}
-		}
-#endif
 		// initialize the phrase box too, so it doesn't carry the old string to the next 
 		// pile's cell
 		ChangeValue(pApp->m_targetPhrase); //SetWindowText(pApp->m_targetPhrase); 
@@ -1750,21 +1645,13 @@ b:	pApp->m_bSaveToKB = TRUE;
         // the selecting now; do it also before recalculating the phrase box, since if
         // anything moves, we want its location to be correct. When glossing, Cancel
         // and Select is not allowed, so we skip this block
-#if defined (_DOCVER5)
 		if (m_bCancelAndSelectButtonPressed)
 
 		{
 			DoCancelAndSelect(pView, pApp->m_pActivePile); // clears m_bCancelAndSelectButtonPressed
 			pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
 		}
-#else
-		if (gbUserWantsSelection)
-		{
-			DoCancelAndSelect(pView, pApp->m_pActivePile);
-			gbUserWantsSelection = FALSE; // must be turned off before we do anything else!
-			pApp->m_bSelectByArrowKey = TRUE; // so it is ready for extending
-		}
-#endif	
+	
 		// update status bar with project name
 		pApp->RefreshStatusBarInfo();
 
@@ -1813,7 +1700,7 @@ b:	pApp->m_bSaveToKB = TRUE;
 	}
 }
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView), const CPile* pActivePile)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -1842,7 +1729,7 @@ bool CPhraseBox::IsActiveLocWithinSelection(const CAdapt_ItView* WXUNUSED(pView)
 // passed in is the active pile, and that CAdapt_ItApp::m_nActiveSequNum is the correct
 // index within the m_pSourcePhrases list for the CSourcePhrase instance pointed at by the
 // m_pSrcPhrase member of pNewPile
-// BEW 13Apr10, a small change needed for support of _DOCVER5
+// BEW 13Apr10, a small change needed for support of doc version 5
 bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 {
 	// refactored 25Mar09 (old code is at end of file)
@@ -2088,18 +1975,11 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 		curKey.Empty(); // ditto for the current key string (global)
 		if (!bOK)
 		{
-#if defined (_DOCVER5)
             // user cancelled, so return FALSE for a 'non-match' situation; the
             // m_bCancelAndSelectButtonPressed private bool variable (set from
             // CChooseTranslation's returned value for its m_bCancelAndSelect member) will
             // have already been set (if relevant) and can be used in the caller (ie. in
             // MoveToNextPile)
-#else
-			// user cancelled, so return FALSE for a 'non-match' situation; the 
-			// gbUserWantsSelection global variable (set by CChooseTranslation's 
-			// m_bCancelAndSelect member) will have already been set and can be used in 
-			// the caller (ie. in MoveToNextPile)
-#endif
 			gbCompletedMergeAndMove = FALSE;
 
 			return FALSE;
@@ -2158,7 +2038,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 	return TRUE;
 }
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 {
 	#ifdef _FIND_DELAY
@@ -2621,8 +2501,7 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 
 // returns TRUE if a matching KB entry found; when glossing, pKB points to the glossing KB, when
 // adapting it points to the normal KB
-// BEW 26Mar10, no changes needed for support of _DOCVER5
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -2643,7 +2522,7 @@ bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetU
 // called for every EVT_TEXT posted to event queue); it is not called for selector = 2
 // value because OnChar() has a case statement that handles box contraction there, and for
 // selector = 1 this function is only called elsewhere in the app within OnEditUndo()
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 {
 	// whm Note: This phrasebox handler is necessary in the wxWidgets version because the
@@ -2781,12 +2660,10 @@ void CPhraseBox::OnPhraseBoxChanged(wxCommandEvent& WXUNUSED(event))
 // selector 0 passed in; OnChar() for backspace keypress, with selector 2 passed in;
 // OnEditUndo() with selector 1 passed in.
 // refactored 26Mar09
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMadeDirty,
 						wxSize& textExtent,int nSelector)
 {
-	
-	
     // destroys the phrase box and recreates it with a different size, depending on the
     // nSelector value. 
     // nSelector == 0, increment the box width using its earlier value
@@ -3053,7 +2930,7 @@ void CPhraseBox::FixBox(CAdapt_ItView* pView, wxString& thePhrase, bool bWasMade
 // entry zone, for example.
 
 // OnChar is called via EVT_CHAR(OnChar) in our CPhraseBox Event Table.
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnChar(wxKeyEvent& event)
 {
 	// whm Note: OnChar() is called before OnPhraseBoxChanged()
@@ -3386,16 +3263,12 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 
 // returns TRUE if the move was successful, FALSE if not successful
 // Ammended July 2003 for auto-capitalization support
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 bool CPhraseBox::MoveToPrevPile(CAdapt_ItView *pView, CPile *pCurPile)
 {
-	//gbMovingToPreviousPile = TRUE; // set here, but we clear it after the ReDoPhraseBox( ) 
-					// calls in the relevant part (2 calls) in OnChar( ) after the
-					// suppression of the MakeLineFourString( ) call has been effected
-					// BEW removed 27Jan09
-	// store the current translation, if one exists, before retreating, since each retreat
-	// unstores the refString's translation from the KB, so they must be put back each time
-	// (perhaps in edited form, if user changed the string before moving back again)
+    // store the current translation, if one exists, before retreating, since each retreat
+    // unstores the refString's translation from the KB, so they must be put back each time
+    // (perhaps in edited form, if user changed the string before moving back again)
 	CAdapt_ItDoc* pDoc = pView->GetDocument();
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pApp != NULL);
@@ -3729,10 +3602,10 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 	}
 }
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
-bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 // returns TRUE if the move was successful, FALSE if not successful
 // Ammended, July 2003, for auto capitalization support
+// BEW 13Apr10, no changes needed for support of doc version 5
+bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 {
 	// store the current translation, if one exists, before moving to next pile, since each move
 	// unstores the refString's translation from the KB, so they must be put back each time
@@ -4042,7 +3915,7 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
 	}
 }
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnSysKeyUp(wxKeyEvent& event) 
 {
 	// wx Note: This routine handles Adapt It's AltDown key events
@@ -4301,7 +4174,7 @@ void CPhraseBox::OnSysKeyUp(wxKeyEvent& event)
 // return TRUE if we traverse this function without being at the end of the file, or
 // failing in the LookAhead function (such as when there was no match); otherwise, return
 // FALSE so as to be able to exit from the caller's loop
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 {
 	#ifdef _FIND_DELAY
@@ -4446,7 +4319,7 @@ bool CPhraseBox::OnePass(CAdapt_ItView *pView)
 
 // This OnKeyUp function is called via the EVT_KEY_UP event in our CPhraseBox
 // Event Table.
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnKeyUp(wxKeyEvent& event)
 {
 	//wxLogDebug(_T("OnKeyUp() %d called from PhraseBox"),event.GetKeyCode());
@@ -4788,7 +4661,7 @@ d:		SetFocus();
 
 // This OnKeyDown function is called via the EVT_KEY_DOWN event in our CPhraseBox
 // Event Table.
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 {
 	// refactored 2Apr09
@@ -4859,7 +4732,7 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 	event.Skip(); // allow processing of the keystroke event to continue
 }
 
-// BEW 26Mar10, some changes needed for support of _DOCVER5
+// BEW 26Mar10, some changes needed for support of doc version 5
 bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 {
 	// refactored 2Apr09
@@ -4871,11 +4744,7 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 	pApp->GetBasePointers(pDoc,pView,pBox);
 	if (pView == NULL)
 	{
-#if defined (_DOCVER5)
 		m_bCancelAndSelectButtonPressed = FALSE;
-#else
-		gbUserWantsSelection = FALSE;
-#endif
 		return FALSE;
 	}
 	wxASSERT(pView->IsKindOf(CLASSINFO(wxView)));
@@ -4922,7 +4791,6 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 	else
 	{
 		// must have hit Cancel button, or the Cancel And Select button
-#if defined (_DOCVER5)
 		if (dlg.m_bCancelAndSelect)
 		{
 			// set the private member boolean
@@ -4933,12 +4801,7 @@ bool CPhraseBox::ChooseTranslation(bool bHideCancelAndSelectButton)
 			// clear the private member boolean
 			m_bCancelAndSelectButtonPressed = FALSE;
 		}
-#else
-		if (dlg.m_bCancelAndSelect)
-			gbUserWantsSelection = TRUE;
-		else
-			gbUserWantsSelection = FALSE;
-#endif
+
 		// we have to undo any merge, but only provided the unmerge has not already
 		// been done in the OnButtonRestore() function; a merge can only have been done
 		// if adapting is current, so suppress the unmerge if glossing is current
@@ -4984,9 +4847,8 @@ bool CPhraseBox::GetModify()
 }
 
 
-// BEW 26Mar10 changes needed for support of _DOCVER5
-#if defined (_DOCVER5)
 // the pPile pointer passed it must be the pointer to the active pile
+// BEW 26Mar10 changes needed for support of doc version 5
 void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
 {
 	// refactored 2Apr09
@@ -5002,22 +4864,8 @@ void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
 	pView->MakeSelectionForFind(pSrcPhrase->m_nSequNumber,2,nSelLineIndex, m_bCancelAndSelectButtonPressed);
 	m_bCancelAndSelectButtonPressed = FALSE; // must clear to default FALSE immediately
 }
-#else
-// the pPile pointer passed it must be the pointer to the active pile
-void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
-{
-	// refactored 2Apr09
-	if (gbIsGlossing) return; // unneeded,  but ensures correct behaviour 
-							  // if I goofed elsewhere
-	CSourcePhrase* pSrcPhrase = pPile->GetSrcPhrase();
-	// BEW 9Aug09 added last parameter bDoRecalcLayoutInternally = TRUE
-	// to enable needed RecalcLayout, resetting of active sequ num etc in the
-	// internal function MakeSelectionForFind()
-	pView->SelectFoundSrcPhrases(pSrcPhrase->m_nSequNumber,2,FALSE,TRUE,TRUE);
-}
-#endif
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonDown(wxMouseEvent& event) 
 {	
 	// This mouse event is only activated when user clicks mouse L button within
@@ -5070,7 +4918,7 @@ void CPhraseBox::OnLButtonDown(wxMouseEvent& event)
 	GetSelection(&pApp->m_nStartChar,&pApp->m_nEndChar);
 }
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnLButtonUp(wxMouseEvent& event) 
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -5084,7 +4932,7 @@ void CPhraseBox::OnLButtonUp(wxMouseEvent& event)
 // below); return FALSE if there was no match; based on LookAhead(), but only looks up a
 // single src word at pNewPile; assumes that the app member, m_nActiveSequNum is set and
 // that the CPile which is at that index is the pNewPile which was passed in
-// BEW 26Mar10, no changes needed for support of _DOCVER5
+// BEW 26Mar10, no changes needed for support of doc version 5
 bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 {
 	// refactored 2Apr09
@@ -5196,17 +5044,10 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 		curKey.Empty(); // ditto for the current key string (global)
 		if (!bOK)
 		{
-#if defined (_DOCVER)
             // user cancelled, so return FALSE for a 'non-match' situation; the
             // m_bCancelAndSelectButtonPressed private member variable (set from
             // CChooseTranslation's m_bCancelAndSelect member) will have already been set
             // (if relevant) and can be used in the caller (ie. in MoveToNextPile)
-#else
-			// user cancelled, so return FALSE for a 'non-match' situation; the 
-			// gbUserWantsSelection global variable (set by CChooseTranslation's
-			// m_bCancelAndSelect member) will have already been set and can be used in
-			// the caller (ie. in MoveToNextPile)
-#endif
 			return FALSE;
 		}
 		// if bOK was TRUE, translation static var will have been set via the dialog; and
@@ -5234,7 +5075,7 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 	return TRUE;
 }
 
-// BEW 13Apr10, no changes needed for support of _DOCVER5
+// BEW 13Apr10, no changes needed for support of doc version 5
 void CPhraseBox::OnEditUndo(wxCommandEvent& WXUNUSED(event)) 
 // no changes needed for support of glossing or adapting
 {

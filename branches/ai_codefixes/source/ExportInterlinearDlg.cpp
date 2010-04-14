@@ -14,7 +14,7 @@
 /// \derivation		The CExportInterlinearDlg class is derived from AIModalDialog.
 /////////////////////////////////////////////////////////////////////////////
 
-// BEW 10Apr10, no changes for support of _DOCVER5
+// BEW 10Apr10, no changes for support of doc version 5
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)

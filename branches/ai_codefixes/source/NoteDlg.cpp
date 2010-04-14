@@ -13,15 +13,6 @@
 /// is displayed with Show(), not ShowModal().
 /// \derivation		The CNoteDlg class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in NoteDlg.cpp (in order of importance): (search for "TODO")
-// 1. Clicking on First or Last (and other navigation) buttons, or on another note while current 
-//    note is open results in a blank (phantom) note being displayed and a crash when trying to 
-//    click Cancel, OK or any other button.
-//
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -127,7 +118,7 @@ CNoteDlg::~CNoteDlg() // destructor
 // BEW added 18Oct06 in support of making either the Find Next button or the OK button
 // the default button, depending on whether the m_editSearch CEdit box has text in it
 // or not, respectively
-// BEW 25Feb10, no change for _DOCVER5
+// BEW 25Feb10, no change for doc version 5
 void CNoteDlg::OnEnChangeEditBoxSearchText(wxCommandEvent& WXUNUSED(event))
 {
 	wxString boxTextStr = _T("");
@@ -151,7 +142,7 @@ void CNoteDlg::OnEnChangeEditBoxSearchText(wxCommandEvent& WXUNUSED(event))
 // or not, respectively
 // whm 18Oct06 wx version uses OnIdle() instead of detecting focus event as MFC's 
 // OnEnSetFocusEditBoxNote()
-// BEW 25Feb10, no change for _DOCVER5
+// BEW 25Feb10, no change for doc version 5
 void CNoteDlg::OnIdle(wxIdleEvent& WXUNUSED(event))
 {
 	wxString boxTextStr = _T("");
@@ -189,15 +180,13 @@ void CNoteDlg::OnIdle(wxIdleEvent& WXUNUSED(event))
 	}
 }
 
-// BEW 25Feb10, updated for support of _DOCVER5. Also, for docVersion 5 there is no need, when
+// BEW 25Feb10, updated for support of doc version 5. Also, for docVersion 5 there is no need, when
 // extracting the note text for showing in the dialog, to remove the text from the
 // CSourcePhrase instance; rather, if the user subsequently clicks OK, then the text
 // (possibly edited) just overwrites what is present, and if empty, the note is abandoned.
-// BEW 25Feb10, updated for support of _DOCVER5
+// BEW 25Feb10, updated for support of doc version 5
 void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is method of wxWindow
 {
-	//InitDialog() is not virtual, no call needed to a base class
-   
 	wxASSERT(this == gpApp->m_pNoteDlg);
 	// get pointers to dialog controls
 	pEditNote = (wxTextCtrl*)gpApp->m_pNoteDlg->FindWindowById(IDC_EDIT_NOTE); // whm moved to constructor
@@ -226,37 +215,9 @@ void CNoteDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialog is m
 	m_bPreExisting = TRUE;
 	if (pSrcPhrase->m_bHasNote)
 	{
-#if defined (_DOCVER5)
 		// get the existing Note text
 		m_strNote = pSrcPhrase->GetNote();
 		m_saveText = m_strNote;
-#else	// _DOCVER5
-		// extract the existing Note text (the view variable m_note will store the string)
-		// (extraction removes the note contents and trailing space from between the \note
-		// and \note* markers, so that when we exit the dialog, we can copy in the text
-		// (which might have been edited) -- Note: if there is no text left in the note when
-		// the user has finished dealing with it, we will remove the note, markers, and 
-		// filter markers from m_markers when we exit the dialog
-		wxString mkr = _T("\\note");
-		wxString endMkr = _T("\\note*");
-		wxString markers = pSrcPhrase->m_markers;
-		int nFound = markers.Find(mkr);
-		if (nFound == -1)
-		{
-			// there is no \note marker in the markers string, and so we have nothing to
-			// extract -- because of this, the m_bHasNote flag must be cleared
-			pSrcPhrase->m_bHasNote = FALSE;
-		}
-		else
-		{
-			// the marker is present, so extract the note content, setting its offset and length,
-			// and then clear its space in m_markers
-			m_strNote = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,m_noteOffset,m_noteLen);
-			m_saveText = m_strNote;
-			markers.Remove(m_noteOffset,m_noteLen);
-			pSrcPhrase->m_markers = markers; // update it
-		}
-#endif	// _DOCVER5
 	}
 	else
 	{
@@ -388,7 +349,6 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();		
 	wxASSERT(pSrcPhrase);
 
-#if defined (_DOCVER5)
     // we prefer not to have empty notes (we can't categorically prevent them because the
     // user may use the View Filtered Material dlg to clear out a note's content)...
 	// *** Comment out the next 14 lines if we decide to allow empty notes (the rest of the
@@ -411,85 +371,7 @@ void CNoteDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 	pSrcPhrase->SetNote(m_strNote); // overwrite whatever is in m_note already, if anything
 	pSrcPhrase->m_bHasNote = TRUE;
 	Destroy(); // destroy the dialog window (see comments at end for why)
-#else
-    // do a reality check on m_markers - I noticed that the test document had sometimes an
-    // m_markers string ending with a SF marker, and no trailing space. The space should be
-    // present - so if we detect this, we can do an automatic silent correction now
-	int markersLen = pSrcPhrase->m_markers.Length();
-	if (markersLen >= 2)
-	{
-		// at least a backslash and a single character should be present, otherwise don't bother
-		if (pSrcPhrase->m_markers.GetChar(markersLen - 1) != _T(' '))
-		{
-			pSrcPhrase->m_markers += _T(' ');
-		}
-	}
 
-	wxString markers = pSrcPhrase->m_markers;
-
-	int nFound = markers.Find(mkr);
-	bool bInsertContentOnly;
-	if (nFound == -1)
-	{
-		// there is no \note marker in the markers string, and so we are working
-		// with a just-created note -- insert it provided it is not empty
-		if (m_strNote.IsEmpty())
-		{
-			// we prefer not to have empty notes (we can't categorically prevent them
-			// because the user may use the View Filtered Material dlg to clear out a
-			// note's content)
-			pSrcPhrase->m_bHasNote = FALSE;
-			goto a;
-		}
-		else
-		{
-			// there is some text in the note, so construct filter markers and note markers and content
-			// and insert it at the proper location
-			bInsertContentOnly = FALSE;
-
-			// we may have other content in m_markers, so we have to first find the proper insertion location
-			m_noteOffset = pView->FindFilteredInsertionLocation(pSrcPhrase->m_markers,mkr);
-
-			// ensure the note string ends with a single space, we'll leave internal tabs, carriage returns
-			// and newlines - after all, this is only a note, not text for parsing for adaptation
-			//m_strNote.Trim(_T(" \r\n\t")); //m_strNote.Trim(_T(" \r\n\t"));
-			// Under wx .Trim appears to only remove spaces, so I'll insure the other whitespace chars are also
-			// removed if present on the right end of m_strNote.
-			while (m_strNote.Length() > 0 && (m_strNote[m_strNote.Length() -1] == _T(' ')
-				|| m_strNote[m_strNote.Length() -1] == _T('\r')
-				|| m_strNote[m_strNote.Length() -1] == _T('\n')
-				|| m_strNote[m_strNote.Length() -1] == _T('\t')))
-			{
-				m_strNote.Remove(m_strNote.Length() -1,1);
-			}
-			m_strNote += _T(' '); // append the final single space
-
-			// now build the total string and insert it all (final BOOL being FALSE accomplishes the
-			// build of \~FILTER \note <contents of m_strNote> \note* \~FILTER* followed by a single space,
-			// which is done internally
-			pView->InsertFilteredMaterial(mkr,endMkr,m_strNote,pSrcPhrase,m_noteOffset,bInsertContentOnly);
-			pSrcPhrase->m_bHasNote = TRUE;
-		}
-	}
-	else
-	{
-		// we are dealing with a prexisting note, so we only need to save the new (or same) content
-		bInsertContentOnly = TRUE;
-		if (m_strNote.IsEmpty())
-		{
-			pView->RemoveContentWrappers(pSrcPhrase,mkr,m_noteOffset); // doesn't clear m_bHasNote
-			pSrcPhrase->m_bHasNote = FALSE;
-		}
-		else
-		{
-			// do the insertion
-			pView->InsertFilteredMaterial(mkr,endMkr,m_strNote,pSrcPhrase,m_noteOffset,bInsertContentOnly);
-		}
-	}
-	pView->RemoveSelection(); // in case one was used to indicate the note location
-	pView->Invalidate(); // so the note icon and green wedge show for the new note	
-a:	Destroy(); // destroy the dialog window
-#endif
 	// wx version note: Compare to the ViewFilteredMaterialDlg where it is sometimes also necessary to
 	// create a new dialog while the current one is open. In the case of ViewFilteredMaterialDlg, the
 	// code first called its OnCancel() handler (because it was assumed there that the user wouldn't
@@ -515,75 +397,19 @@ a:	Destroy(); // destroy the dialog window
 // other class methods
 void CNoteDlg::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
-#if defined (_DOCVER5)
 	// Allow the original state to remain - so just remove the dialog and refresh the view
 	CAdapt_ItView* pView = gpApp->GetView();
-#else
-	// put back the original text if there was some, but if not, remove the note entirely
-	CAdapt_ItView* pView = gpApp->GetView();
-	if (gpApp->m_pNoteDlg != NULL)
-	{
-		m_strNote = pEditNote->GetValue(); // whm added 4Jul06
-		m_searchStr = pEditSearch->GetValue(); // whm added
-	}
-
-	// insert the note, or if these is its first creation, construct the filtered
-	// string and insert it - fortunately we have functions for doing these things
-	wxString mkr = _T("\\note");
-	wxString endMkr = _T("\\note*");
-
-	SPList* pList = gpApp->m_pSourcePhrases;
-	SPList::Node* pos = pList->Item(gpApp->m_nSequNumBeingViewed);		
-	wxASSERT(pos != NULL);
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();		
-	wxASSERT(pSrcPhrase);
-
-	// do a reality check on m_markers - I noticed that the test document had sometimes an
-	// m_markers string ending with a SF marker, and no trailing space. The space should be
-	// present - so if we detect this, we can do an automatic silent correction now
-	int markersLen = pSrcPhrase->m_markers.Length();
-	if (markersLen >= 2)
-	{
-		// at least a backslash and a single character should be present, otherwise don't bother
-		if (pSrcPhrase->m_markers.GetChar(markersLen - 1) != _T(' '))
-		{
-			pSrcPhrase->m_markers += _T(' ');
-		}
-	}
-
-	wxString markers = pSrcPhrase->m_markers;
-
-	int nFound = markers.Find(mkr);
-	if (nFound == -1)
-	{
-		// there is no \note marker in the markers string, and so we are cancelling
-		// a just-created note -- so whether empty or not, just remove it entirely
-		pSrcPhrase->m_bHasNote = FALSE;
-	}
-	else
-	{
-		// we are dealing with a prexisting note, so we need to restore the original content
-		bool bInsertContentOnly = TRUE; // unused
-		m_strNote = m_saveText;
-		
-		// do the re-insertion of the original content
-		pView->InsertFilteredMaterial(mkr,endMkr,m_strNote,pSrcPhrase,m_noteOffset,bInsertContentOnly);
-	}
-#endif
 	pView->RemoveSelection(); // in case a selection was used to indicate the note location
 	//pView->Invalidate(); // so the note icon and green wedge show for the new note
 	// Redraw has to be called after selection removal otherwise the selection remains
 	// intact despite the Invalidate() call below
 	gpApp->m_pLayout->Redraw(); // better than calling Invalidate() here, see previous line
 
-
 	Destroy();
 	gpApp->m_pNoteDlg = NULL; // allow the View Filtered Material dialog to be opened
 	gpNotePile = NULL;
 	pView->Invalidate();
 	gpApp->m_pLayout->PlaceBox();
-
-	//wxDialog::OnCancel(event); //don't call base class because we are modeless
 }
 
 // ******************************  handlers   **********************************

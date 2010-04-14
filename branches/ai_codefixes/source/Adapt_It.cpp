@@ -21959,7 +21959,7 @@ SPList *CAdapt_ItApp::LoadSourcePhraseListFromFile(wxString FilePath)
 /// effectively joining two documents. Tests to make sure book IDs are valid and that they
 /// match, and does other housekeeping to make sure end markers and sequence numbers are
 /// handled properly.
-/// BEW 12Apr10, changed for support of _DOCVER5
+/// BEW 12Apr10, changed for support of doc version 5
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBookID, 
 												 bool IsLastAppendUsingThisMethodRightNow)
@@ -22022,41 +22022,6 @@ bool CAdapt_ItApp::AppendSourcePhrasesToCurrentDoc(SPList *ol, wxString& curBook
 		// so don't make any book ID check
 		;
 	}
-#if !defined (_DOCVER5)
-	// it should never be necessary to move endmarkers now, as they don't occur at the
-	// start of m_markers in doc version 5 any more
-	
-    // BEW added 15Aug07: check for final endmarkers that were moved to the doc end, and if
-    // so, remove them and put them back in the m_markers member first (after book ID
-    // element is removed) in the joined part
-	
-	SPList::Node* lastPos = m_pSourcePhrases->GetLast();
-	CSourcePhrase* pTailSPhr = lastPos->GetData();
-	int backslash_offset = pTailSPhr->m_markers.Find(_T('\\'));
-	int asterisk_offset = pTailSPhr->m_markers.Find(_T('*'));
-	if (pTailSPhr->m_key.IsEmpty() && pTailSPhr->m_srcPhrase.IsEmpty() && backslash_offset != -1
-		&& asterisk_offset != -1)
-	{
-        // while the test was not perfect, it is almost 100% certain that only an appended
-        // CSourcePhrase having a moved endmarker(s) string in its m_markers member would
-        // satisfy the test, so assume we have found such a one
-		wxString markers = pTailSPhr->m_markers; // don't bother to check its contents
-		// WX Note: wxList does not have RemoveTail(). We can do it in a two stage process
-		// by using GetLast(), then DeleteNode() [ which is equivalent to MFC RemoveAt()].
-		SPList::Node *pLast = m_pSourcePhrases->GetLast();
-		m_pSourcePhrases->DeleteNode(pLast);
-		delete pTailSPhr;
-
-        // get the CSourcePhrase pointer first in the ol list and insert the markers string
-        // at the start of its m_markers member
-		SPList::Node* hpos = ol->GetFirst();
-		CSourcePhrase* pHeadSPhr = (CSourcePhrase*)hpos->GetData();
-		if (pHeadSPhr)
-		{
-			pHeadSPhr->m_markers = markers + pHeadSPhr->m_markers;
-		}
-	}
-#endif
 	// Jonathan's code continues here...
 	//m_pSourcePhrases->Append(ol);
     // wx doesn't have a wxList method for appending one list onto another list, so we'll

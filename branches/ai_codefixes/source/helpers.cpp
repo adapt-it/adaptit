@@ -7,7 +7,7 @@
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the implementation file containing some helper functions used by Adapt It. 
-/// BEW 12Apr10, all changes for supporting _DOCVER5 are done for this file
+/// BEW 12Apr10, all changes for supporting doc version 5 are done for this file
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
@@ -48,12 +48,10 @@ extern CAdapt_ItApp* gpApp;
 
 extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 
-#ifdef _DOCVER5
 extern const wxChar* filterMkr; // defined in the Doc
 extern const wxChar* filterMkrEnd; // defined in the Doc
 const int filterMkrLen = 8;
 const int filterMkrEndLen = 9;
-#endif
 
 extern bool gbIsGlossing;
 
@@ -773,7 +771,7 @@ wxString StripPath(wxString FullPath)
 /// \remarks
 /// Creates a new Source Phrase List to hold the split-off portion, and returns a pointer to that new List.  
 /// MainList is modified by having the first FirstIndexToKeep entries removed into the new List.
-/// BEW 23Mar10 updated for support of _DOCVER5 (change needed)
+/// BEW 23Mar10 updated for support of doc version 5 (change needed)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 {
@@ -784,10 +782,7 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 	// a marker .... endmarker matched pair (eg. footnote)
 	SPList::Node* pos = MainList->Item(FirstIndexToKeep);
 	wxASSERT(pos != NULL);
-#if !defined (_DOCVER5)
-	CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
-	bool bAbortOperation = FALSE;
-#endif
+
 	// Jonathan's original code block (note: FirstIndexToKeep is only
 	// used as a counter so as to determine when to quit the loop, it 
 	// is not used for accessing list members)
@@ -799,126 +794,8 @@ SPList *SplitOffStartOfList(SPList *MainList, int FirstIndexToKeep)
 		rv->Append(pSrcPhrase);
 		--FirstIndexToKeep;
 	}
-#if !defined (_DOCVER5)
-	// the rest of the BEW addition of 15Aug07,
-	wxString endmarkers = RemoveInitialEndmarkers(pSrcPhrase, gpApp->gCurrentSfmSet,
-																bAbortOperation);
-	// create a new CSourcePhrase to carry the endmarkers content, put the latter in its m_markers member
-	if (!endmarkers.IsEmpty() && !bAbortOperation)
-	{
-		CSourcePhrase* newSrcPhraseP = new CSourcePhrase;
-		newSrcPhraseP->m_markers = endmarkers;
-
-		// the final task is to append this new CSourcePhrase to the end of the list in rv
-		rv->Append(newSrcPhraseP);
-	}
-#endif
 	return rv;
 }
-
-#if !defined (_DOCVER5)
-////////////////////////////////////////////////////////////////////////////////////////////////////
-///	\return        a wxString containing one or more consecutive endmarkers followed by their trailing
-///                whitespace characters; or an empty string if there were no endmarkers detected
-///	\param	pSrcPhrase	->	the pSourcePhrase which is first in the document part immediately following the
-///						earlier part of the document which has just been split off from the rest
-///	\param	currSfmSet	->	either UsfmOnly, or PngOnly, or perhaps rarely, UsfmAndPng - whatever is
-///						the current value stored in the global gCurrentSfmSet
-///	\param	bLacksAny	<->	ref to a bool which is FALSE on entry, but set TRUE if there is no initial
-///						endmarker in pSrcPhrase's m_markers member (ie. when TRUE there are no
-///						initial enddmarkers in the pSrcPhrase->m_markers member)
-///	\param	bCopyOnly	->	Default FALSE means the endmarkers are found and the copy of them returned and
-///						they are removed from the passed in pSrcPhrase's m_markers member; but TRUE 
-///						means only that the first two effects happen, they are left on the pSrcPhrase's
-///						m_markers member
-///	\remarks
-///	Used to detect one or more initial endmarkers in the m_markers member of the pSourcePhrase passed
-///	in, move them to a different tempory wxString, leave the remainder in m_markers, and pass a copy
-///	of the tempory wxString to the caller - the caller then must create a new CSourcePhrase pointer,
-///	store the one or more moved endmarkers in its m_markers member, and add it to the tail of the
-///	split off document part's SPList, thereby preserving correct document SFM or USFM structure.
-///	This function is used in the SplitDocument class's MoveFinalEndmarkersToEndOfLastChapter() member
-///	function, which is itself used in the handler for processing per-chapter splitting, and also in
-///	the helper function SplitOffStartOfList() defined here in helpers.cpp, which is used in both
-///	splitting at the box location, and at the next chapter.
-///	Created 15Aug07 by BEW, in response to an email bug report from Bill Martin on same date
-///	Revised 22Oct07 by whm to accommodate the different logic of wxStringTokenizer
-///	No change made, but in 2008 used additionally in the vertical edit process
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-wxString RemoveInitialEndmarkers(CSourcePhrase* pSrcPhrase, enum SfmSet currSfmSet, bool& bLacksAny,
-								 bool bCopyOnly)
-{
-	// bLacksAny is FALSE on input
-	wxString markers, endmarkers;
-	endmarkers.Empty();
-	int lastPos = 0; //int lastPos = offset;
-	wxString aToken;
-	markers = pSrcPhrase->m_markers;
-	wxStringTokenizer tkz(markers,_T(" \n\r\t"));
-	aToken = tkz.GetNextToken();
-	if (aToken.IsEmpty())
-	{
-		bLacksAny = TRUE;
-		return endmarkers;
-	}
-	aToken = MakeReverse(aToken);
-	if ((aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng)) ||
-		((aToken != _T("ef\\") || aToken != _T("F\\")) && 
-		(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
-	{
-		// marker's final character is not an asterisk, nor a reversed one of the possible
-		// PngOnly sfm set's \F or \fe markers (either was historically used for ending 
-		// footnotes); hence it is not an endmarker, so return
-		bLacksAny = TRUE;
-		return endmarkers;
-	}
-	// it is an endmarker, so break out any others at the start of markers
-	bLacksAny = FALSE;
-	while (!aToken.IsEmpty())
-	{
-		lastPos = tkz.GetPosition();
-		aToken = tkz.GetNextToken();
-		if (aToken.IsEmpty())
-			break;
-		else
-		{
-			aToken = MakeReverse(aToken);
-			if ((aToken[0] != _T('*') && (currSfmSet == UsfmOnly || currSfmSet == UsfmAndPng)) ||
-				((aToken != _T("ef\\") || aToken != _T("F\\")) && 
-				(currSfmSet == PngOnly || currSfmSet == UsfmAndPng)) )
-			{
-				// same test as above, only this time just break out if it returns TRUE
-				break;
-			}
-		}
-	}
-	// the break-out token, if any, will have resulted in offset pointing past it, so we have
-	// to use lastPos to get the offset which points past the last broken out endmarker
-	// BEW added 30Aug08, to fix a crash where, if the markers CString contains just \f* then
-	// lastPos is 4 at breakout, and that triggers a breakpoint in atlsimpstr.cpp because lastPos
-	// accesses the byte past the '\0' endbyte of the string; so we here check and reduce lastPos
-	// if that is the case
-	int strLen = markers.Length();
-	if (lastPos > strLen)
-		lastPos = strLen;
-
-	// include any following white space after the lostPos position, in the endmarkers substring 
-	while (markers[lastPos] == _T(' ') || markers[lastPos] == _T('\n') || markers[lastPos] == _T('\r') ||
-		markers[lastPos] == _T('\t'))
-	{lastPos++;}
-	endmarkers = markers.Left(lastPos); // this stuff belongs at the end of the list in the previous
-									   // Chapter object; or if editing source text, it belongs with
-									   // the previous storage location's source text
-	if (!bCopyOnly)
-	{
-		// remove the endmarkers from pSrcPhrase->m_markers only when bCopyOnly is not TRUE
-		markers = markers.Mid(lastPos); // whatever is left over, belongs in the current Chapter object, or
-									// the remainder part of the document, depending on radio button choice
-		pSrcPhrase->m_markers = markers; // update the m_markers member in the current Chapter's CSourcePhrase
-	}
-	return endmarkers;
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// \return	a substring that contains characters in the string that are in charSet, beginning with 
@@ -1008,7 +885,7 @@ wxString MakeReverse(wxString inputStr)
 /// \remarks
 /// The wxWidgets wxString class has no second parameter in its Find() method, so
 /// this function can be used to Find starting at a certain position in the string.
-/// BEW 25Feb10, updated for support of _DOCVER5 (no changes needed)
+/// BEW 25Feb10, updated for support of doc version 5 (no changes needed)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 int FindFromPos(const wxString& inputStr, const wxString& subStr, int startAtPos)
 {
@@ -1304,7 +1181,7 @@ bool ListBoxPassesSanityCheck(wxControlWithItems* pListBox)
 /// by just testing the first one or two instances, so certainly 5 should be plenty. If after five
 /// we still don't know, then default to returning TRUE. 
 /// BEW added 26Oct08
-/// BEW 30Mar10, updated for support of _DOCVER5 (some changes needed)
+/// BEW 30Mar10, updated for support of doc version 5 (some changes needed)
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool IsCollectionDoneFromTargetTextLine(SPList* pSrcPhrases, int nInitialSequNum)
 {
@@ -1689,38 +1566,11 @@ wxString ChangeHyphensToUnderscores(wxString& name)
 ///    content, so he can enter it manually or by other means; a companion function to this
 ///    present one is IsBackTranslationContentEmpty(), which works similarly but for a \bt
 ///    or \bt derived marker's field.
-///    BEW 19Feb10, updated for _DOCVER5, and also moved it to helpers.cpp
+///    BEW 19Feb10, updated for doc version 5, and also moved it to helpers.cpp
 /////////////////////////////////////////////////////////////////////////////////
 bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 {
-#ifdef _DOCVER5
 	return pSrcPhrase->GetFreeTrans().IsEmpty();
-#else
-	int offset;
-	int length;
-	wxString mkr = _T("\\free");
-	wxString endMkr = _T("\\free*");
-
-	// determine there is a free translation there first
-	// - exit FALSE if there is none
-	int curPos = pSrcPhrase->m_markers.Find(mkr);
-	if (curPos == -1)
-		return FALSE; // no \free is present, so we cannot claim 
-					  // it is empty of content
-
-	// there is a \free marker present, so determine its content
-	wxString contentStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,
-													offset,length);
-
-	// trim any spaces - since these are included in what the 
-	// GetExistingMarkerContent call returns
-	contentStr.Trim(FALSE); // trim left end
-	contentStr.Trim(TRUE); // trim right end
-
-	// if there were only spaces, then the field is contentless 
-	// & so return TRUE, else FALSE
-	return contentStr.IsEmpty();
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1741,42 +1591,13 @@ bool IsFreeTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 ///    content, so he can enter it manually or by other means; a companion function to this
 ///    present one is IsFreeTranslationContentEmpty(), which works similarly but for a
 ///    \free field.
-///    BEW 19Feb10, moved from view class, and updated to support _DOCVER5
+///    BEW 19Feb10, moved from view class, and updated to support doc version 5, and
+///    the colours used and when they are used is changed a little, aqua is added too
 /////////////////////////////////////////////////////////////////////////////////
 bool IsBackTranslationContentEmpty(CSourcePhrase* pSrcPhrase)
 {
-#ifdef _DOCVER5
 	return pSrcPhrase->GetCollectedBackTrans().IsEmpty();
-#else
-	int offset;
-	int length;
-	wxString mkr = _T("\\bt");
-	wxString endMkr = _T(""); // back translations do not have endmarkers
-
-	// determine there is a free translation there first 
-	// - exit FALSE if there is none
-	int curPos = pSrcPhrase->m_markers.Find(mkr);
-	if (curPos == -1)
-		return FALSE; // no \bt or \bt derived marker is present, so we 
-					  // cannot claim it is empty of content
-
-	// there is a \bt or a marker which is a derivative of \bt present, 
-	// so determine its content
-	wxString contentStr = GetExistingMarkerContent(mkr,endMkr,pSrcPhrase,
-													offset,length);
-
-	// trim any spaces - since these are included in what the 
-	// GetExistingMarkerContent call returns
-	contentStr.Trim(FALSE); // trim left end
-	contentStr.Trim(TRUE); // trim right end
-
-	// if there were only spaces, then the field is contentless 
-	// & so return TRUE, else FALSE
-	return contentStr.IsEmpty();
-#endif
 }
-
-#if defined (_DOCVER5)
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// \return                 a string with the filtered information and wrapped by 
@@ -1967,7 +1788,7 @@ void EmptyMarkersAndFilteredStrings(
 /// Note: we only produce Sstr in order to support a referential source text in the top
 /// edit box of the placement dialog - which won't be called if there are no medial
 /// markers stored in the merged src phrase. The modified Tstr is what we return.
-/// BEW 1Apr10, written for support of _DOCVER5
+/// BEW 1Apr10, written for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 {
@@ -2302,7 +2123,7 @@ wxString FromMergerMakeTstr(CSourcePhrase* pMergedSrcPhrase, wxString Tstr)
 /// Note: we only produce Sstr in order to support a referential source text in the top
 /// edit box of the placement dialog - which won't be called if there are no medial
 /// markers stored in the merged src phrase. The modified Gstr is what we return.
-/// BEW 1Apr10, written for support of _DOCVER5
+/// BEW 1Apr10, written for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 {
@@ -2549,7 +2370,7 @@ wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase)
 /// the caller, so we only work with the m_srcPhase member, and m_endMarkers member of the first CSourcePhrase
 /// of the merger, but with the non-initial CSourcePhrase members we must take into
 /// account any m_markers information as well as the other two members.
-/// BEW 7Apr10, written for support of _DOCVER5
+/// BEW 7Apr10, written for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 {
@@ -2655,7 +2476,7 @@ wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase)
 /// any filtered out information (which always comes first, if present), and the result is
 /// return to the caller as the modified Tstr. (Tstr may be passed in containing
 /// adaptation text, or gloss text.)
-/// BEW 1Apr10, written for support of _DOCVER5
+/// BEW 1Apr10, written for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////////////////
 wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr)
 {
@@ -3036,8 +2857,6 @@ bool HasFilteredInfo(CSourcePhrase* pSrcPhrase)
 	return FALSE;
 }
 
-#endif
-
 // determines if nFirstSequNum up to nFirstSequNum + nCount - 1 all lie within a
 // retranslation; if TRUE, then also returns the first and last sequence numbers for the
 // retranslation in the last 2 parameters; these parameters are not defined if FALSE is
@@ -3102,7 +2921,7 @@ b:	nLast += 1;
 	return TRUE;
 }
 
-// BEW 16Feb10, no changes needed for support of _DOCVER5
+// BEW 16Feb10, no changes needed for support of doc version 5
 bool IsNullSrcPhraseInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;
@@ -3119,7 +2938,7 @@ bool IsNullSrcPhraseInSelection(SPList* pList)
 	return FALSE;
 }
 
-// BEW 16Feb10, no changes needed for support of _DOCVER5
+// BEW 16Feb10, no changes needed for support of doc version 5
 bool IsRetranslationInSelection(SPList* pList)
 {
 	CSourcePhrase* pSrcPhrase;

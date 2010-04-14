@@ -181,13 +181,11 @@ public:
     // needs the older system for testing his work, and Bruce needs the new system for his
     // own
 private:
-#ifdef _DOCVER5
 	wxString		m_endMarkers;
 	wxString		m_freeTrans;
 	wxString		m_note;
 	wxString		m_collectedBackTrans;
 	wxString		m_filteredInfo;
-#endif
 
 // Operations
 public:
@@ -214,7 +212,6 @@ public:
 	// BEW added 04Nov05
 	bool ChapterColonVerseStringIsNotEmpty();
 
-#ifdef _DOCVER5
 	// BEW added 12Feb10, getters and setters for the 5 new private wxString members
 	wxString GetFreeTrans();
 	wxString GetNote();
@@ -239,7 +236,6 @@ public:
 	void SetEndMarkers(wxString endMarkers);
 	void AddEndMarker(wxString endMarker);
 	void SetEndMarkersAsNowMedial(wxArrayString* pMedialsArray);
-#endif
 
 /* uncomment out when we make m_markers a private member
 	wxString GetMarkers();

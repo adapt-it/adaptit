@@ -254,7 +254,6 @@ const char xml_m[] = "m"; // m_markers
 const char xml_mp[] = "mp"; // some medial punctuation
 /// Attribute name used in Adapt It XML documents
 const char xml_mm[] = "mm"; // one or more medial markers (no filtered stuff)
-#ifdef _DOCVER5
 // new ones, Feb 2010, for doc version = 5
 /// Attribute name used in Adapt It XML documents
 const char xml_em[] = "em"; // m_endMarkers
@@ -266,7 +265,6 @@ const char xml_no[] = "no"; // m_note
 const char xml_bt[] = "bt"; // m_collectedBackTrans
 /// Attribute name used in Adapt It XML documents
 const char xml_fi[] = "fi"; // m_filteredInfo
-#endif
 
 // tag & attribute names for KB i/o
 
@@ -986,7 +984,7 @@ typedef struct
     // both locations, so that the user can be shown the most logically meaningful editable
     // text string, and to enable replacement of either or both endmarker strings after the
     // edit is done - if that is an appropriate editing operation for the user to do.
-#ifdef _DOCVER5
+
 	// For docVersion = 5, we no longer store endmarkers at the beggining of a following
 	// srcPhrase's m_markers member, but on the relevant one which ends the information
 	// type, on its new m_endMarkers member. This makes the comment for Note 5 above
@@ -996,7 +994,6 @@ typedef struct
 	// the editable span ends with endmarkers, they are now stored on the last
 	// CSourcePhrase instance of the editable span, again in its m_endMarkers member. So
 	// we don't have to make any adjustments for endmarker transfers any longer.
-#endif
 
     // Note 6: We also maintain an integer array to store the sequence numbers for the
     // storage locations of any Adapt It Notes which lie within the editable subspan. These
@@ -1145,30 +1142,6 @@ typedef struct
                 // after the user has completed his editing of the source text (or whatever
                 // the edit did, eg. removal of a merger - but this additional stuff will
                 // only be possible within the wxWidgets versions)
-#if !defined (_DOCVER5)
-                // BEW added comment 22Mar10 for doc version 5. These  3 members are no longer
-                // needed, because such endmarkers now are stored in the last CSourcePhrase
-                // instance within the edit span, and can be got directly from there, etc
-                
-	wxString strInitialEndmarkers; // store here the any endmarkers stripped off the 
-                // m_markers member of the editable subspan's first CSourcePhrase member
-
-	wxString strFinalEndmarkers;  // store here the any endmarkers stripped off the 
-                // m_markers member of the first CSourcePhrase member following the
-                // editable subspan (at the point in the code when we do this storage, the
-                // m_markers member has that substring removed, this is done in the
-                // pSrcPhrase in the modifications list; and the substring needs to be
-                // added to the end of the string of source text and SFM markup which he is
-                // to see in the dialog, just prior to making the dialog visible)
-
-	wxString strNewFinalEndmarkers;   // store here the any endmarkers stripped off the 
-                // end of the user's edited source text string. His edit could change
-                // anything, and so it is conceivable that his new text may end with
-                // different endmarkers from those that will be restored to the end of the
-                // editable span when he first views the dialog, so we must store the new
-                // ones in case we must cancel out and restore the original document's
-                // state
-#endif
 	bool bSpecialText; // stores the m_bSpecialText boolean value for the first 
                 // CSourcePhrase instance in the editable span; TRUE if it was special
                 // text, FALSE if verse or poetry
@@ -1196,12 +1169,12 @@ typedef struct
 				// in the first place) This boolean is advisory only, it gets set TRUE
 				// only if transfer of filtered info was done; it isn't used in a test in
 				// order to govern how some part of the code should work
-#if defined (_DOCVER5)
+
                 // BEW added comment 22Mar10 for doc version 5. The above is still true
                 // except that there is not a single location for any transferred filtered
                 // stuff, but, depending on what info was there, it could be one or more of
                 // m_freeTrans, m_note, m_collectedBackTrans, or m_filteredInfo
-#endif
+
 	bool bDocEndPreventedTransfer; // FALSE by default; TRUE if there was created an empty
                 // carrier CSourcePhrase for storing final endmarker(s), or now-filtered
                 // information, and there is no following context to which transfer of this

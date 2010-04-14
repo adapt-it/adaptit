@@ -212,10 +212,6 @@ public:
 	int				ParseWhiteSpace(wxChar *pChar);
 	int				ParseFilteringSFM(const wxString wholeMkr, wxChar *pChar, 
 							wxChar *pBuffStart, wxChar *pEnd);
-#if !defined (_DOCVER5)
-	int				ParseFilteredMarkerText(const wxString wholeMkr, wxChar *pChar, 
-							wxChar *pBuffStart, wxChar *pEnd);
-#endif
 	int				ParseWord(wxChar *pChar, wxString& precedePunct, wxString& followPunct,wxString& SpacelessSrcPunct);
 	wxString		RedoNavigationText(CSourcePhrase* pSrcPhrase);
 	bool			RemoveMarkerFromBoth(wxString& mkr, wxString& str1, wxString& str2);
@@ -266,11 +262,7 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
-#ifdef _DOCVER5
 	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
-#else
-	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr);
-#endif
 	void SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
 

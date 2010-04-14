@@ -13,7 +13,7 @@
 /// whether back translations, free translations, and notes are to be formatted as
 /// boxed paragraphs, rows of interlinear tables, balloon comments, or footnotes.
 /// \derivation		The CExportOptionsDlg class is derived from AIModalDialog.
-/// BEW 12Apr10, no changes needed for support of _DOCVER5
+/// BEW 12Apr10, no changes needed for support of doc version 5
 /////////////////////////////////////////////////////////////////////////////
 
 // the following improves GCC compilation performance
