@@ -5348,11 +5348,12 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 
 	bECDriverDLLLoaded = FALSE;
 #ifdef USE_SIL_CONVERTERS
-    // Turn off system message "Failed to load shared library...(error 126: the specified
-    // module could not be found", which pops up in idle time if following .Load() call
-    // fails. We have our own message.
+	// Do not try to load SIL Converters ECDriver.dll on Win95 and Win98
     if (wxGetWinVersion() >= wxWinVersion_5)
 	{
+		// Turn off system message "Failed to load shared library...(error 126: the specified
+		// module could not be found", which pops up in idle time if following .Load() call
+		// fails. We have our own message.
 		wxLogNull logNo;	// eliminates any spurious messages from the system while 
 							// reading read-only folders/files
 		bECDriverDLLLoaded = ecDriverDynamicLibrary.Load(LIB_NAME);

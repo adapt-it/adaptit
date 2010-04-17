@@ -59,10 +59,10 @@ class AIPrintout;
 // 
 #define VERSION_MAJOR_PART 5
 #define VERSION_MINOR_PART 2
-#define VERSION_BUILD_PART 1
+#define VERSION_BUILD_PART 2
 #define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 29
-#define VERSION_DATE_MONTH 03
+#define VERSION_DATE_DAY 17
+#define VERSION_DATE_MONTH 04
 #define VERSION_DATE_YEAR 2010
 
 //#define _ALT_LAYOUT_ // BEW May09, if defined, it keeps CPile pointer copies out of the
