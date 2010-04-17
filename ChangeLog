@@ -1,3 +1,17 @@
+Version 5.2.2 update 17April2010:
+----------------------------------------------
+Bug fixes in 5.2.2
+----------------------------------------------
+* Users of Adapt It on Windows 98 systems found that the Regular
+version of Adapt It (versions 5.2.0 and 5.2.1) would not start on 
+their Windows 98 systems. Instead they would get an error message 
+saying the "the [path]\Adapt_It.exe file expects a newer version 
+of Windows. Upgrade your Windows version." This has now been
+corrected and Adapt It Regular version 5.2.2 will now run on 
+Windows 98 systems.
+* Adapt It WX Regular version also no longer gives a warning 
+message at startup about not being able to locate ECDriver.dll.
+
 Version 5.2.1 update 29March2010:
 ----------------------------------------------
 Feature changes and new features in 5.2.1
