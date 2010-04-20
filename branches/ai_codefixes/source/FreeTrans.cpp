@@ -13,6 +13,7 @@
 /// the CAdapt_ItView class.
 /// \derivation		The CFreeTrans class is derived from wxObject.
 /// BEW 12Apr10 all changes needed for support of _DOVCER5 in this file are done
+/// GDLC 20Apr10 Removed all local variables pApp because this class has member variable m_pApp
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(__APPLE__)
@@ -169,7 +170,7 @@ CFreeTrans::CFreeTrans(CAdapt_ItApp* app)
 	m_pFreeTransArray = new wxArrayPtrVoid;
 
 	// get needed private pointers to important external classes
-	m_pView = app->GetView();
+	m_pView = m_pApp->GetView();
 	m_pFrame = m_pView->canvas->pFrame;
 	m_pLayout = app->GetLayout();
 }
@@ -186,7 +187,6 @@ CFreeTrans::~CFreeTrans()
 // BEW 19Feb10 no changes needed for support of doc version 5
 wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
 	wxString str;
 	str.Empty();
 	int nCount = arr->GetCount();
@@ -197,12 +197,12 @@ wxString CFreeTrans::ComposeDefaultFreeTranslation(wxArrayPtrVoid* arr)
 	theText.Empty();
 	for (index = 0; index < nCount; index++)
 	{
-		if (pApp->m_bTargetIsDefaultFreeTrans)
+		if (m_pApp->m_bTargetIsDefaultFreeTrans)
 		{
 			// get the text from the adaptation line's contents (exclude punctuation)
 			theText = ((CPile*)arr->Item(index))->GetSrcPhrase()->m_adaption;
 		}
-		else if (pApp->m_bGlossIsDefaultFreeTrans)
+		else if (m_pApp->m_bGlossIsDefaultFreeTrans)
 		{
 			// get the text from the glossing line's contents
 			theText = ((CPile*)arr->Item(index))->GetSrcPhrase()->m_gloss; 
@@ -269,8 +269,7 @@ bool CFreeTrans::ContainsFreeTranslation(CPile* pPile)
 void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout, 
 										 enum DrawFTCaller drawFTCaller)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CAdapt_ItView* pView = pApp->GetView();
+	CAdapt_ItView* pView = m_pApp->GetView();
 	wxASSERT(pView != NULL);
 	DestroyElements(m_pFreeTransArray);
 	CPile*  pPile; // a scratch pile pointer
@@ -292,7 +291,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
     // get an offscreen pile from which to scan forwards for the anchor pile (this helps
     // keep draws snappy when docs get large; we don't draw below the bottom of the window
     // either)
-	pPile = GetStartingPileForScan(pApp->m_nActiveSequNum);
+	pPile = GetStartingPileForScan(m_pApp->m_nActiveSequNum);
 
 	// get it's CSourcePhrase instance
 	pSrcPhrase = pPile->GetSrcPhrase(); // its pointed at sourcephrase
@@ -320,7 +319,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	wxRect rectBounding;
 	bool bRTLLayout = FALSE;
 	#ifdef _RTL_FLAGS
-	if (pApp->m_bTgtRTL)
+	if (m_pApp->m_bTgtRTL)
 	{
 		ellipsis = _T('\u2026'); // use a unicode ellipsis for RTL
 		// free translation has to be RTL & aligned RIGHT
@@ -336,10 +335,10 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 	// set up a new colour - make it a purple, 
 	// hard coded in app as m_freetransTextColor
 	wxFont pSaveFont;
-	wxFont* pFreeTransFont = pApp->m_pTargetFont;
+	wxFont* pFreeTransFont = m_pApp->m_pTargetFont;
 	pSaveFont = pDC->GetFont();
 	pDC->SetFont(*pFreeTransFont);
-	wxColour color(pApp->m_freeTransTextColor);
+	wxColour color(m_pApp->m_freeTransTextColor);
 	if (!color.IsOk())
 	{
 		::wxBell(); 
@@ -367,7 +366,7 @@ void CFreeTrans::DrawFreeTranslations(wxDC* pDC, CLayout* pLayout,
 
     // for wx testing we make the background yellow in order to verify the extent of each
     // DrawText and clearing of remaining free translation's rect segment
-	//pDC->SetBackgroundMode(pApp->m_backgroundMode);
+	//pDC->SetBackgroundMode(m_pApp->m_backgroundMode);
 	//pDC->SetTextBackground(wxColour(255,255,0));
 	// wx testing above
 
@@ -504,7 +503,7 @@ ed:	if (pPile == NULL)
 
 #ifdef DrawFT_Bug
 	wxLogDebug(_T(" ed: scan ahead: srcPhrase %s , sequ num %d, active sn %d  nThumbPosition_InPixels = %d"),
-		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, pApp->m_nActiveSequNum, nThumbPosition_InPixels);
+		pSrcPhrase->m_srcPhrase, pSrcPhrase->m_nSequNumber, m_pApp->m_nActiveSequNum, nThumbPosition_InPixels);
 #endif
 
     // if we get here, we've found the next one's start - save the pile for later on (we
@@ -1159,10 +1158,9 @@ bool CFreeTrans::HasWordFinalPunctuation(CSourcePhrase* pSP, wxString phrase,
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
 {
-	CAdapt_ItApp* pApp = &wxGetApp();
 	USFMAnalysis* pAnalysis = NULL;
 	wxString bareMkr;
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	CSourcePhrase* pSrcPhrase = pThisPile->GetSrcPhrase();
 	wxString markers = pSrcPhrase->m_markers;
 	wxString endMarkers = pSrcPhrase->GetEndMarkers();
@@ -1201,10 +1199,10 @@ bool CFreeTrans::IsFreeTranslationEndDueToMarker(CPile* pThisPile)
 				return TRUE; // halt scanning
 			if (mkr == xrefMkr + _T('*'))
 				return TRUE;
-			if (pApp->gCurrentSfmSet == UsfmOnly && 
+			if (m_pApp->gCurrentSfmSet == UsfmOnly && 
 					(mkr == endnoteMkr + _T('*')))
 				return TRUE;
-			if (pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || 
+			if (m_pApp->gCurrentSfmSet == PngOnly && (mkr == _T("\\fe") || 
 					mkr == _T("\\F")))
 				return TRUE;
 
@@ -1300,10 +1298,10 @@ bool CFreeTrans::IsFreeTranslationSrcPhrase(CPile* pPile)
 }
 
 // utility functions for hooking up to view, app, layout, and frame
-CAdapt_ItApp* CFreeTrans::GetApp()
-{
-	return m_pApp;
-}
+//CAdapt_ItApp* CFreeTrans::GetApp()
+//{
+//	return m_pApp;
+//}
 CAdapt_ItView* CFreeTrans::GetView()
 {
 	return m_pView;
@@ -1319,7 +1317,6 @@ CLayout* CFreeTrans::GetLayout()
 
 void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 	CLayout* pLayout = GetLayout();
@@ -1336,15 +1333,15 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
     // as appropriate because in free translation mode the user may elect to end sections
     // at verse breaks - and we can't do that for unstructured data (in the latter case,
     // we'll just end when there is following punctuation on a word or phrase)
-	SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+	SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
 	gbIsUnstructuredData = pView->IsUnstructuredData(pSrcPhrases);
 
 	// toggle the setting
-	if (pApp->m_bFreeTranslationMode)
+	if (m_pApp->m_bFreeTranslationMode)
 	{
 		// toggle the checkmark to OFF
 		pAdvancedMenuFTMode->Check(FALSE);
-		pApp->m_bFreeTranslationMode = FALSE;
+		m_pApp->m_bFreeTranslationMode = FALSE;
 
         // free translation mode is being turned off, so "fix" the current free translation
         // before the m_pCurFreeTransSectionPileArray contents are invalidated by the
@@ -1355,16 +1352,16 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 	{
 		// toggle the checkmark to ON
 		pAdvancedMenuFTMode->Check(TRUE);
-		pApp->m_bFreeTranslationMode = TRUE;
+		m_pApp->m_bFreeTranslationMode = TRUE;
 	}
-	if (pApp->m_bFreeTranslationMode)
+	if (m_pApp->m_bFreeTranslationMode)
 	{
         // put the target punctuation character set into gSpacelessTgtPunctuation to be
         // used in the HasWordFinalPunctuation() function to work out when to end a span of
         // free translation (can't put this after the ComposeBarGuts() call because the
         // latter calls SetupCurrentFreeTransSection(), and it needs
         // gSpacelessTgtPunctuation set up beforehand)
-		gSpacelessTgtPunctuation = pApp->m_punctuation[1]; // target set, with 
+		gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with 
 														   // delimiting spaces
 		gSpacelessTgtPunctuation.Remove(gSpacelessTgtPunctuation.Find(_T(' ')),1); // get 
 																	// rid of the spaces
@@ -1378,26 +1375,26 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
             // m_pCurFreeTransSectionPileArray array will store hanging pointers,
             // so don't use it below
 
-	if (pApp->m_bFreeTranslationMode)
+	if (m_pApp->m_bFreeTranslationMode)
 	{
         // free translation mode was just turned on. The phrase box might happen to be
         // located within a previously composed section of free translation, but not at
         // that section's anchor point, so we must check for this and if so, iterate back
         // over the piles until we get to the anchor point
-		CPile* pPile = pApp->m_pActivePile; // current box location
+		CPile* pPile = m_pApp->m_pActivePile; // current box location
 		CSourcePhrase* pSP = pPile->GetSrcPhrase();
 		CKB* pKB;
 		if (gbIsGlossing)
-			pKB = pApp->m_pGlossingKB;
+			pKB = m_pApp->m_pGlossingKB;
 		else
-			pKB = pApp->m_pKB;
+			pKB = m_pApp->m_pKB;
 		if (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
 		{
 			// save the phrase box text to the KB
 			// left it here -- may need to ensure m_targetPhrase has no punct before 
 			// passing to StoreTextGoingBack()
 			bool bOK;
-			bOK = pView->StoreTextGoingBack(pKB,pSP,pApp->m_targetPhrase); // store, so we can 
+			bOK = pView->StoreTextGoingBack(pKB,pSP,m_pApp->m_targetPhrase); // store, so we can 
 																// forget this location
 		}
 		while (pSP->m_bHasFreeTrans && !pSP->m_bStartFreeTrans)
@@ -1409,7 +1406,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 				// got to doc start without detecting the start - should never happen
 				// so just shove it at start of doc, with no lookup and a beep
 				int sn = 0;
-				pApp->m_targetPhrase.Empty();
+				m_pApp->m_targetPhrase.Empty();
 				pPile = pView->GetPile(sn);
 				pMainFrm->canvas->ScrollIntoView(sn);
 				::wxBell();
@@ -1422,8 +1419,8 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 			pSP = pPile->GetSrcPhrase();
 		}
 		// we are at the anchor location
-		pApp->m_pActivePile = pPile;
-		pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+		m_pApp->m_pActivePile = pPile;
+		m_pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 
         // BEW changed 15Oct05; since if we have an adaptation there different than the
         // source text we want to preserve it, rather than unilaterally just use m_key; and
@@ -1433,25 +1430,25 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 		{
 			if (pSP->m_gloss.IsEmpty())
 			{
-				pApp->m_targetPhrase.Empty();
+				m_pApp->m_targetPhrase.Empty();
 			}
 			else
 			{
-				pApp->m_targetPhrase = pSP->m_gloss;
+				m_pApp->m_targetPhrase = pSP->m_gloss;
 			}
 		}
 		else
 		{
 			if (pSP->m_adaption.IsEmpty())
 			{
-				pApp->m_targetPhrase.Empty();
+				m_pApp->m_targetPhrase.Empty();
 			}
 			else
 			{
-				pApp->m_targetPhrase = pSP->m_adaption;
+				m_pApp->m_targetPhrase = pSP->m_adaption;
 			}
 		}
-		translation = pApp->m_targetPhrase; // in case we just unmerged, since a 
+		translation = m_pApp->m_targetPhrase; // in case we just unmerged, since a 
                         //PlacePhraseBox() call with selector == 1 or 3 will set
                         //m_targetPhrase to whatever is currently in the global string
                         //translation when it jumps the block of code for removing the new
@@ -1462,10 +1459,10 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 				// phrase box is disabled)
 
 		// prevent clicks and editing being done in phrase box (do also in ResizeBox())
-		if (pApp->m_pTargetBox->IsShown() && pApp->m_pTargetBox->GetHandle() != NULL)
-			pApp->m_pTargetBox->SetEditable(FALSE);
+		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
+			m_pApp->m_pTargetBox->SetEditable(FALSE);
 		pLayout->m_pCanvas->ScrollIntoView(
-								pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
+								m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
 
           // whm 4Apr09 moved this SetFocus below ScrollIntoView since ScrollIntoView seems
           // to remove the focus on the Compose Bar's edit box if it follows the SetFocus
@@ -1477,7 +1474,7 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 			{
 				#ifdef _RTL_FLAGS
 					// enable complex rendering
-					if (pApp->m_bTgtRTL)
+					if (m_pApp->m_bTgtRTL)
 					{
 						pMainFrm->m_pComposeBarEditBox->SetLayoutDirection(
 							wxLayout_RightToLeft);
@@ -1506,10 +1503,10 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 		int nCountForwards = 0;
 		int nCountBackwards = 0;
 		int nSaveActiveSequNum;
-		if (pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
+		if (m_pApp->m_pActivePile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// we have to move the box
-			CSourcePhrase* pSrcPhr = pApp->m_pActivePile->GetSrcPhrase();
+			CSourcePhrase* pSrcPhr = m_pApp->m_pActivePile->GetSrcPhrase();
 			SPList::Node* pos = pSrcPhrases->Find(pSrcPhr);
 			wxASSERT(pos);
 			SPList::Node* savePos = pos;
@@ -1576,18 +1573,18 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 				numSrcPhrases = nCountForwards + nCountBackwards;
 			}
 			bool bOK;
-			bOK = pView->SetActivePilePointerSafely(pApp,pSrcPhrases,nSaveActiveSequNum,
-											pApp->m_nActiveSequNum,numSrcPhrases);
+			bOK = pView->SetActivePilePointerSafely(m_pApp,pSrcPhrases,nSaveActiveSequNum,
+											m_pApp->m_nActiveSequNum,numSrcPhrases);
 		}
 
 		translation.Empty(); // don't preserve anything from a former adaptation state
-		if (pApp->m_pTargetBox->GetHandle() != NULL)
-			if (pApp->m_pTargetBox->IsShown())
-				pApp->m_pTargetBox->SetFocus();
+		if (m_pApp->m_pTargetBox->GetHandle() != NULL)
+			if (m_pApp->m_pTargetBox->IsShown())
+				m_pApp->m_pTargetBox->SetFocus();
 
 		// allow clicks and editing to be done in phrase box (do also in ResizeBox())
-		if (pApp->m_pTargetBox->IsShown() && pApp->m_pTargetBox->GetHandle() != NULL)
-			pApp->m_pTargetBox->SetEditable(TRUE);
+		if (m_pApp->m_pTargetBox->IsShown() && m_pApp->m_pTargetBox->GetHandle() != NULL)
+			m_pApp->m_pTargetBox->SetEditable(TRUE);
 
         // get any removed adaptations in gEditRecord into the GUI list, if the restored
         // state is adapting mode; if glossing mode, get the removed glosses into the GUI
@@ -1600,17 +1597,16 @@ void CFreeTrans::OnAdvancedFreeTranslationMode(wxCommandEvent& WXUNUSED(event))
 
         // BEW added 10Jun09; do a recalc of the layout, set active pile pointer, and
         // scroll into view - otherwise these are not done and box can be off-window
-		pLayout->RecalcLayout(pApp->m_pSourcePhrases,keep_strips_keep_piles);
-		pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
-		pLayout->m_pCanvas->ScrollIntoView(pApp->m_nActiveSequNum);
+		pLayout->RecalcLayout(m_pApp->m_pSourcePhrases,keep_strips_keep_piles);
+		m_pApp->m_pActivePile = pView->GetPile(m_pApp->m_nActiveSequNum);
+		pLayout->m_pCanvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 		pView->Invalidate();
-		pApp->GetLayout()->PlaceBox();
+		m_pApp->GetLayout()->PlaceBox();
 	}
 }
 
 void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = GetView();
 	CAdapt_ItDoc* pDoc = GetView()->GetDocument();
 
@@ -1624,7 +1620,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 	bool bFTfound = FALSE;
 	if (pDoc)
 	{
-		SPList* pList = pApp->m_pSourcePhrases;
+		SPList* pList = m_pApp->m_pSourcePhrases;
 		if (pList->GetCount() > 0)
 		{
 			SPList::Node* pos = pList->GetFirst();
@@ -1663,7 +1659,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 
 	// initialize variables needed for the scan over the document's 
 	// sourcephrase instances
-	SPList* pList = pApp->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst();
 	CSourcePhrase* pSrcPhrase;
 	wxString emptyStr = _T("");
@@ -1682,7 +1678,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 		pSrcPhrase->SetFreeTrans(emptyStr);
 	} // end while loop
 	pView->Invalidate();
-	pApp->GetLayout()->PlaceBox();
+	m_pApp->GetLayout()->PlaceBox();
 
 	// mark the doc as dirty, so that Save command becomes enabled
 	pDoc->Modify(TRUE);
@@ -1701,14 +1697,12 @@ void CFreeTrans::OnAdvancedRemoveFilteredFreeTranslations(wxCommandEvent& WXUNUS
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
-
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pKB != NULL && (int)pApp->m_pSourcePhrases->GetCount() > 0)
+	if (m_pApp->m_pKB != NULL && (int)m_pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -1727,13 +1721,12 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredBacktranslations(wxUpdateUIEvent&
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pKB != NULL && (int)pApp->m_pSourcePhrases->GetCount() > 0)
+	if (m_pApp->m_pKB != NULL && (int)m_pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -1761,7 +1754,6 @@ void CFreeTrans::OnUpdateAdvancedRemoveFilteredFreeTranslations(wxUpdateUIEvent&
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = GetView();
 
 	gbFreeTranslationJustRemovedInVFMdialog = FALSE; // restore to default 
@@ -1775,13 +1767,13 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 #ifdef __WXDEBUG__
 	wxLogDebug(_T("\nActive SN passed in: %d"),activeSequNum);
 #endif
-	pApp->m_pActivePile = pView->GetPile(activeSequNum); // has to be set here, because at
+	m_pApp->m_pActivePile = pView->GetPile(activeSequNum); // has to be set here, because at
 							// end of RecalcLayout's legacy code it is still undefined
 	bool bEditBoxHasText = FALSE; // to help with initializing the ComposeBar's contents,
                             // because we may be returning from normal mode after an
                             // editing operation and want the box text to still be there
 	CMainFrame* pFrame;
-	pFrame = pApp->GetMainFrame();
+	pFrame = m_pApp->GetMainFrame();
 	wxASSERT(pFrame != NULL);
 	wxASSERT(pFrame->m_pComposeBar != NULL);
 	wxTextCtrl* pEdit = (wxTextCtrl*)
@@ -1792,13 +1784,13 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 
 	m_pCurFreeTransSectionPileArray->Clear(); // start with an empty array
 
-	bool bOwnsFreeTranslation = IsFreeTranslationSrcPhrase(pApp->m_pActivePile);
+	bool bOwnsFreeTranslation = IsFreeTranslationSrcPhrase(m_pApp->m_pActivePile);
 	CPile* pile;
 	if (bOwnsFreeTranslation)
 	{
 		// it already has a free translation stored in the sourcephrase
-		pile = pApp->m_pActivePile;
-		tempStr = pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
+		pile = m_pApp->m_pActivePile;
+		tempStr = m_pApp->m_pActivePile->GetSrcPhrase()->GetFreeTrans();
 		pEdit->ChangeValue(tempStr);	// show it in the ComposeBar's edit box, but
 				// don't have it selected - too easy for user to mistakenly lose it
 
@@ -1849,7 +1841,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		// section choice, by analysis of the section determined by the above loop
 		if (m_pCurFreeTransSectionPileArray->GetCount() > 0)
 		{
-			SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+			SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
 			CSourcePhrase* pFirstSPhr = ((CPile*)
 							m_pCurFreeTransSectionPileArray->Item(0))->GetSrcPhrase();
 			CSourcePhrase* pLastSPhr = ((CPile*)
@@ -1859,22 +1851,22 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 							pView->GetLikelyValueOfFreeTranslationSectioningFlag(pSrcPhrases,
 								pFirstSPhr->m_nSequNumber, pLastSPhr->m_nSequNumber, 
 								bFreeTransPresent);
-			pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
+			m_pApp->m_bDefineFreeTransByPunctuation = !bProbablyVerse;
 
 			// now set the radio buttons
 			wxRadioButton* pRadioButton = (wxRadioButton*)
-				pApp->GetMainFrame()->m_pComposeBar->FindWindowById(
+				m_pApp->GetMainFrame()->m_pComposeBar->FindWindowById(
 															IDC_RADIO_PUNCT_SECTION);
 			// set the value
-			if (pApp->m_bDefineFreeTransByPunctuation)
+			if (m_pApp->m_bDefineFreeTransByPunctuation)
 				pRadioButton->SetValue(TRUE);
 			else
 				pRadioButton->SetValue(FALSE);
 			pRadioButton = (wxRadioButton*)
-				pApp->GetMainFrame()->m_pComposeBar->FindWindowById(
+				m_pApp->GetMainFrame()->m_pComposeBar->FindWindowById(
 															IDC_RADIO_VERSE_SECTION);
 			// set the value
-			if (!pApp->m_bDefineFreeTransByPunctuation)
+			if (!m_pApp->m_bDefineFreeTransByPunctuation)
 				pRadioButton->SetValue(TRUE);
 			else
 				pRadioButton->SetValue(FALSE);
@@ -1944,7 +1936,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 				// test for final pile in this section
 				pSrcPhrase = pile->GetSrcPhrase();
 				wxASSERT(pSrcPhrase != NULL);
-				if (gbIsUnstructuredData || pApp->m_bDefineFreeTransByPunctuation)
+				if (gbIsUnstructuredData || m_pApp->m_bDefineFreeTransByPunctuation)
 				{
 					// the verse option is not available if the data has no SF markers
 					if (HasWordFinalPunctuation(pSrcPhrase,pSrcPhrase->m_targetStr,
@@ -1999,7 +1991,7 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 		else
 		{
 			// no text there, so check the app flag
-			if (pApp->m_bTargetIsDefaultFreeTrans || pApp->m_bGlossIsDefaultFreeTrans)
+			if (m_pApp->m_bTargetIsDefaultFreeTrans || m_pApp->m_bGlossIsDefaultFreeTrans)
 			{
 				// do the composition from the section's target text, or glossing text
 				tempStr = ComposeDefaultFreeTranslation(m_pCurFreeTransSectionPileArray);
@@ -2050,15 +2042,11 @@ void CFreeTrans::SetupCurrentFreeTransSection(int activeSequNum)
 void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstPile,
 	CPile*& pLastPile,enum EditBoxContents editBoxContents, const wxString& storeStr)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
-// GDLC 2010-03-27 pView no longer used
-//	CAdapt_ItView* pView = GetView();
 
 	wxASSERT(pMainFrm);
 	wxPanel* pBar = pMainFrm->m_pComposeBar;
 	wxASSERT(pBar);
-//	wxASSERT(pView);
 
 	if (pBar != NULL && pBar->IsShown())
 	{
@@ -2099,7 +2087,7 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
                 // if we are at the end of the document, our Adavance will not be fruitful,
                 // so we'll just want to be able to automatically replace the phrase box
                 // here - and beep to alert the user that the Advance failed.
-				pFirstPile = pApp->m_pActivePile; // this should remain valid if we are 
+				pFirstPile = m_pApp->m_pActivePile; // this should remain valid if we are 
 												  // at doc end already
 				// now handle the rest in the array
 				int lastIndex = 0;
@@ -2153,7 +2141,6 @@ void CFreeTrans::StoreFreeTranslation(wxArrayPtrVoid* pPileArray,CPile*& pFirstP
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::StoreFreeTranslationOnLeaving()
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pFrame = GetFrame();
 	wxASSERT(pFrame != NULL);
 	if (pFrame->m_pComposeBar != NULL)
@@ -2162,7 +2149,7 @@ void CFreeTrans::StoreFreeTranslationOnLeaving()
 							pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			CPile* pOldActivePile = pApp->m_pActivePile;
+			CPile* pOldActivePile = m_pApp->m_pActivePile;
 
             // do this store unilaterally, as we can make the free translation 'stick' by
             // calling this function also in the OnAdvancedFreeTranslationMode() hander,
@@ -2391,15 +2378,14 @@ wxString CFreeTrans::SegmentToFit(wxDC*		pDC,
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::ToggleFreeTranslationMode()
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = GetView();
 
 	if (gbVerticalEditInProgress)
 	{
 
-		CMainFrame* pFrame = pApp->GetMainFrame();
+		CMainFrame* pFrame = m_pApp->GetMainFrame();
 		wxASSERT(pFrame != NULL);
-		wxMenuBar* pMenuBar = pApp->GetMainFrame()->GetMenuBar();
+		wxMenuBar* pMenuBar = m_pApp->GetMainFrame()->GetMenuBar();
 		wxASSERT(pMenuBar != NULL);
 		wxMenuItem * pAdvancedFreeTranslation = 
 							pMenuBar->FindItem(ID_ADVANCED_FREE_TRANSLATION_MODE);
@@ -2411,30 +2397,30 @@ void CFreeTrans::ToggleFreeTranslationMode()
         // end sections at verse breaks - and we can't do that for unstructured data (in
         // the latter case, we'll just end when there is following punctuation on a word or
         // phrase)
-		SPList* pSrcPhrases = pApp->m_pSourcePhrases;
+		SPList* pSrcPhrases = m_pApp->m_pSourcePhrases;
 		gbIsUnstructuredData = pView->IsUnstructuredData(pSrcPhrases);
 
 		// toggle the setting
-		if (pApp->m_bFreeTranslationMode)
+		if (m_pApp->m_bFreeTranslationMode)
 		{
 			// toggle the checkmark to OFF
 			pAdvancedFreeTranslation->Check(FALSE);
-			pApp->m_bFreeTranslationMode = FALSE;
+			m_pApp->m_bFreeTranslationMode = FALSE;
 		}
 		else
 		{
 			// toggle the checkmark to ON
 			pAdvancedFreeTranslation->Check(TRUE);
-			pApp->m_bFreeTranslationMode = TRUE;
+			m_pApp->m_bFreeTranslationMode = TRUE;
 		}
-		if (pApp->m_bFreeTranslationMode)
+		if (m_pApp->m_bFreeTranslationMode)
 		{
             // put the target punctuation character set into gSpacelessTgtPunctuation to be
             // used in the HasWordFinalPunctuation() function to work out when to end a
             // span of free translation (can't put this after the ComposeBarGuts() call
             // because the latter calls SetupCurrentFreeTransSection(), and it needs
             // gSpacelessTgtPunctuation set up beforehand)
-			gSpacelessTgtPunctuation = pApp->m_punctuation[1]; // target set, with 
+			gSpacelessTgtPunctuation = m_pApp->m_punctuation[1]; // target set, with 
 															   // delimiting spaces
 			gSpacelessTgtPunctuation.Replace(_T(" "),_T("")); // get rid of the spaces
 		}	
@@ -2444,7 +2430,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
         // providing the box or bar is visible and its handle exists
 		pFrame->ComposeBarGuts(); // open or close the Compose Bar
 
-		if (pApp->m_bFreeTranslationMode)
+		if (m_pApp->m_bFreeTranslationMode)
 		{
 			// free translation mode was just turned on.
 
@@ -2456,7 +2442,7 @@ void CFreeTrans::ToggleFreeTranslationMode()
 				{
 					#ifdef _RTL_FLAGS
 						// enable complex rendering
-						if (pApp->m_bTgtRTL)
+						if (m_pApp->m_bTgtRTL)
 						{
 							pFrame->m_pComposeBar->SetLayoutDirection(wxLayout_RightToLeft);
 						}
@@ -2469,10 +2455,10 @@ void CFreeTrans::ToggleFreeTranslationMode()
 				}
 
 			// prevent clicks and editing being done in phrase box (do also in CreateBox())
-			if (pApp->m_pTargetBox->IsShown())
-				pApp->m_pTargetBox->Enable(FALSE);
-			pApp->GetMainFrame()->canvas->ScrollIntoView(
-									pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
+			if (m_pApp->m_pTargetBox->IsShown())
+				m_pApp->m_pTargetBox->Enable(FALSE);
+			m_pApp->GetMainFrame()->canvas->ScrollIntoView(
+									m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber);
 
 			// get any removed free translations in gEditRecord into the GUI list
 			bool bAllsWell;
@@ -2483,10 +2469,10 @@ void CFreeTrans::ToggleFreeTranslationMode()
 			// free translation mode was just turned off
 
 			translation.Empty(); // don't preserve anything from a former adaptation state
-			if (pApp->m_pTargetBox->IsShown())
+			if (m_pApp->m_pTargetBox->IsShown())
 			{
-				pApp->m_pTargetBox->Enable(TRUE);
-				pApp->m_pTargetBox->SetFocus();
+				m_pApp->m_pTargetBox->Enable(TRUE);
+				m_pApp->m_pTargetBox->SetFocus();
 			}
 
             // get any removed adaptations in gEditRecord into the GUI list,
@@ -2505,7 +2491,6 @@ void CFreeTrans::ToggleFreeTranslationMode()
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -2513,7 +2498,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
     // focus is in the compose bar then it would invoke the OnAdvanceButton() handler even
     // though the button is hidden, so we prevent this by detecting when it happens and
     // exiting without doing anything.
-	if (pApp->m_bComposeBarWasAskedForFromViewMenu)
+	if (m_pApp->m_bComposeBarWasAskedForFromViewMenu)
 	{
         // compose bar is open, but not in Free Translation mode, so we must ignore an
         // ENTER keypress, and also return the focus to the compose bar's edit box
@@ -2534,7 +2519,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
     // long way ahead to an empty section, instead it should act like the phrase box does
     // in this mode, hence it instead invokes the handler for the Next> button, which makes
     // the immediate next section the current one
-	if (!pApp->m_bDrafting)
+	if (!m_pApp->m_bDrafting)
 	{
 		OnNextButton(event);
 		return;
@@ -2550,8 +2535,8 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			CPile* pOldActivePile = pApp->m_pActivePile;
-			CPile* saveLastPilePtr = pApp->m_pActivePile; // a safe default
+			CPile* pOldActivePile = m_pApp->m_pActivePile;
+			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default
 
 			// The current free translation was not just removed so do the 
 			// StoreFreeTranslation() call
@@ -2584,7 +2569,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			{
 				// we are probably at the end document so if so then leave this section
 				// current, beep to warn the user
-                if (saveLastPilePtr->GetSrcPhrase()->m_nSequNumber == pApp->GetMaxIndex())
+                if (saveLastPilePtr->GetSrcPhrase()->m_nSequNumber == m_pApp->GetMaxIndex())
 				{
 					::wxBell();
 
@@ -2622,7 +2607,7 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 					{
 						// we are at the end of the doc
 						if (pLastPile->GetSrcPhrase()->m_nSequNumber == 
-							pApp->GetMaxIndex())
+							m_pApp->GetMaxIndex())
 						{
 							// at end of doc
 							if (gbVerticalEditInProgress)
@@ -2654,12 +2639,12 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 				if (bCommandPosted)
 					return;
 			}
-			pApp->m_pActivePile = pPile;
-			pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+			m_pApp->m_pActivePile = pPile;
+			m_pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 			gbSuppressSetup = FALSE; // make sure it is off
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			pView->MakeAllPilesNonCurrent(pApp->GetLayout());
+			pView->MakeAllPilesNonCurrent(m_pApp->GetLayout());
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
@@ -2678,9 +2663,9 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 			pView->PlacePhraseBox(pCell,selector);
 
 			// make sure we can see the phrase box
-			pMainFrm->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+			pMainFrm->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 			pView->Invalidate();
-			pApp->GetLayout()->PlaceBox();
+			m_pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus back into compose bar's text control
 		}
 	}
@@ -2689,7 +2674,6 @@ void CFreeTrans::OnAdvanceButton(wxCommandEvent& event)
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -2705,8 +2689,8 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			CPile* pOldActivePile = pApp->m_pActivePile;
-			CPile* saveLastPilePtr = pApp->m_pActivePile; // a safe default initialization
+			CPile* pOldActivePile = m_pApp->m_pActivePile;
+			CPile* saveLastPilePtr = m_pApp->m_pActivePile; // a safe default initialization
 
 			// The current free translation was not just removed so do the 
 			// StoreFreeTranslation() call
@@ -2740,7 +2724,7 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 			if (pPile == NULL)
 			{
                 // The scroll position is at the end of the document
-				if (saveLastPilePtr->GetSrcPhrase()->m_nSequNumber == pApp->GetMaxIndex())
+				if (saveLastPilePtr->GetSrcPhrase()->m_nSequNumber == m_pApp->GetMaxIndex())
 				{
                     // we are at the end of the doc. So leave this section current, and
                     // beep to tell the user
@@ -2772,11 +2756,11 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 					return; // we've reached gray text, so step transition is wanted
 			}
 
-			pApp->m_pActivePile = pPile;
-			pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
+			m_pApp->m_pActivePile = pPile;
+			m_pApp->m_nActiveSequNum = pPile->GetSrcPhrase()->m_nSequNumber;
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			pView->MakeAllPilesNonCurrent(pApp->GetLayout());
+			pView->MakeAllPilesNonCurrent(m_pApp->GetLayout());
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPile->GetCell(1); // whatever is the phrase box's 
@@ -2795,9 +2779,9 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 											// SetupCurrentFreeTransSection() called
 
 			// make sure we can see the phrase box
-			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+			m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 			pView->Invalidate(); // gets the view redrawn & phrase box shown
-			pApp->GetLayout()->PlaceBox();
+			m_pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus back into the compose bar's edit control
 
 			// if there is text in the pEdit box, put the cursor after it
@@ -2817,7 +2801,6 @@ void CFreeTrans::OnNextButton(wxCommandEvent& WXUNUSED(event))
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -2830,7 +2813,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 		wxTextCtrl* pEdit = (wxTextCtrl*)pBar->FindWindow(IDC_EDIT_COMPOSE);
 		if (pEdit != 0)
 		{
-			CPile* pOldActivePile = pApp->m_pActivePile;
+			CPile* pOldActivePile = m_pApp->m_pActivePile;
 
             // do not do StoreFreeTranslation() call if the current free translation was
             // just deleted by operator pressing on the Delete button (either in View
@@ -2941,10 +2924,10 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						int selector = 1;
 						pView->PlacePhraseBox(pCell,selector);
 						// make sure we can see the phrasebox at the beginning of the doc
-						pApp->GetMainFrame()->canvas->ScrollIntoView(
+						m_pApp->GetMainFrame()->canvas->ScrollIntoView(
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						pView->Invalidate();
-						pApp->GetLayout()->PlaceBox();
+						m_pApp->GetLayout()->PlaceBox();
 						pEdit->SetFocus(); // put focus back into 
 										   // compose bar's edit control
 						return;
@@ -3001,7 +2984,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 						pMainFrm->canvas->ScrollIntoView(
 											pPrevPile->GetSrcPhrase()->m_nSequNumber);
 						pView->Invalidate();
-						pApp->GetLayout()->PlaceBox();
+						m_pApp->GetLayout()->PlaceBox();
 						pEdit->SetFocus(); // put focus back into the 
 										   // compose bar's edit control
 						return;
@@ -3055,7 +3038,7 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 					// criteria.
 					CSourcePhrase* pPrevSrcPhrase = pPile->GetSrcPhrase();
 					wxASSERT(pPrevSrcPhrase != NULL);
-					if (gbIsUnstructuredData || pApp->m_bDefineFreeTransByPunctuation)
+					if (gbIsUnstructuredData || m_pApp->m_bDefineFreeTransByPunctuation)
 					{
 						// the verse option is not available if the data has no SF markers
 						if (HasWordFinalPunctuation(pPrevSrcPhrase,
@@ -3098,11 +3081,11 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 				}
 			}
 
-			pApp->m_pActivePile = pPrevPile;
-			pApp->m_nActiveSequNum = pPrevPile->GetSrcPhrase()->m_nSequNumber;
+			m_pApp->m_pActivePile = pPrevPile;
+			m_pApp->m_nActiveSequNum = pPrevPile->GetSrcPhrase()->m_nSequNumber;
 
 			// make m_bIsCurrentFreeTransSection FALSE on every pile
-			pView->MakeAllPilesNonCurrent(pApp->GetLayout());
+			pView->MakeAllPilesNonCurrent(m_pApp->GetLayout());
 
 			// place the phrase box at the next anchor location
 			CCell* pCell = pPrevPile->GetCell(1);
@@ -3120,10 +3103,10 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 			pView->PlacePhraseBox(pCell,selector); // forces a a RecalcLayout(), which gets 
 											// SetupCurrentFreeTransSection() called
 			// make sure we can see the phrase box
-			pApp->GetMainFrame()->canvas->ScrollIntoView(pApp->m_nActiveSequNum);
+			m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 
 			pView->Invalidate(); // gets the view redrawn
-			pApp->GetLayout()->PlaceBox();
+			m_pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus back into compose bar's edit control
 
 			// if there is text in the pEdit box, put the cursor after it
@@ -3141,7 +3124,6 @@ void CFreeTrans::OnPrevButton(wxCommandEvent& WXUNUSED(event))
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -3160,7 +3142,7 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 			gbFreeTranslationJustRemovedInVFMdialog = TRUE;
 
 			// get the anchor pSrcPhrase
-			CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
+			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
 
 			// make sure the kb entry flag is set correctly
 			FixKBEntryFlag(pSrcPhrase);
@@ -3170,7 +3152,7 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 			wxString tempStr;
 
 			// update the navigation text
-			pSrcPhrase->m_inform = pApp->GetDocument()->RedoNavigationText(pSrcPhrase);
+			pSrcPhrase->m_inform = m_pApp->GetDocument()->RedoNavigationText(pSrcPhrase);
 
 			// clear the Compose Bar's edit box
 			// whm 24Aug06 modified below
@@ -3192,7 +3174,7 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 				pPile->GetSrcPhrase()->m_bEndFreeTrans = FALSE;
 			}
 			pView->Invalidate(); // cause redraw, and so a call to SetupCurrentFreeTransSection()
-			pApp->GetLayout()->PlaceBox();
+			m_pApp->GetLayout()->PlaceBox();
 			pEdit->SetFocus(); // put focus in compose bar's edit control
 			pEdit->SetSelection(-1,-1); // -1,-1 selects all in wx
 		}
@@ -3202,7 +3184,6 @@ void CFreeTrans::OnRemoveFreeTranslationButton(wxCommandEvent& WXUNUSED(event))
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm= GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -3223,7 +3204,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 	if (!tempStr.IsEmpty()) 
 		bEditBoxHasText = TRUE;
 	// & we can rely on m_nActiveSequNum having being set correctly, 
-	// and also pApp->m_pActivePile;
+	// and also m_pApp->m_pActivePile;
 
 	if(pBar != NULL && pBar->IsShown())
 	{
@@ -3248,7 +3229,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
             // relevant flag setting currently is
 			if (!bEditBoxHasText)
 			{
-				if (pApp->m_bTargetIsDefaultFreeTrans || pApp->m_bGlossIsDefaultFreeTrans)
+				if (m_pApp->m_bTargetIsDefaultFreeTrans || m_pApp->m_bGlossIsDefaultFreeTrans)
 				{
 					// do the composition from the section's target text
 					tempStr = ComposeDefaultFreeTranslation(m_pCurFreeTransSectionPileArray);
@@ -3263,7 +3244,7 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the window updated
 			pView->Invalidate();
-			pApp->GetLayout()->PlaceBox();
+			m_pApp->GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -3282,13 +3263,12 @@ void CFreeTrans::OnLengthenButton(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
-	if (!pApp->m_bFreeTranslationMode)
+	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum < 0 || pApp->m_pActivePile == NULL)
+	if (m_pApp->m_nActiveSequNum < 0 || m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
@@ -3308,7 +3288,6 @@ void CFreeTrans::OnUpdateShortenButton(wxUpdateUIEvent& event)
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -3327,7 +3306,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 	if (!tempStr.IsEmpty())
 		bEditBoxHasText = TRUE;
     // & we can rely on m_nActiveSequNum having being set correctly, and also
-    // pApp->m_pActivePile; and the button will only be enabled if this is a section not
+    // m_pApp->m_pActivePile; and the button will only be enabled if this is a section not
     // previously defined ( we want to make it hard for the user to open up an un-free
     // tranlated section gap in the sequence of free translations)
 
@@ -3372,7 +3351,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
             // flag setting currently is
 			if (!bEditBoxHasText)
 			{
-				if (pApp->m_bTargetIsDefaultFreeTrans || pApp->m_bGlossIsDefaultFreeTrans)
+				if (m_pApp->m_bTargetIsDefaultFreeTrans || m_pApp->m_bGlossIsDefaultFreeTrans)
 				{
 					// do the composition from the section's target text or glossing text
 					tempStr = ComposeDefaultFreeTranslation(m_pCurFreeTransSectionPileArray);
@@ -3387,7 +3366,7 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 
 			// get the window updated
 			pView->Invalidate();
-			pApp->GetLayout()->PlaceBox();
+			m_pApp->GetLayout()->PlaceBox();
 		}
 	}
 }
@@ -3408,16 +3387,15 @@ void CFreeTrans::OnShortenButton(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = GetView();
 
 	//bool bOwnsFreeTranslation;
-	if (!pApp->m_bFreeTranslationMode)
+	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum < 0 || pApp->m_pActivePile == NULL)
+	if (m_pApp->m_nActiveSequNum < 0 || m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
@@ -3489,13 +3467,12 @@ void CFreeTrans::OnUpdateLengthenButton(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
@@ -3505,16 +3482,16 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
+	if (m_pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-    // the !pApp->m_bComposeBarWasAskedForFromViewMenu test makes sure we don't try to
+    // the !m_pApp->m_bComposeBarWasAskedForFromViewMenu test makes sure we don't try to
     // invoke free translation mode while the user already has the Compose Bar open for
     // another purpose
-    if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() && pApp->m_nActiveSequNum >= 0
-		&& !pApp->m_bComposeBarWasAskedForFromViewMenu)
+    if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && m_pApp->m_nActiveSequNum >= 0
+		&& !m_pApp->m_bComposeBarWasAskedForFromViewMenu)
 	{
 		event.Enable(TRUE);
 	}
@@ -3527,7 +3504,6 @@ void CFreeTrans::OnUpdateAdvancedFreeTranslationMode(wxUpdateUIEvent& event)
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 
 	wxASSERT(pMainFrm != NULL);
@@ -3541,21 +3517,21 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pAdvancedMenuGTextDft != NULL);
 
 	// toggle the setting
-	if (pApp->m_bTargetIsDefaultFreeTrans)
+	if (m_pApp->m_bTargetIsDefaultFreeTrans)
 	{
 		// toggle the checkmark to OFF
 		pAdvancedMenuTTextDft->Check(FALSE);
-		pApp->m_bTargetIsDefaultFreeTrans = FALSE;
+		m_pApp->m_bTargetIsDefaultFreeTrans = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
 		pAdvancedMenuTTextDft->Check(TRUE);
-		pApp->m_bTargetIsDefaultFreeTrans = TRUE;
+		m_pApp->m_bTargetIsDefaultFreeTrans = TRUE;
 
 		// and ensure the glossing text command is off, and its flag cleared
 		pAdvancedMenuGTextDft->Check(FALSE);
-		pApp->m_bGlossIsDefaultFreeTrans = FALSE;
+		m_pApp->m_bGlossIsDefaultFreeTrans = FALSE;
 	}
 
 	// restore focus to the Compose Bar
@@ -3580,27 +3556,26 @@ void CFreeTrans::OnAdvancedTargetTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
-	if (pApp->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
+	if (m_pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (!pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
+	if (!m_pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
 	{
 		// The Advanced menu item "Use Target Text As Default Free Translation"
 		// should be disabled when the app is not in Free Translation Mode.
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() && 
-			pApp->m_nActiveSequNum >= 0 &&
-			!pApp->m_bComposeBarWasAskedForFromViewMenu)
+	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && 
+			m_pApp->m_nActiveSequNum >= 0 &&
+			!m_pApp->m_bComposeBarWasAskedForFromViewMenu)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -3609,7 +3584,6 @@ void CFreeTrans::OnUpdateAdvancedTargetTextIsDefault(wxUpdateUIEvent& event)
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 
 	wxASSERT(pMainFrm != NULL);
@@ -3623,21 +3597,21 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(pAdvancedMenuGTextDft != NULL);
 
 	// toggle the setting
-	if (pApp->m_bGlossIsDefaultFreeTrans)
+	if (m_pApp->m_bGlossIsDefaultFreeTrans)
 	{
 		// toggle the checkmark to OFF
 		pAdvancedMenuGTextDft->Check(FALSE);
-		pApp->m_bGlossIsDefaultFreeTrans = FALSE;
+		m_pApp->m_bGlossIsDefaultFreeTrans = FALSE;
 	}
 	else
 	{
 		// toggle the checkmark to ON
 		pAdvancedMenuGTextDft->Check(TRUE);
-		pApp->m_bGlossIsDefaultFreeTrans = TRUE;
+		m_pApp->m_bGlossIsDefaultFreeTrans = TRUE;
 
 		// ensure the target text command is toggled off (if it was on), and its flag
 		pAdvancedMenuTTextDft->Check(FALSE);
-		pApp->m_bTargetIsDefaultFreeTrans = FALSE;
+		m_pApp->m_bTargetIsDefaultFreeTrans = FALSE;
 
 	}
 
@@ -3663,27 +3637,26 @@ void CFreeTrans::OnAdvancedGlossTextIsDefault(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
-	if (pApp->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pSourcePhrases->GetCount() == 0)
+	if (m_pApp->m_pSourcePhrases->GetCount() == 0)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (!pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
+	if (!m_pApp->m_bFreeTranslationMode) // whm added 23Jan07 to wx version
 	{
 		// The Advanced menu item "Use Gloss Text As Default Free Translation"
 		// should be disabled when the app is not in Free Translation Mode.
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum <= (int)pApp->GetMaxIndex() && 
-			pApp->m_nActiveSequNum >= 0 &&
-			!pApp->m_bComposeBarWasAskedForFromViewMenu)
+	if (m_pApp->m_nActiveSequNum <= (int)m_pApp->GetMaxIndex() && 
+			m_pApp->m_nActiveSequNum >= 0 &&
+			!m_pApp->m_bComposeBarWasAskedForFromViewMenu)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -3692,7 +3665,6 @@ void CFreeTrans::OnUpdateAdvancedGlossTextIsDefault(wxUpdateUIEvent& event)
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -3708,13 +3680,13 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 		if (pRPSButton != 0)
 		{
 			// set the radio button's BOOL to be TRUE
-			pApp->m_bDefineFreeTransByPunctuation = TRUE;
+			m_pApp->m_bDefineFreeTransByPunctuation = TRUE;
 						
 			// BEW added 1Oct08: to have the butten click remove the
 			// current section and reconstitute it as a Verse-based section
 			gbSuppressSetup = FALSE;
 			wxCommandEvent evt;
-			pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and 
+			m_pApp->GetFreeTrans()->OnRemoveFreeTranslationButton(evt); // remove current section and 
                 // any Compose bar edit box test;
                 // the OnRemoveFreeTranslationButton() call calls Invalidate()
 
@@ -3722,11 +3694,11 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
             // resized smaller
 #ifdef _NEW_LAYOUT
-			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			m_pApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+			GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+			m_pApp->m_pActivePile = pView->GetPile(m_pApp->m_nActiveSequNum);
 
 			// restore focus to the edit box
 			pEdit->SetFocus();
@@ -3737,7 +3709,6 @@ void CFreeTrans::OnRadioDefineByPunctuation(wxCommandEvent& WXUNUSED(event))
 // BEW 22Feb10 no changes needed for support of doc version 5
 void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CMainFrame* pMainFrm = GetFrame();
 	CAdapt_ItView* pView = GetView();
 
@@ -3752,7 +3723,7 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 		if (pRVSButton != 0)
 		{
 			// set the radio button's BOOL to be TRUE
-			pApp->m_bDefineFreeTransByPunctuation = FALSE;
+			m_pApp->m_bDefineFreeTransByPunctuation = FALSE;
 			
 			// BEW added 1Oct08: to have the butten click remove the
 			// current section and reconstitute it as a Verse-based section
@@ -3766,11 +3737,11 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
             // RecalcLayout() with gbSuppressSetup == FALSE, then the section will be
             // resized larger
 #ifdef _NEW_LAYOUT
-			pApp->GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, keep_strips_keep_piles);
+			m_pApp->GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, keep_strips_keep_piles);
 #else
-			GetLayout()->RecalcLayout(pApp->m_pSourcePhrases, create_strips_keep_piles);
+			GetLayout()->RecalcLayout(m_pApp->m_pSourcePhrases, create_strips_keep_piles);
 #endif
-			pApp->m_pActivePile = pView->GetPile(pApp->m_nActiveSequNum);
+			m_pApp->m_pActivePile = pView->GetPile(m_pApp->m_nActiveSequNum);
 
 			// restore focus to the edit box
 			pEdit->SetFocus();
@@ -3792,13 +3763,12 @@ void CFreeTrans::OnRadioDefineByVerse(wxCommandEvent& WXUNUSED(event))
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
-	if (!pApp->m_bFreeTranslationMode)
+	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum < 0 || pApp->m_pActivePile == NULL)
+	if (m_pApp->m_nActiveSequNum < 0 || m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
@@ -3820,20 +3790,19 @@ void CFreeTrans::OnUpdateNextButton(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	CAdapt_ItView* pView = GetView();
 
-	if (!pApp->m_bFreeTranslationMode)
+	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum < 0 || pApp->m_pActivePile == NULL)
+	if (m_pApp->m_nActiveSequNum < 0 || m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	CPile* pPile = pView->GetPrevPile(pApp->m_pActivePile);
+	CPile* pPile = pView->GetPrevPile(m_pApp->m_pActivePile);
 	if (pPile == NULL)
 	{
 		// probably we are at the start of the document
@@ -3857,19 +3826,18 @@ void CFreeTrans::OnUpdatePrevButton(wxUpdateUIEvent& event)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateRemoveFreeTranslationButton(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	bool bOwnsFreeTranslation;
-	if (!pApp->m_bFreeTranslationMode)
+	if (!m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_nActiveSequNum < 0 || pApp->m_pActivePile == NULL)
+	if (m_pApp->m_nActiveSequNum < 0 || m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	bOwnsFreeTranslation = IsFreeTranslationSrcPhrase(pApp->m_pActivePile);
+	bOwnsFreeTranslation = IsFreeTranslationSrcPhrase(m_pApp->m_pActivePile);
 	if (!bOwnsFreeTranslation)
 	{
 		event.Enable(FALSE);
@@ -4141,13 +4109,12 @@ a:	if (bTryAgain || textHExtent > totalHExtent)
 /////////////////////////////////////////////////////////////////////////////////
 void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	if (gbVerticalEditInProgress)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (pApp->m_pKB != NULL && (int)pApp->m_pSourcePhrases->GetCount() > 0)
+	if (m_pApp->m_pKB != NULL && (int)m_pApp->m_pSourcePhrases->GetCount() > 0)
 		event.Enable(TRUE);
 	else
 		event.Enable(FALSE);
@@ -4156,8 +4123,7 @@ void CFreeTrans::OnUpdateAdvancedCollectBacktranslations(wxUpdateUIEvent& event)
 // BEW 2Mar10, updated for doc version 5 (no changes needed)
 void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(event))
 {
-	CAdapt_ItApp* pApp = GetApp();
-	CCollectBacktranslations dlg(pApp->GetMainFrame());
+	CCollectBacktranslations dlg(m_pApp->GetMainFrame());
 	dlg.Centre();
 	if (dlg.ShowModal() == wxID_OK)
 	{
@@ -4165,7 +4131,7 @@ void CFreeTrans::OnAdvancedCollectBacktranslations(wxCommandEvent& WXUNUSED(even
 		DoCollectBacktranslations(dlg.m_bUseAdaptations);
 
 		// mark the doc as dirty, so that Save command becomes enabled
-		CAdapt_ItDoc* pDoc = pApp->GetDocument();
+		CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 		pDoc->Modify(TRUE);
 	}
 	else
@@ -4188,12 +4154,11 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
     // clicked the menu item, it may be because he/she though there might be one or more
     // back translations in the document. The message below confirms to the user the actual
     // state of affairs concerning any back translations in the current document.
-	CAdapt_ItApp* pApp = GetApp();
-	CAdapt_ItDoc* pDoc = GetApp()->GetDocument();
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	bool bBTfound = FALSE;
 	if (pDoc)
 	{
-		SPList* pList = pApp->m_pSourcePhrases;
+		SPList* pList = m_pApp->m_pSourcePhrases;
 		if (pList->GetCount() > 0)
 		{
 			SPList::Node* pos = pList->GetFirst();
@@ -4229,7 +4194,7 @@ void CFreeTrans::OnAdvancedRemoveFilteredBacktranslations(wxCommandEvent& WXUNUS
 
 	// initialize variables needed for the scan over the document's 
 	// sourcephrase instances
-	SPList* pList = pApp->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst(); 
 	CSourcePhrase* pSrcPhrase;
 	wxString emptyStr = _T("");
@@ -4308,17 +4273,16 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
     // whm note: The process of collecting back translations is done so quickly that there
     // is probably no need for a wait or progress dialog. The user gets feedback by the
     // appearance of wedges appearing on the screen.
-	CAdapt_ItApp* pApp = &wxGetApp();
 	bool bSelectionExists = FALSE;
 	SPList aList;	// list of selected CSourcePhrase objects, if any; else an alias for
 					// the document's m_pSourcePhrases list
 	SPList* pList = &aList;
 
-	SPList* pDocPhrases = pApp->m_pSourcePhrases; // the document's list
+	SPList* pDocPhrases = m_pApp->m_pSourcePhrases; // the document's list
 
 	// determine if there is a selection, and get a list of the sourcephrase instances
 	// in it if it exists
-	if (pApp->m_selection.GetCount() > 0)
+	if (m_pApp->m_selection.GetCount() > 0)
 	{
         // collection only within a selection is wanted (and it doesn't matter if the
         // selection has text of different types, because the collection mechanism handles
@@ -4327,7 +4291,7 @@ void CFreeTrans::DoCollectBacktranslations(bool bUseAdaptationsLine)
 								  // strings we are not interested in
 		wxString unwantedOtherText; // need this because the following call returns
 								    // strings we are not interested in
-		GetApp()->GetRetranslation()->GetSelectedSourcePhraseInstances(pList, unwantedSrcText, unwantedOtherText);
+		m_pApp->GetRetranslation()->GetSelectedSourcePhraseInstances(pList, unwantedSrcText, unwantedOtherText);
 		// pList is now populated with pointers to the selected sourcephrase instances
 
 		bSelectionExists = TRUE;
@@ -4700,7 +4664,6 @@ bool CFreeTrans::GetNextMarker(wxChar* pBuff,wxChar*& ptr,int& mkrLen)
 /////////////////////////////////////////////////////////////////////////////////
 bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_bt_mkr)
 {
-	CAdapt_ItApp* pApp = GetApp();
 	// initialize
 	bFound_bt_mkr = FALSE;
 	int mkrLen = 0;
@@ -4720,7 +4683,7 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 	int nFound = wxNOT_FOUND;
 	if (!endmarkers.IsEmpty())
 	{
-		if (pApp->gCurrentSfmSet == PngOnly)
+		if (m_pApp->gCurrentSfmSet == PngOnly)
 		{
 			nFound = endmarkers.Find(_T("\\F"));
 			if (nFound >= 0)
@@ -4757,7 +4720,7 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 	// does not have TextType equal to 'none'
 	if (markers.IsEmpty())
 		return FALSE; // nothing is in m_markers member
-	CAdapt_ItDoc* pDoc = pApp->GetDocument();
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument();
 	const wxChar* pBuff = markers.GetData();
 	wxChar* pBufStart = (wxChar*)pBuff;
 	wxChar* pEnd;
@@ -4777,7 +4740,7 @@ bool CFreeTrans::HaltCurrentCollection(CSourcePhrase* pSrcPhrase, bool& bFound_b
 
 		// if it is an unknown marker, then it must halt collecting
 		wxString mkrPlusEqual = mkr + _T('=');
-		if (pApp->m_currentUnknownMarkersStr.Find(mkrPlusEqual) >= 0)
+		if (m_pApp->m_currentUnknownMarkersStr.Find(mkrPlusEqual) >= 0)
 		{
 			return TRUE; // halt
 		}

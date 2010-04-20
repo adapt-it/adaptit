@@ -21,6 +21,7 @@
 		7DE437EE10FA707E0036CC92 /* FilenameConflictDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DE437EC10FA707E0036CC92 /* FilenameConflictDlg.cpp */; };
 		8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 20286C33FDCF999611CA2CEA /* Carbon.framework */; };
 		C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */; };
+		C805DBF011705519006919E2 /* Placeholder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C805DBEF11705519006919E2 /* Placeholder.cpp */; };
 		C8141437112256EF006764C6 /* FreeTrans.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8141436112256EF006764C6 /* FreeTrans.cpp */; };
 		C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C8F82DB60F3F9CAB007579B8 /* Adapt_It.cpp */; };
 		C823A0A91008817D00BCDA62 /* tellenc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D22945D0FE9C0EA00D49638 /* tellenc.cpp */; };
@@ -138,6 +139,8 @@
 		8D0C4E960486CD37000505A6 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D0C4E970486CD37000505A6 /* Adapt It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Adapt It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C802E0551137E15D00C05034 /* Adapt_ItCanvas.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Adapt_ItCanvas.cpp; path = ../../source/Adapt_ItCanvas.cpp; sourceTree = SOURCE_ROOT; };
+		C805DBEE11705519006919E2 /* Placeholder.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Placeholder.h; path = ../../source/Placeholder.h; sourceTree = SOURCE_ROOT; };
+		C805DBEF11705519006919E2 /* Placeholder.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Placeholder.cpp; path = ../../source/Placeholder.cpp; sourceTree = SOURCE_ROOT; };
 		C8141435112256EF006764C6 /* FreeTrans.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FreeTrans.h; path = ../../source/FreeTrans.h; sourceTree = SOURCE_ROOT; };
 		C8141436112256EF006764C6 /* FreeTrans.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeTrans.cpp; path = ../../source/FreeTrans.cpp; sourceTree = SOURCE_ROOT; };
 		C815FEC610C393EC00022BD3 /* ReadOnlyProtection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReadOnlyProtection.h; path = ../../source/ReadOnlyProtection.h; sourceTree = SOURCE_ROOT; };
@@ -354,6 +357,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				C805DBEE11705519006919E2 /* Placeholder.h */,
+				C805DBEF11705519006919E2 /* Placeholder.cpp */,
 				0386CB731140CEB9000F9E2E /* Retranslation.h */,
 				0386CB741140CEB9000F9E2E /* Retranslation.cpp */,
 				7D820F871110B941005EDDC9 /* KBEditSearch.cpp */,
@@ -757,6 +762,7 @@
 				C802E0561137E15D00C05034 /* Adapt_ItCanvas.cpp in Sources */,
 				0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */,
 				C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */,
+				C805DBF011705519006919E2 /* Placeholder.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

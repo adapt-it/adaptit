@@ -60,7 +60,7 @@ public:
 
 	// utility functions for hooking up to view, app, layout, and frame
 	// pDoc can be generated whenever needed from GetView()->GetDocument()
-	CAdapt_ItApp* CFreeTrans::GetApp();
+//	CAdapt_ItApp* CFreeTrans::GetApp();
 	CAdapt_ItView* CFreeTrans::GetView();
 	CMainFrame* CFreeTrans::GetFrame();
 	CLayout* CFreeTrans::GetLayout();
