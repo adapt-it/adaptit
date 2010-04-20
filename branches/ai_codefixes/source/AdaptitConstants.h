@@ -24,17 +24,30 @@
 // as \free & \free*, \note & \note*, \bt - although these are explicitly added in
 // exports) and other filtered info is in m_filteredInfo, and each filtered string and any
 // markers there are wrapped by filter bracket markers, \~FILTER and \~FILTER* with no
-// delimiting space between each such pair
+// delimiting space between each such pair; 
+// BEW 19Apr10 supporting Save As... to allow saving for doc version 4 requires a new
+// #define, DOCVERSION4 - we'll set the version to be used for saving by a CAdapt_ItDoc
+// class public function SetDocVersion(int index) which returns void. Internally,
+// index 0 will return whatever VERSION_NUMBER is, and index 1 will return DOCVERSION4. We
+// use indices because the wxFileDialog function, for a save dialog, returns the index of
+// the doc type from the combobox choice - and the top choice, index = 0, will always be
+// the default (ie. current doc version number). We will use a private doc class member int
+// m_docVersionCurrent which will be used by saves of the doc and KB (the KB xml structure
+// for doc vresions 4 and 5 is the same), and we will use a new function
+// RestoreCurrentDocVersion() returning void, to reset m_docVersionCurrent back to the
+// VERSION_NUMBER value after the Save As... is done; and an access function
+// GetCurrentDocVersion() to get its value whenever needed.
 #define VERSION_NUMBER		5
-/*
-#define VERSION_NUMBER		4 // version 2: from 3rd Jan 2001, flags on CSourcePhrase for start
+#define DOCVERSION4			4
+
+//#define VERSION_NUMBER		4 // version 2: from 3rd Jan 2001, flags on CSourcePhrase for start
 							  // and end of a retranslation; from 14th May 2003, capacity to do
 							  // and see a glossing line as well as adapting line is version 3
 							  // From 23 June 2005, five BOOL members added to CSourcePhrase for
 							  // support of free translations (3), notes (1) and bookmarks (1).
 							  // whm Note: Since the wx version only reads xml data we are 100%
 							  // compatible with the MFC version number scheme for version 4.
-*/
+
 
 #define VERT_SPACE			4
 #define MAX_WORDS			10	// maximum # of words allowed in a src phrase before Adapt It chokes

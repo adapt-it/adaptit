@@ -36,6 +36,11 @@ class CLayout;
 class CFreeTrans;
 class CNotes;
 
+enum SaveType {
+	normal_save,
+	save_as
+};
+
 // If we need another list based on CSourcePhrase, we don't declare it
 // with another macro like the one above, but instead we simply use 
 // the SrcPList class that is declared by the macro to declare 
@@ -152,7 +157,7 @@ public:
 										   // but does not delete each partner pile (use DestroyPiles()
 										   // defined in CLayout for that)
 	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
-	bool			DoFileSave(bool bShowWaitDlg);
+	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type = normal_save);
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoTransformedDocFileSave(wxString path);
@@ -163,6 +168,7 @@ public:
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of
 											// the project configuration file to the project's directory
+	int				GetCurrentDocVersion(); // BEW added 19Apr10 for Save As... support	
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
@@ -219,18 +225,19 @@ public:
 	wxString		RemoveMultipleSpaces(wxString& rString);
 	void			ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, wxString unfilterMkrs);
 	void			ResetUSFMFilterStructs(enum SfmSet useSfmSet, wxString filterMkrs, enum resetMarkers resetMkrs);
+	void			RestoreCurrentDocVersion(); // BEW added 19Apr10 for Save As... support
 	void			RestoreDocParamsOnInput(wxString buffer); // BEW added 08Aug05 to facilitate XML doc input
 															  // as well as binary (legacy) doc input & its
 															  // output equivalent function is SetupBufferForOutput
 	int				RetokenizeText(	bool bChangedPunctuation,
 									bool bChangedFiltering, bool bChangedSfmSet);
 	void			SetDocumentWindowTitle(wxString title, wxString& nameMinusExtension);
+	void			SetDocVersion(int index); // BEW added 19Apr10 for Save As... support
 	wxString		SetupBufferForOutput(wxString* pCString);
 	int				TokenizeText(int nStartingSequNum, SPList* pList, wxString& rBuffer,int nTextLength);
 	void			UpdateFilenamesAndPaths(bool bKBFilename,bool bKBPath,bool bKBBackupPath,
 										   bool bGlossingKBPath, bool bGlossingKBBackupPath);
 	void			UpdateSequNumbers(int nFirstSequNum, SPList* pOtherList = NULL); // BEW changed 16Jul09
-
 	void			SetFilename(const wxString& filename, bool notifyViews);
 
 public:
@@ -243,6 +250,8 @@ protected:
 public:
 	void OnFileSave(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateFileSave(wxUpdateUIEvent& event);
+	void OnFileSaveAs(wxCommandEvent& WXUNUSED(event));
+	void OnUpdateFileSaveAs(wxUpdateUIEvent& event);
 	void OnFileOpen(wxCommandEvent& WXUNUSED(event));
 	void OnFileClose(wxCommandEvent& event);
 	void OnUpdateFileClose(wxUpdateUIEvent& event);
@@ -262,6 +271,7 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
+    int m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
 	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
 	void SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);

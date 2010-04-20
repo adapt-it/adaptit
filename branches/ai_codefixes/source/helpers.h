@@ -146,12 +146,6 @@ void EmptyMarkersAndFilteredStrings(
 								  wxString& noteStr,
 								  wxString& collBackTransStr,
 								  wxString& filteredInfoStr);
-// returns one or more substrings of form \~FILTER .... filtered info .... \~FILTER*,
-// concatenated without any space delimiter
-wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
-				wxString& strNote, wxString& strCollectedBackTrans, wxString& strRemainder);
-wxString RemoveOuterWrappers(wxString wrappedStr);
-void ParseMarkersAndContent(wxString& str, wxString& mkr, wxString& content, wxString& endMkr);
 bool IsWhiteSpace(const wxChar *pChar);
 int ParseWhiteSpace(const wxChar *pChar); // returns a length (num chars of whitespace)
 int ParseMarker(const wxChar *pChar); // returns a length (num chars in the marker, including backslash)

@@ -665,661 +665,1135 @@ bool CSourcePhrase::Merge(CAdapt_ItView* WXUNUSED(pView), CSourcePhrase *pSrcPhr
 
 CBString CSourcePhrase::MakeXML(int nTabLevel)
 {
+	// get the doc version number to be used for this save
+	int docVersion = gpApp->GetDocument()->GetCurrentDocVersion();
+
 	// nTabLevel specifies how many tabs are to start each line,
 	// nTabLevel == 1 inserts one, 2 inserts two, etc
 	CBString bstr;
 	bstr.Empty();
 	CBString btemp;
 	int i;
+	int len;
+	int extraIndent;
+	int nCount;
 	wxString tempStr;
+	SPList::Node* posSW;
 	// wx note: the wx version in Unicode build refuses assign a CBString to char numStr[24]
 	// so I'll declare numStr as a CBString also
 	CBString numStr; //char numStr[24];
+
 #ifdef _UNICODE
 
-	// first line -- element name and 4 attributes (two may be absent)
-	for (i = 0; i < nTabLevel; i++)
+	switch (docVersion)
 	{
-		bstr += "\t"; // tab the start of the line
-	}
-
-	bstr += "<S s=\"";
-	btemp = gpApp->Convert16to8(m_srcPhrase); // get the source string
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\" k=\"";
-	btemp = gpApp->Convert16to8(m_key); // get the key string (lacks punctuation, but we can't rule out it 
-				   // may contain " or > so we will need to do entity insert for these
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\"";
-
-	if (!m_targetStr.IsEmpty())
-	{
-		bstr += " t=\"";
-		btemp = gpApp->Convert16to8(m_targetStr);
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	if (!m_adaption.IsEmpty())
-	{
-		bstr += " a=\"";
-		btemp = gpApp->Convert16to8(m_adaption);
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	// second line -- 4 attributes (all obligatory), starting with the flags string
-	bstr += "\r\n";
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	btemp = MakeFlags(this);
-	bstr += "f=\"";
-	bstr += btemp; // add flags string
-	bstr += "\" sn=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSequNumber;
-	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add m_nSequNumber string
-	bstr += "\" w=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSrcWords;
-	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add m_nSrcWords string
-	bstr += "\" ty=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << (int)m_curTextType;
-	numStr = gpApp->Convert16to8(tempStr);
-	bstr += numStr; // add m_curTextType string
-	bstr += "\""; // delay adding newline, there may be no more content
-
-	// third line -- 5 attributes, possibly all absent
-	if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
-		|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
-	{
-		// there is something on this line, so form the line
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+	default:
+	case 5:
+		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
-		if (!m_precPunct.IsEmpty())
+
+		bstr += "<S s=\"";
+		btemp = gpApp->Convert16to8(m_srcPhrase); // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = gpApp->Convert16to8(m_key); // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
 		{
-			bstr += "pp=\"";
-			btemp = gpApp->Convert16to8(m_precPunct);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_precPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_follPunct.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " fp=\"";
-			else
-				bstr += "fp=\"";
-			btemp = gpApp->Convert16to8(m_follPunct);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_follPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_gloss.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " g=\"";
-			else
-				bstr += "g=\"";
-			btemp = gpApp->Convert16to8(m_gloss);
+			bstr += " t=\"";
+			btemp = gpApp->Convert16to8(m_targetStr);
 			InsertEntities(btemp);
 			bstr += btemp;
 			bstr += "\"";
-			bStarted = TRUE;
 		}
-		if (!m_inform.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " i=\"";
-			else
-				bstr += "i=\"";
-			btemp = gpApp->Convert16to8(m_inform);
-			InsertEntities(btemp); // just in case, do it for unicode (eliminates potential bug)
-			bstr += btemp; // add m_inform string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_chapterVerse.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " c=\"";
-			else
-				bstr += "c=\"";
-			btemp = gpApp->Convert16to8(m_chapterVerse);
-			InsertEntities(btemp); // ditto
-			bstr += btemp; // add m_chapterVerse string
-			bstr += "\"";
-		}
-	}
 
-    // fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
-    // absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
-	// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
-	// will be elsewhere), so em can be on same line as m
-	if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
-	{
-		// there is something on this line, so form the line
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = gpApp->Convert16to8(m_adaption);
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
+		bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = gpApp->Convert16to8(m_precPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = gpApp->Convert16to8(m_follPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = gpApp->Convert16to8(m_gloss);
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				btemp = gpApp->Convert16to8(m_inform);
+				InsertEntities(btemp); // just in case, do it for unicode (eliminates potential bug)
+				bstr += btemp; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				btemp = gpApp->Convert16to8(m_chapterVerse);
+				InsertEntities(btemp); // ditto
+				bstr += btemp; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+		// fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
+		// absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
+		// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
+		// will be elsewhere), so em can be on same line as m
+		if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_markers.IsEmpty())
+			{
+				bstr += "m=\"";
+				btemp = gpApp->Convert16to8(m_markers);
+				bstr += btemp; // add m_markers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_endMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " em=\"";
+				else
+					bstr += "em=\"";
+				btemp = gpApp->Convert16to8(m_endMarkers);
+				bstr += btemp; // add m_endMarkers string
+				bstr += "\"";
+			}
+		}
+
+		// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
+			|| !m_filteredInfo.IsEmpty())
+		{
+			// there is something in this group, so form the needed lines
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_freeTrans.IsEmpty())
+			{
+				bstr += "ft=\"";
+				btemp = gpApp->Convert16to8(m_freeTrans);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_freeTrans string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// sixth line... (possibly, or fifth)
+			if (!m_note.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += "\t"; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for next line
+				}
+				bstr += "no=\"";
+				btemp = gpApp->Convert16to8(m_note);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_note string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// seventh line... (possibly, or sixth, or fifth)
+			if (!m_collectedBackTrans.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += "\t"; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "bt=\"";
+				btemp = gpApp->Convert16to8(m_collectedBackTrans);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_collectedBackTrans string
+				bstr += "\"";
+				bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+			// eighth line... (possibly, or seventh or sixth, or fifth)
+			if (!m_filteredInfo.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the eigth or seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += "\t"; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "fi=\"";
+				btemp = gpApp->Convert16to8(m_filteredInfo);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_filteredInfo string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = gpApp->Convert16to8(m_pMedialMarkers->Item(i));
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while(posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+		bstr += "</S>\r\n";
+
+		break; // for Unicode version, building for VERSION_NUMBER (currently 5)
+	case 4:
+	case 3:
+	case 2:
+	case 1:
+		// first line -- element name and 4 attributes (two may be absent)
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+
+		bstr += "<S s=\"";
+		btemp = gpApp->Convert16to8(m_srcPhrase); // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = gpApp->Convert16to8(m_key); // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
+		{
+			bstr += " t=\"";
+			btemp = gpApp->Convert16to8(m_targetStr);
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = gpApp->Convert16to8(m_adaption);
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
+		bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = gpApp->Convert16to8(tempStr);
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = gpApp->Convert16to8(m_precPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = gpApp->Convert16to8(m_follPunct);
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = gpApp->Convert16to8(m_gloss);
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				btemp = gpApp->Convert16to8(m_inform);
+				InsertEntities(btemp); // just in case, do it for unicode (eliminates potential bug)
+				bstr += btemp; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				btemp = gpApp->Convert16to8(m_chapterVerse);
+				InsertEntities(btemp); // ditto
+				bstr += btemp; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+		// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
+		// because if present it may be very long (eg. it may contain filtered material)
 		if (!m_markers.IsEmpty())
 		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
 			bstr += "m=\"";
 			btemp = gpApp->Convert16to8(m_markers);
+			InsertEntities(btemp);
 			bstr += btemp; // add m_markers string
 			bstr += "\"";
-			bStarted = TRUE;
 		}
-		if (!m_endMarkers.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " em=\"";
-			else
-				bstr += "em=\"";
-			btemp = gpApp->Convert16to8(m_endMarkers);
-			bstr += btemp; // add m_endMarkers string
-			bstr += "\"";
-		}
-	}
 
-	// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
-	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
-		|| !m_filteredInfo.IsEmpty())
-	{
-		// there is something in this group, so form the needed lines
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = gpApp->Convert16to8(m_pMedialMarkers->Item(i));
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while(posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
-		if (!m_freeTrans.IsEmpty())
-		{
-			bstr += "ft=\"";
-			btemp = gpApp->Convert16to8(m_freeTrans);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_freeTrans string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		// sixth line... (possibly, or fifth)
-		if (!m_note.IsEmpty())
-		{
-			if (bStarted)
-			{
-				// we need to start a new line (the sixth)
-				bstr += "\r\n";
-				for (i = 0; i < nTabLevel; i++)
-				{
-					bstr += "\t"; // tab the start of the line
-				}
-				bStarted = FALSE; // reset, so logic will work for next line
-			}
-			bstr += "no=\"";
-			btemp = gpApp->Convert16to8(m_note);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_note string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		// seventh line... (possibly, or sixth, or fifth)
-		if (!m_collectedBackTrans.IsEmpty())
-		{
-			if (bStarted)
-			{
-				// we need to start a new line (the seventh or sixth)
-				bstr += "\r\n";
-				for (i = 0; i < nTabLevel; i++)
-				{
-					bstr += "\t"; // tab the start of the line
-				}
-				bStarted = FALSE; // reset, so logic will work for any next lines
-			}
-			bstr += "bt=\"";
-			btemp = gpApp->Convert16to8(m_collectedBackTrans);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_collectedBackTrans string
-			bstr += "\"";
-			bStarted = TRUE; // uncomment out if we add more attributes to this block
-		}
-		// eighth line... (possibly, or seventh or sixth, or fifth)
-		if (!m_filteredInfo.IsEmpty())
-		{
-			if (bStarted)
-			{
-				// we need to start a new line (the eigth or seventh or sixth)
-				bstr += "\r\n";
-				for (i = 0; i < nTabLevel; i++)
-				{
-					bstr += "\t"; // tab the start of the line
-				}
-				bStarted = FALSE; // reset, so logic will work for any next lines
-			}
-			bstr += "fi=\"";
-			btemp = gpApp->Convert16to8(m_filteredInfo);
-			InsertEntities(btemp);
-			bstr += btemp; // add m_filteredInfo string
-			bstr += "\"";
-			//bStarted = TRUE; // uncomment out if we add more attributes to this block
-		}
-	}
+		bstr += "</S>\r\n";
 
-	// we can now close off the S opening tag
-	bstr += ">";
-
-	// there are potentially up to three further information types - each or all may be
-	// empty, and each, if present, is a list of one or more things - the first two are
-	// string lists, and the last is embedded sourcephrase instances - these we will
-	// handle by embedding the XML representations with an extra level of tabbed indent
-	int nCount = m_pMedialPuncts->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial punctuation strings (these require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
-		for (i = 0; i < nTabLevel; i++)
-		{
-			bstr += "\t"; // tab the start of the line
-		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MP mp=\"";
-			btemp = gpApp->Convert16to8(m_pMedialPuncts->Item(i)); 
-			InsertEntities(btemp);
-			bstr += btemp; // add punctuation string
-			bstr += "\"/>";
-		}
+		break; // for Unicode version, building for DOCVERSION4 (currently 4) or earlier
 	}
-	nCount = m_pMedialMarkers->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial marker strings (these don't require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
-		for (i = 0; i < nTabLevel; i++)
-		{
-			bstr += "\t"; // tab the start of the line
-		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MM mm=\"";
-			btemp = gpApp->Convert16to8(m_pMedialMarkers->Item(i));
-			bstr += btemp; // add marker(s) string
-			bstr += "\"/>";
-		}
-	}
-	// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
-	// and will use posSW as a node of the m_pSavedWords SPList.
-	SPList::Node* posSW;
-	nCount = m_pSavedWords->GetCount();
-	int extraIndent = nTabLevel + 1;
-	if (nCount > 0)
-	{
-		// handle the list of medial marker strings (these don't require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		CSourcePhrase* pSrcPhrase;
-		bstr += "\r\n"; // get a new line open
-		posSW = m_pSavedWords->GetFirst();
-		while(posSW != NULL)
-		{
-			pSrcPhrase = (CSourcePhrase*)posSW->GetData();
-			posSW = posSW->GetNext();
-			bstr += pSrcPhrase->MakeXML(extraIndent);
-		}
-	}
-	// now close off the element, at the original indentation level
-	int len = bstr.GetLength();
-	if (bstr.GetAt(len-1) != '\n')
-		bstr += "\r\n";
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	bstr += "</S>\r\n";
-
 #else // regular version
 
-	// first line -- element name and 4 attributes (two may be absent)
-	for (i = 0; i < nTabLevel; i++)
+	switch (docVersion)
 	{
-		bstr += "\t"; // tab the start of the line
-	}
-
-	bstr += "<S s=\"";
-	btemp = m_srcPhrase; // get the source string
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\" k=\"";
-	btemp = m_key; // get the key string (lacks punctuation, but we can't rule out it 
-				   // may contain " or > so we will need to do entity insert for these
-	InsertEntities(btemp);
-	bstr += btemp; // add it
-	bstr += "\"";
-
-	if (!m_targetStr.IsEmpty())
-	{
-		bstr += " t=\"";
-		btemp = m_targetStr;
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	if (!m_adaption.IsEmpty())
-	{
-		bstr += " a=\"";
-		btemp = m_adaption;
-		InsertEntities(btemp);
-		bstr += btemp;
-		bstr += "\"";
-	}
-
-	// second line -- 4 attributes (all obligatory), starting with the flags string
-	bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	btemp = MakeFlags(this);
-	bstr += "f=\"";
-	bstr += btemp; // add flags string
-	bstr += "\" sn=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSequNumber;
-	numStr = tempStr;
-	bstr += numStr; // add m_nSequNumber string
-	bstr += "\" w=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << m_nSrcWords;
-	numStr = tempStr;
-	bstr += numStr; // add m_nSrcWords string
-	bstr += "\" ty=\"";
-	tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
-	tempStr << (int)m_curTextType;
-	numStr = tempStr;
-	bstr += numStr; // add m_curTextType string
-	bstr += "\""; // delay adding newline, there may be no more content
-
-	// third line -- 5 attributes, possibly all absent
-	if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
-		|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
-	{
-		// there is something on this line, so form the line
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+	default:
+	case 5:
+		// first line -- element name and 4 attributes (two may be absent)
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
-		if (!m_precPunct.IsEmpty())
+
+		bstr += "<S s=\"";
+		btemp = m_srcPhrase; // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = m_key; // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
 		{
-			bstr += "pp=\"";
-			btemp = m_precPunct;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_precPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_follPunct.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " fp=\"";
-			else
-				bstr += "fp=\"";
-			btemp = m_follPunct;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_follPunct string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_gloss.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " g=\"";
-			else
-				bstr += "g=\"";
-			btemp = m_gloss;
+			bstr += " t=\"";
+			btemp = m_targetStr;
 			InsertEntities(btemp);
 			bstr += btemp;
 			bstr += "\"";
-			bStarted = TRUE;
 		}
-		if (!m_inform.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " i=\"";
-			else
-				bstr += "i=\"";
-			//btemp = m_inform;
-			//InsertEntities(btemp); // entities not needed for this member
-			bstr += m_inform; // add m_inform string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		if (!m_chapterVerse.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " c=\"";
-			else
-				bstr += "c=\"";
-			//btemp = m_chapterVerse;
-			//InsertEntities(btemp); // entities not needed for this member
-			bstr += m_chapterVerse; // add m_chapterVerse string
-			bstr += "\"";
-		}
-	}
 
-    // fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
-    // absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
-	// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
-	// will be elsewhere), so em can be on same line as m
-	if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
-	{
-		// there is something on this line, so form the line
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = m_adaption;
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
 		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = tempStr;
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = m_precPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = m_follPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = m_gloss;
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				//btemp = m_inform;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_inform; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				//btemp = m_chapterVerse;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_chapterVerse; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+		// fourth line -- 2 attributes in doc version 5, 1 in doc version 4, both possibly
+		// absent, m_markers and, for vers 5, also m_endMarkers; in vers 4 it may be very long
+		// (eg. it may contain filtered material), but in vers 5 it won't be (fildered info
+		// will be elsewhere), so em can be on same line as m
+		if (!m_markers.IsEmpty() || !m_endMarkers.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_markers.IsEmpty())
+			{
+				bstr += "m=\"";
+				btemp = m_markers;
+				bstr += btemp; // add m_markers string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_endMarkers.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " em=\"";
+				else
+					bstr += "em=\"";
+				//btemp = m_endMarkers;
+				//bstr += btemp; // add m_endMarkers string
+				bstr += m_endMarkers; // this is quicker
+				bstr += "\"";
+			}
+		}
+
+		// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
+		if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
+			|| !m_filteredInfo.IsEmpty())
+		{
+			// there is something in this group, so form the needed lines
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_freeTrans.IsEmpty())
+			{
+				bstr += "ft=\"";
+				btemp = m_freeTrans;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_freeTrans string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// sixth line... (possibly, or fifth)
+			if (!m_note.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += "\t"; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for next line
+				}
+				bstr += "no=\"";
+				btemp = m_note;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_note string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			// seventh line... (possibly, or sixth, or fifth)
+			if (!m_collectedBackTrans.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += "\t"; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "bt=\"";
+				btemp = m_collectedBackTrans;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_collectedBackTrans string
+				bstr += "\"";
+				bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+			// eighth line... (possibly, or seventh or sixth, or fifth)
+			if (!m_filteredInfo.IsEmpty())
+			{
+				if (bStarted)
+				{
+					// we need to start a new line (the eigth or seventh or sixth)
+					bstr += "\r\n";
+					for (i = 0; i < nTabLevel; i++)
+					{
+						bstr += "\t"; // tab the start of the line
+					}
+					bStarted = FALSE; // reset, so logic will work for any next lines
+				}
+				bstr += "fi=\"";
+				btemp = m_filteredInfo;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_filteredInfo string
+				bstr += "\"";
+				//bStarted = TRUE; // uncomment out if we add more attributes to this block
+			}
+		}
+
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = m_pMedialPuncts->Item(i);
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = m_pMedialMarkers->Item(i);
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of embedded CSourcePhrase instances which comprised the
+			// original selection which resulted in this current merged CSourcePhrase instance
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while (posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+		bstr += "</S>\r\n";
+
+		break; // for ANSI version, building for VERSION_NUMBER (currently 5)
+
+	case 4:
+	case 3:
+	case 2:
+	case 1:
+		// first line -- element name and 4 attributes (two may be absent)
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+
+		bstr += "<S s=\"";
+		btemp = m_srcPhrase; // get the source string
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\" k=\"";
+		btemp = m_key; // get the key string (lacks punctuation, but we can't rule out it 
+					   // may contain " or > so we will need to do entity insert for these
+		InsertEntities(btemp);
+		bstr += btemp; // add it
+		bstr += "\"";
+
+		if (!m_targetStr.IsEmpty())
+		{
+			bstr += " t=\"";
+			btemp = m_targetStr;
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		if (!m_adaption.IsEmpty())
+		{
+			bstr += " a=\"";
+			btemp = m_adaption;
+			InsertEntities(btemp);
+			bstr += btemp;
+			bstr += "\"";
+		}
+
+		// second line -- 4 attributes (all obligatory), starting with the flags string
+		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+		for (i = 0; i < nTabLevel; i++)
+		{
+			bstr += "\t"; // tab the start of the line
+		}
+		btemp = MakeFlags(this);
+		bstr += "f=\"";
+		bstr += btemp; // add flags string
+		bstr += "\" sn=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSequNumber;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSequNumber string
+		bstr += "\" w=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << m_nSrcWords;
+		numStr = tempStr;
+		bstr += numStr; // add m_nSrcWords string
+		bstr += "\" ty=\"";
+		tempStr.Empty(); // needs to start empty, otherwise << will append the string value of the int
+		tempStr << (int)m_curTextType;
+		numStr = tempStr;
+		bstr += numStr; // add m_curTextType string
+		bstr += "\""; // delay adding newline, there may be no more content
+
+		// third line -- 5 attributes, possibly all absent
+		if (!m_precPunct.IsEmpty() || !m_follPunct.IsEmpty() || !m_gloss.IsEmpty()
+			|| !m_inform.IsEmpty() || !m_chapterVerse.IsEmpty())
+		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			bool bStarted = FALSE;
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			if (!m_precPunct.IsEmpty())
+			{
+				bstr += "pp=\"";
+				btemp = m_precPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_precPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_follPunct.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " fp=\"";
+				else
+					bstr += "fp=\"";
+				btemp = m_follPunct;
+				InsertEntities(btemp);
+				bstr += btemp; // add m_follPunct string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_gloss.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " g=\"";
+				else
+					bstr += "g=\"";
+				btemp = m_gloss;
+				InsertEntities(btemp);
+				bstr += btemp;
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_inform.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " i=\"";
+				else
+					bstr += "i=\"";
+				//btemp = m_inform;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_inform; // add m_inform string
+				bstr += "\"";
+				bStarted = TRUE;
+			}
+			if (!m_chapterVerse.IsEmpty())
+			{
+				if (bStarted)
+					bstr += " c=\"";
+				else
+					bstr += "c=\"";
+				//btemp = m_chapterVerse;
+				//InsertEntities(btemp); // entities not needed for this member
+				bstr += m_chapterVerse; // add m_chapterVerse string
+				bstr += "\"";
+			}
+		}
+
+		// fourth line -- 1 attribute, possibly absent, m_markers; it can have the whole line
+		// because if present it may be very long (eg. it may contain filtered material)
 		if (!m_markers.IsEmpty())
 		{
+			// there is something on this line, so form the line
+			bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
 			bstr += "m=\"";
 			btemp = m_markers;
+			InsertEntities(btemp);
 			bstr += btemp; // add m_markers string
 			bstr += "\"";
-			bStarted = TRUE;
 		}
-		if (!m_endMarkers.IsEmpty())
-		{
-			if (bStarted)
-				bstr += " em=\"";
-			else
-				bstr += "em=\"";
-			//btemp = m_endMarkers;
-			//bstr += btemp; // add m_endMarkers string
-			bstr += m_endMarkers; // this is quicker
-			bstr += "\"";
-		}
-	}
 
-	// fifth, sixth, seventh and eighth lines -- 1 attribute each, each is possibly absent
-	if (!m_freeTrans.IsEmpty() || !m_note.IsEmpty() || !m_collectedBackTrans.IsEmpty()
-		|| !m_filteredInfo.IsEmpty())
-	{
-		// there is something in this group, so form the needed lines
-		bstr += "\r\n"; // TODO: EOL chars probably needs to be changed under Linux and Mac
-		bool bStarted = FALSE;
+		// we can now close off the S opening tag
+		bstr += ">";
+
+		// there are potentially up to three further information types - each or all may be
+		// empty, and each, if present, is a list of one or more things - the first two are
+		// string lists, and the last is embedded sourcephrase instances - these we will
+		// handle by embedding the XML representations with an extra level of tabbed indent
+		nCount = m_pMedialPuncts->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial punctuation strings (these require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MP mp=\"";
+				btemp = m_pMedialPuncts->Item(i);
+				InsertEntities(btemp);
+				bstr += btemp; // add punctuation string
+				bstr += "\"/>";
+			}
+		}
+		nCount = m_pMedialMarkers->GetCount();
+		if (nCount > 0)
+		{
+			// handle the list of medial marker strings (these don't require entity insertion)
+			// and there are seldom more than one or two of them, so all can go on one line
+			// with no intervening spaces
+			bstr += "\r\n";
+			for (i = 0; i < nTabLevel; i++)
+			{
+				bstr += "\t"; // tab the start of the line
+			}
+			for (i = 0; i < nCount; i++)
+			{
+				bstr += "<MM mm=\"";
+				btemp = m_pMedialMarkers->Item(i);
+				bstr += btemp; // add marker(s) string
+				bstr += "\"/>";
+			}
+		}
+		// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
+		// and will use posSW as a node of the m_pSavedWords SPList.
+		nCount = m_pSavedWords->GetCount();
+		extraIndent = nTabLevel + 1;
+		if (nCount > 0)
+		{
+			// handle the list of embedded CSourcePhrase instances which comprised the
+			// original selection which resulted in this current merged CSourcePhrase instance
+			CSourcePhrase* pSrcPhrase;
+			bstr += "\r\n"; // get a new line open
+			posSW = m_pSavedWords->GetFirst();
+			while (posSW != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)posSW->GetData();
+				posSW = posSW->GetNext();
+				bstr += pSrcPhrase->MakeXML(extraIndent);
+			}
+		}
+		// now close off the element, at the original indentation level
+		len = bstr.GetLength();
+		if (bstr.GetAt(len-1) != '\n')
+			bstr += "\r\n";
 		for (i = 0; i < nTabLevel; i++)
 		{
 			bstr += "\t"; // tab the start of the line
 		}
-		if (!m_freeTrans.IsEmpty())
-		{
-			bstr += "ft=\"";
-			btemp = m_freeTrans;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_freeTrans string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		// sixth line... (possibly, or fifth)
-		if (!m_note.IsEmpty())
-		{
-			if (bStarted)
-			{
-				// we need to start a new line (the sixth)
-				bstr += "\r\n";
-				for (i = 0; i < nTabLevel; i++)
-				{
-					bstr += "\t"; // tab the start of the line
-				}
-				bStarted = FALSE; // reset, so logic will work for next line
-			}
-			bstr += "no=\"";
-			btemp = m_note;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_note string
-			bstr += "\"";
-			bStarted = TRUE;
-		}
-		// seventh line... (possibly, or sixth, or fifth)
-		if (!m_collectedBackTrans.IsEmpty())
-		{
-			if (bStarted)
-			{
-				// we need to start a new line (the seventh or sixth)
-				bstr += "\r\n";
-				for (i = 0; i < nTabLevel; i++)
-				{
-					bstr += "\t"; // tab the start of the line
-				}
-				bStarted = FALSE; // reset, so logic will work for any next lines
-			}
-			bstr += "bt=\"";
-			btemp = m_collectedBackTrans;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_collectedBackTrans string
-			bstr += "\"";
-			bStarted = TRUE; // uncomment out if we add more attributes to this block
-		}
-		// eighth line... (possibly, or seventh or sixth, or fifth)
-		if (!m_filteredInfo.IsEmpty())
-		{
-			if (bStarted)
-			{
-				// we need to start a new line (the eigth or seventh or sixth)
-				bstr += "\r\n";
-				for (i = 0; i < nTabLevel; i++)
-				{
-					bstr += "\t"; // tab the start of the line
-				}
-				bStarted = FALSE; // reset, so logic will work for any next lines
-			}
-			bstr += "fi=\"";
-			btemp = m_filteredInfo;
-			InsertEntities(btemp);
-			bstr += btemp; // add m_filteredInfo string
-			bstr += "\"";
-			//bStarted = TRUE; // uncomment out if we add more attributes to this block
-		}
+		bstr += "</S>\r\n";
+
+		break; // for ANSI version, building for DOCVERSION4 (currently 4) or earlier
 	}
 
-	// we can now close off the S opening tag
-	bstr += ">";
-
-	// there are potentially up to three further information types - each or all may be
-	// empty, and each, if present, is a list of one or more things - the first two are
-	// string lists, and the last is embedded sourcephrase instances - these we will
-	// handle by embedding the XML representations with an extra level of tabbed indent
-	int nCount = m_pMedialPuncts->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial punctuation strings (these require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
-		for (i = 0; i < nTabLevel; i++)
-		{
-			bstr += "\t"; // tab the start of the line
-		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MP mp=\"";
-			btemp = m_pMedialPuncts->Item(i);
-			InsertEntities(btemp);
-			bstr += btemp; // add punctuation string
-			bstr += "\"/>";
-		}
-	}
-	nCount = m_pMedialMarkers->GetCount();
-	if (nCount > 0)
-	{
-		// handle the list of medial marker strings (these don't require entity insertion)
-		// and there are seldom more than one or two of them, so all can go on one line
-		// with no intervening spaces
-		bstr += "\r\n";
-		for (i = 0; i < nTabLevel; i++)
-		{
-			bstr += "\t"; // tab the start of the line
-		}
-		for (i = 0; i < nCount; i++)
-		{
-			bstr += "<MM mm=\"";
-			btemp = m_pMedialMarkers->Item(i);
-			bstr += btemp; // add marker(s) string
-			bstr += "\"/>";
-		}
-	}
-	// pos above was a wxArrayString index position, but now we are dealing with a wxList structure
-	// and will use posSW as a node of the m_pSavedWords SPList.
-	SPList::Node* posSW;
-	nCount = m_pSavedWords->GetCount();
-	int extraIndent = nTabLevel + 1;
-	if (nCount > 0)
-	{
-		// handle the list of embedded CSourcePhrase instances which comprised the
-		// original selection which resulted in this current merged CSourcePhrase instance
-		CSourcePhrase* pSrcPhrase;
-		bstr += "\r\n"; // get a new line open
-		posSW = m_pSavedWords->GetFirst();
-		while (posSW != NULL)
-		{
-			pSrcPhrase = (CSourcePhrase*)posSW->GetData();
-			posSW = posSW->GetNext();
-			bstr += pSrcPhrase->MakeXML(extraIndent);
-		}
-	}
-	// now close off the element, at the original indentation level
-	int len = bstr.GetLength();
-	if (bstr.GetAt(len-1) != '\n')
-		bstr += "\r\n";
-	for (i = 0; i < nTabLevel; i++)
-	{
-		bstr += "\t"; // tab the start of the line
-	}
-	bstr += "</S>\r\n";
 #endif
 	return bstr;
 }
@@ -1424,7 +1898,7 @@ bool CSourcePhrase::GetFilteredInfoAsArrays(wxArrayString* pFilteredMarkers,
 		// content string, adding them to the respective arrays; the ParseMarkersAndContent()
 		// function handles initial marker and end marker, whether SFM set or USFM set,
 		// equally well
-		ParseMarkersAndContent(markersAndContent, mkr, content, endMkr); // defined in helpers.cpp
+		ParseMarkersAndContent(markersAndContent, mkr, content, endMkr); // defined in xml.cpp
 		pFilteredMarkers->Add(mkr);
 		pFilteredContent->Add(content);
 		if (bUseSpaceForEmpty)

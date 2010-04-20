@@ -73,8 +73,11 @@
 /// in UTF-16 encoding.
 #define nU16BOMLen 2
 
+extern wxChar gSFescapechar; // the escape char used for start of a standard format marker
 extern const wxChar* filterMkr; // defined in the Doc
 extern const wxChar* filterMkrEnd; // defined in the Doc
+const int filterMkrLen = 8;
+const int filterMkrEndLen = 9;
 
 #ifdef _UNICODE
 static unsigned char szBOM[nBOMLen] = {0xEF, 0xBB, 0xBF};
@@ -3253,8 +3256,8 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, boo
 			// the next call strips of \~FILTER and \~FILTER* and any marker and endmarker
 			// wrapped by these wrapper markers, if returning data via strFreeTrans, strNote,
 			// and/or strCollectedBackTrans; but the normal return string which goes to
-			// filteredInfo will have neither the filter marker wrappers, not neither
-			// wrapped marker and (if present) endmarker removed - because Adapt It makes
+			// filteredInfo will have neither the filter marker wrappers, nor the marker
+			// and endmarker (if present)wrapped by them, removed - because Adapt It makes
 			// no use of the m_filteredInfo content in version 5, that member is just
 			// there as a catch all for all filtered stuff needing to be kept in case the
 			// use calls for an export - in which case it needs to be put into the export
@@ -3292,14 +3295,21 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, boo
 }
 
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
-bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase)
+// Used in the conversion of documents that were saved in docVersion 4, to docVersion 5.
+// The latter has an m_endMarkers member on CSourcePhrase, and endmarkers are then no
+// longer stored on the start of the m_markers member of the CSourcePhrase which follows
+// the one which is the end of the content for the endmarker in question. (Note: allowing
+// the user to do Save As... so as to save to a legacy doc version, such as 4, requires a
+// similar function to transfer endmarkers from the end of a CSourcePhrase to the start of
+// the m_markers member of the one which follows. Call that one TransferEndMarkersBackToDocV4()
+bool TransferEndMarkers(wxString& markers, CSourcePhrase* pLastSrcPhrase)
 {
 	bool bTransferred = FALSE;
-	modifiers.Trim(FALSE); // trim at left, but should never be necessary
+	markers.Trim(FALSE); // trim at left, but should never be necessary
 	int length;									// the wxString's data buffer
 	bool bWasEndMarker = FALSE;
 	do {
-		const wxChar* ptr = modifiers.GetData(); // point at first possible marker in modifiers
+		const wxChar* ptr = markers.GetData(); // point at first possible marker in markers
 		length = ParseMarker(ptr);
 		wxString marker(ptr,length);
 		if (!marker.IsEmpty() && marker.GetChar(0) == _T('\\'))
@@ -3351,8 +3361,8 @@ bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase)
 					pLastSrcPhrase->AddEndMarker(marker);
 					bTransferred = TRUE;
 				}
-				modifiers = modifiers.Mid(length);
-				modifiers.Trim(FALSE); // ready to test for another
+				markers = markers.Mid(length);
+				markers.Trim(FALSE); // ready to test for another
 			}
 		} // end of block for test: if (!marker.IsEmpty() && marker.GetChar(0) == _T('\\'))
 		else
@@ -3362,6 +3372,127 @@ bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase)
 		}
 	} while (TRUE);
 	return bTransferred;
+}
+
+// returns TRUE if endmarkers were transferred to the start of the pNextSrcPhrase, FALSE
+// if no transfer was done. DocVersion 4 stored endmarkers for non-filtered information at
+// the start of the m_markers member of the next CSourcePhrase instance, rather than in
+// the CSourcePhrase instance which is where the information type ends. So this function
+// checks for endmarker(s) in the m_endMarkers member, and if present, inserts them at the
+// start of pNextSrcPhrase->m_markers. In the case of the current source phrase being a
+// merger, then m_endMarkers will have the same content for the merged CSourcePhrase, and
+// also for the last one in its m_pSavedWords array of original CSourcePhrase instances;
+// in that case, not only do we do the transfer, but the last one in m_pSavedWords has to
+// be cleared to the empty string, because what we transfer to pNextSrcPhrase->m_markers
+// suffices for both. 
+// Note: if the pThisOne instance is the last in the document, then the caller would have
+// to create a dummy CSourcPhrase instance and append to the doc's end, in order to carry
+// the transferred endmarkers (and pNextSrcPhrase would then be that dummy one)
+bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNextSrcPhrase)
+{
+	wxASSERT(pNextSrcPhrase != NULL);
+	if (pThisOne->GetEndMarkers().IsEmpty())
+	{
+		// there is nothing to transfer
+		return FALSE;
+	}
+	wxString emptyStr = _T("");
+	wxString nextMarkers = pNextSrcPhrase->m_markers;
+	wxString endmarkersStr = pThisOne->GetEndMarkers();
+	if (pThisOne->m_nSrcWords > 1)
+	{
+		// its a merger, so we've a bit more to do
+		SPList* pList = pThisOne->m_pSavedWords;
+		SPList::Node* pos = pList->GetLast();
+		wxASSERT(pos != NULL);
+		CSourcePhrase* pOriginalLast = pos->GetData();
+		pOriginalLast->SetEndMarkers(emptyStr);
+	}
+	// make the transfer
+	if (nextMarkers.IsEmpty())
+	{
+		nextMarkers = endmarkersStr;
+	}
+	else
+	{
+		nextMarkers = endmarkersStr + _T(" ") + nextMarkers;
+	}
+	// update the m_markers member with the transferred data
+	pNextSrcPhrase->m_markers = nextMarkers; 
+	pThisOne->SetEndMarkers(emptyStr);
+	return TRUE;
+}
+
+// this function takes an input string of the following form (where [ ] brackets
+// indicate optionality)
+// \~FILTER \somemkr some content [\somemkr*] \~FILTER*[\~FILTER \mrk2 content... etc]
+// and it strips off the first \~FILTER and matching \~FILTER* endmarker, returning the
+// string "\somemkr some content [\somemkr*\]
+// If the PNG 1998 marker set is being used, the returned endmarker (if it exists) would
+// not have any asterisk, as there are few endmarkers in that set and none use *.
+wxString RemoveOuterWrappers(wxString wrappedStr)
+{
+	int offset = wrappedStr.Find(filterMkr);
+	wxASSERT(offset != wxNOT_FOUND);
+	offset += filterMkrLen;
+	wrappedStr = wrappedStr.Mid(offset);
+	wrappedStr.Trim(FALSE); // trim whitespace on left
+	offset = wrappedStr.Find(filterMkrEnd);
+	wxASSERT(offset != wxNOT_FOUND);
+	wrappedStr = wrappedStr.Left(offset);
+	wrappedStr.Trim(); // trim whitespace on right
+	return wrappedStr;
+}
+
+// Take a mkrsAndContent string of form:
+// \mkr some data content \mkr* (USFM, and \mkr* may be absent), or for the PNG SFM marker set,
+// \f footnote material \fe (or possibly: \F instead of \fe)
+// and return the separate bits by means of the formal parameters
+// This function is used in XML.cpp and CSourcePhrase.cpp, once for each.
+void ParseMarkersAndContent(wxString& mkrsAndContent, wxString& mkr, wxString& content, wxString& endMkr)
+{
+	wxString str = mkrsAndContent;
+	const wxChar* ptr = str.GetData(); // the wxString's data buffer
+	int length;
+
+	// extract the starting marker, and then shorten str so that it starts at the content
+	// part of mkrsAndContent
+	length = ParseMarker(ptr);
+	wxString marker(ptr,length);
+	mkr = marker;
+	str = str.Mid(length); // chop of the initial marker
+	str.Trim(FALSE); // chop off initial white space 
+	
+	// reverse the string
+	wxString rev = MakeReverse(str);
+
+	//  extract the reversed endmarker, if one exists (code defensively, in case the
+	//  content string contains an embedded gFSescapechar)
+	int offset = rev.Find(gSFescapechar);
+	if (offset == wxNOT_FOUND)
+	{
+		// there is no endmarker
+		wxString endMarker = _T("");
+		endMkr = endMarker;
+		rev.Trim(FALSE); // trim any initial white space
+		str = MakeReverse(rev); // restore normal order, the result is the 'content' string
+		content = str;
+		return;
+	}
+	else
+	{
+		// there is an endmarker - what lies before it is the reversed characters of that
+		// endmarker 
+		const wxChar* ptr2 = rev.GetData(); // the gFSescapechar will cause premature exit of ParseMarker()
+							 // so allow for this below
+		length = ParseMarker(ptr2);
+		length++; // count the back slash (i.e. gFSescapechar)
+		wxString reversedEndMkr(rev,length);
+		endMkr = MakeReverse(reversedEndMkr);
+		rev = rev.Mid(length);
+		rev.Trim(FALSE); // trim any now-initial whitespace
+		content = MakeReverse(rev);
+	}
 }
 
 /**************************************************************************************
@@ -4005,6 +4136,92 @@ bool ReadKB_XML(wxString& path, CKB* pKB)
 							AtKBEndTag,AtKBPCDATA);
 	return bXMLok;
 }	
+
+// currently this is called in XML.cpp only, but it could be useful elsewhere
+// The returned string keeps the filter marker wrappers and their markers and data
+// contents, but the strFreeTrans, strNote, and strCollectedBackTrans parameters return
+// their strings with markers, endmarkers and filter marker wrappers removed - that is,
+// just the raw free translation, note, or collected back translation text only
+wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
+				wxString& strNote, wxString& strCollectedBackTrans, wxString& strRemainder)
+{
+	wxString info = strTheRestOfMarkers;
+	strRemainder = strTheRestOfMarkers;
+	if (info.IsEmpty())
+	{
+		return info;
+	}
+	wxString strConcat = _T(""); // store each substring here
+	int offsetToStart = 0;
+	int offsetToEnd = 0;
+
+	// get the each \~FILTER ... \~FILTER*  wrapped substring, (each such contains one SF
+	// marked up content string, of form \marker <content> \endMarker (but no < or >
+	// chars)) and return the wrapped substring, concatenated to one string
+	
+	offsetToStart = info.Find(filterMkr);
+	offsetToEnd = info.Find(filterMkrEnd);
+	while (offsetToStart != wxNOT_FOUND && offsetToEnd != wxNOT_FOUND && !info.IsEmpty())
+	{
+		offsetToEnd += filterMkrEndLen; // add length of \~FILTER*  (9 chars)
+		int length = offsetToEnd - offsetToStart;
+		wxString substring = info.Mid(offsetToStart,length);
+
+		// check for, and extract, any free trans, note, or collected back trans; but if
+		// it is none of these, concatenate it to whatever is going to be returned to the
+		// caller to go into the m_filteredInfo member of CSourcePhrase
+		wxString innerStr = RemoveOuterWrappers(substring);
+		wxString mkr;
+		wxString endMkr;
+		wxString content;
+		// we have to discern between \bt and a \bt-derived marker, the former's content
+		// goes in m_collectedBackTrans member, the latter into m_filteredInfo; we can do
+		// this by searching for "\\bt " - the space will be present if collected back
+		// translation informion is in this unwrapped string
+		bool bIsOurBTMkr = FALSE;
+		if (innerStr.Find(_T("\\bt ")) != wxNOT_FOUND)
+		{
+			bIsOurBTMkr = TRUE;
+		}
+		ParseMarkersAndContent(innerStr, mkr, content, endMkr);
+		if (mkr == _T("\\free") || mkr == _T("\\note") || (mkr.Find(_T("\\bt")) != wxNOT_FOUND))
+		{
+			if (mkr == _T("\\free"))
+			{
+				strFreeTrans = content;
+			}
+			else if (mkr == _T("\\note"))
+			{
+				strNote = content;
+			}
+			else 
+			{
+				if (bIsOurBTMkr)
+					strCollectedBackTrans = content;
+				else
+				{
+					// it's a \bt=derived marker, such as one of \btv, \bth, \bts, etc
+					strConcat += substring; // RHS is the string with filter marker wrappers still in place
+				}
+			}
+		}
+		else
+		{
+            // it's not one of the above 3 data types, so concatenate the substring to be
+            // returned in strConcat to go in the caller into the member m_filteredInfo
+			strConcat += substring;
+		}
+		// chop off the extracted substring from the info string, trim any whitespace at
+		// the left, and then get new starting and ending offsets and iterate
+		info = info.Mid(offsetToEnd);
+		info.Trim(FALSE); // trim at left hand end (in doc version 4 there is usually a
+						  // delimiting space needing to be chucked away here)
+		strRemainder = info; // it's trimmed at left
+		offsetToStart = info.Find(filterMkr);
+		offsetToEnd = info.Find(filterMkrEnd);
+	}
+	return strConcat;
+}
 
 
 

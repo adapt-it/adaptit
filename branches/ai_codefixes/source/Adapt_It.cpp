@@ -6830,9 +6830,8 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
         // called first to establish any non-zoomed window size, before re-establishing any
         // zoomed state.
 		
-		m_pMainFrame->SetSize(gpApp->m_ptViewTopLeft.x, gpApp->m_ptViewTopLeft.y,
-						gpApp->m_szView.x, gpApp->m_szView.y, wxSIZE_AUTO);
-		if (gpApp->m_bZoomed)
+		m_pMainFrame->SetSize(m_ptViewTopLeft.x, m_ptViewTopLeft.y, m_szView.x, m_szView.y, wxSIZE_AUTO);
+		if (m_bZoomed)
 		{
 			m_pMainFrame->Maximize(TRUE);
 		}
@@ -7838,7 +7837,26 @@ int ii = 1;
 	// push it on to the stack of window event handlers (otherwise, it won't receive events)
 	GetView()->canvas->pFrame->PushEventHandler(m_pPlaceholder);
 	
-   return TRUE;
+    // BEW added 19Apr for Save As... support. The document version will henceforth be
+    // parameterized. The doc class now has a private int member, m_docVersionCurrent which
+    // is used for constructing the XML for doc and KB which has the docVersion parameter
+    // value; and the Save As... dialog now lets the user choose to save in doc versions 5
+    // (the default, the combo box has index 0 for this value), or 4 (the combobox has
+    // index 1 for this value). 5 is the current value of VERSION_NUMBER which is #defined
+    // in AdaptitConstants.h, and DOCVERSION4 is there #defined as 4. To set or restore the
+    // current version number, call the public doc function:
+    // RestoreCurrentDocVersion(), which restores m_docVersionCurrent to VERSION_NUMBER. To
+    // set some other version number (currently, only version number 4 is supported), call
+    // the doc public function SetDocVersion(int index), which returns void. The index
+    // parameter is the value returned from the Save As... dialog's combobox for document
+    // type (0 is always mapped to the current value of VERSION_NUMBER, and 1 is always
+    // mapped to DOCVERSION4. (If later we have a docVersion 6, 5 would be assigned to a
+    // DOCVERSION5 new #define, and VERSION_NUMBER would become 6, and the Save As...
+    // dialog would then have 3 options for saving.) Use GetCurrentDocVersion() to return
+    // whatever is the current value of m_docVersionCurrent. So set the current value:
+	GetDocument()->RestoreCurrentDocVersion(); // currently, sets a value of 5
+
+    return TRUE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -21352,7 +21370,6 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 
 	wxString srcStr;
 	CBString tempStr;
-	//int i;
 	wxString intStr;
     // wx note: the wx version in Unicode build refuses assign a CBString to char
     // numStr[24] so I'll declare numStr as a CBString also
@@ -21368,7 +21385,8 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
     // wxWidgets' conversion macros rather than calling Convert16to8() - see the
     // Convert16to8() function in the App.]
 	//wxSprintf(numStr, 24,_T("%d"),(int)VERSION_NUMBER); 
-	intStr << (int)VERSION_NUMBER; // versionable schema number (see AdaptitConstants.h)
+	// BEW note 19Apr10: docVersions 4 and 5 have different xml structure, but the KB doesn't.
+	intStr << GetDocument()->GetCurrentDocVersion(); // versionable schema number (see AdaptitConstants.h)
 #ifdef _UNICODE
 	numStr = gpApp->Convert16to8(intStr);
 #else

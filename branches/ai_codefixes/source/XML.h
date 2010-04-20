@@ -270,8 +270,30 @@ bool ReadKB_XML(wxString& path, CKB* pKB);
 // Conversion functions for converting between different xml formats for
 // VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5
 void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded);
-// returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
-bool TransferEndMarkers(wxString& modifiers, CSourcePhrase* pLastSrcPhrase);
+// returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
+// use this function within FromDocVersion4ToDocVersion5() to transfer endmarkers from the
+// m_markers string for docVersion 4 CSourcePhrase instances, to CSourcePhrase instances as
+// in docVersion 5.
+bool TransferEndMarkers(wxString& markers, CSourcePhrase* pLastSrcPhrase);
+// returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
+// use this function within FromDocVersion5ToDocVersion4()to transfer endmarkers from the
+// CSourcePhrase instances as in docVersion 5, back to the start of the m_markers member
+// of the next CSourcePhrase instances, as is the way it was for docVersion 4. (Save As...
+// command, when saving to legacy doc format, needs to use this)
+bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNextSrcPhrase);
+// next function used in FromDocVersion4ToDocVersion5(), returns whatever any content
+// which should be put in m_filteredInfo (already wrapped with filter bracket markers)
+// BEW moved from helpers.h to here on 20Apr10
+wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
+				wxString& strNote, wxString& strCollectedBackTrans, wxString& strRemainder);
+// returns one or more substrings of form \~FILTER .... filtered info .... \~FILTER*,
+// concatenated without any space delimiter
+wxString RemoveOuterWrappers(wxString wrappedStr);
+// takes a passed in str which contains one or more sections of filter bracketing markers
+// wrapped information, and returns the first section's marker, content, and endmarker (if
+// it has one) and does not process further than just the first such section
+void ParseMarkersAndContent(wxString& str, wxString& mkr, wxString& content, wxString& endMkr);
+
 
 #endif // XML_h
 

@@ -136,11 +136,6 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 				,_T(""), wxICON_WARNING);
 			return; // leave user in the dialog, to fix the name
 		}
-		// whm: event.Sktip() at the end of OnOK takes care of this
-		//else
-		//{
-		//	CDialog::OnOK();
-		//}
 	}
 	else
 	{
@@ -158,44 +153,6 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 			if (foundPos != -1)
 				fn[foundPos] = _T(' ');
 		}
-/*
-		while ( (nFound = fn.Find(_T(':'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('?'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('*'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('\"'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('\\'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('/'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('|'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('<'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-		while ( (nFound = fn.Find(_T('>'))) != -1)
-		{
-			fn.SetAt(nFound,_T(' '));
-		}
-*/
 		m_strFilename = fn;
 		TransferDataFromWindow(); //UpdateData(FALSE);
 		::wxBell();
@@ -206,8 +163,3 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 	}
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
 }
-
-/////////////////////////////////////////////////////////////////////////////
-// COutputFilenameDlg message handlers
-
-
