@@ -160,7 +160,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 	wxString noteMkr = _T("\\note");
 	wxString noteEndMkr = noteMkr + _T('*');
 
-	if (nLocationSN > GetApp()->GetMaxIndex())
+	if (nLocationSN > m_pApp->GetMaxIndex())
 		return FALSE;
 	bool bHasNote = IsNoteStoredHere(pSrcPhrases, nLocationSN);
 	if (bHasNote)
@@ -182,7 +182,7 @@ bool CNotes::CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString
 		pToSrcPhrase->SetNote(strNote);
 		pToSrcPhrase->m_bHasNote = TRUE;
 		// mark its owning strip as invalid
-		GetApp()->GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
+		m_pApp->GetDocument()->ResetPartnerPileWidth(pToSrcPhrase);
 	}
 	return TRUE;
 }
@@ -212,7 +212,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
     // this code base for next release so I've not informed him) the span may not exist, if
     // at the end of the document we deleted the source text and the phrase box was located
     // within the deleted section, so check and skip this span if it has gone
-	int maxIndex = GetApp()->GetMaxIndex();
+	int maxIndex = m_pApp->GetMaxIndex();
 	bool bDoEditSpanCheck = TRUE;
     if (nStartAt > maxIndex)
 	{
@@ -267,8 +267,8 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 		delta = wxMin(5,pRec->arrNotesSequNumbers.GetCount());
 		if (delta < 5) delta = 5;
 		nNextEndAt = nNextStartAt + delta - 1;
-		if (nNextEndAt > GetApp()->GetMaxIndex())
-			nNextEndAt = GetApp()->GetMaxIndex();
+		if (nNextEndAt > m_pApp->GetMaxIndex())
+			nNextEndAt = m_pApp->GetMaxIndex();
 		// now do the check of these
 		SPList::Node* pos = pSrcPhrases->Item(nNextStartAt);
 		wxASSERT(pos != NULL);
@@ -331,7 +331,7 @@ void CNotes::CheckAndFixNoteFlagInSpans(SPList* pSrcPhrases, EditRecord* pRec)
 /////////////////////////////////////////////////////////////////////////////////
 void CNotes::DeleteAllNotes()
 {
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* pos = pList->GetFirst();
 	wxASSERT(pos != NULL);
 	CSourcePhrase* pSrcPhrase;
@@ -408,7 +408,7 @@ bool CNotes::DoesTheRestMatch(WordList* pSearchList, wxString& firstWord, wxStri
 	// (it will be pointing at whitespace)
 	wxChar* pEnd = pBufStart + buflen; // get the bound past which we must not go
 	wxASSERT(*pEnd == _T('\0')); // whm added
-	CAdapt_ItDoc* pDoc = GetApp()->GetDocument(); // we'll use the doc's functions 
+	CAdapt_ItDoc* pDoc = m_pApp->GetDocument(); // we'll use the doc's functions 
 	// IsWhiteSpace() and ParseWhiteSpace()
 	WordList::Node* pos = pSearchList->GetFirst(); 
 	wxString nextWord = *pos->GetData(); // we've already matched this one, 
@@ -619,7 +619,7 @@ int CNotes::FindNoteSubstring(int nCurrentlyOpenNote_SequNum, WordList*& pSearch
 	int sn = nCurrentlyOpenNote_SequNum;
 	sn++; // start looking from the next pSrcPhrase in the list
 	
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* pos;
 	CSourcePhrase* pSrcPhrase;
 	wxString noteContentStr;
@@ -864,7 +864,7 @@ bool CNotes::GetMovedNotesSpan(SPList* pSrcPhrases, EditRecord* pRec, WhichConte
 			nStartAt = nEditSpanEndingSN;
 		else
 			nStartAt = nEditSpanEndingSN + 1;
-		if (nStartAt > GetApp()->GetMaxIndex())
+		if (nStartAt > m_pApp->GetMaxIndex())
 		{
 			// there is no following context, so return
 			return TRUE;
@@ -952,7 +952,7 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 	wxTextCtrl* pEdit;
 	
 	SPList::Node* pos;
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	pos = pList->Item(nJumpOffSequNum);
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nNoteSequNum = nJumpOffSequNum; // for iterating back from the jump origin
@@ -977,10 +977,10 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		}
 		
 		// store the adaptation in the KB before moving the phrase box
-		wxASSERT(GetApp()->m_pActivePile); // the old value is still valid, and 
+		wxASSERT(m_pApp->m_pActivePile); // the old value is still valid, and 
 		// it's pile has the old sourcephrase
 		bool bOK;
-		bOK = GetView()->StoreBeforeProceeding(GetApp()->m_pActivePile->GetSrcPhrase());
+		bOK = GetView()->StoreBeforeProceeding(m_pApp->m_pActivePile->GetSrcPhrase());
 		
         // Otherwise, we have found one, so it can be opened. However, we have to exercise
         // care with the phrase box - if the note is in a retranslation while adaptation
@@ -992,11 +992,11 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		nNoteSequNum = pSrcPhrase->m_nSequNumber;
 		nBoxSequNum = nNoteSequNum; // default, at least until we know it is not safe 
 		// and adjust it
-		if (GetApp()->m_bFreeTranslationMode)
+		if (m_pApp->m_bFreeTranslationMode)
 		{
             // free translation mode is on, which limits the phrase box locations so
             // disallow the jump
-			pFrame = GetApp()->GetMainFrame();
+			pFrame = m_pApp->GetMainFrame();
 			wxASSERT(pFrame);
 			wxASSERT(&pFrame->m_pComposeBar);
 			pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -1013,7 +1013,7 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 			
 			// since we are in free translation mode, we want the focus to be in the
 			// Compose Bar's edit box
-			if (GetApp()->m_bFreeTranslationMode)
+			if (m_pApp->m_bFreeTranslationMode)
 			{
 				pEdit->SetFocus();
 			}
@@ -1025,13 +1025,13 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
             // retranslation so the box location will end up different than the note
             // location, so set the note location (ie. its sequence number) since we
             // already know it
-			GetApp()->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs 
+			m_pApp->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs 
 														   // this value to be correct
             // now work out where the active location (ie. phrase box location) should
             // be
-			GetApp()->m_nActiveSequNum = nNoteSequNum;
-			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(GetApp()->m_pActivePile);
+			m_pApp->m_nActiveSequNum = nNoteSequNum;
+			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(m_pApp->m_pActivePile);
 			
             // this 'active' location is invalid, because the phrase box can't be put in
             // a retranslation, so we'll try put the box after the retranslation, if not,
@@ -1049,9 +1049,9 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 				}
 			}
 			pSrcPhrase = pSafeSrcPhrase;
-			GetApp()->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
-			GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
-			wxASSERT(GetApp()->m_pActivePile);
+			m_pApp->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
+			m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+			wxASSERT(m_pApp->m_pActivePile);
 			
 			// now do the stuff common to all three of these possibilities
 			goto a;
@@ -1060,10 +1060,10 @@ void CNotes::JumpBackwardToNote_CoreCode(int nJumpOffSequNum)
 		{
             // there should be no restraint against us placing the box
             // at the same location as the note
-			GetApp()->m_nActiveSequNum = nNoteSequNum;
-			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(GetApp()->m_pActivePile);
-			GetApp()->m_nSequNumBeingViewed = GetApp()->m_nActiveSequNum; // the note
+			m_pApp->m_nActiveSequNum = nNoteSequNum;
+			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(m_pApp->m_pActivePile);
+			m_pApp->m_nSequNumBeingViewed = m_pApp->m_nActiveSequNum; // the note
 												// dialog needs this value to be correct
 			// now do the stuff common to each of these above three possibilities
 		} // end of block for not in a retranslation and not in free translation mode
@@ -1076,28 +1076,28 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		// this ensures user has to explicitly type into the box and explicitly check
 		// the checkbox if he wants to override the "not in kb" earlier setting at this
 		// location
-		GetApp()->m_bSaveToKB = FALSE;
-		GetApp()->m_targetPhrase.Empty();
-		GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
+		m_pApp->m_bSaveToKB = FALSE;
+		m_pApp->m_targetPhrase.Empty();
+		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
 	}
 	else
 	{
 		if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
-			GetApp()->m_targetPhrase = pSrcPhrase->m_adaption;
-			GetApp()->m_pTargetBox->m_bAbandonable = FALSE;
+			m_pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 		else
 		{
-			GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
-			if (GetApp()->m_bCopySource)
+			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			if (m_pApp->m_bCopySource)
 			{
-				GetApp()->m_targetPhrase = GetView()->CopySourceKey(pSrcPhrase,
-													 GetApp()->m_bUseConsistentChanges);
+				m_pApp->m_targetPhrase = GetView()->CopySourceKey(pSrcPhrase,
+													 m_pApp->m_bUseConsistentChanges);
 			}
 			else
 			{
-				GetApp()->m_targetPhrase.Empty();
+				m_pApp->m_targetPhrase.Empty();
 			}
 		}
 	}
@@ -1115,10 +1115,10 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 #endif
 	
 	// recalculate the active pile
-	GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
+	m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
 	
 	// scroll the active location into view, if necessary
-	GetApp()->GetMainFrame()->canvas->ScrollIntoView(GetApp()->m_nActiveSequNum);
+	m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 	
 	GetLayout()->m_docEditOperationType = default_op;
 	
@@ -1129,11 +1129,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	GetLayout()->PlaceBox();
 	
 	// now put up the note dialog at the m_nSequNumBeingViewed location
-	wxASSERT(GetApp()->m_pNoteDlg == NULL);
-	GetApp()->m_pNoteDlg = new CNoteDlg(GetApp()->GetMainFrame());
+	wxASSERT(m_pApp->m_pNoteDlg == NULL);
+	m_pApp->m_pNoteDlg = new CNoteDlg(m_pApp->GetMainFrame());
 	// wx version: we don't need the Create() call for modeless notes dialog
-	GetView()->AdjustDialogPosition(GetApp()->m_pNoteDlg); // show it lower, not at top left
-	GetApp()->m_pNoteDlg->Show(TRUE);
+	GetView()->AdjustDialogPosition(m_pApp->m_pNoteDlg); // show it lower, not at top left
+	m_pApp->m_pNoteDlg->Show(TRUE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1153,7 +1153,7 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 	
 	// find the first note
 	SPList::Node* pos; 
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	pos = pList->Item(nJumpOffSequNum); 
 	CSourcePhrase* pSrcPhrase = NULL;
 	int nNoteSequNum = nJumpOffSequNum; // for iterating forward from the jump origin
@@ -1163,7 +1163,7 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 	GetView()->RemoveSelection();
 	
 	// jump only if there is a possibility of a note being ahead
-	if (nNoteSequNum <= GetApp()->GetMaxIndex())
+	if (nNoteSequNum <= m_pApp->GetMaxIndex())
 	{
 		// loop until the next note's pSrcPhrase is found
 		while (pos != NULL)
@@ -1178,10 +1178,10 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		}
 		
 		// store the adaptation in the KB before moving the phrase box
-		wxASSERT(GetApp()->m_pActivePile); // the old value is still valid, and it's 
+		wxASSERT(m_pApp->m_pActivePile); // the old value is still valid, and it's 
 		// pile has the old sourcephrase
 		bool bOK;
-		bOK = GetView()->StoreBeforeProceeding(GetApp()->m_pActivePile->GetSrcPhrase());
+		bOK = GetView()->StoreBeforeProceeding(m_pApp->m_pActivePile->GetSrcPhrase());
 		
         // Otherwise, we have found one, so it can be opened. However, we have to exercise
         // care with the phrase box - if the note is in a retranslation while adaptation
@@ -1193,11 +1193,11 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		nNoteSequNum = pSrcPhrase->m_nSequNumber;
 		nBoxSequNum = nNoteSequNum; // default, at least until we know it is not safe 
 		// and adjust it
-		if (GetApp()->m_bFreeTranslationMode)
+		if (m_pApp->m_bFreeTranslationMode)
 		{
             // free translation mode is on, which limits the phrase box locations so
             // disallow the jump
-			pFrame = GetApp()->GetMainFrame();
+			pFrame = m_pApp->GetMainFrame();
 			wxASSERT(pFrame);
 			wxASSERT(&pFrame->m_pComposeBar);
 			pEdit = (wxTextCtrl*)pFrame->m_pComposeBar->FindWindowById(IDC_EDIT_COMPOSE);
@@ -1217,7 +1217,7 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 			
 			// since we are in free translation mode, we want the focus to be in the
 			// Compose Bar's edit box
-			if (GetApp()->m_bFreeTranslationMode)
+			if (m_pApp->m_bFreeTranslationMode)
 			{
 				pEdit->SetFocus();
 			}
@@ -1229,12 +1229,12 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
             // retranslation so the box location will end up different than the note
             // location, so set the note location (ie. its sequence number) since we
             // already know it
-			GetApp()->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs this 
+			m_pApp->m_nSequNumBeingViewed = nBoxSequNum; // the note dialog needs this 
 			// value to be correct
             // now work out where the active location (ie. phrase box) should be
-			GetApp()->m_nActiveSequNum = nNoteSequNum;
-			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(GetApp()->m_pActivePile);
+			m_pApp->m_nActiveSequNum = nNoteSequNum;
+			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(m_pApp->m_pActivePile);
 			
             // this 'active' location is invalid, because the phrase box can't be put in a
             // retranslation, so we'll try put the box before the retranslation, if not,
@@ -1252,9 +1252,9 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 				}
 			}
 			pSrcPhrase = pSafeSrcPhrase;
-			GetApp()->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
-			GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
-			wxASSERT(GetApp()->m_pActivePile);
+			m_pApp->m_nActiveSequNum = pSafeSrcPhrase->m_nSequNumber;
+			m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+			wxASSERT(m_pApp->m_pActivePile);
 			
 			// now do the stuff common to all three of these possibilities
 			goto a;
@@ -1263,10 +1263,10 @@ void CNotes::JumpForwardToNote_CoreCode(int nJumpOffSequNum)
 		{
             // there should be no restraint against us placing the box at the same location
             // as the note
-			GetApp()->m_nActiveSequNum = nNoteSequNum;
-			GetApp()->m_pActivePile = GetView()->GetPile(nNoteSequNum);
-			wxASSERT(GetApp()->m_pActivePile);
-			GetApp()->m_nSequNumBeingViewed = GetApp()->m_nActiveSequNum; // note dialog needs this
+			m_pApp->m_nActiveSequNum = nNoteSequNum;
+			m_pApp->m_pActivePile = GetView()->GetPile(nNoteSequNum);
+			wxASSERT(m_pApp->m_pActivePile);
+			m_pApp->m_nSequNumBeingViewed = m_pApp->m_nActiveSequNum; // note dialog needs this
 			// value be to correct
 			// now do the stuff common to each of these above three possibilities
 		} // end of block for not in a retranslation and not in free translation mode
@@ -1279,28 +1279,28 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		// this ensures user has to explicitly type into the box and explicitly check the
 		// checkbox if he wants to override the "not in kb" earlier setting at this
 		// location
-		GetApp()->m_bSaveToKB = FALSE;
-		GetApp()->m_targetPhrase.Empty();
-		GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
+		m_pApp->m_bSaveToKB = FALSE;
+		m_pApp->m_targetPhrase.Empty();
+		m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
 	}
 	else
 	{
 		if (!pSrcPhrase->m_adaption.IsEmpty())
 		{
-			GetApp()->m_targetPhrase = pSrcPhrase->m_adaption;
-			GetApp()->m_pTargetBox->m_bAbandonable = FALSE;
+			m_pApp->m_targetPhrase = pSrcPhrase->m_adaption;
+			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 		else
 		{
-			GetApp()->m_pTargetBox->m_bAbandonable = TRUE;
-			if (GetApp()->m_bCopySource)
+			m_pApp->m_pTargetBox->m_bAbandonable = TRUE;
+			if (m_pApp->m_bCopySource)
 			{
-				GetApp()->m_targetPhrase = 
-				GetView()->CopySourceKey(pSrcPhrase,GetApp()->m_bUseConsistentChanges);
+				m_pApp->m_targetPhrase = 
+				GetView()->CopySourceKey(pSrcPhrase,m_pApp->m_bUseConsistentChanges);
 			}
 			else
 			{
-				GetApp()->m_targetPhrase.Empty();
+				m_pApp->m_targetPhrase.Empty();
 			}
 		}
 	}
@@ -1318,10 +1318,10 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 #endif
 
 	// recalculate the active pile
-	GetApp()->m_pActivePile = GetView()->GetPile(GetApp()->m_nActiveSequNum);
+	m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
 
 	// scroll the active location into view, if necessary
-	GetApp()->GetMainFrame()->canvas->ScrollIntoView(GetApp()->m_nActiveSequNum);
+	m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 
 	GetLayout()->m_docEditOperationType = default_op;
 
@@ -1333,11 +1333,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	GetLayout()->PlaceBox();
 
 	// now put up the note dialog at the m_nSequNumBeingViewed location
-	wxASSERT(GetApp()->m_pNoteDlg == NULL);
-	GetApp()->m_pNoteDlg = new CNoteDlg(GetApp()->GetMainFrame());
+	wxASSERT(m_pApp->m_pNoteDlg == NULL);
+	m_pApp->m_pNoteDlg = new CNoteDlg(m_pApp->GetMainFrame());
 	// wx version: we don't need the Create() call for modeless notes dialog
-	GetView()->AdjustDialogPosition(GetApp()->m_pNoteDlg); // show it lower, not at top left
-	GetApp()->m_pNoteDlg->Show(TRUE);
+	GetView()->AdjustDialogPosition(m_pApp->m_pNoteDlg); // show it lower, not at top left
+	m_pApp->m_pNoteDlg->Show(TRUE);
 
 }
 	
@@ -1403,12 +1403,12 @@ void CNotes::MoveToAndOpenFirstNote()
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
 	int nJumpOffSequNum = 0;
-	if (GetApp()->m_pNoteDlg != NULL)
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// the note dialog is still open, so save the note and close the dialog
 		wxCommandEvent oevent(wxID_OK);
-		GetApp()->m_pNoteDlg->OnOK(oevent);
-		GetApp()->m_pNoteDlg = NULL;
+		m_pApp->m_pNoteDlg->OnOK(oevent);
+		m_pApp->m_pNoteDlg = NULL;
 	}
 	JumpForwardToNote_CoreCode(nJumpOffSequNum);
 }
@@ -1424,13 +1424,13 @@ void CNotes::MoveToAndOpenLastNote()
     // location defines the starting sequence number from which we look backward for the
     // last one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
-	int nJumpOffSequNum = GetApp()->GetMaxIndex();
-	if (GetApp()->m_pNoteDlg != NULL)
+	int nJumpOffSequNum = m_pApp->GetMaxIndex();
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// the note dialog is still open, so save the note and close the dialog
 		wxCommandEvent event(wxID_OK);
-		GetApp()->m_pNoteDlg->OnOK(event);
-		GetApp()->m_pNoteDlg = NULL;
+		m_pApp->m_pNoteDlg->OnOK(event);
+		m_pApp->m_pNoteDlg = NULL;
 	}
 	JumpBackwardToNote_CoreCode(nJumpOffSequNum);
 }
@@ -1590,7 +1590,7 @@ bool CNotes::RestoreNotesAfterSourceTextEdit(SPList* pSrcPhrases, EditRecord* pR
 	{
 		// no forwards note was found, so the right bound is the end of the document
 		// (otherwise, it is the value returned in nRightBound)
-		nRightBound = GetApp()->GetMaxIndex();
+		nRightBound = m_pApp->GetMaxIndex();
 	}
 	
     // loop to handle the cases where note replacement can occur without location changes
@@ -1755,7 +1755,7 @@ _("Some temporarily removed Notes could not be restored to the document due to l
 				int nStartAt = pRec->nStartingSequNum + pRec->nNewSpanCount; // the first 
 				// location following the edit span
 				// check this is a valid index within the document's list
-				if (nStartAt <= GetApp()->GetMaxIndex())
+				if (nStartAt <= m_pApp->GetMaxIndex())
 				{
                     // the location is within the document; so we check for the presence of
                     // an existing Note, and if there is none, we use the location as a
@@ -1951,7 +1951,7 @@ en:	;
 		// beyond the doc end, and if so, just continue to next iteration without
 		// recreating the note
 		aNoteSN = arrUnsqueezedLocations[index]; // get the next note's location
-		if (aNoteSN > GetApp()->GetMaxIndex())
+		if (aNoteSN > m_pApp->GetMaxIndex())
 			continue;
 		strNoteText = pRec->storedNotesList.Item(index); // get the next note's text
 		if (IsNoteStoredHere(pSrcPhrases, aNoteSN))
@@ -2039,8 +2039,8 @@ bool CNotes::ShiftANoteRightwardsOnce(SPList* pSrcPhrases, int nNoteSN)
 	// the shift is possible, so do it
 	MoveNote(pOriginalSrcPhrase,pDestSrcPhrase);
 	// mark the one or both owning strips invalid
-	GetApp()->GetDocument()->ResetPartnerPileWidth(pOriginalSrcPhrase); // mark its strip invalid
-	GetApp()->GetDocument()->ResetPartnerPileWidth(pDestSrcPhrase); // mark its strip invalid
+	m_pApp->GetDocument()->ResetPartnerPileWidth(pOriginalSrcPhrase); // mark its strip invalid
+	m_pApp->GetDocument()->ResetPartnerPileWidth(pDestSrcPhrase); // mark its strip invalid
 	return TRUE;
 }
 
@@ -2073,7 +2073,7 @@ bool CNotes::ShiftASeriesOfConsecutiveNotesRightwardsOnce(SPList* pSrcPhrases, i
 	while (TRUE)
 	{
 		anArrayIndex++;
-		if (locIndex > GetApp()->GetMaxIndex())
+		if (locIndex > m_pApp->GetMaxIndex())
 		{
 			// we've passed the end of the document without finding a location
 			// that does not have a note, so we cannot succeed
@@ -2529,17 +2529,17 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
 {
 	CPile* pPile = NULL;
 	CSourcePhrase* pSrcPhrase = NULL;
-	gnOldSequNum = GetApp()->m_nActiveSequNum; // save it, to be safe
+	gnOldSequNum = m_pApp->m_nActiveSequNum; // save it, to be safe
 	
     // create the note attached to the first sourcephrase of a selection if there is one,
     // else do it at the active location
 	int nSequNum = -1;
 	CCellList* pCellList;
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of 
 		// the selection list's first element
-		pCellList = &GetApp()->m_selection;
+		pCellList = &m_pApp->m_selection;
 		CCellList::Node* fpos = pCellList->GetFirst();
 		pPile = fpos->GetData()->GetPile();
 		if (pPile == NULL)
@@ -2559,7 +2559,7 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
         // usually wherever the phraseBox currently is located; but in the case of free
         // translation mode being current, or a note in a retranslation, the caller may
         // calculate a different pile than the active one
-		pPile = GetApp()->m_pActivePile;
+		pPile = m_pApp->m_pActivePile;
 		if (pPile == NULL)
 		{
 			// unlikely, so an English message will do
@@ -2576,21 +2576,21 @@ void CNotes::OnButtonCreateNote(wxCommandEvent& WXUNUSED(event))
     // set m_nSequNumBeingViewed, as the note dialog also uses it, not just the View
     // Filtered Material dialog (both dialogs cannot be open at the one time and so we can
     // safely use the one variable for the same purpose in the two functionalities)
-	GetApp()->m_nSequNumBeingViewed = nSequNum;
+	m_pApp->m_nSequNumBeingViewed = nSequNum;
 	GetView()->Invalidate();
 	GetLayout()->PlaceBox();
 	
 	// open the dialog so the user can type in a note
-	wxASSERT(GetApp()->m_pNoteDlg == NULL);
-	GetApp()->m_pNoteDlg = new CNoteDlg(GetApp()->GetMainFrame()); 
+	wxASSERT(m_pApp->m_pNoteDlg == NULL);
+	m_pApp->m_pNoteDlg = new CNoteDlg(m_pApp->GetMainFrame()); 
     // whm using the ...ByClick form of the function here doesn't make sense to me unless
     // the user purposely clicks near the phrase box location of the note and avoids
     // scrolling afterwards positioning the phrasebox. AdjustDialogPositionByClick doesn't
     // appear to avoid the phrasebox location very well which I think is more important, so
     // I'm changing the call below to use AdjustDialogPosition() which better avoids the
     // phrasebox even with scrolling. (Bill didn't do what he said. I'll leave it.)
-	GetView()->AdjustDialogPositionByClick(GetApp()->m_pNoteDlg,gptLastClick); // avoid click location
-	GetApp()->m_pNoteDlg->Show(TRUE);
+	GetView()->AdjustDialogPositionByClick(m_pApp->m_pNoteDlg,gptLastClick); // avoid click location
+	m_pApp->m_pNoteDlg->Show(TRUE);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -2617,23 +2617,23 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pNoteDlg != NULL)
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, 
 		// so we can't open another until it is closed
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
-		CCellList::Node* pos = GetApp()->m_selection.GetFirst();
+		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
 			CPile* pPile = pos->GetData()->GetPile();
@@ -2656,7 +2656,7 @@ void CNotes::OnUpdateButtonCreateNote(wxUpdateUIEvent& event)
 		event.Enable(TRUE);
 		return;
 	}
-	if (GetApp()->m_pTargetBox->GetHandle() != NULL && GetApp()->m_pTargetBox->IsShown())
+	if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
 		// if the phrase box is visible, then enable
 		event.Enable(TRUE);
@@ -2677,15 +2677,15 @@ void CNotes::OnButtonPrevNote(wxCommandEvent& WXUNUSED(event))
     // location defines the starting sequence number from which we look forward for the
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
-	int nJumpOffSequNum = GetApp()->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-	if (GetApp()->m_pNoteDlg != NULL)
+	int nJumpOffSequNum = m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
         // the note dialog is still open, so save the note and close the dialog and reset
         // the jump off value to the pSrcPhase where the note was attached
-		nJumpOffSequNum = GetApp()->m_nSequNumBeingViewed;
+		nJumpOffSequNum = m_pApp->m_nSequNumBeingViewed;
 		wxCommandEvent oevent(wxID_OK);
-		GetApp()->m_pNoteDlg->OnOK(oevent);
-		GetApp()->m_pNoteDlg = NULL;
+		m_pApp->m_pNoteDlg->OnOK(oevent);
+		m_pApp->m_pNoteDlg = NULL;
 	}
 	
 	// find the previous note
@@ -2715,7 +2715,7 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (!GetApp()->m_bNotesExist)
+	if (!m_pApp->m_bNotesExist)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2725,26 +2725,26 @@ void CNotes::OnUpdateButtonPrevNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_bFreeTranslationMode)
+	if (m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
         // if there is a selection, then disable the button (doing the jump
         // and ignoring a selection might be confusing to some users)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pNoteDlg != NULL)
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there is a note dialog open, but the button handler 
 		// will close it before jumping
 		event.Enable(TRUE);
 	}
-	if (GetApp()->m_pTargetBox != NULL && GetApp()->m_pTargetBox->IsShown()
-		&& GetApp()->m_bNotesExist)
+	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown()
+		&& m_pApp->m_bNotesExist)
 	{
 		// if the phrase box is visible and there are notes 
 		// in the document, then enable
@@ -2767,15 +2767,15 @@ void CNotes::OnButtonNextNote(wxCommandEvent& WXUNUSED(event))
     // location defines the starting sequence number from which we look forward for the
     // next one -- but if the dialog is not open, then the phrase box's location is where
     // we start looking from
-	int nJumpOffSequNum = GetApp()->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
-	if (GetApp()->m_pNoteDlg != NULL)
+	int nJumpOffSequNum = m_pApp->m_pActivePile->GetSrcPhrase()->m_nSequNumber;
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// the note dialog is still open, so save the note and close the dialog
 		// and reset the jump off value to the pSrcPhase where the note was attached
-		nJumpOffSequNum = GetApp()->m_nSequNumBeingViewed;
+		nJumpOffSequNum = m_pApp->m_nSequNumBeingViewed;
 		wxCommandEvent oevent(wxID_OK);
-		GetApp()->m_pNoteDlg->OnOK(oevent);
-		GetApp()->m_pNoteDlg = NULL;
+		m_pApp->m_pNoteDlg->OnOK(oevent);
+		m_pApp->m_pNoteDlg = NULL;
 	}
 	
 	// find the next note
@@ -2802,7 +2802,7 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (!GetApp()->m_bNotesExist)
+	if (!m_pApp->m_bNotesExist)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2812,26 +2812,26 @@ void CNotes::OnUpdateButtonNextNote(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_bFreeTranslationMode)
+	if (m_pApp->m_bFreeTranslationMode)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
 		// if there is a selection, then disable the button (doing the jump
 		// and ignoring a selection might be confusing to some users)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pNoteDlg != NULL)
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there is a note dialog open, but the button handler 
 		// will close it before jumping
 		event.Enable(TRUE);
 	}
-	if (GetApp()->m_pTargetBox != NULL && GetApp()->m_pTargetBox->IsShown()
-		&& GetApp()->m_bNotesExist)
+	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown()
+		&& m_pApp->m_bNotesExist)
 	{
 		// if the phrase box is visible and there are notes 
 		// in the document, then enable
@@ -2858,16 +2858,16 @@ void CNotes::OnButtonDeleteAllNotes(wxCommandEvent& WXUNUSED(event))
 		GetView()->RemoveSelection();
 		
 		// close any open note
-		if (GetApp()->m_pNoteDlg)
+		if (m_pApp->m_pNoteDlg)
 		{
 			wxCommandEvent cevent(wxID_CANCEL);
-			GetApp()->m_pNoteDlg->OnCancel(cevent);
-			GetApp()->m_pNoteDlg = NULL;
+			m_pApp->m_pNoteDlg->OnCancel(cevent);
+			m_pApp->m_pNoteDlg = NULL;
 		}
 		
 		// delete them all
 		DeleteAllNotes(); // calls Invalidate() and PlaceBox() internally
-		GetApp()->GetDocument()->Modify(TRUE);
+		m_pApp->GetDocument()->Modify(TRUE);
 	}
 }
 
@@ -2889,7 +2889,7 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (!GetApp()->m_bNotesExist)
+	if (!m_pApp->m_bNotesExist)
 	{
 		event.Enable(FALSE);
 		return;
@@ -2899,13 +2899,13 @@ void CNotes::OnUpdateButtonDeleteAllNotes(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pTargetBox->GetHandle() != NULL && GetApp()->m_pTargetBox->IsShown()
-		&& GetApp()->m_bNotesExist)
+	if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown()
+		&& m_pApp->m_bNotesExist)
 	{
 		// if the phrase box is visible and there are notes 
 		// in the document, then enable
@@ -2929,7 +2929,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
-	CMainFrame* pFrame = GetApp()->GetMainFrame();
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	if (!pMenuBar->IsEnabled(ID_EDIT_MOVE_NOTE_FORWARD))
@@ -2939,7 +2939,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	CPile* pPile = NULL;
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	CSourcePhrase* pSrcPhrase = NULL;
 	
 	// determine which pSrcPhrase has the note - if unable, return, doing nothing
@@ -2947,11 +2947,11 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 	CCellList* pCellList;
 	CCellList::Node* cpos;
 	CCell* pCell;
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of 
 		// the selection list's first element
-		pCellList = &GetApp()->m_selection;
+		pCellList = &m_pApp->m_selection;
 		cpos = pCellList->GetFirst();
 		pCell = cpos->GetData();
 		pPile = pCell->GetPile();
@@ -2970,7 +2970,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 	{
 		// no selection, so just assume the note is on the sourcephrase where 
 		// the phrase box is
-		pPile = GetApp()->m_pActivePile;
+		pPile = m_pApp->m_pActivePile;
 		if (pPile == NULL)
 		{
 			goto a;
@@ -3022,7 +3022,7 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
                 // can do it only if showing source text and nav text whiteboard, (but
                 // update handler blocks otherwise, but having this test documents things
                 // better so we'll use it, though unnecessary)
-				wxASSERT(GetApp()->m_selection.IsEmpty());
+				wxASSERT(m_pApp->m_selection.IsEmpty());
 				int nNewSequNum = nSequNum + 1;
 				CPile* pNewPile = GetView()->GetPile(nNewSequNum);
 				if (pNewPile == NULL)
@@ -3036,17 +3036,17 @@ void CNotes::OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event))
 				{
                     // the pile pointer is known, we can assume it is valid; we'll create
                     // the selection in the cell with index = 0
-					GetApp()->m_selectionLine = gnSelectionLine = 0;
+					m_pApp->m_selectionLine = gnSelectionLine = 0;
 					CCell* pCell = pNewPile->GetCell(0);
-					GetApp()->m_selection.Insert(pCell);
-					GetApp()->m_pAnchor = pCell;
-					GetApp()->m_curDirection = right;
-					GetApp()->m_bSelectByArrowKey = FALSE;
+					m_pApp->m_selection.Insert(pCell);
+					m_pApp->m_pAnchor = pCell;
+					m_pApp->m_curDirection = right;
+					m_pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
-					wxClientDC aDC(GetApp()->GetMainFrame()->canvas); // get a temporary 
+					wxClientDC aDC(m_pApp->GetMainFrame()->canvas); // get a temporary 
 					// client device context for this view window
-					aDC.SetBackgroundMode(GetApp()->m_backgroundMode);
+					aDC.SetBackgroundMode(m_pApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 					pCell->DrawCell(&aDC, GetLayout()->GetSrcColor());
 					pCell->SetSelected(TRUE);
@@ -3091,7 +3091,7 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* tgtPos; 
 	CSourcePhrase* pTgtSrcPhrase;
 	if (gbShowTargetOnly)
@@ -3099,23 +3099,23 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pNoteDlg != NULL)
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, 
 		// so we can't move one until it is closed
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note,
         // enable the button, but if it does then disable the button
-		CCellList::Node* pos = GetApp()->m_selection.GetFirst();
+		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
 			CPile* pPile = ((CCell*)pos->GetData())->GetPile();
@@ -3125,7 +3125,7 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 			{
                 // has a note, so it can be moved forward, provided there is something
                 // forward to receive it and it does not already contain a note
-				if (pSrcPhrase->m_nSequNumber < GetApp()->GetMaxIndex())
+				if (pSrcPhrase->m_nSequNumber < m_pApp->GetMaxIndex())
 				{
 					tgtPos = pList->Item(pSrcPhrase->m_nSequNumber); 
 					pTgtSrcPhrase = (CSourcePhrase*)tgtPos->GetData(); // abandon this one
@@ -3159,14 +3159,14 @@ void CNotes::OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event)
 	{
 		// check out if there is a note at the active location
 		
-		if (GetApp()->m_pTargetBox != NULL && GetApp()->m_pTargetBox->IsShown())
+		if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
             // enable the button only if there is a note at the active location and there
             // is at least one sourcephrase ahead to form the target one for the move
-			CSourcePhrase* pSrcPhrase = GetApp()->m_pActivePile->GetSrcPhrase();
+			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
-				if (pSrcPhrase->m_nSequNumber < GetApp()->GetMaxIndex())
+				if (pSrcPhrase->m_nSequNumber < m_pApp->GetMaxIndex())
 				{
 					// there is an instance ahead
 					tgtPos = pList->Item(pSrcPhrase->m_nSequNumber); 
@@ -3213,7 +3213,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
     // On Windows, the accelerator key doesn't appear to call the handler for a disabled
     // menu item, but I'll leave the following code here in case it works differently on
     // other platforms.
-	CMainFrame* pFrame = GetApp()->GetMainFrame();
+	CMainFrame* pFrame = m_pApp->GetMainFrame();
 	wxMenuBar* pMenuBar = pFrame->GetMenuBar();
 	wxASSERT(pMenuBar != NULL);
 	if (!pMenuBar->IsEnabled(ID_EDIT_MOVE_NOTE_BACKWARD))
@@ -3223,18 +3223,18 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 	}
 	
 	CPile* pPile = NULL;
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	CSourcePhrase* pSrcPhrase = NULL;
 	
 	// determine which pSrcPhrase has the note - if unable, return, doing nothing
 	int nSequNum = -1;
 	CCellList* pCellList;
 	CCellList::Node* cpos;
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
 		// we have a selection, the pile we want is that of the selection list's 
 		// first element
-		pCellList = &GetApp()->m_selection;
+		pCellList = &m_pApp->m_selection;
 		cpos = pCellList->GetFirst();
 		pPile = ((CCell*)cpos->GetData())->GetPile();
 		if (pPile == NULL)
@@ -3252,7 +3252,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 	{
 		// no selection, so just assume the note is on the sourcephrase
 		// where the phrase box is
-		pPile = GetApp()->m_pActivePile;
+		pPile = m_pApp->m_pActivePile;
 		if (pPile == NULL)
 		{
 			goto a;
@@ -3303,7 +3303,7 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
                 // can do it only if showing source text and nav text whiteboard, (but
                 // update handler blocks otherwise, but having this test documents things
                 // better so we'll use it, though unnecessary)
-				wxASSERT(GetApp()->m_selection.IsEmpty());
+				wxASSERT(m_pApp->m_selection.IsEmpty());
 				int nNewSequNum = nSequNum - 1;
 				CPile* pNewPile = GetView()->GetPile(nNewSequNum);
 				if (pNewPile == NULL)
@@ -3317,17 +3317,17 @@ void CNotes::OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event))
 				{
                     // the pile pointer is known, we can assume it is valid; we'll create
                     // the selection in the cell with index = 0 
-					GetApp()->m_selectionLine = gnSelectionLine = 0;
+					m_pApp->m_selectionLine = gnSelectionLine = 0;
 					CCell* pCell = pNewPile->GetCell(0);
-					GetApp()->m_selection.Insert(pCell);
-					GetApp()->m_pAnchor = pCell;
-					GetApp()->m_curDirection = left;
-					GetApp()->m_bSelectByArrowKey = FALSE;
+					m_pApp->m_selection.Insert(pCell);
+					m_pApp->m_pAnchor = pCell;
+					m_pApp->m_curDirection = left;
+					m_pApp->m_bSelectByArrowKey = FALSE;
 					
 					// draw the background yellow for the CCell we want shown selected
-					wxClientDC aDC(GetApp()->GetMainFrame()->canvas); // get a temporary client 
+					wxClientDC aDC(m_pApp->GetMainFrame()->canvas); // get a temporary client 
 					// device context for this view window
-					aDC.SetBackgroundMode(GetApp()->m_backgroundMode);
+					aDC.SetBackgroundMode(m_pApp->m_backgroundMode);
 					aDC.SetTextBackground(wxColour(255,255,0)); // yellow
 					pCell->DrawCell(&aDC, GetLayout()->GetTgtColor());
 					pCell->SetSelected(TRUE);
@@ -3372,7 +3372,7 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	SPList* pList = GetApp()->m_pSourcePhrases;
+	SPList* pList = m_pApp->m_pSourcePhrases;
 	SPList::Node* tgtPos;
 	CSourcePhrase* pTgtSrcPhrase;
 	if (gbShowTargetOnly)
@@ -3380,22 +3380,22 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pActivePile == NULL)
+	if (m_pApp->m_pActivePile == NULL)
 	{
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_pNoteDlg != NULL)
+	if (m_pApp->m_pNoteDlg != NULL)
 	{
 		// there already is a note dialog open, so we can't move one until it is closed
 		event.Enable(FALSE);
 		return;
 	}
-	if (GetApp()->m_selectionLine != -1)
+	if (m_pApp->m_selectionLine != -1)
 	{
         // if the first sourcephrase in the selection does not have a note, enable the
         // button, but if it does then disable the button
-		CCellList::Node* pos = GetApp()->m_selection.GetFirst();
+		CCellList::Node* pos = m_pApp->m_selection.GetFirst();
 		while (pos != NULL)
 		{
 			CPile* pPile = ((CCell*)pos->GetData())->GetPile();
@@ -3441,11 +3441,11 @@ void CNotes::OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event)
 	{
 		// check out if there is a note at the active location
 		
-		if (GetApp()->m_pTargetBox->GetHandle() != NULL && GetApp()->m_pTargetBox->IsShown())
+		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
             // enable the button only if there is a note at the active location and there
             // is at least one sourcephrase earlier to form the target one for the move
-			CSourcePhrase* pSrcPhrase = GetApp()->m_pActivePile->GetSrcPhrase();
+			CSourcePhrase* pSrcPhrase = m_pApp->m_pActivePile->GetSrcPhrase();
 			if (pSrcPhrase->m_bHasNote)
 			{
 				if (pSrcPhrase->m_nSequNumber > 0)

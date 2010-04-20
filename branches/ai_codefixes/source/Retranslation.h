@@ -67,15 +67,14 @@ protected:
 	void		CopySourcePhraseList(SPList*& pList,SPList*& pCopiedList,bool bDoDeepCopy = FALSE); // BEW modified 16Apr08
 	void		DeleteSavedSrcPhraseSublist(SPList* pSaveList); // this list's members can have members in sublists 
 	void		DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile);
-	void		DoRetranslationReport(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, wxString& name,
+	void		DoRetranslationReport(CAdapt_ItDoc* pDoc, wxString& name,
 									  wxArrayString* pFileList,SPList* pList, wxFile* pFile);
 	void		GetRetranslationSourcePhrasesStartingAnywhere(CPile* pStartingPile,
 															  CPile*& pFirstPile,SPList* pList);
 	void		InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, int nLocationSequNum);
 	bool		IsConstantType(SPList* pList);
 	bool		IsEndInCurrentSelection();
-	void		PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,CAdapt_ItApp* pApp,
-											  SPList* pSrcPhrases,int nEndSequNum,int nNewLength,int nCount);
+	void		PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc, SPList* pSrcPhrases,int nEndSequNum,int nNewLength,int nCount);
 	void		ReplaceMatchedSubstring(wxString strSearch, wxString& strReplace, wxString& strAdapt);
 	void		RemoveUnwantedSourcePhraseInstancesInRestoredList(SPList* pSrcPhrases,int nCurCount,
 																  int nStartingSequNum,SPList* pSublist);

@@ -46,7 +46,6 @@ class CPlaceholder : public wxEvtHandler
 		void		InsertNullSrcPhraseAfter();
 		void		InsertNullSourcePhrase(
 							CAdapt_ItDoc*		pDoc,
-							CAdapt_ItApp*		pApp,
 							CPile*				pInsertLocPile,
 							const int			nCount,
 							bool				bRestoreTargetBox = TRUE,
