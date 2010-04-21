@@ -91,31 +91,13 @@ CPlaceholder::CPlaceholder(CAdapt_ItApp* app)
 {
 	wxASSERT(app != NULL);
 	m_pApp = app;
-	m_pLayout = m_pApp->m_pLayout;
+	m_pLayout = m_pApp->GetLayout();
 	m_pView = m_pApp->GetView();
 }
 
 CPlaceholder::~CPlaceholder()
 {
 	
-}
-
-// Utility functions (these will provide correct pointer values only when called from
-// within the class functions belonging to the single CPlaceholder instantiation within the
-// app class)
-CLayout* CPlaceholder::GetLayout()
-{
-	return m_pLayout;
-}
-
-CAdapt_ItView* CPlaceholder::GetView()	// ON APP
-{
-	return m_pView;
-}
-
-CAdapt_ItApp* CPlaceholder::GetApp()
-{
-	return m_pApp;
 }
 
 
@@ -133,7 +115,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
     // first selected pile, if there is a selection current, or preceding the active
     // location if no selection is current
 	CPile* pInsertLocPile;
-	CAdapt_ItDoc* pDoc = GetView()->GetDocument();
+	CAdapt_ItDoc* pDoc = m_pView->GetDocument();
 	wxASSERT(pDoc != NULL);
 	int nCount = 1;
 	int nSequNum = -1;
@@ -153,7 +135,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
 		wxASSERT(pInsertLocPile != NULL);
-		GetView()->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+		m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
 	}
 	else
 	{
@@ -174,16 +156,16 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	// check we are not in a retranslation - we can't insert there!
 	if(pInsertLocPile->GetSrcPhrase()->m_bRetranslation)
 	{
-		CPile* pPile = GetView()->GetPrevPile(pInsertLocPile);
+		CPile* pPile = m_pView->GetPrevPile(pInsertLocPile);
 		if (pPile == NULL || pPile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// IDS_NO_INSERT_IN_RETRANS
 			wxMessageBox(_(
 						   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
 						 _T(""), wxICON_EXCLAMATION);
-			GetView()->RemoveSelection();
-			GetView()->Invalidate();
-			GetLayout()->PlaceBox();
+			m_pView->RemoveSelection();
+			m_pView->Invalidate();
+			m_pLayout->PlaceBox();
 			return;
 		}
 	}
@@ -192,14 +174,14 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	// & make the punctuated target string
 	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-		GetView()->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
-		GetView()->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
+		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK;
-		bOK = GetView()->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
+		bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 	}
@@ -208,8 +190,8 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 	
 	// jump to it (can't use old pile pointers, the recalcLayout call will have 
 	// clobbered them)
-	CPile* pPile = GetView()->GetPile(nSequNum);
-	GetView()->Jump(m_pApp, pPile->GetSrcPhrase());
+	CPile* pPile = m_pView->GetPile(nSequNum);
+	m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 }
 
 // BEW 18Feb10 updated for doc version 5 support (no changes needed)
@@ -218,7 +200,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	// this function is public (called in PhraseBox.cpp)
 	int nSequNum;
 	int nCount;
-	CAdapt_ItDoc* pDoc = GetView()->GetDocument();
+	CAdapt_ItDoc* pDoc = m_pView->GetDocument();
 	
 	// CTRL key is down, so an "insert after" is wanted
 	// first save old sequ num for active location
@@ -245,7 +227,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		}
 		nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
 		wxASSERT(pInsertLocPile != NULL);
-		GetView()->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+		m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
 	}
 	else
 	{
@@ -268,16 +250,16 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
     // must check if this is the case & abort the operation if so
 	if(pInsertLocPile->GetSrcPhrase()->m_bRetranslation)
 	{
-		CPile* pPile = GetView()->GetNextPile(pInsertLocPile);
+		CPile* pPile = m_pView->GetNextPile(pInsertLocPile);
 		if (pPile == NULL || pPile->GetSrcPhrase()->m_bRetranslation)
 		{
 			// IDS_NO_INSERT_IN_RETRANS
 			wxMessageBox(_(
 						   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
 						 _T(""), wxICON_EXCLAMATION);
-			GetView()->RemoveSelection();
-			GetView()->Invalidate();
-			GetLayout()->PlaceBox();
+			m_pView->RemoveSelection();
+			m_pView->Invalidate();
+			m_pLayout->PlaceBox();
 			return;
 		}
 	}
@@ -286,14 +268,14 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	// & make the punctuated target string
 	if (m_pApp->m_pTargetBox != NULL && m_pApp->m_pTargetBox->IsShown())
 	{
-		GetView()->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		
         // we are about to leave the current phrase box location, so we must try to store
         // what is now in the box, if the relevant flags allow it
-		GetView()->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
+		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK;
-		bOK = GetView()->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 	}
 	
@@ -330,11 +312,11 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		// we need a valid layout which includes the new dummy element on its own pile
 		m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
 #ifdef _NEW_LAYOUT
-		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
-		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
-		m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->GetMaxIndex()); // temporary active 
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->GetMaxIndex()); // temporary active 
 		// location, at the dummy one
 		// now we can do the insertion
 		pInsertLocPile = m_pApp->m_pActivePile;
@@ -344,7 +326,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 	{
 		// the 'next' pile is not beyond the document's end, so make it the insert
 		// location
-		CPile* pPile = GetView()->GetNextPile(pInsertLocPile);
+		CPile* pPile = m_pView->GetNextPile(pInsertLocPile);
 		wxASSERT(pPile != NULL);
 		pInsertLocPile = pPile;
 		m_pApp->m_pActivePile = pInsertLocPile; // ensure it is up to date
@@ -375,19 +357,19 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		// get another valid layout
 		m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
 #ifdef _NEW_LAYOUT
-		GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+		m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
-		GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+		m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
-		m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->GetMaxIndex()); // temporarily at the end, 
+		m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->GetMaxIndex()); // temporarily at the end, 
 		// caller will fix
 		nSequNum = m_pApp->GetMaxIndex();
 	}
 	
 	// jump to it (can't use old pile pointers, the recalcLayout call 
 	// will have clobbered them)
-	CPile* pPile = GetView()->GetPile(nSequNum);
-	GetView()->Jump(m_pApp, pPile->GetSrcPhrase());
+	CPile* pPile = m_pView->GetPile(nSequNum);
+	m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 }
 
 // BEW additions 22Jul05 for support of free translations when placeholder insertions are 
@@ -597,7 +579,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 		m_pApp->m_nActiveSequNum = nActiveSequNum + nCount;
 	
 	// update the sequence numbers, starting from the first one inserted
-	GetView()->UpdateSequNumbers(nStartingSequNum);
+	m_pView->UpdateSequNumbers(nStartingSequNum);
 	
     // we must check if there is preceding punctuation on the following source phrase, or a
     // marker; or following punctuation on the preceding source phrase. If one of these
@@ -626,7 +608,7 @@ void CPlaceholder::InsertNullSourcePhrase(CAdapt_ItDoc* pDoc,
 	{
 		if (nPrevSequNum != -1)
 		{
-			pPrevPile = GetView()->GetPrevPile(pInsertLocPile); // old pointers are still valid
+			pPrevPile = m_pView->GetPrevPile(pInsertLocPile); // old pointers are still valid
 			wxASSERT(pPrevPile != NULL);
 			pPrevSrcPhrase = pPrevPile->GetSrcPhrase();
 			if (!pPrevSrcPhrase->m_follPunct.IsEmpty())
@@ -835,7 +817,7 @@ a:				bAssociatingRightwards = FALSE;
 		CSourcePhrase* pPrevSrcPhrase2 = NULL;	// whm initialized to NULL
 		if (nPrevSequNum != -1)
 		{
-			CPile* pPrevPile = GetView()->GetPrevPile(pInsertLocPile); // old pointers are still valid
+			CPile* pPrevPile = m_pView->GetPrevPile(pInsertLocPile); // old pointers are still valid
 			wxASSERT(pPrevPile != NULL);
 			pPrevSrcPhrase2 = pPrevPile->GetSrcPhrase();
 			if (!pPrevSrcPhrase2->m_follPunct.IsEmpty())
@@ -1165,11 +1147,11 @@ a:				bAssociatingRightwards = FALSE;
 	
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
-m:	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+m:	m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
 #else
-m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+m:	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 #endif
-	m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	wxASSERT(m_pApp->m_pActivePile);
 	
 	// don't draw the layout and the phrase box when this function is called
@@ -1186,8 +1168,8 @@ m:	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
 		// scroll into view, just in case a lot were inserted
 		m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
 		
-		GetView()->Invalidate();
-		GetLayout()->PlaceBox();
+		m_pView->Invalidate();
+		m_pLayout->PlaceBox();
 	}
 	m_pApp->GetRetranslation()->SetIsInsertingWithinFootnote(FALSE);
 }
@@ -1225,7 +1207,7 @@ CSourcePhrase* CPlaceholder::ReDoInsertNullSrcPhrase(SPList* pList,SPList::Node*
 	pList->Insert(insertPos,pSrcPhrase); 
 	
 	// update the sequence numbers starting from the newly inserted null source phrase
-	GetView()->UpdateSequNumbers(nCurSequNum);
+	m_pView->UpdateSequNumbers(nCurSequNum);
 	
     // do any copying to m_inform, and other source phrase members in the caller, so just
     // return a pointer to the new null source phrase
@@ -1259,7 +1241,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	if (nStartingSequNum > 0)
 	{
 		// there is a preceding one, so get it
-		CPile* pPile = GetView()->GetPrevPile(pRemoveLocPile);
+		CPile* pPile = m_pView->GetPrevPile(pRemoveLocPile);
 		wxASSERT(pPile != NULL);
 		pPrevSrcPhrase = pPile->GetSrcPhrase();
 		wxASSERT(pPrevSrcPhrase != NULL);
@@ -1285,9 +1267,9 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 							"Warning: you are trying to remove more empty source phrases than exist at that location: the command will be ignored."),
 						 _T(""),wxICON_EXCLAMATION);
 			if (m_pApp->m_selectionLine != -1)
-				GetView()->RemoveSelection();
-			GetView()->Invalidate();
-			GetLayout()->PlaceBox();
+				m_pView->RemoveSelection();
+			m_pView->Invalidate();
+			m_pLayout->PlaceBox();
 			return;
 		}
 	}
@@ -1358,7 +1340,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		pSrcPhraseFollowing->m_precPunct = pFirstOne->m_precPunct;
 		
 		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-		GetView()->MakeLineFourString(pSrcPhraseFollowing,pSrcPhraseFollowing->m_targetStr);
+		m_pView->MakeLineFourString(pSrcPhraseFollowing,pSrcPhraseFollowing->m_targetStr);
 		
 		// anything else
 		pSrcPhraseFollowing->m_bFirstOfType = pFirstOne->m_bFirstOfType;
@@ -1383,7 +1365,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		pPrevSrcPhrase->m_bBoundary = pLastOne->m_bBoundary;
 		
 		// fix the m_targetStr member (we are just fixing punctuation, so no store needed)
-		GetView()->MakeLineFourString(pPrevSrcPhrase,pPrevSrcPhrase->m_targetStr);
+		m_pView->MakeLineFourString(pPrevSrcPhrase,pPrevSrcPhrase->m_targetStr);
 	}
 	// BEW added 25Jul05...
     // a m_bHasFreeTrans = TRUE value can be ignored provided m_bEndFreeTrans value is
@@ -1406,16 +1388,16 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)removePos->GetData();
 		
 		// BEW added 13Mar09 for refactored layout
-		GetView()->GetDocument()->DeletePartnerPile(pSrcPhrase);
+		m_pView->GetDocument()->DeletePartnerPile(pSrcPhrase);
 		removePos = removePos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
-		pRefString = GetView()->GetRefString(GetView()->GetKB(),pSrcPhrase->m_nSrcWords,
+		pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
 											 pSrcPhrase->m_key,pSrcPhrase->m_adaption);
 		count++;
 		if (pRefString != NULL)
 			// don't need to worry about m_bHasKBEntry flag, since pSrcPhrase
 			// will be deleted next
-			GetView()->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+			m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 		delete pSrcPhrase;
 		pList->DeleteNode(pos2); 
 	}
@@ -1436,7 +1418,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // update the sequence numbers, starting from the location of the first one removed;
     // but if we removed at the end, no update is needed
 	if (!bNoneFollows)
-		GetView()->UpdateSequNumbers(nStartingSequNum);
+		m_pView->UpdateSequNumbers(nStartingSequNum);
 	
 	// for getting over the hump of the call below to RecalcLayout() we only need a temporary
 	// reasonably accurate active pile pointer set, and only if the removal was done at the
@@ -1450,26 +1432,26 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		// document location
 		int nMaxDocIndex = m_pApp->GetMaxIndex();
 		if (nRemovedPileIndex > nMaxDocIndex)
-			m_pApp->m_pActivePile = GetView()->GetPile(nMaxDocIndex);
+			m_pApp->m_pActivePile = m_pView->GetPile(nMaxDocIndex);
 		else
-			m_pApp->m_pActivePile = GetView()->GetPile(nRemovedPileIndex);
+			m_pApp->m_pActivePile = m_pView->GetPile(nRemovedPileIndex);
 	}
 	
     // in case the active location is going to be a retranslation, check and if so, advance
     // past it; but if at the end, then back up to a valid preceding location
-	CSourcePhrase* pSP = GetView()->GetSrcPhrase(m_pApp->m_nActiveSequNum);
+	CSourcePhrase* pSP = m_pView->GetSrcPhrase(m_pApp->m_nActiveSequNum);
 	CPile* pNewPile;
 	if (pSP->m_bRetranslation)
 	{
-		CPile* pPile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+		CPile* pPile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 		do {
-			pNewPile = GetView()->GetNextPile(pPile);
+			pNewPile = m_pView->GetNextPile(pPile);
 			if (pNewPile == NULL)
 			{
 				// move backwards instead, and find a suitable location
-				pPile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+				pPile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 				do {
-					pNewPile = GetView()->GetPrevPile(pPile);
+					pNewPile = m_pView->GetPrevPile(pPile);
 					pPile = pNewPile;
 				} while (pNewPile->GetSrcPhrase()->m_bRetranslation);
 				goto b;
@@ -1483,7 +1465,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // we need to set m_targetPhrase to what it will be at the new active location, else if
     // the old string was real long, the CalcPileWidth() call will compute enormous and
     // wrong box width at the new location
-	pSP = GetView()->GetSrcPhrase(m_pApp->m_nActiveSequNum);
+	pSP = m_pView->GetSrcPhrase(m_pApp->m_nActiveSequNum);
 	if (!m_pApp->m_bHidePunctuation) // BEW 8Aug09, removed deprecated m_bSuppressLast from test
 		m_pApp->m_targetPhrase = pSP->m_targetStr;
 	else
@@ -1491,13 +1473,13 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
-	GetLayout()->RecalcLayout(pList, keep_strips_keep_piles);
+	m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
 #else
-	GetLayout()->RecalcLayout(pList, create_strips_keep_piles);
+	m_pLayout->RecalcLayout(pList, create_strips_keep_piles);
 #endif
 	
 	// get a new (valid) active pile pointer, now that the layout is recalculated
-	m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->m_nActiveSequNum);
+	m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->m_nActiveSequNum);
 	wxASSERT(m_pApp->m_pActivePile);
 	
 	// create the phraseBox at the active pile, do it using PlacePhraseBox()...
@@ -1508,7 +1490,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // the PlacePhraseBox call below will get the wrong number when it reads its
     // m_nSequNumber attribute)
 	pSrcPhrase->m_nSequNumber = m_pApp->m_nActiveSequNum;
-	GetView()->UpdateSequNumbers(m_pApp->m_nActiveSequNum);
+	m_pView->UpdateSequNumbers(m_pApp->m_nActiveSequNum);
 	
 	// set m_targetPhrase to the appropriate string
 	if (!pSrcPhrase->m_adaption.IsEmpty())
@@ -1525,7 +1507,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	
     // we must remove the source phrase's translation from the KB as if we
     // had clicked here (otherwise PlacePhraseBox will assert)
-	pRefString = GetView()->GetRefString(GetView()->GetKB(),pSrcPhrase->m_nSrcWords,
+	pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
 										 pSrcPhrase->m_key,pSrcPhrase->m_adaption);
 	
     // it is okay to do the following call with pRefString == NULL, in fact, it must be
@@ -1534,7 +1516,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // the user clicked on a source phrase which had its reference string manually removed
     // from the KB and then clicked on another source phrase. (The StoreAdaption call in
     // the second click would trip the first line's ASSERT.)
-	GetView()->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+	m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 	
     // save old sequ number in case required for toolbar's Back button - but since it
     // probably has been lost (being the null source phrase location), to be safe we must
@@ -1543,9 +1525,9 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	
 	// scroll into view, just in case a lot were inserted
 	m_pApp->GetMainFrame()->canvas->ScrollIntoView(m_pApp->m_nActiveSequNum);
-	GetView()->Invalidate();
+	m_pView->Invalidate();
 	// now place the box
-	GetLayout()->PlaceBox();
+	m_pLayout->PlaceBox();
 }
 
 // pList is the sublist of (formerly) selected source phrase instances, pSrcPhrases is the
@@ -1573,13 +1555,13 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
             // we've found a null source phrase in the sublist, so get rid of its KB
             // presence, then delete it from the (temporary) sublist, and its instance from
             // the heap
-			pRefString = GetView()->GetRefString(GetView()->GetKB(),pSrcPhraseCopy->m_nSrcWords,
+			pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhraseCopy->m_nSrcWords,
 												 pSrcPhraseCopy->m_key,pSrcPhraseCopy->m_adaption);
 			if (pRefString != NULL)
 			{
 				// don't care about m_bHasKBEntry flag value, since pSrcPhraseCopy will be
 				// deleted next
-				GetView()->RemoveRefString(pRefString,pSrcPhraseCopy,pSrcPhraseCopy->m_nSrcWords);
+				m_pView->RemoveRefString(pRefString,pSrcPhraseCopy,pSrcPhraseCopy->m_nSrcWords);
 			}
 			delete pSrcPhraseCopy;
 			pSrcPhraseCopy = (CSourcePhrase*)NULL;
@@ -1593,7 +1575,7 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
 			wxASSERT(mainPos != NULL); // it must be there somewhere
 			
 			// BEW added 13Mar09 for refactor of layout; delete its partner pile too 
-			GetView()->GetDocument()->DeletePartnerPile(pSrcPhraseCopy);
+			m_pView->GetDocument()->DeletePartnerPile(pSrcPhraseCopy);
 			pSrcPhrases->DeleteNode(mainPos); 
 			
 			nCount -= 1; // since there is one less source phrase in the selection now
@@ -1606,7 +1588,7 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
             // list using a call to UpdateSequNumbers, and so the value of nSaveSequNum
             // will still be correct for the first element in the sublist - even if there
             // were deletions at the start of the sublist
-			GetView()->UpdateSequNumbers(0); // start from the very first in the list to be safe
+			m_pView->UpdateSequNumbers(0); // start from the very first in the list to be safe
 		}
 	}
 }
@@ -1658,16 +1640,16 @@ void CPlaceholder::OnButtonRemoveNullSrcPhrase(wxCommandEvent& WXUNUSED(event))
 		if (pRemoveLocPile->GetSrcPhrase()->m_bNullSourcePhrase != TRUE)
 		{
 			::wxBell();
-			GetView()->RemoveSelection();
+			m_pView->RemoveSelection();
 			return;
 		}
 		if (pRemoveLocPile->GetSrcPhrase()->m_bRetranslation == TRUE)
 		{
 			::wxBell(); 
-			GetView()->RemoveSelection();
+			m_pView->RemoveSelection();
 			return;
 		}
-		GetView()->RemoveSelection(); // Invalidate() will be called in RemoveNullSourcePhrase()
+		m_pView->RemoveSelection(); // Invalidate() will be called in RemoveNullSourcePhrase()
 	}
 	else
 	{
@@ -1839,7 +1821,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			}
 			nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
 			wxASSERT(pInsertLocPile != NULL);
-			GetView()->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+			m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
 		}
 		else
 		{
@@ -1862,16 +1844,16 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
         // right, and so we must check if this is the case & abort the operation if so
 		if(pInsertLocPile->GetSrcPhrase()->m_bRetranslation)
 		{
-			CPile* pPile = GetView()->GetNextPile(pInsertLocPile);
+			CPile* pPile = m_pView->GetNextPile(pInsertLocPile);
 			if (pPile == NULL || pPile->GetSrcPhrase()->m_bRetranslation)
 			{
 				// IDS_NO_INSERT_IN_RETRANS
 				wxMessageBox(_(
 							   "You cannot insert a placeholder within a retranslation. The command has been ignored.")
 							 ,_T(""), wxICON_EXCLAMATION);
-				GetView()->RemoveSelection();
-				GetView()->Invalidate();
-				GetLayout()->PlaceBox();
+				m_pView->RemoveSelection();
+				m_pView->Invalidate();
+				m_pLayout->PlaceBox();
 				return;
 			}
 		}
@@ -1880,14 +1862,14 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		// & make the punctuated target string
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
-			GetView()->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 			
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
-			GetView()->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
+			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bool bOK;
-			bOK = GetView()->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
+			bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
 							m_pApp->m_targetPhrase);
 			gbInhibitLine4StrCall = FALSE;
 		}
@@ -1926,11 +1908,11 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			// its own pile
 			m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
 #ifdef _NEW_LAYOUT
-			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+			m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
-			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+			m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
-			m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->GetMaxIndex()); // temporary 
+			m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->GetMaxIndex()); // temporary 
 			// active location, at the dummy one
 			// now we can do the insertion
 			pInsertLocPile = m_pApp->m_pActivePile;
@@ -1940,7 +1922,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		{
 			// the 'next' pile is not beyond the document's end, so make it the insert
 			// location
-			CPile* pPile = GetView()->GetNextPile(pInsertLocPile);
+			CPile* pPile = m_pView->GetNextPile(pInsertLocPile);
 			wxASSERT(pPile != NULL);
 			pInsertLocPile = pPile;
 			m_pApp->m_pActivePile = pInsertLocPile; // ensure it is up to date
@@ -1969,11 +1951,11 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			// get another valid layout
 			m_pApp->m_nActiveSequNum = m_pApp->GetMaxIndex();
 #ifdef _NEW_LAYOUT
-			GetLayout()->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
+			m_pLayout->RecalcLayout(pSrcPhrases, keep_strips_keep_piles);
 #else
-			GetLayout()->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
+			m_pLayout->RecalcLayout(pSrcPhrases, create_strips_keep_piles);
 #endif
-			m_pApp->m_pActivePile = GetView()->GetPile(m_pApp->GetMaxIndex()); // temporarily at the end, 
+			m_pApp->m_pActivePile = m_pView->GetPile(m_pApp->GetMaxIndex()); // temporarily at the end, 
 			// caller will fix
 			nSequNum = m_pApp->GetMaxIndex();
 		}
@@ -1990,8 +1972,8 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		
 		// jump to it (can't use old pile pointers, the recalcLayout call 
 		// will have clobbered them)
-		CPile* pPile = GetView()->GetPile(nSequNum);
-		GetView()->Jump(m_pApp,pPile->GetSrcPhrase());
+		CPile* pPile = m_pView->GetPile(nSequNum);
+		m_pView->Jump(m_pApp,pPile->GetSrcPhrase());
 	}
 	else // not inserting after the selection's end or active location, but before
 	{
@@ -2020,7 +2002,7 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			}
 			nSequNum = pInsertLocPile->GetSrcPhrase()->m_nSequNumber;
 			wxASSERT(pInsertLocPile != NULL);
-			GetView()->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
+			m_pView->RemoveSelection(); // Invalidate will be called in InsertNullSourcePhrase()
 		}
 		else
 		{
@@ -2043,16 +2025,16 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		// previous one, if it is still a retranslation, we must abort the operation)
 		if(pInsertLocPile->GetSrcPhrase()->m_bRetranslation)
 		{
-			CPile* pPile = GetView()->GetPrevPile(pInsertLocPile);
+			CPile* pPile = m_pView->GetPrevPile(pInsertLocPile);
 			if (pPile == NULL || pPile->GetSrcPhrase()->m_bRetranslation)
 			{
 				// IDS_NO_INSERT_IN_RETRANS
 				wxMessageBox(_(
 							   "Sorry, you cannot insert a placeholder within a retranslation. The command has been ignored."),
 							 _T(""), wxICON_EXCLAMATION);
-				GetView()->RemoveSelection();
-				GetView()->Invalidate();
-				GetLayout()->PlaceBox();
+				m_pView->RemoveSelection();
+				m_pView->Invalidate();
+				m_pLayout->PlaceBox();
 				return;
 			}
 		}
@@ -2061,14 +2043,14 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		// & make the punctuated target string
 		if (m_pApp->m_pTargetBox->GetHandle() != NULL && m_pApp->m_pTargetBox->IsShown())
 		{
-			GetView()->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+			m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 			
             // we are about to leave the current phrase box location, so we must try to
             // store what is now in the box, if the relevant flags allow it
-			GetView()->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
+			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bool bOK;
-			bOK = GetView()->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
+			bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
 							m_pApp->m_targetPhrase);
 			gbInhibitLine4StrCall = FALSE;
 		}
@@ -2087,8 +2069,8 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 		
 		// jump to it (can't use old pile pointers, the recalcLayout call 
 		// will have clobbered them)
-		CPile* pPile = GetView()->GetPile(nSequNum);
-		GetView()->Jump(m_pApp, pPile->GetSrcPhrase());
+		CPile* pPile = m_pView->GetPile(nSequNum);
+		m_pView->Jump(m_pApp, pPile->GetSrcPhrase());
 	}
 }
 

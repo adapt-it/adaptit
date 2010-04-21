@@ -36,11 +36,6 @@ class CPlaceholder : public wxEvtHandler
 		
 		virtual ~CPlaceholder();	// destructor
 		
-		// Utility functions
-		CLayout*		CPlaceholder::GetLayout();
-		CAdapt_ItView*	CPlaceholder::GetView();
-		CAdapt_ItApp*	CPlaceholder::GetApp();
-
 		// methods
 		void		InsertNullSrcPhraseBefore();
 		void		InsertNullSrcPhraseAfter();

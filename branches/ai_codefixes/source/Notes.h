@@ -37,10 +37,6 @@ class CNotes : public wxEvtHandler
 		
 		virtual ~CNotes();	// destructor
 		
-		// Utility functions
-		CLayout*		CNotes::GetLayout();
-		CAdapt_ItView*	CNotes::GetView();
-		CAdapt_ItApp*	CNotes::GetApp();
 
 		// Items from Adapt_ItView
 		bool	CreateNoteAtLocation(SPList* pSrcPhrases, int nLocationSN, wxString& strNote);

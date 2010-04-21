@@ -37,11 +37,6 @@ public:
 		
 	virtual ~CRetranslation();	// destructor
 		
-	// Utility functions
-	CLayout*		CRetranslation::GetLayout();
-	CAdapt_ItView*	CRetranslation::GetView();
-	CAdapt_ItApp*	CRetranslation::GetApp();
-		
 	// Items from Adapt_ItView
 	bool		DoFindRetranslation(int nStartSequNum, int& nSequNum, int& nCount);
 	void		DoRetranslation();
