@@ -57,13 +57,6 @@ public:
 	CFreeTrans(CAdapt_ItApp* app); // use this one
 
 	virtual ~CFreeTrans();// destructor // whm added always make virtual
-
-	// utility functions for hooking up to view, app, layout, and frame
-	// pDoc can be generated whenever needed from GetView()->GetDocument()
-//	CAdapt_ItApp* CFreeTrans::GetApp();
-	CAdapt_ItView* CFreeTrans::GetView();
-	CMainFrame* CFreeTrans::GetFrame();
-	CLayout* CFreeTrans::GetLayout();
 	
 	// Public free translation drawing functions
 	//GDLC 2010-02-12+ Moved free translation functions here from CAdapt_ItView
