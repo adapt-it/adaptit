@@ -432,7 +432,6 @@ void CViewFilteredMaterialDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) //
 	{
 		assocTextArrayAfterEdit.Add(assocTextArrayBeforeEdit.Item(act));
 	}
-	changesMade = FALSE;
 
 	// set the selection to the 1st item in Markers, but set the focus to the edit box 
 	// with no text selected
@@ -516,7 +515,6 @@ void CViewFilteredMaterialDlg::OnLbnSelchangeListMarker(wxCommandEvent& WXUNUSED
 	curText = pMkrTextEdit->GetValue();
 	if (curText != assocTextArrayBeforeEdit.Item(currentMkrSelection))
 	{
-		changesMade = TRUE;
 		assocTextArrayAfterEdit[currentMkrSelection] = curText;
 	}
 
@@ -602,6 +600,17 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 		// there is filtered info, this could be information for the m_freeTrans member,
 		// and / or the m_note member, and / or the m_collectedBackTrans member, and / or
 		// the m_filteredInfo member. Handle each possibility in turn - in that order
+		
+		// first, we must update assocTextArrayAfterEdit for the currently shown content,
+		// otherwise if the user has edited it and then clicks OK button, the update won't
+		// be done and the edit change would be lost
+		wxString curText;
+		curText = pMkrTextEdit->GetValue();
+		if (curText != assocTextArrayBeforeEdit.Item(currentMkrSelection))
+		{
+			assocTextArrayAfterEdit[currentMkrSelection] = curText;
+		}
+
 		if (count > 0)
 		{
 			strMkr = AllWholeMkrsArray.Item(0); // free trans, if present, is always first
@@ -648,6 +657,7 @@ void CViewFilteredMaterialDlg::OnOK(wxCommandEvent& WXUNUSED(event))
 			{
 				// there is a collected back trans present, so store it's possibly new value
 				strContent = assocTextArrayAfterEdit.Item(0);
+				pSrcPhrase->SetCollectedBackTrans(strContent);
 
 				// shorten the arrays
 				assocTextArrayAfterEdit.RemoveAt(0,1);
@@ -712,7 +722,6 @@ void CViewFilteredMaterialDlg::OnEnChangeEditMarkerText(wxCommandEvent& WXUNUSED
 	// to add the enclosing if block with a IsModified() test to the wx version.
 	if (pMkrTextEdit->IsModified())
 	{
-		changesMade = TRUE;
 		// change "OK" button label to "Save Changes"
 		wxButton* pOKButton = (wxButton*)FindWindowById(wxID_OK);
 		wxASSERT(pOKButton != NULL);
@@ -800,7 +809,6 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
     // will be zero; also we don't want the user to sit there looking at an empty dialog
     // and not being sure what to do next, so we help him out by closing things down for
     // him.
-	changesMade = TRUE; // ensure the CSourcePhrase updating gets done
 	if (nNewCount == 0)
 	{
 		// all filtered information has just been removed, so we'll close the dialog down
@@ -808,7 +816,6 @@ void CViewFilteredMaterialDlg::OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(eve
 		// does the required updating
 		//UpdateContentOnRemove(); // <<-- no longer needed in docVersion 5
 		bRemovalDone = FALSE;
-		changesMade = FALSE;
 	}
 	else
 	{
@@ -934,5 +941,3 @@ void CViewFilteredMaterialDlg::GetAndShowMarkerDescription(int indexIntoMarkersL
 	}
 	pViewFilteredMaterialDlgSizer->Layout();
 }
-
-

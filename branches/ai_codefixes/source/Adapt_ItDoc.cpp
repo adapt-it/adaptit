@@ -2219,115 +2219,113 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 	bool bNoStore = FALSE;
 	bOK = FALSE;
 
-	if (type == normal_save)
+	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
+	// should be a sufficient test. 
+	if (pApp->m_pTargetBox != NULL)
 	{
-
-		// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
-		// should be a sufficient test. 
-		if (pApp->m_pTargetBox != NULL)
+		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
 		{
-			if (pApp->m_pTargetBox->IsShown())// not focused on app closure
+			if (!gbIsGlossing)
 			{
-				if (!gbIsGlossing)
-				{
-					pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-					pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
-				}
-				gbInhibitLine4StrCall = TRUE;
-				bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
-				if (!bOK)
-				{
-					// something is wrong if the store did not work, but we can tolerate the error 
-					// & continue
-					// IDS_KB_STORE_FAIL
-					wxMessageBox(_(
-	"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-					_T(""),wxICON_EXCLAMATION);
-					bNoStore = TRUE;
-				}
-				else
-				{
-					if (gbIsGlossing)
-						pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
-					else
-						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
-				}
+				pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
-		}
-
-		bool bFailed = FALSE;
-		
-		// ensure the extension is what it should be (what was opened may be a file of different
-		// type than what is to be output now, and if so then the extension must be brought into
-		// line with what the value of the m_bSaveAsXML flag happens to be, that is, .xml if that
-		// flag is TRUE, or .adt if it is FALSE)
-		wxString thisFilename = gpApp->m_curOutputFilename;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
-		{
-			// we want an .xml extension - make it so if it happens to be .adt
-			thisFilename = MakeReverse(thisFilename);
-			wxString extn = thisFilename.Left(3);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
+			gbInhibitLine4StrCall = TRUE;
+			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = FALSE;
+			if (!bOK)
 			{
-				thisFilename = thisFilename.Mid(3); // remove the adt extension
-				thisFilename = MakeReverse(thisFilename);
-				thisFilename += _T("xml"); // it's now *.xml
+				// something is wrong if the store did not work, but we can tolerate the error 
+				// & continue
+				// IDS_KB_STORE_FAIL
+				wxMessageBox(_(
+"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
+				_T(""),wxICON_EXCLAMATION);
+				bNoStore = TRUE;
 			}
 			else
-				thisFilename = MakeReverse(thisFilename); // it's already *.xml
+			{
+				if (gbIsGlossing)
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
+				else
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
+			}
 		}
-
-		gpApp->m_curOutputFilename = thisFilename;	// m_curOutputFilename now complies with the 
-													// m_bSaveAsXML flag's value
-
-		// make sure the backup filenames comply too (BEW added 23June07)
-		MakeOutputBackupFilenames(gpApp->m_curOutputFilename,gpApp->m_bSaveAsXML);
-
-		// the m_curOutputPath member can be redone now that m_curOutputFilename is what is wanted
-		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	}
+	
+	// ensure the extension is what it should be (what was opened may be a file of different
+	// type than what is to be output now, and if so then the extension must be brought into
+	// line with what the value of the m_bSaveAsXML flag happens to be, that is, .xml if that
+	// flag is TRUE, or .adt if it is FALSE)
+	wxString thisFilename = gpApp->m_curOutputFilename;
+	if (gpApp->m_bSaveAsXML) // always true in the wx version
+	{
+		// we want an .xml extension - make it so if it happens to be .adt
+		thisFilename = MakeReverse(thisFilename);
+		wxString extn = thisFilename.Left(3);
+		extn = MakeReverse(extn);
+		if (extn != _T("xml"))
 		{
-			gpApp->m_curOutputPath = gpApp->m_bibleBooksFolderPath + 
-										gpApp->PathSeparator + gpApp->m_curOutputFilename;
+			thisFilename = thisFilename.Mid(3); // remove the adt extension
+			thisFilename = MakeReverse(thisFilename);
+			thisFilename += _T("xml"); // it's now *.xml
 		}
 		else
-		{
-			gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + 
-										gpApp->PathSeparator + gpApp->m_curOutputFilename;
-		}
+			thisFilename = MakeReverse(thisFilename); // it's already *.xml
+	}
+
+	gpApp->m_curOutputFilename = thisFilename;	// m_curOutputFilename now complies with the 
+												// m_bSaveAsXML flag's value
+
+	// make sure the backup filenames comply too (BEW added 23June07)
+	MakeOutputBackupFilenames(gpApp->m_curOutputFilename,gpApp->m_bSaveAsXML);
+
+	// the m_curOutputPath member can be redone now that m_curOutputFilename is what is wanted
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	{
+		gpApp->m_curOutputPath = gpApp->m_bibleBooksFolderPath + 
+									gpApp->PathSeparator + gpApp->m_curOutputFilename;
+	}
+	else
+	{
+		gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + 
+									gpApp->PathSeparator + gpApp->m_curOutputFilename;
+	}
 
 
-		// m_curOutputFilename was set when user created the doc; or it an existing doc was
-		// read back in, then code above will have made the extension conform to the
-		// m_bSaveAsXML flag's value if it had the other extension (ie. binary when xml is
-		// wanted, or xml when binary is wanted)
-		if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
-		{
-			return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
-						  // to happen, so we'll not worry about it - it wouldn't matter much anyway
-		}
+	// m_curOutputFilename was set when user created the doc; or it an existing doc was
+	// read back in, then code above will have made the extension conform to the
+	// m_bSaveAsXML flag's value if it had the other extension (ie. binary when xml is
+	// wanted, or xml when binary is wanted)
+	if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
+	{
+		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
+					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
+	}
 
-		CSourcePhrase* pSrcPhrase;
-		CBString aStr;
-		CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
 
-		// prologue (Changed BEW 02July07 at Bob Eaton's request)
-		gpApp->GetEncodingStringForXmlFiles(aStr);
-		DoWrite(f,aStr);
+	// prologue (Changed BEW 02July07 at Bob Eaton's request)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
+	DoWrite(f,aStr);
 
-		// add the comment with the warning about not opening the XML file in MS WORD 
-		// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-		// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-		// the latter goes into an infinite loop when the file is being parsed in.
-		aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
 
-		// doc opening tag
-		aStr += "<";
-		aStr += xml_adaptitdoc;
-		aStr += ">\r\n"; // eol chars OK for cross-platform???
-		DoWrite(f,aStr);
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
 
+	// now branch according to whether the SaveType value is normal_save, or save_as
+	if (type == normal_save)
+	{
 		// place the <Settings> element at the start of the doc
 		aStr = ConstructSettingsInfoAsXML(1);
 		DoWrite(f,aStr);
@@ -2341,7 +2339,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		pProgDlg = (wxProgressDialog*)NULL;
 		if (bShowWaitDlg)
 		{
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 			// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
 			// progress dialog here (not done in the MFC version)
 			//wxProgressDialog progDlg(_("Saving File"),
@@ -2358,8 +2356,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 							wxPD_REMAINING_TIME
 							| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 							);
-
-	#else
+#else
 			// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
 			// notification on wxGTK and wxMAC
 			// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
@@ -2370,7 +2367,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 			waitDlg.Show(TRUE);
 			waitDlg.Update();
 			// the wait dialog is automatically destroyed when it goes out of scope below.
-	#endif
+#endif
 		}
 		// add the list of sourcephrases
 		SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
@@ -2378,14 +2375,14 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		{
 			if (bShowWaitDlg)
 			{
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 				counter++;
 				if (counter % 1000 == 0) 
 				{
 					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
 					pProgDlg->Update(counter,msgDisplayed);
 				}
-	#endif
+#endif
 			}
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
 			pos = pos->GetNext();
@@ -2422,10 +2419,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 													   // used for this save operation
 		if (bShowWaitDlg)
 		{
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 			progMsg = _("Please wait while Adapt It saves the KB...");
 			pProgDlg->Pulse(progMsg); // more general message during KB save
-	#endif
+#endif
 		}
 		// do the document backup if required
 		if (gpApp->m_bBackupDocument)
@@ -2489,94 +2486,15 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 			}
 		}
 
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-	#endif
-
-		if (bFailed)
-			return FALSE;
-		else
-			return TRUE;
+#endif
+		return TRUE;
 
 	} // end of block for test: if (type == normal_save)
-	else
+	else // *************************** save_as block commences **********************************
 	{
-		// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
-		// should be a sufficient test. 
-		if (pApp->m_pTargetBox != NULL)
-		{
-			if (pApp->m_pTargetBox->IsShown())// not focused on app closure
-			{
-				if (!gbIsGlossing)
-				{
-					pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-					pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
-				}
-				gbInhibitLine4StrCall = TRUE;
-				bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
-				gbInhibitLine4StrCall = FALSE;
-				if (!bOK)
-				{
-					// something is wrong if the store did not work, but we can tolerate the error 
-					// & continue
-					// IDS_KB_STORE_FAIL
-					wxMessageBox(_(
-	"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
-					_T(""),wxICON_EXCLAMATION);
-					bNoStore = TRUE;
-				}
-				else
-				{
-					if (gbIsGlossing)
-						pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
-					else
-						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
-				}
-			}
-		}
-
-		bool bFailed = FALSE;
-		
-		// ensure the extension is what it should be (what was opened may be a file of different
-		// type than what is to be output now, and if so then the extension must be brought into
-		// line with what the value of the m_bSaveAsXML flag happens to be, that is, .xml if that
-		// flag is TRUE, or .adt if it is FALSE)
-		wxString thisFilename = gpApp->m_curOutputFilename;
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
-		{
-			// we want an .xml extension - make it so if it happens to be .adt
-			thisFilename = MakeReverse(thisFilename);
-			wxString extn = thisFilename.Left(3);
-			extn = MakeReverse(extn);
-			if (extn != _T("xml"))
-			{
-				thisFilename = thisFilename.Mid(3); // remove the adt extension
-				thisFilename = MakeReverse(thisFilename);
-				thisFilename += _T("xml"); // it's now *.xml
-			}
-			else
-				thisFilename = MakeReverse(thisFilename); // it's already *.xml
-		}
-
-		gpApp->m_curOutputFilename = thisFilename;	// m_curOutputFilename now complies with the 
-													// m_bSaveAsXML flag's value
-
-		// make sure the backup filenames comply too (BEW added 23June07)
-		MakeOutputBackupFilenames(gpApp->m_curOutputFilename,gpApp->m_bSaveAsXML);
-
-		// the m_curOutputPath member can be redone now that m_curOutputFilename is what is wanted
-		if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
-		{
-			gpApp->m_curOutputPath = gpApp->m_bibleBooksFolderPath + 
-										gpApp->PathSeparator + gpApp->m_curOutputFilename;
-		}
-		else
-		{
-			gpApp->m_curOutputPath = gpApp->m_curAdaptionsPath + 
-										gpApp->PathSeparator + gpApp->m_curOutputFilename;
-		}
-
 
 // ** TODO **  file save dialog has to go here
 
@@ -2615,47 +2533,31 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		int filterIndex = fileDlg.GetFilterIndex();
 		SetDocVersion(filterIndex);
 
-		// TODO the rest
-
-
-
+		// Saving in doc version 4 may require the addition of a doc-final dummy
+		// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
+		// but only when needed, and remove it when done. It's needed if the very last
+		// CSourcePhrase instance has a non-empty m_endMarkers member.
+		bool bDummySrcPhraseAdded = FALSE;
+		SPList::Node* posLast = gpApp->m_pSourcePhrases->GetLast();
+		CSourcePhrase* pLastSrcPhrase = posLast->GetData();
+		wxASSERT(pLastSrcPhrase != NULL);
+		if (!pLastSrcPhrase->GetEndMarkers().IsEmpty())
+		{ 
+			// we need a dummy one at the end
+			bDummySrcPhraseAdded = TRUE;
+			int aCount = gpApp->m_pSourcePhrases->GetCount();
+			CSourcePhrase* pDummyForLast = new CSourcePhrase;
+			gpApp->m_pSourcePhrases->Append(pDummyForLast);
+			pDummyForLast->m_nSequNumber = aCount;
+		}
 
 
 // ** code from before continues here
 
-		// m_curOutputFilename was set when user created the doc; or if an existing doc was
-		// read back in, then code above will have made the extension conform to the
-		// m_bSaveAsXML flag's value if it had the other extension (ie. binary when xml is
-		// wanted, or xml when binary is wanted)
-		if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
-		{
-			RestoreCurrentDocVersion(); // BEW added 19Apr10
-			return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
-						  // to happen, so we'll not worry about it - it wouldn't matter much anyway
-		}
-
-		CSourcePhrase* pSrcPhrase;
-		CBString aStr;
-		CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
-
-		// prologue (Changed BEW 02July07 at Bob Eaton's request)
-		gpApp->GetEncodingStringForXmlFiles(aStr);
-		DoWrite(f,aStr);
-
-		// add the comment with the warning about not opening the XML file in MS WORD 
-		// 'coz is corrupts it - presumably because there is no XSLT file defined for it
-		// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
-		// the latter goes into an infinite loop when the file is being parsed in.
-		aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
-
-		// doc opening tag
-		aStr += "<";
-		aStr += xml_adaptitdoc;
-		aStr += ">\r\n"; // eol chars OK for cross-platform???
-		DoWrite(f,aStr);
-
-		// place the <Settings> element at the start of the doc
-		aStr = ConstructSettingsInfoAsXML(1); // 1 param is the nTabLevel value for the xml margin
+		// place the <Settings> element at the start of the doc (this has to know what the
+		// user chose for the SaveType, so this call has to be made after the
+		// SetDocVersion() call above
+		aStr = ConstructSettingsInfoAsXML(1);
 		DoWrite(f,aStr);
 
 		int counter;
@@ -2667,7 +2569,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		pProgDlg = (wxProgressDialog*)NULL;
 		if (bShowWaitDlg)
 		{
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 			// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
 			// progress dialog here (not done in the MFC version)
 			//wxProgressDialog progDlg(_("Saving File"),
@@ -2685,7 +2587,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 							| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 							);
 
-	#else
+#else
 			// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
 			// notification on wxGTK and wxMAC
 			// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
@@ -2696,26 +2598,49 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 			waitDlg.Show(TRUE);
 			waitDlg.Update();
 			// the wait dialog is automatically destroyed when it goes out of scope below.
-	#endif
+#endif
 		}
 		// add the list of sourcephrases
 		SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+		wxString endMarkersStr; endMarkersStr.Empty();
 		while (pos != NULL)
 		{
 			if (bShowWaitDlg)
 			{
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 				counter++;
 				if (counter % 1000 == 0) 
 				{
 					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
 					pProgDlg->Update(counter,msgDisplayed);
 				}
-	#endif
+#endif
 			}
 			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			// get a deep copy, so that we can change the data to what is compatible with
+			// docc version 4 without corrupting the pSrcPhrase which remains in doc
+			// version 5
+			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+			pDeepCopy->DeepCopy();
+			
+            // do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
+            // passed in non-empty, the endmarkers are inserted internally at the start of
+            // pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
+            // inserted in the first instance of pDeepCopy->m_pSavedWords's m_markers
+			// member too); and before returning it must check for endmarkers stored on
+			// pDeepCopy (whether a merger or not makes no difference in this case) and
+			// reset endMarkersStr to whatever endmarker(s) are found there - so that the
+			// next iteration of the caller's loop can place them on the next pDeepCopy
+			// passed in. (FromDocVersion5ToDocVersion4() leverages the fact that the
+			// legacy code for docVersion 4 xml construction knows nothing about the new
+			// members m_endMarkers, m_freeTrans, etc - so as long as pDeepCopy's
+			// m_markers member is reset correctly, and m_endMarkers's content is returned
+			// to the caller for placement on the next iteration, the legacy xml code will
+			// build correct docVersion 4 xml from the docVersion 5 CSourcePhrase instances)
+			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr);
+
 			pos = pos->GetNext();
-			aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
 			DoWrite(f,aStr);
 		}
 
@@ -2728,6 +2653,15 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		// close the file
 		f.Close();
 		f.Flush();
+
+		// remove the dummy that was appended, if we did append on in the code above
+		if (bDummySrcPhraseAdded)
+		{
+			posLast = gpApp->m_pSourcePhrases->GetLast();
+			CSourcePhrase* pDummyWhichIsLast = posLast->GetData();
+			wxASSERT(pDummyWhichIsLast != NULL);
+			gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
+		}
 
 		// BEW aded 19Apr10, restore the latest document version number, in case the save
 		// done above was actually a Save As... using an earlier doc version number
@@ -2752,10 +2686,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 													   // used for this save operation
 		if (bShowWaitDlg)
 		{
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 			progMsg = _("Please wait while Adapt It saves the KB...");
 			pProgDlg->Pulse(progMsg); // more general message during KB save
-	#endif
+#endif
 		}
 		// do the document backup if required
 		if (gpApp->m_bBackupDocument)
@@ -2819,15 +2753,11 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 			}
 		}
 
-	#ifdef __WXMSW__
+#ifdef __WXMSW__
 		if (pProgDlg != NULL)
 			pProgDlg->Destroy();
-	#endif
-
-		if (bFailed)
-			return FALSE;
-		else
-			return TRUE;
+#endif
+		return TRUE;
 	}
 }
 

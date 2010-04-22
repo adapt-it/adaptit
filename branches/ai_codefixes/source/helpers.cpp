@@ -1647,7 +1647,7 @@ wxString GetFilteredStuffAsUnfiltered(CSourcePhrase* pSrcPhrase, bool bDoCount, 
 	// get the other string information we want, putting it in the 
 	// scratch strings
 	GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
-					freeTransStr, noteStr, collBackTransStr,filteredInfoStr);
+					freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
 	// remove any filter bracketing markers if filteredInfoStr has content
 	if (!filteredInfoStr.IsEmpty())
 	{

@@ -3294,6 +3294,234 @@ void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, boo
 	}
 }
 
+// convert from doc version 5's various filtered content storage members, back to the
+// legacy doc version 4 storage regime, where filtered info and endmarkers (for
+// non-filtered info) were all stored on m_markers. This function must only be called on a
+// deep copies of the CSourcePhrase instances within the document's m_pSourcePhrases list,
+// because this function will modify the content in each deep copied instance in order that
+// the old legacy doc version 4 xml construction code will correctly build the legacy
+// document xml format, without corrupting the original doc version 5 storage regime.
+// 
+// pSrcPhrase is either a deep copy of a CSourcePhrase instance from the m_pSourcePhrases
+// list which comprises the document. Unlike the function which converts 4 to 5, this
+// function must handle conversions of instances in a non-empty m_pSavedWords list
+// internally. It must input any endmarkers from the last call, in order to place them in
+// the current call -- this is done this way: for non-merger, insert at the start of
+// m_markers; for a merger, insert at the start of m_markers, and then insert at the start
+// of m_markers of the first CSourcePhrase instance in m_pSavedWords. Also, if the earlier
+// call was a merger with endmarkers - the endmarkers in the last CSourcePhrase instance
+// of that earlier merged CSourcePhrase's m_pSavedWords list can be ignored, because they
+// will have been copied to the merger which stores that list anyway, and will have been
+// returned to the caller from that merger instance.
+void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr)
+{
+	wxString aSpace = _T(" ");
+	wxString storedEndMarkers;
+	wxString newMarkersMember = RewrapFilteredInfoForDocV4(pSrcPhrase, storedEndMarkers);
+	// if storedEndMarkers is non-empty, it will eventually have to be returned in
+	// pEndMarkersStr, but we don't reset the latter until we use any content that may
+	// have been passed in by it (such content would result from what was returned in
+	// pEndMarkersStr at the previous iteration of the caller's loop)
+
+	// update m_markers member; ensure it ends with just a single space if it has
+	// non-space content
+	newMarkersMember.Trim();
+	if (!newMarkersMember.IsEmpty())
+	{
+		newMarkersMember += aSpace;
+	}
+	pSrcPhrase->m_markers = newMarkersMember;
+	// insert any endmarkers passed in, at its beginning
+	if (!pEndMarkersStr->IsEmpty())
+	{
+		// we won't bother with a delimiting space between the last endmarker and the
+		// start of the m_markers material, because it is unnecessary (but we did have one
+		// in the legacy versions)
+		pSrcPhrase->m_markers = *pEndMarkersStr + pSrcPhrase->m_markers;
+	}
+	// check if this pSrcPhrase is a merger - if it is, we have to also convert the
+	// CSourcePhrase instances in the m_pSavedWords list back to docVersion 4 as well, but
+	// we don't need to get any endmarkers on the last in that list, as the merger process
+	// will have copied them to the owning merged CSourcPhrase instance, and we'll have
+	// already gotten them into storedEndMarkers in the code above
+	wxString storedEndMarkers_Originals;
+	wxArrayString endmarkersArray;
+	if (pSrcPhrase->m_nSrcWords > 1)
+	{
+		// it's a merger, so process the saved originals
+		int counter = 0;
+		SPList::Node* pos = pSrcPhrase->m_pSavedWords->GetFirst();
+		wxASSERT(pos != NULL);
+		bool bFirst = TRUE; // use this to get the passed in endmarkers, if any, inserted
+							// only at the start of the modified m_markers member of the
+							// first CSourcePhrase instance in this list
+		while (pos != NULL)
+		{
+			CSourcePhrase* pOriginalSPh = pos->GetData();
+			newMarkersMember = RewrapFilteredInfoForDocV4(pOriginalSPh, storedEndMarkers_Originals);
+            // add any endmarkers to the array, and for non-first iteration, check if
+            // endmarkers were stored here on the last iteration, and if so, insert them at
+            // start of current pOriginalSPh's m_markers string
+			endmarkersArray.Add(storedEndMarkers_Originals); // store whatever it is, even empty string
+			counter++;
+			// update m_markers on the current instance... if nonempty, it should always end with a
+			// space, so check and fix if necessary (easiest way is to unilaterally Trim()
+			// at the end and add a single space
+			newMarkersMember.Trim();
+			if (!newMarkersMember.IsEmpty())
+			{
+				newMarkersMember += aSpace;
+			}
+			pOriginalSPh->m_markers = newMarkersMember;
+			
+			if (bFirst)
+			{
+				// do any needed endmarkers insertion on the first, using any passed in
+				if (!pEndMarkersStr->IsEmpty())
+				{
+					pOriginalSPh->m_markers = *pEndMarkersStr + pOriginalSPh->m_markers;
+				}
+			}
+			// handle transfer of any medial endmarkers found, transferring to the 'next'
+			// instance's m_markers member's start; (if one is one the last CSourcePhrase
+			// instance, then it won't get transferred because the loop will exit first,
+			// but that is fine because we already have such endmarkers content stored in
+			// storedEndMarkers above, and the next iteration in the caller's loop will
+			// place that endmarkers information correctly)
+			if (!bFirst)
+			{
+				wxString endmarkersStored = endmarkersArray.Item(counter - 2); // -1 gives 
+										// an index, a further -1 gives the previous item
+				if (!endmarkersStored.IsEmpty())
+				{
+					// previous iteration found and stored endmarkers, so place them now
+					pOriginalSPh->m_markers = endmarkersStored + pOriginalSPh->m_markers;
+				}
+			}
+			bFirst = FALSE; // prevent reentry to the if (bFirst) == TRUE block (do it here
+							// because we want bFirst to remain TRUE on the first iteration
+							// so that the if (!bFirst) == TRUE block is skipped on the
+							// first iteration
+			pos = pos->GetNext();
+		} // end of the while (pos != NULL) loop
+	} // end of TRUE block for test: if (pSrcPhrase->m_nSrcWords > 1)
+
+	// the final thing to do is to return any endmarkers required by the caller
+	// (or the empty string if there are none) -- add a space at the end, it's not really
+	// needed, but it gives a doc version 4 more like the legacy ones
+	if (!storedEndMarkers.IsEmpty())
+	{
+		storedEndMarkers += aSpace;
+	}
+	*pEndMarkersStr = storedEndMarkers;
+}
+
+
+// return a docversion 4 m_markers wxString with the docversion 5 filter storage members'
+// contents rewrapped with \~FILTER and \FILTER* bracketing markers, but leave addition of
+// any endmarkers to be done by its caller, just return any stored endmarkers in the
+// second parameter letting the caller decide what to do with them. In Doc version 4 the
+// order of information in m_markers is:
+// endmarker filteredinfo collectedbacktranslation note freetranslation SF markers (and
+// verse or chapter number as appropriate)
+wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmarkers)
+{
+	wxASSERT(endmarkers.IsEmpty());
+	wxString str; // accumulate the return string here
+	// markers needed, since doc version 5 doesn't store some filtered 
+	// stuff using them
+	wxString freeMkr(_T("\\free"));
+	wxString freeEndMkr = freeMkr + _T("*");
+	wxString noteMkr(_T("\\note"));
+	wxString noteEndMkr = noteMkr + _T("*");
+	wxString backTransMkr(_T("\\bt"));
+	wxString aSpace = _T(" ");
+	wxString filterStr(filterMkr);  // builds "\~FILTER"
+	wxString filterEndStr(filterMkrEnd);  // builds "\~FILTER*"
+
+	// scratch strings, in wxWidgets these local string objects start off empty
+	wxString markersStr; 
+	wxString endMarkersStr;
+	wxString freeTransStr;
+	wxString noteStr;
+	wxString collBackTransStr;
+	wxString filteredInfoStr;
+	wxString subStr; // a scratch string for building each "\~FILTER \mkr content \mkr* \~FILTER*" string
+
+	// get the other string information we want, putting it in the 
+	// scratch strings
+	GetMarkersAndFilteredStrings(pSrcPhrase, markersStr, endMarkersStr,
+					freeTransStr, noteStr, collBackTransStr, filteredInfoStr);
+	endmarkers = endMarkersStr;
+
+	// first comes any content from m_filteredInfo member (it might be empty)
+	str = filteredInfoStr; // this is already wrapped by filterMkr and filterMkrEnd pairs
+
+	// next comes any collected backtranslation
+	if (!collBackTransStr.IsEmpty())
+	{
+		subStr = filterStr + aSpace;
+		subStr += backTransMkr + aSpace;
+		subStr += collBackTransStr + aSpace;
+		subStr += filterEndStr;
+		// add a space initially unilaterally, later use Trim(FALSE) to remove any initial
+		// one 
+		str += aSpace + subStr;
+	}
+
+	// next comes a note, if there is one on this instance
+	//if (!noteStr.IsEmpty() || pSrcPhrase->m_bHasNote) // uncomment out and comment
+	//out the next line, if at a later time we support empty Adapt It Notes
+	if (!noteStr.IsEmpty())
+	{
+		subStr = filterStr + aSpace;
+		subStr += noteMkr + aSpace;
+		if (!noteStr.IsEmpty())
+		{
+			subStr += noteStr + aSpace;
+		}
+		subStr += noteEndMkr + aSpace;
+		subStr += filterEndStr;
+		// add a space initially unilaterally, later use Trim(FALSE) to remove any initial
+		// one 
+		str += aSpace + subStr;
+	}
+
+	// next comes a free translation, if there is one stored on this instance
+	if (!freeTransStr.IsEmpty() || pSrcPhrase->m_bStartFreeTrans)
+	{
+		// the m_bStartFreeTrans test is in order to support empty free translation
+		// sections - in such a case, the content added is nil, but the marker and
+		// endmarker are present, and wrapped by filter bracket markers as per normal
+		subStr = filterStr + aSpace;
+		subStr += freeMkr + aSpace;
+		if (!freeTransStr.IsEmpty())
+		{
+			subStr += freeTransStr + aSpace;
+		}
+		subStr += freeEndMkr + aSpace;
+		subStr += filterEndStr;
+		// add a space initially unilaterally, later use Trim(FALSE) to remove any initial
+		// one 
+		str += aSpace + subStr;
+	}
+
+	// next comes any SF markers info removed from the user's sight but not filtered, such
+	// stuff is things like "\c 3 \p \v 1 " or "\q1 " and so forth
+	if (!markersStr.IsEmpty())
+	{
+		str += aSpace + markersStr;
+	}
+	str.Trim(FALSE); // finally, remove any string-initial whitespace
+	// ensure it ends with a space, if it has content
+	if (!str.IsEmpty())
+	{
+		str.Trim();
+		str += aSpace;
+	}
+	return str;
+}
+
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred
 // Used in the conversion of documents that were saved in docVersion 4, to docVersion 5.
 // The latter has an m_endMarkers member on CSourcePhrase, and endmarkers are then no

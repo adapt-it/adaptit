@@ -269,26 +269,51 @@ bool ReadKB_XML(wxString& path, CKB* pKB);
 
 // Conversion functions for converting between different xml formats for
 // VERSION_NUMBER (see Adapt_ItConstants.h) = 4 or 5
+
+// convert from doc version 4's m_markers member storing filtered information, and from
+// endmarkers for non-filtered info being at the start of m_markers on the next
+// CSourcePhrase instance, to dedicated storage in doc version 5, for each info type, and
+// endmarkers stored on the CSourcePhrase instance where they logically belong
 void FromDocVersion4ToDocVersion5( SPList* pList, CSourcePhrase* pSrcPhrase, bool bIsEmbedded);
+
+// convert from doc version 5's various filtered content storage members, back to the
+// legacy doc version 4 storage regime, where filtered info and endmarkers (for
+// non-filtered info) were all stored on m_markers. This function must only be called on a
+// deep copies of the CSourcePhrase instances within the document's m_pSourcePhrases list,
+// because this function will modify the content in each deep copied instance in order that
+// the old legacy doc version 4 xml construction code will correctly build the legacy
+// document xml format, without corrupting the original doc version 5 storage regime.
+void FromDocVersion5ToDocVersion4(CSourcePhrase* pSrcPhrase, wxString* pEndMarkersStr);
+
+// return a docversion 4 m_markers wxString with the docversion 5 filter storage members'
+// contents rewrapped with \~FILTER and \FILTER* bracketing markers, but leave addition of
+// any endmarkers to be done by its caller, just return any stored endmarkers in the
+// second parameter letting the caller decide what to do with them
+wxString RewrapFilteredInfoForDocV4(CSourcePhrase* pSrcPhrase, wxString& endmarkers);
+
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
 // use this function within FromDocVersion4ToDocVersion5() to transfer endmarkers from the
 // m_markers string for docVersion 4 CSourcePhrase instances, to CSourcePhrase instances as
 // in docVersion 5.
 bool TransferEndMarkers(wxString& markers, CSourcePhrase* pLastSrcPhrase);
+
 // returns TRUE if one or more endmarkers was transferred, FALSE if none were transferred;
 // use this function within FromDocVersion5ToDocVersion4()to transfer endmarkers from the
 // CSourcePhrase instances as in docVersion 5, back to the start of the m_markers member
 // of the next CSourcePhrase instances, as is the way it was for docVersion 4. (Save As...
 // command, when saving to legacy doc format, needs to use this)
 bool TransferEndMarkersBackToDocV4(CSourcePhrase* pThisOne, CSourcePhrase* pNextSrcPhrase);
+
 // next function used in FromDocVersion4ToDocVersion5(), returns whatever any content
 // which should be put in m_filteredInfo (already wrapped with filter bracket markers)
 // BEW moved from helpers.h to here on 20Apr10
 wxString ExtractWrappedFilteredInfo(wxString strTheRestOfMarkers, wxString& strFreeTrans,
 				wxString& strNote, wxString& strCollectedBackTrans, wxString& strRemainder);
+
 // returns one or more substrings of form \~FILTER .... filtered info .... \~FILTER*,
 // concatenated without any space delimiter
 wxString RemoveOuterWrappers(wxString wrappedStr);
+
 // takes a passed in str which contains one or more sections of filter bracketing markers
 // wrapped information, and returns the first section's marker, content, and endmarker (if
 // it has one) and does not process further than just the first such section

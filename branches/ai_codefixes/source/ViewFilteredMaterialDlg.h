@@ -89,7 +89,6 @@ public:
 	int currentMkrSelection;
 	int prevMkrSelection;
 	int newMkrSelection;
-	bool changesMade;
 	bool bCanRemoveBT; // TRUE if user has just clicked on a \bt or derivative \bt marker, else FALSE
 	bool bCanRemoveFT; // TRUE if user has just clicked on a \free marker, else FALSE
 	wxString btnStr;
@@ -110,7 +109,6 @@ protected:
 	void OnBnClickedRemoveBtn(wxCommandEvent& WXUNUSED(event));
 	void SetRemoveButtonFlags(wxListBox* pMarkers, int nSelection, bool& bCanRemoveFT, bool& bCanRemoveBT);
 	void GetAndShowMarkerDescription(int indexIntoAllMkrSelection);
-	void UpdateContentOnRemove();
 #ifdef _UNICODE
 	void OnButtonSwitchEncoding(wxCommandEvent& WXUNUSED(event));
 #endif
