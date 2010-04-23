@@ -5364,7 +5364,7 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 			wxString msg;
 			// This error shouldn't happen with normal install, so it can remain in English
 			msg = msg.Format(_T(
-	"Could not find the %s dynamic library file. SIL Converters will not be available. You may need to reinstall Adapt It WX."),
+	"Could not find the %s dynamic library file. SIL Converters will not be available, however the rest of the application will work fine.\n(The next installation you do should fix this problem, because this dll file is included in every installer.)"),
 			LIB_NAME);
 			wxMessageBox(msg,_T("File not found"),wxICON_INFORMATION);
 		}
