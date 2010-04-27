@@ -10,7 +10,7 @@
 # Set up variables for localization file processing
 poDir="${PROJECT_DIR}/../../po"
 localeDir="${CONFIGURATION_BUILD_DIR}/${PRODUCT_NAME}.app/Contents/Resources/locale"
-aiMoLangs="es fr id pt ru tpi zh az"
+aiMoLangs="es fr id pt ru swh tpi zh az"
 wxMoLangs="es fr pt ru tpi zh"
 
 # Iterate through the languages in aiMoLangs creating dirs if necessary, and copying 

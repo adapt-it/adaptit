@@ -12,7 +12,7 @@ noinst_HEADERS = ../../source/AIPrintout.h ../../source/Adapt_It.h \
 	../../source/EditSourceTextDlg.h ../../source/ExportFunctions.h ../../source/ExportInterlinearDlg.h \
 	../../source/ExportOptionsDlg.h ../../source/ExportSaveAsDlg.h ../../source/FilenameConflictDlg.h ../../source/FilterPage.h \
 	../../source/FindReplace.h ../../source/FontPage.h ../../source/GoToDlg.h \
-	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBPage.h \
+	../../source/JoinDialog.h ../../source/KB.h ../../source/KBEditor.h ../../source/KBEditSearch.h ../../source/KBPage.h \
 	../../source/LanguagesPage.h ../../source/Layout.h ../../source/ListDocumentsInOtherFolderDialog.h ../../source/MainFrm.h \
 	../../source/MoveDialog.h ../../source/Mover.h ../../source/MyListBox.h ../../source/NoteDlg.h \
 	../../source/OpenExistingProjectDlg.h ../../source/OutputFilenameDlg.h ../../source/PhraseBox.h \
@@ -69,7 +69,7 @@ adaptit_SOURCES = ../../source/AIPrintout.cpp ../../source/Adapt_It.cpp \
 	../../source/ExportInterlinearDlg.cpp ../../source/ExportOptionsDlg.cpp ../../source/ExportSaveAsDlg.cpp \
 	../../source/FilenameConflictDlg.cpp ../../source/FilterPage.cpp ../../source/FindReplace.cpp ../../source/FontPage.cpp \
 	../../source/GoToDlg.cpp ../../source/JoinDialog.cpp ../../source/KB.cpp \
-	../../source/KBEditor.cpp ../../source/KBPage.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
+	../../source/KBEditor.cpp ../../source/KBEditSearch.cpp ../../source/KBPage.cpp ../../source/LanguagesPage.cpp ../../source/Layout.cpp \
 	../../source/ListDocumentsInOtherFolderDialog.cpp ../../source/MainFrm.cpp ../../source/MoveDialog.cpp \
 	../../source/Mover.cpp ../../source/MyListBox.cpp ../../source/NoteDlg.cpp \
 	../../source/OpenExistingProjectDlg.cpp ../../source/OutputFilenameDlg.cpp ../../source/PhraseBox.cpp \

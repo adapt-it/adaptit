@@ -1,15 +1,10 @@
     ADAPT IT LICENSING
 
-
-
     Copyright 2001-2008, Bruce Waters, Bill Martin, SIL 
     International. All rights reserved.
 
-
-
     This program is free software; you can redistribute it 
     and/or modify it under the terms of either:
-
 
       a) the Common Public License as published by the
          "Agreement Steward" for that license (currently IBM);
@@ -22,16 +17,12 @@
          by the Free Software Foundation; either version 2.1 
          of License, or (at your option) any later version.
 
-
-
     This program is distributed in the hope that it will be
     useful, but WITHOUT ANY WARRANTY; without even the 
     implied warranty of MERCHANTABILITY or FITNESS 
     FOR A PARTICULAR PURPOSE.  See either the Common 
     Public License or the GNU Lesser General Public 
     License for more details.
-
-
 
     You should have received a plain text copy of the Common
     Public License Version 0.5 with this distribution in the

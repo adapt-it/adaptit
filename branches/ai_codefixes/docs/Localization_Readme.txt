@@ -63,6 +63,9 @@ Windows Installations:
        |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |     |- wxstd.mo
        |
+       |- swh -               <- subfolder for Swahili (Unicode only)
+       |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
+       |
        |- tpi -               <- subfolder for PNG Tok Pisin
        |     |- Adapt_It.mo (or Adapt_It_Unicode.mo)
        |     |- wxstd.mo
@@ -112,6 +115,10 @@ folder structure:
     |     |- LC_MESSAGES
     |           |- Adapt_It_Unicode.mo
     |           |- wxstd.mo
+    |
+    |- swh -               <- subfolder for Swahili
+    |     |- LC_MESSAGES
+    |           |- Adapt_It_Unicode.mo
     |
     |- tpi -               <- subfolder for PNG Tok Pisin
     |     |- LC_MESSAGES
@@ -201,6 +208,7 @@ fr.po      - French
 id.po      - Indonesian
 pt.po      - Portuguese
 ru.po      - Russian
+swh.po     - Swahili
 tip.po     - Tok Pisin (Papua New Guinea)
 zh.po      - Chinese (Mandarin)
 default.po - an "empty" localization ready to begin a new language

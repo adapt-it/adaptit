@@ -606,18 +606,13 @@
         "InstallerBootstrapper" = "3:2"
             "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
             {
-            "Enabled" = "11:TRUE"
+            "Enabled" = "11:FALSE"
             "PromptEnabled" = "11:TRUE"
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Net.Framework.2.0"
-                    {
-                    "Name" = "8:Microsoft .NET Framework 2.0"
-                    "ProductCode" = "8:Microsoft.Net.Framework.2.0"
-                    }
                 }
             }
         }
@@ -2665,13 +2660,14 @@
         "MsiBootstrapper"
         {
         "LangId" = "3:1033"
+        "RequiresElevation" = "11:FALSE"
         }
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Adapt It WX Unicode"
         "ProductCode" = "8:{8816BF80-0AA1-411F-9FDF-BC6D224031A1}"
-        "PackageCode" = "8:{4812EFF0-4CB4-4735-BCB4-B999F805DB7F}"
+        "PackageCode" = "8:{DEC072AF-8DA7-4500-BA2C-4750AD594828}"
         "UpgradeCode" = "8:{64C9A09B-737D-4B47-BF3A-ED7EFAF5831B}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
