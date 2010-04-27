@@ -79,6 +79,11 @@ private:
 				// Comparison is provided by a function called IsDifferentUserOrMachine() which 
 				// takes 4 wxString arguments, and returns TRUE if user or machine or both are 
 				// different, FALSE if the usernames and machinenames are the same
+	wxString	m_strOSHostname; // whm added 17Feb10 will be "WIN", "LIN" or "MAC" depending on the 
+					// host operating system. It is used as a component substring in the 
+					// m_strReadOnlyProtectionFilename and used to determine what type of OS
+					// created the ~AIROP*.lock file.
+	bool		m_bOverrideROPGetWriteAccess; // whm added 18Feb10
 
 	// member functions supporting Read-Only access
 public:
@@ -90,23 +95,32 @@ public:
                     // and the returned bool value must always be used to clear to FALSE or
                     // set to TRUE the app member m_bReadOnlyAccess, according to whether
                     // the attempt at removal succeeded or not, respectively
+
+	// whm moved IsItNotMe to public for use in the App's CheckLockFileOwnership()
+	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
+                        // process which owns the write privilege to the project folder is
+                        // different from me on my machine running my process which gained
+                        // ownership of write privileges earlierprivate:
 private:
 	wxString	GetLocalUsername(); // return empty string if the local username isn't got
 	wxString	GetLocalMachinename(); // return empty string if the local machinename isn't got
 	wxString	GetLocalProcessID(); // return 0xFFFF if the PID fails to be got
+	wxString	GetLocalOSHostname(); // whm added 17Feb10
 
 	wxString	ExtractUsername(wxString strFilename); 
 	wxString	ExtractMachinename(wxString strFilename); 
-	wxString	ExtractProcessID(wxString strFilename); 
+	wxString	ExtractProcessID(wxString strFilename);
+	wxString	ExtractOSHostname(wxString strFilename); // whm added 17Feb10
 
 	wxString	MakeReadOnlyProtectionFilename(
 					const wxString prefix, // pass in m_strAIROP_Prefix
 					const wxString suffix, // pass in m_strLock_Suffix
 					const wxString machinename,
 					const wxString username,
-					const wxString processID); // return str of form ~AIROP*.lock where * will
+					const wxString processID,
+					const wxString oshostname); // return str of form ~AIROP*.lock where * will
 						// be machinename followed by username, followed by processID,
-						// delimited by single hyphens
+						// followed by oshostname, delimited by single hyphens
 	bool		IsDifferentUserOrMachineOrProcess(
 					wxString& localMachine,
 					wxString& localUser,
@@ -118,10 +132,15 @@ private:
                         // the same (that is, FALSE means the running instance making the
                         // test has ownership of the project folder already, and so writing
                         // of KB and documents should not be prevented)
-	bool		IsItNotMe(wxString& projectFolderPath); // test if the user, machine, or 
-                        // process which owns the write privilege to the project folder is
-                        // different from me on my machine running my process which gained
-                        // ownership of write privileges earlier
+
+	bool		IamRunningAnotherInstance(); // whm added 10Feb10  // currently unused
+	bool		IamAccessingTheProjectRemotely(wxString& folderPath); // whm added 18Feb10
+
+	bool		IOwnTheLock(wxString& projectFolderPath); // whm added 13Feb10
+	bool		AnotherLocalProcessOwnsTheLock(wxString& ropFile); // whm added 13Feb10
+	bool		ADifferentMachineMadeTheLock(wxString& ropFile); // whm added 13Feb10
+	bool		WeAreBothWindowsProcesses(wxString& ropFile); // whm added 17Feb10
+
 	wxString	GetReadOnlyProtectionFileInProjectFolder(wxString& projectFolderPath);
 	bool		IsZombie(wxString& folderPath, wxString& ropFile); // return
 						// TRUE if it is not open(it must be left over after an abnormal

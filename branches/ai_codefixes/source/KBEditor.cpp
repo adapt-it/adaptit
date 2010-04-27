@@ -176,8 +176,8 @@ CKBEditor::CKBEditor(wxWindow* parent) // dialog constructor
 	m_curKey = _T("");
 
 	m_nCurPage = 0; // default to first page (1 Word)
-	m_bRemindUserToDoAConsistencyCheck = FALSE;   // set TRUE if user does respellings
-										    // using the KBEditSearch dialog
+	m_bRemindUserToDoAConsistencyCheck = FALSE; // set TRUE if user does respellings
+												// using the KBEditSearch dialog
 	bKBEntryTemporarilyAddedForLookup = FALSE;
 
 	KBEditorDlgFunc(this, TRUE, TRUE);

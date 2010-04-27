@@ -233,6 +233,8 @@ void CRetranslation::DoOneDocReport(wxString& name, SPList* pList, wxFile* pFile
 	CSourcePhrase* pSrcPhrase = NULL;
 	int count = 0;
 	
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// initialize the progress indicator window
 	int nTotal;
 	nTotal = pList->GetCount();
@@ -3296,6 +3298,8 @@ void CRetranslation::OnRetransReport(wxCommandEvent& WXUNUSED(event))
 	// get the user's desired path
 	wxString reportPath = fileDlg.GetPath();
 	
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	wxFile f; //CStdioFile f;
 	if( !f.Open( reportPath, wxFile::write)) 
 	{

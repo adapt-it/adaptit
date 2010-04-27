@@ -60,12 +60,22 @@ class AIPrintout;
 
 // ******************************* my #defines *********************************************
 
+// whm Note: When changing the following defines for version number, you should also change
+// the FileVersion and ProductVersion strings in the Adapt_It.rc file in bin/win32.
+// Warning: Do NOT edit the Adapt_It.rc file using the Visual Studio 2008 IDE's Resource View
+// editor directly - doing so will recreate the Adatp_It.rc file adding Windows stuff we 
+// don't want in it and obliterating the wx stuff we do want in it.
+// Instead, CLOSE Visual Studio 2008 and edit the Adapt_It.rc file in a plain 
+// text editor such as Notepad. If Visual Studio 2008 is open during the editing of 
+// Adapt_It.rc in an external editor, the IDE will crash when it tries to reload the
+// Adapt_It.rc file after sensing that it was changed by the external program. 
+// 
 #define VERSION_MAJOR_PART 5
-#define VERSION_MINOR_PART 2
+#define VERSION_MINOR_PART 3
 #define VERSION_BUILD_PART 0
-#define PRE_RELEASE 1  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
-#define VERSION_DATE_DAY 04
-#define VERSION_DATE_MONTH 02
+#define PRE_RELEASE 0  // set to 0 (zero) for normal releases; 1 to indicate "Pre-Release" in About Dialog
+#define VERSION_DATE_DAY 14
+#define VERSION_DATE_MONTH 05
 #define VERSION_DATE_YEAR 2010
 
 #define _NEW_LAYOUT // BEW May09, if not #defined, strips are only destroyed & rebuilt, 
@@ -326,6 +336,14 @@ enum ConfigFixType
 {
     defaultPathsFix,
     customPathsFix
+};
+
+/// An enum for selecting which configuration file type in GetConfigurationFile()
+/// whether basic configuration file, or project configuration file. 
+enum ConfigFileType
+{
+    basicConfigFile = 1,
+    projectConfigFile
 };
 
 /// An enum for the indices for the top level menus
@@ -1349,6 +1367,8 @@ class CAdapt_ItApp : public wxApp
 	virtual ~CAdapt_ItApp(); // whm make all destructors virtual
     CMainFrame* GetMainFrame();
 
+	wxTimer m_timer;
+
 	bool m_bAdminMoveOrCopyIsInitializing;
 
     /// The application's m_pDocManager member is one of the main players in the
@@ -2347,6 +2367,9 @@ public:
 
 // Declaration of event handlers
 
+	void OnTimer(wxTimerEvent& WXUNUSED(event));
+	void CheckLockFileOwnership();
+
 	void OnFileNew(wxCommandEvent& event);
 
 	void OnFileRestoreKb(wxCommandEvent& WXUNUSED(event));
@@ -2395,12 +2418,15 @@ protected:
 						wxString& bookFolderName, bool bSuppressStatistics = FALSE);
 	void	FixBasicConfigPaths(enum ConfigFixType pathType, wxTextFile* pf, 
 						wxString& basePath, wxString& localPath);
+	void	FixConfigFileFonts(wxTextFile* pf); // whm added 24Feb10
 	void	GetForceAskList(CKB* pKB, KPlusCList* pKeys);
 	void	GetValue(const wxString strReadIn, wxString& strValue, wxString& name);
 	wxSize	GetExtentOfLongestSfm(wxDC* pDC);
 	bool	IsAdaptitProjectDirectory(wxString title);
 	void	MakeForeignBasicConfigFileSafe(wxString& configFName,wxString& folderPath,
 											wxString* adminConfigFNamePtr);
+	void	MakeForeignProjectConfigFileSafe(wxString& configFName,wxString& folderPath,
+											wxString* adminConfigFNamePtr); // whm added 9Mar10
 	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
 	void	RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
@@ -2544,15 +2570,14 @@ public:
 	void	WriteBasicSettingsConfiguration(wxTextFile* pf);
 	void	WriteProjectSettingsConfiguration(wxTextFile* pf);
 	bool	WriteConfigurationFile(wxString configFilename, wxString destinationFolder, 
-				int selector);
-
-	bool	GetBasicConfigFileSettings(); // whm 20Jan08 changed signature to return bool
+				ConfigFileType configType);
+	void	GetProjectConfiguration(wxString projectFolderPath); // whm moved here from the Doc
+	bool	GetBasicConfiguration(); // whm 20Jan08 changed signature to return bool
     // Note: The three methods below had _UNICODE and non Unicode equivalents in the MFC
     // version wxTextFile is Unicode enabled, so we should only need a single version of
     // these in the wxWidgets code.
 	void	GetBasicSettingsConfiguration(wxTextFile* pf);
-	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf, bool& bFaceNameFound, 
-				wxString& faceName);
+	bool	GetFontConfiguration(fontInfo& pfi, wxTextFile* pf);
 	void	GetProjectSettingsConfiguration(wxTextFile* pf);
 #ifdef _UNICODE
 	void	ConvertAndWrite(wxFontEncoding WXUNUSED(eEncoding),wxFile* pFile,
@@ -2566,7 +2591,7 @@ public:
 	void	DoInputConversion(wxString& pBuf,const char* pbyteBuff,
 				wxFontEncoding eEncoding,bool bHasBOM = FALSE); // for unicode conversions
 #endif
-	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, int selector);
+	bool	GetConfigurationFile(wxString configFilename, wxString sourceFolder, ConfigFileType configType);
 	void	GetSrcAndTgtLanguageNamesFromProjectName(wxString& project, wxString& srcName, 
 				wxString& tgtName);
 	
@@ -2672,7 +2697,7 @@ public:
 					// DealWithThePossibilityOfACustomWorkFolderLocation() has called SetDefaults()
 					// because the custom work folder path failed to find the required basic config
 					// file at the custom work folder location; we use a TRUE value to suppress the
-					// GetBasicConfigFileSettings() call in OnInit() since SetDefaults() has done
+					// GetBasicConfiguration() call in OnInit() since SetDefaults() has done
 					// the setup job for us already
 	// members for support of KB search functionality added Jan-Feb 2010 by BEW
 	wxArrayString m_arrSearches; // set of search strings for dialog's multiline wxTextCtrl

@@ -242,6 +242,9 @@ extern bool		gbPassedAppInitialization;
 extern wxString szProjectConfiguration;
 
 /// This global is defined in Adapt_It.cpp.
+extern wxString szAdminProjectConfiguration;
+
+/// This global is defined in Adapt_It.cpp.
 extern bool gbHackedDataCharWarningGiven;
 
 // support for USFM and SFM Filtering
@@ -942,7 +945,23 @@ bool CAdapt_ItDoc::OnNewDocument()
 	if (gbPassedAppInitialization && !pApp->m_curProjectPath.IsEmpty())
 	{
 		bool bOK;
-		bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,2);
+		if (pApp->m_bUseCustomWorkFolderPath && !pApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (pApp->m_bLockedCustomWorkFolderPath)
+				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = pApp->WriteConfigurationFile(szAdminProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		// below is original
+		//bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,projectConfigFile);
 	}
 
 	// Note: On initial program startup OnNewDocument() is executed from OnInit()
@@ -2887,7 +2906,23 @@ bool CAdapt_ItDoc::OnSaveModified()
 			  // since the later Get... can use defaults
 	if (!pApp->m_curProjectPath.IsEmpty())
 	{
-		bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,2);
+		if (pApp->m_bUseCustomWorkFolderPath && !pApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (pApp->m_bLockedCustomWorkFolderPath)
+				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = pApp->WriteConfigurationFile(szAdminProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		// original code below
+		//bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,projectConfigFile);
 	}
 
 	bool bIsModified = IsModified();
@@ -3365,7 +3400,7 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
             // so restore these after the call (project config file is not updated until
             // project exitted, and so the user could have changed the mode or the book
             // folder from what is in the config file)
-			GetProjectConfiguration(pApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
+			gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // ensure gbSfmOnlyAfterNewlines
 															   // is set to what it should be,
 															   // and same for gSFescapechar
 			gpApp->m_bBookMode = bSaveFlag;
@@ -3448,7 +3483,23 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
         // before saving the project config file - and this clobbered the restoration of a
         // KB from the 2nd doc file accessed
 		bool bOK;
-		bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,2);
+		if (pApp->m_bUseCustomWorkFolderPath && !pApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (pApp->m_bLockedCustomWorkFolderPath)
+				bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = pApp->WriteConfigurationFile(szAdminProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = pApp->WriteConfigurationFile(szProjectConfiguration, pApp->m_curProjectPath,projectConfigFile);
+		}
+		// original code below
+		//bOK = pApp->WriteConfigurationFile(szProjectConfiguration,pApp->m_curProjectPath,projectConfigFile);
 	}
 
 	// wx version addition:
@@ -3475,6 +3526,8 @@ bool CAdapt_ItDoc::OnOpenDocument(const wxString& filename)
 	// GUI interaction
 	if (pApp->m_bAutoExport)
 	{
+		wxLogNull logNo; // avoid spurious messages from the system
+
 		// set up output path using m_autoexport_outputpath
 		wxString docName = pApp->m_autoexport_docname;
 		docName = MakeReverse(docName);
@@ -4158,43 +4211,6 @@ void CAdapt_ItDoc::ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPLis
 		DeleteSingleSrcPhrase(pSrcPhrase);
 	}
 }
-
-///////////////////////////////////////////////////////////////////////////////
-/// \return nothing
-/// \param		sourceFolderPath -> the path/name of the project config file
-/// \remarks
-/// Called from: the Doc's OnOpenDocument(), DoUnpackDocument(), the COpenExistingProjectDlg's
-/// OnOK() and OnDblclkListboxAdaptions(), the ProjectPage's OnWizardPageChanging().
-/// Calls the App's GetConfigurationFile() function to retrieve the settings from the project 
-/// config file. If the user is holding the SHIFT key down, the function does not load
-/// settings from the project config file, but instead calls the App's 
-/// SetDefaultCaseEquivalences() function (the other defaults will have been done from the 
-/// application-level configuration file already).
-///////////////////////////////////////////////////////////////////////////////
-void CAdapt_ItDoc::GetProjectConfiguration(wxString sourceFolderPath)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-
-	// attempt to set project source, target language fonts, and nav text font from the
-	// data in the project configuration file; but if SHIFT key is still down, then bypass it
-	// (the values set as defaults when the basic config file was bypassed will remain in 
-	// effect)
-	if (!wxGetKeyState(WXK_SHIFT))
-	{
-		// shift key is not down, so load the config file keys for fonts & settings
-		// this version of the function uses configuration file, not registry
-		pApp->GetConfigurationFile(szProjectConfiguration,sourceFolderPath,2);
-	}
-	else
-	{
-		// shift key is still down, so get the default character case equivalents only
-		// for the project; the other defaults will have been done from the application-level
-		// configuration file already
-		pApp->SetDefaultCaseEquivalences();
-	}
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE to indicate to the caller all is OK. Except for a retranslation, return FALSE to 
@@ -11786,6 +11802,9 @@ int CAdapt_ItDoc::RetokenizeText(bool bChangedPunctuation,bool bChangedFiltering
 			gnFileNumber++; // get next value
 			path << gnFileNumber;
 			path << _T(".txt");
+		
+			wxLogNull logNo; // avoid spurious messages from the system
+
 			wxFile fout;
 			bool bOK;
 			bOK = fout.Open( path, wxFile::write );
@@ -14098,13 +14117,30 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 		bookInfoStr += _T("-1");
 	}
 
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// update and save the project configuration file
 	bool bOK = TRUE; // whm initialized, BEW changed to default TRUE 25Nov09
 	// BEW added flag to the following test on 25Nov09
 	if (!gpApp->m_curProjectPath.IsEmpty() && !gpApp->m_bReadOnlyAccess)
 	{
-		bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,
-											gpApp->m_curProjectPath,2);
+		if (gpApp->m_bUseCustomWorkFolderPath && !gpApp->m_customWorkFolderPath.IsEmpty())
+		{
+			// whm 10Mar10, must save using what paths are current, but when the custom
+			// location has been locked in, the filename lacks "Admin" in it, so that it
+			// becomes a "normal" project configuration file in m_curProjectPath at the 
+			// custom location.
+			if (gpApp->m_bLockedCustomWorkFolderPath)
+				bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
+			else
+				bOK = gpApp->WriteConfigurationFile(szAdminProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
+		}
+		else
+		{
+			bOK = gpApp->WriteConfigurationFile(szProjectConfiguration, gpApp->m_curProjectPath,projectConfigFile);
+		}
+		// original code below
+		//bOK = gpApp->WriteConfigurationFile(szProjectConfiguration,gpApp->m_curProjectPath,projectConfigFile);
 	}
 	// we don't expect any failure here, so an English message hard coded will do
 	if (!bOK)
@@ -14400,6 +14436,8 @@ void CAdapt_ItDoc::OnFileUnpackDoc(wxCommandEvent& WXUNUSED(event))
 		// wxHIDE_READONLY was deprecated in 2.6 - the checkbox is never shown
 		// GDLC wxOPEN weredeprecated in 2.8
 	fileDlg.Centre();
+
+	wxLogNull logNo; // avoid spurious messages from the system
 
 	// open as modal dialog
 	int returnValue = fileDlg.ShowModal();
@@ -14978,9 +15016,9 @@ a:			SetFilename(saveMFCfilename,TRUE); //m_strPathName = saveMFCfilename;
     // alternative paths which also get constructed in SetupKBPathsEtc().) The KBs have
     // already been loaded, or stubs created, so the SetupKBPathsEtc call here just has the
     // effect of getting paths set up for the xml form of KB i/o.
-	CAdapt_ItDoc* pDoc = gpApp->GetDocument();
-	wxASSERT(pDoc != NULL);
-	pDoc->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as 
+	//CAdapt_ItDoc* pDoc = gpApp->GetDocument();
+	//wxASSERT(pDoc != NULL);
+	gpApp->GetProjectConfiguration(gpApp->m_curProjectPath); // has flag side effect as 
 															// noted in comments above
 	gpApp->SetupKBPathsEtc();
 

@@ -504,9 +504,9 @@ void CProjectPage::OnWizardPageChanging(wxWizardEvent& event)
 			// Get project configuration from the config files in the project folder & set up fonts,
 			// punctuation settings, colours, and default cc table path as per those files; and set
 			// book mode on or off depending on what is in the config file, etc.
-			CAdapt_ItDoc* pDoc = pApp->GetDocument();
-			wxASSERT(pDoc);
-			pDoc->GetProjectConfiguration(pApp->m_curProjectPath);
+			//CAdapt_ItDoc* pDoc = pApp->GetDocument();
+			//wxASSERT(pDoc);
+			gpApp->GetProjectConfiguration(pApp->m_curProjectPath);
 
 			// BEW changes 19Aug05 for XML versus binary support...
 			// set up the expected KB and GlossingKB paths etc

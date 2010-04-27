@@ -20877,6 +20877,8 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
     // wxString eolStr = wxTextFile::GetEOL(); done in the App's OnInit()
 	wxASSERT(pApp->m_eolStr.Find(_T('\n')) != -1 || pApp->m_eolStr.Find(_T('\r')) != -1);
 
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	int numWords;
 	MapKeyStringToTgtUnit::iterator iter;
 	CTargetUnit* pTU = 0;

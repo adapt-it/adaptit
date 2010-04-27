@@ -81,6 +81,11 @@ KBEditSearch::KBEditSearch(wxWindow* parent) // dialog constructor
 	KBEditSearchFunc(this, TRUE, TRUE);
 	// The declaration is: NameFromwxDesignerDlgFunc( wxWindow *parent, bool call_fit, bool set_sizer );
 
+	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
+	wxASSERT(pApp != NULL);
+	bool bOK;
+	bOK = pApp->ReverseOkCancelButtonsForMac(this);
+	
 	pKBEditorDlg = (CKBEditor*)parent;
 	m_pKB = NULL;
 	m_pTUList = NULL;

@@ -1720,7 +1720,7 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	pVersionNum->SetLabel(strVersionNumber);
 
 	// Set About Dlg static texts for OS, system language and locale information
-	wxString strHostOS;
+	wxString strHostOS, strHostArchitecture;
 #if defined(__WXMSW__)
 	strHostOS = _("Microsoft Windows");
 #elif defined(__WXGTK__)
@@ -1731,9 +1731,24 @@ AboutDlg::AboutDlg(wxWindow *parent)
 	strHostOS = _("Unknown");
 #endif
 
+#if defined(__INTEL__) && !defined(__IA64__)
+	strHostArchitecture = _T("Intel 32bit");
+#endif
+#if defined(__INTEL__) && defined(__IA64__)
+	strHostArchitecture = _T("Intel 64bit");
+#elif defined(__IA64__) // doesn't detect AMD64
+	strHostArchitecture = _T("64bit");
+#endif
+#if defined(__POWERPC__)
+	strHostArchitecture = _T("PowerPC");
+#endif
+
+
 	strHostOS.Trim(FALSE);
 	strHostOS.Trim(TRUE);
 	strHostOS = _T(' ') + strHostOS;
+	if (!strHostArchitecture.IsEmpty())
+		strHostOS += _T('-') + strHostArchitecture;
 	wxStaticText* pStaticHostOS = (wxStaticText*)FindWindowById(ID_STATIC_HOST_OS);
 	wxASSERT(pStaticHostOS != NULL);
 	pStaticHostOS->SetLabel(strHostOS);
@@ -2052,6 +2067,9 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 	//wxASSERT(pMenuBar != NULL);
 	//wxMenuItem * pUseToolTips = pMenuBar->FindItem(ID_HELP_USE_TOOLTIPS);
 	//wxASSERT(pUseToolTips != NULL);
+		
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	if (gpApp->m_bUseToolTips)
 	{
 		wxToolTip::Enable(FALSE);
@@ -2080,6 +2098,8 @@ void CMainFrame::OnUseToolTips(wxCommandEvent& WXUNUSED(event))
 // BEW 26Mar10, no changes needed for support of doc version 5
 void CMainFrame::OnSetToolTipDelayTime(wxCommandEvent& WXUNUSED(event))
 {
+	wxLogNull logNo; // avoid spurious messages from the system
+
 	// we can only set the delay time if tooltips are in use
 	if (gpApp->m_bUseToolTips)
 	{
