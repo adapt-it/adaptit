@@ -1032,19 +1032,150 @@ bool CAdapt_ItDoc::OnNewDocument()
 /// CMainFrame's SyncScrollReceive() when it is necessary to save the current document before
 /// opening another document when sync scrolling is on.
 /// OnFileSave simply calls DoFileSave() and the latter sets an enum value of normal_save
+/// 
+/// BEW changed 28Apr10 A failure might be due to the Open call failing, in which case the
+/// document's file is probably unchanged, or an unknown error, in which case the
+/// document's file may have been truncated to zero length by the f.Open call done
+/// beforehand. So we need code added in order to recover the document; also we have to
+/// handle the possibility that the document may not yet have ever been saved, which
+/// changes what we need to do in the event of failure.
+/// BEW 29Apr10, added a public DoFileSave_Protected() file which returns boolean, because
+/// the DoFileSave() function was called in a number of places and it was dangerous if it
+/// failed (data would be lost), so I wrapped it with data protection code and called the
+/// new function DoFileSave_Protected(), and put that in place of the other throughout the
+/// app.
 /// BEW 16Apr10, added enum, for support of Save As... menu item as well as Save
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event)) 
 {
-	// I have done my own OnFileSave override because the MFC version, while appearing to work
-	// correctly (no exceptions thrown, correct full path, disk activity when expected, etc.)
-	// did not write a file to the destination folder. The folder shows all files, including
-	// hidden ones, but remained empty. Nor was the written file anywhere else on the disk. A
-	// shortcut to the file gets created in C:\Windows\Recent, with correct path to where the
-	// file should be, but it is not there (ie. in the Adaptations folder). So I will do my own.
-	//SaveType saveType = normal_save; // default is normal_save so don't explicitly pass it
-	DoFileSave(TRUE); // TRUE - show wait/progress dialog - don't care about return value here
+	// not interested in the returned boolean from the following call, for OnFileSave() call
+	DoFileSave_Protected(TRUE); // // TRUE means - show wait/progress dialog
 }
+
+// a smarter wrapper for DoFileSave(), to replace where that is called in various places
+bool CAdapt_ItDoc::DoFileSave_Protected(bool bShowWaitDlg)
+{
+	wxString pathToSaveFolder;
+	wxULongLong originalSize = 0;
+	wxULongLong copiedSize = 0;
+	bool bRemovedSuccessfully = TRUE;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+	bool bOutputFileExists = ::wxFileExists(gpApp->m_curOutputPath);
+	wxString prefixStr = _T("tempSave_"); // don't localize this, it's never seen
+	wxString newNameStr = prefixStr + gpApp->m_curOutputFilename;
+	wxString newFileAbsPath = pathToSaveFolder + gpApp->PathSeparator + newNameStr;
+	bool bCopiedSuccessfully = TRUE;
+	if (bOutputFileExists)
+	{
+		// make a unique renamed copy which acts as a temporary backup in case of failure
+		// in the call of DoFileSave()
+		bCopiedSuccessfully = ::wxCopyFile(gpApp->m_curOutputPath, newFileAbsPath);
+		wxASSERT(bCopiedSuccessfully);
+		wxFileName fn(gpApp->m_curOutputPath);
+		originalSize = fn.GetSize();
+		if (bCopiedSuccessfully)
+		{
+			wxFileName fnNew(newFileAbsPath);
+			copiedSize = fnNew.GetSize();
+			wxASSERT( copiedSize == originalSize);
+		}
+	}
+	// SaveType enum value (2nd param) for the following call is default:  normal_save
+	bool bSuccess = DoFileSave(bShowWaitDlg); // TRUE means - show wait/progress dialog
+	if (bSuccess)
+	{
+		if (bOutputFileExists && bCopiedSuccessfully)
+		{
+			// remove the temporary backup, the original was saved successfully
+			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+			wxASSERT(bRemovedSuccessfully);
+		}
+		return TRUE;
+	}
+	else // handle failure
+	{
+		if (bOutputFileExists)
+		{
+			if (bCopiedSuccessfully)
+			{
+                // something failed, but we have a backup to fall back on. Determine if the
+                // original remains untruncated, if so, retain it and remove the backup; if
+                // not, remove the original and rename the backup to be the original
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize == originalSize)
+					{
+						// we are in luck, the original is still good, so remove the backup
+						bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+					else
+					{
+						// the size is different, therefore the original was truncated, so
+						// restore the document file using the backup renamed
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+						bool bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
+						wxASSERT(bRenamedSuccessfully);
+					}
+				}
+				wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION);
+			}
+			else // the original was not copied
+			{
+                // with no backup copy to fall back on, we have to do the best we can;
+                // check if the original is still on disk: it may be, and untouched, or it
+                // may be, but truncated; in the former case, if its size is unchanged, the
+                // just retain it; but if the size is less, we must remove the truncated
+                // fragment and tell the user to do an immediate File / Save
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				bool bOutOfLuck = FALSE;
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize < originalSize)
+					{
+						// we are out of luck, the original is truncated
+						bOutOfLuck = TRUE;
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+				}
+				if (bOutOfLuck || !bSomethingOfThatNameExists)
+				{
+					// warn user to do a file save now while the doc is still in memory
+					wxString msg;
+					msg = msg.Format(_("Something went wrong. The adaptation document's file on disk was lost or destroyed. If the document is still visible, please click the Save command on the File menu immediately."));
+					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+				}
+			}
+		}
+		else // there was no original already saved to disk when OnFileSaveAs() was invoked
+		{
+			// either there is no original on disk still, or, there may be a truncated
+			// save, either way, we must remove anything there..
+			bool bTruncatedFragmentExists = ::wxFileExists(gpApp->m_curOutputPath);
+			if (bTruncatedFragmentExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+				wxASSERT(bRemovedSuccessfully);
+				// warn user to do a file save now while the doc is still in memory
+				wxString msg;
+				msg = msg.Format(_("Something went wrong. The adaptation document was not saved to disk. Please click the Save command on the File menu immediately, and if the error persists, try the Save As... command instead - if that does not work, you are out of luck and the open document will not be saved, so shut down and start again."));
+				wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+			}
+		}
+	}
+	return FALSE;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return nothing
@@ -1054,20 +1185,229 @@ void CAdapt_ItDoc::OnFileSave(wxCommandEvent& WXUNUSED(event))
 /// CMainFrame's SyncScrollReceive() when it is necessary to save the current document before
 /// opening another document when sync scrolling is on.
 /// OnFileSaveAs simply calls DoFileSave() and the latter sets an enum value of save_as
+/// 
+/// BEW changed 28Apr10 A failure might be due to the Open call failing, in which case the
+/// document's file is unchanged, or to the use clicking Cancel buton in the Save As
+/// dialog, in which case the document's file will have been truncated to zero length by
+/// the f.Open call done before the Save As dialog was opened. So we need code added in
+/// order to recover the document, if either was the case; also we have to handle the
+/// possibility that the document may not yet have ever been saved, which changes what we
+/// need to do in the event of failure.
 /// BEW 16Apr10, added enum, for support of Save As... menu item as well as Save
 ///////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event)) 
 {
-	// I have done my own OnFileSave override because the MFC version, while appearing to work
-	// correctly (no exceptions thrown, correct full path, disk activity when expected, etc.)
-	// did not write a file to the destination folder. The folder shows all files, including
-	// hidden ones, but remained empty. Nor was the written file anywhere else on the disk. A
-	// shortcut to the file gets created in C:\Windows\Recent, with correct path to where the
-	// file should be, but it is not there (ie. in the Adaptations folder). So I will do my own.
 	SaveType saveType = save_as;
-	DoFileSave(TRUE, saveType); // TRUE - show wait/progress dialog - don't care about return value here
+	wxString renamedFilename; renamedFilename.Empty();
+	wxString* pRenamedFilename = &renamedFilename;
+
+	wxString pathToSaveFolder;
+	wxULongLong originalSize = 0;
+	wxULongLong copiedSize = 0;
+	bool bRemovedSuccessfully = TRUE;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+	bool bOutputFileExists = ::wxFileExists(gpApp->m_curOutputPath);
+	wxString prefixStr = _T("tempSave_"); // don't localize this, it's never seen
+	wxString newNameStr = prefixStr + gpApp->m_curOutputFilename;
+	wxString newFileAbsPath = pathToSaveFolder + gpApp->PathSeparator + newNameStr;
+	bool bCopiedSuccessfully = TRUE;
+	if (bOutputFileExists)
+	{
+		// make a unique renamed copy which acts as a temporary backup in case of failure
+		// in the call of DoFileSave()
+		bCopiedSuccessfully = ::wxCopyFile(gpApp->m_curOutputPath, newFileAbsPath);
+		wxASSERT(bCopiedSuccessfully);
+		wxFileName fn(gpApp->m_curOutputPath);
+		originalSize = fn.GetSize();
+		if (bCopiedSuccessfully)
+		{
+			wxFileName fnNew(newFileAbsPath);
+			copiedSize = fnNew.GetSize();
+			wxASSERT( copiedSize == originalSize);
+		}
+	}
+	// in the following call, if pRenamedFilename returns NULL, no rename has been requested
+	bool bSuccess = DoFileSave(TRUE, saveType, pRenamedFilename); // TRUE - show wait/progress dialog
+	if (bSuccess)
+	{
+		if (bOutputFileExists && bCopiedSuccessfully)
+		{
+			// remove the temporary backup, the original was saved successfully
+			bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+			wxASSERT(bRemovedSuccessfully);
+		}
+
+		// we do the rename only provided the save was successful (there won't be a
+		// filename clash because that was checked for and prevented within DoFileSave())
+		if (pRenamedFilename != NULL)
+		{
+			// a rename is wanted, set up its path and do the rename
+			wxString newAbsPath = pathToSaveFolder + gpApp->PathSeparator + renamedFilename;
+			bool bSuccess = ::wxRenameFile(gpApp->m_curOutputPath, newAbsPath);
+			if (bSuccess)
+			{
+				// update the m_curOutputFilename accordingly, and reset the path to this
+				// doc file
+				gpApp->m_curOutputFilename = renamedFilename;
+				ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
+			}
+		}
+	}
+	else // handle failure
+	{
+		if (bOutputFileExists)
+		{
+			if (bCopiedSuccessfully)
+			{
+				// something failed (either f.Open() failed, or user Cancelled); but we
+				// have a backup to fall back on. Determine if the original remains
+				// untruncated, if so, retain it and remove the backup; if not, remove the
+				// original and rename the backup to be the original
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize == originalSize)
+					{
+						// we are in luck, the original is still good, so remove the backup
+						bRemovedSuccessfully = ::wxRemoveFile(newFileAbsPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+					else
+					{
+						// the size is different, therefore the original was truncated, so
+						// restore the document file using the backup renamed
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+						bool bRenamedSuccessfully = ::wxRenameFile(newFileAbsPath, gpApp->m_curOutputPath);
+						wxASSERT(bRenamedSuccessfully);
+					}
+				}
+				wxMessageBox(_("Warning: document save failed for some reason.\n"),_T(""), wxICON_EXCLAMATION);
+			}
+			else // the original was not copied
+			{
+				// with no backup copy to fall back on, we have to do the best we can;
+				// check if the original is still on disk: it may be, and untouched, or it
+				// may be, but truncated due to the user cancelling the dialog; in the
+				// former case, if its size is unchanged, the just retain it; but if the
+				// size is less, we must remove the truncated fragment and tell the user
+				// to do an immediate File / Save
+				bool bSomethingOfThatNameExists = ::wxFileExists(gpApp->m_curOutputPath);
+				bool bOutOfLuck = FALSE;
+				if (bSomethingOfThatNameExists)
+				{
+					wxULongLong thatSomethingsSize = 0;
+					wxFileName fn(gpApp->m_curOutputPath);
+					thatSomethingsSize = fn.GetSize();
+					if (thatSomethingsSize < originalSize)
+					{
+						// we are out of luck, the original is truncated
+						bOutOfLuck = TRUE;
+						bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+						wxASSERT(bRemovedSuccessfully);
+					}
+				}
+				if (bOutOfLuck || !bSomethingOfThatNameExists)
+				{
+					// warn user to do a file save now while the doc is still in memory
+					wxString msg;
+					msg = msg.Format(_("Something went wrong. The adaptation document's file on disk was lost or destroyed. Please click the Save command on the File menu immediately."));
+					wxMessageBox(msg,_("Immediate Save Is Recommended"),wxICON_WARNING);
+				}
+			}
+		}
+		else // there was no original already saved to disk when OnFileSaveAs() was invoked
+		{
+            // either there is no original on disk still, or, there is a truncated save -
+            // which happens if the user cancelled from the Save As dialog, because a
+            // little of the document file's xml was created, and the file specifier then
+            // closed prematurely by the cancel
+			bool bTruncatedFragmentExists = ::wxFileExists(gpApp->m_curOutputPath);
+			if (bTruncatedFragmentExists)
+			{
+				bRemovedSuccessfully = ::wxRemoveFile(gpApp->m_curOutputPath);
+				wxASSERT(bRemovedSuccessfully);
+			}
+		}
+
+		// tell the user that if a filename rename was requested, it could not be done
+		if (pRenamedFilename != NULL)
+		{
+			wxString msg;
+			msg = msg.Format(_("Because the Save As was not successful, the file rename you requested could not be done."));
+			wxMessageBox(msg,_("Rename Not Done"),wxICON_WARNING);
+		}
+	}
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \return nothing
+/// \param  curFilename       -> the current output filename (app's m_curOutputFilename member)
+/// \param  curPath           <- the full path to current doc folder for saves, including the
+///                               filename (app's m_curOutputPath)
+/// \param  pathForSaveFolder <-  absolute path to the folder in which the doc will be saved
+///                               (returned as a potential convenience to the caller,
+///                               which may want to use this for some special purpose)
+/// \remarks
+/// Called from: OnFileSave(), OnFileSaveAs(), DoFileSave()
+/// Takes the current save folder and the current doc filename, and rebuilds the output
+/// full absolute path to the document, and ensuring the document filename has .xml
+/// extension (version 4.0.0 and higher of Adapt It no longer save *.adt binary files)
+/// BEW created 28Apr10, because this encapsulation of checks is need in more than one
+/// place. Strictly speaking, the function is unneeded because now that we only save in
+/// xml, nothing should ever change the extention to anything else - nevertheless, we'll
+/// retain it
+///////////////////////////////////////////////////////////////////////////////
+void CAdapt_ItDoc::ValidateFilenameAndPath(wxString& curFilename, wxString& curPath, 
+										   wxString& pathForSaveFolder)
+{
+    // This is a legacy comment, from pre-app_version 4 days. m_curOutputFilename was set
+    // when user created the doc; or it an existing doc was read back in, then code above
+    // will have made the extension conform to the m_bSaveAsXML flag's value if it had the
+    // other extension (ie. binary when xml is wanted, or xml when binary is wanted)
+	
+    // This also is a legacy comment. Ensure the extension is what it should be (what was
+    // opened may be a file of different type than what is to be output now, and if so then
+    // the extension must be brought into line with what the value of the m_bSaveAsXML flag
+    // happens to be, that is, .xml if that flag is TRUE, or .adt if it is FALSE)
+	wxString thisFilename = curFilename;
+	if (gpApp->m_bSaveAsXML) // always true in the wx version
+	{
+		// we want an .xml extension - make it so if it happens to be .adt
+		thisFilename = MakeReverse(thisFilename);
+		wxString extn = thisFilename.Left(4);
+		extn = MakeReverse(extn);
+		if (extn != _T(".xml"))
+		{
+			thisFilename = thisFilename.Mid(4); // remove the .adt extension or whatever
+			thisFilename = MakeReverse(thisFilename);
+			thisFilename += _T(".xml"); // it's now *.xml
+		}
+		else
+			thisFilename = MakeReverse(thisFilename); // it's already *.xml
+	}
+
+	curFilename = thisFilename;	// m_curOutputFilename now complies with the 
+								// m_bSaveAsXML flag's value
+
+	// make sure the backup filenames comply too (BEW added 23June07)
+	MakeOutputBackupFilenames(curFilename,gpApp->m_bSaveAsXML);
+
+	// the m_curOutputPath member can be redone now that m_curOutputFilename is what is wanted
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	{
+		pathForSaveFolder = gpApp->m_bibleBooksFolderPath;
+	}
+	else
+	{
+		pathForSaveFolder = gpApp->m_curAdaptionsPath;
+	}
+
+	curPath = pathForSaveFolder + gpApp->PathSeparator + curFilename;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return nothing
@@ -1353,31 +1693,44 @@ void CAdapt_ItDoc::OnUpdateFileClose(wxUpdateUIEvent& event)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if the document is successfully backed up, otherwise FALSE.
-/// \param	pApp	-> currently unused
+/// \param	pApp	         -> currently unused
+/// \param  pRenamedFilename -> points to NULL (the default value), but if a valid
+///                             different filename was supplied by the user in the 
+///                             Save As dialog, then it points to the wxString which
+///                             holds that name (the caller will have verified 
+///                             beforehand that it is a valid filename))
 /// \remarks
 /// Called by the Doc's DoFileSave() function.
 /// BEW added 23June07; do no backup if gbDoingSplitOrJoin is TRUE;
 /// these operations could produce a plethora of backup docs, especially for a
 /// single-chapters document split, so we just won't permit splitting, or joining
 /// (except for the resulting joined file), or moving to generate new backups.
+/// If rename is requested, we hold off on it to the very end because it will be the case
+/// that any pre-existing backup will have the old filename, so we do the backup with the
+/// old name, and only after that do we handle the rename. (We don't support renames nor
+/// backing up when doing Split Document or Join Document either.)
+/// BEW changed 29Apr10, to allow a rename option from user's use of the rename
+/// functionality within the Save As dialog
 ///////////////////////////////////////////////////////////////////////////////
-bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
+bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename)
 {
 	if (gbDoingSplitOrJoin)
 		return TRUE;
 
 	wxFile f; // create a CFile instance with default constructor
-	wxString altFilename;
 
 	// make the working directory the "Adaptations" one; or a bible book folder 
 	// if in book mode
+	wxString basePath;
 	bool bOK;
 	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
 	{
+		basePath = gpApp->m_bibleBooksFolderPath;
 		bOK = ::wxSetWorkingDirectory(gpApp->m_bibleBooksFolderPath);
 	}
 	else
 	{
+		basePath = gpApp->m_curAdaptionsPath;
 		bOK = ::wxSetWorkingDirectory(gpApp->m_curAdaptionsPath);
 	}
 	if (!bOK)
@@ -1396,30 +1749,36 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 		return FALSE;
 	}
 
-	// BEW changed 15Aug05 & changed again on 23Jun07
-	// m_curOutputBackupFilename and m_altOutputBackupFilename, are both defined before
-	// BackupDocument() is called -- but they can not be in compliance with the
-	// m_bSaveAsXML value, so we ensure it now. (DoFileSave() has already made this call,
-	// so it is redundant for saves to have it here, but because there may be other
-	// control paths to the BackupDocument() function, the safest thing to do is to
-	// ensure compliance immediately before the filename strings need to be used
+    // make sure the backup filename complies too (BEW added 23June07) -- the function sets
+    // m_curOutputBackupFilename based on the passed in filename string, and the current
+    // m_bSaveAsXML value
 
-	// make sure the backup filenames comply too (BEW added 23June07) -- the function
-	// sets m_curOutputBackupFilename and m_altOutputBackupFilename based on the
-	// passed in filename string, and the current m_bSaveAsXML value; but we cannot
-	// be certain a backup with an alternative type's name will not have been already
-	// saved, so we save the current values of these filenames too so we can check for
-	// that possibility too -- that is, any backup file with the same filetitle has to
-	// go, and the BackupDocument() can be certain to write only a fully compliant type
-	wxString strSavePrimary = gpApp->m_curOutputBackupFilename;
-	wxString strSaveAlternate = gpApp->m_altOutputBackupFilename;
-	MakeOutputBackupFilenames(gpApp->m_curOutputFilename,gpApp->m_bSaveAsXML);
+    // BEW changed 29Apr10, MakeOutputBackupFilenames() will reset
+    // m_curOutputBackupFilename and if there is to be a filename rename done below, we
+	// would lose the old value of m_curOutputBackupFilename; so we store the latter so
+	// that we can be sure to remove the old backup file if it exists on disk (it won't
+	// exist if the use has only just turned on document backups), and then we'll use
+	// m_curOutputBackupFilename's contents, whether renamed or not, to create the wanted
+	// backup file
+	bool bOldBackupExists = FALSE;
+	wxString saveOldFilename = gpApp->m_curOutputBackupFilename;
+	if (pRenamedFilename == NULL)
+	{
+		// no rename is requested, so go ahead with the legacy call
+		MakeOutputBackupFilenames(gpApp->m_curOutputFilename, gpApp->m_bSaveAsXML);
+	}
+	else
+	{
+		// a rename is requested, so the first param should be the new filename
+		MakeOutputBackupFilenames(*pRenamedFilename, gpApp->m_bSaveAsXML);
+	}
 
-	// now we know all the possibilities, so remove any which have the file title
-	wxString aFilename = strSavePrimary;
+	// remove the old backup
+	wxString aFilename = saveOldFilename;
 	if (wxFileExists(aFilename))
 	{
 		// this backed up document file is on the disk, so delete it
+		bOldBackupExists = TRUE;
 		if (!::wxRemoveFile(aFilename))
 		{
 			wxString s;
@@ -1430,58 +1789,9 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 			// do nothing else, let the app continue
 		}
 	}
-	else
-	{
-		aFilename = strSaveAlternate;
-		if (wxFileExists(aFilename))
-		{
-			// this backed up document file (of alternate name) is on the disk, so delete it
-			if (!::wxRemoveFile(aFilename))
-			{
-			wxString s;
-				s = s.Format(_(
-	"Could not remove the backed up document file: %s; the application will continue"),
-				aFilename.c_str());
-				wxMessageBox(s, _T(""), wxICON_EXCLAMATION);
-				// do nothing else, let the app continue
-			}
-		}
-	}
-	aFilename = gpApp->m_curOutputBackupFilename; // try again, with the compliant 
-            // backup filenames (if we have already removed a backup file in the above
-            // block, this will do nothing
-	if (wxFileExists(aFilename))
-	{
-		// this backed up document file is on the disk, so delete it
-		if (!::wxRemoveFile(aFilename))
-		{
-			wxString s;
-			s = s.Format(_(
-	"Could not remove the backed up document file: %s; the application will continue"),
-			aFilename.c_str());
-			wxMessageBox(s, _T(""), wxICON_EXCLAMATION);
-			// do nothing else, let the app continue
-		}
-	}
-	else
-	{
-		aFilename = gpApp->m_curOutputBackupFilename;
-		if (wxFileExists(aFilename))
-		{
-			// this backed up document file (of alternate name) is on the disk,
-			// so delete it
-			if (!::wxRemoveFile(aFilename))
-			{
-			wxString s;
-				s = s.Format(_(
-	"Could not remove the backed up document file: %s; the application will continue"),
-				aFilename.c_str());
-				wxMessageBox(s, _T(""), wxICON_EXCLAMATION);
-				// do nothing else, let the app continue
-			}
-		}
-	}
-	// the new backup will have the name which is in m_curOutputBackupFilename
+
+	// the new backup will have the name which is now in m_curOutputBackupFilename,
+	// whether based on the original filename, or a user-renamed filename
 	int len = gpApp->m_curOutputBackupFilename.Length();
 	if (gpApp->m_curOutputBackupFilename.IsEmpty() || len <= 4)
 	{
@@ -1503,6 +1813,10 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 		"Could not open a file stream for backup, in BackupDocument(), for file %s"),
 		gpApp->m_curOutputBackupFilename.c_str());
 		wxMessageBox(s,_T(""),wxICON_EXCLAMATION);
+		// if f failed to Open(), we've just lost any earlier backup file we already had;
+		// well, we could build some protection code but we'll not bother as failure to
+		// Open() is unlikely, and it's only a backup which gets lost - presumably the doc
+		// file itself is still good
 		return FALSE; 
 	}
 
@@ -1537,14 +1851,40 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 
 		// add the list of sourcephrases
 		SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
-		while (pos != NULL)
-		{
-			pSrcPhrase = (CSourcePhrase*)pos->GetData();
-			pos = pos->GetNext();
-			aStr = pSrcPhrase->MakeXML(1);
-			DoWrite(f,aStr);
-		}
 
+		if (m_bLegacyDocVersionForSaveAs)
+		{
+			// user chose a legacy xml doc build, and so far there is only one such
+			// choice, which is docVersion == 4
+			wxString endMarkersStr; endMarkersStr.Empty();
+			while (pos != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)pos->GetData();
+                // get a deep copy, so that we can change the data to what is compatible
+                // with docc version 4 without corrupting the pSrcPhrase which remains in
+                // doc version 5
+				CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+				pDeepCopy->DeepCopy();
+				
+				// see comments in DoFileSave()
+				FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr);
+
+				pos = pos->GetNext();
+				aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
+				DeleteSingleSrcPhrase(pDeepCopy,FALSE); // FALSE means "don't try delete a partner pile"
+				DoWrite(f,aStr);
+			}
+		}
+		else // use chose a normal docVersion 5 xml build
+		{
+			while (pos != NULL)
+			{
+				pSrcPhrase = (CSourcePhrase*)pos->GetData();
+				pos = pos->GetNext();
+				aStr = pSrcPhrase->MakeXML(1);
+				DoWrite(f,aStr);
+			}
+		}
 		// doc closing tag
 		aStr = xml_adaptitdoc;
 		aStr = openBraceSlash + aStr; //"</" + aStr;
@@ -1554,11 +1894,17 @@ bool CAdapt_ItDoc::BackupDocument(CAdapt_ItApp* WXUNUSED(pApp))
 		// close the file
 		f.Close();
 		f.Flush();
-	}	
+	}
+
 	if (bFailed)
 		return FALSE;
 	else
 		return TRUE;
+}
+
+int CAdapt_ItDoc::GetCurrentDocVersion()
+{
+	return m_docVersionCurrent;
 }
 
 void CAdapt_ItDoc::RestoreCurrentDocVersion()
@@ -1578,11 +1924,6 @@ void CAdapt_ItDoc::SetDocVersion(int index)
 		m_docVersionCurrent = (int)DOCVERSION4;  // #defined as 4 in AdaptitConstant.h
 		break;
 	}
-}
-
-int CAdapt_ItDoc::GetCurrentDocVersion()
-{
-	return m_docVersionCurrent;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2161,7 +2502,15 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 /// \return TRUE if file was successfully saved; FALSE otherwise ( the return value
 ///         may not be used by some functions which call this one, such as OnFileSave()
 ///         or OnFileSaveAs() )
-/// \param	bShowWaitDlg	-> if TRUE the wait/progress dialog is shown, otherwise it is not shown
+/// \param	bShowWaitDlg	-> if TRUE the wait/progress dialog is shown, otherwise it 
+///                            is not shown
+/// \param  type            -> an enum value, either normal_save or, save_as, depending
+///                            whether the user chose Save or Save As... command, respectively
+/// \param  pRenamedFilename -> pointer to a string which is the new filename (it may 
+///                             have an attached extension which our code will remove 
+///                             and replace with .xml), if the user requested a rename,
+///                             but will be (default) NULL if no renamed filename was
+///                             supplied, or if the user chose Save command.
 /// \remarks
 /// Called from: the App's DoAutoSaveDoc(), the Doc's OnFileSave() and OnFileSaveAs(),
 /// OnSaveModified() and OnFilePackDoc(), the View's OnEditConsistencyCheck() and
@@ -2176,6 +2525,605 @@ wxString CAdapt_ItDoc::SetupBufferForOutput(wxString* pCString)
 /// remote user would almost certainly lose some of his edits
 /// BEW 16Apr10, added SaveType param, for support of Save As... menu item
 ///////////////////////////////////////////////////////////////////////////////
+bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* pRenamedFilename)
+{
+	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
+	// save is a normal_save, but if a Save As... was asked for, the user may be about to
+	// choose a legacy doc version number for the save, in which case the call of the
+	// wxFileDialog below may result in a different value being set by the code further
+	// below 
+	RestoreCurrentDocVersion();  // assume the default
+	m_bLegacyDocVersionForSaveAs = FALSE; // initialize private member
+	m_bDocRenameRequestedForSaveAs = FALSE; // initialize private member
+	bool bDummySrcPhraseAdded = FALSE;
+	SPList::Node* posLast = NULL;
+
+	// prepare for progress dialog
+	int counter;
+	counter = 0;
+	int nTotal = 0;
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxString msgDisplayed;
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
+
+	// refactored 9Mar09
+	wxFile f; // create a CFile instance with default constructor
+	CAdapt_ItApp* pApp = &wxGetApp();
+	wxASSERT(pApp != NULL);
+
+	if (pApp->m_bReadOnlyAccess)
+	{
+		return TRUE; // let the caller think all is well, even though the save is suppressed
+	}
+
+    CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
+	
+	// make the working directory the "Adaptations" one; or the current Bible book folder
+	// if the m_bBookMode flag is TRUE
+
+	// There are at least three ways within wxWidgets to change the current
+	// working directory:
+	// (1) Use ChangePathTo() method of the wxFileSystem class,
+	// (2) Use the static SetCwd() method of the wxFileName class,
+	// (3) Use the global namespace method ::wxSetWorkingDirectory()
+	// We'll regularly use ::wxSetWorkingDirectory()
+	bool bOK;
+	wxString pathToSaveFolder; // use this with Save As... to prevent a change of working directory
+	if (pApp->m_bBookMode && !pApp->m_bDisableBookMode)
+	{
+		// save to the folder specified by app's member  m_bibleBooksFolderPath
+		bOK = ::wxSetWorkingDirectory(pApp->m_bibleBooksFolderPath);
+		pathToSaveFolder = pApp->m_bibleBooksFolderPath;
+	}
+	else
+	{
+		// do legacy save, to the Adaptations folder
+		bOK = ::wxSetWorkingDirectory(pApp->m_curAdaptionsPath);
+		pathToSaveFolder = pApp->m_curAdaptionsPath;
+	}
+	if (!bOK)
+	{
+        // BEW changed 23Apr10, I've never know the working directory set call to fail if a
+        // valid path is supplied, so this would be an extraordinary situation - to proceed
+        // may or may not result in a valid save, but we risk a crash, so we should play
+        // save and abort the save attempt. But the message should not be localizable as it
+        // is almost certain that it will never be seen.
+		wxMessageBox(_T(
+		"Failed to set the current working directory. The save operation was not attempted."),
+		_T(""), wxICON_EXCLAMATION);
+		m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+		m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+		return FALSE;
+	}
+
+
+    // if the phrase box is visible and has the focus, then its contents will have been
+    // removed from the KB, so we must restore them to the KB, then after the save is done,
+    // remove them again; but only provided the pApp->m_targetBox's window exists
+    // (otherwise GetStyle call will assert)
+	bool bNoStore = FALSE;
+	bOK = FALSE;
+
+	// In code below simply calling if (m_targetBox) or if (m_targetBox != NULL)
+	// should be a sufficient test. 
+	if (pApp->m_pTargetBox != NULL)
+	{
+		if (pApp->m_pTargetBox->IsShown())// not focused on app closure
+		{
+			if (!gbIsGlossing)
+			{
+				pView->MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
+			}
+			gbInhibitLine4StrCall = TRUE;
+			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			gbInhibitLine4StrCall = FALSE;
+			if (!bOK)
+			{
+				// something is wrong if the store did not work, but we can tolerate the error 
+				// & continue
+				// IDS_KB_STORE_FAIL
+				wxMessageBox(_(
+"Warning: the word or phrase was not stored in the knowledge base. This error is not destructive and can be ignored."),
+				_T(""),wxICON_EXCLAMATION);
+				bNoStore = TRUE;
+			}
+			else
+			{
+				if (gbIsGlossing)
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = TRUE;
+				else
+					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = TRUE;
+			}
+		}
+	}
+
+	// get the path correct, including correct filename extension (.xml) and the backup
+    // doc filenames too; the m_curOutputPath returns is the full path, that is, it ends
+    // with the contents of the returned m_curOutputFilename value built in; the third
+    // param may be useful in some contexts (see OnFileSave() and OnFileSaveAs()), but not
+    // here
+	wxString unwantedPathToSaveFolder;
+	ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath,
+							unwantedPathToSaveFolder); // we don't use 3rd param here
+	if (!f.Open(gpApp->m_curOutputFilename,wxFile::write))
+	{
+		return FALSE; // if we get here, we'll miss unstoring from the KB, but its not likely
+					  // to happen, so we'll not worry about it - it wouldn't matter much anyway
+	}
+
+	CSourcePhrase* pSrcPhrase;
+	CBString aStr;
+	CBString openBraceSlash = "</"; // to avoid "warning: deprecated conversion from string constant to 'char*'"
+
+	// prologue (Changed BEW 02July07 at Bob Eaton's request)
+	gpApp->GetEncodingStringForXmlFiles(aStr);
+	DoWrite(f,aStr);
+
+	// add the comment with the warning about not opening the XML file in MS WORD 
+	// 'coz is corrupts it - presumably because there is no XSLT file defined for it
+	// as well. When the file is then (if saved in WORD) loaded back into Adapt It,
+	// the latter goes into an infinite loop when the file is being parsed in.
+	aStr = MakeMSWORDWarning(); // the warning ends with \r\n so we don't need to add them here
+
+	// doc opening tag
+	aStr += "<";
+	aStr += xml_adaptitdoc;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
+
+	// in case file rename is wanted... from the Save As dialog
+	wxString theNewFilename = _T("");
+	bool bFileIsRenamed = FALSE;
+
+	// if Save As... was chosen, its dialog should be shown here because the xml from this
+	// point on needs to know which docVersion number to use
+	if (type == save_as)
+	{
+		// get a file dialog (note: the user may ask for a save done with a legacy doc
+		// version number in this dialog)
+		wxString defaultDir = pathToSaveFolder; // set above
+		wxString filter;
+		filter = _("New XML format, for 5.3.0 and later (default)|*.xml|Legacy XML format, for earlier than 5.3.0 |*.xml||"); 
+		wxString filename = gpApp->m_curOutputFilename;
+
+retry:	bFileIsRenamed = FALSE;
+		wxFileDialog fileDlg(
+			(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
+			_("Save As"),
+			defaultDir,	// an empty string would cause it to use the current working directory
+			filename,	// the current document's filename
+			filter, // the SaveType option - currently there are two, default is doc version 4, the other is doc version 4
+			wxFD_SAVE ); // don't want wxFD_OVERWRITE_PROMPT as part of the style param
+						 // because if user changes filename, we'll save with the new
+						 // name and after verifying the file is on disk and okay, we'll
+						 // silently remove the old version, so that there is only one
+						 // file with the document's data after a save of any kind
+		fileDlg.Centre();
+
+		// make the dialog visible
+		if (fileDlg.ShowModal() != wxID_OK)
+		{
+			// user cancelled, while this is not strictly a failure we return FALSE
+			// because the original will have been truncated, and so the caller must
+			// restore it
+			RestoreCurrentDocVersion(); // ensure a subsequent save uses latest doc version number
+			m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+			m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+			f.Close();
+			return FALSE; 
+		}
+
+		// check that the user did not change the folder's path, the user must not be able
+		// to do this in Adapt It, the location for saving documents is fixed and the
+		// pathToSaveFolder has been set to whatever it is for this session
+		wxFileName fn(fileDlg.GetPath());
+		wxString usersChosenFolderPath = fn.GetPath();
+		if (pathToSaveFolder != usersChosenFolderPath)
+		{
+			// warn user to try again
+			wxString msg;
+			msg = msg.Format(_("You must not use the Save As... dialog to change where Adapt It stores its document files. You can only rename the file, or make a different 'Save as type' choice, or both."));
+			wxMessageBox(msg,_("Folder Change Is Not Allowed"),wxICON_WARNING);
+			goto retry;
+		}
+
+        // Determine if a file rename is wanted and ensure there is no name clash; for a
+        // clash, reenter the dialog and start afresh after warning the user, if no clash,
+        // set a boolean because we will do the rename **AFTER** document backup (which may
+        // or may not be wanted), at the end of the calling function (renames are only
+        // possible from a call of the OnFileSaveAs() function. (And document backup will
+        // also do the needed backup file renaming at the end of the BackupDocument()
+        // function -- fortunately, BackupDocument() uses an independent
+        // m_curOutputBackupFilename (an app member currently, but that may change soon so
+        // as to be on the doc class) and so the backup document file and its path updating
+        // can be done completely within BackupDocument() without affecting the delay of
+        // renaming the document until control returns to OnFileSaveAs(); and we'll leave
+        // OnFileSaveAs to do the needed path updates for the renamed doc file.)
+		theNewFilename = fileDlg.GetFilename();
+		if (theNewFilename != filename)
+		{
+			// check for illegal characters in the user's typed new filename (this code
+			// taken from OutputFilenameDlg::OnOK() and tweaked a bit)
+			wxString fn = theNewFilename;
+			wxString illegals = wxFileName::GetForbiddenChars(); //_T(":?*\"\\/|<>");
+			wxString scanned = SpanExcluding(fn, illegals);
+			if (scanned != fn)
+			{
+				// there is at least one illegal character,; beep and show the illegals to the
+				// user and then re-enter the dialog to start over from scratch; illegals
+				// are characters such as:  :?*\"\|/<>
+				::wxBell();
+				wxString message;
+				message = message.Format(
+_("Filenames cannot include these characters: %s Please type a valid filename using none of those characters."),illegals.c_str());
+				wxMessageBox(message, _("Bad Characters In Filename"), wxICON_INFORMATION);
+				theNewFilename.Empty();
+				goto retry;
+			}
+
+			// check for a name conflict
+			if (FilenameClash(theNewFilename))
+			{
+				wxString msg;
+				msg = msg.Format(_("The new filename you have typed conflicts with an existing filename. You cannot use that name, please type another."));
+				wxMessageBox(msg,_("Conflicting Filename"),wxICON_WARNING);
+				theNewFilename.Empty();
+				goto retry;
+			}
+			else
+			{
+				bFileIsRenamed = TRUE; // theNewFilename has the renamed filename string
+			}
+		}
+		if (bFileIsRenamed)
+		{
+			if (theNewFilename.IsEmpty())
+			{
+				// can't use an empty string as a filename, so stick with the current one
+				pRenamedFilename = NULL;
+			}
+			else
+			{
+				// we've a string to return to caller for it to set up the new filename;
+				// but first make sure we have an .xml extension on the new filename
+				wxString thisFilename = theNewFilename;
+				thisFilename = MakeReverse(thisFilename);
+				wxString extn = thisFilename.Left(4);
+				extn = MakeReverse(extn);
+				if (extn.GetChar(0) == _T('.'))
+				{
+					// we can assume it is an extension because it begins with a period
+					if (extn != _T(".xml"))
+					{
+						thisFilename = thisFilename.Mid(4); // remove the .adt extension or whatever
+						thisFilename = MakeReverse(thisFilename);
+						thisFilename += _T(".xml"); // it's now *.xml
+					}
+					else
+					{
+						thisFilename = MakeReverse(thisFilename); // it's already *.xml
+					}
+					*pRenamedFilename = thisFilename;
+				}
+				else // extn doesn't begin with a period
+				{
+					// assume the user didn't add and extension and that what we cut off
+					// was part of his filetitle, so add .xml to what he typed
+					theNewFilename += _T(".xml");
+					*pRenamedFilename = theNewFilename;
+				}
+			}
+		}
+		else
+		{
+			pRenamedFilename = NULL; 
+		}
+		// delay any requested doc file rename to the end of the calling function...
+		
+        // get the docVersion number the user wants used for the save, an index value of 0
+        // always uses the VERSION_NUMBER as currently set, but index values 1 or higher
+        // select a legacy docVersion number (which gives different XML structure)
+        // (currently the only other index value supported is 1, which maps to doc version
+        // 4) Don't permit the possibility of a File Type change until the tests above
+        // leading to reentrancy have been passed successfully
+		int filterIndex = fileDlg.GetFilterIndex();
+		SetDocVersion(filterIndex);
+
+		// Execution control now takes one of two paths: if the user chose filterIndex ==
+		// 0 item, which is VERSION_NUMBER's docVersion (currently == 5), then the code
+		// for a norm Save is to be executed (except that in the Save As.. dialog he may
+		// have also requested a document rename, in which case a block at the end of this
+		// function will do that as well, as well as for when he makes the docVersion 4
+		// choice). But if he chosee filterIndex == 1 item, this is for docVersion set to
+		// DOCVERSION4 (always == 4), in which case extra work has to be done - deep
+		// copies of CSourcePhrase need to be created, and passed to a conversion function
+		// FromDocVersion5ToDocVersion4() and the XML built from the converted deep copy
+		// (to prevent corrupting the internal data structures which are docVersion5
+		// compliant)
+		m_bLegacyDocVersionForSaveAs = m_docVersionCurrent != (int)VERSION_NUMBER;
+		
+		if (m_bLegacyDocVersionForSaveAs)
+		{
+			// Saving in doc version 4 may require the addition of a doc-final dummy
+			// CSourcePhrase instance to carry moved endmarkers. We'll add such temporarily,
+			// but only when needed, and remove it when done. It's needed if the very last
+			// CSourcePhrase instance has a non-empty m_endMarkers member.
+			posLast = gpApp->m_pSourcePhrases->GetLast();
+			CSourcePhrase* pLastSrcPhrase = posLast->GetData();
+			wxASSERT(pLastSrcPhrase != NULL);
+			if (!pLastSrcPhrase->GetEndMarkers().IsEmpty())
+			{ 
+				// we need a dummy one at the end
+				bDummySrcPhraseAdded = TRUE;
+				int aCount = gpApp->m_pSourcePhrases->GetCount();
+				CSourcePhrase* pDummyForLast = new CSourcePhrase;
+				gpApp->m_pSourcePhrases->Append(pDummyForLast);
+				pDummyForLast->m_nSequNumber = aCount;
+			}
+		}
+	} // end of TRUE block for test: if (type == save_as)
+
+	// place the <Settings> element at the start of the doc (this has to know what the
+	// user chose for the SaveType, so this call has to be made after the
+	// SetDocVersion() call above - as that call sets the doc's save state which
+	// remains in force until changed, or restored by a RestoreCurrentDocVersion() call
+	aStr = ConstructSettingsInfoAsXML(1); // internally sets the docVersion attribute
+							// to whatever is the current value of m_docVersionCurrent
+	DoWrite(f,aStr);
+
+	// setup the progress dialog
+	nTotal = gpApp->m_pSourcePhrases->GetCount();
+	msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
+	if (bShowWaitDlg)
+	{
+#ifdef __WXMSW__
+		// whm note 27May07: Saving long documents takes some noticeable time, so I'm adding a
+		// progress dialog here (not done in the MFC version)
+		//wxProgressDialog progDlg(_("Saving File"),
+		pProgDlg = new wxProgressDialog(_("Saving File"),
+						msgDisplayed,
+						nTotal,    // range
+						gpApp->GetMainFrame(),   // parent
+						//wxPD_CAN_ABORT |
+						//wxPD_CAN_SKIP |
+						wxPD_APP_MODAL |
+						// wxPD_AUTO_HIDE | -- try this as well
+						wxPD_ELAPSED_TIME |
+						wxPD_ESTIMATED_TIME |
+						wxPD_REMAINING_TIME
+						| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+						);
+#else
+		// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
+		// notification on wxGTK and wxMAC
+		// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
+		CWaitDlg waitDlg(gpApp->GetMainFrame());
+		// indicate we want the reading file wait message
+		waitDlg.m_nWaitMsgNum = 4;	// 4 "Please wait while Adapt It Saves the File..."
+		waitDlg.Centre();
+		waitDlg.Show(TRUE);
+		waitDlg.Update();
+		// the wait dialog is automatically destroyed when it goes out of scope below.
+#endif
+	}
+
+	// process through the list of CSourcePhrase instances, building an xml element from
+	// each
+	SPList::Node* pos = gpApp->m_pSourcePhrases->GetFirst();
+
+	// Branch and loop according to which doc version number is wanted. For a File / Save
+	// it is VERSION_NUMBER's docVersion, also that is true for a Save As... in which the
+	// top item (the default) was chosen as the filterIndex value of 0; but for a
+	// filterIndex value of 1, the choice was for a legacy save (only DOCVERSION4 is
+	// supported so far), and in this latter case, and only in this latter case, does
+	// m_bLegacyDocVersionForSaveAs have a value of TRUE
+	if (m_bLegacyDocVersionForSaveAs)
+	{
+		// user chose a legacy xml doc build, and so far there is only one such
+		// choice, which is docVersion == 4
+		wxString endMarkersStr; endMarkersStr.Empty();
+		while (pos != NULL)
+		{
+			if (bShowWaitDlg)
+			{
+#ifdef __WXMSW__
+				counter++;
+				if (counter % 1000 == 0) 
+				{
+					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
+					pProgDlg->Update(counter,msgDisplayed);
+				}
+#endif
+			}
+			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			// get a deep copy, so that we can change the data to what is compatible with
+			// docc version 4 without corrupting the pSrcPhrase which remains in doc
+			// version 5
+			CSourcePhrase* pDeepCopy = new CSourcePhrase(*pSrcPhrase);
+			pDeepCopy->DeepCopy();
+			
+			// do the conversion from docVersion 5 to docVersion 4 (if endMarkersStr is
+			// passed in non-empty, the endmarkers are inserted internally at the start of
+			// pDeepCopy's m_markers member (and if pDeepCopy is a merger, they are also
+			// inserted in the first instance of pDeepCopy->m_pSavedWords's m_markers
+			// member too); and before returning it must check for endmarkers stored on
+			// pDeepCopy (whether a merger or not makes no difference in this case) and
+			// reset endMarkersStr to whatever endmarker(s) are found there - so that the
+			// next iteration of the caller's loop can place them on the next pDeepCopy
+			// passed in. (FromDocVersion5ToDocVersion4() leverages the fact that the
+			// legacy code for docVersion 4 xml construction knows nothing about the new
+			// members m_endMarkers, m_freeTrans, etc - so as long as pDeepCopy's
+			// m_markers member is reset correctly, and m_endMarkers's content is returned
+			// to the caller for placement on the next iteration, the legacy xml code will
+			// build correct docVersion 4 xml from the docVersion 5 CSourcePhrase instances)
+			FromDocVersion5ToDocVersion4(pDeepCopy, &endMarkersStr);
+
+			pos = pos->GetNext();
+			aStr = pDeepCopy->MakeXML(1); // 1 = indent the element lines with a single tab
+			DeleteSingleSrcPhrase(pDeepCopy,FALSE); // FALSE means "don't try delete a partner pile"
+			DoWrite(f,aStr);
+		}
+	}
+	else // use chose a normal docVersion 5 xml build
+	{
+		// this is identical to what the File / Save choice does, for building the
+		// doc's XML, for VERSION_NUMBER (currently == 5) for docVersion
+		while (pos != NULL)
+		{
+			if (bShowWaitDlg)
+			{
+#ifdef __WXMSW__
+				counter++;
+				if (counter % 1000 == 0) 
+				{
+					msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),counter,nTotal);
+					pProgDlg->Update(counter,msgDisplayed);
+				}
+#endif
+			}
+			pSrcPhrase = (CSourcePhrase*)pos->GetData();
+			pos = pos->GetNext();
+			aStr = pSrcPhrase->MakeXML(1); // 1 = indent the element lines with a single tab
+			DoWrite(f,aStr);
+		}
+	}
+
+	// doc closing tag
+	aStr = xml_adaptitdoc;
+	aStr = openBraceSlash + aStr; //"</" + aStr;
+	aStr += ">\r\n"; // eol chars OK for cross-platform???
+	DoWrite(f,aStr);
+
+	// close the file
+	f.Flush();
+	f.Close();
+
+	// remove the dummy that was appended, if we did append one in the code above
+	if (type == save_as && m_bLegacyDocVersionForSaveAs)
+	{	
+		if (bDummySrcPhraseAdded)
+		{
+			posLast = gpApp->m_pSourcePhrases->GetLast();
+			CSourcePhrase* pDummyWhichIsLast = posLast->GetData();
+			wxASSERT(pDummyWhichIsLast != NULL);
+			gpApp->GetDocument()->DeleteSingleSrcPhrase(pDummyWhichIsLast);
+		}
+	}
+
+	// recompute m_curOutputPath, so it can be saved to config files as m_lastDocPath,
+	// because the path computed at the end of OnOpenDocument() will have been invalidated
+	// if the filename extension was changed by code earlier in DoFileSave()
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+	{
+		gpApp->m_curOutputPath = pApp->m_bibleBooksFolderPath + 
+									gpApp->PathSeparator + gpApp->m_curOutputFilename;
+	}
+	else
+	{
+		gpApp->m_curOutputPath = pApp->m_curAdaptionsPath + 
+									gpApp->PathSeparator + gpApp->m_curOutputFilename;
+	}
+	gpApp->m_lastDocPath = gpApp->m_curOutputPath; // make it agree with what path was 
+												   // used for this save operation
+	if (bShowWaitDlg)
+	{
+#ifdef __WXMSW__
+		progMsg = _("Please wait while Adapt It saves the KB...");
+		pProgDlg->Pulse(progMsg); // more general message during KB save
+#endif
+	}
+
+	// Do the document backup if required (This call supports a docVersion 4 choice, and
+	// also a request to rename the document; by internally accessing the private members
+	// bool	m_bLegacyDocVersionForSaveAs, and bool m_bDocRenameRequestedForSaveAs either
+	// or both of which may have been changed from their default values of FALSE depending
+	// on the execution path through the code above
+	if (gpApp->m_bBackupDocument)
+	{
+		bool bBackedUpOK;
+		if (bFileIsRenamed)
+		{
+			bBackedUpOK = BackupDocument(gpApp, pRenamedFilename);
+		}
+		else
+		{
+		bBackedUpOK = BackupDocument(gpApp); // 2nd param is default NULL (no rename wanted)
+		}
+		if (!bBackedUpOK)
+		{
+			wxMessageBox(_(
+			"Warning: the attempt to backup the current document failed."),
+			_T(""), wxICON_EXCLAMATION);
+		}
+	}
+
+    // Restore the latest document version number, in case the save done above was actually
+    // a Save As... using an earlier doc version number. Must not restore earlier than
+    // this, as a call of BackupDocument() will need to know what the user's chosen state
+    // value currently is for docVersion.
+	RestoreCurrentDocVersion();
+
+	Modify(FALSE); // declare the document clean
+	if (gpApp->m_bBookMode && !gpApp->m_bDisableBookMode)
+		SetFilename(pApp->m_bibleBooksFolderPath+pApp->PathSeparator + 
+			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
+	else
+		SetFilename(pApp->m_curAdaptionsPath+pApp->PathSeparator + 
+			pApp->m_curOutputFilename,TRUE); // TRUE = notify all views
+
+	// the KBs (whether glossing KB or normal KB) must always be kept up to date with a
+	// file, so must store both KBs, since the user could have altered both since the last
+	// save
+
+	gpApp->StoreGlossingKB(FALSE); // FALSE = don't want backup produced
+	gpApp->StoreKB(FALSE);
+	
+	// remove the phrase box's entry again (this code is sensitive to whether glossing is on
+	// or not, because it is an adjustment pertaining to the phrasebox contents only, to undo
+	// what was done above - namely, the entry put into either the glossing KB or the normal KB)
+	if (pApp->m_pTargetBox != NULL)
+	{
+		if (pApp->m_pTargetBox->IsShown() && 
+			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox && !bNoStore)
+		{
+			CRefString* pRefString;
+			if (gbIsGlossing)
+			{
+				if (!bNoStore)
+				{
+					pRefString = pView->GetRefString(pView->GetKB(), 1,
+											pApp->m_pActivePile->GetSrcPhrase()->m_key,
+											pApp->m_pActivePile->GetSrcPhrase()->m_gloss);
+					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(), 1);
+				}
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
+			}
+			else
+			{
+				if (!bNoStore)
+				{
+					pRefString = pView->GetRefString(pView->GetKB(),
+											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+											pApp->m_pActivePile->GetSrcPhrase()->m_key,
+											pApp->m_pActivePile->GetSrcPhrase()->m_adaption);
+					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(),
+											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords);
+				}
+				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
+			}
+		}
+	}
+#ifdef __WXMSW__
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
+#endif
+	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
+	m_bDocRenameRequestedForSaveAs = FALSE; // ditto
+	return TRUE;
+}
+
+/* previous + modifications but faulty logic if user chooses v5 in Save As...
 bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 {
 	// BEW added 19Apr10 -- ensure we start with the latest doc version for saving if the
@@ -2184,6 +3132,14 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 	// wxFileDialog below may result in a different value being set by the code further
 	// below 
 	RestoreCurrentDocVersion();  // assume the default
+
+	// prepare for progress dialog
+	int counter;
+	counter = 0;
+	int nTotal = 0;
+	wxString progMsg = _("%s  - %d of %d Total words and phrases");
+	wxString msgDisplayed;
+	wxProgressDialog* pProgDlg = (wxProgressDialog*)NULL;
 
 	// refactored 9Mar09
 	wxFile f; // create a CFile instance with default constructor
@@ -2349,13 +3305,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		aStr = ConstructSettingsInfoAsXML(1);
 		DoWrite(f,aStr);
 
-		int counter;
-		counter = 0;
-		int nTotal = gpApp->m_pSourcePhrases->GetCount();
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
-		wxProgressDialog* pProgDlg;
-		pProgDlg = (wxProgressDialog*)NULL;
+
+		// setup the progress dialog
+		nTotal = gpApp->m_pSourcePhrases->GetCount();
+		msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
 		if (bShowWaitDlg)
 		{
 #ifdef __WXMSW__
@@ -2505,11 +3458,6 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 			}
 		}
 
-#ifdef __WXMSW__
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
-#endif
-		return TRUE;
 
 	} // end of block for test: if (type == normal_save)
 	else // *************************** save_as block commences **********************************
@@ -2579,13 +3527,9 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		aStr = ConstructSettingsInfoAsXML(1);
 		DoWrite(f,aStr);
 
-		int counter;
-		counter = 0;
-		int nTotal = gpApp->m_pSourcePhrases->GetCount();
-		wxString progMsg = _("%s  - %d of %d Total words and phrases");
-		wxString msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
-		wxProgressDialog* pProgDlg;
-		pProgDlg = (wxProgressDialog*)NULL;
+		// setup the progress dialog
+		nTotal = gpApp->m_pSourcePhrases->GetCount();
+		msgDisplayed = progMsg.Format(progMsg,gpApp->m_curOutputFilename.c_str(),1,nTotal);
 		if (bShowWaitDlg)
 		{
 #ifdef __WXMSW__
@@ -2673,7 +3617,7 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 		f.Close();
 		f.Flush();
 
-		// remove the dummy that was appended, if we did append on in the code above
+		// remove the dummy that was appended, if we did append one in the code above
 		if (bDummySrcPhraseAdded)
 		{
 			posLast = gpApp->m_pSourcePhrases->GetLast();
@@ -2772,13 +3716,14 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type)
 			}
 		}
 
-#ifdef __WXMSW__
-		if (pProgDlg != NULL)
-			pProgDlg->Destroy();
-#endif
-		return TRUE;
 	}
+#ifdef __WXMSW__
+	if (pProgDlg != NULL)
+		pProgDlg->Destroy();
+#endif
+	return TRUE;
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \return TRUE if file at path was successfully saved; FALSE otherwise
@@ -2943,6 +3888,7 @@ bool CAdapt_ItDoc::OnSaveModified()
 
 	prompt = prompt.Format(_("The document %s has changed. Do you want to save it? "),name.c_str());
 	int result = wxMessageBox(prompt, _T(""), wxYES_NO | wxCANCEL); //AFX_IDP_ASK_TO_SAVE
+	wxCommandEvent dummyEvent; // BEW added 29Apr10
 	switch (result)
 	{
 	case wxCANCEL:
@@ -2950,7 +3896,10 @@ bool CAdapt_ItDoc::OnSaveModified()
 
 	case wxYES:
 		// If so, either Save or Update, as appropriate
-		bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog	
+        // BEW changed 29Apr10, DoFileSave_Protected() protects against loss of the
+        // document file, which is safer
+		//bUserSavedDoc = DoFileSave(TRUE); // TRUE - show wait/progress dialog	
+		bUserSavedDoc = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog	
 		if (!bUserSavedDoc)
 		{
 			wxMessageBox(_("Warning: document save failed for some reason.\n"),
@@ -7925,16 +8874,24 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 	// remove any .xml or .adt which the user may have added to the passed in filename
 	wxString rev = typedName;
 	rev = MakeReverse(rev);
+
+	// BEW note 26Apr10, .adt extensions occurred on in versions 1-3, but there is no harm
+	// in leaving this line unremoved and similarly the test a little further below 
 	wxString adtExtn = _T(".adt");
+
 	wxString xmlExtn = _T(".xml");
 	adtExtn = MakeReverse(adtExtn);
 	adtExtn = MakeReverse(adtExtn);
+
+    // BEW note 26Apr10, these next 6 lines could be removed for versions 4.0.0 onwards,
+    // but we'll leave them is they waste very little time, and do no harm
 	offset = rev.Find(adtExtn);
 	if (offset == 0)
 	{
 		// it's there, so remove it
 		rev = rev.Mid(4);
 	}
+
 	offset = rev.Find(xmlExtn);
 	if (offset == 0)
 	{
@@ -7967,12 +8924,17 @@ bool CAdapt_ItDoc::FilenameClash(wxString& typedName)
 			}
 			else
 			{
-				// same length, and the search string lacks .adt or .xml, so this
-				// is unlikely to be a clash, but we'll return TRUE and give a
-				// beep as well
-				::wxBell();
-				gpApp->m_acceptedFilesList.Clear();
-				return TRUE;
+                // BEW changed 26Apr10, (to include a 'shorter' option) same length or
+                // shorter; if equal then this is a clash and we'll return TRUE and give a
+                // beep as well; but if shorter, then it's a different name & we'll accept
+                // it by falling through and returning FALSE
+                if (docNameLen == len)
+				{ 
+					// it's the same name
+					::wxBell();
+					gpApp->m_acceptedFilesList.Clear();
+					return TRUE;
+				}
 			}
 		}
 	}
@@ -14173,9 +15135,13 @@ void CAdapt_ItDoc::OnFilePackDoc(wxCommandEvent& WXUNUSED(event))
 	// save the doc as XML (this handler can only be invoked when m_bSaveAsXML is TRUE)
 	bool bSavedOK = TRUE;
 	// BEW added test on 25Nov09, so documents can be packed when user has read only access
+	// BEW changed 29Apr10, to use DoFileSave_Protected() rather than DoFileSave() because the
+	// former gives better protection against data loss in the event of file truncation
+	// due to a processing error.
 	if (!gpApp->m_bReadOnlyAccess)
 	{
-		bSavedOK = DoFileSave(TRUE); // TRUE - show wait/progress dialog
+		//bSavedOK = DoFileSave(TRUE);
+		bSavedOK = DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
 	}
 
 	// construct the absolute path to the document as it currently is on disk; if the

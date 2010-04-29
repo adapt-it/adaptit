@@ -158,7 +158,7 @@ void COutputFilenameDlg::OnOK(wxCommandEvent& event)
 		::wxBell();
 		// if we decide to verbally tell the user what the beep means:
 		//wxString message;
-		//message = message.Format(_("Sorry, names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
+		//message = message.Format(_("Names cannot include these characters: %s (Note: An .xml extension will be automatically added.) Please try the New... command again."),illegals.c_str());
 		//wxMessageBox(message, _("Bad characters found in name"), wxICON_INFORMATION);	}
 	}
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog

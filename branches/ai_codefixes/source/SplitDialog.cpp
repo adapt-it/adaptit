@@ -237,7 +237,11 @@ void CSplitDialog::SplitAtPhraseBoxLocation_Interactive()
 	{
 		// save
 		if (!OriginalFilePath.IsEmpty())
-			d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
+		{
+			// BEW changed 29Apr10
+			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
+			d->DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+		}
 	}
 
 	// Verify first filename.
@@ -442,7 +446,11 @@ ChList *CSplitDialog::DoSplitIntoChapters(wxString WorkingFolderPath, wxString F
 	{
 		// save
 		if (!OriginalFilePath.IsEmpty())
-			d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
+		{
+			// BEW changed 29Apr10
+			//d->DoFileSave(TRUE); // TRUE - show wait/progress dialog
+			d->DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
+		}
 	}
 
 	// get the Book ID code (such as MAT or REV or 1TH etc) - when not in book mode, we get it

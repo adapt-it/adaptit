@@ -14106,7 +14106,10 @@ void CAdapt_ItView::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
                 // Save the Doc (and DoFileSave() also automatically saves, without backup,
                 // both the glossing and adapting KBs)
-				bool fsOK = pDoc->DoFileSave(TRUE); // TRUE - show the wait/progress dialog
+				// BEW changed 29Apr10 to use DoFileSave_Protected() which gives better
+				// protection against data loss in the event of a failure
+				//bool fsOK = pDoc->DoFileSave(TRUE);
+				bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show the wait/progress dialog
 				if (!fsOK)
 				{
 					// something's real wrong!
@@ -14142,7 +14145,9 @@ void CAdapt_ItView::OnEditConsistencyCheck(wxCommandEvent& WXUNUSED(event))
 
                 // BEW changed 01Aug06 Save the current doc and then clear out its contents
                 // -- see block above for explanation of why this is necessary
-				bool fsOK = pDoc->DoFileSave(TRUE); // TRUE - show wait/progress dialog
+                // BEW changed 29Apr10 to give better data protection
+				//bool fsOK = pDoc->DoFileSave(TRUE); 
+				bool fsOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
 				if (!fsOK)
 				{
 					// something's real wrong!
@@ -14867,7 +14872,9 @@ y:						;
                 // m_bHasKBEntry flag TRUE, which would cause an assert to trip
 		pApp->m_pTargetBox->ChangeValue(_T("")); // need to set it to null str
 											  // since it won't get recreated
-		bool bSavedOK = pDoc->DoFileSave(TRUE); // TRUE - show wait/progress dialog
+		// BEW changed 29Apr10 to give better data protection
+		//bool bSavedOK = pDoc->DoFileSave(TRUE);
+		bool bSavedOK = pDoc->DoFileSave_Protected(TRUE); // TRUE - show wait/progress dialog
 		if (!bSavedOK)
 		{
 			wxMessageBox(_("Warning: failure on document save operation."),

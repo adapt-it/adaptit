@@ -12429,7 +12429,8 @@ void CAdapt_ItApp::DoAutoSaveDoc()
 // phrase box into the appropriate KB before the save is done)
 {
 	bool bOkay;
-	bOkay = GetDocument()->DoFileSave(FALSE); // FALSE - don't show wait/progress dialog
+	//bOkay = GetDocument()->DoFileSave(FALSE);
+	bOkay = GetDocument()->DoFileSave_Protected(FALSE); // FALSE - don't show wait/progress dialog
 
 	// update the time it was last saved
 	wxDateTime time = wxDateTime::Now();

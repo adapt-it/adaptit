@@ -104,8 +104,9 @@ protected:
 	void			AddParagraphMarkers(wxString& rText, int& rTextLength);
 	bool			AnalyseMarker(CSourcePhrase* pSrcPhrase, CSourcePhrase* pLastSrcPhrase,
 									wxChar* pChar, int len, USFMAnalysis* pUsfmAnalysis);
-	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp));
+	bool			BackupDocument(CAdapt_ItApp* WXUNUSED(pApp), wxString* pRenamedFilename = NULL);
 	int				ClearBuffer();
+	void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
 	CBString		ConstructSettingsInfoAsXML(int nTabLevel); // BEW added 05Aug05 for XML doc output support
 	int				ContainsMarkerToBeFiltered(enum SfmSet sfmSet, wxString markers, wxString filterList,
 						wxString& wholeMkr, wxString& wholeShortMkr, wxString& endMkr, bool& bHasEndmarker,
@@ -137,7 +138,7 @@ protected:
 	void			SetupForSFMSetChange(enum SfmSet oldSet, enum SfmSet newSet, wxString oldFilterMarkers,
 							wxString newFilterMarkers, wxString& secondPassFilterStr, enum WhichPass pass);
 	void			SmartDeleteSingleSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
-	void			ConditionallyDeleteSrcPhrase(CSourcePhrase* pSrcPhrase, SPList* pOtherList);
+	void			ValidateFilenameAndPath(wxString& curFilename, wxString& curPath, wxString& pathForSaveFolder);
 
 public:
 	void			AdjustSequNumbers(int nValueForFirst, SPList* pList);
@@ -157,7 +158,8 @@ public:
 										   // but does not delete each partner pile (use DestroyPiles()
 										   // defined in CLayout for that)
 	void			DeleteSourcePhrases(SPList* pList, bool bDoPartnerPileDeletionAlso = FALSE);
-	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type = normal_save);
+	bool			DoFileSave_Protected(bool bShowWaitDlg);
+	bool			DoFileSave(bool bShowWaitDlg, enum SaveType type = normal_save, wxString* pRenamedFilename = NULL);
 	void			DoMarkerHousekeeping(SPList* pNewSrcPhrasesList,int WXUNUSED(nNewCount), 
 							TextType& propagationType, bool& bTypePropagationRequired);
 	bool			DoTransformedDocFileSave(wxString path);
@@ -168,7 +170,7 @@ public:
 	wxString		GetCurrentDirectory();	// BEW added 4Jan07 for saving & restoring the full path
 											// to the current doc's directory across the writing of
 											// the project configuration file to the project's directory
-	int				GetCurrentDocVersion(); // BEW added 19Apr10 for Save As... support	
+	int				GetCurrentDocVersion();
 	wxString		GetFilteredItemBracketed(const wxChar* ptr, int itemLen);
 	enum getNewFileState GetNewFile(wxString*& pstrBuffer, wxUint32& nLength, wxString pathName);
 	CLayout*		GetLayout(); // view class also has its own member function of the same name
@@ -270,9 +272,11 @@ public:
 	void OnUpdateAdvancedSendSynchronizedScrollingMessages(wxUpdateUIEvent& event);
 
   private:
-    int m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
-	bool IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
-	void SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
+    int		m_docVersionCurrent; // BEW added 19Apr10 for Save As... support
+	bool	m_bLegacyDocVersionForSaveAs;
+	bool	m_bDocRenameRequestedForSaveAs;
+	bool	IsMarkerFreeTransOrNoteOrBackTrans(const wxString& mkr, bool& bIsForeignBackTransMkr);
+	void	SetFreeTransOrNoteOrBackTrans(const wxString& mkr, wxChar* ptr, 
 					size_t itemLen, CSourcePhrase* pSrcPhrase);
 
 	DECLARE_EVENT_TABLE()
