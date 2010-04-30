@@ -44,7 +44,6 @@ public:
 	
 	wxSizer* pDocPageSizer;
 	bool m_bForceUTF8;
-	bool m_bSaveUsingXML;
 	wxString m_staticModeStr;
 	wxString m_staticFolderStr;
 	wxString m_docName;

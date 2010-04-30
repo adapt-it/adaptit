@@ -173,9 +173,7 @@ CDocPage::CDocPage(wxWizard* parent) // dialog constructor
 							 // use an empty path to suppress writing a project file from SaveModified()
 							 // if the user then exits, which would otherwise clobber settings in the last
 							 // written out project config file unnecessarily and unwantedly)
-
 	m_bForceUTF8 = FALSE;
-	m_bSaveUsingXML = gpApp->m_bSaveAsXML;
 
 	m_pListBox = (wxListBox*)FindWindowById(IDC_LIST_NEWDOC_AND_EXISTINGDOC);
 	
@@ -418,9 +416,6 @@ void CDocPage::OnSetActive()
 	{
 			pBtn->Hide();
 	}
-
-	// make the checkbox echo what the config file value was
-	m_bSaveUsingXML = gpApp->m_bSaveAsXML;
 
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
 	wxASSERT(pApp != NULL);

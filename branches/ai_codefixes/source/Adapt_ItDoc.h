@@ -120,7 +120,7 @@ protected:
 	bool			IsEndingSrcPhrase(enum SfmSet sfmSet, wxString& markers);
 	bool			IsEndMarkerForTextTypeNone(wxChar* pChar);
 	bool			IsUnstructuredPlainText(wxString& rText);
-	void			MakeOutputBackupFilenames(wxString& curOutputFilename, bool bSaveAsXML);
+	void			MakeOutputBackupFilenames(wxString& curOutputFilename);
 	bool			NotAtEnd(wxString& rText, const int nTextLength, int nFound);
 	void			OverwriteUSFMFixedSpaces(wxString*& pstr);
 	void			OverwriteUSFMDiscretionaryLineBreaks(wxString*& pstr);

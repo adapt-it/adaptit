@@ -1510,12 +1510,6 @@ public:
 	wxString m_curOutputBackupFilename; // BEW added 15Aug05 to get a consistent file 
 										// and path naming protocol
 	
-    /// The m_altOutputBackupFilename was used mostly in the MFC version which needed to
-    /// juggle the presence of either binary or xml format files and backing them both up.
-    /// The wx version only uses xml files, so the need for this variable could be
-    /// eliminated
-	wxString m_altOutputBackupFilename; // ditto
-
     /// The m_nInputFileLength member represented in the MFC version the serializable # of
     /// chars in untokenized source text (including terminating null). MFC used DWORD.
 	wxUint32 m_nInputFileLength;
@@ -1839,8 +1833,6 @@ public:
 	bool			m_bExportingGlossesAsText;
 	bool			m_bExportingFreeTranslation;
 									
-	bool			m_bSaveAsXML;	// BEW added 04Aug05 for support of saving doc 
-									// and KB with XML markup
 	// font stuff
 	wxFont*		m_pSourceFont;
 	wxFont*		m_pTargetFont;

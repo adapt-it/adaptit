@@ -16,15 +16,7 @@
 /// CAdapt_ItApp class is derived from wxApp, and inherits its support for the
 /// document/view framework. The AIModalDialog class is derived from wxDialog.
 /////////////////////////////////////////////////////////////////////////////
-// Pending Implementation Items in Adapt_It.cpp (in order of importance): (search for "TODO")
-// 1. Determine what to do about wxWidgets page setup dialog margins only 
-//    taking millimetres, and how to reconcile this with the Units of Measure...
-// 2. 
-// Unanswered questions: (search for "???")
-// 1. 
-// 
-/////////////////////////////////////////////////////////////////////////////
-//#pragma warning( disable : 4189 )
+
 
 #if defined(__GNUG__) && !defined(__APPLE__) //The GNU C++ compiler defines this. 
 // Testing it is equivalent to testing (__GNUC__ && __cplusplus). 
@@ -3074,10 +3066,8 @@ wxString szBookMode = _T("BookModeFlag");
 /// variable.
 wxString szBookIndex = _T("BookIndexValue");
 
-// for saving the m_bSaveAsXML value in project config file The label that identifies the
-// following string encoded value as the application's "SaveAsXML". This value is written
-// in the "Settings" part of the basic configuration file. Adapt It stores this value in
-// the App's m_bSaveAsXML global variable.
+// BEW 30Apr10, this flag is deprecated. We read it but do nothing with it, and no longer
+// write it in a project config file
 wxString szSaveAsXML = _T("SaveAsXML");
 
 // rde: added support for calling EncConverters to pre-process a target word whm: the
@@ -5320,7 +5310,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_freeTransDefaultBackgroundColor = wxColour(189,255,189); // light pastel green
 	m_freeTransCurrentSectionBackgroundColor = wxColour(255,200,200); // light pastel pink
 	
-	m_bSaveAsXML = TRUE; // BEW added 04Aug05; default for version 3
 	m_bNotesExist = FALSE; // 12Sep05 BEW
 	m_bUnpacking = FALSE; // BEW added 10Jan06
 
@@ -5394,8 +5383,6 @@ bool CAdapt_ItApp::OnInit() // MFC calls this InitInstance()
 	m_curOutputFilename = _T("");
 	m_curOutputPath = _T("");
 	m_curOutputBackupFilename = _T("");
-	m_altOutputBackupFilename = _T("");
-	//m_saveLastFolderPath = _T("");
 	m_currentUnknownMarkersStr = _T(""); // whm added 31May05
 	m_pSourcePhrases = (SPList*)NULL; // MFC had = 0
 
@@ -9564,23 +9551,15 @@ bool CAdapt_ItApp::SetupDirectories()
 void CAdapt_ItApp::SetupKBPathsEtc()
 {
 	wxString saveName;
-	if (m_bSaveAsXML) // always true in wx version
-	{
-		// XML input (with binary as the alternative)
-		m_curKBName = m_curProjectName + _T(".xml");
-		m_altKBName = m_curProjectName + _T(".KB");
-		m_curKBPath = m_curProjectPath + PathSeparator + m_curKBName;
-		m_altKBPath = m_curProjectPath + PathSeparator + m_altKBName;
-		m_curKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK") + _T(".xml");
-		m_altKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK");
+	// only XML input &  output
+	m_curKBName = m_curProjectName + _T(".xml");
+	m_curKBPath = m_curProjectPath + PathSeparator + m_curKBName;
+	m_curKBBackupPath = m_curProjectPath + PathSeparator + m_curProjectName + _T(".BAK") + _T(".xml");
 
-		// now the same stuff for the glossing KB
-		saveName = m_curGlossingKBName;
-		m_curGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".xml");
-		m_altGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".KB");
-		m_curGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK") + _T(".xml");
-		m_altGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK");
-	}
+	// now the same stuff for the glossing KB
+	saveName = m_curGlossingKBName;
+	m_curGlossingKBPath = m_curProjectPath + PathSeparator + saveName + _T(".xml");
+	m_curGlossingKBBackupPath = m_curProjectPath + PathSeparator + saveName + _T(".BAK") + _T(".xml");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -10298,53 +10277,46 @@ bool CAdapt_ItApp::LoadGlossingKB()
 
 	// some temporaries for the code below
 	bool bReadOK = FALSE; // whm added initialization
-	bool bSaveFlag = m_bSaveAsXML; // preserve it, we may have to 
-								   // temporarily change the value
 	wxString path = m_curGlossingKBPath;
 
-	if (m_bSaveAsXML) // always true in wx version
+	// version 3.0 and upwards, the default is to do i/o in XML
+	if (wxFileExists(path))
 	{
-		// version 3.0 and upwards, the default is to do i/o in XML
-		if (wxFileExists(path))
-		{
-			// the expected *.xml glossing knowledge base file is in the project folder
-			// attempt the load
-			bReadOK = ReadKB_XML(path, m_pGlossingKB);
-		}
+		// the expected *.xml glossing knowledge base file is in the project folder
+		// attempt the load
+		bReadOK = ReadKB_XML(path, m_pGlossingKB);
+	}
 
-		// if there was a bad load...
-		if (!bReadOK)
-		{
-			// IDS_NO_GLOSSINGKB_WARNING
-			wxMessageBox(_(
+	// if there was a bad load...
+	if (!bReadOK)
+	{
+		// IDS_NO_GLOSSINGKB_WARNING
+		wxMessageBox(_(
 "Warning: a knowledge base for storing glosses was not found. An empty one has been created for your use instead."),
-			_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION);
 
-			// make the substitute KB in memory
-			if (m_pGlossingKB == NULL)
-				m_pGlossingKB = new CKB;
+		// make the substitute KB in memory
+		if (m_pGlossingKB == NULL)
+			m_pGlossingKB = new CKB;
 
-			// store it on disk & close it
-			bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
+		// store it on disk & close it
+		bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
 
-			// restore the saved flag values to what they were in the caller
-			gbIsGlossing = bSaveIsGlossingFlag;
-			m_bSaveAsXML = bSaveFlag;
+		// restore the saved flag values to what they were in the caller
+		gbIsGlossing = bSaveIsGlossingFlag;
 
-			if (!bOK)
-			{
-				return FALSE; // let the caller put up message and abort
-			}
-
-			// restore the gbIsGlossing flag value to what it was in the caller
-			gbIsGlossing = bSaveIsGlossingFlag;
-			return TRUE; // nothing much in it, so just return saying all is well
+		if (!bOK)
+		{
+			return FALSE; // let the caller put up message and abort
 		}
+
+		// restore the gbIsGlossing flag value to what it was in the caller
+		gbIsGlossing = bSaveIsGlossingFlag;
+		return TRUE; // nothing much in it, so just return saying all is well
 	}
 
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
-	m_bSaveAsXML = bSaveFlag;
 
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -10388,71 +10360,64 @@ bool CAdapt_ItApp::LoadKB()
 
 	// some temporaries for the code below
 	bool bReadOK = FALSE; // whm added initialization
-	//bool bOpened;
-	bool bSaveFlag = m_bSaveAsXML; // preserve it, we may have to 
-								   // temporarily change the value
 	wxString path = m_curKBPath;
 
-	if (m_bSaveAsXML) // always true in the wx version
+	// version 3.0 and upwards, the default is to do i/o in XML
+	if (wxFileExists(path))
 	{
-		// version 3.0 and upwards, the default is to do i/o in XML
-		if (wxFileExists(path))
-		{
-            // the expected *.xml knowledge base file is in the project folder 
-            // attempt the load
-			bReadOK = ReadKB_XML(path, m_pKB);
-		}
+        // the expected *.xml knowledge base file is in the project folder 
+        // attempt the load
+		bReadOK = ReadKB_XML(path, m_pKB);
+	}
 
-		// if there was a bad load...
-		if (!bReadOK)
-		{
-			// IDS_NO_ADAPTINGKB_WARNING
-			wxMessageBox(_(
+	// if there was a bad load...
+	if (!bReadOK)
+	{
+		// IDS_NO_ADAPTINGKB_WARNING
+		wxMessageBox(_(
 "Warning: a knowledge base for storing adaptations was not found. An empty one has been created for your use instead. "),
-			_T(""), wxICON_INFORMATION);
+		_T(""), wxICON_INFORMATION);
 
-			// make the substitute KB in memory
-			if (m_pKB == NULL)
-				m_pKB = new CKB;
+		// make the substitute KB in memory
+		if (m_pKB == NULL)
+			m_pKB = new CKB;
 
-            // we'll have to make sure we get the right source and target language names,
-            // so we must analyse the path name to extract them from there; the app's
-            // m_sourceName etc can't be relied on here, because the user might have
-            // backtracked in the startup wizard after having supplied different names.
-			wxFileName pathName;
-			wxString path, fname, ext;
-			pathName.SplitPath(m_curProjectPath, &path, &fname, &ext);
+        // we'll have to make sure we get the right source and target language names,
+        // so we must analyse the path name to extract them from there; the app's
+        // m_sourceName etc can't be relied on here, because the user might have
+        // backtracked in the startup wizard after having supplied different names.
+		wxFileName pathName;
+		wxString path, fname, ext;
+		pathName.SplitPath(m_curProjectPath, &path, &fname, &ext);
 
-			wxString name = fname; // this is the project folder name
-			int index;
-            // whm: For localization purposes the " to " and " adaptations" strings should
-            // not be translated, otherwise other localizations would not be able to handle
-            // the unpacking of files created on different localizations.
-			index = name.Find(_T(" to ")); // find "to" between spaces
-			m_sourceName = name.Left(index); // get the source name, can contain 
-											 // multiple words
-			index += 4;
-			name = name.Mid(index); // name has target name plus "adaptations"
-			index = name.Find(_T(" adaptations"));
-			m_targetName = name.Left(index);
+		wxString name = fname; // this is the project folder name
+		int index;
+        // whm: For localization purposes the " to " and " adaptations" strings should
+        // not be translated, otherwise other localizations would not be able to handle
+        // the unpacking of files created on different localizations.
+		index = name.Find(_T(" to ")); // find "to" between spaces
+		m_sourceName = name.Left(index); // get the source name, can contain 
+										 // multiple words
+		index += 4;
+		name = name.Mid(index); // name has target name plus "adaptations"
+		index = name.Find(_T(" adaptations"));
+		m_targetName = name.Left(index);
 
-			// store in the memory instance of the knowledge base
-			m_pKB->m_sourceLanguageName = m_sourceName;
-			m_pKB->m_targetLanguageName = m_targetName;
+		// store in the memory instance of the knowledge base
+		m_pKB->m_sourceLanguageName = m_sourceName;
+		m_pKB->m_targetLanguageName = m_targetName;
 
-			// store it on disk & close it
-			bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
+		// store it on disk & close it
+		bool bOK = StoreKB(FALSE); // first time, so we can't make a backup
 
-			// restore the saved flag values to what they were in the caller
-			gbIsGlossing = bSaveIsGlossingFlag;
-			m_bSaveAsXML = bSaveFlag;
+		// restore the saved flag values to what they were in the caller
+		gbIsGlossing = bSaveIsGlossingFlag;
 
-			if (!bOK)
-			{
-				return FALSE; // let the caller put up message and abort
-			}
-			return TRUE; // nothing much in it, so just return saying all is well
+		if (!bOK)
+		{
+			return FALSE; // let the caller put up message and abort
 		}
+		return TRUE; // nothing much in it, so just return saying all is well
 	}
 
     // set the language names from the KB's stored names, in case the user has been
@@ -10463,12 +10428,10 @@ bool CAdapt_ItApp::LoadKB()
 
 	// restore the gbIsGlossing flag value to what it was in the caller
 	gbIsGlossing = bSaveIsGlossingFlag;
-	m_bSaveAsXML = bSaveFlag;
 
 	// BEW added 13Nov09, for setting or denying ownership for writing permission
 	// attempt to set it only if not already set
-	//if (!m_bReadOnlyAccess)
-		m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
+	m_bReadOnlyAccess = m_pROP->SetReadOnlyProtection(m_curProjectPath);
 
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -10807,8 +10770,7 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 
 	// ensure the extension is what it should be
 	gpApp->GetDocument()->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
-	
-	
+		
 	// open a CFile stream
 	path = m_curGlossingKBPath;
 	
@@ -10831,110 +10793,31 @@ bool CAdapt_ItApp::StoreGlossingKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	if (gpApp->m_bSaveAsXML) // always true in the wx version
-	{
-		DoKBSaveAsXML(f,TRUE); // TRUE means that we want a glossing KB file in XML format
+	DoKBSaveAsXML(f,TRUE); // TRUE means that we want a glossing KB file
 
-		// close the file
-		f.Close();
-		f.Flush();
-
-		// remove the .KB file, if there is one of same name, so that the *.xml file
-		// is the only form of the glossing kb left on disk
-		if (m_altGlossingKBPath != path)
-		{
-			if (wxFileExists(m_altGlossingKBPath))
-			{
-				// there is a *.KB glossing knowledge base file on the disk, so delete it
-				if (!::wxRemoveFile(m_altGlossingKBPath))
-				{
-					wxMessageBox(_T(
-					"Could not remove the *.KB glossing knowledge base alternate file"));
-					// do nothing else, let the app continue
-				}
-			}
-		}
-	}
+	// close the file
+	f.Close();
+	f.Flush();
 	//} // end of CWaitDlg block
 
-    // if backing up is desired, we rename the newly saved copy as a *.BAK file, or
-    // *.BAK.xml if m_bSaveAsXML is TRUE, then resave the glossing knowledge base to the
-    // old name again
+    // if backing up is desired, we rename the newly saved copy as a *.BAK.xml, then resave
+    // the glossing knowledge base to the old name again
 	if (bAutoBackup)
 	{
-		if (::wxFileExists(m_curGlossingKBBackupPath) && 
-			!::wxDirExists(m_curGlossingKBBackupPath))
+		if (::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
 			if (!::wxRemoveFile(m_curGlossingKBBackupPath))
 			{
 				// notify user of error (maybe backup file is protected or in use???)
-				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),
-				wxICON_ERROR);
+				wxMessageBox(_("Removing backup glossing kb file failed."), _T(""),wxICON_WARNING);
 				return TRUE; // allow the app to continue
 			}
 		}
 
-        // attempt to rename the file to the name with .BAK extension (for the binary
-        // file), or we are saving as XML, rename to the name with .BAK.xml dual extensions
-        // -- the extension will have been made correct by code which is above
-		if (!::wxRenameFile(m_curGlossingKBPath,m_curGlossingKBBackupPath))
-		{
-			wxString message;
-			message = _("Error renaming backup glossing KB file with path:\n") 
-				+ m_curGlossingKBPath + _(
-				"\nBackup copy of glossing knowledge base was not created.");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-			return TRUE;// allow app to continue
-		}
-
-		
-		if (!f.Open(m_curGlossingKBPath, wxFile::write))
-		{
-			wxString message;
-			message = _("Error opening glossing KB file for writing with path:\n") 
-				+ m_curGlossingKBPath + _(
-"\nThe glossing knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-				return FALSE;
-		}
-
-		//{ // this block defines the existence of the wait dialog for backing up the glossing KB
-		//CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		//waitDlg.m_nWaitMsgNum = 11;	// 11 "Please wait while Adapt It backs up the Glossing KB..."
-		//waitDlg.Centre();
-		//waitDlg.Show(TRUE);
-		//waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-		
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
-		{
-			DoKBSaveAsXML(f,TRUE); // TRUE means we are doing it for a Glossing KB 
-								   // saved in XML format
-			// close the file
-			f.Close();
-			f.Flush();
-
-            // remove the .BAK file, if there is one of same name, so that the .BAK.xml
-            // file is the only form of the KB backup file left on disk
-			if (m_altGlossingKBBackupPath != m_curGlossingKBBackupPath)
-			{
-				if (wxFileExists(m_altGlossingKBBackupPath))
-				{
-					// there is an *.BAK backup knowledge base file on the disk, so delete
-					// it 
-					if (!::wxRemoveFile(m_altGlossingKBBackupPath))
-					{
-						wxMessageBox(_(
-"Could not remove the *.BAK backup glossing knowledge base alternate file"),
-						_T(""),wxICON_INFORMATION);
-						// do nothing else, let the app continue
-					}
-				}
-			}
-		}
-		//} // end of CWaitDlg scope
+		// BEW changed 30Apr10, make the backup by copying the saved file to the backup filename
+		bool bCopiedOK = ::wxCopyFile(m_curGlossingKBPath, m_curGlossingKBBackupPath);
+		bCopiedOK = bCopiedOK; // prevent compiler warning
 	}
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -10989,35 +10872,15 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 	//waitDlg.Update();
 	// the wait dialog is automatically destroyed when it goes out of scope below.
 
-	if (m_bSaveAsXML) // always true in the wx version
-	{
-		DoKBSaveAsXML(f);
+	DoKBSaveAsXML(f);
 
-		// close the file
-		f.Close();
-		f.Flush();
-
-        // remove the .KB file, if there is one of same name, so that the .xml file is the
-        // only form of the document left on disk
-		if (m_altKBPath != path)
-		{
-			if (wxFileExists(m_altKBPath))
-			{
-				// there is a *.KB knowledge base file on the disk, so delete it
-				if (!::wxRemoveFile(m_altKBPath))
-				{
-					wxMessageBox(_("Could not remove the *.KB knowledge base alternate file"),
-					_T(""),wxICON_INFORMATION);
-					// do nothing else, let the app continue
-				}
-			}
-		}
-	}
+	// close the file
+	f.Close();
+	f.Flush();
 	//} // end of CWaitDlg block
 	
-    // if backing up is desired, we rename the newly saved copy as a *.BAK file, or
-    // *.BAK.xml if m_bSaveAsXML is TRUE, then resave the knowledge base to the old name
-    // again
+    // if backing up is desired, we rename the newly saved copy as a *.BAK.xml, then resave
+    // the knowledge base to the old name again
 	if (bAutoBackup)
 	{
 		// first, remove the old backup file, if it still is on disk
@@ -11027,68 +10890,14 @@ bool CAdapt_ItApp::StoreKB(bool bAutoBackup)
 			if (!::wxRemoveFile(m_curKBBackupPath))
 			{
 				// notify user of error (maybe backup file is protected or in use???)
-				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_ERROR);
+				wxMessageBox(_("Removing backup kb file failed."), _T(""), wxICON_WARNING);
 				return TRUE; // allow app to continue
 			}
 		}
 
-        // attempt to rename the file to the name with .BAK extension (for the binary
-        // file), or we are saving as XML, rename to the name with .BAK.xml dual extensions
-        // -- the extension will have been made correct by code which is above
-		if (!::wxRenameFile(m_curKBPath,m_curKBBackupPath))
-		{
-			wxString message;
-			message = _("Error renaming backup KB file with path:\n") 
-				+ m_curKBPath + _("\nBackup copy of knowledge base was not created.");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-			return TRUE; // allow app to continue
-		}
-
-		
-		if (!f.Open(m_curKBPath, wxFile::write))
-		{
-			wxString message;
-			message = _("Error opening KB file for writing with path:\n") 
-				+ m_curKBPath + _(
-"\nThe knowledge base was not saved.\nIs your drive's free space low, or is the file open in another application?");
-			wxMessageBox(message, _T(""), wxICON_INFORMATION);
-			return FALSE;
-		}
-
-		//{ // this block defines the existence of the wait dialog for backing up the KB
-		//CWaitDlg waitDlg(gpApp->GetMainFrame());
-		// indicate we want the reading file wait message
-		//waitDlg.m_nWaitMsgNum = 10;	// 10 "Please wait while Adapt It backs up the KB..."
-		//waitDlg.Centre();
-		//waitDlg.Show(TRUE);
-		//waitDlg.Update();
-		// the wait dialog is automatically destroyed when it goes out of scope below.
-		
-		if (gpApp->m_bSaveAsXML) // always true in the wx version
-		{
-			DoKBSaveAsXML(f);
-
-			// close the file
-			f.Close();
-			f.Flush();
-
-            // remove the .BAK file, if there is one of same name, so that the .BAK.xml
-            // file is the only form of the KB backup file left on disk
-			if (m_altKBBackupPath != m_curKBBackupPath)
-			{
-				if (wxFileExists(m_altKBBackupPath))
-				{
-					if (!::wxRemoveFile(m_altKBBackupPath))
-					{
-							wxMessageBox(_(
-					"Could not remove the *.BAK backup knowledge base alternate file"),
-						_T(""), wxICON_INFORMATION);
-							// do nothing else, let the app continue
-					}
-				}
-			}
-		}
-		//} // end of CWaitDlg scope
+		// BEW changed 30Apr10, make the backup by copying the saved file to the backup filename
+		bool bCopiedOK = ::wxCopyFile(m_curKBPath, m_curKBBackupPath);
+		bCopiedOK = bCopiedOK; // prevent compiler warning
 	}
 #ifdef SHOW_KB_I_O_BENCHMARKS
 		dt1 = dt2;
@@ -11116,17 +10925,11 @@ bool CAdapt_ItApp::SaveKB(bool bAutoBackup)
 		return TRUE; // not an error, just suppression of a remote save
 	if (bAutoBackup)
 	{
-        // Do any needed adjustment to m_curKBBackupPath. Note -- this is different than
-        // expected, because we don't want KB files which could have been binary (extension
-        // .KB) or XML to just have a .BAK extension for the backup one - since then we'd
-        // not know from the extension whether the contents were binary or xml. So for the
-        // backups, we'll have .BAK for a binary backup, and .BAK.xml for an XML backup
-        // (ie. just add the .xml extension to the backup name as produced by the legacy
-        // code); we handle m_curKBFilename, m_curKBPath too, because we keep all three in
-        // synch every time we change them
+        // Guarantee correct form for m_curKBBackupPath, we handle m_curKBFilename,
+        // m_curKBPath too, because we keep all three in sync
 		gpApp->GetDocument()->UpdateFilenamesAndPaths(TRUE,TRUE,TRUE,FALSE,FALSE);
 
-		// is there a backup file (ie. with .BAK extension)
+		// is there a backup file? remove it if so 
 		if(::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
@@ -11163,17 +10966,12 @@ bool CAdapt_ItApp::SaveGlossingKB(bool bAutoBackup)
 		return TRUE; // not an error, just suppression of a remote save
 	if (bAutoBackup)
 	{
-        // Do any needed adjustment to m_curGlossingKBBackupPath. Note -- this is different
-        // than expected, because we don't want KB files which could have been binary
-        // (extension .KB) or XML to just have a .BAK extension for the backup one - since
-        // then we'd not know from the extension whether the contents were binary or xml.
-        // So for the backups, we'll have .BAK for a binary backup, and .BAK.xml for an XML
-        // backup (ie. just add the .xml extension to the backup name as produced by the
-        // legacy code); we handle m_curKBFilename, m_curKBPath too, because we keep all
-        // three in synch every time we change them
+        // Guarantee correct form for m_curGlossingKBBackupPath, we handle
+        // m_curGlossingKBFilename, m_curGlossingKBPath too, because we keep all three in
+        // sync
 		gpApp->GetDocument()->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
 
-		// is there a backup file (ie. with .BAK extension)
+		// is there a backup file? remove it if so
 		if(::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
 			// found a backup, so remove it to make way for new backup
@@ -11922,7 +11720,7 @@ void CAdapt_ItApp::OnUpdateFileRestoreKb(wxUpdateUIEvent& event)
 /// \remarks
 /// Called from: the App's DoGlossingKBBackup(), DoKBBackup()
 /// Called only if a serious problem was detected in the active KB. After cleaning things
-/// up, it substitutes the backup copy of the active KB after detleting the currently
+/// up, it substitutes the backup copy of the active KB after deteleting the currently
 /// (corrupted) KB.
 ////////////////////////////////////////////////////////////////////////////////////////
 void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
@@ -11941,8 +11739,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		m_pKB = (CKB*)NULL;
 	}
 
-	// set up the m_curKBPath and m_altKBPath and backup ones, according
-	// to the current value of the m_bSaveAsXML flag
+	// set up the m_curKBPath and backup ones
 	if (bDoOnGlossingKB)
 	{
 		pDoc->UpdateFilenamesAndPaths(FALSE,FALSE,FALSE,TRUE,TRUE);
@@ -11952,6 +11749,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		pDoc->UpdateFilenamesAndPaths(TRUE,TRUE,TRUE,FALSE,FALSE);
 	}
 
+	/*
     // determine which path to use; since the KB or GlossingKB could be on disk in binary
     // or XML format from version 3 onwards
 	wxString strUseThisPath;
@@ -11977,7 +11775,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			strUseThisPath = m_altKBPath;
 		}
 	}
-
+	*/
 	// get rid of the knowledge base file
 	wxString message;
 	if (bDoOnGlossingKB)
@@ -11987,6 +11785,9 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			message = message.Format(_(
 			"Warning: Did not remove bad knowledge base file %s."),
 			m_curGlossingKBPath.c_str());
+			wxMessageBox(message, _T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			wxExit();
 		}
 	}
 	else
@@ -11996,20 +11797,19 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			message = message.Format(_(
 			"Warning: Did not remove bad knowledge base file %s."),
 			m_curKBPath.c_str());
+			wxMessageBox(message, _T(""), wxICON_ERROR);
+			wxASSERT(FALSE);
+			wxExit();
 		}
 	}
-	wxMessageBox(message, _T(""), wxICON_ERROR);
-	wxASSERT(FALSE);
-	wxExit();
 
 	// check to see if there is a backup KB available, & if so, rename if
 	if (bDoOnGlossingKB)
 	{
-		if(::wxFileExists(m_curGlossingKBBackupPath) && 
-			!::wxDirExists(m_curGlossingKBBackupPath))
+		if(::wxFileExists(m_curGlossingKBBackupPath) && !::wxDirExists(m_curGlossingKBBackupPath))
 		{
-			// attempt to rename the glossing backup file to the same name with .KB
-			// extension 
+            // attempt to rename the glossing backup file to the same name without .BAK
+            // inner extension
 			if (!::wxRenameFile(m_curGlossingKBBackupPath,m_curGlossingKBPath))
 			{
 				wxString message;
@@ -12025,7 +11825,6 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
 			// the backup glossing KB does not exist, so all we can do is substitute an empty
             // one and save it to disk.
-			wxASSERT(m_pGlossingKB == NULL);
 			m_pGlossingKB = new CKB;
 			wxASSERT(m_pGlossingKB != NULL);
 
@@ -12046,11 +11845,11 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 			return;
 		}
 	}
-	else
+	else // adaptations KB
 	{
 		if(::wxFileExists(m_curKBBackupPath) && !::wxDirExists(m_curKBBackupPath))
 		{
-			// attempt to rename the backup file to the same name with .KB extension
+			// attempt to rename the backup file to the same name without .BAK inner extension
 			if (!::wxRenameFile(m_curKBBackupPath,m_curKBPath))
 			{
 				wxString message;
@@ -12066,7 +11865,6 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
             // the backup KB does not exist, so all we can do is substitute an empty one
             // and save it to disk.
-			wxASSERT(m_pKB == NULL);
 			m_pKB = new CKB;
 			wxASSERT(m_pKB != NULL);
 
@@ -12098,8 +11896,8 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	{
 		if(::wxFileExists(m_curGlossingKBPath) && !::wxDirExists(m_curGlossingKBPath))
 		{
-            // the .KB file exists, so we need to create a CKB instance in memory, open the
-            // .KB file on disk, and fill the memory instance's members
+            // the .xml file exists, so we need to create a CKB instance in memory, open the
+            // .xml file on disk, and fill the memory instance's members
 			wxASSERT(m_pGlossingKB == NULL);
 			m_pGlossingKB = new CKB;
 			wxASSERT(m_pGlossingKB != NULL);
@@ -12108,7 +11906,6 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 				m_bGlossingKBReady = TRUE;
 			else
 			{
-				// IDS_LOAD_GLOSSINGKB_FAILURE
 				wxMessageBox(_(
 	"Error: loading the glossing knowledge base failed. The application will now close."),
 				_T(""), wxICON_ERROR);
@@ -12131,8 +11928,8 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 	{
 		if(::wxFileExists(m_curKBPath) && !::wxDirExists(m_curKBPath))
 		{
-            // the .KB file exists, so we need to create a CKB instance in memory, open the
-            // .KB file on disk, and fill the memory instance's members
+            // the .xml file exists, so we need to create a CKB instance in memory, open the
+            // .xml file on disk, and fill the memory instance's members
 			wxASSERT(m_pKB == NULL);
 			m_pKB = new CKB;
 			wxASSERT(m_pKB != NULL);
@@ -16158,11 +15955,13 @@ void CAdapt_ItApp::WriteProjectSettingsConfiguration(wxTextFile* pf)
 	data << szBookIndex << tab <<  m_nBookIndex;
 	pf->AddLine(data);
 
+	/* this flag is deprecated (Reading a project config must read it for backwards compatibility but do nothing with it)
 	// wx version: m_bSaveAsXML must always be true
 	number = _T("1");
 	data.Empty();
 	data << szSaveAsXML << tab << number;
 	pf->AddLine(data);
+	*/
 
 	data.Empty();
 	data << szSilConverterName << tab << m_strSilEncConverterName;
@@ -16827,9 +16626,11 @@ t:				m_pCurrBookNamePair = NULL;
 		}
 		else if (name == szSaveAsXML) // BEW added 04Aug05
 		{
-			num = wxAtoi(strValue);
+			// 30Apr10, this flag is deprecated, read it but no longer set it, and
+			// writing the project config file no longer writes it
+			//num = wxAtoi(strValue);
 			// wx version: we only allow a value of TRUE for wx version
-			m_bSaveAsXML = TRUE;
+			//m_bSaveAsXML = TRUE;
 		}
 		else if (name == szSilConverterName)	// rde added 03 Apr 06
 		{
@@ -16937,11 +16738,6 @@ t:				m_pCurrBookNamePair = NULL;
 	gbNoGlossCaseEquivalents = FALSE; // default
 	if (m_glossLowerCaseChars.IsEmpty() && m_glossUpperCaseChars.IsEmpty())
 		gbNoGlossCaseEquivalents = TRUE; // restore this flag if user cleared source lists
-
-	// make the command on the File menu echo the same setting
-    // whm Note: in 12Sep08 refactoring bruce commented out the MFC version's code here but
-    // I'm leaving it to force the value to TRUE since the wx app only uses a TRUE value
-	m_bSaveAsXML = TRUE; // whm changed for wx version //m_bSaveAsXML == TRUE ? FALSE : TRUE; // toggle it
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -19257,30 +19053,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 								// be saved in current project
 		wxString newPathName; // for the full path to whatever document is 
 							  // currently to be loaded and transformed
-        // Work out whether we have an xml or adt document, set global gbProcessingXMLDoc
-        // accordingly and set up the needed paths (if document backups are or were turned
-        // on, there may be *.BAK.xml files present - but these will automatically be
-        // ignored because GetPossibleAdaptionDocuments() which EnumerateDocFiles() calls
-        // will not have included any such files in the m_acceptedFilesList)
-		wxString extn;
-		newDocName = MakeReverse(newDocName);
-		extn = newDocName.Left(3);
-		extn = MakeReverse(extn);
-		newDocName = MakeReverse(newDocName);
-		bool bProcessingXMLDoc;
-		if (extn == _T("xml"))
-		{
-			// it is an XML document file we are about to process
-			bProcessingXMLDoc = TRUE;
-		}
-		else
-		{
-			// its a binary document file
-			bProcessingXMLDoc = FALSE;
-		}
-
-        // we'll save the transformed document file in whatever format is indicated by the
-        // current setting of the app's m_bSaveAsXML flag value
 
         // create the path to the other project's document file using the passed in
         // folderPath and the bookFolderName; then create the needed output path to to
@@ -19306,9 +19078,6 @@ bool CAdapt_ItApp::DoTransformationsToGlosses(CAdapt_ItDoc* pDoc, wxString& fold
 			bookFolderPath = curOutputPath; // extract the path to the book folder
 			curOutputPath += PathSeparator + ourProjectsDocFileName; // the path to the file
 		}
-
-		// OpenDocumentInAnotherProject() handles opening xml or binary documents
-		// without the caller needing to specify which type has been passed in
 		
 		bool bOK = pDoc->OpenDocumentInAnotherProject(newPathName);
 		if (bOK)
@@ -21299,7 +21068,6 @@ void CAdapt_ItApp::DoKBSaveAsXML(wxFile& f, bool bIsGlossingKB)
 	CBString kbElementBeginStr;
 	// .. [calculate the total bytes for MAP and TU Elements]
 	CBString kbElementEndStr;
-	//CBString aiKBEndStr; // whm removed 5Sept09
 	
 	// maxWords is the max number of MapKeyStringToTgtUnit maps we're dealing with.
 	int maxWords;
@@ -22193,35 +21961,21 @@ CSourcePhrase *CAdapt_ItApp::FindNextChapter(SPList *ol, CSourcePhrase *sp)
 ////////////////////////////////////////////////////////////////////////////////////////
 wxString CAdapt_ItApp::ApplyDefaultDocFileExtension(wxString s)
 {
-	// BEW modified 02Nov05, to include the .xml option, and to make the
-	// testing be smarter - in particular, to allow the user to type names like
-	// 1Timothy.1-2 without the 1-2 being interpretted as a filename extension;
-	// the modifications ensure the returned filename always ends in either
-	// .xml or .adt, and hence DoFileSave() will behave robustly
-	// whm modified to only use the .xml extension for the wx version.
-	wxString defExtn;
-	if (gpApp->m_bSaveAsXML)
+	wxString defExtn = _T(".xml");
+	if (s.Find(_T(".")) == wxNOT_FOUND) 
 	{
-		defExtn = _T(".xml");
-	}
-	if (s.Find(_T(".")) == -1) 
-	{
-		// if there is no point, then we can unlaterally
-		// add the default extension
-a:		return s + defExtn;
+		// if there is no point, then we can unlaterally add the default extension
+		return s + defExtn;
 	} 
 	else 
 	{
-		// there is a point character, but it might not be .xml or .adt,
-		// and so we must check out if the point is a chapter and/or verse
-		// delimiter in the filename - our criterion will be that this
-		// is so whenever the filename does not end in .xml or .adt
+        // there is a point character, but it might not be .xml and so we must check out if
+        // the point is a chapter and/or verse delimiter in the filename - our criterion
+        // will be that this is so whenever the filename does not end in .xml
 		wxString xmlext = _T(".xml");
-		//wxString adtext = _T(".adt");
 		s = MakeReverse(s);
 		xmlext = MakeReverse(xmlext);
-		//adtext = MakeReverse(adtext);
-		if (s.Find(xmlext) == 0) // || s.Find(adtext) == 0)
+		if (s.Find(xmlext) == 0)
 		{
 			// we have a valid extension, so return without doing anything
 			s = MakeReverse(s);
@@ -22231,7 +21985,7 @@ a:		return s + defExtn;
 		{
 			// we need to add the current default extension
 			s = MakeReverse(s);
-			goto a;
+			return s + defExtn;
 		}
 	}
 }
@@ -22747,7 +22501,7 @@ wxString CAdapt_ItApp::MakeExtensionlessName(wxString anyName)
 			// it could be an extension, so check further
 			extn = MakeReverse(extn);
 			extn.MakeLower();
-			if (extn == _T("xml")) // || extn == _T("adt"))
+			if (extn == _T("xml"))
 			{
 				// it's one of ours, so remove it and the .
 				name = name.Mid(nFound + 1);
