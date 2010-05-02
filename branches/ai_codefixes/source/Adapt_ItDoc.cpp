@@ -1245,6 +1245,27 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 				ValidateFilenameAndPath(gpApp->m_curOutputFilename, gpApp->m_curOutputPath, pathToSaveFolder);
 			}
 		}
+
+		if (m_bDocRenameRequestedForSaveAs)
+		{
+			// the above ValidateFilenameAndPath() will have reset m_curOutputPath to have
+			// the renamed filename in it, so we can use the latter here - to reset the
+			// filename Title in the document's window -- next bit of code pinched from
+			// OnWizardFinish()
+			wxString docPath = gpApp->m_curOutputPath;
+			wxDocTemplate* pTemplate = GetDocumentTemplate();
+			wxASSERT(pTemplate != NULL);
+			wxString typeName,fpath,fname,fext;
+			typeName = pTemplate->GetDescription(); // should be "Adapt It" or "Adapt It Unicode"
+			wxFileName fn(docPath);
+			fn.SplitPath(docPath,&fpath,&fname,&fext);
+			//pFrame->SetTitle(fname + _T(" - ") + typeName);
+			SetTitle(fname + _T(" - ") + typeName); // use the doc's call, not frame's
+			SetFilename(gpApp->m_curOutputPath,TRUE); // TRUE = notify all views
+
+			// a refresh of the status bar info would be appropriate here too
+			gpApp->RefreshStatusBarInfo();
+		}
 	}
 	else // handle failure
 	{
@@ -1334,6 +1355,7 @@ void CAdapt_ItDoc::OnFileSaveAs(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(msg,_("Rename Not Done"),wxICON_WARNING);
 		}
 	}
+	m_bDocRenameRequestedForSaveAs = FALSE; // restore default
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2757,6 +2779,10 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		}
 		if (bFileIsRenamed)
 		{
+			m_bDocRenameRequestedForSaveAs = TRUE; // set the private member, as the caller
+												   // will need this flag for updating
+												   // the window Title, and caller will
+												   // restore its default FALSE value
 			if (theNewFilename.IsEmpty())
 			{
 				// can't use an empty string as a filename, so stick with the current one
@@ -3098,7 +3124,6 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		pProgDlg->Destroy();
 #endif
 	m_bLegacyDocVersionForSaveAs = FALSE; // restore default
-	m_bDocRenameRequestedForSaveAs = FALSE; // ditto
 	return TRUE;
 }
 
