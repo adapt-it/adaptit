@@ -371,6 +371,12 @@ enum ExportType
 	freeTransTextExport
 };
 
+enum KBExportSaveAsType
+{
+	KBExportSaveAsLIFT_XML,
+	KBExportSaveAsSFM_TXT
+};
+
 /// An enum for return error-state from GetNewFile()
 enum getNewFileState
 {

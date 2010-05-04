@@ -315,7 +315,7 @@ protected:
 	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc, 
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
-	void		DoKBExport(CKB* pKB, wxFile* pFile);
+	void		DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
 	void		DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile);
 	bool		DoSrcAndTgtFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 						wxString& src,wxString& tgt, bool bIgnoreCase, int& nSequNum, int& nCount);

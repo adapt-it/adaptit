@@ -7186,7 +7186,7 @@ wxMenuBar *AIMenuBarFunc()
     item5->Append( ID_EXPORT_GLOSSES, _("Export &Glosses As Text..."), _("Export the glossing lines' contents as text") );
     item5->Append( ID_EXPORT_FREE_TRANS, _("Export Free Translation..."), _("Collect all the free translation sections' contents, adding standard format markers, and export") );
     item5->AppendSeparator();
-    item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in SIL standard format") );
+    item5->Append( ID_FILE_EXPORT_KB, _("Export Knowledge &Base..."), _("Export knowledge base in standard format or LIFT format") );
     item5->Append( ID_IMPORT_TO_KB, _("&Import to Knowledge Base..."), _("Extend knowledge base by importing dictionary records") );
     item0->Append( item5, _("E&xport-Import") );
     

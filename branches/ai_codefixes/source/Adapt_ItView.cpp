@@ -76,6 +76,8 @@
 #include "ReadOnlyProtection.h"
 #include "Adapt_ItDoc.h"
 #include "helpers.h"
+#include "BString.h"
+#include "XML.h"
 #include "EditPreferencesDlg.h" 
 #include "KB.h"
 #include "SourcePhrase.h"
@@ -20793,7 +20795,7 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	}
 	wxString str;
 	// IDS_DIC_REC_TXT
-	str = str.Format(_("dictionary records.txt"));
+	str = str.Format(_("dictionary records.xml"));
 	dicFilename += str;
 
 	wxString defaultDir;
@@ -20809,7 +20811,7 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	// get a file dialog
 	wxString filter;
 	//MFC app IDS_KB_EXPORT_FILTER
-	filter = _("Adapt It knowledge base export (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+	filter = _("XML LIFT export (*.xml)|*.xml|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
 	wxFileDialog fileDlg(
 		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 		_("Filename For KB Export"),
@@ -20836,7 +20838,7 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	// get the user's desired path
 	wxString dicPath = fileDlg.GetPath(); 
 
-	wxFile f; //CStdioFile f;
+	wxFile f;
 	if( !f.Open( dicPath, wxFile::write))
 	{
 	   #ifdef __WXDEBUG__
@@ -20847,7 +20849,18 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	   return; // return since it is not a fatal error
 	}
 
-	DoKBExport(pKB,&f);
+	int filterIndex;
+	filterIndex = fileDlg.GetFilterIndex();
+	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, i.e., first item in drop down list
+	{
+		DoKBExport(pKB,&f,KBExportSaveAsLIFT_XML);
+	}
+	else
+	{
+		// the  user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields) (*.txt)"
+		// or "All Files (*.*)" which we assume would be same as "SFM plain text export..."
+		DoKBExport(pKB,&f,KBExportSaveAsSFM_TXT);
+	}
 
 	// close the file
 	f.Close();
@@ -20856,7 +20869,9 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 // BEW modified 1Sep09 to remove a logic error, & to remove a goto command, and get rid 
 // of a bDelayed boolean flag & simplify the logic
-void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
+// whm modified 3May10 to add LIFT format XML export. 
+// Note: I've not utilized the 
+void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
 	wxASSERT(pKB != NULL);
@@ -20868,6 +20883,7 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 	key.Empty();
 	wxString gloss;
 	wxString baseKey;
+	wxString baseGloss;
 	wxString outputStr; // accumulate a whole "record" here, but abandon if it contains
 						// a <Not In KB> string, we don't export those
 	wxString strNotInKB = _T("<Not In KB>");
@@ -20885,6 +20901,41 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 	wxASSERT(pApp->m_eolStr.Find(_T('\n')) != -1 || pApp->m_eolStr.Find(_T('\r')) != -1);
 
 	wxLogNull logNo; // avoid spurious messages from the system
+
+	CBString composeXmlStr;
+	CBString indent2sp = "  ";
+	CBString indent4sp = "    ";
+	CBString indent6sp = "      ";
+	CBString indent8sp = "        ";
+	CBString indent10sp = "          ";
+	CBString srcLangCode;
+	CBString tgtLangCode;
+	CBString guidForThisLexItem;
+
+	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
+	{
+		// If the ISO639-3 language codes have not previously been entered by the user
+		// we need to get them here
+		// 
+		// TODO: Call up CLanguageCodesDlg here so the user can enter language codes for
+		// the source and target languages which are needed for the LIFT XML lang attribute of 
+		// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
+		srcLangCode = "eng"; // temporarily use this
+		tgtLangCode = "pis"; // temporarily use this
+		// 
+		// whm Note: Following the example of the Doc's DoFileSave() we build the XML LIFT
+		// format building our CBString called composeStr with manual concatenation of some
+		// string literals plus some methods from XML.cpp
+		CBString xmlPrologue;
+		// TODO: Check if it is OK to include the standalone="yes" part of the prologue produced
+		// by GetEncodingStringForSmlFiles() below as <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+		pApp->GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
+		composeXmlStr = xmlPrologue; // first string in xml file
+		CBString openLiftTag = "<lift version=\"0.12\">";
+		composeXmlStr += openLiftTag;
+		composeXmlStr += "\r\n";
+		DoWrite(*pFile,composeXmlStr);
+	}
 
 	int numWords;
 	MapKeyStringToTgtUnit::iterator iter;
@@ -20904,8 +20955,10 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 				outputStr.Empty(); // clean it out ready for next "record"
 				key = iter->first; 
 				pTU = (CTargetUnit*)iter->second; 
-				wxASSERT(pTU != NULL); 
+				wxASSERT(pTU != NULL);
 				baseKey = key;
+				// use a temporary guid below TODO use pTU->m_guid after Bruce implements m_guid member in CTargetUnit
+				guidForThisLexItem = "45a3c52b-79fd-4803-856b-207c3efdbaf8"; // pTU->m_guid;
 				key = lexSFM + key; // we put the proper eol char(s) below when writing
 
 				// get the reference strings
@@ -20930,6 +20983,48 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 					posRef = pTU->m_pTranslations->GetFirst(); 
 				wxASSERT(posRef != 0);
 
+				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
+				{
+					// build xml composeXmlStr for the <lexical-unit> ... </lexical-unit>
+					composeXmlStr = indent2sp;
+					composeXmlStr += "<entry guid=\"";
+					composeXmlStr += guidForThisLexItem;
+					composeXmlStr += "\" id=\"";
+#ifdef _UNICODE
+					composeXmlStr += pApp->Convert16to8(baseKey);
+#else
+					composeXmlStr += baseKey.c_str(); // check this use of .c_str()???
+#endif
+					composeXmlStr += "-";
+					composeXmlStr += guidForThisLexItem;
+					composeXmlStr += "\">";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent4sp; // start building a new composeXmlStr
+					composeXmlStr += "<lexical-unit>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent6sp;
+					composeXmlStr += "<form lang =\"";
+					composeXmlStr += srcLangCode;
+					composeXmlStr += "\">";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent8sp;
+					composeXmlStr += "<text>";
+#ifdef _UNICODE
+					composeXmlStr += pApp->Convert16to8(baseKey);
+#else
+					composeXmlStr += baseKey.c_str(); // check this use of .c_str()???
+#endif
+					composeXmlStr += "</text>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent6sp;
+					composeXmlStr += "</form>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent4sp;
+					composeXmlStr += "</lexical-unit>";
+					composeXmlStr += "\r\n";
+					DoWrite(*pFile,composeXmlStr);
+				}
+
 				// if control gets here, there will be at least one non-null posRef and so
 				// we can now unilaterally write out the key's line as a \lx source text field,
 				// followed by the adaptation or gloss we've already found associated with it
@@ -20938,8 +21033,46 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 				wxASSERT(pRefStr != NULL); 
 				gloss = pRefStr->m_translation;
+				baseGloss = gloss;
 				gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
 				outputStr += gloss + pApp->m_eolStr;
+
+				// reject any xml output which contains "<Not In KB>"
+				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
+					&& baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+				{
+					// build xml composeXmlStr for the <sense> ... </sense>
+					composeXmlStr = indent4sp; // start building a new composeXmlStr
+					composeXmlStr += "<sense>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent6sp;
+					composeXmlStr += "<definition>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent8sp;
+					composeXmlStr += "<form lang =\"";
+					composeXmlStr += tgtLangCode;
+					composeXmlStr += "\">";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent10sp;
+					composeXmlStr += "<text>";
+#ifdef _UNICODE
+					composeXmlStr += pApp->Convert16to8(baseGloss);
+#else
+					composeXmlStr += baseGloss.c_str(); // check this use of .c_str()???
+#endif
+					composeXmlStr += "</text>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent8sp;
+					composeXmlStr += "</form>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent6sp;
+					composeXmlStr += "</definition>";
+					composeXmlStr += "\r\n";
+					composeXmlStr += indent4sp;
+					composeXmlStr += "</sense>";
+					composeXmlStr += "\r\n";
+					DoWrite(*pFile,composeXmlStr);
+				}
 
 				// now deal with any additional CRefString instances within the same
 				// CTargetUnit instance
@@ -20949,22 +21082,62 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 					wxASSERT(pRefStr != NULL); 
 					posRef = posRef->GetNext(); // prepare for possibility of yet another
 					gloss = pRefStr->m_translation;
+					baseGloss = gloss;
 					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
 					outputStr += gloss + pApp->m_eolStr;
+					// reject any xml output which contains "<Not In KB>"
+					if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
+						&& baseGloss.Find(strNotInKB) == wxNOT_FOUND)
+					{
+						// build xml composeXmlStr for the <sense> ... </sense>
+						composeXmlStr = indent4sp; // start building a new composeXmlStr
+						composeXmlStr += "<sense>";
+						composeXmlStr += "\r\n";
+						composeXmlStr += indent6sp;
+						composeXmlStr += "<definition>";
+						composeXmlStr += "\r\n";
+						composeXmlStr += indent8sp;
+						composeXmlStr += "<form lang =\"";
+						composeXmlStr += tgtLangCode;
+						composeXmlStr += "\">";
+						composeXmlStr += "\r\n";
+						composeXmlStr += indent10sp;
+						composeXmlStr += "<text>";
+	#ifdef _UNICODE
+						composeXmlStr += pApp->Convert16to8(baseGloss);
+	#else
+						composeXmlStr += baseGloss.c_str(); // check this use of .c_str()???
+	#endif
+						composeXmlStr += "</text>";
+						composeXmlStr += "\r\n";
+						composeXmlStr += indent8sp;
+						composeXmlStr += "</form>";
+						composeXmlStr += "\r\n";
+						composeXmlStr += indent6sp;
+						composeXmlStr += "</definition>";
+						composeXmlStr += "\r\n";
+						composeXmlStr += indent4sp;
+						composeXmlStr += "</sense>";
+						composeXmlStr += "\r\n";
+						DoWrite(*pFile,composeXmlStr);
+					}
 				}
 
 				// add a blank line
 				outputStr += pApp->m_eolStr;
 
-				// reject any outputStr which contains "<Not In KB>"
-				if (outputStr.Find(strNotInKB) == wxNOT_FOUND)
+				if (kbExportSaveAsType != KBExportSaveAsLIFT_XML)
 				{
-					// the entry is good, so output it
-					#ifndef _UNICODE // ANSI version
-						pFile->Write(outputStr); 
-					#else // Unicode version
-						pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputStr);
-					#endif
+					// reject any outputStr which contains "<Not In KB>"
+					if (outputStr.Find(strNotInKB) == wxNOT_FOUND)
+					{
+							// the entry is good, so output it
+							#ifndef _UNICODE // ANSI version
+								pFile->Write(outputStr); 
+							#else // Unicode version
+								pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputStr);
+							#endif
+					}
 				}
 
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
@@ -20973,6 +21146,17 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile)
 			} while (iter != pKB->m_pMap[numWords-1]->end());
 		} // end of normal situation block ...
 	} // end of numWords outer loop
+	
+	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
+	{
+		// build xml composeXmlStr for the ending </entry> tag
+		composeXmlStr = indent2sp; // start building a new composeXmlStr
+		composeXmlStr += "</entry>"; // start building a new composeXmlStr
+		composeXmlStr += "\r\n";
+		composeXmlStr += "</lift>"; // start building a new composeXmlStr
+		composeXmlStr += "\r\n";
+		DoWrite(*pFile,composeXmlStr);
+	}
 }
 
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
