@@ -167,4 +167,7 @@ bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFir
 bool		IsNullSrcPhraseInSelection(SPList* pList);
 bool		IsRetranslationInSelection(SPList* pList);
 
+// guid support
+wxString GetGuid();
+
 #endif	// helpers_h

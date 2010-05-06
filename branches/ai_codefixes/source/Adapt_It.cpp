@@ -154,6 +154,8 @@
 #include "Notes.h"
 #include "Retranslation.h"
 #include "Placeholder.h"
+//#include "Uuid_AI.h" // for testing, then comment out
+
 
 #if !wxUSE_WXHTML_HELP
     #error "This program can't be built without wxUSE_WXHTML_HELP set to 1"
@@ -7743,6 +7745,21 @@ wxString content;
 wxString filtered = _T("\\f + This is a footnote. \\f*");
 ParseMarkersAndContent(filtered, mkr, content, endMkr);
 int ii = 1;
+*/
+
+/*
+// test UUID generation
+	wxString aGuid; 
+	int i;
+	for (i = 1; i<20; i++)
+	{
+		aGuid.Empty();
+		Uuid_AI* pGuidGen = new Uuid_AI(); // generates the UUID
+		aGuid = pGuidGen->GetGUID(); // gets it as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" (32 hex digits plus 4 hyphens = total 36 chars)
+		delete pGuidGen;
+		wxLogDebug(_T("GUID =    %s"), aGuid);
+
+	}
 */
 
 #if wxMAC_USE_CORE_GRAPHICS

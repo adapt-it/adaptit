@@ -102,12 +102,8 @@ public:
 
 	virtual ~CKB();
 
-// Serialization
-public:
-	//virtual void	Serialize(CArchive& ar);
-	// Serialize is replaced by LoadObject() and SaveObject() in the wxWidgets version
-	//wxOutputStream& SaveObject(wxOutputStream& stream);
-	//wxInputStream& LoadObject(wxInputStream& stream);
+  private:
+    int		m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
 };
 #endif // KB_h

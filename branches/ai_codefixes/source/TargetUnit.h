@@ -67,12 +67,17 @@ public:
 	virtual ~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 
-//public:
-// MFC"s Serialize replaced by LoadObject() and SaveObject() above
-//	virtual void	Serialize(CArchive& ar);
+#if defined MAKEPUBLIC
+public:
+	wxString m_guid;
+#else
+private:
+	wxString	m_guid;
+	wxString	GetGuid();
+	void		SetGuid(wxString guid); 
+#endif
 
 
-protected:
 
 private:
 	// class attributes

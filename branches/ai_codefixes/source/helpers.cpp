@@ -42,6 +42,7 @@
 #include "SourcePhrase.h"
 #include "ExportFunctions.h"
 #include "PlaceInternalMarkers.h"
+#include "Uuid_AI.h" // for guid support
 
 /// This global is defined in Adapt_It.cpp.
 extern CAdapt_ItApp* gpApp;
@@ -2803,4 +2804,19 @@ bool IsRetranslationInSelection(SPList* pList)
 	}
 	return FALSE;
 }
+
+// guid support
+wxString GetGuid()
+{
+	// returns it as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" 
+	// (32 hex digits plus 4 hyphens = total 36 chars followed by null char (37th))
+	wxString aGuid; 
+	Uuid_AI* pGuidGen = new Uuid_AI(); // generates the UUID
+	aGuid = pGuidGen->GetGUID(); 
+	delete pGuidGen;
+	//wxLogDebug(_T("GUID =    %s"), aGuid);
+	return aGuid;
+}
+
+
 
