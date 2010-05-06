@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 031BF31811932FF6005223ED /* Uuid_AI.cpp */; };
 		0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0386CB741140CEB9000F9E2E /* Retranslation.cpp */; };
 		03D7A719112A2601004F6D39 /* Notes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D7A718112A2601004F6D39 /* Notes.cpp */; };
 		7D5D920D0FFBB9E6005E7ED3 /* Layout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D5D920B0FFBB9E6005E7ED3 /* Layout.cpp */; };
@@ -114,6 +115,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		031BF31811932FF6005223ED /* Uuid_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid_AI.cpp; path = ../../source/Uuid_AI.cpp; sourceTree = SOURCE_ROOT; };
+		031BF31911932FF6005223ED /* Uuid_AI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Uuid_AI.h; path = ../../source/Uuid_AI.h; sourceTree = SOURCE_ROOT; };
 		0386CB731140CEB9000F9E2E /* Retranslation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Retranslation.h; path = ../../source/Retranslation.h; sourceTree = SOURCE_ROOT; };
 		0386CB741140CEB9000F9E2E /* Retranslation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Retranslation.cpp; path = ../../source/Retranslation.cpp; sourceTree = SOURCE_ROOT; };
 		03D7A717112A2601004F6D39 /* Notes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Notes.h; path = ../../source/Notes.h; sourceTree = "<group>"; };
@@ -357,6 +360,8 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				031BF31811932FF6005223ED /* Uuid_AI.cpp */,
+				031BF31911932FF6005223ED /* Uuid_AI.h */,
 				C805DBEE11705519006919E2 /* Placeholder.h */,
 				C805DBEF11705519006919E2 /* Placeholder.cpp */,
 				0386CB731140CEB9000F9E2E /* Retranslation.h */,
@@ -626,9 +631,11 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "AdaptIt" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 20286C29FDCF999611CA2CEA /* AdaptIt */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				8D0C4E890486CD37000505A6 /* AdaptIt */,
 			);
@@ -763,6 +770,7 @@
 				0386CB751140CEB9000F9E2E /* Retranslation.cpp in Sources */,
 				C815B905115D76DD00C20DAA /* Adapt_It.cpp in Sources */,
 				C805DBF011705519006919E2 /* Placeholder.cpp in Sources */,
+				031BF31A11932FF6005223ED /* Uuid_AI.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -810,7 +818,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "Adapt It";
-				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
 				WARNING_CFLAGS = (
@@ -864,7 +872,7 @@
 				);
 				PRODUCT_NAME = "Adapt It";
 				UNSTRIPPED_PRODUCT = NO;
-				USER_HEADER_SEARCH_PATHS = "${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
+				USER_HEADER_SEARCH_PATHS = "${BOOST_ROOT} ${SYMROOT}/include ${WXWIN}/include ${WXWIN}/src/build/include .";
 				USE_HEADERMAP = "";
 				USE_SEPARATE_HEADERMAPS = YES;
 				VERSIONING_SYSTEM = "apple-generic";
