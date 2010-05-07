@@ -69,12 +69,13 @@ public:
 
 #if defined MAKEPUBLIC
 public:
-	wxString m_guid;
+	wxString m_uuid;
 #else
 private:
-	wxString	m_guid;
-	wxString	GetGuid();
-	void		SetGuid(wxString guid); 
+	wxString	m_uuid;
+public:
+	wxString	GetUuid();
+	void		SetUuid(wxString uuid); 
 #endif
 
 

@@ -51,27 +51,12 @@ public:
 	Uuid_AI(void); // constructor
 	~Uuid_AI(void); // destructor
 	// accessor
-	wxString GetGUID();
+	wxString GetUUID();
 private:
 	boost::uuids::uuid u;
 
 	DECLARE_DYNAMIC_CLASS(Uuid_AI) 
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif // for uuid_ai_h

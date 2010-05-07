@@ -51,15 +51,15 @@
 // BEW 3May10: kbVersion 2 will have a version number in the xml file(attribute
 // kbVersion="2" in the <KB element, replacing the docVersion attribute there - which is
 // not good design, we want KB and Doc to be independently versionable), will include a
-// unique guid for each unique CTargetUnit, but since the CTargetUnits are not saved as
-// such, each guid will appear in one or more <TU> elements with a new attribute
-// guid="theguid", the guids are in subfields of length 8,4,4,4,12, hyphen separated, as
+// unique uuid for each unique CTargetUnit, but since the CTargetUnits are not saved as
+// such, each uuid will appear in one or more <TU> elements with a new attribute
+// uuid="theUuid", the uuids are in subfields of length 8,4,4,4,12, hyphen separated, as
 // required by LIFT format, and there will be a standoff markup file as well, with
-// metadata, linked by the guids. Prior to 3May10, the KB was not versioned.
+// metadata, linked by the uuids. Prior to 3May10, the KB was not versioned.
 #define KB_VERSION2			2 // to coincide with the introduction of docVersion 5 (at 5.3.0?)
 #define KB_VERSION1			1 // legacy KBs, from 1.0.0 to 5.2.x
 
-#define MAKEPUBLIC			// temporary, to conditionally compile access to CTargetUnit::m_guid
+//#define MAKEPUBLIC		// temporary, to conditionally compile access to CTargetUnit::m_uuid
 							// directly, and if undefined, by access functions - later
 							// test the impact the access functions have on speed
 

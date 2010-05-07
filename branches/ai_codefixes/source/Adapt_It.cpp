@@ -7749,15 +7749,15 @@ int ii = 1;
 
 /*
 // test UUID generation
-	wxString aGuid; 
+	wxString anUuid; 
 	int i;
 	for (i = 1; i<20; i++)
 	{
-		aGuid.Empty();
-		Uuid_AI* pGuidGen = new Uuid_AI(); // generates the UUID
-		aGuid = pGuidGen->GetGUID(); // gets it as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" (32 hex digits plus 4 hyphens = total 36 chars)
-		delete pGuidGen;
-		wxLogDebug(_T("GUID =    %s"), aGuid);
+		anUuid.Empty();
+		Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
+		aUuid = pUuidGen->GetUUID(); // gets it as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" (32 hex digits plus 4 hyphens = total 36 chars)
+		delete pUuidGen;
+		wxLogDebug(_T("UUID =    %s"), anUuid);
 
 	}
 */

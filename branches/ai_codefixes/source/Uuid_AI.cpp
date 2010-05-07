@@ -74,7 +74,7 @@ Uuid_AI::Uuid_AI()
 
 Uuid_AI::~Uuid_AI(){}
 
-wxString Uuid_AI::GetGUID()
+wxString Uuid_AI::GetUUID()
 {
 	// return the string representation
 	std::stringstream ss;

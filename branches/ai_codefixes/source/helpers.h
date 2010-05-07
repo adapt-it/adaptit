@@ -162,12 +162,12 @@ wxString FromSingleMakeTstr(CSourcePhrase* pSingleSrcPhrase, wxString Tstr);
 wxString FromMergerMakeSstr(CSourcePhrase* pMergedSrcPhrase);
 wxString FromMergerMakeGstr(CSourcePhrase* pMergedSrcPhrase);
 
-bool		IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
+bool	 IsContainedByRetranslation(int nFirstSequNum, int nCount, int& nSequNumFirst,
 									   int& nSequNumLast);
-bool		IsNullSrcPhraseInSelection(SPList* pList);
-bool		IsRetranslationInSelection(SPList* pList);
+bool	 IsNullSrcPhraseInSelection(SPList* pList);
+bool	 IsRetranslationInSelection(SPList* pList);
 
-// guid support
-wxString GetGuid();
+// uuid support
+wxString GetUuid();
 
 #endif	// helpers_h
