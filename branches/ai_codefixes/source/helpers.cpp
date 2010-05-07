@@ -2808,7 +2808,7 @@ bool IsRetranslationInSelection(SPList* pList)
 // uuid support
 wxString GetGuid()
 {
-	// returns it as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" 
+	// it is returned as "hhhhhhhh-hhhh-hhhh-hhhh-hhhhhhhhhhhh" 
 	// (32 hex digits plus 4 hyphens = total 36 chars followed by null char (37th))
 	wxString anUuid; 
 	Uuid_AI* pUuidGen = new Uuid_AI(); // generates the UUID
