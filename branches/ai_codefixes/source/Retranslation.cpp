@@ -75,6 +75,7 @@
 #include "Adapt_ItDoc.h"
 #include "WaitDlg.h"
 #include "Placeholder.h"
+#include "KB.h"
 #include "RetranslationDlg.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -782,12 +783,12 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 											bool bAlsoUpdateSublist)
 {
 	int nNumElements = 1;
-	CRefString* pRefString = (CRefString*)NULL;
 	SPList::Node* pos = pList->GetFirst();
 	int nTotalExtras = 0; // accumulate the total number of extras added by unmerging,
-	// this will be used if the updating of the sublist is asked for
+						  // this will be used if the updating of the sublist is asked for
 	int nInitialSequNum = pos->GetData()->m_nSequNumber; // preserve this
-	// for sublist updating
+														 // for sublist updating
+	wxString emptyStr = _T("");
 	while (pos != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
@@ -862,16 +863,12 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 		else
 		{
 			//  remove the refString from the KB, etc.
-			pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-									  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-            // it is okay to do the following call with pRefString == NULL, in fact, it
-            // must be done whether NULL or not; since if it is NULL, RemoveRefString will
-            // clear pSrcPhrase's m_bHasKBEntry to FALSE, which if not done, would result
-            // in a crash if the user clicked on a source phrase which had its reference
-            // string manually removed from the KB and then clicked on another source
-            // phrase. (The StoreAdaption call in the second click would trip the first
-            // line's wxASSERT.)
-			m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+
+			// last param being FALSE means do lookup with m_gloss or m_adaption, not
+			// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+			// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
+			// not support making, editing or removal of retranslations)
+			m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
 			
 			// we must abandon any existing adaptation text
 			pSrcPhrase->m_adaption.Empty();
@@ -1109,15 +1106,17 @@ void CRetranslation::PadWithNullSourcePhrasesAtEnd(CAdapt_ItDoc* pDoc,
 void CRetranslation::ClearSublistKBEntries(SPList* pSublist)
 {
 	SPList::Node* pos = pSublist->GetFirst();
+	wxString emptyStr = _T("");
 	while (pos != NULL)
 	{
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
-		CRefString* pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-											  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-        // it is okay to do the following call with pRefString == NULL, the function will
-        // just exit early, having done nothing
-		m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+
+		// last param being FALSE means do lookup with m_gloss or m_adaption, not
+		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+		// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
+		// not support making, editing or removal of retranslations)
+		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
 		pSrcPhrase->m_bRetranslation = FALSE; // make sure its off
 		pSrcPhrase->m_bHasKBEntry = FALSE;	  // ditto
 	}
@@ -2098,15 +2097,12 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 			m_pApp->m_pTargetBox->m_bAbandonable = FALSE;
 		}
 		
-        // it is okay to do the Remove call with pRefString == NULL, in fact, it must be
-        // done whether NULL or not; since if it is NULL, RemoveRefString will clear
-        // pSrcPhrase's m_bHasKBEntry to FALSE, which if not done, would result in a crash
-        // if the user clicked on a source phrase which had its reference string manually
-        // removed from the KB and then clicked on another source phrase. (The
-        // StoreAdaption call in the second click would trip the first line's ASSERT.)
-		CRefString* pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-											  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-		m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+		wxString emptyStr = _T("");
+		// last param being FALSE means do lookup with m_gloss or m_adaption, not
+		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+		// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
+		// not support making, editing or removal of retranslations)
+		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
 		
 		m_pApp->m_targetPhrase = str3; // the Phrase Box can have punctuation as well as text
 		m_pApp->m_pTargetBox->ChangeValue(str3);
@@ -2796,16 +2792,13 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			}
 		}
 		
-        // it is okay to do the Remove call with pRefString == NULL, in fact, it must be
-        // done whether NULL or not; since if it is NULL, RemoveRefString will clear
-        // pSrcPhrase's m_bHasKBEntry to FALSE, which if not done, would result in a crash
-        // if the user clicked on a source phrase which had its reference string manually
-        // removed from the KB and then clicked on another source phrase. (The
-        // StoreAdaption call in the second click would trip the first line's ASSERT.)
-		CRefString* pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-											  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-		m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
-		
+		wxString emptyStr = _T("");
+		// last param being FALSE means do lookup with m_gloss or m_adaption, not
+		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+		// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
+		// not support making, editing or removal of retranslations)
+		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+	
 		m_pApp->m_targetPhrase = str3;
 		if (m_pApp->m_pTargetBox != NULL)
 		{

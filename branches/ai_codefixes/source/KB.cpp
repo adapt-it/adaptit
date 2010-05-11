@@ -37,9 +37,12 @@
 #include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
 
 #include "Adapt_It.h"
+#include "Adapt_ItView.h"
+#include "SourcePhrase.h"
 #include "KB.h"
 #include "AdaptitConstants.h" 
 #include "TargetUnit.h"
+#include "RefString.h"
 
 // Define type safe pointer lists
 #include "wx/listimpl.cpp"
@@ -55,6 +58,23 @@ IMPLEMENT_DYNAMIC_CLASS(CKB, wxObject)
 /// This global is defined in Adapt_ItView.cpp.
 extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossing text
 
+// globals needed due to moving functions here from mainly the view class
+// next group for auto-capitalization support
+extern bool	gbAutoCaps;
+extern bool	gbSourceIsUpperCase;
+extern bool	gbNonSourceIsUpperCase;
+extern bool	gbMatchedKB_UCentry;
+extern bool	gbNoSourceCaseEquivalents;
+extern bool	gbNoTargetCaseEquivalents;
+extern bool	gbNoGlossCaseEquivalents;
+extern wxChar gcharNonSrcLC;
+extern wxChar gcharNonSrcUC;
+extern wxChar gcharSrcLC;
+extern wxChar gcharSrcUC;
+// next, for ???
+
+extern bool gbNoAdaptationRemovalRequested;
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -62,6 +82,8 @@ extern bool	gbIsGlossing; // when TRUE, the phrase box and its line have glossin
 
 CKB::CKB()
 {
+	m_pApp = &wxGetApp();
+
 	m_nMaxWords = 1; // value for a minimal phrase
 
 	// whm Note: I've changed the order of the following in order to create
@@ -237,229 +259,373 @@ void CKB::Copy(const CKB& kb)
 	}
 }
 
-/*
-// Implementations of LoadObject and SaveObject below take the place of this 
-// MFC Serialize function
-void CKB::Serialize(CArchive& ar)
+// the "adaptation" parameter will contain an adaptation if gbIsGlossing is FALSE, or if
+// TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will have
+// come from either the adaptation KB or the glossing KB.
+// BEW 11May10, moved from view class, and made private (it's only called once, in GetRefString())
+CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation)
 {
-	CObject::Serialize(ar);	// serialize base class
-
-	m_pTargetUnits->Serialize(ar);
-
-	for (int i=0; i<MAX_WORDS; i++)
+	CRefString* pRefStr = (CRefString*)NULL;
+	TranslationsList* pList = pTgtUnit->m_pTranslations;
+	wxASSERT(pList);
+	bool bNoError;
+	if (gbAutoCaps && gbSourceIsUpperCase && !gbMatchedKB_UCentry && !adaptation.IsEmpty())
 	{
-		m_pMap[i]->Serialize(ar);
-	}
-
-	if(ar.IsStoring())
-	{
-		ar << m_sourceLanguageName;
-		ar << m_targetLanguageName;
-
-		ar << (DWORD)m_nMaxWords;
-
+		// possibly we may need to change the case of first character of 'adaptation'
+		bNoError = m_pApp->GetView()->SetCaseParameters(adaptation, FALSE); // FALSE means it is an
+														 // adaptation or a gloss
+		if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
+		{
+			// a change to lower case is called for; 
+			// otherwise leave 'adaptation' unchanged
+			adaptation.SetChar(0,gcharNonSrcLC);
+		}
 	}
 	else
 	{
-		ar >> m_sourceLanguageName;
-		ar >> m_targetLanguageName;
-
-		DWORD dd;
-		ar >> dd;
-		m_nMaxWords = (int)dd;
-
+        // either autocapitalization is OFF, or the source text starts with a lower case
+        // letter, or the first lookup for the key failed but an upper case lookup
+        // succeeded (in which case we assume its a old style entry in the KB) or the
+        // adaptation string is empty - any of these conditions require that no change of
+        // case be done
+		;
 	}
-}
-*/
-/*
-wxOutputStream &CKB::SaveObject(wxOutputStream& stream)
-{
-	wxDataOutputStream ar( stream );
 
-	// Note on CKB Serialization in wxWidgets:
-	//In the wxWidgets version there is no built-in serialization
-	//capability for the collection classes wxList and wxHashMap, so
-	//we will need to provide our own way of maintaining persistence
-	//in our association or mapping of source text words and phrases 
-	//with our list of CTargetUnit objects. We will do it in a way
-	//that does not serialize the list of CTargetUnits separately from
-	//our map of source string (key) - CTargetUnit* pointer pairs 
-	//stored in our MapKeyStringToTgtUnit hash map. Rather than serializing
-	//them separately, we'll serialize the data more directly by 
-	//serializing each key followed directly by the data members of
-	//the CTargetUnit associated with that key. Then, when serializing
-	//the data back in, we can use LoadObject to create the appropriate
-	//objects, and rebuild our map of source string (key) and TU object
-	//pointer associations, and our list of TUs. In essence then, our
-	//map associations are being preserved by embedding of object data
-	//in the stream, rather than by a generalized scheme of object pointer 
-	//creation and tracking by means of "manifest constants" and 
-	//persistent identifiers, or PIDs assigned to every unique object 
-	//and every unique class name that is saved in the context of the 
-	//archive. The MFC solution is generalized in the sense that it 
-	//allows the programmer to store the objects and collections
-	//of objects in almost any order in an archive, whereas our method
-	//makes the ordering of objects within the archive reflect the
-	//actual programatic associations between our objects in the case
-	//of the collection classes.
-
-	// The MFC "IsStoring" has the following basic code for CKB:
-	//CObject::Serialize(ar);	// serialize base class
-	//m_pTargetUnits->Serialize(ar);
-	//for (int i=0; i<MAX_WORDS; i++)
-	//{
-	//	m_pMap[i]->Serialize(ar);
-	//}
-	//if(ar.IsStoring())
-	//{
-	//	ar << m_sourceLanguageName;
-	//	ar << m_targetLanguageName;
-	//	ar << (DWORD)m_nMaxWords;
-	//}
-
-	// For wxWidgets we won't serialize the TUList separately, but
-	// rather we'll serialize each of the m_pMap[i] hash maps
-	// embedding the associated m_pTargetUnit's object data as we go.
-
-	wxString keyStr;
-	for (int i=0; i<MAX_WORDS; i++)
+	TranslationsList::Node *pos = pList->GetFirst();
+	while(pos != NULL)
 	{
-		// call SaveObject on each key/value pair in m_pMap[i]
-		MapKeyStringToTgtUnit::iterator iter;
-		wxInt32 count = m_pMap[i]->size();
-		ar << count; // write out the number of items in this map
-		for (iter = m_pMap[i]->begin(); iter != m_pMap[i]->end(); ++iter)
+		pRefStr = (CRefString*)pos->GetData();
+		pos = pos->GetNext();
+		wxASSERT(pRefStr != NULL);
+		if (pRefStr->m_translation == adaptation)
+			return pRefStr; // we found it
+		else
 		{
-			keyStr = iter->first; // get the key string iter->first is the key string
-			ar << keyStr; // serialize out the key string
-
-			// iter->second holds a pointer to the associated CTargetUnit in
-			// the TUList. We won't serialize out the pointer, but instead we
-			// will serialize out to the stream the unique CTargetUnit that is 
-			// associated with the keyStr.
-			CTargetUnit* pAssocTU = iter->second;
-			//TUList::Node* node = m_pTargetUnits->Find(keyStr);
-			//wxASSERT(node != NULL); // this must be true
-			//CTargetUnit* pTU = (CTargetUnit*)node->GetData();
-			// pTU now points to the CTargetUnit we want to serialize in
-			// association with keyStr, so call CTargetUnit's SaveObject()
-			// on it
-			pAssocTU->SaveObject(stream);
-			// Note: When the data is read back in with LoadObject, we will
-			// then reassociate the newly created CTargetUnit in the map and
-			// add it back to our TUList.
+			if (adaptation.IsEmpty())
+			{
+				// it might be a <Not In KB> source phrase, check it out
+				if (pRefStr->m_translation == _T("<Not In KB>"))
+					return pRefStr; // we return the pointer to this too
+			}
 		}
 	}
-
-	// Serialize our CKB's other members
-	ar << m_sourceLanguageName;
-	ar << m_targetLanguageName;
-	ar.Write32(m_nMaxWords); //ar << wxUint32(m_nMaxWords); // MFC uses DWORD
-
-	// wxWidgets Notes: 
-	// 1. Stream errors should be dealt with in the caller of CKB::SaveObject()
-	//    which would be App's StoreKB(), StoreGlossingKB(), and 
-	//    AccessOtherAdaptionProject().
-	// 2. Streams automatically close their file descriptors when they
-	//    go out of scope. 
-	return stream;
+	// finding it failed so return NULL
+	return (CRefString*)NULL;
 }
 
-wxInputStream &CKB::LoadObject(wxInputStream& stream)
+// looks up the knowledge base to find if there is an entry in the map with index
+// nSrcWords-1, for the key keyStr and then searches the list in the CTargetUnit for the
+// CRefString with m_translation member identical to valueStr, and returns a pointer to
+// that CRefString instance. If it fails, it returns a null pointer. 
+// (Note: Jan 27 2001 changed so that returns the pRefString for a <Not In KB> entry). For
+// version 2.0 and later, pKB will point to the glossing KB when gbIsGlossing is TRUE.
+// Ammended, July 2003, to support auto capitalization
+// BEW 11May10, moved from CAdapt_ItView class
+CRefString* CKB::GetRefString(CKB *pKB, int nSrcWords, wxString keyStr, wxString valueStr)
 {
-	wxDataInputStream ar( stream );
-
-	// (see note on SaveObject() above)
-
-	// When MFC version of Serialize is loading rather
-	// that storing, it has the following basic code for CKB:
-	//CObject::Serialize(ar);	// serialize base class
-	//m_pTargetUnits->Serialize(ar);
-	//for (int i=0; i<MAX_WORDS; i++)
-	//{
-	//	m_pMap[i]->Serialize(ar);
-	//}
-	//if(ar.IsStoring())
-	//{
-	//	...
-	//}
-	//else
-	//{
-	//	ar >> m_sourceLanguageName;
-	//	ar >> m_targetLanguageName;
-	//	DWORD dd;
-	//	ar >> dd;
-	//	m_nMaxWords = (int)dd;
-	//}
-
-	// To achieve this loading functionality in wxWidgets we do the 
-	// complement of what SaveObject() does above:
-	// 1. Initialize the TUList to empty.
-	// 2. Iterate through each of the 10 maps. For each map[i]:
-	// 3. Clear the given map[i] starting empty for each iteration
-	// 4. Read the wxInt32 count from the archive to know how many 
-	//    mapped associations to expect for the given map. Use that
-	//    count to set up a for loop to iterate count times. Each loop:
-	// 5. Read the inStr key string from the archive.
-	// 6. Create a new CTargetUnit, and call the CTargetUnit->LoadObject()
-	//    method to load the object's data from the archive.
-	// 7. Add the newly created CTargetUnit to CKB's TUList.
-	// 8. Add the inStr (key), and the newly created CTargetUnit* (pointer)
-	//    to the CKB's MapKeyStringToTgtUnit hash map.
-
-	// Insure we're starting with empty TUList
-	// Note: Originally I had this TUList initialization embedded within  
-	// the for loop below. That was, of course, and error since the TUList
-	// was then being emptied at the beginning of each of the 10 map
-	// serializaions, thus effectively leaving the TUList empty (except 
-	// for the rare case when map[9] would have some 10-word source phrases 
-	// mapped).
-	int tucount = m_pTargetUnits->GetCount();
-	if (tucount > 0)
-		m_pTargetUnits->Clear();
-
-	wxString keyStr;
-	for (int i=0; i<MAX_WORDS; i++)
+	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nSrcWords-1];
+	wxASSERT(pMap != NULL);
+	CTargetUnit* pTgtUnit;	// wx version changed 2nd param of AutoCapsLookup() below to
+							// directly use CTargetUnit* pTgtUnit
+	CRefString* pRefStr;
+	bool bOK = m_pApp->GetView()->AutoCapsLookup(pMap,pTgtUnit,keyStr);
+	if (bOK)
 	{
-		// Insure we're starting with empty m_pMap[i]
-		//int tucount = m_pTargetUnits->GetCount();
-		//if (tucount > 0)
-		//	m_pTargetUnits->Clear();
-		int mcount = m_pMap[i]->size();
-		if ( mcount > 0)
-			m_pMap[i]->clear();
+		return pRefStr = AutoCapsFindRefString(pTgtUnit,valueStr);
+	}
+	// lookup failed, so the KB state is different than data in the document suggests,
+	// a Consistency Check operation should be done on the file(s)
+	return (CRefString*)NULL;
+}
 
-		// Read the wxInt32 nMapSize value so we'll know how many key/value 
-		// pairs are to be stored in the map.
-		wxInt32 nMapSize;
-		ar >> nMapSize;
+/////////////////////////////////////////////////////////////////////////////////
+/// \return     nothing
+/// \param      pRefString      ->  pointer to the CRefString object to be deleted
+/// \param      pSrcPhrase      ->  pointer to the CSourcePhrase instance whose m_key
+///                                 member supplies the key for locating the CTargetUnit
+///                                 in the relevant knowledge base map
+/// \param      nWordsInPhrase  ->  used in order to define which map to look up
+/// \remarks
+/// Removes the wxString and reference count associated with it, (embodied as a CRefString
+/// object)from a CTargetUnit instance in the knowledge base.
+/// If pRefString is referenced only once, remove it from KB (since the phraseBox will hold
+/// a copy of its string if it is still wanted), or if it is referenced more than once,
+/// then just decrement the reference count by one, and set the srcPhrase's m_bHasKBEntry
+/// flag to FALSE; also make sure m_bAlwaysAsk is set or cleared as the case may be. For
+/// version 2.0 and onwards we must test gbIsGlossing in order to set the KB pointer to
+/// either the adaption KB or the glossing KB; and the caller must supply the appropriate
+/// first and last parameters (ie. a pRefString from the glossing KB and nWordsInPhrase set
+/// to 1 when gbIsGlossing is TRUE)
+/// Ammended, July 2003, to support auto capitalization
+/// BEW changed 05July2006 to fix a long-standing error where the m_bHasKBEntry flag, or
+/// the m_bHasGlossingKBEntry flag, was not cleared when the phrase box lands at a location
+/// which earlier contributed an entry to the KB. The reason it wasn't cleared was because
+/// I put the code for that in an "if (pRefString == NULL)" test's true block, so it
+/// wouldn't get called except at locations which did not as yet have any KB entry! So I
+/// commented out the test. (In StoreText() and StoreTextGoingBack() I unilaterally cleared
+/// the flags at its start so that the store would not fail; I've now removed that bit of
+/// code & tested - seems fine now.)
+/// BEW 20Mar07: code added to suppress the decrement or kb entry removal if retranslating
+/// is currenty going on, or editing of a retranslation (we don't want to dumb down the KB)
+/// needlessly
+/// BEW 11May10, moved from CAdapt_ItView class
+void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase)
+{
+	if (gbIsGlossing)
+		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+	else
+		pSrcPhrase->m_bHasKBEntry = FALSE;
+	if (!gbIsGlossing && pSrcPhrase->m_bNotInKB)
+	{
+		// version 2 can do this block only when the adaption KB is in use
+		pSrcPhrase->m_bHasKBEntry = FALSE;
+		return; // return because nothing was put in KB for this source phrase anyway
+	}
+	
+	//CAdapt_ItApp* pApp = GetDocument()->GetApp();
 
-		// Use nMapSize to construct a for loop to read in the key/value
-		// pairs.
-		for (int ct = 0; ct < nMapSize; ct++)
+    // BEW added 06Sept06: the above tests handle what must be done to the document's
+    // pSrcPhrase instance passed in, but it could be the case that the preceding
+    // GetRefString() call did not find a KB entry with the given reference string
+    // instance, in which case it would have returned NULL. In that case there is nothing
+    // to remove, and no more to be done here, so test for this possibility and return
+    // immediately if so.
+	if (pRefString == NULL)
+		return;
+
+    // for autocapitalization support, we have to be careful that the translation (or
+    // gloss) which we delete in the case when the ref count drops to zero is the actual
+    // one in the KB - we can't always take it from pSrcPhrase->m_key because if auto caps
+    // is ON it might be the case that the entry was put in when auto caps is OFF and then
+    // we'd wrongly change to lower case and not succeed in removing the entry from the
+    // map, so we have to be a bit more clever. So we'll set s to the key as on the
+    // sourcephrase, and a second string s1 will have the other case equivalent, and if the
+    // first does not get removed, we try the second (which should work); we still need to
+    // form the second only when gbAutoCaps is TRUE, since when it is OFF, a failed
+    // GetRefString( ) call will not result in an attempt to remove a lower case entry
+    // stored when gbAutoCaps was ON
+	wxString s = pSrcPhrase->m_key;
+	wxString s1 = s;
+	bool bNoError = TRUE;
+	if (gbAutoCaps)
+	{
+		bNoError = m_pApp->GetView()->SetCaseParameters(s1);
+		if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
 		{
-			// Read the key string stored in the stream
-			ar >> keyStr;
-			// Create a new CTargetUnit instance
-			CTargetUnit* pData = new CTargetUnit;
-			wxASSERT(pData != NULL);
-			// Load the CTargetUnit's object data from the archive
-			pData->LoadObject(stream);
-			// Add the newly created CTargetUnit to CKB's TUList
-			m_pTargetUnits->Append(pData);	// add the new CTargetUnit instance 
-			// enter the key/value pair into the map
-			(*m_pMap[i])[keyStr] = (CTargetUnit*)pData;
+			// make it start with lower case letter
+			s1.SetChar(0,gcharSrcLC);
 		}
 	}
+	int nRefCount = pRefString->m_refCount;
+	wxASSERT(nRefCount > 0);
+	if (nRefCount > 1)
+	{
+        // more than one reference to it, so just decrement & remove the srcPhrase's
+        // knowledge of it, this does not affect the count of how many translations there
+        // are, so m_bAlwaysAsk is unaffected. Version 2 has to test gbIsGlossing and set
+        // the relevant flag to FALSE.
+		if (!(m_pApp->GetRetranslation()->GetIsRetranslationCurrent()))
+		{
+			// BEW 20Mar07: don't decrement if retranslation, or editing of same, 
+			// is currently happening
+			pRefString->m_refCount = --nRefCount;
+		}
+		if (gbIsGlossing)
+		{
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		}
+		else
+		{
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+		}
+	}
+	else
+	{
+        // from version 1.2.9 onwards, since <no adaptation> has to be caused manually, we
+        // no longer want to automatically remove an empty adaptation whenever we land on
+        // one - well, not quite true, we can remove automatically provided the ref count
+        // is greater than one, but we have to block automatic decrements which would
+        // result in a count of zero - else we'd lose the value from the KB altogether and
+        // user would not know. We need this protection because an ENTER will not cause
+        // automatic re-storing of it. So now, we will just not remove the last one. This
+        // will possibly skew the ref counts a bit for empty adaptations, if the user hits
+        // the <no adaptation> button more than once for an entry (making them too large)
+        // or landing on an empty one several times (makes count to small), would not
+        // matter anyway. To manually remove empty adaptations from the KB the user still
+        // has the option of doing it in the KB Editor, or in the ChooseTranslation dialog.
 
-	// Serialize in the remaining CKB members
-	ar >> m_sourceLanguageName;
-	ar >> m_targetLanguageName;
+        //BEW changed behaviour 20Jun06 because unilaterally returning here whenever the
+        //m_translation string was empty meant that if the user wanted to remove his
+        //earlier "<no adaptation>" choice, there was no way to effect it from the
+        //interface. So now we have a global flag gbNoAdaptationRemovalRequested which is
+        //TRUE whenever the user hits backspace or Del key in an empty phrasebox, provided
+        //that locatation's CSourcePhrase has m_bHasKBEntry (when in adapting mode) set
+        //TRUE, or m_bHasGlossingKBEntry (when in glossing mode) set TRUE. Hence if neither
+        //BS or DEL key is pressed, we'll get the legacy (no deletion & retaining of the
+        //flag value) behaviour as before.
+		if (pRefString->m_translation.IsEmpty())
+		{
+			if (!gbNoAdaptationRemovalRequested)
+				return; // never automatically reduce count to zero; if user wants to be 
+                        //rid of it, he must do so manually -- no, there was no 'manual'
+                        //way to do it for the document CSourcePhrase instance, so 20Jun06
+                        //change introduces a backspace or DEL key press to effect the
+                        //removal
+		}
+		gbNoAdaptationRemovalRequested = FALSE; // ensure cleared to default value, & 
+                        // permit removal after the flag may have been used in previous
+                        // block
 
-	wxUint32 dd;
-	ar >> dd;
-	m_nMaxWords = (int)dd;
+		if (m_pApp->GetRetranslation()->GetIsRetranslationCurrent())
+		{
+            // BEW 20Mar07: don't remove if retranslation, or editing of same, is currently
+            // happening because we don't want retranslations to effect the 'dumbing down'
+            // of the KB by removal of perfectly valid KB entries belonging to the
+            // retranslation span formerly
+			return;
+		}
 
-	return stream;
+        // this reference string is only referenced once, so remove it entirely from KB or
+        // from the glossing KB, depending on gbIsGlossing flag's value
+		CTargetUnit* pTU = pRefString->m_pTgtUnit; // point to the owning targetUnit
+		wxASSERT(pTU != NULL);
+		int nTranslations = pTU->m_pTranslations->GetCount();
+		wxASSERT(nTranslations > 0); // must be at least one
+		if (nTranslations == 1)
+		{
+			// we are removing the only CRefString in the owning targetUnit, so the latter must
+			// go as well
+			CTargetUnit* pTgtUnit;
+			CKB* pKB;
+			if (gbIsGlossing)
+				pKB = m_pApp->m_pGlossingKB; // point to the glossing KB when glossing is on
+			else
+				pKB = m_pApp->m_pKB; // point to the adaptation knowledge base when adapting
+
+			delete pRefString;
+			pRefString = (CRefString*)NULL;
+			// since we delete pRefString, TranslationsList::Clear() should do the job below
+			pTU->m_pTranslations->Clear();
+
+			TUList::Node* pos;
+
+			pos = pKB->m_pTargetUnits->Find(pTU); // find position of pRefString's
+												  // owning targetUnit
+
+            // Note: A check for NULL should probably be done here anyway even if when
+            // working properly a NULL return value on Find shouldn't happen.
+			pTgtUnit = (CTargetUnit*)pos->GetData(); // get the targetUnit in
+																	// the list
+			wxASSERT(pTgtUnit != NULL);
+			pKB->m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
+			delete pTgtUnit; // delete its instance from the heap
+			pTgtUnit = (CTargetUnit*)NULL;
+
+			MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nWordsInPhrase - 1];
+			int bRemoved = 0;
+			if (gbAutoCaps)
+			{
+                // try removing the lower case one first, this is the most likely one that
+                // was found by GetRefString( ) in the caller
+				bRemoved = pMap->erase(s1); // also remove it from the map
+			}
+			if (bRemoved == 0)
+			{
+				// have a second shot using the unmodified string s
+				bRemoved = pMap->erase(s); // also remove it from the map
+			}
+			wxASSERT(bRemoved == 1);
+            // the above algorith will handle all possibilites except one; if earlier auto
+            // caps is ON, and the user stores an entry with source text starting with
+            // upper case, (which will be changed to lower case for the storage), and then
+            // later on s/he turns auto caps OFF, then the entry would not be found by the
+            // above line:
+            // bRemoved = pMap->erase(s); and then the wxASSERT would trip; however, we
+            // are saved from this happening because the pRefString passed in is provided
+            // by a prior GetRefString( ) call in the caller, and that would not find the
+            // pRefString, and as a consequence it would return NULL, and so the in this
+            // block of RemoveRefString( ) the removal would not be asked for; so the
+            // wxASSERT would not trip.
+		}
+		else
+		{
+			// there are other CRefString instances, so don't remove its owning targetUnit
+			TranslationsList::Node* pos = pTU->m_pTranslations->Find(pRefString);
+			wxASSERT(pos != NULL); // it must be in the list somewhere
+			pTU->m_pTranslations->DeleteNode(pos); // remove that refString from the list
+												   // in the targetUnit
+			delete pRefString; // delete it from the heap
+			pRefString = (CRefString*)NULL;
+		}
+
+		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
+		if (gbIsGlossing)
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		else
+			pSrcPhrase->m_bHasKBEntry = FALSE;
+	}
 }
-*/
+
+// GetKB() here is private member function of CKB() c.f. the view's public GetKB() which
+// internally uses global bool gbIsGlossing to find which CKB instance is current
+CKB* CKB::GetKB(bool bIsGlossing)
+{
+	if (bIsGlossing)
+		return m_pApp->m_pGlossingKB;
+	else
+		return m_pApp->m_pKB;
+}
+
+// BEW created 11May10, to replace about 20 or so lines which always call GetRefString()
+// and then a little later, RemoveRefString; this will enable about 600 lines of code
+// spread over about 30 functions to be replaced by about 30 calls of this function.
+// The bIsGlossing param is explicit as the caller will pass in global bool gbIsGlossing,
+// but eventually when gbIsGlossing is removed from the app, we may adjust the signature,
+// depending on how we later decide to handle the indication of adapting versus glossing 
+// states. The bUsePhraseBoxContents is default TRUE if omitted. When TRUE, the
+// targetPhrase value which is looked up is assumed to be the phrase box's contents (the
+// caller is responsible to make sure that is so), but if FALSE is passed explicitly, then
+// the targetPhrase param is ignored, and the m_gloss or m_adaption member of the passed
+// in pSrcPhrase is used for lookup 
+void CKB::GetAndRemoveRefString(bool bIsGlossing, CSourcePhrase* pSrcPhrase, 
+								wxString& targetPhrase, bool bUsePhraseBoxContents)
+{
+	CRefString* pRefStr = NULL;
+	// get the CKB instance (currently, the app class has that knowledge, using
+	// gbIsGlossing global boolean, which is passed in here via the bIsGlossing param)
+	CKB* pKB = GetKB(bIsGlossing); // pKB now points to either m_pKB, or m_pGlossingKB
+	if (bIsGlossing)
+	{
+		if (bUsePhraseBoxContents)
+		{
+			pRefStr = GetRefString(pKB, 1, pSrcPhrase->m_key, targetPhrase);
+		}
+		else
+		{
+			pRefStr = GetRefString(pKB, 1, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
+		}
+		if (pRefStr == NULL && pSrcPhrase->m_bHasGlossingKBEntry)
+			pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // must be FALSE for a successful lookup on return
+		if (pRefStr != NULL)
+			RemoveRefString(pRefStr, pSrcPhrase, 1);
+	}
+	else
+	{
+		if (bUsePhraseBoxContents)
+		{
+			pRefStr = GetRefString(pKB, pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
+		}
+		else
+		{
+			pRefStr = GetRefString(pKB, pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+		}
+		if (pRefStr == NULL && pSrcPhrase->m_bHasKBEntry)
+			pSrcPhrase->m_bHasKBEntry = FALSE; // must be FALSE for a successful lookup on return
+		if (pRefStr != NULL)
+			RemoveRefString(pRefStr, pSrcPhrase, pSrcPhrase->m_nSrcWords);
+	}
+}
+
+
+
+

@@ -170,4 +170,16 @@ bool	 IsRetranslationInSelection(SPList* pList);
 // uuid support
 wxString GetUuid();
 
+// for date-time stamping in KB or elsewhere
+wxString GetDateTimeNow();
+
+// for KB metadata, to create a string indicating who supplied the adaptation (or gloss)
+// For LAN-based collaboration, we will try set the string: "userID:machineID" such as
+// watersb:BEW for the "watersb" account on the computer visible on the LAN as "BEW"; and
+// anticipating the future when we hope to have both web-based KB sharing, and / or
+// AI-in-the-cloud, we'll want to store something different - such as (at least) an IP
+// address, so we'll have a bool parameter to distinguish the web versus non-web sourcing
+// possibilities
+wxString SetWho(bool bOriginatedFromTheWeb = FALSE);
+
 #endif	// helpers_h

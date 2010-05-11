@@ -1464,18 +1464,10 @@ void CKBEditor::OnOK(wxCommandEvent& event)
         // RemoveRefString below will internally calc nWords - 1 to get map page so we must
         // increment the zero based page index here, for it to come out right within
         // RemoveRefString.
-		nWords = m_pKBEditorNotebook->GetSelection() + 1; 
-		CAdapt_ItView* pView = gpApp->GetView();
-		CRefString* pRefString;
-		if (gbIsGlossing)
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_gloss);
-		else
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_adaption);
-		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->GetSrcPhrase(),nWords);
+		nWords = m_pKBEditorNotebook->GetSelection() + 1;
+		wxString emptyStr = _T("");
+		gpApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, gpApp->m_pActivePile->GetSrcPhrase(), 
+											emptyStr, FALSE);
 	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -1499,17 +1491,11 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
         // increment the zero based page index here, for it to come out right within
         // RemoveRefString.
 		nWords = m_pKBEditorNotebook->GetSelection() + 1;
-		CAdapt_ItView* pView = gpApp->GetView();
-		CRefString* pRefString;
-		if (gbIsGlossing)
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_gloss);
-		else
-			pRefString = pView->GetRefString(pView->GetKB(),nWords,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-								gpApp->m_pActivePile->GetSrcPhrase()->m_adaption);
-		pView->RemoveRefString(pRefString, gpApp->m_pActivePile->GetSrcPhrase(),nWords);
+		wxString emptyStr = _T("");
+		// last param being FALSE means do lookup with m_gloss or m_adaption, not
+		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+		gpApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, gpApp->m_pActivePile->GetSrcPhrase(), 
+											emptyStr, FALSE);		
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted

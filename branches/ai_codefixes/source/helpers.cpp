@@ -2818,5 +2818,59 @@ wxString GetUuid()
 	return anUuid;
 }
 
+// support getting current date-time in format "YYYY:MM:DD hh:mm:ss", which is useful as a
+// potential sort key; that is: "year:month:day hours:minutes:seconds"
+// BEW created 10May10
+wxString GetDateTimeNow()
+{
+	wxDateTime theDateTime = wxDateTime::Now();
+	wxString dateTimeStr;
+	dateTimeStr = theDateTime.Format(_T("%Y:%m:%d %H:%M:%S")).c_str();
+	return dateTimeStr;
+}
+
+// for KB metadata, to get a string indicating who supplied the adaptation (or gloss)
+// for KB metadata, to create a string indicating who supplied the adaptation (or gloss)
+// For LAN-based collaboration, we will try set the string: "userID:machineID" such as
+// watersb:BEW for the "watersb" account on the computer visible on the LAN as "BEW"; and
+// anticipating the future when we hope to have both web-based KB sharing, and / or
+// AI-in-the-cloud, we'll want to store something different - such as (at least) an IP
+// address, so we'll have a bool parameter to distinguish the web versus non-web sourcing
+// possibilities
+// BEW created 10May10
+wxString SetWho(bool bOriginatedFromTheWeb)
+{
+	wxString strUserID;
+	wxString strMachineID;
+	wxString strIDFromWeb;
+	if (bOriginatedFromTheWeb)
+	{
+		// *** TODO ***  when our design has matured
+
+		strIDFromWeb = _T("0000:0000:0000:0000"); // give it garbage for now
+		return strIDFromWeb;
+	}
+	else
+	{
+		strUserID = ::wxGetUserId(); // returns empty string if unsuccessful
+		if (strUserID.IsEmpty())
+		{
+			// we must supply a default if nothing was returned
+			strUserID = _T("unknownUser");
+		}
+		wxString strMachineID = ::wxGetHostName(); // returns empty string if not found
+		if (strMachineID.IsEmpty())
+		{
+			// we must supply a default if nothing was returned
+			strMachineID = _T("unnamedMachine");
+		}
+		wxString whoStr;
+		whoStr = whoStr.Format(_T("%s:%s"),strUserID.c_str(),strMachineID.c_str()).c_str();
+		return whoStr;
+	}
+}
+
+
+
 
 

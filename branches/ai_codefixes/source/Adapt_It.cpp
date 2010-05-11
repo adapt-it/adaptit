@@ -7762,6 +7762,12 @@ int ii = 1;
 	}
 */
 
+// test getting current date-time in format "year:month:day hours:minutes:seconds"
+//wxString dt = GetDateTimeNow();
+
+// test GetWho() in helpers.cpp
+//wxString str = GetWho();
+
 #if wxMAC_USE_CORE_GRAPHICS
 	wxLogDebug(_T("In OnInit() wxMAC_USE_CORE_GRAPHICS is defined!"));
 	if (m_pMainFrame->canvas->IsDoubleBuffered())
@@ -9590,6 +9596,9 @@ void CAdapt_ItApp::SetupKBPathsEtc()
 /// If so, it calls the Doc's RetokenizeText() function to rebuild the document with the
 /// new punctuation scheme. It also insures that safe indices are set up and that the
 /// phrasebox is appropriately located after the doc rebuild is complete.
+/// Note: since called from the wizard, by the time it is called, a project should have
+/// been chosen and therefore the KB and Glossing KB should each have been instantiated,
+/// and so the app's members m_pKB and m_pGlossingKB should be valid pointers.
 ////////////////////////////////////////////////////////////////////////////////////////
 bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 										enum Reparse reparseDoc)
@@ -9648,17 +9657,13 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 
 				// remove the KB or GlossingKB entry for this location, depending on the mode
 				// and make the box contents resaveable
-				CRefString* pRefString;
-				if (gbIsGlossing)
+				if (m_pKB != NULL)
 				{
-					pRefString = pView->GetRefString(pView->GetKB(),1,pSrcPhrase->m_key,pSrcPhrase->m_gloss);
-					pView->RemoveRefString(pRefString,pSrcPhrase,1); // pRefString is from glossing KB
-				}
-				else
-				{
-					pRefString = pView->GetRefString(pView->GetKB(),pSrcPhrase->m_nSrcWords,
-												pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-					pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+					// this call can equally be made from m_pKB or m_pGlossingKB as it is
+					// the first param which defines which CKB pointer is used internally
+					m_pKB->GetAndRemoveRefString(gbIsGlossing, pSrcPhrase, m_targetPhrase, FALSE);
+					// FALSE means 'use m_gloss or m_adaption from pSrcPhrase for lookup,
+					// not the phrase box contents
 				}
 				m_pLayout->m_bPunctuationChanged = TRUE;
 

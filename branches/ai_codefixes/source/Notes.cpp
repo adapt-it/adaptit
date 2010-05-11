@@ -53,6 +53,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "Adapt_ItDoc.h"
+#include "KB.h"
 #include "NoteDlg.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1086,10 +1087,11 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	}
 
 	// remove the text from the KB, if refString is not null
-	CRefString* pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-										  pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-	m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
-	
+	wxString emptyStr = _T("");
+	// last param being FALSE means do lookup with m_gloss or m_adaption, not
+	// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+	m_pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
 	m_pLayout->RecalcLayout(pList, keep_strips_keep_piles);
@@ -1289,9 +1291,10 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	}
 
 	// remove the text from the KB, if refString is not null
-	CRefString* pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-								pSrcPhrase->m_key,pSrcPhrase->m_adaption);
-	m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
+	wxString emptyStr = _T("");
+	// last param being FALSE means do lookup with m_gloss or m_adaption, not
+	// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
+	m_pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
 
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
@@ -1321,7 +1324,6 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 	// wx version: we don't need the Create() call for modeless notes dialog
 	m_pView->AdjustDialogPosition(m_pApp->m_pNoteDlg); // show it lower, not at top left
 	m_pApp->m_pNoteDlg->Show(TRUE);
-
 }
 	
 /////////////////////////////////////////////////////////////////////////////////

@@ -22,8 +22,8 @@
 #endif
 
 // forward references
-class wxDataOutputStream;
-class wxDataInputStream;
+//class wxDataOutputStream;
+//class wxDataInputStream;
 
 class CTargetUnit;	// This forward reference is needed for the WX_DECLARE_LIST 
 // macro below. Without it the compiler will generate at least 6 cryptic error messages!
@@ -67,16 +67,14 @@ public:
 	virtual ~CTargetUnit(void); // destructor // whm make all destructors virtual
 	// other methods
 
-#if defined MAKEPUBLIC
-public:
-	wxString m_uuid;
-#else
 private:
 	wxString	m_uuid;
+
+
+	// getters and setters
 public:
 	wxString	GetUuid();
-	void		SetUuid(wxString uuid); 
-#endif
+	void		SetUuid(wxString uuid);
 
 
 

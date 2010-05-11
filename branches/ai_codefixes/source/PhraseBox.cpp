@@ -467,7 +467,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 {
 		wxString str = _T("<Not In KB>");
 		CSourcePhrase* pSP = pCurPile->GetSrcPhrase();
-		CRefString* pRefStr = pView->GetRefString(pApp->m_pKB, pSP->m_nSrcWords,
+		CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB, pSP->m_nSrcWords,
 											pSP->m_key, str);
 		if (pRefStr == NULL)
 		{
@@ -2998,14 +2998,13 @@ void CPhraseBox::OnChar(wxKeyEvent& event)
 					(pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry && gbIsGlossing)))
 				{
 					gbNoAdaptationRemovalRequested = TRUE;
-					CKB* pKB = pView->GetKB();
 					CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->GetSrcPhrase();
-					CRefString* pRefString = pView->GetRefString(pKB, pSrcPhrase->m_nSrcWords,
-						pSrcPhrase->m_key, pSrcPhrase->m_adaption);
-					if (pRefString != NULL)
-					{
-						pView->RemoveRefString(pRefString, pSrcPhrase, pSrcPhrase->m_nSrcWords);
-					}
+					wxString emptyStr = _T("");
+                    // last param being FALSE means do lookup with m_adaption, not the
+                    // phrase box contents (the KB pointer can be m_pKB as here, or
+                    // m_pGlossingKB) The first param, FALSE, is the value of gbIsGlossing
+                    // here - see test above
+					pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
 				}
 			}
 		}
@@ -3472,12 +3471,12 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
 		CRefString* pRefString;
 		if (gbIsGlossing)
 		{
-			pRefString = pView->GetRefString(pView->GetKB(), 1, 
+			pRefString = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB->GetKB(TRUE), 1, 
 					pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_gloss);
 		}
 		else
 		{
-			pRefString = pView->GetRefString(pView->GetKB(), 
+			pRefString = pApp->m_pKB->GetRefString(pApp->m_pKB->GetKB(FALSE), 
 					pNewPile->GetSrcPhrase()->m_nSrcWords, pNewPile->GetSrcPhrase()->m_key, 
 					pNewPile->GetSrcPhrase()->m_adaption);
 		}
@@ -3507,12 +3506,12 @@ b:	CPile* pNewPile = pView->GetPrevPile(pCurPile); // does not update the view's
             // source phrase)
 			if (gbIsGlossing)
 			{
-				pView->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 1);
+				pApp->m_pGlossingKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 1);
 				pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_gloss;
 			}
 			else
 			{
-				pView->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(),
+				pApp->m_pKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(),
 											pNewPile->GetSrcPhrase()->m_nSrcWords);
 				// since we have optional punctuation hiding, use the line with 
 				// the punctuation
@@ -3780,10 +3779,10 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
         // into account; GetRefString has been modified for auto-capitalization support
 		CRefString* pRefString;
 		if (gbIsGlossing)
-			pRefString = pView->GetRefString(pApp->m_pGlossingKB, 1,
+			pRefString = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB, 1,
 				pNewPile->GetSrcPhrase()->m_key, pNewPile->GetSrcPhrase()->m_gloss);
 		else
-			pRefString = pView->GetRefString(pApp->m_pKB, 
+			pRefString = pApp->m_pKB->GetRefString(pApp->m_pKB, 
 							pNewPile->GetSrcPhrase()->m_nSrcWords,
 							pNewPile->GetSrcPhrase()->m_key, 
 							pNewPile->GetSrcPhrase()->m_adaption);
@@ -3815,12 +3814,12 @@ b:	pDoc->ResetPartnerPileWidth(pOldActiveSrcPhrase);
             // source phrase)
 			if (gbIsGlossing)
 			{
-				pView->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 1);
+				pApp->m_pGlossingKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(), 1);
 								pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_gloss;
 			}
 			else
 			{
-				pView->RemoveRefString(pRefString,pNewPile->GetSrcPhrase(),
+				pApp->m_pKB->RemoveRefString(pRefString, pNewPile->GetSrcPhrase(),
 											pNewPile->GetSrcPhrase()->m_nSrcWords);
 				pApp->m_targetPhrase = pNewPile->GetSrcPhrase()->m_targetStr;
 			}
@@ -4708,14 +4707,11 @@ void CPhraseBox::OnKeyDown(wxKeyEvent& event)
 			(pSrcPhrase->m_bHasGlossingKBEntry && gbIsGlossing)))
 		{
 			gbNoAdaptationRemovalRequested = TRUE;
-			CKB* pKB = pView->GetKB();
-			//CSourcePhrase* pSrcPhrase = pApp->m_pActivePile->m_pSrcPhrase;
-			CRefString* pRefString = pView->GetRefString(pKB, pSrcPhrase->m_nSrcWords,
-												pSrcPhrase->m_key, pSrcPhrase->m_adaption);
-			if (pRefString != NULL)
-			{
-				pView->RemoveRefString(pRefString, pSrcPhrase, pSrcPhrase->m_nSrcWords);
-			}
+			wxString emptyStr = _T("");
+            // last param being FALSE means do lookup with m_adaption, not the phrase box
+            // contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) (first
+            // FALSE is the value that gbIsGlossing must have here - see test above)
+			pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
 		}
 		else
 		{

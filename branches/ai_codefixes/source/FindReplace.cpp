@@ -40,6 +40,7 @@
 #include <wx/valgen.h> // for wxGenericValidator
 
 #include "Adapt_It.h"
+#include "KB.h"
 #include "FindReplace.h"
 #include "Adapt_ItView.h"
 #include "Cell.h"
@@ -450,7 +451,7 @@ void CFindDlg::DoFindNext()
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
+					pRefStr = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pGlossingKB, 1,
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && 
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
@@ -460,7 +461,7 @@ void CFindDlg::DoFindNext()
 				}
 				else
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pKB,
+					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pKB,
 										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
 										gpApp->m_targetPhrase);
@@ -1247,7 +1248,7 @@ void CReplaceDlg::DoFindNext()
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pGlossingKB, 1,
+					pRefStr = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pGlossingKB, 1,
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && 
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
@@ -1257,7 +1258,7 @@ void CReplaceDlg::DoFindNext()
 				}
 				else
 				{
-					pRefStr = pView->GetRefString(gpApp->m_pKB,
+					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pKB,
 										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
 										gpApp->m_targetPhrase);

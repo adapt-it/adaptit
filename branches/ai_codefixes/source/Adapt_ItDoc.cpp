@@ -3092,15 +3092,14 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 		if (pApp->m_pTargetBox->IsShown() && 
 			pView->GetFrame()->FindFocus() == (wxWindow*)pApp->m_pTargetBox && !bNoStore)
 		{
-			CRefString* pRefString;
+			wxString emptyStr = _T("");
 			if (gbIsGlossing)
 			{
 				if (!bNoStore)
 				{
-					pRefString = pView->GetRefString(pView->GetKB(), 1,
-											pApp->m_pActivePile->GetSrcPhrase()->m_key,
-											pApp->m_pActivePile->GetSrcPhrase()->m_gloss);
-					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(), 1);
+					// TRUE is bIsGlossing, FALSE means 'use m_gloss for lookup'
+					pApp->m_pGlossingKB->GetAndRemoveRefString(TRUE, 
+									pApp->m_pActivePile->GetSrcPhrase(), emptyStr, FALSE);
 				}
 				pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 			}
@@ -3108,12 +3107,9 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			{
 				if (!bNoStore)
 				{
-					pRefString = pView->GetRefString(pView->GetKB(),
-											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-											pApp->m_pActivePile->GetSrcPhrase()->m_key,
-											pApp->m_pActivePile->GetSrcPhrase()->m_adaption);
-					pView->RemoveRefString(pRefString,pApp->m_pActivePile->GetSrcPhrase(),
-											pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords);
+					// first FALSE is bIsGlossing, second FALSE means 'use m_adaption for lookup'
+					pApp->m_pKB->GetAndRemoveRefString(FALSE, 
+									pApp->m_pActivePile->GetSrcPhrase(), emptyStr, FALSE);
 				}
 				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 			}

@@ -49,6 +49,7 @@
 #include "MainFrm.h"
 #include "Adapt_ItCanvas.h"
 #include "Adapt_ItDoc.h"
+#include "KB.h"
 #include "Placeholder.h"
 //////////
 
@@ -1379,9 +1380,9 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	
 	// remove the null source phrases from the list, after removing their 
 	// translations from the KB
-	CRefString* pRefString = NULL;
 	removePos = savePos;
 	count = 0;
+	wxString emptyStr = _T("");
 	while (removePos != NULL && count < nCount)
 	{
 		SPList::Node* pos2 = removePos; // save current position for RemoveAt call
@@ -1391,13 +1392,13 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		m_pView->GetDocument()->DeletePartnerPile(pSrcPhrase);
 		removePos = removePos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
-		pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-											 pSrcPhrase->m_key,pSrcPhrase->m_adaption);
+		// last param being FALSE means do lookup with m_adaption, not the phrase box
+		// contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) and the
+		// first FALSE is the value for gbIsGlossing here (placeholders support is not
+		// a glossing mode feature)
+		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+
 		count++;
-		if (pRefString != NULL)
-			// don't need to worry about m_bHasKBEntry flag, since pSrcPhrase
-			// will be deleted next
-			m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
 		delete pSrcPhrase;
 		pList->DeleteNode(pos2); 
 	}
@@ -1506,18 +1507,14 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 	}
 	
     // we must remove the source phrase's translation from the KB as if we
-    // had clicked here (otherwise PlacePhraseBox will assert)
-	pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhrase->m_nSrcWords,
-										 pSrcPhrase->m_key,pSrcPhrase->m_adaption);
+    // had clicked here (otherwise PlacePhraseBox will assert)...
 	
-    // it is okay to do the following call with pRefString == NULL, in fact, it must be
-    // done whether NULL or not; since if it is NULL, RemoveRefString will clear
-    // pSrcPhrase's m_bHasKBEntry to FALSE, which if not done, would result in a crash if
-    // the user clicked on a source phrase which had its reference string manually removed
-    // from the KB and then clicked on another source phrase. (The StoreAdaption call in
-    // the second click would trip the first line's ASSERT.)
-	m_pView->RemoveRefString(pRefString,pSrcPhrase,pSrcPhrase->m_nSrcWords);
-	
+    // last param being FALSE means do lookup with m_adaption, not the phrase box
+    // contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) and the
+    // first FALSE is the value for gbIsGlossing here (placeholders support is not
+    // a glossing mode feature)
+	m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+
     // save old sequ number in case required for toolbar's Back button - but since it
     // probably has been lost (being the null source phrase location), to be safe we must
     // set it to the current active location
@@ -1542,7 +1539,6 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
 {
 	// refactored 16Apr09
 	// find the null source phrase in the sublist
-	CRefString* pRefString = 0;
 	SPList::Node* pos = pList->GetFirst();
 	while (pos != NULL)
 	{
@@ -1555,14 +1551,13 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
             // we've found a null source phrase in the sublist, so get rid of its KB
             // presence, then delete it from the (temporary) sublist, and its instance from
             // the heap
-			pRefString = m_pView->GetRefString(m_pView->GetKB(),pSrcPhraseCopy->m_nSrcWords,
-												 pSrcPhraseCopy->m_key,pSrcPhraseCopy->m_adaption);
-			if (pRefString != NULL)
-			{
-				// don't care about m_bHasKBEntry flag value, since pSrcPhraseCopy will be
-				// deleted next
-				m_pView->RemoveRefString(pRefString,pSrcPhraseCopy,pSrcPhraseCopy->m_nSrcWords);
-			}
+			wxString emptyStr = _T("");
+            // last param being FALSE means do lookup with m_adaption, not the phrase box
+            // contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) and the
+            // first FALSE is the value for gbIsGlossing here (placeholders support is not
+            // a glossing mode feature)
+			m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhraseCopy,emptyStr,FALSE);
+
 			delete pSrcPhraseCopy;
 			pSrcPhraseCopy = (CSourcePhrase*)NULL;
 			pList->DeleteNode(savePos); 

@@ -27,14 +27,16 @@
 
 // forward declarations
 class CTargetUnit;
-class wxDataOutputStream;
-class wxDataInputStream;
+//class wxDataOutputStream;
+//class wxDataInputStream;
 
 class TUList;	// This forward reference is needed because the macro 
 // declaration below must be in general namespace, before CKB is declared.
 // The macro below together with the macro list declaration in the .cpp file
-// define a new list class called TUList. Its list elements are of type CKB.
+// define a new list class called TUList. Its list elements are of type CTargetUnit.
 class CKB; // needed for the macro below which must reside outside the class declaration
+class CRefString;
+class CSourcePhrase;
 
 /// wxList declaration and partial implementation of the TUList class being
 /// a list of pointers to CTargetUnit objects
@@ -102,8 +104,22 @@ public:
 
 	virtual ~CKB();
 
+	// Public implementation functions
+	CKB*			GetKB(bool bIsGlossing);
+	CRefString*	    GetRefString(CKB* pKB, int nSrcWords, wxString keyStr, wxString valueStr);	
+	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
+	void			GetAndRemoveRefString(bool bIsGlossing, CSourcePhrase* pSrcPhrase,
+								wxString& targetPhrase, bool bUsePhraseBoxContents = TRUE); // BEW created 11May10
+
   private:
-    int		m_kbVersionCurrent; // BEW added 3May10 for Save As... support
+	CAdapt_ItApp*	m_pApp;
+	//bool			m_bIsGlossingKB; // eventually when global bool gbIsGlossingKB is
+									// eliminated, m_bIsGlossingKB will replace it, and
+									// then each CKB instantiation will know which kind
+									// of CKB class it is, a KB or a GlossingKB
+    int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
+
+	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
 
 };
 #endif // KB_h

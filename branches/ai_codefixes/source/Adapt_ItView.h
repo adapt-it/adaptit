@@ -142,7 +142,7 @@ public:
 public:
 	void		AdjustAlignmentMenu(bool bRTL,bool bLTR);
 	bool		AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,int& vLast,int nWantedVerse);
-	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
+	//CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation); //moved to CKB
 	bool		AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
 	wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
 
@@ -197,7 +197,7 @@ public:
 	CSourcePhrase*  GetFollSafeSrcPhrase(CSourcePhrase* pSrcPhrase);
 	CSourcePhrase*  GetPrevSrcPhrase(SPList::Node*& curPos,SPList::Node*& posPrev);
 	CSourcePhrase*  GetPrevSafeSrcPhrase(CSourcePhrase* pSrcPhrase);
-	CRefString*	    GetRefString(CKB* pKB, int nSrcWords, wxString keyStr, wxString adaptation);
+	//CRefString*	    GetRefString(CKB* pKB, int nSrcWords, wxString keyStr, wxString adaptation); moved to CKB class
 	CSourcePhrase*  GetSrcPhrase(int nSequNum);
 	bool		GetSublist(SPList* pSaveList,SPList* pOriginalList,int nBeginSequNum,
 						int nEndSequNum);
@@ -227,7 +227,7 @@ public:
 	void		RemoveContentWrappers(CSourcePhrase*& pSrcPhrase, wxString mkr, int offset); // BEW 12 Sept05
 	void		RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase);
 	void		RemovePunctuation(CAdapt_ItDoc* pDoc, wxString* pStr, int nIndex);
-	void		RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
+	//void		RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase); moved to CKB class
 	void		RemoveSelection();
 	
 	// Bruce put the following functions in helpers.h and .cpp, but it is only used in the View so I'm putting it
