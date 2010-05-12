@@ -595,6 +595,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\LanguageCodesDlg.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\LanguagesPage.cpp"
 				>
 			</File>
@@ -973,6 +977,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\KBPage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\LanguageCodesDlg.h"
 				>
 			</File>
 			<File

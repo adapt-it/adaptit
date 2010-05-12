@@ -3,7 +3,7 @@
 /// \file			LanguagesPage.h
 /// \author			Bill Martin
 /// \date_created	3 May 2004
-/// \date_revised	15 January 2008
+/// \date_revised	11 May 2010
 /// \copyright		2008 Bruce Waters, Bill Martin, SIL International
 /// \license		The Common Public License or The GNU Lesser General Public License (see license directory)
 /// \description	This is the header file for the CLanguagesPage class. 
@@ -50,15 +50,23 @@ public:
 
 	wxString	tempSourceName;
 	wxString	tempTargetName;
+
+	// whm added 10May10
+	wxString	tempSourceLangCode;
+	wxString	tempTargetLangCode;
+
 	wxString	tempSfmEscCharStr;
 
 	wxTextCtrl*	pSrcBox;
 	wxTextCtrl*	pTgtBox;
-	//wxTextCtrl* pDefaultSystemLanguageBox;
-	//wxTextCtrl* pInterfaceLanguageBox;
+	
+	// whm added 10May10
+	wxTextCtrl*	pSrcLangCodeBox;
+	wxTextCtrl*	pTgtLangCodeBox;
+	wxButton* pButtonLookupCodes;
+
 	wxTextCtrl* pTextCtrlAsStaticSFMsAlwasStNewLine;
 	wxCheckBox*	pSfmOnlyAfterNLCheckBox;
-	//wxButton*	pChangeInterfaceLangBtn;
 	bool		tempSfmOnlyAfterNewlines;
 
 	void InitDialog(wxInitDialogEvent& WXUNUSED(event));
@@ -66,6 +74,7 @@ public:
     
 	//// implement wxWizardPage functions
 	void OnWizardCancel(wxWizardEvent& WXUNUSED(event));
+	void OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event));// whm added 10May10
 	void OnWizardPageChanging(wxWizardEvent& event);
     virtual wxWizardPage *GetPrev() const;
     virtual wxWizardPage *GetNext() const;

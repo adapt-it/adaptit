@@ -374,7 +374,8 @@ enum ExportType
 enum KBExportSaveAsType
 {
 	KBExportSaveAsLIFT_XML,
-	KBExportSaveAsSFM_TXT
+	KBExportSaveAsSFM_TXT,
+	KBExportAllFiles
 };
 
 /// An enum for return error-state from GetNewFile()
@@ -1928,6 +1929,10 @@ public:
 	// project-defining attibutes
 	wxString	m_sourceName; // name of the source language
 	wxString	m_targetName; // name of the target language
+
+	// whm added 10May10 for KB LIFT XML Export support
+	wxString	m_sourceLanguageCode; // 3-letter code for the source language
+	wxString	m_targetLanguageCode; // 3-letter code for the target language
 	
 	bool		m_bExistingAdaption;
 	bool		m_bKBReady;

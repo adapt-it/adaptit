@@ -119,6 +119,7 @@
 #include "Notes.h"
 #include "Retranslation.h"
 #include "Placeholder.h"
+#include "LanguageCodesDlg.h"
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -20706,25 +20707,41 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 		}
 	}
 
-	wxString dicFilename;
-	dicFilename = pApp->m_curProjectName;
-	dicFilename = MakeReverse(dicFilename);
-	int offset = dicFilename.Find(_T(" "));
-	dicFilename = dicFilename.Mid(offset); // remove "Adaptations" or Tok Pisin equivalent
-	dicFilename = MakeReverse(dicFilename);
+	// Set up default export file names
+	// whm Note: In the App's SetupDirectories() function the m_curProjectName is constructed as:
+	// m_sourceName + _T(" to ") + m_targetName + _T(" adaptations"), so the "to" and "adaptations"
+	// parts are non-localized, i.e., we can depend on them being constant in project names. 
+	// All KB exports use a default name based on m_curProjectName without " adaptations" part
+	wxString dictFilename;
+	dictFilename = pApp->m_curProjectName;
+	dictFilename = MakeReverse(dictFilename);
+	int offset = dictFilename.Find(_T(" "));
+	dictFilename = dictFilename.Mid(offset); // remove "adaptations" or Tok Pisin equivalent
+	dictFilename = MakeReverse(dictFilename);
+	// The base dictFilename is now in the form of "x to y"
+
 	wxString glossStr;
+	wxString defaultKBLiftExportFileName;
+	wxString extToBeUsed;
+	wxString tempStr;
+
+	// use the .lift extension as default
+	extToBeUsed = _T(".lift"); // the extension is not localizable
 	if (gbIsGlossing)
 	{
-		//IDS_GLOSSING
 		glossStr = _("Glossing");
-		glossStr += _T(" ");
-		dicFilename += glossStr; // ensure the glossing KB export has its own filename
+		// no space added here to glossStr since we don't add "dictionary records" to this one
+		dictFilename += glossStr; // ensure the glossing KB export has its own filename
 	}
-	wxString str;
-	// IDS_DIC_REC_TXT
-	str = str.Format(_("dictionary records.xml"));
-	dicFilename += str;
-
+	else
+	{
+		dictFilename.Trim(TRUE); // trim any white space from right end
+	}
+	//dictFilename += _T(" ");
+	//dictFilename += _("dictionary records");
+	dictFilename = dictFilename + _T("%s");
+	dictFilename = dictFilename.Format(dictFilename,extToBeUsed.c_str()); // add .lift as the default export extension
+	
 	wxString defaultDir;
 	if (pApp->m_kbExportPath.IsEmpty())
 	{
@@ -20738,12 +20755,12 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	// get a file dialog
 	wxString filter;
 	//MFC app IDS_KB_EXPORT_FILTER
-	filter = _("XML LIFT export (*.xml)|*.xml|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
+	filter = _("XML LIFT export (*.lift)|*.lift|SFM plain text export (with \\lx & \\ge fields) (*.txt)|*.txt|All Files (*.*)|*.*||"); 
 	wxFileDialog fileDlg(
 		(wxWindow*)wxGetApp().GetMainFrame(), // MainFrame is parent window for file dialog
 		_("Filename For KB Export"),
 		defaultDir,	// empty string causes it to use the current working directory (set above)
-		dicFilename,	// default filename
+		dictFilename,	// default filename
 		filter,
 		wxFD_SAVE | wxFD_OVERWRITE_PROMPT); 
 		// | wxHIDE_READONLY); wxHIDE_READONLY deprecated in 2.6 - the checkbox is never shown
@@ -20762,8 +20779,22 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	wxASSERT(nameLen > 0 && pathLen > 0);
 	pApp->m_kbExportPath = exportPath.Left(pathLen - nameLen - 1);
 
-	// get the user's desired path
+	// get the user's desired path and file name
 	wxString dicPath = fileDlg.GetPath(); 
+	int filterIndex;
+	filterIndex = fileDlg.GetFilterIndex();
+
+	if (filterIndex == KBExportSaveAsSFM_TXT)
+	{
+		// in SFM exports, add the " dictionary records" suffix to the base name of the export file,
+		// if the user has not already made that part of the name.
+		wxString path, fname, ext;
+		wxFileName::SplitPath(dicPath, &path, &fname, &ext);
+		if (fname.Find(_("dictionary records")) == wxNOT_FOUND)
+		{
+			dicPath = path + pApp->PathSeparator + fname + _T(" ") + _("dictionary records") + _T(".") + ext;
+		}
+	}
 
 	wxFile f;
 	if( !f.Open( dicPath, wxFile::write))
@@ -20776,8 +20807,6 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 	   return; // return since it is not a fatal error
 	}
 
-	int filterIndex;
-	filterIndex = fileDlg.GetFilterIndex();
 	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, i.e., first item in drop down list
 	{
 		DoKBExport(pKB,&f,KBExportSaveAsLIFT_XML);
@@ -20797,7 +20826,6 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 // BEW modified 1Sep09 to remove a logic error, & to remove a goto command, and get rid 
 // of a bDelayed boolean flag & simplify the logic
 // whm modified 3May10 to add LIFT format XML export. 
-// Note: I've not utilized the 
 void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
@@ -20835,21 +20863,88 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 	CBString indent6sp = "      ";
 	CBString indent8sp = "        ";
 	CBString indent10sp = "          ";
+	CBString guidForThisLexItem;
 	CBString srcLangCode;
 	CBString tgtLangCode;
-	CBString guidForThisLexItem;
 
 	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 	{
 		// If the ISO639-3 language codes have not previously been entered by the user
 		// we need to get them here
 		// 
-		// TODO: Call up CLanguageCodesDlg here so the user can enter language codes for
-		// the source and target languages which are needed for the LIFT XML lang attribute of 
-		// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
-		srcLangCode = "eng"; // temporarily use this
-		tgtLangCode = "pis"; // temporarily use this
-		// 
+		// Check for existence of language codes. If they already exist we don't need
+		// to automatically call up the CLanguageCodesDlg. If they don't exist yet, then
+		// we call up the CLanguageCodesDlg here automatically so the user can enter them 
+		// - needed for the KB Lift export.
+		if (pApp->m_sourceLanguageCode.IsEmpty() || pApp->m_targetLanguageCode.IsEmpty())
+		{
+			wxString srcCode;
+			wxString tgtCode;
+			bool bCodesEntered = FALSE;
+			while (!bCodesEntered)
+			{
+				// Call up CLanguageCodesDlg here so the user can enter language codes for
+				// the source and target languages which are needed for the LIFT XML lang attribute of 
+				// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
+				CLanguageCodesDlg lcDlg(pApp->GetMainFrame());
+				lcDlg.Center();
+				// in this case load any lang codes stored on the App into
+				// the code edit boxes
+				lcDlg.m_sourceLangCode = pApp->m_sourceLanguageCode;
+				lcDlg.m_targetLangCode = pApp->m_targetLanguageCode;
+				int returnValue = lcDlg.ShowModal(); // MFC has DoModal()
+				if (returnValue == wxID_CANCEL)
+				{
+					// user cancelled
+					return;
+				}
+				srcCode = lcDlg.m_sourceLangCode;
+				tgtCode = lcDlg.m_targetLangCode;
+				// Check that codes have been entered in source and target boxes
+				if (srcCode.IsEmpty() || tgtCode.IsEmpty())
+				{
+					wxString message,langStr;
+					if (srcCode.IsEmpty())
+					{
+						langStr = _("source language code");
+					}
+					if (tgtCode.IsEmpty())
+					{
+						if (langStr.IsEmpty())
+							langStr = _("target language code");
+					}
+					else
+					{
+						langStr += _T('\n');
+						langStr += _("target langugage code");
+					}
+					message = message.Format(_("You did not enter a language code for the following language(s):\n\n%s\n\nLIFT XML Export requires 3-letter language codes.\nDo you to try again?"),langStr);
+					int response = wxMessageBox(message, _("Language code(s) missing"), wxYES_NO | wxICON_WARNING);
+					if (response == wxNO)
+					{
+						// user wants to abort 
+						return;
+					}
+					else
+					{
+						bCodesEntered = FALSE;
+					}
+				}
+				else
+				{
+					bCodesEntered = TRUE;
+				}
+			} // while (!bCodesEntered)
+
+			srcLangCode = srcCode.char_str();
+			tgtLangCode = tgtCode.char_str();
+			// also update the App's members
+			pApp->m_sourceLanguageCode = srcCode;
+			pApp->m_targetLanguageCode = tgtCode;
+		}
+		// get the codes from the App into CBStrings
+		srcLangCode = pApp->m_sourceLanguageCode.char_str();
+		tgtLangCode = pApp->m_targetLanguageCode.char_str();
 		// whm Note: Following the example of the Doc's DoFileSave() we build the XML LIFT
 		// format building our CBString called composeStr with manual concatenation of some
 		// string literals plus some methods from XML.cpp
@@ -20884,8 +20979,10 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 				pTU = (CTargetUnit*)iter->second; 
 				wxASSERT(pTU != NULL);
 				baseKey = key;
-				// use a temporary guid below TODO use pTU->m_guid after Bruce implements m_guid member in CTargetUnit
-				guidForThisLexItem = "45a3c52b-79fd-4803-856b-207c3efdbaf8"; // pTU->m_guid;
+				// Get the uuid from the CTargetUnit object using pTU->GetUuid()
+				// TODO: use the commented out one below after Bruce implements CTargetUnit::GetUuid()
+				//guidForThisLexItem = pTU->GetUuid().char_str(); // the uuid is of the form "45a3c52b-79fd-4803-856b-207c3efdbaf8";
+				guidForThisLexItem = "45a3c52b-79fd-4803-856b-207c3efdbaf8";
 				key = lexSFM + key; // we put the proper eol char(s) below when writing
 
 				// get the reference strings
