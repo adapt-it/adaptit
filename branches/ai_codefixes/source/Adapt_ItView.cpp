@@ -20842,8 +20842,10 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 	wxString gloss;
 	wxString baseKey;
 	wxString baseGloss;
-	wxString outputStr; // accumulate a whole "record" here, but abandon if it contains
-						// a <Not In KB> string, we don't export those
+	wxString outputSfmStr; // accumulate a whole SFM "record" here, but abandon if it
+						// contains a <Not In KB> string, we don't export those
+	CBString outputLIFTStr; // accumulage a whole LIFT "record" here, but abandon if it
+						// contains a <Not In KB> string, we don't export those
 	wxString strNotInKB = _T("<Not In KB>");
 	gloss.Empty(); // this name used for the "adaptation" when adapting,
 				   // or the "gloss" when glossing
@@ -20977,16 +20979,12 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 		{
 			iter = pKB->m_pMap[numWords-1]->begin();
 			do {
-				outputStr.Empty(); // clean it out ready for next "record"
+				outputSfmStr.Empty(); // clean it out ready for next "record"
+				outputLIFTStr.Empty(); // clean it out ready for next "record"
 				key = iter->first; 
 				pTU = (CTargetUnit*)iter->second; 
 				wxASSERT(pTU != NULL);
 				baseKey = key;
-				// Get the uuid from the CTargetUnit object using pTU->GetUuid()
-				// TODO: use the commented out one below after Bruce implements CTargetUnit::GetUuid()
-				//guidForThisLexItem = pTU->GetUuid().char_str(); // the uuid is of the form "45a3c52b-79fd-4803-856b-207c3efdbaf8";
-				guidForThisLexItem = "45a3c52b-79fd-4803-856b-207c3efdbaf8";
-				key = lexSFM + key; // we put the proper eol char(s) below when writing
 
 				// get the reference strings
 				TranslationsList::Node* posRef = 0; 
@@ -21010,9 +21008,25 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 					posRef = pTU->m_pTranslations->GetFirst(); 
 				wxASSERT(posRef != 0);
 
+				// if control gets here, there will be at least one non-null posRef and so
+				// we can now unilaterally write out the key or basekey data. 
+
+				// For Sfm data the key line is represented as a \lx source text field,
+				// followed by the adaptation or gloss we've already found associated with it
+				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+				{
+					key = lexSFM + key; // we put the proper eol char(s) below when writing
+					outputSfmStr = key + pApp->m_eolStr;
+				}
+
 				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 				{
 					// build xml composeXmlStr for the <lexical-unit> ... </lexical-unit>
+					// 
+					// Get the uuid from the CTargetUnit object using pTU->GetUuid()
+					// TODO: use the commented out one below after Bruce implements CTargetUnit::GetUuid()
+					//guidForThisLexItem = pTU->GetUuid().char_str(); // the uuid is of the form "45a3c52b-79fd-4803-856b-207c3efdbaf8";
+					guidForThisLexItem = "45a3c52b-79fd-4803-856b-207c3efdbaf8";
 					composeXmlStr = indent2sp;
 					composeXmlStr += "<entry guid=\"";
 					composeXmlStr += guidForThisLexItem;
@@ -21049,20 +21063,21 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 					composeXmlStr += indent4sp;
 					composeXmlStr += "</lexical-unit>";
 					composeXmlStr += "\r\n";
-					DoWrite(*pFile,composeXmlStr);
+					outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
 				}
 
-				// if control gets here, there will be at least one non-null posRef and so
-				// we can now unilaterally write out the key's line as a \lx source text field,
-				// followed by the adaptation or gloss we've already found associated with it
-				outputStr = key + pApp->m_eolStr;
+
 				pRefStr = (CRefString*)posRef->GetData();
 				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
 				wxASSERT(pRefStr != NULL); 
 				gloss = pRefStr->m_translation;
 				baseGloss = gloss;
-				gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-				outputStr += gloss + pApp->m_eolStr;
+
+				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+				{
+					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
+					outputSfmStr += gloss + pApp->m_eolStr;
+				}
 
 				// reject any xml output which contains "<Not In KB>"
 				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
@@ -21098,7 +21113,7 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 					composeXmlStr += indent4sp;
 					composeXmlStr += "</sense>";
 					composeXmlStr += "\r\n";
-					DoWrite(*pFile,composeXmlStr);
+					outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
 				}
 
 				// now deal with any additional CRefString instances within the same
@@ -21110,8 +21125,14 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 					posRef = posRef->GetNext(); // prepare for possibility of yet another
 					gloss = pRefStr->m_translation;
 					baseGloss = gloss;
-					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-					outputStr += gloss + pApp->m_eolStr;
+
+					if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+					{
+						gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
+						outputSfmStr += gloss + pApp->m_eolStr;
+					}
+
+
 					// reject any xml output which contains "<Not In KB>"
 					if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
 						&& baseGloss.Find(strNotInKB) == wxNOT_FOUND)
@@ -21146,26 +21167,48 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 						composeXmlStr += indent4sp;
 						composeXmlStr += "</sense>";
 						composeXmlStr += "\r\n";
-						DoWrite(*pFile,composeXmlStr);
+						outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
 					}
 				}
 
-				// add a blank line
-				outputStr += pApp->m_eolStr;
-
-				if (kbExportSaveAsType != KBExportSaveAsLIFT_XML)
+				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 				{
-					// reject any outputStr which contains "<Not In KB>"
-					if (outputStr.Find(strNotInKB) == wxNOT_FOUND)
+					// add the end tag "</entry>" for this entry
+					composeXmlStr = indent2sp;
+					composeXmlStr += "</entry>";
+					composeXmlStr += "\r\n";
+					outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
+				}
+
+				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+				{
+					// add a blank line for Sfm output for readability
+					outputSfmStr += pApp->m_eolStr;
+				}
+
+				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
+				{
+					// reject any outputSfmStr which contains "<Not In KB>"
+					if (outputLIFTStr.Find(strNotInKB.char_str()) == wxNOT_FOUND)
+					{
+							// the entry is good, so output it
+							DoWrite(*pFile,outputLIFTStr);
+					}
+				}
+				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
+				{
+					// reject any outputSfmStr which contains "<Not In KB>"
+					if (outputSfmStr.Find(strNotInKB) == wxNOT_FOUND)
 					{
 							// the entry is good, so output it
 							#ifndef _UNICODE // ANSI version
-								pFile->Write(outputStr); 
+								pFile->Write(outputSfmStr); 
 							#else // Unicode version
-								pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputStr);
+								pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputSfmStr);
 							#endif
 					}
 				}
+
 
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map 
@@ -21177,9 +21220,6 @@ void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType 
 	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 	{
 		// build xml composeXmlStr for the ending </entry> tag
-		composeXmlStr = indent2sp; // start building a new composeXmlStr
-		composeXmlStr += "</entry>"; // start building a new composeXmlStr
-		composeXmlStr += "\r\n";
 		composeXmlStr += "</lift>"; // start building a new composeXmlStr
 		composeXmlStr += "\r\n";
 		DoWrite(*pFile,composeXmlStr);
