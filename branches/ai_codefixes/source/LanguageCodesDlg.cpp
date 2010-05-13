@@ -111,6 +111,12 @@ void CLanguageCodesDlg::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDi
 {
 	//InitDialog() is not virtual, no call needed to a base class
 	m_bISO639ListFileFound = TRUE;
+
+	// Adapt It uses the 3-letter language codes that can be downloaded from SIL's
+	// http://www.sil.org/iso639-3/download.asp#LNIndex
+	// under the section called "Language Names Index" using the "Download ISO 639-3 
+	// code set UTF-8" link.
+	// 
 	// Load the list box from the iso639-3codes.txt file located in the directory
 	// where they were installed. This directory is different on each platform but
 	// is the same directory where the xml install file AI_USFM.xml and books.xml
@@ -253,18 +259,26 @@ void CLanguageCodesDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	m_searchString.LowerCase();
+
 	// for an ordinary search start at the first list position
 	int nCurSel = m_curSel;
 	nCurSel++; // start search with following item
 	unsigned int index;
 	bool bFound = FALSE;
 	wxString strLabel = _T("");
+	// do a little benchmark test of search times in __WXDEBUG__
+#ifdef __WXDEBUG__
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 	for (index = nCurSel; index < count; index++)
 	{
 		//wxCursor(wxCURSOR_WAIT);
 		// get the list's label string at index & check for a match; return with the
 		// matched item selected; but if not matched, continue to iterate thru the list
 		strLabel = pListBox->GetString(index);
+		strLabel.LowerCase();
 		int offset = strLabel.Find(m_searchString);
 		if (offset == wxNOT_FOUND)
 			continue;
@@ -279,6 +293,13 @@ void CLanguageCodesDlg::OnFindNext(wxCommandEvent& WXUNUSED(event))
 	//wxCursor(wxNullCursor);
 	if (!bFound)
 		::wxBell();
+
+#ifdef __WXDEBUG__
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("Find Next executed in %s ms"), 
+			(dt2 - dt1).Format(_T("%l")).c_str());
+#endif
 }
 
 
@@ -293,17 +314,26 @@ void CLanguageCodesDlg::OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event))
 		return;
 	}
 
+	m_searchString.LowerCase();
+
 	// for an ordinary search start at the first list position
 	int nCurSel = 0;
 	unsigned int index;
 	bool bFound = FALSE;
 	wxString strLabel = _T("");
+
+	// do a little benchmark test of search times in __WXDEBUG__
+#ifdef __WXDEBUG__
+	wxDateTime dt1 = wxDateTime::Now(),
+			   dt2 = wxDateTime::UNow();
+#endif
 	for (index = nCurSel; index < count; index++)
 	{
 		//wxCursor(wxCURSOR_WAIT);
 		// get the list's label string at index & check for a match; return with the
 		// matched item selected; but if not matched, continue to iterate thru the list
 		strLabel = pListBox->GetString(index);
+		strLabel.LowerCase();
 		int offset = strLabel.Find(m_searchString);
 		if (offset == wxNOT_FOUND)
 			continue;
@@ -318,6 +348,14 @@ void CLanguageCodesDlg::OnEnterInSearchBox(wxCommandEvent& WXUNUSED(event))
 	//wxCursor(wxNullCursor);
 	if (!bFound)
 		::wxBell();
+
+#ifdef __WXDEBUG__
+		dt1 = dt2;
+		dt2 = wxDateTime::UNow();
+		wxLogDebug(_T("Search executed in %s ms"), 
+			(dt2 - dt1).Format(_T("%l")).c_str());
+#endif
+
 }
 
 void CLanguageCodesDlg::OnSelchangeListboxLanguageCodes(wxCommandEvent& WXUNUSED(event)) 
