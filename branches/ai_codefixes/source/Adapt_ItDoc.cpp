@@ -3097,9 +3097,8 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			{
 				if (!bNoStore)
 				{
-					// TRUE is bIsGlossing, FALSE means 'use m_gloss for lookup'
-					pApp->m_pGlossingKB->GetAndRemoveRefString(TRUE, 
-									pApp->m_pActivePile->GetSrcPhrase(), emptyStr, FALSE);
+					pApp->m_pGlossingKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(),
+													emptyStr, useGlossOrAdaptationForLookup);
 				}
 				pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 			}
@@ -3107,9 +3106,8 @@ _("Filenames cannot include these characters: %s Please type a valid filename us
 			{
 				if (!bNoStore)
 				{
-					// first FALSE is bIsGlossing, second FALSE means 'use m_adaption for lookup'
-					pApp->m_pKB->GetAndRemoveRefString(FALSE, 
-									pApp->m_pActivePile->GetSrcPhrase(), emptyStr, FALSE);
+					pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+													emptyStr, useGlossOrAdaptationForLookup);
 				}
 				pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 			}

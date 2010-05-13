@@ -74,7 +74,7 @@ private:
 	// getters and setters
 public:
 	wxString	GetUuid();
-	void		SetUuid(wxString uuid);
+	void		SetUuid(); // we'll create it on the fly and store it
 
 
 

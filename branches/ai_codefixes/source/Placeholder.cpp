@@ -1392,12 +1392,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
 		m_pView->GetDocument()->DeletePartnerPile(pSrcPhrase);
 		removePos = removePos->GetNext();
 		wxASSERT(pSrcPhrase != NULL);
-		// last param being FALSE means do lookup with m_adaption, not the phrase box
-		// contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) and the
-		// first FALSE is the value for gbIsGlossing here (placeholders support is not
-		// a glossing mode feature)
-		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
-
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 		count++;
 		delete pSrcPhrase;
 		pList->DeleteNode(pos2); 
@@ -1509,11 +1504,7 @@ void CPlaceholder::RemoveNullSourcePhrase(CPile* pRemoveLocPile,const int nCount
     // we must remove the source phrase's translation from the KB as if we
     // had clicked here (otherwise PlacePhraseBox will assert)...
 	
-    // last param being FALSE means do lookup with m_adaption, not the phrase box
-    // contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) and the
-    // first FALSE is the value for gbIsGlossing here (placeholders support is not
-    // a glossing mode feature)
-	m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+	m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 
     // save old sequ number in case required for toolbar's Back button - but since it
     // probably has been lost (being the null source phrase location), to be safe we must
@@ -1552,12 +1543,7 @@ void CPlaceholder::RemoveNullSrcPhraseFromLists(SPList*& pList,SPList*& pSrcPhra
             // presence, then delete it from the (temporary) sublist, and its instance from
             // the heap
 			wxString emptyStr = _T("");
-            // last param being FALSE means do lookup with m_adaption, not the phrase box
-            // contents (the KB pointer can be m_pKB as here, or m_pGlossingKB) and the
-            // first FALSE is the value for gbIsGlossing here (placeholders support is not
-            // a glossing mode feature)
-			m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhraseCopy,emptyStr,FALSE);
-
+			m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhraseCopy,emptyStr,useGlossOrAdaptationForLookup);
 			delete pSrcPhraseCopy;
 			pSrcPhraseCopy = (CSourcePhrase*)NULL;
 			pList->DeleteNode(savePos); 

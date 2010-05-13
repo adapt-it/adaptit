@@ -151,100 +151,13 @@ CTargetUnit::~CTargetUnit()
 	m_pTranslations = (TranslationsList*)NULL;
 }
 
-/*
-// MFC's Serialize is replaced by LoadObject() and SaveObject() below
-void CTargetUnit::Serialize(CArchive& ar)
+inline wxString CTargetUnit::GetUuid() { return m_uuid; }
+
+void CTargetUnit::SetUuid()
 {
-	CObject::Serialize(ar);	// serialize base class
-
-	m_translations.Serialize(ar);
-
-	if(ar.IsStoring())
-	{
-		ar <<  (WORD)m_bAlwaysAsk;
-	}
-	else
-	{
-		WORD w;
-		ar >> w;
-		m_bAlwaysAsk = (bool)w;
-	}
-}
-*/
-
-/*
-wxOutputStream &CTargetUnit::SaveObject(wxOutputStream& stream)
-{
-	wxDataOutputStream ar( stream );
-
-	//m_translations.Serialize(ar);
-	// To achieve the Serialize IsStoring() function here:
-	// 1. Use m_pTranslations.GetCount() and archive it out as wxInt32.
-	// 2. Iterate through the m_pTranslations list GetCount() times and 
-	// call the CRefString::SaveObject for each element in the list
-	wxInt32 count = m_pTranslations->GetCount();
-	ar << count;
-
-	for (TranslationsList::Node* node = m_pTranslations->GetFirst(); node; node = node->GetNext())
-	{
-		CRefString* pData = (CRefString*)node->GetData();
-		pData->SaveObject(stream);
-	}
-
-	ar.Write16(m_bAlwaysAsk); //ar <<  wxUint16(m_bAlwaysAsk); // MFC uses WORD
-
-	// wxWidgets Notes: 
-	// 1. Stream errors should be dealt with in the caller of Adapt_ItDoc::SaveObject()
-	//    which would be either DoFileSave(), or DoTransformedDocFileSave().
-	// 2. Streams automatically close their file descriptors when they
-	//    go out of scope. 
-	return stream;
+	wxString uuid = GetUuid(); // create a new uuid
+	m_uuid = uuid; // store it
 }
 
-wxInputStream &CTargetUnit::LoadObject(wxInputStream& stream)
-{
-	wxDataInputStream ar( stream );
 
-	//m_translations.Serialize(ar);
-	// To achieve the Serialize !IsStoring() function here:
-	// 1. Read the wxInt32 count from the archive to know how many CRefString 
-	//    objects to expect.
-	// 2. Use the int value read in 1. above in a for loop iterating count times, 
-	//    creating new CRefString objects, and using the CRefString::LoadObject 
-	//    method to assign values to its members, and Appending them to the
-	//    CTargetString::TranslationsList.
-	
-	wxInt32 count;
-	ar >> count;
-	// insure we're starting with an empty list
-	if (m_pTranslations->GetCount() > 0)
-		m_pTranslations->Clear(); // previously had DeleteContents(TRUE); // check this !!!
-	// for each expected CRefString, create a new instance and call
-	for (int ct = 0; ct < count; ct++)
-	{
-		CRefString* pData = new CRefString;	// create a new instance of CRefString
-		wxASSERT(pData != NULL);
-		pData->LoadObject(stream);			// Load the instance's data
-
-		// The pData refstring's m_pTgtUnit member is an old pointer that, in the
-		// MFC version, was serialized out with MFC's mirrors and magic. However,
-		// in our wx version it no longer points to a valid CTargetUnit. Therefore 
-		// we need to make sure it points to its current owning CTargetUnit 
-		// (which should be 'this').
-		pData->m_pTgtUnit = this; // whm added for wxWidgets serialization. 
-
-		m_pTranslations->Append(pData);	// add the new CRefString instance 
-														// to the CTargetUnit's TranslationsList
-	}
-
-	wxUint16 w; // MFC uses WORD
-	ar >> w;
-	if (w == 0)
-		m_bAlwaysAsk = FALSE;
-	else
-		m_bAlwaysAsk = TRUE;
-
-	return stream;
-}
-*/
 

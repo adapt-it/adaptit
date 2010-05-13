@@ -864,11 +864,7 @@ void CRetranslation::UnmergeMergersInSublist(SPList*& pList, SPList*& pSrcPhrase
 		{
 			//  remove the refString from the KB, etc.
 
-			// last param being FALSE means do lookup with m_gloss or m_adaption, not
-			// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-			// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
-			// not support making, editing or removal of retranslations)
-			m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+			m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, emptyStr, useGlossOrAdaptationForLookup);
 			
 			// we must abandon any existing adaptation text
 			pSrcPhrase->m_adaption.Empty();
@@ -1112,11 +1108,7 @@ void CRetranslation::ClearSublistKBEntries(SPList* pSublist)
 		CSourcePhrase* pSrcPhrase = (CSourcePhrase*)pos->GetData();
 		pos = pos->GetNext();
 
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
-		// not support making, editing or removal of retranslations)
-		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr, useGlossOrAdaptationForLookup);
 		pSrcPhrase->m_bRetranslation = FALSE; // make sure its off
 		pSrcPhrase->m_bHasKBEntry = FALSE;	  // ditto
 	}
@@ -2098,11 +2090,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		}
 		
 		wxString emptyStr = _T("");
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
-		// not support making, editing or removal of retranslations)
-		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 		
 		m_pApp->m_targetPhrase = str3; // the Phrase Box can have punctuation as well as text
 		m_pApp->m_pTargetBox->ChangeValue(str3);
@@ -2793,11 +2781,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 		}
 		
 		wxString emptyStr = _T("");
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		// and the first FALSE param is the value here of gbIsGlossing (glossing mode does
-		// not support making, editing or removal of retranslations)
-		m_pApp->m_pKB->GetAndRemoveRefString(FALSE,pSrcPhrase,emptyStr,FALSE);
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 	
 		m_pApp->m_targetPhrase = str3;
 		if (m_pApp->m_pTargetBox != NULL)

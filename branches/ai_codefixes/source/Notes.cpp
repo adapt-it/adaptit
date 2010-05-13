@@ -1086,11 +1086,12 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 		}
 	}
 
-	// remove the text from the KB, if refString is not null
+	// remove the text from the KB or GlossingKB, if refString is not null
 	wxString emptyStr = _T("");
-	// last param being FALSE means do lookup with m_gloss or m_adaption, not
-	// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-	m_pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+	if (gbIsGlossing)
+		m_pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
+	else
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
@@ -1292,9 +1293,10 @@ a:	if (!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB)
 
 	// remove the text from the KB, if refString is not null
 	wxString emptyStr = _T("");
-	// last param being FALSE means do lookup with m_gloss or m_adaption, not
-	// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-	m_pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+	if (gbIsGlossing)
+		m_pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
+	else
+		m_pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase,emptyStr,useGlossOrAdaptationForLookup);
 
 	// recalculate the layout
 #ifdef _NEW_LAYOUT

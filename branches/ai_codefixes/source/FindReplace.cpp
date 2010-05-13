@@ -451,20 +451,17 @@ void CFindDlg::DoFindNext()
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pGlossingKB, 1,
+					pRefStr = gpApp->m_pGlossingKB->GetRefString(1,
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
-					if (pRefStr == NULL && 
-						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pGlossingKB,
 								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 				else
 				{
-					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pKB,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-										gpApp->m_targetPhrase);
+					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pKB,
@@ -1248,20 +1245,17 @@ void CReplaceDlg::DoFindNext()
 				bool bOK;
 				if (gbIsGlossing)
 				{
-					pRefStr = gpApp->m_pGlossingKB->GetRefString(gpApp->m_pGlossingKB, 1,
-						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
-					if (pRefStr == NULL && 
-						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+					pRefStr = gpApp->m_pGlossingKB->GetRefString(1,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
+					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pGlossingKB,
 								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
 				}
 				else
 				{
-					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pKB,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-										gpApp->m_pActivePile->GetSrcPhrase()->m_key,
-										gpApp->m_targetPhrase);
+					pRefStr = gpApp->m_pKB->GetRefString(gpApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					bOK = pView->StoreText(gpApp->m_pKB,

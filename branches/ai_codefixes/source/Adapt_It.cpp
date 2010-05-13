@@ -9235,7 +9235,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			// there is an existing .KB file, so we need to create a CKB instance in
 			// memory, open the .KB file on disk, and fill the memory instance's members
 			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 			bool bOK = LoadKB();
 			if (bOK)
@@ -9244,7 +9244,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 				// now do it for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB;
+				m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(m_pGlossingKB != NULL);
 				bOK = LoadGlossingKB();
 				if (bOK)
@@ -9281,7 +9281,7 @@ bool CAdapt_ItApp::SetupDirectories()
             // instance on the application ready to receive data, and save it to disk. for
             // version 2, do the same for the glossing KB
 			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 
 			// store the language names in it
@@ -9295,7 +9295,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 				// now do the same for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB;
+				m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(m_pGlossingKB != NULL);
 
 				bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
@@ -9477,7 +9477,7 @@ bool CAdapt_ItApp::SetupDirectories()
 			// there is an existing .KB file, so we need to create a CKB instance in
 			// memory, open the .KB file on disk, and fill the memory instance's members
 			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 			bool bOK = LoadKB();
 			if (bOK)
@@ -9486,7 +9486,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 				// now do it for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB;
+				m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(m_pGlossingKB != NULL);
 				bOK = LoadGlossingKB();
 				if (bOK)
@@ -9522,7 +9522,7 @@ bool CAdapt_ItApp::SetupDirectories()
             // instance on the application ready to receive data, and save it to disk. for
             // version 2, do the same for the glossing KB
 			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 
 			// store the language names in it
@@ -9536,7 +9536,7 @@ bool CAdapt_ItApp::SetupDirectories()
 
 				// now do the same for the glossing KB
 				wxASSERT(m_pGlossingKB == NULL);
-				m_pGlossingKB = new CKB;
+				m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(m_pGlossingKB != NULL);
 
 				bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
@@ -9669,13 +9669,21 @@ bool CAdapt_ItApp::DoPunctuationChanges(CPunctCorrespPageCommon* punctPgCommon,
 
 				// remove the KB or GlossingKB entry for this location, depending on the mode
 				// and make the box contents resaveable
-				if (m_pKB != NULL)
+				if (gbIsGlossing)
 				{
-					// this call can equally be made from m_pKB or m_pGlossingKB as it is
-					// the first param which defines which CKB pointer is used internally
-					m_pKB->GetAndRemoveRefString(gbIsGlossing, pSrcPhrase, m_targetPhrase, FALSE);
-					// FALSE means 'use m_gloss or m_adaption from pSrcPhrase for lookup,
-					// not the phrase box contents
+					if (m_pGlossingKB != NULL)
+					{
+						m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+															useTargetPhraseForLookup);
+					}
+				}
+				else
+				{
+					if (m_pKB != NULL)
+					{
+						m_pKB->GetAndRemoveRefString(pSrcPhrase, m_targetPhrase, 
+															useTargetPhraseForLookup);
+					}
 				}
 				m_pLayout->m_bPunctuationChanged = TRUE;
 
@@ -10331,7 +10339,7 @@ bool CAdapt_ItApp::LoadGlossingKB()
 
 		// make the substitute KB in memory
 		if (m_pGlossingKB == NULL)
-			m_pGlossingKB = new CKB;
+			m_pGlossingKB = new CKB(TRUE);
 
 		// store it on disk & close it
 		bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
@@ -10414,7 +10422,7 @@ bool CAdapt_ItApp::LoadKB()
 
 		// make the substitute KB in memory
 		if (m_pKB == NULL)
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 
         // we'll have to make sure we get the right source and target language names,
         // so we must analyse the path name to extract them from there; the app's
@@ -11859,7 +11867,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
 			// the backup glossing KB does not exist, so all we can do is substitute an empty
             // one and save it to disk.
-			m_pGlossingKB = new CKB;
+			m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(m_pGlossingKB != NULL);
 
 			bool bOK = StoreGlossingKB(FALSE); // first time, so we can't make a backup
@@ -11899,7 +11907,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
 		{
             // the backup KB does not exist, so all we can do is substitute an empty one
             // and save it to disk.
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 
 			// store the language names in it
@@ -11933,7 +11941,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
             // the .xml file exists, so we need to create a CKB instance in memory, open the
             // .xml file on disk, and fill the memory instance's members
 			wxASSERT(m_pGlossingKB == NULL);
-			m_pGlossingKB = new CKB;
+			m_pGlossingKB = new CKB(TRUE);
 			wxASSERT(m_pGlossingKB != NULL);
 			bool bOK = LoadGlossingKB();
 			if (bOK)
@@ -11965,7 +11973,7 @@ void CAdapt_ItApp::SubstituteKBBackup(bool bDoOnGlossingKB)
             // the .xml file exists, so we need to create a CKB instance in memory, open the
             // .xml file on disk, and fill the memory instance's members
 			wxASSERT(m_pKB == NULL);
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			wxASSERT(m_pKB != NULL);
 			bool bOK = LoadKB();
 			if (bOK)
@@ -13070,7 +13078,7 @@ void CAdapt_ItApp::ClearKB(CAdapt_ItDoc *pDoc)
 		pDoc->EraseKB(m_pGlossingKB); // leaves m_bGlossingKBReady unchanged
 
 		//create a new KB
-		m_pGlossingKB = new CKB;
+		m_pGlossingKB = new CKB(TRUE);
 		wxASSERT(m_pGlossingKB != NULL);
 
 		// check it is ready for use
@@ -13082,7 +13090,7 @@ void CAdapt_ItApp::ClearKB(CAdapt_ItDoc *pDoc)
 		pDoc->EraseKB(m_pKB); // leaves m_bKBReady unchanged
 
 		//create a new KB
-		m_pKB = new CKB;
+		m_pKB = new CKB(FALSE);
 		wxASSERT(m_pKB != NULL);
 
 		// store the language names in the memory instance of the knowledge base
@@ -18744,7 +18752,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 		if (nGlossingCount > 0)
 		{
 			pDoc->EraseKB(m_pGlossingKB);
-			m_pGlossingKB = new CKB; // don't store yet, in case failure occurs we'd want old
+			m_pGlossingKB = new CKB(TRUE); // don't store yet, in case failure occurs we'd want old
 									 // contents left undisturbed
 			wxASSERT(m_pGlossingKB != NULL);
 			m_bGlossingKBReady = TRUE;
@@ -18785,7 +18793,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
         // "Load" the other project's adaptations KB. Code for this will be plagiarized
         // from the app class's LoadKB() function, but using a local CKB pointer to access
         // the KB
-		CKB* pOtherKB = new CKB;
+		CKB* pOtherKB = new CKB(FALSE);
 		if (bXMLforKB)
 		{
 			bool bReadOK = ReadKB_XML(strOtherKBPathXML, pOtherKB);
@@ -18869,7 +18877,7 @@ bool CAdapt_ItApp::AccessOtherAdaptionProject()
 			// (delayed to here, in case the transformation process failed, in which case
 			// we'd prefer the current adaptations KB to be left untouched)
 			pDoc->EraseKB(m_pKB); //pDoc->EraseKB(m_pKB);
-			m_pKB = new CKB;
+			m_pKB = new CKB(FALSE);
 			m_bKBReady = TRUE;
 			wxASSERT(m_pKB);
 			wxASSERT(m_pKB->m_pTargetUnits->GetCount() == 0);

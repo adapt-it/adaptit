@@ -1466,8 +1466,12 @@ void CKBEditor::OnOK(wxCommandEvent& event)
         // RemoveRefString.
 		nWords = m_pKBEditorNotebook->GetSelection() + 1;
 		wxString emptyStr = _T("");
-		gpApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, gpApp->m_pActivePile->GetSrcPhrase(), 
-											emptyStr, FALSE);
+		if (gbIsGlossing)
+			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
+		else
+			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	
 	event.Skip(); //EndModal(wxID_OK); //wxDialog::OnOK(event); // not virtual in wxDialog
@@ -1492,10 +1496,12 @@ void CKBEditor::OnCancel(wxCommandEvent& WXUNUSED(event))
         // RemoveRefString.
 		nWords = m_pKBEditorNotebook->GetSelection() + 1;
 		wxString emptyStr = _T("");
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		gpApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, gpApp->m_pActivePile->GetSrcPhrase(), 
-											emptyStr, FALSE);		
+		if (gbIsGlossing)
+			gpApp->m_pGlossingKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
+		else
+			gpApp->m_pKB->GetAndRemoveRefString(gpApp->m_pActivePile->GetSrcPhrase(), 
+												emptyStr, useGlossOrAdaptationForLookup);
 	}
 	EndModal(wxID_CANCEL); //wxDialog::OnCancel(event);
 	gpApp->m_arrSearches.Clear(); // but leave m_arrOldSearches intact until project is exitted

@@ -38,6 +38,12 @@ class CKB; // needed for the macro below which must reside outside the class dec
 class CRefString;
 class CSourcePhrase;
 
+enum UseForLookup
+{
+     useGlossOrAdaptationForLookup,
+     useTargetPhraseForLookup
+};
+
 /// wxList declaration and partial implementation of the TUList class being
 /// a list of pointers to CTargetUnit objects
 WX_DECLARE_LIST(CTargetUnit, TUList); // see WX_DEFINE_LIST macro in the .cpp file
@@ -63,6 +69,7 @@ class CKB : public wxObject
 
 public:
 	CKB();
+	CKB(bool bGlossingKB); // BEW 12May10, use this constructor everywhere from 5.3.0 onwards
 	// CKB(const CKB& kb); copy constructor - doesn't work, because TUList can't be guaranteed to have
 	// been defined before it gets used. Compiles fine actually, but m_pTargetUnits list pointer is
 	// garbage when the app runs. As a work around, use a function approach, defining a Copy() function.
@@ -105,18 +112,19 @@ public:
 	virtual ~CKB();
 
 	// Public implementation functions
-	CKB*			GetKB(bool bIsGlossing);
-	CRefString*	    GetRefString(CKB* pKB, int nSrcWords, wxString keyStr, wxString valueStr);	
+	bool			IsGlossingKB(); // call on a CKB* to find out what kind it is (i.e. adapting or glossing)
+	//CKB*			GetKB(bool bIsGlossing); // temporary, eliminate when design is settled
+	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);	
 	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
-	void			GetAndRemoveRefString(bool bIsGlossing, CSourcePhrase* pSrcPhrase,
-								wxString& targetPhrase, bool bUsePhraseBoxContents = TRUE); // BEW created 11May10
+	void			GetAndRemoveRefString(CSourcePhrase* pSrcPhrase,
+								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
 
   private:
+
 	CAdapt_ItApp*	m_pApp;
-	//bool			m_bIsGlossingKB; // eventually when global bool gbIsGlossingKB is
-									// eliminated, m_bIsGlossingKB will replace it, and
-									// then each CKB instantiation will know which kind
-									// of CKB class it is, a KB or a GlossingKB
+    // m_bGlossingKB will enable each CKB instantiation to know which kind of CKB class it
+    // is, an (adapting) KB or a GlossingKB
+	bool			m_bGlossingKB; 
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
 	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);

@@ -1561,7 +1561,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 			// there is an existing .KB file, so we need to create a CKB instance in
 			// memory, open the .KB file on disk, and fill the memory instance's members
 			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB;
+			pApp->m_pKB = new CKB(FALSE);
 			wxASSERT(pApp->m_pKB != NULL);
 			bool bOK = pApp->LoadKB();
 			if (bOK)
@@ -1570,7 +1570,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
 				// now do it for the glossing KB
 				wxASSERT(pApp->m_pGlossingKB == NULL);
-				pApp->m_pGlossingKB = new CKB;
+				pApp->m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(pApp->m_pGlossingKB != NULL);
 				bOK = pApp->LoadGlossingKB();
 				if (bOK)
@@ -1603,7 +1603,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
             // instance on the application ready to receive data, and save it to disk. for
             // version 2, do the same for the glossing KB
 			wxASSERT(pApp->m_pKB == NULL);
-			pApp->m_pKB = new CKB;
+			pApp->m_pKB = new CKB(FALSE);
 			wxASSERT(pApp->m_pKB != NULL);
 
 			// store the language names in it
@@ -1617,7 +1617,7 @@ bool CAdapt_ItView::OnCreate(wxDocument* doc, long flags) // a virtual method of
 
 				// now do the same for the glossing KB
 				wxASSERT(pApp->m_pGlossingKB == NULL);
-				pApp->m_pGlossingKB = new CKB;
+				pApp->m_pGlossingKB = new CKB(TRUE);
 				wxASSERT(pApp->m_pGlossingKB != NULL);
 
 				bOK = pApp->StoreGlossingKB(FALSE); // first time, so we can't make a backup
@@ -2171,8 +2171,8 @@ bool CAdapt_ItView::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targ
 		// cannot know which srcPhrases will be affected, so these will still have their
 		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
 		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-		CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB, 1,
-			pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
+		CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
 		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 		bOK = StoreText(pApp->m_pGlossingKB, pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
@@ -2189,9 +2189,8 @@ bool CAdapt_ItView::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targ
 		// cannot know which srcPhrases will be affected, so these will still have their
 		// m_bHasKBEntry set true. We have to test for this, ie. a null pRefString but
 		// the above flag TRUE is a sufficient test, and if so, set the flag to FALSE
-		CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB, 
-			pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-			pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
+		CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
 		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 		gbInhibitLine4StrCall = TRUE;
@@ -2450,9 +2449,12 @@ void CAdapt_ItView::DoGetSuitableText_ForPlacePhraseBox(CAdapt_ItApp* pApp,
 			{
 				// do this for selector values 0 or 2
 				wxString emptyStr = _T("");
-				// last param being FALSE means do lookup with m_gloss or m_adaption, not
-				// the phrase box contents
-				pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+				if (gbIsGlossing)
+					pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+												emptyStr, useGlossOrAdaptationForLookup);
+				else
+					pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+												emptyStr, useGlossOrAdaptationForLookup);
 			}
 		}
 		// this next call relies for it's success on pActivePile being the CPile* at the
@@ -7357,9 +7359,12 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 
 	// remove from the KB, if there is a refString for this source phrase in the KB
 	wxString emptyStr = _T("");
-	// last param being FALSE means do lookup with m_gloss or m_adaption, not
-	// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-	pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+	if (gbIsGlossing)
+		pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+									emptyStr, useGlossOrAdaptationForLookup);
+	else
+		pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+									emptyStr, useGlossOrAdaptationForLookup);
 
     // BEW removed call of ResetPartnerPileWidth() 27Apr09, because a call to
     // ResetPartnerPileWidth() is always done in RecalcLayout() for the active pile, just
@@ -7401,27 +7406,13 @@ void CAdapt_ItView::OnButtonToEnd(wxCommandEvent& event)
 void CAdapt_ItView::RemoveKBEntryForRebuild(CSourcePhrase* pSrcPhrase)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-
-	// save current glossing state, so we can restore afterwards
-	bool bSaveEnableFlag = gbEnableGlossing;
-	bool bSaveGlossingFlag = gbIsGlossing;
+	wxString emptyStr = _T("");
 
 	// remove from the adapting KB, if there is a refString for this source phrase in the KB
-	gbEnableGlossing = FALSE;
-	gbIsGlossing = FALSE;
-	wxString emptyStr = _T("");
-	// last param being FALSE means do lookup with m_adaption, not the phrase box contents
-	// (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-	pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+	pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, emptyStr, useGlossOrAdaptationForLookup);
 
 	// now the glossing KB
-	gbEnableGlossing = TRUE;
-	gbIsGlossing = TRUE;
-	pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
-
-	// restore current mode
-	gbEnableGlossing = bSaveEnableFlag;
-	gbIsGlossing = bSaveGlossingFlag;
+	pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, emptyStr, useGlossOrAdaptationForLookup);
 }
 
 /// stores both adaptation for the adapting KB and gloss for the glossing KB, for the one
@@ -7694,9 +7685,12 @@ void CAdapt_ItView::OnButtonToStart(wxCommandEvent& event)
 
 	// remove the text from the KB, if refString is not null
 	wxString emptyStr = _T("");
-	// last param being FALSE means do lookup with m_gloss or m_adaption, not
-	// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-	pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+	if (gbIsGlossing)
+		pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+									emptyStr, useGlossOrAdaptationForLookup);
+	else
+		pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+									emptyStr, useGlossOrAdaptationForLookup);
 
 	// recalculate the layout
 #ifdef _NEW_LAYOUT
@@ -8001,9 +7995,12 @@ void CAdapt_ItView::OnButtonStepDown(wxCommandEvent& event)
 
 		// remove the text from the KB, if refString is not null
 		wxString emptyStr = _T("");
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+										emptyStr, useGlossOrAdaptationForLookup);
+		else
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+										emptyStr, useGlossOrAdaptationForLookup);
 	} // end block for "not free translation mode"
 
 	// update the layout and get a fresh active pile pointer
@@ -8341,9 +8338,12 @@ void CAdapt_ItView::OnButtonStepUp(wxCommandEvent& event)
 
 		// remove the text from the KB, if refString is not null
 		wxString emptyStr = _T("");
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+										emptyStr, useGlossOrAdaptationForLookup);
+		else
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+										emptyStr, useGlossOrAdaptationForLookup);
 	} // end block for "not free translation mode"
 
 	// update the layout and get a fresh active pile pointer
@@ -8677,8 +8677,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
                 // still have their m_bHasKBEntry set true. We have to test for this, ie. a
                 // null pRefString but the above flag TRUE is a sufficient test, and if so,
                 // set the flag to FALSE
-				CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB, 
-								pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+				CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 							pApp->m_pActivePile->GetSrcPhrase()->m_key, pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
@@ -8946,7 +8945,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 		{
             // append its m_translation in the CRefString to pApp->m_targetPhrase, then
             // remove the refString from the KB, etc.
-			CRefString* pRefString = GetKB()->GetRefString(GetKB(), pSrcPhrase->m_nSrcWords,
+			CRefString* pRefString = pApp->m_pKB->GetRefString(pSrcPhrase->m_nSrcWords,
 											pSrcPhrase->m_key, pSrcPhrase->m_adaption);
 			if (pRefString != NULL)
 			{
@@ -8965,7 +8964,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
                     // the following call needs to be within this block, not after it,
                     // because we don't want to also remove any <Not In KB> entries from
                     // the KB (altered 1-Feb-2001)
-					GetKB()->RemoveRefString(pRefString, pSrcPhrase, pSrcPhrase->m_nSrcWords);
+					pApp->m_pKB->RemoveRefString(pRefString, pSrcPhrase, pSrcPhrase->m_nSrcWords);
 				}
 			}
 			else // pRefString == NULL
@@ -9598,12 +9597,12 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
     // decremented; append any refString's m_translation to the pApp->m_targetPhrase, so
     // user can edit or delete the resulting composite string when the phraseBox is
     // eventually put up (note, next call, pRefString may point to <Not In KB>)
-	CRefString* pRefString = GetKB()->GetRefString(GetKB(),pBigOne->m_nSrcWords,
+	CRefString* pRefString = pApp->m_pKB->GetRefString(pBigOne->m_nSrcWords,
 											pBigOne->m_key,pBigOne->m_adaption);
 	pList->DeleteNode(savePos);
 	if (pBigOne->m_bHasKBEntry)
 	{
-		GetKB()->RemoveRefString(pRefString,pBigOne,pBigOne->m_nSrcWords);
+		pApp->m_pKB->RemoveRefString(pRefString,pBigOne,pBigOne->m_nSrcWords);
 		pBigOne->m_bHasKBEntry = FALSE;
 
 		// set up pApp->m_targetPhrase using pBigOne's m_targetStr attribute
@@ -13063,9 +13062,12 @@ jp:	pCurTargetUnit = GetTargetUnit(GetKB(), nWordsInPhrase, pSrcPhrase->m_key);
 		if (bEmptyBox)
 			goto ed;
 
-		// last param being FALSE means do lookup with m_gloss or m_adaption, not
-		// the phrase box contents (the KB pointer can be m_pKB as here, or m_pGlossingKB)
-		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing,pSrcPhrase,emptyStr,FALSE);
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, 
+										emptyStr, useGlossOrAdaptationForLookup);
+		else
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+										emptyStr, useGlossOrAdaptationForLookup);
 
 		// if user hit the cancell button, we can return immediately
 ed:		if (bCancelled)
@@ -13403,6 +13405,7 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 
 void CAdapt_ItView::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 {
+	CAdapt_ItApp* pApp = &wxGetApp();
 	if (bChoice)
 	{
         // user wants it to not be in the KB, so set it up accordingly... first thing to do
@@ -13483,7 +13486,7 @@ void CAdapt_ItView::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
 		pSrcPhrase->m_bHasKBEntry = FALSE; // make sure
 
 		wxString str = _T("<Not In KB>");
-		CRefString* pRefString = GetKB()->GetRefString(GetKB(),pSrcPhrase->m_nSrcWords,
+		CRefString* pRefString = pApp->m_pKB->GetRefString(pSrcPhrase->m_nSrcWords,
 												pSrcPhrase->m_key,str);
 		if (pRefString == NULL)
 		{
@@ -14253,6 +14256,9 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 	// create a copy of the KB, we check the copy for inconsistencies, but do updating within
 	// the current KB pointed to by the app's m_pKB pointer, or m_pGlossingKB when glossing
 	CKB* pKBCopy = new CKB(); // can't use a copy constructor, due to C++ bug
+							  // BEW 12May10 note: default constructor here does not set the
+							  // private m_bGlossingKB member, the next line does that based
+							  // on the setting for that member in pKB
 	pKBCopy->Copy(*pKB);  // this is a work-around for the C++ bug - see KB.h for an explanation
 
 	// iterate over the document files
@@ -15265,7 +15271,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                 // still have their m_bHasGlossingKBEntry set true. We have to test for
                 // this, ie. a null pRefString but the m_bHasGlossing KBEntry set TRUE is a
                 // sufficient test, and if so, set the flag to FALSE
-				pRefStr = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB,1,
+				pRefStr = pApp->m_pGlossingKB->GetRefString(1,
 						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
@@ -15282,10 +15288,8 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
                 // still have their m_bHasKBEntry set true. We have to test for this, ie. a
                 // null pRefString but the m_bHasKBEntry set TRUE is a sufficient test, and
                 // if so, set the flag to FALSE
-				pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB,
-								pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
-								pApp->m_pActivePile->GetSrcPhrase()->m_key,
-								pApp->m_targetPhrase);
+				pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+								pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				gbInhibitLine4StrCall = TRUE;
@@ -15574,11 +15578,13 @@ a:			str = str.Format(_(
 	{
         // user cancelled, so do nothing except remove the ref string that we stored above
         // (and most importantly, this will clear the m_bHasKBEntry on the source phrase
-        // too) last param being default TRUE means do the lookup using the passed in
-        // m_targetPhrase value (ie. the phrase box contents); note: the KB pointer can be
-        // m_pKB as here, or m_pGlossingKB
-b:		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, pApp->m_pActivePile->GetSrcPhrase(),
-											pApp->m_targetPhrase);
+        // too)
+b:		if (gbIsGlossing)
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+												pApp->m_targetPhrase, useTargetPhraseForLookup);
+		else
+			pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+												pApp->m_targetPhrase, useTargetPhraseForLookup);
 	}
 }
 
@@ -16371,11 +16377,10 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			bool bOK;
 			if (gbIsGlossing)
 			{
-				pRefStr = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB, 1,
+				pRefStr = pApp->m_pGlossingKB->GetRefString(1,
 							pApp->m_pActivePile->GetSrcPhrase()->m_key,
 							pApp->m_targetPhrase);
-				if (pRefStr == NULL || 
-					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+				if (pRefStr == NULL || pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 				// now do the store
 				bOK = StoreText(pApp->m_pGlossingKB,pApp->m_pActivePile->GetSrcPhrase(),
@@ -16383,12 +16388,10 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 			}
 			else
 			{
-				pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB,
-							pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
+				pRefStr = pApp->m_pKB->GetRefString(pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 									pApp->m_pActivePile->GetSrcPhrase()->m_key,
 									pApp->m_targetPhrase);
-				if (pRefStr == NULL || 
-					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry) // be safe
+				if (pRefStr == NULL || pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				// now do the store
 				gbInhibitLine4StrCall = TRUE;
@@ -18800,7 +18803,7 @@ bool CAdapt_ItView::DoReplace(int		nActiveSequNum,
 			!pSrcPhrase->m_bRetranslation)
 		{
 			wxString str = _T("<Not In KB>");
-			CRefString* pRefString = pApp->m_pKB->GetRefString(pApp->m_pKB,
+			CRefString* pRefString = pApp->m_pKB->GetRefString(
 									pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 									pApp->m_pActivePile->GetSrcPhrase()->m_key,str);
 			if (pRefString != NULL)
@@ -22023,12 +22026,13 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
 	else
 	{
 
-        // remove the ref string for the active location, if it exists... last param being
-        // default TRUE means do the lookup using the passed in m_targetPhrase value (ie.
-        // the phrase box contents); note: the KB pointer can be m_pKB as here, or
-        // m_pGlossingKB
-		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, pApp->m_pActivePile->GetSrcPhrase(),
-											pApp->m_targetPhrase);
+        // remove the ref string for the active location, if it exists
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+												pApp->m_targetPhrase, useTargetPhraseForLookup);
+		else
+			pApp->m_pKB->GetAndRemoveRefString(pApp->m_pActivePile->GetSrcPhrase(), 
+												pApp->m_targetPhrase, useTargetPhraseForLookup);
 	}
 
 	pApp->m_targetPhrase.Empty(); // clear out the attribute on the view
@@ -24925,11 +24929,10 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
                         // true. We have to test for this, ie. a null pRefString, but that
                         // flag being TRUE is a sufficient test, and if so, set the flag to
                         // FALSE
-						CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB, 1,
+						CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
 												pApp->m_pActivePile->GetSrcPhrase()->m_key, 
 												pApp->m_targetPhrase);
-						if (pRefStr == NULL && 
-								pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
+						if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 						bool bOK;
 						bOK = StoreText(pApp->m_pGlossingKB,
@@ -24948,11 +24951,10 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
                         // have to test for this, ie. a null pRefString, but that flag
                         // being TRUE is a sufficient test, and if so, set the flag to
                         // FALSE
-						CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB,
+						CRefString* pRefStr = pApp->m_pKB->GetRefString(
 							pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 							pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
-						if (pRefStr == NULL && 
-								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
+						if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 						gbInhibitLine4StrCall = TRUE;
 						bool bOK;
@@ -24971,7 +24973,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					//pApp->m_pActivePile->m_pSrcPhrase->m_gloss = pApp->m_targetPhrase;
 
 					// see above for why we do this
-					CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(pApp->m_pGlossingKB, 1,
+					CRefString* pRefStr = pApp->m_pGlossingKB->GetRefString(1,
 											pApp->m_pActivePile->GetSrcPhrase()->m_key,
 											pApp->m_targetPhrase);
 					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
@@ -24986,7 +24988,7 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 
 					// see above for why we do this
-					CRefString* pRefStr = pApp->m_pKB->GetRefString(pApp->m_pKB,
+					CRefString* pRefStr = pApp->m_pKB->GetRefString(
 						pApp->m_pActivePile->GetSrcPhrase()->m_nSrcWords,
 						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
@@ -28276,10 +28278,7 @@ void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
 
 		// now the adaptation stuff
 		pApp->m_targetPhrase = pSrcPhrase->m_adaption; // get the adaptation text
-		gbIsGlossing = FALSE; // so RemoveRefString will get the adaptation KB
-							  // but it also gives us the temporary toggle we need too
-		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, pSrcPhrase, pApp->m_targetPhrase);
-		gbIsGlossing = TRUE; // restore it
+		pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, useTargetPhraseForLookup);
 	}
 
 	// get the Enable Glossing menu pointer
@@ -28484,7 +28483,8 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 		}
 		else // it's a normal type of entry, so can be in the KB
 		{
-			pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, pSrcPhrase, pApp->m_targetPhrase);
+			pApp->m_pKB->GetAndRemoveRefString(pSrcPhrase, 
+									pApp->m_targetPhrase, useTargetPhraseForLookup);
 		}
 
 		// get any removed adaptations in gEditRecord into the GUI list; but if the
@@ -28524,7 +28524,8 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 		pApp->m_targetPhrase = pSrcPhrase->m_gloss; // get the gloss text
 		gbIsGlossing = TRUE; // so GetRefString( ) will get the glossing KB
 							 // but it also gives us the needed toggle too
-		pApp->m_pKB->GetAndRemoveRefString(gbIsGlossing, pSrcPhrase, pApp->m_targetPhrase);
+		pApp->m_pGlossingKB->GetAndRemoveRefString(pSrcPhrase, pApp->m_targetPhrase, 
+													useTargetPhraseForLookup);
 
 		// get any removed glosses in gEditRecord into the GUI list; but if the
 		// mode current on is free translations mode, don't do so

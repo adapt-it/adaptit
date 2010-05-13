@@ -83,7 +83,6 @@ extern bool gbNoAdaptationRemovalRequested;
 CKB::CKB()
 {
 	m_pApp = &wxGetApp();
-
 	m_nMaxWords = 1; // value for a minimal phrase
 
 	// whm Note: I've changed the order of the following in order to create
@@ -98,6 +97,25 @@ CKB::CKB()
 	}
 }
 
+CKB::CKB(bool bGlossingKB)
+{
+	m_pApp = &wxGetApp();
+	m_nMaxWords = 1; // value for a minimal phrase
+
+	// whm Note: I've changed the order of the following in order to create
+	// the TUList before the MapStringToOjbect maps. See notes in KB.h.
+	m_pTargetUnits = new TUList;
+	wxASSERT(m_pTargetUnits != NULL);
+
+	for (int i = 0; i< MAX_WORDS; i++)
+	{
+		m_pMap[i] = new MapKeyStringToTgtUnit;
+		wxASSERT(m_pMap[i] != NULL);
+	}
+	m_bGlossingKB = bGlossingKB; // set the KB type, TRUE for GlossingKB, 
+								   // FALSE for adapting KB
+}
+
 // copy constructor - it doesn't work, see header file for explanation
 /*
 CKB::CKB(const CKB &kb)
@@ -105,6 +123,9 @@ CKB::CKB(const CKB &kb)
 	const CKB* pCopy = &kb;
 	POSITION pos;
 
+	m_bGlossingKB = pCopy->m_bGlossingKB; // BEW added 12May10
+	m_pApp = pCopy->m_pApp; // BEW added 12May10
+	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 	m_nMaxWords = pCopy->m_nMaxWords;
 	m_sourceLanguageName = pCopy->m_sourceLanguageName;
 	m_targetLanguageName = pCopy->m_targetLanguageName;
@@ -179,6 +200,8 @@ CKB::~CKB()
 	// WX note: this destructor is called when closing project, but not when closing doc
 }
 
+inline bool CKB::IsGlossingKB(){return m_bGlossingKB;}
+
 void CKB::Copy(const CKB& kb)
 // the copy can be done efficiently only by scanning the maps one by one (so we know how many
 // source words are involved each time), and for each key, construct a copy of it (because RemoveAll()
@@ -192,7 +215,8 @@ void CKB::Copy(const CKB& kb)
 	const CKB* pCopy = &kb;
 	wxASSERT(pCopy);
 
-	if (gbIsGlossing)
+	//if (gbIsGlossing)
+	if (pCopy->m_bGlossingKB) // BEW changed test 12May10
 	{
 		m_nMaxWords = 1;
 		m_sourceLanguageName.Empty(); // don't need these
@@ -204,6 +228,9 @@ void CKB::Copy(const CKB& kb)
 		m_sourceLanguageName = pCopy->m_sourceLanguageName;
 		m_targetLanguageName = pCopy->m_targetLanguageName;
 	}
+	m_bGlossingKB = pCopy->m_bGlossingKB; // BEW added 12May10
+	m_pApp = pCopy->m_pApp; // BEW added 12May10
+	m_kbVersionCurrent = pCopy->m_kbVersionCurrent; // BEW added 12May10
 
 	TUList* pTUList = pCopy->m_pTargetUnits;
 	wxASSERT(pTUList);
@@ -263,7 +290,7 @@ void CKB::Copy(const CKB& kb)
 // TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will have
 // come from either the adaptation KB or the glossing KB.
 // BEW 11May10, moved from view class, and made private (it's only called once, in GetRefString())
-CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation)
+CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit, wxString adaptation)
 {
 	CRefString* pRefStr = (CRefString*)NULL;
 	TranslationsList* pList = pTgtUnit->m_pTranslations;
@@ -321,9 +348,14 @@ CRefString* CKB::AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation
 // version 2.0 and later, pKB will point to the glossing KB when gbIsGlossing is TRUE.
 // Ammended, July 2003, to support auto capitalization
 // BEW 11May10, moved from CAdapt_ItView class
-CRefString* CKB::GetRefString(CKB *pKB, int nSrcWords, wxString keyStr, wxString valueStr)
+// BEW changed signature 12May10, because from 5.3.0 and onwards, each KB now knows whether
+// it is a glossing KB or an adapting KB -- using private member boolean m_bGlossingKB
+CRefString* CKB::GetRefString(int nSrcWords, wxString keyStr, wxString valueStr)
 {
-	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nSrcWords-1];
+	// ensure nSrcWords is 1 if this is a GlossingKB access
+	if (m_bGlossingKB)
+		nSrcWords = 1;
+	MapKeyStringToTgtUnit* pMap = this->m_pMap[nSrcWords-1];
 	wxASSERT(pMap != NULL);
 	CTargetUnit* pTgtUnit;	// wx version changed 2nd param of AutoCapsLookup() below to
 							// directly use CTargetUnit* pTgtUnit
@@ -347,7 +379,7 @@ CRefString* CKB::GetRefString(CKB *pKB, int nSrcWords, wxString keyStr, wxString
 /// \param      nWordsInPhrase  ->  used in order to define which map to look up
 /// \remarks
 /// Removes the wxString and reference count associated with it, (embodied as a CRefString
-/// object)from a CTargetUnit instance in the knowledge base.
+/// object)from a CTargetUnit instance in the knowledge base, as follows:
 /// If pRefString is referenced only once, remove it from KB (since the phraseBox will hold
 /// a copy of its string if it is still wanted), or if it is referenced more than once,
 /// then just decrement the reference count by one, and set the srcPhrase's m_bHasKBEntry
@@ -369,21 +401,22 @@ CRefString* CKB::GetRefString(CKB *pKB, int nSrcWords, wxString keyStr, wxString
 /// is currenty going on, or editing of a retranslation (we don't want to dumb down the KB)
 /// needlessly
 /// BEW 11May10, moved from CAdapt_ItView class
+/// BEW changed 12May10, to use private member boolean m_bGlossingKB for tests
 void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase)
 {
-	if (gbIsGlossing)
+	if (m_bGlossingKB)
+	{
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
+		nWordsInPhrase = 1; // ensure correct value for a glossing KB
+	}
 	else
 		pSrcPhrase->m_bHasKBEntry = FALSE;
-	if (!gbIsGlossing && pSrcPhrase->m_bNotInKB)
+	if (!m_bGlossingKB && pSrcPhrase->m_bNotInKB)
 	{
-		// version 2 can do this block only when the adaption KB is in use
+		// this block can only be entered when the adaption KB is in use
 		pSrcPhrase->m_bHasKBEntry = FALSE;
-		return; // return because nothing was put in KB for this source phrase anyway
+		return; // return because no KB adaptation exists for this source phrase
 	}
-	
-	//CAdapt_ItApp* pApp = GetDocument()->GetApp();
-
     // BEW added 06Sept06: the above tests handle what must be done to the document's
     // pSrcPhrase instance passed in, but it could be the case that the preceding
     // GetRefString() call did not find a KB entry with the given reference string
@@ -430,7 +463,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			// is currently happening
 			pRefString->m_refCount = --nRefCount;
 		}
-		if (gbIsGlossing)
+		if (m_bGlossingKB)
 		{
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		}
@@ -496,12 +529,6 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			// we are removing the only CRefString in the owning targetUnit, so the latter must
 			// go as well
 			CTargetUnit* pTgtUnit;
-			CKB* pKB;
-			if (gbIsGlossing)
-				pKB = m_pApp->m_pGlossingKB; // point to the glossing KB when glossing is on
-			else
-				pKB = m_pApp->m_pKB; // point to the adaptation knowledge base when adapting
-
 			delete pRefString;
 			pRefString = (CRefString*)NULL;
 			// since we delete pRefString, TranslationsList::Clear() should do the job below
@@ -509,7 +536,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 
 			TUList::Node* pos;
 
-			pos = pKB->m_pTargetUnits->Find(pTU); // find position of pRefString's
+			pos = m_pTargetUnits->Find(pTU); // find position of pRefString's
 												  // owning targetUnit
 
             // Note: A check for NULL should probably be done here anyway even if when
@@ -517,11 +544,11 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 			pTgtUnit = (CTargetUnit*)pos->GetData(); // get the targetUnit in
 																	// the list
 			wxASSERT(pTgtUnit != NULL);
-			pKB->m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
+			m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
 			delete pTgtUnit; // delete its instance from the heap
 			pTgtUnit = (CTargetUnit*)NULL;
 
-			MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nWordsInPhrase - 1];
+			MapKeyStringToTgtUnit* pMap = m_pMap[nWordsInPhrase - 1];
 			int bRemoved = 0;
 			if (gbAutoCaps)
 			{
@@ -559,7 +586,7 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 		}
 
 		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
-		if (gbIsGlossing)
+		if (m_bGlossingKB)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
 		else
 			pSrcPhrase->m_bHasKBEntry = FALSE;
@@ -568,57 +595,55 @@ void CKB::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase, int
 
 // GetKB() here is private member function of CKB() c.f. the view's public GetKB() which
 // internally uses global bool gbIsGlossing to find which CKB instance is current
-CKB* CKB::GetKB(bool bIsGlossing)
-{
-	if (bIsGlossing)
-		return m_pApp->m_pGlossingKB;
-	else
-		return m_pApp->m_pKB;
-}
+//CKB* CKB::GetKB(bool bIsGlossing)
+//{
+//	if (bIsGlossing)
+//		return m_pApp->m_pGlossingKB;
+//	else
+//		return m_pApp->m_pKB;
+//}
 
-// BEW created 11May10, to replace about 20 or so lines which always call GetRefString()
-// and then a little later, RemoveRefString; this will enable about 600 lines of code
-// spread over about 30 functions to be replaced by about 30 calls of this function.
-// The bIsGlossing param is explicit as the caller will pass in global bool gbIsGlossing,
-// but eventually when gbIsGlossing is removed from the app, we may adjust the signature,
-// depending on how we later decide to handle the indication of adapting versus glossing 
-// states. The bUsePhraseBoxContents is default TRUE if omitted. When TRUE, the
-// targetPhrase value which is looked up is assumed to be the phrase box's contents (the
-// caller is responsible to make sure that is so), but if FALSE is passed explicitly, then
-// the targetPhrase param is ignored, and the m_gloss or m_adaption member of the passed
-// in pSrcPhrase is used for lookup 
-void CKB::GetAndRemoveRefString(bool bIsGlossing, CSourcePhrase* pSrcPhrase, 
-								wxString& targetPhrase, bool bUsePhraseBoxContents)
+// BEW created 11May10, to replace several lines which always call GetRefString() and then
+// a little later, RemoveRefString; this will enable about 300 lines of code spread over
+// about 30 functions to be replaced by about 30 calls of this function. The UseForLookup
+// enum values are a set of two: useGlossOrAdaptationForLookup and
+// useTargetPhraseForLookup. When the latter is passed in, the targetPhrase value which is
+// looked up is assumed to be the phrase box's contents (the caller is responsible to make
+// sure that is so). When the former is passed is, then the targetPhrase param is ignored,
+// and the m_gloss or m_adaption member of the passed in pSrcPhrase is used for lookup -
+// depending on the value of the private member m_bGlossingKB, when TRUE, m_gloss is used,
+// when FALSE, m_adaption is used.
+void CKB::GetAndRemoveRefString(CSourcePhrase* pSrcPhrase, wxString& targetPhrase, 
+								enum UseForLookup useThis)
 {
 	CRefString* pRefStr = NULL;
-	// get the CKB instance (currently, the app class has that knowledge, using
-	// gbIsGlossing global boolean, which is passed in here via the bIsGlossing param)
-	CKB* pKB = GetKB(bIsGlossing); // pKB now points to either m_pKB, or m_pGlossingKB
-	if (bIsGlossing)
+	if (m_bGlossingKB)
 	{
-		if (bUsePhraseBoxContents)
+		if (useThis == useTargetPhraseForLookup)
 		{
-			pRefStr = GetRefString(pKB, 1, pSrcPhrase->m_key, targetPhrase);
+			pRefStr = GetRefString(1, pSrcPhrase->m_key, targetPhrase);
 		}
-		else
+		else // useThis has the value useGlossOrAdaptationForLookup
 		{
-			pRefStr = GetRefString(pKB, 1, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
+			pRefStr = GetRefString(1, pSrcPhrase->m_key, pSrcPhrase->m_gloss);
 		}
+		// ensure correct flag value
 		if (pRefStr == NULL && pSrcPhrase->m_bHasGlossingKBEntry)
 			pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // must be FALSE for a successful lookup on return
 		if (pRefStr != NULL)
 			RemoveRefString(pRefStr, pSrcPhrase, 1);
 	}
-	else
+	else // it is an adapting KB 
 	{
-		if (bUsePhraseBoxContents)
+		if (useThis == useTargetPhraseForLookup)
 		{
-			pRefStr = GetRefString(pKB, pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
+			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, targetPhrase);
 		}
-		else
+		else // useThis has the value useGlossOrAdaptationForLookup
 		{
-			pRefStr = GetRefString(pKB, pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
+			pRefStr = GetRefString(pSrcPhrase->m_nSrcWords, pSrcPhrase->m_key, pSrcPhrase->m_adaption);
 		}
+		// ensure correct flag value
 		if (pRefStr == NULL && pSrcPhrase->m_bHasKBEntry)
 			pSrcPhrase->m_bHasKBEntry = FALSE; // must be FALSE for a successful lookup on return
 		if (pRefStr != NULL)
