@@ -1588,8 +1588,7 @@ void CAdapt_ItDoc::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 {
 	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	
+	wxASSERT(pApp != NULL);	
 	if (gbVerticalEditInProgress)
 	{
 		// don't allow doc closure until the vertical edit is finished
@@ -1639,6 +1638,10 @@ void CAdapt_ItDoc::OnFileClose(wxCommandEvent& event)
 	bUserCancelled = FALSE;
 	CAdapt_ItView* pView = (CAdapt_ItView*) GetFirstView();
 	wxASSERT(pView != NULL);
+	pView->RemoveSelection(); // required, else if a selection exists and user closes doc and
+			// does a Rebuild Knowledge Base, the m_selection array will retain hanging
+			// pointers, and Rebuild Knowledge Base's RemoveSelection() call will cause a
+			// crash
 	pView->ClobberDocument();
 
 	// delete the buffer containing the filed-in source text
@@ -2617,7 +2620,10 @@ bool CAdapt_ItDoc::DoFileSave(bool bShowWaitDlg, enum SaveType type, wxString* p
 				pView->RemovePunctuation(this,&pApp->m_targetPhrase,from_target_text); //1 = from tgt
 			}
 			gbInhibitLine4StrCall = TRUE;
-			bOK = pView->StoreText(pView->GetKB(),pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			if (gbIsGlossing)
+				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+			else
+				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
 			gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
 			{

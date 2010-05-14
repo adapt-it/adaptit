@@ -182,7 +182,7 @@ void CPlaceholder::InsertNullSrcPhraseBefore()
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK;
-		bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
+		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
 						m_pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 	}
@@ -276,7 +276,7 @@ void CPlaceholder::InsertNullSrcPhraseAfter()
 		m_pView->RemovePunctuation(pDoc, &m_pApp->m_targetPhrase, from_target_text);
 		gbInhibitLine4StrCall = TRUE;
 		bool bOK;
-		bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
+		bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), m_pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 	}
 	
@@ -1850,8 +1850,8 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bool bOK;
-			bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
-							m_pApp->m_targetPhrase);
+			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
+											m_pApp->m_targetPhrase);
 			gbInhibitLine4StrCall = FALSE;
 		}
 		
@@ -2031,8 +2031,8 @@ void CPlaceholder::OnButtonNullSrc(wxCommandEvent& WXUNUSED(event))
 			m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 			gbInhibitLine4StrCall = TRUE;
 			bool bOK;
-			bOK = m_pView->StoreText(m_pApp->m_pKB, m_pApp->m_pActivePile->GetSrcPhrase(), 
-							m_pApp->m_targetPhrase);
+			bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(), 
+											m_pApp->m_targetPhrase);
 			gbInhibitLine4StrCall = FALSE;
 		}
 		

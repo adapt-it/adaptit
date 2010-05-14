@@ -300,6 +300,7 @@ CPhraseBox::CPhraseBox(void)
 
 	m_textColor = wxColour(0,0,0); // default to black
 	m_bMergeWasDone = FALSE;
+	m_bCancelAndSelectButtonPressed = FALSE;
 }
 
 CPhraseBox::~CPhraseBox(void)
@@ -475,7 +476,7 @@ void CPhraseBox::Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* 
 			// don't inhibit the call to MakeLineFourString( ) here, since the phrase passed
 			// in is the non-punctuated one
 			bool bOK;
-			bOK = pView->StoreText(pApp->m_pKB, pSP, str);
+			bOK = pApp->m_pKB->StoreText(pSP, str);
 			// set the flags to ensure the asterisk shows above the pile, etc.
 			pSP->m_bHasKBEntry = FALSE;
 			pSP->m_bNotInKB = TRUE; 
@@ -589,12 +590,12 @@ bool CPhraseBox::DoStore_NormalOrTransliterateModes(CAdapt_ItApp* pApp, CAdapt_I
 	if (gbIsGlossing)
 	{
 		// BEW added next line 27Jan09
-		bOK = pView->StoreText(pApp->m_pGlossingKB, pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		bOK = pApp->m_pGlossingKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 	}
 	else
 	{
 		// BEW added next line 27Jan09
-		bOK = pView->StoreText(pApp->m_pKB, pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
 	}
 
     // if in Transliteration Mode we want to cause gbSuppressStoreForAltBackspaceKeypress
@@ -1326,7 +1327,14 @@ c:	bOK = TRUE;
         // it when gbSuppressStoreForAltBackspaceKeypress is TRUE, but internally sets a
         // local string to "<Not In KB>" and stores that instead) BEW 27Jan09, nothing more
         // needed here
-		bOK = pView->StoreText(pView->GetKB(), pOldActiveSrcPhrase, pApp->m_targetPhrase);
+        if (gbIsGlossing)
+		{
+			bOK = pApp->m_pGlossingKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		}
+		else
+		{
+			bOK = pApp->m_pKB->StoreText(pOldActiveSrcPhrase, pApp->m_targetPhrase);
+		}
 	}
 	else
 	{
@@ -1796,7 +1804,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 	}
 	else
 	{
-		pKB = ((CAdapt_ItApp*)&wxGetApp())->m_pKB;
+		pKB = pApp->m_pKB;
 		nCurLongest = pKB->m_nMaxWords; // no matches are possible for phrases longer 
 										// than nCurLongest when adapting
 	}
@@ -1805,7 +1813,7 @@ bool CPhraseBox::LookAhead(CAdapt_ItView *pView, CPile* pNewPile)
 	bool bFound = FALSE;
 	while (index > -1)
 	{
-		bFound = FindMatchInKB(pKB, index + 1, phrases[index], pTargetUnit);
+		bFound = pKB->FindMatchInKB(index + 1, phrases[index], pTargetUnit);
 		if (bFound)
 		{
 			// matched a source phrase which has identical key as the built phrase
@@ -2496,24 +2504,6 @@ void CPhraseBox::JumpForward(CAdapt_ItView* pView)
 	#ifdef _FIND_DELAY
 		wxLogDebug(_T("12. End of JumpForward"));
 	#endif
-}
-
-// returns TRUE if a matching KB entry found; when glossing, pKB points to the glossing KB, when
-// adapting it points to the normal KB
-// BEW 26Mar10, no changes needed for support of doc version 5
-bool CPhraseBox::FindMatchInKB(CKB* pKB, int numWords, wxString keyStr, CTargetUnit *&pTargetUnit)
-{
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	CAdapt_ItView* pView = pApp->GetView();
-	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[numWords-1];
-	CTargetUnit* pTU;
-	bool bOK = pView->AutoCapsLookup(pMap,pTU,keyStr);
-	if (bOK)
-		pTargetUnit = pTU;	// makes pTargetUnit point to same object pointed to by pTU
-							// and shouldn't require use of an assignment operator. Since
-							// pTargetUnit is a reference parameter, FindMatchInKb will
-							// assign the new pointer to the caller pointer argument
-	return bOK;
 }
 
 // internally calls CPhraseBox::FixBox() to see if a resizing is needed; this function
@@ -3678,7 +3668,10 @@ bool CPhraseBox::MoveToImmedNextPile(CAdapt_ItView *pView, CPile *pCurPile)
 		pView->RemovePunctuation(pDoc, &pApp->m_targetPhrase,from_target_text);
 	}
 	gbInhibitLine4StrCall = TRUE;
-	bOK = pView->StoreText(pView->GetKB(), pCurPile->GetSrcPhrase(), pApp->m_targetPhrase); 
+	if (gbIsGlossing)
+		bOK = pApp->m_pGlossingKB->StoreText(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
+	else
+		bOK = pApp->m_pKB->StoreText(pCurPile->GetSrcPhrase(), pApp->m_targetPhrase);
 	gbInhibitLine4StrCall = FALSE;
 	if (!bOK)
 	{
@@ -4849,7 +4842,17 @@ void CPhraseBox::DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile)
     // BEW changed 26Mar10, internally it tests bDoRecalcLayout and so it will do the
     // RecalcLayout(), resetting of active sequ num, and the active pile to that location
     // if TRUE. The m_bCancelAndSelectButtonPressed value passed in needs to be TRUE
-	pView->MakeSelectionForFind(pSrcPhrase->m_nSequNumber,2,nSelLineIndex, m_bCancelAndSelectButtonPressed);
+    // 
+	// BEW added protection, 14May10; a hard-coded 2 will cause crash if the document has
+	// only a single word and bad initialization has the m_targetBox's
+	// m_bCancelAndSelectButtonPressed value set TRUE, since there are not enough piles to
+	// be able to select 2 in that case!
+	CAdapt_ItApp* pApp = &wxGetApp();
+	if (pSrcPhrase->m_nSequNumber < pApp->GetMaxIndex())
+	{
+		pView->MakeSelectionForFind(pSrcPhrase->m_nSequNumber,2,nSelLineIndex, 
+									m_bCancelAndSelectButtonPressed);
+	}
 	m_bCancelAndSelectButtonPressed = FALSE; // must clear to default FALSE immediately
 }
 
@@ -4960,12 +4963,11 @@ bool CPhraseBox::LookUpSrcWord(CAdapt_ItView *pView, CPile* pNewPile)
 	if (gbIsGlossing)
 		pKB = pApp->m_pGlossingKB;
 	else
-		//pKB = ((CAdapt_ItApp*)&wxGetApp())->m_pKB;
 		pKB = pApp->m_pKB;
 	CTargetUnit* pTargetUnit = (CTargetUnit*)NULL;
 	int index = 0;
 	bool bFound = FALSE;
-	bFound = FindMatchInKB(pKB, index + 1, phrases[index], pTargetUnit);
+	bFound = pKB->FindMatchInKB(index + 1, phrases[index], pTargetUnit);
 
 	// if no match was found, we return immediately with a return value of FALSE
 	if (!bFound)

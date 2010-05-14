@@ -112,12 +112,23 @@ public:
 	virtual ~CKB();
 
 	// Public implementation functions
-	bool			IsGlossingKB(); // call on a CKB* to find out what kind it is (i.e. adapting or glossing)
-	//CKB*			GetKB(bool bIsGlossing); // temporary, eliminate when design is settled
-	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);	
-	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
+	bool			AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
+	wxString		AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
+	void			DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
+	void			DoKBImport(wxTextFile* pFile);
+	void			DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
+	bool			FindMatchInKB(int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
 	void			GetAndRemoveRefString(CSourcePhrase* pSrcPhrase,
 								wxString& targetPhrase, enum UseForLookup useThis); // BEW created 11May10
+	CRefString*	    GetRefString(int nSrcWords, wxString keyStr, wxString valueStr);	
+	CTargetUnit*	GetTargetUnit(int nSrcWords, wxString keyStr);
+	bool			IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
+	bool			IsItNotInKB(CSourcePhrase* pSrcPhrase);
+	void			RemoveRefString(CRefString* pRefString, CSourcePhrase* pSrcPhrase, int nWordsInPhrase);
+	void			RestoreForceAskSettings(KPlusCList* pKeys);
+	bool			IsThisAGlossingKB(); // accessor for private bool m_bGlossingKB
+	bool			StoreText(CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, bool bSupportNoAdaptationButton = FALSE);
+
 
   private:
 
@@ -127,7 +138,9 @@ public:
 	bool			m_bGlossingKB; 
     int				m_kbVersionCurrent; // BEW added 3May10 for Save As... support
 
-	CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
+	CRefString*		AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation);
+	int				CountSourceWords(wxString& rStr);
+	bool			IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 
 };
 #endif // KB_h

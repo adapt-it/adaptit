@@ -143,8 +143,8 @@ public:
 	void		AdjustAlignmentMenu(bool bRTL,bool bLTR);
 	bool		AnalyseReference(wxString& chVerse,int& chapter,int& vFirst,int& vLast,int nWantedVerse);
 	//CRefString*	AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation); //moved to CKB
-	bool		AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr);
-	wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE);
+	//bool		AutoCapsLookup(MapKeyStringToTgtUnit* pMap,CTargetUnit*& pTU,wxString keyStr); // moved to CKB
+	//wxString	AutoCapsMakeStorageString(wxString str, bool bIsSrc = TRUE); // moved to CKB
 
 	bool		CheckForVerticalEditBoundsError(CPile* pPile); // whm moved to public for wx version
 	void		ChooseTranslation();
@@ -161,7 +161,6 @@ public:
 						bool bFindRetranslation,bool bFindNullSrcPhrase, bool bFindSFM, 
 						wxString& src, wxString& tgt,wxString& sfm, bool bIgnoreCase, 
 						int& nSequNum, int& nCount);
-	void		DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice = TRUE);
 	bool		DoReplace(int nActiveSequNum, bool bIncludePunct, wxString& tgt, wxString& replStr,
 						int nCount);
 	void		DoStartupWizardOnLaunch();
@@ -208,7 +207,6 @@ public:
 	void		InsertFilteredMaterial(wxString& rMkr, wxString& rEndMkr, wxString contentStr,
 					CSourcePhrase* pSrcPhrase, int offsetForInsert, bool bContentOnly); // BEW 6Jul05
 
-	bool		IsItNotInKB(CSourcePhrase* pSrcPhrase);
 	bool		IsInCaseCharSet(wxChar chTest, wxString& theCharSet, int& index);
 	bool		IsUnstructuredData(SPList* pList);
 	bool		IsWrapMarker(CSourcePhrase* pSrcPhrase);
@@ -268,8 +266,6 @@ public:
 	void		StatusBarMessage(wxString& message);
 	bool		StoreBeforeProceeding(CSourcePhrase* pSrcPhrase);
 	void		StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase, wxString& targetStr, wxString& glossStr);
-	bool		StoreText(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& tgtPhrase, 
-										bool bSupportNoAdaptationButton = FALSE);
 	bool		StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase);
 	void		ToggleGlossingMode(); // BEW added 19Sep08
 	void		ToggleSeeGlossesMode(); // BEW added 19Sep08
@@ -306,7 +302,6 @@ protected:
 	void		BailOutFromEditProcess(SPList* pSrcPhrases, EditRecord* pRec); // BEW added 30Apr08
 	bool		CopyCSourcePhrasesToExtendSpan(SPList* pOriginalList, SPList* pDestinationList,
 					int nOldList_StartingSN, int nOldList_EndingSN); // BEW added 13May08
-	int			CountSourceWords(wxString& rStr);
 public: // edb 05 March 2010 - set to public (this is called from CRetranslation)
 	void		DeleteTempList(SPList* pList);	// must be a list of ptrs to CSourcePhrase instances on the heap 
 protected:
@@ -315,8 +310,6 @@ protected:
 	bool		DoExtendedSearch(int selector, SPList::Node*& pos, CAdapt_ItDoc* pDoc, 
 					SPList* pTempList, int nElements, bool bIncludePunct, bool bIgnoreCase, int& nCount);
 	bool		DoFindSFM(wxString& sfm, int nStartSequNum, int& nSequNum, int& nCount);
-	void		DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType);
-	void		DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile);
 	bool		DoSrcAndTgtFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases,
 						wxString& src,wxString& tgt, bool bIgnoreCase, int& nSequNum, int& nCount);
 	bool		DoSrcOnlyFind(int nStartSequNum, bool bIncludePunct, bool bSpanSrcPhrases, 
@@ -347,7 +340,6 @@ protected:
 							int& nEndingSequNum, int& nStartingFreeTransSequNum, 
 							int& nEndingFreeTransSequNum, bool& bFreeTransPresent); // BEW added 25Apr08
 	CCell*		GetNextCell(CCell* pCell,  const int cellIndex); // GetNextCell(const CCell* pCell,  const int cellIndex)
-	CTargetUnit*  GetTargetUnit(CKB* pKB, int nSrcWords, wxString keyStr);
 	void		GetVerseEnd(SPList::Node*& curPos,SPList::Node*& precedingPos,SPList* WXUNUSED(pList),SPList::Node*& posEnd);
 	int			IncludeAPrecedingSectionHeading(int nStartingSequNum, SPList::Node* startingPos, SPList* WXUNUSED(pList));
 protected:
@@ -358,12 +350,11 @@ public:
 protected:
 	bool		IsAdaptationInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 												 bool* pbHasAdaptations); // BEW added 15July08
-	bool		IsAlreadyInKB(int nWords,wxString key,wxString adaptation);
+	//bool		IsAlreadyInKB(int nWords,wxString key,wxString adaptation); // 13May10 moved to CKB
 	bool		IsFreeTranslationInSelection(SPList* pList); // BEW added 21Nov05, (for edit source text support)
 	bool		IsFilteredInfoInSelection(SPList* pList); // whm added 14Aug06
 	bool		IsGlossInformationInThisSpan(SPList* pSrcPhrases, int& nStartingSN, int& nEndingSN,
 					bool* pbHasGlosses);  // BEW added 29Apr08
-	bool		IsMember(wxString& rLine, wxString& rMarker, int& rOffset);
 	int			IsMatchedToEnd(wxString& strSearch, wxString& strTarget);
 	bool		IsFilteredMaterialNonInitial(SPList* pList);
 	bool		IsSameMarker(int str1Len, int nFirstChar, const wxString& str1, const wxString& testStr);
@@ -526,11 +517,6 @@ public:
 	void OnUpdateAdvancedDelay(wxUpdateUIEvent& event);
 	void OnUpdateButtonEnablePunctCopy(wxUpdateUIEvent& event);
 	void OnButtonEnablePunctCopy(wxCommandEvent& WXUNUSED(event));
-	
-	void OnEditMoveNoteForward(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateEditMoveNoteForward(wxUpdateUIEvent& event);
-	void OnEditMoveNoteBackward(wxCommandEvent& WXUNUSED(event));
-	void OnUpdateEditMoveNoteBackward(wxUpdateUIEvent& event);
 	void OnAdvancedUseTransliterationMode(wxCommandEvent& WXUNUSED(event));
 	void OnUpdateAdvancedUseTransliterationMode(wxUpdateUIEvent& event);
 	void OnButtonMerge(wxCommandEvent& WXUNUSED(event));

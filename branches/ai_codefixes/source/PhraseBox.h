@@ -85,7 +85,6 @@ public:
 	void DoCancelAndSelect(CAdapt_ItView* pView, CPile* pPile);
 	CLayout* GetLayout();
 	bool LookAhead(CAdapt_ItView* pAppView, CPile* pNewPile);
-	bool FindMatchInKB(CKB* pKB, int numWords, wxString srcPhrase, CTargetUnit*& pTargetUnit);
 	void Fix_NotInKB_WronglyEditedOut(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc, CAdapt_ItView* pView, 
 							CPile* pCurPile); // BEW added 24Mar09, to simplify MoveToNextPile()
 	int	 BuildPhrases(wxString phrases[10],int nActiveSequNum, SPList* pSourcePhrases);

@@ -1153,13 +1153,13 @@ void CRetranslation::InsertSublistAfter(SPList* pSrcPhrases, SPList* pSublist, i
 		// the KB. We can get the former translation string from the m_adaption member.
 		if (!pSPhr->m_bNotInKB && !pSPhr->m_adaption.IsEmpty())
 		{
-			bool bOK = m_pView->StoreText(m_pApp->m_pKB,pSPhr,pSPhr->m_adaption);
+			bool bOK = m_pApp->m_pKB->StoreText(pSPhr,pSPhr->m_adaption);
 			if (!bOK)
 			{
 				// never had a problem here, so this message can stay in English
 				wxMessageBox(_T(
-								"Warning: redoing the StoreText operation failed in OnButtonRetranslation\n"),
-							 _T(""), wxICON_EXCLAMATION);
+				"Warning: redoing the StoreText operation failed in OnButtonRetranslation\n"),
+				_T(""), wxICON_EXCLAMATION);
 			}
 		}
 	}
@@ -1697,7 +1697,7 @@ void CRetranslation::OnButtonRetranslation(wxCommandEvent& event)
 		m_pView->MakeLineFourString(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
 		m_pView->RemovePunctuation(pDoc,&m_pApp->m_targetPhrase,from_target_text);
 		gbInhibitLine4StrCall = TRUE;
-		bool bOK = m_pView->StoreText(m_pApp->m_pKB,m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
+		bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),m_pApp->m_targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 		if (!bOK)
 		{
@@ -2259,7 +2259,7 @@ void CRetranslation::OnButtonEditRetranslation(wxCommandEvent& event)
 			if (!m_pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			{
 				gbInhibitLine4StrCall = TRUE;
-				bool bOK = m_pView->StoreText(m_pApp->m_pKB,m_pApp->m_pActivePile->GetSrcPhrase(),
+				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
 									 m_pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
@@ -2927,8 +2927,8 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			if (m_pApp->m_targetPhrase != m_pApp->m_pActivePile->GetSrcPhrase()->m_adaption)
 			{
 				gbInhibitLine4StrCall = TRUE;
-				bool bOK = m_pView->StoreText(m_pApp->m_pKB,m_pApp->m_pActivePile->GetSrcPhrase(),
-									 m_pApp->m_targetPhrase);
+				bool bOK = m_pApp->m_pKB->StoreText(m_pApp->m_pActivePile->GetSrcPhrase(),
+												 m_pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 				if (!bOK)
 					return; // can't proceed until a valid adaption (which could be null)
@@ -3062,7 +3062,7 @@ void CRetranslation::OnRemoveRetranslation(wxCommandEvent& event)
 			pSrcPhrase->m_adaption.Empty();
 			pSrcPhrase->m_targetStr.Empty();
 			pSrcPhrase->m_bRetranslation = FALSE;
-			if (m_pView->IsItNotInKB(pSrcPhrase))
+			if (m_pApp->m_pKB->IsItNotInKB(pSrcPhrase))
 				pSrcPhrase->m_bNotInKB = TRUE;
 			else
 				pSrcPhrase->m_bNotInKB = FALSE;

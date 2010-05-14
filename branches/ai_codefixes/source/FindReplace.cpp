@@ -455,8 +455,8 @@ void CFindDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key,gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pGlossingKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 				else
 				{
@@ -464,8 +464,8 @@ void CFindDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 			}
 		}
@@ -1249,8 +1249,8 @@ void CReplaceDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pGlossingKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pGlossingKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 				else
 				{
@@ -1258,8 +1258,8 @@ void CReplaceDlg::DoFindNext()
 						gpApp->m_pActivePile->GetSrcPhrase()->m_key, gpApp->m_targetPhrase);
 					if (pRefStr == NULL && gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						gpApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
-					bOK = pView->StoreText(gpApp->m_pKB,
-								gpApp->m_pActivePile->GetSrcPhrase(),gpApp->m_targetPhrase);
+					bOK = gpApp->m_pKB->StoreText(gpApp->m_pActivePile->GetSrcPhrase(),
+															gpApp->m_targetPhrase);
 				}
 			}
 		}

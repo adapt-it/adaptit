@@ -2431,7 +2431,6 @@ protected:
 	void	MakeForeignProjectConfigFileSafe(wxString& configFName,wxString& folderPath,
 											wxString* adminConfigFNamePtr); // whm added 9Mar10
 	CBString MakeKBElementXML(wxString& src,CTargetUnit* pTU,int nTabLevel);
-	void	RestoreForceAskSettings(CKB* pKB, KPlusCList* pKeys);
 	void	PunctPairsToString(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
 	void	SetDefaults(bool bAllowCustomLocationCode = TRUE);
 	void	StringToPunctPairs(PUNCTPAIR pp[MAXPUNCTPAIRS], wxString& rStr);
@@ -2484,7 +2483,7 @@ public:
 	// the following are mostly in alphabetical order, but there are exceptions
 	bool	AccessOtherAdaptionProject();
 	bool	AreBookFoldersCreated(wxString dirPath);
-	void	ClearKB(CAdapt_ItDoc* pDoc);
+	void	ClearKB(CKB* pKB, CAdapt_ItDoc* pDoc);
 	bool	ContainsOrdinaryQuote(wxString s, wxChar ch);
 	void	CreateBookFolders(wxString dirPath, wxArrayPtrVoid* pFolders);
 	void	DoAutoSaveDoc();
