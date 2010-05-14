@@ -119,7 +119,6 @@
 #include "Notes.h"
 #include "Retranslation.h"
 #include "Placeholder.h"
-#include "LanguageCodesDlg.h"
 
 // rde added the following but, if it is actually needed we'll use wxMax()
 //#ifndef max
@@ -2175,7 +2174,7 @@ bool CAdapt_ItView::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targ
 								pApp->m_pActivePile->GetSrcPhrase()->m_key, targetPhrase);
 		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-		bOK = StoreText(pApp->m_pGlossingKB, pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+		bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
 	}
 	else // is adapting
 	{
@@ -2194,7 +2193,7 @@ bool CAdapt_ItView::DoStore_ForPlacePhraseBox(CAdapt_ItApp* pApp, wxString& targ
 		if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 			pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 		gbInhibitLine4StrCall = TRUE;
-		bOK = StoreText(pApp->m_pKB, pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
+		bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), targetPhrase);
 		gbInhibitLine4StrCall = FALSE;
 	}
 	return bOK;
@@ -2911,7 +2910,7 @@ void CAdapt_ItView::PlacePhraseBox(CCell *pCell, int selector)
     // get's set up is the old location's adaptation, not to mention a spurious save of
     // <Not In KB> to the KB as well.
 	if (!gbIsGlossing && ((!pSrcPhrase->m_bHasKBEntry && pSrcPhrase->m_bNotInKB) ||
-							IsItNotInKB(pSrcPhrase)) && !pSrcPhrase->m_bRetranslation)
+				pApp->m_pKB->IsItNotInKB(pSrcPhrase)) && !pSrcPhrase->m_bRetranslation)
 	{
         // this ensures user has to explicitly type into the box and explicitly check the
         // checkbox if he wants to override the "not in kb" earlier setting at this
@@ -6776,281 +6775,6 @@ void CAdapt_ItView::DoSrcPhraseSelCopy()
 	}
 }
 
-bool CAdapt_ItView::IsItNotInKB(CSourcePhrase* pSrcPhrase)
-{
-	// determine if it is an <Not In KB> entry in the KB
-	// modified, July 2003, for Auto-Capitalization support (ie. use AutoCapsLookup function)
-	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
-	wxASSERT(pApp);
-	CKB* pKB = pApp->m_pKB;
-	int nMapIndex = pSrcPhrase->m_nSrcWords - 1; // compute the index to the map
-
-	// if we have too many source words, then it is not in the KB, 
-	// but not a "<Not In KB>" entry
-	if (pSrcPhrase->m_nSrcWords > MAX_WORDS)
-	{
-		return FALSE;
-	}
-
-	wxString key = pSrcPhrase->m_key;
-	CTargetUnit* pTU;
-	if (pKB->m_pMap[nMapIndex]->empty())
-	{
-		return FALSE;
-	}
-	else
-	{
-		bool bFound = AutoCapsLookup(pKB->m_pMap[nMapIndex], pTU, key);
-		if(!bFound)
-		{
-			// not found
-			return FALSE;
-		}
-		else
-		{
-			// pTU exists, so check its first refString to see if it stores <Not In KB>
-			TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
-			CRefString* pRefStr = (CRefString*)tpos->GetData();
-			if (pRefStr->m_translation == _T("<Not In KB>"))
-			{
-				return TRUE;
-			}
-			else
-			{
-				return FALSE;
-			}
-		}
-	}
-}
-/* moved to CKB class
-/////////////////////////////////////////////////////////////////////////////////
-/// \return     nothing
-/// \param      pRefString      ->  pointer to the CRefString object to be deleted
-/// \param      pSrcPhrase      ->  pointer to the CSourcePhrase instance whose m_key
-///                                 member supplies the key for locating the CTargetUnit
-///                                 in the relevant knowledge base map
-/// \param      nWordsInPhrase  ->  used in order to define which map to look up
-/// \remarks
-/// Removes the wxString and reference count associated with it, (embodied as a CRefString
-/// object)from a CTargetUnit instance in the knowledge base.
-/// If pRefString is referenced only once, remove it from KB (since the phraseBox will hold
-/// a copy of its string if it is still wanted), or if it is referenced more than once,
-/// then just decrement the reference count by one, and set the srcPhrase's m_bHasKBEntry
-/// flag to FALSE; also make sure m_bAlwaysAsk is set or cleared as the case may be. For
-/// version 2.0 and onwards we must test gbIsGlossing in order to set the KB pointer to
-/// either the adaption KB or the glossing KB; and the caller must supply the appropriate
-/// first and last parameters (ie. a pRefString from the glossing KB and nWordsInPhrase set
-/// to 1 when gbIsGlossing is TRUE)
-/// Ammended, July 2003, to support auto capitalization
-/// BEW changed 05July2006 to fix a long-standing error where the m_bHasKBEntry flag, or
-/// the m_bHasGlossingKBEntry flag, was not cleared when the phrase box lands at a location
-/// which earlier contributed an entry to the KB. The reason it wasn't cleared was because
-/// I put the code for that in an "if (pRefString == NULL)" test's true block, so it
-/// wouldn't get called except at locations which did not as yet have any KB entry! So I
-/// commented out the test. (In StoreText() and StoreTextGoingBack() I unilaterally cleared
-/// the flags at its start so that the store would not fail; I've now removed that bit of
-/// code & tested - seems fine now.)
-/// BEW 20Mar07: code added to suppress the decrement or kb entry removal if retranslating
-/// is currenty going on, or editing of a retranslation (we don't want to dumb down the KB)
-/// needlessly
-void CAdapt_ItView::RemoveRefString(CRefString *pRefString, CSourcePhrase* pSrcPhrase,
-									int nWordsInPhrase)
-{
-	if (gbIsGlossing)
-		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-	else
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-	if (!gbIsGlossing && pSrcPhrase->m_bNotInKB)
-	{
-		// version 2 can do this block only when the adaption KB is in use
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-		return; // return because nothing was put in KB for this source phrase anyway
-	}
-	
-	CAdapt_ItApp* pApp = GetDocument()->GetApp();
-
-    // BEW added 06Sept06: the above tests handle what must be done to the document's
-    // pSrcPhrase instance passed in, but it could be the case that the preceding
-    // GetRefString() call did not find a KB entry with the given reference string
-    // instance, in which case it would have returned NULL. In that case there is nothing
-    // to remove, and no more to be done here, so test for this possibility and return
-    // immediately if so.
-	if (pRefString == NULL)
-		return;
-
-    // for autocapitalization support, we have to be careful that the translation (or
-    // gloss) which we delete in the case when the ref count drops to zero is the actual
-    // one in the KB - we can't always take it from pSrcPhrase->m_key because if auto caps
-    // is ON it might be the case that the entry was put in when auto caps is OFF and then
-    // we'd wrongly change to lower case and not succeed in removing the entry from the
-    // map, so we have to be a bit more clever. So we'll set s to the key as on the
-    // sourcephrase, and a second string s1 will have the other case equivalent, and if the
-    // first does not get removed, we try the second (which should work); we still need to
-    // form the second only when gbAutoCaps is TRUE, since when it is OFF, a failed
-    // GetRefString( ) call will not result in an attempt to remove a lower case entry
-    // stored when gbAutoCaps was ON
-	wxString s = pSrcPhrase->m_key;
-	wxString s1 = s;
-	bool bNoError = TRUE;
-	if (gbAutoCaps)
-	{
-		bNoError = SetCaseParameters(s1);
-		if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-		{
-			// make it start with lower case letter
-			s1.SetChar(0,gcharSrcLC);
-		}
-	}
-	int nRefCount = pRefString->m_refCount;
-	wxASSERT(nRefCount > 0);
-	if (nRefCount > 1)
-	{
-        // more than one reference to it, so just decrement & remove the srcPhrase's
-        // knowledge of it, this does not affect the count of how many translations there
-        // are, so m_bAlwaysAsk is unaffected. Version 2 has to test gbIsGlossing and set
-        // the relevant flag to FALSE.
-		if (!(pApp->GetRetranslation()->GetIsRetranslationCurrent()))
-		{
-			// BEW 20Mar07: don't decrement if retranslation, or editing of same, 
-			// is currently happening
-			pRefString->m_refCount = --nRefCount;
-		}
-		if (gbIsGlossing)
-		{
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		}
-		else
-		{
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-		}
-	}
-	else
-	{
-        // from version 1.2.9 onwards, since <no adaptation> has to be caused manually, we
-        // no longer want to automatically remove an empty adaptation whenever we land on
-        // one - well, not quite true, we can remove automatically provided the ref count
-        // is greater than one, but we have to block automatic decrements which would
-        // result in a count of zero - else we'd lose the value from the KB altogether and
-        // user would not know. We need this protection because an ENTER will not cause
-        // automatic re-storing of it. So now, we will just not remove the last one. This
-        // will possibly skew the ref counts a bit for empty adaptations, if the user hits
-        // the <no adaptation> button more than once for an entry (making them too large)
-        // or landing on an empty one several times (makes count to small), would not
-        // matter anyway. To manually remove empty adaptations from the KB the user still
-        // has the option of doing it in the KB Editor, or in the ChooseTranslation dialog.
-
-        //BEW changed behaviour 20Jun06 because unilaterally returning here whenever the
-        //m_translation string was empty meant that if the user wanted to remove his
-        //earlier "<no adaptation>" choice, there was no way to effect it from the
-        //interface. So now we have a global flag gbNoAdaptationRemovalRequested which is
-        //TRUE whenever the user hits backspace or Del key in an empty phrasebox, provided
-        //that locatation's CSourcePhrase has m_bHasKBEntry (when in adapting mode) set
-        //TRUE, or m_bHasGlossingKBEntry (when in glossing mode) set TRUE. Hence if neither
-        //BS or DEL key is pressed, we'll get the legacy (no deletion & retaining of the
-        //flag value) behaviour as before.
-		if (pRefString->m_translation.IsEmpty())
-		{
-			if (!gbNoAdaptationRemovalRequested)
-				return; // never automatically reduce count to zero; if user wants to be 
-                        //rid of it, he must do so manually -- no, there was no 'manual'
-                        //way to do it for the document CSourcePhrase instance, so 20Jun06
-                        //change introduces a backspace or DEL key press to effect the
-                        //removal
-		}
-		gbNoAdaptationRemovalRequested = FALSE; // ensure cleared to default value, & 
-                        // permit removal after the flag may have been used in previous
-                        // block
-
-		if (pApp->GetRetranslation()->GetIsRetranslationCurrent())
-		{
-            // BEW 20Mar07: don't remove if retranslation, or editing of same, is currently
-            // happening because we don't want retranslations to effect the 'dumbing down'
-            // of the KB by removal of perfectly valid KB entries belonging to the
-            // retranslation span formerly
-			return;
-		}
-
-        // this reference string is only referenced once, so remove it entirely from KB or
-        // from the glossing KB, depending on gbIsGlossing flag's value
-		CTargetUnit* pTU = pRefString->m_pTgtUnit; // point to the owning targetUnit
-		wxASSERT(pTU != NULL);
-		int nTranslations = pTU->m_pTranslations->GetCount();
-		wxASSERT(nTranslations > 0); // must be at least one
-		if (nTranslations == 1)
-		{
-			// we are removing the only CRefString in the owning targetUnit, so the latter must
-			// go as well
-			CTargetUnit* pTgtUnit;
-			CKB* pKB;
-			if (gbIsGlossing)
-				pKB = pApp->m_pGlossingKB; // point to the glossing KB when glossing is on
-			else
-				pKB = pApp->m_pKB; // point to the adaptation knowledge base when adapting
-
-			delete pRefString;
-			pRefString = (CRefString*)NULL;
-			// since we delete pRefString, TranslationsList::Clear() should do the job below
-			pTU->m_pTranslations->Clear();
-
-			TUList::Node* pos;
-
-			pos = pKB->m_pTargetUnits->Find(pTU); // find position of pRefString's
-												  // owning targetUnit
-
-            // Note: A check for NULL should probably be done here anyway even if when
-            // working properly a NULL return value on Find shouldn't happen.
-			pTgtUnit = (CTargetUnit*)pos->GetData(); // get the targetUnit in
-																	// the list
-			wxASSERT(pTgtUnit != NULL);
-			pKB->m_pTargetUnits->DeleteNode(pos); // remove its pointer from the list
-			delete pTgtUnit; // delete its instance from the heap
-			pTgtUnit = (CTargetUnit*)NULL;
-
-			MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nWordsInPhrase - 1];
-			int bRemoved = 0;
-			if (gbAutoCaps)
-			{
-                // try removing the lower case one first, this is the most likely one that
-                // was found by GetRefString( ) in the caller
-				bRemoved = pMap->erase(s1); // also remove it from the map
-			}
-			if (bRemoved == 0)
-			{
-				// have a second shot using the unmodified string s
-				bRemoved = pMap->erase(s); // also remove it from the map
-			}
-			wxASSERT(bRemoved == 1);
-            // the above algorith will handle all possibilites except one; if earlier auto
-            // caps is ON, and the user stores an entry with source text starting with
-            // upper case, (which will be changed to lower case for the storage), and then
-            // later on s/he turns auto caps OFF, then the entry would not be found by the
-            // above line:
-            // bRemoved = pMap->erase(s); and then the wxASSERT would trip; however, we
-            // are saved from this happening because the pRefString passed in is provided
-            // by a prior GetRefString( ) call in the caller, and that would not find the
-            // pRefString, and as a consequence it would return NULL, and so the in this
-            // block of RemoveRefString( ) the removal would not be asked for; so the
-            // wxASSERT would not trip.
-		}
-		else
-		{
-			// there are other CRefString instances, so don't remove its owning targetUnit
-			TranslationsList::Node* pos = pTU->m_pTranslations->Find(pRefString);
-			wxASSERT(pos != NULL); // it must be in the list somewhere
-			pTU->m_pTranslations->DeleteNode(pos); // remove that refString from the list
-												   // in the targetUnit
-			delete pRefString; // delete it from the heap
-			pRefString = (CRefString*)NULL;
-		}
-
-		// inform the srcPhrase that it no longer has a KB entry (or a glossing KB entry)
-		if (gbIsGlossing)
-			pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-		else
-			pSrcPhrase->m_bHasKBEntry = FALSE;
-	}
-}
-*/
 // Return value: TRUE if all was well (whether or not an actual store to KB took place -
 // because certain flags inhibit saves, or an empty targetBox does not get anything saved
 // to a KB if the <no adaptation> button was not pressed), and FALSE if the store could not
@@ -7086,7 +6810,7 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 			if (!pApp->m_targetPhrase.IsEmpty())
 			{
 				// it has to be saved to the glossing KB if not empty
-				bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,pApp->m_targetPhrase);
+				bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 			}
 			else
 				bOK = TRUE; // no store, but not an error so return TRUE
@@ -7103,7 +6827,7 @@ bool CAdapt_ItView::StoreBeforeProceeding(CSourcePhrase* pSrcPhrase)
 				MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
 				RemovePunctuation(pDoc,&pApp->m_targetPhrase,from_target_text);
 				gbInhibitLine4StrCall = TRUE;
-				bOK = StoreText(pApp->m_pKB,pSrcPhrase,pApp->m_targetPhrase);
+				bOK = pApp->m_pKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 			}
 			else
@@ -7440,12 +7164,12 @@ void CAdapt_ItView::StoreKBEntryForRebuild(CSourcePhrase* pSrcPhrase,
 	// pSrcPhrase which is currently active, and that member already has the required
 	// punctuation because we have copied the old string prior to the rebuild
 	gbInhibitLine4StrCall = TRUE;
-	bool bOK = StoreText(pApp->m_pKB,pSrcPhrase,adaptationStr);
+	bool bOK = pApp->m_pKB->StoreText(pSrcPhrase,adaptationStr);
 
 	// now the glossing KB
 	gbEnableGlossing = TRUE;
 	gbIsGlossing = TRUE;
-	bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,glossStr);
+	bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,glossStr);
 
 	// restore current mode
 	gbEnableGlossing = bSaveEnableFlag;
@@ -8683,8 +8407,7 @@ void CAdapt_ItView::OnButtonMerge(wxCommandEvent& WXUNUSED(event))
 								pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				gbInhibitLine4StrCall = TRUE;
 				bool bOK;
-				bOK = StoreText(pApp->m_pKB, pApp->m_pActivePile->GetSrcPhrase(), 
-								pApp->m_targetPhrase);
+				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 			}
 
@@ -9571,10 +9294,10 @@ int CAdapt_ItView::RestoreOriginalMinPhrases(CSourcePhrase *pSrcPhrase, int nSta
 		{
 			// restore its KB entry
 			bool bOK;
-			bOK = StoreText(pApp->m_pKB,pSP,pSP->m_adaption);
+			bOK = pApp->m_pKB->StoreText(pSP,pSP->m_adaption);
 		}
 
-		if (IsItNotInKB(pSP))
+		if (pApp->m_pKB->IsItNotInKB(pSP))
 			pSP->m_bNotInKB = TRUE;
 		else
 			pSP->m_bNotInKB = FALSE;
@@ -9828,8 +9551,7 @@ void CAdapt_ItView::OnButtonRestore(wxCommandEvent& WXUNUSED(event))
             // base
 			MakeLineFourString(pApp->m_pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 			RemovePunctuation(pDoc, &pApp->m_targetPhrase, from_target_text);
-			bool bOK = StoreText(pApp->m_pKB, pActivePile->GetSrcPhrase(), 
-									pApp->m_targetPhrase);
+			bool bOK = pApp->m_pKB->StoreText(pActivePile->GetSrcPhrase(), pApp->m_targetPhrase);
 			if (!bOK)
 				return; // can't proceed until a valid adaption (which could be null) 
                         // is supplied for the former active pile's srcPhrase
@@ -10518,629 +10240,6 @@ void CAdapt_ItView::MergeWords()
 	OnButtonMerge(dummyevent);
 }
 
-// return TRUE if all was well, FALSE if unable to store (the caller should use the FALSE
-// value to block a move of the phraseBox to another pile) This function's behaviour was
-// changed after version1.2.8, on May 6 2002, in order to eliminate the occurence of the
-// "Empty Adaption Dialog" which would come up whenever the user deleted the contents of
-// the phrase box and then moved on, or clicked elsewhere. The new default behaviour is
-// that if the box is empty when the user causes it to move, then nothing is stored in the
-// knowledge base and the move is acted on immediately. If the user wants to store a <no
-// adaptation> empty entry in the KB, a button "<no adaptation>" has been provided on the
-// control bar. Click it before moving the phrase box to cause an empty adaptation to be
-// stored in the KB for the source text at the current active location. version 2.0 and
-// onward tests gbIsGlossing for storing to the appropriate KB, etc. For adaptation, on
-// input the tgtPhrase parameter should have the text with punctuation removed, so this is
-// typically done in the caller with a call to RemovePunctuation( ). For versions prior to
-// 4.1.0, in order to support the user overriding the stored punctuation for the source
-// text, a call to MakeLineFourString( ) is done in the caller, and then RemovePunctuation(
-// ) is called in the caller, so a second call of MakeLineFourString( ) within StoreText( )
-// is not required in this circumstance - in this case, a global boolean
-// gbInhibitLine4StrCall is used to jump the call within StoreText( ). For 4.1.0 and later,
-// MakeLineFourString() is not now called. See below.
-// 
-// Ammended, July 2003, for Auto-Capitalization support
-// BEW 22Feb10 no changes needed for support of doc version 5
-bool CAdapt_ItView::StoreText(CKB *pKB, CSourcePhrase *pSrcPhrase, wxString &tgtPhrase, 
-										bool bSupportNoAdaptationButton)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pApp != NULL);
-	// determine the auto caps parameters, if the functionality is turned on
-	bool bNoError = TRUE;
-
-    // do not permit storage if the source phrase has an empty key (eg. user may have ...
-    // ellipsis in the source text, which generates an empty key and three periods in the
-    // punctuation)
-	if (pSrcPhrase->m_key.IsEmpty())
-	{
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE; // this is not an error, just suppression of the store
-	}
-
-	if (gbAutoCaps)
-	{
-		bNoError = SetCaseParameters(pSrcPhrase->m_key); // for source word or phrase
-	}
-
-    // If the source word (or phrase) has not been previously encountered, then
-    // m_bHasKBEntry (or the equiv flag if glossing is ON) will be false, which has to be
-    // true for the StoreText call not to fail. But if we have come to an entry in the KB
-    // which we are about to add a new adaptation (or gloss) to it, then the flag will be
-    // TRUE (and rightly so.) The StoreText call would then fail - so we will test for this
-    // possibility and clear the appropriate flag if necessary.
-    // BEW 05July2006: No! The above comment confuses the KB entry with the CSourcePhrase
-    // instance at the active location. The flags we are talking about declare that that
-    // PARTICULAR instance in the DOCUMENT does, or does not, yet have a KB entry. When the
-    // phrase box lands there, it gets its KB entry removed (or ref count decremented)
-    // before a store is done, and so the flags are made false when the former happens.
-    // RemoveRefString() was supposed to do that, but my logic error was there as well
-    // (I've fixed it now). So before the store it done, the RemoveRefString call will now
-    // clear the relevant flag; so we don't need to test and clear it in the following
-    // block. (block below removed, but the comments are retained in case useful)
-	GetDocument()->Modify(TRUE);
-
-    // BEW added 20Apr06, to store <Not In KB> when gbSuppressStoreForAltBackspaceKeypress
-    // flag is TRUE - as wanted by Bob Eaton; we support this only in adapting mode, not
-    // glossing mode
-	if (!gbIsGlossing && gbSuppressStoreForAltBackspaceKeypress)
-	{
-		wxString strNot = _T("<Not In KB>");
-		// rest of this block's code is a simplification of code from later in StoreText()
-		int nMapIndex;
-		if (gbIsGlossing)
-			nMapIndex = 0; // always an index of zero when glossing
-		else
-			nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-
-        // if we have too many source words, then we cannot save to the KB, so beep - this
-        // is unlikely to be the case when Bob's modification is being used.
-		if (!gbIsGlossing && pSrcPhrase->m_nSrcWords > MAX_WORDS)
-		{
-			::wxBell(); //MessageBeep(0);
-			return TRUE;
-		}
-
-		// continue the storage operation
-		wxString unchangedkey = pSrcPhrase->m_key;
-		wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
-		CTargetUnit* pTU;
-		CRefString* pRefString;
-		if (pKB->m_pMap[nMapIndex]->empty())
-		{
-			pTU = new CTargetUnit;
-			pRefString = new CRefString(pTU); // the pTU argument sets the m_pTgtUnit member
-			pRefString->m_refCount = 1; // set the count
-			pRefString->m_translation = strNot;
-			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-			pKB->m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
-			if (gbIsGlossing)
-			{
-				pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // glossing KB has to treat 
-														  // <Not In KB> as a 'real' gloss
-				(*pKB->m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map
-				pKB->m_nMaxWords = 1;
-			}
-			else
-			{
-				pSrcPhrase->m_bHasKBEntry = FALSE; // it's not a 'real' entry
-				pSrcPhrase->m_bNotInKB = TRUE;
-				pSrcPhrase->m_bBeginRetranslation = FALSE;
-				pSrcPhrase->m_bEndRetranslation = FALSE;
-
-				(*pKB->m_pMap[nMapIndex])[key] = pTU;
-				if (pSrcPhrase->m_nSrcWords > pKB->m_nMaxWords)
-					pKB->m_nMaxWords = pSrcPhrase->m_nSrcWords;
-			}
-		}
-		else // this block for when map is not empty
-		{
-			// there might be a pre-existing association between this key and a CTargetUnit,
-			// so check it out
-			bool bFound = AutoCapsLookup(pKB->m_pMap[nMapIndex], pTU, unchangedkey);
-
-			// we won't check we have a valid pTU .. so a block of code omitted here
-
-            // if not found on the lookup, then create a targetUnit, and add the refString,
-            // etc, but if one is found, then check whether we add a new refString or
-            // increment the refCount of an existing one
-			if(!bFound)
-			{
-				pTU = new CTargetUnit;
-				pRefString = new CRefString(pTU);
-				pRefString->m_refCount = 1; // set the count
-				pRefString->m_translation = strNot;
-				pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-				pKB->m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
-				if (gbIsGlossing)
-				{
-					pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					(*pKB->m_pMap[nMapIndex])[key] = pTU;
-					pKB->m_nMaxWords = 1;
-				}
-				else
-				{
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_bNotInKB = TRUE;
-					(*pKB->m_pMap[nMapIndex])[key] = pTU;
-					if (pSrcPhrase->m_nSrcWords > pKB->m_nMaxWords)
-						pKB->m_nMaxWords = pSrcPhrase->m_nSrcWords;
-				}
-			}
-			else // we found one
-			{
-                // we found a pTU for this key, so check for a matching CRefString, if
-                // there is no match, then add a new one (note: no need to set m_nMaxWords
-                // for this case)
-				bool bMatched = FALSE;
-				pRefString = new CRefString(pTU);
-				pRefString->m_refCount = 1; // set the count, assuming this will
-											// be stored (it may not be)
-				pRefString->m_translation = strNot;
-
-				TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-				while (pos != NULL)
-				{
-					CRefString* pRefStr = (CRefString*)pos->GetData();
-					pos = pos->GetNext();
-					wxASSERT(pRefStr != NULL);
-
-					// does it match?
-					if (*pRefStr == *pRefString) // TRUE if pRStr->m_translation == 
-												 //         pRefString->m_translation
-					{
-						// if we get a match, then increment ref count and point to this,
-						// etc 
-						bMatched = TRUE;
-						pRefStr->m_refCount++;
-						if (gbIsGlossing)
-						{
-							pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-						}
-						else
-						{
-							pSrcPhrase->m_bHasKBEntry = FALSE;
-							pSrcPhrase->m_bNotInKB = TRUE;
-							pSrcPhrase->m_bBeginRetranslation = FALSE;
-							pSrcPhrase->m_bEndRetranslation = FALSE;
-						}
-						delete pRefString; // don't need this one
-						break;
-					}
-				}
-                // if we get here with bMatched == FALSE, then there was no match, so this
-                // must somehow be a normal entry, so we don't add anything and just return
-				return TRUE;
-			}
-		}
-		return TRUE;
-	}
-	gbByCopyOnly = FALSE; // restore default setting
-
-	// First get rid of final spaces, if tgtPhrase has content
-	// BEW changed 10May10, wxString has a convenient call for this
-	//int len;
-	//int nIndexLast;
-	if (!tgtPhrase.IsEmpty())
-	{
-		tgtPhrase.Trim();
-		/*
-		len = tgtPhrase.Length();
-		nIndexLast = len-1;
-		do {
-			if (tgtPhrase.GetChar(nIndexLast) == _T(' '))
-			{
-				// Note: wsString::Remove must have the second param as 1 here otherwise
-				// it will truncate the remainder of the string!
-				tgtPhrase.Remove(nIndexLast,1);
-				len = tgtPhrase.Length();
-				nIndexLast = len -1;
-			}
-			else
-			{
-				break;
-			}
-		} while (len > 0 && nIndexLast > -1);
-		*/
-	}
-
-    // always place a copy in the source phrase's m_adaption member, unless it is <Not In
-    // KB>; when glossing always place a copy in the m_gloss member.
-	if (gbIsGlossing)
-	{
-		wxString s = tgtPhrase;
-		if (gbAutoCaps)
-		{
-			bool bNoError = TRUE;
-			if (gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-			{
-				bNoError = SetCaseParameters(s,FALSE);
-				if (bNoError && !gbNonSourceIsUpperCase && (gcharNonSrcUC != _T('\0')))
-				{
-					// change it to upper case
-					s.SetChar(0,gcharNonSrcUC);
-				}
-			}
-		}
-		pSrcPhrase->m_gloss = s;
-	}
-	else // currently adapting
-	{
-		if (tgtPhrase != _T("<Not In KB>"))
-		{
-			pSrcPhrase->m_adaption = tgtPhrase;
-			if (!gbInhibitLine4StrCall)
-				MakeLineFourString(pSrcPhrase, tgtPhrase); // set m_targetStr member too
-		}
-	} 
-    // if the source phrase is part of a retranslation, we allow updating of the m_adaption
-    // attribute only (since this is the only place where retranslations are stored), but
-    // suppress saving to the KB. For support of glossing, we must skip this block if
-    // glossing is ON because glossing does not care about retranslations - the user needs
-    // to be able to gloss the source words in a retranslation just like the rest of it
-	if (!gbIsGlossing && pSrcPhrase->m_bRetranslation)
-	{
-		if (!pApp->m_bSaveToKB)
-			pApp->m_bSaveToKB = TRUE; // ensure this flag is turned back on
-		pApp->m_bForceAsk = FALSE; // also must be cleared prior to next save attempt
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE; // the caller must treat this as a valid 'save' operation
-	}
-
-    // if the user doesn't want a store done (he checked the dialog bar's control for this
-    // choice) then return, without saving, after setting the source phrases m_bNotInKB
-    // flag to TRUE (ignore this block when glossing)
-	if (!gbIsGlossing && !pApp->m_bSaveToKB)
-	{
-		pSrcPhrase->m_bNotInKB = TRUE;
-		pApp->m_bForceAsk = FALSE; // have to turn this off too, since 
-								   // this is regarded as a valid 'store' op
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-		pSrcPhrase->m_bBeginRetranslation = FALSE;
-		pSrcPhrase->m_bEndRetranslation = FALSE;
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE; // we want the caller to think all is well
-	}
-
-    // if there is a CTargetUnit associated with the current key, then get it; if not,
-    // create one and add it to the appropriate map; we start by computing which map we
-    // need to store to
-	int nMapIndex;
-	if (gbIsGlossing)
-		nMapIndex = 0; // always an index of zero when glossing
-	else
-		nMapIndex = pSrcPhrase->m_nSrcWords - 1; // index to the appropriate map
-
-    // if we have too many source words, then we cannot save to the KB, so detect this and
-    // warn the user that it will not be put in the KB, then return TRUE since all is
-    // otherwise okay (this will be handled as a retranslation, by default) The following
-    // comment is for when glossing... Note: if the source phrase is part of a
-    // retranslation, we allow updating of the m_gloss attribute, and we won't change any
-    // of the retranslation supporting flags; so it is therefore possible for
-    // m_bRetranslation to be TRUE, and also for m_bHasGlossingKBEntry to be TRUE.
-	if (!gbIsGlossing && pSrcPhrase->m_nSrcWords > MAX_WORDS)
-	{
-		pSrcPhrase->m_bNotInKB = FALSE;
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-		//IDS_TOO_MANY_SRC_WORDS
-		wxMessageBox(_(
-"Warning: there are too many source language words in this phrase for this adaptation to be stored in the knowledge base."),
-		_T(""),wxICON_INFORMATION);
-		gbMatchedKB_UCentry = FALSE;
-		return TRUE;
-	}
-
-	// continue the storage operation
-	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done
-											  // to it (need this for lookups)
-	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be 
-															// made lower case
-	CTargetUnit* pTU;
-	CRefString* pRefString;
-	if (pKB->m_pMap[nMapIndex]->empty())
-	{
-		// we just won't store anything if the target phrase has no content, when
-		// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
-		// then we skip this block so that we can store an empty string as a valid
-		// KB "adaptation" or "gloss" - depending on which KB is active here
-		if (tgtPhrase.IsEmpty())
-		{
-			if(!bSupportNoAdaptationButton)
-			{
-				if (!gbIsGlossing)
-				{
-					pSrcPhrase->m_bBeginRetranslation = FALSE;
-					pSrcPhrase->m_bEndRetranslation = FALSE;
-				}
-				pApp->m_bForceAsk = FALSE; // make sure it's turned off
-				gbMatchedKB_UCentry = FALSE;
-				return TRUE; // make caller think all is well
-			}
-		}
-		
-		// we didn't return, so continue on to create a new CTargetUnit for storing to
-		pTU = new CTargetUnit;
-		wxASSERT(pTU != NULL);
-		pRefString = new CRefString(pTU);
-		wxASSERT(pRefString != NULL);
-
-		pRefString->m_refCount = 1; // set the count
-		// add the translation string
-		if (bNoError)
-		{
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-		}
-		else
-		{
-			// if something went wrong, just save as if gbAutoCaps was FALSE
-			pRefString->m_translation = tgtPhrase;
-		}
-		pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-		if (pApp->m_bForceAsk)
-		{
-			pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
-					// opportunity to add a new refString next time its matched
-		}
-
-		pKB->m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
-		if (gbIsGlossing)
-		{
-			pSrcPhrase->m_bHasGlossingKBEntry = TRUE; // tell the src phrase it has
-													 // an entry in the glossing KB
-			(*pKB->m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the map
-
-			// update the maxWords limit - for glossing it is always set to 1
-			pKB->m_nMaxWords = 1;
-		}
-		else
-		{
-			pSrcPhrase->m_bHasKBEntry = TRUE; // tell the src phrase it has 
-											  // an entry in the KB
-
-			// it can't be a retranslation, so ensure the next two flags are cleared
-			pSrcPhrase->m_bBeginRetranslation = FALSE;
-			pSrcPhrase->m_bEndRetranslation = FALSE;
-
-			(*pKB->m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in the 
-												  // map with appropriate index
-			// update the maxWords limit
-			if (pSrcPhrase->m_nSrcWords > pKB->m_nMaxWords)
-				pKB->m_nMaxWords = pSrcPhrase->m_nSrcWords;
-		}
-	}
-	else // the block below is for when the map is not empty
-	{
-		// there might be a pre-existing association between this key and a CTargetUnit,
-		// so check it out
-		bool bFound = AutoCapsLookup(pKB->m_pMap[nMapIndex], pTU, unchangedkey);
-
-		// check we have a valid pTU
-		if (bFound && pTU->m_pTranslations->IsEmpty())
-		{
-			// this is an error condition, targetUnits must NEVER have an 
-			// empty m_translations list
-			// IDS_BAD_TGTUNIT_ERR
-			wxMessageBox(_T(
-"Warning: the current storage operation has been skipped, and a bad storage element has been deleted."),
-			_T(""), wxICON_EXCLAMATION);
-
-			// fix the error
-			TUList::Node* pos = pKB->m_pTargetUnits->Find(pTU); // find position of the
-														   // bad targetUnit in the list
-			// get the targetUnit in the list
-			CTargetUnit* pTgtUnit = (CTargetUnit*)pos->GetData();
-			wxASSERT(pTgtUnit != NULL && pTgtUnit->m_pTranslations->IsEmpty()); // have we
-																	// found the bad one?
-			pKB->m_pTargetUnits->DeleteNode(pos); // remove it from the list
-			delete pTgtUnit; // delete it from the heap
-			pTgtUnit = (CTargetUnit*)NULL;
-
-			MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nMapIndex];
-			int bRemoved;
-			if (gbAutoCaps && gbSourceIsUpperCase && !gbMatchedKB_UCentry)
-				bRemoved = pMap->erase(key); // remove the changed to lc entry from the map
-			else
-				bRemoved = pMap->erase(unchangedkey); // remove the unchanged one from the map
-			wxASSERT(bRemoved == 1);
-			pApp->m_bSaveToKB = TRUE; // ensure its back on (if here from a choice not 
-				// save to KB, this will be cleared by OnCheckKBSave, preserving user choice)
-			gbMatchedKB_UCentry = FALSE;
-			return FALSE;
-		}
-
-		// if not found, then create a targetUnit, and add the refString, etc, as above;
-		// but if one is found, then check whether we add a new refString or increment the
-		// refCount of an existing one
-		if(!bFound)
-		{
-			// we just won't store anything if the target phrase has no content, when
-			// bSupportNoAdaptationButton has it's default value of FALSE, but if TRUE
-			// then we skip this block so that we can store an empty string as a valid
-			// KB "adaptation" or "gloss" - depending on which KB is active here
-			if (tgtPhrase.IsEmpty())
-			{
-				if(!bSupportNoAdaptationButton)
-				{
-					if (!gbIsGlossing)
-					{
-						pSrcPhrase->m_bBeginRetranslation = FALSE;
-						pSrcPhrase->m_bEndRetranslation = FALSE;
-					}
-					pApp->m_bForceAsk = FALSE; // make sure it's turned off
-					gbMatchedKB_UCentry = FALSE;
-					return TRUE; // make caller think all is well
-				}
-			}
-
-			pTU = new CTargetUnit;
-			wxASSERT(pTU != NULL);
-			pRefString = new CRefString(pTU);
-			wxASSERT(pRefString != NULL);
-
-			pRefString->m_refCount = 1; // set the count
-			// add the translation or gloss string
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
-			if (pApp->m_bForceAsk)
-			{
-				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given
-					// opportunity to add a new refString next time its matched
-			}
-
-			pKB->m_pTargetUnits->Append(pTU); // add the targetUnit to the KB
-			if (gbIsGlossing)
-			{
-				pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-
-				(*pKB->m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in 
-						// the map with appropr. index (key may have been made lc)
-				// update the maxWords limit - for glossing it is always set to 1
-				pKB->m_nMaxWords = 1;
-			}
-			else
-			{
-				pSrcPhrase->m_bHasKBEntry = TRUE;
-
-				(*pKB->m_pMap[nMapIndex])[key] = pTU; // store the CTargetUnit in
-						// the map with appropr. index (key may have been made lc)
-				// update the maxWords limit
-				if (pSrcPhrase->m_nSrcWords > pKB->m_nMaxWords)
-					pKB->m_nMaxWords = pSrcPhrase->m_nSrcWords;
-			}
-		}
-		else // we found one
-		{
-            // we found a pTU for this key, so check for a matching CRefString, if there is
-            // no match, then add a new one (note: no need to set m_nMaxWords for this
-            // case)
-			bool bMatched = FALSE;
-			pRefString = new CRefString(pTU);
-			wxASSERT(pRefString != NULL);
-			pRefString->m_refCount = 1; // set the count, assuming this will be stored
-										// (it may not be)
-            // set its gloss or adaptation string; the fancy test is required because the
-            // refStr entry may have been stored in the kb when auto-caps was off, and if
-            // it was upper case for the source text's first letter, then it will have been
-            // looked up only on the second attempt, for which gbMatchedKB_UCentry will
-            // have been set TRUE, and which means the gloss or adaptation will not have
-            // been made lower case - so we must allow for this possibility
-			if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
-				pRefString->m_translation = tgtPhrase; // use the unchanged string, 
-													   // could be uc
-			else
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-
-			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
-			while (pos != NULL)
-			{
-				CRefString* pRefStr = pos->GetData();
-				pos = pos->GetNext();
-				wxASSERT(pRefStr != NULL);
-
-				// does it match?
-				if (*pRefStr == *pRefString) // TRUE if pRStr->m_translation ==
-											 //         pRefString->m_translation
-				{
-					// if we get a match, then increment ref count and point to this, etc
-					bMatched = TRUE;
-					pRefStr->m_refCount++;
-					if (gbIsGlossing)
-					{
-						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					}
-					else
-					{
-						pSrcPhrase->m_bHasKBEntry = TRUE;
-						pSrcPhrase->m_bBeginRetranslation = FALSE;
-						pSrcPhrase->m_bEndRetranslation = FALSE;
-					}
-					delete pRefString; // don't need this one
-					pRefString = (CRefString*)NULL;
-					if (pApp->m_bForceAsk)
-					{
-						pTU->m_bAlwaysAsk = TRUE; // nTrCount might be 1, so we must
-								// ensure it gets set if that is what the user wants
-					}
-					break;
-				}
-			}
-            // if we get here with bMatched == FALSE, then there was no match, so we must
-            // add the new pRefString to the targetUnit, but if it is already an <Not In
-            // KB> entry, then the latter must override (to prevent <Not In KB> and <no
-            // adaptation> or a nonempty adaptation or gloss being two ref strings for the
-            // one key -- when adapting; for glossing this cannot happen)
-			if (!bMatched)
-			{
-				TranslationsList::Node* tpos = pTU->m_pTranslations->GetFirst();
-				CRefString* pRefStr = (CRefString*)tpos->GetData();
-				if (!gbIsGlossing && pRefStr->m_translation == _T("<Not In KB>"))
-				{
-                    // keep it that way (the way to cancel this setting is with the toolbar
-                    // checkbox) But leave m_adaption and m_targetStr (or m_gloss) having
-                    // whatever the user may have typed
-					pSrcPhrase->m_bHasKBEntry = FALSE;
-					pSrcPhrase->m_bNotInKB = TRUE;
-					pSrcPhrase->m_bBeginRetranslation = FALSE;
-					pSrcPhrase->m_bEndRetranslation = FALSE;
-					delete pRefString; // don't leak memory
-					pRefString = (CRefString*)NULL;
-					pApp->m_bForceAsk = FALSE;
-					gbMatchedKB_UCentry = FALSE;
-					return TRUE; // all is well
-				}
-				else // either we are glossing, or we are adapting 
-					  // and it's a normal adaptation
-				{
-					// is the pApp->m_targetPhrase empty?
-					if (tgtPhrase.IsEmpty())
-					{
-                        // we just won't store anything if the target phrase has no
-                        // content, when bSupportNoAdaptationButton has it's default value
-                        // of FALSE, but if TRUE then we skip this block so that we can
-                        // store an empty string as a valid KB "adaptation" or "gloss" -
-                        // depending on which KB is active here
-						if(!bSupportNoAdaptationButton)
-						{
-							if (!gbIsGlossing)
-							{
-								pSrcPhrase->m_bBeginRetranslation = FALSE;
-								pSrcPhrase->m_bEndRetranslation = FALSE;
-							}
-							pApp->m_bForceAsk = FALSE; // make sure it's turned off
-							delete pRefString; // don't leak the memory
-							pRefString = (CRefString*)NULL;
-							gbMatchedKB_UCentry = FALSE;
-							return TRUE; // make caller think all is well
-						}
-					}
-
-					// recalculate the string to be stored, in case we looked up a
-					// stored upper case entry earlier
-					pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
-					pTU->m_pTranslations->Append(pRefString);
-					if (gbIsGlossing)
-					{
-						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
-					}
-					else
-					{
-						pSrcPhrase->m_bHasKBEntry = TRUE;
-						pSrcPhrase->m_bBeginRetranslation = FALSE;
-						pSrcPhrase->m_bEndRetranslation = FALSE;
-					}
-				}
-			}
-		}
-	}
-	if (!gbIsGlossing)
-		pSrcPhrase->m_bNotInKB = FALSE; // ensure correct flag value, 
-										// in case it was not in the KB
-	pApp->m_bForceAsk = FALSE; // must be turned off, as it applies
-							   // to the current store operation only
-	gbMatchedKB_UCentry = FALSE;
-	return TRUE;
-}
-
 void CAdapt_ItView::RemoveFinalSpaces(CPhraseBox* pBox, wxString* pStr)
 {
 	// empty strings don't need anything done
@@ -11340,7 +10439,7 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 	// continue the storage operation
 	wxString unchangedkey = pSrcPhrase->m_key; // this never has case change done to it
 											  // (need this for lookups)
-	wxString key = AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
+	wxString key = pKB->AutoCapsMakeStorageString(pSrcPhrase->m_key); // key might be made lower case
 	CTargetUnit* pTU;
 	CRefString* pRefString;
 	if (pKB->m_pMap[nMapIndex]->empty()) 
@@ -11354,7 +10453,7 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 		// add the translation string, or gloss string
 		if (bNoError)
 		{
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			pRefString->m_translation = pKB->AutoCapsMakeStorageString(tgtPhrase,FALSE);
 		}
 		else
 		{
@@ -11389,7 +10488,7 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 	{
         // there might be a pre-existing association between this key and a CTargetUnit, 
         // so check it out
-		bool bFound = AutoCapsLookup(pKB->m_pMap[nMapIndex], pTU, unchangedkey); 
+		bool bFound = pKB->AutoCapsLookup(pKB->m_pMap[nMapIndex], pTU, unchangedkey); 
 
         // if not found, then create a targetUnit, and add the refString, etc, as above;
         // but if one is found, then check whether we add a new refString or increment the
@@ -11402,7 +10501,7 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 			wxASSERT(pRefString != NULL);
 
 			pRefString->m_refCount = 1; // set the count
-			pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+			pRefString->m_translation = pKB->AutoCapsMakeStorageString(tgtPhrase,FALSE);
 			pTU->m_pTranslations->Append(pRefString); // store in the CTargetUnit
 			if (pApp->m_bForceAsk)
 				pTU->m_bAlwaysAsk = TRUE; // turn it on if user wants to be given 
@@ -11445,7 +10544,7 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 			if ((gbAutoCaps && gbMatchedKB_UCentry) || !gbAutoCaps)
 				pRefString->m_translation = tgtPhrase; // use unchanged string, could be uc
 			else
-				pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+				pRefString->m_translation = pKB->AutoCapsMakeStorageString(tgtPhrase,FALSE);
 
 			TranslationsList::Node* pos = pTU->m_pTranslations->GetFirst();
 			while (pos != NULL)
@@ -11515,7 +10614,7 @@ bool CAdapt_ItView::StoreTextGoingBack(CKB *pKB, CSourcePhrase *pSrcPhrase,
 
 					// recalculate the string to be stored, in case we looked up a
 					// stored upper case entry earlier
-					pRefString->m_translation = AutoCapsMakeStorageString(tgtPhrase,FALSE);
+					pRefString->m_translation = pKB->AutoCapsMakeStorageString(tgtPhrase,FALSE);
 					pTU->m_pTranslations->Append(pRefString); 
 					if (gbIsGlossing)
 						pSrcPhrase->m_bHasGlossingKBEntry = TRUE;
@@ -12586,53 +11685,6 @@ int CAdapt_ItView::GetSelectionWordCount()
 	}
 	return nCount;
 }
-/* moved to CKB class
-// looks up the knowledge base to find if there is an entry in the map with index
-// nSrcWords-1, for the key keyStr and then searches the list in the CTargetUnit for the
-// CRefString with m_translation member identical to adaptation, and returns a pointer to
-// that CRefString instance. If it fails, it returns a null pointer. 
-// (Note: Jan 27 2001 changed so that returns the pRefString for a <Not In KB> entry). For
-// version 2.0 and later, pKB will point to the glossing KB when gbIsGlossing is TRUE.
-// Ammended, July 2003, to support auto capitalization
-CRefString* CAdapt_ItView::GetRefString(CKB *pKB, int nSrcWords, wxString keyStr,
-											wxString adaptation)
-{
-	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nSrcWords-1];
-	wxASSERT(pMap != NULL);
-	CTargetUnit* pTgtUnit;	// wx version changed 2nd param of AutoCapsLookup() below to
-							// directly use CTargetUnit* pTgtUnit
-	CRefString* pRefStr;
-	bool bOK = AutoCapsLookup(pMap,pTgtUnit,keyStr);
-	if (bOK)
-	{
-		return pRefStr = AutoCapsFindRefString(pTgtUnit,adaptation);
-	}
-	// lookup failed, so the KB state is different than data in the document suggests,
-	// a Consistency Check operation should be done on the file(s)
-	return (CRefString*)NULL;
-}
-*/
-// looks up the knowledge base to find if there is an entry in the map with index
-// nSrcWords-1, for the key keyStr and returns the CTargetUnit pointer it finds. If it
-// fails, it returns a null pointer.
-// version 2.0 and onwards supports glossing, so pKB could point to the glossing KB or the
-// adapting one, as set by the caller; and for glossing it is the caller's responsibility
-// to ensure that nSrcWords has the value 1 only.
-CTargetUnit* CAdapt_ItView::GetTargetUnit(CKB *pKB, int nSrcWords, wxString keyStr)
-{
-	MapKeyStringToTgtUnit* pMap = pKB->m_pMap[nSrcWords-1];
-	wxASSERT(pMap != NULL);
-	CTargetUnit* pTgtUnit;
-	bool bOK = AutoCapsLookup(pMap, pTgtUnit, keyStr);
-	if (bOK)
-	{
-		wxASSERT(pTgtUnit);
-		return pTgtUnit; // we found it
-	}
-    // lookup failed, so the KB state is different than data in the document suggests, a
-    // Verify operation should be done on the file(s)
-	return (CTargetUnit*)NULL;
-}
 
 CKB* CAdapt_ItView::GetKB()
 {
@@ -13012,12 +12064,12 @@ void CAdapt_ItView::OnButtonChooseTranslation(wxCommandEvent& WXUNUSED(event))
 	temp = pApp->m_targetPhrase;
 	if (!gbIsGlossing || gbRemovePunctuationFromGlosses)
 		RemovePunctuation(GetDocument(),&temp,from_target_text);
-	bOK = StoreText(pKB, pSrcPhrase, temp, TRUE); // TRUE means we can store an empty 
+	bOK = pKB->StoreText(pSrcPhrase, temp, TRUE); // TRUE means we can store an empty 
 												  // adaptation or gloss
 	wxASSERT(bOK);
 
 	// get a pointer to the target unit for the current key
-jp:	pCurTargetUnit = GetTargetUnit(GetKB(), nWordsInPhrase, pSrcPhrase->m_key);
+jp:	pCurTargetUnit = pKB->GetTargetUnit(nWordsInPhrase, pSrcPhrase->m_key);
 	if (pCurTargetUnit == NULL)
 	{
 		// IDS_NO_KB_ENTRY
@@ -13239,7 +12291,7 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
 			return; // nothing to be done
 		}
 		pSrcPhrase->m_bHasGlossingKBEntry = FALSE; // has to be false on input to StoreText()
-		bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_gloss,TRUE); // TRUE = support storing empty gloss
+		bOK = pKB->StoreText(pSrcPhrase,pSrcPhrase->m_gloss,TRUE); // TRUE = support storing empty gloss
 		if (!bOK)
 		{
 			// I don't expect any error here, but just in case ...
@@ -13264,7 +12316,7 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
                     // later identical source text encountered in the span will, when
                     // StoreText() tries to add it to the KB, will reject it because of the
                     // <Not In KB> entry already in the KB
-					DoNotInKB(pSrcPhrase, TRUE);
+					pKB->DoNotInKB(pSrcPhrase, TRUE);
 					return;
 				}
 			if (!pSrcPhrase->m_bHasKBEntry)
@@ -13346,7 +12398,7 @@ void CAdapt_ItView::RedoStorage(CKB* pKB, CSourcePhrase* pSrcPhrase, wxString& e
 			pSrcPhrase->m_bHasKBEntry = FALSE; // has to be false on input to StoreText()
 			gbInhibitLine4StrCall = TRUE; // prevent any punctuation placement 
 										  // dialogs from showing
-			bool bOK = StoreText(pKB,pSrcPhrase,pSrcPhrase->m_adaption,
+			bool bOK = pKB->StoreText(pSrcPhrase,pSrcPhrase->m_adaption,
 									TRUE); // TRUE = support storing empty adaptation
 			gbInhibitLine4StrCall = FALSE;
 			if (!bOK)
@@ -13383,14 +12435,14 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 		// user does not want it to be in the KB
 		// we must do the call with m_bSaveToKB TRUE, otherwise the store
 		// of "<Not In KB>" will not happen
-		DoNotInKB(pSrcPhrase,TRUE);
+		pApp->m_pKB->DoNotInKB(pSrcPhrase,TRUE);
 		pApp->m_bSaveToKB = FALSE;
 	}
 	else
 	{
 		// user wants it in the KB
 		pApp->m_bSaveToKB = TRUE;
-		DoNotInKB(pSrcPhrase,FALSE);
+		pApp->m_pKB->DoNotInKB(pSrcPhrase,FALSE);
 	}
 
 	// restore focus to the targetBox, if it is visible
@@ -13401,146 +12453,6 @@ void CAdapt_ItView::OnCheckKBSave(wxCommandEvent& WXUNUSED(event))
 	// BEW added 20May09, next line required in order to get * shown
 	GetLayout()->Redraw();
 	GetLayout()->PlaceBox(); // this call probably unneeded but no harm done
-}
-
-void CAdapt_ItView::DoNotInKB(CSourcePhrase* pSrcPhrase, bool bChoice)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	if (bChoice)
-	{
-        // user wants it to not be in the KB, so set it up accordingly... first thing to do
-        // is to remove all existing translations from this source phrase's entry in the KB
-		CTargetUnit* pTgtUnit = GetTargetUnit(GetKB(),pSrcPhrase->m_nSrcWords,pSrcPhrase->m_key);
-		if (pTgtUnit != NULL)
-		{
-			TranslationsList* pList = pTgtUnit->m_pTranslations;
-			if (!pList->IsEmpty())
-			{
-				TranslationsList::Node* pos = pList->GetFirst();
-				while (pos != NULL)
-				{
-					CRefString* pRefString = (CRefString*)pos->GetData();
-					pos = pos->GetNext();
-					if (pRefString != NULL)
-					{
-						delete pRefString;
-						pRefString = (CRefString*)NULL;
-					}
-				}
-				pList->Clear();
-
-				// have to get rid of the pTgtUnit too, as its m_translation list 
-				// must not be empty
-				TUList::Node* tupos = GetKB()->m_pTargetUnits->Find(pTgtUnit); // find 
-										// position of the bad targetUnit in the list
-				// get the targetUnit in the list
-				CTargetUnit* pTU = (CTargetUnit*)tupos->GetData(); 
-				wxASSERT(pTU != NULL && pTU->m_pTranslations->IsEmpty()); // have we found it?
-				GetKB()->m_pTargetUnits->DeleteNode(tupos); // remove it from the list
-				delete pTU; // delete it from the heap
-				pTU = (CTargetUnit*)NULL;
-
-				MapKeyStringToTgtUnit* pMap = GetKB()->m_pMap[pSrcPhrase->m_nSrcWords - 1];
-				// handle auto-caps tweaking, if it is on
-				wxString temp = pSrcPhrase->m_key;
-				if (gbAutoCaps && !gbNoSourceCaseEquivalents)
-				{
-                    // auto caps is on and there are case equivalences defined, so check if
-                    // we must convert the key to lower case for the removal operation (so
-                    // that it succeeds, since the KB would have a lower case key stored,
-                    // not upper case
-					bool bNoError = SetCaseParameters(temp); // TRUE for default 
-															 // parameter = src text
-					if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-					{
-						temp.SetChar(0,gcharSrcLC); // make first char lower case
-					}
-				}
-				int bRemoved;
-				bRemoved = pMap->erase(temp); // also remove it from the map 
-				wxASSERT(bRemoved != 0);
-			}
-		}
-
-		// we make it's KB translation be a unique "<Not In KB>" - 
-		// Adapt It will use this as a flag
-		pSrcPhrase->m_bNotInKB = FALSE; // temporarily set FALSE to allow 
-										// the string to go into KB
-		wxString str = _T("<Not In KB>");
-		bool bOK;
-		bOK = StoreText(GetKB(),pSrcPhrase,str);
-
-		// make the flags the correct values & save them on the source phrase
-		pSrcPhrase->m_bNotInKB = TRUE;
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-
-        // user can set pSrcPhrase->m_adaption to whatever he likes via phrase box, it
-        // won't go into KB, and it now (no longer) will get clobbered, since we now follow
-        // Susanna Imrie's recommendation that this feature should still allow a non-null
-        // translation to remain in the document
-	}
-	else
-	{
-		// make translations storable from now on
-		pSrcPhrase->m_bNotInKB = FALSE; // also permits finding of KB entry
-		pSrcPhrase->m_bHasKBEntry = FALSE; // make sure
-
-		wxString str = _T("<Not In KB>");
-		CRefString* pRefString = pApp->m_pKB->GetRefString(pSrcPhrase->m_nSrcWords,
-												pSrcPhrase->m_key,str);
-		if (pRefString == NULL)
-		{
-            // user must have already deleted the <Not In KB> while in the KB editor, so
-            // our work is done
-			return;
-		}
-		wxASSERT(pRefString);
-		if (pRefString != NULL)
-		{
-			CTargetUnit* pTgtUnit = pRefString->m_pTgtUnit;
-			wxASSERT(pTgtUnit);
-			TranslationsList* pList = pTgtUnit->m_pTranslations;
-			wxASSERT(!pList->IsEmpty() && pList->GetCount() == 1);
-			TranslationsList::Node* pos = pList->GetFirst();
-			delete pRefString; // deletes the CRefString having the text "<Not In KB>"
-			pRefString = (CRefString*)NULL;
-			pList->DeleteNode(pos);
-
-            // we must also delete the target unit, since we are setting up a situation
-            // where in effect the current matched item was never previously matched, ie.
-            // it's a big error to have a target unit with no reference string in it.
-			int index = pSrcPhrase->m_nSrcWords - 1;
-			MapKeyStringToTgtUnit* pMap = GetKB()->m_pMap[index];
-			int bRemoved;
-			// handle auto-caps tweaking, if it is on
-			wxString temp = pSrcPhrase->m_key;
-			if (gbAutoCaps && !gbNoSourceCaseEquivalents)
-			{
-                // auto caps is on and there are case equivalences defined, so check if we
-                // must convert the key to lower case for the removal operation (so that it
-                // succeeds, since the KB would have a lower case key stored, not upper
-                // case
-				bool bNoError = SetCaseParameters(temp); // TRUE for default 
-														 // parameter = src text
-				if (bNoError && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-				{
-					temp.SetChar(0,gcharSrcLC); // make first char lower case
-				}
-			}
-			bRemoved = pMap->erase(temp); // remove it from the map
-
-			// now remove the CTargetUnit instance too
-			TUList::Node* tupos;
-			tupos = GetKB()->m_pTargetUnits->Find(pTgtUnit); // find position of 
-												// pRefString's owning targetUnit
-			pTgtUnit = (CTargetUnit*)tupos->GetData(); // get the targetUnit
-														  // in the list
-			wxASSERT(pTgtUnit != NULL);
-			GetKB()->m_pTargetUnits->DeleteNode(tupos); // remove it from the list
-			delete pTgtUnit; // delete it from the heap
-			pTgtUnit = (CTargetUnit*)NULL;
-		}
-	}
 }
 
 void CAdapt_ItView::ClobberDocument()
@@ -14348,12 +13260,12 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 			{
 				wxString str = _T("<Not In KB>");
 				// do the lookup
-				bOK = AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				bOK = pKB->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
 				if (!bOK)
 				{
 					// fix it silently
 					pApp->m_bSaveToKB = TRUE; // ensure it gets stored
-					StoreText(pKB,pSrcPhrase,str); // don't want punctuation in the KB
+					pKB->StoreText(pSrcPhrase,str); // don't want punctuation in the KB
 					pSrcPhrase->m_bHasKBEntry = FALSE;
 					pSrcPhrase->m_bNotInKB = TRUE;
 				}
@@ -14379,7 +13291,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 			if (bTheTest)
 			{
 				// do the lookup
-				bOK = AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
+				bOK = pKBCopy->AutoCapsLookup(pKBCopy->m_pMap[nWords-1], pTU, pSrcPhrase->m_key);
 				if (!bOK)
 				{
 					// there was no target unit for this key in the map, so this is an
@@ -14412,7 +13324,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
                         // when it is not the case that gbMatchedKB_UCentry is TRUE
                         // (because then we want an unmodified string to be used),
                         // otherwise attempt it when auto-caps is ON
-						srcPhraseStr = AutoCapsMakeStorageString(srcPhraseStr,FALSE);
+						srcPhraseStr = pKBCopy->AutoCapsMakeStorageString(srcPhraseStr,FALSE);
 					}
 					TranslationsList::Node* pos = pList->GetFirst();
 					wxASSERT(pos != NULL);
@@ -14468,7 +13380,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 					// an empty string
 					if (tempStr.IsEmpty())
 					{
-						StoreText(pKB,pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
+						pKB->StoreText(pSrcPhrase,tempStr,TRUE); // TRUE = allow saving empty adaptation
 					}
 					else
 					{
@@ -14480,7 +13392,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 								// lower case for fixing the gloss or adaptation, but this is
 								// okay - the store will work right, so don't need anything
 								// here except the call to store it
-							StoreText(pKB,pSrcPhrase,tempStr);
+							pKB->StoreText(pSrcPhrase,tempStr);
 						}
 						// do the gbIsGlossing case when no punct is to be removed, in next block
 					}
@@ -14533,7 +13445,7 @@ void CAdapt_ItView::DoConsistencyCheck(CAdapt_ItApp* pApp, CAdapt_ItDoc* pDoc)
 						{
 							// store, for the glossing ON case, the gloss text, 
 							// with any punctuation
-							StoreText(pKB, pSrcPhrase, pAFRecord->finalAdaptation);
+							pKB->StoreText(pSrcPhrase, pAFRecord->finalAdaptation);
 							if (gbAutoCaps)
 							{
                                  // upper case may be wanted, we have to do it on the first
@@ -14707,12 +13619,12 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							if (gbIsGlossing)
 							{
 								tempStr = pSrcPhrase->m_gloss;
-								StoreText(pKB,pSrcPhrase,tempStr,TRUE);
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
 							}
 							else // adapting
 							{
 								tempStr = pSrcPhrase->m_adaption; // no punctuation on this one
-								StoreText(pKB,pSrcPhrase,tempStr,TRUE);
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE);
 								MakeLineFourString(pSrcPhrase,pSrcPhrase->m_targetStr); 
 																// m_targetStr may have punct
 							}
@@ -14724,14 +13636,14 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							// don't ignore, so handle the dialog's contents
 							if (tempStr.IsEmpty())
 							{
-								StoreText(pKB,pSrcPhrase,tempStr,TRUE); 
+								pKB->StoreText(pSrcPhrase,tempStr,TRUE); 
 														// TRUE = allow empty string storage
 							}
 							else
 							{
 								if (!gbIsGlossing)
 								{
-									StoreText(pKB,pSrcPhrase,tempStr);
+									pKB->StoreText(pSrcPhrase,tempStr);
 								}
 								// do the gbIsGlossing case in next block
 							}
@@ -14760,7 +13672,7 @@ x:						finalStr = dlg.m_finalAdaptation; // could have punctuation in it
 							}
 							else // we are in glossing mode
 							{
-								StoreText(pKB,pSrcPhrase,finalStr); // glossing store
+								pKB->StoreText(pSrcPhrase,finalStr); // glossing store
 														// can have punctuation in it
 								if (gbAutoCaps)
 								{
@@ -15275,7 +14187,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 						pApp->m_pActivePile->GetSrcPhrase()->m_key,pApp->m_targetPhrase);
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-				bOK = StoreText(pApp->m_pGlossingKB,pApp->m_pActivePile->GetSrcPhrase(),
+				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
 			}
 			else if (!bSkipStorage && !gbIsGlossing)
@@ -15293,7 +14205,7 @@ void CAdapt_ItView::OnGoTo(wxCommandEvent& WXUNUSED(event))
 				if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				gbInhibitLine4StrCall = TRUE;
-				bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase(),
+				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 			}
@@ -16383,7 +15295,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 				if (pRefStr == NULL || pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 				// now do the store
-				bOK = StoreText(pApp->m_pGlossingKB,pApp->m_pActivePile->GetSrcPhrase(),
+				bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
 			}
 			else
@@ -16395,7 +15307,7 @@ bool CAdapt_ItView::DoFindNext(int nCurSequNum, bool bIncludePunct, bool bSpanSr
 					pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 				// now do the store
 				gbInhibitLine4StrCall = TRUE;
-				bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase(),
+				bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
 									pApp->m_targetPhrase);
 				gbInhibitLine4StrCall = FALSE;
 			}
@@ -20812,418 +19724,17 @@ void CAdapt_ItView::OnFileExportKb(wxCommandEvent& WXUNUSED(event))
 
 	if (filterIndex == KBExportSaveAsLIFT_XML) // should be filterIndex == 0, i.e., first item in drop down list
 	{
-		DoKBExport(pKB,&f,KBExportSaveAsLIFT_XML);
+		pKB->DoKBExport(&f,KBExportSaveAsLIFT_XML);
 	}
 	else
 	{
 		// the  user chose Save As Type of "SFM plain text export (with \\lx & \\ge fields) (*.txt)"
 		// or "All Files (*.*)" which we assume would be same as "SFM plain text export..."
-		DoKBExport(pKB,&f,KBExportSaveAsSFM_TXT);
+		pKB->DoKBExport(&f,KBExportSaveAsSFM_TXT);
 	}
 
 	// close the file
 	f.Close();
-}
-
-
-// BEW modified 1Sep09 to remove a logic error, & to remove a goto command, and get rid 
-// of a bDelayed boolean flag & simplify the logic
-// whm modified 3May10 to add LIFT format XML export. 
-void CAdapt_ItView::DoKBExport(CKB* pKB, wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	wxASSERT(pKB != NULL);
-	wxASSERT(pFile != NULL);
-	wxString s1 = gSFescapechar;
-	wxString lexSFM = s1 + _T("lx ");
-	wxString geSFM = s1 + _T("ge ");
-	wxString key;
-	key.Empty();
-	wxString gloss;
-	wxString baseKey;
-	wxString baseGloss;
-	wxString outputSfmStr; // accumulate a whole SFM "record" here, but abandon if it
-						// contains a <Not In KB> string, we don't export those
-	CBString outputLIFTStr; // accumulage a whole LIFT "record" here, but abandon if it
-						// contains a <Not In KB> string, we don't export those
-	wxString strNotInKB = _T("<Not In KB>");
-	gloss.Empty(); // this name used for the "adaptation" when adapting,
-				   // or the "gloss" when glossing
-
-    // MFC's WriteString() function automatically converts any \n embedded within the
-    // buffer to the \r\n pair on output. The wxWidgets wxFile::Write() function, however,
-    // does not do this so we need to here create the proper EOL sequences in the buffer.
-    // The wxWidgets' wxTextFile::GetEOL() static function returns the appropriate
-    // end-of-line sequence for the current platform. It would be hex sequence pair 0d 0a
-    // for Windows, the single hex char 0a for Unix/Linux, and the single hex char 0d for
-    // Macintosh. The GetEOL function provides the correct line termination character(s).
-    // wxString eolStr = wxTextFile::GetEOL(); done in the App's OnInit()
-	wxASSERT(pApp->m_eolStr.Find(_T('\n')) != -1 || pApp->m_eolStr.Find(_T('\r')) != -1);
-
-	wxLogNull logNo; // avoid spurious messages from the system
-
-	CBString composeXmlStr;
-	CBString indent2sp = "  ";
-	CBString indent4sp = "    ";
-	CBString indent6sp = "      ";
-	CBString indent8sp = "        ";
-	CBString indent10sp = "          ";
-	CBString guidForThisLexItem;
-	CBString srcLangCode;
-	CBString tgtLangCode;
-
-	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
-	{
-		// If the ISO639-3 language codes have not previously been entered by the user
-		// we need to get them here
-		// 
-		// Check for existence of language codes. If they already exist we don't need
-		// to automatically call up the CLanguageCodesDlg. If they don't exist yet, then
-		// we call up the CLanguageCodesDlg here automatically so the user can enter them 
-		// - needed for the KB Lift export.
-		if (pApp->m_sourceLanguageCode.IsEmpty() || pApp->m_targetLanguageCode.IsEmpty())
-		{
-			wxString srcCode;
-			wxString tgtCode;
-			bool bCodesEntered = FALSE;
-			while (!bCodesEntered)
-			{
-				// Call up CLanguageCodesDlg here so the user can enter language codes for
-				// the source and target languages which are needed for the LIFT XML lang attribute of 
-				// the <form lang="xxx"> tags (where xxx is a 3-letter ISO639-3 language/Ethnologue code)
-				CLanguageCodesDlg lcDlg(pApp->GetMainFrame());
-				lcDlg.Center();
-				// in this case load any lang codes stored on the App into
-				// the code edit boxes
-				lcDlg.m_sourceLangCode = pApp->m_sourceLanguageCode;
-				lcDlg.m_targetLangCode = pApp->m_targetLanguageCode;
-				int returnValue = lcDlg.ShowModal(); // MFC has DoModal()
-				if (returnValue == wxID_CANCEL)
-				{
-					// user cancelled
-					return;
-				}
-				srcCode = lcDlg.m_sourceLangCode;
-				tgtCode = lcDlg.m_targetLangCode;
-				// Check that codes have been entered in source and target boxes
-				if (srcCode.IsEmpty() || tgtCode.IsEmpty())
-				{
-					wxString message,langStr;
-					if (srcCode.IsEmpty())
-					{
-						langStr = _("source language code");
-					}
-					if (tgtCode.IsEmpty())
-					{
-						if (langStr.IsEmpty())
-							langStr = _("target language code");
-					}
-					else
-					{
-						langStr += _T('\n');
-						langStr += _("target langugage code");
-					}
-					message = message.Format(_("You did not enter a language code for the following language(s):\n\n%s\n\nLIFT XML Export requires 3-letter language codes.\nDo you to try again?"),langStr);
-					int response = wxMessageBox(message, _("Language code(s) missing"), wxYES_NO | wxICON_WARNING);
-					if (response == wxNO)
-					{
-						// user wants to abort 
-						return;
-					}
-					else
-					{
-						bCodesEntered = FALSE;
-					}
-				}
-				else
-				{
-					bCodesEntered = TRUE;
-				}
-			} // while (!bCodesEntered)
-
-			srcLangCode = srcCode.char_str();
-			tgtLangCode = tgtCode.char_str();
-			// also update the App's members
-			pApp->m_sourceLanguageCode = srcCode;
-			pApp->m_targetLanguageCode = tgtCode;
-		}
-		// get the codes from the App into CBStrings
-		srcLangCode = pApp->m_sourceLanguageCode.char_str();
-		tgtLangCode = pApp->m_targetLanguageCode.char_str();
-		// whm Note: Following the example of the Doc's DoFileSave() we build the XML LIFT
-		// format building our CBString called composeStr with manual concatenation of some
-		// string literals plus some methods from XML.cpp
-		CBString xmlPrologue;
-		// TODO: Check if it is OK to include the standalone="yes" part of the prologue produced
-		// by GetEncodingStringForSmlFiles() below as <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-		pApp->GetEncodingStringForXmlFiles(xmlPrologue); // builds xmlPrologue and adds "\r\n" to it
-		composeXmlStr = xmlPrologue; // first string in xml file
-		CBString openLiftTag = "<lift version=\"0.12\">";
-		composeXmlStr += openLiftTag;
-		composeXmlStr += "\r\n";
-		DoWrite(*pFile,composeXmlStr);
-	}
-
-	int numWords;
-	MapKeyStringToTgtUnit::iterator iter;
-	CTargetUnit* pTU = 0;
-	CRefString* pRefStr;
-	for (numWords = 1; numWords <= MAX_WORDS; numWords++)
-	{
-		if (gbIsGlossing && numWords > 1)
-			continue; // when glossing we want to consider only the first map, the others
-					  // are all empty
-		if (pKB->m_pMap[numWords-1]->size() == 0) 
-			continue;
-		else
-		{
-			iter = pKB->m_pMap[numWords-1]->begin();
-			do {
-				outputSfmStr.Empty(); // clean it out ready for next "record"
-				outputLIFTStr.Empty(); // clean it out ready for next "record"
-				key = iter->first; 
-				pTU = (CTargetUnit*)iter->second; 
-				wxASSERT(pTU != NULL);
-				baseKey = key;
-
-				// get the reference strings
-				TranslationsList::Node* posRef = 0; 
-
-				// if the data somehow got corrupted by a CTargetUnit being retained in the
-				// list but which has an empty list of reference strings, this illegal
-				// instance would cause a crash - so test for it and if such occurs, then
-				// remove it from the list and then just continue looping
-				if (pTU->m_pTranslations->IsEmpty())
-				{
-					pKB->m_pMap[numWords-1]->erase(baseKey); // the map now lacks this 
-															 // invalid association
-					TUList::Node* pos = pKB->m_pTargetUnits->Find(pTU); 
-					wxASSERT(pos != NULL);
-					pKB->m_pTargetUnits->DeleteNode(pos); // its CTargetUnit ptr is now 
-														  // gone from list
-					delete pTU; // and its memory chunk is freed
-					continue;
-				}
-				else
-					posRef = pTU->m_pTranslations->GetFirst(); 
-				wxASSERT(posRef != 0);
-
-				// if control gets here, there will be at least one non-null posRef and so
-				// we can now unilaterally write out the key or basekey data. 
-
-				// For Sfm data the key line is represented as a \lx source text field,
-				// followed by the adaptation or gloss we've already found associated with it
-				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
-				{
-					key = lexSFM + key; // we put the proper eol char(s) below when writing
-					outputSfmStr = key + pApp->m_eolStr;
-				}
-
-				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
-				{
-					// build xml composeXmlStr for the <lexical-unit> ... </lexical-unit>
-					// 
-					// Get the uuid from the CTargetUnit object using pTU->GetUuid()
-					// TODO: use the commented out one below after Bruce implements CTargetUnit::GetUuid()
-					//guidForThisLexItem = pTU->GetUuid().char_str(); // the uuid is of the form "45a3c52b-79fd-4803-856b-207c3efdbaf8";
-					guidForThisLexItem = "45a3c52b-79fd-4803-856b-207c3efdbaf8";
-					composeXmlStr = indent2sp;
-					composeXmlStr += "<entry guid=\"";
-					composeXmlStr += guidForThisLexItem;
-					composeXmlStr += "\" id=\"";
-#ifdef _UNICODE
-					composeXmlStr += pApp->Convert16to8(baseKey);
-#else
-					composeXmlStr += baseKey.c_str(); // check this use of .c_str()???
-#endif
-					composeXmlStr += "-";
-					composeXmlStr += guidForThisLexItem;
-					composeXmlStr += "\">";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent4sp; // start building a new composeXmlStr
-					composeXmlStr += "<lexical-unit>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent6sp;
-					composeXmlStr += "<form lang =\"";
-					composeXmlStr += srcLangCode;
-					composeXmlStr += "\">";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent8sp;
-					composeXmlStr += "<text>";
-#ifdef _UNICODE
-					composeXmlStr += pApp->Convert16to8(baseKey);
-#else
-					composeXmlStr += baseKey.c_str(); // check this use of .c_str()???
-#endif
-					composeXmlStr += "</text>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent6sp;
-					composeXmlStr += "</form>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent4sp;
-					composeXmlStr += "</lexical-unit>";
-					composeXmlStr += "\r\n";
-					outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
-				}
-
-
-				pRefStr = (CRefString*)posRef->GetData();
-				posRef = posRef->GetNext(); // prepare for possibility of another CRefString
-				wxASSERT(pRefStr != NULL); 
-				gloss = pRefStr->m_translation;
-				baseGloss = gloss;
-
-				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
-				{
-					gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-					outputSfmStr += gloss + pApp->m_eolStr;
-				}
-
-				// reject any xml output which contains "<Not In KB>"
-				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
-					&& baseGloss.Find(strNotInKB) == wxNOT_FOUND)
-				{
-					// build xml composeXmlStr for the <sense> ... </sense>
-					composeXmlStr = indent4sp; // start building a new composeXmlStr
-					composeXmlStr += "<sense>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent6sp;
-					composeXmlStr += "<definition>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent8sp;
-					composeXmlStr += "<form lang =\"";
-					composeXmlStr += tgtLangCode;
-					composeXmlStr += "\">";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent10sp;
-					composeXmlStr += "<text>";
-#ifdef _UNICODE
-					composeXmlStr += pApp->Convert16to8(baseGloss);
-#else
-					composeXmlStr += baseGloss.c_str(); // check this use of .c_str()???
-#endif
-					composeXmlStr += "</text>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent8sp;
-					composeXmlStr += "</form>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent6sp;
-					composeXmlStr += "</definition>";
-					composeXmlStr += "\r\n";
-					composeXmlStr += indent4sp;
-					composeXmlStr += "</sense>";
-					composeXmlStr += "\r\n";
-					outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
-				}
-
-				// now deal with any additional CRefString instances within the same
-				// CTargetUnit instance
-				while (posRef != 0)
-				{
-					pRefStr = (CRefString*)posRef->GetData();
-					wxASSERT(pRefStr != NULL); 
-					posRef = posRef->GetNext(); // prepare for possibility of yet another
-					gloss = pRefStr->m_translation;
-					baseGloss = gloss;
-
-					if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
-					{
-						gloss = geSFM + gloss; // we put the proper eol char(s) below when writing
-						outputSfmStr += gloss + pApp->m_eolStr;
-					}
-
-
-					// reject any xml output which contains "<Not In KB>"
-					if (kbExportSaveAsType == KBExportSaveAsLIFT_XML
-						&& baseGloss.Find(strNotInKB) == wxNOT_FOUND)
-					{
-						// build xml composeXmlStr for the <sense> ... </sense>
-						composeXmlStr = indent4sp; // start building a new composeXmlStr
-						composeXmlStr += "<sense>";
-						composeXmlStr += "\r\n";
-						composeXmlStr += indent6sp;
-						composeXmlStr += "<definition>";
-						composeXmlStr += "\r\n";
-						composeXmlStr += indent8sp;
-						composeXmlStr += "<form lang =\"";
-						composeXmlStr += tgtLangCode;
-						composeXmlStr += "\">";
-						composeXmlStr += "\r\n";
-						composeXmlStr += indent10sp;
-						composeXmlStr += "<text>";
-	#ifdef _UNICODE
-						composeXmlStr += pApp->Convert16to8(baseGloss);
-	#else
-						composeXmlStr += baseGloss.c_str(); // check this use of .c_str()???
-	#endif
-						composeXmlStr += "</text>";
-						composeXmlStr += "\r\n";
-						composeXmlStr += indent8sp;
-						composeXmlStr += "</form>";
-						composeXmlStr += "\r\n";
-						composeXmlStr += indent6sp;
-						composeXmlStr += "</definition>";
-						composeXmlStr += "\r\n";
-						composeXmlStr += indent4sp;
-						composeXmlStr += "</sense>";
-						composeXmlStr += "\r\n";
-						outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
-					}
-				}
-
-				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
-				{
-					// add the end tag "</entry>" for this entry
-					composeXmlStr = indent2sp;
-					composeXmlStr += "</entry>";
-					composeXmlStr += "\r\n";
-					outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
-				}
-
-				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
-				{
-					// add a blank line for Sfm output for readability
-					outputSfmStr += pApp->m_eolStr;
-				}
-
-				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
-				{
-					// reject any outputSfmStr which contains "<Not In KB>"
-					if (outputLIFTStr.Find(strNotInKB.char_str()) == wxNOT_FOUND)
-					{
-							// the entry is good, so output it
-							DoWrite(*pFile,outputLIFTStr);
-					}
-				}
-				if (kbExportSaveAsType == KBExportSaveAsSFM_TXT)
-				{
-					// reject any outputSfmStr which contains "<Not In KB>"
-					if (outputSfmStr.Find(strNotInKB) == wxNOT_FOUND)
-					{
-							// the entry is good, so output it
-							#ifndef _UNICODE // ANSI version
-								pFile->Write(outputSfmStr); 
-							#else // Unicode version
-								pApp->ConvertAndWrite(wxFONTENCODING_UTF8,pFile,outputSfmStr);
-							#endif
-					}
-				}
-
-
-				// point at the next CTargetUnit instance, or at end() (which is NULL) if
-				// completeness has been obtained in traversing the map 
-				iter++;
-			} while (iter != pKB->m_pMap[numWords-1]->end());
-		} // end of normal situation block ...
-	} // end of numWords outer loop
-	
-	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
-	{
-		// build xml composeXmlStr for the ending </entry> tag
-		composeXmlStr += "</lift>"; // start building a new composeXmlStr
-		composeXmlStr += "\r\n";
-		DoWrite(*pFile,composeXmlStr);
-	}
 }
 
 void CAdapt_ItView::SelectDragRange(CCell* pAnchor,CCell* pCurrent)
@@ -21521,8 +20032,7 @@ void CAdapt_ItView::OnUpdateImportToKb(wxUpdateUIEvent& event)
 	event.Enable(pApp->m_bKBReady && pApp->m_bGlossingKBReady);
 }
 
-// no changes needed for support of glossing, however, calls DoKBImport( ) and the latter
-// has modifications for glossing versus adapting support
+// BEW 13May10, changes needed for support of glossing; calls CKB::DoKBImport( )
 void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 {
 	CAdapt_ItApp* pApp = (CAdapt_ItApp*)&wxGetApp();
@@ -21607,273 +20117,12 @@ void CAdapt_ItView::OnImportToKb(wxCommandEvent& WXUNUSED(event))
 			wxMessageBox(_("Unable to open import file for reading."));
 			return;
 		}
-
-		DoKBImport(pApp,&file);
+		if (gbIsGlossing)
+			pApp->m_pGlossingKB->DoKBImport(&file);
+		else
+			pApp->m_pKB->DoKBImport(&file);
 	}
 	return;
-}
-
-// Modified to work for either glossing or adapting KBs
-bool CAdapt_ItView::IsAlreadyInKB(int nWords,wxString key,wxString adaptation)
-{
-	CAdapt_ItApp* pApp = &wxGetApp();
-	CTargetUnit* pTgtUnit = 0;
-
-	// is there a targetunit for this key in the KB?
-	bool bFound;
-	if (gbIsGlossing)
-		// only check first map
-		bFound = pApp->m_pTargetBox->FindMatchInKB(GetKB(),1,key,pTgtUnit); 
-	else // is adapting
-		bFound = pApp->m_pTargetBox->FindMatchInKB(GetKB(),nWords,key,pTgtUnit);
-	if (!bFound)
-		return FALSE;
-
-	// check if there is a matching adaptation
-	TranslationsList::Node* pos = pTgtUnit->m_pTranslations->GetFirst(); 
-	while (pos != 0)
-	{
-		CRefString* pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		wxASSERT(pRefStr);
-		if (adaptation == pRefStr->m_translation)
-			return TRUE; // adaptation, or gloss, matches this entry
-	}
-	return FALSE; // did not find a match
-}
-
-void CAdapt_ItView::DoKBImport(CAdapt_ItApp* pApp, wxTextFile* pFile)
-{
-	CKB* pKB;
-	if (gbIsGlossing)
-		pKB = pApp->m_pGlossingKB;
-	else
-		pKB = pApp->m_pKB;
-	wxASSERT(pKB != NULL);
-	CSourcePhrase* pSrcPhrase = new CSourcePhrase;
-	// guarantee safe value for storage of contents to KB, or glossing KB
-	if (gbIsGlossing)
-		pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-	else
-		pSrcPhrase->m_bHasKBEntry = FALSE;
-	wxString key;
-	key.Empty();
-	wxString adaption; // use for actual adaptation, or gloss when glossing is ON
-	adaption.Empty();
-	wxString line;
-	line.Empty();
-	wxString ss1 = gSFescapechar;
-	wxString keyMarker = ss1 + _T("lx");
-	wxString adaptionMarker = ss1 + _T("ge");
-	bool bKeyDefined = FALSE;
-	int nOffset = -1;
-	pApp->m_bSaveToKB = TRUE;
-
-    // wx version: We are using wxTextFile which has already loaded its entire contents
-    // into memory with the Open call in OnImportToKb() above. wxTextFile knows how to
-    // handle Unicode data and the different end-of-line characters of the different
-    // platforms.
-    // Since the entire basic config file is now in memory we can read the information by
-    // scanning its virtual lines. In this routine we use the "direct access" method of
-    // retrieving the lines from storage in memory, using GetLine(ct).
-	int lineCount = pFile->GetLineCount();
-
-	int ct;
-	for (ct = 0; ct < lineCount; ct++)
-	{
-		line = pFile->GetLine(ct);
-		// the data for each line is now in lineStr
-		// is the line a m_key member?
-		if (IsMember(line,keyMarker,nOffset) || nOffset >= 0)
-		{
-			// it is a valid key
-			pSrcPhrase->m_key.Empty();
-			if (gbIsGlossing)
-			{
-				pSrcPhrase->m_gloss.Empty();
-				pSrcPhrase->m_bHasGlossingKBEntry = FALSE;
-				pSrcPhrase->m_nSrcWords = 1;
-			}
-			else
-			{
-				pSrcPhrase->m_adaption.Empty();
-				pSrcPhrase->m_bHasKBEntry = FALSE;
-				pSrcPhrase->m_nSrcWords = 1; // temp default value
-			}
-			bKeyDefined = TRUE;
-
-			// extract the actual srcPhrase's m_key from the read in string,
-			// to set the key variable
-			int keyLen = line.Length();
-			keyLen -= (4 + nOffset); // \lx followed by a space = 4 characters,
-									 // nOffset takes care of any leading spaces
-			if (keyLen > 0)
-			{
-				key = line.Right(keyLen);
-				int nWordCount;
-				if (gbIsGlossing)
-					nWordCount = 1;
-				else
-					nWordCount = CountSourceWords(key);
-				if (nWordCount == 0 || nWordCount > MAX_WORDS)
-				{
-					// error condition
-					pSrcPhrase->m_nSrcWords = 1;
-					key.Empty();
-					bKeyDefined = FALSE;
-				}
-				else
-				{
-					// we have an acceptable key
-					pSrcPhrase->m_nSrcWords = nWordCount;
-					pSrcPhrase->m_key = key; // CountSourceWords will strip off
-											 // leading or trailing spaces in key
-				}
-			}
-			else
-			{
-				key.Empty();
-				bKeyDefined = FALSE;
-				pSrcPhrase->m_nSrcWords = 1;
-			}
-		}
-		else
-		{
-			if (IsMember(line,adaptionMarker,nOffset) || nOffset >= 0)
-			{
-				// an adaptation member exists for this key, so get the KB updated
-				// with this association provided a valid key was constructed
-				if (bKeyDefined)
-				{
-					int adaptionLen = line.Length();
-					adaptionLen -= (4 + nOffset); // \ge followed by a space = 4 characters,
-												  // nOffset takes care of any leading spaces
-					if (adaptionLen > 0)
-					{
-						adaption = line.Right(adaptionLen);
-					}
-					else
-					{
-						adaption.Empty();
-					}
-
-					// store the association in the KB, provided it is not already there
-					if (gbIsGlossing)
-					{
-						if (!IsAlreadyInKB(1,key,adaption))
-							// adaption parameter is assumed to be a gloss if glossing is ON
-							StoreText(pKB,pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
-													// TRUE means "allow empty string save"
-					}
-					else
-					{
-						if (!IsAlreadyInKB(pSrcPhrase->m_nSrcWords,key,adaption))
-							StoreText(pKB,pSrcPhrase,adaption,TRUE); // BEW 27Jan09, 
-													// TRUE means "allow empty string save"
-					}
-
-					// prepare for another adaptation (or gloss) for this key
-					pSrcPhrase->m_adaption.Empty();
-					adaption.Empty();
-				}
-			}
-			else
-			{
-				// it's neither a key nor an adaption (or gloss),
-				// so probably a blank line - just ignore it
-				;
-			}
-		}
-	}
-	// process the last line here ???
-	delete pSrcPhrase;
-}
-
-int CAdapt_ItView::CountSourceWords(wxString& rStr)
-{
-	int len = rStr.Length();
-	if (len == 0)
-		return 0;
-
-	// remove any final spaces
-	wxString reverse = rStr;
-	reverse = MakeReverse(reverse);
-	wxChar ch = _T(' ');
-a:	int nFound = reverse.Find(ch);
-	if (nFound == 0)
-	{
-		// found one, so remove it and iterate
-		reverse = reverse.Right(len-1);
-		len = reverse.Length();
-		goto a;
-	}
-	else
-	{
-		// restore correct order
-		reverse = MakeReverse(reverse);
-	}
-
-	// remove initial spaces, if any
-	len = reverse.Length();
-b:	nFound = reverse.Find(ch);
-	if (nFound == 0)
-	{
-		// found one, so remove it and iterate
-		reverse = reverse.Right(len-1);
-		len = reverse.Length();
-		goto b;
-	}
-
-	rStr = reverse; // updates string in the caller, so it has 
-					// no trailing nor leading spaces
-
-	if (rStr.IsEmpty())
-	{
-		// if it was only spaces, we have no valid string
-		return 0;
-	}
-
-	// now parse words
-	int count = 1;
-	len = reverse.Length();
-c:	nFound = reverse.Find(ch);
-	if (nFound > 0)
-	{
-		// found a space, so must be an additional word
-		count++; // count it
-
-		// reduce reverse by one word
-		reverse = reverse.Right(len-nFound-1);
-
-		// there might be a sequence of spaces, so skip any 
-		// leading spaces on the reduced string
-d:		nFound = reverse.Find(ch);
-		if (nFound == 0)
-		{
-			reverse = reverse.Right(len-1);
-			len = reverse.Length();
-			goto d;
-		}
-		len = reverse.Length();
-		goto c;
-	}
-	else
-		return count;
-}
-
-bool CAdapt_ItView::IsMember(wxString& rLine, wxString& rMarker, int& rOffset)
-{
-	if (rLine.IsEmpty())
-	{
-		rOffset = -1;
-		return FALSE;
-	}
-	int nFound = rLine.Find(rMarker);
-	rOffset = nFound;
-	if (nFound == 0)
-		return TRUE;
-	else
-		return FALSE;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -22089,10 +20338,10 @@ void CAdapt_ItView::OnButtonNoAdapt(wxCommandEvent& event)
     // done - otherwise, no store would be done for the empty adaptation 
 	bool bOK;
 	if (gbIsGlossing)
-		bOK = StoreText(pApp->m_pGlossingKB,pCurPile->GetSrcPhrase(),
+		bOK = pApp->m_pGlossingKB->StoreText(pCurPile->GetSrcPhrase(),
 						pApp->m_targetPhrase,TRUE);
 	else
-		bOK = StoreText(pApp->m_pKB,pCurPile->GetSrcPhrase(),
+		bOK = pApp->m_pKB->StoreText(pCurPile->GetSrcPhrase(),
 						pApp->m_targetPhrase,TRUE);
 
 	// layout the strips
@@ -24975,8 +23224,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 						if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
 						bool bOK;
-						bOK = StoreText(pApp->m_pGlossingKB,
-								pApp->m_pActivePile->GetSrcPhrase(),pApp->m_targetPhrase);
+						bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
+															pApp->m_targetPhrase);
 					}
 					else
 					{
@@ -24998,8 +23247,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 							pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 						gbInhibitLine4StrCall = TRUE;
 						bool bOK;
-						bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase(),
-										pApp->m_targetPhrase);
+						bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
+															pApp->m_targetPhrase);
 						gbInhibitLine4StrCall = FALSE;
 					}
 				}
@@ -25018,8 +23267,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 											pApp->m_targetPhrase);
 					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry)
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasGlossingKBEntry = FALSE;
-					bOK = StoreText(pApp->m_pGlossingKB,pApp->m_pActivePile->GetSrcPhrase(),
-									pApp->m_targetPhrase);
+					bOK = pApp->m_pGlossingKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
+														pApp->m_targetPhrase);
 				}
 				else // is adapting
 				{
@@ -25034,8 +23283,8 @@ void CAdapt_ItView::DoConditionalStore(bool bOnlyWithinSpan)
 					if (pRefStr == NULL && pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry)
 						pApp->m_pActivePile->GetSrcPhrase()->m_bHasKBEntry = FALSE;
 					gbInhibitLine4StrCall = TRUE;
-					bOK = StoreText(pApp->m_pKB,pApp->m_pActivePile->GetSrcPhrase(),
-									pApp->m_targetPhrase);
+					bOK = pApp->m_pKB->StoreText(pApp->m_pActivePile->GetSrcPhrase(),
+														pApp->m_targetPhrase);
 					gbInhibitLine4StrCall = FALSE;
 				}
 
@@ -28296,7 +26545,7 @@ void CAdapt_ItView::OnAdvancedEnableglossing(wxCommandEvent& WXUNUSED(event))
 		if (!(pApp->m_pTargetBox->m_bAbandonable || pApp->m_targetPhrase.IsEmpty()))
 		{
 			// we can assume no errors for StoreTest call
-			bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,pApp->m_targetPhrase);
+			bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 		}
 
 		// if the active location is within a retranslation, we can't leave the box there
@@ -28490,7 +26739,7 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 			if (gbRemovePunctuationFromGlosses)
 				RemovePunctuation(GetDocument(),&pApp->m_targetPhrase,from_target_text);
 			// assume no errors
-			bOK = StoreText(pApp->m_pGlossingKB,pSrcPhrase,pApp->m_targetPhrase);
+			bOK = pApp->m_pGlossingKB->StoreText(pSrcPhrase,pApp->m_targetPhrase);
 		}
 
 		// now the adaptation stuff
@@ -28557,7 +26806,7 @@ void CAdapt_ItView::OnCheckIsGlossing(wxCommandEvent& WXUNUSED(event))
 				RemovePunctuation(GetDocument(),&str,from_target_text);
 				pSrcPhrase->m_adaption = str;
 				MakeLineFourString(pSrcPhrase,pApp->m_targetPhrase);
-				bOK = StoreText(pApp->m_pKB,pSrcPhrase,str);
+				bOK = pApp->m_pKB->StoreText(pSrcPhrase,str);
 			}
 		}
 		// now the glossing stuff
@@ -29187,198 +27436,6 @@ bool CAdapt_ItView::SetCaseParameters(wxString& strText, bool bIsSrcText)
 		}
 	}
 	return TRUE;
-}
-
-// in this function, the keyStr parameter will always be a source string; the caller must
-// determine which particular map is to be looked up and provide it's pointer as the first
-// parameter; and if the lookup succeeds, pTU is the associated CTargetUnit instance's
-// poiner. This function, as the name suggests, has the smarts for AutoCapitalization being
-// On or Off.
-// WX Note: Changed second parameter to CTargetUnit*& pTU.
-// BEW 12Apr10, no changes needed for support of doc version 5
-bool CAdapt_ItView::AutoCapsLookup(MapKeyStringToTgtUnit* pMap, CTargetUnit*& pTU,
-								   wxString keyStr)
-{
-	wxString saveKey;
-	gbMatchedKB_UCentry = FALSE; // ensure it has default value 
-								 // before every first lookup
-	MapKeyStringToTgtUnit::iterator iter;
-
-    // the test of gbCallerIsRemoveButton is to prevent a wrong change to lower case if
-    // autocapitalization is on and the user clicked in the KB editor, or in Choose
-    // Translation dlg, the Remove button; otherwise the wrong entry could get deleted
-    // and the data made invalid
-	if (gbAutoCaps && !gbCallerIsRemoveButton)
-	{
-		if (gbNoSourceCaseEquivalents)
-			// this is equivalent to gbAutoCaps being off, so just do a normal lookup
-			goto a;
-
-		// auto capitalization is ON, so determine the relevant parameters etc.
-		bool bNoError = SetCaseParameters(keyStr); // extra param is TRUE since
-												   // it is source text
-		if (!bNoError)
-			goto a; // keyStr must have been empty (impossible) or the user
-					// did not define any source language case correspondences
-		if (gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-		{
-			// we will have to change the case for the first lookup attempt
-			saveKey = keyStr; // save for an upper case lookup 
-							  // if the first lookup fails
-			// make the first character of keyStr be the appropriate lower case one
-			keyStr.SetChar(0,gcharSrcLC); // gcharSrcLC is set within the 
-										  // SetCaseParameters() call
-			// do the lower case lookup
-			iter = pMap->find(keyStr);
-			if (iter != pMap->end())
-			{
-				pTU = iter->second; // we have a match, pTU now points 
-									// to a CTargetUnit instance
-				wxASSERT(pTU != NULL);
-				return TRUE;
-			}
-            // if we get here, then the match failed, so just in case there is an upper
-            // case entry in the knowledge base (from when autocapitalization was OFF),
-            // look it up; if there, then set the gbMatchedKB_UCentry to TRUE so the caller
-            // will know that no restoration of upper case will be required for the gloss
-            // or adaptation that it returns
-			iter = pMap->find(saveKey);
-			if (iter != pMap->end())
-			{
-				pTU = iter->second; // we have a match, pTU now points 
-									// to a CTargetUnit instance
-				wxASSERT(pTU != NULL);
-                // found a match, so we can assume its refStrings contain upper case
-                // initial strings already
-				gbMatchedKB_UCentry = TRUE;
-				return TRUE;
-			}
-			else
-			{
-				pTU = (CTargetUnit*)NULL;
-				return FALSE;
-			}
-		}
-		else
-		{
-			// first letter of source word or phrase is lower case, so do a normal lookup
-			goto a;
-		}
-	}
-	else
-	{
-		// auto capitalization is OFF, so just do a lookup with the keyStr as supplied
-a:		iter = pMap->find(keyStr);
-		if (iter != pMap->end())
-		{
-			pTU = iter->second;
-			wxASSERT(pTU != NULL);
-			return TRUE;
-		}
-		else
-		{
-			pTU = (CTargetUnit*)NULL;
-			return FALSE;
-		}
-	}
-#ifndef __VISUALC__
-	return FALSE; // unreachable according to VC7.1, but gcc says it is needed!!!
-#endif
-}
-/* now in CKB as a private function
-// the "adaptation" parameter will contain an adaptation if gbIsGlossing is FALSE, or if
-// TRUE if will contain a gloss; and also depending on the same flag, the pTgtUnit will have
-// come from either the adaptation KB or the glossing KB.
-CRefString* CAdapt_ItView::AutoCapsFindRefString(CTargetUnit* pTgtUnit,wxString adaptation)
-{
-	CRefString* pRefStr = (CRefString*)NULL;
-	TranslationsList* pList = pTgtUnit->m_pTranslations;
-	wxASSERT(pList);
-	bool bNoError;
-	if (gbAutoCaps && gbSourceIsUpperCase && !gbMatchedKB_UCentry && !adaptation.IsEmpty())
-	{
-		// possibly we may need to change the case of first character of 'adaptation'
-		bNoError = SetCaseParameters(adaptation, FALSE); // FALSE means it is an
-														 // adaptation or a gloss
-		if (bNoError && gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
-		{
-			// a change to lower case is called for; 
-			// otherwise leave 'adaptation' unchanged
-			adaptation.SetChar(0,gcharNonSrcLC);
-		}
-	}
-	else
-	{
-        // either autocapitalization is OFF, or the source text starts with a lower case
-        // letter, or the first lookup for the key failed but an upper case lookup
-        // succeeded (in which case we assume its a old style entry in the KB) or the
-        // adaptation string is empty - any of these conditions require that no change of
-        // case be done
-		;
-	}
-
-	TranslationsList::Node *pos = pList->GetFirst();
-	while(pos != NULL)
-	{
-		pRefStr = (CRefString*)pos->GetData();
-		pos = pos->GetNext();
-		wxASSERT(pRefStr != NULL);
-		if (pRefStr->m_translation == adaptation)
-			return pRefStr; // we found it
-		else
-		{
-			if (adaptation.IsEmpty())
-			{
-				// it might be a <Not In KB> source phrase, check it out
-				if (pRefStr->m_translation == _T("<Not In KB>"))
-					return pRefStr; // we return the pointer to this too
-			}
-		}
-	}
-	// finding it failed so return NULL
-	return (CRefString*)NULL;
-}
-*/
-// pass in a source string, to be converted to initial lower case;
-// or a gloss or adaptation string which is to be saved to a KB, and internally
-// have all the smarts for determining if a change of case for first character
-// is needed, and return the string, the same or suitably ammended, back to the
-// caller. bIsSrc parameter is TRUE by default.
-// BEW 12Apr10, no changes needed for support of _DOVCER5
-wxString CAdapt_ItView::AutoCapsMakeStorageString(wxString str, bool bIsSrc)
-{
-	bool bNoError = TRUE;
-	if (str.IsEmpty())
-		return str;
-
-	// gbMatchedKB_UCentry is never relevant to storing when gbAutoCaps is on,
-	// even if the former is TRUE, we'll still want to convert the source string
-	// to have initial lower case when storing
-	if (bIsSrc)
-	{
-		// SetCaseParameters( ) will already have been called, 
-		// so convert if required to do so
-		if (gbAutoCaps && gbSourceIsUpperCase && (gcharSrcLC != _T('\0')))
-		{
-			str.SetChar(0,gcharSrcLC);
-		}
-	}
-	else
-	{
-		// must be a gloss or adaptation string
-		if (gbAutoCaps && gbSourceIsUpperCase)
-		{
-			bNoError = SetCaseParameters(str,FALSE);
-			if (!bNoError)
-				goto a;
-			if (gbNonSourceIsUpperCase && (gcharNonSrcLC != _T('\0')))
-			{
-				// we need to make it start with lower case for storage in the KB
-				str.SetChar(0,gcharNonSrcLC);
-			}
-		}
-	}
-a:	return str;
 }
 
 void CAdapt_ItView::OnAdvancedDelay(wxCommandEvent& WXUNUSED(event))
