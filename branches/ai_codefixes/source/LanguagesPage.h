@@ -73,6 +73,8 @@ public:
 	void OnUILanguage(wxCommandEvent& WXUNUSED(event));
     
 	//// implement wxWizardPage functions
+	void OnEditSourceLanguageName(wxCommandEvent& WXUNUSED(event)); // whm added 14May10
+	void OnEditTargetLanguageName(wxCommandEvent& WXUNUSED(event)); // whm added 14May10
 	void OnWizardCancel(wxWizardEvent& WXUNUSED(event));
 	void OnBtnLookupCodes(wxCommandEvent& WXUNUSED(event));// whm added 10May10
 	void OnWizardPageChanging(wxWizardEvent& event);

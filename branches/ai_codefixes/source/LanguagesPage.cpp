@@ -83,7 +83,9 @@ IMPLEMENT_DYNAMIC_CLASS( CLanguagesPage, wxWizardPage )
 // event handler table
 BEGIN_EVENT_TABLE(CLanguagesPage, wxWizardPage)
 	EVT_INIT_DIALOG(CLanguagesPage::InitDialog)// not strictly necessary for dialogs based on wxDialog
-    EVT_WIZARD_PAGE_CHANGING(-1, CLanguagesPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
+	EVT_TEXT(IDC_SOURCE_LANGUAGE,CLanguagesPage::OnEditSourceLanguageName)
+	EVT_TEXT(IDC_TARGET_LANGUAGE,CLanguagesPage::OnEditTargetLanguageName)
+	EVT_WIZARD_PAGE_CHANGING(-1, CLanguagesPage::OnWizardPageChanging) // handles MFC's OnWizardNext() and OnWizardBack
 	EVT_BUTTON(ID_BUTTON_LOOKUP_CODES, CLanguagesPage::OnBtnLookupCodes) // whm added 10May10
     EVT_WIZARD_CANCEL(-1, CLanguagesPage::OnWizardCancel)
 END_EVENT_TABLE()
@@ -216,11 +218,11 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	//InitDialog() is not virtual, no call needed to a base class
 
 	// Load the temp member data into text controls.
-	pSrcBox->SetValue(tempSourceName);
+	pSrcBox->ChangeValue(tempSourceName);
 	pSrcBox->SetFocus(); // start with focus on the Source edit box
-	pTgtBox->SetValue(tempTargetName);
-	pSrcLangCodeBox->SetValue(tempSourceLangCode); // whm added 10May10
-	pTgtLangCodeBox->SetValue(tempTargetLangCode); // whm added 10May10
+	pTgtBox->ChangeValue(tempTargetName);
+	pSrcLangCodeBox->ChangeValue(tempSourceLangCode); // whm added 10May10
+	pTgtLangCodeBox->ChangeValue(tempTargetLangCode); // whm added 10May10
 	// Note: tempSfmOnlyAfterNewLines is initialized in constructor above which happens only
 	// once when the languages page is created in the App
 	pSfmOnlyAfterNLCheckBox->SetValue(tempSfmOnlyAfterNewlines);
@@ -242,6 +244,27 @@ void CLanguagesPage::InitDialog(wxInitDialogEvent& WXUNUSED(event)) // InitDialo
 	gpApp->SetFontAndDirectionalityForDialogControl(gpApp->m_pNavTextFont, pSrcBox, pTgtBox, 
 								NULL, NULL, gpApp->m_pDlgSrcFont);
 	#endif
+}
+
+void CLanguagesPage::OnEditSourceLanguageName(wxCommandEvent& WXUNUSED(event)) // whm added 14May10
+{
+	// user is editing the Source Language Name which invalidates any code value
+	// conatined within the Source Language Code edit box. Blank out the code string
+	// from the Source Language Code edit box.
+	tempSourceLangCode.Empty();
+	if (!pSrcLangCodeBox->GetValue().IsEmpty())
+		pSrcLangCodeBox->ChangeValue(_T(""));
+
+}
+
+void CLanguagesPage::OnEditTargetLanguageName(wxCommandEvent& WXUNUSED(event)) // whm added 14May10
+{
+	// user is editing the Target Language Name which invalidates any code value
+	// conatined within the Target Language Code edit box. Blank out the code string
+	// from the Target Language Code edit box.
+	tempTargetLangCode.Empty();
+	if (!pTgtLangCodeBox->GetValue().IsEmpty())
+	pTgtLangCodeBox->ChangeValue(_T(""));
 }
 	
 void CLanguagesPage::OnUILanguage(wxCommandEvent& WXUNUSED(event))
