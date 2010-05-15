@@ -1157,6 +1157,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	CBString guidForThisLexItem;
 	CBString srcLangCode;
 	CBString tgtLangCode;
+	CBString tempCBstr; // use for calling InsertEntities()
 
 	if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
 	{
@@ -1325,10 +1326,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					composeXmlStr += guidForThisLexItem;
 					composeXmlStr += "\" id=\"";
 #ifdef _UNICODE
-					composeXmlStr += m_pApp->Convert16to8(baseKey);
+					tempCBstr = m_pApp->Convert16to8(baseKey);
 #else
-					composeXmlStr += baseKey.c_str(); // check this use of .c_str()???
+					tempCBstr = baseKey.c_str(); // check this use of .c_str()???
 #endif
+					InsertEntities(tempCBstr);
+					composeXmlStr += tempCBstr;
 					composeXmlStr += "-";
 					composeXmlStr += guidForThisLexItem;
 					composeXmlStr += "\">";
@@ -1344,10 +1347,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					composeXmlStr += indent8sp;
 					composeXmlStr += "<text>";
 #ifdef _UNICODE
-					composeXmlStr += m_pApp->Convert16to8(baseKey);
+					tempCBstr = m_pApp->Convert16to8(baseKey);
 #else
-					composeXmlStr += baseKey.c_str(); // check this use of .c_str()???
+					tempCBstr = baseKey.c_str(); // check this use of .c_str()???
 #endif
+					InsertEntities(tempCBstr);
+					composeXmlStr += tempCBstr;
 					composeXmlStr += "</text>";
 					composeXmlStr += "\r\n";
 					composeXmlStr += indent6sp;
@@ -1390,10 +1395,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					composeXmlStr += indent10sp;
 					composeXmlStr += "<text>";
 #ifdef _UNICODE
-					composeXmlStr += m_pApp->Convert16to8(baseGloss);
+					tempCBstr = m_pApp->Convert16to8(baseGloss);
 #else
-					composeXmlStr += baseGloss.c_str(); // check this use of .c_str()???
+					tempCBstr = baseGloss.c_str(); // check this use of .c_str()???
 #endif
+					InsertEntities(tempCBstr);
+					composeXmlStr += tempCBstr;
 					composeXmlStr += "</text>";
 					composeXmlStr += "\r\n";
 					composeXmlStr += indent8sp;
@@ -1444,10 +1451,12 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						composeXmlStr += indent10sp;
 						composeXmlStr += "<text>";
 	#ifdef _UNICODE
-						composeXmlStr += m_pApp->Convert16to8(baseGloss);
+						tempCBstr = m_pApp->Convert16to8(baseGloss);
 	#else
-						composeXmlStr += baseGloss.c_str(); // check this use of .c_str()???
+						tempCBstr = baseGloss.c_str(); // check this use of .c_str()???
 	#endif
+						InsertEntities(tempCBstr);
+						composeXmlStr += tempCBstr;
 						composeXmlStr += "</text>";
 						composeXmlStr += "\r\n";
 						composeXmlStr += indent8sp;
