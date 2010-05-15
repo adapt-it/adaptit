@@ -36,6 +36,7 @@
 
 #include <wx/hashmap.h>
 #include <wx/datstrm.h> // needed for wxDataOutputStream() and wxDataInputStream()
+#include <wx/progdlg.h> // for wxProgressDialog
 
 #include "Adapt_It.h"
 #include "Adapt_ItView.h"
@@ -49,6 +50,7 @@
 #include "LanguageCodesDlg.h"
 #include "BString.h"
 #include "XML.h"
+#include "WaitDlg.h"
 
 
 // Define type safe pointer lists
@@ -1251,7 +1253,71 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		DoWrite(*pFile,composeXmlStr);
 	}
 
+	// whm added 14May10 Put up a progress indicator since large KBs can take a noticeable while to export
+	// as xml
+	// To get a better progress indicator first get a count of the KB items/entries to be exported
+	int nTotal = 0;
+	int numWords_sim;
+	MapKeyStringToTgtUnit::iterator iter_sim;
+	CTargetUnit* pTU_sim = 0;
+	for (numWords_sim = 1; numWords_sim <= MAX_WORDS; numWords_sim++)
+	{
+		if (gbIsGlossing && numWords_sim > 1)
+			continue; // when glossing we want to consider only the first map, the others
+					  // are all empty
+		if (m_pMap[numWords_sim-1]->size() == 0) 
+			continue;
+		else
+		{
+			iter_sim = m_pMap[numWords_sim-1]->begin();
+			do 
+			{
+				nTotal++; // add number of <entry>s, i.e., <lexical-unit>s
+				pTU_sim = (CTargetUnit*)iter_sim->second; 
+				wxASSERT(pTU_sim != NULL);
+
+				nTotal += pTU_sim->m_pTranslations->GetCount(); // add number of <sense>s
+
+
+				iter_sim++;
+
+			} while (iter_sim != m_pMap[numWords_sim-1]->end());
+		}
+	}
+	
+
+
+#ifdef __WXMSW__
+	wxString progMsg = _("%d of %d Total entries and senses");
+	wxString msgDisplayed = progMsg.Format(progMsg,1,nTotal);
+	wxProgressDialog progDlg(_("Exporting the Knowledge Base in LIFT format"),
+							msgDisplayed,
+							nTotal,    // range
+							(wxWindow*)m_pApp->GetMainFrame(),   // parent
+							//wxPD_CAN_ABORT |
+							//wxPD_CAN_SKIP |
+							wxPD_APP_MODAL |
+							// wxPD_AUTO_HIDE | -- try this as well
+							wxPD_ELAPSED_TIME |
+							wxPD_ESTIMATED_TIME |
+							wxPD_REMAINING_TIME
+							| wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+							);
+#else
+	// wxProgressDialog tends to hang on wxGTK so I'll just use the simpler CWaitDlg
+	// notification on wxGTK and wxMAC
+	// put up a Wait dialog - otherwise nothing visible will happen until the operation is done
+	CWaitDlg waitDlg(gpApp->GetMainFrame());
+	// indicate we want the reading file wait message
+	waitDlg.m_nWaitMsgNum = 14;	// 0 "Please wait while Adapt It exports the KB..."
+	waitDlg.Centre();
+	waitDlg.Show(TRUE);
+	waitDlg.Update();
+	// the wait dialog is automatically destroyed when it goes out of scope below.
+#endif
+	
 	int numWords;
+	int counter = 0;
 	MapKeyStringToTgtUnit::iterator iter;
 	CTargetUnit* pTU = 0;
 	CRefString* pRefStr;
@@ -1265,7 +1331,9 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 		else
 		{
 			iter = m_pMap[numWords-1]->begin();
-			do {
+			do 
+			{
+				counter++;
 				outputSfmStr.Empty(); // clean it out ready for next "record"
 				outputLIFTStr.Empty(); // clean it out ready for next "record"
 				key = iter->first; 
@@ -1294,6 +1362,8 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 				else
 					posRef = pTU->m_pTranslations->GetFirst(); 
 				wxASSERT(posRef != 0);
+
+				counter += pTU->m_pTranslations->GetCount();
 
 				// if control gets here, there will be at least one non-null posRef and so
 				// we can now unilaterally write out the key or basekey data. 
@@ -1470,6 +1540,14 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 						composeXmlStr += "\r\n";
 						outputLIFTStr += composeXmlStr; //DoWrite(*pFile,composeXmlStr);
 					}
+#ifdef __WXMSW__
+					// update the progress bar every 20th iteration
+					if (counter % 200 == 0)
+					{
+						msgDisplayed = progMsg.Format(progMsg,counter,nTotal);
+						progDlg.Update(counter,msgDisplayed);
+					}
+#endif
 				}
 
 				if (kbExportSaveAsType == KBExportSaveAsLIFT_XML)
@@ -1510,6 +1588,14 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 					}
 				}
 
+#ifdef __WXMSW__
+				// update the progress bar every 200th iteration
+				if (counter % 200 == 0)
+				{
+					msgDisplayed = progMsg.Format(progMsg,counter,nTotal);
+					progDlg.Update(counter,msgDisplayed);
+				}
+#endif
 				// point at the next CTargetUnit instance, or at end() (which is NULL) if
 				// completeness has been obtained in traversing the map 
 				iter++;
