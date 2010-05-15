@@ -1254,7 +1254,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 	}
 
 	// whm added 14May10 Put up a progress indicator since large KBs can take a noticeable while to export
-	// as xml
+	// as xml.
 	// To get a better progress indicator first get a count of the KB items/entries to be exported
 	int nTotal = 0;
 	int numWords_sim;
@@ -1290,7 +1290,7 @@ void CKB::DoKBExport(wxFile* pFile, enum KBExportSaveAsType kbExportSaveAsType)
 #ifdef __WXMSW__
 	wxString progMsg = _("%d of %d Total entries and senses");
 	wxString msgDisplayed = progMsg.Format(progMsg,1,nTotal);
-	wxProgressDialog progDlg(_("Exporting the Knowledge Base in LIFT format"),
+	wxProgressDialog progDlg(_("Exporting the KB in LIFT format"),
 							msgDisplayed,
 							nTotal,    // range
 							(wxWindow*)m_pApp->GetMainFrame(),   // parent
